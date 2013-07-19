@@ -1,0 +1,2 @@
+deconz-rest-plugin
+==================
