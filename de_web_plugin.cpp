@@ -2384,6 +2384,13 @@ void DeRestPluginPrivate::setAttributeColorXy(LightNode *lightNode)
     }
 }
 
+/*! Shall be called whenever the user did something which resulted in a over the air request.
+ */
+void DeRestPluginPrivate::userActivity()
+{
+    idleLastActivity = 0;
+}
+
 /*! Updates the enhanced hue attribute in the local node cache.
  */
 void DeRestPluginPrivate::setAttributeEnhancedHue(LightNode *lightNode)
@@ -2501,9 +2508,18 @@ void DeRestPlugin::nodeEvent(int event, const deCONZ::Node *node)
  */
 void DeRestPlugin::idleTimerFired()
 {
-    d->idleLimit--;
     d->idleTotalCounter++;
     d->idleLastActivity++;
+
+    if (d->idleLimit > 0)
+    {
+        d->idleLimit--;
+    }
+
+    if (d->idleLastActivity < IDLE_USER_LIMIT)
+    {
+        return;
+    }
 
     if (d->idleLimit <= 0)
     {
@@ -2528,6 +2544,7 @@ void DeRestPlugin::idleTimerFired()
                 }
                 i->setLastRead(d->idleTotalCounter);
                 DBG_Printf(DBG_INFO, "Force read attributes for node %s\n", qPrintable(i->name()));
+                break;
             }
         }
 
@@ -2551,6 +2568,7 @@ void DeRestPlugin::refreshAll()
     }
 
     d->idleLimit = 0;
+    d->idleLastActivity = IDLE_USER_LIMIT;
     d->runningTasks.clear();
     d->tasks.clear();
 }

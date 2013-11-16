@@ -43,8 +43,9 @@
 #define ERR_BRIDGE_GROUP_TABLE_FULL    301
 #define ERR_DEVICE_GROUP_TABLE_FULL    302
 
-#define IDLE_LIMIT 300
-#define IDLE_READ_LIMIT 900
+#define IDLE_LIMIT 30
+#define IDLE_READ_LIMIT 120
+#define IDLE_USER_LIMIT 60
 
 #define MAX_UNLOCK_GATEWAY_TIME 600
 #define PERMIT_JOIN_SEND_INTERVAL (1000 * 160)
@@ -398,6 +399,7 @@ public Q_SLOTS:
     void openClientTimerFired();
     void clientSocketDestroyed();
     void saveDatabaseTimerFired();
+    void userActivity();
 
 public:
     bool isInNetwork();
