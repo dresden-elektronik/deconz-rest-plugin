@@ -468,7 +468,7 @@ void DeRestPluginPrivate::loadLightNodeFromDb(LightNode *lightNode)
                 {
                     DBG_Printf(DBG_INFO, "detected already used id %s, force generate new id\n", qPrintable(i->id()));
                     lightNode->setId("");
-                    needSaveDatabase = true;
+                    queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
                 }
             }
         }
@@ -690,6 +690,12 @@ void DeRestPluginPrivate::saveDb()
         return;
     }
 
+
+    if (saveDatabaseItems == 0)
+    {
+        return;
+    }
+
     int rc;
     char *errmsg;
     QElapsedTimer measTimer;
@@ -720,6 +726,7 @@ void DeRestPluginPrivate::saveDb()
     DBG_Printf(DBG_INFO, "save zll database\n");
 
     // dump authentification
+    if (saveDatabaseItems & DB_AUTH)
     {
         std::vector<ApiAuth>::iterator i = apiAuths.begin();
         std::vector<ApiAuth>::iterator end = apiAuths.end();
@@ -742,6 +749,8 @@ void DeRestPluginPrivate::saveDb()
                 }
             }
         }
+
+        saveDatabaseItems &= ~DB_AUTH;
     }
 
     // dump config
@@ -753,6 +762,7 @@ void DeRestPluginPrivate::saveDb()
     gwConfig["gwpassword"] = gwAdminPasswordHash;
     gwConfig["uuid"] = gwUuid;
 
+    if (saveDatabaseItems & DB_CONFIG)
     {
         QVariantMap::iterator i = gwConfig.begin();
         QVariantMap::iterator end = gwConfig.end();
@@ -778,9 +788,12 @@ void DeRestPluginPrivate::saveDb()
                 }
             }
         }
+
+        saveDatabaseItems &= ~DB_CONFIG;
     }
 
     // save nodes
+    if (saveDatabaseItems & DB_LIGHTS)
     {
         std::vector<LightNode>::const_iterator i = nodes.begin();
         std::vector<LightNode>::const_iterator end = nodes.end();
@@ -804,9 +817,12 @@ void DeRestPluginPrivate::saveDb()
                 }
             }
         }
+
+        saveDatabaseItems &= ~DB_LIGHTS;
     }
 
     // save/delete groups and scenes
+    if (saveDatabaseItems & (DB_GROUPS | DB_SCENES))
     {
         std::vector<Group>::const_iterator i = groups.begin();
         std::vector<Group>::const_iterator end = groups.end();
@@ -896,10 +912,11 @@ void DeRestPluginPrivate::saveDb()
                 }
             }
         }
+
+        saveDatabaseItems &= ~(DB_GROUPS | DB_SCENES);
     }
 
     sqlite3_exec(db, "COMMIT", 0, 0, 0);
-    closeDb();
     DBG_Printf(DBG_INFO, "database saved in %ld ms\n", measTimer.elapsed());
 }
 
@@ -917,4 +934,41 @@ void DeRestPluginPrivate::closeDb()
     }
 
     DBG_Assert(db == 0);
+}
+
+/*! Request saving of database.
+   \param items - bitmap of DB_ flags
+   \param msec - delay in milliseconds
+ */
+void DeRestPluginPrivate::queSaveDb(int items, int msec)
+{
+    saveDatabaseItems |= items;
+
+    if (databaseTimer->isActive())
+    {
+        // prefer shorter interval
+        if (databaseTimer->interval() > msec)
+        {
+            databaseTimer->stop();
+            databaseTimer->start(msec);
+        }
+
+        return;
+    }
+
+    databaseTimer->start(msec);
+}
+
+/*! Timer handler for storing persistent data.
+ */
+void DeRestPluginPrivate::saveDatabaseTimerFired()
+{
+    if (saveDatabaseItems)
+    {
+        openDb();
+        saveDb();
+        closeDb();
+
+        DBG_Assert(saveDatabaseItems == 0);
+    }
 }

@@ -58,7 +58,6 @@ public Q_SLOTS:
     void startReadTimer(int delay);
     void stopReadTimer();
     void checkReadTimerFired();
-    void saveDatabaseTimerFired();
 
 private:
     void taskHandler(Event event);
@@ -66,7 +65,6 @@ private:
     void handleStateIdle(Event event);
 
     QTimer *m_idleTimer;
-    QTimer *m_saveDatabaseTimer;
     QTimer *m_readAttributesTimer;
     State m_state;
     DeRestWidget *m_w;

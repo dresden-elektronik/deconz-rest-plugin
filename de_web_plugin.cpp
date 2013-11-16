@@ -78,8 +78,14 @@ QString ApiRequest::apikey() const
 DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     QObject(parent)
 {
+    databaseTimer = new QTimer(this);
+    databaseTimer->setSingleShot(true);
+
+    connect(databaseTimer, SIGNAL(timeout()),
+            this, SLOT(saveDatabaseTimerFired()));
+
     db = 0;
-    needSaveDatabase = false;
+    saveDatabaseItems = 0;
     sqliteDatabaseName = QDesktopServices::storageLocation(QDesktopServices::DataLocation);
     sqliteDatabaseName.append("/zll.db");
     idleLimit = 0;
@@ -1192,7 +1198,7 @@ void DeRestPluginPrivate::foundGroup(uint16_t groupId)
     closeDb();
     if (group.name().isEmpty()) {
         group.setName(QString("Group %1").arg(group.id()));
-        needSaveDatabase = true;
+        queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
     }
     groups.push_back(group);
     updateEtag(gwConfigEtag);
@@ -1373,7 +1379,7 @@ void DeRestPluginPrivate::foundScene(Group *group, uint8_t sceneId)
     group->scenes.push_back(scene);
     updateEtag(group->etag);
     updateEtag(gwConfigEtag);
-    needSaveDatabase = true;
+    queSaveDb(DB_SCENES, DB_SHORT_SAVE_DELAY);
 }
 
 /*! Sets the name of a scene which will be saved in the database.
@@ -1396,7 +1402,7 @@ void DeRestPluginPrivate::setSceneName(Group *group, uint8_t sceneId, const QStr
         if (i->id == sceneId)
         {
             i->name = name;
-            needSaveDatabase = true;
+            queSaveDb(DB_SCENES, DB_SHORT_SAVE_DELAY);
             updateEtag(group->etag);
             break;
         }
@@ -2354,13 +2360,6 @@ DeRestPlugin::DeRestPlugin(QObject *parent) :
     connect(m_readAttributesTimer, SIGNAL(timeout()),
             this, SLOT(checkReadTimerFired()));
 
-    m_saveDatabaseTimer = new QTimer(this);
-    m_saveDatabaseTimer->setSingleShot(false);
-
-    connect(m_saveDatabaseTimer, SIGNAL(timeout()),
-            this, SLOT(saveDatabaseTimerFired()));
-
-    m_saveDatabaseTimer->start(3000);
     m_idleTimer->start(1000);
 
 #if 0

@@ -225,7 +225,7 @@ int DeRestPluginPrivate::createSchedule(const ApiRequest &req, ApiResponse &rsp)
     rsp.list.append(rspItem);
     rsp.httpStatus = HttpStatusOk;
 
-    needSaveDatabase = true;
+    queSaveDb(DB_SCHEDULES, DB_SHORT_SAVE_DELAY);
     return REQ_READY_SEND;
 }
 
@@ -296,7 +296,7 @@ int DeRestPluginPrivate::deleteSchedule(const ApiRequest &req, ApiResponse &rsp)
             rsp.httpStatus = HttpStatusOk;
 
             schedules.erase(i);
-            needSaveDatabase = true;
+            queSaveDb(DB_SCHEDULES, DB_SHORT_SAVE_DELAY);
             return REQ_NOT_HANDLED;
         }
     }

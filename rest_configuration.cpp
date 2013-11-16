@@ -155,7 +155,7 @@ int DeRestPluginPrivate::createUser(const ApiRequest &req, ApiResponse &rsp)
     if (!found)
     {
         apiAuths.push_back(auth);
-        needSaveDatabase = true;
+        queSaveDb(DB_AUTH, DB_SHORT_SAVE_DELAY);
         updateEtag(gwConfigEtag);
         DBG_Printf(DBG_INFO, "created username: %s, devicetype: %s\n", qPrintable(auth.apikey), qPrintable(auth.devicetype));
     }
@@ -438,7 +438,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
         // sync database
         gwConfig["name"] = gwName;
-        needSaveDatabase = true;
+        queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
     }
 
     if (map.contains("rfconnected")) // optional
@@ -509,7 +509,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         if (gwGroupSendDelay != milliseconds)
         {
             gwGroupSendDelay = milliseconds;
-            needSaveDatabase = true;
+            queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
             changed = true;
         }
 
@@ -568,7 +568,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
         if (minutes != gwAnnounceInterval)
         {
-            needSaveDatabase = true;
+            queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
             changed = true;
         }
 
@@ -643,7 +643,9 @@ int DeRestPluginPrivate::updateSoftware(const ApiRequest &req, ApiResponse &rsp)
 #ifdef ARCH_ARM
     if (gwUpdateVersion != GW_SW_VERSION)
     {
+        openDb();
         saveDb();
+        closeDb();
         QTimer::singleShot(5000, this, SLOT(updateSoftwareTimerFired()));
     }
 #endif // ARCH_ARM
@@ -715,7 +717,7 @@ int DeRestPluginPrivate::changePassword(const ApiRequest &req, ApiResponse &rsp)
         // take the new hash and salt it
         enc = encryptString(newhash);
         gwAdminPasswordHash = enc;
-        needSaveDatabase = true;
+        queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
 
         DBG_Printf(DBG_INFO, "Updated password hash: %s\n", qPrintable(enc));
 

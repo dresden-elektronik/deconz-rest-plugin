@@ -227,7 +227,7 @@ int DeRestPluginPrivate::createGroup(const ApiRequest &req, ApiResponse &rsp)
             updateEtag(group.etag);
             updateEtag(gwConfigEtag);
             groups.push_back(group);
-            needSaveDatabase = true;
+            queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
 
             rspItemState["id"] = group.id();
             rspItem["success"] = rspItemState;
@@ -406,7 +406,7 @@ int DeRestPluginPrivate::setGroupAttributes(const ApiRequest &req, ApiResponse &
                 {
                     group->setName(name);
                     changed = true;
-                    needSaveDatabase = true;
+                    queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
                 }
             }
             else
@@ -839,7 +839,7 @@ int DeRestPluginPrivate::deleteGroup(const ApiRequest &req, ApiResponse &rsp)
     rsp.list.append(rspItem);
     rsp.httpStatus = HttpStatusOk;
 
-    needSaveDatabase = true;
+    queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
 
     // for each node which is part of this group send a remove group request (will be unicast)
     // note: nodes which are curently switched off will not be removed!
@@ -1058,7 +1058,7 @@ int DeRestPluginPrivate::createScene(const ApiRequest &req, ApiResponse &rsp)
         group->scenes.push_back(scene);
         updateEtag(group->etag);
         updateEtag(gwConfigEtag);
-        needSaveDatabase = true;
+        queSaveDb(DB_SCENES, DB_SHORT_SAVE_DELAY);
     }
 
     if (!storeScene(group, scene.id))
@@ -1221,7 +1221,7 @@ int DeRestPluginPrivate::setSceneAttributes(const ApiRequest &req, ApiResponse &
                         i->name = name;
                         updateEtag(group->etag);
                         updateEtag(gwConfigEtag);
-                        needSaveDatabase = true;
+                        queSaveDb(DB_SCENES, DB_SHORT_SAVE_DELAY);
                     }
 
                     rspItemState[QString("/groups/%1/scenes/%2/name").arg(gid).arg(sid)] = name;
@@ -1447,6 +1447,7 @@ int DeRestPluginPrivate::deleteScene(const ApiRequest &req, ApiResponse &rsp)
 
     updateEtag(group->etag);
     updateEtag(gwConfigEtag);
+    queSaveDb(DB_SCENES, DB_SHORT_SAVE_DELAY);
 
     rspItemState["id"] = QString::number(scene.id);
     rspItem["success"] = rspItemState;

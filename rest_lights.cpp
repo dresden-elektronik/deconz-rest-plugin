@@ -624,7 +624,7 @@ int DeRestPluginPrivate::renameLight(const ApiRequest &req, ApiResponse &rsp)
                 lightNode->setName(name);
                 updateEtag(gwConfigEtag);
                 updateEtag(lightNode->etag);
-                needSaveDatabase = true;
+                queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
             }
 
             QVariantMap rspItem;

@@ -55,7 +55,7 @@ void DeRestPluginPrivate::initAuthentification()
 
         gwAdminPasswordHash = encryptString(hash);
 
-        needSaveDatabase = true;
+        queSaveDb(DB_AUTH, DB_SHORT_SAVE_DELAY);
     }
 
 }
@@ -104,6 +104,7 @@ bool DeRestPluginPrivate::checkApikeyAuthentification(const ApiRequest &req, Api
     {
         if (apikey == i->apikey)
         {
+            queSaveDb(DB_AUTH, DB_LONG_SAVE_DELAY);
             return true;
         }
     }
@@ -115,7 +116,7 @@ bool DeRestPluginPrivate::checkApikeyAuthentification(const ApiRequest &req, Api
         auth.apikey = apikey;
         auth.devicetype = "unknown";
         apiAuths.push_back(auth);
-        needSaveDatabase = true;
+        queSaveDb(DB_AUTH, DB_SHORT_SAVE_DELAY);
         return true;
     }
 

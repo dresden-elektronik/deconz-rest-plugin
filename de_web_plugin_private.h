@@ -109,6 +109,17 @@
 // schedules
 #define SCHEDULE_CHECK_PERIOD 1000
 
+// save database items
+#define DB_LIGHTS      0x00000001
+#define DB_GROUPS      0x00000002
+#define DB_AUTH        0x00000004
+#define DB_CONFIG      0x00000008
+#define DB_SCENES      0x00000010
+#define DB_SCHEDULES   0x00000020
+
+#define DB_LONG_SAVE_DELAY  (5 * 60 * 1000) // 5 minutes
+#define DB_SHORT_SAVE_DELAY (5 *  1 * 1000) // 5 seconds
+
 // internet discovery
 
 // HTTP status codes
@@ -381,6 +392,7 @@ public Q_SLOTS:
     void lockGatewayTimerFired();
     void openClientTimerFired();
     void clientSocketDestroyed();
+    void saveDatabaseTimerFired();
 
 public:
     bool isInNetwork();
@@ -456,11 +468,13 @@ public:
     int getFreeLightId();
     void saveDb();
     void closeDb();
+    void queSaveDb(int items, int msec);
 
     sqlite3 *db;
-    bool needSaveDatabase;
+    int saveDatabaseItems;
     QString sqliteDatabaseName;
     std::vector<int> lightIds;
+    QTimer *databaseTimer;
 
     // authentification
     std::vector<ApiAuth> apiAuths;

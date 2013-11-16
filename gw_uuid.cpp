@@ -34,6 +34,6 @@ void DeRestPluginPrivate::generateGatewayUuid()
 
    if (!gwUuid.isEmpty())
    {
-       needSaveDatabase = true;
+       queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
    }
 }
