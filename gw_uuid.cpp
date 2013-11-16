@@ -27,7 +27,7 @@ void DeRestPluginPrivate::generateGatewayUuid()
 
 #ifdef Q_OS_LINUX
    QUuid uuid = QUuid::createUuid();
-   gwUuid = uuid.toString();
+   gwUuid = uuid.toString().replace("{", "").replace("}", "");
 #endif
 
    DBG_Assert(!gwUuid.isEmpty());

@@ -282,7 +282,7 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
         if (!val.isEmpty())
         {
             d->gwConfig["uuid"] = val;
-            d->gwUuid = val;
+            d->gwUuid = val.replace("{", "").replace("}", "");
         }
     }
 
