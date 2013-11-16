@@ -2956,7 +2956,10 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
     }
 
     stream.flush();
-    DBG_Printf(DBG_HTTP, "%s\n", qPrintable(str));
+    if (!str.isEmpty())
+    {
+        DBG_Printf(DBG_HTTP, "%s\n", qPrintable(str));
+    }
 
     return 0;
 }
