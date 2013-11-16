@@ -6,14 +6,16 @@
 
 static QString sanitizeString(QString str)
 {
-	str.replace(QLatin1String("\\"), QLatin1String("\\\\"));
-	str.replace(QLatin1String("\""), QLatin1String("\\\""));
-	str.replace(QLatin1String("\b"), QLatin1String("\\b"));
-	str.replace(QLatin1String("\f"), QLatin1String("\\f"));
-	str.replace(QLatin1String("\n"), QLatin1String("\\n"));
-	str.replace(QLatin1String("\r"), QLatin1String("\\r"));
-	str.replace(QLatin1String("\t"), QLatin1String("\\t"));
-	return QString(QLatin1String("\"%1\"")).arg(str);
+    str.replace(QString("\\"), QString("\\\\"));
+    str.replace(QString("\""), QString("\\\""));
+    str.replace(QString("\b"), QString("\\b"));
+    str.replace(QString("\f"), QString("\\f"));
+    str.replace(QString("\n"), QString("\\n"));
+    str.replace(QString("\r"), QString("\\r"));
+    str.replace(QString("\t"), QString("\\t"));
+    str.prepend("\"");
+    str.append("\"");
+    return str;
 }
 
 static QByteArray join(const QList<QByteArray> &list, const QByteArray &sep)
@@ -120,7 +122,7 @@ QByteArray Json::serialize(const QVariant &data, bool &success)
 	}
 	else if((data.type() == QVariant::String) || (data.type() == QVariant::ByteArray)) // a string or a byte array?
 	{
-		str = sanitizeString(data.toString()).toUtf8();
+        str = sanitizeString(data.toString()).toAscii();
 	}
 	else if(data.type() == QVariant::Double) // double?
 	{
@@ -145,7 +147,7 @@ QByteArray Json::serialize(const QVariant &data, bool &success)
 	else if (data.canConvert<QString>()) // can value be converted to string?
 	{
 		// this will catch QDate, QDateTime, QUrl, ...
-		str = sanitizeString(data.toString()).toUtf8();
+        str = sanitizeString(data.toString()).toAscii();
 	}
 	else
 	{

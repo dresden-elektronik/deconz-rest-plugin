@@ -2901,12 +2901,12 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
     if (!rsp.map.isEmpty())
     {
         rsp.contentType = HttpContentJson;
-        str.append(deCONZ::jsonStringFromMap(rsp.map));
+        str.append(Json::serialize(rsp.map));
     }
     else if (!rsp.list.isEmpty())
     {
         rsp.contentType = HttpContentJson;
-        str.append(deCONZ::jsonStringFromList(rsp.list));
+        str.append(Json::serialize(rsp.list));
     }
     else if (!rsp.str.isEmpty())
     {
