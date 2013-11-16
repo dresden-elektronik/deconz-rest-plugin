@@ -1744,6 +1744,11 @@ bool DeRestPluginPrivate::obtainTaskCluster(TaskItem &task, const deCONZ::ApsDat
  */
 void DeRestPluginPrivate::processTasks()
 {
+    if (!apsCtrl)
+    {
+        return;
+    }
+
     if (tasks.empty())
     {
         return;
@@ -1768,6 +1773,13 @@ void DeRestPluginPrivate::processTasks()
 
     for (; i != end; ++i)
     {
+        // drop dead unicasts
+        if (i->lightNode && !i->lightNode->isAvailable())
+        {
+            DBG_Printf(DBG_INFO, "drop request to zombie\n");
+            tasks.erase(i);
+            return;
+        }
 
         // send only one request to a destination at a time
         std::list<TaskItem>::iterator j = runningTasks.begin();
@@ -1791,7 +1803,7 @@ void DeRestPluginPrivate::processTasks()
             }
             else if (i->req.dstAddressMode() == deCONZ::ApsGroupAddress)
             {
-                DBG_Printf(DBG_INFO, "delay sending request %u to 0x%04X\n", i->req.id(), i->req.dstAddress().group());
+                DBG_Printf(DBG_INFO, "delay sending request %u to group 0x%04X\n", i->req.id(), i->req.dstAddress().group());
             }
         }
         else
@@ -1808,7 +1820,7 @@ void DeRestPluginPrivate::processTasks()
 
                     if (!group->sendTime.isValid() || (diff <= 0) || (diff > gwGroupSendDelay))
                     {
-                        if (apsCtrl->apsdeDataRequest(i->req) == 0)
+                        if (apsCtrl->apsdeDataRequest(i->req) == deCONZ::Success)
                         {
                             group->sendTime = now;
                             runningTasks.push_back(*i);
@@ -1831,11 +1843,26 @@ void DeRestPluginPrivate::processTasks()
                     tasks.erase(i);
                     return;
                 }
-                else if (apsCtrl->apsdeDataRequest(i->req) == 0)
+                else
                 {
-                    runningTasks.push_back(*i);
-                    tasks.erase(i);
-                    return;
+                    int ret = apsCtrl->apsdeDataRequest(i->req);
+
+                    if (ret == deCONZ::Success)
+                    {
+                        runningTasks.push_back(*i);
+                        tasks.erase(i);
+                        return;
+                    }
+                    else if (ret == deCONZ::ErrorNodeIsZombie)
+                    {
+                        DBG_Printf(DBG_INFO, "drop request to zombie\n");
+                        tasks.erase(i);
+                        return;
+                    }
+                    else
+                    {
+                        DBG_Printf(DBG_INFO, "enqueue APS request failed with error %d\n", ret);
+                    }
                 }
             }
         }
