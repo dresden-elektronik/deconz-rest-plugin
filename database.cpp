@@ -50,6 +50,9 @@ void DeRestPluginPrivate::initDb()
         "CREATE TABLE IF NOT EXISTS auth (apikey varchar(32) PRIMARY KEY, devicetype varchar(32))",
         "CREATE TABLE IF NOT EXISTS nodes (mac varchar(30) PRIMARY KEY, id varchar(10), name varchar(30))",
         "ALTER TABLE nodes add column id varchar(10)",
+        "ALTER TABLE auth add column createdate TEXT",
+        "ALTER TABLE auth add column lastusedate TEXT",
+        "ALTER TABLE auth add column useragent TEXT",
         "CREATE TABLE IF NOT EXISTS groups (gid varchar(8) PRIMARY KEY, name varchar(30))",
         "CREATE TABLE IF NOT EXISTS scenes (gsid varchar(30) PRIMARY KEY, gid varchar(8), sid varchar(6), name varchar(30))",
         NULL
@@ -116,9 +119,9 @@ static int sqliteLoadAuthCallback(void *user, int ncols, char **colval , char **
 {
     Q_UNUSED(colname);
     DBG_Assert(user != 0);
-    DBG_Assert(ncols == 2);
+    DBG_Assert(ncols == 5);
 
-    if (!user || (ncols != 2))
+    if (!user || (ncols != 5))
     {
         return 0;
     }
@@ -129,6 +132,37 @@ static int sqliteLoadAuthCallback(void *user, int ncols, char **colval , char **
 
     auth.apikey = colval[0];
     auth.devicetype = colval[1];
+
+    if (colval[4])
+    {
+        auth.useragent = colval[4];
+    }
+
+    // fill in createdate and lastusedate
+    // if they not exist in database yet
+    if (colval[2] && colval[3])
+    {
+        auth.createDate = QDateTime::fromString(colval[2], "yyyy-MM-ddTHH:mm:ss"); // ISO 8601
+        auth.lastUseDate = QDateTime::fromString(colval[3], "yyyy-MM-ddTHH:mm:ss"); // ISO 8601
+    }
+    else
+    {
+        auth.createDate = QDateTime::currentDateTimeUtc();
+        auth.lastUseDate = QDateTime::currentDateTimeUtc();
+    }
+
+    if (!auth.createDate.isValid())
+    {
+        auth.createDate = QDateTime::currentDateTimeUtc();
+    }
+
+    if (!auth.lastUseDate.isValid())
+    {
+        auth.lastUseDate = QDateTime::currentDateTimeUtc();
+    }
+
+    auth.createDate.setTimeSpec(Qt::UTC);
+    auth.lastUseDate.setTimeSpec(Qt::UTC);
 
     if (!auth.apikey.isEmpty() && !auth.devicetype.isEmpty())
     {
@@ -152,7 +186,7 @@ void DeRestPluginPrivate::loadAuthFromDb()
         return;
     }
 
-    QString sql = QString("SELECT apikey,devicetype FROM auth");
+    QString sql = QString("SELECT apikey,devicetype,createdate,lastusedate,useragent FROM auth");
 
     rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadAuthCallback, this, &errmsg);
 
@@ -733,9 +767,16 @@ void DeRestPluginPrivate::saveDb()
 
         for (; i != end; ++i)
         {
-            QString sql = QString("REPLACE INTO auth (apikey, devicetype) VALUES ('%1', '%2')")
+            DBG_Assert(i->createDate.timeSpec() == Qt::UTC);
+            DBG_Assert(i->lastUseDate.timeSpec() == Qt::UTC);
+
+            QString sql = QString("REPLACE INTO auth (apikey, devicetype, createdate, lastusedate, useragent) VALUES ('%1', '%2', '%3', '%4', '%5')")
                     .arg(i->apikey)
-                    .arg(i->devicetype);
+                    .arg(i->devicetype)
+                    .arg(i->createDate.toString("yyyy-MM-ddTHH:mm:ss"))
+                    .arg(i->lastUseDate.toString("yyyy-MM-ddTHH:mm:ss"))
+                    .arg(i->useragent);
+
 
             errmsg = NULL;
             rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);

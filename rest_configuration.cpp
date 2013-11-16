@@ -154,6 +154,8 @@ int DeRestPluginPrivate::createUser(const ApiRequest &req, ApiResponse &rsp)
 
     if (!found)
     {
+        auth.createDate = QDateTime::currentDateTimeUtc();
+        auth.lastUseDate = QDateTime::currentDateTimeUtc();
         apiAuths.push_back(auth);
         queSaveDb(DB_AUTH, DB_SHORT_SAVE_DELAY);
         updateEtag(gwConfigEtag);
@@ -232,6 +234,17 @@ void DeRestPluginPrivate::configToMap(QVariantMap &map)
         DBG_Printf(DBG_ERROR, "No valid ethernet interface found\n");
     }
 
+    std::vector<ApiAuth>::const_iterator i = apiAuths.begin();
+    std::vector<ApiAuth>::const_iterator end = apiAuths.end();
+    for (; i != end; ++i)
+    {
+        QVariantMap au;
+        au["last use date"] = i->lastUseDate.toString("yyyy-MM-ddTHH:mm:ss"); // ISO 8601
+        au["create date"] = i->createDate.toString("yyyy-MM-ddTHH:mm:ss"); // ISO 8601
+        au["name"] = i->devicetype;
+        whitelist[i->apikey] = au;
+    }
+
     map["name"] = gwName;
     map["uuid"] = gwUuid;
     map["port"] = (double)deCONZ::appArgumentNumeric("--http-port", 80);
@@ -239,7 +252,7 @@ void DeRestPluginPrivate::configToMap(QVariantMap &map)
     map["gateway"] = "192.168.178.1"; // TODO
     map["proxyaddress"] = ""; // dummy
     map["proxyport"] = (double)0; // dummy
-    map["utc"] = datetime.toString("yyyy-MM-ddThh:mm:ss"); // ISO 8601
+    map["utc"] = datetime.toString("yyyy-MM-ddTHH:mm:ss"); // ISO 8601
     map["whitelist"] = whitelist;
     map["swversion"] = GW_SW_VERSION;
     map["announceurl"] = gwAnnounceUrl;

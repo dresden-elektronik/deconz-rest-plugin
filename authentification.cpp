@@ -97,13 +97,25 @@ bool DeRestPluginPrivate::checkApikeyAuthentification(const ApiRequest &req, Api
         return false;
     }
 
-    std::vector<ApiAuth>::const_iterator i = apiAuths.begin();
-    std::vector<ApiAuth>::const_iterator end = apiAuths.end();
+    std::vector<ApiAuth>::iterator i = apiAuths.begin();
+    std::vector<ApiAuth>::iterator end = apiAuths.end();
 
     for (; i != end; ++i)
     {
         if (apikey == i->apikey)
         {
+            i->lastUseDate = QDateTime::currentDateTimeUtc();
+
+            // fill in useragent string if not already exist
+            if (i->useragent.isEmpty())
+            {
+                if (req.hdr.hasKey("User-Agent"))
+                {
+                    i->useragent = req.hdr.value("User-Agent");
+                    DBG_Printf(DBG_HTTP, "set useragent '%s' for apikey '%s'\n", qPrintable(i->useragent), qPrintable(i->apikey));
+                }
+            }
+
             queSaveDb(DB_AUTH, DB_LONG_SAVE_DELAY);
             return true;
         }
@@ -115,6 +127,8 @@ bool DeRestPluginPrivate::checkApikeyAuthentification(const ApiRequest &req, Api
         ApiAuth auth;
         auth.apikey = apikey;
         auth.devicetype = "unknown";
+        auth.createDate = QDateTime::currentDateTimeUtc();
+        auth.lastUseDate = QDateTime::currentDateTimeUtc();
         apiAuths.push_back(auth);
         queSaveDb(DB_AUTH, DB_SHORT_SAVE_DELAY);
         return true;

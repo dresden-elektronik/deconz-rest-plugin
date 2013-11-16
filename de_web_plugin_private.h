@@ -161,7 +161,7 @@ struct Schedule
     QString description;
     /*! Command a JSON object with length 0..90. (Required) */
     QString command;
-    /*! Time is given in ISO 8601:2004 format: YYYY-MM-DDThh:mm:ss. (Required) */
+    /*! Time is given in ISO 8601:2004 format: YYYY-MM-DDTHH:mm:ss. (Required) */
     QString time;
     /*! Same as time but as qt object */
     QDateTime datetime;
@@ -239,6 +239,9 @@ public:
 
     QString apikey; // also called username (10..32 chars)
     QString devicetype;
+    QDateTime createDate;
+    QDateTime lastUseDate;
+    QString useragent;
 };
 
 enum ApiVersion
