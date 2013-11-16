@@ -2706,13 +2706,21 @@ QDialog *DeRestPlugin::createDialog()
  */
 bool DeRestPlugin::isHttpTarget(const QHttpRequestHeader &hdr)
 {
-    if (hdr.path().startsWith("/api/0/ZLL"))
+    if (hdr.path().startsWith("/api/config"))
     {
         return true;
     }
     else if (hdr.path().startsWith("/api"))
     {
-        QStringList ls = hdr.path().split("/", QString::SkipEmptyParts);
+        QString path = hdr.path();
+        int quest = path.indexOf('?');
+
+        if (quest > 0)
+        {
+            path = path.mid(0, quest);
+        }
+
+        QStringList ls = path.split("/", QString::SkipEmptyParts);
 
         if (ls.size() > 2)
         {
@@ -2725,7 +2733,7 @@ bool DeRestPlugin::isHttpTarget(const QHttpRequestHeader &hdr)
                 return true;
             }
         }
-        else // /api and /api/287398279837
+        else // /api, /api/config and /api/287398279837
         {
             return true;
         }
@@ -2840,8 +2848,6 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         ret = d->handleConfigurationApi(req, rsp);
     }
 
-    QUrl uri(hdr.path());
-
     if (ret == REQ_DONE)
     {
         return 0;
@@ -2850,100 +2856,6 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
     {
         // new api // TODO cleanup/remove later
         // sending below
-    }
-    //! \deprecated use groups/scenes api instead
-    else if (hdr.path().startsWith("/api/0/ZLL/group/callscene") && (hdr.method() == "PUT"))
-    {
-        if (uri.hasQueryItem("rgid") && uri.hasQueryItem("sid"))
-        {
-            bool ok;
-            rsp.httpStatus = HttpStatusAccepted;
-            uint16_t rgid = uri.queryItemValue("rgid").toUShort(&ok, 10);
-            uint8_t sceneId = (uint8_t)uri.queryItemValue("sid").toUShort(&ok, 10);
-
-            Group *group = d->getGroupForId(rgid);
-
-            if (group)
-            {
-                d->callScene(group, sceneId);
-                // assume in a scene all lights are on
-                // FIXME: need a more accurate view-scene support since lights in a
-                // scene might also turned off
-                d->setAttributeOnOffGroup(group, 0x01);
-                d->readAllInGroup(group);
-                taskHandler(TaskAdded);
-            }
-        }
-        else {
-            rsp.httpStatus = HttpStatusBadRequest;
-        }
-    }
-    //! \deprecated use groups/scenes api instead
-    else if (hdr.path().startsWith("/api/0/ZLL/group/storescene") && (hdr.method() == "PUT"))
-    {
-        if (uri.hasQueryItem("rgid") && uri.hasQueryItem("sid"))
-        {
-            bool ok;
-            rsp.httpStatus = HttpStatusAccepted;
-            uint16_t rgid = uri.queryItemValue("rgid").toUShort(&ok, 10);
-            uint8_t sceneId = (uint8_t)uri.queryItemValue("sid").toUShort(&ok, 10);
-
-            Group *group = d->getGroupForId(rgid);
-
-            if (group)
-            {
-                d->foundScene(group, sceneId);
-                d->storeScene(group, sceneId);
-                taskHandler(TaskAdded);
-            }
-        }
-        else {
-            rsp.httpStatus = HttpStatusBadRequest;
-        }
-    }
-    //! \deprecated use groups/scenes api instead
-    else if (hdr.path().startsWith("/api/0/ZLL/group/removescene") && (hdr.method() == "PUT"))
-    {
-        if (uri.hasQueryItem("rgid") && uri.hasQueryItem("sid"))
-        {
-            bool ok;
-            rsp.httpStatus = HttpStatusAccepted;
-            uint16_t rgid = uri.queryItemValue("rgid").toUShort(&ok, 10);
-            uint8_t sceneId = (uint8_t)uri.queryItemValue("sid").toUShort(&ok, 10);
-
-            Group *group = d->getGroupForId(rgid);
-
-            if (group)
-            {
-                d->removeScene(group, sceneId);
-                taskHandler(TaskAdded);
-            }
-        }
-        else {
-            rsp.httpStatus = HttpStatusBadRequest;
-        }
-    }
-    //! \deprecated use groups/scenes api instead
-    else if (hdr.path().startsWith("/api/0/ZLL/group/setscenename") && (hdr.method() == "PUT"))
-    {
-        if (uri.hasQueryItem("rgid") && uri.hasQueryItem("sid") && uri.hasQueryItem("name"))
-        {
-            bool ok;
-            rsp.httpStatus = HttpStatusAccepted;
-            uint16_t rgid = uri.queryItemValue("rgid").toUShort(&ok, 10);
-            uint8_t sceneId = (uint8_t)uri.queryItemValue("sid").toUShort(&ok, 10);
-            QString name = QUrl::fromPercentEncoding(uri.queryItemValue("name").toAscii());
-
-            Group *group = d->getGroupForId(rgid);
-            if (group)
-            {
-                d->foundScene(group, sceneId);
-                d->setSceneName(group, sceneId, name);
-            }
-        }
-        else {
-            rsp.httpStatus = HttpStatusBadRequest;
-        }
     }
     else if (hdr.path().startsWith("/description.xml") && (hdr.method() == "GET"))
     {
