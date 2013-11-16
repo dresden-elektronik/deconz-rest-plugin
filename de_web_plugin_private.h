@@ -14,6 +14,7 @@
 #include <QObject>
 #include <QTime>
 #include <QTimer>
+#include <QElapsedTimer>
 #include <stdint.h>
 #include "sqlite3.h"
 #include <deconz.h>
@@ -401,6 +402,7 @@ public:
     bool isInNetwork();
     void generateGatewayUuid();
     void updateEtag(QString &etag);
+    qint64 getUptime();
     LightNode *addNode(const deCONZ::Node *node);
     LightNode *nodeZombieStateChanged(const deCONZ::Node *node);
     LightNode *updateLightNode(const deCONZ::NodeEvent &event);
@@ -548,6 +550,9 @@ public:
     // TCP connection watcher
     QTimer *openClientTimer;
     std::list<TcpClient> openClients;
+
+    // will be set at startup to calculate the uptime
+    QElapsedTimer starttimeRef;
 
     DeRestPlugin *p; // public interface
 };

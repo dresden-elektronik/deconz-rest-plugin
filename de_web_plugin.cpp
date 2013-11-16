@@ -100,6 +100,9 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     apsCtrl = deCONZ::ApsController::instance();
     DBG_Assert(apsCtrl != 0);
 
+    // starttime reference counts from here
+    starttimeRef.start();
+
     // default configuration
     gwPermitJoinDuration = 0;
     gwName = GW_DEFAULT_NAME;
@@ -296,6 +299,29 @@ void DeRestPluginPrivate::updateEtag(QString &etag)
     // quotes are mandatory as described in w3 spec
     etag.prepend('"');
     etag.append('"');
+}
+
+/*! Returns the system uptime in seconds.
+ */
+qint64 DeRestPluginPrivate::getUptime()
+{
+    DBG_Assert(starttimeRef.isValid());
+
+    if (!starttimeRef.isValid())
+    {
+        starttimeRef.start();
+    }
+
+    if (starttimeRef.isValid())
+    {
+        qint64 uptime = starttimeRef.elapsed();
+        if (uptime > 1000)
+        {
+            return uptime / 1000;
+        }
+    }
+
+    return 0;
 }
 
 /*! Adds a new node to node cache.
