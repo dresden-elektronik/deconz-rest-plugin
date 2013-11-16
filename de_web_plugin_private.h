@@ -317,6 +317,7 @@ public:
     int modifyConfig(const ApiRequest &req, ApiResponse &rsp);
     int updateSoftware(const ApiRequest &req, ApiResponse &rsp);
     int changePassword(const ApiRequest &req, ApiResponse &rsp);
+    int deletePassword(const ApiRequest &req, ApiResponse &rsp);
 
     void configToMap(QVariantMap &map);
 

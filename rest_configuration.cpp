@@ -63,6 +63,12 @@ int DeRestPluginPrivate::handleConfigurationApi(const ApiRequest &req, ApiRespon
     {
         return changePassword(req, rsp);
     }
+    // DELETE /api/config/password
+    else if ((req.path.size() == 3) && (req.hdr.method() == "DELETE") && (req.path[1] == "config") && (req.path[2] == "password"))
+    {
+        return deletePassword(req, rsp);
+    }
+
     return REQ_NOT_HANDLED;
 }
 
@@ -750,7 +756,31 @@ int DeRestPluginPrivate::changePassword(const ApiRequest &req, ApiResponse &rsp)
     return REQ_READY_SEND;
 }
 
-/*! Delayed trigger to update the software
+/*! DELETE /api/config/password
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::deletePassword(const ApiRequest &req, ApiResponse &rsp)
+{
+    // reset only allowed within first 10 minutes after startup
+    if (getUptime() > 600)
+    {
+        rsp.httpStatus = HttpStatusForbidden;
+        rsp.list.append(errorToMap(ERR_UNAUTHORIZED_USER, req.path.join("/"), "unauthorized user"));
+        return REQ_READY_SEND;
+    }
+
+    // create default password
+    gwConfig.remove("gwusername");
+    gwConfig.remove("gwpassword");
+
+    initAuthentification();
+
+    rsp.httpStatus = HttpStatusOk;
+    return REQ_READY_SEND;
+}
+
+/*! Delayed trigger to update the software.
  */
 void DeRestPluginPrivate::updateSoftwareTimerFired()
 {
