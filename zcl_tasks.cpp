@@ -104,6 +104,11 @@ bool DeRestPluginPrivate::addTaskSetEnhancedHue(TaskItem &task, uint16_t hue)
     task.taskType = TaskSetEnhancedHue;
     task.hueReal = (double)hue / (360.0f * 182.04444f);
 
+    if (task.lightNode)
+    {
+        task.lightNode->setColorMode("hs");
+    }
+
     if (task.hueReal < 0.0f)
     {
         task.hueReal = 0.0f;
@@ -158,6 +163,11 @@ bool DeRestPluginPrivate::addTaskSetSaturation(TaskItem &task, uint8_t sat)
     task.taskType = TaskSetSat;
     task.sat = sat;
 
+    if (task.lightNode)
+    {
+        task.lightNode->setColorMode("hs");
+    }
+
     task.req.setClusterId(COLOR_CLUSTER_ID);
     task.req.setProfileId(HA_PROFILE_ID);
 
@@ -202,6 +212,11 @@ bool DeRestPluginPrivate::addTaskSetHueAndSaturation(TaskItem &task, uint8_t hue
     task.hueReal = hue / 254.0f;
     task.enhancedHue = task.hueReal * 360.0f * 182.04444f;
 
+    if (task.lightNode)
+    {
+        task.lightNode->setColorMode("hs");
+    }
+
     task.req.setClusterId(COLOR_CLUSTER_ID);
     task.req.setProfileId(HA_PROFILE_ID);
 
@@ -245,13 +260,19 @@ bool DeRestPluginPrivate::addTaskSetXyColorAsHueAndSaturation(TaskItem &task, do
     num h, s, v;
     num X, Y, Z;
 
+    // prevent division through zero
+    if (x <= 0.0) {
+        x = 0.00000001f;
+    }
+
+    // prevent division through zero
+    if (y <= 0.0) {
+        y = 0.00000001f;
+    }
+
     Y = 1.0f;
     X = (Y / y) * x;
     Z = (Y / y) * (1.0f - x - y);
-
-    Y = y;
-    X = x;
-    Z = (1.0f - x - y);
 
     Xyz2Rgb(&r, &g, &b, X, Y, Z);
     Rgb2Hsv(&h, &s, &v, r, g, b);
@@ -268,10 +289,8 @@ bool DeRestPluginPrivate::addTaskSetXyColorAsHueAndSaturation(TaskItem &task, do
         h = 0.0f;
     }
 
-    uint8_t hue = (1.0f - h) * 254.0f;
+    uint8_t hue = h * 254.0f;
     uint8_t sat = s * 254.0f;
-
-    DBG_Printf(DBG_INFO, "hue %u, %2f, sat %u, %2f\n", hue, h, sat, s);
 
     return addTaskSetHueAndSaturation(task, hue, sat);
 }
@@ -291,11 +310,18 @@ bool DeRestPluginPrivate::addTaskSetXyColor(TaskItem &task, double x, double y)
     task.colorX = x * 65279.0f; // current X in range 0 .. 65279
     task.colorY = y * 65279.0f; // current Y in range 0 .. 65279
 
-    // convert xy coordinates to hue and saturation
-    // due the lights itself don't support this mode yet
-    if (task.lightNode->manufacturerCode() == VENDOR_DDEL)
+
+    if (task.lightNode)
     {
-        return addTaskSetXyColorAsHueAndSaturation(task, x, y);
+        task.lightNode->setColorMode("xy");
+
+        // convert xy coordinates to hue and saturation
+        // due the lights itself don't support this mode yet
+        if (task.lightNode->manufacturerCode() == VENDOR_DDEL)
+        {
+            task.lightNode->setColorXY(task.colorX, task.colorY); // update here
+            return addTaskSetXyColorAsHueAndSaturation(task, x, y);
+        }
     }
 
     task.req.setClusterId(COLOR_CLUSTER_ID);

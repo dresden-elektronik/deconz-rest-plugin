@@ -460,6 +460,7 @@ public:
     void setAttributeLevel(LightNode *lightNode);
     void setAttributeEnhancedHue(LightNode *lightNode);
     void setAttributeSaturation(LightNode *lightNode);
+    void setAttributeColorXy(LightNode *lightNode);
 
     // Database interface
     void initDb();

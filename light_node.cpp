@@ -19,13 +19,15 @@ LightNode::LightNode() :
    m_manufacturer("Unknown"),
    m_manufacturerCode(0),
    m_isOn(false),
+   m_hasColor(true),
    m_level(0),
    m_hue(0),
    m_ehue(0),
    m_normHue(0),
    m_sat(0),
    m_colorX(0),
-   m_colorY(0)
+   m_colorY(0),
+   m_colorMode("hs")
 {
 }
 
@@ -130,6 +132,13 @@ const std::vector<GroupInfo> &LightNode::groups() const
 bool LightNode::isOn() const
 {
     return m_isOn;
+}
+
+/*! Returns true if the light supports the color cluster.
+ */
+bool LightNode::hasColor() const
+{
+    return m_hasColor;
 }
 
 /*! Sets the on state of the light.
@@ -276,6 +285,22 @@ uint16_t LightNode::colorY() const
     return m_colorY;
 }
 
+/*! Returns the current colormode.
+ */
+const QString &LightNode::colorMode() const
+{
+    return m_colorMode;
+}
+
+/*! Sets the current colormode.
+ * \param colorMode the colormode ("hs", "xy", "ct")
+ */
+void LightNode::setColorMode(const QString &colorMode)
+{
+    DBG_Assert((colorMode == "hs") || (colorMode == "xy") || (colorMode == "ct"));
+    m_colorMode = colorMode;
+}
+
 /*! Returns the lights HA endpoint descriptor.
  */
 const deCONZ::SimpleDescriptor &LightNode::haEndpoint() const
@@ -297,9 +322,9 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
         {
             switch(haEndpoint().deviceId())
             {
-            case DEV_ID_HA_ONOFF_LIGHT:           m_type = "On/Off light"; break;
-            case DEV_ID_HA_DIMMABLE_LIGHT:        m_type = "Dimmable light"; break;
-            case DEV_ID_HA_COLOR_DIMMABLE_LIGHT:  m_type = "Color dimmable light"; break;
+            case DEV_ID_HA_ONOFF_LIGHT:           m_type = "On/Off light"; m_hasColor = false; break;
+            case DEV_ID_HA_DIMMABLE_LIGHT:        m_type = "Dimmable light"; m_hasColor = false; break;
+            case DEV_ID_HA_COLOR_DIMMABLE_LIGHT:  m_type = "Color dimmable light"; m_hasColor = true; break;
             default:
                 break;
             }
@@ -309,11 +334,11 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
         {
             switch(haEndpoint().deviceId())
             {
-            case DEV_ID_ZLL_ONOFF_LIGHT:             m_type = "On/Off light"; break;
-            case DEV_ID_ZLL_DIMMABLE_LIGHT:          m_type = "Dimmable light"; break;
-            case DEV_ID_ZLL_COLOR_LIGHT:             m_type = "Color light"; break;
-            case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:    m_type = "Extended color light"; break;
-            case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT: m_type = "Color temperature light"; break;
+            case DEV_ID_ZLL_ONOFF_LIGHT:             m_type = "On/Off light"; m_hasColor = false; break;
+            case DEV_ID_ZLL_DIMMABLE_LIGHT:          m_type = "Dimmable light"; m_hasColor = false; break;
+            case DEV_ID_ZLL_COLOR_LIGHT:             m_type = "Color light"; m_hasColor = true; break;
+            case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:    m_type = "Extended color light"; m_hasColor = true; break;
+            case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT: m_type = "Color temperature light"; m_hasColor = true; break;
             default:
                 break;
             }

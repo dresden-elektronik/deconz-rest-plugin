@@ -45,6 +45,7 @@ public:
     std::vector<GroupInfo> &groups();
     const std::vector<GroupInfo> &groups() const;
     bool isOn() const;
+    bool hasColor() const;
     void setIsOn(bool on);
     uint16_t level() const;
     void setLevel(uint16_t level);
@@ -57,6 +58,8 @@ public:
     void setColorXY(uint16_t x, uint16_t y);
     uint16_t colorX() const;
     uint16_t colorY() const;
+    const QString &colorMode() const;
+    void setColorMode(const QString &colorMode);
     const deCONZ::SimpleDescriptor &haEndpoint() const;
     void setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint);
     bool mustRead(uint32_t readFlags);
@@ -83,6 +86,7 @@ private:
     QString m_swBuildId;
     std::vector<GroupInfo> m_groups;
     bool m_isOn;
+    bool m_hasColor;
     uint16_t m_level;
     uint8_t m_hue;
     uint16_t m_ehue;
@@ -90,6 +94,7 @@ private:
     uint8_t m_sat;
     uint16_t m_colorX;
     uint16_t m_colorY;
+    QString m_colorMode;
     deCONZ::SimpleDescriptor m_haEndpoint;
     QTime m_nextReadTime;
 };

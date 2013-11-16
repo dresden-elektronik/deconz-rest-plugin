@@ -158,7 +158,6 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
     }
 
     QVariantMap state;
-    //state["hue"] = (double)((uint16_t)(lightNode->hueReal * 65535));
     state["hue"] = (double)lightNode->enhancedHue();
     state["on"] = lightNode->isOn();
     state["effect"] = "none"; // TODO
@@ -185,10 +184,11 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
     xy.append(y);
     state["xy"] = xy;
     state["reachable"] = lightNode->isAvailable();
-    state["colormode"] = "hs"; // TODO
+    state["colormode"] = lightNode->colorMode();
     map["type"] = lightNode->type();
     map["name"] = lightNode->name();
     map["modelid"] = lightNode->modelId(); // real model id
+    map["hascolor"] = lightNode->hasColor();
 
     if ((req.apiVersion() == ApiVersion_1_DDEL) || (lightNode->manufacturerCode() != VENDOR_DDEL))
     {

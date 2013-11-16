@@ -2202,6 +2202,12 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
         group->hueReal = task.hueReal;
         break;
 
+    case TaskSetXyColor:
+        updateEtag(group->etag);
+        group->colorX = task.colorX;
+        group->colorY = task.colorY;
+        break;
+
     default:
         break;
     }
@@ -2251,6 +2257,12 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
             lightNode->setEnhancedHue(task.enhancedHue);
             setAttributeSaturation(lightNode);
             setAttributeEnhancedHue(lightNode);
+            break;
+
+        case TaskSetXyColor:
+            updateEtag(lightNode->etag);
+            lightNode->setColorXY(task.colorX, task.colorY);
+            setAttributeColorXy(lightNode);
             break;
 
         default:
@@ -2334,6 +2346,40 @@ void DeRestPluginPrivate::setAttributeSaturation(LightNode *lightNode)
                 break;
             }
 
+        }
+    }
+}
+
+/*! Updates the color xy attribute in the local node cache.
+ */
+void DeRestPluginPrivate::setAttributeColorXy(LightNode *lightNode)
+{
+    DBG_Assert(lightNode != 0);
+
+    if (!lightNode || !lightNode->node())
+    {
+        return;
+    }
+
+    deCONZ::ZclCluster *cl = getInCluster(lightNode->node(), lightNode->haEndpoint().endpoint(), COLOR_CLUSTER_ID);
+
+    if (cl)
+    {
+        std::vector<deCONZ::ZclAttribute>::iterator i = cl->attributes().begin();
+        std::vector<deCONZ::ZclAttribute>::iterator end = cl->attributes().end();
+
+        for (; i != end; ++i)
+        {
+            if (i->id() == 0x0003) // Current color x
+            {
+                i->setValue((quint64)lightNode->colorX());
+                break;
+            }
+            else if (i->id() == 0x0004) // Current color x
+            {
+                i->setValue((quint64)lightNode->colorY());
+                break;
+            }
         }
     }
 }
