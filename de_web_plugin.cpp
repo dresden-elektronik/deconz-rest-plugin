@@ -512,7 +512,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
 
     if (lightNode->isAvailable())
     {
-        if (event.node()->state() == deCONZ::FailureState)
+        if ((event.node()->state() == deCONZ::FailureState) || event.node()->isZombie())
         {
             lightNode->setIsAvailable(false);
             updated = true;
