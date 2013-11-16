@@ -58,6 +58,7 @@ public Q_SLOTS:
     void startReadTimer(int delay);
     void stopReadTimer();
     void checkReadTimerFired();
+    void appAboutToQuit();
 
 private:
     void taskHandler(Event event);

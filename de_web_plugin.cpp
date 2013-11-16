@@ -8,6 +8,7 @@
  *
  */
 
+#include <QCoreApplication>
 #include <QDebug>
 #include <QDesktopServices>
 #include <QHttpRequestHeader>
@@ -2434,6 +2435,9 @@ DeRestPlugin::DeRestPlugin(QObject *parent) :
     m_idleTimer = new QTimer(this);
     m_idleTimer->setSingleShot(false);
 
+    connect(QCoreApplication::instance(), SIGNAL(aboutToQuit()),
+            this, SLOT(appAboutToQuit()));
+
     connect(m_idleTimer, SIGNAL(timeout()),
             this, SLOT(idleTimerFired()));
 
@@ -2611,16 +2615,19 @@ void DeRestPlugin::checkReadTimerFired()
     startReadTimer(ReadAttributesDelay);
 }
 
-/*! Timer handler for storing persistent data.
+/*! Handler called before the application will be closed.
  */
-void DeRestPlugin::saveDatabaseTimerFired()
+void DeRestPlugin::appAboutToQuit()
 {
-    if (d->needSaveDatabase)
+    DBG_Printf(DBG_INFO, "REST API plugin shutting down\n");
+
+    if (d)
     {
         d->openDb();
         d->saveDb();
         d->closeDb();
-        d->needSaveDatabase = false;
+
+        d->apsCtrl = 0;
     }
 }
 
