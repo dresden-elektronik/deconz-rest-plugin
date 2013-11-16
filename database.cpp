@@ -63,11 +63,11 @@ void DeRestPluginPrivate::initDb()
         errmsg = NULL;
         rc = sqlite3_exec(db, sql[i], NULL, NULL, &errmsg);
 
-        if( rc != SQLITE_OK )
+        if (rc != SQLITE_OK)
         {
             if (errmsg)
             {
-                DBG_Printf(DBG_ERROR, "SQL exec failed: %s, error: %s\n", sql[i], errmsg);
+                DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s\n", sql[i], errmsg);
                 sqlite3_free(errmsg);
             }
         }
@@ -194,7 +194,7 @@ void DeRestPluginPrivate::loadAuthFromDb()
     {
         if (errmsg)
         {
-            DBG_Printf(DBG_INFO, "sqlite3_exec %s, error: %s\n", qPrintable(sql), errmsg);
+            DBG_Printf(DBG_ERROR, "sqlite3_exec %s, error: %s\n", qPrintable(sql), errmsg);
             sqlite3_free(errmsg);
         }
     }
@@ -358,7 +358,7 @@ static int sqliteLoadAllGroupsCallback(void *user, int ncols, char **colval , ch
         {
             QString val = QString::fromUtf8(colval[i]);
 
-            DBG_Printf(DBG_INFO, "Sqlite group: %s = %s\n", colname[i], qPrintable(val));
+            DBG_Printf(DBG_INFO_L2, "Sqlite group: %s = %s\n", colname[i], qPrintable(val));
 
 
             if (strcmp(colname[i], "gid") == 0)
@@ -380,7 +380,7 @@ static int sqliteLoadAllGroupsCallback(void *user, int ncols, char **colval , ch
 
     if (!group.id().isEmpty() && !group.name().isEmpty())
     {
-        DBG_Printf(DBG_INFO, "DB found group %s 0x%04X\n", qPrintable(group.name()), group.address());
+        DBG_Printf(DBG_INFO_L2, "DB found group %s 0x%04X\n", qPrintable(group.name()), group.address());
         // check doubles
         Group *g = d->getGroupForId(group.id());
         if (!g)
@@ -416,7 +416,7 @@ void DeRestPluginPrivate::loadAllGroupsFromDb()
     {
         if (errmsg)
         {
-            DBG_Printf(DBG_INFO, "sqlite3_exec %s, error: %s\n", qPrintable(sql), errmsg);
+            DBG_Printf(DBG_ERROR_L2, "sqlite3_exec %s, error: %s\n", qPrintable(sql), errmsg);
             sqlite3_free(errmsg);
         }
     }
@@ -481,7 +481,7 @@ void DeRestPluginPrivate::loadLightNodeFromDb(LightNode *lightNode)
     {
         if (errmsg)
         {
-            DBG_Printf(DBG_INFO, "sqlite3_exec %s, error: %s\n", qPrintable(sql), errmsg);
+            DBG_Printf(DBG_ERROR_L2, "sqlite3_exec %s, error: %s\n", qPrintable(sql), errmsg);
             sqlite3_free(errmsg);
         }
     }
@@ -561,7 +561,7 @@ void DeRestPluginPrivate::loadGroupFromDb(Group *group)
     {
         if (errmsg)
         {
-            DBG_Printf(DBG_INFO, "sqlite3_exec %s, error: %s\n", qPrintable(sql), errmsg);
+            DBG_Printf(DBG_ERROR_L2, "sqlite3_exec %s, error: %s\n", qPrintable(sql), errmsg);
             sqlite3_free(errmsg);
         }
     }
@@ -619,7 +619,7 @@ void DeRestPluginPrivate::loadSceneFromDb(Scene *scene)
     {
         if (errmsg)
         {
-            DBG_Printf(DBG_INFO, "sqlite3_exec %s, error: %s\n", qPrintable(sql), errmsg);
+            DBG_Printf(DBG_ERROR_L2, "sqlite3_exec %s, error: %s\n", qPrintable(sql), errmsg);
             sqlite3_free(errmsg);
         }
     }
@@ -692,7 +692,7 @@ int DeRestPluginPrivate::getFreeLightId()
     {
         if (errmsg)
         {
-            DBG_Printf(DBG_INFO, "sqlite3_exec %s, error: %s\n", qPrintable(sql), errmsg);
+            DBG_Printf(DBG_ERROR_L2, "sqlite3_exec %s, error: %s\n", qPrintable(sql), errmsg);
             sqlite3_free(errmsg);
         }
     }
