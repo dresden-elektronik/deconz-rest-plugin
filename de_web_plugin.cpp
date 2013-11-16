@@ -1046,7 +1046,7 @@ bool DeRestPluginPrivate::readAttributes(LightNode *lightNode, const deCONZ::Sim
     task.zclFrame.setCommandId(deCONZ::ZclReadAttributesId);
     task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
                              deCONZ::ZclFCDirectionClientToServer |
-                             deCONZ::ZclFCEnableDefaultResponse);
+                             deCONZ::ZclFCDisableDefaultResponse);
 
     { // payload
         QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
@@ -1095,7 +1095,7 @@ bool DeRestPluginPrivate::readGroupMembership(LightNode *lightNode, const std::v
     task.zclFrame.setCommandId(0x02); // get group membership
     task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
                              deCONZ::ZclFCDirectionClientToServer |
-                             deCONZ::ZclFCEnableDefaultResponse);
+                             deCONZ::ZclFCDisableDefaultResponse);
 
     { // payload
         QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);

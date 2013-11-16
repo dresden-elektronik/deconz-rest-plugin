@@ -34,7 +34,7 @@ bool DeRestPluginPrivate::addTaskSetOnOff(TaskItem &task, bool on)
     task.zclFrame.setCommandId(task.onOff ? 0x01 : 0x00);
     task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
                              deCONZ::ZclFCDirectionClientToServer |
-                             deCONZ::ZclFCEnableDefaultResponse);
+                             deCONZ::ZclFCDisableDefaultResponse);
 
     task.req.asdu().clear(); // cleanup old request data if there is any
     QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
@@ -71,7 +71,7 @@ bool DeRestPluginPrivate::addTaskSetBrightness(TaskItem &task, uint8_t bri, bool
     }
     task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
                              deCONZ::ZclFCDirectionClientToServer |
-                             deCONZ::ZclFCEnableDefaultResponse);
+                             deCONZ::ZclFCDisableDefaultResponse);
 
     { // payload
         QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
@@ -123,7 +123,7 @@ bool DeRestPluginPrivate::addTaskSetEnhancedHue(TaskItem &task, uint16_t hue)
     task.zclFrame.setCommandId(0x40); // Enhanced move to hue
     task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
                              deCONZ::ZclFCDirectionClientToServer |
-                             deCONZ::ZclFCEnableDefaultResponse);
+                             deCONZ::ZclFCDisableDefaultResponse);
 
     { // payload
         QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
@@ -165,7 +165,7 @@ bool DeRestPluginPrivate::addTaskSetSaturation(TaskItem &task, uint8_t sat)
     task.zclFrame.setCommandId(0x03); // Move to saturation
     task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
                              deCONZ::ZclFCDirectionClientToServer |
-                             deCONZ::ZclFCEnableDefaultResponse);
+                             deCONZ::ZclFCDisableDefaultResponse);
 
     { // payload
         QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
@@ -305,7 +305,7 @@ bool DeRestPluginPrivate::addTaskSetXyColor(TaskItem &task, double x, double y)
     task.zclFrame.setCommandId(0x07); // Move to color
     task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
                              deCONZ::ZclFCDirectionClientToServer |
-                             deCONZ::ZclFCEnableDefaultResponse);
+                             deCONZ::ZclFCDisableDefaultResponse);
 
     { // payload
         QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
@@ -345,7 +345,7 @@ bool DeRestPluginPrivate::addTaskAddToGroup(TaskItem &task, uint16_t groupId)
     task.zclFrame.setCommandId(0x00); // Add to group
     task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
                              deCONZ::ZclFCDirectionClientToServer |
-                             deCONZ::ZclFCEnableDefaultResponse);
+                             deCONZ::ZclFCDisableDefaultResponse);
 
     { // payload
         QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
@@ -385,7 +385,7 @@ bool DeRestPluginPrivate::addTaskRemoveFromGroup(TaskItem &task, uint16_t groupI
     task.zclFrame.setCommandId(0x03); // Remove from group
     task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
                              deCONZ::ZclFCDirectionClientToServer |
-                             deCONZ::ZclFCEnableDefaultResponse);
+                             deCONZ::ZclFCDisableDefaultResponse);
 
     { // payload
         QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
