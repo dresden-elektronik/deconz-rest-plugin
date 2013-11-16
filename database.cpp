@@ -47,14 +47,14 @@ void DeRestPluginPrivate::initDb()
     // create tables
 
     const char *sql[] = {
-        "CREATE TABLE IF NOT EXISTS auth (apikey varchar(32) PRIMARY KEY, devicetype varchar(32))",
-        "CREATE TABLE IF NOT EXISTS nodes (mac varchar(30) PRIMARY KEY, id varchar(10), name varchar(30))",
-        "ALTER TABLE nodes add column id varchar(10)",
+        "CREATE TABLE IF NOT EXISTS auth (apikey TEXT PRIMARY KEY, devicetype TEXT)",
+        "CREATE TABLE IF NOT EXISTS nodes (mac TEXT PRIMARY KEY, id TEXT, name TEXT)",
+        "ALTER TABLE nodes add column id TEXT",
         "ALTER TABLE auth add column createdate TEXT",
         "ALTER TABLE auth add column lastusedate TEXT",
         "ALTER TABLE auth add column useragent TEXT",
-        "CREATE TABLE IF NOT EXISTS groups (gid varchar(8) PRIMARY KEY, name varchar(30))",
-        "CREATE TABLE IF NOT EXISTS scenes (gsid varchar(30) PRIMARY KEY, gid varchar(8), sid varchar(6), name varchar(30))",
+        "CREATE TABLE IF NOT EXISTS groups (gid TEXT PRIMARY KEY, name TEXT)",
+        "CREATE TABLE IF NOT EXISTS scenes (gsid TEXT PRIMARY KEY, gid TEXT, sid TEXT, name TEXT)",
         NULL
         };
 
