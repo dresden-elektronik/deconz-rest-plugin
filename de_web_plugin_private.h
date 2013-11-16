@@ -524,6 +524,8 @@ public:
     uint otauNotifyIter; // iterator over nodes
     int otauNotifyDelay;
 
+    // general
+    deCONZ::ApsController *apsCtrl;
     uint groupTaskNodeIter; // Iterates through nodes array
     int idleTotalCounter; // sys timer
     int idleLimit;

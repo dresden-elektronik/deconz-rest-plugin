@@ -389,7 +389,6 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
     bool changed = false;
     QVariant var = Json::parse(req.content, ok);
     QVariantMap map = var.toMap();
-    deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
 
     DBG_Assert(apsCtrl != 0);
 

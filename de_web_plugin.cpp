@@ -97,6 +97,9 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     gwLinkButton = false;
     gwOtauActive = false;
 
+    apsCtrl = deCONZ::ApsController::instance();
+    DBG_Assert(apsCtrl != 0);
+
     // default configuration
     gwPermitJoinDuration = 0;
     gwName = GW_DEFAULT_NAME;
@@ -125,8 +128,6 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     groups.push_back(group);
 
     initUpnpDiscovery();
-
-    deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
 
     connect(apsCtrl, SIGNAL(apsdeDataConfirm(const deCONZ::ApsDataConfirm&)),
             this, SLOT(apsdeDataConfirm(const deCONZ::ApsDataConfirm&)));
@@ -259,7 +260,6 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
  */
 bool DeRestPluginPrivate::isInNetwork()
 {
-    deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
     if (apsCtrl)
     {
         return (apsCtrl->networkState() == deCONZ::InNetwork);
@@ -791,7 +791,12 @@ deCONZ::Node *DeRestPluginPrivate::getNodeForAddress(uint64_t extAddr)
     int i = 0;
     const deCONZ::Node *node;
 
-    deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
+    DBG_Assert(apsCtrl != 0);
+
+    if (apsCtrl == 0)
+    {
+        return 0;
+    }
 
     while (apsCtrl->getNode(i, &node) == 0)
     {
@@ -1731,7 +1736,6 @@ void DeRestPluginPrivate::processTasks()
         return;
     }
 
-    deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
     std::list<TaskItem>::iterator i = tasks.begin();
     std::list<TaskItem>::iterator end = tasks.end();
 
@@ -2681,7 +2685,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
 
     if (m_state == StateOff)
     {
-        if (deCONZ::ApsController::instance()->networkState() == deCONZ::InNetwork)
+        if (d->apsCtrl && (d->apsCtrl->networkState() == deCONZ::InNetwork))
         {
             m_state = StateIdle;
         }

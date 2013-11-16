@@ -89,7 +89,6 @@ void DeRestPluginPrivate::permitJoinTimerFired()
             stream << gwPermitJoinDuration;
             stream << tcSignificance;
 
-            deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
             DBG_Assert(apsCtrl != 0);
 
             if (!apsCtrl)
