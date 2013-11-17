@@ -1,3 +1,5 @@
+include(../../../compile.pri)
+
 TARGET   = de_rest_plugin
 
 # common configuration for deCONZ plugins
@@ -27,6 +29,14 @@ unix:INCLUDEPATH += /usr/include
 
 # Version Major.Minor.Build
 DEFINES += GW_SW_VERSION=\\\"1.12.14\\\"
+
+# Minimum version of the RaspBee firmware
+# which shall be used in order to support all features for this software release (case sensitive)
+DEFINES += GW_MIN_RPI_FW_VERSION=0x1a030500
+
+# Minimum version of the deRFusb23E0X firmware
+# which shall be used in order to support all features for this software release
+DEFINES += GW_MIN_DERFUSB23E0X_FW_VERSION=0x22030300
 
 unix:contains(QMAKE_HOST.arch, armv6l) {
     DEFINES += GW_DEFAULT_NAME=\\\"RaspBee-GW\\\"

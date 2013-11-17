@@ -111,6 +111,10 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     gwPermitJoinDuration = 0;
     gwName = GW_DEFAULT_NAME;
     gwUpdateVersion = GW_SW_VERSION; // will be replaced by discovery handler
+    gwFirmwareVersion = "0x00000000"; // query later
+    gwFirmwareVersionUpdate = gwFirmwareVersion;
+    gwFirmwareNeedUpdate = false; // set later
+    gwUpdateChannel = "stable";
     configToMap(gwConfig);
     updateEtag(gwConfigEtag);
 
@@ -174,6 +178,10 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     initPermitJoin();
     initOtau();
     initTouchlinkApi();
+
+    // delayed query of firmware version
+    // we might not be connected yet
+    QTimer::singleShot(500, this, SLOT(queryFirmwareVersionTimerFired()));
 }
 
 /*! Deconstructor for pimpl.

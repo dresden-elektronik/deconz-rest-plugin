@@ -11,6 +11,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include "de_web_plugin_private.h"
+#include "json.h"
 
 /*! Inits the internet discovery manager.
  */
@@ -37,10 +38,8 @@ void DeRestPluginPrivate::initInternetDicovery()
     // force first run
     if (gwAnnounceInterval > 0)
     {
-        internetDiscoveryTimerFired();
+        QTimer::singleShot(5000, this, SLOT(internetDiscoveryTimerFired()));
     }
-
-    inetDiscoveryTimer->start();
 }
 
 /*! Sets the announce interval for internet discovery.
@@ -52,7 +51,7 @@ bool DeRestPluginPrivate::setInternetDiscoveryInterval(int minutes)
 {
     if ((minutes < 0) || (minutes > 180))
     {
-        DBG_Printf(DBG_INFO, "ignored invalid announce interval (%d minutes)\n", minutes);
+        DBG_Printf(DBG_INFO, "discovery ignored invalid announce interval (%d minutes)\n", minutes);
         return false;
     }
 
@@ -63,7 +62,7 @@ bool DeRestPluginPrivate::setInternetDiscoveryInterval(int minutes)
     {
         int msec = 1000 * 60 * gwAnnounceInterval;
         inetDiscoveryTimer->start(msec);
-        DBG_Printf(DBG_INFO, "updated announce interval to %d minutes\n", minutes);
+        DBG_Printf(DBG_INFO, "discovery updated announce interval to %d minutes\n", minutes);
     }
     return true;
 }
@@ -74,13 +73,17 @@ void DeRestPluginPrivate::internetDiscoveryTimerFired()
 {
     if (gwAnnounceInterval > 0)
     {
-        QString str = QString("{ \"name\": \"%1\", \"mac\": \"%2\", \"internal_ip\":\"%3\", \"internal_port\":%4, \"interval\":%5, \"swversion\":\"%6\" }")
+        QString str = QString("{ \"name\": \"%1\", \"mac\": \"%2\", \"internal_ip\":\"%3\", \"internal_port\":%4, \"interval\":%5, \"swversion\":\"%6\", \"fwversion\":\"%7\", \"nodecount\":%8, \"uptime\":%9, \"updatechannel\":\"%10\" }")
                 .arg(gwName)
                 .arg(gwConfig["mac"].toString())
                 .arg(gwConfig["ipaddress"].toString())
                 .arg(gwConfig["port"].toDouble())
                 .arg(gwAnnounceInterval)
-                .arg(gwConfig["swversion"].toString());
+                .arg(gwConfig["swversion"].toString())
+                .arg(gwConfig["fwversion"].toString())
+                .arg(nodes.size())
+                .arg(getUptime())
+                .arg(gwUpdateChannel);
         QByteArray data(qPrintable(str));
         inetDiscoveryManager->put(QNetworkRequest(QUrl(gwAnnounceUrl)), data);
     }
@@ -104,20 +107,63 @@ void DeRestPluginPrivate::internetDiscoveryFinishedRequest(QNetworkReply *reply)
         DBG_Printf(DBG_INFO, "Announced to internet\n");
 #ifdef ARCH_ARM
         // currently this is only supported for the RaspBee Gateway
-        //QNetworkRequest req = reply->request();
-        QByteArray version = reply->rawHeader("deCONZ-Latest-RaspBee");
-
-        if (!version.isEmpty())
-        {
-            gwUpdateVersion = version;
-            DBG_Printf(DBG_INFO, "Latest RaspBee version %s\n", qPrintable(version));
-        }
+        internetDiscoveryExtractVersionInfo(reply);
 #endif // ARCH_ARM
     }
     else
     {
-        DBG_Printf(DBG_INFO, "Network reply error: %s\n", qPrintable(reply->errorString()));
+        DBG_Printf(DBG_INFO, "discovery network reply error: %s\n", qPrintable(reply->errorString()));
     }
 
     reply->deleteLater();
+}
+
+/*! Extracts the update channels version info about the deCONZ/WebApp.
+
+    \param reply which holds the version info in JSON format
+ */
+void DeRestPluginPrivate::internetDiscoveryExtractVersionInfo(QNetworkReply *reply)
+{
+    bool ok;
+    QByteArray content = reply->readAll();
+    QVariant var = Json::parse(content, ok);
+    QVariantMap map = var.toMap();
+
+    if (!ok || map.isEmpty())
+    {
+        DBG_Printf(DBG_ERROR, "discovery couldn't extract version info from reply\n");
+    }
+
+    if (map.contains("versions") && (map["versions"].type() == QVariant::Map))
+    {
+        QString version;
+        QVariantMap versions = map["versions"].toMap();
+
+        if (versions.contains(gwUpdateChannel) && (versions[gwUpdateChannel].type() == QVariant::String))
+        {
+            version = versions[gwUpdateChannel].toString();
+
+            if (!version.isEmpty())
+            {
+                if (gwUpdateVersion != version)
+                {
+                    DBG_Printf(DBG_INFO, "discovery found version %s for update channel %s\n", qPrintable(version), qPrintable(gwUpdateChannel));
+                    gwUpdateVersion = version;
+                    updateEtag(gwConfigEtag);
+                }
+            }
+            else
+            {
+                DBG_Printf(DBG_ERROR, "discovery reply doesn't contain valid version info for update channel %s\n", qPrintable(gwUpdateChannel));
+            }
+        }
+        else
+        {
+            DBG_Printf(DBG_ERROR, "discovery reply doesn't contain version info for update channel %s\n", qPrintable(gwUpdateChannel));
+        }
+    }
+    else
+    {
+        DBG_Printf(DBG_ERROR, "discovery reply doesn't contain valid version info\n");
+    }
 }

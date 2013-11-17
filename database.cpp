@@ -237,6 +237,14 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
             }
         }
     }
+    else if (strcmp(colval[0], "announceurl") == 0)
+    {
+        if (!val.isEmpty())
+        {
+            d->gwAnnounceUrl = val;
+            d->gwConfig["announceurl"] = val;
+        }
+    }
     else if (strcmp(colval[0], "rfconnect") == 0)
     {
         if (!val.isEmpty())
@@ -270,6 +278,18 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
                 d->gwGroupSendDelay = milliseconds;
                 d->gwConfig["groupdelay"] = (double)milliseconds;
             }
+        }
+    }
+    else if (strcmp(colval[0], "updatechannel") == 0)
+    {
+        if ((val == "stable") || (val == "alpha") || (val == "beta"))
+        {
+            d->gwUpdateChannel = val;
+            d->gwConfig["updatechannel"] = val;
+        }
+        else
+        {
+            DBG_Printf(DBG_ERROR, "DB unexpected value for updatechannel: %s\n", qPrintable(val));
         }
     }
     else if (strcmp(colval[0], "gwusername") == 0)

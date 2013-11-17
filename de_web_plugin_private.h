@@ -102,7 +102,18 @@
 #define REQ_NOT_HANDLED -1
 
 // Special application return codes
-#define APP_RET_UPDATE 40
+#define APP_RET_UPDATE        40
+#define APP_RET_RESTART_APP   41
+#define APP_RET_UPDATE_BETA   42
+#define APP_RET_RESTART_SYS   43
+#define APP_RET_SHUTDOWN_SYS  44
+#define APP_RET_UPDATE_ALPHA  45
+#define APP_RET_UPDATE_FW     46
+
+// Firmware version related (32-bit field)
+#define FW_PLATFORM_MASK          0x0000FF00UL
+#define FW_PLATFORM_DERFUSB23E0X  0x00000300UL
+#define FW_PLATFORM_RPI           0x00000500UL
 
 // schedules
 #define SCHEDULE_CHECK_PERIOD 1000
@@ -313,6 +324,7 @@ public:
     int getConfig(const ApiRequest &req, ApiResponse &rsp);
     int modifyConfig(const ApiRequest &req, ApiResponse &rsp);
     int updateSoftware(const ApiRequest &req, ApiResponse &rsp);
+    int updateFirmware(const ApiRequest &req, ApiResponse &rsp);
     int changePassword(const ApiRequest &req, ApiResponse &rsp);
     int deletePassword(const ApiRequest &req, ApiResponse &rsp);
 
@@ -395,13 +407,17 @@ public Q_SLOTS:
     void nodeEvent(const deCONZ::NodeEvent &event);
     void internetDiscoveryTimerFired();
     void internetDiscoveryFinishedRequest(QNetworkReply *reply);
+    void internetDiscoveryExtractVersionInfo(QNetworkReply *reply);
     void scheduleTimerFired();
     void permitJoinTimerFired();
     void otauTimerFired();
     void updateSoftwareTimerFired();
+    void updateFirmwareTimerFired();
     void lockGatewayTimerFired();
     void openClientTimerFired();
     void clientSocketDestroyed();
+    void queryFirmwareVersionTimerFired();
+    void checkMinFirmwareVersionFile();
     void saveDatabaseTimerFired();
     void userActivity();
 
@@ -525,6 +541,10 @@ public:
     QString gwName;
     QString gwUuid;
     QString gwUpdateVersion;
+    QString gwFirmwareVersion;
+    QString gwFirmwareVersionUpdate; // for local update of the firmware if it doesn't fit the GW_MIN_<platform>_FW_VERSION
+    bool gwFirmwareNeedUpdate;
+    QString gwUpdateChannel;
     int gwGroupSendDelay;
     QVariantMap gwConfig;
     QString gwConfigEtag;
