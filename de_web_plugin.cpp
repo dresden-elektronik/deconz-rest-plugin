@@ -2476,8 +2476,10 @@ DeRestPlugin::DeRestPlugin(QObject *parent) :
 
     m_idleTimer->start(1000);
 
-#if 0
-    for (int i = 0; i < 4; i++)
+#if 1
+    int dummyCount = deCONZ::appArgumentNumeric("--rest-dummy-lights", 0);
+
+    for (int i = 0; i < dummyCount; i++)
     {
         // create dummy node
         LightNode lightNode;
