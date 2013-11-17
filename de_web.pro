@@ -63,6 +63,7 @@ SOURCES  = authentification.cpp \
            rest_configuration.cpp \
            rest_groups.cpp \
            rest_schedules.cpp \
+           rest_touchlink.cpp \
            upnp.cpp \
            zcl_tasks.cpp \
            gw_uuid.cpp \

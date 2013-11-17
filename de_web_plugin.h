@@ -18,6 +18,10 @@
 class DeRestWidget;
 class DeRestPluginPrivate;
 
+#if DECONZ_LIB_VERSION < 0x010100
+  #error "The REST plugin requires at least deCONZ library version 1.1.0."
+#endif
+
 class DeRestPlugin : public QObject,
                      public deCONZ::NodeInterface,
                      public deCONZ::HttpClientHandler

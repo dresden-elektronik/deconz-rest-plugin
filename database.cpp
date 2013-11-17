@@ -237,6 +237,17 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
             }
         }
     }
+    else if (strcmp(colval[0], "rfconnect") == 0)
+    {
+        if (!val.isEmpty())
+        {
+            int conn = val.toInt(&ok);
+            if (ok && ((conn == 0) || (conn == 1)))
+            {
+                d->gwRfConnectedExpected = (conn == 1);
+            }
+        }
+    }
     else if (strcmp(colval[0], "permitjoin") == 0)
     {
         if (!val.isEmpty())
@@ -795,16 +806,18 @@ void DeRestPluginPrivate::saveDb()
     }
 
     // dump config
-    gwConfig["permitjoin"] = (double)gwPermitJoinDuration;
-    gwConfig["announceinterval"] = (double)gwAnnounceInterval;
-    gwConfig["announceurl"] = gwAnnounceUrl;
-    gwConfig["groupdelay"] = gwGroupSendDelay;
-    gwConfig["gwusername"] = gwAdminUserName;
-    gwConfig["gwpassword"] = gwAdminPasswordHash;
-    gwConfig["uuid"] = gwUuid;
-
     if (saveDatabaseItems & DB_CONFIG)
     {
+        gwConfig["permitjoin"] = (double)gwPermitJoinDuration;
+        gwConfig["rfconnect"] = (double)(gwRfConnectedExpected ? 1 : 0);
+        gwConfig["announceinterval"] = (double)gwAnnounceInterval;
+        gwConfig["announceurl"] = gwAnnounceUrl;
+        gwConfig["groupdelay"] = gwGroupSendDelay;
+        gwConfig["gwusername"] = gwAdminUserName;
+        gwConfig["gwpassword"] = gwAdminPasswordHash;
+        gwConfig["updatechannel"] = gwUpdateChannel;
+        gwConfig["uuid"] = gwUuid;
+
         QVariantMap::iterator i = gwConfig.begin();
         QVariantMap::iterator end = gwConfig.end();
 

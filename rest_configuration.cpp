@@ -263,7 +263,7 @@ void DeRestPluginPrivate::configToMap(QVariantMap &map)
     map["swversion"] = GW_SW_VERSION;
     map["announceurl"] = gwAnnounceUrl;
     map["announceinterval"] = (double)gwAnnounceInterval;
-    map["rfconnected"] = isInNetwork();
+    map["rfconnected"] = gwRfConnected;
     map["permitjoin"] = (double)gwPermitJoinDuration;
     map["otauactive"] = gwOtauActive;
     map["otaustate"] = (isOtauBusy() ? "busy" : (gwOtauActive ? "idle" : "off"));
@@ -294,6 +294,8 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
     {
         return REQ_READY_SEND;
     }
+
+    checkRfConnectState();
 
     // handle ETag
     if (req.hdr.hasKey("If-None-Match"))
@@ -373,6 +375,8 @@ int DeRestPluginPrivate::getConfig(const ApiRequest &req, ApiResponse &rsp)
     {
         return REQ_READY_SEND;
     }
+
+    checkRfConnectState();
 
     // handle ETag
     if (req.hdr.hasKey("If-None-Match"))
@@ -468,6 +472,14 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
             return REQ_READY_SEND;
         }
 
+        // don't change network state if touchlink is busy
+        if (touchlinkState != TL_Idle)
+        {
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/config/rfconnected"), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+
         bool rfconnected = map["rfconnected"].toBool();
 
         if (gwRfConnected != rfconnected)
@@ -476,7 +488,14 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
             changed = true;
         }
 
-        if (apsCtrl->setNetworkState(gwRfConnected ? deCONZ::InNetwork : deCONZ::NotInNetwork) == 0)
+        // also check if persistent settings changed
+        if (gwRfConnectedExpected != rfconnected)
+        {
+            gwRfConnectedExpected = rfconnected;
+            queSaveDb(DB_CONFIG, DB_LONG_SAVE_DELAY);
+        }
+
+        if (apsCtrl->setNetworkState(gwRfConnected ? deCONZ::InNetwork : deCONZ::NotInNetwork) == deCONZ::Success)
         {
             QVariantMap rspItem;
             QVariantMap rspItemState;
@@ -797,5 +816,40 @@ void DeRestPluginPrivate::lockGatewayTimerFired()
         gwLinkButton = false;
         updateEtag(gwConfigEtag);
         DBG_Printf(DBG_INFO, "gateway locked\n");
+    }
+}
+
+/*! Helper to update the config Etag then rfconnect state changes.
+ */
+void DeRestPluginPrivate::checkRfConnectState()
+{
+    if (apsCtrl)
+    {
+        // while touchlink is active always report connected: true
+        if (isTouchlinkActive())
+        {
+            if (!gwRfConnected)
+            {
+                gwRfConnected = true;
+                updateEtag(gwConfigEtag);
+            }
+        }
+        else
+        {
+            bool connected = isInNetwork();
+
+            if (connected != gwRfConnected)
+            {
+                gwRfConnected = connected;
+                updateEtag(gwConfigEtag);
+            }
+        }
+
+        // upgrade setting if needed
+        if (!gwRfConnectedExpected && gwRfConnected)
+        {
+            gwRfConnectedExpected = true;
+            queSaveDb(DB_CONFIG, DB_LONG_SAVE_DELAY);
+        }
     }
 }

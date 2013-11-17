@@ -106,6 +106,8 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     starttimeRef.start();
 
     // default configuration
+    gwRfConnected = false; // will be detected later
+    gwRfConnectedExpected = (deCONZ::appArgumentNumeric("--auto-connect", 1) == 1) ? true : false;
     gwPermitJoinDuration = 0;
     gwName = GW_DEFAULT_NAME;
     gwUpdateVersion = GW_SW_VERSION; // will be replaced by discovery handler
@@ -171,6 +173,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     initSchedules();
     initPermitJoin();
     initOtau();
+    initTouchlinkApi();
 }
 
 /*! Deconstructor for pimpl.
@@ -2887,6 +2890,7 @@ bool DeRestPlugin::isHttpTarget(const QHttpRequestHeader &hdr)
                 (ls[2] == "groups") ||
                 (ls[2] == "config") ||
                 (ls[2] == "schedules") ||
+                (ls[2] == "touchlink") ||
                 (hdr.path().at(4) != '/') /* Bug in some clients */)
             {
                 return true;
@@ -2999,6 +3003,10 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         else if (path[2] == "schedules")
         {
             ret = d->handleSchedulesApi(req, rsp);
+        }
+        else if (path[2] == "touchlink")
+        {
+            ret = d->handleTouchlinkApi(req, rsp);
         }
     }
 

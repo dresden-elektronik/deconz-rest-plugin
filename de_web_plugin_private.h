@@ -358,6 +358,14 @@ public:
     int setScheduleAttributes(const ApiRequest &req, ApiResponse &rsp);
     int deleteSchedule(const ApiRequest &req, ApiResponse &rsp);
 
+    // REST API touchlink
+    void initTouchlinkApi();
+    int handleTouchlinkApi(ApiRequest &req, ApiResponse &rsp);
+    int touchlinkScan(ApiRequest &req, ApiResponse &rsp);
+    int getTouchlinkScanResults(ApiRequest &req, ApiResponse &rsp);
+    int identifyLight(ApiRequest &req, ApiResponse &rsp);
+    int resetLight(ApiRequest &req, ApiResponse &rsp);
+
     // REST API common
     QVariantMap errorToMap(int id, const QString &ressource, const QString &description);
 
@@ -397,7 +405,23 @@ public Q_SLOTS:
     void saveDatabaseTimerFired();
     void userActivity();
 
+    // touchlink
+    void touchlinkDisconnectNetwork();
+    void checkTouchlinkNetworkDisconnected();
+    void startTouchlinkMode(uint8_t channel);
+    void startTouchlinkModeConfirm(deCONZ::TouchlinkStatus status);
+    void sendTouchlinkConfirm(deCONZ::TouchlinkStatus status);
+    void sendTouchlinkScanRequest();
+    void sendTouchlinkIdentifyRequest();
+    void sendTouchlinkResetRequest();
+    void touchlinkScanTimeout();
+    void interpanDataIndication(const QByteArray &data);
+    void touchlinkStartReconnectNetwork(int delay);
+    void touchlinkReconnectNetwork();
+    bool isTouchlinkActive();
+
 public:
+    void checkRfConnectState();
     bool isInNetwork();
     void generateGatewayUuid();
     void updateEtag(QString &etag);
@@ -490,7 +514,8 @@ public:
 
     // configuration
     bool gwLinkButton;
-    bool gwRfConnected;
+    bool gwRfConnectedExpected;  // the state which should be hold
+    bool gwRfConnected;  // to detect changes
     bool gwOtauActive;
     int gwAnnounceInterval; // used by internet discovery [minutes]
     QString gwAnnounceUrl;
@@ -530,6 +555,57 @@ public:
     int otauBusyTicks;
     uint otauNotifyIter; // iterator over nodes
     int otauNotifyDelay;
+
+    // touchlink
+
+    // touchlink state machine
+    enum TouchlinkState
+    {
+        // general
+        TL_Idle,
+        TL_DisconnectingNetwork,
+        TL_StartingInterpanMode,
+        TL_StoppingInterpanMode,
+        TL_ReconnectNetwork,
+        // scanning
+        TL_SendingScanRequest,
+        TL_WaitScanResponses,
+        // identify
+        TL_SendingIdentifyRequest,
+        // reset
+        TL_SendingResetRequest
+    };
+
+    enum TouchlinkAction
+    {
+        TouchlinkScan,
+        TouchlinkIdentify,
+        TouchlinkReset
+    };
+
+    struct ScanResponse
+    {
+        QString id;
+        deCONZ::Address address;
+        bool factoryNew;
+        uint8_t channel;
+        uint16_t panid;
+        uint32_t transactionId;
+    };
+
+    int touchlinkNetworkDisconnectAttempts; // disconnect attemps before touchlink
+    int touchlinkNetworkReconnectAttempts; // reconnect attemps after touchlink
+    bool touchlinkNetworkConnectedBefore;
+    uint8_t touchlinkChannel;
+    uint8_t touchlinkScanCount;
+    deCONZ::TouchlinkController *touchlinkCtrl;
+    TouchlinkAction touchlinkAction;
+    TouchlinkState touchlinkState;
+    deCONZ::TouchlinkRequest touchlinkReq;
+    QTimer *touchlinkTimer;
+    QDateTime touchlinkScanTime;
+    std::vector<ScanResponse> touchlinkScanResponses;
+    ScanResponse touchlinkDevice; // device of interrest (identify, reset, ...)
 
     // general
     deCONZ::ApsController *apsCtrl;
