@@ -159,6 +159,8 @@ int DeRestPluginPrivate::createGroup(const ApiRequest &req, ApiResponse &rsp)
 
     rsp.httpStatus = HttpStatusOk;
 
+    userActivity();
+
     if (!ok || map.isEmpty())
     {
         rsp.list.append(errorToMap(ERR_INVALID_JSON, QString("/groups"), QString("body contains invalid JSON")));
@@ -180,19 +182,21 @@ int DeRestPluginPrivate::createGroup(const ApiRequest &req, ApiResponse &rsp)
             // already exist? .. do nothing
             if (group1)
             {
-                // If a user creates a group with the same name of a formerly deleted group
-                if (group1->state() == Group::StateDeleted)
+                // If a group with the same name was deleted before
+                // a new group with a different id will be created
+                // TODO: same behavoir as for creating duplicated scenes
+                if (group1->state() != Group::StateDeleted)
                 {
-                    group1->setState(Group::StateNormal);
-                    updateEtag(group1->etag);
-                    updateEtag(gwConfigEtag);
+                    rspItemState["id"] = group1->id();
+                    rspItem["success"] = rspItemState;
+                    rsp.list.append(rspItem);
+                    rsp.httpStatus = HttpStatusOk;
+                    return REQ_READY_SEND;
                 }
-
-                rspItemState["id"] = group1->id();
-                rspItem["success"] = rspItemState;
-                rsp.list.append(rspItem);
-                rsp.httpStatus = HttpStatusOk;
-                return REQ_READY_SEND;
+                else
+                {
+                    DBG_Printf(DBG_INFO, "create group with same name as prior deleted group. but use different id\n");
+                }
             }
 
             // does not exist, create group
@@ -344,12 +348,15 @@ int DeRestPluginPrivate::getGroupAttributes(const ApiRequest &req, ApiResponse &
 
     for ( ;si != send; ++si)
     {
-        QVariantMap scene;
-        QString sid = QString::number(si->id);
-        scene["id"] = sid;
-        scene["name"] = si->name;
+        if (si->state != Scene::StateDeleted)
+        {
+            QVariantMap scene;
+            QString sid = QString::number(si->id);
+            scene["id"] = sid;
+            scene["name"] = si->name;
 
-        scenes.append(scene);
+            scenes.append(scene);
+        }
     }
 
     rsp.map["scenes"] = scenes;
@@ -373,6 +380,8 @@ int DeRestPluginPrivate::setGroupAttributes(const ApiRequest &req, ApiResponse &
     Group *group = getGroupForId(id);
     rsp.httpStatus = HttpStatusOk;
 
+    userActivity();
+
     if (!ok || map.isEmpty())
     {
         rsp.list.append(errorToMap(ERR_INVALID_JSON, QString("/groups/%1").arg(id), QString("body contains invalid JSON")));
@@ -394,7 +403,7 @@ int DeRestPluginPrivate::setGroupAttributes(const ApiRequest &req, ApiResponse &
 
         if (map["name"].type() == QVariant::String)
         {
-            if (name.size() < 32)
+            if (name.size() <= 32)
             {
                 QVariantMap rspItem;
                 QVariantMap rspItemState;
@@ -536,6 +545,8 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     Group *group = getGroupForId(id);
     uint hue = UINT_MAX;
     uint sat = UINT_MAX;
+
+    userActivity();
 
     if (!isInNetwork())
     {
@@ -820,6 +831,8 @@ int DeRestPluginPrivate::deleteGroup(const ApiRequest &req, ApiResponse &rsp)
     QString id = req.path[3];
     Group *group = getGroupForId(id);
 
+    userActivity();
+
     if (!group || (group->state() == Group::StateDeleted))
     {
         rsp.httpStatus = HttpStatusNotFound;
@@ -938,12 +951,15 @@ bool DeRestPluginPrivate::groupToMap(const Group *group, QVariantMap &map)
 
     for ( ;si != send; ++si)
     {
-        QVariantMap scene;
-        QString sid = QString::number(si->id);
-        scene["id"] = sid;
-        scene["name"] = si->name;
+        if (si->state != Scene::StateDeleted)
+        {
+            QVariantMap scene;
+            QString sid = QString::number(si->id);
+            scene["id"] = sid;
+            scene["name"] = si->name;
 
-        scenes.append(scene);
+            scenes.append(scene);
+        }
     }
 
     map["scenes"] = scenes;
@@ -958,7 +974,6 @@ bool DeRestPluginPrivate::groupToMap(const Group *group, QVariantMap &map)
 int DeRestPluginPrivate::createScene(const ApiRequest &req, ApiResponse &rsp)
 {
     bool ok;
-    bool sceneExist = false;
     Scene scene;
     QVariantMap rspItem;
     QVariantMap rspItemState;
@@ -967,6 +982,8 @@ int DeRestPluginPrivate::createScene(const ApiRequest &req, ApiResponse &rsp)
     QString id = req.path[3];
     Group *group = getGroupForId(id);
     rsp.httpStatus = HttpStatusOk;
+
+    userActivity();
 
     if (!isInNetwork())
     {
@@ -1005,12 +1022,13 @@ int DeRestPluginPrivate::createScene(const ApiRequest &req, ApiResponse &rsp)
 
                 for (; i != end; ++i)
                 {
-                    if (i->name == name)
+                    if ((i->name == name) && (i->state != Scene::StateDeleted))
                     {
-                        DBG_Printf(DBG_INFO, "Scene with name %s already exist, return success\n", qPrintable(name));
-                        scene = *i;
-                        sceneExist = true;
-                        break;
+                        DBG_Printf(DBG_INFO, "Scene with name %s already exist\n", qPrintable(name));
+
+                        rsp.list.append(errorToMap(ERR_DUPLICATE_EXIST, QString("/groups/%1/scenes").arg(id), QString("resource, /groups/%1/scenes/%2, already exists").arg(id).arg(name)));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
                     }
                 }
             }
@@ -1029,37 +1047,34 @@ int DeRestPluginPrivate::createScene(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
-    if (!sceneExist)
-    {
-        // search a unused id
-        scene.id = 1;
-        do {
-            ok = true; // will be false if a scene.id is already used
-            std::vector<Scene>::iterator i = group->scenes.begin();
-            std::vector<Scene>::iterator end = group->scenes.end();
+    // search a unused id
+    scene.id = 1;
+    do {
+        ok = true; // will be false if a scene.id is already used
+        std::vector<Scene>::iterator i = group->scenes.begin();
+        std::vector<Scene>::iterator end = group->scenes.end();
 
-            for (; i != end; ++i)
-            {
-                if (i->id == scene.id)
-                {
-                    scene.id++;
-                    ok = false;
-                    break;
-                }
-            }
-        } while (!ok);
-
-        scene.groupAddress = group->address();
-
-        if (scene.name.isEmpty())
+        for (; i != end; ++i)
         {
-            scene.name.sprintf("Scene %u", scene.id);
+            if (i->id == scene.id)
+            {
+                scene.id++;
+                ok = false;
+                break;
+            }
         }
-        group->scenes.push_back(scene);
-        updateEtag(group->etag);
-        updateEtag(gwConfigEtag);
-        queSaveDb(DB_SCENES, DB_SHORT_SAVE_DELAY);
+    } while (!ok);
+
+    scene.groupAddress = group->address();
+
+    if (scene.name.isEmpty())
+    {
+        scene.name.sprintf("Scene %u", scene.id);
     }
+    group->scenes.push_back(scene);
+    updateEtag(group->etag);
+    updateEtag(gwConfigEtag);
+    queSaveDb(DB_SCENES, DB_SHORT_SAVE_DELAY);
 
     if (!storeScene(group, scene.id))
     {
@@ -1136,7 +1151,7 @@ int DeRestPluginPrivate::getSceneAttributes(const ApiRequest &req, ApiResponse &
     {
         for (; i != end; ++i)
         {
-            if (i->id == sceneId)
+            if ((i->id == sceneId) && (i->state != Scene::StateDeleted))
             {
                 rsp.map["name"] = i->name;
                 return REQ_READY_SEND;
@@ -1212,7 +1227,7 @@ int DeRestPluginPrivate::setSceneAttributes(const ApiRequest &req, ApiResponse &
     {
         for (; i != end; ++i)
         {
-            if (i->id == sceneId)
+            if ((i->id == sceneId) && (i->state != Scene::StateDeleted))
             {
                 if (!name.isEmpty())
                 {
@@ -1228,10 +1243,13 @@ int DeRestPluginPrivate::setSceneAttributes(const ApiRequest &req, ApiResponse &
                     rspItem["success"] = rspItemState;
                     rsp.list.append(rspItem);
                 }
+
+                break;
             }
 
-            return REQ_READY_SEND;
         }
+
+        return REQ_READY_SEND;
     }
 
     rsp.httpStatus = HttpStatusNotFound;
@@ -1252,6 +1270,8 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
     QString sid = req.path[5];
     Group *group = getGroupForId(gid);
     rsp.httpStatus = HttpStatusOk;
+
+    userActivity();
 
     if (!isInNetwork())
     {
@@ -1279,7 +1299,7 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
         ok = false;
         for (; i != end; ++i)
         {
-            if (i->id == sceneId)
+            if ((i->id == sceneId) && (i->state != Scene::StateDeleted))
             {
                 scene = *i;
                 ok = true;
@@ -1324,6 +1344,8 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
     Group *group = getGroupForId(gid);
     rsp.httpStatus = HttpStatusOk;
 
+    userActivity();
+
     if (!isInNetwork())
     {
         rsp.list.append(errorToMap(ERR_NOT_CONNECTED, QString("/groups/%1/scenes/%2").arg(gid).arg(sid), "not connected"));
@@ -1350,7 +1372,7 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
         ok = false;
         for (; i != end; ++i)
         {
-            if (i->id == sceneId)
+            if ((i->id == sceneId) && (i->state != Scene::StateDeleted))
             {
                 scene = *i;
                 ok = true;
@@ -1366,17 +1388,50 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    if (callScene(group, scene.id))
+    if (!callScene(group, scene.id))
     {
         rsp.httpStatus = HttpStatusServiceUnavailable;
         rsp.list.append(errorToMap(ERR_BRIDGE_BUSY, QString("/groups/%1/scenes/%2").arg(gid).arg(sid), QString("gateway busy")));
         return REQ_READY_SEND;
     }
 
+
+    { // FIXME: Turn on all lights of the group based on the assumption
+      // that the light state in the scene is also 'on' which might not be the case.
+      // This shall be removed if the scenes will be queried from the lights.
+        std::vector<LightNode>::iterator i = nodes.begin();
+        std::vector<LightNode>::iterator end = nodes.end();
+
+        uint16_t groupId = group->id().toUInt();
+
+        for (; i != end; ++i)
+        {
+            if (isLightNodeInGroup(&(*i), groupId))
+            {
+                if (!i->isOn())
+                {
+                    i->setIsOn(true);
+                    updateEtag(i->etag);
+                }
+            }
+        }
+    }
+
+    // turning 'on' the group is also a assumtion but a very likely one
+    if (!group->isOn())
+    {
+        group->setIsOn(true);
+        updateEtag(group->etag);
+    }
+
+    updateEtag(gwConfigEtag);
+
     rspItemState["id"] = QString::number(scene.id);
     rspItem["success"] = rspItemState;
     rsp.list.append(rspItem);
     rsp.httpStatus = HttpStatusOk;
+
+    processTasks();
 
     return REQ_READY_SEND;
 }
@@ -1394,6 +1449,8 @@ int DeRestPluginPrivate::deleteScene(const ApiRequest &req, ApiResponse &rsp)
     QString sid = req.path[5];
     Group *group = getGroupForId(gid);
     rsp.httpStatus = HttpStatusOk;
+
+    userActivity();
 
     if (!isInNetwork())
     {

@@ -36,7 +36,8 @@ public:
     State state;
     uint8_t actions;
     uint16_t id;
-    std::vector<uint8_t> scenes;
+    std::vector<uint8_t> addScenes;
+    std::vector<uint8_t> removeScenes;
 };
 
 #endif // GROUP_INFO_H

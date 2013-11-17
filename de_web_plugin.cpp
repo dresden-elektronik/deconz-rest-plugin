@@ -48,6 +48,7 @@ const char *HttpContentSVG         = "image/svg+xml";
 static int ReadAttributesDelay = 750;
 static int ReadAttributesLongDelay = 5000;
 static int ReadAttributesLongerDelay = 60000;
+static uint MaxGroupTasks = 4;
 
 ApiRequest::ApiRequest(const QHttpRequestHeader &h, const QStringList &p, QTcpSocket *s, const QString &c) :
     hdr(h), path(p), sock(s), content(c), version(ApiVersion_1)
@@ -152,7 +153,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     taskTimer->setSingleShot(false);
     connect(taskTimer, SIGNAL(timeout()),
             this, SLOT(processGroupTasks()));
-    taskTimer->start(200);
+    taskTimer->start(250);
 
     lockGatewayTimer = new QTimer(this);
     lockGatewayTimer->setSingleShot(true);
@@ -1031,6 +1032,8 @@ bool DeRestPluginPrivate::processReadAttributes(LightNode *lightNode)
         std::vector<GroupInfo>::iterator i = lightNode->groups().begin();
         std::vector<GroupInfo>::iterator end = lightNode->groups().end();
 
+        int rd = 0;
+
         for (; i != end; ++i)
         {
             Group *group = getGroupForId(i->id);
@@ -1040,11 +1043,30 @@ bool DeRestPluginPrivate::processReadAttributes(LightNode *lightNode)
             {
                 // NOTE: this may cause problems if we have a lot of nodes + groups
                 // proposal mark groups for which scenes where discovered
-                readSceneMembership(lightNode, group);
+                if (readSceneMembership(lightNode, group))
+                {
+                    rd++;
+                }
+                else
+                {
+                    // print but don't take action
+                    DBG_Printf(DBG_INFO_L2, "read scenes membership for group: 0x%04X rejected\n", i->id);
+                }
             }
         }
 
-        lightNode->clearRead(READ_SCENES);
+        if (!lightNode->groups().empty())
+        {
+            if (rd > 0)
+            {
+                lightNode->clearRead(READ_SCENES);
+            }
+        }
+        else
+        {
+            lightNode->clearRead(READ_SCENES);
+        }
+
         processed++;
     }
 
@@ -1378,7 +1400,7 @@ bool DeRestPluginPrivate::readSceneMembership(LightNode *lightNode, Group *group
 /*! Checks if the scene membership is known to the group.
     If the scene is not known it will be added.
  */
-void DeRestPluginPrivate::foundScene(Group *group, uint8_t sceneId)
+void DeRestPluginPrivate::foundScene(LightNode *lightNode, Group *group, uint8_t sceneId)
 {
     DBG_Assert(group != 0);
 
@@ -1394,6 +1416,21 @@ void DeRestPluginPrivate::foundScene(Group *group, uint8_t sceneId)
     {
         if (i->id == sceneId)
         {
+            if (i->state == Scene::StateDeleted)
+            {
+                GroupInfo *groupInfo = getGroupInfo(lightNode, group->address());
+
+                if (groupInfo)
+                {
+                    std::vector<uint8_t> &v = groupInfo->removeScenes;
+
+                    if (std::find(v.begin(), v.end(), sceneId) == v.end())
+                    {
+                        DBG_Printf(DBG_INFO, "Found Scene %u which was deleted before, delete again\n", sceneId);
+                        groupInfo->removeScenes.push_back(sceneId);
+                    }
+                }
+            }
             return; // already known
         }
     }
@@ -1406,7 +1443,7 @@ void DeRestPluginPrivate::foundScene(Group *group, uint8_t sceneId)
     closeDb();
     if (scene.name.isEmpty())
     {
-        scene.name.sprintf("ID 0x%02X", sceneId);
+        scene.name.sprintf("Scene %u", sceneId);
     }
     group->scenes.push_back(scene);
     updateEtag(group->etag);
@@ -1452,43 +1489,26 @@ bool DeRestPluginPrivate::storeScene(Group *group, uint8_t sceneId)
         return false;
     }
 
-    TaskItem task;
-    task.taskType = TaskStoreScene;
-
-    task.req.setTxOptions(0);
-    task.req.setDstEndpoint(0xFF);
-    task.req.setDstAddressMode(deCONZ::ApsGroupAddress);
-    task.req.dstAddress().setGroup(group->address());
-    task.req.setClusterId(SCENE_CLUSTER_ID);
-    task.req.setProfileId(HA_PROFILE_ID);
-    task.req.setSrcEndpoint(getSrcEndpoint(0, task.req));
-
-    task.zclFrame.setSequenceNumber(zclSeq++);
-    task.zclFrame.setCommandId(0x04); // store scene
-    task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
-                             deCONZ::ZclFCDirectionClientToServer |
-                             deCONZ::ZclFCDisableDefaultResponse);
-
-    { // payload
-        QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
-        stream.setByteOrder(QDataStream::LittleEndian);
-
-        stream << group->address();
-        stream << sceneId;
-    }
-
-    { // ZCL frame
-        QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
-        stream.setByteOrder(QDataStream::LittleEndian);
-        task.zclFrame.writeToStream(stream);
-    }
-
-    if (addTask(task))
+    std::vector<LightNode>::iterator i = nodes.begin();
+    std::vector<LightNode>::iterator end = nodes.end();
+    for (; i != end; ++i)
     {
-        return true;
+        LightNode *lightNode = &(*i);
+        if (lightNode->isAvailable() && // note: we only create/store the scene if node is available
+            isLightNodeInGroup(lightNode, group->address()))
+        {
+            GroupInfo *groupInfo = getGroupInfo(lightNode, group->address());
+
+            std::vector<uint8_t> &v = groupInfo->addScenes;
+
+            if (std::find(v.begin(), v.end(), sceneId) == v.end())
+            {
+                groupInfo->addScenes.push_back(sceneId);
+            }
+        }
     }
 
-    return false;
+    return true;
 }
 
 /*! Sends a remove scene request to a group.
@@ -1502,57 +1522,42 @@ bool DeRestPluginPrivate::removeScene(Group *group, uint8_t sceneId)
         return false;
     }
 
-    std::vector<Scene>::iterator i = group->scenes.begin();
-    std::vector<Scene>::iterator end = group->scenes.end();
-
-    for (; i != end; ++i)
     {
-        if (i->id == sceneId)
+        std::vector<Scene>::iterator i = group->scenes.begin();
+        std::vector<Scene>::iterator end = group->scenes.end();
+
+        for (; i != end; ++i)
         {
-            group->scenes.erase(i);
-            updateEtag(group->etag);
-            updateEtag(gwConfigEtag);
-            break;
+            if (i->id == sceneId)
+            {
+                i->state = Scene::StateDeleted;
+                updateEtag(group->etag);
+                updateEtag(gwConfigEtag);
+                break;
+            }
         }
     }
 
-    TaskItem task;
-    task.taskType = TaskRemoveScene;
-
-    task.req.setTxOptions(0);
-    task.req.setDstEndpoint(0xFF);
-    task.req.setDstAddressMode(deCONZ::ApsGroupAddress);
-    task.req.dstAddress().setGroup(group->address());
-    task.req.setClusterId(SCENE_CLUSTER_ID);
-    task.req.setProfileId(HA_PROFILE_ID);
-    task.req.setSrcEndpoint(getSrcEndpoint(0, task.req));
-
-    task.zclFrame.setSequenceNumber(zclSeq++);
-    task.zclFrame.setCommandId(0x02); // remove scene
-    task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
-                             deCONZ::ZclFCDirectionClientToServer |
-                             deCONZ::ZclFCDisableDefaultResponse);
-
-    { // payload
-        QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
-        stream.setByteOrder(QDataStream::LittleEndian);
-
-        stream << group->address();
-        stream << sceneId;
-    }
-
-    { // ZCL frame
-        QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
-        stream.setByteOrder(QDataStream::LittleEndian);
-        task.zclFrame.writeToStream(stream);
-    }
-
-    if (addTask(task))
+    std::vector<LightNode>::iterator i = nodes.begin();
+    std::vector<LightNode>::iterator end = nodes.end();
+    for (; i != end; ++i)
     {
-        return true;
+        LightNode *lightNode = &(*i);
+        // note: we queue removing of scene even if node is not available
+        if (isLightNodeInGroup(lightNode, group->address()))
+        {
+            GroupInfo *groupInfo = getGroupInfo(lightNode, group->address());
+
+            std::vector<uint8_t> &v = groupInfo->removeScenes;
+
+            if (std::find(v.begin(), v.end(), sceneId) == v.end())
+            {
+                groupInfo->removeScenes.push_back(sceneId);
+            }
+        }
     }
 
-    return false;
+    return true;
 }
 
 /*! Sends a call scene request to a group.
@@ -1565,9 +1570,6 @@ bool DeRestPluginPrivate::callScene(Group *group, uint8_t sceneId)
     {
         return false;
     }
-
-    // mark user activity
-    idleLastActivity = 0;
 
     TaskItem task;
     task.taskType = TaskCallScene;
@@ -1940,6 +1942,16 @@ void DeRestPluginPrivate::processGroupTasks()
         return;
     }
 
+    if (!isInNetwork())
+    {
+        return;
+    }
+
+    if (tasks.size() > MaxGroupTasks)
+    {
+        return;
+    }
+
     if (groupTaskNodeIter >= nodes.size())
     {
         groupTaskNodeIter = 0;
@@ -1948,6 +1960,12 @@ void DeRestPluginPrivate::processGroupTasks()
     TaskItem task;
 
     task.lightNode = &nodes[groupTaskNodeIter];
+    groupTaskNodeIter++;
+
+    if (!task.lightNode->isAvailable())
+    {
+        return;
+    }
 
     // set destination parameters
     task.req.dstAddress() = task.lightNode->address();
@@ -1958,6 +1976,7 @@ void DeRestPluginPrivate::processGroupTasks()
 
     std::vector<GroupInfo>::iterator i = task.lightNode->groups().begin();
     std::vector<GroupInfo>::iterator end = task.lightNode->groups().end();
+
     for (; i != end; ++i)
     {
         if (i->actions & GroupInfo::ActionAddToGroup)
@@ -1977,9 +1996,25 @@ void DeRestPluginPrivate::processGroupTasks()
             }
             return;
         }
-    }
 
-    groupTaskNodeIter++;
+        if (!i->addScenes.empty())
+        {
+            if (addTaskAddScene(task, i->id, i->addScenes[0]))
+            {
+                processTasks();
+                return;
+            }
+        }
+
+        if (!i->removeScenes.empty())
+        {
+            if (addTaskRemoveScene(task, i->id, i->removeScenes[0]))
+            {
+                processTasks();
+                return;
+            }
+        }
+    }
 }
 
 /*! Handle packets related to the ZCL group cluster.
@@ -2070,8 +2105,10 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
         if (status == deCONZ::ZclSuccessStatus)
         {
             Group *group = getGroupForId(groupId);
+            LightNode *lightNode = getLightNodeForAddress(ind.srcAddress().ext());
 
             DBG_Assert(group != 0);
+            DBG_Assert(lightNode != 0);
             stream >> count;
 
             for (uint i = 0; i < count; i++)
@@ -2083,10 +2120,78 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
 
                     DBG_Printf(DBG_INFO, "found scene 0x%02X for group 0x%04X\n", sceneId, groupId);
 
-                    if (group)
+                    if (group && lightNode)
                     {
-                        foundScene(group, sceneId);
+                        foundScene(lightNode, group, sceneId);
                     }
+                }
+            }
+        }
+    }
+    else if (zclFrame.commandId() == 0x04) // Store scene response
+    {
+        DBG_Assert(zclFrame.payload().size() >= 4);
+
+        QDataStream stream(zclFrame.payload());
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        uint8_t status;
+        uint16_t groupId;
+        uint8_t sceneId;
+
+        stream >> status;
+        stream >> groupId;
+        stream >> sceneId;
+
+        LightNode *lightNode = getLightNodeForAddress(ind.srcAddress().ext());
+
+        if (lightNode)
+        {
+            GroupInfo *groupInfo = getGroupInfo(lightNode, groupId);
+
+            if (groupInfo)
+            {
+                std::vector<uint8_t> &v = groupInfo->addScenes;
+                std::vector<uint8_t>::iterator i = std::find(v.begin(), v.end(), sceneId);
+
+                if (i != v.end())
+                {
+                    DBG_Printf(DBG_INFO, "Added/stored scene %u in node %s status 0x%02X\n", sceneId, qPrintable(lightNode->address().toStringExt()), status);
+                    groupInfo->addScenes.erase(i);
+                }
+            }
+        }
+    }
+    else if (zclFrame.commandId() == 0x02) // Remove scene response
+    {
+        DBG_Assert(zclFrame.payload().size() >= 4);
+
+        QDataStream stream(zclFrame.payload());
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        uint8_t status;
+        uint16_t groupId;
+        uint8_t sceneId;
+
+        stream >> status;
+        stream >> groupId;
+        stream >> sceneId;
+
+        LightNode *lightNode = getLightNodeForAddress(ind.srcAddress().ext());
+
+        if (lightNode)
+        {
+            GroupInfo *groupInfo = getGroupInfo(lightNode, groupId);
+
+            if (groupInfo)
+            {
+                std::vector<uint8_t> &v = groupInfo->removeScenes;
+                std::vector<uint8_t>::iterator i = std::find(v.begin(), v.end(), sceneId);
+
+                if (i != v.end())
+                {
+                    DBG_Printf(DBG_INFO, "Removed scene %u from node %s status 0x%02X\n", sceneId, qPrintable(lightNode->address().toStringExt()), status);
+                    groupInfo->removeScenes.erase(i);
                 }
             }
         }

@@ -12,6 +12,9 @@
 
 /*! Constructor.
  */
-Scene::Scene()
+Scene::Scene() :
+    state(StateNormal),
+    groupAddress(0),
+    id(0)
 {
 }

@@ -24,7 +24,7 @@
 #include "group_info.h"
 #include "scene.h"
 
-/*! JSON error message codes */
+/*! JSON generic error message codes */
 #define ERR_UNAUTHORIZED_USER          1
 #define ERR_INVALID_JSON               2
 #define ERR_RESOURCE_NOT_AVAILABLE     3
@@ -33,6 +33,7 @@
 #define ERR_PARAMETER_NOT_AVAILABLE    6
 #define ERR_INVALID_VALUE              7
 #define ERR_PARAMETER_NOT_MODIFIEABLE  8
+#define ERR_DUPLICATE_EXIST            100 // de extension
 #define ERR_INTERNAL_ERROR             901
 
 #define ERR_NOT_CONNECTED              950 // de extension
@@ -86,15 +87,10 @@
 #define VENDOR_DDEL     0x1014
 #define VENDOR_PHILIPS  0x100B
 
-#define GROUP_LOCATION_BIT 0x8000
-#define GROUP_SUBGROUP_BIT 0x4000
-#define PARENT_GROUP_ID(x) (((x) >> 7) & 0x7F)
-#define GROUP_ID(x)        ((x) & 0x7F)
-
 #define ANNOUNCE_INTERVAL 10 // minutes default announce interval
 
 #define MAX_GROUP_SEND_DELAY 5000 // ms between to requests to the same group
-#define GROUP_SEND_DELAY 2000 // default ms between to requests to the same group
+#define GROUP_SEND_DELAY 500 // default ms between to requests to the same group
 
 // string lengths
 #define MAX_GROUP_NAME_LENGTH 32
@@ -428,7 +424,7 @@ public:
     void readAllInGroup(Group *group);
     void setAttributeOnOffGroup(Group *group, uint8_t onOff);
     bool readSceneMembership(LightNode *lightNode, Group *group);
-    void foundScene(Group *group, uint8_t sceneId);
+    void foundScene(LightNode *lightNode, Group *group, uint8_t sceneId);
     void setSceneName(Group *group, uint8_t sceneId, const QString &name);
     bool storeScene(Group *group, uint8_t sceneId);
     bool removeScene(Group *group, uint8_t sceneId);
@@ -449,6 +445,8 @@ public:
     bool addTaskSetXyColor(TaskItem &task, double x, double y);
     bool addTaskAddToGroup(TaskItem &task, uint16_t groupId);
     bool addTaskRemoveFromGroup(TaskItem &task, uint16_t groupId);
+    bool addTaskAddScene(TaskItem &task, uint16_t groupId, uint8_t sceneId);
+    bool addTaskRemoveScene(TaskItem &task, uint16_t groupId, uint8_t sceneId);
     bool obtainTaskCluster(TaskItem &task, const deCONZ::ApsDataIndication &ind);
     void handleGroupClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleSceneClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);

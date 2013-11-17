@@ -17,7 +17,14 @@
 class Scene
 {
 public:
+    enum State
+    {
+        StateNormal,
+        StateDeleted
+    };
+
     Scene();
+    State state;
     uint16_t groupAddress;
     uint8_t id;
     QString name;

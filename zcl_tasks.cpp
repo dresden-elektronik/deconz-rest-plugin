@@ -429,3 +429,81 @@ bool DeRestPluginPrivate::addTaskRemoveFromGroup(TaskItem &task, uint16_t groupI
 
     return addTask(task);
 }
+
+/*! Adds a add scene task to the queue.
+
+   \param task - the task item
+   \param groupId - the group to which the scene belongs
+   \param sceneId - the scene which shall be added
+   \return true - on success
+           false - on error
+ */
+bool DeRestPluginPrivate::addTaskAddScene(TaskItem &task, uint16_t groupId, uint8_t sceneId)
+{
+    task.taskType = TaskStoreScene;
+
+    task.req.setClusterId(SCENE_CLUSTER_ID);
+    task.req.setProfileId(HA_PROFILE_ID);
+
+    task.zclFrame.setSequenceNumber(zclSeq++);
+    task.zclFrame.setCommandId(0x04); // store scene
+    task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
+                             deCONZ::ZclFCDirectionClientToServer |
+                             deCONZ::ZclFCDisableDefaultResponse);
+
+    { // payload
+        QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        stream << groupId;
+        stream << sceneId;
+    }
+
+    { // ZCL frame
+        task.req.asdu().clear(); // cleanup old request data if there is any
+        QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        task.zclFrame.writeToStream(stream);
+    }
+
+    return addTask(task);
+}
+
+/*! Adds a remove scene task to the queue.
+
+   \param task - the task item
+   \param groupId - the group to which the scene belongs
+   \param sceneId - the scene which shall be removed
+   \return true - on success
+           false - on error
+ */
+bool DeRestPluginPrivate::addTaskRemoveScene(TaskItem &task, uint16_t groupId, uint8_t sceneId)
+{
+    task.taskType = TaskStoreScene;
+
+    task.req.setClusterId(SCENE_CLUSTER_ID);
+    task.req.setProfileId(HA_PROFILE_ID);
+
+    task.zclFrame.setSequenceNumber(zclSeq++);
+    task.zclFrame.setCommandId(0x02); // remove scene
+    task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
+                             deCONZ::ZclFCDirectionClientToServer |
+                             deCONZ::ZclFCDisableDefaultResponse);
+
+    { // payload
+        QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        stream << groupId;
+        stream << sceneId;
+    }
+
+    { // ZCL frame
+        task.req.asdu().clear(); // cleanup old request data if there is any
+        QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        task.zclFrame.writeToStream(stream);
+    }
+
+    return addTask(task);
+}
