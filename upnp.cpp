@@ -79,15 +79,17 @@ void DeRestPluginPrivate::announceUpnp()
     QHostAddress host;
     QByteArray datagram = QString(
     "NOTIFY * HTTP/1.1\r\n"
-    "HOST: 239.255.255.250:1900"
+    "HOST: 239.255.255.250:1900\r\n"
     "CACHE-CONTROL: max-age=100\r\n"
     "LOCATION: http://%1:%2/description.xml\r\n"
     "SERVER: FreeRTOS/6.0.5, UPnP/1.0, IpBridge/0.1\r\n"
     "NTS: ssdp:alive\r\n"
     "NT: upnp:rootdevice\r\n"
-    "USN: uuid:2f402f80-da50-11e1-9b23-nydalenlys::upnp:rootdevice\r\n")
+    "USN: uuid:%3::upnp:rootdevice\r\n"
+    "\r\n")
             .arg(gwConfig["ipaddress"].toString())
-            .arg(gwConfig["port"].toDouble()).toLocal8Bit();
+            .arg(gwConfig["port"].toDouble())
+            .arg(gwConfig["uuid"].toString()).toLocal8Bit();
 
     host.setAddress("239.255.255.250");
 
@@ -109,25 +111,24 @@ void DeRestPluginPrivate::upnpReadyRead()
 
         if (datagram.startsWith("M-SEARCH *"))
         {
+            DBG_Printf(DBG_HTTP, "UPNP %s:%u\n%s\n", qPrintable(host.toString()), port, datagram.data());
             datagram.clear();
 
-            datagram.append("HTTP/1.1 200 OK\n");
-            datagram.append("CACHE-CONTROL: max-age=100\n");
-            datagram.append("EXT:\n");
-            datagram.append(QString("LOCATION: http://%1:%2/description.xml\n")
+            datagram.append("HTTP/1.1 200 OK\r\n");
+            datagram.append("CACHE-CONTROL: max-age=100\r\n");
+            datagram.append("EXT: \r\n");
+            datagram.append(QString("LOCATION: http://%1:%2/description.xml\r\n")
                             .arg(gwConfig["ipaddress"].toString())
                             .arg(gwConfig["port"].toDouble()).toLocal8Bit());
-            datagram.append("SERVER: FreeRTOS/6.0.5, UPnP/1.0, IpBridge/0.1\n");
-            datagram.append("ST: upnp:rootdevice\n");
-            datagram.append("USN: uuid:2fa00080-d000-11e1-9b23-001f80007bbe::upnp:rootdevice\n");
+            datagram.append("SERVER: FreeRTOS/6.0.5, UPnP/1.0, IpBridge/0.1\r\n");
+            datagram.append("ST: upnp:rootdevice\r\n");
+            datagram.append(QString("USN: uuid:%1::upnp:rootdevice\r\n").arg(gwUuid));
+            datagram.append("\r\n");
 
             if (udpSockOut->writeDatagram(datagram.data(), datagram.size(), host, port) == -1)
             {
                 DBG_Printf(DBG_ERROR, "UDP send error %s\n", qPrintable(udpSockOut->errorString()));
             }
-
-            //DBG_Printf(DBG_INFO, "UPNP %s:%u\n", qPrintable(host.toString()), port);
-            //qDebug() << datagram;
         }
     }
 }
