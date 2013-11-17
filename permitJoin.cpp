@@ -100,7 +100,7 @@ void DeRestPluginPrivate::permitJoinTimerFired()
             apsCtrl->setPermitJoin(gwPermitJoinDuration);
 
             // broadcast
-            if (apsCtrl->apsdeDataRequest(apsReq) == 0)
+            if (apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
             {
                 DBG_Printf(DBG_INFO, "send permit join, duration: %d\n", gwPermitJoinDuration);
                 permitJoinLastSendTime = now;
