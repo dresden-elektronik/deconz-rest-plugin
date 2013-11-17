@@ -114,6 +114,8 @@ int DeRestPluginPrivate::searchLights(const ApiRequest &req, ApiResponse &rsp)
 {
     Q_UNUSED(req);
 
+    userActivity();
+
     if (isInNetwork())
     {
         setPermitJoinDuration(60);
@@ -235,13 +237,51 @@ int DeRestPluginPrivate::getLightState(const ApiRequest &req, ApiResponse &rsp)
 
     const QString &id = req.path[3];
 
-    LightNode *webNode = getLightNodeForId(id);
+    LightNode *lightNode = getLightNodeForId(id);
 
-    if (!webNode)
+    if (!lightNode)
     {
         rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("resource, /lights/%1, not available").arg(id)));
         rsp.httpStatus = HttpStatusNotFound;
         return REQ_READY_SEND;
+    }
+
+    // handle request to force query light state
+    if (req.hdr.hasKey("Query-State"))
+    {
+        bool enabled = false;
+        int diff = idleTotalCounter - lightNode->lastRead();
+        QString attrs = req.hdr.value("Query-State");
+
+        // only read if time since last read is not too short
+        if (diff > 3)
+        {
+
+            if (attrs.contains("on"))
+            {
+                lightNode->enableRead(READ_ON_OFF);
+                enabled = true;
+            }
+
+            if (attrs.contains("bri"))
+            {
+                lightNode->enableRead(READ_LEVEL);
+                enabled = true;
+            }
+
+            if (attrs.contains("color") && lightNode->hasColor())
+            {
+                lightNode->enableRead(READ_COLOR);
+                enabled = true;
+            }
+        }
+
+        if (enabled)
+        {
+            DBG_Printf(DBG_INFO, "Force read the attributes %s, for node %s\n", qPrintable(attrs), qPrintable(lightNode->address().toStringExt()));
+            lightNode->setLastRead(idleTotalCounter);
+            processReadAttributes(lightNode);
+        }
     }
 
     // handle ETag
@@ -249,7 +289,7 @@ int DeRestPluginPrivate::getLightState(const ApiRequest &req, ApiResponse &rsp)
     {
         QString etag = req.hdr.value("If-None-Match");
 
-        if (webNode->etag == etag)
+        if (lightNode->etag == etag)
         {
             rsp.httpStatus = HttpStatusNotModified;
             rsp.etag = etag;
@@ -257,9 +297,9 @@ int DeRestPluginPrivate::getLightState(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
-    lightToMap(req, webNode, rsp.map);
+    lightToMap(req, lightNode, rsp.map);
     rsp.httpStatus = HttpStatusOk;
-    rsp.etag = webNode->etag;
+    rsp.etag = lightNode->etag;
 
     return REQ_READY_SEND;
 }
@@ -275,6 +315,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     task.lightNode = getLightNodeForId(id);
     uint hue = UINT_MAX;
     uint sat = UINT_MAX;
+
+    userActivity();
 
     if (!task.lightNode)
     {
