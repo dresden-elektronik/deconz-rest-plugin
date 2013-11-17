@@ -28,7 +28,8 @@ INCLUDEPATH    += ../.. \
 unix:INCLUDEPATH += /usr/include
 
 # Version Major.Minor.Build
-DEFINES += GW_SW_VERSION=\\\"1.12.14\\\"
+# Important: don't change the format of this line since it's parsed by scripts!
+DEFINES += GW_SW_VERSION=\\\"1.13.00\\\"
 
 # Minimum version of the RaspBee firmware
 # which shall be used in order to support all features for this software release (case sensitive)
