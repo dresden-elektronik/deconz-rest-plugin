@@ -592,9 +592,9 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     }
 
     // transition time
-    if (map.contains("transitionTime"))
+    if (map.contains("transitiontime"))
     {
-        uint tt = map["transitionTime"].toUInt(&ok);
+        uint tt = map["transitiontime"].toUInt(&ok);
 
         if (ok && tt < 0xFFFFUL)
         {
