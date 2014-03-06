@@ -1,5 +1,3 @@
-include(../../../compile.pri)
-
 TARGET   = de_rest_plugin
 
 # common configuration for deCONZ plugins
