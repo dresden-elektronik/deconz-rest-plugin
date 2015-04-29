@@ -39,7 +39,11 @@ Currently the compilation of the plugin is only supported within the Raspbian di
 
   `git clone https://github.com/dresden-elektronik/deconz-rest-plugin.git`
  
-2. Compile the plugin
+2. If you haven't already, install qt4
+
+  `sudo apt-get install libqt4-dev libqt4-core`
+
+3. Compile the plugin
 
   `cd deconz-rest-plugin`
 
