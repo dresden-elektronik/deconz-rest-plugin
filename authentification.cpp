@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -9,7 +9,6 @@
  */
 
 #include "de_web_plugin_private.h"
-#include <QHttpResponseHeader>
 #ifdef Q_OS_UNIX
   #include <unistd.h>
 #endif
@@ -18,7 +17,8 @@
     static const char *pwsalt = "$1$8282jdkmskwiu29291"; // $1$ for MD5
 #endif
 
-ApiAuth::ApiAuth()
+ApiAuth::ApiAuth() :
+    state(StateNormal)
 {
 
 }
@@ -55,7 +55,7 @@ void DeRestPluginPrivate::initAuthentification()
 
         gwAdminPasswordHash = encryptString(hash);
 
-        queSaveDb(DB_AUTH, DB_SHORT_SAVE_DELAY);
+        queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
     }
 
 }

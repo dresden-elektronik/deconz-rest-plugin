@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -13,11 +13,11 @@
 #include <QTimer>
 #include <QFile>
 #include <QUdpSocket>
-#include <QHttpRequestHeader>
 #include <QVariantMap>
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 
+/*! Inits the UPnP discorvery. */
 void DeRestPluginPrivate::initUpnpDiscovery()
 {
     DBG_Assert(udpSock == 0);
@@ -61,18 +61,19 @@ void DeRestPluginPrivate::initUpnpDiscovery()
                line = f.readLine(320);
                if (!line.isEmpty())
                {
-                   line.replace(QString("{{PORT}}"), QString::number(gwPort).toAscii().constData());
-                   line.replace(QString("{{IPADDRESS}}"), gwIpAddress.toAscii().constData());
-                   line.replace(QString("{{UUID}}"), gwUuid.toAscii().constData());
+                   line.replace(QString("{{PORT}}"), qPrintable(QString::number(gwPort)));
+                   line.replace(QString("{{IPADDRESS}}"), qPrintable(gwIpAddress));
+                   line.replace(QString("{{UUID}}"), qPrintable(gwUuid));
                    descriptionXml.append(line);
 
-                   DBG_Printf(DBG_INFO, "%s", line.constData());
+                   DBG_Printf(DBG_INFO_L2, "%s", line.constData());
                }
              } while (!line.isEmpty());
         }
     }
 }
 
+/*! Sends SSDP broadcast for announcement. */
 void DeRestPluginPrivate::announceUpnp()
 {
     quint16 port = 1900;
@@ -99,6 +100,7 @@ void DeRestPluginPrivate::announceUpnp()
     }
 }
 
+/*! Handles SSDP packets. */
 void DeRestPluginPrivate::upnpReadyRead()
 {
     while (udpSock->hasPendingDatagrams())
@@ -116,12 +118,48 @@ void DeRestPluginPrivate::upnpReadyRead()
 
             datagram.append("HTTP/1.1 200 OK\r\n");
             datagram.append("CACHE-CONTROL: max-age=100\r\n");
-            datagram.append("EXT: \r\n");
+            datagram.append("EXT:\r\n");
             datagram.append(QString("LOCATION: http://%1:%2/description.xml\r\n")
                             .arg(gwConfig["ipaddress"].toString())
                             .arg(gwConfig["port"].toDouble()).toLocal8Bit());
-            datagram.append("SERVER: FreeRTOS/6.0.5, UPnP/1.0, IpBridge/0.1\r\n");
+            datagram.append("SERVER: FreeRTOS/7.4.2, UPnP/1.0, IpBridge/1.8.0\r\n");
             datagram.append("ST: upnp:rootdevice\r\n");
+            datagram.append(QString("USN: uuid:%1::upnp:rootdevice\r\n").arg(gwUuid));
+            datagram.append("\r\n");
+
+            if (udpSockOut->writeDatagram(datagram.data(), datagram.size(), host, port) == -1)
+            {
+                DBG_Printf(DBG_ERROR, "UDP send error %s\n", qPrintable(udpSockOut->errorString()));
+            }
+
+            datagram.clear();
+
+            datagram.append("HTTP/1.1 200 OK\r\n");
+            datagram.append("CACHE-CONTROL: max-age=100\r\n");
+            datagram.append("EXT:\r\n");
+            datagram.append(QString("LOCATION: http://%1:%2/description.xml\r\n")
+                            .arg(gwConfig["ipaddress"].toString())
+                            .arg(gwConfig["port"].toDouble()).toLocal8Bit());
+            datagram.append("SERVER: FreeRTOS/7.4.2, UPnP/1.0, IpBridge/1.8.0\r\n");
+            datagram.append("ST: uuid:rootdevice\r\n");
+            datagram.append(QString("USN: uuid:%1::upnp:rootdevice\r\n").arg(gwUuid));
+            datagram.append("\r\n");
+
+            if (udpSockOut->writeDatagram(datagram.data(), datagram.size(), host, port) == -1)
+            {
+                DBG_Printf(DBG_ERROR, "UDP send error %s\n", qPrintable(udpSockOut->errorString()));
+            }
+
+            datagram.clear();
+
+            datagram.append("HTTP/1.1 200 OK\r\n");
+            datagram.append("CACHE-CONTROL: max-age=100\r\n");
+            datagram.append("EXT:\r\n");
+            datagram.append(QString("LOCATION: http://%1:%2/description.xml\r\n")
+                            .arg(gwConfig["ipaddress"].toString())
+                            .arg(gwConfig["port"].toDouble()).toLocal8Bit());
+            datagram.append("SERVER: FreeRTOS/7.4.2, UPnP/1.0, IpBridge/1.8.0\r\n");
+            datagram.append("ST: urn:schemas-upnp-org:device:basic:1\r\n");
             datagram.append(QString("USN: uuid:%1::upnp:rootdevice\r\n").arg(gwUuid));
             datagram.append("\r\n");
 

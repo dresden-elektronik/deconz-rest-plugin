@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -12,6 +12,7 @@
 #include <QSettings>
 #include "de_web_plugin_private.h"
 
+/*! Generates a uinique id for the gateway. */
 void DeRestPluginPrivate::generateGatewayUuid()
 {
 #ifdef Q_OS_WIN

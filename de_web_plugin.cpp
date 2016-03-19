@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -11,7 +11,6 @@
 #include <QCoreApplication>
 #include <QDebug>
 #include <QDesktopServices>
-#include <QHttpRequestHeader>
 #include <QtPlugin>
 #include <QPushButton>
 #include <QTextCodec>
@@ -45,7 +44,7 @@ const char *HttpContentPNG         = "image/png";
 const char *HttpContentJPG         = "image/jpg";
 const char *HttpContentSVG         = "image/svg+xml";
 
-static int ReadAttributesDelay = 750;
+static int checkZclAttributesDelay = 750;
 static int ReadAttributesLongDelay = 5000;
 static int ReadAttributesLongerDelay = 60000;
 static uint MaxGroupTasks = 4;
@@ -88,34 +87,57 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
 
     db = 0;
     saveDatabaseItems = 0;
-    sqliteDatabaseName = QDesktopServices::storageLocation(QDesktopServices::DataLocation);
+#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
+        sqliteDatabaseName = QStandardPaths::standardLocations(QStandardPaths::DataLocation).first();
+#else
+        sqliteDatabaseName = QDesktopServices::storageLocation(QDesktopServices::DataLocation);
+#endif
     sqliteDatabaseName.append("/zll.db");
     idleLimit = 0;
-    idleTotalCounter = 0;
+    idleTotalCounter = IDLE_READ_LIMIT;
     idleLastActivity = 0;
     udpSock = 0;
+    haEndpoint = 0;
     gwGroupSendDelay = deCONZ::appArgumentNumeric("--group-delay", GROUP_SEND_DELAY);
+    supportColorModeXyForGroups = false;
 
     gwLinkButton = false;
-    gwOtauActive = false;
 
     apsCtrl = deCONZ::ApsController::instance();
     DBG_Assert(apsCtrl != 0);
+
+    apsCtrl->setParameter(deCONZ::ParamOtauActive, 0);
 
     // starttime reference counts from here
     starttimeRef.start();
 
     // default configuration
+    gwRunFromShellScript = false;
+    gwDeleteUnknownRules = (deCONZ::appArgumentNumeric("--delete-unknown-rules", 1) == 1) ? true : false;
     gwRfConnected = false; // will be detected later
     gwRfConnectedExpected = (deCONZ::appArgumentNumeric("--auto-connect", 1) == 1) ? true : false;
     gwPermitJoinDuration = 0;
+    gwNetworkOpenDuration = 60;
+    gwRgbwDisplay = "1";
+    gwTimezone = QString::fromStdString(getTimezone());
+    gwTimeFormat = "12h";
+    gwZigbeeChannel = 0;
     gwName = GW_DEFAULT_NAME;
     gwUpdateVersion = GW_SW_VERSION; // will be replaced by discovery handler
     gwFirmwareVersion = "0x00000000"; // query later
     gwFirmwareVersionUpdate = gwFirmwareVersion;
     gwFirmwareNeedUpdate = false; // set later
     gwUpdateChannel = "stable";
-    configToMap(gwConfig);
+    gwReportingEnabled = (deCONZ::appArgumentNumeric("--reporting", 1) == 1) ? true : false;
+
+    {
+        QHttpRequestHeader hdr;
+        QStringList path;
+        QString content;
+        ApiRequest dummyReq(hdr, path, 0, content);
+        dummyReq.version = ApiVersion_1_DDEL;
+        configToMap(dummyReq, gwConfig);
+    }
     updateEtag(gwConfigEtag);
 
     // set some default might be overwritten by database
@@ -149,6 +171,17 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     connect(apsCtrl, SIGNAL(nodeEvent(deCONZ::NodeEvent)),
             this, SLOT(nodeEvent(deCONZ::NodeEvent)));
 
+    deCONZ::GreenPowerController *gpCtrl = deCONZ::GreenPowerController::instance();
+
+    if (gpCtrl)
+    {
+        bool ok =
+        connect(gpCtrl, SIGNAL(gpDataIndication(deCONZ::GpDataIndication)),
+                this, SLOT(gpDataIndication(deCONZ::GpDataIndication)));
+
+        DBG_Assert(ok);
+    }
+
     taskTimer = new QTimer(this);
     taskTimer->setSingleShot(false);
     connect(taskTimer, SIGNAL(timeout()),
@@ -161,6 +194,25 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
             this, SLOT(processGroupTasks()));
     taskTimer->start(250);
 
+    verifyRulesTimer = new QTimer(this);
+    verifyRulesTimer->setSingleShot(false);
+    verifyRulesTimer->setInterval(5000);
+    connect(verifyRulesTimer, SIGNAL(timeout()),
+            this, SLOT(verifyRuleBindingsTimerFired()));
+    verifyRulesTimer->start();
+
+    bindingTimer = new QTimer(this);
+    bindingTimer->setSingleShot(true);
+    bindingTimer->setInterval(1000);
+    connect(bindingTimer, SIGNAL(timeout()),
+            this, SLOT(bindingTimerFired()));
+
+    bindingToRuleTimer = new QTimer(this);
+    bindingToRuleTimer->setSingleShot(true);
+    bindingToRuleTimer->setInterval(50);
+    connect(bindingToRuleTimer, SIGNAL(timeout()),
+            this, SLOT(bindingToRuleTimerFired()));
+
     lockGatewayTimer = new QTimer(this);
     lockGatewayTimer->setSingleShot(true);
     connect(lockGatewayTimer, SIGNAL(timeout()),
@@ -172,12 +224,19 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
             this, SLOT(openClientTimerFired()));
     openClientTimer->start(1000);
 
+    saveCurrentRuleInDbTimer = new QTimer(this);
+    saveCurrentRuleInDbTimer->setSingleShot(true);
+    connect(saveCurrentRuleInDbTimer, SIGNAL(timeout()),
+            this, SLOT(saveCurrentRuleInDbTimerFired()));
+
     initAuthentification();
     initInternetDicovery();
     initSchedules();
     initPermitJoin();
     initOtau();
     initTouchlinkApi();
+    initChangeChannelApi();
+    initResetDeviceApi();
 
     // delayed query of firmware version
     // we might not be connected yet
@@ -197,6 +256,12 @@ DeRestPluginPrivate::~DeRestPluginPrivate()
  */
 void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &ind)
 {
+    Q_Q(DeRestPlugin);
+    if (!q->pluginActive())
+    {
+        return;
+    }
+
     if ((ind.profileId() == HA_PROFILE_ID) || (ind.profileId() == ZLL_PROFILE_ID))
     {
 
@@ -220,7 +285,20 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             handleSceneClusterIndication(task, ind, zclFrame);
             break;
 
+        case OTAU_CLUSTER_ID:
+            otauDataIndication(ind, zclFrame);
+            break;
+        case COMMISSIONING_CLUSTER_ID:
+            handleCommissioningClusterIndication(task, ind, zclFrame);
+            break;
+
         default:
+        {
+            if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReportAttributesId)
+            {
+                DBG_Printf(DBG_INFO, "ZCL attribute report 0x%016llX for cluster 0x%04X\n", ind.srcAddress().ext(), ind.clusterId());
+            }
+        }
             break;
         }
     }
@@ -232,13 +310,30 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             handleDeviceAnnceIndication(ind);
             break;
 
+        case ZDP_MGMT_BIND_RSP_CLID:
+            handleMgmtBindRspIndication(ind);
+            break;
+
+        case ZDP_BIND_RSP_CLID:
+        case ZDP_UNBIND_RSP_CLID:
+            handleBindAndUnbindRspIndication(ind);
+            break;
+
+        case ZDP_MGMT_LEAVE_RSP_CLID:
+            handleMgmtLeaveRspIndication(ind);
+            break;
+
         default:
             break;
         }
     }
     else if (ind.profileId() == DE_PROFILE_ID)
     {
-        otauDataIndication(ind);
+        otauDataIndication(ind, deCONZ::ZclFrame());
+    }
+    else if (ind.profileId() == ATMEL_WSNDEMO_PROFILE_ID)
+    {
+        wsnDemoDataIndication(ind);
     }
 }
 
@@ -269,6 +364,487 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
 
             return;
         }
+    }
+    if (channelChangeApsRequestId == conf.id())
+    {
+        channelChangeSendConfirm(conf.status() == deCONZ::ApsSuccessStatus);
+    }
+    if (resetDeviceApsRequestId == conf.id())
+    {
+        resetDeviceSendConfirm(conf.status() == deCONZ::ApsSuccessStatus);
+    }
+}
+
+/*! Process incoming green power button event.
+    \param ind - the data indication
+ */
+void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &ind)
+{
+    /*
+        PTM 215Z DEMO
+
+        A0 B0
+        A1 B1
+
+        DeviceId 0x02 (On/Off Switch)
+
+
+             A0,B0 Press    0x64 Press   2 of 2
+             A0,B0 Release  0x65 Release 2 of 2
+
+        A0 0x10 Scene0      B0 0x22 Toggle
+        A1 0x11 Scene1      B1 0x12 Scene2
+
+             A1,B1 Press    0x62 Press   1 of 2
+             A1,B1 Release  0x63 Release 1 of 2
+
+     */
+
+    Sensor *sensor = getSensorNodeForAddress(ind.gpdSrcId());
+
+    if (!sensor || sensor->deletedState() == Sensor::StateDeleted)
+    {
+        return;
+    }
+
+    QString lastUpdatedOld = sensor->state().lastupdated();
+
+    sensor->state().setButtonevent(ind.gpdCommandId());
+    sensor->state().updateTime();
+    updateEtag(sensor->etag);
+
+    QString address = "";
+    QString id = "";
+    QString event = "";
+    QString op = "";
+    QString val = "";
+    QRegExp numbers("\\d+");
+
+    // search rules for rule that meets condition
+    std::vector<Rule>::const_iterator r = rules.begin();
+    std::vector<Rule>::const_iterator rEnd = rules.end();
+    for (; r != rEnd; ++r)
+    {
+        if (r->state() != Rule::StateDeleted)
+        {
+            bool ok = false;
+            bool ok2 = false;
+
+            std::vector<RuleCondition>::const_iterator c = r->conditions().begin();
+            std::vector<RuleCondition>::const_iterator cEnd = r->conditions().end();
+            for (; c != cEnd; ++c)
+            {
+                address = c->address();
+
+                int pos = numbers.indexIn(address);
+                if (pos > -1)
+                {
+                    id = numbers.cap(0);
+                }
+                event = (address.indexOf("buttonevent") != -1) ? "buttonevent" : "lastupdated";
+                op = c->ooperator();
+                val = c->value();
+
+                //each condition in rule must meet condition in sensor event
+                if ((id != "") && (id == sensor->id()))
+                {
+                    if (event == "buttonevent")
+                    {
+                        if (val.toInt() == sensor->state().buttonevent())
+                        {
+                            ok = true;
+                        }
+                        else
+                        {
+                            ok = false;
+                        }
+                    }
+                    if (event == "lastupdated")
+                    {
+                        if (lastUpdatedOld != sensor->state().lastupdated())
+                        {
+                            ok2 = true;
+                        }
+                        else
+                        {
+                            ok2 = false;
+                        }
+                    }
+                }
+            }
+
+            QString body = "";
+            QString method = "";
+            QStringList idList;
+            QString groupId = "";
+            QString lightId = "";
+            QString sceneId = "";
+
+            // all conditions checked; if ok == true then do action
+            if (ok && ok2)
+            {
+                saveCurrentRuleInDbTimer->stop();
+                saveCurrentRuleInDbTimer->start(3000);
+                std::vector<RuleAction>::const_iterator a = r->actions().begin();
+                std::vector<RuleAction>::const_iterator aEnd = r->actions().end();
+                for (; a != aEnd; ++a)
+                {
+                    Group *group;
+                    TaskItem task;
+                    task.req.setDstEndpoint(0xFF); // broadcast endpoint
+                    task.req.setSrcEndpoint(getSrcEndpoint(0, task.req));
+
+                    address = a->address();
+                    body = a->body();
+                    method = a->method();
+
+                    if (address.indexOf("scenes") != -1)
+                    {
+                        //recall scene
+                        idList = address.split("/");
+                        if (idList.size() < 5)
+                        {
+                            continue;
+                        }
+                        groupId = idList[2];
+                        sceneId = idList[4];
+
+                        group = getGroupForId(groupId);
+                        if (group)
+                        {
+                            task.req.setDstAddressMode(deCONZ::ApsGroupAddress);
+                            task.req.dstAddress().setGroup(group->address());
+
+                            if (!callScene(group, sceneId.toInt()))
+                            {
+                                DBG_Printf(DBG_INFO, "failed to call scene\n");
+                            }
+                        }
+                    }
+                    else if (address.indexOf("lights") != -1)
+                    {
+                        //change light state
+                        idList = address.split("/");
+                        if (idList.size() < 3)
+                        {
+                            continue;
+                        }
+                        lightId = idList[2];
+                        // TODO implement
+                    }
+                    else if (address.indexOf("groups") != -1)
+                    {
+                        //do group action
+                        idList = address.split("/");
+                        if (idList.size() < 3)
+                        {
+                            continue;
+                        }
+                        groupId = idList[2];
+
+                        if (groupId != "0")
+                        {
+                            group = getGroupForId(groupId);
+                            if (!group)
+                            {
+                                continue;
+                            }
+                            task.req.setDstAddressMode(deCONZ::ApsGroupAddress);
+                            task.req.dstAddress().setGroup(group->address());
+                        }
+                        else
+                        {
+                            task.req.setDstAddressMode(deCONZ::ApsNwkAddress);
+                            task.req.dstAddress().setNwk(0xFFFF);
+                        }
+
+                        if ((body.indexOf("on") != -1) && (body.indexOf("false") != -1))
+                        {
+                            if (!addTaskSetOnOff(task, ONOFF_COMMAND_OFF, 0))
+                            {
+                                DBG_Printf(DBG_INFO, "failed to send off command\n");
+                            }
+                        }
+                        else if ((body.indexOf("on") != -1) && (body.indexOf("true") != -1))
+                        {
+                            if (!addTaskSetOnOff(task, ONOFF_COMMAND_ON, 0))
+                            {
+                                DBG_Printf(DBG_INFO, "failed to send on command\n");
+                            }
+                        }
+                    }
+
+                /*
+                    if (ind.gpdCommandId() >= deCONZ::GpCommandIdScene0 &&
+                        ind.gpdCommandId() <= deCONZ::GpCommandIdScene15)
+                    {
+                        // check if scene exists
+                        bool ok;
+                        quint8 sceneId;
+                        std::vector<Scene>::const_iterator i = group->scenes.begin();
+                        std::vector<Scene>::const_iterator end = group->scenes.end();
+
+                        ok = false;
+                        int count = deCONZ::GpCommandIdScene0; // 0x10
+
+                        for (; i != end; ++i)
+                        {
+                            if (i->state != Scene::StateDeleted)
+                            {
+                                if (ind.gpdCommandId() == count)
+                                {
+                                    sceneId = i->id;
+                                    ok = true;
+                                    break;
+                                }
+
+                                count++;
+                            }
+                        }
+
+                        if (ok)
+                        {
+                            if (!callScene(group, sceneId))
+                            {
+                                DBG_Printf(DBG_INFO, "failed to call scene\n");
+                            }
+                        }
+                    }
+                    else if (ind.gpdCommandId() == deCONZ::GpCommandIdToggle)
+                    {
+                        if (!addTaskSetOnOff(task, ONOFF_COMMAND_TOGGLE))
+                        {
+                            DBG_Printf(DBG_INFO, "failed to send toggle command\n");
+                        }
+                    }
+                    else if (ind.gpdCommandId() == deCONZ::GpCommandIdPress2Of2)
+                    {
+                        bool withOnOff = false;
+                        bool upDirection = true;
+                        quint8 rate = 20;
+                        if (!addTaskMoveLevel(task, withOnOff, upDirection, rate))
+                        {
+                            DBG_Printf(DBG_INFO, "failed to move level up\n");
+                        }
+                    }
+                    else if (ind.gpdCommandId() == deCONZ::GpCommandIdRelease2Of2)
+                    {
+                        bool withOnOff = false;
+                        bool upDirection = true;
+                        quint8 rate = 0;
+                        if (!addTaskMoveLevel(task, withOnOff, upDirection, rate))
+                        {
+                            DBG_Printf(DBG_INFO, "failed to stop move level\n");
+                        }
+                    }
+                    else if (ind.gpdCommandId() == deCONZ::GpCommandIdPress1Of2)
+                    {
+                        bool withOnOff = false;
+                        bool upDirection = false;
+                        quint8 rate = 20;
+                        if (!addTaskMoveLevel(task, withOnOff, upDirection, rate))
+                        {
+                            DBG_Printf(DBG_INFO, "failed to move level down\n");
+                        }
+                    }
+                    else if (ind.gpdCommandId() == deCONZ::GpCommandIdRelease1Of2)
+                    {
+                        bool withOnOff = false;
+                        bool upDirection = false;
+                        quint8 rate = 0;
+                        if (!addTaskMoveLevel(task, withOnOff, upDirection, rate))
+                        {
+                            DBG_Printf(DBG_INFO, "failed to stop move level\n");
+                        }
+                    }
+                */
+                }
+
+                Rule *saveRule = getRuleForId(r->id());
+                saveRule->setLastTriggered(QDateTime::currentDateTimeUtc().toString("yyyy-MM-ddTHH:mm:ss"));
+                saveRule->setTimesTriggered(r->timesTriggered()+1);
+            }
+        }
+    }
+}
+
+/*! Process incoming green power data frame.
+    \param ind - the data indication
+ */
+void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
+{
+    switch (ind.gpdCommandId())
+    {
+    case deCONZ::GpCommandIdScene0:
+    case deCONZ::GpCommandIdScene1:
+    case deCONZ::GpCommandIdScene2:
+    case deCONZ::GpCommandIdScene3:
+    case deCONZ::GpCommandIdScene4:
+    case deCONZ::GpCommandIdScene5:
+    case deCONZ::GpCommandIdScene6:
+    case deCONZ::GpCommandIdScene7:
+    case deCONZ::GpCommandIdScene8:
+    case deCONZ::GpCommandIdScene9:
+    case deCONZ::GpCommandIdScene10:
+    case deCONZ::GpCommandIdScene11:
+    case deCONZ::GpCommandIdScene12:
+    case deCONZ::GpCommandIdScene13:
+    case deCONZ::GpCommandIdScene14:
+    case deCONZ::GpCommandIdScene15:
+    case deCONZ::GpCommandIdOn:
+    case deCONZ::GpCommandIdOff:
+    case deCONZ::GpCommandIdToggle:
+    case deCONZ::GpCommandIdRelease:
+    case deCONZ::GpCommandIdPress1Of1:
+    case deCONZ::GpCommandIdRelease1Of1:
+    case deCONZ::GpCommandIdPress1Of2:
+    case deCONZ::GpCommandIdRelease1Of2:
+    case deCONZ::GpCommandIdPress2Of2:
+    case deCONZ::GpCommandIdRelease2Of2:
+    {
+        gpProcessButtonEvent(ind);
+    }
+        break;
+
+    case deCONZ::GpCommandIdCommissioning:
+    {
+        // 1    8-bit enum    GPD DeviceID
+        // 1    8-bit bmp     Options
+        // 0/1  8-bit bmp     Extended Options
+        // 0/16 Security Key  GPD Key
+        // 0/4  u32           GPD Key MIC
+        // 0/4  u32           GPD outgoing counter
+
+        quint8 gpdDeviceId;
+        quint8 gpdKey[16];
+        quint32 gpdMIC = 0;
+        quint32 gpdOutgoingCounter = 0;
+        deCONZ::GPCommissioningOptions options;
+        deCONZ::GpExtCommissioningOptions extOptions;
+        options.byte = 0;
+        extOptions.byte = 0;
+
+        QDataStream stream(ind.payload());
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        if (stream.atEnd()) { return; }
+        stream >> gpdDeviceId;
+
+        if (stream.atEnd()) { return; }
+        stream >> options.byte;
+
+        if (options.bits.extOptionsField)
+        {
+            if (stream.atEnd()) { return; }
+            stream >> extOptions.byte;
+        }
+
+        if (extOptions.bits.gpdKeyPresent)
+        {
+            for (int i = 0; i < 16; i++)
+            {
+                if (stream.atEnd()) { return; }
+                stream >> gpdKey[i];
+
+            }
+
+            if (extOptions.bits.gpdKeyEncryption)
+            {
+                // TODO decrypt key
+
+                if (stream.atEnd()) { return; }
+                stream >> gpdMIC;
+            }
+        }
+
+        switch (extOptions.bits.securityLevelCapabilities)
+        {
+        case 0:
+        default:
+            break;
+        }
+
+        if (extOptions.bits.gpdOutgoingCounterPresent)
+        {
+            if (stream.atEnd()) { return; }
+            stream >> gpdOutgoingCounter;
+        }
+
+
+        SensorFingerprint fp;
+        fp.endpoint = GREEN_POWER_ENDPOINT;
+        fp.deviceId = gpdDeviceId;
+        fp.profileId = GP_PROFILE_ID;
+        fp.outClusters.push_back(GREEN_POWER_CLUSTER_ID);
+
+        Sensor *sensor = getSensorNodeForFingerPrint(ind.gpdSrcId(), fp, "ZGPSwitch");
+
+        if (!sensor)
+        {
+            // create new sensor
+            Sensor sensorNode;
+
+            if (gpdDeviceId == deCONZ::GpDeviceIdOnOffSwitch)
+            {
+                sensorNode.setType("ZGPSwitch");
+                sensorNode.setModelId("ZGPSWITCH");
+                sensorNode.setManufacturer("Philips");
+                sensorNode.setSwVersion("1.0");
+            }
+            else
+            {
+                DBG_Printf(DBG_INFO, "unsupported green power device 0x%02X\n", gpdDeviceId);
+                return;
+            }
+
+            sensorNode.address().setExt(ind.gpdSrcId());
+            sensorNode.setUniqueId(sensorNode.address().toStringExt());
+            sensorNode.fingerPrint() = fp;
+
+            SensorConfig sensorConfig;
+            sensorConfig.setReachable(true);
+            sensorNode.setConfig(sensorConfig);
+
+            openDb();
+            loadSensorNodeFromDb(&sensorNode);
+            closeDb();
+
+            if (sensorNode.id().isEmpty())
+            {
+                openDb();
+                sensorNode.setId(QString::number(getFreeSensorId()));
+                closeDb();
+            }
+
+            if (sensorNode.name().isEmpty())
+            {
+                sensorNode.setName(QString("%1 %2").arg(sensorNode.type()).arg(sensorNode.id()));
+            }
+
+            DBG_Printf(DBG_INFO, "SensorNode %u: %s added\n", sensorNode.id().toUInt(), qPrintable(sensorNode.name()));
+            updateEtag(sensorNode.etag);
+            updateEtag(gwConfigEtag);
+
+            sensors.push_back(sensorNode);
+            queSaveDb(DB_SENSORS , DB_SHORT_SAVE_DELAY);
+        }
+        else if (sensor && sensor->deletedState() == Sensor::StateDeleted)
+        {
+            sensor->setDeletedState(Sensor::StateNormal);
+            DBG_Printf(DBG_INFO, "SensorNode %u: %s reactivated\n", sensor->id().toUInt(), qPrintable(sensor->name()));
+            updateEtag(sensor->etag);
+            updateEtag(gwConfigEtag);
+            queSaveDb(DB_SENSORS , DB_SHORT_SAVE_DELAY);
+        }
+        else
+        {
+            DBG_Printf(DBG_INFO, "SensorNode %s already known\n", qPrintable(sensor->name()));
+        }
+    }
+        break;
+
+    default:
+        break;
     }
 }
 
@@ -308,7 +884,11 @@ QVariantMap DeRestPluginPrivate::errorToMap(int id, const QString &ressource, co
 void DeRestPluginPrivate::updateEtag(QString &etag)
 {
     QTime time = QTime::currentTime();
+#if QT_VERSION < 0x050000
     etag = QString(QCryptographicHash::hash(time.toString().toAscii(), QCryptographicHash::Md5).toHex());
+#else
+    etag = QString(QCryptographicHash::hash(time.toString().toLatin1(), QCryptographicHash::Md5).toHex());
+#endif
     // quotes are mandatory as described in w3 spec
     etag.prepend('"');
     etag.append('"');
@@ -337,41 +917,16 @@ qint64 DeRestPluginPrivate::getUptime()
     return 0;
 }
 
-/*! Adds a new node to node cache.
+/*! Adds new node(s) to node cache.
     Only supported ZLL and HA nodes will be added.
     \param node - the base for the LightNode
-    \return the new LightNode or 0
  */
-LightNode *DeRestPluginPrivate::addNode(const deCONZ::Node *node)
+void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 {
-    LightNode lightNode;
-    lightNode.setNode(0);
-    lightNode.setIsAvailable(true);
-
-    // check if node already exist
-    LightNode *lightNode2 = getLightNodeForAddress(node->address().ext());
-
-    if (lightNode2)
+    DBG_Assert(node != 0);
+    if (!node)
     {
-        if (!lightNode2->isAvailable())
-        {
-            // the node existed before
-            // refresh all with new values
-            DBG_Printf(DBG_INFO, "LightNode %u: %s updated\n", lightNode.id().toUInt(), qPrintable(lightNode.name()));
-            lightNode2->setIsAvailable(true);
-            lightNode2->setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongDelay));
-            lightNode2->enableRead(READ_MODEL_ID |
-                                   READ_SWBUILD_ID |
-                                   READ_COLOR |
-                                   READ_LEVEL |
-                                   READ_ON_OFF |
-                                   READ_GROUPS |
-                                   READ_SCENES);
-
-            lightNode2->setLastRead(idleTotalCounter);
-            updateEtag(lightNode2->etag);
-        }
-        return lightNode2;
+        return;
     }
 
     QList<deCONZ::SimpleDescriptor>::const_iterator i = node->simpleDescriptors().constBegin();
@@ -379,118 +934,269 @@ LightNode *DeRestPluginPrivate::addNode(const deCONZ::Node *node)
 
     for (;i != end; ++i)
     {
-        if (i->profileId() == HA_PROFILE_ID)
-        {
-            // filter for supported devices
-            switch (i->deviceId())
-            {
-            case DEV_ID_HA_ONOFF_LIGHT:
-            case DEV_ID_HA_DIMMABLE_LIGHT:
-            case DEV_ID_HA_COLOR_DIMMABLE_LIGHT:
-                {
-                    lightNode.setHaEndpoint(*i);
-                }
-                break;
+        LightNode lightNode;
+        lightNode.setNode(0);
+        lightNode.setIsAvailable(true);
 
-            default:
-                break;
+        // check if node already exist
+        LightNode *lightNode2 = getLightNodeForAddress(node->address().ext(), i->endpoint());
+
+        if (lightNode2)
+        {
+            if (lightNode2->node() != node)
+            {
+                lightNode2->setNode(const_cast<deCONZ::Node*>(node));
+                DBG_Printf(DBG_INFO, "LightNode %s set node %s\n", qPrintable(lightNode2->id()), qPrintable(node->address().toStringExt()));
+            }
+
+            lightNode2->setManufacturerCode(node->nodeDescriptor().manufacturerCode());
+
+            if (!lightNode2->isAvailable())
+            {
+                // the node existed before
+                // refresh all with new values
+                DBG_Printf(DBG_INFO, "LightNode %u: %s updated\n", lightNode2->id().toUInt(), qPrintable(lightNode2->name()));
+                lightNode2->setIsAvailable(true);
+                lightNode2->setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongDelay));
+                lightNode2->enableRead(READ_VENDOR_NAME |
+                                       READ_MODEL_ID |
+                                       READ_SWBUILD_ID |
+                                       READ_COLOR |
+                                       READ_LEVEL |
+                                       READ_ON_OFF |
+                                       READ_GROUPS |
+                                       READ_SCENES |
+                                       READ_BINDING_TABLE);
+
+                lightNode2->setLastRead(idleTotalCounter);
+                updateEtag(lightNode2->etag);
+            }
+
+            if (lightNode2->uniqueId().isEmpty() || lightNode2->uniqueId().startsWith("0x"))
+            {
+                QString uid;
+                union _a
+                {
+                    quint8 bytes[8];
+                    quint64 mac;
+                } a;
+                a.mac = lightNode2->address().ext();
+                uid.sprintf("%02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X-%02X",
+                            a.bytes[7], a.bytes[6], a.bytes[5], a.bytes[4],
+                            a.bytes[3], a.bytes[2], a.bytes[1], a.bytes[0],
+                            lightNode.haEndpoint().endpoint());
+                lightNode2->setUniqueId(uid);
+                updateEtag(lightNode2->etag);
+            }
+
+            continue;
+        }
+
+        if (!i->inClusters().isEmpty())
+        {
+            if (i->profileId() == HA_PROFILE_ID)
+            {
+                // filter for supported devices
+                switch (i->deviceId())
+                {
+                case DEV_ID_MAINS_POWER_OUTLET:
+                case DEV_ID_HA_ONOFF_LIGHT:
+                case DEV_ID_ONOFF_OUTPUT:
+                case DEV_ID_HA_DIMMABLE_LIGHT:
+                case DEV_ID_HA_COLOR_DIMMABLE_LIGHT:
+
+                case DEV_ID_ZLL_ONOFF_LIGHT:
+                case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:
+                case DEV_ID_ZLL_ONOFF_SENSOR:
+    //            case DEV_ID_ZLL_DIMMABLE_LIGHT: // same as DEV_ID_HA_ONOFF_LIGHT
+                case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:
+                case DEV_ID_ZLL_COLOR_LIGHT:
+                case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:
+                case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT:
+                    {
+                        lightNode.setHaEndpoint(*i);
+                    }
+                    break;
+
+                case DEV_ID_ZLL_COLOR_CONTROLLER:
+                    {
+                        // FIXME special temporary filter to detect xxx 4 key switch
+                        if (i->endpoint() == 0x01)
+                        {
+                            int found = 0;
+
+                            for (int ci = 0; ci < i->inClusters().size(); ci++)
+                            {
+                                if (i->inClusters()[ci].id() == COLOR_CLUSTER_ID ||
+                                    i->inClusters()[ci].id() == LEVEL_CLUSTER_ID)
+                                {
+                                    found++;
+
+                                    if (found == 2)
+                                    {
+                                        lightNode.setHaEndpoint(*i);
+                                        lightNode.setIsOn(true);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    break;
+
+                default:
+                    {
+                        DBG_Printf(DBG_INFO, "Unsupported HA deviceId 0x%04X\n", i->deviceId());
+                    }
+                    break;
+                }
+            }
+            else if (i->profileId() == ZLL_PROFILE_ID)
+            {
+                // filter for supported devices
+                switch (i->deviceId())
+                {
+                case DEV_ID_ZLL_COLOR_LIGHT:
+                case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:
+                case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT:
+                case DEV_ID_ZLL_DIMMABLE_LIGHT:
+                case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:
+                case DEV_ID_ZLL_ONOFF_LIGHT:
+                case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:
+                case DEV_ID_ZLL_ONOFF_SENSOR:
+                    {
+                        lightNode.setHaEndpoint(*i);
+                    }
+                    break;
+
+                default:
+                    break;
+                }
             }
         }
-        else if (i->profileId() == ZLL_PROFILE_ID)
+
+        if (lightNode.haEndpoint().isValid())
         {
-            // filter for supported devices
-            switch (i->deviceId())
+            lightNode.setNode(const_cast<deCONZ::Node*>(node));
+            lightNode.address() = node->address();
+            lightNode.setManufacturerCode(node->nodeDescriptor().manufacturerCode());
+
+            QString uid;
+            union _a
             {
-            case DEV_ID_ZLL_ONOFF_LIGHT:
-            case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:
-            case DEV_ID_ZLL_DIMMABLE_LIGHT:
-            case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:
-            case DEV_ID_ZLL_COLOR_LIGHT:
-            case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:
-            case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT:
-                {
-                    lightNode.setHaEndpoint(*i);
-                }
-                break;
+                quint8 bytes[8];
+                quint64 mac;
+            } a;
+            a.mac = lightNode.address().ext();
+            uid.sprintf("%02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X-%02X",
+                        a.bytes[7], a.bytes[6], a.bytes[5], a.bytes[4],
+                        a.bytes[3], a.bytes[2], a.bytes[1], a.bytes[0],
+                        lightNode.haEndpoint().endpoint());
+            lightNode.setUniqueId(uid);
 
-            default:
-                break;
-            }
-        }
-    }
-
-    if (lightNode.haEndpoint().isValid())
-    {
-        lightNode.setNode(const_cast<deCONZ::Node*>(node));
-        lightNode.address() = node->address();
-        lightNode.setManufacturerCode(node->nodeDescriptor().manufacturerCode());
-
-        openDb();
-        loadLightNodeFromDb(&lightNode);
-        closeDb();
-
-        if (lightNode.id().isEmpty())
-        {
             openDb();
-            lightNode.setId(QString::number(getFreeLightId()));
+            loadLightNodeFromDb(&lightNode);
             closeDb();
+
+            if (lightNode.id().isEmpty())
+            {
+                openDb();
+                lightNode.setId(QString::number(getFreeLightId()));
+                closeDb();
+            }
+
+            if (lightNode.name().isEmpty())
+            {
+                lightNode.setName(QString("Light %1").arg(lightNode.id()));
+            }
+
+            // force reading attributes
+            lightNode.setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongDelay));
+            lightNode.enableRead(READ_VENDOR_NAME |
+                                 READ_MODEL_ID |
+                                 READ_SWBUILD_ID |
+                                 READ_COLOR |
+                                 READ_LEVEL |
+                                 READ_ON_OFF |
+                                 READ_GROUPS |
+                                 READ_SCENES |
+                                 READ_BINDING_TABLE);
+            lightNode.setLastRead(idleTotalCounter);
+            lightNode.setLastAttributeReportBind(idleTotalCounter);
+
+            DBG_Printf(DBG_INFO, "LightNode %u: %s added\n", lightNode.id().toUInt(), qPrintable(lightNode.name()));
+            nodes.push_back(lightNode);
+            lightNode2 = &nodes.back();
+
+            Q_Q(DeRestPlugin);
+            q->startZclAttributeTimer(checkZclAttributesDelay);
+            updateEtag(lightNode2->etag);
         }
-
-        if (lightNode.name().isEmpty())
-        {
-            lightNode.setName(QString("Light %1").arg(lightNode.id()));
-        }
-
-        // force reading attributes
-        lightNode.setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongDelay));
-        lightNode.enableRead(READ_MODEL_ID |
-                             READ_SWBUILD_ID |
-                             READ_COLOR |
-                             READ_LEVEL |
-                             READ_ON_OFF |
-                             READ_GROUPS |
-                             READ_SCENES);
-        lightNode.setLastRead(idleTotalCounter);
-
-        DBG_Printf(DBG_INFO, "LightNode %u: %s added\n", lightNode.id().toUInt(), qPrintable(lightNode.name()));
-        nodes.push_back(lightNode);
-        lightNode2 = &nodes.back();
-
-        p->startReadTimer(ReadAttributesDelay);
-        updateEtag(lightNode2->etag);
-        return lightNode2;
     }
-
-    return 0;
 }
 
 /*! Checks if a known node changed its reachable state changed.
     \param node - the base for the LightNode
     \return the related LightNode or 0
  */
-LightNode *DeRestPluginPrivate::nodeZombieStateChanged(const deCONZ::Node *node)
+void DeRestPluginPrivate::nodeZombieStateChanged(const deCONZ::Node *node)
 {
     if (!node)
     {
-        return 0;
+        return;
     }
 
-    LightNode *lightNode = 0;
+    bool available = !node->isZombie();
 
-    lightNode = getLightNodeForAddress(node->address().ext());
+    { // lights
+        std::vector<LightNode>::iterator i = nodes.begin();
+        std::vector<LightNode>::iterator end = nodes.end();
 
-    if (lightNode)
-    {
-        bool available = !node->isZombie();
-        if (lightNode->isAvailable() != available)
+        for (; i != end; ++i)
         {
-            lightNode->setIsAvailable(available);
-            updateEtag(lightNode->etag);
-            updateEtag(gwConfigEtag);
+            if (i->address().ext() == node->address().ext())
+            {
+                if (i->node() != node)
+                {
+                    i->setNode(const_cast<deCONZ::Node*>(node));
+                    DBG_Printf(DBG_INFO, "LightNode %s set node %s\n", qPrintable(i->id()), qPrintable(node->address().toStringExt()));
+                }
+
+                if (i->isAvailable() != available)
+                {
+                    if (available && node->endpoints().end() == std::find(node->endpoints().begin(),
+                                                                          node->endpoints().end(),
+                                                                          i->haEndpoint().endpoint()))
+                    {
+                        available = false;
+                    }
+
+                    i->setIsAvailable(available);
+                    updateEtag(i->etag);
+                    updateEtag(gwConfigEtag);
+                }
+            }
         }
     }
 
-    return lightNode;
+    { // sensors
+        std::vector<Sensor>::iterator i = sensors.begin();
+        std::vector<Sensor>::iterator end = sensors.end();
+
+        for (; i != end; ++i)
+        {
+            if (i->address().ext() == node->address().ext())
+            {
+                if (i->node() != node)
+                {
+                    i->setNode(const_cast<deCONZ::Node*>(node));
+                    DBG_Printf(DBG_INFO, "Sensor %s set node %s\n", qPrintable(i->id()), qPrintable(node->address().toStringExt()));
+                }
+
+                checkSensorNodeReachable(&(*i));
+            }
+        }
+    }
 }
 
 /*! Updates/adds a LightNode from a Node.
@@ -508,19 +1214,18 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
     }
 
     bool updated = false;
-    LightNode *lightNode = getLightNodeForAddress(event.node()->address().ext());
+    LightNode *lightNode = getLightNodeForAddress(event.node()->address().ext(), event.endpoint());
 
-    if (!lightNode || !lightNode->isAvailable())
+    if (!lightNode)
     {
-        lightNode = addNode(event.node());
+        // was no relevant node
+        return 0;
+    }
 
-        if (!lightNode)
-        {
-            // was no relevant node
-            return 0;
-        }
-
-        updated = true;
+    if (lightNode->node() != event.node())
+    {
+        lightNode->setNode(const_cast<deCONZ::Node*>(event.node()));
+        DBG_Printf(DBG_INFO, "LightNode %s set node %s\n", qPrintable(lightNode->id()), qPrintable(event.node()->address().toStringExt()));
     }
 
     if (lightNode->isAvailable())
@@ -551,112 +1256,227 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
 
     for (;i != end; ++i)
     {
-        if (i->profileId() == HA_PROFILE_ID || i->profileId() == ZLL_PROFILE_ID)
+        if (i->endpoint() != lightNode->haEndpoint().endpoint())
         {
-            // copy whole endpoint as reference
-            lightNode->setHaEndpoint(*i);
+            continue;
+        }
 
-            QList<deCONZ::ZclCluster>::const_iterator ic = lightNode->haEndpoint().inClusters().constBegin();
-            QList<deCONZ::ZclCluster>::const_iterator endc = lightNode->haEndpoint().inClusters().constEnd();
+        if (i->inClusters().isEmpty())
+        {
+            continue;
+        }
 
-            for (; ic != endc; ++ic)
+        if (i->profileId() == HA_PROFILE_ID)
+        {
+            switch(i->deviceId())
             {
-                if (ic->id() == COLOR_CLUSTER_ID && (event.clusterId() == COLOR_CLUSTER_ID))
-                {
-                    std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
-                    std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
-                    for (;ia != enda; ++ia)
-                    {
-                        if (ia->id() == 0x0000) // current hue
-                        {
-                            uint8_t hue = ia->numericValue().u8;
-                            if (lightNode->hue() != hue)
-                            {
-                                if (hue > 254)
-                                {
-                                    hue = 254;
-                                }
+            case DEV_ID_MAINS_POWER_OUTLET:
+            case DEV_ID_HA_COLOR_DIMMABLE_LIGHT:
+            case DEV_ID_ZLL_COLOR_LIGHT:
+            case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:
+            case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT:
+            case DEV_ID_HA_DIMMABLE_LIGHT:
+            //case DEV_ID_ZLL_DIMMABLE_LIGHT: // same as DEV_ID_HA_ONOFF_LIGHT
+            case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:
+            case DEV_ID_HA_ONOFF_LIGHT:
+            case DEV_ID_ONOFF_OUTPUT:
+            case DEV_ID_ZLL_ONOFF_LIGHT:
+            case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:
+            case DEV_ID_ZLL_ONOFF_SENSOR:
+                break;
 
-                                lightNode->setHue(hue);
-                                updated = true;
-                            }
-                        }
-                        else if (ia->id() == 0x0001) // current saturation
+            default:
+                continue;
+            }
+        }
+        else if (i->profileId() == ZLL_PROFILE_ID)
+        {
+            switch(i->deviceId())
+            {
+            case DEV_ID_ZLL_COLOR_LIGHT:
+            case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:
+            case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT:
+            case DEV_ID_ZLL_DIMMABLE_LIGHT:
+            case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:
+            case DEV_ID_ZLL_ONOFF_LIGHT:
+            case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:
+            case DEV_ID_ZLL_ONOFF_SENSOR:
+                break;
+
+            default:
+                continue;
+            }
+        }
+        else
+        {
+            continue;
+        }
+
+        // copy whole endpoint as reference
+        lightNode->setHaEndpoint(*i);
+
+        QList<deCONZ::ZclCluster>::const_iterator ic = lightNode->haEndpoint().inClusters().constBegin();
+        QList<deCONZ::ZclCluster>::const_iterator endc = lightNode->haEndpoint().inClusters().constEnd();
+
+        for (; ic != endc; ++ic)
+        {
+            if (ic->id() == COLOR_CLUSTER_ID && (event.clusterId() == COLOR_CLUSTER_ID))
+            {
+                std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
+                std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
+                for (;ia != enda; ++ia)
+                {
+                    if (ia->id() == 0x0000) // current hue
+                    {
+                        uint8_t hue = ia->numericValue().u8;
+                        if (lightNode->hue() != hue)
                         {
-                            uint8_t sat = ia->numericValue().u8;
-                            if (lightNode->saturation() != sat)
+                            if (hue > 254)
                             {
-                                lightNode->setSaturation(sat);
+                                hue = 254;
+                            }
+
+                            lightNode->setHue(hue);
+                            updated = true;
+                        }
+                    }
+                    else if (ia->id() == 0x0001) // current saturation
+                    {
+                        uint8_t sat = ia->numericValue().u8;
+                        if (lightNode->saturation() != sat)
+                        {
+                            lightNode->setSaturation(sat);
+                            updated = true;
+                        }
+                    }
+                    else if (ia->id() == 0x0003) // current x
+                    {
+                        uint16_t x = ia->numericValue().u16;
+                        if (lightNode->colorX() != x)
+                        {
+                            lightNode->setColorXY(x, lightNode->colorY());
+                            updated = true;
+                        }
+                    }
+                    else if (ia->id() == 0x0004) // current y
+                    {
+                        uint16_t y = ia->numericValue().u16;
+                        if (lightNode->colorY() != y)
+                        {
+                            lightNode->setColorXY(lightNode->colorX(), y);
+                            updated = true;
+                        }
+                    }
+                    else if (ia->id() == 0x0007) // color temperature
+                    {
+                        uint16_t ct = ia->numericValue().u16;
+                        if (lightNode->colorTemperature() != ct)
+                        {
+                            lightNode->setColorTemperature(ct);
+                            updated = true;
+                        }
+                    }
+                    else if (ia->id() == 0x0008) // color mode
+                    {
+                        uint8_t cm = ia->numericValue().u8;
+
+                        const char *modes[3] = {"hs", "xy", "ct"};
+                        if (cm < 3)
+                        {
+                            if (lightNode->colorMode() != modes[cm])
+                            {
+                                lightNode->setColorMode(modes[cm]);
                                 updated = true;
                             }
                         }
                     }
-                }
-                else if (ic->id() == LEVEL_CLUSTER_ID && (event.clusterId() == LEVEL_CLUSTER_ID))
-                {
-                    std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
-                    std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
-                    for (;ia != enda; ++ia)
+                    else if (ia->id() == 0x4002) // color loop active
                     {
-                        if (ia->id() == 0x0000) // current level
+                        bool colorLoopActive = ia->numericValue().u8 == 0x01;
+
+                        if (lightNode->isColorLoopActive() != colorLoopActive)
                         {
-                            uint8_t level = ia->numericValue().u8;
-                            if (lightNode->level() != level)
-                            {
-                                DBG_Printf(DBG_INFO, "level %u --> %u\n", lightNode->level(), level);
-                                lightNode->setLevel(level);
-                                updated = true;
-                            }
-                        }
-                    }
-                }
-                else if (ic->id() == ONOFF_CLUSTER_ID && (event.clusterId() == ONOFF_CLUSTER_ID))
-                {
-                    std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
-                    std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
-                    for (;ia != enda; ++ia)
-                    {
-                        if (ia->id() == 0x0000) // OnOff
-                        {
-                            bool on = ia->numericValue().u8;
-                            if (lightNode->isOn() != on)
-                            {
-                                lightNode->setIsOn(on);
-                                updated = true;
-                            }
-                        }
-                    }
-                }
-                else if (ic->id() == BASIC_CLUSTER_ID && (event.clusterId() == BASIC_CLUSTER_ID))
-                {
-                    std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
-                    std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
-                    for (;ia != enda; ++ia)
-                    {
-                        if (ia->id() == 0x0005) // Model identifier
-                        {
-                            QString str = ia->toString();
-                            if (!str.isEmpty())
-                            {
-                                lightNode->setModelId(str);
-                                updated = true;
-                            }
-                        }
-                        else if (ia->id() == 0x4000) // Software build identifier
-                        {
-                            QString str = ia->toString();
-                            if (!str.isEmpty())
-                            {
-                                lightNode->setSwBuildId(str);
-                                updated = true;
-                            }
+                            lightNode->setColorLoopActive(colorLoopActive);
+                            updated = true;
                         }
                     }
                 }
             }
-
-            break;
+            else if (ic->id() == LEVEL_CLUSTER_ID && (event.clusterId() == LEVEL_CLUSTER_ID))
+            {
+                std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
+                std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
+                for (;ia != enda; ++ia)
+                {
+                    if (ia->id() == 0x0000) // current level
+                    {
+                        uint8_t level = ia->numericValue().u8;
+                        if (lightNode->level() != level)
+                        {
+                            DBG_Printf(DBG_INFO, "level %u --> %u\n", lightNode->level(), level);
+                            lightNode->clearRead(READ_LEVEL);
+                            lightNode->setLevel(level);
+                            updated = true;
+                        }
+                    }
+                }
+            }
+            else if (ic->id() == ONOFF_CLUSTER_ID && (event.clusterId() == ONOFF_CLUSTER_ID))
+            {
+                std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
+                std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
+                for (;ia != enda; ++ia)
+                {
+                    if (ia->id() == 0x0000) // OnOff
+                    {
+                        bool on = ia->numericValue().u8;
+                        if (lightNode->isOn() != on)
+                        {
+                            lightNode->clearRead(READ_ON_OFF);
+                            lightNode->setIsOn(on);
+                            updated = true;
+                        }
+                    }
+                }
+            }
+            else if (ic->id() == BASIC_CLUSTER_ID && (event.clusterId() == BASIC_CLUSTER_ID))
+            {
+                std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
+                std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
+                for (;ia != enda; ++ia)
+                {
+                    if (ia->id() == 0x0004) // Manufacturer name
+                    {
+                        QString str = ia->toString();
+                        if (!str.isEmpty() && str != lightNode->manufacturer())
+                        {
+                            lightNode->setManufacturerName(str);
+                            updated = true;
+                        }
+                    }
+                    else if (ia->id() == 0x0005) // Model identifier
+                    {
+                        QString str = ia->toString();
+                        if (!str.isEmpty())
+                        {
+                            lightNode->setModelId(str);
+                            updated = true;
+                        }
+                    }
+                    else if (ia->id() == 0x4000) // Software build identifier
+                    {
+                        QString str = ia->toString();
+                        if (!str.isEmpty())
+                        {
+                            lightNode->setSwBuildId(str);
+                            updated = true;
+                        }
+                    }
+                }
+            }
         }
+
+        break;
     }
 
     if (updated)
@@ -670,7 +1490,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
 
 /*! Returns a LightNode for a given MAC address or 0 if not found.
  */
-LightNode *DeRestPluginPrivate::getLightNodeForAddress(uint64_t extAddr)
+LightNode *DeRestPluginPrivate::getLightNodeForAddress(quint64 extAddr, quint8 endpoint)
 {
     std::vector<LightNode>::iterator i;
     std::vector<LightNode>::iterator end = nodes.end();
@@ -679,11 +1499,33 @@ LightNode *DeRestPluginPrivate::getLightNodeForAddress(uint64_t extAddr)
     {
         if (i->address().ext() == extAddr)
         {
-            return &(*i);
+            if ((endpoint == 0) || (endpoint == i->haEndpoint().endpoint()))
+            {
+                return &(*i);
+            }
         }
     }
 
     return 0;
+}
+
+/*! Returns the number of Endpoints of a device.
+ */
+int DeRestPluginPrivate::getNumberOfEndpoints(quint64 extAddr)
+{
+    int count = 0;
+    std::vector<LightNode>::iterator i;
+    std::vector<LightNode>::iterator end = nodes.end();
+
+    for (i = nodes.begin(); i != end; ++i)
+    {
+        if (i->address().ext() == extAddr)
+        {
+            count++;
+        }
+    }
+
+    return count;
 }
 
 /*! Returns a LightNode for its given \p id or 0 if not found.
@@ -704,6 +1546,778 @@ LightNode *DeRestPluginPrivate::getLightNodeForId(const QString &id)
     return 0;
 }
 
+/*! Returns a Rule for its given \p id or 0 if not found.
+ */
+Rule *DeRestPluginPrivate::getRuleForId(const QString &id)
+{
+    std::vector<Rule>::iterator i;
+    std::vector<Rule>::iterator end = rules.end();
+
+    for (i = rules.begin(); i != end; ++i)
+    {
+        if (i->id() == id && i->state() != Rule::StateDeleted)
+        {
+            return &(*i);
+        }
+    }
+
+    end = rules.end();
+
+    for (i = rules.begin(); i != end; ++i)
+    {
+        if (i->id() == id)
+        {
+            return &(*i);
+        }
+    }
+
+    return 0;
+}
+
+/*! Returns a Rule for its given \p name or 0 if not found.
+ */
+Rule *DeRestPluginPrivate::getRuleForName(const QString &name)
+{
+    std::vector<Rule>::iterator i;
+    std::vector<Rule>::iterator end = rules.end();
+
+    for (i = rules.begin(); i != end; ++i)
+    {
+        if (i->name() == name)
+        {
+            return &(*i);
+        }
+    }
+
+    return 0;
+}
+
+/*! Checks if a SensorNode is reachable.
+    \param sensor - the SensorNode
+ */
+void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor)
+{
+    if (!sensor)
+    {
+        return;
+    }
+
+    bool updated = false;
+    bool reachable = false;
+
+    if (!sensor->fingerPrint().hasEndpoint())
+    {
+        reachable = true; // assumption for GP device
+    }
+    else if (sensor->node() && !sensor->node()->isZombie())
+    {
+        // look if fingerprint endpoint is in active endpoint list
+        std::vector<quint8>::const_iterator it;
+
+        it = std::find(sensor->node()->endpoints().begin(),
+                       sensor->node()->endpoints().end(),
+                       sensor->fingerPrint().endpoint);
+
+        if (it != sensor->node()->endpoints().end())
+        {
+            reachable = true;
+        }
+    }
+
+    if (sensor->config().reachable() != reachable)
+    {
+        SensorConfig sensorConfig = sensor->config();
+        sensorConfig.setReachable(reachable);
+        sensor->setConfig(sensorConfig);
+        updated = true;
+    }
+
+    if (reachable)
+    {
+        if (!sensor->isAvailable())
+        {
+            // the node existed before
+            // refresh all with new values
+            DBG_Printf(DBG_INFO, "SensorNode id: %s (%s) available\n", qPrintable(sensor->id()), qPrintable(sensor->name()));
+            sensor->setIsAvailable(true);
+            sensor->setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongDelay));
+            sensor->enableRead(READ_BINDING_TABLE | READ_GROUP_IDENTIFIERS | READ_MODEL_ID | READ_SWBUILD_ID | READ_VENDOR_NAME);
+            sensor->setLastRead(idleTotalCounter);
+            checkSensorBindingsForAttributeReporting(sensor);
+            updated = true;
+        }
+
+        if (sensor->deletedState() == Sensor::StateDeleted && gwPermitJoinDuration > 0)
+        {
+            DBG_Printf(DBG_INFO, "Rediscovered deleted SensorNode %s set node %s\n", qPrintable(sensor->id()), qPrintable(sensor->address().toStringExt()));
+            sensor->setDeletedState(Sensor::StateNormal);
+            sensor->setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongDelay));
+            sensor->enableRead(READ_BINDING_TABLE | READ_GROUP_IDENTIFIERS | READ_MODEL_ID | READ_SWBUILD_ID | READ_VENDOR_NAME);
+            sensor->setLastRead(idleTotalCounter);
+            updated = true;
+
+            //recover group
+            std::vector<Group>::iterator g = groups.begin();
+            std::vector<Group>::iterator gend = groups.end();
+
+            for (; g != gend; ++g)
+            {
+                std::vector<QString> &v = g->m_deviceMemberships;
+
+                if ((std::find(v.begin(), v.end(), sensor->id()) != v.end()) && (g->state() == Group::StateDeleted))
+                {
+                    g->setState(Group::StateNormal);
+                    updateEtag(g->etag);
+                    queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
+                }
+            }
+        }
+    }
+    else
+    {
+        if (sensor->isAvailable())
+        {
+            DBG_Printf(DBG_INFO, "SensorNode id: %s (%s) no longer available\n", qPrintable(sensor->id()), qPrintable(sensor->name()));
+            sensor->setIsAvailable(false);
+            updated = true;
+        }
+    }
+
+    if (updated)
+    {
+        updateEtag(sensor->etag);
+        updateEtag(gwConfigEtag);
+        queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+    }
+}
+
+/*! Adds a new sensor node to node cache.
+    Only supported ZLL and HA nodes will be added.
+    \param node - the base for the SensorNode
+ */
+void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
+{
+    DBG_Assert(node != 0);
+
+    if (!node)
+    {
+        return;
+    }
+
+    { // check existing sensors
+        std::vector<Sensor>::iterator i = sensors.begin();
+        std::vector<Sensor>::iterator end = sensors.end();
+
+        for (; i != end; ++i)
+        {
+            if (i->address().ext() == node->address().ext())
+            {
+                if (i->node() != node)
+                {
+                    i->setNode(const_cast<deCONZ::Node*>(node));
+                    DBG_Printf(DBG_INFO, "SensorNode %s set node %s\n", qPrintable(i->id()), qPrintable(node->address().toStringExt()));
+                }
+
+                // address changed?
+                if (i->address().nwk() != node->address().nwk())
+                {
+                    i->address() = node->address();
+                }
+            }
+        }
+    }
+
+    // check for new sensors
+    QList<deCONZ::SimpleDescriptor>::const_iterator i = node->simpleDescriptors().constBegin();
+    QList<deCONZ::SimpleDescriptor>::const_iterator end = node->simpleDescriptors().constEnd();
+
+    for (;i != end; ++i)
+    {
+        SensorFingerprint fpSwitch;
+        SensorFingerprint fpLightSensor;
+        SensorFingerprint fpPresenceSensor;
+
+        {   // scan client clusters of endpoint
+            QList<deCONZ::ZclCluster>::const_iterator ci = i->outClusters().constBegin();
+            QList<deCONZ::ZclCluster>::const_iterator cend = i->outClusters().constEnd();
+            for (; ci != cend; ++ci)
+            {
+                switch (ci->id())
+                {
+                case ONOFF_CLUSTER_ID:
+                case LEVEL_CLUSTER_ID:
+                case SCENE_CLUSTER_ID:
+                {
+                    fpSwitch.outClusters.push_back(ci->id());
+                }
+                    break;
+
+                default:
+                    break;
+                }
+            }
+        }
+
+        {   // scan server clusters of endpoint
+            QList<deCONZ::ZclCluster>::const_iterator ci = i->inClusters().constBegin();
+            QList<deCONZ::ZclCluster>::const_iterator cend = i->inClusters().constEnd();
+            for (; ci != cend; ++ci)
+            {
+                switch (ci->id())
+                {
+                case BASIC_CLUSTER_ID:
+                {
+                    fpSwitch.inClusters.push_back(ci->id());
+                }
+                    break;
+
+                case COMMISSIONING_CLUSTER_ID:
+                {
+                    fpSwitch.inClusters.push_back(ci->id());
+                }
+                    break;
+
+                case ONOFF_SWITCH_CONFIGURATION_CLUSTER_ID:
+                {
+                    fpSwitch.inClusters.push_back(ci->id());
+                }
+                    break;
+
+                case OCCUPANCY_SENSING_CLUSTER_ID:
+                {
+                    fpPresenceSensor.inClusters.push_back(ci->id());
+                }
+                    break;
+
+                case ILLUMINANCE_MEASUREMENT_CLUSTER_ID:
+                case ILLUMINANCE_LEVEL_SENSING_CLUSTER_ID:
+                {
+                    fpLightSensor.inClusters.push_back(ci->id());
+                }
+                    break;
+
+                default:
+                    break;
+                }
+            }
+        }
+
+        Sensor *sensor = 0;
+
+        // ZHASwitch
+        std::vector<quint16> c = fpSwitch.inClusters;
+        if ((std::find(c.begin(), c.end(), ONOFF_SWITCH_CONFIGURATION_CLUSTER_ID) != c.end()) || !fpSwitch.outClusters.empty()) // (!fpSwitch.inClusters.empty() || !fpSwitch.outClusters.empty())
+        {
+            fpSwitch.endpoint = i->endpoint();
+            fpSwitch.deviceId = i->deviceId();
+            fpSwitch.profileId = i->profileId();
+
+            sensor = getSensorNodeForFingerPrint(node->address().ext(), fpSwitch, "ZHASwitch");
+
+            if (!sensor)
+            {
+                addSensorNode(node, fpSwitch, "ZHASwitch");
+            }
+            else
+            {
+                checkSensorNodeReachable(sensor);
+            }
+        }
+
+        // ZHALight
+        if (!fpLightSensor.inClusters.empty() || !fpLightSensor.outClusters.empty())
+        {
+            fpLightSensor.endpoint = i->endpoint();
+            fpLightSensor.deviceId = i->deviceId();
+            fpLightSensor.profileId = i->profileId();
+
+            sensor = getSensorNodeForFingerPrint(node->address().ext(), fpLightSensor, "ZHALight");
+            if (!sensor)
+            {
+                addSensorNode(node, fpLightSensor, "ZHALight");
+            }
+            else
+            {
+                checkSensorNodeReachable(sensor);
+            }
+        }
+
+        // ZHAPresence
+        if (!fpPresenceSensor.inClusters.empty() || !fpPresenceSensor.outClusters.empty())
+        {
+            fpPresenceSensor.endpoint = i->endpoint();
+            fpPresenceSensor.deviceId = i->deviceId();
+            fpPresenceSensor.profileId = i->profileId();
+
+            sensor = getSensorNodeForFingerPrint(node->address().ext(), fpPresenceSensor, "ZHAPresence");
+            if (!sensor)
+            {
+                addSensorNode(node, fpPresenceSensor, "ZHAPresence");
+            }
+            else
+            {
+                sensor->setLastRead(idleTotalCounter);
+                sensor->enableRead(READ_OCCUPANCY_CONFIG);
+                sensor->setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongDelay));
+                checkSensorNodeReachable(sensor);
+                Q_Q(DeRestPlugin);
+                q->startZclAttributeTimer(checkZclAttributesDelay);
+            }
+        }
+    }
+}
+
+void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFingerprint &fingerPrint, const QString &type)
+{
+    DBG_Assert(node != 0);
+    if (!node)
+    {
+        return;
+    }
+
+    Sensor sensorNode;
+    sensorNode.setIsAvailable(true);
+    sensorNode.setNode(const_cast<deCONZ::Node*>(node));
+    sensorNode.address() = node->address();
+    sensorNode.setType(type);
+    sensorNode.setUniqueId(node->address().toStringExt());
+    sensorNode.fingerPrint() = fingerPrint;
+
+    SensorConfig sensorConfig;
+    sensorConfig.setReachable(true);
+    sensorNode.setConfig(sensorConfig);
+
+    if (node->nodeDescriptor().manufacturerCode() == VENDOR_DDEL)
+    {
+        sensorNode.setManufacturer("dresden elektronik");
+    }
+    else if ((node->nodeDescriptor().manufacturerCode() == VENDOR_OSRAM_STACK) || (node->nodeDescriptor().manufacturerCode() == VENDOR_OSRAM))
+    {
+        sensorNode.setManufacturer("Osram");
+    }
+    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_UBISYS)
+    {
+        sensorNode.setManufacturer("ubisys");
+    }
+    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_BUSCH_JAEGER)
+    {
+        sensorNode.setManufacturer("Busch Jaeger");
+    }
+    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_PHILIPS)
+    {
+        sensorNode.setManufacturer("Philips");
+    }
+    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_BEGA)
+    {
+        sensorNode.setManufacturer("BEGA Gantenbrink-Leuchten KG");
+    }
+    openDb();
+    loadSensorNodeFromDb(&sensorNode);
+    closeDb();
+
+    if (sensorNode.id().isEmpty())
+    {
+        openDb();
+        sensorNode.setId(QString::number(getFreeSensorId()));
+        closeDb();
+    }
+
+    if (sensorNode.name().isEmpty())
+    {
+        if (type == "ZHASwitch")
+        {
+            sensorNode.setName(QString("Switch %1").arg(sensorNode.id()));
+        }
+        else
+        {
+            sensorNode.setName(QString("%1 %2").arg(type).arg(sensorNode.id()));
+        }
+    }
+
+    // force reading attributes
+    sensorNode.setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongDelay));
+    sensorNode.enableRead(READ_BINDING_TABLE);
+    sensorNode.setLastRead(idleTotalCounter);
+    {
+        std::vector<quint16>::const_iterator ci = fingerPrint.inClusters.begin();
+        std::vector<quint16>::const_iterator cend = fingerPrint.inClusters.end();
+        for (;ci != cend; ++ci)
+        {
+            if (*ci == OCCUPANCY_SENSING_CLUSTER_ID)
+            {
+                sensorNode.setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongDelay));
+                sensorNode.enableRead(READ_OCCUPANCY_CONFIG);
+                sensorNode.setLastRead(idleTotalCounter);
+            }
+            else if (*ci == COMMISSIONING_CLUSTER_ID)
+            {
+                DBG_Printf(DBG_INFO, "SensorNode %u: %s read group identifiers\n", sensorNode.id().toUInt(), qPrintable(sensorNode.name()));
+                sensorNode.setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongDelay));
+                sensorNode.enableRead(READ_GROUP_IDENTIFIERS);
+                sensorNode.setLastRead(idleTotalCounter);
+            }
+            else if (*ci == BASIC_CLUSTER_ID)
+            {
+                DBG_Printf(DBG_INFO, "SensorNode %u: %s read model id and swversion\n", sensorNode.id().toUInt(), qPrintable(sensorNode.name()));
+                sensorNode.setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongDelay));
+                sensorNode.enableRead(READ_MODEL_ID | READ_SWBUILD_ID | READ_VENDOR_NAME);
+                sensorNode.setLastRead(idleTotalCounter);
+            }
+        }
+    }
+
+    DBG_Printf(DBG_INFO, "SensorNode %u: %s added\n", sensorNode.id().toUInt(), qPrintable(sensorNode.name()));
+    updateEtag(sensorNode.etag);
+
+    sensors.push_back(sensorNode);
+
+    checkSensorBindingsForAttributeReporting(&sensors.back());
+
+    Q_Q(DeRestPlugin);
+    q->startZclAttributeTimer(checkZclAttributesDelay);
+
+    queSaveDb(DB_SENSORS , DB_SHORT_SAVE_DELAY);
+}
+
+/*! Updates/adds a SensorNode from a Node.
+    If the node does not exist it will be created
+    otherwise the values will be checked for change
+    and updated in the internal representation.
+    \param node - holds up to date data
+ */
+void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
+{
+    if (!event.node())
+    {
+        return;
+    }
+
+    bool updated = false;
+
+    std::vector<Sensor>::iterator i = sensors.begin();
+    std::vector<Sensor>::iterator end = sensors.end();
+
+    for (; i != end; ++i)
+    {
+        if (i->address().ext() != event.node()->address().ext())
+        {
+            continue;
+        }
+
+        if (i->node() != event.node())
+        {
+            i->setNode(const_cast<deCONZ::Node*>(event.node()));
+            DBG_Printf(DBG_INFO, "Sensor %s set node %s\n", qPrintable(i->id()), qPrintable(event.node()->address().toStringExt()));
+        }
+
+        checkSensorNodeReachable(&(*i));
+
+        if (!i->isAvailable())
+        {
+            continue;
+        }
+
+        // filter for relevant clusters
+        if (event.profileId() == HA_PROFILE_ID || event.profileId() == ZLL_PROFILE_ID)
+        {
+            switch (event.clusterId())
+            {
+            case ILLUMINANCE_MEASUREMENT_CLUSTER_ID:
+            case OCCUPANCY_SENSING_CLUSTER_ID:
+            case BASIC_CLUSTER_ID:
+                break;
+
+            default:
+                continue; // don't process further
+            }
+        }
+        else
+        {
+            continue;
+        }
+
+        // filter endpoint
+        if (event.endpoint() != i->fingerPrint().endpoint)
+        {
+            continue;
+        }
+
+
+        { // assume data must be in server cluster attribute
+            bool found = false;
+            std::vector<quint16>::const_iterator ci = i->fingerPrint().inClusters.begin();
+            std::vector<quint16>::const_iterator cend = i->fingerPrint().inClusters.end();
+            for (; ci != cend; ++ci)
+            {
+                if (*ci == event.clusterId())
+                {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found)
+            {
+                continue;
+            }
+        }
+
+        deCONZ::SimpleDescriptor sd;
+        if (event.node()->copySimpleDescriptor(event.endpoint(), &sd) == 0)
+        {
+            QList<deCONZ::ZclCluster>::const_iterator ic = sd.inClusters().constBegin();
+            QList<deCONZ::ZclCluster>::const_iterator endc = sd.inClusters().constEnd();
+
+            for (; ic != endc; ++ic)
+            {
+                if (ic->id() == event.clusterId())
+                {
+                    std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
+                    std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
+
+                    if (event.clusterId() == ILLUMINANCE_MEASUREMENT_CLUSTER_ID)
+                    {
+                        for (;ia != enda; ++ia)
+                        {
+                            if (ia->id() == 0x0000) // measured illuminance (lux)
+                            {
+                                quint16 lux = ia->numericValue().u16;
+                                if (i->state().lux() != lux)
+                                {
+                                    i->state().setLux(lux);
+                                    i->state().updateTime();
+                                    updateEtag(i->etag);
+                                    updateEtag(gwConfigEtag);
+//                                    updated = true;
+                                }
+                            }
+                        }
+                    }
+                    else if (event.clusterId() == OCCUPANCY_SENSING_CLUSTER_ID)
+                    {
+                        for (;ia != enda; ++ia)
+                        {
+                            if (ia->id() == 0x0010) // occupied to unoccupied delay
+                            {
+                                double duration = (double)ia->numericValue().u16;
+
+                                if (i->config().duration() != duration)
+                                {
+                                    if (i->config().duration() <= 0)
+                                    {
+                                        DBG_Printf(DBG_INFO, "got occupied to unoccupied delay %u\n", ia->numericValue().u16);
+                                        SensorConfig config = i->config();
+                                        config.setDuration(duration);
+                                        i->setConfig(config);
+                                        updateEtag(i->etag);
+                                        updated = true;
+                                    }
+                                    else
+                                    {
+                                        DBG_Printf(DBG_INFO, "occupied to unoccupied delay is %u should be %u, force rewrite\n", ia->numericValue().u16, (quint16)i->config().duration());
+                                        i->enableRead(WRITE_OCCUPANCY_CONFIG);
+                                        i->enableRead(READ_OCCUPANCY_CONFIG);
+                                        i->setNextReadTime(QTime::currentTime());
+                                        Q_Q(DeRestPlugin);
+                                        q->startZclAttributeTimer(checkZclAttributesDelay);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else if (event.clusterId() == BASIC_CLUSTER_ID)
+                    {
+                        DBG_Printf(DBG_INFO, "Update Sensor 0x%04X Basic Cluster\n", event.node()->address().ext());
+                        for (;ia != enda; ++ia)
+                        {
+                            if (ia->id() == 0x0005) // Model identifier
+                            {
+                                QString str = ia->toString();
+                                if (!str.isEmpty())
+                                {
+                                    if (i->modelId() != str)
+                                    {
+                                        i->setModelId(str);
+                                        updated = true;
+                                    }
+
+                                    if (i->name() == QString("Switch %1").arg(i->id()))
+                                    {
+                                        QString name = QString("%1 %2").arg(str).arg(i->id());
+                                        if (i->name() != name)
+                                        {
+                                            i->setName(name);
+                                            updated = true;
+                                        }
+                                    }
+                                }
+                            }
+                            if (ia->id() == 0x0004) // Manufacturer Name
+                            {
+                                QString str = ia->toString();
+                                if (!str.isEmpty())
+                                {
+                                    if (i->manufacturer() != str)
+                                    {
+                                        i->setManufacturer(str);
+                                        updated = true;
+                                    }
+                                }
+                            }
+                            else if (ia->id() == 0x4000) // Software build identifier
+                            {
+                                QString str = ia->toString();
+                                if (!str.isEmpty())
+                                {
+                                    if (str != i->swVersion())
+                                    {
+                                        i->setSwVersion(str);
+                                        updated = true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (updated)
+    {
+        updateEtag(gwConfigEtag);
+        queSaveDb(DB_SENSORS , DB_SHORT_SAVE_DELAY);
+    }
+}
+
+/*! Checks all sensors if they are available.
+ */
+void DeRestPluginPrivate::checkAllSensorsAvailable()
+{
+    std::vector<Sensor>::iterator i = sensors.begin();
+    std::vector<Sensor>::iterator end = sensors.end();
+
+    for (; i != end; ++i)
+    {
+        checkSensorNodeReachable(&(*i));
+    }
+}
+
+/*! Returns the first Sensor for its given \p id or 0 if not found.
+    \note There might be more sensors with the same extAddr.
+ */
+Sensor *DeRestPluginPrivate::getSensorNodeForAddress(quint64 extAddr)
+{
+    std::vector<Sensor>::iterator i = sensors.begin();
+    std::vector<Sensor>::iterator end = sensors.end();
+
+    for (; i != end; ++i)
+    {
+        if (i->address().ext() == extAddr && i->deletedState() != Sensor::StateDeleted)
+        {
+            return &(*i);
+        }
+    }
+
+    end = sensors.end();
+
+    for (i = sensors.begin(); i != end; ++i)
+    {
+        if (i->address().ext() == extAddr)
+        {
+            return &(*i);
+        }
+    }
+
+    return 0;
+
+}
+
+/*! Returns the first Sensor which matches a fingerprint.
+    \note There might be more sensors with the same fingerprint.
+ */
+Sensor *DeRestPluginPrivate::getSensorNodeForFingerPrint(quint64 extAddr, const SensorFingerprint &fingerPrint, const QString &type)
+{
+    std::vector<Sensor>::iterator i = sensors.begin();
+    std::vector<Sensor>::iterator end = sensors.end();
+
+    for (; i != end; ++i)
+    {
+        if (i->address().ext() == extAddr && i->deletedState() != Sensor::StateDeleted)
+        {
+            if (i->type() == type && i->fingerPrint().endpoint == fingerPrint.endpoint)
+            {
+                if (!(i->fingerPrint() == fingerPrint))
+                {
+                    DBG_Printf(DBG_INFO, "updated fingerprint for sensor %s\n", qPrintable(i->name()));
+                    i->fingerPrint() = fingerPrint;
+                    updateEtag(i->etag);
+                    queSaveDb(DB_SENSORS , DB_SHORT_SAVE_DELAY);
+                }
+                return &(*i);
+            }
+        }
+    }
+
+    end = sensors.end();
+
+    for (i = sensors.begin(); i != end; ++i)
+    {
+        if (i->address().ext() == extAddr)
+        {
+            if (i->type() == type && i->fingerPrint().endpoint == fingerPrint.endpoint)
+            {
+                if (!(i->fingerPrint() == fingerPrint))
+                {
+                    DBG_Printf(DBG_INFO, "updated fingerprint for sensor %s\n", qPrintable(i->name()));
+                    i->fingerPrint() = fingerPrint;
+                    updateEtag(i->etag);
+                    queSaveDb(DB_SENSORS , DB_SHORT_SAVE_DELAY);
+                }
+                return &(*i);
+            }
+        }
+    }
+
+    return 0;
+}
+
+/*! Returns a Sensor for its given \p unique id or 0 if not found.
+ */
+Sensor *DeRestPluginPrivate::getSensorNodeForUniqueId(const QString &uniqueId)
+{
+    std::vector<Sensor>::iterator i;
+    std::vector<Sensor>::iterator end = sensors.end();
+
+    for (i = sensors.begin(); i != end; ++i)
+    {
+        if (i->uniqueId() == uniqueId)
+        {
+            return &(*i);
+        }
+    }
+
+    return 0;
+}
+
+/*! Returns a Sensor for its given \p id or 0 if not found.
+ */
+Sensor *DeRestPluginPrivate::getSensorNodeForId(const QString &id)
+{
+    std::vector<Sensor>::iterator i;
+    std::vector<Sensor>::iterator end = sensors.end();
+
+    for (i = sensors.begin(); i != end; ++i)
+    {
+        if (i->id() == id)
+        {
+            return &(*i);
+        }
+    }
+
+    return 0;
+}
+
 /*! Returns a Group for a given group id or 0 if not found.
  */
 Group *DeRestPluginPrivate::getGroupForId(uint16_t id)
@@ -714,6 +2328,26 @@ Group *DeRestPluginPrivate::getGroupForId(uint16_t id)
     for (; i != end; ++i)
     {
         if (i->address() == id)
+        {
+            return &(*i);
+        }
+    }
+
+    return 0;
+}
+
+/*! Returns a Scene for a given group id and Scene id or 0 if not found.
+ */
+Scene *DeRestPluginPrivate::getSceneForId(uint16_t gid, uint8_t sid)
+{
+    Group *group = getGroupForId(gid);
+
+    std::vector<Scene>::iterator i = group->scenes.begin();
+    std::vector<Scene>::iterator end = group->scenes.end();
+
+    for (; i != end; ++i)
+    {
+        if (i->id == sid)
         {
             return &(*i);
         }
@@ -882,18 +2516,20 @@ deCONZ::ZclCluster *DeRestPluginPrivate::getInCluster(deCONZ::Node *node, uint8_
     \param req - the profileId() must be specified in the request.
     \return a endpoint number
  */
-uint8_t DeRestPluginPrivate::getSrcEndpoint(LightNode *lightNode, const deCONZ::ApsDataRequest &req)
+uint8_t DeRestPluginPrivate::getSrcEndpoint(RestNodeBase *restNode, const deCONZ::ApsDataRequest &req)
 {
-    Q_UNUSED(lightNode);
-    Q_UNUSED(req);
-    // TODO: query from controller
+    Q_UNUSED(restNode);
+    if (req.profileId() == HA_PROFILE_ID || req.profileId() == ZLL_PROFILE_ID)
+    {
+        return endpoint();
+    }
     return 0x01;
 }
 
 /*! Check and process queued attributes marked for read.
     \return true - if at least one attribute was processed
  */
-bool DeRestPluginPrivate::processReadAttributes(LightNode *lightNode)
+bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
 {
     DBG_Assert(lightNode != 0);
 
@@ -909,6 +2545,13 @@ bool DeRestPluginPrivate::processReadAttributes(LightNode *lightNode)
     }
 
     if (!lightNode->isAvailable())
+    {
+        return false;
+    }
+
+    deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
+    DBG_Assert(apsCtrl != 0);
+    if (apsCtrl && (apsCtrl->getParameter(deCONZ::ParamAutoPollingActive) == 0))
     {
         return false;
     }
@@ -948,14 +2591,23 @@ bool DeRestPluginPrivate::processReadAttributes(LightNode *lightNode)
         switch(lightNode->haEndpoint().deviceId())
         {
         case DEV_ID_HA_COLOR_DIMMABLE_LIGHT:
+        case DEV_ID_ZLL_COLOR_LIGHT:
+        case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:
+        case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT:
             readColor = true;
             //fall through
 
         case DEV_ID_HA_DIMMABLE_LIGHT:
+        //case DEV_ID_ZLL_DIMMABLE_LIGHT: // same as DEV_ID_HA_ONOFF_LIGHT
+        case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:
             readLevel = true;
             //fall through
 
+        case DEV_ID_MAINS_POWER_OUTLET:
         case DEV_ID_HA_ONOFF_LIGHT:
+        case DEV_ID_ZLL_ONOFF_LIGHT:
+        case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:
+        case DEV_ID_ZLL_ONOFF_SENSOR:
             readOnOff = true;
             break;
 
@@ -964,71 +2616,105 @@ bool DeRestPluginPrivate::processReadAttributes(LightNode *lightNode)
         }
     }
 
-    if (lightNode->mustRead(READ_MODEL_ID))
+    if (lightNode->mustRead(READ_BINDING_TABLE))
+    {
+        if (readBindingTable(lightNode, 0))
+        {
+            // only read binding table once per node even if multiple devices/sensors are implemented
+            std::vector<LightNode>::iterator i = nodes.begin();
+            std::vector<LightNode>::iterator end = nodes.end();
+
+            for (; i != end; ++i)
+            {
+                if (i->address().ext() == lightNode->address().ext())
+                {
+                    i->clearRead(READ_BINDING_TABLE);
+                }
+            }
+            processed++;
+        }
+    }
+
+    if (lightNode->mustRead(READ_VENDOR_NAME))
+    {
+        std::vector<uint16_t> attributes;
+        attributes.push_back(0x0004); // Manufacturer name
+
+        if (readAttributes(lightNode, lightNode->haEndpoint().endpoint(), BASIC_CLUSTER_ID, attributes))
+        {
+            lightNode->clearRead(READ_VENDOR_NAME);
+            processed++;
+        }
+    }
+
+    if ((processed < 2) && lightNode->mustRead(READ_MODEL_ID))
     {
         std::vector<uint16_t> attributes;
         attributes.push_back(0x0005); // Model identifier
 
-        if (readAttributes(lightNode, &lightNode->haEndpoint(), BASIC_CLUSTER_ID, attributes))
+        if (readAttributes(lightNode, lightNode->haEndpoint().endpoint(), BASIC_CLUSTER_ID, attributes))
         {
             lightNode->clearRead(READ_MODEL_ID);
             processed++;
         }
     }
 
-    if (lightNode->mustRead(READ_SWBUILD_ID))
+    if ((processed < 2) && lightNode->mustRead(READ_SWBUILD_ID))
     {
         std::vector<uint16_t> attributes;
         attributes.push_back(0x4000); // Software build identifier
 
-        if (readAttributes(lightNode, &lightNode->haEndpoint(), BASIC_CLUSTER_ID, attributes))
+        if (readAttributes(lightNode, lightNode->haEndpoint().endpoint(), BASIC_CLUSTER_ID, attributes))
         {
             lightNode->clearRead(READ_SWBUILD_ID);
             processed++;
         }
     }
 
-    if (readOnOff && lightNode->mustRead(READ_ON_OFF))
+    if ((processed < 2) && readOnOff && lightNode->mustRead(READ_ON_OFF))
     {
         std::vector<uint16_t> attributes;
         attributes.push_back(0x0000); // OnOff
 
-        if (readAttributes(lightNode, &lightNode->haEndpoint(), ONOFF_CLUSTER_ID, attributes))
+        if (readAttributes(lightNode, lightNode->haEndpoint().endpoint(), ONOFF_CLUSTER_ID, attributes))
         {
             lightNode->clearRead(READ_ON_OFF);
             processed++;
         }
     }
 
-    if (readLevel && lightNode->mustRead(READ_LEVEL))
+    if ((processed < 2) && readLevel && lightNode->mustRead(READ_LEVEL))
     {
         std::vector<uint16_t> attributes;
         attributes.push_back(0x0000); // Level
 
-        if (readAttributes(lightNode, &lightNode->haEndpoint(), LEVEL_CLUSTER_ID, attributes))
+        if (readAttributes(lightNode, lightNode->haEndpoint().endpoint(), LEVEL_CLUSTER_ID, attributes))
         {
             lightNode->clearRead(READ_LEVEL);
             processed++;
         }
     }
 
-    if (readColor && lightNode->mustRead(READ_COLOR))
+    if ((processed < 2) && readColor && lightNode->mustRead(READ_COLOR))
     {
         std::vector<uint16_t> attributes;
         attributes.push_back(0x0000); // Current hue
         attributes.push_back(0x0001); // Current saturation
         attributes.push_back(0x0003); // Current x
         attributes.push_back(0x0004); // Current y
+        attributes.push_back(0x0007); // Color temperature
+        attributes.push_back(0x0008); // Color mode
         attributes.push_back(0x4000); // Enhanced hue
+        attributes.push_back(0x4002); // Color loop active
 
-        if (readAttributes(lightNode, &lightNode->haEndpoint(), COLOR_CLUSTER_ID, attributes))
+        if (readAttributes(lightNode, lightNode->haEndpoint().endpoint(), COLOR_CLUSTER_ID, attributes))
         {
             lightNode->clearRead(READ_COLOR);
             processed++;
         }
     }
 
-    if (lightNode->mustRead(READ_GROUPS))
+    if ((processed < 2) && lightNode->mustRead(READ_GROUPS))
     {
         std::vector<uint16_t> groups; // empty meaning read all groups
         if (readGroupMembership(lightNode, groups))
@@ -1038,7 +2724,7 @@ bool DeRestPluginPrivate::processReadAttributes(LightNode *lightNode)
         }
     }
 
-    if (lightNode->mustRead(READ_SCENES) && !lightNode->groups().empty())
+    if ((processed < 2) && lightNode->mustRead(READ_SCENES) && !lightNode->groups().empty())
     {
         std::vector<GroupInfo>::iterator i = lightNode->groups().begin();
         std::vector<GroupInfo>::iterator end = lightNode->groups().end();
@@ -1056,6 +2742,7 @@ bool DeRestPluginPrivate::processReadAttributes(LightNode *lightNode)
                 // proposal mark groups for which scenes where discovered
                 if (readSceneMembership(lightNode, group))
                 {
+                    processed++;
                     rd++;
                 }
                 else
@@ -1078,26 +2765,207 @@ bool DeRestPluginPrivate::processReadAttributes(LightNode *lightNode)
             lightNode->clearRead(READ_SCENES);
         }
 
-        processed++;
+    }
+
+    if ((processed < 2) && lightNode->mustRead(READ_SCENE_DETAILS))
+    {
+        std::vector<GroupInfo>::iterator g = lightNode->groups().begin();
+        std::vector<GroupInfo>::iterator gend = lightNode->groups().end();
+
+        int rd = 0;
+
+        for (; g != gend; ++g)
+        {
+            Group *group = getGroupForId(g->id);
+
+            DBG_Assert(group != 0);
+            if (group)
+            {
+                std::vector<Scene>::iterator s = group->scenes.begin();
+                std::vector<Scene>::iterator send = group->scenes.end();
+
+                for (; s != send; ++s)
+                {
+                    if (readSceneAttributes(lightNode, g->id, s->id))
+                    {
+                        processed++;
+                        rd++;
+                    }
+                    else
+                    {
+                        // print but don't take action
+                        DBG_Printf(DBG_INFO_L2, "read scene Attributes for group: 0x%04X rejected\n", g->id);
+                    }
+                }
+            }
+        }
+
+        if (!lightNode->groups().empty())
+        {
+            if (rd > 0)
+            {
+                lightNode->clearRead(READ_SCENE_DETAILS);
+            }
+        }
+        else
+        {
+            lightNode->clearRead(READ_SCENE_DETAILS);
+        }
+
+    }
+
+    return (processed > 0);
+}
+
+/*! Check and process queued attributes marked for read and write.
+    \return true - if at least one attribute was processed
+ */
+bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
+{
+    int processed = 0;
+
+    DBG_Assert(sensorNode != 0);
+
+    if (!sensorNode)
+    {
+        return false;
+    }
+
+    // check if read should happen now
+    if (sensorNode->nextReadTime() > QTime::currentTime())
+    {
+        return false;
+    }
+
+    if (!sensorNode->isAvailable())
+    {
+        return false;
+    }
+
+//    deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
+//    DBG_Assert(apsCtrl != 0);
+//    if (apsCtrl && (apsCtrl->getParameter(deCONZ::ParamAutoPollingActive) == 0))
+//    {
+//        return false;
+//    }
+
+    if (sensorNode->mustRead(READ_BINDING_TABLE))
+    {
+        bool ok = false;
+        // only read binding table of chosen sensors
+        // whitelist by Model ID
+        if (sensorNode->modelId().startsWith("FLS-NB") ||
+            sensorNode->modelId().startsWith("D1") || sensorNode->modelId().startsWith("S1") ||
+            sensorNode->modelId().startsWith("S2") || sensorNode->manufacturer().startsWith("BEGA") ||
+            sensorNode->modelId().startsWith("C4"))
+        {
+            ok = true;
+        }
+
+        if (!ok)
+        {
+            sensorNode->clearRead(READ_BINDING_TABLE);
+        }
+
+        if (ok && readBindingTable(sensorNode, 0))
+        {
+            // only read binding table once per node even if multiple devices/sensors are implemented
+            std::vector<Sensor>::iterator i = sensors.begin();
+            std::vector<Sensor>::iterator end = sensors.end();
+
+            for (; i != end; ++i)
+            {
+                if (i->address().ext() == sensorNode->address().ext())
+                {
+                    i->clearRead(READ_BINDING_TABLE);
+                }
+            }
+            processed++;
+        }
+    }
+
+    if (sensorNode->mustRead(READ_MODEL_ID))
+    {
+        std::vector<uint16_t> attributes;
+        attributes.push_back(0x0005); // Model identifier
+
+        if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, BASIC_CLUSTER_ID, attributes))
+        {
+            sensorNode->clearRead(READ_MODEL_ID);
+            processed++;
+        }
+    }
+
+    if (sensorNode->mustRead(READ_SWBUILD_ID))
+    {
+        std::vector<uint16_t> attributes;
+        attributes.push_back(0x4000); // Software build identifier
+
+        if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, BASIC_CLUSTER_ID, attributes))
+        {
+            sensorNode->clearRead(READ_SWBUILD_ID);
+            processed++;
+        }
+    }
+
+    if (sensorNode->mustRead(READ_GROUP_IDENTIFIERS))
+    {
+        if (getGroupIdentifiers(sensorNode, sensorNode->fingerPrint().endpoint, 0))
+        {
+            sensorNode->clearRead(READ_GROUP_IDENTIFIERS);
+            processed++;
+        }
+    }
+
+    if (sensorNode->mustRead(READ_OCCUPANCY_CONFIG))
+    {
+        std::vector<uint16_t> attributes;
+        attributes.push_back(0x0010); // occupied to unoccupied delay
+
+        if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, OCCUPANCY_SENSING_CLUSTER_ID, attributes))
+        {
+            sensorNode->clearRead(READ_OCCUPANCY_CONFIG);
+            processed++;
+        }
+    }
+
+    if (sensorNode->mustRead(WRITE_OCCUPANCY_CONFIG))
+    {
+        // only valid bounds
+        if (sensorNode->config().duration() >= 0 && sensorNode->config().duration() <= 65535)
+        {
+            // occupied to unoccupied delay
+            deCONZ::ZclAttribute attr(0x0010, deCONZ::Zcl16BitUint, "occ", deCONZ::ZclReadWrite, true);
+            attr.setValue((quint64)sensorNode->config().duration());
+
+            if (writeAttribute(sensorNode, sensorNode->fingerPrint().endpoint, OCCUPANCY_SENSING_CLUSTER_ID, attr))
+            {
+                sensorNode->clearRead(WRITE_OCCUPANCY_CONFIG);
+                processed++;
+            }
+        }
+        else
+        {
+            sensorNode->clearRead(WRITE_OCCUPANCY_CONFIG);
+        }
     }
 
     return (processed > 0);
 }
 
 /*! Queue reading ZCL attributes of a node.
-    \param lightNode the node from whch the attributes shall be read
-    \param sd the simple descriptor for the endpoint of interrest
+    \param restNode the node from which the attributes shall be read
+    \param endpoint the destination endpoint
     \param clusterId the cluster id related to the attributes
     \param attributes a list of attribute ids which shall be read
     \return true if the request is queued
  */
-bool DeRestPluginPrivate::readAttributes(LightNode *lightNode, const deCONZ::SimpleDescriptor *sd, uint16_t clusterId, const std::vector<uint16_t> &attributes)
+bool DeRestPluginPrivate::readAttributes(RestNodeBase *restNode, quint8 endpoint, uint16_t clusterId, const std::vector<uint16_t> &attributes)
 {
-    DBG_Assert(lightNode != 0);
-    DBG_Assert(sd != 0);
+    DBG_Assert(restNode != 0);
     DBG_Assert(!attributes.empty());
 
-    if (!lightNode || !sd || attributes.empty() || !lightNode->isAvailable())
+    if (!restNode || attributes.empty() || !restNode->isAvailable())
     {
         return false;
     }
@@ -1105,19 +2973,21 @@ bool DeRestPluginPrivate::readAttributes(LightNode *lightNode, const deCONZ::Sim
     TaskItem task;
     task.taskType = TaskReadAttributes;
 
-    task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
-    task.req.setDstEndpoint(sd->endpoint());
+//    task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+    task.req.setDstEndpoint(endpoint);
     task.req.setDstAddressMode(deCONZ::ApsExtAddress);
-    task.req.dstAddress() = lightNode->address();
+    task.req.dstAddress() = restNode->address();
     task.req.setClusterId(clusterId);
     task.req.setProfileId(HA_PROFILE_ID);
-    task.req.setSrcEndpoint(getSrcEndpoint(lightNode, task.req));
+    task.req.setSrcEndpoint(getSrcEndpoint(restNode, task.req));
 
     task.zclFrame.setSequenceNumber(zclSeq++);
     task.zclFrame.setCommandId(deCONZ::ZclReadAttributesId);
     task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
                              deCONZ::ZclFCDirectionClientToServer |
                              deCONZ::ZclFCDisableDefaultResponse);
+
+    DBG_Printf(DBG_INFO, "read attributes of 0x%016llX cluster: 0x%04X: [ ", restNode->address().ext(), clusterId);
 
     { // payload
         QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
@@ -1126,7 +2996,169 @@ bool DeRestPluginPrivate::readAttributes(LightNode *lightNode, const deCONZ::Sim
         for (uint i = 0; i < attributes.size(); i++)
         {
             stream << attributes[i];
+            if (DBG_IsEnabled(DBG_INFO))
+            {
+                DBG_Printf(DBG_INFO, "0x%04X ", attributes[i]);
+            }
         }
+    }
+
+    if (DBG_IsEnabled(DBG_INFO))
+    {
+        DBG_Printf(DBG_INFO, "]\n");
+    }
+
+    { // ZCL frame
+        QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        task.zclFrame.writeToStream(stream);
+    }
+
+    return addTask(task);
+}
+
+/*! Queue reading Group Identifiers.
+    \param node the node from which the group identifiers shall be read
+    \param startIndex the index to start the reading
+    \return true if the request is queued
+ */
+bool DeRestPluginPrivate::getGroupIdentifiers(RestNodeBase *node, quint8 endpoint, quint8 startIndex)
+{
+    DBG_Assert(node != 0);
+
+    if (!node || !node->isAvailable())
+    {
+        return false;
+    }
+
+    TaskItem task;
+    task.taskType = TaskGetGroupIdentifiers;
+
+//    task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+    task.req.setDstEndpoint(endpoint);
+    task.req.setDstAddressMode(deCONZ::ApsExtAddress);
+    task.req.dstAddress() = node->address();
+    task.req.setClusterId(COMMISSIONING_CLUSTER_ID);
+    task.req.setProfileId(HA_PROFILE_ID); // utility commands
+    task.req.setSrcEndpoint(getSrcEndpoint(node, task.req));
+
+    task.zclFrame.setSequenceNumber(zclSeq++);
+    task.zclFrame.setCommandId(0x41); // get group identifiers cmd
+    task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
+                             deCONZ::ZclFCDirectionClientToServer |
+                             deCONZ::ZclFCDisableDefaultResponse);
+
+    { // payload
+        QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        stream << startIndex;
+    }
+
+    { // ZCL frame
+        QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        task.zclFrame.writeToStream(stream);
+    }
+
+    DBG_Printf(DBG_INFO, "Send get group identifiers for node 0%04X \n", node->address().ext());
+
+    return addTask(task);
+}
+
+/*! Queue writing a ZCL attribute of a node.
+    \param restNode the node from which the attributes shall be read
+    \param endpoint the destination endpoint
+    \param clusterId the cluster id related to the attributes
+    \param attribute the attribute to write
+    \return true if the request is queued
+ */
+bool DeRestPluginPrivate::writeAttribute(RestNodeBase *restNode, quint8 endpoint, uint16_t clusterId, const deCONZ::ZclAttribute &attribute)
+{
+    DBG_Assert(restNode != 0);
+
+    if (!restNode || !restNode->isAvailable())
+    {
+        return false;
+    }
+
+    TaskItem task;
+    task.taskType = TaskWriteAttribute;
+
+    task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+    task.req.setDstEndpoint(endpoint);
+    task.req.setDstAddressMode(deCONZ::ApsExtAddress);
+    task.req.dstAddress() = restNode->address();
+    task.req.setClusterId(clusterId);
+    task.req.setProfileId(HA_PROFILE_ID);
+    task.req.setSrcEndpoint(getSrcEndpoint(restNode, task.req));
+
+    task.zclFrame.setSequenceNumber(zclSeq++);
+    task.zclFrame.setCommandId(deCONZ::ZclWriteAttributesId);
+    task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                             deCONZ::ZclFCDirectionClientToServer |
+                             deCONZ::ZclFCDisableDefaultResponse);
+
+    { // payload
+        QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        stream << attribute.id();
+        stream << attribute.dataType();
+
+        if (!attribute.writeToStream(stream))
+        {
+            return false;
+        }
+    }
+
+    { // ZCL frame
+        QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        task.zclFrame.writeToStream(stream);
+    }
+
+    return addTask(task);
+}
+
+/*! Queue reading details of a scene from a node.
+    \param restNode the node from which the scene details shall be read
+    \param groupId the group Id of the scene
+    \param sceneId the scene Id
+    \return true if the request is queued
+ */
+bool DeRestPluginPrivate::readSceneAttributes(LightNode *lightNode, uint16_t groupId, uint8_t sceneId )
+{
+    DBG_Assert(lightNode != 0);
+
+    if (!lightNode || !lightNode->isAvailable())
+    {
+        return false;
+    }
+
+    TaskItem task;
+    task.taskType = TaskViewScene;
+
+//    task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+    task.req.setDstEndpoint(lightNode->haEndpoint().endpoint());
+    task.req.setDstAddressMode(deCONZ::ApsExtAddress);
+    task.req.dstAddress() = lightNode->address();
+    task.req.setClusterId(SCENE_CLUSTER_ID);
+    task.req.setProfileId(HA_PROFILE_ID);
+    task.req.setSrcEndpoint(getSrcEndpoint(lightNode, task.req));
+
+    task.zclFrame.setSequenceNumber(zclSeq++);
+    task.zclFrame.setCommandId(0x01); // view scene
+    task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
+                             deCONZ::ZclFCDirectionClientToServer |
+                             deCONZ::ZclFCDisableDefaultResponse);
+
+    { // payload
+        QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        stream << groupId;
+        stream << sceneId;
     }
 
     { // ZCL frame
@@ -1154,7 +3186,7 @@ bool DeRestPluginPrivate::readGroupMembership(LightNode *lightNode, const std::v
     TaskItem task;
     task.taskType = TaskGetGroupMembership;
 
-    task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+//    task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
     task.req.setDstEndpoint(lightNode->haEndpoint().endpoint());
     task.req.setDstAddressMode(deCONZ::ApsExtAddress);
     task.req.dstAddress() = lightNode->address();
@@ -1201,6 +3233,8 @@ void DeRestPluginPrivate::foundGroupMembership(LightNode *lightNode, uint16_t gr
         return;
     }
 
+    Group *group = getGroupForId(groupId);
+
     // check if the group is known in the node
     std::vector<GroupInfo>::iterator i = lightNode->groups().begin();
     std::vector<GroupInfo>::iterator end = lightNode->groups().end();
@@ -1209,23 +3243,44 @@ void DeRestPluginPrivate::foundGroupMembership(LightNode *lightNode, uint16_t gr
     {
         if (i->id == groupId)
         {
+            if (group && group->state() != Group::StateNormal && group->m_deviceMemberships.size() == 0) // don't touch group of switch
+            {
+                i->actions &= ~GroupInfo::ActionAddToGroup; // sanity
+                i->actions |= GroupInfo::ActionRemoveFromGroup;
+                if (i->state != GroupInfo::StateNotInGroup)
+                {
+                    i->state = GroupInfo::StateNotInGroup;
+                    queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
+                }
+            }
+
             return; // ok already known
         }
     }
 
-    Group *group = getGroupForId(groupId);
+    updateEtag(lightNode->etag);
+    updateEtag(gwConfigEtag);
+
+    GroupInfo groupInfo;
+    groupInfo.id = groupId;
 
     if (group)
     {
         updateEtag(group->etag);
+
+        if (group->state() != Group::StateNormal && group->m_deviceMemberships.size() == 0) // don't touch group of switch
+        {
+            groupInfo.actions &= ~GroupInfo::ActionAddToGroup; // sanity
+            groupInfo.actions |= GroupInfo::ActionRemoveFromGroup;
+            groupInfo.state = GroupInfo::StateNotInGroup;
+        }
+        else
+        {
+            lightNode->enableRead(READ_SCENES); // force reading of scene membership
+        }
     }
 
-    updateEtag(lightNode->etag);
-    updateEtag(gwConfigEtag);
-    lightNode->enableRead(READ_SCENES); // force reading of scene membership
-
-    GroupInfo groupInfo;
-    groupInfo.id = groupId;
+    queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
     lightNode->groups().push_back(groupInfo);
     markForPushUpdate(lightNode);
 }
@@ -1282,7 +3337,7 @@ bool DeRestPluginPrivate::isLightNodeInGroup(LightNode *lightNode, uint16_t grou
 
         for (; i != end; ++i)
         {
-            if (i->id == groupId)
+            if (i->id == groupId && i->state == GroupInfo::StateInGroup)
             {
                 return true;
             }
@@ -1290,6 +3345,39 @@ bool DeRestPluginPrivate::isLightNodeInGroup(LightNode *lightNode, uint16_t grou
     }
 
     return false;
+}
+
+/*! Delete the light with the \p lightId from all Scenes of the Group with the given \p groupId.
+    Also remove these scenes from the Device.
+ */
+void DeRestPluginPrivate::deleteLightFromScenes(QString lightId, uint16_t groupId)
+{
+    Group *group = getGroupForId(groupId);
+    LightNode *lightNode = getLightNodeForId(lightId);
+
+    if (group)
+    {
+        std::vector<Scene>::iterator i = group->scenes.begin();
+        std::vector<Scene>::iterator end = group->scenes.end();
+
+        for (; i != end; ++i)
+        {
+            i->deleteLight(lightId);
+
+            // send remove scene request to lightNode
+            if (isLightNodeInGroup(lightNode, group->address()))
+            {
+                GroupInfo *groupInfo = getGroupInfo(lightNode, group->address());
+
+                std::vector<uint8_t> &v = groupInfo->removeScenes;
+
+                if (std::find(v.begin(), v.end(), i->id) == v.end())
+                {
+                    groupInfo->removeScenes.push_back(i->id);
+                }
+            }
+        }
+    }
 }
 
 /*! Force reading attributes of all nodes in a group.
@@ -1378,7 +3466,7 @@ bool DeRestPluginPrivate::readSceneMembership(LightNode *lightNode, Group *group
     TaskItem task;
     task.taskType = TaskGetSceneMembership;
 
-    task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+//    task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
     task.req.setDstEndpoint(lightNode->haEndpoint().endpoint());
     task.req.setDstAddressMode(deCONZ::ApsExtAddress);
     task.req.dstAddress() = lightNode->address();
@@ -1427,7 +3515,7 @@ void DeRestPluginPrivate::foundScene(LightNode *lightNode, Group *group, uint8_t
     {
         if (i->id == sceneId)
         {
-            if (i->state == Scene::StateDeleted)
+            if (i->state == Scene::StateDeleted && group->m_deviceMemberships.size() == 0) // don't touch scenes from switch
             {
                 GroupInfo *groupInfo = getGroupInfo(lightNode, group->address());
 
@@ -1506,15 +3594,51 @@ bool DeRestPluginPrivate::storeScene(Group *group, uint8_t sceneId)
     {
         LightNode *lightNode = &(*i);
         if (lightNode->isAvailable() && // note: we only create/store the scene if node is available
+            isLightNodeInGroup(lightNode, group->address()) )
+        {
+            GroupInfo *groupInfo = getGroupInfo(lightNode, group->address());
+
+            if (lightNode->sceneCapacity() != 0 || groupInfo->sceneCount() != 0) //xxx workaround
+            {
+                std::vector<uint8_t> &v = groupInfo->addScenes;
+
+                if (std::find(v.begin(), v.end(), sceneId) == v.end())
+                {
+                    groupInfo->addScenes.push_back(sceneId);
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
+/*! Sends a modify scene request to a group.
+ */
+bool DeRestPluginPrivate::modifyScene(Group *group, uint8_t sceneId)
+{
+    DBG_Assert(group != 0);
+
+    if (!group)
+    {
+        return false;
+    }
+
+    std::vector<LightNode>::iterator i = nodes.begin();
+    std::vector<LightNode>::iterator end = nodes.end();
+    for (; i != end; ++i)
+    {
+        LightNode *lightNode = &(*i);
+        if (lightNode->isAvailable() && // note: we only modify the scene if node is available
             isLightNodeInGroup(lightNode, group->address()))
         {
             GroupInfo *groupInfo = getGroupInfo(lightNode, group->address());
 
-            std::vector<uint8_t> &v = groupInfo->addScenes;
+            std::vector<uint8_t> &v = groupInfo->modifyScenes;
 
             if (std::find(v.begin(), v.end(), sceneId) == v.end())
             {
-                groupInfo->addScenes.push_back(sceneId);
+                groupInfo->modifyScenes.push_back(sceneId);
             }
         }
     }
@@ -1675,9 +3799,14 @@ bool DeRestPluginPrivate::addTask(const TaskItem &task)
 
     if ((task.taskType != TaskGetSceneMembership) &&
         (task.taskType != TaskGetGroupMembership) &&
+        (task.taskType != TaskGetGroupIdentifiers) &&
         (task.taskType != TaskStoreScene) &&
         (task.taskType != TaskRemoveScene) &&
-        (task.taskType != TaskReadAttributes))
+        (task.taskType != TaskRemoveAllScenes) &&
+        (task.taskType != TaskReadAttributes) &&
+        (task.taskType != TaskWriteAttribute) &&
+        (task.taskType != TaskViewScene) &&
+        (task.taskType != TaskAddScene))
     {
         for (; i != end; ++i)
         {
@@ -1723,7 +3852,7 @@ bool DeRestPluginPrivate::obtainTaskCluster(TaskItem &task, const deCONZ::ApsDat
     {
         quint64 extAddr = task.req.dstAddress().ext();
 
-        task.lightNode = getLightNodeForAddress(extAddr);
+        task.lightNode = getLightNodeForAddress(extAddr, task.req.dstEndpoint());
         task.node = getNodeForAddress(extAddr);
 
         if (!task.node)
@@ -1905,22 +4034,26 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
 
     case deCONZ::NodeEvent::NodeRemoved:
     {
-        DBG_Printf(DBG_INFO, "Node removed %s\n", qPrintable(event.node()->address().toStringExt()));
-        LightNode *lightNode = getLightNodeForAddress(event.node()->address().ext());
+        std::vector<LightNode>::iterator i = nodes.begin();
+        std::vector<LightNode>::iterator end = nodes.end();
 
-        if (lightNode)
+        for (; i != end; ++i)
         {
-            lightNode->setIsAvailable(false);
-            updateEtag(lightNode->etag);
-            updateEtag(gwConfigEtag);
+            if (i->address().ext() == event.node()->address().ext())
+            {
+                DBG_Printf(DBG_INFO, "LightNode removed %s\n", qPrintable(event.node()->address().toStringExt()));
+                i->setIsAvailable(false);
+                updateEtag(i->etag);
+                updateEtag(gwConfigEtag);
+            }
         }
     }
         break;
 
     case deCONZ::NodeEvent::NodeAdded:
     {
-        DBG_Printf(DBG_INFO, "Node added %s\n", qPrintable(event.node()->address().toStringExt()));
-        addNode(event.node());
+        addLightNode(event.node());
+        addSensorNode(event.node());
     }
         break;
 
@@ -1932,10 +4065,64 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         break;
 
     case deCONZ::NodeEvent::UpdatedSimpleDescriptor:
+    {
+        addLightNode(event.node());
+        addSensorNode(event.node());
+    }
+        break;
+
     case deCONZ::NodeEvent::UpdatedClusterData:
     {
-        DBG_Printf(DBG_INFO, "Node data %s profileId: 0x%04X, clusterId: 0x%04X\n", qPrintable(event.node()->address().toStringExt()), event.profileId(), event.clusterId());
-        updateLightNode(event);
+        if (event.profileId() == ZDP_PROFILE_ID && event.clusterId() == ZDP_ACTIVE_ENDPOINTS_RSP_CLID)
+        {
+            updateSensorNode(event);
+            return;
+        }
+
+        if (event.profileId() != HA_PROFILE_ID && event.profileId() != ZLL_PROFILE_ID)
+        {
+            return;
+        }
+
+        DBG_Printf(DBG_INFO_L2, "Node data %s profileId: 0x%04X, clusterId: 0x%04X\n", qPrintable(event.node()->address().toStringExt()), event.profileId(), event.clusterId());
+
+        // filter for supported sensor clusters
+        switch (event.clusterId())
+        {
+        // sensor node?
+        case ONOFF_SWITCH_CONFIGURATION_CLUSTER_ID:
+        case ILLUMINANCE_MEASUREMENT_CLUSTER_ID:
+        case ILLUMINANCE_LEVEL_SENSING_CLUSTER_ID:
+        case OCCUPANCY_SENSING_CLUSTER_ID:
+        case BASIC_CLUSTER_ID:
+            {
+                updateSensorNode(event);
+            }
+            break;
+
+        default:
+            break;
+        }
+
+        // filter for supported light clusters
+        switch (event.clusterId())
+        {
+        // sensor node?
+        case BASIC_CLUSTER_ID:
+        case IDENTIFY_CLUSTER_ID:
+        case ONOFF_CLUSTER_ID:
+        case LEVEL_CLUSTER_ID:
+        case GROUP_CLUSTER_ID:
+        case SCENE_CLUSTER_ID:
+        case COLOR_CLUSTER_ID:
+            {
+                updateLightNode(event);
+            }
+            break;
+
+        default:
+            break;
+        }
     }
         break;
 
@@ -1980,7 +4167,7 @@ void DeRestPluginPrivate::processGroupTasks()
 
     // set destination parameters
     task.req.dstAddress() = task.lightNode->address();
-    task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+//    task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
     task.req.setDstEndpoint(task.lightNode->haEndpoint().endpoint());
     task.req.setSrcEndpoint(getSrcEndpoint(task.lightNode, task.req));
     task.req.setDstAddressMode(deCONZ::ApsExtAddress);
@@ -2010,7 +4197,7 @@ void DeRestPluginPrivate::processGroupTasks()
 
         if (!i->addScenes.empty())
         {
-            if (addTaskAddScene(task, i->id, i->addScenes[0]))
+            if (addTaskStoreScene(task, i->id, i->addScenes[0]))
             {
                 processTasks();
                 return;
@@ -2020,6 +4207,15 @@ void DeRestPluginPrivate::processGroupTasks()
         if (!i->removeScenes.empty())
         {
             if (addTaskRemoveScene(task, i->id, i->removeScenes[0]))
+            {
+                processTasks();
+                return;
+            }
+        }
+
+        if (!i->modifyScenes.empty())
+        {
+            if (addTaskAddScene(task, i->id, i->modifyScenes[0], task.lightNode->id()))
             {
                 processTasks();
                 return;
@@ -2042,7 +4238,8 @@ void DeRestPluginPrivate::handleGroupClusterIndication(TaskItem &task, const deC
         return;
     }
 
-    LightNode *lightNode = getLightNodeForAddress(ind.srcAddress().ext());
+    LightNode *lightNode = getLightNodeForAddress(ind.srcAddress().ext(), ind.srcEndpoint());
+    int endpointCount = getNumberOfEndpoints(ind.srcAddress().ext());
 
     if (!lightNode)
     {
@@ -2065,9 +4262,12 @@ void DeRestPluginPrivate::handleGroupClusterIndication(TaskItem &task, const deC
         stream >> capacity;
         stream >> count;
 
-
         lightNode->setGroupCapacity(capacity);
+        lightNode->setGroupCount(count);
 
+        DBG_Printf(DBG_INFO, "verified group capacity: %u and group count: %u of LightNode %s\n", capacity, count, qPrintable(lightNode->address().toStringExt()));
+
+        QVector<quint16> responseGroups;
         for (uint i = 0; i < count; i++)
         {
             if (!stream.atEnd())
@@ -2075,12 +4275,147 @@ void DeRestPluginPrivate::handleGroupClusterIndication(TaskItem &task, const deC
                 uint16_t groupId;
                 stream >> groupId;
 
+                responseGroups.push_back(groupId);
+
                 DBG_Printf(DBG_INFO, "%s found group 0x%04X\n", qPrintable(lightNode->address().toStringExt()), groupId);
 
                 foundGroup(groupId);
                 foundGroupMembership(lightNode, groupId);
             }
         }
+
+        std::vector<GroupInfo>::iterator i = lightNode->groups().begin();
+        std::vector<GroupInfo>::iterator end = lightNode->groups().end();
+
+        for (; i != end; ++i)
+        {
+            Group *group = getGroupForId(i->id);
+
+            if (group && group->state() == Group::StateNormal
+                && group->m_deviceMemberships.size() == 0 //no switch group
+                && !responseGroups.contains(i->id)
+                && i->state == GroupInfo::StateInGroup)
+            {
+                    DBG_Printf(DBG_INFO, "restore group  0x%04X for lightNode %s\n", i->id, qPrintable(lightNode->address().toStringExt()));
+                    i->actions &= ~GroupInfo::ActionRemoveFromGroup; // sanity
+                    i->actions |= GroupInfo::ActionAddToGroup;
+                    i->state = GroupInfo::StateInGroup;
+                    updateEtag(group->etag);
+                    updateEtag(gwConfigEtag);
+                    queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
+            }
+            else if (group && group->state() == Group::StateNormal
+                && group->m_deviceMemberships.size() > 0) //a switch group
+            {
+                if (responseGroups.contains(i->id)
+                    && i->state == GroupInfo::StateNotInGroup) // light was added by a switch -> add it to deCONZ group)
+                {
+                    i->state = GroupInfo::StateInGroup;
+                    std::vector<QString> &v = group->m_multiDeviceIds;
+                    std::vector<QString>::iterator fi = std::find(v.begin(), v.end(), lightNode->id());
+                    if (fi != v.end())
+                    {
+                        group->m_multiDeviceIds.erase(fi);
+                        queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
+                    }
+                    updateEtag(group->etag);
+                    updateEtag(gwConfigEtag);
+                    queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
+                }
+                else if (!responseGroups.contains(i->id)
+                    && i->state == GroupInfo::StateInGroup) // light was removed from group by switch -> remove it from deCONZ group)
+                {
+                    i->state = GroupInfo::StateNotInGroup;
+                    updateEtag(group->etag);
+                    updateEtag(gwConfigEtag);
+                    queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
+                }
+            }
+        }
+    }
+    else if (zclFrame.commandId() == 0x00) // Add group response
+    {
+        DBG_Assert(zclFrame.payload().size() >= 2);
+
+        QDataStream stream(zclFrame.payload());
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        uint8_t status;
+        uint16_t groupId;
+
+        stream >> status;
+        stream >> groupId;
+
+        if (status == 0x00)
+        {
+            uint8_t capacity = lightNode->groupCapacity();
+            if (capacity >= endpointCount)
+            {
+                capacity = capacity - endpointCount;
+            }
+            lightNode->setGroupCapacity(capacity);
+
+            uint8_t count = lightNode->groupCount();
+            if (count < 255)
+            {
+                count++;
+            }
+            lightNode->setGroupCount(count);
+        }
+
+        DBG_Printf(DBG_INFO, "Add to group response for light %s. Status:0x%02X, capacity: %u\n", qPrintable(lightNode->id()), status, lightNode->groupCapacity());
+
+    }
+    else if (zclFrame.commandId() == 0x03) // Remove group response
+    {
+        DBG_Assert(zclFrame.payload().size() >= 2);
+
+        QDataStream stream(zclFrame.payload());
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        uint8_t status;
+        uint16_t groupId;
+
+        stream >> status;
+        stream >> groupId;
+
+        if (status == 0x00)
+        {
+            GroupInfo *groupInfo = getGroupInfo(lightNode, groupId);
+            DBG_Assert(groupInfo != 0);
+
+            if (groupInfo)
+            {
+                uint8_t sceneCount = groupInfo->sceneCount();
+                uint8_t sceneCapacity = lightNode->sceneCapacity();
+
+                if ((sceneCapacity + sceneCount) <= 255)
+                {
+                    sceneCapacity = sceneCapacity + sceneCount;
+                }
+                else
+                {
+                    sceneCapacity = 255;
+                }
+                lightNode->setSceneCapacity(sceneCapacity);
+
+                uint8_t capacity = lightNode->groupCapacity();
+                if ((capacity + endpointCount) <= 255)
+                {
+                    capacity = capacity + endpointCount;
+                }
+                lightNode->setGroupCapacity(capacity);
+
+                uint8_t count = lightNode->groupCount();
+                if (count > 0)
+                {
+                    count--;
+                }
+                lightNode->setGroupCount(count);
+            }
+        }
+
+        DBG_Printf(DBG_INFO, "Remove from group response for light %s. Status: 0x%02X, capacity: %u\n", qPrintable(lightNode->id()), status, lightNode->groupCapacity());
     }
 }
 
@@ -2116,32 +4451,44 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
         if (status == deCONZ::ZclSuccessStatus)
         {
             Group *group = getGroupForId(groupId);
-            LightNode *lightNode = getLightNodeForAddress(ind.srcAddress().ext());
+            LightNode *lightNode = getLightNodeForAddress(ind.srcAddress().ext(), ind.srcEndpoint());
+            GroupInfo *groupInfo = getGroupInfo(lightNode, group->address());
 
             DBG_Assert(group != 0);
             DBG_Assert(lightNode != 0);
+            DBG_Assert(groupInfo != 0);
             stream >> count;
 
-            for (uint i = 0; i < count; i++)
+            if (group != 0 && lightNode != 0 && groupInfo != 0)
             {
-                if (!stream.atEnd())
+                lightNode->setSceneCapacity(capacity);
+                groupInfo->setSceneCount(count);
+
+                for (uint i = 0; i < count; i++)
                 {
-                    uint8_t sceneId;
-                    stream >> sceneId;
-
-                    DBG_Printf(DBG_INFO, "found scene 0x%02X for group 0x%04X\n", sceneId, groupId);
-
-                    if (group && lightNode)
+                    if (!stream.atEnd())
                     {
-                        foundScene(lightNode, group, sceneId);
+                        uint8_t sceneId;
+                        stream >> sceneId;
+
+                        DBG_Printf(DBG_INFO, "found scene 0x%02X for group 0x%04X\n", sceneId, groupId);
+
+                        if (group && lightNode)
+                        {
+                            foundScene(lightNode, group, sceneId);
+                        }
                     }
                 }
+
+                lightNode->enableRead(READ_SCENE_DETAILS);
             }
+            Q_Q(DeRestPlugin);
+            q->startZclAttributeTimer(checkZclAttributesDelay);
         }
     }
     else if (zclFrame.commandId() == 0x04) // Store scene response
     {
-        DBG_Assert(zclFrame.payload().size() >= 4);
+        DBG_Assert(zclFrame.payload().size() >= 3);
 
         QDataStream stream(zclFrame.payload());
         stream.setByteOrder(QDataStream::LittleEndian);
@@ -2154,7 +4501,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
         stream >> groupId;
         stream >> sceneId;
 
-        LightNode *lightNode = getLightNodeForAddress(ind.srcAddress().ext());
+        LightNode *lightNode = getLightNodeForAddress(ind.srcAddress().ext(), ind.srcEndpoint());
 
         if (lightNode)
         {
@@ -2167,8 +4514,65 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
 
                 if (i != v.end())
                 {
-                    DBG_Printf(DBG_INFO, "Added/stored scene %u in node %s status 0x%02X\n", sceneId, qPrintable(lightNode->address().toStringExt()), status);
+                    DBG_Printf(DBG_INFO, "Added/stored scene %u in node %s Response. Status: 0x%02X\n", sceneId, qPrintable(lightNode->id()), status);
                     groupInfo->addScenes.erase(i);
+
+                    if (status == 0x00)
+                    {
+                        Scene *scene = getSceneForId(groupId, sceneId);
+
+                        if (scene)
+                        {
+                            bool foundLightstate = false;
+
+                            std::vector<LightState>::iterator li = scene->lights().begin();
+                            std::vector<LightState>::iterator lend = scene->lights().end();
+                            for (; li != lend; ++li)
+                            {
+                                if (li->lid() == lightNode->id())
+                                {
+                                    li->setOn(lightNode->isOn());
+                                    li->setBri((uint8_t)lightNode->level());
+                                    li->setX(lightNode->colorX());
+                                    li->setY(lightNode->colorY());
+
+                                    foundLightstate = true;
+                                    break;
+                                }
+                            }
+
+                            if (!foundLightstate)
+                            {
+                                LightState state;
+                                state.setLid(lightNode->id());
+                                state.setOn(lightNode->isOn());
+                                state.setBri((uint8_t)lightNode->level());
+                                state.setX(lightNode->colorX());
+                                state.setY(lightNode->colorY());
+
+                                scene->addLight(state);
+
+                                // only change capacity and count when creating a new scene
+                                uint8_t sceneCapacity = lightNode->sceneCapacity();
+                                if (sceneCapacity > 0)
+                                {
+                                    sceneCapacity--;
+                                }
+                                lightNode->setSceneCapacity(sceneCapacity);
+
+                                uint8_t sceneCount = groupInfo->sceneCount();
+                                if (sceneCount < 255)
+                                {
+                                    sceneCount++;
+                                }
+                                groupInfo->setSceneCount(sceneCount);
+
+                                DBG_Printf(DBG_INFO, "scene capacity: %u\n", sceneCapacity);
+                            }
+
+                            queSaveDb(DB_SCENES, DB_SHORT_SAVE_DELAY);
+                        }
+                    }
                 }
             }
         }
@@ -2188,7 +4592,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
         stream >> groupId;
         stream >> sceneId;
 
-        LightNode *lightNode = getLightNodeForAddress(ind.srcAddress().ext());
+        LightNode *lightNode = getLightNodeForAddress(ind.srcAddress().ext(), ind.srcEndpoint());
 
         if (lightNode)
         {
@@ -2201,15 +4605,281 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
 
                 if (i != v.end())
                 {
-                    DBG_Printf(DBG_INFO, "Removed scene %u from node %s status 0x%02X\n", sceneId, qPrintable(lightNode->address().toStringExt()), status);
+                    DBG_Printf(DBG_INFO, "Removed scene %u from node %s status 0x%02X\n", sceneId, qPrintable(lightNode->id()), status);
                     groupInfo->removeScenes.erase(i);
+
+                    if (status == 0x00)
+                    {
+                        Scene *scene = getSceneForId(groupId, sceneId);
+
+                        if (scene)
+                        {
+                            std::vector<LightState>::const_iterator li = scene->lights().begin();
+                            std::vector<LightState>::const_iterator lend = scene->lights().end();
+                            for (; li != lend; ++li)
+                            {
+                                if (li->lid() == lightNode->id())
+                                {
+                                    scene->deleteLight(lightNode->id());
+                                    break;
+                                }
+                            }
+
+                            uint8_t sceneCapacity = lightNode->sceneCapacity();
+                            if (sceneCapacity < 255)
+                            {
+                                sceneCapacity++;
+                            }
+                            lightNode->setSceneCapacity(sceneCapacity);
+
+                            uint8_t sceneCount = groupInfo->sceneCount();
+                            if (sceneCount > 0)
+                            {
+                                sceneCount--;
+                            }
+                            groupInfo->setSceneCount(sceneCount);
+
+                            DBG_Printf(DBG_INFO, "scene capacity: %u\n", sceneCapacity);
+                        }
+                    }
                 }
+            }
+        }
+    }
+    else if (zclFrame.commandId() == 0x00) // Add scene response // will only be created by modifying scene, yet.
+    {
+        DBG_Assert(zclFrame.payload().size() >= 4);
+
+        QDataStream stream(zclFrame.payload());
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        uint8_t status;
+        uint16_t groupId;
+        uint8_t sceneId;
+
+        stream >> status;
+        stream >> groupId;
+        stream >> sceneId;
+
+        LightNode *lightNode = getLightNodeForAddress(ind.srcAddress().ext(), ind.srcEndpoint());
+
+        if (lightNode)
+        {
+            GroupInfo *groupInfo = getGroupInfo(lightNode, groupId);
+
+            if (groupInfo)
+            {
+                std::vector<uint8_t> &v = groupInfo->modifyScenes;
+                std::vector<uint8_t>::iterator i = std::find(v.begin(), v.end(), sceneId);
+
+                if (i != v.end())
+                {
+                    DBG_Printf(DBG_INFO, "Modified scene %u in node %s status 0x%02X\n", sceneId, qPrintable(lightNode->address().toStringExt()), status);
+                    groupInfo->modifyScenes.erase(i);
+                }
+            }
+        }
+    }
+    else if (zclFrame.commandId() == 0x01) // View scene response
+    {
+        DBG_Assert(zclFrame.payload().size() >= 4);
+
+        LightNode *lightNode = getLightNodeForAddress(ind.srcAddress().ext(), ind.srcEndpoint());
+
+        QDataStream stream(zclFrame.payload());
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        uint8_t status;
+        uint16_t groupId;
+        uint8_t sceneId;
+        uint16_t transitiontime;
+        uint8_t length;
+        QString sceneName = "";
+        LightState light;
+
+        light.setLid(lightNode->id());
+
+        stream >> status;
+        if (status == 0x00)
+        {
+            stream >> groupId;
+            stream >> sceneId;
+            stream >> transitiontime;
+            stream >> length;
+
+            light.setTransitiontime(transitiontime*10);
+
+            for (int i = 0; i < length; i++)
+            {
+                char *c;
+                stream >> c;
+                sceneName.append(c);
+            }
+
+            while (!stream.atEnd())
+            {
+                uint16_t clusterId;
+                uint8_t l;
+                uint8_t fs8;
+                uint16_t fs16;
+
+                stream >> clusterId;
+                stream >> l;
+
+                if (clusterId == 0x0006)
+                {
+                    stream >> fs8;
+                    bool on = (fs8 == 0x01) ? true : false;
+                    light.setOn(on);
+                }
+                else if (clusterId == 0x0008)
+                {
+                    stream >> fs8;
+                    light.setBri(fs8);
+                }
+                else if (clusterId == 0x0300)
+                {
+                    stream >> fs16;
+                    light.setX(fs16);
+
+                    stream >> fs16;
+                    light.setY(fs16);
+                }
+            }
+
+            DBG_Printf(DBG_INFO, "Validaded Scene (gid: %u, sid: %u) for Light %s\n", groupId, sceneId, qPrintable(lightNode->id()));
+            DBG_Printf(DBG_INFO, "On: %u, Bri: %u, X: %u, Y: %u, Transitiontime: %u\n",
+                    light.on(), light.bri(), light.x(), light.y(), light.transitiontime());
+        }
+    }
+}
+
+/*! Handle packets related to the ZCL Commissioning cluster.
+    \param task the task which belongs to this response
+    \param ind the APS level data indication containing the ZCL packet
+    \param zclFrame the actual ZCL frame which holds the Commissioning cluster reponse
+ */
+void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
+{
+    Q_UNUSED(task);
+
+    if (!ind.srcAddress().hasExt())
+    {
+        return;
+    }
+
+    Sensor *sensorNode = getSensorNodeForAddress(ind.srcAddress().ext());
+    //int endpointCount = getNumberOfEndpoints(ind.srcAddress().ext());
+
+    if (!sensorNode)
+    {
+        return;
+    }
+
+    if (zclFrame.isDefaultResponse())
+    {
+    }
+    else if (zclFrame.commandId() == 0x41) // Get group identifiers response
+    {
+        DBG_Assert(zclFrame.payload().size() >= 4);
+
+        QDataStream stream(zclFrame.payload());
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        uint8_t total;
+        uint8_t startIndex;
+        uint8_t count;
+        uint16_t groupId;
+        uint8_t type;
+
+        stream >> total;
+        stream >> startIndex;
+        stream >> count;
+
+        DBG_Printf(DBG_INFO, "Get group identifiers response of sensor %s. Count: %u\n", qPrintable(sensorNode->address().toStringExt()), count);
+
+        while (!stream.atEnd())
+        {
+            stream >> groupId;
+            stream >> type;
+            DBG_Printf(DBG_INFO, " - Id: %u, type: %u\n", groupId, type);
+
+            Group *group1 = getGroupForId(groupId);
+            quint16 count = 1;
+
+            if (sensorNode->deletedState() != Sensor::StateDeleted)
+            {
+                if (group1)
+                {
+                    if (group1->state() == Group::StateDeleted)
+                    {
+                        group1->setState(Group::StateNormal);
+                    }
+                    if (group1->m_deviceMemberships.end() == std::find(group1->m_deviceMemberships.begin(),
+                                                                        group1->m_deviceMemberships.end(),
+                                                                        sensorNode->id()))
+                    {
+                        //not found
+                        group1->m_deviceMemberships.push_back(sensorNode->id());
+                    }
+                    queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
+                    updateEtag(group1->etag);
+                }
+                else
+                {
+                    // delete older groups of this switch permanently
+                    std::vector<Group>::iterator i = groups.begin();
+                    std::vector<Group>::iterator end = groups.end();
+
+                    for (; i != end; ++i)
+                    {
+                        if (i->m_deviceMemberships.end() != std::find(i->m_deviceMemberships.begin(),
+                                                                    i->m_deviceMemberships.end(),
+                                                                    sensorNode->id()))
+                        {
+                            //found
+                            if (i->state() == Group::StateDeleted)
+                            {
+                                i->setState(Group::StateDeleteFromDB);
+                            }
+                        }
+                    }
+
+                    //create new switch group
+                    Group group;
+                    group.setAddress(groupId);
+                    group.m_deviceMemberships.push_back(sensorNode->id());
+                    group.colorX = 0;
+                    group.colorY = 0;
+                    group.setIsOn(false);
+                    group.level = 128;
+                    group.hue = 0;
+                    group.hueReal = 0.0f;
+                    group.sat = 128;
+                    group.setName(QString());
+                    if (group.name().isEmpty()) {
+                        if (count > 1)
+                        {
+                            group.setName(QString("%1 %2").arg(sensorNode->name()).arg(count));
+                        }
+                        else
+                        {
+                            group.setName(QString("%1").arg(sensorNode->name()));
+                        }
+                        queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
+                    }
+
+                    updateEtag(group.etag);
+                    groups.push_back(group);
+                }
+                updateEtag(gwConfigEtag);
+                count++;
             }
         }
     }
 }
 
-/*! Handle the case than a node (re)joins the network.
+/*! Handle the case that a node (re)joins the network.
     \param ind a ZDP DeviceAnnce_req
  */
 void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndication &ind)
@@ -2219,33 +4889,66 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
         return;
     }
 
-    LightNode *lightNode = getLightNodeForAddress(ind.srcAddress().ext());
+    std::vector<LightNode>::iterator i = nodes.begin();
+    std::vector<LightNode>::iterator end = nodes.end();
 
-    if (!lightNode)
+    for (; i != end; ++i)
     {
-        return;
-    }
+        deCONZ::Node *node = i->node();
+        if (node && i->address().ext() == ind.srcAddress().ext())
+        {
+            if (node->endpoints().end() == std::find(node->endpoints().begin(),
+                                                     node->endpoints().end(),
+                                                     i->haEndpoint().endpoint()))
+            {
+                continue; // not a active endpoint
+            }
 
-    if (!lightNode->isAvailable())
-    {
-        lightNode->setIsAvailable(true);
-        updateEtag(gwConfigEtag);
-    }
+            if (!i->isAvailable())
+            {
+                i->setIsAvailable(true);
+                updateEtag(gwConfigEtag);
+            }
 
-    DBG_Printf(DBG_INFO, "DeviceAnnce %s\n", qPrintable(lightNode->name()));
+            DBG_Printf(DBG_INFO, "DeviceAnnce of LightNode: %s\n", qPrintable(ind.srcAddress().toStringExt()));
 
-    // force reading attributes
-    lightNode->setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongDelay));
-    lightNode->enableRead(READ_MODEL_ID |
+            // force reading attributes
+            i->setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongDelay));
+            i->setLastRead(idleTotalCounter);
+
+            i->enableRead(READ_MODEL_ID |
                           READ_SWBUILD_ID |
                           READ_COLOR |
                           READ_LEVEL |
                           READ_ON_OFF |
                           READ_GROUPS |
                           READ_SCENES);
-    lightNode->setSwBuildId(QString()); // might be changed due otau
-    lightNode->setLastRead(idleTotalCounter);
-    updateEtag(lightNode->etag);
+            i->setSwBuildId(QString()); // might be changed due otau
+            updateEtag(i->etag);
+        }
+    }
+
+    std::vector<Sensor>::iterator si = sensors.begin();
+    std::vector<Sensor>::iterator send = sensors.end();
+
+    for (; si != send; ++si)
+    {
+        if (si->address().ext() == ind.srcAddress().ext())
+        {
+            DBG_Printf(DBG_INFO, "DeviceAnnce of SensorNode: %s\n", qPrintable(ind.srcAddress().toStringExt()));
+            si->setIsAvailable(true);
+            si->setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongDelay));
+            si->enableRead(READ_BINDING_TABLE | READ_GROUP_IDENTIFIERS | READ_MODEL_ID | READ_SWBUILD_ID);
+            si->setLastRead(idleTotalCounter);
+            if (si->deletedState() == Sensor::StateDeleted)
+            {
+                si->setDeletedState(Sensor::StateNormal);
+                updateEtag(si->etag);
+                updateEtag(gwConfigEtag);
+                queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+            }
+        }
+    }
 }
 
 /*! Mark node so current state will be pushed to all clients.
@@ -2294,7 +4997,7 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
     else if (task.req.dstAddress().hasExt())
     {
         group = &dummyGroup; // never mind
-        LightNode *lightNode = getLightNodeForAddress(task.req.dstAddress().ext());
+        LightNode *lightNode = getLightNodeForAddress(task.req.dstAddress().ext(), task.req.dstEndpoint());
         if (lightNode)
         {
             pushNodes.push_back(lightNode);
@@ -2310,7 +5013,7 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
 
     switch (task.taskType)
     {
-    case TaskSetOnOff:
+    case TaskSendOnOffToggle:
         updateEtag(group->etag);
         group->setIsOn(task.onOff);
         break;
@@ -2352,6 +5055,16 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
         group->colorY = task.colorY;
         break;
 
+    case TaskSetColorTemperature:
+        updateEtag(group->etag);
+        group->colorTemperature = task.colorTemperature;
+        break;
+
+    case TaskSetColorLoop:
+        updateEtag(group->etag);
+        group->setColorLoopActive(task.colorLoop);
+        break;
+
     default:
         break;
     }
@@ -2362,7 +5075,7 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
 
         switch (task.taskType)
         {
-        case TaskSetOnOff:
+        case TaskSendOnOffToggle:
             updateEtag(lightNode->etag);
             lightNode->setIsOn(task.onOff);
             setAttributeOnOff(lightNode);
@@ -2381,6 +5094,12 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
             lightNode->setLevel(task.level);
             setAttributeLevel(lightNode);
             setAttributeOnOff(lightNode);
+            break;
+
+        case TaskStopLevel:
+            updateEtag(lightNode->etag);
+            lightNode->enableRead(READ_LEVEL);
+            lightNode->mustRead(READ_LEVEL);
             break;
 
         case TaskSetSat:
@@ -2407,6 +5126,25 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
             updateEtag(lightNode->etag);
             lightNode->setColorXY(task.colorX, task.colorY);
             setAttributeColorXy(lightNode);
+            break;
+
+        case TaskSetColorTemperature:
+            updateEtag(lightNode->etag);
+            lightNode->setColorTemperature(task.colorTemperature);
+            setAttributeColorTemperature(lightNode);
+            break;
+
+        case TaskSetColorLoop:
+            if (lightNode->colorMode() == "ct" || (lightNode->colorX() == 0 && lightNode->colorY() == 0 && lightNode->hue() == 0 && lightNode->enhancedHue() == 0))
+            {
+                //do nothing
+            }
+            else
+            {
+                updateEtag(lightNode->etag);
+                lightNode->setColorLoopActive(task.colorLoop);
+                setAttributeColorLoopActive(lightNode);
+            }
             break;
 
         default:
@@ -2517,11 +5255,68 @@ void DeRestPluginPrivate::setAttributeColorXy(LightNode *lightNode)
             if (i->id() == 0x0003) // Current color x
             {
                 i->setValue((quint64)lightNode->colorX());
-                break;
             }
-            else if (i->id() == 0x0004) // Current color x
+            else if (i->id() == 0x0004) // Current color y
             {
                 i->setValue((quint64)lightNode->colorY());
+                break;
+            }
+        }
+    }
+}
+
+/*! Updates the color temperature attribute in the local node cache.
+ */
+void DeRestPluginPrivate::setAttributeColorTemperature(LightNode *lightNode)
+{
+    DBG_Assert(lightNode != 0);
+
+    if (!lightNode || !lightNode->node())
+    {
+        return;
+    }
+
+    deCONZ::ZclCluster *cl = getInCluster(lightNode->node(), lightNode->haEndpoint().endpoint(), COLOR_CLUSTER_ID);
+
+    if (cl)
+    {
+        std::vector<deCONZ::ZclAttribute>::iterator i = cl->attributes().begin();
+        std::vector<deCONZ::ZclAttribute>::iterator end = cl->attributes().end();
+
+        for (; i != end; ++i)
+        {
+            if (i->id() == 0x0007) // Current color temperature
+            {
+                i->setValue((quint64)lightNode->colorTemperature());
+                break;
+            }
+        }
+    }
+}
+
+/*! Updates the color loop active attribute in the local node cache.
+ */
+void DeRestPluginPrivate::setAttributeColorLoopActive(LightNode *lightNode)
+{
+    DBG_Assert(lightNode != 0);
+
+    if (!lightNode || !lightNode->node())
+    {
+        return;
+    }
+
+    deCONZ::ZclCluster *cl = getInCluster(lightNode->node(), lightNode->haEndpoint().endpoint(), COLOR_CLUSTER_ID);
+
+    if (cl)
+    {
+        std::vector<deCONZ::ZclAttribute>::iterator i = cl->attributes().begin();
+        std::vector<deCONZ::ZclAttribute>::iterator end = cl->attributes().end();
+
+        for (; i != end; ++i)
+        {
+            if (i->id() == 0x4002) // Color loop active
+            {
+                i->setValue(lightNode->isColorLoopActive());
                 break;
             }
         }
@@ -2572,7 +5367,7 @@ DeRestPlugin::DeRestPlugin(QObject *parent) :
     QObject(parent)
 {
     d = new DeRestPluginPrivate(this);
-    d->p = this;
+    d->q_ptr = this;
     m_state = StateOff;
     m_w = 0;
     m_idleTimer = new QTimer(this);
@@ -2588,47 +5383,9 @@ DeRestPlugin::DeRestPlugin(QObject *parent) :
     m_readAttributesTimer->setSingleShot(true);
 
     connect(m_readAttributesTimer, SIGNAL(timeout()),
-            this, SLOT(checkReadTimerFired()));
+            this, SLOT(checkZclAttributeTimerFired()));
 
     m_idleTimer->start(1000);
-
-#if 1
-    int dummyCount = deCONZ::appArgumentNumeric("--rest-dummy-lights", 0);
-
-    for (int i = 0; i < dummyCount; i++)
-    {
-        // create dummy node
-        LightNode lightNode;
-        d->openDb();
-        lightNode.setId(QString::number(d->getFreeLightId()));
-        d->closeDb();
-        lightNode.setNode(0);
-        lightNode.setName(QString("Light %1").arg(lightNode.id()));
-        lightNode.setSaturation(0);
-        lightNode.setHue(180);
-        lightNode.setIsAvailable(true);
-        lightNode.address().setExt(0x002 + i);
-        lightNode.address().setNwk(0x999 + i);
-
-        deCONZ::SimpleDescriptor haEndpoint;
-
-        haEndpoint.setDeviceId(DEV_ID_ZLL_EXTENDED_COLOR_LIGHT);
-
-        deCONZ::ZclCluster clLevel(LEVEL_CLUSTER_ID, "Level");
-        deCONZ::ZclAttribute attrLevel(0x0000, deCONZ::Zcl8BitUint, "Current level", deCONZ::ZclRead, true);
-        clLevel.attributes().push_back(attrLevel);
-        haEndpoint.inClusters().append(clLevel);
-
-        deCONZ::ZclCluster clOnOff(ONOFF_CLUSTER_ID, "OnOff");
-        deCONZ::ZclAttribute attrOnOff(0x0000, deCONZ::Zcl8BitUint, "OnOff", deCONZ::ZclRead, true);
-        clOnOff.attributes().push_back(attrOnOff);
-        haEndpoint.inClusters().append(clOnOff);
-
-        lightNode.setHaEndpoint(haEndpoint);
-
-        d->nodes.push_back(lightNode);
-    }
-#endif // dummy node
 }
 
 /*! The plugin deconstructor.
@@ -2636,17 +5393,6 @@ DeRestPlugin::DeRestPlugin(QObject *parent) :
 DeRestPlugin::~DeRestPlugin()
 {
     d = 0;
-}
-
-/*! Handle node events which are reported by main application.
-    \param event - a deCONZ::NodeEvent value
-    \param node - the node for the event
- */
-void DeRestPlugin::nodeEvent(int event, const deCONZ::Node *node)
-{
-    (void)event;
-    (void)node;
-// TODO: remove
 }
 
 /*! Handle idle states.
@@ -2660,6 +5406,16 @@ void DeRestPlugin::idleTimerFired()
     d->idleTotalCounter++;
     d->idleLastActivity++;
 
+    if (d->idleTotalCounter < 0) // overflow
+    {
+        d->idleTotalCounter = 0;
+    }
+
+    if (d->idleLastActivity < 0) // overflow
+    {
+        d->idleLastActivity = 0;
+    }
+
     if (d->idleLimit > 0)
     {
         d->idleLimit--;
@@ -2670,36 +5426,188 @@ void DeRestPlugin::idleTimerFired()
         return;
     }
 
+    if (!pluginActive())
+    {
+        return;
+    }
+
+    bool processLights = false;
+
     if (d->idleLimit <= 0)
     {
+        DBG_Printf(DBG_INFO_L2, "Idle timer triggered\n");
 
-        DBG_Printf(DBG_INFO, "Idle timer triggered\n");
-        std::vector<LightNode>::iterator i = d->nodes.begin();
-        std::vector<LightNode>::iterator end = d->nodes.end();
-
-        for (; i != end; ++i)
+        if (!d->nodes.empty())
         {
-            if (i->lastRead() < (d->idleTotalCounter - IDLE_READ_LIMIT))
+            if (d->lightIter >= d->nodes.size())
             {
-                i->enableRead(READ_ON_OFF | READ_LEVEL | READ_COLOR | READ_GROUPS | READ_SCENES);
+                d->lightIter = 0;
+            }
 
-                if (i->modelId().isEmpty())
+            while (d->lightIter < d->nodes.size())
+            {
+                LightNode *lightNode = &d->nodes[d->lightIter];
+                d->lightIter++;
+
+                if (!lightNode->isAvailable())
                 {
-                    i->enableRead(READ_MODEL_ID);
+                    continue;
                 }
-                if (i->swBuildId().isEmpty())
+
+                if (processLights)
                 {
-                    i->enableRead(READ_SWBUILD_ID);
+                    break;
                 }
-                i->setLastRead(d->idleTotalCounter);
-                DBG_Printf(DBG_INFO, "Force read attributes for node %s\n", qPrintable(i->name()));
-                break;
+
+                if (lightNode->lastRead() < (d->idleTotalCounter - IDLE_READ_LIMIT))
+                {
+                    lightNode->enableRead(READ_ON_OFF | READ_LEVEL | READ_COLOR | READ_GROUPS | READ_SCENES /*| READ_BINDING_TABLE*/);
+
+                    if (lightNode->modelId().isEmpty() && !lightNode->mustRead(READ_MODEL_ID))
+                    {
+                        lightNode->enableRead(READ_MODEL_ID);
+                        processLights = true;
+                    }
+                    if (lightNode->swBuildId().isEmpty() && !lightNode->mustRead(READ_SWBUILD_ID))
+                    {
+                        lightNode->enableRead(READ_SWBUILD_ID);
+                        processLights = true;
+                    }
+                    if ((lightNode->manufacturer().isEmpty() || lightNode->manufacturer() == "Unknown") && !lightNode->mustRead(READ_SWBUILD_ID))
+                    {
+                        lightNode->enableRead(READ_VENDOR_NAME);
+                        processLights = true;
+                    }
+                    lightNode->setNextReadTime(QTime::currentTime());
+                    lightNode->setLastRead(d->idleTotalCounter);
+                    DBG_Printf(DBG_INFO, "Force read attributes for node %s\n", qPrintable(lightNode->name()));
+                }
+
+                if (lightNode->lastAttributeReportBind() < (d->idleTotalCounter - IDLE_ATTR_REPORT_BIND_LIMIT))
+                {
+                    d->checkLightBindingsForAttributeReporting(lightNode);
+                    lightNode->setLastAttributeReportBind(d->idleTotalCounter);
+                    DBG_Printf(DBG_INFO, "Force binding of attribute reporting for node %s\n", qPrintable(lightNode->name()));
+                    processLights = true;
+                }
             }
         }
 
-        startReadTimer(ReadAttributesDelay);
+        bool processSensors = false;
 
-        d->idleLimit = IDLE_LIMIT;
+        if (!d->sensors.empty())
+        {
+            if (d->sensorIter >= d->sensors.size())
+            {
+                d->sensorIter = 0;
+            }
+
+            while (d->sensorIter < d->sensors.size())
+            {
+                Sensor *sensorNode = &d->sensors[d->sensorIter];
+                d->sensorIter++;
+
+                if (!sensorNode->isAvailable())
+                {
+                    continue;
+                }
+
+                if (processSensors)
+                {
+                    break;
+                }
+
+                if (sensorNode->modelId().isEmpty())
+                {
+                    LightNode *lightNode = d->getLightNodeForAddress(sensorNode->address().ext());
+                    if (lightNode && !lightNode->modelId().isEmpty())
+                    {
+                        sensorNode->setModelId(lightNode->modelId());
+                    }
+                }
+
+                if (sensorNode->lastRead() < (d->idleTotalCounter - IDLE_READ_LIMIT))
+                {
+                    sensorNode->setLastRead(d->idleTotalCounter);
+                    sensorNode->setNextReadTime(QTime::currentTime());
+
+                    if (!sensorNode->mustRead(READ_BINDING_TABLE))
+                    {
+                        sensorNode->enableRead(READ_BINDING_TABLE);
+                        processSensors = true;
+                    }
+
+                    {
+                        std::vector<quint16>::const_iterator ci = sensorNode->fingerPrint().inClusters.begin();
+                        std::vector<quint16>::const_iterator cend = sensorNode->fingerPrint().inClusters.end();
+                        for (;ci != cend; ++ci)
+                        {
+                            if (*ci == OCCUPANCY_SENSING_CLUSTER_ID)
+                            {
+                                if (!sensorNode->mustRead(READ_OCCUPANCY_CONFIG))
+                                {
+                                    sensorNode->enableRead(READ_OCCUPANCY_CONFIG);
+                                    processSensors = true;
+                                }
+                            }
+                        }
+                    }
+
+                    DBG_Printf(DBG_INFO, "Force read attributes for SensorNode %s\n", qPrintable(sensorNode->name()));
+                    //break;
+                }
+
+                if (sensorNode->lastAttributeReportBind() < (d->idleTotalCounter - IDLE_ATTR_REPORT_BIND_LIMIT))
+                {
+                    d->checkSensorBindingsForAttributeReporting(sensorNode);
+                    sensorNode->setLastAttributeReportBind(d->idleTotalCounter);
+                    DBG_Printf(DBG_INFO, "Force binding of attribute reporting for node %s\n", qPrintable(sensorNode->name()));
+                    processSensors = true;
+                }
+            }
+        }
+
+        {
+            std::vector<LightNode>::iterator i = d->nodes.begin();
+            std::vector<LightNode>::iterator end = d->nodes.end();
+
+            int countNoColorXySupport = 0;
+
+            for (; i != end; ++i)
+            {
+                // older FLS which do not have correct support for color mode xy has atmel vendor id
+                if (i->isAvailable() && (i->manufacturerCode() == VENDOR_ATMEL))
+                {
+                    countNoColorXySupport++;
+                }
+            }
+
+            if ((countNoColorXySupport > 0) && d->supportColorModeXyForGroups)
+            {
+                DBG_Printf(DBG_INFO_L2, "disable support for CIE 1931 XY color mode for groups\n");
+                d->supportColorModeXyForGroups = false;
+            }
+            else if ((countNoColorXySupport == 0) && !d->supportColorModeXyForGroups)
+            {
+                DBG_Printf(DBG_INFO_L2, "enable support for CIE 1931 XY color mode for groups\n");
+                d->supportColorModeXyForGroups = true;
+            }
+            else
+            {
+    //            DBG_Printf(DBG_INFO_L2, "support for CIE 1931 XY color mode for groups %u\n", d->supportColorModeXyForGroups);
+            }
+        }
+
+        startZclAttributeTimer(checkZclAttributesDelay);
+
+        if (processLights || processSensors)
+        {
+            d->idleLimit = 1;
+        }
+        else
+        {
+            d->idleLimit = IDLE_LIMIT;
+        }
     }
 }
 
@@ -2724,40 +5632,71 @@ void DeRestPlugin::refreshAll()
 
 /*! Starts the read attributes timer with a given \p delay.
  */
-void DeRestPlugin::startReadTimer(int delay)
+void DeRestPlugin::startZclAttributeTimer(int delay)
 {
-    m_readAttributesTimer->stop();
-    m_readAttributesTimer->start(delay);
+    if (!m_readAttributesTimer->isActive())
+    {
+        m_readAttributesTimer->start(delay);
+    }
 }
 
 /*! Stops the read attributes timer.
  */
-void DeRestPlugin::stopReadTimer()
+void DeRestPlugin::stopZclAttributeTimer()
 {
     m_readAttributesTimer->stop();
 }
 
-/*! Checks if attributes of any nodes shall be queried.
+/*! Checks if attributes of any nodes shall be queried or written.
  */
-void DeRestPlugin::checkReadTimerFired()
+void DeRestPlugin::checkZclAttributeTimerFired()
 {
-    std::vector<LightNode>::iterator i = d->nodes.begin();
-    std::vector<LightNode>::iterator end = d->nodes.end();
-
-    stopReadTimer();
-
-    for (; i != end; ++i)
+    if (!pluginActive())
     {
-        if (d->processReadAttributes(&(*i)))
+        return;
+    }
+
+    stopZclAttributeTimer();
+
+    if (d->lightAttrIter >= d->nodes.size())
+    {
+        d->lightAttrIter = 0;
+    }
+
+    while (d->lightAttrIter < d->nodes.size())
+    {
+        LightNode *lightNode = &d->nodes[d->lightAttrIter];
+        d->lightAttrIter++;
+
+        if (d->processZclAttributes(lightNode))
         {
             // read next later
-            startReadTimer(ReadAttributesDelay);
+            startZclAttributeTimer(checkZclAttributesDelay);
             d->processTasks();
-            return;
+            break;
         }
     }
 
-    startReadTimer(ReadAttributesDelay);
+    if (d->sensorAttrIter >= d->sensors.size())
+    {
+        d->sensorAttrIter = 0;
+    }
+
+    while (d->sensorAttrIter < d->sensors.size())
+    {
+        Sensor *sensorNode = &d->sensors[d->sensorAttrIter];
+        d->sensorAttrIter++;
+
+        if (d->processZclAttributes(sensorNode))
+        {
+            // read next later
+            startZclAttributeTimer(checkZclAttributesDelay);
+            d->processTasks();
+            break;
+        }
+    }
+
+    startZclAttributeTimer(checkZclAttributesDelay);
 }
 
 /*! Handler called before the application will be closed.
@@ -2773,54 +5712,6 @@ void DeRestPlugin::appAboutToQuit()
         d->closeDb();
 
         d->apsCtrl = 0;
-    }
-}
-
-/*! Main task handler will forward the event to deticated state handlers.
-    \param event - the event which shall be handled
- */
-void DeRestPlugin::taskHandler(DeRestPlugin::Event event)
-{
-    switch (m_state)
-    {
-    case StateOff:
-        handleStateOff(event);
-        break;
-
-    case StateIdle:
-        handleStateIdle(event);
-        break;
-
-    default:
-        DBG_Printf(DBG_INFO, "web plugin: unknown state %d\n", m_state);
-        m_state = StateOff;
-        break;
-    }
-}
-
-// TODO remove handleStateOff()
-void DeRestPlugin::handleStateOff(DeRestPlugin::Event event)
-{
-    switch (event)
-    {
-    default:
-        break;
-    }
-}
-
-// TODO remove handleStateIdle()
-void DeRestPlugin::handleStateIdle(DeRestPlugin::Event event)
-{
-    switch (event)
-    {
-    case TaskAdded:
-    {
-        d->processTasks();
-    }
-        break;
-
-    default:
-        break;
     }
 }
 
@@ -2863,8 +5754,8 @@ QDialog *DeRestPlugin::createDialog()
         connect(m_w, SIGNAL(refreshAllClicked()),
                 this, SLOT(refreshAll()));
 
-        connect(m_w, SIGNAL(changeChannelClicked(int)),
-                d, SLOT(changeChannel(int)));
+        connect(m_w, SIGNAL(changeChannelClicked(quint8)),
+                d, SLOT(changeChannel(quint8)));
     }
 
     return m_w;
@@ -2898,7 +5789,9 @@ bool DeRestPlugin::isHttpTarget(const QHttpRequestHeader &hdr)
                 (ls[2] == "groups") ||
                 (ls[2] == "config") ||
                 (ls[2] == "schedules") ||
+                (ls[2] == "sensors") ||
                 (ls[2] == "touchlink") ||
+                (ls[2] == "rules") ||
                 (hdr.path().at(4) != '/') /* Bug in some clients */)
             {
                 return true;
@@ -3015,6 +5908,14 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         else if (path[2] == "touchlink")
         {
             ret = d->handleTouchlinkApi(req, rsp);
+        }
+        else if (path[2] == "sensors")
+        {
+            ret = d->handleSensorsApi(req, rsp);
+        }
+        else if (path[2] == "rules")
+        {
+            ret = d->handleRulesApi(req, rsp);
         }
     }
 
@@ -3134,6 +6035,23 @@ void DeRestPlugin::clientGone(QTcpSocket *sock)
     d->eventListeners.remove(sock);
 }
 
+bool DeRestPlugin::pluginActive() const
+{
+    if (m_w)
+    {
+        return m_w->pluginActive();
+    }
+    return false;
+}
+
+/*! save Rule State (timesTriggered, lastTriggered) in DB only if
+ *  no Button was pressed for 3 seconds.
+ */
+void DeRestPluginPrivate::saveCurrentRuleInDbTimerFired()
+{
+    queSaveDb(DB_RULES , DB_SHORT_SAVE_DELAY);
+}
+
 /*! Checks if some tcp connections could be closed.
  */
 void DeRestPluginPrivate::openClientTimerFired()
@@ -3191,6 +6109,43 @@ void DeRestPluginPrivate::clientSocketDestroyed()
     }
 }
 
+/*! Returns the endpoint number of the HA endpoint.
+    \return 1..254 - on success
+            0 - if not found
+ */
+uint8_t DeRestPluginPrivate::endpoint()
+{
+    if (haEndpoint != 0)
+    {
+        return haEndpoint;
+    }
+
+    const deCONZ::Node *node;
+
+    if (apsCtrl && apsCtrl->getNode(0, &node) == 0)
+    {
+        std::vector<uint8_t> eps = node->endpoints();
+
+        std::vector<uint8_t>::const_iterator i = eps.begin();
+        std::vector<uint8_t>::const_iterator end = eps.end();
+
+        for (; i != end; ++i)
+        {
+            deCONZ::SimpleDescriptor sd;
+            if (node->copySimpleDescriptor(*i, &sd) == 0)
+            {
+                if (sd.profileId() == HA_PROFILE_ID)
+                {
+                    haEndpoint = sd.endpoint();
+                    return haEndpoint;
+                }
+            }
+        }
+    }
+
+    return 0;
+}
+
 /*! Returns the name of this plugin.
  */
 const char *DeRestPlugin::name()
@@ -3198,4 +6153,6 @@ const char *DeRestPlugin::name()
     return "REST API Plugin";
 }
 
+#if QT_VERSION < 0x050000
 Q_EXPORT_PLUGIN2(de_rest_plugin, DeRestPlugin)
+#endif

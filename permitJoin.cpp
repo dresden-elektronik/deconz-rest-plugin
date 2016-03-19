@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -7,7 +7,7 @@
  * the LICENSE.txt file.
  *
  */
-
+#include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 
 /*! Inits permit join manager.
@@ -16,6 +16,7 @@
  */
 void DeRestPluginPrivate::initPermitJoin()
 {
+    permitJoinFlag = false;
     permitJoinTimer = new QTimer(this);
     permitJoinTimer->setSingleShot(false);
     connect(permitJoinTimer, SIGNAL(timeout()),
@@ -38,10 +39,10 @@ bool DeRestPluginPrivate::setPermitJoinDuration(uint8_t duration)
     {
         gwPermitJoinDuration = duration;
         queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
-
-        // force resend
-        permitJoinLastSendTime = QTime();
     }
+
+    // force resend
+    permitJoinLastSendTime = QTime();
     return true;
 }
 
@@ -52,9 +53,23 @@ bool DeRestPluginPrivate::setPermitJoinDuration(uint8_t duration)
  */
 void DeRestPluginPrivate::permitJoinTimerFired()
 {
+    Q_Q(DeRestPlugin);
+    if (!q->pluginActive())
+    {
+        return;
+    }
+
     if ((gwPermitJoinDuration > 0) && (gwPermitJoinDuration < 255))
     {
+        permitJoinFlag = true;
         gwPermitJoinDuration--;
+        updateEtag(gwConfigEtag); // update Etag so that webApp can count down permitJoin duration
+    }
+
+    if (gwPermitJoinDuration == 0 && permitJoinFlag)
+    {
+        queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
+        permitJoinFlag = false;
     }
 
     if (!isInNetwork())

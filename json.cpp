@@ -68,12 +68,18 @@ QVariant Json::parse(const QString &json, bool &success)
 	}
 }
 
+/**
+ * serialize
+ */
 QByteArray Json::serialize(const QVariant &data)
 {
 	bool success = true;
 	return Json::serialize(data, success);
 }
 
+/**
+ * serialize
+ */
 QByteArray Json::serialize(const QVariant &data, bool &success)
 {
 	QByteArray str;
@@ -98,13 +104,13 @@ QByteArray Json::serialize(const QVariant &data, bool &success)
 			values << serializedValue;
 		}
 
-		str = "[ " + join( values, ", " ) + " ]";
+		str = "[" + join( values, "," ) + "]";
 	}
 	else if(data.type() == QVariant::Map) // variant is a map?
 	{
 		const QVariantMap vmap = data.toMap();
 		QMapIterator<QString, QVariant> it( vmap );
-		str = "{ ";
+		str = "{";
 		QList<QByteArray> pairs;
 		while(it.hasNext())
 		{
@@ -115,14 +121,19 @@ QByteArray Json::serialize(const QVariant &data, bool &success)
 				success = false;
 				break;
 			}
-			pairs << sanitizeString(it.key()).toUtf8() + " : " + serializedValue;
+			pairs << sanitizeString(it.key()).toUtf8() + ":" + serializedValue;
 		}
-		str += join(pairs, ", ");
-		str += " }";
+		str += join(pairs, ",");
+		str += "}";
 	}
 	else if((data.type() == QVariant::String) || (data.type() == QVariant::ByteArray)) // a string or a byte array?
 	{
-        str = sanitizeString(data.toString()).toAscii();
+        str = sanitizeString(data.toString())
+#if QT_VERSION >= 0x050000
+                .toLatin1();
+#else
+                .toAscii();
+#endif
 	}
 	else if(data.type() == QVariant::Double) // double?
 	{
@@ -143,7 +154,12 @@ QByteArray Json::serialize(const QVariant &data, bool &success)
 	else if (data.canConvert<QString>()) // can value be converted to string?
 	{
 		// this will catch QDate, QDateTime, QUrl, ...
-        str = sanitizeString(data.toString()).toAscii();
+        str = sanitizeString(data.toString())
+#if QT_VERSION >= 0x050000
+                .toLatin1();
+#else
+                .toAscii();
+#endif
 	}
 	else
 	{
@@ -484,7 +500,11 @@ int Json::nextToken(const QString &json, int &index)
 
 	QChar c = json[index];
 	index++;
-	switch(c.toAscii())
+#if QT_VERSION >= 0x050000
+    switch(c.toLatin1())
+#else
+    switch(c.toAscii())
+#endif
 	{
 		case '{': return JsonTokenCurlyOpen;
 		case '}': return JsonTokenCurlyClose;

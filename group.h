@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -27,7 +27,8 @@ public:
     enum State
     {
         StateNormal,
-        StateDeleted
+        StateDeleted,
+        StateDeleteFromDB
     };
 
     Group();
@@ -40,6 +41,12 @@ public:
     void setState(State state);
     bool isOn() const;
     void setIsOn(bool on);
+    void setColorLoopActive(bool colorLoopActive);
+    bool isColorLoopActive() const;
+    const QString midsToString() const;
+    void setMidsFromString(const QString mids);
+    const QString dmToString() const;
+    void setDmFromString(const QString deviceIds);
 
     uint16_t colorX;
     uint16_t colorY;
@@ -47,9 +54,12 @@ public:
     qreal hueReal;
     uint16_t sat;
     uint16_t level;
+    uint16_t colorTemperature;
     QString etag;
     std::vector<Scene> scenes;
     QTime sendTime;
+    std::vector<QString> m_multiDeviceIds;
+    std::vector<QString> m_deviceMemberships;
 
 private:
     State m_state;
@@ -57,6 +67,7 @@ private:
     QString m_id;
     QString m_name;
     bool m_on;
+    bool m_colorLoopActive;
 };
 
 #endif // GROUP_H

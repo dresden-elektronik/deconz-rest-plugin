@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -16,6 +16,10 @@
 #include <QTimer>
 #include <QElapsedTimer>
 #include <stdint.h>
+#include <queue>
+#if QT_VERSION < 0x050000
+#include <QHttpRequestHeader>
+#endif
 #include "sqlite3.h"
 #include <deconz.h>
 #include "rest_node_base.h"
@@ -23,6 +27,10 @@
 #include "group.h"
 #include "group_info.h"
 #include "scene.h"
+#include "sensor.h"
+#include "rule.h"
+#include "bindings.h"
+#include <math.h>
 
 /*! JSON generic error message codes */
 #define ERR_UNAUTHORIZED_USER          1
@@ -33,7 +41,13 @@
 #define ERR_PARAMETER_NOT_AVAILABLE    6
 #define ERR_INVALID_VALUE              7
 #define ERR_PARAMETER_NOT_MODIFIEABLE  8
+#define ERR_TOO_MANY_ITEMS             11
 #define ERR_DUPLICATE_EXIST            100 // de extension
+#define ERR_NOT_ALLOWED_SENSOR_TYPE    501
+#define ERR_SENSOR_LIST_FULL           502
+#define ERR_RULE_ENGINE_FULL           601
+#define ERR_CONDITION_ERROR            607
+#define ERR_ACTION_ERROR               608
 #define ERR_INTERNAL_ERROR             901
 
 #define ERR_NOT_CONNECTED              950 // de extension
@@ -44,19 +58,38 @@
 #define ERR_BRIDGE_GROUP_TABLE_FULL    301
 #define ERR_DEVICE_GROUP_TABLE_FULL    302
 
+#define ERR_DEVICE_SCENES_TABLE_FULL   402 // de extension
+
 #define IDLE_LIMIT 30
 #define IDLE_READ_LIMIT 120
-#define IDLE_USER_LIMIT 60
+#define IDLE_USER_LIMIT 20
+#define IDLE_ATTR_REPORT_BIND_LIMIT 240
 
 #define MAX_UNLOCK_GATEWAY_TIME 600
 #define PERMIT_JOIN_SEND_INTERVAL (1000 * 160)
 
-#define DE_PROFILE_ID           0xDE00
+#define DE_OTAU_ENDPOINT             0x50
+#define DE_PROFILE_ID              0xDE00
+#define ATMEL_WSNDEMO_PROFILE_ID   0x0001
 
+// Generic devices
+#define DEV_ID_ONOFF_SWITCH                 0x0000 // On/Off switch
+#define DEV_ID_LEVEL_CONTROL_SWITCH         0x0001 // Level control switch
+#define DEV_ID_ONOFF_OUTPUT                 0x0002 // On/Off output
+#define DEV_ID_RANGE_EXTENDER               0x0008 // Range extender
+#define DEV_ID_MAINS_POWER_OUTLET           0x0009 // Mains power outlet
 // HA lighting devices
 #define DEV_ID_HA_ONOFF_LIGHT               0x0100 // On/Off light
 #define DEV_ID_HA_DIMMABLE_LIGHT            0x0101 // Dimmable light
 #define DEV_ID_HA_COLOR_DIMMABLE_LIGHT      0x0102 // Color dimmable light
+#define DEV_ID_HA_ONOFF_LIGHT_SWITCH        0x0103 // On/Off light switch
+#define DEV_ID_HA_DIMMER_SWITCH             0x0104 // Dimmer switch
+#define DEV_ID_HA_LIGHT_SENSOR              0x0106 // Light sensor
+#define DEV_ID_HA_OCCUPANCY_SENSOR          0x0107 // Occupancy sensor
+
+// Smart Energy devices
+#define DEV_ID_SE_METERING_DEVICE           0x0501 // Smart Energy metering device
+
 // ZLL lighting devices
 #define DEV_ID_ZLL_ONOFF_LIGHT              0x0000 // On/Off light
 #define DEV_ID_ZLL_ONOFF_PLUGIN_UNIT        0x0010 // On/Off plugin unit
@@ -74,18 +107,55 @@
 #define DEV_ID_ZLL_ONOFF_SENSOR             0x0850 // On/Off sensor
 
 #define DEFAULT_TRANSITION_TIME 4 // 400ms
-#define MAX_ENHANCED_HUE 65536
+#define MAX_ENHANCED_HUE 65535
 
 #define BASIC_CLUSTER_ID 0x0000
+#define IDENTIFY_CLUSTER_ID 0x0003
 #define GROUP_CLUSTER_ID 0x0004
 #define SCENE_CLUSTER_ID 0x0005
 #define ONOFF_CLUSTER_ID 0x0006
+#define ONOFF_SWITCH_CONFIGURATION_CLUSTER_ID 0x0007
 #define LEVEL_CLUSTER_ID 0x0008
 #define COLOR_CLUSTER_ID 0x0300
+#define ILLUMINANCE_MEASUREMENT_CLUSTER_ID   0x0400
+#define ILLUMINANCE_LEVEL_SENSING_CLUSTER_ID 0x0401
+#define OCCUPANCY_SENSING_CLUSTER_ID         0x0406
+#define OTAU_CLUSTER_ID  0x0019
+#define GREEN_POWER_CLUSTER_ID 0x0021
+#define GREEN_POWER_ENDPOINT 0xf2
+#define COMMISSIONING_CLUSTER_ID  0x1000
+
+#define ONOFF_COMMAND_OFF     0x00
+#define ONOFF_COMMAND_ON      0x01
+#define ONOFF_COMMAND_TOGGLE  0x02
+#define ONOFF_COMMAND_ON_WITH_TIMED_OFF  0x42
+
+// read flags
+#define READ_MODEL_ID          (1 << 0)
+#define READ_SWBUILD_ID        (1 << 1)
+#define READ_ON_OFF            (1 << 2)
+#define READ_LEVEL             (1 << 3)
+#define READ_COLOR             (1 << 4)
+#define READ_GROUPS            (1 << 5)
+#define READ_SCENES            (1 << 6)
+#define READ_SCENE_DETAILS     (1 << 7)
+#define READ_VENDOR_NAME       (1 << 8)
+#define READ_BINDING_TABLE     (1 << 9)
+#define READ_OCCUPANCY_CONFIG  (1 << 10)
+#define READ_GROUP_IDENTIFIERS (1 << 12)
+
+// write flags
+#define WRITE_OCCUPANCY_CONFIG  (1 << 11)
 
 // manufacturer codes
-#define VENDOR_DDEL     0x1014
+#define VENDOR_ATMEL    0x1014
+#define VENDOR_DDEL     0x1135
 #define VENDOR_PHILIPS  0x100B
+#define VENDOR_OSRAM_STACK  0xBBAA
+#define VENDOR_OSRAM    0x110C
+#define VENDOR_UBISYS   0x10F2
+#define VENDOR_BUSCH_JAEGER 0x112E
+#define VENDOR_BEGA 0x1105
 
 #define ANNOUNCE_INTERVAL 10 // minutes default announce interval
 
@@ -95,6 +165,8 @@
 // string lengths
 #define MAX_GROUP_NAME_LENGTH 32
 #define MAX_SCENE_NAME_LENGTH 32
+#define MAX_RULE_NAME_LENGTH 32
+#define MAX_SENSOR_NAME_LENGTH 32
 
 // REST API return codes
 #define REQ_READY_SEND   0
@@ -125,8 +197,10 @@
 #define DB_CONFIG      0x00000008
 #define DB_SCENES      0x00000010
 #define DB_SCHEDULES   0x00000020
+#define DB_RULES       0x00000040
+#define DB_SENSORS     0x00000080
 
-#define DB_LONG_SAVE_DELAY  (5 * 60 * 1000) // 5 minutes
+#define DB_LONG_SAVE_DELAY  (15 * 60 * 1000) // 15 minutes
 #define DB_SHORT_SAVE_DELAY (5 *  1 * 1000) // 5 seconds
 
 // internet discovery
@@ -158,12 +232,49 @@ class QNetworkAccessManager;
 
 struct Schedule
 {
-    Schedule()
+    enum Week
+    {
+        Monday    = 0x01,
+        Tuesday   = 0x02,
+        Wednesday = 0x04,
+        Thursday  = 0x08,
+        Friday    = 0x10,
+        Saturday  = 0x20,
+        Sunday    = 0x40,
+    };
+
+    enum Type
+    {
+        TypeInvalid,
+        TypeAbsoluteTime,
+        TypeRecurringTime,
+        TypeTimer
+    };
+
+    enum State
+    {
+        StateNormal,
+        StateDeleted
+    };
+
+    Schedule() :
+        type(TypeInvalid),
+        state(StateNormal),
+        status("enabled"),
+        autodelete(true),
+        weekBitmap(0),
+        recurring(0),
+        timeout(0),
+        currentTimeout(0)
     {
     }
 
+    Type type;
+    State state;
     /*! Numeric identifier as string. */
     QString id;
+    /*! etag of Schedule. */
+    QString etag;
     /*! Name length 0..32, if 0 default name "schedule" will be used. (Optional) */
     QString name;
     /*! Description length 0..64, default is empty string. (Optional) */
@@ -172,30 +283,61 @@ struct Schedule
     QString command;
     /*! Time is given in ISO 8601:2004 format: YYYY-MM-DDTHH:mm:ss. (Required) */
     QString time;
-    /*! Same as time but as qt object */
+    /*! UTC time that the timer was started. Only provided for timers. */
+    QString starttime;
+    /*! status of schedule (enabled or disabled). */
+    QString status;
+    /*! If set to true, the schedule will be removed automatically if expired, if set to false it will be disabled. */
+    bool autodelete;
+    /*! Same as time but as qt object. */
     QDateTime datetime;
+    /*! Date time of last schedule activation. */
+    QDateTime lastTriggerDatetime;
+    /*! Whole JSON schedule as received from API as string. */
+    QString jsonString;
+    /*! Whole JSON schedule as received from API as map. */
+    QVariantMap jsonMap;
+    /*! Bitmap for recurring schedule. */
+    quint8 weekBitmap;
+    /*! R[nn], the recurring part, 0 means forever. */
+    uint recurring;
+    /*! Timeout in seconds. */
+    int timeout;
+    /*! Current timeout counting down to ::timeout. */
+    int currentTimeout;
 };
 
 enum TaskType
 {
+    TaskIdentify,
     TaskGetHue,
     TaskSetHue,
     TaskSetEnhancedHue,
     TaskSetHueAndSaturation,
     TaskSetXyColor,
+    TaskSetColorTemperature,
     TaskGetColor,
     TaskGetSat,
     TaskSetSat,
     TaskGetLevel,
     TaskSetLevel,
-    TaskSetOnOff,
+    TaskStopLevel,
+    TaskSendOnOffToggle,
+    TaskMoveLevel,
     TaskGetOnOff,
+    TaskSetColorLoop,
+    TaskGetColorLoop,
     TaskReadAttributes,
+    TaskWriteAttribute,
     TaskGetGroupMembership,
+    TaskGetGroupIdentifiers,
     TaskGetSceneMembership,
     TaskStoreScene,
     TaskCallScene,
+    TaskViewScene,
+    TaskAddScene,
     TaskRemoveScene,
+    TaskRemoveAllScenes,
     TaskAddToGroup,
     TaskRemoveFromGroup
 };
@@ -210,6 +352,9 @@ struct TaskItem
         node = 0;
         lightNode = 0;
         cluster = 0;
+        colorX = 0;
+        colorY = 0;
+        colorTemperature = 0;
         transitionTime = DEFAULT_TRANSITION_TIME;
     }
 
@@ -219,13 +364,16 @@ struct TaskItem
     uint8_t zclSeq;
     bool confirmed;
     bool onOff;
+    bool colorLoop;
     qreal hueReal;
+    uint16_t identifyTime;
     uint8_t hue;
     uint8_t sat;
     uint8_t level;
     uint16_t enhancedHue;
     uint16_t colorX;
     uint16_t colorY;
+    uint16_t colorTemperature;
     uint16_t groupId;
     QString etag;
     uint16_t transitionTime;
@@ -244,8 +392,15 @@ struct TaskItem
 class ApiAuth
 {
 public:
+    enum State
+    {
+        StateNormal,
+        StateDeleted
+    };
+
     ApiAuth();
 
+    State state;
     QString apikey; // also called username (10..32 chars)
     QString devicetype;
     QDateTime createDate;
@@ -308,6 +463,12 @@ class DeRestPluginPrivate : public QObject
     Q_OBJECT
 
 public:
+
+    struct nodeVisited {
+        const deCONZ::Node* node;
+        bool visited;
+    };
+
     DeRestPluginPrivate(QObject *parent = 0);
     ~DeRestPluginPrivate();
 
@@ -323,12 +484,13 @@ public:
     int getFullState(const ApiRequest &req, ApiResponse &rsp);
     int getConfig(const ApiRequest &req, ApiResponse &rsp);
     int modifyConfig(const ApiRequest &req, ApiResponse &rsp);
+    int deleteUser(const ApiRequest &req, ApiResponse &rsp);
     int updateSoftware(const ApiRequest &req, ApiResponse &rsp);
     int updateFirmware(const ApiRequest &req, ApiResponse &rsp);
     int changePassword(const ApiRequest &req, ApiResponse &rsp);
     int deletePassword(const ApiRequest &req, ApiResponse &rsp);
 
-    void configToMap(QVariantMap &map);
+    void configToMap(const ApiRequest &req, QVariantMap &map);
 
     // REST API lights
     int handleLightsApi(ApiRequest &req, ApiResponse &rsp);
@@ -338,6 +500,10 @@ public:
     int getLightState(const ApiRequest &req, ApiResponse &rsp);
     int setLightState(const ApiRequest &req, ApiResponse &rsp);
     int renameLight(const ApiRequest &req, ApiResponse &rsp);
+    int deleteLight(const ApiRequest &req, ApiResponse &rsp);
+    int removeAllScenes(const ApiRequest &req, ApiResponse &rsp);
+    int removeAllGroups(const ApiRequest &req, ApiResponse &rsp);
+    int getConnectivity(const ApiRequest &req, ApiResponse &rsp, bool alt);
 
     bool lightToMap(const ApiRequest &req, const LightNode *webNode, QVariantMap &map);
 
@@ -357,6 +523,7 @@ public:
     int setSceneAttributes(const ApiRequest &req, ApiResponse &rsp);
     int storeScene(const ApiRequest &req, ApiResponse &rsp);
     int recallScene(const ApiRequest &req, ApiResponse &rsp);
+    int modifyScene(const ApiRequest &req, ApiResponse &rsp);
     int deleteScene(const ApiRequest &req, ApiResponse &rsp);
 
     bool groupToMap(const Group *group, QVariantMap &map);
@@ -369,6 +536,7 @@ public:
     int getScheduleAttributes(const ApiRequest &req, ApiResponse &rsp);
     int setScheduleAttributes(const ApiRequest &req, ApiResponse &rsp);
     int deleteSchedule(const ApiRequest &req, ApiResponse &rsp);
+    bool jsonToSchedule(const QString &jsonString, Schedule &schedule, ApiResponse *rsp);
 
     // REST API touchlink
     void initTouchlinkApi();
@@ -377,6 +545,34 @@ public:
     int getTouchlinkScanResults(ApiRequest &req, ApiResponse &rsp);
     int identifyLight(ApiRequest &req, ApiResponse &rsp);
     int resetLight(ApiRequest &req, ApiResponse &rsp);
+
+    // REST API sensors
+    int handleSensorsApi(ApiRequest &req, ApiResponse &rsp);
+    int getAllSensors(const ApiRequest &req, ApiResponse &rsp);
+    int getSensor(const ApiRequest &req, ApiResponse &rsp);
+    int findNewSensors(const ApiRequest &req, ApiResponse &rsp);
+    int getNewSensors(const ApiRequest &req, ApiResponse &rsp);
+    int updateSensor(const ApiRequest &req, ApiResponse &rsp);
+    int deleteSensor(const ApiRequest &req, ApiResponse &rsp);
+    int changeSensorConfig(const ApiRequest &req, ApiResponse &rsp);
+    int changeSensorState(const ApiRequest &req, ApiResponse &rsp);
+    int createSensor(const ApiRequest &req, ApiResponse &rsp);
+    int getGroupIdentifiers(const ApiRequest &req, ApiResponse &rsp);
+    int getDeletedSensors(const ApiRequest &req, ApiResponse &rsp);
+    int recoverSensor(const ApiRequest &req, ApiResponse &rsp);
+    bool sensorToMap(const Sensor *sensor, QVariantMap &map);
+
+    // REST API rules
+    int handleRulesApi(const ApiRequest &req, ApiResponse &rsp);
+    int getAllRules(const ApiRequest &req, ApiResponse &rsp);
+    int getRule(const ApiRequest &req, ApiResponse &rsp);
+    int createRule(const ApiRequest &req, ApiResponse &rsp);
+    int updateRule(const ApiRequest &req, ApiResponse &rsp);
+    int deleteRule(const ApiRequest &req, ApiResponse &rsp);
+    void queueCheckRuleBindings(const Rule &rule);
+
+    bool checkActions(QVariantList actionsList, ApiResponse &rsp);
+    bool checkConditions(QVariantList conditionsList, ApiResponse &rsp);
 
     // REST API common
     QVariantMap errorToMap(int id, const QString &ressource, const QString &description);
@@ -392,16 +588,33 @@ public:
 
     // Otau
     void initOtau();
-    void otauDataIndication(const deCONZ::ApsDataIndication &ind);
+    void otauDataIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
     void otauSendNotify(LightNode *node);
+    void otauSendStdNotify(LightNode *node);
     bool isOtauBusy();
+    bool isOtauActive();
+
+    // WSNDemo sensor
+    void wsnDemoDataIndication(const deCONZ::ApsDataIndication &ind);
+
+    //Channel Change
+    void initChangeChannelApi();
+    bool startChannelChange(quint8 channel);
+
+    //reset Device
+    void initResetDeviceApi();
+
+    //Timezone
+    std::string getTimezone();
+
 
 public Q_SLOTS:
     void announceUpnp();
     void upnpReadyRead();
-    void changeChannel(int channel);
     void apsdeDataIndication(const deCONZ::ApsDataIndication &ind);
     void apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf);
+    void gpDataIndication(const deCONZ::GpDataIndication &ind);
+    void gpProcessButtonEvent(const deCONZ::GpDataIndication &ind);
     void processTasks();
     void processGroupTasks();
     void nodeEvent(const deCONZ::NodeEvent &event);
@@ -414,12 +627,20 @@ public Q_SLOTS:
     void updateSoftwareTimerFired();
     void updateFirmwareTimerFired();
     void lockGatewayTimerFired();
+    void saveCurrentRuleInDbTimerFired();
     void openClientTimerFired();
     void clientSocketDestroyed();
     void queryFirmwareVersionTimerFired();
     void checkMinFirmwareVersionFile();
     void saveDatabaseTimerFired();
     void userActivity();
+    bool sendBindRequest(BindingTask &bt);
+    void checkLightBindingsForAttributeReporting(LightNode *lightNode);
+    void checkSensorBindingsForAttributeReporting(Sensor *sensor);
+    void bindingTimerFired();
+    void bindingToRuleTimerFired();
+    void verifyRuleBindingsTimerFired();
+    void queueBindingTask(const BindingTask &bindingTask);
 
     // touchlink
     void touchlinkDisconnectNetwork();
@@ -430,11 +651,27 @@ public Q_SLOTS:
     void sendTouchlinkScanRequest();
     void sendTouchlinkIdentifyRequest();
     void sendTouchlinkResetRequest();
+    void touchlinkTimerFired();
     void touchlinkScanTimeout();
     void interpanDataIndication(const QByteArray &data);
     void touchlinkStartReconnectNetwork(int delay);
     void touchlinkReconnectNetwork();
     bool isTouchlinkActive();
+
+    // channel change
+    void channelchangeTimerFired();
+    void changeChannel(quint8 channel);
+    bool verifyChannel(quint8 channel);
+    void channelChangeSendConfirm(bool success);
+    void channelChangeDisconnectNetwork();
+    void checkChannelChangeNetworkDisconnected();
+    void channelChangeStartReconnectNetwork(int delay);
+    void channelChangeReconnectNetwork();
+
+    //reset device
+    void resetDeviceTimerFired();
+    void checkResetState();
+    void resetDeviceSendConfirm(bool success);
 
 public:
     void checkRfConnectState();
@@ -442,55 +679,88 @@ public:
     void generateGatewayUuid();
     void updateEtag(QString &etag);
     qint64 getUptime();
-    LightNode *addNode(const deCONZ::Node *node);
-    LightNode *nodeZombieStateChanged(const deCONZ::Node *node);
+    void addLightNode(const deCONZ::Node *node);
+    void nodeZombieStateChanged(const deCONZ::Node *node);
     LightNode *updateLightNode(const deCONZ::NodeEvent &event);
-    LightNode *getLightNodeForAddress(uint64_t extAddr);
+    LightNode *getLightNodeForAddress(quint64 extAddr, quint8 endpoint = 0);
+    int getNumberOfEndpoints(quint64 extAddr);
     LightNode *getLightNodeForId(const QString &id);
+    Rule *getRuleForId(const QString &id);
+    Rule *getRuleForName(const QString &name);
+    void addSensorNode(const deCONZ::Node *node);
+    void addSensorNode(const deCONZ::Node *node, const SensorFingerprint &fingerPrint, const QString &type);
+    void checkSensorNodeReachable(Sensor *sensor);
+    void updateSensorNode(const deCONZ::NodeEvent &event);
+    void checkAllSensorsAvailable();
+    Sensor *getSensorNodeForAddress(quint64 extAddr);
+    Sensor *getSensorNodeForFingerPrint(quint64 extAddr, const SensorFingerprint &fingerPrint, const QString &type);
+    Sensor *getSensorNodeForUniqueId(const QString &uniqueId);
+    Sensor *getSensorNodeForId(const QString &id);
     Group *getGroupForName(const QString &name);
     Group *getGroupForId(uint16_t id);
     Group *getGroupForId(const QString &id);
+    Scene *getSceneForId(uint16_t gid, uint8_t sid);
     GroupInfo *getGroupInfo(LightNode *lightNode, uint16_t id);
     GroupInfo *createGroupInfo(LightNode *lightNode, uint16_t id);
     deCONZ::Node *getNodeForAddress(uint64_t extAddr);
     deCONZ::ZclCluster *getInCluster(deCONZ::Node *node, uint8_t endpoint, uint16_t clusterId);
-    uint8_t getSrcEndpoint(LightNode *lightNode, const deCONZ::ApsDataRequest &req);
-    bool processReadAttributes(LightNode *lightNode);
-    bool readAttributes(LightNode *lightNode, const deCONZ::SimpleDescriptor *sd, uint16_t clusterId, const std::vector<uint16_t> &attributes);
+    uint8_t getSrcEndpoint(RestNodeBase *restNode, const deCONZ::ApsDataRequest &req);
+    bool processZclAttributes(LightNode *lightNode);
+    bool processZclAttributes(Sensor *sensorNode);
+    bool readBindingTable(RestNodeBase *node, quint8 startIndex);
+    bool getGroupIdentifiers(RestNodeBase *node, quint8 endpoint, quint8 startIndex);
+    bool readAttributes(RestNodeBase *restNode, quint8 endpoint, uint16_t clusterId, const std::vector<uint16_t> &attributes);
+    bool writeAttribute(RestNodeBase *restNode, quint8 endpoint, uint16_t clusterId, const deCONZ::ZclAttribute &attribute);
+    bool readSceneAttributes(LightNode *lightNode, uint16_t groupId, uint8_t sceneId);
     bool readGroupMembership(LightNode *lightNode, const std::vector<uint16_t> &groups);
     void foundGroupMembership(LightNode *lightNode, uint16_t groupId);
     void foundGroup(uint16_t groupId);
     bool isLightNodeInGroup(LightNode *lightNode, uint16_t groupId);
+    void deleteLightFromScenes(QString lightId, uint16_t groupId);
     void readAllInGroup(Group *group);
     void setAttributeOnOffGroup(Group *group, uint8_t onOff);
     bool readSceneMembership(LightNode *lightNode, Group *group);
     void foundScene(LightNode *lightNode, Group *group, uint8_t sceneId);
     void setSceneName(Group *group, uint8_t sceneId, const QString &name);
     bool storeScene(Group *group, uint8_t sceneId);
+    bool modifyScene(Group *group, uint8_t sceneId);
     bool removeScene(Group *group, uint8_t sceneId);
     bool callScene(Group *group, uint8_t sceneId);
+    bool removeAllScenes(Group *group);
 
     bool pushState(QString json, QTcpSocket *sock);
 
     void pushClientForClose(QTcpSocket *sock, int closeTimeout);
 
+    uint8_t endpoint();
+
     // Task interface
     bool addTask(const TaskItem &task);
-    bool addTaskSetOnOff(TaskItem &task, bool on);
+    bool addTaskMoveLevel(TaskItem &task, bool withOnOff, bool upDirection, quint8 rate);
+    bool addTaskSetOnOff(TaskItem &task, quint8 cmd, quint16 ontime);
     bool addTaskSetBrightness(TaskItem &task, uint8_t bri, bool withOnOff);
+    bool addTaskStopBrightness(TaskItem &task);
+    bool addTaskSetColorTemperature(TaskItem &task, uint16_t ct);
     bool addTaskSetEnhancedHue(TaskItem &task, uint16_t hue);
     bool addTaskSetSaturation(TaskItem &task, uint8_t sat);
     bool addTaskSetHueAndSaturation(TaskItem &task, uint8_t hue, uint8_t sat);
     bool addTaskSetXyColorAsHueAndSaturation(TaskItem &task, double x, double y);
     bool addTaskSetXyColor(TaskItem &task, double x, double y);
+    bool addTaskSetColorLoop(TaskItem &task, bool colorLoopActive, uint8_t speed);
+    bool addTaskIdentify(TaskItem &task, uint16_t identifyTime);
     bool addTaskAddToGroup(TaskItem &task, uint16_t groupId);
     bool addTaskRemoveFromGroup(TaskItem &task, uint16_t groupId);
-    bool addTaskAddScene(TaskItem &task, uint16_t groupId, uint8_t sceneId);
+    bool addTaskStoreScene(TaskItem &task, uint16_t groupId, uint8_t sceneId);
+    bool addTaskAddScene(TaskItem &task, uint16_t groupId, uint8_t sceneId, QString lightId);
     bool addTaskRemoveScene(TaskItem &task, uint16_t groupId, uint8_t sceneId);
     bool obtainTaskCluster(TaskItem &task, const deCONZ::ApsDataIndication &ind);
     void handleGroupClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleSceneClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleCommissioningClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleDeviceAnnceIndication(const deCONZ::ApsDataIndication &ind);
+    void handleMgmtBindRspIndication(const deCONZ::ApsDataIndication &ind);
+    void handleBindAndUnbindRspIndication(const deCONZ::ApsDataIndication &ind);
+    void handleMgmtLeaveRspIndication(const deCONZ::ApsDataIndication &ind);
     void broadCastNodeUpdate(LightNode *webNode);
     void markForPushUpdate(LightNode *lightNode);
     void taskToLocalData(const TaskItem &task);
@@ -501,6 +771,8 @@ public:
     void setAttributeEnhancedHue(LightNode *lightNode);
     void setAttributeSaturation(LightNode *lightNode);
     void setAttributeColorXy(LightNode *lightNode);
+    void setAttributeColorTemperature(LightNode *lightNode);
+    void setAttributeColorLoopActive(LightNode *lightNode);
 
     // Database interface
     void initDb();
@@ -509,10 +781,15 @@ public:
     void loadAuthFromDb();
     void loadConfigFromDb();
     void loadAllGroupsFromDb();
+    void loadAllSchedulesFromDb();
     void loadLightNodeFromDb(LightNode *lightNode);
+    void loadSensorNodeFromDb(Sensor *sensorNode);
     void loadGroupFromDb(Group *group);
     void loadSceneFromDb(Scene *scene);
+    void loadAllRulesFromDb();
+    void loadAllSensorsFromDb();
     int getFreeLightId();
+    int getFreeSensorId();
     void saveDb();
     void closeDb();
     void queSaveDb(int items, int msec);
@@ -521,6 +798,7 @@ public:
     int saveDatabaseItems;
     QString sqliteDatabaseName;
     std::vector<int> lightIds;
+    std::vector<int> sensorIds;
     QTimer *databaseTimer;
 
     // authentification
@@ -532,22 +810,28 @@ public:
     bool gwLinkButton;
     bool gwRfConnectedExpected;  // the state which should be hold
     bool gwRfConnected;  // to detect changes
-    bool gwOtauActive;
     int gwAnnounceInterval; // used by internet discovery [minutes]
     QString gwAnnounceUrl;
     uint8_t gwPermitJoinDuration; // global permit join state (last set)
+    uint16_t gwNetworkOpenDuration; // user setting how long network remains open
+    QString gwTimezone;
+    QString gwTimeFormat;
     QString gwIpAddress;
     uint16_t gwPort;
     QString gwName;
     QString gwUuid;
     QString gwUpdateVersion;
+    QString gwRgbwDisplay;
     QString gwFirmwareVersion;
     QString gwFirmwareVersionUpdate; // for local update of the firmware if it doesn't fit the GW_MIN_<platform>_FW_VERSION
     bool gwFirmwareNeedUpdate;
     QString gwUpdateChannel;
     int gwGroupSendDelay;
+    uint gwZigbeeChannel;
     QVariantMap gwConfig;
     QString gwConfigEtag;
+    bool gwRunFromShellScript;
+    bool gwDeleteUnknownRules;
 
     // upnp
     QByteArray descriptionXml;
@@ -559,6 +843,7 @@ public:
     // used by searchLights()
     QTimer *permitJoinTimer;
     QTime permitJoinLastSendTime;
+    bool permitJoinFlag; // indicates that permitJoin changed from greater than 0 to 0
 
     // schedules
     QTimer *scheduleTimer;
@@ -611,6 +896,7 @@ public:
         uint8_t channel;
         uint16_t panid;
         uint32_t transactionId;
+        int8_t rssi;
     };
 
     int touchlinkNetworkDisconnectAttempts; // disconnect attemps before touchlink
@@ -627,23 +913,79 @@ public:
     std::vector<ScanResponse> touchlinkScanResponses;
     ScanResponse touchlinkDevice; // device of interrest (identify, reset, ...)
 
+    // channel change state machine
+    enum ChannelChangeState
+    {
+        CC_Idle,
+        CC_Verify_Channel,
+        CC_WaitConfirm,
+        CC_Change_Channel,
+        CC_DisconnectingNetwork,
+        CC_ReconnectNetwork
+    };
+
+    ChannelChangeState channelChangeState;
+    QTimer *channelchangeTimer;
+    quint8 ccRetries;
+    int ccNetworkDisconnectAttempts; // disconnect attemps before chanelchange
+    int ccNetworkReconnectAttempts; // reconnect attemps after channelchange
+    bool ccNetworkConnectedBefore;
+    uint8_t channelChangeApsRequestId;
+
+    // delete device state machine
+    enum ResetDeviceState
+    {
+        ResetIdle,
+        ResetWaitConfirm,
+        ResetWaitIndication
+    };
+
+    QTimer *resetDeviceTimer;
+    ResetDeviceState resetDeviceState;
+    uint8_t zdpResetSeq;
+    uint64_t lastNodeAddressExt;
+    uint8_t resetDeviceApsRequestId;
+
+    // sensors
+    QString lastscan;
+
+    // rules
+
+    QTimer *saveCurrentRuleInDbTimer;
     // general
     deCONZ::ApsController *apsCtrl;
     uint groupTaskNodeIter; // Iterates through nodes array
     int idleTotalCounter; // sys timer
     int idleLimit;
     int idleLastActivity; // delta in seconds
+    bool supportColorModeXyForGroups;
+    size_t lightIter;
+    size_t sensorIter;
+    size_t lightAttrIter;
+    size_t sensorAttrIter;
     std::vector<Group> groups;
     std::vector<LightNode> nodes;
+    std::vector<Rule> rules;
+    std::vector<Sensor> sensors;
     std::list<LightNode*> broadCastUpdateNodes;
     std::list<TaskItem> tasks;
     std::list<TaskItem> runningTasks;
+    QTimer *verifyRulesTimer;
     QTimer *taskTimer;
     QTimer *groupTaskTimer;
     uint8_t zclSeq;
     std::list<QTcpSocket*> eventListeners;
     QUdpSocket *udpSock;
     QUdpSocket *udpSockOut;
+    uint8_t haEndpoint;
+
+    // bindings
+    size_t verifyRuleIter;
+    bool gwReportingEnabled;
+    QTimer *bindingToRuleTimer;
+    QTimer *bindingTimer;
+    std::list<Binding> bindingToRuleQueue; // check if rule exists for discovered bindings
+    std::list<BindingTask> bindingQueue; // bind/unbind queue
 
     // TCP connection watcher
     QTimer *openClientTimer;
@@ -652,7 +994,9 @@ public:
     // will be set at startup to calculate the uptime
     QElapsedTimer starttimeRef;
 
-    DeRestPlugin *p; // public interface
+    Q_DECLARE_PUBLIC(DeRestPlugin)
+    DeRestPlugin *q_ptr; // public interface
+
 };
 
 #endif // DE_WEB_PLUGIN_PRIVATE_H

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -11,7 +11,6 @@
 #include <QString>
 #include <QTextCodec>
 #include <QTcpSocket>
-#include <QHttpRequestHeader>
 #include <QVariantMap>
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
@@ -95,6 +94,11 @@ int DeRestPluginPrivate::handleGroupsApi(ApiRequest &req, ApiResponse &rsp)
     {
         return recallScene(req, rsp);
     }
+    // PUT /api/<apikey>/groups/<group_id>/scenes/<scene_id>/lights/<light_id>/state
+    else if ((req.path.size() == 9) && (req.hdr.method() == "PUT")  && (req.path[4] == "scenes") && (req.path[6] == "lights"))
+    {
+        return modifyScene(req, rsp);
+    }
     // DELETE /api/<apikey>/groups/<group_id>/scenes/<scene_id>
     else if ((req.path.size() == 6) && (req.hdr.method() == "DELETE")  && (req.path[4] == "scenes"))
     {
@@ -119,7 +123,7 @@ int DeRestPluginPrivate::getAllGroups(const ApiRequest &req, ApiResponse &rsp)
     for (; i != end; ++i)
     {
         // ignore deleted groups
-        if (i->state() == Group::StateDeleted)
+        if (i->state() == Group::StateDeleted || i->state() == Group::StateDeleteFromDB)
         {
             continue;
         }
@@ -132,6 +136,16 @@ int DeRestPluginPrivate::getAllGroups(const ApiRequest &req, ApiResponse &rsp)
             QString etag = i->etag;
             etag.remove('"'); // no quotes allowed in string
             mnode["etag"] = etag;
+
+            QStringList deviceIds;
+            std::vector<QString>::const_iterator d = i->m_deviceMemberships.begin();
+            std::vector<QString>::const_iterator dend = i->m_deviceMemberships.end();
+
+            for ( ;d != dend; ++d)
+            {
+                deviceIds.append(*d);
+            }
+            mnode["devicemembership"] = deviceIds;
             rsp.map[i->id()] = mnode;
         }
     }
@@ -203,6 +217,7 @@ int DeRestPluginPrivate::createGroup(const ApiRequest &req, ApiResponse &rsp)
             Group group;
 
             // create a new group id
+            quint16 gidLastTry = 0;
             group.setAddress(1);
 
             do {
@@ -214,11 +229,55 @@ int DeRestPluginPrivate::createGroup(const ApiRequest &req, ApiResponse &rsp)
                 {
                     if (i->address() == group.address())
                     {
+                        if (i->state() == Group::StateDeleted)
+                        {
+                            if (gidLastTry == 0) // mark gid so it could be reused
+                            {
+                                gidLastTry = group.address();
+                            }
+
+                        }
+
                         group.setAddress(i->address() + 1);
                         ok = false;
+                        break;
                     }
                 }
+
+                if (group.address() == 0) // overflow
+                {
+                    break;
+                }
             } while (!ok);
+
+            if (ok && group.address() > 0)
+            {
+                // ok, nothing todo here
+            }
+            // reuse deleted groupId?
+            else if (!ok && gidLastTry > 0)
+            {
+                // remove from list
+                std::vector<Group>::iterator i = groups.begin();
+                std::vector<Group>::iterator end = groups.end();
+
+                for (; i != end; ++i)
+                {
+                    if (i->address() == gidLastTry)
+                    {
+                        groups.erase(i); // ok, replace
+                        break;
+                    }
+                }
+
+                group.setAddress(gidLastTry);
+            }
+            else
+            {
+                rsp.list.append(errorToMap(ERR_BRIDGE_GROUP_TABLE_FULL, QString("/groups"), QString("group could not be created. Group table is full.")));
+                rsp.httpStatus = HttpStatusBadRequest;
+                return REQ_READY_SEND;
+            }
 
             group.setName(name);
             group.colorX = 0;
@@ -289,7 +348,7 @@ int DeRestPluginPrivate::getGroupAttributes(const ApiRequest &req, ApiResponse &
 
     action["on"] = group->isOn();
     action["hue"] = (double)((uint16_t)(group->hueReal * 65535));
-    action["effect"] = "none"; // TODO
+    action["effect"] = group->isColorLoopActive() ? "colorloop" : "none";
     action["bri"] = (double)group->level;
     action["sat"] = (double)group->sat;
     action["ct"] = (double)500; // TODO
@@ -318,6 +377,27 @@ int DeRestPluginPrivate::getGroupAttributes(const ApiRequest &req, ApiResponse &
     rsp.map["etag"] = etag;
     rsp.map["action"] = action;
 
+    QStringList multis;
+    std::vector<QString>::const_iterator m = group->m_multiDeviceIds.begin();
+    std::vector<QString>::const_iterator mend = group->m_multiDeviceIds.end();
+
+    for ( ;m != mend; ++m)
+    {
+        multis.append(*m);
+    }
+
+    rsp.map["multideviceids"] = multis;
+
+    QStringList deviceIds;
+    std::vector<QString>::const_iterator d = group->m_deviceMemberships.begin();
+    std::vector<QString>::const_iterator dend = group->m_deviceMemberships.end();
+
+    for ( ;d != dend; ++d)
+    {
+        deviceIds.append(*d);
+    }
+    rsp.map["devicemembership"] = deviceIds;
+
     // append lights which are known members in this group
     QVariantList lights;
     std::vector<LightNode>::const_iterator i = nodes.begin();
@@ -325,6 +405,11 @@ int DeRestPluginPrivate::getGroupAttributes(const ApiRequest &req, ApiResponse &
 
     for (; i != end; ++i)
     {
+        if (i->state() == LightNode::StateDeleted)
+        {
+            continue;
+        }
+
         std::vector<GroupInfo>::const_iterator ii = i->groups().begin();
         std::vector<GroupInfo>::const_iterator eend = i->groups().end();
 
@@ -360,6 +445,7 @@ int DeRestPluginPrivate::getGroupAttributes(const ApiRequest &req, ApiResponse &
     }
 
     rsp.map["scenes"] = scenes;
+    rsp.map["state"] = group->state();
 
     return REQ_READY_SEND;
 }
@@ -435,6 +521,8 @@ int DeRestPluginPrivate::setGroupAttributes(const ApiRequest &req, ApiResponse &
     if (map.contains("lights"))
     {
         QVariantList lights = map["lights"].toList();
+        uint8_t groupCount;
+        uint8_t groupCapacity;
 
         // for each node in the list send a add to group request (unicast)
         // note: nodes which are currently switched off will not be added to the group
@@ -457,20 +545,31 @@ int DeRestPluginPrivate::setGroupAttributes(const ApiRequest &req, ApiResponse &
 
                 if (lightNode)
                 {
-                    GroupInfo *groupInfo = getGroupInfo(lightNode, group->address());
+                    groupCount = lightNode->groupCount();
+                    groupCapacity = lightNode->groupCapacity();
 
-                    if (!groupInfo)
+                    if (groupCapacity > 0 || (groupCapacity == 0 && groupCount == 0)) // xxx workaround
                     {
-                        groupInfo = createGroupInfo(lightNode, group->address());
-                        changed = true;
+                        GroupInfo *groupInfo = getGroupInfo(lightNode, group->address());
+
+                        if (!groupInfo)
+                        {
+                            groupInfo = createGroupInfo(lightNode, group->address());
+                        }
+
+                        DBG_Assert(groupInfo != 0);
+                        if (groupInfo)
+                        {
+                            groupInfo->actions &= ~GroupInfo::ActionRemoveFromGroup; // sanity
+                            groupInfo->actions |= GroupInfo::ActionAddToGroup;
+                            groupInfo->state = GroupInfo::StateInGroup;
+                        }
+
+                        changed = true; // necessary for adding last available light to group from main view.
                     }
-
-                    DBG_Assert(groupInfo != 0);
-                    if (groupInfo)
+                    else
                     {
-                        groupInfo->actions &= ~GroupInfo::ActionRemoveFromGroup; // sanity
-                        groupInfo->actions |= GroupInfo::ActionAddToGroup;
-                        groupInfo->state = GroupInfo::StateInGroup;
+                        rsp.list.append(errorToMap(ERR_DEVICE_GROUP_TABLE_FULL, QString("/groups/%1/lights/%2").arg(id).arg(lid), QString(" Could not add %1 to group. Group capacity of the device is reached.").arg(qPrintable(lightNode->name()))));
                     }
                 }
                 else
@@ -516,11 +615,34 @@ int DeRestPluginPrivate::setGroupAttributes(const ApiRequest &req, ApiResponse &
                         k->actions &= ~GroupInfo::ActionAddToGroup; // sanity
                         k->actions |= GroupInfo::ActionRemoveFromGroup;
                         k->state = GroupInfo::StateNotInGroup;
+
+                        //delete Light from all scenes
+                        deleteLightFromScenes(j->id(), k->id);
+
                         changed = true;
                     }
                 }
             }
         }
+
+        // check optional parameter multideviceids
+        if (map.contains("multideviceids"))
+        {
+            group->m_multiDeviceIds.clear();
+
+            QStringList multiIds = map["multideviceids"].toStringList();
+
+            QStringList::iterator m = multiIds.begin();
+            QStringList::iterator m_end = multiIds.end();
+
+            for (;m != m_end; ++m)
+            {
+                group->m_multiDeviceIds.push_back(*m);
+            }
+        }
+
+        queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
+        queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
     }
 
     if (changed)
@@ -591,6 +713,22 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
+    bool hasOn = map.contains("on");
+    bool hasOnTime = map.contains("ontime");
+    bool hasBri = map.contains("bri");
+    bool hasHue = map.contains("hue");
+    bool hasSat = map.contains("sat");
+    bool hasXy = map.contains("xy");
+    bool hasCt = map.contains("ct");
+    bool hasEffect = map.contains("effect");
+    bool hasEffectColorLoop = false;
+    bool hasAlert = map.contains("alert");
+
+    if (!supportColorModeXyForGroups)
+    {
+        hasXy = false;
+    }
+
     // transition time
     if (map.contains("transitiontime"))
     {
@@ -603,13 +741,48 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     }
 
     // on/off
-    if (map.contains("on")) // TODO ignore if (on == true) && (bri)
+    if (hasOn)
     {
         if (map["on"].type() == QVariant::Bool)
         {
             bool on = map["on"].toBool();
-            if (map.contains("bri") ||
-                addTaskSetOnOff(task, on)) // onOff task only if no bri is given
+            quint16 ontime = 0;
+            quint8 command = on ? ONOFF_COMMAND_ON : ONOFF_COMMAND_OFF;
+
+            if (on)
+            {
+                if (hasOnTime && map["ontime"].type() == QVariant::Double)
+                {
+                    double ot = map["ontime"].toDouble(&ok);
+                    if (ok && (ot >= 0 && ot <= 65535))
+                    {
+                        ontime = ot;
+                        command = ONOFF_COMMAND_ON_WITH_TIMED_OFF;
+                    }
+                }
+            }
+
+            if (!on)
+            {
+                if (group->isColorLoopActive())
+                {
+                    addTaskSetColorLoop(task, false, 15);
+                    group->setColorLoopActive(false); // deactivate colorloop if active
+                }
+                std::vector<LightNode>::iterator i = nodes.begin();
+                std::vector<LightNode>::iterator end = nodes.end();
+
+                for (; i != end; ++i)
+                {
+                    if (isLightNodeInGroup(&(*i), group->address()))
+                    {
+                        i->setColorLoopActive(false);
+                    }
+                }
+            }
+
+            if (hasBri ||
+                addTaskSetOnOff(task, command, ontime)) // onOff task only if no bri is given
             {
                 QVariantMap rspItem;
                 QVariantMap rspItemState;
@@ -632,13 +805,29 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     }
 
     // brightness
-    if (map.contains("bri"))
+    if (hasBri)
     {
         uint bri = map["bri"].toUInt(&ok);
 
-        if (ok && (map["bri"].type() == QVariant::Double) && (bri < 256))
+        if ((map["bri"].type() == QVariant::String) && map["bri"].toString() == "stop")
         {
-            if (addTaskSetBrightness(task, bri, map.contains("on")))
+            if (addTaskStopBrightness(task))
+            {
+                QVariantMap rspItem;
+                QVariantMap rspItemState;
+                rspItemState[QString("/groups/%1/action/bri").arg(id)] = map["bri"];
+                rspItem["success"] = rspItemState;
+                rsp.list.append(rspItem);
+                taskToLocalData(task);
+            }
+            else
+            {
+                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/groups/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+            }
+        }
+        else if (ok && (map["bri"].type() == QVariant::Double) && (bri < 256))
+        {
+            if (addTaskSetBrightness(task, bri, hasOn))
             {
                 QVariantMap rspItem;
                 QVariantMap rspItemState;
@@ -661,7 +850,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     }
 
     // hue
-    if (map.contains("hue")) // TODO check if map has no xy, ct ...
+    if (hasHue)
     {
         uint hue2 = map["hue"].toUInt(&ok);
 
@@ -685,7 +874,8 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
                 taskToLocalData(task);
             }
 
-            if (map.contains("sat") || // merge later to set hue and saturation
+            if (hasSat || // merge later to set hue and saturation
+                hasXy || hasCt || hasEffectColorLoop ||
                 addTaskSetEnhancedHue(task, hue)) // will only be evaluated if no sat is set
             {
                 QVariantMap rspItem;
@@ -708,7 +898,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     }
 
     // saturation
-    if (map.contains("sat")) // TODO check if map has no xy, ct ...
+    if (hasSat)
     {
         uint sat2 = map["sat"].toUInt(&ok);
 
@@ -724,7 +914,8 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
             task.taskType = TaskSetSat;
             taskToLocalData(task);
 
-            if ((map.contains("hue") && (hue != UINT_MAX)) // merge later to set hue and saturation
+            if (hasXy || hasCt
+               || (!hasEffectColorLoop && hasHue && (hue != UINT_MAX)) // merge later to set hue and saturation
                || addTaskSetSaturation(task, sat)) // will only be evaluated if no hue is set
             {
                 QVariantMap rspItem;
@@ -747,9 +938,9 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     }
 
     // hue and saturation
-    if (map.contains("hue") && map.contains("sat"))
+    if (hasHue && hasSat && !hasXy && !hasCt)
     {
-        if ((hue != UINT_MAX) && (sat != UINT_MAX))
+        if (!hasEffectColorLoop && (hue != UINT_MAX) && (sat != UINT_MAX))
         {
             // need 8 bit hue
             qreal f = (qreal)hue / 182.04444f;
@@ -776,7 +967,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     }
 
     // xy
-    if (map.contains("xy"))
+    if (hasXy)
     {
         QVariantList ls = map["xy"].toList();
 
@@ -789,7 +980,8 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
             {
                 rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/groups/%1").arg(id), QString("invalid value, [%1,%2], for parameter, /groups/%3/xy").arg(x).arg(y).arg(id)));
             }
-            else if (addTaskSetXyColor(task, x, y))
+            else if (hasEffectColorLoop ||
+                     addTaskSetXyColor(task, x, y))
             {
                 QVariantMap rspItem;
                 QVariantMap rspItemState;
@@ -811,12 +1003,129 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
+    // color temperature
+    if (hasCt)
+    {
+        uint16_t ct = map["ct"].toUInt(&ok);
+
+        if (ok && (map["ct"].type() == QVariant::Double))
+        {
+            if (addTaskSetColorTemperature(task, ct))
+            {
+                QVariantMap rspItem;
+                QVariantMap rspItemState;
+                rspItemState[QString("/groups/%1/action/ct").arg(id)] = map["ct"];
+                rspItem["success"] = rspItemState;
+                rsp.list.append(rspItem);
+                taskToLocalData(task);
+            }
+            else
+            {
+                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/groups/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+            }
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/groups/%1/action/ct").arg(id), QString("invalid value, %1, for parameter, ct").arg(map["ct"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+    }
+
+    // alert
+    if (hasAlert)
+    {
+        QString alert = map["alert"].toString();
+
+        if (alert == "none")
+        {
+            task.identifyTime = 0;
+        }
+        else if (alert == "select")
+        {
+            task.identifyTime = 1;
+        }
+        else if (alert == "lselect")
+        {
+            task.identifyTime = 30;
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/groups/%1/action/alert").arg(id), QString("invalid value, %1, for parameter, alert").arg(map["alert"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+
+        task.taskType = TaskIdentify;
+        taskToLocalData(task);
+
+        if (addTaskIdentify(task, task.identifyTime))
+        {
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/groups/%1/action/alert").arg(id)] = map["alert"];
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/groups/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+        }
+    }
+
+    // colorloop
+    if (hasEffect)
+    {
+        QString effect = map["effect"].toString();
+
+        if ((effect == "none") || (effect == "colorloop"))
+        {
+            hasEffectColorLoop = effect == "colorloop";
+            uint speed = 15;
+
+            if (hasEffectColorLoop)
+            {
+                if (map.contains("colorloopspeed"))
+                {
+                    speed = map["colorloopspeed"].toUInt(&ok);
+                    if (ok && (map["colorloopspeed"].type() == QVariant::Double) && (speed < 256) && (speed > 0))
+                    {
+                        // ok
+                    }
+                    else
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/state/colorloopspeed").arg(id), QString("invalid value, %1, for parameter, colorloopspeed").arg(map["colorloopspeed"].toString())));
+                    }
+                }
+            }
+
+            if (addTaskSetColorLoop(task, hasEffectColorLoop, speed))
+            {
+                QVariantMap rspItem;
+                QVariantMap rspItemState;
+                rspItemState[QString("/groups/%1/action/effect").arg(id)] = map["effect"];
+                rspItem["success"] = rspItemState;
+                rsp.list.append(rspItem);
+                taskToLocalData(task);
+            }
+            else
+            {
+                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/groups/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+            }
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/groups/%1/action/effect").arg(id), QString("invalid value, %1, for parameter, effect").arg(map["effect"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+    }
+
     updateEtag(group->etag);
     updateEtag(gwConfigEtag);
     rsp.etag = group->etag;
 
     processTasks();
-    // TODO: ct, alert, effect
 
     return REQ_READY_SEND;
 }
@@ -852,7 +1161,7 @@ int DeRestPluginPrivate::deleteGroup(const ApiRequest &req, ApiResponse &rsp)
     rsp.list.append(rspItem);
     rsp.httpStatus = HttpStatusOk;
 
-    queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
+    queSaveDb(DB_GROUPS | DB_LIGHTS, DB_SHORT_SAVE_DELAY);
 
     // for each node which is part of this group send a remove group request (will be unicast)
     // note: nodes which are curently switched off will not be removed!
@@ -927,6 +1236,11 @@ bool DeRestPluginPrivate::groupToMap(const Group *group, QVariantMap &map)
 
     for (; i != end; ++i)
     {
+        if (i->state() == LightNode::StateDeleted)
+        {
+            continue;
+        }
+
         std::vector<GroupInfo>::const_iterator ii = i->groups().begin();
         std::vector<GroupInfo>::const_iterator eend = i->groups().end();
 
@@ -944,6 +1258,17 @@ bool DeRestPluginPrivate::groupToMap(const Group *group, QVariantMap &map)
     }
 
     map["lights"] = lights;
+
+    QStringList multis;
+    std::vector<QString>::const_iterator m = group->m_multiDeviceIds.begin();
+    std::vector<QString>::const_iterator mend = group->m_multiDeviceIds.end();
+
+    for ( ;m != mend; ++m)
+    {
+        multis.append(*m);
+    }
+
+    map["multideviceids"] = multis;
 
     QVariantList scenes;
     std::vector<Scene>::const_iterator si = group->scenes.begin();
@@ -963,6 +1288,16 @@ bool DeRestPluginPrivate::groupToMap(const Group *group, QVariantMap &map)
     }
 
     map["scenes"] = scenes;
+
+    QStringList deviceIds;
+    std::vector<QString>::const_iterator d = group->m_deviceMemberships.begin();
+    std::vector<QString>::const_iterator dend = group->m_deviceMemberships.end();
+
+    for ( ;d != dend; ++d)
+    {
+        deviceIds.append(*d);
+    }
+    map["devicemembership"] = deviceIds;
 
     return true;
 }
@@ -1004,6 +1339,23 @@ int DeRestPluginPrivate::createScene(const ApiRequest &req, ApiResponse &rsp)
         rsp.httpStatus = HttpStatusNotFound;
         rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/groups/%1").arg(id), QString("resource, /groups/%1, not available").arg(id)));
         return REQ_READY_SEND;
+    }
+
+    // search for lights that have their scenes capacity reached
+    std::vector<LightNode>::iterator ni = nodes.begin();
+    std::vector<LightNode>::iterator nend = nodes.end();
+    for (; ni != nend; ++ni)
+    {
+        LightNode *lightNode = &(*ni);
+
+        if (lightNode->isAvailable() &&
+            isLightNodeInGroup(lightNode, group->address()))
+        {
+            if (lightNode->sceneCapacity() <= 0)
+            {
+                rsp.list.append(errorToMap(ERR_DEVICE_SCENES_TABLE_FULL, QString("/groups/%1/scenes/lights/%2").arg(id).arg(lightNode->id()), QString("Could not set scene for %1. Scene capacity of the device is reached.").arg(qPrintable(lightNode->name()))));
+            }
+        }
     }
 
     // name
@@ -1058,8 +1410,15 @@ int DeRestPluginPrivate::createScene(const ApiRequest &req, ApiResponse &rsp)
         {
             if (i->id == scene.id)
             {
-                scene.id++;
-                ok = false;
+                if (i->state == Scene::StateDeleted)
+                {
+                    group->scenes.erase(i); // ok, replace
+                }
+                else
+                {
+                    scene.id++;
+                    ok = false;
+                }
                 break;
             }
         }
@@ -1071,6 +1430,7 @@ int DeRestPluginPrivate::createScene(const ApiRequest &req, ApiResponse &rsp)
     {
         scene.name.sprintf("Scene %u", scene.id);
     }
+
     group->scenes.push_back(scene);
     updateEtag(group->etag);
     updateEtag(gwConfigEtag);
@@ -1078,11 +1438,10 @@ int DeRestPluginPrivate::createScene(const ApiRequest &req, ApiResponse &rsp)
 
     if (!storeScene(group, scene.id))
     {
-        rsp.httpStatus = HttpStatusServiceUnavailable;
         rsp.list.append(errorToMap(ERR_BRIDGE_BUSY, QString("/groups/%1/scenes/%2").arg(id).arg(scene.id), QString("gateway busy")));
+        rsp.httpStatus = HttpStatusServiceUnavailable;
         return REQ_READY_SEND;
     }
-
 
     rspItemState["id"] = QString::number(scene.id);
     rspItem["success"] = rspItemState;
@@ -1114,10 +1473,22 @@ int DeRestPluginPrivate::getAllScenes(const ApiRequest &req, ApiResponse &rsp)
 
     for (; i != end; ++i)
     {
-        QString sceneId = QString::number(i->id);
-        QVariantMap scene;
-        scene["name"] = i->name;
-        rsp.map[sceneId] = scene;
+        if (i->state != Scene::StateDeleted)
+        {
+            QString sceneId = QString::number(i->id);
+            QVariantMap scene;
+            scene["name"] = i->name;
+
+            QVariantList lights;
+            std::vector<LightState>::const_iterator l = i->lights().begin();
+            std::vector<LightState>::const_iterator lend = i->lights().end();
+            for (; l != lend; ++l)
+            {
+                lights.append(l->lid());
+            }
+            scene["lights"] = lights;
+            rsp.map[sceneId] = scene;
+        }
     }
 
     return REQ_READY_SEND;
@@ -1153,7 +1524,24 @@ int DeRestPluginPrivate::getSceneAttributes(const ApiRequest &req, ApiResponse &
         {
             if ((i->id == sceneId) && (i->state != Scene::StateDeleted))
             {
+                QVariantList lights;
+                QVariantMap lstate;
+                std::vector<LightState>::const_iterator l = i->lights().begin();
+                std::vector<LightState>::const_iterator lend = i->lights().end();
+                for (; l != lend; ++l)
+                {
+                    lstate["id"] = l->lid();
+                    lstate["on"] = l->on();
+                    lstate["bri"] = l->bri();
+                    lstate["x"] = l->x();
+                    lstate["y"] = l->y();
+                    lstate["transitiontime"] = l->transitiontime();
+
+                    lights.append(lstate);
+                }
                 rsp.map["name"] = i->name;
+                rsp.map["lights"] = lights;
+                rsp.map["state"] = i->state;
                 return REQ_READY_SEND;
             }
         }
@@ -1315,6 +1703,45 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
+    // search for lights that have their scenes capacity reached
+    std::vector<LightNode>::iterator ni = nodes.begin();
+    std::vector<LightNode>::iterator nend = nodes.end();
+    for (; ni != nend; ++ni)
+    {
+        LightNode *lightNode = &(*ni);
+        if (lightNode->isAvailable() &&
+            isLightNodeInGroup(lightNode, group->address()))
+        {
+            std::vector<Scene>::const_iterator si = group->scenes.begin();
+            std::vector<Scene>::const_iterator send = group->scenes.end();
+            for (; si != send; ++si)
+            {
+                if (si->id == sceneId)
+                {
+                    bool foundLight = false;
+                    std::vector<LightState>::const_iterator ls = si->lights().begin();
+                    std::vector<LightState>::const_iterator lsend = si->lights().end();
+                    for (; ls != lsend; ++ls)
+                    {
+                        if (ls->lid() == lightNode->id())
+                        {
+                            foundLight = true;
+                            break;
+                        }
+                    }
+                    if (!foundLight)
+                    {
+                        if (lightNode->sceneCapacity() <= 0)
+                        {
+                            rsp.list.append(errorToMap(ERR_DEVICE_SCENES_TABLE_FULL, QString("/groups/%1/scenes/lights/%2").arg(gid).arg(lightNode->id()), QString("Could not set scene for %1. Scene capacity of the device is reached.").arg(qPrintable(lightNode->name()))));
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
     if (!storeScene(group, scene.id))
     {
         rsp.httpStatus = HttpStatusServiceUnavailable;
@@ -1432,6 +1859,261 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
     rsp.httpStatus = HttpStatusOk;
 
     processTasks();
+
+    return REQ_READY_SEND;
+}
+
+/*! PUT /api/<apikey>/groups/<group_id>/scenes/<scene_id>/lights/<light_id>/state
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::modifyScene(const ApiRequest &req, ApiResponse &rsp)
+{
+    bool ok;
+    Scene scene;
+    QVariantMap rspItem;
+    QVariantMap rspItemState;
+    QVariant var = Json::parse(req.content, ok);
+    QVariantMap map = var.toMap();
+    QString gid = req.path[3];
+    QString sid = req.path[5];
+    QString lid = req.path[7];
+    Group *group = getGroupForId(gid);
+    LightNode *light = getLightNodeForId(lid);
+    rsp.httpStatus = HttpStatusOk;
+
+    userActivity();
+
+    if (!isInNetwork())
+    {
+        rsp.list.append(errorToMap(ERR_NOT_CONNECTED, QString("/groups/%1/scenes/%2/lights/%3/state").arg(gid).arg(sid).arg(lid), "Not connected"));
+        rsp.httpStatus = HttpStatusServiceUnavailable;
+        return REQ_READY_SEND;
+    }
+
+    if (!ok || map.isEmpty())
+    {
+        rsp.list.append(errorToMap(ERR_INVALID_JSON, QString("/groups/%1/scenes/%2/lights/%3/state").arg(gid).arg(sid).arg(lid), QString("body contains invalid JSON")));
+        rsp.httpStatus = HttpStatusBadRequest;
+        return REQ_READY_SEND;
+    }
+
+    if (!group || (group->state() == Group::StateDeleted))
+    {
+        rsp.httpStatus = HttpStatusNotFound;
+        rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/groups/%1/scenes/%2/lights/%3/state").arg(gid).arg(sid).arg(lid), QString("resource, /groups/%1, not available").arg(gid)));
+        return REQ_READY_SEND;
+    }
+
+    if (!light || (light->state() == LightNode::StateDeleted) || !light->isAvailable())
+    {
+        rsp.httpStatus = HttpStatusNotFound;
+        rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/groups/%1/scenes/%2/lights/%3/state").arg(gid).arg(sid).arg(lid), QString("resource, /lights/%1, not available").arg(lid)));
+        return REQ_READY_SEND;
+    }
+
+    bool on;
+    uint bri = 0;
+    uint tt = 0;
+    uint16_t xy_x;
+    uint16_t xy_y;
+
+    bool hasOn = false;
+    bool hasBri = false;
+    bool hasTt = false;
+    bool hasXy = false;
+
+    // on
+    if (map.contains("on"))
+    {
+        on = map["on"].toBool();
+
+        if (map["on"].type() == QVariant::Bool)
+        {
+            hasOn = true;
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/groups/%1/scenes/%2/lights/%3/state/on").arg(gid).arg(sid).arg(lid), QString("invalid value, %1, for parameter on").arg(on)));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+    }
+
+    // bri
+    if (map.contains("bri"))
+    {
+        bool ok;
+        bri = map["bri"].toUInt(&ok);
+
+        if (ok && map["bri"].type() == QVariant::Double && (bri < 256))
+        {
+            hasBri = true;
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/groups/%1/scenes/%2/lights/%3/state/bri").arg(gid).arg(sid).arg(lid), QString("invalid value, %1, for parameter bri").arg(bri)));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+    }
+
+    // transitiontime
+    if (map.contains("transitiontime"))
+    {
+        bool ok;
+        tt = map["transitiontime"].toUInt(&ok);
+
+        if (ok && tt < 0xFFFFUL)
+        {
+            hasTt = true;
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/groups/%1/scenes/%2/lights/%3/state/bri").arg(gid).arg(sid).arg(lid), QString("invalid value, %1, for parameter bri").arg(tt)));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+    }
+
+    // xy
+    if (map.contains("xy"))
+    {
+
+        QVariantList xy = map["xy"].toList();
+
+        if ((xy.size() == 2) && (xy[0].type() == QVariant::Double) && (xy[1].type() == QVariant::Double))
+        {
+            double x = xy[0].toDouble();
+            double y = xy[1].toDouble();
+
+            if ((x < 0.0f) || (x > 1.0f) || (y < 0.0f) || (y > 1.0f))
+            {
+                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1").arg(lid), QString("invalid value, [%1,%2], for parameter, /lights/%3/xy").arg(x).arg(y).arg(lid)));
+                rsp.httpStatus = HttpStatusBadRequest;
+                return REQ_READY_SEND;
+            }
+            else
+            {
+                hasXy = true;
+                xy_x = floor(x * 65279.0f);
+                xy_y = floor(y * 65279.0f);
+            }
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/groups/%1/scenes/%2/lights/%3/state/xy").arg(gid).arg(sid).arg(lid), QString("invalid value, %1, for parameter xy").arg(xy[0].toString()).arg(xy[1].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+    }
+
+    std::vector<Scene>::iterator i = group->scenes.begin();
+    std::vector<Scene>::iterator end = group->scenes.end();
+
+    bool foundScene = false;
+    bool foundLightState = false;
+
+    for ( ;i != end; ++i)
+    {
+        if (QString::number(i->id) == sid && i->state != Scene::StateDeleted)
+        {
+            foundScene = true;
+            scene = *i;
+
+            std::vector<LightState>::iterator l = i->lights().begin();
+            std::vector<LightState>::iterator lend = i->lights().end();
+
+            for ( ;l != lend; ++l)
+            {
+                if (l->lid() == lid)
+                {
+                    foundLightState = true;
+
+                    if (hasOn)
+                    {
+                        l->setOn(on);
+                    }
+                    if (hasBri)
+                    {
+                        l->setBri(bri);
+                    }
+                    if (hasTt)
+                    {
+                        l->setTransitiontime(tt);
+                    }
+                    if (hasXy)
+                    {
+                        l->setX(xy_x);
+                        l->setY(xy_y);
+                    }
+
+                    if (!modifyScene(group, i->id))
+                    {
+                        rsp.httpStatus = HttpStatusServiceUnavailable;
+                        rsp.list.append(errorToMap(ERR_BRIDGE_BUSY, QString("/groups/%1/scenes/%2/lights/%3/state").arg(gid).arg(sid).arg(lid), QString("gateway busy")));
+                        return REQ_READY_SEND;
+                    }
+
+                    break;
+                }
+            }
+
+            if (!foundLightState)
+            {
+                rsp.httpStatus = HttpStatusBadRequest;
+                rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/groups/%1/scenes/%2/lights/%3/state").arg(gid).arg(sid).arg(lid), QString("Light %1 is not available in scene.").arg(lid)));
+                return REQ_READY_SEND;
+
+                /* //TODO or not TODO: add light to scene, when light is not a member of the scene. Error Message when ScenesTable of device is full.
+                if (hasOn && hasBri && hastt && hasXy)
+                {
+                    LightState state;
+                    state.setOn(on);
+                    state.setBri(bri);
+                    state.setTransitiontime(tt);
+                    state.setX(xy_x);
+                    state.setY(xy_y);
+                    state.setLid(lid);
+
+                    if (!modifyScene(group, i->id))
+                    {
+                        rsp.httpStatus = HttpStatusServiceUnavailable;
+                        rsp.list.append(errorToMap(ERR_BRIDGE_BUSY, QString("/groups/%1/scenes/%2/lights/%3/state").arg(gid).arg(sid).arg(lid), QString("gateway busy")));
+                        return REQ_READY_SEND;
+                    }
+
+                    i->m_lights.push_back(state);
+                }
+                else
+                {
+                    rsp.httpStatus = HttpStatusBadRequest;
+                    rsp.list.append(errorToMap(ERR_MISSING_PARAMETER, QString("/groups/%1/scenes/%2/lights/%3/state").arg(gid).arg(sid).arg(lid), QString("Light %1 not available in scene. Missing parameters to add light to scene.").arg(lid)));
+                    return REQ_READY_SEND;
+                }
+                */
+            }
+
+            break;
+        }
+    }
+
+    if (!foundScene)
+    {
+        rsp.httpStatus = HttpStatusNotFound;
+        rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/groups/%1/scenes/%2/lights/%3/state").arg(gid).arg(sid).arg(lid), QString("resource, /scenes/%1, not available").arg(sid)));
+        return REQ_READY_SEND;
+    }
+
+    updateEtag(group->etag);
+    updateEtag(gwConfigEtag);  
+
+    queSaveDb(DB_SCENES, DB_SHORT_SAVE_DELAY);
+
+    rspItemState["id"] = sid;
+    rspItem["success"] = rspItemState;
+    rsp.list.append(rspItem);
+    rsp.httpStatus = HttpStatusOk;
 
     return REQ_READY_SEND;
 }

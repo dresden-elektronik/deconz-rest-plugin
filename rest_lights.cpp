@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -11,11 +11,11 @@
 #include <QString>
 #include <QTextCodec>
 #include <QTcpSocket>
-#include <QHttpRequestHeader>
 #include <QVariantMap>
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "json.h"
+#include "connectivity.h"
 
 /*! Lights REST API broker.
     \param req - request data
@@ -71,6 +71,31 @@ int DeRestPluginPrivate::handleLightsApi(ApiRequest &req, ApiResponse &rsp)
     {
         return renameLight(req, rsp);
     }
+    // GET /api/<apikey>/lights/<id>/connectivity
+    if ((req.path.size() == 5) && (req.hdr.method() == "GET") && (req.path[4] == "connectivity"))
+    {
+        return getConnectivity(req, rsp, false);
+    }
+    // GET /api/<apikey>/lights/<id>/connectivity
+    if ((req.path.size() == 5) && (req.hdr.method() == "GET") && (req.path[4] == "connectivity2"))
+    {
+        return getConnectivity(req, rsp, true);
+    }
+    // DELETE /api/<apikey>/lights/<id>
+    else if ((req.path.size() == 4) && (req.hdr.method() == "DELETE"))
+    {
+        return deleteLight(req, rsp);
+    }
+    // DELETE /api/<apikey>/lights/<id>/scenes
+    else if ((req.path.size() == 5) && (req.path[4] == "scenes") && (req.hdr.method() == "DELETE"))
+    {
+        return removeAllScenes(req, rsp);
+    }
+    // DELETE /api/<apikey>/lights/<id>/groups
+    else if ((req.path.size() == 5) && (req.path[4] == "groups") && (req.hdr.method() == "DELETE"))
+    {
+        return removeAllGroups(req, rsp);
+    }
 
     return REQ_NOT_HANDLED;
 }
@@ -89,12 +114,69 @@ int DeRestPluginPrivate::getAllLights(const ApiRequest &req, ApiResponse &rsp)
 
     for (; i != end; ++i)
     {
-        QVariantMap mnode;
+        if (i->state() == LightNode::StateDeleted)
+        {
+            continue;
+        }
 
+        QVariantMap mnode;
+        QVariantMap state;
+        state["on"] = i->isOn();
+        state["effect"] = "none";
+        state["alert"] = "none"; // TODO
+        state["bri"] = (double)i->level();
+        state["reachable"] = i->isAvailable();
+
+        if (i->hasColor())
+        {
+            state["hue"] = (double)i->enhancedHue();
+            state["sat"] = (double)i->saturation();
+            state["ct"] = (double)i->colorTemperature();
+            state["effect"] = (i->isColorLoopActive() ? "colorloop" : "none");
+            QVariantList xy;
+            uint16_t colorX = i->colorX();
+            uint16_t colorY = i->colorY();
+            // sanity for colorX
+            if (colorX > 65279)
+            {
+                colorX = 65279;
+            }
+            // sanity for colorY
+            if (colorY > 65279)
+            {
+                colorY = 65279;
+            }
+            double x = (double)colorX / 65279.0f; // normalize 0 .. 65279 to 0 .. 1
+            double y = (double)colorY / 65279.0f; // normalize 0 .. 65279 to 0 .. 1
+            xy.append(x);
+            xy.append(y);
+            state["xy"] = xy;
+            state["colormode"] = i->colorMode();
+        }
+
+        mnode["uniqueid"] = i->uniqueId();
+        mnode["type"] = i->type();
         mnode["name"] = i->name();
+        mnode["modelid"] = i->modelId(); // real model id
+        //mnode["modelid"] = "LCT001"; // for Amazon Echo
+        mnode["hascolor"] = i->hasColor();
+        mnode["type"] = i->type();
+        mnode["swversion"] = i->swBuildId();
+        mnode["manufacturer"] = i->manufacturer();
+        QVariantMap pointsymbol;
+        mnode["pointsymbol"] = pointsymbol; // dummy
+        pointsymbol["1"] = QString("none");
+        pointsymbol["2"] = QString("none");
+        pointsymbol["3"] = QString("none");
+        pointsymbol["4"] = QString("none");
+        pointsymbol["5"] = QString("none");
+        pointsymbol["6"] = QString("none");
+        pointsymbol["7"] = QString("none");
+        pointsymbol["8"] = QString("none");
         QString etag = i->etag;
         etag.remove('"'); // no quotes allowed in string
         mnode["etag"] = etag;
+        mnode["state"] = state;
         rsp.map[i->id()] = mnode;
     }
 
@@ -154,55 +236,53 @@ int DeRestPluginPrivate::getNewLights(const ApiRequest &req, ApiResponse &rsp)
  */
 bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lightNode, QVariantMap &map)
 {
+    Q_UNUSED(req);
+
     if (!lightNode)
     {
         return false;
     }
 
     QVariantMap state;
-    state["hue"] = (double)lightNode->enhancedHue();
     state["on"] = lightNode->isOn();
-    state["effect"] = "none"; // TODO
+    state["effect"] = "none";
     state["alert"] = "none"; // TODO
     state["bri"] = (double)lightNode->level();
-    state["sat"] = (double)lightNode->saturation();
-    state["ct"] = (double)500; // TODO
-    QVariantList xy;
-    uint16_t colorX = lightNode->colorX();
-    uint16_t colorY = lightNode->colorY();
-    // sanity for colorX
-    if (colorX > 65279)
-    {
-        colorX = 65279;
-    }
-    // sanity for colorY
-    if (colorY > 65279)
-    {
-        colorY = 65279;
-    }
-    double x = (double)colorX / 65279.0f; // normalize 0 .. 65279 to 0 .. 1
-    double y = (double)colorY / 65279.0f; // normalize 0 .. 65279 to 0 .. 1
-    xy.append(x);
-    xy.append(y);
-    state["xy"] = xy;
     state["reachable"] = lightNode->isAvailable();
-    state["colormode"] = lightNode->colorMode();
+
+    if (lightNode->hasColor())
+    {
+        state["hue"] = (double)lightNode->enhancedHue();
+        state["sat"] = (double)lightNode->saturation();
+        state["ct"] = (double)lightNode->colorTemperature();
+        state["effect"] = (lightNode->isColorLoopActive() ? "colorloop" : "none");
+        QVariantList xy;
+        uint16_t colorX = lightNode->colorX();
+        uint16_t colorY = lightNode->colorY();
+        // sanity for colorX
+        if (colorX > 65279)
+        {
+            colorX = 65279;
+        }
+        // sanity for colorY
+        if (colorY > 65279)
+        {
+            colorY = 65279;
+        }
+        double x = (double)colorX / 65279.0f; // normalize 0 .. 65279 to 0 .. 1
+        double y = (double)colorY / 65279.0f; // normalize 0 .. 65279 to 0 .. 1
+        xy.append(x);
+        xy.append(y);
+        state["xy"] = xy;
+        state["colormode"] = lightNode->colorMode();
+    }
+
+    map["uniqueid"] = lightNode->uniqueId();
     map["type"] = lightNode->type();
     map["name"] = lightNode->name();
     map["modelid"] = lightNode->modelId(); // real model id
     map["hascolor"] = lightNode->hasColor();
-
-    if ((req.apiVersion() == ApiVersion_1_DDEL) || (lightNode->manufacturerCode() != VENDOR_DDEL))
-    {
-        map["type"] = lightNode->type();
-    }
-    else
-    {
-        // quirks mode to mimic Philips Hue
-        // ... some apps wrongly think the light has no color otherwise
-        //map["modelid"] = "LCT001"; // a hue
-        map["type"] = "Extended color light";
-    }
+    map["type"] = lightNode->type();
     map["swversion"] = lightNode->swBuildId();
     map["manufacturer"] = lightNode->manufacturer();
     QVariantMap pointsymbol;
@@ -239,7 +319,7 @@ int DeRestPluginPrivate::getLightState(const ApiRequest &req, ApiResponse &rsp)
 
     LightNode *lightNode = getLightNodeForId(id);
 
-    if (!lightNode)
+    if (!lightNode || lightNode->state() == LightNode::StateDeleted)
     {
         rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("resource, /lights/%1, not available").arg(id)));
         rsp.httpStatus = HttpStatusNotFound;
@@ -280,7 +360,7 @@ int DeRestPluginPrivate::getLightState(const ApiRequest &req, ApiResponse &rsp)
         {
             DBG_Printf(DBG_INFO, "Force read the attributes %s, for node %s\n", qPrintable(attrs), qPrintable(lightNode->address().toStringExt()));
             lightNode->setLastRead(idleTotalCounter);
-            processReadAttributes(lightNode);
+            processZclAttributes(lightNode);
         }
     }
 
@@ -318,7 +398,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
     userActivity();
 
-    if (!task.lightNode)
+    if (!task.lightNode || task.lightNode->state() == LightNode::StateDeleted)
     {
         rsp.httpStatus = HttpStatusNotFound;
         rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("resource, /lights/%1, not available").arg(id)));
@@ -352,6 +432,21 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
+    bool hasOn = map.contains("on");
+    bool hasBri = map.contains("bri");
+    bool hasHue = map.contains("hue");
+    bool hasSat = map.contains("sat");
+    bool hasXy = map.contains("xy");
+    bool hasCt = map.contains("ct");
+    bool hasEffect = map.contains("effect");
+    bool hasEffectColorLoop = false;
+    bool hasAlert = map.contains("alert");
+
+    if (task.lightNode->manufacturerCode() == VENDOR_ATMEL)
+    {
+        hasXy = false;
+    }
+
     // transition time
     if (map.contains("transitiontime"))
     {
@@ -364,15 +459,24 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     }
 
     // on/off
-    if (map.contains("on"))
+    if (hasOn)
     {
         if (map["on"].type() == QVariant::Bool)
         {
             bool on = map["on"].toBool();
-            if (map.contains("bri") ||
-                // map.contains("transitionTime") || // FIXME: use bri if transitionTime is given
-                addTaskSetOnOff(task, on)) // onOff task only if no bri or transitionTime is given
+
+            if (!on && task.lightNode->isColorLoopActive())
             {
+                addTaskSetColorLoop(task, false, 15);
+                task.lightNode->setColorLoopActive(false); // deactivate colorloop if active
+            }
+
+            if (hasBri ||
+                // map.contains("transitiontime") || // FIXME: use bri if transitionTime is given
+                addTaskSetOnOff(task, on ? ONOFF_COMMAND_ON : ONOFF_COMMAND_OFF, 0)) // onOff task only if no bri or transitionTime is given
+            {
+
+
                 QVariantMap rspItem;
                 QVariantMap rspItemState;
                 rspItemState[QString("/lights/%1/state/on").arg(id)] = on;
@@ -394,16 +498,20 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     }
 
     // brightness
-    if (map.contains("bri"))
+    if (hasBri)
     {
         uint bri = map["bri"].toUInt(&ok);
 
-        if (map.contains("on") && map["on"].type() == QVariant::Bool)
+        if (hasOn && map["on"].type() == QVariant::Bool)
         {
             bool on = map["on"].toBool();
             if (!on)
             {
                 bri = 0; // assume the caller wanted to switch the light off
+            }
+            else if (on && (bri == 0))
+            {
+                bri = 1; // don't turn off light is on is true
             }
         }
 
@@ -411,9 +519,25 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         {
             rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1").arg(id), QString("parameter, /lights/%1/bri, is not modifiable. Device is set to off.").arg(id)));
         }
+        else if ((map["bri"].type() == QVariant::String) && map["bri"].toString() == "stop")
+        {
+            if (addTaskStopBrightness(task))
+            {
+                QVariantMap rspItem;
+                QVariantMap rspItemState;
+                rspItemState[QString("/groups/%1/action/bri").arg(id)] = map["bri"];
+                rspItem["success"] = rspItemState;
+                rsp.list.append(rspItem);
+                taskToLocalData(task);
+            }
+            else
+            {
+                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+            }
+        }
         else if (ok && (map["bri"].type() == QVariant::Double) && (bri < 256))
         {
-            if (addTaskSetBrightness(task, bri, map.contains("on")))
+            if (addTaskSetBrightness(task, bri, hasOn))
             {
                 QVariantMap rspItem;
                 QVariantMap rspItemState;
@@ -435,8 +559,60 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
+    // colorloop
+    if (hasEffect)
+    {
+        QString effect = map["effect"].toString();
+
+        if (!task.lightNode->isOn())
+        {
+            rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1").arg(id), QString("parameter, /lights/%1/effect, is not modifiable. Device is set to off.").arg(id)));
+        }
+        else if ((effect == "none") || (effect == "colorloop"))
+        {
+            hasEffectColorLoop = effect == "colorloop";
+            uint16_t speed = 15;
+
+            if (hasEffectColorLoop)
+            {
+                if (map.contains("colorloopspeed"))
+                {
+                    speed = map["colorloopspeed"].toUInt(&ok);
+                    if (ok && (map["colorloopspeed"].type() == QVariant::Double) && (speed < 256) && (speed > 0))
+                    {
+                        // ok
+                    }
+                    else
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/state/colorloopspeed").arg(id), QString("invalid value, %1, for parameter, colorloopspeed").arg(map["colorloopspeed"].toString())));
+                    }
+                }
+            }
+
+            if (addTaskSetColorLoop(task, hasEffectColorLoop, speed))
+            {
+                QVariantMap rspItem;
+                QVariantMap rspItemState;
+                rspItemState[QString("/lights/%1/state/effect").arg(id)] = map["effect"];
+                rspItem["success"] = rspItemState;
+                rsp.list.append(rspItem);
+                taskToLocalData(task);
+            }
+            else
+            {
+                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+            }
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/state/effect").arg(id), QString("invalid value, %1, for parameter, effect").arg(map["effect"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+    }
+
     // hue
-    if (map.contains("hue")) // TODO check if map has no xy, ct ...
+    if (hasHue)
     {
         uint hue2 = map["hue"].toUInt(&ok);
 
@@ -444,7 +620,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         {
             rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1").arg(id), QString("parameter, /lights/%1/hue, is not modifiable. Device is set to off.").arg(id)));
         }
-        else if (ok && (map["hue"].type() == QVariant::Double) && (hue2 < (MAX_ENHANCED_HUE + 1)))
+        else if (ok && (map["hue"].type() == QVariant::Double) && (hue2 <= MAX_ENHANCED_HUE))
         {
             hue = hue2;
 
@@ -465,8 +641,9 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 taskToLocalData(task);
             }
 
-            if (map.contains("sat") || // merge later to set hue and saturation
-                addTaskSetEnhancedHue(task, hue)) // will only be evaluated if no sat is set
+            if (hasSat || // merge later to set hue and saturation
+                hasXy || hasCt || hasEffectColorLoop ||
+                addTaskSetEnhancedHue(task, hue)) // will only be evaluated if no sat, xy, ct or colorloop is set
             {
                 QVariantMap rspItem;
                 QVariantMap rspItemState;
@@ -488,7 +665,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     }
 
     // saturation
-    if (map.contains("sat")) // TODO check if map has no xy, ct ...
+    if (hasSat)
     {
         uint sat2 = map["sat"].toUInt(&ok);
 
@@ -508,8 +685,9 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             task.taskType = TaskSetSat;
             taskToLocalData(task);
 
-            if ((map.contains("hue") && (hue != UINT_MAX)) // merge later to set hue and saturation
-               || addTaskSetSaturation(task, sat)) // will only be evaluated if no hue is set
+            if (hasXy || hasCt
+               || (!hasEffectColorLoop && hasHue && (hue != UINT_MAX)) // merge later to set hue and saturation
+               || addTaskSetSaturation(task, sat)) // will only be evaluated if no hue, xy, ct is set
             {
                 QVariantMap rspItem;
                 QVariantMap rspItemState;
@@ -531,14 +709,14 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     }
 
     // hue and saturation
-    if (map.contains("hue") && map.contains("sat"))
+    if (hasHue && hasSat && !hasXy && !hasCt)
     {
 
         if (!task.lightNode->isOn())
         {
             // no error here
         }
-        else if ((hue != UINT_MAX) && (sat != UINT_MAX))
+        else if (!hasEffectColorLoop && (hue != UINT_MAX) && (sat != UINT_MAX))
         {
             // need 8 bit hue
             qreal f = (qreal)hue / 182.04444f;
@@ -555,23 +733,23 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             DBG_Printf(DBG_INFO, "hue: %u, sat: %u\n", hue, sat);
             if (!addTaskSetHueAndSaturation(task, hue, sat))
             {
-                DBG_Printf(DBG_INFO, "cant send task set hue and saturation\n");
+                DBG_Printf(DBG_INFO, "can't send task set hue and saturation\n");
             }
         }
         else
         {
-            DBG_Printf(DBG_INFO, "cant merge hue and saturation: invalid value(s) hue: %u, sat: %u\n", hue, sat);
+            DBG_Printf(DBG_INFO, "can't merge hue and saturation: invalid value(s) hue: %u, sat: %u\n", hue, sat);
         }
     }
 
     // xy
-    if (map.contains("xy"))
+    if (hasXy)
     {
         QVariantList ls = map["xy"].toList();
 
         if (!task.lightNode->isOn())
         {
-            rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1").arg(id), QString("parameter, /lights/%1/sat, is not modifiable. Device is set to off.").arg(id)));
+            rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1").arg(id), QString("parameter, /lights/%1/xy, is not modifiable. Device is set to off.").arg(id)));
         }
         else if ((ls.size() == 2) && (ls[0].type() == QVariant::Double) && (ls[1].type() == QVariant::Double))
         {
@@ -582,7 +760,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             {
                 rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1").arg(id), QString("invalid value, [%1,%2], for parameter, /lights/%3/xy").arg(x).arg(y).arg(id)));
             }
-            else if (addTaskSetXyColor(task, x, y))
+            else if (hasEffectColorLoop ||
+                     addTaskSetXyColor(task, x, y)) // will only be evaluated if no color loop is set
             {
                 QVariantMap rspItem;
                 QVariantMap rspItemState;
@@ -604,6 +783,81 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
+    // color temperature
+    if (hasCt)
+    {
+        uint16_t ct = map["ct"].toUInt(&ok);
+
+        if (!task.lightNode->isOn())
+        {
+            rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1").arg(id), QString("parameter, /lights/%1/ct, is not modifiable. Device is set to off.").arg(id)));
+        }
+        else if (ok && (map["ct"].type() == QVariant::Double))
+        {
+            if (hasXy || hasEffectColorLoop ||
+                addTaskSetColorTemperature(task, ct)) // will only be evaluated if no xy and color loop is set
+            {
+                QVariantMap rspItem;
+                QVariantMap rspItemState;
+                rspItemState[QString("/lights/%1/state/ct").arg(id)] = map["ct"];
+                rspItem["success"] = rspItemState;
+                rsp.list.append(rspItem);
+                taskToLocalData(task);
+            }
+            else
+            {
+                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+            }
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/state/ct").arg(id), QString("invalid value, %1, for parameter, ct").arg(map["ct"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+    }
+
+    // alert
+    if (hasAlert)
+    {
+        QString alert = map["alert"].toString();
+
+        if (alert == "none")
+        {
+            task.identifyTime = 0;
+        }
+        else if (alert == "select")
+        {
+            task.identifyTime = 1;
+        }
+        else if (alert == "lselect")
+        {
+            task.identifyTime = 30;
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/state/alert").arg(id), QString("invalid value, %1, for parameter, alert").arg(map["alert"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+
+        task.taskType = TaskIdentify;
+        taskToLocalData(task);
+
+        if (addTaskIdentify(task, task.identifyTime))
+        {
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/state/alert").arg(id)] = map["alert"];
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+        }
+    }
+
     if (task.lightNode)
     {
         updateEtag(task.lightNode->etag);
@@ -612,7 +866,6 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     }
 
     processTasks();
-    // TODO ct, alert, effect
 
     return REQ_READY_SEND;
 }
@@ -630,7 +883,7 @@ int DeRestPluginPrivate::renameLight(const ApiRequest &req, ApiResponse &rsp)
     LightNode *lightNode = getLightNodeForId(id);
     rsp.httpStatus = HttpStatusOk;
 
-    if (!lightNode)
+    if (!lightNode || lightNode->state() == LightNode::StateDeleted)
     {
         rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("resource, /lights/%1, not available").arg(id)));
         rsp.httpStatus = HttpStatusNotFound;
@@ -690,4 +943,416 @@ int DeRestPluginPrivate::renameLight(const ApiRequest &req, ApiResponse &rsp)
     }
 
     return REQ_NOT_HANDLED;
+}
+
+/*! DELETE /api/<apikey>/lights/<id>
+    \return 0 - on success
+           -1 - on error
+ */
+int DeRestPluginPrivate::deleteLight(const ApiRequest &req, ApiResponse &rsp)
+{
+    DBG_Assert(req.path.size() == 4);
+
+    if (req.path.size() != 4)
+    {
+        return -1;
+    }
+
+    const QString &id = req.path[3];
+
+    LightNode *lightNode = getLightNodeForId(id);
+
+    if (!lightNode)
+    {
+        rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("resource, /lights/%1, not available").arg(id)));
+        rsp.httpStatus = HttpStatusNotFound;
+        return REQ_READY_SEND;
+    }
+
+    bool ok;
+    QVariant var = Json::parse(req.content, ok);
+    QVariantMap map = var.toMap();
+
+    if (!ok)
+    {
+        rsp.list.append(errorToMap(ERR_INVALID_JSON, QString("/lights/%1").arg(id), QString("body contains invalid JSON")));
+        rsp.httpStatus = HttpStatusBadRequest;
+        return REQ_READY_SEND;
+    }
+
+    bool hasReset = map.contains("reset");
+
+    if (hasReset)
+    {
+        if (map["reset"].type() == QVariant::Bool)
+        {
+            bool reset = map["reset"].toBool();
+
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/reset").arg(id)] = reset;
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+
+            if (reset)
+            {
+                lightNode->setResetRetryCount(60);
+            }
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/reset").arg(id), QString("invalid value, %1, for parameter, reset").arg(map["reset"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+    }
+    else
+    {
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState["id"] = id;
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+    }
+
+    // delete all group membership from light
+    std::vector<GroupInfo>::iterator g = lightNode->groups().begin();
+    std::vector<GroupInfo>::iterator gend = lightNode->groups().end();
+
+    for (; g != gend; ++g)
+    {
+        //delete Light from all scenes.
+        deleteLightFromScenes(id, g->id);
+
+        //delete Light from all groups
+        g->actions &= ~GroupInfo::ActionAddToGroup;
+        g->actions |= GroupInfo::ActionRemoveFromGroup;
+        if (g->state != GroupInfo::StateNotInGroup)
+        {
+            g->state = GroupInfo::StateNotInGroup;
+        }
+    }
+
+    lightNode->setState(LightNode::StateDeleted);
+    updateEtag(gwConfigEtag);
+    updateEtag(lightNode->etag);
+    queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
+
+    rsp.httpStatus = HttpStatusOk;
+    rsp.etag = lightNode->etag;
+
+    return REQ_READY_SEND;
+}
+
+/*! DELETE /api/<apikey>/lights/<id>/scenes
+    \return 0 - on success
+           -1 - on error
+ */
+int DeRestPluginPrivate::removeAllScenes(const ApiRequest &req, ApiResponse &rsp)
+{
+    DBG_Assert(req.path.size() == 5);
+
+    if (req.path.size() != 5)
+    {
+        return -1;
+    }
+
+    const QString &id = req.path[3];
+
+    LightNode *lightNode = getLightNodeForId(id);
+
+    if (!lightNode)
+    {
+        rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("resource, /lights/%1, not available").arg(id)));
+        rsp.httpStatus = HttpStatusNotFound;
+        return REQ_READY_SEND;
+    }
+
+    else
+    {
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState["id"] = id;
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+    }
+
+    //delete Light from all scenes.
+    std::vector<GroupInfo>::iterator g = lightNode->groups().begin();
+    std::vector<GroupInfo>::iterator gend = lightNode->groups().end();
+
+    for (; g != gend; ++g)
+    {
+        deleteLightFromScenes(id, g->id);
+    }
+
+    queSaveDb(DB_SCENES, DB_SHORT_SAVE_DELAY);
+    rsp.httpStatus = HttpStatusOk;
+    rsp.etag = lightNode->etag;
+
+    return REQ_READY_SEND;
+}
+
+/*! DELETE /api/<apikey>/lights/<id>/groups
+    \return 0 - on success
+           -1 - on error
+ */
+int DeRestPluginPrivate::removeAllGroups(const ApiRequest &req, ApiResponse &rsp)
+{
+    DBG_Assert(req.path.size() == 5);
+
+    if (req.path.size() != 5)
+    {
+        return -1;
+    }
+
+    const QString &id = req.path[3];
+
+    LightNode *lightNode = getLightNodeForId(id);
+
+    if (!lightNode)
+    {
+        rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("resource, /lights/%1, not available").arg(id)));
+        rsp.httpStatus = HttpStatusNotFound;
+        return REQ_READY_SEND;
+    }
+
+    QVariantMap rspItem;
+    QVariantMap rspItemState;
+    rspItemState["id"] = id;
+    rspItem["success"] = rspItemState;
+    rsp.list.append(rspItem);
+
+    // delete all group membership from light
+    std::vector<GroupInfo>::iterator g = lightNode->groups().begin();
+    std::vector<GroupInfo>::iterator gend = lightNode->groups().end();
+
+    for (; g != gend; ++g)
+    {
+        //delete Light from all scenes.
+        deleteLightFromScenes(id, g->id);
+
+        //delete Light from all groups
+        g->actions &= ~GroupInfo::ActionAddToGroup;
+        g->actions |= GroupInfo::ActionRemoveFromGroup;
+        if (g->state != GroupInfo::StateNotInGroup)
+        {
+            g->state = GroupInfo::StateNotInGroup;
+        }
+    }
+
+    updateEtag(gwConfigEtag);
+    updateEtag(lightNode->etag);
+    queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
+
+    rsp.httpStatus = HttpStatusOk;
+    rsp.etag = lightNode->etag;
+
+    return REQ_READY_SEND;
+}
+
+/*! GET /api/<apikey>/lights/<id>/connectivity
+    \return 0 - on success
+           -1 - on error
+ */
+int DeRestPluginPrivate::getConnectivity(const ApiRequest &req, ApiResponse &rsp, bool alt)
+{
+    Connectivity newConn;
+    uint64_t coordinatorAddress = 0;
+    newConn.targets.clear();
+    std::list<quint8> rlqiListTemp = newConn.getRLQIList();
+    rlqiListTemp.clear();
+    newConn.setRLQIList(rlqiListTemp);
+    quint16 sumLQI = 0;
+    quint8 meanLQI = 0;
+
+    DBG_Assert(req.path.size() == 5);
+
+    if (req.path.size() != 5)
+    {
+        return -1;
+    }
+
+    const QString &id = req.path[3];
+
+    //Rest LightNode
+    LightNode *lightNode = getLightNodeForId(id);
+
+    if (!lightNode)
+    {
+        rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("resource, /lights/%1, not available").arg(id)));
+        rsp.httpStatus = HttpStatusNotFound;
+        return REQ_READY_SEND;
+    }
+
+    //deCONZ Node
+    uint n = 0;
+    const deCONZ::Node *node = 0;
+
+    while (apsCtrl->getNode(n, &node) == 0)
+    {
+        if (node->isCoordinator())
+        {
+            coordinatorAddress = node->address().ext();
+
+            //set start node
+            DeRestPluginPrivate::nodeVisited nv;
+            nv.node = node;
+            nv.visited = false;
+            newConn.start = nv;
+        }
+        else
+        {
+            //set target nodes
+            if (!(node->isZombie()))
+            {
+                DeRestPluginPrivate::nodeVisited nv;
+                nv.node = node;
+                nv.visited = false;
+                newConn.targets.push_back(nv);
+            }
+        }
+        n++;
+    }
+
+    //start route search
+    std::vector<DeRestPluginPrivate::nodeVisited> resultList;
+    std::vector<deCONZ::NodeNeighbor> neighborList;
+
+    for (uint r = 0; r < newConn.targets.size(); r++)
+    {
+        if (lightNode->address().ext() == newConn.targets[r].node->address().ext())
+        {
+            // first get neighbours of target node
+            // TODO: philips strip doesn't recognize fls as neighbours.
+            const std::vector<deCONZ::NodeNeighbor> &neighbors = newConn.targets[r].node->neighbors();
+
+            std::vector<deCONZ::NodeNeighbor>::const_iterator nb = neighbors.begin();
+            std::vector<deCONZ::NodeNeighbor>::const_iterator nb_end = neighbors.end();
+
+            DBG_Printf(DBG_INFO,"Node: %s\n",qPrintable(newConn.targets[r].node->address().toStringExt()));
+            for (; nb != nb_end; ++nb)
+            {
+                DBG_Printf(DBG_INFO,"neighbour: %s, LQI %u\n",qPrintable(nb->address().toStringExt()),nb->lqi());
+                neighborList.push_back(*nb);
+                sumLQI = sumLQI + (nb->lqi());
+                DBG_Printf(DBG_INFO,"sum: %u\n",sumLQI);
+            }
+
+            //-- first approach: start a search for all possible routes --//
+            if (!alt)
+            {
+                newConn.searchAllPaths(resultList, newConn.start, newConn.targets[r]);
+
+                // result RLQI list
+                rlqiListTemp = newConn.getRLQIList();
+                rlqiListTemp.sort();
+                newConn.setRLQIList(rlqiListTemp);
+
+                DBG_Printf(DBG_INFO,"gateway connectivity: %u\n",newConn.getRLQIList().back());
+                DBG_Printf(DBG_INFO,"number of routes: %u\n",newConn.getRLQIList().size());
+
+                resultList.clear();
+            }
+            else
+            //-- alternative approach: compute mean lqi of neighbors for each node --//
+            {
+                if (neighbors.size() == 0)
+                {
+                    meanLQI = 0;
+                }
+                else
+                {
+                    meanLQI = sumLQI / neighbors.size();
+                }
+                DBG_Printf(DBG_INFO,"sum: %u, neighbors: %i, mean LQI: %u\n",sumLQI,neighbors.size(),meanLQI);
+            }
+
+            break;
+        }
+    }
+    rsp.httpStatus = HttpStatusOk;
+
+    // Neighbours to Map
+
+    QVariantMap connectivityMap;
+    QVariantMap neighborsMap;
+    QVariantMap nbNode;
+    quint8 lqi1 = 0;
+    quint8 lqi2 = 0;
+
+    for (uint nl = 0; nl < neighborList.size(); nl++)
+    {
+        if (neighborList[nl].address().ext() != coordinatorAddress)
+        {
+            LightNode *nl_neighbor = getLightNodeForAddress(neighborList[nl].address().ext());
+            if ((nl_neighbor != NULL) && (neighborList[nl].lqi() != 0) && nl_neighbor->isAvailable())
+            {
+                //lqi value from actual node to his neighbor
+                lqi1 = neighborList[nl].lqi();
+                //DBG_Printf(DBG_INFO, "LQI %s -> %s = %u\n",qPrintable(lightNode->address().toStringExt()),qPrintable(neighborList.at(nl).address().toStringExt()),lqi1);
+
+                //lqi value from the opposite direction
+                DeRestPluginPrivate::nodeVisited oppositeNode = newConn.getNodeWithAddress(neighborList[nl].address().ext());
+
+                for(uint y = 0; y < oppositeNode.node->neighbors().size(); y++)
+                {
+                    if(oppositeNode.node->neighbors()[y].address().ext() == lightNode->address().ext())
+                    {
+                        lqi2 = oppositeNode.node->neighbors()[y].lqi();
+                        //DBG_Printf(DBG_INFO, "LQI %s -> %s = %u\n",qPrintable(nodeXY.node->address().toStringExt()),qPrintable((nodeXY.node->neighbors().at(y).address().toStringExt())),lqi2);
+                        break;
+                    }
+                }
+
+                if (!alt)
+                {
+                    //take the lower lqi value
+                    //if (lqi1 < lqi2)
+                    //take lqi from current node if it is not 0
+                    if (lqi1 != 0)
+                    {
+                        nbNode["connectivity"] = lqi1;
+                    }
+                    //else if (lqi2 != 0)
+                    else
+                    {
+                        nbNode["connectivity"] = lqi2;
+                    }
+                }
+                else
+                {
+                    // alternative approach: take the lqi value of actual node
+                    nbNode["connectivity"] = lqi1;
+                }
+
+                nbNode["name"] = nl_neighbor->name();
+                nbNode["reachable"] = nl_neighbor->isAvailable();
+                neighborsMap[nl_neighbor->id()] = nbNode;
+            }
+        }
+    }
+
+    //connectivity to Map
+
+    connectivityMap["name"] = lightNode->name();
+    connectivityMap["reachable"] = lightNode->isAvailable();
+    connectivityMap["extAddress"] = lightNode->address().toStringExt();
+    if (!alt)
+    {
+        connectivityMap["connectivity"] = newConn.getRLQIList().back();
+    }
+    else
+    {
+        connectivityMap["connectivity"] = meanLQI;
+    }
+    connectivityMap["routesToGateway"] = (double)newConn.getRLQIList().size();
+    connectivityMap["neighbours"] = neighborsMap;
+
+    updateEtag(lightNode->etag);
+    rsp.httpStatus = HttpStatusOk;
+    rsp.etag = lightNode->etag;
+    rsp.map = connectivityMap;
+
+    return REQ_READY_SEND;
 }

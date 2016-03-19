@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -13,6 +13,7 @@
 #include "de_web_widget.h"
 #include "ui_de_web_widget.h"
 
+/*! Constructor. */
 DeRestWidget::DeRestWidget(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DeWebWidget)
@@ -60,13 +61,24 @@ DeRestWidget::DeRestWidget(QWidget *parent) :
     ui->ipAddressesLabel->setText(str);
 }
 
+/*! Deconstructor. */
 DeRestWidget::~DeRestWidget()
 {
     delete ui;
 }
 
+/*! Returns true if the plugin is active. */
+bool DeRestWidget::pluginActive() const
+{
+    if (ui)
+    {
+        return ui->pluginActiveCheckBox->isChecked();
+    }
+    return false;
+}
 
+/*! Forward user input. */
 void DeRestWidget::onChangeChannelClicked()
 {
-    emit changeChannelClicked(ui->channelSpinBox->value());
+    emit changeChannelClicked((quint8)ui->channelSpinBox->value());
 }

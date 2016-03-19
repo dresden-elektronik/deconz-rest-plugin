@@ -9,6 +9,28 @@ DEFINES += DECONZ_DLLSPEC=Q_DECL_IMPORT
 unix:contains(QMAKE_HOST.arch, armv6l) {
     DEFINES += ARCH_ARM ARCH_ARMV6
 }
+unix:contains(QMAKE_HOST.arch, armv7l) {
+    DEFINES += ARCH_ARM ARCH_ARMV7
+}
+
+unix:contains(QMAKE_HOST.arch, armv7l) {
+    DEFINES += ARCH_ARM ARCH_ARMV7
+}
+
+QMAKE_CXXFLAGS += -Wno-attributes \
+                  -Wall
+
+CONFIG(debug, debug|release) {
+    LIBS += -L../../debug
+}
+
+CONFIG(release, debug|release) {
+    LIBS += -L../../release
+}
+
+greaterThan(QT_MAJOR_VERSION, 4) {
+    QT += core gui widgets
+}
 
 win32:LIBS+=  -L../.. -ldeCONZ1
 unix:LIBS+=  -L../.. -ldeCONZ -lcrypt
@@ -23,15 +45,13 @@ QT             += network
 INCLUDEPATH    += ../.. \
                   ../../common
                   
-unix:INCLUDEPATH += /usr/include
-
 # Version Major.Minor.Build
 # Important: don't change the format of this line since it's parsed by scripts!
-DEFINES += GW_SW_VERSION=\\\"1.13.00\\\"
+DEFINES += GW_SW_VERSION=\\\"2.03.24\\\"
 
 # Minimum version of the RaspBee firmware
 # which shall be used in order to support all features for this software release (case sensitive)
-DEFINES += GW_MIN_RPI_FW_VERSION=0x1a030500
+DEFINES += GW_MIN_RPI_FW_VERSION=0x26050500
 
 # Minimum version of the deRFusb23E0X firmware
 # which shall be used in order to support all features for this software release
@@ -46,8 +66,10 @@ else {
 
 QMAKE_CXXFLAGS += -Wno-attributes
 
-HEADERS  = de_web_plugin.h \
+HEADERS  = bindings.h \
+           de_web_plugin.h \
            de_web_widget.h \
+           connectivity.h \
            json.h \
            colorspace.h \
            sqlite3.h \
@@ -56,10 +78,14 @@ HEADERS  = de_web_plugin.h \
            light_node.h \
            group.h \
            group_info.h \
-           scene.h
+           rule.h \
+           scene.h \
+           sensor.h
 
 SOURCES  = authentification.cpp \
+           bindings.cpp \
            change_channel.cpp \
+           connectivity.cpp \
            database.cpp \
            discovery.cpp \
            de_web_plugin.cpp \
@@ -71,8 +97,11 @@ SOURCES  = authentification.cpp \
            rest_lights.cpp \
            rest_configuration.cpp \
            rest_groups.cpp \
+           rest_rules.cpp \
+           rest_sensors.cpp \
            rest_schedules.cpp \
            rest_touchlink.cpp \
+           rule.cpp \
            upnp.cpp \
            zcl_tasks.cpp \
            gw_uuid.cpp \
@@ -81,7 +110,10 @@ SOURCES  = authentification.cpp \
            light_node.cpp \
            group.cpp \
            group_info.cpp \
-           scene.cpp
+           scene.cpp \
+           sensor.cpp \
+           atmel_wsndemo_sensor.cpp \
+           reset_device.cpp
 
 win32:DESTDIR  = ../../debug/plugins # TODO adjust
 unix:DESTDIR  = ..

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -8,10 +8,14 @@
  *
  */
 
+#include <QFile>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include "de_web_plugin_private.h"
 #include "json.h"
+#ifdef Q_OS_LINUX
+#include <unistd.h>
+#endif
 
 /*! Inits the internet discovery manager.
  */
@@ -40,6 +44,30 @@ void DeRestPluginPrivate::initInternetDicovery()
     {
         QTimer::singleShot(5000, this, SLOT(internetDiscoveryTimerFired()));
     }
+
+#ifdef Q_OS_LINUX
+    // check if we run from shell script
+    QFile pproc(QString("/proc/%1/cmdline").arg(getppid()));
+
+    if (pproc.exists() && pproc.open(QIODevice::ReadOnly))
+    {
+
+        QByteArray name = pproc.readAll();
+
+        if (name.endsWith(".sh"))
+        {
+            DBG_Printf(DBG_INFO, "runs in shell script %s\n", qPrintable(name));
+            gwRunFromShellScript = true;
+        }
+        else
+        {
+            gwRunFromShellScript = false;
+            DBG_Printf(DBG_INFO, "parent process %s\n", qPrintable(name));
+        }
+    }
+#else
+    gwRunFromShellScript = false;
+#endif
 }
 
 /*! Sets the announce interval for internet discovery.

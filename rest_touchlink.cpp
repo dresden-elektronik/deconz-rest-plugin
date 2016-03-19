@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -11,7 +11,6 @@
 #include <QApplication>
 #include <QString>
 #include <QTcpSocket>
-#include <QHttpRequestHeader>
 #include <QVariantMap>
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
@@ -65,7 +64,10 @@ void DeRestPluginPrivate::initTouchlinkApi()
     connect(touchlinkCtrl, SIGNAL(interpanIndication(QByteArray)),
             this, SLOT(interpanDataIndication(QByteArray)));
 
-    touchlinkTimer = 0;
+    touchlinkTimer = new QTimer(this);
+    touchlinkTimer->setSingleShot(true);
+    connect(touchlinkTimer, SIGNAL(timeout()),
+            this, SLOT(touchlinkTimerFired()));
 }
 
 /*! Touchlink REST API broker.
@@ -157,16 +159,6 @@ int DeRestPluginPrivate::getTouchlinkScanResults(ApiRequest &req, ApiResponse &r
 {
     Q_UNUSED(req);
     rsp.httpStatus = HttpStatusOk;
-    /*
-        {
-            "scanstate" : "scanning | "idle",
-            "lastscan": "2939293923",
-            "result": {
-                         "1": { "factorynew": true  },
-                         "2": { "factorynew": false }
-                       }
-         }
-     */
 
     bool scanning = false;
 
@@ -189,6 +181,9 @@ int DeRestPluginPrivate::getTouchlinkScanResults(ApiRequest &req, ApiResponse &r
         QVariantMap item;
         item["address"] = i->address.toStringExt();
         item["factorynew"] = i->factoryNew;
+        item["rssi"] = (double)i->rssi;
+        item["channel"] = (double)i->channel;
+        item["panid"] = (double)i->panid;
         result[i->id] = item;
     }
 
@@ -406,7 +401,7 @@ void DeRestPluginPrivate::touchlinkDisconnectNetwork()
 
     apsCtrl->setNetworkState(deCONZ::NotInNetwork);
 
-    QTimer::singleShot(TL_DISCONNECT_CHECK_DELAY, this, SLOT(checkTouchlinkNetworkDisconnected()));
+    touchlinkTimer->start(TL_DISCONNECT_CHECK_DELAY);
 }
 
 /*! Checks if network is disconnected to proceed with further actions.
@@ -440,7 +435,7 @@ void DeRestPluginPrivate::checkTouchlinkNetworkDisconnected()
             {
                 DBG_Printf(DBG_TLINK, "disconnect from network failed, try again\n");
                 apsCtrl->setNetworkState(deCONZ::NotInNetwork);
-                QTimer::singleShot(TL_DISCONNECT_CHECK_DELAY, this, SLOT(checkTouchlinkNetworkDisconnected()));
+                touchlinkTimer->start(TL_DISCONNECT_CHECK_DELAY);
             }
             else
             {   // sanity
@@ -503,7 +498,7 @@ void DeRestPluginPrivate::sendTouchlinkScanRequest()
         if (touchlinkScanCount > TL_SCAN_COUNT)
         {
             touchlinkState = TL_WaitScanResponses;
-            QTimer::singleShot(TL_SCAN_WAIT_TIME, this, SLOT(touchlinkScanTimeout()));
+            touchlinkTimer->start(TL_SCAN_WAIT_TIME);
         }
     }
 }
@@ -585,30 +580,62 @@ void DeRestPluginPrivate::sendTouchlinkResetRequest()
     }
 }
 
+/*! Starts a delayed action based on current touchlink state.
+ */
+void DeRestPluginPrivate::touchlinkTimerFired()
+{
+    switch (touchlinkState)
+    {
+    case TL_Idle:
+        break;
+
+    case TL_WaitScanResponses:
+        touchlinkScanTimeout();
+        break;
+
+    case TL_ReconnectNetwork:
+        touchlinkReconnectNetwork();
+        break;
+
+    case TL_DisconnectingNetwork:
+        checkTouchlinkNetworkDisconnected();
+        break;
+
+    case TL_SendingScanRequest:
+        sendTouchlinkScanRequest();
+        break;
+
+    default:
+        DBG_Printf(DBG_TLINK, "touchlinkTimerFired() unhandled state %d\n", touchlinkState);
+        break;
+    }
+}
+
 /*! Confirmation callback for a interpan request.
     \param status tells if the request was sent
  */
 void DeRestPluginPrivate::sendTouchlinkConfirm(deCONZ::TouchlinkStatus status)
 {
+    if (status != deCONZ::TouchlinkSuccess)
+    {
+        DBG_Printf(DBG_TLINK, "touchlink confirm status %d for action %d\n", status, touchlinkAction);
+    }
+
     if (touchlinkState == TL_SendingScanRequest)
     {
         switch (touchlinkAction)
         {
         case TouchlinkScan:
         {
-            QTimer::singleShot(10, this, SLOT(sendTouchlinkScanRequest()));
+            touchlinkTimer->start(1);
         }
             break;
 
         case TouchlinkIdentify:
-        {
-            sendTouchlinkIdentifyRequest();
-        }
-            break;
-
         case TouchlinkReset:
         {
-            sendTouchlinkResetRequest();
+            touchlinkState = TL_WaitScanResponses;
+            touchlinkTimer->start(TL_SCAN_WAIT_TIME);
         }
             break;
 
@@ -633,23 +660,26 @@ void DeRestPluginPrivate::sendTouchlinkConfirm(deCONZ::TouchlinkStatus status)
             // mark the reset node as not available
             if (touchlinkState == TL_SendingResetRequest)
             {
-                LightNode *lightNode = getLightNodeForAddress(touchlinkDevice.address.ext());
-                // TODO: remove the node from groups
+                std::vector<LightNode>::iterator i = nodes.begin();
+                std::vector<LightNode>::iterator end = nodes.end();
 
-                if (lightNode)
+                for (; i != end; ++i)
                 {
-                    lightNode->setIsAvailable(false);
-                    updateEtag(lightNode->etag);
-                    updateEtag(gwConfigEtag);
+                    if (i->address().ext() == touchlinkDevice.address.ext())
+                    {
+                        // TODO: remove the node from groups
+                        i->setIsAvailable(false);
+                        updateEtag(i->etag);
+                        updateEtag(gwConfigEtag);
+                    }
                 }
-
             }
         }
 
         // finished go back to normal operationg state and reconnect to network
         touchlinkStartReconnectNetwork(TL_RECONNECT_NOW);
     }
-    else
+    else if (touchlinkState != TL_Idle)
     {
         DBG_Printf(DBG_TLINK, "touchlink send confirm in unexpected state: %d\n", touchlinkState);
     }
@@ -661,6 +691,13 @@ void DeRestPluginPrivate::touchlinkScanTimeout()
 {
     if (touchlinkState != TL_WaitScanResponses)
     {
+        return;
+    }
+
+    if (touchlinkAction == TouchlinkReset)
+    {
+        DBG_Printf(DBG_TLINK, "wait for scan response before reset to fn timeout\n");
+        touchlinkStartReconnectNetwork(TL_RECONNECT_NOW);
         return;
     }
 
@@ -682,6 +719,11 @@ void DeRestPluginPrivate::touchlinkScanTimeout()
  */
 void DeRestPluginPrivate::interpanDataIndication(const QByteArray &data)
 {
+    if (touchlinkState == TL_Idle)
+    {
+        return;
+    }
+
     QDataStream stream(data);
     stream.setByteOrder(QDataStream::LittleEndian);
 
@@ -725,6 +767,9 @@ void DeRestPluginPrivate::interpanDataIndication(const QByteArray &data)
         asdu.append(byte);
     }
 
+    stream >> lqi;
+    stream >> rssi;
+
     // check if ZLL specific
     if ((profileId == ZLL_PROFILE_ID) && (clusterId == 0x1000) && (asdu.size() >= 3))
     {
@@ -732,41 +777,65 @@ void DeRestPluginPrivate::interpanDataIndication(const QByteArray &data)
 //        uint8_t seq = asdu[1];
         uint8_t cmd = asdu[2];
 
-        if ((cmd == TL_CMD_SCAN_RSP) && (touchlinkAction == TouchlinkScan))
-        {
-            if (asdu.size() >= 9)
-            {
-                std::vector<ScanResponse>::iterator i = touchlinkScanResponses.begin();
-                std::vector<ScanResponse>::iterator end = touchlinkScanResponses.end();
+        ScanResponse scanResponse;
 
-                // check if already known
-                for (; i != end; ++i)
+        if (cmd == TL_CMD_SCAN_RSP)
+        {
+            scanResponse.id = QString::number(touchlinkScanResponses.size() + 1);
+            scanResponse.address.setExt(srcAddress);
+            scanResponse.factoryNew = ((asdu[9] & FACTORY_NEW_FLAG) != 0);
+            scanResponse.channel = touchlinkChannel;
+            scanResponse.panid = srcPanId;
+            scanResponse.transactionId = touchlinkReq.transactionId();
+            scanResponse.rssi = rssi;
+
+            DBG_Printf(DBG_TLINK, "scan response %s, fn=%u, channel=%u rssi=%d\n", qPrintable(scanResponse.address.toStringExt()), scanResponse.factoryNew, touchlinkChannel, rssi);
+
+            if (touchlinkAction == TouchlinkScan)
+            {
+                if (asdu.size() >= 9)
                 {
-                    if (i->address.ext() == srcAddress)
+                    std::vector<ScanResponse>::iterator i = touchlinkScanResponses.begin();
+                    std::vector<ScanResponse>::iterator end = touchlinkScanResponses.end();
+
+                    // check if already known
+                    for (; i != end; ++i)
                     {
-                        // update transaction id
-                        i->transactionId = touchlinkReq.transactionId();
-                        return;
+                        if (i->address.ext() == srcAddress)
+                        {
+                            // update transaction id
+                            i->transactionId = touchlinkReq.transactionId();
+                            return;
+                        }
+                    }
+
+                    touchlinkScanResponses.push_back(scanResponse);
+                }
+            }
+            else if (touchlinkAction == TouchlinkReset)
+            {
+                if (touchlinkState == TL_WaitScanResponses)
+                {
+                    if (scanResponse.address.ext() == touchlinkDevice.address.ext())
+                    {
+                        touchlinkTimer->stop();
+                        sendTouchlinkResetRequest();
                     }
                 }
-
-                ScanResponse scanResponse;
-                scanResponse.id = QString::number(touchlinkScanResponses.size() + 1);
-                scanResponse.address.setExt(srcAddress);
-                scanResponse.factoryNew = ((asdu[9] & FACTORY_NEW_FLAG) != 0);
-                scanResponse.channel = touchlinkChannel;
-                scanResponse.panid = srcPanId;
-                scanResponse.transactionId = touchlinkReq.transactionId();
-
-                touchlinkScanResponses.push_back(scanResponse);
-
-                DBG_Printf(DBG_TLINK, "scan response 0x%16llX, fn=%u\n", scanResponse.address.ext(), scanResponse.factoryNew);
+            }
+            else if (touchlinkAction == TouchlinkIdentify)
+            {
+                if (touchlinkState == TL_WaitScanResponses)
+                {
+                    if (scanResponse.address.ext() == touchlinkDevice.address.ext())
+                    {
+                        touchlinkTimer->stop();
+                        sendTouchlinkIdentifyRequest();
+                    }
+                }
             }
         }
     }
-
-    stream >> lqi;
-    stream >> rssi;
 }
 
 /*! Reconnect to previous network state, trying serveral times if necessary.
@@ -779,9 +848,10 @@ void DeRestPluginPrivate::touchlinkStartReconnectNetwork(int delay)
 
     DBG_Printf(DBG_TLINK, "start reconnect to network\n");
 
+    touchlinkTimer->stop();
     if (delay > 0)
     {
-        QTimer::singleShot(delay, this, SLOT(touchlinkReconnectNetwork()));
+        touchlinkTimer->start(delay);
     }
     else
     {
@@ -829,7 +899,7 @@ void DeRestPluginPrivate::touchlinkReconnectNetwork()
             }
         }
 
-        QTimer::singleShot(TL_RECONNECT_CHECK_DELAY, this, SLOT(touchlinkReconnectNetwork()));
+        touchlinkTimer->start(TL_RECONNECT_CHECK_DELAY);
     }
     else
     {

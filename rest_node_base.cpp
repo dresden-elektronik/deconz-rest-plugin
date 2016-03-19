@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -14,7 +14,10 @@
  */
 RestNodeBase::RestNodeBase() :
     m_node(0),
-    m_available(false)
+    m_available(false),
+    m_read(0),
+    m_lastRead(0),
+    m_lastAttributeReportBind(0)
 {
 
 }
@@ -82,4 +85,96 @@ const QString &RestNodeBase::id() const
 void RestNodeBase::setId(const QString &id)
 {
     m_id = id;
+}
+
+/*! Returns the nodes unique Id.
+    The MAC address of the device with a unique endpoint id in the form: AA:BB:CC:DD:EE:FF:00:11-XX
+ */
+const QString &RestNodeBase::uniqueId() const
+{
+    return m_uid;
+}
+
+/*! Sets the sensor unique Id.
+    The MAC address of the device with a unique endpoint id in the form: AA:BB:CC:DD:EE:FF:00:11-XX
+    \param uid the sensor unique Id
+ */
+void RestNodeBase::setUniqueId(const QString &uid)
+{
+    m_uid = uid;
+}
+
+/*! Check if some data must be queried from the node.
+    \param readFlags or combined bitmap of READ_* values
+    \return true if every flag in readFlags is set
+*/
+bool RestNodeBase::mustRead(uint32_t readFlags)
+{
+    if ((m_read & readFlags) == readFlags)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+/*! Enables all flags given in \p readFlags in the read set.
+    \param readFlags or combined bitmap of READ_* values
+ */
+void RestNodeBase::enableRead(uint32_t readFlags)
+{
+    m_read |= readFlags;
+}
+
+/*! Clears all flags given in \p readFlags in the read set.
+    \param readFlags or combined bitmap of READ_* values
+ */
+void RestNodeBase::clearRead(uint32_t readFlags)
+{
+    m_read &= ~readFlags;
+}
+
+/*! Returns the time than the next auto reading is queued.
+ */
+const QTime &RestNodeBase::nextReadTime() const
+{
+    return m_nextReadTime;
+}
+
+/*! Sets the time than the next auto reading should be queued.
+    \param time the time for reading
+ */
+void RestNodeBase::setNextReadTime(const QTime &time)
+{
+    m_nextReadTime = time;
+}
+
+/*! Returns the value of the idleTotalCounter than the last reading happend.
+ */
+int RestNodeBase::lastRead() const
+{
+    return m_lastRead;
+}
+
+/*! Sets the last read counter.
+    \param lastRead copy of idleTotalCounter
+ */
+void RestNodeBase::setLastRead(int lastRead)
+{
+    m_lastRead = lastRead;
+}
+
+/*! Returns the value of the idleTotalCounter than the last attribute report binding was done.
+ */
+int RestNodeBase::lastAttributeReportBind() const
+{
+    return m_lastAttributeReportBind;
+}
+
+/*! Sets idleTotalCounter of last attribute report binding.
+    \param lastBind copy of idleTotalCounter
+ */
+void RestNodeBase::setLastAttributeReportBind(int lastBind)
+{
+    m_lastAttributeReportBind = lastBind;
 }

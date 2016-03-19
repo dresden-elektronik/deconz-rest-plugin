@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -9,6 +9,7 @@
  */
 
 #include "group.h"
+#include <QStringList>
 
 /*! Constructor.
  */
@@ -16,7 +17,8 @@ Group::Group() :
     m_state(StateNormal),
     m_addr(0),
     m_id("0"),
-    m_on(false)
+    m_on(false),
+    m_colorLoopActive(false)
 {
    sendTime = QTime::currentTime();
    hueReal = 0;
@@ -25,6 +27,7 @@ Group::Group() :
    level = 127;
    colorX = 0;
    colorY = 0;
+   colorTemperature = 0;
 }
 
 /*! Returns the 16 bit group address.
@@ -91,4 +94,88 @@ bool Group::isOn() const
 void Group::setIsOn(bool on)
 {
     m_on = on;
+}
+
+/*! Sets the group color loop active state.
+    \param colorLoopActive whereever the color loop is active
+ */
+void Group::setColorLoopActive(bool colorLoopActive)
+{
+    m_colorLoopActive = colorLoopActive;
+}
+
+/*! Returns true if the color loop is active. */
+bool Group::isColorLoopActive() const
+{
+    return m_colorLoopActive;
+}
+
+/*! multiDeviceIds to string. */
+const QString Group::midsToString() const
+{
+    QString result = "";
+
+    std::vector<QString>::const_iterator i = m_multiDeviceIds.begin();
+    std::vector<QString>::const_iterator end = m_multiDeviceIds.end();
+
+    for (;i != end; ++i)
+    {
+        result.append(*i);
+        if (i != end-1)
+        {
+            result.append(",");
+        }
+    }
+
+    return result;
+}
+
+/*! multiDeviceIds String to vector. */
+void Group::setMidsFromString(const QString mids)
+{
+    QStringList list = mids.split(",", QString::SkipEmptyParts);
+
+    QStringList::const_iterator i = list.begin();
+    QStringList::const_iterator end = list.end();
+
+    for (;i != end; ++i)
+    {
+        m_multiDeviceIds.push_back(*i);
+    }
+
+}
+
+/*! deviceMembership to string. */
+const QString Group::dmToString() const
+{
+    QString result = "";
+
+    std::vector<QString>::const_iterator i = m_deviceMemberships.begin();
+    std::vector<QString>::const_iterator end = m_deviceMemberships.end();
+
+    for (;i != end; ++i)
+    {
+        result.append(*i);
+        if (i != end-1)
+        {
+            result.append(",");
+        }
+    }
+
+    return result;
+}
+
+/*! deviceMembership String to vector. */
+void Group::setDmFromString(const QString deviceIds)
+{
+    QStringList list = deviceIds.split(",", QString::SkipEmptyParts);
+
+    QStringList::const_iterator i = list.begin();
+    QStringList::const_iterator end = list.end();
+
+    for (;i != end; ++i)
+    {
+        m_deviceMemberships.push_back(*i);
+    }
+
 }

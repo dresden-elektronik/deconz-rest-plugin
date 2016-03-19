@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -10,14 +10,18 @@
 
 #include "de_web_plugin_private.h"
 
-#define DE_OTAU_ENDPOINT             0x50
-
+// de otau specific
 #define OTAU_IMAGE_NOTIFY_CLID                 0x0201
 #define OTAU_QUERY_NEXT_IMAGE_REQUEST_CLID     0x0202
 #define OTAU_QUERY_NEXT_IMAGE_RESPONSE_CLID    0x8202
 #define OTAU_IMAGE_BLOCK_REQUEST_CLID          0x0203
 #define OTAU_IMAGE_BLOCK_RESPONSE_CLID         0x8203
 #define OTAU_REPORT_STATUS_CLID                0x0205
+
+// std otau specific
+#define OTAU_IMAGE_NOTIFY_CMD_ID          0x00
+#define OTAU_IMAGE_BLOCK_REQUEST_CMD_ID   0x03
+#define OTAU_IMAGE_PAGE_REQUEST_CMD_ID    0x04
 
 #define DONT_CARE_FILE_VERSION                 0xFFFFFFFFUL
 
@@ -26,8 +30,8 @@
 #define OTAU_IMAGE_TYPE_QJ_MFC_IT      0x02 // Query jitter, manufacturer code, image type
 #define OTAU_IMAGE_TYPE_QJ_MFC_IT_FV   0x03 // Query jitter, manufacturer code, image type, file version
 
-#define OTAU_IDLE_TICKS_NOTIFY    15  // seconds
-#define OTAU_BUSY_TICKS           120 // seconds
+#define OTAU_IDLE_TICKS_NOTIFY    60  // seconds
+#define OTAU_BUSY_TICKS           60  // seconds
 
 /*! Inits the otau manager.
  */
@@ -42,32 +46,31 @@ void DeRestPluginPrivate::initOtau()
     otauTimer->setSingleShot(false);
     connect(otauTimer, SIGNAL(timeout()),
             this, SLOT(otauTimerFired()));
-    otauTimer->start(1000);
+
+    if (otauNotifyDelay > 0)
+    {
+        otauTimer->start(1000);
+    }
 }
 
 /*! Handler for incoming otau packets.
  */
-void DeRestPluginPrivate::otauDataIndication(const deCONZ::ApsDataIndication &ind)
+void DeRestPluginPrivate::otauDataIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame)
 {
-    if (!gwOtauActive)
+    if (!isOtauActive())
     {
         return;
     }
 
-    DBG_Assert(ind.profileId() == DE_PROFILE_ID);
-
-    if (ind.profileId() != DE_PROFILE_ID)
+    if (((ind.profileId() == DE_PROFILE_ID) && (ind.clusterId() == OTAU_IMAGE_BLOCK_REQUEST_CLID)) ||
+        ((ind.clusterId() == OTAU_CLUSTER_ID) && (zclFrame.commandId() == OTAU_IMAGE_BLOCK_REQUEST_CMD_ID)) ||
+        ((ind.clusterId() == OTAU_CLUSTER_ID) && (zclFrame.commandId() == OTAU_IMAGE_PAGE_REQUEST_CMD_ID)))
     {
-        return;
-    }
+        if (otauIdleTicks > 0)
+        {
+            otauIdleTicks = 0;
+        }
 
-    if (otauIdleTicks > 0)
-    {
-        otauIdleTicks = 0;
-    }
-
-    if (ind.clusterId() == OTAU_IMAGE_BLOCK_REQUEST_CLID)
-    {
         if (otauBusyTicks <= 0)
         {
             updateEtag(gwConfigEtag);
@@ -77,7 +80,7 @@ void DeRestPluginPrivate::otauDataIndication(const deCONZ::ApsDataIndication &in
     }
 }
 
-/*! Sends otau notifcation to \p node.
+/*! Sends otau notifcation (de specific otau cluster) to \p node.
  */
 void DeRestPluginPrivate::otauSendNotify(LightNode *node)
 {
@@ -104,7 +107,7 @@ void DeRestPluginPrivate::otauSendNotify(LightNode *node)
 
     uint8_t reqType = OTAU_IMAGE_TYPE_QJ_MFC_IT_FV;
     uint8_t queryJitter = 100;
-    uint16_t manufacturerCode = VENDOR_DDEL;
+    uint16_t manufacturerCode = VENDOR_ATMEL;
     uint16_t imageType = 0x0000;
     uint32_t fileVersion = DONT_CARE_FILE_VERSION; // any node shall answer
 
@@ -126,13 +129,71 @@ void DeRestPluginPrivate::otauSendNotify(LightNode *node)
     }
 }
 
+/*! Sends otau notifcation (std otau cluster) to \p node.
+    The node will then send a query next image request.
+ */
+void DeRestPluginPrivate::otauSendStdNotify(LightNode *node)
+{
+    deCONZ::ApsDataRequest req;
+    deCONZ::ZclFrame zclFrame;
+
+    req.setProfileId(HA_PROFILE_ID);
+    req.setClusterId(OTAU_CLUSTER_ID);
+    req.setDstAddressMode(deCONZ::ApsExtAddress);
+    req.dstAddress().setExt(node->address().ext());
+    req.setDstEndpoint(node->haEndpoint().endpoint());
+    req.setSrcEndpoint(endpoint());
+    req.setState(deCONZ::FireAndForgetState);
+
+    zclFrame.setSequenceNumber(zclSeq++);
+    zclFrame.setCommandId(OTAU_IMAGE_NOTIFY_CMD_ID);
+
+    zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
+                             deCONZ::ZclFCDirectionServerToClient |
+                             deCONZ::ZclFCDisableDefaultResponse);
+
+    { // payload
+        QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        uint8_t payloadType = 0x00; // query jitter
+        uint8_t queryJitter = 100;
+
+        stream << payloadType;
+        stream << queryJitter;
+    }
+
+    { // ZCL frame
+        QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        zclFrame.writeToStream(stream);
+    }
+
+    if (apsCtrl && apsCtrl->apsdeDataRequest(req) != deCONZ::Success)
+    {
+        DBG_Printf(DBG_INFO, "otau failed to send image notify request\n");
+    }
+}
+
 /*! Returns true if otau is busy with uploading data.
  */
 bool DeRestPluginPrivate::isOtauBusy()
 {
-    if (isInNetwork() && gwOtauActive && (otauBusyTicks > 0))
+    if (isInNetwork() && isOtauActive() && (otauBusyTicks > 0))
     {
         return true;
+    }
+
+    return false;
+}
+
+/*! Returns true if otau is activated.
+ */
+bool DeRestPluginPrivate::isOtauActive()
+{
+    if (apsCtrl)
+    {
+        return apsCtrl->getParameter(deCONZ::ParamOtauActive) == 1;
     }
 
     return false;
@@ -142,7 +203,12 @@ bool DeRestPluginPrivate::isOtauBusy()
  */
 void DeRestPluginPrivate::otauTimerFired()
 {
-    if (!gwOtauActive)
+    if (!isOtauActive())
+    {
+        return;
+    }
+
+    if (otauNotifyDelay == 0)
     {
         return;
     }
@@ -157,7 +223,10 @@ void DeRestPluginPrivate::otauTimerFired()
         return;
     }
 
-    otauIdleTicks++;
+    if (otauIdleTicks < INT_MAX)
+    {
+        otauIdleTicks++;
+    }
 
     if (otauBusyTicks > 0)
     {
@@ -181,7 +250,26 @@ void DeRestPluginPrivate::otauTimerFired()
         otauNotifyIter = 0;
     }
 
-    otauSendNotify(&nodes[otauNotifyIter]);
+    LightNode *lightNode = &nodes[otauNotifyIter];
+
+    if (lightNode->isAvailable() &&
+        lightNode->otauClusterId() == OTAU_CLUSTER_ID)
+    {
+        // std otau
+        if (lightNode->manufacturerCode() == VENDOR_DDEL)
+        {
+            // whitelist active notify to some devices
+            if (lightNode->modelId().startsWith("FLS-NB"))
+            {
+                otauSendStdNotify(lightNode);
+            }
+        }
+    }
+    else
+    {
+        // de specific otau
+        //otauSendNotify(lightNode);
+    }
 
     otauNotifyIter++;
 }

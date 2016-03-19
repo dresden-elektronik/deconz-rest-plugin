@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -38,6 +38,14 @@ public:
     uint16_t id;
     std::vector<uint8_t> addScenes;
     std::vector<uint8_t> removeScenes;
+    std::vector<uint8_t> modifyScenes;
+
+    uint8_t sceneCount() const;
+    void setSceneCount(uint8_t sceneCount);
+
+private:
+
+    uint8_t m_sceneCount;
 };
 
 #endif // GROUP_INFO_H

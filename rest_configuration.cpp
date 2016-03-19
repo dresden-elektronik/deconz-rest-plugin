@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -13,13 +13,12 @@
 #include <QFile>
 #include <QString>
 #include <QTcpSocket>
-#include <QHttpRequestHeader>
 #include <QVariantMap>
 #include <QNetworkInterface>
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "json.h"
-
+#include <stdlib.h>
 
 /*! Configuration REST API broker.
     \param req - request data
@@ -53,7 +52,7 @@ int DeRestPluginPrivate::handleConfigurationApi(const ApiRequest &req, ApiRespon
     // DELETE /api/<apikey>/config/whitelist/<username2>
     else if ((req.path.size() == 5) && (req.hdr.method() == "DELETE") && (req.path[2] == "config") && (req.path[3] == "whitelist"))
     {
-        // TODO deleteUser()
+        return deleteUser(req, rsp);
     }
     // POST /api/<apikey>/config/update
     else if ((req.path.size() == 4) && (req.hdr.method() == "POST") && (req.path[2] == "config") && (req.path[3] == "update"))
@@ -186,12 +185,13 @@ int DeRestPluginPrivate::createUser(const ApiRequest &req, ApiResponse &rsp)
 
 /*! Puts all parameters in a map for later JSON serialization.
  */
-void DeRestPluginPrivate::configToMap(QVariantMap &map)
+void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
 {
     bool ok;
     QVariantMap whitelist;
     QVariantMap swupdate;
-    QDateTime datetime = QDateTime::currentDateTime();
+    QDateTime datetime = QDateTime::currentDateTimeUtc();
+    QDateTime localtime = QDateTime::currentDateTime();
 
     QNetworkInterface eth;
 
@@ -236,7 +236,7 @@ void DeRestPluginPrivate::configToMap(QVariantMap &map)
             }
         }
 
-        map["mac"] = eth.hardwareAddress();
+        map["mac"] = eth.hardwareAddress().toLower();
     }
 
     if (!ok)
@@ -251,46 +251,98 @@ void DeRestPluginPrivate::configToMap(QVariantMap &map)
     std::vector<ApiAuth>::const_iterator end = apiAuths.end();
     for (; i != end; ++i)
     {
-        QVariantMap au;
-        au["last use date"] = i->lastUseDate.toString("yyyy-MM-ddTHH:mm:ss"); // ISO 8601
-        au["create date"] = i->createDate.toString("yyyy-MM-ddTHH:mm:ss"); // ISO 8601
-        au["name"] = i->devicetype;
-        whitelist[i->apikey] = au;
+        if (i->state == ApiAuth::StateNormal)
+        {
+            QVariantMap au;
+            au["last use date"] = i->lastUseDate.toString("yyyy-MM-ddTHH:mm:ss"); // ISO 8601
+            au["create date"] = i->createDate.toString("yyyy-MM-ddTHH:mm:ss"); // ISO 8601
+            au["name"] = i->devicetype;
+            whitelist[i->apikey] = au;
+        }
+    }
+
+    if (req.apiVersion() == ApiVersion_1_DDEL)
+    {
+        map["rfconnected"] = gwRfConnected;
+        map["permitjoin"] = (double)gwPermitJoinDuration;
+        map["otauactive"] = isOtauActive();
+        map["otaustate"] = (isOtauBusy() ? "busy" : (isOtauActive() ? "idle" : "off"));
+        map["groupdelay"] = (double)gwGroupSendDelay;
+        map["discovery"] = (gwAnnounceInterval > 0);
+        map["updatechannel"] = gwUpdateChannel;
+        map["fwversion"] = gwFirmwareVersion;
+        map["fwneedupdate"] = gwFirmwareNeedUpdate;
+        map["announceurl"] = gwAnnounceUrl;
+        map["announceinterval"] = (double)gwAnnounceInterval;
+        map["swversion"] = GW_SW_VERSION;
+        swupdate["version"] = gwUpdateVersion;
+        swupdate["updatestate"] = (double)0;
+        swupdate["url"] = "";
+        swupdate["text"] = "";
+        swupdate["notify"] = false;
+        map["swupdate"] = swupdate;
+        map["port"] = (double)deCONZ::appArgumentNumeric("--http-port", 80);
+        // since api version 1.2.1
+        map["apiversion"] = GW_SW_VERSION;
+        map["system"] = "other";
+#if defined(ARCH_ARMV6) || defined (ARCH_ARMV7)
+#ifdef Q_OS_LINUX
+        map["system"] = "linux-gw";
+#endif
+#endif
+    }
+    else
+    {
+        map["swversion"] = QString(GW_SW_VERSION).replace(QChar('.'), "");
+        swupdate["updatestate"] = (double)0;
+        swupdate["url"] = "";
+        swupdate["text"] = "";
+        swupdate["notify"] = false;
+        map["swupdate"] = swupdate;
+        // since api version 1.2.1
+        map["apiversion"] = "1.0.0";
+        // since api version 1.3.0
     }
 
     map["name"] = gwName;
     map["uuid"] = gwUuid;
-    map["port"] = (double)deCONZ::appArgumentNumeric("--http-port", 80);
+    if (apsCtrl)
+    {
+        map["zigbeechannel"] = apsCtrl->getParameter(deCONZ::ParamCurrentChannel);
+        map["panid"] = apsCtrl->getParameter(deCONZ::ParamPANID);
+    }
+    else
+    {
+        map["zigbeechannel"] = (double)gwZigbeeChannel;
+    }
     map["dhcp"] = true; // dummy
-    map["gateway"] = "192.168.178.1"; // TODO
     map["proxyaddress"] = ""; // dummy
     map["proxyport"] = (double)0; // dummy
     map["utc"] = datetime.toString("yyyy-MM-ddTHH:mm:ss"); // ISO 8601
+    map["localtime"] = localtime.toString("yyyy-MM-ddTHH:mm:ss"); // ISO 8601
+    map["timezone"] = gwTimezone;
+    map["networkopenduration"] = gwNetworkOpenDuration;
+    map["timeformat"] = gwTimeFormat;
     map["whitelist"] = whitelist;
-    map["swversion"] = GW_SW_VERSION;
-    map["fwversion"] = gwFirmwareVersion;
-    map["fwneedupdate"] = gwFirmwareNeedUpdate;
-    map["announceurl"] = gwAnnounceUrl;
-    map["announceinterval"] = (double)gwAnnounceInterval;
-    map["rfconnected"] = gwRfConnected;
-    map["permitjoin"] = (double)gwPermitJoinDuration;
-    map["otauactive"] = gwOtauActive;
-    map["otaustate"] = (isOtauBusy() ? "busy" : (gwOtauActive ? "idle" : "off"));
-    map["groupdelay"] = (double)gwGroupSendDelay;
-    map["discovery"] = (gwAnnounceInterval > 0);
-    map["updatechannel"] = gwUpdateChannel;
-    swupdate["version"] = gwUpdateVersion;
-    swupdate["updatestate"] = (double)0;
-    swupdate["url"] = "";
-    swupdate["text"] = "";
-    swupdate["notify"] = false;
-    map["swupdate"] = swupdate;
-
+    map["rgbwdisplay"] = gwRgbwDisplay;
     map["linkbutton"] = gwLinkButton;
     map["portalservices"] = false;
 
     gwIpAddress = map["ipaddress"].toString(); // cache
-    gwPort = map["port"].toDouble(); // cache
+    gwPort = deCONZ::appArgumentNumeric("--http-port", 80); // cache
+
+    QStringList ipv4 = gwIpAddress.split(".");
+
+    if (ipv4.size() == 4)
+    {
+        ipv4.removeLast();
+        ipv4.append("1");
+        map["gateway"] = ipv4.join(".");
+    }
+    else
+    {
+        map["gateway"] = "192.168.178.1";
+    }
 }
 
 /*! GET /api/<apikey>
@@ -319,35 +371,41 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
-    QVariantMap lights;
-    QVariantMap groups;
-    QVariantMap config;
-    QVariantMap schedules;
+    QVariantMap lightsMap;
+    QVariantMap groupsMap;
+    QVariantMap configMap;
+    QVariantMap schedulesMap;
+    QVariantMap sensorsMap;
 
     // lights
     {
-        std::vector<LightNode>::const_iterator i = this->nodes.begin();
-        std::vector<LightNode>::const_iterator end = this->nodes.end();
+        std::vector<LightNode>::const_iterator i = nodes.begin();
+        std::vector<LightNode>::const_iterator end = nodes.end();
 
         for (; i != end; ++i)
         {
+            if (i->state() == LightNode::StateDeleted)
+            {
+                continue;
+            }
+
             QVariantMap map;
             if (lightToMap(req, &(*i), map))
             {
-                lights[i->id()] = map;
+                lightsMap[i->id()] = map;
             }
         }
     }
 
     // groups
     {
-        std::vector<Group>::const_iterator i = this->groups.begin();
-        std::vector<Group>::const_iterator end = this->groups.end();
+        std::vector<Group>::const_iterator i = groups.begin();
+        std::vector<Group>::const_iterator end = groups.end();
 
         for (; i != end; ++i)
         {
             // ignore deleted groups
-            if (i->state() == Group::StateDeleted)
+            if (i->state() == Group::StateDeleted || i->state() == Group::StateDeleteFromDB)
             {
                 continue;
             }
@@ -357,18 +415,44 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
                 QVariantMap map;
                 if (groupToMap(&(*i), map))
                 {
-                    groups[i->id()] = map;
+                    groupsMap[i->id()] = map;
                 }
             }
         }
     }
 
-    configToMap(config);
+    // schedules
+    {
+        std::vector<Schedule>::const_iterator i = schedules.begin();
+        std::vector<Schedule>::const_iterator end = schedules.end();
 
-    rsp.map["lights"] = lights;
-    rsp.map["groups"] = groups;
-    rsp.map["config"] = config;
-    rsp.map["schedules"] = schedules;
+        for (; i != end; ++i)
+        {
+            schedulesMap[i->id] = i->jsonMap;
+        }
+    }
+
+    // sensors
+    {
+        std::vector<Sensor>::const_iterator i = sensors.begin();
+        std::vector<Sensor>::const_iterator end = sensors.end();
+
+        for (; i != end; ++i)
+        {
+            QVariantMap map;
+            if (sensorToMap(&(*i), map))
+            {
+                sensorsMap[i->id()] = map;
+            }
+        }
+    }
+    configToMap(req, configMap);
+
+    rsp.map["lights"] = lightsMap;
+    rsp.map["groups"] = groupsMap;
+    rsp.map["config"] = configMap;
+    rsp.map["schedules"] = schedulesMap;
+    rsp.map["sensors"] = sensorsMap;
     rsp.etag = gwConfigEtag;
     rsp.httpStatus = HttpStatusOk;
     return REQ_READY_SEND;
@@ -400,7 +484,7 @@ int DeRestPluginPrivate::getConfig(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
-    configToMap(rsp.map);
+    configToMap(req, rsp.map);
     rsp.httpStatus = HttpStatusOk;
     rsp.etag = gwConfigEtag;
     return REQ_READY_SEND;
@@ -564,6 +648,21 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
         setPermitJoinDuration(seconds);
 
+        // reactivate lights that were deleted
+        std::vector<LightNode>::iterator i = nodes.begin();
+        std::vector<LightNode>::iterator end = nodes.end();
+
+        for (; i != end; ++i)
+        {
+            if (i->state() == LightNode::StateDeleted)
+            {
+                if (i->isAvailable())
+                {
+                    i->setState(LightNode::StateNormal);
+                }
+            }
+        }
+
         QVariantMap rspItem;
         QVariantMap rspItemState;
         rspItemState["/config/permitjoin"] = (double)seconds;
@@ -595,6 +694,30 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         rsp.list.append(rspItem);
     }
 
+    if (map.contains("rgbwdisplay")) // optional
+    {
+        QString rgbwDisplay = map["rgbwdisplay"].toString();
+        if (rgbwDisplay != "1" && rgbwDisplay != "2")
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/rgbwdisplay"), QString("invalid value, %1, for parameter, rgbwdisplay").arg(map["rgbwdisplay"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+
+        if (gwRgbwDisplay != rgbwDisplay)
+        {
+            gwRgbwDisplay = rgbwDisplay;
+            queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
+            changed = true;
+        }
+
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState["/config/rgbwdisplay"] = rgbwDisplay;
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+    }
+
     if (map.contains("otauactive")) // optional
     {
         bool otauActive = map["otauactive"].toBool();
@@ -606,11 +729,13 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
             return REQ_READY_SEND;
         }
 
-        if (gwOtauActive != otauActive)
+        if (isOtauActive() != otauActive)
         {
-            gwOtauActive = otauActive;
             changed = true;
+            queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
         }
+
+        apsCtrl->setParameter(deCONZ::ParamOtauActive, otauActive ? 1 : 0);
 
         QVariantMap rspItem;
         QVariantMap rspItemState;
@@ -686,6 +811,185 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         rsp.list.append(rspItem);
     }
 
+    if (map.contains("zigbeechannel")) // optional
+    {
+        uint zigbeechannel = map["zigbeechannel"].toUInt(&ok);
+
+        if (!ok || ((zigbeechannel != 0) && (zigbeechannel != 11) && (zigbeechannel != 15) && (zigbeechannel != 20) && (zigbeechannel != 25)))
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/zigbeechannel"), QString("invalid value, %1, for parameter, zigbeechannel").arg(map["zigbeechannel"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+
+            if (startChannelChange(zigbeechannel))
+            {
+                changed = true;
+            }
+            else
+            {
+                // not connected
+            }
+
+
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState["/config/zigbeechannel"] = (uint)zigbeechannel;
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+    }
+
+    if (map.contains("networkopenduration")) // optional
+    {
+        int seconds = map["networkopenduration"].toInt(&ok);
+
+        if (!ok)
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/networkopenduration"), QString("invalid value, %1, for parameter, networkopenduration").arg(map["networkopenduration"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+
+        if (gwNetworkOpenDuration != seconds)
+        {
+            DBG_Printf(DBG_INFO, "set gwNetworkOpenDuration to: %u\n", seconds);
+            gwNetworkOpenDuration = seconds;
+            changed = true;
+            queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
+        }
+
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState["/config/networkopenduration"] = (double)seconds;
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+    }
+
+    if (map.contains("timezone")) // optional
+    {
+        QString timezone = map["timezone"].toString();
+
+        if (map["timezone"].type() != QVariant::String)
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/timezone"), QString("invalid value, %1, for parameter, timezone").arg(map["timezone"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+
+        if (gwTimezone != timezone)
+        {
+            gwTimezone = timezone;
+            queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
+            changed = true;
+#ifdef ARCH_ARM
+#ifdef Q_OS_LINUX
+            //set timezone under gnu linux
+            std::string command = "echo '" + timezone.toStdString() + "' | sudo tee /etc/timezone";
+            system(command.c_str());
+
+            command = "sudo dpkg-reconfigure -f noninteractive tzdata";
+            system(command.c_str());
+#endif
+#endif
+        }
+
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState["/config/timezone"] = timezone;
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+    }
+
+    if (map.contains("utc")) // optional
+    {
+        bool error = false;
+        if ((map["utc"].type() != QVariant::String))
+        {
+            error = true;
+        }
+        else
+        {
+            QDateTime utc = QDateTime::fromString(map["utc"].toString(),"yyyy-MM-ddTHH:mm:ss");
+            if (!utc.isValid())
+            {
+                error = true;
+            }
+        }
+
+        if (error)
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/utc"), QString("invalid value, %1, for parameter, utc").arg(map["utc"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+/*      // not implementet yet
+        #ifdef WIN32
+            QString year = map["utc"].toString().mid(0, 4);
+            QString month = map["utc"].toString().mid(5, 2);
+            QString day = map["utc"].toString().mid(8, 2);
+            QString time = map["utc"].toString().mid(11, 8);
+
+            std::string command = "date " + day.toStdString() + "-" + month.toStdString() + "-" + year.toStdString();
+            system(command.c_str());
+
+            DBG_Printf(DBG_INFO, "command set date: %s\n", qPrintable(QString::fromStdString(command)));
+
+            command = "time " + time.toStdString();
+            system(command.c_str());
+
+            DBG_Printf(DBG_INFO, "command set time: %s\n", qPrintable(QString::fromStdString(command)));
+        #endif
+*/
+#ifdef ARCH_ARM
+#ifdef Q_OS_LINUX
+            QString date = map["utc"].toString().mid(0, 10);
+            QString time = map["utc"].toString().mid(11, 8);
+
+            std::string command = "sudo date -s " + date.toStdString();
+            system(command.c_str());
+
+            DBG_Printf(DBG_INFO, "command set date: %s\n", qPrintable(QString::fromStdString(command)));
+
+            command = "sudo date -s " + time.toStdString();
+            system(command.c_str());
+
+            DBG_Printf(DBG_INFO, "command set time: %s\n", qPrintable(QString::fromStdString(command)));
+#endif
+#endif
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState["/config/utc"] = map["utc"];
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+    }
+
+    if (map.contains("timeformat")) // optional
+    {
+        QString timeFormat = map["timeformat"].toString();
+
+        if ((map["timeformat"].type() != QVariant::String) ||
+               !((timeFormat == "12h") || (timeFormat == "24h"))
+           )
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/timeformat"), QString("invalid value, %1, for parameter, timeformat").arg(map["timeformat"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+
+        if (gwTimeFormat != timeFormat)
+        {
+            gwTimeFormat = timeFormat;
+            changed = true;
+            queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
+        }
+
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState["/config/timeformat"] = timeFormat;
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+    }
+
     if (changed)
     {
         updateEtag(gwConfigEtag);
@@ -693,6 +997,42 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
     rsp.etag = gwConfigEtag;
 
+    return REQ_READY_SEND;
+}
+
+/*! DELETE /api/<apikey>/config/whitelist/<username2>
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::deleteUser(const ApiRequest &req, ApiResponse &rsp)
+{
+    if(!checkApikeyAuthentification(req, rsp))
+    {
+        return REQ_READY_SEND;
+    }
+
+    QString username2 = req.path[4];
+
+    std::vector<ApiAuth>::iterator i = apiAuths.begin();
+    std::vector<ApiAuth>::iterator end = apiAuths.end();
+
+    for (; i != end; ++i)
+    {
+        if (username2 == i->apikey && i->state == ApiAuth::StateNormal)
+        {
+            i->state = ApiAuth::StateDeleted;
+            queSaveDb(DB_AUTH, DB_LONG_SAVE_DELAY);
+
+            QVariantMap rspItem;
+            rspItem["success"] = QString("/config/whitelist/%1 deleted.").arg(username2);
+            rsp.list.append(rspItem);
+
+            return REQ_READY_SEND;
+        }
+    }
+
+    rsp.str = "[]"; // empty
+    rsp.httpStatus = HttpStatusOk;
     return REQ_READY_SEND;
 }
 
@@ -909,10 +1249,15 @@ void DeRestPluginPrivate::updateFirmwareTimerFired()
     }
 
     // only supported on Raspberry Pi
-#ifdef Q_OS_LINUX
+#ifdef ARCH_ARM
     QString scriptname = "/var/tmp/deCONZ-update-firmware.sh";
 
+#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
+    QString fwpath = QStandardPaths::standardLocations(QStandardPaths::HomeLocation).first();
+#else
     QString fwpath = QDesktopServices::storageLocation(QDesktopServices::HomeLocation);
+#endif
+
     fwpath.append("/raspbee_firmware/");
     fwpath.append("deCONZ_Rpi_");
     fwpath.append(gwFirmwareVersionUpdate);
@@ -1089,4 +1434,27 @@ void DeRestPluginPrivate::checkMinFirmwareVersionFile()
         gwFirmwareVersionUpdate = gwFirmwareVersion; // revert
     }
 #endif // ARCH_ARM
+}
+
+/*! get current Timezone from gnu linux as IANA code.
+ */
+std::string DeRestPluginPrivate::getTimezone()
+{
+
+#ifdef ARCH_ARM
+#ifdef Q_OS_LINUX
+    char const* cmd = "cat /etc/timezone";
+    FILE* pipe = popen(cmd, "r");
+    if (!pipe) return "error";
+    char buffer[128];
+    std::string result = "";
+    while(!feof(pipe)) {
+        if(fgets(buffer, 128, pipe) != NULL)
+            result += buffer;
+    }
+    pclose(pipe);
+    return result;
+#endif
+#endif
+    return "none";
 }

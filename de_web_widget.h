@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -24,12 +24,13 @@ class DeRestWidget : public QDialog
 public:
     explicit DeRestWidget(QWidget *parent);
     ~DeRestWidget();
+    bool pluginActive() const;
 
 public Q_SLOTS:
 
 Q_SIGNALS:
     void refreshAllClicked();
-    void changeChannelClicked(int channel);
+    void changeChannelClicked(quint8 channel);
     
 private Q_SLOTS:
     void onChangeChannelClicked();

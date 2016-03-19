@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -18,7 +18,7 @@
 class DeRestWidget;
 class DeRestPluginPrivate;
 
-#if DECONZ_LIB_VERSION < 0x010100
+#if DECONZ_LIB_VERSION < 0x010200
   #error "The REST plugin requires at least deCONZ library version 1.1.0."
 #endif
 
@@ -28,7 +28,9 @@ class DeRestPlugin : public QObject,
 {
     Q_OBJECT
     Q_INTERFACES(deCONZ::NodeInterface)
-
+#if QT_VERSION >= 0x050000
+    Q_PLUGIN_METADATA(IID "org.dresden-elektronik.DeRestPlugin")
+#endif
 public:
 
     enum State
@@ -54,21 +56,17 @@ public:
     bool isHttpTarget(const QHttpRequestHeader &hdr);
     int handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *sock);
     void clientGone(QTcpSocket *sock);
+    bool pluginActive() const;
 
 public Q_SLOTS:
-    void nodeEvent(int event, const deCONZ::Node *node);
     void idleTimerFired();
     void refreshAll();
-    void startReadTimer(int delay);
-    void stopReadTimer();
-    void checkReadTimerFired();
+    void startZclAttributeTimer(int delay);
+    void stopZclAttributeTimer();
+    void checkZclAttributeTimerFired();
     void appAboutToQuit();
 
 private:
-    void taskHandler(Event event);
-    void handleStateOff(Event event);
-    void handleStateIdle(Event event);
-
     QTimer *m_idleTimer;
     QTimer *m_readAttributesTimer;
     State m_state;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -13,9 +13,18 @@
 
 #include <stdint.h>
 #include <QString>
+#include <vector>
+#include "json.h"
 
+class LightState;
+
+/*! \class Scene
+
+    Represents a Rest API Scene.
+ */
 class Scene
 {
+
 public:
     enum State
     {
@@ -28,6 +37,71 @@ public:
     uint16_t groupAddress;
     uint8_t id;
     QString name;
+
+    const uint16_t &transitiontime() const;
+    void setTransitiontime(const uint16_t &transitiontime);
+
+    std::vector<LightState> &lights();
+    const std::vector<LightState> &lights() const;
+    void setLights(const std::vector<LightState> &lights);
+    void addLight(const LightState &light);
+    bool deleteLight(const QString &lid);
+
+    static QString lightsToString(const std::vector<LightState> &lights);
+    static std::vector<LightState> jsonToLights(const QString &json);
+
+private:
+    uint16_t m_transitiontime;
+    std::vector<LightState> m_lights;
+};
+
+
+/*! \class LightState
+
+    Represents the State of a Light of a Scene.
+ */
+class LightState
+{
+
+public:
+    LightState();
+
+    const QString &lid() const;
+    void setLid(const QString &lid);
+    const bool &on() const;
+    void setOn(const bool &on);
+    const uint8_t &bri() const;
+    void setBri(const uint8_t &bri);
+    const uint16_t &x() const;
+    void setX(const uint16_t &x);
+    const uint16_t &y() const;
+    void setY(const uint16_t &y);
+    const uint16_t &enHue() const;
+    void setEnHue(const uint16_t &enHue);
+    const uint8_t &saturation() const;
+    void setSaturation(const uint8_t &sat);
+    const bool &colorloopActive() const;
+    void setColorloopActive(const bool &active);
+    const uint8_t &colorloopDirection() const;
+    void setColorloopDirection(const uint8_t &direction);
+    const uint8_t &colorloopTime() const;
+    void setColorloopTime(const uint8_t &time);
+
+    const uint16_t &transitiontime() const;
+    void setTransitiontime(const uint16_t &transitiontime);
+
+private:
+    QString m_lid;
+    bool m_on;
+    uint8_t m_bri;
+    uint16_t m_x;
+    uint16_t m_y;
+    uint16_t m_enhancedHue;
+    uint8_t m_saturation;
+    bool m_colorloopActive;
+    uint8_t m_colorloopDirection;
+    uint8_t m_colorloopTime;
+    uint16_t m_transitiontime;
 };
 
 #endif // SCENE_H
