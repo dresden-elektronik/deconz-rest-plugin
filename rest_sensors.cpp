@@ -90,16 +90,6 @@ int DeRestPluginPrivate::handleSensorsApi(ApiRequest &req, ApiResponse &rsp)
     {
         return changeSensorState(req, rsp);
     }
-    // GET /api/<apikey>/sensors/<id>/groupidentifiers
-    else if ((req.path.size() == 5) && (req.hdr.method() == "GET") && (req.path[4] == "groupidentifiers"))
-    {
-        return getGroupIdentifiers(req, rsp);
-    }
-    // PUT /api/<apikey>/sensors/<id>/recover
-    else if ((req.path.size() == 5) && (req.hdr.method() == "PUT") && (req.path[4] == "recover"))
-    {
-        return recoverSensor(req, rsp);
-    }
 
     return REQ_NOT_HANDLED;
 }
@@ -1409,50 +1399,6 @@ int DeRestPluginPrivate::getDeletedSensors(const ApiRequest &req, ApiResponse &r
     return REQ_READY_SEND;
 }
 
-/*! PUT /api/<apikey>/sensors/<id>/recover
-    \return REQ_READY_SEND
-            REQ_NOT_HANDLED
- */
-int DeRestPluginPrivate::recoverSensor(const ApiRequest &req, ApiResponse &rsp)
-{
-    DBG_Assert(req.path.size() == 5);
-
-    if (req.path.size() != 5)
-    {
-        return -1;
-    }
-
-    const QString &id = req.path[3];
-
-    Sensor *s = getSensorNodeForId(id);
-
-    if (s->deletedState() == Sensor::StateDeleted)
-    {
-        s->setDeletedState(Sensor::StateNormal);
-
-        std::vector<Group>::iterator g = groups.begin();
-        std::vector<Group>::iterator gend = groups.end();
-
-        for (; g != gend; ++g)
-        {
-            std::vector<QString> &v = g->m_deviceMemberships;
-
-            if ((std::find(v.begin(), v.end(), id) != v.end()) && (g->state() == Group::StateDeleted))
-            {
-                g->setState(Group::StateNormal);
-            }
-        }
-    }
-
-    queSaveDb(DB_GROUPS | DB_SENSORS,DB_SHORT_SAVE_DELAY);
-
-    QVariantMap rspItem;
-    rspItem["success"] = QString("sensor: " + id + " reactivated");
-    rsp.list.append(rspItem);
-    rsp.httpStatus = HttpStatusOk;
-    return REQ_READY_SEND;
-}
-
 /*! Put all sensor parameters in a map.
     \return true - on success
             false - on error
@@ -1566,30 +1512,4 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map)
     etag.remove('"'); // no quotes allowed in string
     map["etag"] = etag;
     return true;
-}
-
-/*! GET /api/<apikey>/sensors/<id>/groupidentifiers
-    \return REQ_READY_SEND
-            REQ_NOT_HANDLED
- */
-int DeRestPluginPrivate::getGroupIdentifiers(const ApiRequest &req, ApiResponse &rsp)
-{
-    QString id = req.path[3];
-    Sensor *sensor = getSensorNodeForId(id);
-
-    if (getGroupIdentifiers(sensor, sensor->fingerPrint().endpoint, 0))
-    {
-        QVariantMap rspItem;
-        rspItem["success"] = QString("request send");
-        rsp.list.append(rspItem);
-        rsp.httpStatus = HttpStatusOk;
-    }
-    else
-    {
-        QVariantMap rspItem;
-        rspItem["error"] = QString("send request failed");
-        rsp.list.append(rspItem);
-        rsp.httpStatus = HttpStatusBadRequest;
-    }
-    return REQ_READY_SEND;
 }
