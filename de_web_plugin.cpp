@@ -355,15 +355,28 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
         TaskItem &task = *i;
         if (task.req.id() == conf.id())
         {
-            DBG_Printf(DBG_INFO_L2, "Erase task zclSequenceNumber: %u\n", task.zclFrame.sequenceNumber());
-            runningTasks.erase(i);
-            processTasks();
-
             if (conf.status() != deCONZ::ApsSuccessStatus)
             {
                 DBG_Printf(DBG_INFO, "error APSDE-DATA.confirm: 0x%02X on task\n", conf.status());
+
+                if (conf.status() == deCONZ::ApsNoAckStatus)
+                {
+                    if (task.taskType == TaskGetGroupIdentifiers)
+                    {
+                        Sensor *s = getSensorNodeForAddress(task.req.dstAddress().ext());
+                        if (s && s->isAvailable())
+                        {
+                            s->setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongDelay));
+                            s->enableRead(READ_GROUP_IDENTIFIERS);
+                            s->setLastRead(idleTotalCounter);
+                        }
+                    }
+                }
             }
-            // TODO: check if some action shall be done based on confirm status
+
+            DBG_Printf(DBG_INFO_L2, "Erase task zclSequenceNumber: %u\n", task.zclFrame.sequenceNumber());
+            runningTasks.erase(i);
+            processTasks();
 
             return;
         }
@@ -3076,12 +3089,12 @@ bool DeRestPluginPrivate::getGroupIdentifiers(RestNodeBase *node, quint8 endpoin
     TaskItem task;
     task.taskType = TaskGetGroupIdentifiers;
 
-//    task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+    task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
     task.req.setDstEndpoint(endpoint);
     task.req.setDstAddressMode(deCONZ::ApsExtAddress);
     task.req.dstAddress() = node->address();
     task.req.setClusterId(COMMISSIONING_CLUSTER_ID);
-    task.req.setProfileId(HA_PROFILE_ID); // utility commands
+    task.req.setProfileId(HA_PROFILE_ID); // utility commands (ref.: zll spec. 7.1.1)
     task.req.setSrcEndpoint(getSrcEndpoint(node, task.req));
 
     task.zclFrame.setSequenceNumber(zclSeq++);
