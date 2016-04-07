@@ -581,6 +581,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                     if (ok && (map["colorloopspeed"].type() == QVariant::Double) && (speed < 256) && (speed > 0))
                     {
                         // ok
+                        task.lightNode->setColorLoopSpeed(speed);
                     }
                     else
                     {

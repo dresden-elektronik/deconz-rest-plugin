@@ -339,7 +339,8 @@ enum TaskType
     TaskRemoveScene,
     TaskRemoveAllScenes,
     TaskAddToGroup,
-    TaskRemoveFromGroup
+    TaskRemoveFromGroup,
+    TaskViewGroup
 };
 
 struct TaskItem
@@ -692,6 +693,7 @@ public:
     void checkSensorNodeReachable(Sensor *sensor);
     void updateSensorNode(const deCONZ::NodeEvent &event);
     void checkAllSensorsAvailable();
+    Sensor *getSensorNodeForAddressAndEndpoint(quint64 extAddr, quint8 ep);
     Sensor *getSensorNodeForAddress(quint64 extAddr);
     Sensor *getSensorNodeForFingerPrint(quint64 extAddr, const SensorFingerprint &fingerPrint, const QString &type);
     Sensor *getSensorNodeForUniqueId(const QString &uniqueId);
@@ -749,6 +751,7 @@ public:
     bool addTaskSetColorLoop(TaskItem &task, bool colorLoopActive, uint8_t speed);
     bool addTaskIdentify(TaskItem &task, uint16_t identifyTime);
     bool addTaskAddToGroup(TaskItem &task, uint16_t groupId);
+    bool addTaskViewGroup(TaskItem &task, uint16_t groupId);
     bool addTaskRemoveFromGroup(TaskItem &task, uint16_t groupId);
     bool addTaskStoreScene(TaskItem &task, uint16_t groupId, uint8_t sceneId);
     bool addTaskAddScene(TaskItem &task, uint16_t groupId, uint8_t sceneId, QString lightId);
@@ -756,6 +759,7 @@ public:
     bool obtainTaskCluster(TaskItem &task, const deCONZ::ApsDataIndication &ind);
     void handleGroupClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleSceneClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleOnOffClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleCommissioningClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleDeviceAnnceIndication(const deCONZ::ApsDataIndication &ind);
     void handleMgmtBindRspIndication(const deCONZ::ApsDataIndication &ind);

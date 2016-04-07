@@ -67,6 +67,8 @@ public:
     void setColorMode(const QString &colorMode);
     void setColorLoopActive(bool colorLoopActive);
     bool isColorLoopActive() const;
+    void setColorLoopSpeed(uint8_t speed);
+    uint8_t colorLoopSpeed() const;
     const deCONZ::SimpleDescriptor &haEndpoint() const;
     void setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint);
     uint8_t groupCapacity() const;
@@ -107,6 +109,7 @@ private:
     uint16_t m_colorTemperature;
     QString m_colorMode;
     bool m_colorLoopActive;
+    uint8_t m_colorLoopSpeed;
     deCONZ::SimpleDescriptor m_haEndpoint;
     uint8_t m_groupCount;
     uint8_t m_sceneCapacity;

@@ -727,6 +727,45 @@ bool DeRestPluginPrivate::addTaskAddToGroup(TaskItem &task, uint16_t groupId)
     return addTask(task);
 }
 
+/*! Add a view group task to the queue.
+
+   \param task - the task item
+   \param groupId - the group which shall be viewed
+   \return true - on success
+           false - on error
+ */
+bool DeRestPluginPrivate::addTaskViewGroup(TaskItem &task, uint16_t groupId)
+{
+    task.taskType = TaskViewGroup;
+    task.groupId = groupId;
+
+    task.req.setClusterId(GROUP_CLUSTER_ID);
+    task.req.setProfileId(HA_PROFILE_ID);
+
+    task.zclFrame.payload().clear();
+    task.zclFrame.setSequenceNumber(zclSeq++);
+    task.zclFrame.setCommandId(0x01); // View group
+    task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
+                             deCONZ::ZclFCDirectionClientToServer |
+                             deCONZ::ZclFCDisableDefaultResponse);
+
+    { // payload
+        QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        stream << task.groupId;
+    }
+
+    { // ZCL frame
+        task.req.asdu().clear(); // cleanup old request data if there is any
+        QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        task.zclFrame.writeToStream(stream);
+    }
+
+    return addTask(task);
+}
+
 /*! Add a remove from group task to the queue.
 
    \param task - the task item

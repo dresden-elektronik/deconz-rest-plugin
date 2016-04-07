@@ -32,8 +32,9 @@ LightNode::LightNode() :
    m_colorTemperature(0),
    m_colorMode("hs"),
    m_colorLoopActive(false),
+   m_colorLoopSpeed(0),
    m_groupCount(0),
-   m_sceneCapacity(0)
+   m_sceneCapacity(16)
 
 {
 }
@@ -420,6 +421,20 @@ void LightNode::setColorLoopActive(bool colorLoopActive)
 bool LightNode::isColorLoopActive() const
 {
     return m_colorLoopActive;
+}
+
+/*! Sets the nodes color loop speed state.
+    \param colorLoopActive whereever the color loop is active
+ */
+void LightNode::setColorLoopSpeed(uint8_t speed)
+{
+    m_colorLoopSpeed = speed;
+}
+
+/*! Returns the nodes color loop speed state. */
+uint8_t LightNode::colorLoopSpeed() const
+{
+    return m_colorLoopSpeed;
 }
 
 /*! Returns the lights HA endpoint descriptor.

@@ -762,20 +762,29 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
                 }
             }
 
-            if (!on)
+            if (group->isColorLoopActive())
             {
-                if (group->isColorLoopActive())
-                {
-                    addTaskSetColorLoop(task, false, 15);
-                    group->setColorLoopActive(false); // deactivate colorloop if active
-                }
-                std::vector<LightNode>::iterator i = nodes.begin();
-                std::vector<LightNode>::iterator end = nodes.end();
+                addTaskSetColorLoop(task, false, 15);
+                group->setColorLoopActive(false); // deactivate colorloop if active
+            }
+            std::vector<LightNode>::iterator i = nodes.begin();
+            std::vector<LightNode>::iterator end = nodes.end();
 
-                for (; i != end; ++i)
+            for (; i != end; ++i)
+            {
+                if (isLightNodeInGroup(&(*i), group->address()))
                 {
-                    if (isLightNodeInGroup(&(*i), group->address()))
+                    if (i->isColorLoopActive() && i->isAvailable() && i->state() != LightNode::StateDeleted)
                     {
+                        TaskItem task2;
+                        task2.lightNode = &(*i);
+                        task2.req.dstAddress() = task2.lightNode->address();
+                        task2.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+                        task2.req.setDstEndpoint(task2.lightNode->haEndpoint().endpoint());
+                        task2.req.setSrcEndpoint(getSrcEndpoint(task2.lightNode, task2.req));
+                        task2.req.setDstAddressMode(deCONZ::ApsExtAddress);
+
+                        addTaskSetColorLoop(task2, false, 15);
                         i->setColorLoopActive(false);
                     }
                 }
@@ -1091,6 +1100,16 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
                     if (ok && (map["colorloopspeed"].type() == QVariant::Double) && (speed < 256) && (speed > 0))
                     {
                         // ok
+                        std::vector<LightNode>::iterator i = nodes.begin();
+                        std::vector<LightNode>::iterator end = nodes.end();
+
+                        for (; i != end; ++i)
+                        {
+                            if (isLightNodeInGroup(&(*i), group->address()))
+                            {
+                                i->setColorLoopSpeed(speed);
+                            }
+                        }
                     }
                     else
                     {
@@ -1789,6 +1808,8 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
 
     // check if scene exists
     Scene scene;
+    TaskItem task2;
+
     std::vector<Scene>::const_iterator i = group->scenes.begin();
     std::vector<Scene>::const_iterator end = group->scenes.end();
 
@@ -1803,6 +1824,32 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
             {
                 scene = *i;
                 ok = true;
+
+                std::vector<LightState>::const_iterator ls = scene.lights().begin();
+                std::vector<LightState>::const_iterator lsend = scene.lights().end();
+
+                for (; ls != lsend; ++ls)
+                {
+                    LightNode *light = getLightNodeForId(ls->lid());
+
+                    if (light &&
+                        light->isAvailable() && light->state() != LightNode::StateDeleted &&
+                        ls->colorloopActive() == false && light->isColorLoopActive() != ls->colorloopActive())
+                    {
+                        //stop colorloop if scene was saved without colorloop (Osram don't stop colorloop if another scene is called)
+                        task2.lightNode = light;
+                        task2.req.dstAddress() = task2.lightNode->address();
+                        task2.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+                        task2.req.setDstEndpoint(task2.lightNode->haEndpoint().endpoint());
+                        task2.req.setSrcEndpoint(getSrcEndpoint(task2.lightNode, task2.req));
+                        task2.req.setDstAddressMode(deCONZ::ApsExtAddress);
+
+                        light->setColorLoopActive(false);
+                        addTaskSetColorLoop(task2, false, 15);
+
+                        updateEtag(light->etag);
+                    }
+                }
                 break;
             }
         }
@@ -1822,33 +1869,58 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-
-    { // FIXME: Turn on all lights of the group based on the assumption
-      // that the light state in the scene is also 'on' which might not be the case.
-      // This shall be removed if the scenes will be queried from the lights.
-        std::vector<LightNode>::iterator i = nodes.begin();
-        std::vector<LightNode>::iterator end = nodes.end();
-
-        uint16_t groupId = group->id().toUInt();
-
-        for (; i != end; ++i)
-        {
-            if (isLightNodeInGroup(&(*i), groupId))
-            {
-                if (!i->isOn())
-                {
-                    i->setIsOn(true);
-                    updateEtag(i->etag);
-                }
-            }
-        }
-    }
-
     // turning 'on' the group is also a assumtion but a very likely one
     if (!group->isOn())
     {
         group->setIsOn(true);
         updateEtag(group->etag);
+    }
+
+    //turn on colorloop if scene was saved with colorloop (FLS don't save colorloop at device)
+    std::vector<LightState>::const_iterator ls = scene.lights().begin();
+    std::vector<LightState>::const_iterator lsend = scene.lights().end();
+
+    for (; ls != lsend; ++ls)
+    {
+        LightNode *light = getLightNodeForId(ls->lid());
+
+        if (light && light->isAvailable() && light->state() != LightNode::StateDeleted)
+        {
+            bool changed = false;
+            if (ls->colorloopActive() == true && light->isColorLoopActive() != ls->colorloopActive())
+            {
+                task2.lightNode = light;
+                task2.req.dstAddress() = task2.lightNode->address();
+                task2.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+                task2.req.setDstEndpoint(task2.lightNode->haEndpoint().endpoint());
+                task2.req.setSrcEndpoint(getSrcEndpoint(task2.lightNode, task2.req));
+                task2.req.setDstAddressMode(deCONZ::ApsExtAddress);
+
+                light->setColorLoopActive(true);
+                light->setColorLoopSpeed(ls->colorloopTime());
+                addTaskSetColorLoop(task2, true, ls->colorloopTime());
+                changed = true;
+            }
+            if (ls->on() == true && light->isOn() == false)
+            {
+                light->setIsOn(true);
+                changed = true;
+            }
+            if (ls->on() == false && light->isOn() == true)
+            {
+                light->setIsOn(false);
+                changed = true;
+            }
+            if ((uint16_t)ls->bri() != light->level())
+            {
+                light->setLevel((uint16_t)ls->bri());
+                changed = true;
+            }
+            if (changed == true)
+            {
+                updateEtag(light->etag);
+            }
+        }
     }
 
     updateEtag(gwConfigEtag);

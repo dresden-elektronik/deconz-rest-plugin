@@ -291,6 +291,9 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
         case COMMISSIONING_CLUSTER_ID:
             handleCommissioningClusterIndication(task, ind, zclFrame);
             break;
+        case ONOFF_CLUSTER_ID:
+             handleOnOffClusterIndication(task, ind, zclFrame);
+            break;
 
         default:
         {
@@ -1400,6 +1403,16 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             updated = true;
                         }
                     }
+                    else if (ia->id() == 0x4004) // color loop time
+                    {
+                        uint8_t clTime = ia->numericValue().u8;
+
+                        if (lightNode->colorLoopSpeed() != clTime)
+                        {
+                            lightNode->setColorLoopSpeed(clTime);
+                            updated = true;
+                        }
+                    }
                 }
             }
             else if (ic->id() == LEVEL_CLUSTER_ID && (event.clusterId() == LEVEL_CLUSTER_ID))
@@ -2224,6 +2237,35 @@ Sensor *DeRestPluginPrivate::getSensorNodeForAddress(quint64 extAddr)
     for (i = sensors.begin(); i != end; ++i)
     {
         if (i->address().ext() == extAddr)
+        {
+            return &(*i);
+        }
+    }
+
+    return 0;
+
+}
+
+/*! Returns the first Sensor for its given \p extAddress and \p Endpoint or 0 if not found.
+ */
+Sensor *DeRestPluginPrivate::getSensorNodeForAddressAndEndpoint(quint64 extAddr, quint8 ep)
+{
+    std::vector<Sensor>::iterator i = sensors.begin();
+    std::vector<Sensor>::iterator end = sensors.end();
+
+    for (; i != end; ++i)
+    {
+        if (i->address().ext() == extAddr && ep == i->fingerPrint().endpoint && i->deletedState() != Sensor::StateDeleted)
+        {
+            return &(*i);
+        }
+    }
+
+    end = sensors.end();
+
+    for (i = sensors.begin(); i != end; ++i)
+    {
+        if (i->address().ext() == extAddr && ep == i->fingerPrint().endpoint)
         {
             return &(*i);
         }
@@ -4535,7 +4577,8 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                                     li->setBri((uint8_t)lightNode->level());
                                     li->setX(lightNode->colorX());
                                     li->setY(lightNode->colorY());
-
+                                    li->setColorloopActive(lightNode->isColorLoopActive());
+                                    li->setColorloopTime(lightNode->colorLoopSpeed());
                                     foundLightstate = true;
                                     break;
                                 }
@@ -4549,7 +4592,8 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                                 state.setBri((uint8_t)lightNode->level());
                                 state.setX(lightNode->colorX());
                                 state.setY(lightNode->colorY());
-
+                                state.setColorloopActive(lightNode->isColorLoopActive());
+                                state.setColorloopTime(lightNode->colorLoopSpeed());
                                 scene->addLight(state);
 
                                 // only change capacity and count when creating a new scene
@@ -4747,9 +4791,229 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                 }
             }
 
-            DBG_Printf(DBG_INFO, "Validaded Scene (gid: %u, sid: %u) for Light %s\n", groupId, sceneId, qPrintable(lightNode->id()));
-            DBG_Printf(DBG_INFO, "On: %u, Bri: %u, X: %u, Y: %u, Transitiontime: %u\n",
+            DBG_Printf(DBG_INFO_L2, "Validaded Scene (gid: %u, sid: %u) for Light %s\n", groupId, sceneId, qPrintable(lightNode->id()));
+            DBG_Printf(DBG_INFO_L2, "On: %u, Bri: %u, X: %u, Y: %u, Transitiontime: %u\n",
                     light.on(), light.bri(), light.x(), light.y(), light.transitiontime());
+        }
+    }
+    else if (zclFrame.commandId() == 0x05) // Recall scene command
+    {
+        if (!ind.srcAddress().hasExt())
+        {
+            return;
+        }
+
+        // update Nodes and Groups state if Recall scene Command was send by a switch
+        Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress().ext(), ind.srcEndpoint());
+
+        if (sensorNode != 0)
+        {
+            if (sensorNode->deletedState() != Sensor::StateDeleted)
+            {
+                DBG_Assert(zclFrame.payload().size() >= 3);
+
+                QDataStream stream(zclFrame.payload());
+                stream.setByteOrder(QDataStream::LittleEndian);
+
+                uint16_t groupId;
+                uint8_t sceneId;
+
+                //stream >> status;
+                stream >> groupId;
+                stream >> sceneId;
+
+                // check if scene exists
+                Scene scene;
+                TaskItem task2;
+                bool colorloopDeactivated = false;
+                Group *group = getGroupForId(groupId);
+
+                std::vector<Scene>::const_iterator i = group->scenes.begin();
+                std::vector<Scene>::const_iterator end = group->scenes.end();
+
+                for (; i != end; ++i)
+                {
+                    if ((i->id == sceneId) && (i->state != Scene::StateDeleted))
+                    {
+                        scene = *i;
+
+                        std::vector<LightState>::const_iterator ls = scene.lights().begin();
+                        std::vector<LightState>::const_iterator lsend = scene.lights().end();
+
+                        for (; ls != lsend; ++ls)
+                        {
+                            LightNode *light = getLightNodeForId(ls->lid());
+                            if (light && light->isAvailable() && light->state() != LightNode::StateDeleted)
+                            {
+                                bool changed = false;
+                                if (ls->colorloopActive() == false && light->isColorLoopActive() != ls->colorloopActive())
+                                {
+                                    //stop colorloop if scene was saved without colorloop (Osram don't stop colorloop if another scene is called)
+                                    task2.lightNode = light;
+                                    task2.req.dstAddress() = task2.lightNode->address();
+                                    task2.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+                                    task2.req.setDstEndpoint(task2.lightNode->haEndpoint().endpoint());
+                                    task2.req.setSrcEndpoint(getSrcEndpoint(task2.lightNode, task2.req));
+                                    task2.req.setDstAddressMode(deCONZ::ApsExtAddress);
+
+                                    light->setColorLoopActive(false);
+                                    addTaskSetColorLoop(task2, false, 15);
+
+                                    changed = true;
+                                    colorloopDeactivated = true;
+                                }
+                                //turn on colorloop if scene was saved with colorloop (FLS don't save colorloop at device)
+                                else if (ls->colorloopActive() == true && light->isColorLoopActive() != ls->colorloopActive())
+                                {
+                                    task2.lightNode = light;
+                                    task2.req.dstAddress() = task2.lightNode->address();
+                                    task2.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+                                    task2.req.setDstEndpoint(task2.lightNode->haEndpoint().endpoint());
+                                    task2.req.setSrcEndpoint(getSrcEndpoint(task2.lightNode, task2.req));
+                                    task2.req.setDstAddressMode(deCONZ::ApsExtAddress);
+
+                                    light->setColorLoopActive(true);
+                                    light->setColorLoopSpeed(ls->colorloopTime());
+                                    addTaskSetColorLoop(task2, true, ls->colorloopTime());
+                                    changed = true;
+                                }
+                                if (ls->on() == true && light->isOn() == false)
+                                {
+                                    light->setIsOn(true);
+                                    changed = true;
+                                }
+                                if (ls->on() == false && light->isOn() == true)
+                                {
+                                    light->setIsOn(false);
+                                    changed = true;
+                                }
+                                if ((uint16_t)ls->bri() != light->level())
+                                {
+                                    light->setLevel((uint16_t)ls->bri());
+                                    changed = true;
+                                }
+                                if (changed == true)
+                                {
+                                    updateEtag(light->etag);
+                                }
+                            }
+                        }
+
+                        //recall scene again
+                        if (colorloopDeactivated)
+                        {
+                            callScene(group, sceneId);
+                        }
+                        break;
+                    }
+                }
+
+                // turning 'on' the group is also a assumtion but a very likely one
+                if (!group->isOn())
+                {
+                    group->setIsOn(true);
+                    updateEtag(group->etag);
+                }
+
+                updateEtag(gwConfigEtag);
+
+                processTasks();
+            }
+        }
+    }
+}
+
+/*! Handle packets related to the ZCL On/Off cluster.
+    \param task the task which belongs to this response
+    \param ind the APS level data indication containing the ZCL packet
+    \param zclFrame the actual ZCL frame which holds the scene cluster reponse
+ */
+void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
+{
+    Q_UNUSED(task);
+
+    if (!ind.srcAddress().hasExt())
+    {
+        return;
+    }
+
+    // update Nodes and Groups state if On/Off Command was send by a switch
+    Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress().ext(), ind.srcEndpoint());
+
+    if (sensorNode != 0)
+    {
+        if (sensorNode->deletedState() != Sensor::StateDeleted) {
+
+            std::vector<Group>::iterator i = groups.begin();
+            std::vector<Group>::iterator end = groups.end();
+
+            for (; i != end; ++i)
+            {
+                if (i->state() != Group::StateDeleted && i->state() != Group::StateDeleteFromDB)
+                {
+                    if (i->m_deviceMemberships.end() != std::find(i->m_deviceMemberships.begin(),
+                                                                    i->m_deviceMemberships.end(),
+                                                                    sensorNode->id()))
+                    {
+                       //found
+                       if (zclFrame.commandId() == 0x00 || zclFrame.commandId() == 0x40) // Off || Off with effect
+                       {
+                           i->setIsOn(false);
+                       }
+                       else if (zclFrame.commandId() == 0x01) // On
+                       {
+                           i->setIsOn(true);
+                           if (i->isColorLoopActive() == true)
+                           {
+                               TaskItem task1;
+                               task1.req.dstAddress().setGroup(i->address());
+                               task1.req.setDstAddressMode(deCONZ::ApsGroupAddress);
+                               task1.req.setDstEndpoint(0xFF); // broadcast endpoint
+                               task1.req.setSrcEndpoint(getSrcEndpoint(0, task1.req));
+
+                               addTaskSetColorLoop(task1, false, 15);
+                               i->setColorLoopActive(false);
+                           }
+                       }                     
+                       updateEtag(i->etag);
+
+                       // check each light if colorloop needs to be disabled
+                       std::vector<LightNode>::iterator l = nodes.begin();
+                       std::vector<LightNode>::iterator lend = nodes.end();
+
+                       for (; l != lend; ++l)
+                       {
+                           if (isLightNodeInGroup(&(*l),i->address()))
+                           {
+                               if (zclFrame.commandId() == 0x00 || zclFrame.commandId() == 0x40) // Off || Off with effect
+                               {
+                                   l->setIsOn(false);
+                               }
+                               else if (zclFrame.commandId() == 0x01) // On
+                               {
+                                   l->setIsOn(true);
+
+                                   if (l->isAvailable() && l->state() != LightNode::StateDeleted && l->isColorLoopActive() == true)
+                                   {
+                                       TaskItem task2;
+                                       task2.lightNode = &(*l);
+                                       task2.req.dstAddress() = task2.lightNode->address();
+                                       task2.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+                                       task2.req.setDstEndpoint(task2.lightNode->haEndpoint().endpoint());
+                                       task2.req.setSrcEndpoint(getSrcEndpoint(task2.lightNode, task2.req));
+                                       task2.req.setDstAddressMode(deCONZ::ApsExtAddress);
+
+                                       addTaskSetColorLoop(task2, false, 15);
+                                       l->setColorLoopActive(false);
+                                   }
+                               }                              
+                               updateEtag(l->etag);
+                           }
+                       }  
+                    }
+                }
+            }
+            updateEtag(gwConfigEtag);
         }
     }
 }

@@ -98,13 +98,16 @@ QString Scene::lightsToString(const std::vector<LightState> &lights)
     for (; i != i_end; ++i)
     {
         QString on = (i->on()) ? "true" : "false";
+        QString cl = (i->colorloopActive()) ? "true" : "false";
 
         jsonString.append("{\"lid\":\"" + i->lid() + "\",");
         jsonString.append("\"on\":" + on + ",");
         jsonString.append("\"bri\":" + QString::number(i->bri()) + ",");
         jsonString.append("\"x\":" + QString::number(i->x()) + ",");
         jsonString.append("\"y\":\"" + QString::number(i->y()) + "\",");
-        jsonString.append("\"tt\":\"" + QString::number(i->transitiontime()) + "\"},");
+        jsonString.append("\"tt\":\"" + QString::number(i->transitiontime()) + "\",");
+        jsonString.append("\"cl\":\"" + cl + "\",");
+        jsonString.append("\"clTime\":\"" + QString::number(i->colorloopTime()) + "\"},");
     }
     if (lights.size() > 0)
     {
@@ -135,6 +138,8 @@ std::vector<LightState> Scene::jsonToLights(const QString &json)
         state.setX(map["x"].toUInt());
         state.setY(map["y"].toUInt());
         state.setTransitiontime(map["tt"].toUInt());
+        state.setColorloopActive(map["cl"].toBool());
+        state.setColorloopTime(map["clTime"].toUInt());
 
         lights.push_back(state);
     }
