@@ -5112,6 +5112,20 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
                         //not found
                         group1->m_deviceMemberships.push_back(sensorNode->id());
                     }
+
+                    // put coordinator into group
+                    // deCONZ firmware will put itself into a group after sending out a groupcast
+                    // therefore we will receives commands to the same group
+                    TaskItem task;
+                    task.req.setDstAddressMode(deCONZ::ApsGroupAddress);
+                    task.req.dstAddress().setGroup(group1->address());
+                    task.req.setDstEndpoint(0xFF); // broadcast endpoint
+                    task.req.setSrcEndpoint(getSrcEndpoint(0, task.req));
+                    if (!addTaskViewGroup(task, group1->address()))
+                    {
+                        DBG_Printf(DBG_INFO, "failed to send view group\n");
+                    }
+
                     queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
                     updateEtag(group1->etag);
                 }
@@ -5155,6 +5169,19 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
                     updateEtag(group.etag);
                     groups.push_back(group);
                     queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
+
+                    // put coordinator into group
+                    // deCONZ firmware will put itself into a group after sending out a groupcast
+                    // therefore we will receives commands to the same group
+                    TaskItem task2;
+                    task2.req.setDstAddressMode(deCONZ::ApsGroupAddress);
+                    task2.req.dstAddress().setGroup(group.address());
+                    task2.req.setDstEndpoint(0xFF); // broadcast endpoint
+                    task2.req.setSrcEndpoint(getSrcEndpoint(0, task2.req));
+                    if (!addTaskViewGroup(task2, group.address()))
+                    {
+                        DBG_Printf(DBG_INFO, "failed to send view group\n");
+                    }
                 }
                 updateEtag(gwConfigEtag);
             }
