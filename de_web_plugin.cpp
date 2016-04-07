@@ -573,6 +573,7 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
                             task.req.setDstAddressMode(deCONZ::ApsNwkAddress);
                             task.req.dstAddress().setNwk(0xFFFF);
                         }
+                        task.req.setState(deCONZ::FireAndForgetState);
 
                         if ((body.indexOf("on") != -1) && (body.indexOf("false") != -1))
                         {
