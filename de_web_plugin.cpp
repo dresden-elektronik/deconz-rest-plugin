@@ -4482,7 +4482,6 @@ void DeRestPluginPrivate::handleGroupClusterIndication(TaskItem &task, const deC
  */
 void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
-    Q_UNUSED(ind);
     Q_UNUSED(task);
 
     if (zclFrame.isDefaultResponse())
@@ -5046,8 +5045,10 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
         return;
     }
 
-    Sensor *sensorNode = getSensorNodeForAddress(ind.srcAddress().ext());
+    uint8_t ep = ind.srcEndpoint();
+    Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress().ext(),ep);
     //int endpointCount = getNumberOfEndpoints(ind.srcAddress().ext());
+    int epIter = 0;
 
     if (!sensorNode)
     {
@@ -5083,7 +5084,18 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
             DBG_Printf(DBG_INFO, " - Id: %u, type: %u\n", groupId, type);
 
             Group *group1 = getGroupForId(groupId);
-            quint16 count = 1;
+
+            if (epIter < count && ep != ind.srcEndpoint())
+            {
+                sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress().ext(), ep);
+                if (!sensorNode)
+                {
+                    sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress().ext(), ind.srcEndpoint());
+                }
+            }
+            epIter++;
+            // assumption: different groups from consecutive endpoints
+            ep++;
 
             if (sensorNode->deletedState() != Sensor::StateDeleted)
             {
@@ -5145,7 +5157,6 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
                     queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
                 }
                 updateEtag(gwConfigEtag);
-                count++;
             }
         }
     }
