@@ -5135,20 +5135,14 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
                     group.hueReal = 0.0f;
                     group.sat = 128;
                     group.setName(QString());
-                    if (group.name().isEmpty()) {
-                        if (count > 1)
-                        {
-                            group.setName(QString("%1 %2").arg(sensorNode->name()).arg(count));
-                        }
-                        else
-                        {
-                            group.setName(QString("%1").arg(sensorNode->name()));
-                        }
-                        queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
+                    if (group.name().isEmpty())
+                    {
+                        group.setName(QString("%1").arg(sensorNode->name()));     
                     }
 
                     updateEtag(group.etag);
                     groups.push_back(group);
+                    queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
                 }
                 updateEtag(gwConfigEtag);
                 count++;
