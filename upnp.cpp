@@ -25,7 +25,7 @@ void DeRestPluginPrivate::initUpnpDiscovery()
     QHostAddress groupAddress("239.255.255.250");
     udpSock = new QUdpSocket(this);
     udpSockOut = new QUdpSocket(this);
-    if (!udpSock->bind(QHostAddress::AnyIPv4, 1900, QUdpSocket::ShareAddress)) // SSDP
+    if (!udpSock->bind(QHostAddress("0.0.0.0"), 1900, QUdpSocket::ShareAddress)) // SSDP
     {
         DBG_Printf(DBG_ERROR, "UPNP error %s\n", qPrintable(udpSock->errorString()));
     }
