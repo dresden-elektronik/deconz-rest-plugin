@@ -32,9 +32,13 @@ greaterThan(QT_MAJOR_VERSION, 4) {
     QT += core gui widgets serialport
 }
 
-win32:LIBS+=  -L../.. -ldeCONZ1
-unix:LIBS+=  -L../.. -ldeCONZ -lcrypt
+win32:LIBS +=  -L../.. -ldeCONZ1
+unix:LIBS +=  -L../.. -ldeCONZ
 win32:CONFIG += dll
+
+unix:!macx {
+    LIBS += -lcrypt
+}
 
 TEMPLATE        = lib
 CONFIG         += plugin \
