@@ -1862,15 +1862,9 @@ void DeRestPluginPrivate::saveDb()
             QString conditionsJSON = Rule::conditionsToString(i->conditions());
 
             QString sql = QString(QLatin1String("REPLACE INTO rules (rid, name, created, etag, lasttriggered, owner, status, timestriggered, actions, conditions) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7', '%8', '%9', '%10')"))
-                    .arg(rid)
-                    .arg(i->name())
-                    .arg(i->creationtime())
-                    .arg(i->etag)
-                    .arg(i->lastTriggered())
-                    .arg(i->owner())
-                    .arg(i->status())
-                    .arg(i->timesTriggered())
-                    .arg(actionsJSON)
+                    .arg(rid, i->name(), i->creationtime(),
+                         i->etag, i->lastTriggered(), i->owner(),
+                         i->status(), QString::number(i->timesTriggered()), actionsJSON)
                     .arg(conditionsJSON);
 
             errmsg = NULL;
