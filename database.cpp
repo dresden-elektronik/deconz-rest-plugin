@@ -1836,12 +1836,12 @@ void DeRestPluginPrivate::saveDb()
 
         for (; i != end; ++i)
         {
-            QString rid = i->id();
+            const QString &rid = i->id();
 
             if (i->state() == Rule::StateDeleted)
             {
                 // delete rule from db (if exist)
-                QString sql = QString("DELETE FROM rules WHERE rid='%1'").arg(rid);
+                QString sql = QString(QLatin1String("DELETE FROM rules WHERE rid='%1'")).arg(rid);
 
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
@@ -1861,7 +1861,7 @@ void DeRestPluginPrivate::saveDb()
             QString actionsJSON = Rule::actionsToString(i->actions());
             QString conditionsJSON = Rule::conditionsToString(i->conditions());
 
-            QString sql = QString("REPLACE INTO rules (rid, name, created, etag, lasttriggered, owner, status, timestriggered, actions, conditions) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7', '%8', '%9', '%10')")
+            QString sql = QString(QLatin1String("REPLACE INTO rules (rid, name, created, etag, lasttriggered, owner, status, timestriggered, actions, conditions) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7', '%8', '%9', '%10')"))
                     .arg(rid)
                     .arg(i->name())
                     .arg(i->creationtime())

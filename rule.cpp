@@ -179,19 +179,19 @@ void Rule::setActions(const std::vector<RuleAction> &actions)
  */
 QString Rule::actionsToString(const std::vector<RuleAction> &actions)
 {
-    QString jsonString = "[";
+    QString jsonString = QLatin1String("[");
     std::vector<RuleAction>::const_iterator i = actions.begin();
     std::vector<RuleAction>::const_iterator i_end = actions.end();
 
     for (; i != i_end; ++i)
     {
-        jsonString.append("{\"address\":");
-        jsonString.append("\"" + i->address() + "\",");
-        jsonString.append("\"body\":" + i->body() + ",");
-        jsonString.append("\"method\":\"" + i->method() + "\"},");
+        jsonString.append(QLatin1String("{\"address\":"));
+        jsonString.append(QLatin1String("\"") + i->address() + QLatin1String("\","));
+        jsonString.append(QLatin1String("\"body\":") + i->body() + QLatin1String(","));
+        jsonString.append(QLatin1String("\"method\":\"") + i->method() + QLatin1String("\"},"));
     }
     jsonString.chop(1);
-    jsonString.append("]");
+    jsonString.append(QLatin1String("]"));
 
     return jsonString;
 }
@@ -201,19 +201,19 @@ QString Rule::actionsToString(const std::vector<RuleAction> &actions)
  */
 QString Rule::conditionsToString(const std::vector<RuleCondition> &conditions)
 {
-    QString jsonString = "[";
+    QString jsonString = QLatin1String("[");
     std::vector<RuleCondition>::const_iterator i = conditions.begin();
     std::vector<RuleCondition>::const_iterator i_end = conditions.end();
 
     for (; i != i_end; ++i)
     {
-        jsonString.append("{\"address\":");
-        jsonString.append("\"" + i->address() + "\",");
-        jsonString.append("\"operator\":\"" + i->ooperator() + "\",");
-        jsonString.append("\"value\":\"" + i->value() + "\"},");
+        jsonString.append(QLatin1String("{\"address\":"));
+        jsonString.append(QLatin1String("\"") + i->address() + QLatin1String("\","));
+        jsonString.append(QLatin1String("\"operator\":\"") + i->ooperator() + QLatin1String("\","));
+        jsonString.append(QLatin1String("\"value\":\"") + i->value() + QLatin1String("\"},"));
     }
     jsonString.chop(1);
-    jsonString.append("]");
+    jsonString.append(QLatin1String("]"));
 
     return jsonString;
 }
