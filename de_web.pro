@@ -29,7 +29,7 @@ CONFIG(release, debug|release) {
 }
 
 greaterThan(QT_MAJOR_VERSION, 4) {
-    QT += core gui widgets
+    QT += core gui widgets serialport
 }
 
 win32:LIBS+=  -L../.. -ldeCONZ1
@@ -91,6 +91,7 @@ SOURCES  = authentification.cpp \
            de_web_plugin.cpp \
            de_web_widget.cpp \
            de_otau.cpp \
+           firmware_update.cpp \
            json.cpp \
            colorspace.cpp \
            sqlite3.c \

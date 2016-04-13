@@ -229,6 +229,7 @@ class QTcpSocket;
 class DeRestPlugin;
 class QNetworkReply;
 class QNetworkAccessManager;
+class QProcess;
 
 struct Schedule
 {
@@ -626,13 +627,10 @@ public Q_SLOTS:
     void permitJoinTimerFired();
     void otauTimerFired();
     void updateSoftwareTimerFired();
-    void updateFirmwareTimerFired();
     void lockGatewayTimerFired();
     void saveCurrentRuleInDbTimerFired();
     void openClientTimerFired();
     void clientSocketDestroyed();
-    void queryFirmwareVersionTimerFired();
-    void checkMinFirmwareVersionFile();
     void saveDatabaseTimerFired();
     void userActivity();
     bool sendBindRequest(BindingTask &bt);
@@ -673,6 +671,16 @@ public Q_SLOTS:
     void resetDeviceTimerFired();
     void checkResetState();
     void resetDeviceSendConfirm(bool success);
+
+    // firmware update
+    void initFirmwareUpdate();
+    void firmwareUpdateTimerFired();
+    void checkFirmwareDevices();
+    void queryFirmwareVersion();
+    void updateFirmwareDisconnectDevice();
+    void updateFirmware();
+    void updateFirmwareWaitFinished();
+    bool startUpdateFirmware();
 
 public:
     void checkRfConnectState();
@@ -836,6 +844,23 @@ public:
     QString gwConfigEtag;
     bool gwRunFromShellScript;
     bool gwDeleteUnknownRules;
+
+    // firmware update
+    enum FW_UpdateState {
+        FW_Idle,
+        FW_CheckVersion,
+        FW_CheckDevices,
+        FW_WaitUserConfirm,
+        FW_DisconnectDevice,
+        FW_Update,
+        FW_UpdateWaitFinished
+    };
+    QTimer *fwUpdateTimer;
+    int fwUpdateIdleTimeout;
+    FW_UpdateState fwUpdateState;
+    QString fwUpdateFile;
+    QProcess *fwProcess;
+    QStringList fwProcessArgs;
 
     // upnp
     QByteArray descriptionXml;

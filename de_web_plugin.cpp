@@ -124,11 +124,11 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     gwZigbeeChannel = 0;
     gwName = GW_DEFAULT_NAME;
     gwUpdateVersion = GW_SW_VERSION; // will be replaced by discovery handler
-    gwFirmwareVersion = "0x00000000"; // query later
-    gwFirmwareVersionUpdate = gwFirmwareVersion;
-    gwFirmwareNeedUpdate = false; // set later
     gwUpdateChannel = "stable";
     gwReportingEnabled = (deCONZ::appArgumentNumeric("--reporting", 1) == 1) ? true : false;
+    gwFirmwareNeedUpdate = false;
+    gwFirmwareVersion = "0x00000000"; // query later
+    gwFirmwareVersionUpdate = "";
 
     {
         QHttpRequestHeader hdr;
@@ -237,10 +237,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     initTouchlinkApi();
     initChangeChannelApi();
     initResetDeviceApi();
-
-    // delayed query of firmware version
-    // we might not be connected yet
-    QTimer::singleShot(500, this, SLOT(queryFirmwareVersionTimerFired()));
+    initFirmwareUpdate();
 }
 
 /*! Deconstructor for pimpl.

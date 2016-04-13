@@ -272,6 +272,10 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         map["updatechannel"] = gwUpdateChannel;
         map["fwversion"] = gwFirmwareVersion;
         map["fwneedupdate"] = gwFirmwareNeedUpdate;
+        if (gwFirmwareNeedUpdate)
+        {
+            map["fwversionupdate"] = gwFirmwareVersionUpdate;
+        }
         map["announceurl"] = gwAnnounceUrl;
         map["announceinterval"] = (double)gwAnnounceInterval;
         map["swversion"] = GW_SW_VERSION;
@@ -1079,24 +1083,19 @@ int DeRestPluginPrivate::updateFirmware(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    rsp.httpStatus = HttpStatusOk;
-    QVariantMap rspItem;
-    QVariantMap rspItemState;
-    rspItemState["/config/updatefirmware"] = gwFirmwareVersionUpdate;
-    rspItem["success"] = rspItemState;
-    rsp.list.append(rspItem);
-
-    // only supported on Raspberry Pi
-
-#ifdef ARCH_ARM
-    if (gwFirmwareNeedUpdate)
+    if (startUpdateFirmware())
     {
-        openDb();
-        saveDb();
-        closeDb();
-        QTimer::singleShot(5000, this, SLOT(updateFirmwareTimerFired()));
+        rsp.httpStatus = HttpStatusOk;
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState["/config/updatefirmware"] = gwFirmwareVersionUpdate;
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
     }
-#endif // ARCH_ARM
+    else
+    {
+        rsp.httpStatus = HttpStatusServiceUnavailable;
+    }
 
     return REQ_READY_SEND;
 }
@@ -1238,65 +1237,6 @@ void DeRestPluginPrivate::updateSoftwareTimerFired()
     qApp->exit(appRet);
 }
 
-/*! Delayed trigger to update the firmware.
- */
-void DeRestPluginPrivate::updateFirmwareTimerFired()
-{
-    if (!gwFirmwareNeedUpdate)
-    {
-        DBG_Printf(DBG_INFO, "GW update firmware not needed\n");
-        return;
-    }
-
-    // only supported on Raspberry Pi
-#ifdef ARCH_ARM
-    QString scriptname = "/var/tmp/deCONZ-update-firmware.sh";
-
-#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
-    QString fwpath = QStandardPaths::standardLocations(QStandardPaths::HomeLocation).first();
-#else
-    QString fwpath = QDesktopServices::storageLocation(QDesktopServices::HomeLocation);
-#endif
-
-    fwpath.append("/raspbee_firmware/");
-    fwpath.append("deCONZ_Rpi_");
-    fwpath.append(gwFirmwareVersionUpdate);
-    fwpath.append(".bin.GCF");
-
-    if (QFile::exists(scriptname))
-    {
-        if (!QFile::remove(scriptname))
-        {
-            DBG_Printf(DBG_ERROR, "could not delete %s\n", qPrintable(scriptname));
-        }
-    }
-
-    QFile f(scriptname);
-
-    if (f.open(QIODevice::WriteOnly | QIODevice::Text))
-    {
-        QTextStream stream(&f);
-
-        stream << "#!/bin/bash\n"
-               << "if [ ! -e \"" << fwpath << "\" ]; then\n"
-               << "    exit 1\n"
-               << "fi\n"
-               << "sudo GCFFlasher -f" << fwpath << "\n";
-
-        f.close();
-    }
-    else
-    {
-        DBG_Printf(DBG_ERROR, "could not open %s : %s\n", qPrintable(scriptname), qPrintable(f.errorString()));
-    }
-
-#endif // ARCH_ARM
-
-
-    DBG_Printf(DBG_INFO, "GW update firmware to %s\n", qPrintable(gwFirmwareVersionUpdate));
-    qApp->exit(APP_RET_UPDATE_FW);
-}
-
 /*! Locks the gateway.
  */
 void DeRestPluginPrivate::lockGatewayTimerFired()
@@ -1342,98 +1282,6 @@ void DeRestPluginPrivate::checkRfConnectState()
             queSaveDb(DB_CONFIG, DB_LONG_SAVE_DELAY);
         }
     }
-}
-
-/*! Lazy query of firmware version.
-    Because the device might not be connected at first optaining the
-    firmware version must be delayed.
-
-    If the firmware is older then the min required firmware for the platform
-    and a proper firmware update file exists, the API will announce that a
-    firmware update is available.
- */
-void DeRestPluginPrivate::queryFirmwareVersionTimerFired()
-{
-    if (apsCtrl)
-    {
-        uint32_t fwVersion = apsCtrl->getParameter(deCONZ::ParamFirmwareVersion);
-
-
-        if (fwVersion == 0)
-        {
-            QTimer::singleShot(1000, this, SLOT(queryFirmwareVersionTimerFired()));
-
-            // if even after 60 seconds no firmware was detected
-            // ASSUME that a RaspBee is present, and check if a proper firmware file
-            // is available. If so the user will be notified to update the firmware
-            // in the system settings.
-            if (!gwFirmwareNeedUpdate)
-            {
-                if (getUptime() >= 60)
-                {
-                    // if --auto-connect=1 we assume that we run within the deCONZ-autostart.sh script
-                    if (deCONZ::appArgumentNumeric("--auto-connect", 0) == 1)
-                    {
-                        checkMinFirmwareVersionFile();
-
-                        if (gwFirmwareNeedUpdate)
-                        {
-                            updateEtag(gwConfigEtag);
-                        }
-                    }
-                }
-            }
-        }
-        else
-        {
-            QString str;
-            str.sprintf("0x%08x", fwVersion);
-
-            gwConfig["fwversion"] = str;
-            gwFirmwareVersion = str;
-            gwFirmwareVersionUpdate = gwFirmwareVersion;
-            gwFirmwareNeedUpdate = false;
-
-            // if the RaspBee platform is detected check that the firmware version is >= min version
-            if ((fwVersion & FW_PLATFORM_MASK) == FW_PLATFORM_RPI)
-            {
-                if (fwVersion < GW_MIN_RPI_FW_VERSION)
-                {
-                    DBG_Printf(DBG_INFO, "GW firmware version shall be updated: %0x%08x\n", fwVersion);
-                    checkMinFirmwareVersionFile();
-                } // for equal firmware or newer versions don't do anything
-            }
-
-            updateEtag(gwConfigEtag);
-            DBG_Printf(DBG_INFO, "GW firmware version: %s\n", qPrintable(gwFirmwareVersion));
-        }
-    }
-}
-
-/*! Checks and set 'gwFirmwareVersionUpdate' if the file is present.
- */
-void DeRestPluginPrivate::checkMinFirmwareVersionFile()
-{
-#ifdef ARCH_ARM
-    gwFirmwareVersionUpdate.clear();
-    gwFirmwareVersionUpdate.sprintf("0x%08x", GW_MIN_RPI_FW_VERSION);
-
-    QString path = QDesktopServices::storageLocation(QDesktopServices::HomeLocation);
-    path.append("/raspbee_firmware/");
-    path.append("deCONZ_Rpi_");
-    path.append(gwFirmwareVersionUpdate);
-    path.append(".bin.GCF");
-
-    if (QFile::exists(path))
-    {
-        gwFirmwareNeedUpdate = true;
-    }
-    else
-    {
-        DBG_Printf(DBG_ERROR, "GW update firmware not found: %s\n", qPrintable(path));
-        gwFirmwareVersionUpdate = gwFirmwareVersion; // revert
-    }
-#endif // ARCH_ARM
 }
 
 /*! get current Timezone from gnu linux as IANA code.
