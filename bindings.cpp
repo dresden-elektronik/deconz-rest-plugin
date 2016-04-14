@@ -239,6 +239,7 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
 
             if (std::find(bindingToRuleQueue.begin(), bindingToRuleQueue.end(), bnd) == bindingToRuleQueue.end())
             {
+                DBG_Printf(DBG_INFO, "add binding to check rule queue size: %d\n", static_cast<int>(bindingToRuleQueue.size()));
                 bindingToRuleQueue.push_back(bnd);
             }
             else
