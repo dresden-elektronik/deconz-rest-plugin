@@ -1555,7 +1555,7 @@ void DeRestPluginPrivate::saveDb()
             if (i->state == ApiAuth::StateDeleted)
             {
                 // delete group from db (if exist)
-                QString sql = QString("DELETE FROM auth WHERE apikey='%1'").arg(i->apikey);
+                QString sql = QString(QLatin1String("DELETE FROM auth WHERE apikey='%1'")).arg(i->apikey);
 
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
@@ -1578,7 +1578,7 @@ void DeRestPluginPrivate::saveDb()
                 DBG_Assert(i->createDate.timeSpec() == Qt::UTC);
                 DBG_Assert(i->lastUseDate.timeSpec() == Qt::UTC);
 
-                QString sql = QString("REPLACE INTO auth (apikey, devicetype, createdate, lastusedate, useragent) VALUES ('%1', '%2', '%3', '%4', '%5')")
+                QString sql = QString(QLatin1String("REPLACE INTO auth (apikey, devicetype, createdate, lastusedate, useragent) VALUES ('%1', '%2', '%3', '%4', '%5')"))
                         .arg(i->apikey)
                         .arg(i->devicetype)
                         .arg(i->createDate.toString("yyyy-MM-ddTHH:mm:ss"))
@@ -1629,7 +1629,7 @@ void DeRestPluginPrivate::saveDb()
         {
             if (i->canConvert(QVariant::String))
             {
-                QString sql = QString("REPLACE INTO config2 (key, value) VALUES ('%1', '%2')")
+                QString sql = QString(QLatin1String("REPLACE INTO config2 (key, value) VALUES ('%1', '%2')"))
                         .arg(i.key())
                         .arg(i.value().toString());
 
@@ -1694,7 +1694,7 @@ void DeRestPluginPrivate::saveDb()
                 }
             }
 
-            QString sql = QString("REPLACE INTO nodes (id, state, mac, name, groups, endpoint) VALUES ('%1', '%2', '%3', '%4', '%5', '%6')")
+            QString sql = QString(QLatin1String("REPLACE INTO nodes (id, state, mac, name, groups, endpoint) VALUES ('%1', '%2', '%3', '%4', '%5', '%6')"))
                     .arg(i->id())
                     .arg(lightState)
                     .arg(i->uniqueId())
@@ -1732,7 +1732,7 @@ void DeRestPluginPrivate::saveDb()
             if (i->state() == Group::StateDeleted)
             {
                 // delete scenes of this group (if exist)
-                QString sql = QString("DELETE FROM scenes WHERE gid='%1'").arg(gid);
+                QString sql = QString(QLatin1String("DELETE FROM scenes WHERE gid='%1'")).arg(gid);
 
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
@@ -1750,7 +1750,7 @@ void DeRestPluginPrivate::saveDb()
             if (i->state() == Group::StateDeleteFromDB)
             {
                 // delete group from db (if exist)
-                QString sql = QString("DELETE FROM groups WHERE gid='%1'").arg(gid);
+                QString sql = QString(QLatin1String("DELETE FROM groups WHERE gid='%1'")).arg(gid);
 
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
@@ -1768,7 +1768,7 @@ void DeRestPluginPrivate::saveDb()
 
             QString grpState((i->state() == Group::StateDeleted ? "deleted" : "normal"));
 
-            QString sql = QString("REPLACE INTO groups (gid, name, state, mids, devicemembership) VALUES ('%1', '%2', '%3', '%4', '%5')")
+            QString sql = QString(QLatin1String("REPLACE INTO groups (gid, name, state, mids, devicemembership) VALUES ('%1', '%2', '%3', '%4', '%5')"))
                     .arg(gid)
                     .arg(i->name())
                     .arg(grpState)
@@ -1802,7 +1802,7 @@ void DeRestPluginPrivate::saveDb()
 
                     QString lights = Scene::lightsToString(si->lights());
 
-                    QString sql = QString("REPLACE INTO scenes (gsid, gid, sid, name, transitiontime, lights) VALUES ('%1', '%2', '%3', '%4', '%5', '%6')")
+                    QString sql = QString(QLatin1String("REPLACE INTO scenes (gsid, gid, sid, name, transitiontime, lights) VALUES ('%1', '%2', '%3', '%4', '%5', '%6')"))
                             .arg(gsid)
                             .arg(gid)
                             .arg(sid)
@@ -1893,7 +1893,7 @@ void DeRestPluginPrivate::saveDb()
         {
             if (i->state ==Schedule::StateNormal)
             {
-                QString sql = QString("REPLACE INTO schedules (id, json) VALUES ('%1', '%2')")
+                QString sql = QString(QLatin1String("REPLACE INTO schedules (id, json) VALUES ('%1', '%2')"))
                         .arg(i->id)
                         .arg(i->jsonString);
 
@@ -1911,7 +1911,7 @@ void DeRestPluginPrivate::saveDb()
             }
             else if (i->state == Schedule::StateDeleted)
             {
-                QString sql = QString("DELETE FROM schedules WHERE id='%1'").arg(i->id);
+                QString sql = QString(QLatin1String("DELETE FROM schedules WHERE id='%1'")).arg(i->id);
 
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
@@ -1970,7 +1970,7 @@ void DeRestPluginPrivate::saveDb()
             QString fingerPrintJSON = i->fingerPrint().toString();
             QString deletedState((i->deletedState() == Sensor::StateDeleted ? "deleted" : "normal"));
 
-            QString sql = QString("REPLACE INTO sensors (sid, name, type, modelid, manufacturername, uniqueid, swversion, state, config, fingerprint, deletedState) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7', '%8', '%9', '%10', '%11')")
+            QString sql = QString(QLatin1String("REPLACE INTO sensors (sid, name, type, modelid, manufacturername, uniqueid, swversion, state, config, fingerprint, deletedState) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7', '%8', '%9', '%10', '%11')"))
                     .arg(sid)
                     .arg(i->name())
                     .arg(i->type())
