@@ -358,8 +358,7 @@ bool RuleAction::operator==(const RuleAction &other) const
  */
 const QString &RuleAction::body() const
 {
-    QString body = m_body;
-    return body.replace( " ", "" );
+    return m_body;
 }
 
 
