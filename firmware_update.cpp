@@ -13,9 +13,6 @@
 #include <QDir>
 #include <QFile>
 #include <QString>
-#if QT_VERSION >= QT_VERSION_CHECK(5,1,0)
-  #include <QSerialPortInfo>
-#endif
 #include <QProcess>
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
@@ -334,38 +331,41 @@ void DeRestPluginPrivate::queryFirmwareVersion()
  */
 void DeRestPluginPrivate::checkFirmwareDevices()
 {
-#if QT_VERSION >= QT_VERSION_CHECK(5,1,0)
+    deCONZ::DeviceEnumerator devEnumerator;
+
     fwProcessArgs.clear();
-    QList<QSerialPortInfo> availPorts = QSerialPortInfo::availablePorts();
 
-    QList<QSerialPortInfo>::iterator i = availPorts.begin();
-    QList<QSerialPortInfo>::iterator end = availPorts.end();
+    devEnumerator.listSerialPorts();
+    const std::vector<deCONZ::DeviceEntry> &availPorts = devEnumerator.getList();
 
-    int ttyAMA0 = 0;
-    int ftdiCount = 0;
+    std::vector<deCONZ::DeviceEntry>::const_iterator i = availPorts.begin();
+    std::vector<deCONZ::DeviceEntry>::const_iterator end = availPorts.end();
+
+    int raspBeeCount = 0;
+    int usbDongleCount = 0;
 
     for (; i != end; ++i)
     {
-        if ((i->vendorIdentifier() == 0x0403) && i->productIdentifier() == 0x6015)
+        if (i->friendlyName == QLatin1String("ConBee"))
         {
-            ftdiCount++;
+            usbDongleCount++;
         }
-        else if (i->portName().startsWith("ttyAMA0"))
+        else if (i->path.contains(QLatin1String("ttyAMA0")))
         {
-            ttyAMA0 = 1;
+            raspBeeCount = 1;
         }
     }
 
-    if (ftdiCount > 1)
+    if (usbDongleCount > 1)
     {
-        DBG_Printf(DBG_INFO, "GW firmware update too many FTDI devices connected, abort\n");
+        DBG_Printf(DBG_INFO, "GW firmware update too many USB devices connected, abort\n");
     }
-    else if (ftdiCount == 1)
+    else if (usbDongleCount == 1)
     {
-        DBG_Printf(DBG_INFO, "GW firmware update select FTDI device\n");
+        DBG_Printf(DBG_INFO, "GW firmware update select USB device\n");
         fwProcessArgs << "-d" << "0";
     }
-    else if (ttyAMA0 > 0 && ftdiCount == 0)
+    else if (raspBeeCount > 0 && usbDongleCount == 0)
     {
         DBG_Printf(DBG_INFO, "GW firmware update select /dev/ttyAMA0 device\n");
         fwProcessArgs << "/dev/ttyAMA0";
@@ -377,7 +377,7 @@ void DeRestPluginPrivate::checkFirmwareDevices()
         fwUpdateTimer->start(0);
         return;
     }
-#endif // Qt5
+
     fwUpdateState = FW_Idle;
     fwUpdateTimer->start(FW_IDLE_TIMEOUT);
 }
