@@ -68,6 +68,70 @@ void DeRestPluginPrivate::initInternetDicovery()
 #else
     gwRunFromShellScript = false;
 #endif
+    {
+        QFile f("/etc/os-release");
+        if (f.exists() && f.open(QFile::ReadOnly))
+        {
+            QTextStream stream(&f);
+
+            while (!stream.atEnd())
+            {
+                QString line = stream.readLine(200);
+                QStringList lineLs = line.split(QChar('='));
+
+                if (lineLs.size() != 2)
+                {
+                    continue;
+                }
+
+                if (lineLs[0] == QLatin1String("PRETTY_NAME"))
+                {
+                    osPrettyName = lineLs[1];
+                    osPrettyName.remove(QChar('"'));
+                }
+            }
+        }
+    }
+#ifdef ARCH_ARM
+    { // get raspberry pi revision
+        QFile f("/proc/cpuinfo");
+        if (f.exists() && f.open(QFile::ReadOnly))
+        {
+            QByteArray arr = f.readAll();
+            QTextStream stream(arr);
+
+            while (!stream.atEnd())
+            {
+                QString line = stream.readLine(200);
+                QStringList lineLs = line.split(QChar(':'));
+
+                if (lineLs.size() != 2)
+                {
+                    continue;
+                }
+
+                if (lineLs[0].startsWith(QLatin1String("Revision")))
+                {
+                    piRevision = lineLs[1].trimmed();
+                    break;
+                }
+            }
+        }
+    }
+#endif // ARCH_ARM
+
+    if (osPrettyName.isEmpty())
+    {
+#ifdef Q_OS_WIN
+        osPrettyName = "Windows";
+#endif
+#ifdef Q_OS_OSX
+        osPrettyName = "Mac";
+#endif
+#ifdef Q_OS_LINUX
+        osPrettyName = "Linux";
+#endif
+    }
 }
 
 /*! Sets the announce interval for internet discovery.
@@ -101,7 +165,7 @@ void DeRestPluginPrivate::internetDiscoveryTimerFired()
 {
     if (gwAnnounceInterval > 0)
     {
-        QString str = QString("{ \"name\": \"%1\", \"mac\": \"%2\", \"internal_ip\":\"%3\", \"internal_port\":%4, \"interval\":%5, \"swversion\":\"%6\", \"fwversion\":\"%7\", \"nodecount\":%8, \"uptime\":%9, \"updatechannel\":\"%10\" }")
+        QString str = QString("{ \"name\": \"%1\", \"mac\": \"%2\", \"internal_ip\":\"%3\", \"internal_port\":%4, \"interval\":%5, \"swversion\":\"%6\", \"fwversion\":\"%7\", \"nodecount\":%8, \"uptime\":%9, \"updatechannel\":\"%10\"")
                 .arg(gwName)
                 .arg(gwConfig["mac"].toString())
                 .arg(gwConfig["ipaddress"].toString())
@@ -112,6 +176,14 @@ void DeRestPluginPrivate::internetDiscoveryTimerFired()
                 .arg(nodes.size())
                 .arg(getUptime())
                 .arg(gwUpdateChannel);
+
+        str.append(QString(",\"os\": \"%1\"").arg(osPrettyName));
+        if (!piRevision.isEmpty())
+        {
+            str.append(QString(",\"pirev\": \"%1\"").arg(piRevision));
+        }
+        str.append(QChar('}'));
+
         QByteArray data(qPrintable(str));
         inetDiscoveryManager->put(QNetworkRequest(QUrl(gwAnnounceUrl)), data);
     }

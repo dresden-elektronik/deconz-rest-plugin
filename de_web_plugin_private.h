@@ -882,6 +882,8 @@ public:
     QNetworkAccessManager *inetDiscoveryManager;
     QTimer *inetDiscoveryTimer;
     QNetworkReply *inetDiscoveryResponse;
+    QString osPrettyName;
+    QString piRevision;
 
     // otau
     QTimer *otauTimer;
