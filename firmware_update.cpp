@@ -10,15 +10,15 @@
 
 #include <QApplication>
 #include <QDesktopServices>
-#include <QDir>
 #include <QFile>
 #include <QString>
 #include <QProcess>
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 
-#define FW_IDLE_TIMEOUT 10000
-#define FW_WAIT_USER_TIMEOUT 60000
+#define FW_IDLE_TIMEOUT (10 * 1000)
+#define FW_IDLE_TIMEOUT_LONG (240 * 1000)
+#define FW_WAIT_USER_TIMEOUT (60 * 1000)
 
 /*! Inits the firmware update manager.
  */
@@ -57,8 +57,7 @@ void DeRestPluginPrivate::updateFirmware()
         return;
     }
 
-    QDir cwd;
-    QString gcfFlasherBin = cwd.absolutePath() + "/GCFFlasher";
+    QString gcfFlasherBin = qApp->applicationDirPath() + "/GCFFlasher";
 #ifdef Q_OS_WIN
     gcfFlasherBin.append(".exe");
 #endif
@@ -79,7 +78,6 @@ void DeRestPluginPrivate::updateFirmware()
  */
 void DeRestPluginPrivate::updateFirmwareWaitFinished()
 {
-
     if (fwProcess)
     {
         if (fwProcess->bytesAvailable())
@@ -223,8 +221,7 @@ void DeRestPluginPrivate::queryFirmwareVersion()
     }
 
     { // check for GCFFlasher binary
-        QDir cwd;
-        QString gcfFlasherBin = cwd.absolutePath() + "/GCFFlasher";
+        QString gcfFlasherBin = qApp->applicationDirPath() + "/GCFFlasher";
 #ifdef Q_OS_WIN
         gcfFlasherBin.append(".exe");
 #endif
@@ -241,15 +238,28 @@ void DeRestPluginPrivate::queryFirmwareVersion()
     // does the update file exist?
     if (fwUpdateFile.isEmpty())
     {
-        QString path = deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation);
-        fwUpdateFile.sprintf("%s/firmware/deCONZ_Rpi_0x%08x.bin.GCF", qPrintable(path), GW_MIN_RPI_FW_VERSION);
+        QString fileName;
+        fileName.sprintf("deCONZ_Rpi_0x%08x.bin.GCF", GW_MIN_RPI_FW_VERSION);
+
+        // search in different locations
+        std::vector<QString> paths;
+        paths.push_back(deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation) + QLatin1String("/firmware/"));
+        paths.push_back(deCONZ::getStorageLocation(deCONZ::HomeLocation) + QLatin1String("/raspbee_firmware/"));
+
+        std::vector<QString>::const_iterator i = paths.begin();
+        std::vector<QString>::const_iterator end = paths.end();
+        for (; i != end; ++i)
+        {
+            if (QFile::exists(*i + fileName))
+            {
+                fwUpdateFile = *i + fileName;
+                DBG_Printf(DBG_INFO, "GW update firmware found: %s\n", qPrintable(fwUpdateFile));
+                break;
+            }
+        }
     }
 
-    if (QFile::exists(fwUpdateFile))
-    {
-        DBG_Printf(DBG_ERROR, "GW update firmware found: %s\n", qPrintable(fwUpdateFile));
-    }
-    else
+    if (fwUpdateFile.isEmpty())
     {
         DBG_Printf(DBG_ERROR, "GW update firmware not found: %s\n", qPrintable(fwUpdateFile));
         fwUpdateState = FW_Idle;
@@ -313,6 +323,9 @@ void DeRestPluginPrivate::queryFirmwareVersion()
             else
             {
                 DBG_Printf(DBG_INFO, "GW firmware version is up to date: 0x%08x\n", fwVersion);
+                fwUpdateState = FW_Idle;
+                fwUpdateTimer->start(FW_IDLE_TIMEOUT);
+                return;
             }
         }
 
@@ -346,7 +359,7 @@ void DeRestPluginPrivate::checkFirmwareDevices()
 
     for (; i != end; ++i)
     {
-        if (i->friendlyName == QLatin1String("ConBee"))
+        if (i->friendlyName.contains(QLatin1String("ConBee")))
         {
             usbDongleCount++;
         }
