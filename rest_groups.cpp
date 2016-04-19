@@ -1419,6 +1419,17 @@ int DeRestPluginPrivate::createScene(const ApiRequest &req, ApiResponse &rsp)
     }
 
     // search a unused id
+    bool ommit = false;
+
+    if (group->m_deviceMemberships.size() >= 1)
+    {
+        QString deviceId = group->m_deviceMemberships[0];
+        Sensor *s = getSensorNodeForId(deviceId);
+        if (s && s->modelId() == "Lighting Switch")
+        {
+            ommit = true; // ommit scene 2 and 3 for Lighting Switch
+        }
+    }
     scene.id = 1;
     do {
         ok = true; // will be false if a scene.id is already used
@@ -1427,7 +1438,12 @@ int DeRestPluginPrivate::createScene(const ApiRequest &req, ApiResponse &rsp)
 
         for (; i != end; ++i)
         {
-            if (i->id == scene.id)
+            if (ommit == true && (scene.id == 2 || scene.id == 3))
+            {
+                scene.id++;
+                ok = false;
+            }
+            else if (i->id == scene.id)
             {
                 if (i->state == Scene::StateDeleted)
                 {
