@@ -1754,22 +1754,6 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor)
             sensor->enableRead(READ_BINDING_TABLE | READ_GROUP_IDENTIFIERS | READ_MODEL_ID | READ_SWBUILD_ID | READ_VENDOR_NAME);
             sensor->setLastRead(idleTotalCounter);
             updated = true;
-
-            //recover group
-            std::vector<Group>::iterator g = groups.begin();
-            std::vector<Group>::iterator gend = groups.end();
-
-            for (; g != gend; ++g)
-            {
-                std::vector<QString> &v = g->m_deviceMemberships;
-
-                if ((std::find(v.begin(), v.end(), sensor->id()) != v.end()) && (g->state() == Group::StateDeleted))
-                {
-                    g->setState(Group::StateNormal);
-                    updateEtag(g->etag);
-                    queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
-                }
-            }
         }
     }
     else
@@ -5027,8 +5011,8 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
 
     if (sensorNode != 0)
     {
-        if (sensorNode->deletedState() != Sensor::StateDeleted) {
-
+        if (sensorNode->deletedState() != Sensor::StateDeleted)
+        {
             std::vector<Group>::iterator i = groups.begin();
             std::vector<Group>::iterator end = groups.end();
 
@@ -5099,6 +5083,28 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
                 }
             }
             updateEtag(gwConfigEtag);
+        }
+        else if (sensorNode->deletedState() == Sensor::StateDeleted && gwPermitJoinDuration > 0)
+        {
+            // reactivate deleted switch and recover group
+            sensorNode->setDeletedState(Sensor::StateNormal);
+
+            std::vector<Group>::iterator g = groups.begin();
+            std::vector<Group>::iterator gend = groups.end();
+
+            for (; g != gend; ++g)
+            {
+                std::vector<QString> &v = g->m_deviceMemberships;
+
+                if ((std::find(v.begin(), v.end(), sensorNode->id()) != v.end()) && (g->state() == Group::StateDeleted))
+                {
+                    g->setState(Group::StateNormal);
+                    updateEtag(g->etag);
+                }
+            }
+            updateEtag(sensorNode->etag);
+            updateEtag(gwConfigEtag);
+            queSaveDb(DB_GROUPS | DB_SENSORS, DB_SHORT_SAVE_DELAY);
         }
     }
 }
