@@ -1740,7 +1740,7 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor)
             DBG_Printf(DBG_INFO, "SensorNode id: %s (%s) available\n", qPrintable(sensor->id()), qPrintable(sensor->name()));
             sensor->setIsAvailable(true);
             sensor->setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongDelay));
-            sensor->enableRead(READ_BINDING_TABLE | READ_GROUP_IDENTIFIERS | READ_MODEL_ID | READ_SWBUILD_ID | READ_VENDOR_NAME);
+            sensor->enableRead(READ_BINDING_TABLE/* | READ_GROUP_IDENTIFIERS | READ_MODEL_ID | READ_SWBUILD_ID | READ_VENDOR_NAME*/);
             sensor->setLastRead(idleTotalCounter);
             checkSensorBindingsForAttributeReporting(sensor);
             updated = true;
@@ -5318,17 +5318,21 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
         if (si->address().ext() == ind.srcAddress().ext())
         {
             DBG_Printf(DBG_INFO, "DeviceAnnce of SensorNode: %s\n", qPrintable(ind.srcAddress().toStringExt()));
-            si->setIsAvailable(true);
-            si->setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongDelay));
-            si->enableRead(READ_BINDING_TABLE | READ_GROUP_IDENTIFIERS | READ_MODEL_ID | READ_SWBUILD_ID);
-            si->setLastRead(idleTotalCounter);
+            checkSensorNodeReachable(&(*si));
+            /*
             if (si->deletedState() == Sensor::StateDeleted)
             {
+                si->setIsAvailable(true);
+                si->setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongDelay));
+                si->enableRead(READ_BINDING_TABLE | READ_GROUP_IDENTIFIERS | READ_MODEL_ID | READ_SWBUILD_ID);
+                si->setLastRead(idleTotalCounter);
                 si->setDeletedState(Sensor::StateNormal);
+
                 updateEtag(si->etag);
                 updateEtag(gwConfigEtag);
                 queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
             }
+            */
         }
     }
 }
