@@ -3115,7 +3115,7 @@ bool DeRestPluginPrivate::readAttributes(RestNodeBase *restNode, quint8 endpoint
                              deCONZ::ZclFCDirectionClientToServer |
                              deCONZ::ZclFCDisableDefaultResponse);
 
-    DBG_Printf(DBG_INFO, "read attributes of 0x%016llX cluster: 0x%04X: [ ", restNode->address().ext(), clusterId);
+    DBG_Printf(DBG_INFO_L2, "read attributes of 0x%016llX cluster: 0x%04X: [ ", restNode->address().ext(), clusterId);
 
     { // payload
         QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
@@ -3124,16 +3124,16 @@ bool DeRestPluginPrivate::readAttributes(RestNodeBase *restNode, quint8 endpoint
         for (uint i = 0; i < attributes.size(); i++)
         {
             stream << attributes[i];
-            if (DBG_IsEnabled(DBG_INFO))
+            if (DBG_IsEnabled(DBG_INFO_L2))
             {
-                DBG_Printf(DBG_INFO, "0x%04X ", attributes[i]);
+                DBG_Printf(DBG_INFO_L2, "0x%04X ", attributes[i]);
             }
         }
     }
 
-    if (DBG_IsEnabled(DBG_INFO))
+    if (DBG_IsEnabled(DBG_INFO_L2))
     {
-        DBG_Printf(DBG_INFO, "]\n");
+        DBG_Printf(DBG_INFO_L2, "]\n");
     }
 
     { // ZCL frame
