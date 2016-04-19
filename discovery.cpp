@@ -21,7 +21,8 @@
  */
 void DeRestPluginPrivate::initInternetDicovery()
 {
-    inetDiscoveryManager = new QNetworkAccessManager(this);
+    Q_ASSERT(inetDiscoveryManager == 0);
+    inetDiscoveryManager = new QNetworkAccessManager;
     connect(inetDiscoveryManager, SIGNAL(finished(QNetworkReply*)),
             this, SLOT(internetDiscoveryFinishedRequest(QNetworkReply*)));
 
@@ -33,6 +34,7 @@ void DeRestPluginPrivate::initInternetDicovery()
     }
 
     inetDiscoveryTimer = new QTimer(this);
+    inetDiscoveryTimer->setSingleShot(false);
 
     connect(inetDiscoveryTimer, SIGNAL(timeout()),
             this, SLOT(internetDiscoveryTimerFired()));

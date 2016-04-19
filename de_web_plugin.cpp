@@ -12,6 +12,7 @@
 #include <QDebug>
 #include <QDesktopServices>
 #include <QtPlugin>
+#include <QNetworkAccessManager>
 #include <QPushButton>
 #include <QTextCodec>
 #include <QTime>
@@ -143,6 +144,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     // set some default might be overwritten by database
     gwAnnounceInterval = ANNOUNCE_INTERVAL;
     gwAnnounceUrl = "http://dresden-light.appspot.com/discover";
+    inetDiscoveryManager = 0;
 
     openDb();
     initDb();
@@ -244,6 +246,11 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
  */
 DeRestPluginPrivate::~DeRestPluginPrivate()
 {
+    if (inetDiscoveryManager)
+    {
+        inetDiscoveryManager->deleteLater();
+        inetDiscoveryManager = 0;
+    }
 }
 
 /*! APSDE-DATA.indication callback.
