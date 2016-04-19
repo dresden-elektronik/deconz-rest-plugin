@@ -534,7 +534,6 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
                         {
                             task.req.setDstAddressMode(deCONZ::ApsGroupAddress);
                             task.req.dstAddress().setGroup(group->address());
-
                             if (!callScene(group, sceneId.toInt()))
                             {
                                 DBG_Printf(DBG_INFO, "failed to call scene\n");
