@@ -101,7 +101,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     haEndpoint = 0;
     gwGroupSendDelay = deCONZ::appArgumentNumeric("--group-delay", GROUP_SEND_DELAY);
     supportColorModeXyForGroups = false;
-
+    groupDeviceMembershipChecked = false;
     gwLinkButton = false;
 
     apsCtrl = deCONZ::ApsController::instance();
@@ -5743,6 +5743,33 @@ void DeRestPlugin::idleTimerFired()
     if (!pluginActive())
     {
         return;
+    }
+
+    // put coordinator into groups of switches
+    // deCONZ firmware will put itself into a group after sending out a groupcast
+    // therefore we will receives commands to the same group
+    if (d->groupDeviceMembershipChecked == false)
+    {
+        TaskItem task;
+
+        std::vector<Group>::const_iterator i = d->groups.begin();
+        std::vector<Group>::const_iterator end = d->groups.end();
+
+        for (; i != end; ++i)
+        {
+            if (i->state() == Group::StateNormal && i->m_deviceMemberships.size() > 0)
+            {
+                task.req.setDstAddressMode(deCONZ::ApsGroupAddress);
+                task.req.dstAddress().setGroup(i->address());
+                task.req.setDstEndpoint(0xFF); // broadcast endpoint
+                task.req.setSrcEndpoint(d->getSrcEndpoint(0, task.req));
+                if (!d->addTaskViewGroup(task, i->address()))
+                {
+                    DBG_Printf(DBG_INFO, "failed to send view group\n");
+                }
+            }
+        }
+        d->groupDeviceMembershipChecked = true;
     }
 
     bool processLights = false;

@@ -844,6 +844,7 @@ public:
     QString gwConfigEtag;
     bool gwRunFromShellScript;
     bool gwDeleteUnknownRules;
+    bool groupDeviceMembershipChecked;
 
     // firmware update
     enum FW_UpdateState {
