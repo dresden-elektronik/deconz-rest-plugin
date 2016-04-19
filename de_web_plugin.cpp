@@ -585,6 +585,27 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
                             {
                                 DBG_Printf(DBG_INFO, "failed to send off command\n");
                             }
+                            else
+                            {
+                                if (groupId != "0")
+                                {
+                                    group->setIsOn(false);
+                                    updateEtag(group->etag);
+                                }
+
+                                std::vector<LightNode>::iterator l = nodes.begin();
+                                std::vector<LightNode>::iterator lend = nodes.end();
+
+                                for (; l != lend; ++l)
+                                {
+                                    if (groupId == "0" || isLightNodeInGroup(&(*l),group->address()))
+                                    {
+                                        l->setIsOn(false);
+                                        updateEtag(l->etag);
+                                    }
+                                }
+
+                            }
                         }
                         else if ((body.indexOf("on") != -1) && (body.indexOf("true") != -1))
                         {
@@ -592,7 +613,54 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
                             {
                                 DBG_Printf(DBG_INFO, "failed to send on command\n");
                             }
+                            else
+                            {
+                                if (groupId != "0")
+                                {
+                                    group->setIsOn(true);
+                                    if (group->isColorLoopActive() == true)
+                                    {
+                                        TaskItem task1;
+                                        task1.req.dstAddress().setGroup(group->address());
+                                        task1.req.setDstAddressMode(deCONZ::ApsGroupAddress);
+                                        task1.req.setDstEndpoint(0xFF); // broadcast endpoint
+                                        task1.req.setSrcEndpoint(getSrcEndpoint(0, task1.req));
+
+                                        addTaskSetColorLoop(task1, false, 15);
+                                        group->setColorLoopActive(false);
+                                    }
+                                    updateEtag(group->etag);
+                                }
+
+                                // check each light if colorloop needs to be disabled
+                                std::vector<LightNode>::iterator l = nodes.begin();
+                                std::vector<LightNode>::iterator lend = nodes.end();
+
+                                for (; l != lend; ++l)
+                                {
+                                    if (groupId == "0" || isLightNodeInGroup(&(*l),group->address()))
+                                    {
+                                        l->setIsOn(true);
+
+                                        if (l->isAvailable() && l->state() != LightNode::StateDeleted && l->isColorLoopActive() == true)
+                                        {
+                                            TaskItem task2;
+                                            task2.lightNode = &(*l);
+                                            task2.req.dstAddress() = task2.lightNode->address();
+                                            task2.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+                                            task2.req.setDstEndpoint(task2.lightNode->haEndpoint().endpoint());
+                                            task2.req.setSrcEndpoint(getSrcEndpoint(task2.lightNode, task2.req));
+                                            task2.req.setDstAddressMode(deCONZ::ApsExtAddress);
+
+                                            addTaskSetColorLoop(task2, false, 15);
+                                            l->setColorLoopActive(false);
+                                        }
+                                        updateEtag(l->etag);
+                                    }
+                                }
+                            }
                         }
+                        updateEtag(gwConfigEtag);
                     }
 
                 /*
