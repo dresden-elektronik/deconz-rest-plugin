@@ -62,11 +62,12 @@ void DeRestPluginPrivate::initDb()
         "ALTER TABLE auth add column useragent TEXT",
         "CREATE TABLE IF NOT EXISTS groups (gid TEXT PRIMARY KEY, name TEXT, state TEXT, mids TEXT, devicemembership TEXT)",
         "CREATE TABLE IF NOT EXISTS rules (rid TEXT PRIMARY KEY, name TEXT, created TEXT, etag TEXT, lasttriggered TEXT, owner TEXT, status TEXT, timestriggered TEXT, actions TEXT, conditions TEXT)",
-        "CREATE TABLE IF NOT EXISTS sensors (sid TEXT PRIMARY KEY, name TEXT, type TEXT, modelid TEXT, manufacturername TEXT, uniqueid TEXT, swversion TEXT, state TEXT, config TEXT, fingerprint TEXT, deletedState TEXT)",
+        "CREATE TABLE IF NOT EXISTS sensors (sid TEXT PRIMARY KEY, name TEXT, type TEXT, modelid TEXT, manufacturername TEXT, uniqueid TEXT, swversion TEXT, state TEXT, config TEXT, fingerprint TEXT, deletedState TEXT, mode TEXT)",
         "CREATE TABLE IF NOT EXISTS scenes (gsid TEXT PRIMARY KEY, gid TEXT, sid TEXT, name TEXT, transitiontime TEXT, lights TEXT)",
         "CREATE TABLE IF NOT EXISTS schedules (id TEXT PRIMARY KEY, json TEXT)",
         "ALTER TABLE sensors add column fingerprint TEXT",
         "ALTER TABLE sensors add column deletedState TEXT",
+        "ALTER TABLE sensors add column mode TEXT",
         "ALTER TABLE groups add column state TEXT",
         "ALTER TABLE groups add column mids TEXT",
         "ALTER TABLE groups add column devicemembership TEXT",
@@ -1223,6 +1224,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 sensor.setModelId(val);
             }
+            else if (strcmp(colname[i], "mode") == 0)
+            {
+                sensor.setMode(val.toUInt());
+            }
             else if (strcmp(colname[i], "etag") == 0)
             {
                 sensor.etag = val;
@@ -1970,7 +1975,7 @@ void DeRestPluginPrivate::saveDb()
             QString fingerPrintJSON = i->fingerPrint().toString();
             QString deletedState((i->deletedState() == Sensor::StateDeleted ? "deleted" : "normal"));
 
-            QString sql = QString(QLatin1String("REPLACE INTO sensors (sid, name, type, modelid, manufacturername, uniqueid, swversion, state, config, fingerprint, deletedState) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7', '%8', '%9', '%10', '%11')"))
+            QString sql = QString(QLatin1String("REPLACE INTO sensors (sid, name, type, modelid, manufacturername, uniqueid, swversion, state, config, fingerprint, deletedState, mode) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7', '%8', '%9', '%10', '%11', '%12')"))
                     .arg(sid)
                     .arg(i->name())
                     .arg(i->type())
@@ -1981,7 +1986,8 @@ void DeRestPluginPrivate::saveDb()
                     .arg(stateJSON)
                     .arg(configJSON)
                     .arg(fingerPrintJSON)
-                    .arg(deletedState);
+                    .arg(deletedState)
+                    .arg(QString::number(i->mode()));
 
             errmsg = NULL;
             rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);

@@ -150,6 +150,8 @@ public:
     void setState(const SensorState &state);
     const SensorConfig &config() const;
     void setConfig(const SensorConfig &config);
+    const uint8_t &mode() const;
+    void setMode(const uint8_t &mode);
 
     static QString stateToString(const SensorState &state);
     static QString configToString(const SensorConfig &config);
@@ -172,6 +174,7 @@ private:
     SensorState m_state;
     SensorConfig m_config;
     SensorFingerprint m_fingerPrint;
+    uint8_t m_mode;
 };
 
 #endif // SENSOR_H

@@ -351,6 +351,10 @@ int DeRestPluginPrivate::getSensor(const ApiRequest &req, ApiResponse &rsp)
     {
         rsp.map["swversion"] = sensor->swVersion();
     }
+    if (sensor->modelId() == "Lighting Switch")
+    {
+        rsp.map["mode"] = sensor->mode();
+    }
     rsp.map["uniqueid"] = sensor->uniqueId();
     rsp.map["ep"] = sensor->fingerPrint().endpoint;
     rsp.map["manufacturername"] = sensor->manufacturer();
@@ -675,6 +679,7 @@ int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
     QString id = req.path[3];
     Sensor *sensor = getSensorNodeForId(id);
     QString name;
+    uint8_t mode;
     bool ok;
     bool error = false;
     QVariant var = Json::parse(req.content, ok);
@@ -706,7 +711,9 @@ int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
 
     for (; pi != pend; ++pi)
     {
-        if(!((pi.key() == "name") || (pi.key() == "modelid") || (pi.key() == "swversion") || (pi.key() == "type")  || (pi.key() == "uniqueid")  || (pi.key() == "manufacturername")  || (pi.key() == "state")  || (pi.key() == "config")))
+        if(!((pi.key() == "name") || (pi.key() == "modelid") || (pi.key() == "swversion")
+             || (pi.key() == "type")  || (pi.key() == "uniqueid")  || (pi.key() == "manufacturername")
+             || (pi.key() == "state")  || (pi.key() == "config") || (pi.key() == "mode" && sensor->modelId() == "Lighting Switch")))
         {
             rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%2").arg(pi.key()), QString("parameter, %1, not available").arg(pi.key())));
             rsp.httpStatus = HttpStatusBadRequest;
@@ -774,6 +781,28 @@ int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
         else
         {
             rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/name").arg(id), QString("invalid value, %1, for parameter, /sensors/%2/name").arg(name).arg(id)));
+            rsp.httpStatus = HttpStatusBadRequest;
+        }
+    }
+
+    if (map.contains("mode")) // optional
+    {
+        mode = map["mode"].toUInt();
+
+        if ((map["mode"].type() == QVariant::Double) && (mode == 1 || mode == 2 || mode == 3))
+        {
+           sensor->setMode(mode);
+
+           rspItemState[QString("/sensors/%1/mode:").arg(id)] = mode;
+           rspItem["success"] = rspItemState;
+           rsp.list.append(rspItem);
+           updateEtag(sensor->etag);
+           updateEtag(gwConfigEtag);
+           queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/mode").arg(id), QString("invalid value, %1, for parameter, /sensors/%2/mode").arg(mode).arg(id)));
             rsp.httpStatus = HttpStatusBadRequest;
         }
     }
@@ -1461,6 +1490,10 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map)
     if (sensor->swVersion() != "")
     {
         map["swversion"] = sensor->swVersion();
+    }
+    if (sensor->modelId() == "Lighting Switch")
+    {
+        map["mode"] = sensor->mode();
     }
     map["uniqueid"] = sensor->uniqueId();
     map["manufacturername"] = sensor->manufacturer();

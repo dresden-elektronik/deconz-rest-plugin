@@ -121,7 +121,8 @@ Sensor::Sensor() :
     m_type("undefined"),
     m_modelid(""),
     m_manufacturer("unknown"),
-    m_swversion("1.0")
+    m_swversion("1.0"),
+    m_mode(2)
 {
     sensorTypes.append("CLIPSwitch");
     sensorTypes.append("CLIPOpenClose");
@@ -165,6 +166,27 @@ const QString &Sensor::name() const
 void Sensor::setName(const QString &name)
 {
     m_name = name;
+}
+
+/*! Returns the sensor mode (Lighting Switch).
+ * 1 = Secenes
+ * 2 = Groups
+ * 3 = Color Temperature
+ */
+const uint8_t &Sensor::mode() const
+{
+   return m_mode;
+}
+
+/*! Sets the sensor mode (Lighting Switch).
+ * 1 = Secenes
+ * 2 = Groups
+ * 3 = Color Temperature
+    \param mode the sensor mode
+ */
+void Sensor::setMode(const uint8_t &mode)
+{
+    m_mode = mode;
 }
 
 /*! Returns the sensor type.
