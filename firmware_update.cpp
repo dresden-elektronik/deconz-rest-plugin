@@ -324,7 +324,7 @@ void DeRestPluginPrivate::queryFirmwareVersion()
             {
                 DBG_Printf(DBG_INFO, "GW firmware version is up to date: 0x%08x\n", fwVersion);
                 fwUpdateState = FW_Idle;
-                fwUpdateTimer->start(FW_IDLE_TIMEOUT);
+                fwUpdateTimer->start(FW_IDLE_TIMEOUT_LONG);
                 return;
             }
         }
