@@ -11,6 +11,7 @@
 #include <QFile>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
+#include <QSysInfo>
 #include "de_web_plugin_private.h"
 #include "json.h"
 #ifdef Q_OS_LINUX
@@ -125,7 +126,17 @@ void DeRestPluginPrivate::initInternetDicovery()
     if (osPrettyName.isEmpty())
     {
 #ifdef Q_OS_WIN
-        osPrettyName = "Windows";
+        switch (QSysInfo::WindowsVersion)
+        {
+        case QSysInfo::WV_XP:         osPrettyName = QLatin1String("WinXP"); break;
+        case QSysInfo::WV_WINDOWS7:   osPrettyName = QLatin1String("Win7"); break;
+        case QSysInfo::WV_WINDOWS8:   osPrettyName = QLatin1String("Win8"); break;
+        case QSysInfo::WV_WINDOWS8_1: osPrettyName = QLatin1String("Win8.1"); break;
+        case QSysInfo::WV_WINDOWS10:  osPrettyName = QLatin1String("Win10"); break;
+        default:
+            osPrettyName = QLatin1String("Win");
+            break;
+        }
 #endif
 #ifdef Q_OS_OSX
         osPrettyName = "Mac";
