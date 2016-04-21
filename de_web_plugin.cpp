@@ -191,10 +191,10 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     taskTimer->start(100);
 
     groupTaskTimer = new QTimer(this);
-    taskTimer->setSingleShot(false);
-    connect(taskTimer, SIGNAL(timeout()),
+    groupTaskTimer->setSingleShot(false);
+    connect(groupTaskTimer, SIGNAL(timeout()),
             this, SLOT(processGroupTasks()));
-    taskTimer->start(250);
+    groupTaskTimer->start(250);
 
     verifyRulesTimer = new QTimer(this);
     verifyRulesTimer->setSingleShot(false);
