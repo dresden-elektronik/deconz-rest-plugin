@@ -2125,6 +2125,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
         }
 
 
+        if (event.clusterId() != BASIC_CLUSTER_ID)
         { // assume data must be in server cluster attribute
             bool found = false;
             std::vector<quint16>::const_iterator ci = i->fingerPrint().inClusters.begin();
@@ -2157,12 +2158,27 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                     std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
                     std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
 
+                    NodeValue::UpdateType updateType = NodeValue::UpdateInvalid;
+                    if (event.event() == deCONZ::NodeEvent::UpdatedClusterDataZclRead)
+                    {
+                        updateType = NodeValue::UpdateByZclRead;
+                    }
+                    else if (event.event() == deCONZ::NodeEvent::UpdatedClusterDataZclReport)
+                    {
+                        updateType = NodeValue::UpdateByZclReport;
+                    }
+
                     if (event.clusterId() == ILLUMINANCE_MEASUREMENT_CLUSTER_ID)
                     {
                         for (;ia != enda; ++ia)
                         {
                             if (ia->id() == 0x0000) // measured illuminance (lux)
                             {
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
+                                }
+
                                 quint16 lux = ia->numericValue().u16;
                                 if (i->state().lux() != lux)
                                 {
@@ -2179,7 +2195,14 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                     {
                         for (;ia != enda; ++ia)
                         {
-                            if (ia->id() == 0x0010) // occupied to unoccupied delay
+                            if (ia->id() == 0x0000) // occupied state
+                            {
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
+                                }
+                            }
+                            else if (ia->id() == 0x0010) // occupied to unoccupied delay
                             {
                                 double duration = (double)ia->numericValue().u16;
 
@@ -4183,6 +4206,8 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         break;
 
     case deCONZ::NodeEvent::UpdatedClusterData:
+    case deCONZ::NodeEvent::UpdatedClusterDataZclRead:
+    case deCONZ::NodeEvent::UpdatedClusterDataZclReport:
     {
         if (event.profileId() == ZDP_PROFILE_ID && event.clusterId() == ZDP_ACTIVE_ENDPOINTS_RSP_CLID)
         {

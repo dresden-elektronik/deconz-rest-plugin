@@ -513,6 +513,27 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
 
     for (; i != end; ++i)
     {
+        NodeValue val;
+
+        if (*i == ILLUMINANCE_MEASUREMENT_CLUSTER_ID)
+        {
+            val = sensor->getZclValue(*i, 0x0000); // measured value
+        }
+        else if (*i == OCCUPANCY_SENSING_CLUSTER_ID)
+        {
+            val = sensor->getZclValue(*i, 0x0000); // occupied state
+        }
+
+        if (val.updateType == NodeValue::UpdateByZclReport)
+        {
+            if (val.timestamp.isValid() &&
+                val.timestamp.secsTo(QTime::currentTime()) < (60 * 30)) // got update in timely manner
+            {
+                DBG_Printf(DBG_INFO, "binding for attribute reporting of cluster 0x%04X seems to be active\n", (*i));
+                continue;
+            }
+        }
+
         switch (*i)
         {
         case OCCUPANCY_SENSING_CLUSTER_ID:
