@@ -2013,11 +2013,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     }
     else if ((node->nodeDescriptor().manufacturerCode() == VENDOR_OSRAM_STACK) || (node->nodeDescriptor().manufacturerCode() == VENDOR_OSRAM))
     {
-        sensorNode.setManufacturer("Osram");
+        sensorNode.setManufacturer("OSRAM");
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_UBISYS)
     {
-        sensorNode.setManufacturer("ubisys");
+        sensorNode.setManufacturer("Ubisys");
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_BUSCH_JAEGER)
     {
