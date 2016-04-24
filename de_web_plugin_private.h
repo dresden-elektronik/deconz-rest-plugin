@@ -617,6 +617,7 @@ public Q_SLOTS:
     void apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf);
     void gpDataIndication(const deCONZ::GpDataIndication &ind);
     void gpProcessButtonEvent(const deCONZ::GpDataIndication &ind);
+    int taskCountForAddress(const deCONZ::Address &address);
     void processTasks();
     void processGroupTasks();
     void nodeEvent(const deCONZ::NodeEvent &event);

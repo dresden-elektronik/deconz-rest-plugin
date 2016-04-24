@@ -756,6 +756,44 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
     }
 }
 
+/*! Returns the number of tasks for a specific address.
+    \param address - the destination address
+ */
+int DeRestPluginPrivate::taskCountForAddress(const deCONZ::Address &address)
+{
+    int count = 0;
+
+    {
+        std::list<TaskItem>::const_iterator i = tasks.begin();
+        std::list<TaskItem>::const_iterator end = tasks.end();
+
+        for (; i != end; ++i)
+        {
+            if (i->req.dstAddress() == address)
+            {
+                count++;
+            }
+
+        }
+    }
+
+    {
+        std::list<TaskItem>::const_iterator i = runningTasks.begin();
+        std::list<TaskItem>::const_iterator end = runningTasks.end();
+
+        for (; i != end; ++i)
+        {
+            if (i->req.dstAddress() == address)
+            {
+                count++;
+            }
+
+        }
+    }
+
+    return count;
+}
+
 /*! Process incoming green power data frame.
     \param ind - the data indication
  */
@@ -3100,6 +3138,11 @@ bool DeRestPluginPrivate::readAttributes(RestNodeBase *restNode, quint8 endpoint
     DBG_Assert(!attributes.empty());
 
     if (!restNode || attributes.empty() || !restNode->isAvailable())
+    {
+        return false;
+    }
+
+    if (taskCountForAddress(restNode->address()) > 0)
     {
         return false;
     }
