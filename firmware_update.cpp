@@ -230,7 +230,7 @@ void DeRestPluginPrivate::queryFirmwareVersion()
         {
             DBG_Printf(DBG_INFO, "GW update firmware failed, %s doesn't exist\n", qPrintable(gcfFlasherBin));
             fwUpdateState = FW_Idle;
-            fwUpdateTimer->start(FW_IDLE_TIMEOUT);
+            fwUpdateTimer->start(FW_IDLE_TIMEOUT_LONG);
             return;
         }
     }
