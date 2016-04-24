@@ -8,6 +8,7 @@
  *
  */
 
+#include <QTime>
 #include "de_web_plugin_private.h"
 
 /*! Constructor.
@@ -195,3 +196,59 @@ void RestNodeBase::setMgmtBindSupported(bool supported)
     m_mgmtBindSupported = supported;
 }
 
+/*! Sets a numeric ZCL attribute value.
+
+    A timestamp will begenerated automatically.
+    \param updateType - specifies if value came by ZCL attribute read or report command
+    \param clusterId - the cluster id of the value
+    \param attributeId - the attribute id of the value
+    \param value - the value data
+ */
+void RestNodeBase::setZclValue(NodeValue::UpdateType updateType, quint16 clusterId, quint16 attributeId, const deCONZ::NumericUnion &value)
+{
+    std::vector<NodeValue>::iterator i = m_values.begin();
+    std::vector<NodeValue>::iterator end = m_values.end();
+
+    for (; i != end; ++i)
+    {
+        if (i->clusterId == clusterId &&
+            i->attributeId == attributeId)
+        {
+            i->updateType = updateType;
+            i->value = value;
+            return;
+        }
+    }
+
+    NodeValue val;
+    val.timestamp = QTime::currentTime();
+    val.clusterId = clusterId;
+    val.attributeId = attributeId;
+    val.updateType = updateType;
+    val.value = value;
+
+    m_values.push_back(val);
+}
+
+/*! Returns a numeric ZCL attribute value.
+
+    If the value couldn't be found the NodeValue::timestamp field holds a invalid QTime.
+    \param clusterId - the cluster id of the value
+    \param attributeId - the attribute id of the value
+ */
+const NodeValue &RestNodeBase::getZclValue(quint16 clusterId, quint16 attributeId)
+{
+    std::vector<NodeValue>::const_iterator i = m_values.begin();
+    std::vector<NodeValue>::const_iterator end = m_values.end();
+
+    for (; i != end; ++i)
+    {
+        if (i->clusterId == clusterId &&
+            i->attributeId == attributeId)
+        {
+            return *i;
+        }
+    }
+
+    return m_invalidValue;
+}

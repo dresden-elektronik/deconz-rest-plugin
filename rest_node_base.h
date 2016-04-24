@@ -14,6 +14,31 @@
 #include <QTime>
 #include "deconz.h"
 
+/*! \class NodeValue
+
+    Holds bookkeeping data for numeric ZCL values.
+ */
+class NodeValue
+{
+public:
+    enum UpdateType { UpdateInvalid, UpdateByZclReport, UpdateByZclRead };
+
+    NodeValue() :
+        updateType(UpdateInvalid),
+        clusterId(0),
+        attributeId(0)
+    {
+        value.u64 = 0;
+    }
+
+    QTime timestamp;
+    UpdateType updateType;
+    quint16 clusterId;
+    quint16 attributeId;
+    deCONZ::NumericUnion value;
+};
+
+
 /*! \class RestNodeBase
 
     The base class for all device representations.
@@ -44,6 +69,9 @@ public:
     void setLastAttributeReportBind(int lastBind);
     bool mgmtBindSupported() const;
     void setMgmtBindSupported(bool supported);
+    void setZclValue(NodeValue::UpdateType updateType, quint16 clusterId, quint16 attributeId, const deCONZ::NumericUnion &value);
+    const NodeValue &getZclValue(quint16 clusterId, quint16 attributeId);
+
 
 private:
     deCONZ::Node *m_node;
@@ -57,6 +85,9 @@ private:
     int m_lastRead; // copy of idleTotalCounter
     int m_lastAttributeReportBind; // copy of idleTotalCounter
     QTime m_nextReadTime;
+
+    NodeValue m_invalidValue;
+    std::vector<NodeValue> m_values;
 };
 
 #endif // REST_NODE_BASE_H
