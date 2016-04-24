@@ -196,6 +196,15 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
 
     if (status != deCONZ::ZdpSuccess)
     {
+        if (status == deCONZ::ZdpNotPermitted ||
+            status == deCONZ::ZdpNotSupported)
+        {
+            if (node->mgmtBindSupported())
+            {
+                DBG_Printf(DBG_INFO, "MgmtBind_req/rsp %s not supported, deactivate \n", qPrintable(node->address().toStringExt()));
+                node->setMgmtBindSupported(false);
+            }
+        }
         return;
     }
 
@@ -498,6 +507,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         }
     }
 
+    bool checkBindingTable = false;
     std::vector<quint16>::const_iterator i = sensor->fingerPrint().inClusters.begin();
     std::vector<quint16>::const_iterator end = sensor->fingerPrint().inClusters.end();
 
@@ -511,7 +521,17 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             DBG_Printf(DBG_INFO, "create binding for attribute reporting of cluster 0x%04X\n", (*i));
 
             BindingTask bindingTask;
-            bindingTask.state = BindingTask::StateCheck;
+
+            if (sensor->mgmtBindSupported())
+            {
+                bindingTask.state = BindingTask::StateCheck;
+                checkBindingTable = true;
+            }
+            else
+            {
+                bindingTask.state = BindingTask::StateIdle;
+            }
+
             bindingTask.action = action;
             bindingTask.restNode = sensor;
             Binding &bnd = bindingTask.binding;
@@ -534,10 +554,13 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         }
     }
 
-    sensor->enableRead(READ_BINDING_TABLE);
-    sensor->setNextReadTime(QTime::currentTime());
-    Q_Q(DeRestPlugin);
-    q->startZclAttributeTimer(1000);
+    if (checkBindingTable)
+    {
+        sensor->enableRead(READ_BINDING_TABLE);
+        sensor->setNextReadTime(QTime::currentTime());
+        Q_Q(DeRestPlugin);
+        q->startZclAttributeTimer(1000);
+    }
 
     if (!bindingTimer->isActive())
     {
@@ -625,11 +648,18 @@ void DeRestPluginPrivate::bindingTimerFired()
                 i->retries--;
                 if (i->retries > 0 && i->restNode)
                 {
-                    i->restNode->enableRead(READ_BINDING_TABLE);
-                    i->restNode->setNextReadTime(QTime::currentTime());
-                    q->startZclAttributeTimer(1000);
+                    if (i->restNode->mgmtBindSupported())
+                    {
+                        i->restNode->enableRead(READ_BINDING_TABLE);
+                        i->restNode->setNextReadTime(QTime::currentTime());
+                        q->startZclAttributeTimer(1000);
 
-                    i->state = BindingTask::StateCheck;
+                        i->state = BindingTask::StateCheck;
+                    }
+                    else
+                    {
+                        i->state = BindingTask::StateIdle;
+                    }
                     i->timeout = BindingTask::Timeout;
 
                     DBG_Printf(DBG_INFO, "%s check timeout, retries = %d (srcAddr: 0x%016llX cluster: 0x%04X)\n",

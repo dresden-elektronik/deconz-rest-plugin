@@ -42,6 +42,8 @@ public:
     void setLastRead(int lastRead);
     int lastAttributeReportBind() const;
     void setLastAttributeReportBind(int lastBind);
+    bool mgmtBindSupported() const;
+    void setMgmtBindSupported(bool supported);
 
 private:
     deCONZ::Node *m_node;
@@ -49,6 +51,7 @@ private:
     QString m_id;
     QString m_uid;
     bool m_available;
+    bool m_mgmtBindSupported;
 
     uint32_t m_read; // bitmap of READ_* flags
     int m_lastRead; // copy of idleTotalCounter

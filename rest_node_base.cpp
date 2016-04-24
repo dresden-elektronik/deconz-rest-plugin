@@ -15,6 +15,7 @@
 RestNodeBase::RestNodeBase() :
     m_node(0),
     m_available(false),
+    m_mgmtBindSupported(true),
     m_read(0),
     m_lastRead(0),
     m_lastAttributeReportBind(0)
@@ -178,3 +179,19 @@ void RestNodeBase::setLastAttributeReportBind(int lastBind)
 {
     m_lastAttributeReportBind = lastBind;
 }
+
+/*! Returns true if mgmt bind request/response are supported.
+ */
+bool RestNodeBase::mgmtBindSupported() const
+{
+    return m_mgmtBindSupported;
+}
+
+/*! Sets the query binding table supported flag;
+    \param supported - query binding table supported flag
+ */
+void RestNodeBase::setMgmtBindSupported(bool supported)
+{
+    m_mgmtBindSupported = supported;
+}
+
