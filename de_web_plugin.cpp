@@ -1788,7 +1788,7 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor)
             DBG_Printf(DBG_INFO, "Rediscovered deleted SensorNode %s set node %s\n", qPrintable(sensor->id()), qPrintable(sensor->address().toStringExt()));
             sensor->setDeletedState(Sensor::StateNormal);
             sensor->setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongDelay));
-            sensor->enableRead(READ_BINDING_TABLE | READ_GROUP_IDENTIFIERS | READ_MODEL_ID | READ_SWBUILD_ID | READ_VENDOR_NAME);
+            sensor->enableRead(READ_BINDING_TABLE | READ_GROUP_IDENTIFIERS | READ_MODEL_ID | READ_VENDOR_NAME);
             sensor->setLastRead(idleTotalCounter);
             updated = true;
         }
@@ -2080,7 +2080,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             {
                 DBG_Printf(DBG_INFO, "SensorNode %u: %s read model id and swversion\n", sensorNode.id().toUInt(), qPrintable(sensorNode.name()));
                 sensorNode.setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongDelay));
-                sensorNode.enableRead(READ_MODEL_ID | READ_SWBUILD_ID | READ_VENDOR_NAME);
+                sensorNode.enableRead(READ_MODEL_ID | READ_VENDOR_NAME);
                 sensorNode.setLastRead(idleTotalCounter);
             }
         }
@@ -2270,11 +2270,16 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                     }
                     else if (event.clusterId() == BASIC_CLUSTER_ID)
                     {
-                        DBG_Printf(DBG_INFO, "Update Sensor 0x%04X Basic Cluster\n", event.node()->address().ext());
+                        DBG_Printf(DBG_INFO, "Update Sensor 0x%016llX Basic Cluster\n", event.node()->address().ext());
                         for (;ia != enda; ++ia)
                         {
                             if (ia->id() == 0x0005) // Model identifier
                             {
+                                if (i->mustRead(READ_MODEL_ID))
+                                {
+                                    i->clearRead(READ_MODEL_ID);
+                                }
+
                                 QString str = ia->toString();
                                 if (!str.isEmpty())
                                 {
@@ -2297,6 +2302,11 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             }
                             if (ia->id() == 0x0004) // Manufacturer Name
                             {
+                                if (i->mustRead(READ_VENDOR_NAME))
+                                {
+                                    i->clearRead(READ_VENDOR_NAME);
+                                }
+
                                 QString str = ia->toString();
                                 if (!str.isEmpty())
                                 {
@@ -2309,6 +2319,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             }
                             else if (ia->id() == 0x4000) // Software build identifier
                             {
+                                if (i->mustRead(READ_SWBUILD_ID))
+                                {
+                                    i->clearRead(READ_SWBUILD_ID);
+                                }
                                 QString str = ia->toString();
                                 if (!str.isEmpty())
                                 {
@@ -3056,6 +3070,18 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         }
     }
 
+    if (sensorNode->mustRead(READ_VENDOR_NAME))
+    {
+        std::vector<uint16_t> attributes;
+        attributes.push_back(0x0004); // Manufacturer name
+
+        if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, BASIC_CLUSTER_ID, attributes))
+        {
+            sensorNode->clearRead(READ_VENDOR_NAME);
+            processed++;
+        }
+    }
+
     if (sensorNode->mustRead(READ_MODEL_ID))
     {
         std::vector<uint16_t> attributes;
@@ -3082,7 +3108,14 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
 
     if (sensorNode->mustRead(READ_GROUP_IDENTIFIERS))
     {
-        if (getGroupIdentifiers(sensorNode, sensorNode->fingerPrint().endpoint, 0))
+        if (std::find(sensorNode->fingerPrint().inClusters.begin(),
+                      sensorNode->fingerPrint().inClusters.end(), COMMISSIONING_CLUSTER_ID)
+                   == sensorNode->fingerPrint().inClusters.end())
+        {
+            // if the sensor does not support ZLL commissioning cluster disable reading of group identifiers here
+            sensorNode->clearRead(READ_GROUP_IDENTIFIERS);
+        }
+        else if (getGroupIdentifiers(sensorNode, sensorNode->fingerPrint().endpoint, 0))
         {
             sensorNode->clearRead(READ_GROUP_IDENTIFIERS);
             processed++;
@@ -6010,6 +6043,18 @@ void DeRestPlugin::idleTimerFired()
                     {
                         sensorNode->setModelId(lightNode->modelId());
                     }
+                    else
+                    {
+                        sensorNode->enableRead(READ_MODEL_ID);
+                        processSensors = true;
+                    }
+                }
+
+                if (sensorNode->manufacturer().isEmpty() ||
+                    sensorNode->manufacturer() == QLatin1String("unknown"))
+                {
+                    sensorNode->enableRead(READ_VENDOR_NAME);
+                    processSensors = true;
                 }
 
                 if (sensorNode->lastRead() < (d->idleTotalCounter - IDLE_READ_LIMIT))
