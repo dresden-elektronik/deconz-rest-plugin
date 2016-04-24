@@ -492,8 +492,12 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
 
     if (sensor->node() && sensor->node()->isEndDevice())
     {
-        DBG_Printf(DBG_INFO, "don't create binding for attribute reporting of end-device %s\n", qPrintable(sensor->name()));
-        return;
+        // whitelist
+        if (sensor->modelId() != QLatin1String("LM_00.00.03.02TC"))
+        {
+            DBG_Printf(DBG_INFO, "don't create binding for attribute reporting of end-device %s\n", qPrintable(sensor->name()));
+            return;
+        }
     }
 
     BindingTask::Action action = BindingTask::ActionUnbind;
@@ -501,7 +505,8 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
     // whitelist by Model ID
     if (gwReportingEnabled)
     {
-        if (sensor->modelId().startsWith("FLS-NB"))
+        if (sensor->modelId().startsWith("FLS-NB") ||
+            sensor->modelId() == QLatin1String("LM_00.00.03.02TC"))
         {
             action = BindingTask::ActionBind;
         }
