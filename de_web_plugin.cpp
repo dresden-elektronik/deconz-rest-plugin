@@ -12,7 +12,7 @@
 #include <QDebug>
 #include <QDesktopServices>
 #include <QtPlugin>
-#include <QtMath>
+#include <QtCore/qmath.h>
 #include <QNetworkAccessManager>
 #include <QPushButton>
 #include <QTextCodec>
