@@ -510,7 +510,7 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
                 std::vector<RuleAction>::const_iterator aEnd = r->actions().end();
                 for (; a != aEnd; ++a)
                 {
-                    Group *group;
+                    Group *group = 0;
                     TaskItem task;
                     task.req.setDstEndpoint(0xFF); // broadcast endpoint
                     task.req.setSrcEndpoint(getSrcEndpoint(0, task.req));
@@ -598,7 +598,7 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
 
                                 for (; l != lend; ++l)
                                 {
-                                    if (groupId == "0" || isLightNodeInGroup(&(*l),group->address()))
+                                    if (groupId == "0" || (group && isLightNodeInGroup(&(*l), group->address())))
                                     {
                                         l->setIsOn(false);
                                         updateEtag(l->etag);
