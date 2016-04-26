@@ -12,6 +12,7 @@
 #include <QDebug>
 #include <QDesktopServices>
 #include <QtPlugin>
+#include <QtMath>
 #include <QNetworkAccessManager>
 #include <QPushButton>
 #include <QTextCodec>
@@ -2217,7 +2218,34 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
                                 }
 
-                                quint16 lux = ia->numericValue().u16;
+                                quint32 lux = ia->numericValue().u16; // ZigBee uses a 16-bit value
+
+                                if (i->modelId().startsWith("FLS-NB"))
+                                {
+                                }
+                                else if (lux > 0 && lux < 0xffff)
+                                {
+                                    // valid values are 1 - 0xfffe
+                                    // 0, too low to measure
+                                    // 0xffff invalid value
+
+                                    // ZCL Attribute = 10.000 * log10(Illuminance (lx)) + 1
+                                    // lux = 10^(ZCL Attribute/10.000) - 1
+                                    qreal exp = lux;
+                                    qreal l = qPow(10, exp / 10000.0f);
+
+                                    if (l >= 1)
+                                    {
+                                        l -= 1;
+                                        lux = static_cast<quint32>(l);
+                                    }
+                                    else
+                                    {
+                                        DBG_Printf(DBG_INFO, "invalid lux value %u", lux);
+                                        lux = 0xffff; // invalid value
+                                    }
+                                }
+
                                 if (i->state().lux() != lux)
                                 {
                                     i->state().setLux(lux);
