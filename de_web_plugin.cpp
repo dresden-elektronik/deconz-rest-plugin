@@ -6066,20 +6066,39 @@ void DeRestPlugin::idleTimerFired()
 
                 if (sensorNode->lastRead() < (d->idleTotalCounter - IDLE_READ_LIMIT))
                 {
+                    bool checkBindingTable = false;
                     sensorNode->setLastRead(d->idleTotalCounter);
                     sensorNode->setNextReadTime(QTime::currentTime());
-
-                    if (!sensorNode->mustRead(READ_BINDING_TABLE))
-                    {
-                        sensorNode->enableRead(READ_BINDING_TABLE);
-                        processSensors = true;
-                    }
 
                     {
                         std::vector<quint16>::const_iterator ci = sensorNode->fingerPrint().inClusters.begin();
                         std::vector<quint16>::const_iterator cend = sensorNode->fingerPrint().inClusters.end();
                         for (;ci != cend; ++ci)
                         {
+                            NodeValue val;
+
+                            if (*ci == ILLUMINANCE_MEASUREMENT_CLUSTER_ID)
+                            {
+                                val = sensorNode->getZclValue(*ci, 0x0000); // measured value
+                            }
+                            else if (*ci == OCCUPANCY_SENSING_CLUSTER_ID)
+                            {
+                                val = sensorNode->getZclValue(*ci, 0x0000); // occupied state
+                            }
+
+                            if (val.updateType == NodeValue::UpdateByZclReport)
+                            {
+                                if (val.timestamp.isValid() &&
+                                    val.timestamp.secsTo(QTime::currentTime()) < (60 * 30)) // got update in timely manner
+                                {
+                                    DBG_Printf(DBG_INFO, "binding for attribute reporting SensorNode %s of cluster 0x%04X seems to be active\n", qPrintable(sensorNode->name()), *ci);
+                                }
+                                else
+                                {
+                                    checkBindingTable = true;
+                                }
+                            }
+
                             if (*ci == OCCUPANCY_SENSING_CLUSTER_ID)
                             {
                                 if (!sensorNode->mustRead(READ_OCCUPANCY_CONFIG))
@@ -6089,6 +6108,13 @@ void DeRestPlugin::idleTimerFired()
                                 }
                             }
                         }
+                    }
+
+
+                    if (checkBindingTable && !sensorNode->mustRead(READ_BINDING_TABLE))
+                    {
+                        sensorNode->enableRead(READ_BINDING_TABLE);
+                        processSensors = true;
                     }
 
                     DBG_Printf(DBG_INFO, "Force read attributes for SensorNode %s\n", qPrintable(sensorNode->name()));
