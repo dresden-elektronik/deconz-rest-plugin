@@ -3028,6 +3028,11 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         return false;
     }
 
+    if (sensorNode->node() && sensorNode->node()->simpleDescriptors().isEmpty())
+    {
+        return false;
+    }
+
 //    deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
 //    DBG_Assert(apsCtrl != 0);
 //    if (apsCtrl && (apsCtrl->getParameter(deCONZ::ParamAutoPollingActive) == 0))
