@@ -175,31 +175,9 @@ int DeRestPluginPrivate::getAllSensors(const ApiRequest &req, ApiResponse &rsp)
             config["reachable"] = i->config().reachable();
         }
 
-        if (i->node() && i->node()->powerDescriptor().isValid())
+        if (i->config().battery() <= 100) // valid value?
         {
-            switch (i->node()->powerDescriptor().currentPowerLevel())
-            {
-            case deCONZ::PowerLevel100:
-                config["battery"] = "66 - 100%"; // 67 - 100 %
-                break;
-
-            case deCONZ::PowerLevel66:
-                config["battery"] = "33 - 66%"; // 34 - 66 %
-                break;
-
-            case deCONZ::PowerLevel33:
-                config["battery"] = "1 - 33%"; // 1 - 33 %
-                break;
-
-            case deCONZ::PowerLevelCritical:
-            default:
-                config["battery"] = "< 1%"; // critical
-                break;
-            }
-        }
-        else
-        {
-            config["battery"] = "";
+            config["battery"] = (double)i->config().battery();
         }
 
         if (i->config().url() != "" )
@@ -339,31 +317,9 @@ int DeRestPluginPrivate::getSensor(const ApiRequest &req, ApiResponse &rsp)
         config["reachable"] = sensor->config().reachable();
     }
 
-    if (sensor->node() && sensor->node()->powerDescriptor().isValid())
+    if (sensor->config().battery() <= 100) // valid value?
     {
-        switch (sensor->node()->powerDescriptor().currentPowerLevel())
-        {
-        case deCONZ::PowerLevel100:
-            config["battery"] = "66 - 100%"; // 67 - 100 %
-            break;
-
-        case deCONZ::PowerLevel66:
-            config["battery"] = "33 - 66%"; // 34 - 66 %
-            break;
-
-        case deCONZ::PowerLevel33:
-            config["battery"] = "1 - 33%"; // 1 - 33 %
-            break;
-
-        case deCONZ::PowerLevelCritical:
-        default:
-            config["battery"] = "< 1%"; // critical
-            break;
-        }
-    }
-    else
-    {
-        config["battery"] = "";
+        config["battery"] = (double)sensor->config().battery();
     }
 
     if (sensor->config().url() != "" )
@@ -683,13 +639,14 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
             }
             if (!config["battery"].isNull())
             {
-                if (((config["battery"].toInt() < 0) || (config["battery"].toInt() > 255)) || (config["battery"].type() == QVariant::String) || (config["battery"].type() == QVariant::Bool))
+                int battery = config["battery"].toInt(&ok);
+                if (!ok || (battery < 0) || (battery > 100))
                 {
                     rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/config"), QString("invalid value, %1, for parameter battery").arg(config["battery"].toString())));
                     rsp.httpStatus = HttpStatusBadRequest;
                     return REQ_READY_SEND;
                 }
-                newConfig.setBattery(config["battery"].toString());
+                newConfig.setBattery(battery);
             }
 
             sensor.setConfig(newConfig);
@@ -966,7 +923,9 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     }
     if (map.contains("battery"))
     {
-        if (((map["battery"].toInt() < 0) || (map["battery"].toInt() > 255)) || (map["battery"].type() == QVariant::String) || (map["battery"].type() == QVariant::Bool))
+        int battery = map["battery"].toInt(&ok);
+
+        if (!ok || (battery < 0) || (battery > 100))
         {
             rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config").arg(id), QString("invalid value, %1, for parameter battery").arg(map["battery"].toString())));
             rsp.httpStatus = HttpStatusBadRequest;
@@ -974,7 +933,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
         }
         rspItemState[QString("/sensors/%1/config/battery").arg(id)] = map["battery"];
         rspItem["success"] = rspItemState;
-        config.setBattery(map["battery"].toString());
+        config.setBattery(battery);
     }
     if (map.contains("long"))
     {
@@ -1470,9 +1429,9 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map)
         config["reachable"] = sensor->config().reachable();
     }
 
-    if (sensor->config().battery() != "" )
+    if (sensor->config().battery() <= 100)
     {
-        config["battery"] = sensor->config().battery().toUInt();
+        config["battery"] = (double)sensor->config().battery();
     }
     if (sensor->config().url() != "" )
     {

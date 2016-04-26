@@ -2138,6 +2138,38 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             continue;
         }
 
+        if (event.event() == deCONZ::NodeEvent::UpdatedPowerDescriptor)
+        {
+            if (event.node()->powerDescriptor().isValid())
+            {
+                SensorConfig config = i->config();
+
+                if (event.node()->powerDescriptor().currentPowerSource() == deCONZ::PowerSourceRechargeable ||
+                    event.node()->powerDescriptor().currentPowerSource() == deCONZ::PowerSourceDisposable)
+                {
+                    switch (event.node()->powerDescriptor().currentPowerLevel())
+                    {
+                    case deCONZ::PowerLevel100:      config.setBattery(100); break;
+                    case deCONZ::PowerLevel66:       config.setBattery(66); break;
+                    case deCONZ::PowerLevel33:       config.setBattery(33); break;
+                    case deCONZ::PowerLevelCritical: config.setBattery(0); break;
+                    default:
+                        config.setBattery(255); // invalid
+                        break;
+                    }
+                }
+                else
+                {
+                    config.setBattery(255); // invalid
+                }
+
+                i->setConfig(config);
+                updateEtag(i->etag);
+                updateEtag(gwConfigEtag);
+            }
+            return;
+        }
+
         // filter for relevant clusters
         if (event.profileId() == HA_PROFILE_ID || event.profileId() == ZLL_PROFILE_ID)
         {
@@ -2222,6 +2254,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 if (i->modelId().startsWith("FLS-NB"))
                                 {
+                                    // TODO check firmware version
                                 }
                                 else if (lux > 0 && lux < 0xffff)
                                 {
@@ -4312,6 +4345,12 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
     {
         addLightNode(event.node());
         addSensorNode(event.node());
+    }
+        break;
+
+    case deCONZ::NodeEvent::UpdatedPowerDescriptor:
+    {
+        updateSensorNode(event);
     }
         break;
 

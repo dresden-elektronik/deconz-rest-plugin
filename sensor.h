@@ -72,8 +72,8 @@ public:
     void setReachable(bool reachable);
     double duration() const;
     void setDuration(double duration);
-    const QString &battery() const;
-    void setBattery(const QString &battery);
+    quint8 battery() const;
+    void setBattery(quint8 battery);
     const QString &url() const;
     void setUrl(const QString &url);
     const QString &longitude() const;
@@ -89,7 +89,7 @@ private:
     bool m_on;
     bool m_reachable;
     double  m_duration;
-    QString m_battery; //uint8
+    quint8 m_battery;
     QString m_url;
     QString m_long;
     QString m_lat;

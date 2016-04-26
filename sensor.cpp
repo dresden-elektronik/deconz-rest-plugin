@@ -327,13 +327,23 @@ SensorState Sensor::jsonToState(const QString &json)
 SensorConfig Sensor::jsonToConfig(const QString &json)
 {
     bool ok;
-    QVariant var = (Json::parse(json, ok));
-    QVariantMap map = var.toMap();
     SensorConfig config;
+    QVariant var = Json::parse(json, ok);
+
+    if (!ok)
+    {
+        return config;
+    }
+    QVariantMap map = var.toMap();
 
     config.setOn(map["on"].toBool());
     config.setReachable(map["reachable"].toBool());
-    config.setBattery(map["battery"].toString());
+
+    uint battery = map["battery"].toUInt(&ok);
+    if (ok)
+    {
+        config.setBattery(battery);
+    }
     config.setUrl(map["url"].toString());
     config.setLongitude(map["long"].toString());
     config.setLat(map["lat"].toString());
@@ -556,7 +566,7 @@ SensorConfig::SensorConfig() :
     m_on(true),
     m_reachable(false),
     m_duration(-1),
-    m_battery(""),
+    m_battery(255), // invalid
     m_url(""),
     m_long(""),
     m_lat(""),
@@ -623,7 +633,7 @@ void SensorConfig::setDuration(double duration)
 /*! Returns the sensor config battery attribute.
     Sensortypes: all CLIP, Generic, General sensors
  */
-const QString &SensorConfig::battery() const
+quint8 SensorConfig::battery() const
 {
     return m_battery;
 }
@@ -632,7 +642,7 @@ const QString &SensorConfig::battery() const
     Sensortypes: all CLIP, Generic, General sensors
     \param battery the sensor config battery
  */
-void SensorConfig::setBattery(const QString &battery)
+void SensorConfig::setBattery(quint8 battery)
 {
     m_battery = battery;
 }
