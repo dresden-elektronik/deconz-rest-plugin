@@ -5942,6 +5942,7 @@ void DeRestPlugin::idleTimerFired()
                 task.req.dstAddress().setGroup(i->address());
                 task.req.setDstEndpoint(0xFF); // broadcast endpoint
                 task.req.setSrcEndpoint(d->getSrcEndpoint(0, task.req));
+                task.req.setRadius(1);
                 if (!d->addTaskViewGroup(task, i->address()))
                 {
                     DBG_Printf(DBG_INFO, "failed to send view group\n");
