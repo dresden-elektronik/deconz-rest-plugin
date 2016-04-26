@@ -528,7 +528,7 @@ void SensorState::setDaylight(const QString &daylight)
 /*! Returns the sensor state lux attribute.
     Sensortypes: ZHALight
  */
-quint16 SensorState::lux() const
+quint32 SensorState::lux() const
 {
     return m_lux;
 }
@@ -537,7 +537,7 @@ quint16 SensorState::lux() const
     Sensortypes: ZHALight
     \param lux the sensor state measured lux value
  */
-void SensorState::setLux(quint16 lux)
+void SensorState::setLux(quint32 lux)
 {
     m_lux = lux;
 }

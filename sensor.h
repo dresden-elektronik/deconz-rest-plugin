@@ -41,8 +41,8 @@ public:
     void setHumidity(const QString &humidity);
     const QString &daylight() const;
     void setDaylight(const QString &daylight);
-    quint16 lux() const;
-    void setLux(quint16 lux);
+    quint32 lux() const;
+    void setLux(quint32 lux);
     void updateTime();
 
 private:
@@ -55,7 +55,7 @@ private:
     QString m_temperature;//int
     QString m_humidity;//int
     QString m_daylight;//bool
-    quint16 m_lux;
+    quint32 m_lux;
 };
 
 
