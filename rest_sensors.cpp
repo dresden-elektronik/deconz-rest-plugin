@@ -70,11 +70,6 @@ int DeRestPluginPrivate::handleSensorsApi(ApiRequest &req, ApiResponse &rsp)
     {
         return deleteSensor(req, rsp);
     }
-    // GET /api/<apikey>/sensors/deleted
-    else if ((req.path.size() == 4) && (req.hdr.method() == "GET") && (req.path[3] == "deleted"))
-    {
-        return getDeletedSensors(req, rsp);
-    }
     // GET /api/<apikey>/sensors/new
     else if ((req.path.size() == 4) && (req.hdr.method() == "GET") && (req.path[3] == "new"))
     {
@@ -1350,40 +1345,6 @@ int DeRestPluginPrivate::getNewSensors(const ApiRequest &req, ApiResponse &rsp)
     rspItem["success"] = QString("lastscan\": \""+ lastscan);
     rsp.list.append(rspItem);
     rsp.httpStatus = HttpStatusOk;
-    return REQ_READY_SEND;
-}
-
-/*! GET /api/<apikey>/sensors/deleted
-    \return REQ_READY_SEND
-            REQ_NOT_HANDLED
- */
-int DeRestPluginPrivate::getDeletedSensors(const ApiRequest &req, ApiResponse &rsp)
-{
-    Q_UNUSED(req);
-    rsp.httpStatus = HttpStatusOk;
-
-    std::vector<Sensor>::iterator s = sensors.begin();
-    std::vector<Sensor>::iterator send = sensors.end();
-
-    for (; s != send; ++s)
-    {
-        if (s->deletedState() == Sensor::StateDeleted)
-        {
-            QVariantMap sensor;
-
-            sensor["name"] = s->name();
-            sensor["type"] = s->type();
-            sensor["modelid"] = s->modelId();
-
-            rsp.map[s->id()] = sensor;
-        }
-    }
-
-    if (rsp.map.isEmpty())
-    {
-        rsp.str = "{}"; // return empty object
-    }
-
     return REQ_READY_SEND;
 }
 
