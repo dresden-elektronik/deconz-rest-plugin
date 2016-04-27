@@ -797,14 +797,13 @@ bool DeRestPluginPrivate::checkConditions(QVariantList conditionsList, ApiRespon
     QVector<QString> validOperators;
     QString validValues = "";
     QString id = "";
-    QString type;
 
     std::vector<Sensor>::const_iterator si = sensors.begin();
     std::vector<Sensor>::const_iterator send = sensors.end();
 
     for (; si != send; ++si)
     {
-        type = si->type();
+        const QString &type = si->type();
         id = si->id();
 
         validAddresses.push_back("/sensors/"+id+"/config/reachable");
@@ -812,39 +811,39 @@ bool DeRestPluginPrivate::checkConditions(QVariantList conditionsList, ApiRespon
         validAddresses.push_back("/sensors/"+id+"/config/battery");
         validAddresses.push_back("/sensors/"+id+"/state/lastupdated");
 
-        if (type == "ZGPSwitch")
+        if (type == QLatin1String("ZGPSwitch"))
         {
             validAddresses.push_back("/sensors/"+id+"/state/buttonevent");
         }
-        else if (type == "ZHASwitch")
+        else if (type == QLatin1String("ZHASwitch"))
         {
             validAddresses.push_back("/sensors/"+id+"/state/buttonevent");
         }
-        else if (type == "ZHALight")
+        else if (type == QLatin1String("ZHALight"))
         {
             validAddresses.push_back("/sensors/"+id+"/state/illuminance");
         }
-        else if (type == "ZHAPresence")
+        else if (type == QLatin1String("ZHAPresence"))
         {
             validAddresses.push_back("/sensors/"+id+"/state/presence");
         }
-        else if (type == "CLIPOpenClose")
+        else if (type == QLatin1String("CLIPOpenClose"))
         {
             validAddresses.push_back("/sensors/"+id+"/state/open");
         }
-        else if (type == "CLIPPresence")
+        else if (type == QLatin1String("CLIPPresence"))
         {
             validAddresses.push_back("/sensors/"+id+"/state/presence");
         }
-        else if (type == "CLIPTemperature")
+        else if (type == QLatin1String("CLIPTemperature"))
         {
             validAddresses.push_back("/sensors/"+id+"/state/temperature");
         }
-        else if (type == "CLIPHumidity")
+        else if (type == QLatin1String("CLIPHumidity"))
         {
             validAddresses.push_back("/sensors/"+id+"/state/humidity");
         }
-        else if (type == "DaylightSensor")
+        else if (type == QLatin1String("DaylightSensor"))
         {
             validAddresses.push_back("/sensors/"+id+"/state/daylight");
             validAddresses.push_back("/sensors/"+id+"/config/long");
@@ -852,11 +851,11 @@ bool DeRestPluginPrivate::checkConditions(QVariantList conditionsList, ApiRespon
             validAddresses.push_back("/sensors/"+id+"/config/sunriseoffset");
             validAddresses.push_back("/sensors/"+id+"/config/sunsetoffset");
         }
-        else if (type == "CLIPGenericFlag")
+        else if (type == QLatin1String("CLIPGenericFlag"))
         {
             validAddresses.push_back("/sensors/"+id+"/state/flag");
         }
-        else if (type == "CLIPGenericStatus")
+        else if (type == QLatin1String("CLIPGenericStatus"))
         {
             validAddresses.push_back("/sensors/"+id+"/state/status");
         }
