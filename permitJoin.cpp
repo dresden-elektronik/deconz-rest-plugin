@@ -82,48 +82,44 @@ void DeRestPluginPrivate::permitJoinTimerFired()
 
     if (!permitJoinLastSendTime.isValid() || (diff > PERMIT_JOIN_SEND_INTERVAL))
     {
-        // only send if nothing else todo
-        if (tasks.empty() && runningTasks.empty())
+        deCONZ::ApsDataRequest apsReq;
+        quint8 tcSignificance = 0x01;
+
+        apsReq.setDstAddressMode(deCONZ::ApsNwkAddress);
+        apsReq.dstAddress().setNwk(deCONZ::BroadcastRouters);
+        apsReq.setProfileId(ZDP_PROFILE_ID);
+        apsReq.setClusterId(ZDP_MGMT_PERMIT_JOINING_REQ_CLID);
+        apsReq.setDstEndpoint(ZDO_ENDPOINT);
+        apsReq.setSrcEndpoint(ZDO_ENDPOINT);
+        apsReq.setTxOptions(0);
+        apsReq.setRadius(0);
+
+        QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        stream << (uint8_t)now.second(); // seqno
+        stream << gwPermitJoinDuration;
+        stream << tcSignificance;
+
+        DBG_Assert(apsCtrl != 0);
+
+        if (!apsCtrl)
         {
-            deCONZ::ApsDataRequest apsReq;
-            quint8 tcSignificance = 0x01;
+            return;
+        }
 
-            apsReq.setDstAddressMode(deCONZ::ApsNwkAddress);
-            apsReq.dstAddress().setNwk(deCONZ::BroadcastRouters);
-            apsReq.setProfileId(ZDP_PROFILE_ID);
-            apsReq.setClusterId(ZDP_MGMT_PERMIT_JOINING_REQ_CLID);
-            apsReq.setDstEndpoint(ZDO_ENDPOINT);
-            apsReq.setSrcEndpoint(ZDO_ENDPOINT);
-            apsReq.setTxOptions(0);
-            apsReq.setRadius(0);
+        // set for own node
+        apsCtrl->setPermitJoin(gwPermitJoinDuration);
 
-            QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
-            stream.setByteOrder(QDataStream::LittleEndian);
-
-            stream << (uint8_t)now.second(); // seqno
-            stream << gwPermitJoinDuration;
-            stream << tcSignificance;
-
-            DBG_Assert(apsCtrl != 0);
-
-            if (!apsCtrl)
-            {
-                return;
-            }
-
-            // set for own node
-            apsCtrl->setPermitJoin(gwPermitJoinDuration);
-
-            // broadcast
-            if (apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
-            {
-                DBG_Printf(DBG_INFO, "send permit join, duration: %d\n", gwPermitJoinDuration);
-                permitJoinLastSendTime = now;
-            }
-            else
-            {
-                DBG_Printf(DBG_INFO, "send permit join failed\n");
-            }
+        // broadcast
+        if (apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+        {
+            DBG_Printf(DBG_INFO, "send permit join, duration: %d\n", gwPermitJoinDuration);
+            permitJoinLastSendTime = now;
+        }
+        else
+        {
+            DBG_Printf(DBG_INFO, "send permit join failed\n");
         }
     }
 }
