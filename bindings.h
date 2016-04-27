@@ -50,5 +50,35 @@ public:
     bool writeToStream(QDataStream &stream) const;
 };
 
+class BindingTableReader
+{
+public:
+    enum Constants
+    {
+        MaxConfirmTime = 10 * 60 * 1000, // 10 min
+        MaxResponseTime = 10 * 1000, // 10 sec
+        MaxEndDeviceResponseTime = 60 * 60 * 1000 // 60 min
+    };
+
+    BindingTableReader() :
+        state(StateIdle),
+        index(0),
+        isEndDevice(false)
+    {
+    }
+
+    enum State {
+        StateIdle,
+        StateWaitConfirm,
+        StateWaitResponse,
+        StateFinished
+    };
+    State state;
+    quint8 index;
+    bool isEndDevice;
+    QTime time;
+    deCONZ::ApsDataRequest apsReq;
+};
+
 #endif // BINDINGS_H
 

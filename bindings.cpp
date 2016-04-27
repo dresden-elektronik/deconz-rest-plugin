@@ -115,42 +115,65 @@ bool DeRestPluginPrivate::readBindingTable(RestNodeBase *node, quint8 startIndex
 {
     DBG_Assert(node != 0);
 
-    if (!node)
+    if (!node && node->node())
     {
         return false;
     }
 
-    deCONZ::ApsDataRequest apsReq;
+    std::vector<BindingTableReader>::iterator i = bindingTableReaders.begin();
+    std::vector<BindingTableReader>::iterator end = bindingTableReaders.end();
 
-    apsReq.setDstAddressMode(deCONZ::ApsExtAddress);
-    apsReq.dstAddress() = node->address();
-    apsReq.setProfileId(ZDP_PROFILE_ID);
-    apsReq.setClusterId(ZDP_MGMT_BIND_REQ_CLID);
-    apsReq.setDstEndpoint(ZDO_ENDPOINT);
-    apsReq.setSrcEndpoint(ZDO_ENDPOINT);
-    apsReq.setTxOptions(0);
-    apsReq.setRadius(0);
-
-    QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
-    stream.setByteOrder(QDataStream::LittleEndian);
-
-    QTime now = QTime::currentTime();
-    stream << (uint8_t)now.second(); // seqno
-    stream << startIndex;
-
-    DBG_Assert(apsCtrl != 0);
-
-    if (!apsCtrl)
+    for (; i != end; ++i)
     {
-        return false;
+        if (i->apsReq.dstAddress().ext() == node->address().ext())
+        {
+            // already running
+            if (i->state == BindingTableReader::StateIdle)
+            {
+                i->index = startIndex;
+                DBG_Assert(bindingTableReaderTimer->isActive());
+            }
+            return true;
+        }
     }
 
-    // send
-    if (apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+    BindingTableReader btReader;
+    btReader.state = BindingTableReader::StateIdle;
+    btReader.index = startIndex;
+    btReader.isEndDevice = node->node()->isEndDevice();
+    btReader.apsReq.dstAddress() = node->address();
+
+    bindingTableReaders.push_back(btReader);
+
+    if (!bindingTableReaderTimer->isActive())
     {
-        return true;
+        bindingTableReaderTimer->start();
     }
 
+    return false;
+}
+
+/*! Handle bind table confirm.
+    \param conf a APSDE-DATA.confirm
+    \return true if confirm was processed
+ */
+bool DeRestPluginPrivate::handleMgmtBindRspConfirm(const deCONZ::ApsDataConfirm &conf)
+{
+    std::vector<BindingTableReader>::iterator i = bindingTableReaders.begin();
+    std::vector<BindingTableReader>::iterator end = bindingTableReaders.end();
+
+    for (; i != end; ++i)
+    {
+        if (i->apsReq.id() == conf.id())
+        {
+            if (i->state == BindingTableReader::StateWaitConfirm)
+            {
+                i->time.start();
+                i->state = BindingTableReader::StateWaitResponse;
+            }
+            return true;
+        }
+    }
     return false;
 }
 
@@ -170,6 +193,22 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
         return;
     }
 
+    BindingTableReader *btReader = 0;
+
+    {
+        std::vector<BindingTableReader>::iterator i = bindingTableReaders.begin();
+        std::vector<BindingTableReader>::iterator end = bindingTableReaders.end();
+
+        for (; i != end; ++i)
+        {
+            if (i->apsReq.dstAddress().ext() == ind.srcAddress().ext())
+            {
+                btReader = &(*i);
+                break;
+            }
+        }
+    }
+
     RestNodeBase *node = getSensorNodeForAddress(ind.srcAddress().ext());
 
     if (!node)
@@ -179,12 +218,16 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
 
     if (!node)
     {
+        if (btReader)
+        {
+            // no more needed
+            btReader->state = BindingTableReader::StateFinished;
+        }
         return;
     }
 
     QDataStream stream(ind.asdu());
     stream.setByteOrder(QDataStream::LittleEndian);
-
 
     quint8 seqNo;
     quint8 status;
@@ -192,7 +235,15 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
     stream >> seqNo;
     stream >> status;
 
-    DBG_Printf(DBG_INFO, "MgmtBind_rsp %s seq: %u, status 0x%02X \n", qPrintable(node->address().toStringExt()), seqNo, status);
+    if (btReader)
+    {
+        DBG_Printf(DBG_INFO, "MgmtBind_rsp id: %d %s seq: %u, status 0x%02X \n", btReader->apsReq.id(),
+                   qPrintable(node->address().toStringExt()), seqNo, status);
+    }
+    else
+    {
+        DBG_Printf(DBG_INFO, "MgmtBind_rsp (no BTR) %s seq: %u, status 0x%02X \n", qPrintable(node->address().toStringExt()), seqNo, status);
+    }
 
     if (status != deCONZ::ZdpSuccess)
     {
@@ -205,13 +256,19 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
                 node->setMgmtBindSupported(false);
             }
         }
+
+        if (btReader)
+        {
+            // no more needed
+            btReader->state = BindingTableReader::StateFinished;
+        }
         return;
     }
 
     quint8 entries;
     quint8 startIndex;
     quint8 listCount;
-    bool end = false;
+    bool bend = false;
 
     stream >> entries;
     stream >> startIndex;
@@ -219,12 +276,27 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
 
     if (entries > (startIndex + listCount))
     {
-        // read more
-        readBindingTable(node, startIndex + listCount);
+        if (btReader)
+        {
+            if (btReader->state == BindingTableReader::StateWaitResponse)
+            {
+                // read more
+                btReader->state = BindingTableReader::StateIdle;
+                btReader->index = startIndex + listCount;
+            }
+            else
+            {
+                DBG_Printf(DBG_INFO, "unexpected BTR state %d\n", (int)btReader->state);
+            }
+        }
     }
     else
     {
-        end = true;
+        bend = true;
+        if (btReader)
+        {
+            btReader->state = BindingTableReader::StateFinished;
+        }
     }
 
     while (listCount && !stream.atEnd())
@@ -288,7 +360,7 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
     }
 
     // end, check remaining tasks
-    if (end)
+    if (bend)
     {
         std::list<BindingTask>::iterator i = bindingQueue.begin();
         std::list<BindingTask>::iterator end = bindingQueue.end();
@@ -1082,5 +1154,80 @@ void DeRestPluginPrivate::bindingToRuleTimerFired()
     if (!bindingTimer->isActive())
     {
         bindingTimer->start();
+    }
+}
+
+void DeRestPluginPrivate::bindingTableReaderTimerFired()
+{
+    std::vector<BindingTableReader>::iterator i = bindingTableReaders.begin();
+
+    for (; i != bindingTableReaders.end(); )
+    {
+        if (i->state == BindingTableReader::StateIdle)
+        {
+            deCONZ::ApsDataRequest &apsReq = i->apsReq;
+
+            i->apsReq.setDstAddressMode(deCONZ::ApsExtAddress);
+            i->apsReq.setProfileId(ZDP_PROFILE_ID);
+            i->apsReq.setClusterId(ZDP_MGMT_BIND_REQ_CLID);
+            i->apsReq.setDstEndpoint(ZDO_ENDPOINT);
+            i->apsReq.setSrcEndpoint(ZDO_ENDPOINT);
+            i->apsReq.setTxOptions(0);
+            i->apsReq.setRadius(0);
+
+            QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
+            stream.setByteOrder(QDataStream::LittleEndian);
+
+            QTime now = QTime::currentTime();
+            stream << (uint8_t)now.second(); // seqno
+            stream << i->index;
+
+            // send
+            if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+            {
+                DBG_Printf(DBG_ZDP, "Mgmt_Bind_req id: %d to 0x%016llX send\n", i->apsReq.id(), i->apsReq.dstAddress().ext());
+                i->time.start();
+                i->state = BindingTableReader::StateWaitConfirm;
+                break;
+            }
+            else
+            {
+                DBG_Printf(DBG_ZDP, "failed to send Mgmt_Bind_req to 0x%016llX\n", i->apsReq.dstAddress().ext());
+                i->state = BindingTableReader::StateFinished;
+            }
+        }
+        else if (i->state == BindingTableReader::StateWaitConfirm)
+        {
+            if (i->time.elapsed() > BindingTableReader::MaxConfirmTime)
+            {
+                DBG_Printf(DBG_ZDP, "timeout for Mgmt_Bind_req id %d to 0x%016llX\n", i->apsReq.id(), i->apsReq.dstAddress().ext());
+                i->state = BindingTableReader::StateFinished;
+            }
+        }
+        else if (i->state == BindingTableReader::StateWaitResponse)
+        {
+            const int maxResponseTime = i->isEndDevice ? BindingTableReader::MaxEndDeviceResponseTime
+                                                 : BindingTableReader::MaxResponseTime;
+            if (i->time.elapsed() > maxResponseTime)
+            {
+                DBG_Printf(DBG_ZDP, "timeout for response to Mgmt_Bind_req id %d to 0x%016llX\n", i->apsReq.id(), i->apsReq.dstAddress().ext());
+                i->state = BindingTableReader::StateFinished;
+            }
+        }
+
+        if (i->state == BindingTableReader::StateFinished)
+        {
+            *i = bindingTableReaders.back();
+            bindingTableReaders.pop_back();
+        }
+        else
+        {
+            ++i;
+        }
+    }
+
+    if (!bindingTableReaders.empty())
+    {
+        bindingTableReaderTimer->start();
     }
 }

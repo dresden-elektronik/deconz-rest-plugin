@@ -210,6 +210,12 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     connect(bindingTimer, SIGNAL(timeout()),
             this, SLOT(bindingTimerFired()));
 
+    bindingTableReaderTimer = new QTimer(this);
+    bindingTableReaderTimer->setSingleShot(true);
+    bindingTableReaderTimer->setInterval(1000);
+    connect(bindingTableReaderTimer, SIGNAL(timeout()),
+            this, SLOT(bindingTableReaderTimerFired()));
+
     bindingToRuleTimer = new QTimer(this);
     bindingToRuleTimer->setSingleShot(true);
     bindingToRuleTimer->setInterval(50);
@@ -386,6 +392,12 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
             return;
         }
     }
+
+    if (handleMgmtBindRspConfirm(conf))
+    {
+        return;
+    }
+
     if (channelChangeApsRequestId == conf.id())
     {
         channelChangeSendConfirm(conf.status() == deCONZ::ApsSuccessStatus);

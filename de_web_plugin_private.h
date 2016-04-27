@@ -638,6 +638,7 @@ public Q_SLOTS:
     void checkSensorBindingsForAttributeReporting(Sensor *sensor);
     void bindingTimerFired();
     void bindingToRuleTimerFired();
+    void bindingTableReaderTimerFired();
     void verifyRuleBindingsTimerFired();
     void queueBindingTask(const BindingTask &bindingTask);
 
@@ -769,6 +770,7 @@ public:
     void handleSceneClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleOnOffClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleCommissioningClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    bool handleMgmtBindRspConfirm(const deCONZ::ApsDataConfirm &conf);
     void handleDeviceAnnceIndication(const deCONZ::ApsDataIndication &ind);
     void handleMgmtBindRspIndication(const deCONZ::ApsDataIndication &ind);
     void handleBindAndUnbindRspIndication(const deCONZ::ApsDataIndication &ind);
@@ -1016,8 +1018,10 @@ public:
     bool gwReportingEnabled;
     QTimer *bindingToRuleTimer;
     QTimer *bindingTimer;
+    QTimer *bindingTableReaderTimer;
     std::list<Binding> bindingToRuleQueue; // check if rule exists for discovered bindings
     std::list<BindingTask> bindingQueue; // bind/unbind queue
+    std::vector<BindingTableReader> bindingTableReaders;
 
     // TCP connection watcher
     QTimer *openClientTimer;
