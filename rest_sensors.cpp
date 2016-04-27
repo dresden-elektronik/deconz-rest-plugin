@@ -787,13 +787,42 @@ int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
         if ((map["mode"].type() == QVariant::Double) && (mode == 1 || mode == 2 || mode == 3))
         {
            sensor->setMode(mode);
+           if (mode == 2)
+           {
+               std::vector<Sensor>::iterator s = sensors.begin();
+               std::vector<Sensor>::iterator send = sensors.end();
 
+               for (; s != send; ++s)
+               {
+                   if (s->uniqueId() == sensor->uniqueId() && s->id() != sensor->id() && s->deletedState() == Sensor::StateDeleted)
+                   {
+                       s->setDeletedState(Sensor::StateNormal);
+                       updateEtag(s->etag);
+
+                       std::vector<Group>::iterator g = groups.begin();
+                       std::vector<Group>::iterator gend = groups.end();
+
+                       for (; g != gend; ++g)
+                       {
+                           std::vector<QString> &v = g->m_deviceMemberships;
+
+                           if ((std::find(v.begin(), v.end(), s->id()) != v.end()) && (g->state() == Group::StateDeleted))
+                           {
+                               g->setState(Group::StateNormal);
+                               updateEtag(g->etag);
+                               break;
+                           }
+                       }
+
+                   }
+               }
+           }
            rspItemState[QString("/sensors/%1/mode:").arg(id)] = mode;
            rspItem["success"] = rspItemState;
            rsp.list.append(rspItem);
            updateEtag(sensor->etag);
            updateEtag(gwConfigEtag);
-           queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+           queSaveDb(DB_SENSORS | DB_GROUPS, DB_SHORT_SAVE_DELAY);
         }
         else
         {
@@ -1287,7 +1316,6 @@ int DeRestPluginPrivate::deleteSensor(const ApiRequest &req, ApiResponse &rsp)
         rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/sensors/%1").arg(id), QString("resource, /sensors/%1, not available").arg(id)));
         return REQ_READY_SEND;
     }
-
     sensor->setDeletedState(Sensor::StateDeleted);
 
     QVariantMap rspItem;

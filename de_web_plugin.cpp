@@ -5216,7 +5216,7 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
                                addTaskSetColorLoop(task1, false, 15);
                                i->setColorLoopActive(false);
                            }
-                       }                     
+                       }
                        updateEtag(i->etag);
 
                        // check each light if colorloop needs to be disabled
@@ -5248,10 +5248,10 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
                                        addTaskSetColorLoop(task2, false, 15);
                                        l->setColorLoopActive(false);
                                    }
-                               }                              
+                               }
                                updateEtag(l->etag);
                            }
-                       }  
+                       }
                     }
                 }
             }
@@ -5273,9 +5273,38 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
                 {
                     g->setState(Group::StateNormal);
                     updateEtag(g->etag);
+                    break;
                 }
             }
             updateEtag(sensorNode->etag);
+
+            std::vector<Sensor>::iterator s = sensors.begin();
+            std::vector<Sensor>::iterator send = sensors.end();
+
+            for (; s != send; ++s)
+            {
+                if (s->uniqueId() == sensorNode->uniqueId() && s->id() != sensorNode->id())
+                {
+                    s->setDeletedState(Sensor::StateNormal);
+                    updateEtag(s->etag);
+
+                    std::vector<Group>::iterator g = groups.begin();
+                    std::vector<Group>::iterator gend = groups.end();
+
+                    for (; g != gend; ++g)
+                    {
+                        std::vector<QString> &v = g->m_deviceMemberships;
+
+                        if ((std::find(v.begin(), v.end(), s->id()) != v.end()) && (g->state() == Group::StateDeleted))
+                        {
+                            g->setState(Group::StateNormal);
+                            updateEtag(g->etag);
+                            break;
+                        }
+                    }
+                }
+            }
+
             updateEtag(gwConfigEtag);
             queSaveDb(DB_GROUPS | DB_SENSORS, DB_SHORT_SAVE_DELAY);
         }
@@ -5414,12 +5443,13 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
                     group.setName(QString());
                     if (group.name().isEmpty())
                     {
-                        group.setName(QString("%1").arg(sensorNode->name()));     
+                        group.setName(QString("%1").arg(sensorNode->name()));
                     }
 
                     updateEtag(group.etag);
                     groups.push_back(group);
-                    queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
+                    sensorNode->setMode(2); // sensor was reset -> set mode to '2 groups'
+                    queSaveDb(DB_GROUPS | DB_SENSORS, DB_SHORT_SAVE_DELAY);
 
                     // put coordinator into group
                     // deCONZ firmware will put itself into a group after sending out a groupcast
@@ -6008,7 +6038,7 @@ void DeRestPlugin::idleTimerFired()
 
         for (; i != end; ++i)
         {
-            if (i->state() == Group::StateNormal && i->m_deviceMemberships.size() > 0)
+            if (/*i->state() == Group::StateNormal && */i->m_deviceMemberships.size() > 0)
             {
                 task.req.setDstAddressMode(deCONZ::ApsGroupAddress);
                 task.req.dstAddress().setGroup(i->address());
@@ -6019,9 +6049,12 @@ void DeRestPlugin::idleTimerFired()
                 {
                     DBG_Printf(DBG_INFO, "failed to send view group\n");
                 }
+                else
+                {
+                    d->groupDeviceMembershipChecked = true;
+                }
             }
         }
-        d->groupDeviceMembershipChecked = true;
     }
 
     bool processLights = false;
