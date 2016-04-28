@@ -50,6 +50,10 @@ public:
     bool writeToStream(QDataStream &stream) const;
 };
 
+/*! \class BindingTableReader
+
+    Helper class to query full binding table of a node.
+ */
 class BindingTableReader
 {
 public:
@@ -73,11 +77,11 @@ public:
         StateWaitResponse,
         StateFinished
     };
-    State state;
-    quint8 index;
-    bool isEndDevice;
-    QTime time;
-    deCONZ::ApsDataRequest apsReq;
+    State state; //!< State of query
+    quint8 index; //!< Current read index
+    bool isEndDevice; //!< True if node is an end-device
+    QTime time; //!< State timeout reference
+    deCONZ::ApsDataRequest apsReq; //!< The APS request to match APS confirm.id
 };
 
 #endif // BINDINGS_H

@@ -1157,6 +1157,8 @@ void DeRestPluginPrivate::bindingToRuleTimerFired()
     }
 }
 
+/*! Process ongoing binding table queries.
+*/
 void DeRestPluginPrivate::bindingTableReaderTimerFired()
 {
     std::vector<BindingTableReader>::iterator i = bindingTableReaders.begin();
