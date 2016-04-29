@@ -142,7 +142,6 @@ void Group::setMidsFromString(const QString mids)
     {
         m_multiDeviceIds.push_back(*i);
     }
-
 }
 
 /*! deviceMembership to string. */
@@ -177,5 +176,38 @@ void Group::setDmFromString(const QString deviceIds)
     {
         m_deviceMemberships.push_back(*i);
     }
+}
 
+/*! lightsequence to string. */
+const QString Group::lightsequenceToString() const
+{
+    QString result = "";
+
+    std::vector<QString>::const_iterator i = m_lightsequence.begin();
+    std::vector<QString>::const_iterator end = m_lightsequence.end();
+
+    for (;i != end; ++i)
+    {
+        result.append(*i);
+        if (i != end-1)
+        {
+            result.append(",");
+        }
+    }
+
+    return result;
+}
+
+/*! lightsequence String to vector. */
+void Group::setLightsequenceFromString(const QString lightsequence)
+{
+    QStringList list = lightsequence.split(",", QString::SkipEmptyParts);
+
+    QStringList::const_iterator i = list.begin();
+    QStringList::const_iterator end = list.end();
+
+    for (;i != end; ++i)
+    {
+        m_lightsequence.push_back(*i);
+    }
 }

@@ -47,6 +47,8 @@ public:
     void setMidsFromString(const QString mids);
     const QString dmToString() const;
     void setDmFromString(const QString deviceIds);
+    const QString lightsequenceToString() const;
+    void setLightsequenceFromString(const QString deviceIds);
 
     uint16_t colorX;
     uint16_t colorY;
@@ -59,6 +61,7 @@ public:
     std::vector<Scene> scenes;
     QTime sendTime;
     std::vector<QString> m_multiDeviceIds;
+    std::vector<QString> m_lightsequence;
     std::vector<QString> m_deviceMemberships;
 
 private:

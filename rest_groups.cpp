@@ -199,7 +199,7 @@ int DeRestPluginPrivate::createGroup(const ApiRequest &req, ApiResponse &rsp)
                 // If a group with the same name was deleted before
                 // a new group with a different id will be created
                 // TODO: same behavoir as for creating duplicated scenes
-                if (group1->state() != Group::StateDeleted)
+                if (group1->state() != Group::StateDeleted && group1->state() != Group::StateDeleteFromDB)
                 {
                     rspItemState["id"] = group1->id();
                     rspItem["success"] = rspItemState;
@@ -388,6 +388,17 @@ int DeRestPluginPrivate::getGroupAttributes(const ApiRequest &req, ApiResponse &
 
     rsp.map["multideviceids"] = multis;
 
+    QStringList lightsequence;
+    std::vector<QString>::const_iterator l = group->m_lightsequence.begin();
+    std::vector<QString>::const_iterator lend = group->m_lightsequence.end();
+
+    for ( ;l != lend; ++l)
+    {
+        lightsequence.append(*l);
+    }
+
+    rsp.map["lightsequence"] = lightsequence;
+
     QStringList deviceIds;
     std::vector<QString>::const_iterator d = group->m_deviceMemberships.begin();
     std::vector<QString>::const_iterator dend = group->m_deviceMemberships.end();
@@ -464,7 +475,6 @@ int DeRestPluginPrivate::setGroupAttributes(const ApiRequest &req, ApiResponse &
     QVariantMap map = var.toMap();
     QString id = req.path[3];
     Group *group = getGroupForId(id);
-    rsp.httpStatus = HttpStatusOk;
 
     userActivity();
 
@@ -632,17 +642,39 @@ int DeRestPluginPrivate::setGroupAttributes(const ApiRequest &req, ApiResponse &
 
             QStringList multiIds = map["multideviceids"].toStringList();
 
-            QStringList::iterator m = multiIds.begin();
-            QStringList::iterator m_end = multiIds.end();
+            QStringList::const_iterator m = multiIds.begin();
+            QStringList::const_iterator m_end = multiIds.end();
 
             for (;m != m_end; ++m)
             {
                 group->m_multiDeviceIds.push_back(*m);
             }
         }
+        queSaveDb(DB_LIGHTS | DB_GROUPS, DB_SHORT_SAVE_DELAY);
+    }
 
-        queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
+    // check optional lightsequence
+    if (map.contains("lightsequence"))
+    {
+        changed = true;
+        group->m_lightsequence.clear();
+
+        QStringList lightsequence = map["lightsequence"].toStringList();
+
+        QStringList::const_iterator l = lightsequence.begin();
+        QStringList::const_iterator l_end = lightsequence.end();
+
+        for (;l != l_end; ++l)
+        {
+            group->m_lightsequence.push_back(*l);
+        }
         queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
+
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState[QString("/groups/%1/lightsequence").arg(id)] = map["lightsequence"];
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
     }
 
     if (changed)
@@ -1288,6 +1320,17 @@ bool DeRestPluginPrivate::groupToMap(const Group *group, QVariantMap &map)
     }
 
     map["multideviceids"] = multis;
+
+    QStringList lightsequence;
+    std::vector<QString>::const_iterator l = group->m_lightsequence.begin();
+    std::vector<QString>::const_iterator lend = group->m_lightsequence.end();
+
+    for ( ;l != lend; ++l)
+    {
+        lightsequence.append(*l);
+    }
+
+    map["lightsequence"] = lightsequence;
 
     QVariantList scenes;
     std::vector<Scene>::const_iterator si = group->scenes.begin();
