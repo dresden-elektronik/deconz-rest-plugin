@@ -2091,7 +2091,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             }
             else if (*ci == BASIC_CLUSTER_ID)
             {
-                DBG_Printf(DBG_INFO, "SensorNode %u: %s read model id and swversion\n", sensorNode.id().toUInt(), qPrintable(sensorNode.name()));
+                DBG_Printf(DBG_INFO, "SensorNode %u: %s read model id and vendor name\n", sensorNode.id().toUInt(), qPrintable(sensorNode.name()));
                 sensorNode.setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongDelay));
                 sensorNode.enableRead(READ_MODEL_ID | READ_VENDOR_NAME);
                 sensorNode.setLastRead(idleTotalCounter);
@@ -2994,8 +2994,7 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
         {
             Group *group = getGroupForId(i->id);
 
-            DBG_Assert(group != 0);
-            if (group)
+            if (group && group->state() != Group::StateDeleted && group->state() != Group::StateDeleteFromDB)
             {
                 // NOTE: this may cause problems if we have a lot of nodes + groups
                 // proposal mark groups for which scenes where discovered
@@ -4752,9 +4751,6 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
             LightNode *lightNode = getLightNodeForAddress(ind.srcAddress().ext(), ind.srcEndpoint());
             GroupInfo *groupInfo = getGroupInfo(lightNode, group->address());
 
-            DBG_Assert(group != 0);
-            DBG_Assert(lightNode != 0);
-            DBG_Assert(groupInfo != 0);
             stream >> count;
 
             if (group != 0 && lightNode != 0 && groupInfo != 0)
