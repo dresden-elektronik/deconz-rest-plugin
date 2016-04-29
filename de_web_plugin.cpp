@@ -3036,8 +3036,7 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
         {
             Group *group = getGroupForId(g->id);
 
-            DBG_Assert(group != 0);
-            if (group)
+            if (group  && group->state() != Group::StateDeleted && group->state() != Group::StateDeleteFromDB)
             {
                 std::vector<Scene>::iterator s = group->scenes.begin();
                 std::vector<Scene>::iterator send = group->scenes.end();
