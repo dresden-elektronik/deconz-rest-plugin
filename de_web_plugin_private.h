@@ -162,6 +162,8 @@
 #define MAX_GROUP_SEND_DELAY 5000 // ms between to requests to the same group
 #define GROUP_SEND_DELAY 500 // default ms between to requests to the same group
 
+#define MAX_RULE_ILLUMINANCE_VALUE_AGE_MS (1000 * 60 * 10) // 10 minutes
+
 // string lengths
 #define MAX_GROUP_NAME_LENGTH 32
 #define MAX_SCENE_NAME_LENGTH 32
@@ -571,6 +573,7 @@ public:
     int updateRule(const ApiRequest &req, ApiResponse &rsp);
     int deleteRule(const ApiRequest &req, ApiResponse &rsp);
     void queueCheckRuleBindings(const Rule &rule);
+    void triggerRuleIfNeeded(Rule &rule);
 
     bool checkActions(QVariantList actionsList, ApiResponse &rsp);
     bool checkConditions(QVariantList conditionsList, ApiResponse &rsp);

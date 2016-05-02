@@ -11,6 +11,7 @@
 #include <QString>
 #include <QVariantMap>
 #include <QRegExp>
+#include <QStringBuilder>
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "json.h"
@@ -796,7 +797,6 @@ bool DeRestPluginPrivate::checkConditions(QVariantList conditionsList, ApiRespon
     QVector<QString> validAddresses;
     QVector<QString> validOperators;
     QString validValues = "";
-    QString id = "";
 
     std::vector<Sensor>::const_iterator si = sensors.begin();
     std::vector<Sensor>::const_iterator send = sensors.end();
@@ -804,7 +804,7 @@ bool DeRestPluginPrivate::checkConditions(QVariantList conditionsList, ApiRespon
     for (; si != send; ++si)
     {
         const QString &type = si->type();
-        id = si->id();
+        const QString &id = si->id();
 
         validAddresses.push_back("/sensors/"+id+"/config/reachable");
         validAddresses.push_back("/sensors/"+id+"/config/on");
@@ -1259,6 +1259,100 @@ void DeRestPluginPrivate::queueCheckRuleBindings(const Rule &rule)
     }
 }
 
+/*! Triggers actions of a rule if needed.
+    \param rule - the rule to check
+ */
+void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
+{
+    if (!apsCtrl || (apsCtrl->networkState() != deCONZ::InNetwork))
+    {
+        return;
+    }
+
+    if (rule.state() != Rule::StateNormal && rule.status() == QLatin1String("enabled"))
+    {
+        return;
+    }
+
+
+    std::vector<RuleCondition>::const_iterator ci = rule.conditions().begin();
+    std::vector<RuleCondition>::const_iterator cend = rule.conditions().end();
+
+    for (; ci != cend; ++ci)
+    {
+        QStringList ls = ci->address().split(QChar('/'), QString::SkipEmptyParts);
+
+        if (ls.size() < 4) // sensors, <id>, state, (illuminance|buttonevent)
+            return;
+
+        if (ls[0] != QLatin1String("sensor"))
+        {
+            return;
+        }
+
+        Sensor *sensor = getSensorNodeForId(ls[1]);
+
+        if (!sensor)
+        {
+            return;
+        }
+
+        if (ls.last() == QLatin1String("buttonevent"))
+        {
+            return; // TODO
+        }
+        else if (ls.last() == QLatin1String("illuminance"))
+        {
+            { // check if value is fresh enough
+                const NodeValue &val = sensor->getZclValue(ILLUMINANCE_MEASUREMENT_CLUSTER_ID, 0x0000);
+
+                if (!val.timestamp.isValid()) // valid?
+                {
+                    return;
+                }
+
+                if (val.timestamp.elapsed() > MAX_RULE_ILLUMINANCE_VALUE_AGE_MS)
+                {
+                    return;
+                }
+            }
+
+            bool ok;
+            uint cval = ci->value().toUInt(&ok);
+
+            if (!ok)
+            {
+                DBG_Printf(DBG_INFO, "invalid rule.condition.value %s\n", qPrintable(ci->value()));
+            }
+
+            if (ci->ooperator() == QLatin1String("lt"))
+            {
+                if (sensor->state().lux() >= cval)
+                {
+                    return; // condition not met
+                }
+            }
+            else if (ci->ooperator() == QLatin1String("gt"))
+            {
+                if (sensor->state().lux() <= cval)
+                {
+                    return; // condition not met
+                }
+            }
+            else
+            {
+                return; // unsupported condition operator
+            }
+        }
+        else
+        {
+            return; // unsupported condition address
+        }
+    }
+
+    // conditions ok, trigger action
+}
+
 /*! Verifies that rule bindings are valid. */
 void DeRestPluginPrivate::verifyRuleBindingsTimerFired()
 {
@@ -1279,6 +1373,8 @@ void DeRestPluginPrivate::verifyRuleBindingsTimerFired()
     }
 
     Rule &rule = rules[verifyRuleIter];
+
+    triggerRuleIfNeeded(rule);
 
     if (bindingQueue.size() < 16)
     {
