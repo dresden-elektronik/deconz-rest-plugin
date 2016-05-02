@@ -389,9 +389,9 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
 
     userActivity();
 
-    if (sensors.size() >= 100)
+    if (sensors.size() >= MAX_SENSORS)
     {
-        rsp.list.append(errorToMap(ERR_SENSOR_LIST_FULL , QString("/sensors/"), QString("The Sensor List has reached its maximum capacity of 100 sensors")));
+        rsp.list.append(errorToMap(ERR_SENSOR_LIST_FULL , QString("/sensors/"), QString("The Sensor List has reached its maximum capacity of %1 sensors").arg(MAX_SENSORS)));
         rsp.httpStatus = HttpStatusBadRequest;
         return REQ_READY_SEND;
     }
