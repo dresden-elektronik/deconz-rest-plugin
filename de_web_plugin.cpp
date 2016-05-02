@@ -762,8 +762,11 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
                 }
 
                 Rule *saveRule = getRuleForId(r->id());
-                saveRule->setLastTriggered(QDateTime::currentDateTimeUtc().toString("yyyy-MM-ddTHH:mm:ss"));
-                saveRule->setTimesTriggered(r->timesTriggered()+1);
+                if (saveRule)
+                {
+                    saveRule->setLastTriggered(QDateTime::currentDateTimeUtc().toString("yyyy-MM-ddTHH:mm:ss"));
+                    saveRule->setTimesTriggered(r->timesTriggered()+1);
+                }
             }
         }
     }
