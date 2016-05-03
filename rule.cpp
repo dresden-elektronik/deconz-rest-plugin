@@ -242,46 +242,31 @@ QString Rule::conditionsToString(const std::vector<RuleCondition> &conditions)
     return jsonString;
 }
 
+/*! Parse a JSON string into RuleAction array.
+    \param json - a JSON list of actions
+ */
 std::vector<RuleAction> Rule::jsonToActions(const QString &json)
 {
     bool ok;
-    QVariantList var = (Json::parse(json, ok)).toList();
-    QVariantMap map;
-    RuleAction action;
     std::vector<RuleAction> actions;
+    QVariantList var = Json::parse(json, ok).toList();
+
+    if (!ok)
+    {
+        return actions;
+    }
 
     QVariantList::const_iterator i = var.begin();
-    QVariantList::const_iterator i_end = var.end();
+    QVariantList::const_iterator end = var.end();
 
-    for (; i != i_end; ++i)
+    for (; i != end; ++i)
     {
-        map = i->toMap();
+        RuleAction action;
+        QVariantMap map = i->toMap();
         action.setAddress(map["address"].toString());
 
-        QVariantMap bodymap = (i->toMap()["body"]).toMap();
-        QVariantMap::const_iterator b = bodymap.begin();
-        QVariantMap::const_iterator bend = bodymap.end();
-        QRegExp numbers("^[0-9]\\d*$");
-
-        QString bodystring = "{";
-        QString value = b->toString();
-        if ((value != "true") && (value != "false") && (!value.contains(numbers)))
-        {
-            value.prepend("\"");
-            value.append("\"");
-        }
-
-        for (; b != bend; ++b)
-        {
-            bodystring.append("\"" + b.key() + "\" : " + value + ", ");
-        }
-        if (bodystring != "{")
-        {
-            bodystring.chop(2);
-        }
-        bodystring.append("}");
-
-        action.setBody(bodystring);
+        QVariantMap bodymap = i->toMap()["body"].toMap();
+        action.setBody(Json::serialize(bodymap));
         action.setMethod(map["method"].toString());
         actions.push_back(action);
     }
