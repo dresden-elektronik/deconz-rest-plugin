@@ -82,7 +82,15 @@ const QString &Rule::lastTriggered() const
  */
 void Rule::setLastTriggered(const QString &lastTriggered)
 {
-    this->m_lastTriggered = lastTriggered;
+    m_lastTriggered = lastTriggered;
+    m_lastTriggeredTime.start();
+}
+
+/*! Returns the timestamp the rule was last triggered.
+ */
+const QTime &Rule::lastTriggeredTime() const
+{
+    return m_lastTriggeredTime;
 }
 
 /*! Returns the date the rule was created.
