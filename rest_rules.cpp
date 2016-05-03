@@ -937,6 +937,8 @@ bool DeRestPluginPrivate::checkConditions(QVariantList conditionsList, ApiRespon
         {
             validOperators.push_back("dx");
             validOperators.push_back("eq");
+            validOperators.push_back("lt");
+            validOperators.push_back("gt");
             validValues = "numbers";
         }
         else if ((confstate == "/config/reachable") || (confstate == "/config/on") || (confstate == "/state/open")
