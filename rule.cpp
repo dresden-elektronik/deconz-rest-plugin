@@ -19,6 +19,7 @@ Rule::Rule() :
     m_lastTriggered("none"),
     m_creationtime("notSet"),
     m_timesTriggered(0),
+    m_triggerPeriodic(0),
     m_owner("notSet"),
     m_status("enabled")
 {
@@ -112,6 +113,21 @@ const quint32 &Rule::timesTriggered() const
 void Rule::setTimesTriggered(const quint32 &timesTriggered)
 {
     this->m_timesTriggered = timesTriggered;
+}
+
+/*! Returns the trigger periodic time value in milliseconds.
+      val  < 0 trigger disabled
+      val == 0 trigger on event
+      val  > 0 trigger every <val> ms
+ */
+int Rule::triggerPeriodic() const
+{
+    return m_triggerPeriodic;
+}
+
+void Rule::setTriggerPeriodic(int ms)
+{
+    m_triggerPeriodic = ms;
 }
 
 /*! Returns the owner of the rule.

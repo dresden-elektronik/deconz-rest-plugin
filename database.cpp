@@ -9,6 +9,7 @@
  */
 
 #include <QString>
+#include <QStringBuilder>
 #include <QElapsedTimer>
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
@@ -61,7 +62,7 @@ void DeRestPluginPrivate::initDb()
         "ALTER TABLE auth add column lastusedate TEXT",
         "ALTER TABLE auth add column useragent TEXT",
         "CREATE TABLE IF NOT EXISTS groups (gid TEXT PRIMARY KEY, name TEXT, state TEXT, mids TEXT, devicemembership TEXT, lightsequence TEXT)",
-        "CREATE TABLE IF NOT EXISTS rules (rid TEXT PRIMARY KEY, name TEXT, created TEXT, etag TEXT, lasttriggered TEXT, owner TEXT, status TEXT, timestriggered TEXT, actions TEXT, conditions TEXT)",
+        "CREATE TABLE IF NOT EXISTS rules (rid TEXT PRIMARY KEY, name TEXT, created TEXT, etag TEXT, lasttriggered TEXT, owner TEXT, status TEXT, timestriggered TEXT, actions TEXT, conditions TEXT, periodic TEXT)",
         "CREATE TABLE IF NOT EXISTS sensors (sid TEXT PRIMARY KEY, name TEXT, type TEXT, modelid TEXT, manufacturername TEXT, uniqueid TEXT, swversion TEXT, state TEXT, config TEXT, fingerprint TEXT, deletedState TEXT, mode TEXT)",
         "CREATE TABLE IF NOT EXISTS scenes (gsid TEXT PRIMARY KEY, gid TEXT, sid TEXT, name TEXT, transitiontime TEXT, lights TEXT)",
         "CREATE TABLE IF NOT EXISTS schedules (id TEXT PRIMARY KEY, json TEXT)",
@@ -74,6 +75,7 @@ void DeRestPluginPrivate::initDb()
         "ALTER TABLE groups add column lightsequence TEXT",
         "ALTER TABLE scenes add column transitiontime TEXT",
         "ALTER TABLE scenes add column lights TEXT",
+        "ALTER TABLE rules add column periodic TEXT",
         NULL
         };
 
@@ -1133,7 +1135,6 @@ static int sqliteLoadAllRulesCallback(void *user, int ncols, char **colval , cha
             {
                 rule.setTimesTriggered(val.toUInt());
             }
-
             else if (strcmp(colname[i], "actions") == 0)
             {
                 rule.setActions(Rule::jsonToActions(val));
@@ -1141,6 +1142,15 @@ static int sqliteLoadAllRulesCallback(void *user, int ncols, char **colval , cha
             else if (strcmp(colname[i], "conditions") == 0)
             {
                 rule.setConditions(Rule::jsonToConditions(val));
+            }
+            else if (strcmp(colname[i], "periodic") == 0)
+            {
+                bool ok;
+                int periodic = val.toUInt(&ok);
+                if (ok)
+                {
+                    rule.setTriggerPeriodic(periodic);
+                }
             }
         }
     }
@@ -1872,11 +1882,25 @@ void DeRestPluginPrivate::saveDb()
             QString actionsJSON = Rule::actionsToString(i->actions());
             QString conditionsJSON = Rule::conditionsToString(i->conditions());
 
-            QString sql = QString(QLatin1String("REPLACE INTO rules (rid, name, created, etag, lasttriggered, owner, status, timestriggered, actions, conditions) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7', '%8', '%9', '%10')"))
-                    .arg(rid, i->name(), i->creationtime(),
-                         i->etag, i->lastTriggered(), i->owner(),
-                         i->status(), QString::number(i->timesTriggered()), actionsJSON)
-                    .arg(conditionsJSON);
+//            QString sql = QString(QLatin1String("REPLACE INTO rules (rid, name, created, etag, lasttriggered, owner, status, timestriggered, actions, conditions) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7', '%8', '%9', '%10')"))
+//                    .arg(rid, i->name(), i->creationtime(),
+//                         i->etag, i->lastTriggered(), i->owner(),
+//                         i->status(), QString::number(i->timesTriggered()), actionsJSON)
+//                    .arg(conditionsJSON);
+
+            QString sql = QLatin1String("REPLACE INTO rules (rid, name, created, etag, lasttriggered, owner, status, timestriggered, actions, conditions, periodic) VALUES ('") +
+                    rid + QLatin1String("','") +
+                    i->name() + QLatin1String("','") +
+                    i->creationtime() + QLatin1String("','") +
+                    i->etag + QLatin1String("','") +
+                    i->lastTriggered() + QLatin1String("','") +
+                    i->owner() + QLatin1String("','") +
+                    i->status() + QLatin1String("','") +
+                    QString::number(i->timesTriggered()) + QLatin1String("','") +
+                    actionsJSON + QLatin1String("','") +
+                    conditionsJSON + QLatin1String("','") +
+                    QString::number(i->triggerPeriodic()) + QLatin1String("')");
+
 
             errmsg = NULL;
             rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);

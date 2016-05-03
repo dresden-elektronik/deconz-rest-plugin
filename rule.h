@@ -102,6 +102,8 @@ public:
     void setCreationtime(const QString &creationtime);
     const quint32 &timesTriggered() const;
     void setTimesTriggered(const quint32 &timesTriggered);
+    int triggerPeriodic() const;
+    void setTriggerPeriodic(int ms);
     const QString &owner() const;
     void setOwner(const QString &owner);
     const QString &status() const;
@@ -127,6 +129,7 @@ private:
     QString m_lastTriggered;
     QString m_creationtime;
     quint32 m_timesTriggered;
+    int m_triggerPeriodic;
     QString m_owner;
     QString m_status;
     std::vector<RuleCondition> m_conditions;

@@ -131,6 +131,7 @@ int DeRestPluginPrivate::getAllRules(const ApiRequest &req, ApiResponse &rsp)
         rule["status"] = i->status();
         rule["conditions"] = conditions;
         rule["actions"] = actions;
+        rule["periodic"] = (double)i->triggerPeriodic();
 
         QString etag = i->etag;
         etag.remove('"'); // no quotes allowed in string
@@ -227,6 +228,7 @@ int DeRestPluginPrivate::getRule(const ApiRequest &req, ApiResponse &rsp)
     rsp.map["status"] = rule->status();
     rsp.map["conditions"] = conditions;
     rsp.map["actions"] = actions;
+    rsp.map["periodic"] = (double)rule->triggerPeriodic();
 
     QString etag = rule->etag;
     etag.remove('"'); // no quotes allowed in string
@@ -250,6 +252,7 @@ int DeRestPluginPrivate::createRule(const ApiRequest &req, ApiResponse &rsp)
     const QString &apikey = req.path[1];
 
     bool ok;
+    Rule rule;
     QVariant var = Json::parse(req.content, ok);
     QVariantMap map = var.toMap();
     QVariantList conditionsList = map["conditions"].toList();
@@ -278,6 +281,7 @@ int DeRestPluginPrivate::createRule(const ApiRequest &req, ApiResponse &rsp)
         error = true;
         rsp.list.append(errorToMap(ERR_MISSING_PARAMETER, QString("/rules/name"), QString("invalid/missing parameters in body")));
     }
+
     if (conditionsList.size() < 1)
     {
         error = true;
@@ -312,6 +316,21 @@ int DeRestPluginPrivate::createRule(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
+    if (map.contains("periodic")) // optional
+    {
+        int periodic = map["periodic"].toInt(&ok);
+
+        if (!ok)
+        {
+            error = true;
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/rules/periodic"), QString("invalid value, %1, for parameter, peridoc").arg(map["periodic"].toString())));
+        }
+        else
+        {
+            rule.setTriggerPeriodic(periodic);
+        }
+    }
+
     //resolve errors
     if (error)
     {
@@ -326,8 +345,6 @@ int DeRestPluginPrivate::createRule(const ApiRequest &req, ApiResponse &rsp)
         {
             QVariantMap rspItem;
             QVariantMap rspItemState;
-
-            Rule rule;
 
             // create a new rule id
             rule.setId("1");
@@ -473,6 +490,7 @@ int DeRestPluginPrivate::updateRule(const ApiRequest &req, ApiResponse &rsp)
 
     QString name;
     QString status;
+    int periodic = 0;
 
     rsp.httpStatus = HttpStatusOk;
 
@@ -563,6 +581,17 @@ int DeRestPluginPrivate::updateRule(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
+    if (map.contains("periodic")) // optional
+    {
+        periodic = map["periodic"].toInt(&ok);
+
+        if (!ok)
+        {
+            error = true;
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/rules/periodic"), QString("invalid value, %1, for parameter, peridoc").arg(map["periodic"].toString())));
+        }
+    }
+
     //resolve errors
     if (error)
     {
@@ -612,6 +641,16 @@ int DeRestPluginPrivate::updateRule(const ApiRequest &req, ApiResponse &rsp)
                 {
                     changed = true;
                     i->setStatus(status);
+                }
+            }
+
+            // periodic optional
+            if (map.contains("periodic"))
+            {
+                if (i->triggerPeriodic() != periodic)
+                {
+                    changed = true;
+                    i->setTriggerPeriodic(periodic);
                 }
             }
 
@@ -1269,11 +1308,32 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
         return;
     }
 
-    if (rule.state() != Rule::StateNormal && rule.status() == QLatin1String("enabled"))
+    if (!(rule.state() == Rule::StateNormal && rule.status() == QLatin1String("enabled")))
     {
         return;
     }
 
+    if (rule.triggerPeriodic() < 0)
+    {
+        return;
+    }
+
+    if (rule.triggerPeriodic() == 0)
+    {
+        // trigger on event
+        // TODO implement events for rule
+        return;
+    }
+
+    if (rule.triggerPeriodic() > 0)
+    {
+        if (rule.lastTriggeredTime().isValid() &&
+            rule.lastTriggeredTime().elapsed() < rule.triggerPeriodic())
+        {
+            // not yet time
+            return;
+        }
+    }
 
     std::vector<RuleCondition>::const_iterator ci = rule.conditions().begin();
     std::vector<RuleCondition>::const_iterator cend = rule.conditions().end();
