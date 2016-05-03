@@ -965,14 +965,7 @@ void DeRestPluginPrivate::scheduleTimerFired()
                 }
 
                 QHttpRequestHeader hdr(method, address);
-                QStringList path = hdr.path().split('/');
-
-                // first element in list is empty because of spli('/'):
-                // [/][api] becomes [][api]
-                if (!path.isEmpty() && path[0].isEmpty())
-                {
-                    path.removeFirst();
-                }
+                QStringList path = hdr.path().split('/', QString::SkipEmptyParts);
 
                 ApiRequest req(hdr, path, NULL, content);
                 ApiResponse rsp; // dummy
