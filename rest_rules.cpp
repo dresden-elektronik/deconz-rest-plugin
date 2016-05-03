@@ -1347,7 +1347,7 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
         if (ls.size() < 4) // sensors, <id>, state, (illuminance|buttonevent)
             return;
 
-        if (ls[0] != QLatin1String("sensor"))
+        if (ls[0] != QLatin1String("sensors"))
         {
             return;
         }
@@ -1413,6 +1413,57 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
     }
 
     // conditions ok, trigger action
+    bool triggered = false;
+    std::vector<RuleAction>::const_iterator ai = rule.actions().begin();
+    std::vector<RuleAction>::const_iterator aend = rule.actions().end();
+
+    for (; ai != aend; ++ai)
+    {
+        if (ai->method() != QLatin1String("PUT"))
+            return;
+
+        QStringList path = ai->address().split(QChar('/'), QString::SkipEmptyParts);
+
+        if (path.size() < 3) // groups, <id>, action
+            return;
+
+        QHttpRequestHeader hdr(ai->method(), ai->address());
+
+        // paths start with /api/<apikey/ ...>
+        path.prepend(rule.owner()); // apikey
+        path.prepend(QLatin1String("api")); // api
+
+        ApiRequest req(hdr, path, NULL, ai->body());
+        ApiResponse rsp; // dummy
+
+        if (path[2] == QLatin1String("groups"))
+        {
+            if (handleGroupsApi(req, rsp) == REQ_NOT_HANDLED)
+            {
+                return;
+            }
+            triggered = true;
+        }
+        else if (path[2] == QLatin1String("lights"))
+        {
+            if (handleLightsApi(req, rsp) == REQ_NOT_HANDLED)
+            {
+                return;
+            }
+            triggered = true;
+        }
+        else
+        {
+            DBG_Printf(DBG_INFO, "unsupported rule action address %s\n", qPrintable(ai->address()));
+            return;
+        }
+    }
+
+    if (triggered)
+    {
+        rule.setLastTriggered(QDateTime::currentDateTimeUtc().toString("yyyy-MM-ddTHH:mm:ss"));
+        rule.setTimesTriggered(rule.timesTriggered() + 1);
+    }
 }
 
 /*! Verifies that rule bindings are valid. */
