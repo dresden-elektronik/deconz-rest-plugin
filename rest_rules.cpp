@@ -509,7 +509,7 @@ int DeRestPluginPrivate::updateRule(const ApiRequest &req, ApiResponse &rsp)
 
     for (; pi != pend; ++pi)
     {
-        if(!((pi.key() == "name") || (pi.key() == "status") || (pi.key() == "actions") || (pi.key() == "conditions")))
+        if(!((pi.key() == QLatin1String("name")) || (pi.key() == QLatin1String("status")) || (pi.key() == QLatin1String("actions")) || (pi.key() == QLatin1String("conditions")) || (pi.key() == QLatin1String("periodic"))))
         {
             rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/rules/%1/%2").arg(id).arg(pi.key()), QString("parameter, %1, not available").arg(pi.key())));
             rsp.httpStatus = HttpStatusBadRequest;
@@ -794,8 +794,8 @@ bool DeRestPluginPrivate::checkActions(QVariantList actionsList, ApiResponse &rs
         //check addresses
         //address must begin with / and a valid resource
         //no dublicate addresses allowed
-        if (!((address.indexOf("/lights") == 0) || (address.indexOf("/groups") == 0) || (address.indexOf("/scenes") == 0) ||
-            (address.indexOf("/schedules") == 0) || (address.indexOf("/sensors") == 0)) || (addresses.contains(address)))
+        if (!((address.indexOf(QLatin1String("/lights")) == 0) || (address.indexOf(QLatin1String("/groups")) == 0) || (address.indexOf(QLatin1String("/scenes")) == 0) ||
+            (address.indexOf(QLatin1String("/schedules")) == 0) || (address.indexOf(QLatin1String("/sensors")) == 0)) || (addresses.contains(address)))
         {
             rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString(address),
                 QString("Rule actions contain errors or multiple actions with the same resource address or an action on a unsupported resource")));
@@ -807,7 +807,7 @@ bool DeRestPluginPrivate::checkActions(QVariantList actionsList, ApiResponse &rs
         }
 
         //check methods
-        if(!((method == "PUT") || (method == "POST") || (method == "DELETE") || (method == "BIND")))
+        if(!((method == QLatin1String("PUT")) || (method == QLatin1String("POST")) || (method == QLatin1String("DELETE")) || (method == QLatin1String("BIND"))))
         {
             rsp.list.append(errorToMap(ERR_INVALID_VALUE , QString("rules/method"), QString("invalid value, %1, for parameter, method").arg(method)));
             return false;
@@ -842,61 +842,61 @@ bool DeRestPluginPrivate::checkConditions(QVariantList conditionsList, ApiRespon
 
     for (; si != send; ++si)
     {
+        QString base(QLatin1String("/sensors/") + si->id());
         const QString &type = si->type();
-        const QString &id = si->id();
 
-        validAddresses.push_back("/sensors/"+id+"/config/reachable");
-        validAddresses.push_back("/sensors/"+id+"/config/on");
-        validAddresses.push_back("/sensors/"+id+"/config/battery");
-        validAddresses.push_back("/sensors/"+id+"/state/lastupdated");
+        validAddresses.push_back(base + QLatin1String("/config/reachable"));
+        validAddresses.push_back(base + QLatin1String("/config/on"));
+        validAddresses.push_back(base + QLatin1String("/config/battery"));
+        validAddresses.push_back(base + QLatin1String("/state/lastupdated"));
 
         if (type == QLatin1String("ZGPSwitch"))
         {
-            validAddresses.push_back("/sensors/"+id+"/state/buttonevent");
+            validAddresses.push_back(base + QLatin1String("/state/buttonevent"));
         }
         else if (type == QLatin1String("ZHASwitch"))
         {
-            validAddresses.push_back("/sensors/"+id+"/state/buttonevent");
+            validAddresses.push_back(base + QLatin1String("/state/buttonevent"));
         }
         else if (type == QLatin1String("ZHALight"))
         {
-            validAddresses.push_back("/sensors/"+id+"/state/illuminance");
+            validAddresses.push_back(base + QLatin1String("/state/illuminance"));
         }
         else if (type == QLatin1String("ZHAPresence"))
         {
-            validAddresses.push_back("/sensors/"+id+"/state/presence");
+            validAddresses.push_back(base + QLatin1String("/state/presence"));
         }
         else if (type == QLatin1String("CLIPOpenClose"))
         {
-            validAddresses.push_back("/sensors/"+id+"/state/open");
+            validAddresses.push_back(base + QLatin1String("/state/open"));
         }
         else if (type == QLatin1String("CLIPPresence"))
         {
-            validAddresses.push_back("/sensors/"+id+"/state/presence");
+            validAddresses.push_back(base + QLatin1String("/state/presence"));
         }
         else if (type == QLatin1String("CLIPTemperature"))
         {
-            validAddresses.push_back("/sensors/"+id+"/state/temperature");
+            validAddresses.push_back(base + QLatin1String("/state/temperature"));
         }
         else if (type == QLatin1String("CLIPHumidity"))
         {
-            validAddresses.push_back("/sensors/"+id+"/state/humidity");
+            validAddresses.push_back(base + QLatin1String("/state/humidity"));
         }
         else if (type == QLatin1String("DaylightSensor"))
         {
-            validAddresses.push_back("/sensors/"+id+"/state/daylight");
-            validAddresses.push_back("/sensors/"+id+"/config/long");
-            validAddresses.push_back("/sensors/"+id+"/config/lat");
-            validAddresses.push_back("/sensors/"+id+"/config/sunriseoffset");
-            validAddresses.push_back("/sensors/"+id+"/config/sunsetoffset");
+            validAddresses.push_back(base + QLatin1String("/state/daylight"));
+            validAddresses.push_back(base + QLatin1String("/config/long"));
+            validAddresses.push_back(base + QLatin1String("/config/lat"));
+            validAddresses.push_back(base + QLatin1String("/config/sunriseoffset"));
+            validAddresses.push_back(base + QLatin1String("/config/sunsetoffset"));
         }
         else if (type == QLatin1String("CLIPGenericFlag"))
         {
-            validAddresses.push_back("/sensors/"+id+"/state/flag");
+            validAddresses.push_back(base + QLatin1String("/state/flag"));
         }
         else if (type == QLatin1String("CLIPGenericStatus"))
         {
-            validAddresses.push_back("/sensors/"+id+"/state/status");
+            validAddresses.push_back(base + QLatin1String("/state/status"));
         }
     }
 
@@ -911,13 +911,13 @@ bool DeRestPluginPrivate::checkConditions(QVariantList conditionsList, ApiRespon
         QString value = (ci->toMap()["value"]).toString();
 
         QString confstate = "";
-        if (address.contains("/config"))
+        if (address.contains(QLatin1String("/config")))
         {
-            confstate = address.mid(address.indexOf("/config"));
+            confstate = address.mid(address.indexOf(QLatin1String("/config")));
         }
-        else if (address.contains("/state"))
+        else if (address.contains(QLatin1String("/state")))
         {
-            confstate = address.mid(address.indexOf("/state"));
+            confstate = address.mid(address.indexOf(QLatin1String("/state")));
         }
 
         // check address: whole address must be a valid and present resource
@@ -929,40 +929,40 @@ bool DeRestPluginPrivate::checkConditions(QVariantList conditionsList, ApiRespon
         }
 
         //check operator in dependence of config and state of sensortype
-        if ((confstate == "/state/lastupdated") || (confstate == "/state/long") || (confstate == "/state/lat"))
+        if ((confstate == QLatin1String("/state/lastupdated")) || (confstate == QLatin1String("/state/long")) || (confstate == QLatin1String("/state/lat")))
         {
-            validOperators.push_back("dx");
+            validOperators.push_back(QLatin1String("dx"));
         }
-        else if ((confstate == "/state/illuminance") || (confstate == "/state/presence"))
+        else if ((confstate == QLatin1String("/state/illuminance")) || (confstate == QLatin1String("/state/presence")))
         {
-            validOperators.push_back("dx");
-            validOperators.push_back("eq");
-            validOperators.push_back("lt");
-            validOperators.push_back("gt");
-            validValues = "numbers";
+            validOperators.push_back(QLatin1String("dx"));
+            validOperators.push_back(QLatin1String("eq"));
+            validOperators.push_back(QLatin1String("lt"));
+            validOperators.push_back(QLatin1String("gt"));
+            validValues = QLatin1String("numbers");
         }
-        else if ((confstate == "/config/reachable") || (confstate == "/config/on") || (confstate == "/state/open")
-            || (confstate == "/state/presence") || (confstate == "/state/flag") || (confstate == "/state/daylight"))
+        else if ((confstate == QLatin1String("/config/reachable")) || (confstate == QLatin1String("/config/on")) || (confstate == QLatin1String("/state/open"))
+            || (confstate == QLatin1String("/state/presence")) || (confstate == QLatin1String("/state/flag")) || (confstate == QLatin1String("/state/daylight")))
         {
-            validOperators.push_back("dx");
-            validOperators.push_back("eq");
-            validValues = "boolean";
+            validOperators.push_back(QLatin1String("dx"));
+            validOperators.push_back(QLatin1String("eq"));
+            validValues = QLatin1String("boolean");
         }
-        else if ((confstate == "/config/battery") || (confstate == "/state/buttonevent") || (confstate == "/state/temperature")
-             || (confstate == "/state/humidity"))
+        else if ((confstate == QLatin1String("/config/battery")) || (confstate == QLatin1String("/state/buttonevent")) || (confstate == QLatin1String("/state/temperature"))
+             || (confstate == QLatin1String("/state/humidity")))
         {
-            validOperators.push_back("dx");
-            validOperators.push_back("eq");
-            validOperators.push_back("gt");
-            validOperators.push_back("lt");
-            validValues = "numbers";
+            validOperators.push_back(QLatin1String("dx"));
+            validOperators.push_back(QLatin1String("eq"));
+            validOperators.push_back(QLatin1String("gt"));
+            validOperators.push_back(QLatin1String("lt"));
+            validValues = QLatin1String("numbers");
         }
-        else if ((confstate == "/config/sunriseoffset") || (confstate == "/config/sunsetoffset"))
+        else if ((confstate == QLatin1String("/config/sunriseoffset")) || (confstate == QLatin1String("/config/sunsetoffset")))
         {
-            validOperators.push_back("eq");
-            validOperators.push_back("gt");
-            validOperators.push_back("lt");
-            validValues = "numbers";
+            validOperators.push_back(QLatin1String("eq"));
+            validOperators.push_back(QLatin1String("gt"));
+            validOperators.push_back(QLatin1String("lt"));
+            validValues = QLatin1String("numbers");
         }
 
         if (!validOperators.contains(ooperator))
@@ -976,16 +976,16 @@ bool DeRestPluginPrivate::checkConditions(QVariantList conditionsList, ApiRespon
         QRegExp numbers("^[1-9]\\d*$");
         QRegExp boolean("^(true|false)$");
         //QRegExp timestamp("^\\d{4,4}-\\d{2,2}-\\d{2,2}T\\d{2,2}:\\d{2,2}:\\d{2,2}.*$");
-        if (ooperator == "dx")
+        if (ooperator == QLatin1String("dx"))
         {
             //no value allowed
-            if (value != "")
+            if (value != QLatin1String(""))
             {
                 rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/rules/conditions"), QString("parameter, value, is not modifiable")));
                 return false;
             }
         }
-        else if (validValues == "numbers")
+        else if (validValues == QLatin1String("numbers"))
         {
                 if (!value.contains(numbers))
                 {
@@ -993,7 +993,7 @@ bool DeRestPluginPrivate::checkConditions(QVariantList conditionsList, ApiRespon
                     return false;
                 }
         }
-        else if (validValues == "boolean")
+        else if (validValues == QLatin1String("boolean"))
         {
                 if (!value.contains(boolean))
                 {
