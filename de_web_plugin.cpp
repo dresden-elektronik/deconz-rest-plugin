@@ -5178,86 +5178,88 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                 bool colorloopDeactivated = false;
                 Group *group = getGroupForId(groupId);
 
-                std::vector<Scene>::const_iterator i = group->scenes.begin();
-                std::vector<Scene>::const_iterator end = group->scenes.end();
-
-                for (; i != end; ++i)
+                if (group != 0 && group->state() != Group::StateDeleted && group->state() != Group::StateDeleteFromDB)
                 {
-                    if ((i->id == sceneId) && (i->state != Scene::StateDeleted))
+                    std::vector<Scene>::const_iterator i = group->scenes.begin();
+                    std::vector<Scene>::const_iterator end = group->scenes.end();
+
+                    for (; i != end; ++i)
                     {
-                        scene = *i;
-
-                        std::vector<LightState>::const_iterator ls = scene.lights().begin();
-                        std::vector<LightState>::const_iterator lsend = scene.lights().end();
-
-                        for (; ls != lsend; ++ls)
+                        if ((i->id == sceneId) && (i->state != Scene::StateDeleted))
                         {
-                            LightNode *light = getLightNodeForId(ls->lid());
-                            if (light && light->isAvailable() && light->state() != LightNode::StateDeleted)
+                            scene = *i;
+
+                            std::vector<LightState>::const_iterator ls = scene.lights().begin();
+                            std::vector<LightState>::const_iterator lsend = scene.lights().end();
+
+                            for (; ls != lsend; ++ls)
                             {
-                                bool changed = false;
-                                if (ls->colorloopActive() == false && light->isColorLoopActive() != ls->colorloopActive())
+                                LightNode *light = getLightNodeForId(ls->lid());
+                                if (light && light->isAvailable() && light->state() != LightNode::StateDeleted)
                                 {
-                                    //stop colorloop if scene was saved without colorloop (Osram don't stop colorloop if another scene is called)
-                                    task2.lightNode = light;
-                                    task2.req.dstAddress() = task2.lightNode->address();
-                                    task2.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
-                                    task2.req.setDstEndpoint(task2.lightNode->haEndpoint().endpoint());
-                                    task2.req.setSrcEndpoint(getSrcEndpoint(task2.lightNode, task2.req));
-                                    task2.req.setDstAddressMode(deCONZ::ApsExtAddress);
+                                    bool changed = false;
+                                    if (ls->colorloopActive() == false && light->isColorLoopActive() != ls->colorloopActive())
+                                    {
+                                        //stop colorloop if scene was saved without colorloop (Osram don't stop colorloop if another scene is called)
+                                        task2.lightNode = light;
+                                        task2.req.dstAddress() = task2.lightNode->address();
+                                        task2.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+                                        task2.req.setDstEndpoint(task2.lightNode->haEndpoint().endpoint());
+                                        task2.req.setSrcEndpoint(getSrcEndpoint(task2.lightNode, task2.req));
+                                        task2.req.setDstAddressMode(deCONZ::ApsExtAddress);
 
-                                    light->setColorLoopActive(false);
-                                    addTaskSetColorLoop(task2, false, 15);
+                                        light->setColorLoopActive(false);
+                                        addTaskSetColorLoop(task2, false, 15);
 
-                                    changed = true;
-                                    colorloopDeactivated = true;
-                                }
-                                //turn on colorloop if scene was saved with colorloop (FLS don't save colorloop at device)
-                                else if (ls->colorloopActive() == true && light->isColorLoopActive() != ls->colorloopActive())
-                                {
-                                    task2.lightNode = light;
-                                    task2.req.dstAddress() = task2.lightNode->address();
-                                    task2.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
-                                    task2.req.setDstEndpoint(task2.lightNode->haEndpoint().endpoint());
-                                    task2.req.setSrcEndpoint(getSrcEndpoint(task2.lightNode, task2.req));
-                                    task2.req.setDstAddressMode(deCONZ::ApsExtAddress);
+                                        changed = true;
+                                        colorloopDeactivated = true;
+                                    }
+                                    //turn on colorloop if scene was saved with colorloop (FLS don't save colorloop at device)
+                                    else if (ls->colorloopActive() == true && light->isColorLoopActive() != ls->colorloopActive())
+                                    {
+                                        task2.lightNode = light;
+                                        task2.req.dstAddress() = task2.lightNode->address();
+                                        task2.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+                                        task2.req.setDstEndpoint(task2.lightNode->haEndpoint().endpoint());
+                                        task2.req.setSrcEndpoint(getSrcEndpoint(task2.lightNode, task2.req));
+                                        task2.req.setDstAddressMode(deCONZ::ApsExtAddress);
 
-                                    light->setColorLoopActive(true);
-                                    light->setColorLoopSpeed(ls->colorloopTime());
-                                    addTaskSetColorLoop(task2, true, ls->colorloopTime());
-                                    changed = true;
-                                }
-                                if (ls->on() == true && light->isOn() == false)
-                                {
-                                    light->setIsOn(true);
-                                    changed = true;
-                                }
-                                if (ls->on() == false && light->isOn() == true)
-                                {
-                                    light->setIsOn(false);
-                                    changed = true;
-                                }
-                                if ((uint16_t)ls->bri() != light->level())
-                                {
-                                    light->setLevel((uint16_t)ls->bri());
-                                    changed = true;
-                                }
-                                if (changed == true)
-                                {
-                                    updateEtag(light->etag);
+                                        light->setColorLoopActive(true);
+                                        light->setColorLoopSpeed(ls->colorloopTime());
+                                        addTaskSetColorLoop(task2, true, ls->colorloopTime());
+                                        changed = true;
+                                    }
+                                    if (ls->on() == true && light->isOn() == false)
+                                    {
+                                        light->setIsOn(true);
+                                        changed = true;
+                                    }
+                                    if (ls->on() == false && light->isOn() == true)
+                                    {
+                                        light->setIsOn(false);
+                                        changed = true;
+                                    }
+                                    if ((uint16_t)ls->bri() != light->level())
+                                    {
+                                        light->setLevel((uint16_t)ls->bri());
+                                        changed = true;
+                                    }
+                                    if (changed == true)
+                                    {
+                                        updateEtag(light->etag);
+                                    }
                                 }
                             }
-                        }
 
-                        //recall scene again
-                        if (colorloopDeactivated)
-                        {
-                            callScene(group, sceneId);
+                            //recall scene again
+                            if (colorloopDeactivated)
+                            {
+                                callScene(group, sceneId);
+                            }
+                            break;
                         }
-                        break;
                     }
                 }
-
                 // turning 'on' the group is also a assumtion but a very likely one
                 if (!group->isOn())
                 {
