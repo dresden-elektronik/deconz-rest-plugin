@@ -485,8 +485,6 @@ int DeRestPluginPrivate::updateRule(const ApiRequest &req, ApiResponse &rsp)
     QVariantMap map = var.toMap();
     QVariantList conditionsList;
     QVariantList actionsList;
-    QVariantMap rspItem;
-    QVariantMap rspItemState;
 
     QString name;
     QString status;
@@ -621,6 +619,8 @@ int DeRestPluginPrivate::updateRule(const ApiRequest &req, ApiResponse &rsp)
             //setName optional
             if (!name.isEmpty())
             {
+                QVariantMap rspItem;
+                QVariantMap rspItemState;
                 rspItemState[QString("/rules/%1/name").arg(id)] = name;
                 rspItem["success"] = rspItemState;
                 rsp.list.append(rspItem);
@@ -634,6 +634,8 @@ int DeRestPluginPrivate::updateRule(const ApiRequest &req, ApiResponse &rsp)
             //setStatus optional
             if (map.contains("status"))
             {
+                QVariantMap rspItem;
+                QVariantMap rspItemState;
                 rspItemState[QString("/rules/%1/status").arg(id)] = status;
                 rspItem["success"] = rspItemState;
                 rsp.list.append(rspItem);
@@ -666,46 +668,19 @@ int DeRestPluginPrivate::updateRule(const ApiRequest &req, ApiResponse &rsp)
 
                     for (; ai != aend; ++ai)
                     {
-                        QVariantMap bodymap = (ai->toMap()["body"]).toMap();
-                        QVariantMap::const_iterator b = bodymap.begin();
-                        QVariantMap::const_iterator bend = bodymap.end();
-                        QRegExp numbers("^[0-9]\\d*$");
-
-                        QString bodystring = "{";
-                        QString value = b->toString();
-                        if ((value != "true") && (value != "false") && (!value.contains(numbers)))
-                        {
-                            value.prepend("\"");
-                            value.append("\"");
-                        }
-                        for (; b != bend; ++b)
-                        {
-                            bodystring.append("\"" + b.key() + "\" : " + value + ", ");
-                        }
-                        if (bodystring != "{")
-                        {
-                            bodystring.chop(2);
-                        }
-                        bodystring.append("}");
-
                         RuleAction newAction;
                         newAction.setAddress(ai->toMap()["address"].toString());
-                        newAction.setBody(bodystring);
+                        newAction.setBody(Json::serialize(ai->toMap()["body"].toMap()));
                         newAction.setMethod(ai->toMap()["method"].toString());
                         actions.push_back(newAction);
-
-                        QString rspString = "address: ";
-                        rspString.append(newAction.address());
-                        rspString.append(",\n                                body: ");
-                        rspString.append(bodystring);
-                        rspString.append(",\n                                method: ");
-                        rspString.append(newAction.method());
-
-                        rspItemState[QString("/rules/%1/actions").arg(id)] = rspString;
-                        rspItem["success"] = rspItemState;
-                        rsp.list.append(rspItem);
                     }
                     i->setActions(actions);
+
+                    QVariantMap rspItem;
+                    QVariantMap rspItemState;
+                    rspItemState[QString("/rules/%1/actions").arg(id)] = actionsList;
+                    rspItem["success"] = rspItemState;
+                    rsp.list.append(rspItem);
                 }
                 else
                 {
@@ -732,18 +707,14 @@ int DeRestPluginPrivate::updateRule(const ApiRequest &req, ApiResponse &rsp)
                         newCondition.setValue(ci->toMap()["value"].toString());
                         conditions.push_back(newCondition);
 
-                        QString rspString = "address: ";
-                        rspString.append(newCondition.address());
-                        rspString.append(",\n                                operator: ");
-                        rspString.append(newCondition.ooperator());
-                        rspString.append(",\n                                value: ");
-                        rspString.append(newCondition.value());
-
-                        rspItemState[QString("/rules/%1/conditions").arg(id)] = rspString;
-                        rspItem["success"] = rspItemState;
-                        rsp.list.append(rspItem);
                     }
                     i->setConditions(conditions);
+
+                    QVariantMap rspItem;
+                    QVariantMap rspItemState;
+                    rspItemState[QString("/rules/%1/conditions").arg(id)] = conditionsList;
+                    rspItem["success"] = rspItemState;
+                    rsp.list.append(rspItem);
                 }
                 else
                 {
