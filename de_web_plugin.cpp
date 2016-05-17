@@ -683,7 +683,7 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
                         else
                         {
                             task.req.setDstAddressMode(deCONZ::ApsNwkAddress);
-                            task.req.dstAddress().setNwk(0xFFFF);
+                            task.req.dstAddress().setNwk(deCONZ::BroadcastRouters);
                         }
                         task.req.setState(deCONZ::FireAndForgetState);
 
@@ -4198,7 +4198,7 @@ bool DeRestPluginPrivate::addTask(const TaskItem &task)
     {
         for (; i != end; ++i)
         {
-            if (i->taskType ==  task.taskType)
+            if (i->taskType == task.taskType)
             {
                 if ((i->req.dstAddress() ==  task.req.dstAddress()) &&
                     (i->req.dstEndpoint() ==  task.req.dstEndpoint()) &&
@@ -4377,9 +4377,19 @@ void DeRestPluginPrivate::processTasks()
                 {
                     int ret = apsCtrl->apsdeDataRequest(i->req);
 
+                    bool pushRunning = true;
+
+                    if (i->req.state() == deCONZ::FireAndForgetState)
+                    {
+                        pushRunning = false;
+                    }
+
                     if (ret == deCONZ::Success)
                     {
-                        runningTasks.push_back(*i);
+                        if (pushRunning == true)
+                        {
+                            runningTasks.push_back(*i);
+                        }
                         tasks.erase(i);
                         return;
                     }
