@@ -1481,7 +1481,7 @@ int DeRestPluginPrivate::createScene(const ApiRequest &req, ApiResponse &rsp)
 
         for (; i != end; ++i)
         {
-            if (ommit == true && (scene.id == 2 || scene.id == 3))
+            if (ommit && (scene.id == 2 || scene.id == 3))
             {
                 scene.id++;
                 ok = false;
@@ -1893,7 +1893,7 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
 
                     if (light &&
                         light->isAvailable() && light->state() != LightNode::StateDeleted &&
-                        ls->colorloopActive() == false && light->isColorLoopActive() != ls->colorloopActive())
+                        !ls->colorloopActive() && light->isColorLoopActive() != ls->colorloopActive())
                     {
                         //stop colorloop if scene was saved without colorloop (Osram don't stop colorloop if another scene is called)
                         task2.lightNode = light;
@@ -1946,7 +1946,7 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
         if (light && light->isAvailable() && light->state() != LightNode::StateDeleted)
         {
             bool changed = false;
-            if (ls->colorloopActive() == true && light->isColorLoopActive() != ls->colorloopActive())
+            if (ls->colorloopActive() && light->isColorLoopActive() != ls->colorloopActive())
             {
                 task2.lightNode = light;
                 task2.req.dstAddress() = task2.lightNode->address();
@@ -1960,12 +1960,12 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
                 addTaskSetColorLoop(task2, true, ls->colorloopTime());
                 changed = true;
             }
-            if (ls->on() == true && light->isOn() == false)
+            if (ls->on() && !light->isOn())
             {
                 light->setIsOn(true);
                 changed = true;
             }
-            if (ls->on() == false && light->isOn() == true)
+            if (!ls->on() && light->isOn())
             {
                 light->setIsOn(false);
                 changed = true;
@@ -1975,7 +1975,7 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
                 light->setLevel((uint16_t)ls->bri());
                 changed = true;
             }
-            if (changed == true)
+            if (changed)
             {
                 updateEtag(light->etag);
             }

@@ -543,7 +543,7 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
                         sceneId = idList[4];
 
                         group = getGroupForId(groupId);
-                        if (group != 0 && group->state() != Group::StateDeleted && group->state() != Group::StateDeleteFromDB)
+                        if (group && group->state() != Group::StateDeleted && group->state() != Group::StateDeleteFromDB)
                         {
                             task.req.setDstAddressMode(deCONZ::ApsGroupAddress);
                             task.req.dstAddress().setGroup(group->address());
@@ -575,7 +575,7 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
                                             if (light && light->isAvailable() && light->state() != LightNode::StateDeleted)
                                             {
                                                 bool changed = false;
-                                                if (ls->colorloopActive() == false && light->isColorLoopActive() != ls->colorloopActive())
+                                                if (!ls->colorloopActive() && light->isColorLoopActive() != ls->colorloopActive())
                                                 {
                                                     //stop colorloop if scene was saved without colorloop (Osram don't stop colorloop if another scene is called)
                                                     task2.lightNode = light;
@@ -592,7 +592,7 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
                                                     colorloopDeactivated = true;
                                                 }
                                                 //turn on colorloop if scene was saved with colorloop (FLS don't save colorloop at device)
-                                                else if (ls->colorloopActive() == true && light->isColorLoopActive() != ls->colorloopActive())
+                                                else if (ls->colorloopActive() && light->isColorLoopActive() != ls->colorloopActive())
                                                 {
                                                     task2.lightNode = light;
                                                     task2.req.dstAddress() = task2.lightNode->address();
@@ -606,12 +606,12 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
                                                     addTaskSetColorLoop(task2, true, ls->colorloopTime());
                                                     changed = true;
                                                 }
-                                                if (ls->on() == true && light->isOn() == false)
+                                                if (ls->on() && !light->isOn())
                                                 {
                                                     light->setIsOn(true);
                                                     changed = true;
                                                 }
-                                                if (ls->on() == false && light->isOn() == true)
+                                                if (!ls->on() && light->isOn())
                                                 {
                                                     light->setIsOn(false);
                                                     changed = true;
@@ -621,7 +621,7 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
                                                     light->setLevel((uint16_t)ls->bri());
                                                     changed = true;
                                                 }
-                                                if (changed == true)
+                                                if (changed)
                                                 {
                                                     updateEtag(light->etag);
                                                 }
@@ -726,7 +726,7 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
                                 if (groupId != "0")
                                 {
                                     group->setIsOn(true);
-                                    if (group->isColorLoopActive() == true)
+                                    if (group->isColorLoopActive())
                                     {
                                         TaskItem task1;
                                         task1.req.dstAddress().setGroup(group->address());
@@ -750,7 +750,7 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
                                     {
                                         l->setIsOn(true);
 
-                                        if (l->isAvailable() && l->state() != LightNode::StateDeleted && l->isColorLoopActive() == true)
+                                        if (l->isAvailable() && l->state() != LightNode::StateDeleted && l->isColorLoopActive())
                                         {
                                             TaskItem task2;
                                             task2.lightNode = &(*l);
@@ -4386,7 +4386,7 @@ void DeRestPluginPrivate::processTasks()
 
                     if (ret == deCONZ::Success)
                     {
-                        if (pushRunning == true)
+                        if (pushRunning)
                         {
                             runningTasks.push_back(*i);
                         }
@@ -4861,7 +4861,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
 
             stream >> count;
 
-            if (group != 0 && lightNode != 0 && groupInfo != 0)
+            if (group && lightNode && groupInfo)
             {
                 lightNode->setSceneCapacity(capacity);
                 groupInfo->setSceneCount(count);
@@ -5166,7 +5166,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
         // update Nodes and Groups state if Recall scene Command was send by a switch
         Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress().ext(), ind.srcEndpoint());
 
-        if (sensorNode != 0)
+        if (sensorNode)
         {
             if (sensorNode->deletedState() != Sensor::StateDeleted)
             {
@@ -5188,7 +5188,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                 bool colorloopDeactivated = false;
                 Group *group = getGroupForId(groupId);
 
-                if (group != 0 && group->state() != Group::StateDeleted && group->state() != Group::StateDeleteFromDB)
+                if (group && group->state() != Group::StateDeleted && group->state() != Group::StateDeleteFromDB)
                 {
                     std::vector<Scene>::const_iterator i = group->scenes.begin();
                     std::vector<Scene>::const_iterator end = group->scenes.end();
@@ -5208,7 +5208,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                                 if (light && light->isAvailable() && light->state() != LightNode::StateDeleted)
                                 {
                                     bool changed = false;
-                                    if (ls->colorloopActive() == false && light->isColorLoopActive() != ls->colorloopActive())
+                                    if (!ls->colorloopActive() && light->isColorLoopActive() != ls->colorloopActive())
                                     {
                                         //stop colorloop if scene was saved without colorloop (Osram don't stop colorloop if another scene is called)
                                         task2.lightNode = light;
@@ -5225,7 +5225,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                                         colorloopDeactivated = true;
                                     }
                                     //turn on colorloop if scene was saved with colorloop (FLS don't save colorloop at device)
-                                    else if (ls->colorloopActive() == true && light->isColorLoopActive() != ls->colorloopActive())
+                                    else if (ls->colorloopActive() && light->isColorLoopActive() != ls->colorloopActive())
                                     {
                                         task2.lightNode = light;
                                         task2.req.dstAddress() = task2.lightNode->address();
@@ -5239,12 +5239,12 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                                         addTaskSetColorLoop(task2, true, ls->colorloopTime());
                                         changed = true;
                                     }
-                                    if (ls->on() == true && light->isOn() == false)
+                                    if (ls->on() && !light->isOn())
                                     {
                                         light->setIsOn(true);
                                         changed = true;
                                     }
-                                    if (ls->on() == false && light->isOn() == true)
+                                    if (!ls->on() && light->isOn())
                                     {
                                         light->setIsOn(false);
                                         changed = true;
@@ -5254,7 +5254,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                                         light->setLevel((uint16_t)ls->bri());
                                         changed = true;
                                     }
-                                    if (changed == true)
+                                    if (changed)
                                     {
                                         updateEtag(light->etag);
                                     }
@@ -5302,7 +5302,7 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
     // update Nodes and Groups state if On/Off Command was send by a switch
     Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress().ext(), ind.srcEndpoint());
 
-    if (sensorNode != 0)
+    if (sensorNode)
     {
         if (sensorNode->deletedState() != Sensor::StateDeleted)
         {
@@ -5325,7 +5325,7 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
                        else if (zclFrame.commandId() == 0x01) // On
                        {
                            i->setIsOn(true);
-                           if (i->isColorLoopActive() == true)
+                           if (i->isColorLoopActive())
                            {
                                TaskItem task1;
                                task1.req.dstAddress().setGroup(i->address());
@@ -5355,7 +5355,7 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
                                {
                                    l->setIsOn(true);
 
-                                   if (l->isAvailable() && l->state() != LightNode::StateDeleted && l->isColorLoopActive() == true)
+                                   if (l->isAvailable() && l->state() != LightNode::StateDeleted && l->isColorLoopActive())
                                    {
                                        TaskItem task2;
                                        task2.lightNode = &(*l);
@@ -6149,7 +6149,7 @@ void DeRestPlugin::idleTimerFired()
     // put coordinator into groups of switches
     // deCONZ firmware will put itself into a group after sending out a groupcast
     // therefore we will receives commands to the same group
-    if (d->groupDeviceMembershipChecked == false)
+    if (!d->groupDeviceMembershipChecked)
     {
         TaskItem task;
 
