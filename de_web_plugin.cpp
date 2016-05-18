@@ -4338,6 +4338,8 @@ void DeRestPluginPrivate::processTasks()
         }
         else
         {
+            bool pushRunning = (i->req.state() != deCONZ::FireAndForgetState);
+
             // groupcast tasks
             if (i->req.dstAddressMode() == deCONZ::ApsGroupAddress)
             {
@@ -4353,7 +4355,10 @@ void DeRestPluginPrivate::processTasks()
                         if (apsCtrl->apsdeDataRequest(i->req) == deCONZ::Success)
                         {
                             group->sendTime = now;
-                            runningTasks.push_back(*i);
+                            if (pushRunning)
+                            {
+                                runningTasks.push_back(*i);
+                            }
                             tasks.erase(i);
                             return;
                         }
@@ -4364,7 +4369,7 @@ void DeRestPluginPrivate::processTasks()
                     }
                 }
             }
-            // unicast tasks
+            // unicast/broadcast tasks
             else
             {
                 if (i->lightNode && !i->lightNode->isAvailable())
@@ -4376,13 +4381,6 @@ void DeRestPluginPrivate::processTasks()
                 else
                 {
                     int ret = apsCtrl->apsdeDataRequest(i->req);
-
-                    bool pushRunning = true;
-
-                    if (i->req.state() == deCONZ::FireAndForgetState)
-                    {
-                        pushRunning = false;
-                    }
 
                     if (ret == deCONZ::Success)
                     {
