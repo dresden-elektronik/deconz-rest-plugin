@@ -2390,10 +2390,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     }
                                 }
 
+                                i->state().updateTime();
                                 if (i->state().lux() != lux)
                                 {
                                     i->state().setLux(lux);
-                                    i->state().updateTime();
                                     updateEtag(i->etag);
                                     updateEtag(gwConfigEtag);
 //                                    updated = true;
@@ -6304,17 +6304,14 @@ void DeRestPlugin::idleTimerFired()
                                 val = sensorNode->getZclValue(*ci, 0x0000); // occupied state
                             }
 
-                            if (val.updateType == NodeValue::UpdateByZclReport)
+                            if (val.timestampLastReport.isValid() &&
+                                val.timestampLastReport.secsTo(QTime::currentTime()) < (60 * 45)) // got update in timely manner
                             {
-                                if (val.timestamp.isValid() &&
-                                    val.timestamp.secsTo(QTime::currentTime()) < (60 * 30)) // got update in timely manner
-                                {
-                                    DBG_Printf(DBG_INFO, "binding for attribute reporting SensorNode %s of cluster 0x%04X seems to be active\n", qPrintable(sensorNode->name()), *ci);
-                                }
-                                else
-                                {
-                                    checkBindingTable = true;
-                                }
+                                DBG_Printf(DBG_INFO, "binding for attribute reporting SensorNode %s of cluster 0x%04X seems to be active\n", qPrintable(sensorNode->name()), *ci);
+                            }
+                            else
+                            {
+                                checkBindingTable = true;
                             }
 
                             if (*ci == OCCUPANCY_SENSING_CLUSTER_ID)

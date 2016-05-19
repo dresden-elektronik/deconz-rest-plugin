@@ -216,16 +216,29 @@ void RestNodeBase::setZclValue(NodeValue::UpdateType updateType, quint16 cluster
         {
             i->updateType = updateType;
             i->value = value;
+            int dt = i->timestamp.restart();
+
+            if (updateType == NodeValue::UpdateByZclReport)
+            {
+                i->timestampLastReport.start();
+            }
+            DBG_Printf(DBG_INFO, "update ZCL value 0x%04X/0x%04X for 0x%016llX after %d ms\n", clusterId, attributeId, address().ext(), dt);
             return;
         }
     }
 
     NodeValue val;
-    val.timestamp = QTime::currentTime();
+    val.timestamp.start();
+    if (updateType == NodeValue::UpdateByZclReport)
+    {
+        val.timestampLastReport.start();
+    }
     val.clusterId = clusterId;
     val.attributeId = attributeId;
     val.updateType = updateType;
     val.value = value;
+
+    DBG_Printf(DBG_INFO, "added ZCL value 0x%04X/0x%04X for 0x%016llX\n", clusterId, attributeId, address().ext());
 
     m_values.push_back(val);
 }
@@ -236,10 +249,33 @@ void RestNodeBase::setZclValue(NodeValue::UpdateType updateType, quint16 cluster
     \param clusterId - the cluster id of the value
     \param attributeId - the attribute id of the value
  */
-const NodeValue &RestNodeBase::getZclValue(quint16 clusterId, quint16 attributeId)
+const NodeValue &RestNodeBase::getZclValue(quint16 clusterId, quint16 attributeId) const
 {
     std::vector<NodeValue>::const_iterator i = m_values.begin();
     std::vector<NodeValue>::const_iterator end = m_values.end();
+
+    for (; i != end; ++i)
+    {
+        if (i->clusterId == clusterId &&
+            i->attributeId == attributeId)
+        {
+            return *i;
+        }
+    }
+
+    return m_invalidValue;
+}
+
+/*! Returns a numeric ZCL attribute value.
+
+    If the value couldn't be found the NodeValue::timestamp field holds a invalid QTime.
+    \param clusterId - the cluster id of the value
+    \param attributeId - the attribute id of the value
+ */
+NodeValue &RestNodeBase::getZclValue(quint16 clusterId, quint16 attributeId)
+{
+    std::vector<NodeValue>::iterator i = m_values.begin();
+    std::vector<NodeValue>::iterator end = m_values.end();
 
     for (; i != end; ++i)
     {

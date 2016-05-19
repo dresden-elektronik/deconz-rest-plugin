@@ -1330,6 +1330,11 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
             return;
         }
 
+        if (!sensor->isAvailable())
+        {
+            return;
+        }
+
         if (ls.last() == QLatin1String("buttonevent"))
         {
             return; // TODO
@@ -1337,15 +1342,25 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
         else if (ls.last() == QLatin1String("illuminance"))
         {
             { // check if value is fresh enough
-                const NodeValue &val = sensor->getZclValue(ILLUMINANCE_MEASUREMENT_CLUSTER_ID, 0x0000);
+                NodeValue &val = sensor->getZclValue(ILLUMINANCE_MEASUREMENT_CLUSTER_ID, 0x0000);
 
-                if (!val.timestamp.isValid()) // valid?
+                if (!val.timestamp.isValid() ||
+                     val.timestamp.elapsed() > MAX_RULE_ILLUMINANCE_VALUE_AGE_MS)
                 {
-                    return;
-                }
+                    if (val.timestampLastReadRequest.isValid() &&
+                        val.timestampLastReadRequest.elapsed() < (MAX_RULE_ILLUMINANCE_VALUE_AGE_MS / 2))
+                    {
+                        return;
+                    }
 
-                if (val.timestamp.elapsed() > MAX_RULE_ILLUMINANCE_VALUE_AGE_MS)
-                {
+                    std::vector<quint16> attrs;
+                    attrs.push_back(0x0000); // measured value
+                    DBG_Printf(DBG_INFO, "force read illuminance value of 0x%016llX\n", sensor->address().ext());
+                    if (readAttributes(sensor, sensor->fingerPrint().endpoint, ILLUMINANCE_MEASUREMENT_CLUSTER_ID, attrs))
+                    {
+                        val.timestampLastReadRequest.start();
+                    }
+
                     return;
                 }
             }

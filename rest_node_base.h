@@ -32,6 +32,8 @@ public:
     }
 
     QTime timestamp;
+    QTime timestampLastReport;
+    QTime timestampLastReadRequest;
     UpdateType updateType;
     quint16 clusterId;
     quint16 attributeId;
@@ -70,8 +72,8 @@ public:
     bool mgmtBindSupported() const;
     void setMgmtBindSupported(bool supported);
     void setZclValue(NodeValue::UpdateType updateType, quint16 clusterId, quint16 attributeId, const deCONZ::NumericUnion &value);
-    const NodeValue &getZclValue(quint16 clusterId, quint16 attributeId);
-
+    const NodeValue &getZclValue(quint16 clusterId, quint16 attributeId) const;
+    NodeValue &getZclValue(quint16 clusterId, quint16 attributeId);
 
 private:
     deCONZ::Node *m_node;

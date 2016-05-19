@@ -601,14 +601,12 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             val = sensor->getZclValue(*i, 0x0000); // occupied state
         }
 
-        if (val.updateType == NodeValue::UpdateByZclReport)
+
+        if (val.timestampLastReport.isValid() &&
+            val.timestampLastReport.secsTo(QTime::currentTime()) < (60 * 45)) // got update in timely manner
         {
-            if (val.timestamp.isValid() &&
-                val.timestamp.secsTo(QTime::currentTime()) < (60 * 30)) // got update in timely manner
-            {
-                DBG_Printf(DBG_INFO, "binding for attribute reporting of cluster 0x%04X seems to be active\n", (*i));
-                continue;
-            }
+            DBG_Printf(DBG_INFO, "binding for attribute reporting of cluster 0x%04X seems to be active\n", (*i));
+            continue;
         }
 
         switch (*i)

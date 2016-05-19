@@ -163,7 +163,7 @@
 #define GROUP_SEND_DELAY 500 // default ms between to requests to the same group
 
 #define MAX_SENSORS 1000
-#define MAX_RULE_ILLUMINANCE_VALUE_AGE_MS (1000 * 60 * 10) // 10 minutes
+#define MAX_RULE_ILLUMINANCE_VALUE_AGE_MS (1000 * 60 * 20) // 20 minutes
 
 // string lengths
 #define MAX_GROUP_NAME_LENGTH 32
