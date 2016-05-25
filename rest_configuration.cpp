@@ -285,7 +285,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         swupdate["text"] = "";
         swupdate["notify"] = false;
         map["swupdate"] = swupdate;
-        map["port"] = (double)deCONZ::appArgumentNumeric("--http-port", 80);
+        map["port"] = (double)(apsCtrl ? apsCtrl->getParameter(deCONZ::ParamHttpPort) : 80);
         // since api version 1.2.1
         map["apiversion"] = GW_SW_VERSION;
         map["system"] = "other";
