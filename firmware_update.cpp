@@ -11,6 +11,7 @@
 #include <QApplication>
 #include <QDesktopServices>
 #include <QFile>
+#include <QDir>
 #include <QString>
 #include <QProcess>
 #include "de_web_plugin.h"
@@ -245,6 +246,12 @@ void DeRestPluginPrivate::queryFirmwareVersion()
         std::vector<QString> paths;
         paths.push_back(deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation) + QLatin1String("/firmware/"));
         paths.push_back(deCONZ::getStorageLocation(deCONZ::HomeLocation) + QLatin1String("/raspbee_firmware/"));
+#ifdef Q_OS_OSX
+        QDir dir(qApp->applicationDirPath());
+        dir.cdUp();
+        dir.cd("Resources");
+        paths.push_back(dir.path() + "/");
+#endif
 
         std::vector<QString>::const_iterator i = paths.begin();
         std::vector<QString>::const_iterator end = paths.end();
