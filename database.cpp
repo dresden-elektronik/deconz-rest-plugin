@@ -95,6 +95,50 @@ void DeRestPluginPrivate::initDb()
     }
 }
 
+/*! Clears all content of tables of db except auth table
+ */
+void DeRestPluginPrivate::clearDb()
+{
+    DBG_Assert(db != 0);
+
+    if (!db)
+    {
+        return;
+    }
+
+    int rc;
+    char *errmsg;
+
+    // clear tables
+
+    const char *sql[] = {
+        "DELETE FROM config2",
+        "DELETE FROM nodes",
+        "DELETE FROM groups",
+        "DELETE FROM rules",
+        "DELETE FROM sensors",
+        "DELETE FROM scenes",
+        "DELETE FROM schedules",
+        NULL
+        };
+
+    for (int i = 0; sql[i] != NULL; i++)
+    {
+        errmsg = NULL;
+        rc = sqlite3_exec(db, sql[i], NULL, NULL, &errmsg);
+
+        if (rc != SQLITE_OK)
+        {
+            if (errmsg)
+            {
+                DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s\n", sql[i], errmsg);
+                sqlite3_free(errmsg);
+            }
+        }
+    }
+}
+
+
 /*! Opens/creates sqlite database.
  */
 void DeRestPluginPrivate::openDb()
