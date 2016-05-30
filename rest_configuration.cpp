@@ -64,6 +64,21 @@ int DeRestPluginPrivate::handleConfigurationApi(const ApiRequest &req, ApiRespon
     {
         return updateFirmware(req, rsp);
     }
+    // POST /api/<apikey>/config/export
+    else if ((req.path.size() == 4) && (req.hdr.method() == "POST") && (req.path[2] == "config") && (req.path[3] == "export"))
+    {
+        return exportConfig(req, rsp);
+    }
+    // POST /api/<apikey>/config/import
+    else if ((req.path.size() == 4) && (req.hdr.method() == "POST") && (req.path[2] == "config") && (req.path[3] == "import"))
+    {
+        return importConfig(req, rsp);
+    }
+    // POST /api/<apikey>/config/reset
+    else if ((req.path.size() == 4) && (req.hdr.method() == "POST") && (req.path[2] == "config") && (req.path[3] == "reset"))
+    {
+        return resetConfig(req, rsp);
+    }
     // PUT /api/<apikey>/config/password
     else if ((req.path.size() == 4) && (req.hdr.method() == "PUT") && (req.path[2] == "config") && (req.path[3] == "password"))
     {
@@ -1089,6 +1104,128 @@ int DeRestPluginPrivate::updateFirmware(const ApiRequest &req, ApiResponse &rsp)
         QVariantMap rspItem;
         QVariantMap rspItemState;
         rspItemState["/config/updatefirmware"] = gwFirmwareVersionUpdate;
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+    }
+    else
+    {
+        rsp.httpStatus = HttpStatusServiceUnavailable;
+    }
+
+    return REQ_READY_SEND;
+}
+
+/*! POST /api/<apikey>/config/export
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::exportConfig(const ApiRequest &req, ApiResponse &rsp)
+{
+    if(!checkApikeyAuthentification(req, rsp))
+    {
+        return REQ_READY_SEND;
+    }
+
+    if (exportConfiguration())
+    {
+        rsp.httpStatus = HttpStatusOk;
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState["/config/export"] = "success";
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+    }
+    else
+    {
+        rsp.httpStatus = HttpStatusServiceUnavailable;
+    }
+
+    return REQ_READY_SEND;
+}
+
+/*! POST /api/<apikey>/config/import
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::importConfig(const ApiRequest &req, ApiResponse &rsp)
+{
+    if(!checkApikeyAuthentification(req, rsp))
+    {
+        return REQ_READY_SEND;
+    }
+
+    if (importConfiguration())
+    {
+        rsp.httpStatus = HttpStatusOk;
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState["/config/import"] = "success";
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+        channelChangeState = CC_WaitConfirm;
+        channelChangeDisconnectNetwork();
+    }
+    else
+    {
+        rsp.httpStatus = HttpStatusServiceUnavailable;
+    }
+
+
+    return REQ_READY_SEND;
+}
+
+/*! POST /api/<apikey>/config/reset
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::resetConfig(const ApiRequest &req, ApiResponse &rsp)
+{
+    if(!checkApikeyAuthentification(req, rsp))
+    {
+        return REQ_READY_SEND;
+    }
+
+    bool resetGW = false;
+    bool deleteDB = false;
+    bool ok;
+    QVariant var = Json::parse(req.content, ok);
+    QVariantMap map = var.toMap();
+
+    if (!ok || map.isEmpty())
+    {
+        rsp.httpStatus = HttpStatusBadRequest;
+        rsp.list.append(errorToMap(ERR_INVALID_JSON, "", "body contains invalid JSON"));
+        return REQ_READY_SEND;
+    }
+
+    if ((!map.contains("resetGW")) || (!map.contains("deleteDB")))
+    {
+        rsp.httpStatus = HttpStatusBadRequest;
+        rsp.list.append(errorToMap(ERR_MISSING_PARAMETER, "/config/reset", "missing parameters in body"));
+        return REQ_READY_SEND;
+    }
+
+    if (map["resetGW"].type() != QVariant::Bool)
+    {
+        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/reset"), QString("invalid value, %1, for parameter, resetGW").arg(map["resetGW"].toString())));
+        rsp.httpStatus = HttpStatusBadRequest;
+        return REQ_READY_SEND;
+    }
+    if (map["deleteDB"].type() != QVariant::Bool)
+    {
+        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/reset"), QString("invalid value, %1, for parameter, deleteDB").arg(map["deleteDB"].toString())));
+        rsp.httpStatus = HttpStatusBadRequest;
+        return REQ_READY_SEND;
+    }
+    resetGW = map["resetGW"].toBool();
+    deleteDB = map["deleteDB"].toBool();
+
+    if (resetConfiguration(resetGW, deleteDB))
+    {
+        rsp.httpStatus = HttpStatusOk;
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState["/config/reset"] = "success";
         rspItem["success"] = rspItemState;
         rsp.list.append(rspItem);
     }

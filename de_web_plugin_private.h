@@ -67,6 +67,7 @@
 
 #define MAX_UNLOCK_GATEWAY_TIME 600
 #define PERMIT_JOIN_SEND_INTERVAL (1000 * 160)
+#define EXT_PROCESS_TIMEOUT 5000
 
 #define DE_OTAU_ENDPOINT             0x50
 #define DE_PROFILE_ID              0xDE00
@@ -492,6 +493,9 @@ public:
     int deleteUser(const ApiRequest &req, ApiResponse &rsp);
     int updateSoftware(const ApiRequest &req, ApiResponse &rsp);
     int updateFirmware(const ApiRequest &req, ApiResponse &rsp);
+    int exportConfig(const ApiRequest &req, ApiResponse &rsp);
+    int importConfig(const ApiRequest &req, ApiResponse &rsp);
+    int resetConfig(const ApiRequest &req, ApiResponse &rsp);
     int changePassword(const ApiRequest &req, ApiResponse &rsp);
     int deletePassword(const ApiRequest &req, ApiResponse &rsp);
 
@@ -612,6 +616,10 @@ public:
     //Timezone
     std::string getTimezone();
 
+    //Export/Import/Reset Configuration
+    bool exportConfiguration();
+    bool importConfiguration();
+    bool resetConfiguration(bool resetGW, bool deleteDB);
 
 public Q_SLOTS:
     void announceUpnp();
@@ -794,6 +802,7 @@ public:
 
     // Database interface
     void initDb();
+    void clearDb();
     void openDb();
     void readDb();
     void loadAuthFromDb();
@@ -867,7 +876,11 @@ public:
     FW_UpdateState fwUpdateState;
     QString fwUpdateFile;
     QProcess *fwProcess;
+    QProcess *zipProcess;
+    QProcess *archProcess;
     QStringList fwProcessArgs;
+    QStringList zipProcessArgs;
+    QStringList archProcessArgs;
 
     // upnp
     QByteArray descriptionXml;
