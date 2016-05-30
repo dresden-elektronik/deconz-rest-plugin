@@ -22,6 +22,8 @@
 #include <QHostAddress>
 #include <QUrl>
 #include <QCryptographicHash>
+#include <QFile>
+#include <QProcess>
 #include <queue>
 #include "colorspace.h"
 #include "de_web_plugin.h"
@@ -146,6 +148,9 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     gwAnnounceInterval = ANNOUNCE_INTERVAL;
     gwAnnounceUrl = "http://dresden-light.appspot.com/discover";
     inetDiscoveryManager = 0;
+
+    archProcess = 0;
+    zipProcess = 0;
 
     openDb();
     initDb();
@@ -6633,10 +6638,15 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
 
     //qDebug() << hdr.toString();
 
-    if (!stream.atEnd())
+    if(hdr.hasKey("Content-Type") &&
+       hdr.value("Content-Type").startsWith("multipart/form-data"))
+    {
+        DBG_Printf(DBG_HTTP, "Binary Data: \t%s\n", qPrintable(content));
+    }
+    else if (!stream.atEnd())
     {
         content = stream.readAll();
-        DBG_Printf(DBG_HTTP, "\t%s\n", qPrintable(content));
+        DBG_Printf(DBG_HTTP, "Text Data: \t%s\n", qPrintable(content));
     }
 
     connect(sock, SIGNAL(destroyed()),
@@ -6667,6 +6677,42 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         stream << "Content-Length: 0\r\n";
         stream << "\r\n";
         req.sock->flush();
+        return 0;
+    }
+
+    if (req.hdr.method() == "POST" && path.size() == 2 && path[1] == "fileupload")
+    {
+        QString path = deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation);
+        QString filename = path + "/deCONZ.tar.gz";
+
+        QFile file(filename);
+        if (file.exists())
+        {
+            file.remove();
+        }
+        if ( file.open(QIODevice::ReadWrite) )
+        {
+            QByteArray data;
+            while (sock->bytesAvailable())
+            {
+                data = sock->readAll();
+            }
+            //
+            // cut off header of data
+            // first 4 lines and last 2 lines of data are header-data
+            QList<QByteArray> list = data.split('\n');
+            for (int i = 4; i < list.size()-2; i++)
+            {
+                file.write(list[i]+"\n");
+            }
+            file.close();
+        }
+
+        stream << "HTTP/1.1 200 OK\r\n";
+        stream << "Content-type: text/html\r\n";
+        stream << "Content-Length: 0\r\n";
+        stream << "\r\n";
+        stream.flush();
         return 0;
     }
 
