@@ -6978,6 +6978,306 @@ const char *DeRestPlugin::name()
     return "REST API Plugin";
 }
 
+/*! Export the deCONZ network settings to a file.
+ */
+bool DeRestPluginPrivate::exportConfiguration()
+{
+    if (apsCtrl)
+    {
+        uint8_t deviceType = apsCtrl->getParameter(deCONZ::ParamDeviceType);
+        uint16_t panId = apsCtrl->getParameter(deCONZ::ParamPANID);
+        quint64 extPanId = apsCtrl->getParameter(deCONZ::ParamExtendedPANID);
+        quint64 apsUseExtPanId = apsCtrl->getParameter(deCONZ::ParamApsUseExtendedPANID);
+        uint64_t macAddress = apsCtrl->getParameter(deCONZ::ParamMacAddress);
+        uint16_t nwkAddress = apsCtrl->getParameter(deCONZ::ParamNwkAddress);
+        // aps ack
+        // uint32_t channelMask = apsCtrl->getParameter(deCONZ::ParamChannelMask);
+        uint8_t curChannel = apsCtrl->getParameter(deCONZ::ParamCurrentChannel);
+        uint8_t securityMode = apsCtrl->getParameter(deCONZ::ParamSecurityMode);
+        quint64 tcAddress = apsCtrl->getParameter(deCONZ::ParamTrustCenterAddress);
+        QByteArray networkKey = apsCtrl->getParameter(deCONZ::ParamNetworkKey);
+        QByteArray tcLinkKey = apsCtrl->getParameter(deCONZ::ParamTrustCenterLinkKey);
+        uint8_t nwkUpdateId = apsCtrl->getParameter(deCONZ::ParamNetworkUpdateId);
+
+        QVariantMap map;
+        map["deviceType"] = deviceType;
+        map["panId"] = QString("0x%1").arg(QString::number(panId,16));
+        map["extPanId"] = QString("0x%1").arg(QString::number(extPanId,16));
+        map["apsUseExtPanId"] = QString("0x%1").arg(QString::number(apsUseExtPanId,16));
+        map["macAddress"] = QString("0x%1").arg(QString::number(macAddress,16));
+        map["nwkAddress"] = QString("0x%1").arg(QString::number(nwkAddress,16));
+        // aps ack
+        //map["channelMask"] = channelMask;
+        map["curChannel"] = curChannel;
+        map["securityMode"] = securityMode;
+        map["tcAddress"] = QString("0x%1").arg(QString::number(tcAddress,16));
+        map["networkKey"] = networkKey.toHex();
+        map["tcLinkKey"] = tcLinkKey.toHex();
+        map["nwkUpdateId"] = nwkUpdateId;
+
+        bool success = true;
+        QString saveString = Json::serialize(map, success);
+
+        if (success)
+        {
+            //create config file
+            QString path = deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation);
+            QString filename = path + "/deCONZ.conf";
+
+            QFile file(filename);
+            if (file.exists())
+            {
+                file.remove();
+            }
+            if ( file.open(QIODevice::ReadWrite) )
+            {
+                QTextStream stream( &file );
+                stream << saveString << endl;
+                file.close();
+            }
+
+            //create .tar           
+            if (!archProcess)
+            {
+                archProcess = new QProcess(this);
+            }
+            //TODO: Win: provide 7zip or other
+            //TODO: OS X
+#ifdef Q_OS_WIN
+            archProcess->start(path + "/7z.exe a " + path + "/deCONZ.tar " + path + "/deCONZ.conf " + path + "/zll.db");
+#endif
+#ifdef Q_OS_LINUX
+            archProcess->start(path + "/tar -cf " + path + "/deCONZ.tar " + path + "/deCONZ.conf " + path + "/zll.db");
+#endif
+            archProcess->waitForFinished(EXT_PROCESS_TIMEOUT);
+            DBG_Printf(DBG_INFO, "%s\n", qPrintable(archProcess->readAllStandardOutput()));
+            archProcess->deleteLater();
+            archProcess = 0;
+
+            //create .tar.gz
+            if (!zipProcess)
+            {
+                zipProcess = new QProcess(this);
+            }
+#ifdef Q_OS_WIN
+            zipProcess->start(path + "/7z.exe a " + path + "/deCONZ.tar.gz " + path + "/deCONZ.tar");
+#endif
+#ifdef Q_OS_LINUX
+            zipProcess->start(path + "/gzip -f " + path + "/deCONZ.tar");
+#endif
+            zipProcess->waitForFinished(EXT_PROCESS_TIMEOUT);
+            DBG_Printf(DBG_INFO, "%s\n", qPrintable(zipProcess->readAllStandardOutput()));
+            zipProcess->deleteLater();
+            zipProcess = 0;
+
+            //delete config file
+            if (file.exists())
+            {
+                file.remove();
+            }
+            //delete .tar file
+            filename = path + "/deCONZ.tar";
+            QFile file2(filename);
+            if (file2.exists())
+            {
+                file2.remove();
+            }
+            return success;
+        }        
+    }
+    else
+    {
+        return false;
+    }
+    return false;
+}
+
+/*! Import the deCONZ network settings from a file.
+ */
+bool DeRestPluginPrivate::importConfiguration()
+{
+    if (apsCtrl)
+    {
+        QString path = deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation);
+        QString filename = path + "/deCONZ.conf";
+        QString jsonString = "";
+
+        //decompress .tar.gz
+        if (!archProcess)
+        {
+            archProcess = new QProcess(this);
+        }
+        //TODO: Win: provide 7zip or other
+        //TODO: OS X
+#ifdef Q_OS_WIN
+        archProcess->start(path + "/7z.exe e -y " + path + "/deCONZ.tar.gz -o" + path);
+#endif
+#ifdef Q_OS_LINUX
+        archProcess->start(path + "/gzip -dcf " + path + "/deCONZ.tar.gz > " + path + "/deCONZ.tar");
+#endif
+        archProcess->waitForFinished(5000);
+        DBG_Printf(DBG_INFO, "%s\n", qPrintable(archProcess->readAllStandardOutput()));
+        archProcess->deleteLater();
+        archProcess = 0;
+
+        //unpack .tar
+        if (!zipProcess)
+        {
+            zipProcess = new QProcess(this);
+        }
+#ifdef Q_OS_WIN
+        zipProcess->start(path + "/7z.exe e -y " + path + "/deCONZ.tar -o" + path);
+#endif
+#ifdef Q_OS_LINUX
+        zipProcess->start(path + "/tar -xf " + path + "/deCONZ.tar -C " + path);
+#endif
+        zipProcess->waitForFinished(5000);
+        DBG_Printf(DBG_INFO, "%s\n", qPrintable(zipProcess->readAllStandardOutput()));
+        zipProcess->deleteLater();
+        zipProcess = 0;
+
+        QFile file(filename);
+        if ( file.open(QIODevice::ReadOnly) )
+        {
+            QTextStream stream( &file );
+
+            stream >> jsonString;
+
+            bool ok;
+            QVariant var = Json::parse(jsonString, ok);
+            QVariantMap map = var.toMap();
+
+            if (ok)
+            {
+                uint8_t deviceType = map["deviceType"].toUInt();
+                uint16_t panId =  QString(map["panId"].toString()).toUInt(&ok,16);
+                quint64 extPanId =  QString(map["extPanId"].toString()).toULongLong(&ok,16);
+                quint64 apsUseExtPanId =  QString(map["apsUseExtPanId"].toString()).toULongLong(&ok,16);
+                quint64 macAddress =  QString(map["macAddress"].toString()).toULongLong(&ok,16);
+                uint16_t nwkAddress = QString(map["nwkAddress"].toString()).toUInt(&ok,16);
+                // aps ack
+                //map["channelMask"] = channelMask;
+                uint8_t curChannel = map["curChannel"].toUInt();
+                uint8_t securityMode = map["securityMode"].toUInt();
+                quint64 tcAddress =  QString(map["tcAddress"].toString()).toULongLong(&ok,16);
+                QByteArray nwkKey = QByteArray::fromHex(map["networkKey"].toByteArray());
+                QByteArray tcLinkKey = QByteArray::fromHex(map["tcLinkKey"].toByteArray());
+                uint8_t currentNwkUpdateId = apsCtrl->getParameter(deCONZ::ParamNetworkUpdateId);
+                uint8_t nwkUpdateId = map["nwkUpdateId"].toUInt();
+
+                apsCtrl->setParameter(deCONZ::ParamDeviceType, deviceType);
+                apsCtrl->setParameter(deCONZ::ParamPANID, panId);
+                apsCtrl->setParameter(deCONZ::ParamExtendedPANID, extPanId);
+                apsCtrl->setParameter(deCONZ::ParamApsUseExtendedPANID, apsUseExtPanId);
+                apsCtrl->setParameter(deCONZ::ParamMacAddress, macAddress);
+                apsCtrl->setParameter(deCONZ::ParamNwkAddress, nwkAddress);
+                // aps ack
+                // channelMask
+                apsCtrl->setParameter(deCONZ::ParamCurrentChannel, curChannel);
+                apsCtrl->setParameter(deCONZ::ParamSecurityMode, securityMode);
+                apsCtrl->setParameter(deCONZ::ParamTrustCenterAddress, tcAddress);
+                apsCtrl->setParameter(deCONZ::ParamNetworkKey, nwkKey);
+                apsCtrl->setParameter(deCONZ::ParamTrustCenterLinkKey, tcLinkKey);
+                if (currentNwkUpdateId < nwkUpdateId)
+                {
+                    apsCtrl->setParameter(deCONZ::ParamNetworkUpdateId, nwkUpdateId);
+                }
+            }
+            //delete temp files
+            if (file.exists())
+            {
+                file.remove(); //deCONZ.conf
+            }
+            filename = path + "/deCONZ.tar";
+            QFile file2(filename);
+            if (file2.exists())
+            {
+                file2.remove();
+            }
+            filename = path + "/deCONZ.tar.gz";
+            QFile file3(filename);
+            if (file3.exists())
+            {
+                file3.remove();
+            }
+            //restart deCONZ
+            return true;
+        }
+        else
+        {
+            //delete temp files if deCONZ.tar.gz was bad file
+            filename = path + "/deCONZ.tar";
+            QFile file2(filename);
+            if (file2.exists())
+            {
+                file2.remove();
+            }
+            filename = path + "/deCONZ.tar.gz";
+            QFile file3(filename);
+            if (file3.exists())
+            {
+                file3.remove();
+            }
+            return false;
+        }
+    }
+    else
+    {
+        return false;
+    }
+}
+
+/*! Reset the deCONZ network settings and/or delete Database.
+ */
+bool DeRestPluginPrivate::resetConfiguration(bool resetGW, bool deleteDB)
+{
+    if (apsCtrl)
+    {
+        if (resetGW)
+        {
+            uint8_t deviceType = deCONZ::Coordinator;
+            uint16_t panId = 0xde16;
+            quint64 apsUseExtPanId = 0x0000000000000000;
+            uint16_t nwkAddress = 0x0000;
+            //uint32_t channelMask = 33554432; // 25
+            uint8_t curChannel = 11;
+            uint8_t securityMode = 3;
+            // TODO: original macAddress
+            quint64 macAddress = apsCtrl->getParameter(deCONZ::ParamMacAddress);
+            QByteArray nwkKey = QByteArray::fromHex(qPrintable("0xcccccccccccccccccccccccccccccccc"));
+            QByteArray tcLinkKey = QByteArray::fromHex(qPrintable("0x5a6967426565416c6c69616e63653039"));
+            uint8_t nwkUpdateId = 1;
+
+            apsCtrl->setParameter(deCONZ::ParamDeviceType, deviceType);
+            apsCtrl->setParameter(deCONZ::ParamPANID, panId);
+            apsCtrl->setParameter(deCONZ::ParamApsUseExtendedPANID, apsUseExtPanId);
+            apsCtrl->setParameter(deCONZ::ParamExtendedPANID, macAddress);
+            //set aps ack
+            apsCtrl->setParameter(deCONZ::ParamNwkAddress, nwkAddress);
+            //apsCtrl->setParameter(deCONZ::ParamChannelMask, channelMask);
+            apsCtrl->setParameter(deCONZ::ParamCurrentChannel, curChannel);
+            apsCtrl->setParameter(deCONZ::ParamSecurityMode, securityMode);
+            apsCtrl->setParameter(deCONZ::ParamTrustCenterAddress, macAddress);
+            apsCtrl->setParameter(deCONZ::ParamNetworkKey, nwkKey);
+            apsCtrl->setParameter(deCONZ::ParamTrustCenterLinkKey, tcLinkKey);
+            apsCtrl->setParameter(deCONZ::ParamNetworkUpdateId, nwkUpdateId);
+        }
+        if (deleteDB)
+        {
+            openDb();
+            clearDb();
+            closeDb();
+            DBG_Printf(DBG_INFO, "all database tables (except auth) cleared.\n");
+        }
+        //restart deCONZ
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 #if QT_VERSION < 0x050000
 Q_EXPORT_PLUGIN2(de_rest_plugin, DeRestPlugin)
 #endif
