@@ -61,6 +61,10 @@ void DeRestPluginPrivate::updateFirmware()
     QString gcfFlasherBin = qApp->applicationDirPath() + "/GCFFlasher";
 #ifdef Q_OS_WIN
     gcfFlasherBin.append(".exe");
+    QString bin = gcfFlasherBin;
+#else
+    QString bin = "sudo";
+    fwProcessArgs.prepend(gcfFlasherBin);
 #endif
 
     if (!fwProcess)
@@ -72,7 +76,8 @@ void DeRestPluginPrivate::updateFirmware()
 
     fwUpdateState = FW_UpdateWaitFinished;
     fwUpdateTimer->start(1000);
-    fwProcess->start(gcfFlasherBin, fwProcessArgs);
+
+    fwProcess->start(bin, fwProcessArgs);
 }
 
 /*! Observes the firmware update process.
