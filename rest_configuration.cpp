@@ -1162,8 +1162,6 @@ int DeRestPluginPrivate::importConfig(const ApiRequest &req, ApiResponse &rsp)
         rspItemState["/config/import"] = "success";
         rspItem["success"] = rspItemState;
         rsp.list.append(rspItem);
-        channelChangeState = CC_WaitConfirm;
-        channelChangeDisconnectNetwork();
     }
     else
     {
