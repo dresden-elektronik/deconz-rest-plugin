@@ -392,7 +392,7 @@ void DeRestPluginPrivate::checkFirmwareDevices()
     }
     else if (raspBeeCount > 0 && usbDongleCount == 0)
     {
-        DBG_Printf(DBG_INFO, "GW firmware update select /dev/ttyAMA0 device\n");
+        DBG_Printf(DBG_INFO, "GW firmware update select %s device\n", qPrintable(i->path));
         fwProcessArgs << i->path;
     }
 
