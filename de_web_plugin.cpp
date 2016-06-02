@@ -6990,7 +6990,7 @@ bool DeRestPluginPrivate::exportConfiguration()
         quint64 apsUseExtPanId = apsCtrl->getParameter(deCONZ::ParamApsUseExtendedPANID);
         uint64_t macAddress = apsCtrl->getParameter(deCONZ::ParamMacAddress);
         uint16_t nwkAddress = apsCtrl->getParameter(deCONZ::ParamNwkAddress);
-        // aps ack
+        uint8_t apsAck = apsCtrl->getParameter(deCONZ::ParamApsAck);
         // uint32_t channelMask = apsCtrl->getParameter(deCONZ::ParamChannelMask);
         uint8_t curChannel = apsCtrl->getParameter(deCONZ::ParamCurrentChannel);
         uint8_t securityMode = apsCtrl->getParameter(deCONZ::ParamSecurityMode);
@@ -6998,6 +6998,8 @@ bool DeRestPluginPrivate::exportConfiguration()
         QByteArray networkKey = apsCtrl->getParameter(deCONZ::ParamNetworkKey);
         QByteArray tcLinkKey = apsCtrl->getParameter(deCONZ::ParamTrustCenterLinkKey);
         uint8_t nwkUpdateId = apsCtrl->getParameter(deCONZ::ParamNetworkUpdateId);
+        QVariantMap endpoint1 = apsCtrl->getParameter(deCONZ::ParamHAEndpoint, 0);
+        QVariantMap endpoint2 = apsCtrl->getParameter(deCONZ::ParamHAEndpoint, 1);
 
         QVariantMap map;
         map["deviceType"] = deviceType;
@@ -7006,7 +7008,7 @@ bool DeRestPluginPrivate::exportConfiguration()
         map["apsUseExtPanId"] = QString("0x%1").arg(QString::number(apsUseExtPanId,16));
         map["macAddress"] = QString("0x%1").arg(QString::number(macAddress,16));
         map["nwkAddress"] = QString("0x%1").arg(QString::number(nwkAddress,16));
-        // aps ack
+        map["apsAck"] = (apsAck == 0) ? false : true;
         //map["channelMask"] = channelMask;
         map["curChannel"] = curChannel;
         map["securityMode"] = securityMode;
@@ -7014,6 +7016,8 @@ bool DeRestPluginPrivate::exportConfiguration()
         map["networkKey"] = networkKey.toHex();
         map["tcLinkKey"] = tcLinkKey.toHex();
         map["nwkUpdateId"] = nwkUpdateId;
+        map["endpoint1"] = endpoint1;
+        map["endpoint2"] = endpoint2;
 
         bool success = true;
         QString saveString = Json::serialize(map, success);
@@ -7155,7 +7159,7 @@ bool DeRestPluginPrivate::importConfiguration()
                 quint64 apsUseExtPanId =  QString(map["apsUseExtPanId"].toString()).toULongLong(&ok,16);
                 quint64 macAddress =  QString(map["macAddress"].toString()).toULongLong(&ok,16);
                 uint16_t nwkAddress = QString(map["nwkAddress"].toString()).toUInt(&ok,16);
-                // aps ack
+                uint8_t apsAck = (map["apsAck"].toBool() == true) ? 1 : 0;
                 //map["channelMask"] = channelMask;
                 uint8_t curChannel = map["curChannel"].toUInt();
                 uint8_t securityMode = map["securityMode"].toUInt();
@@ -7164,6 +7168,8 @@ bool DeRestPluginPrivate::importConfiguration()
                 QByteArray tcLinkKey = QByteArray::fromHex(map["tcLinkKey"].toByteArray());
                 uint8_t currentNwkUpdateId = apsCtrl->getParameter(deCONZ::ParamNetworkUpdateId);
                 uint8_t nwkUpdateId = map["nwkUpdateId"].toUInt();
+                QVariantMap endpoint1 = map["endpoint1"].toMap();
+                QVariantMap endpoint2 = map["endpoint2"].toMap();
 
                 apsCtrl->setParameter(deCONZ::ParamDeviceType, deviceType);
                 apsCtrl->setParameter(deCONZ::ParamPANID, panId);
@@ -7171,7 +7177,7 @@ bool DeRestPluginPrivate::importConfiguration()
                 apsCtrl->setParameter(deCONZ::ParamApsUseExtendedPANID, apsUseExtPanId);
                 apsCtrl->setParameter(deCONZ::ParamMacAddress, macAddress);
                 apsCtrl->setParameter(deCONZ::ParamNwkAddress, nwkAddress);
-                // aps ack
+                apsCtrl->setParameter(deCONZ::ParamApsAck, apsAck);
                 // channelMask
                 apsCtrl->setParameter(deCONZ::ParamCurrentChannel, curChannel);
                 apsCtrl->setParameter(deCONZ::ParamSecurityMode, securityMode);
@@ -7182,8 +7188,10 @@ bool DeRestPluginPrivate::importConfiguration()
                 {
                     apsCtrl->setParameter(deCONZ::ParamNetworkUpdateId, nwkUpdateId);
                 }
+                apsCtrl->setParameter(deCONZ::ParamHAEndpoint, endpoint1);
+                apsCtrl->setParameter(deCONZ::ParamHAEndpoint, endpoint2);
             }
-            //delete temp files
+            //cleanup
             if (file.exists())
             {
                 file.remove(); //deCONZ.conf
@@ -7200,12 +7208,12 @@ bool DeRestPluginPrivate::importConfiguration()
             {
                 file3.remove();
             }
-            //restart deCONZ
+            //TODO: restart deCONZ
             return true;
         }
         else
         {
-            //delete temp files if deCONZ.tar.gz was bad file
+            //cleanup
             filename = path + "/deCONZ.tar";
             QFile file2(filename);
             if (file2.exists())
@@ -7252,7 +7260,7 @@ bool DeRestPluginPrivate::resetConfiguration(bool resetGW, bool deleteDB)
             apsCtrl->setParameter(deCONZ::ParamPANID, panId);
             apsCtrl->setParameter(deCONZ::ParamApsUseExtendedPANID, apsUseExtPanId);
             apsCtrl->setParameter(deCONZ::ParamExtendedPANID, macAddress);
-            //set aps ack
+            apsCtrl->setParameter(deCONZ::ParamApsAck, 0);
             apsCtrl->setParameter(deCONZ::ParamNwkAddress, nwkAddress);
             //apsCtrl->setParameter(deCONZ::ParamChannelMask, channelMask);
             apsCtrl->setParameter(deCONZ::ParamCurrentChannel, curChannel);
@@ -7261,6 +7269,25 @@ bool DeRestPluginPrivate::resetConfiguration(bool resetGW, bool deleteDB)
             apsCtrl->setParameter(deCONZ::ParamNetworkKey, nwkKey);
             apsCtrl->setParameter(deCONZ::ParamTrustCenterLinkKey, tcLinkKey);
             apsCtrl->setParameter(deCONZ::ParamNetworkUpdateId, nwkUpdateId);
+
+            //reset Endpoint config
+            QVariantMap epData;
+            QVariantList inClusters = {"0x19"};
+            epData["index"] = 0;            //index
+            epData["endpoint"] = "0x1";       //endpoint
+            epData["profileId"] = "0x104";    //profileId
+            epData["deviceId"] = "0x5";       //deviceId
+            epData["deviceVersion"] = "0x1";  //deviceVersion
+            epData["inClusters"] = inClusters;  //inClusters
+            apsCtrl->setParameter(deCONZ::ParamHAEndpoint, epData);
+
+            epData.clear();
+            epData["index"] = 1;         //index
+            epData["endpoint"] = "0x50";      //endpoint
+            epData["profileId"] = "0xde00";   //profileId
+            epData["deviceId"] = "0x1";       //deviceId
+            epData["deviceVersion"] = "0x1";  //deviceVersion
+            apsCtrl->setParameter(deCONZ::ParamHAEndpoint, epData);
         }
         if (deleteDB)
         {
@@ -7269,7 +7296,7 @@ bool DeRestPluginPrivate::resetConfiguration(bool resetGW, bool deleteDB)
             closeDb();
             DBG_Printf(DBG_INFO, "all database tables (except auth) cleared.\n");
         }
-        //restart deCONZ
+        //TODO: restart deCONZ
         return true;
     }
     else
