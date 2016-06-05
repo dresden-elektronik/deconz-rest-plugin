@@ -375,7 +375,7 @@ void DeRestPluginPrivate::checkFirmwareDevices()
         {
             usbDongleCount++;
         }
-        else if (i->path.contains(QLatin1String("ttyAMA0")))
+        else if (i->friendlyName.contains(QLatin1String("RaspBee")))
         {
             raspBeeCount = 1;
         }
@@ -393,7 +393,7 @@ void DeRestPluginPrivate::checkFirmwareDevices()
     else if (raspBeeCount > 0 && usbDongleCount == 0)
     {
         DBG_Printf(DBG_INFO, "GW firmware update select /dev/ttyAMA0 device\n");
-        fwProcessArgs << "/dev/ttyAMA0";
+        fwProcessArgs << i->path;
     }
 
     if (!fwProcessArgs.isEmpty())
