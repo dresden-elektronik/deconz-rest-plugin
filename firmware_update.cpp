@@ -368,6 +368,7 @@ void DeRestPluginPrivate::checkFirmwareDevices()
 
     int raspBeeCount = 0;
     int usbDongleCount = 0;
+    QString ttyPath;
 
     for (; i != end; ++i)
     {
@@ -378,6 +379,7 @@ void DeRestPluginPrivate::checkFirmwareDevices()
         else if (i->friendlyName.contains(QLatin1String("RaspBee")))
         {
             raspBeeCount = 1;
+            ttyPath = i->path;
         }
     }
 
@@ -390,10 +392,10 @@ void DeRestPluginPrivate::checkFirmwareDevices()
         DBG_Printf(DBG_INFO, "GW firmware update select USB device\n");
         fwProcessArgs << "-d" << "0";
     }
-    else if (raspBeeCount > 0 && usbDongleCount == 0)
+    else if (raspBeeCount > 0 && usbDongleCount == 0 && !ttyPath.isEmpty())
     {
-        DBG_Printf(DBG_INFO, "GW firmware update select %s device\n", qPrintable(i->path));
-        fwProcessArgs << i->path;
+        DBG_Printf(DBG_INFO, "GW firmware update select %s device\n", qPrintable(ttyPath));
+        fwProcessArgs << "-d" << "RaspBee";
     }
 
     if (!fwProcessArgs.isEmpty())
