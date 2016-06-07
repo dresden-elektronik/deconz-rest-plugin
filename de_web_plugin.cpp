@@ -7271,7 +7271,9 @@ bool DeRestPluginPrivate::resetConfiguration(bool resetGW, bool deleteDB)
 
             //reset Endpoint config
             QVariantMap epData;
-            QVariantList inClusters = {"0x19"};
+            QVariantList inClusters;
+            inClusters.append("0x19");
+
             epData["index"] = 0;
             epData["endpoint"] = "0x1";
             epData["profileId"] = "0x104";
