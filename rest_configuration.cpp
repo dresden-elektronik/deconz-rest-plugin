@@ -1162,6 +1162,13 @@ int DeRestPluginPrivate::importConfig(const ApiRequest &req, ApiResponse &rsp)
         rspItemState["/config/import"] = "success";
         rspItem["success"] = rspItemState;
         rsp.list.append(rspItem);
+#ifdef ARCH_ARM
+        QTimer *restartTimer = new QTimer(this);
+        restartTimer->setSingleShot(true);
+        connect(restartTimer, SIGNAL(timeout()),
+                this, SLOT(restartAppTimerFired()));
+        restartTimer->start(SET_ENDPOINTCONFIG_DURATION);
+#endif
     }
     else
     {
@@ -1220,12 +1227,48 @@ int DeRestPluginPrivate::resetConfig(const ApiRequest &req, ApiResponse &rsp)
 
     if (resetConfiguration(resetGW, deleteDB))
     {
+        //kick all lights out of their groups that they will not recover their groups
+        if (deleteDB)
+        {
+            std::vector<Group>::const_iterator g = groups.begin();
+            std::vector<Group>::const_iterator gend = groups.end();
+
+            for (; g != gend; ++g)
+            {
+                if (g->state() != Group::StateDeleted && g->state() != Group::StateDeleteFromDB)
+                {
+                    std::vector<LightNode>::iterator i = nodes.begin();
+                    std::vector<LightNode>::iterator end = nodes.end();
+
+                    for (; i != end; ++i)
+                    {
+                        GroupInfo *groupInfo = getGroupInfo(&(*i), g->address());
+
+                        if (groupInfo)
+                        {
+                            groupInfo->actions &= ~GroupInfo::ActionAddToGroup; // sanity
+                            groupInfo->actions |= GroupInfo::ActionRemoveFromGroup;
+                            groupInfo->state = GroupInfo::StateNotInGroup;
+                        }
+                    }
+                }
+            }
+        }
         rsp.httpStatus = HttpStatusOk;
         QVariantMap rspItem;
         QVariantMap rspItemState;
         rspItemState["/config/reset"] = "success";
         rspItem["success"] = rspItemState;
         rsp.list.append(rspItem);
+        //wait some seconds that deCONZ can finish Enpoint config,
+        //then restart app to apply network config (only on raspbee gw)
+#ifdef ARCH_ARM
+        QTimer *restartTimer = new QTimer(this);
+        restartTimer->setSingleShot(true);
+        connect(restartTimer, SIGNAL(timeout()),
+                this, SLOT(restartAppTimerFired()));
+        restartTimer->start(SET_ENDPOINTCONFIG_DURATION);
+#endif
     }
     else
     {

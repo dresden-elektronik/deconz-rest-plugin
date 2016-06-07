@@ -68,6 +68,7 @@
 #define MAX_UNLOCK_GATEWAY_TIME 600
 #define PERMIT_JOIN_SEND_INTERVAL (1000 * 160)
 #define EXT_PROCESS_TIMEOUT 5000
+#define SET_ENDPOINTCONFIG_DURATION (1000 * 10) // time deCONZ needs to update Endpoints
 
 #define DE_OTAU_ENDPOINT             0x50
 #define DE_PROFILE_ID              0xDE00
@@ -653,6 +654,7 @@ public Q_SLOTS:
     void bindingTableReaderTimerFired();
     void verifyRuleBindingsTimerFired();
     void queueBindingTask(const BindingTask &bindingTask);
+    void restartAppTimerFired();
 
     // touchlink
     void touchlinkDisconnectNetwork();
