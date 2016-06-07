@@ -7208,7 +7208,6 @@ bool DeRestPluginPrivate::importConfiguration()
             {
                 file3.remove();
             }
-            //TODO: restart deCONZ
             return true;
         }
         else
@@ -7273,20 +7272,20 @@ bool DeRestPluginPrivate::resetConfiguration(bool resetGW, bool deleteDB)
             //reset Endpoint config
             QVariantMap epData;
             QVariantList inClusters = {"0x19"};
-            epData["index"] = 0;            //index
-            epData["endpoint"] = "0x1";       //endpoint
-            epData["profileId"] = "0x104";    //profileId
-            epData["deviceId"] = "0x5";       //deviceId
-            epData["deviceVersion"] = "0x1";  //deviceVersion
-            epData["inClusters"] = inClusters;  //inClusters
+            epData["index"] = 0;
+            epData["endpoint"] = "0x1";
+            epData["profileId"] = "0x104";
+            epData["deviceId"] = "0x5";
+            epData["deviceVersion"] = "0x1";
+            epData["inClusters"] = inClusters;
             apsCtrl->setParameter(deCONZ::ParamHAEndpoint, epData);
 
             epData.clear();
-            epData["index"] = 1;         //index
-            epData["endpoint"] = "0x50";      //endpoint
-            epData["profileId"] = "0xde00";   //profileId
-            epData["deviceId"] = "0x1";       //deviceId
-            epData["deviceVersion"] = "0x1";  //deviceVersion
+            epData["index"] = 1;
+            epData["endpoint"] = "0x50";
+            epData["profileId"] = "0xde00";
+            epData["deviceId"] = "0x1";
+            epData["deviceVersion"] = "0x1";
             apsCtrl->setParameter(deCONZ::ParamHAEndpoint, epData);
         }
         if (deleteDB)
@@ -7296,13 +7295,16 @@ bool DeRestPluginPrivate::resetConfiguration(bool resetGW, bool deleteDB)
             closeDb();
             DBG_Printf(DBG_INFO, "all database tables (except auth) cleared.\n");
         }
-        //TODO: restart deCONZ
         return true;
     }
     else
     {
         return false;
     }
+}
+void DeRestPluginPrivate::restartAppTimerFired()
+{
+    qApp->exit(APP_RET_RESTART_APP);
 }
 
 #if QT_VERSION < 0x050000
