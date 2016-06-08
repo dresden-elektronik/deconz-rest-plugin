@@ -7051,7 +7051,7 @@ bool DeRestPluginPrivate::exportConfiguration()
             archProcess->start(path + "/7z.exe a " + path + "/deCONZ.tar " + path + "/deCONZ.conf " + path + "/zll.db");
 #endif
 #ifdef Q_OS_LINUX
-            archProcess->start(path + "/tar -cf " + path + "/deCONZ.tar " + path + "/deCONZ.conf " + path + "/zll.db");
+            archProcess->start("tar -cf " + path + "/deCONZ.tar -C " + path + " deCONZ.conf zll.db");
 #endif
             archProcess->waitForFinished(EXT_PROCESS_TIMEOUT);
             DBG_Printf(DBG_INFO, "%s\n", qPrintable(archProcess->readAllStandardOutput()));
@@ -7067,7 +7067,7 @@ bool DeRestPluginPrivate::exportConfiguration()
             zipProcess->start(path + "/7z.exe a " + path + "/deCONZ.tar.gz " + path + "/deCONZ.tar");
 #endif
 #ifdef Q_OS_LINUX
-            zipProcess->start(path + "/gzip -f " + path + "/deCONZ.tar");
+            zipProcess->start("gzip -f " + path + "/deCONZ.tar");
 #endif
             zipProcess->waitForFinished(EXT_PROCESS_TIMEOUT);
             DBG_Printf(DBG_INFO, "%s\n", qPrintable(zipProcess->readAllStandardOutput()));
@@ -7117,7 +7117,7 @@ bool DeRestPluginPrivate::importConfiguration()
         archProcess->start(path + "/7z.exe e -y " + path + "/deCONZ.tar.gz -o" + path);
 #endif
 #ifdef Q_OS_LINUX
-        archProcess->start(path + "/gzip -dcf " + path + "/deCONZ.tar.gz > " + path + "/deCONZ.tar");
+        archProcess->start("gzip -dcf " + path + "/deCONZ.tar.gz > " + path + "/deCONZ.tar");
 #endif
         archProcess->waitForFinished(5000);
         DBG_Printf(DBG_INFO, "%s\n", qPrintable(archProcess->readAllStandardOutput()));
@@ -7133,7 +7133,7 @@ bool DeRestPluginPrivate::importConfiguration()
         zipProcess->start(path + "/7z.exe e -y " + path + "/deCONZ.tar -o" + path);
 #endif
 #ifdef Q_OS_LINUX
-        zipProcess->start(path + "/tar -xf " + path + "/deCONZ.tar -C " + path);
+        zipProcess->start("tar -xf " + path + "/deCONZ.tar -C " + path);
 #endif
         zipProcess->waitForFinished(5000);
         DBG_Printf(DBG_INFO, "%s\n", qPrintable(zipProcess->readAllStandardOutput()));
