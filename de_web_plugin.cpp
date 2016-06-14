@@ -7325,11 +7325,8 @@ void DeRestPluginPrivate::restartAppTimerFired()
     connect(reconnectTimer, SIGNAL(timeout()),
             this, SLOT(reconnectTimerFired()));
 
+    //on rpi deCONZ is restarted if reconnect was successfull
     genericDisconnectNetwork();
-
-    //ifdef ARCH_ARM
-    //qApp->exit(APP_RET_RESTART_APP);
-    //endif
 }
 
 /*! Request to disconnect from network.
@@ -7427,6 +7424,11 @@ void DeRestPluginPrivate::reconnectNetwork()
     if (isInNetwork())
     {
         DBG_Printf(DBG_INFO, "reconnect network done\n");
+        //restart deCONZ on rpi to apply changes to MACAddress
+        //perhaps remove this function to another location in future
+        #ifdef ARCH_ARM
+        qApp->exit(APP_RET_RESTART_APP);
+        #endif
         return;
     }
 
