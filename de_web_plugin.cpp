@@ -7117,7 +7117,7 @@ bool DeRestPluginPrivate::importConfiguration()
         archProcess->start(path + "/7z.exe e -y " + path + "/deCONZ.tar.gz -o" + path);
 #endif
 #ifdef Q_OS_LINUX
-        archProcess->start("gzip -dcf " + path + "/deCONZ.tar.gz > " + path + "/deCONZ.tar");
+        archProcess->start("gzip -df " + path + "/deCONZ.tar.gz");
 #endif
         archProcess->waitForFinished(5000);
         DBG_Printf(DBG_INFO, "%s\n", qPrintable(archProcess->readAllStandardOutput()));
