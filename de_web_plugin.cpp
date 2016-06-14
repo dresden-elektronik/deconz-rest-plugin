@@ -6991,6 +6991,7 @@ bool DeRestPluginPrivate::exportConfiguration()
         uint64_t macAddress = apsCtrl->getParameter(deCONZ::ParamMacAddress);
         uint16_t nwkAddress = apsCtrl->getParameter(deCONZ::ParamNwkAddress);
         uint8_t apsAck = apsCtrl->getParameter(deCONZ::ParamApsAck);
+        uint8_t staticNwkAddress = apsCtrl->getParameter(deCONZ::ParamStaticNwkAddress);
         // uint32_t channelMask = apsCtrl->getParameter(deCONZ::ParamChannelMask);
         uint8_t curChannel = apsCtrl->getParameter(deCONZ::ParamCurrentChannel);
         uint8_t securityMode = apsCtrl->getParameter(deCONZ::ParamSecurityMode);
@@ -7007,6 +7008,7 @@ bool DeRestPluginPrivate::exportConfiguration()
         map["extPanId"] = QString("0x%1").arg(QString::number(extPanId,16));
         map["apsUseExtPanId"] = QString("0x%1").arg(QString::number(apsUseExtPanId,16));
         map["macAddress"] = QString("0x%1").arg(QString::number(macAddress,16));
+        map["staticNwkAddress"] = (staticNwkAddress == 0) ? false : true;
         map["nwkAddress"] = QString("0x%1").arg(QString::number(nwkAddress,16));
         map["apsAck"] = (apsAck == 0) ? false : true;
         //map["channelMask"] = channelMask;
@@ -7156,8 +7158,10 @@ bool DeRestPluginPrivate::importConfiguration()
                 uint8_t deviceType = map["deviceType"].toUInt();
                 uint16_t panId =  QString(map["panId"].toString()).toUInt(&ok,16);
                 quint64 extPanId =  QString(map["extPanId"].toString()).toULongLong(&ok,16);
-                quint64 apsUseExtPanId =  QString(map["apsUseExtPanId"].toString()).toULongLong(&ok,16);
+                quint64 apsUseExtPanId = QString(map["apsUseExtPanId"].toString()).toULongLong(&ok,16);
+                quint64 curMacAddress = apsCtrl->getParameter(deCONZ::ParamMacAddress);
                 quint64 macAddress =  QString(map["macAddress"].toString()).toULongLong(&ok,16);
+                uint8_t staticNwkAddress = (map["staticNwkAddress"].toBool() == true) ? 1 : 0;
                 uint16_t nwkAddress = QString(map["nwkAddress"].toString()).toUInt(&ok,16);
                 uint8_t apsAck = (map["apsAck"].toBool() == true) ? 1 : 0;
                 //map["channelMask"] = channelMask;
@@ -7172,11 +7176,17 @@ bool DeRestPluginPrivate::importConfiguration()
                 QVariantMap endpoint2 = map["endpoint2"].toMap();
 
                 apsCtrl->setParameter(deCONZ::ParamDeviceType, deviceType);
+                apsCtrl->setParameter(deCONZ::ParamPredefinedPanId, 1);
                 apsCtrl->setParameter(deCONZ::ParamPANID, panId);
                 apsCtrl->setParameter(deCONZ::ParamExtendedPANID, extPanId);
                 apsCtrl->setParameter(deCONZ::ParamApsUseExtendedPANID, apsUseExtPanId);
+                if (curMacAddress != macAddress)
+                {
+                    apsCtrl->setParameter(deCONZ::ParamCustomMacAddress, 1);
+                }
                 apsCtrl->setParameter(deCONZ::ParamMacAddress, macAddress);
-                apsCtrl->setParameter(deCONZ::ParamNwkAddress, nwkAddress);
+                apsCtrl->setParameter(deCONZ::ParamStaticNwkAddress, staticNwkAddress);
+                apsCtrl->setParameter(deCONZ::ParamNwkAddress, nwkAddress);               
                 apsCtrl->setParameter(deCONZ::ParamApsAck, apsAck);
                 // channelMask
                 apsCtrl->setParameter(deCONZ::ParamCurrentChannel, curChannel);
@@ -7251,11 +7261,12 @@ bool DeRestPluginPrivate::resetConfiguration(bool resetGW, bool deleteDB)
             uint8_t securityMode = 3;
             // TODO: original macAddress
             quint64 macAddress = apsCtrl->getParameter(deCONZ::ParamMacAddress);
-            QByteArray nwkKey = QByteArray::fromHex(qPrintable("0xcccccccccccccccccccccccccccccccc"));
-            QByteArray tcLinkKey = QByteArray::fromHex(qPrintable("0x5a6967426565416c6c69616e63653039"));
+            QByteArray nwkKey = QByteArray::fromHex(qPrintable("cccccccccccccccccccccccccccccccc"));
+            QByteArray tcLinkKey = QByteArray::fromHex(qPrintable("5a6967426565416c6c69616e63653039"));
             uint8_t nwkUpdateId = 1;
 
             apsCtrl->setParameter(deCONZ::ParamDeviceType, deviceType);
+            apsCtrl->setParameter(deCONZ::ParamPredefinedPanId, 1);
             apsCtrl->setParameter(deCONZ::ParamPANID, panId);
             apsCtrl->setParameter(deCONZ::ParamApsUseExtendedPANID, apsUseExtPanId);
             apsCtrl->setParameter(deCONZ::ParamExtendedPANID, macAddress);
