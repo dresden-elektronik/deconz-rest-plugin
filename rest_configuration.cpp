@@ -1162,13 +1162,13 @@ int DeRestPluginPrivate::importConfig(const ApiRequest &req, ApiResponse &rsp)
         rspItemState["/config/import"] = "success";
         rspItem["success"] = rspItemState;
         rsp.list.append(rspItem);
-#ifdef ARCH_ARM
+
         QTimer *restartTimer = new QTimer(this);
         restartTimer->setSingleShot(true);
         connect(restartTimer, SIGNAL(timeout()),
                 this, SLOT(restartAppTimerFired()));
         restartTimer->start(SET_ENDPOINTCONFIG_DURATION);
-#endif
+
     }
     else
     {
@@ -1262,13 +1262,13 @@ int DeRestPluginPrivate::resetConfig(const ApiRequest &req, ApiResponse &rsp)
         rsp.list.append(rspItem);
         //wait some seconds that deCONZ can finish Enpoint config,
         //then restart app to apply network config (only on raspbee gw)
-#ifdef ARCH_ARM
+
         QTimer *restartTimer = new QTimer(this);
         restartTimer->setSingleShot(true);
         connect(restartTimer, SIGNAL(timeout()),
                 this, SLOT(restartAppTimerFired()));
         restartTimer->start(SET_ENDPOINTCONFIG_DURATION);
-#endif
+
     }
     else
     {
