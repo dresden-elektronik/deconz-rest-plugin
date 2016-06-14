@@ -68,7 +68,7 @@
 #define MAX_UNLOCK_GATEWAY_TIME 600
 #define PERMIT_JOIN_SEND_INTERVAL (1000 * 160)
 #define EXT_PROCESS_TIMEOUT 5000
-#define SET_ENDPOINTCONFIG_DURATION (1000 * 13) // time deCONZ needs to update Endpoints
+#define SET_ENDPOINTCONFIG_DURATION (1000 * 16) // time deCONZ needs to update Endpoints
 
 #define DE_OTAU_ENDPOINT             0x50
 #define DE_PROFILE_ID              0xDE00
@@ -209,6 +209,12 @@
 #define DB_SHORT_SAVE_DELAY (5 *  1 * 1000) // 5 seconds
 
 // internet discovery
+
+// network reconnect
+#define DISCONNECT_CHECK_DELAY 100
+#define NETWORK_ATTEMPS        10
+#define RECONNECT_CHECK_DELAY  5000
+#define RECONNECT_NOW          100
 
 // HTTP status codes
 extern const char *HttpStatusOk;
@@ -682,6 +688,13 @@ public Q_SLOTS:
     void channelChangeStartReconnectNetwork(int delay);
     void channelChangeReconnectNetwork();
 
+    // generic reconnect network
+    void reconnectTimerFired();
+    void genericDisconnectNetwork();
+    void checkNetworkDisconnected();
+    void startReconnectNetwork(int delay);
+    void reconnectNetwork();
+
     //reset device
     void resetDeviceTimerFired();
     void checkResetState();
@@ -984,6 +997,19 @@ public:
     int ccNetworkReconnectAttempts; // reconnect attemps after channelchange
     bool ccNetworkConnectedBefore;
     uint8_t channelChangeApsRequestId;
+
+    // generic network reconnect state machine
+    enum networkReconnectState
+    {
+        DisconnectingNetwork,
+        ReconnectNetwork
+    };
+
+    QTimer *reconnectTimer;
+    networkReconnectState networkState;
+    int networkDisconnectAttempts;
+    int networkReconnectAttempts;
+    bool networkConnectedBefore;
 
     // delete device state machine
     enum ResetDeviceState

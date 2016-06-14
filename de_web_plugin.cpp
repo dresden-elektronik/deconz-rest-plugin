@@ -7317,7 +7317,165 @@ bool DeRestPluginPrivate::resetConfiguration(bool resetGW, bool deleteDB)
 }
 void DeRestPluginPrivate::restartAppTimerFired()
 {
-    qApp->exit(APP_RET_RESTART_APP);
+    reconnectTimer = new QTimer(this);
+    reconnectTimer->setSingleShot(true);
+    connect(reconnectTimer, SIGNAL(timeout()),
+            this, SLOT(reconnectTimerFired()));
+
+    genericDisconnectNetwork();
+
+    //ifdef ARCH_ARM
+    //qApp->exit(APP_RET_RESTART_APP);
+    //endif
+}
+
+/*! Request to disconnect from network.
+ */
+void DeRestPluginPrivate::genericDisconnectNetwork()
+{
+    DBG_Assert(apsCtrl != 0);
+
+    if (!apsCtrl)
+    {
+        return;
+    }
+
+    networkDisconnectAttempts = NETWORK_ATTEMPS;
+    networkConnectedBefore = gwRfConnectedExpected;
+    networkState = DisconnectingNetwork;
+    DBG_Printf(DBG_INFO_L2, "networkState: DisconnectingNetwork\n");
+
+    apsCtrl->setNetworkState(deCONZ::NotInNetwork);
+
+    reconnectTimer->start(DISCONNECT_CHECK_DELAY);
+}
+
+/*! Checks if network is disconnected to proceed with further actions.
+ */
+void DeRestPluginPrivate::checkNetworkDisconnected()
+{
+    if (networkState != DisconnectingNetwork)
+    {
+        return;
+    }
+
+    if (networkDisconnectAttempts > 0)
+    {
+        networkDisconnectAttempts--;
+    }
+
+    if (isInNetwork())
+    {
+        if (networkDisconnectAttempts == 0)
+        {
+            DBG_Printf(DBG_INFO, "disconnect from network failed.\n");
+
+            // even if we seem to be connected force a delayed reconnect attemp to
+            // prevent the case that the disconnect happens shortly after here
+            startReconnectNetwork(RECONNECT_CHECK_DELAY);
+        }
+        else
+        {
+            DBG_Assert(apsCtrl != 0);
+            if (apsCtrl)
+            {
+                DBG_Printf(DBG_INFO, "disconnect from network failed, try again\n");
+                apsCtrl->setNetworkState(deCONZ::NotInNetwork);
+                reconnectTimer->start(DISCONNECT_CHECK_DELAY);
+            }
+        }
+
+        return;
+    }
+    startReconnectNetwork(RECONNECT_NOW);
+}
+
+/*! Reconnect to previous network state, trying serveral times if necessary.
+    \param delay - the delay after which reconnecting shall be started
+ */
+void DeRestPluginPrivate::startReconnectNetwork(int delay)
+{
+    networkState = ReconnectNetwork;
+    DBG_Printf(DBG_INFO_L2, "networkState: CC_ReconnectNetwork\n");
+    networkReconnectAttempts = NETWORK_ATTEMPS;
+
+    DBG_Printf(DBG_INFO, "start reconnect to network\n");
+
+    reconnectTimer->stop();
+    if (delay > 0)
+    {
+        reconnectTimer->start(delay);
+    }
+    else
+    {
+        reconnectNetwork();
+    }
+}
+
+/*! Helper to reconnect to previous network state, trying serveral times if necessary.
+ */
+void DeRestPluginPrivate::reconnectNetwork()
+{
+    if (networkState != ReconnectNetwork)
+    {
+        return;
+    }
+
+    if (isInNetwork())
+    {
+        DBG_Printf(DBG_INFO, "reconnect network done\n");
+        return;
+    }
+
+    // respect former state
+    if (!networkConnectedBefore)
+    {
+        DBG_Printf(DBG_INFO, "network was not connected before\n");
+        return;
+    }
+
+    if (networkReconnectAttempts > 0)
+    {
+        if (apsCtrl->networkState() != deCONZ::Connecting)
+        {
+           networkReconnectAttempts--;
+
+            if (apsCtrl->setNetworkState(deCONZ::InNetwork) != deCONZ::Success)
+            {
+                DBG_Printf(DBG_INFO, "failed to reconnect to network try=%d\n", (NETWORK_ATTEMPS - networkReconnectAttempts));
+            }
+            else
+            {
+                DBG_Printf(DBG_INFO, "try to reconnect to network try=%d\n", (NETWORK_ATTEMPS - networkReconnectAttempts));
+            }
+        }
+
+        reconnectTimer->start(RECONNECT_CHECK_DELAY);
+    }
+    else
+    {
+        DBG_Printf(DBG_INFO, "reconnect network failed\n");
+    }
+}
+
+/*! Starts a delayed action based on current networkState.
+ */
+void DeRestPluginPrivate::reconnectTimerFired()
+{
+    switch (networkState)
+    {
+    case ReconnectNetwork:
+        reconnectNetwork();
+        break;
+
+    case DisconnectingNetwork:
+        checkNetworkDisconnected();
+        break;
+
+    default:
+        DBG_Printf(DBG_INFO, "reconnectTimerFired() unhandled state %d\n", networkState);
+        break;
+    }
 }
 
 #if QT_VERSION < 0x050000
