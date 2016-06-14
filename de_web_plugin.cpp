@@ -5093,70 +5093,73 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
 
         LightNode *lightNode = getLightNodeForAddress(ind.srcAddress().ext(), ind.srcEndpoint());
 
-        QDataStream stream(zclFrame.payload());
-        stream.setByteOrder(QDataStream::LittleEndian);
-
-        uint8_t status;
-        uint16_t groupId;
-        uint8_t sceneId;
-        uint16_t transitiontime;
-        uint8_t length;
-        QString sceneName = "";
-        LightState light;
-
-        light.setLid(lightNode->id());
-
-        stream >> status;
-        if (status == 0x00)
+        if (lightNode)
         {
-            stream >> groupId;
-            stream >> sceneId;
-            stream >> transitiontime;
-            stream >> length;
+            QDataStream stream(zclFrame.payload());
+            stream.setByteOrder(QDataStream::LittleEndian);
 
-            light.setTransitiontime(transitiontime*10);
+            uint8_t status;
+            uint16_t groupId;
+            uint8_t sceneId;
+            uint16_t transitiontime;
+            uint8_t length;
+            QString sceneName = "";
+            LightState light;
 
-            for (int i = 0; i < length; i++)
+            light.setLid(lightNode->id());
+
+            stream >> status;
+            if (status == 0x00)
             {
-                char *c;
-                stream >> c;
-                sceneName.append(c);
+                stream >> groupId;
+                stream >> sceneId;
+                stream >> transitiontime;
+                stream >> length;
+
+                light.setTransitiontime(transitiontime*10);
+
+                for (int i = 0; i < length; i++)
+                {
+                    char *c;
+                    stream >> c;
+                    sceneName.append(c);
+                }
+
+                while (!stream.atEnd())
+                {
+                    uint16_t clusterId;
+                    uint8_t l;
+                    uint8_t fs8;
+                    uint16_t fs16;
+
+                    stream >> clusterId;
+                    stream >> l;
+
+                    if (clusterId == 0x0006)
+                    {
+                        stream >> fs8;
+                        bool on = (fs8 == 0x01) ? true : false;
+                        light.setOn(on);
+                    }
+                    else if (clusterId == 0x0008)
+                    {
+                        stream >> fs8;
+                        light.setBri(fs8);
+                    }
+                    else if (clusterId == 0x0300)
+                    {
+                        stream >> fs16;
+                        light.setX(fs16);
+
+                        stream >> fs16;
+                        light.setY(fs16);
+                    }
+                }
+
+                DBG_Printf(DBG_INFO_L2, "Validaded Scene (gid: %u, sid: %u) for Light %s\n", groupId, sceneId, qPrintable(lightNode->id()));
+                DBG_Printf(DBG_INFO_L2, "On: %u, Bri: %u, X: %u, Y: %u, Transitiontime: %u\n",
+                        light.on(), light.bri(), light.x(), light.y(), light.transitiontime());
             }
-
-            while (!stream.atEnd())
-            {
-                uint16_t clusterId;
-                uint8_t l;
-                uint8_t fs8;
-                uint16_t fs16;
-
-                stream >> clusterId;
-                stream >> l;
-
-                if (clusterId == 0x0006)
-                {
-                    stream >> fs8;
-                    bool on = (fs8 == 0x01) ? true : false;
-                    light.setOn(on);
-                }
-                else if (clusterId == 0x0008)
-                {
-                    stream >> fs8;
-                    light.setBri(fs8);
-                }
-                else if (clusterId == 0x0300)
-                {
-                    stream >> fs16;
-                    light.setX(fs16);
-
-                    stream >> fs16;
-                    light.setY(fs16);
-                }
-            }
-
-            DBG_Printf(DBG_INFO_L2, "Validaded Scene (gid: %u, sid: %u) for Light %s\n", groupId, sceneId, qPrintable(lightNode->id()));
-            DBG_Printf(DBG_INFO_L2, "On: %u, Bri: %u, X: %u, Y: %u, Transitiontime: %u\n",
-                    light.on(), light.bri(), light.x(), light.y(), light.transitiontime());
         }
     }
     else if (zclFrame.commandId() == 0x05) // Recall scene command
