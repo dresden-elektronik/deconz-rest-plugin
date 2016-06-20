@@ -5751,6 +5751,22 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
     case TaskSendOnOffToggle:
         updateEtag(group->etag);
         group->setIsOn(task.onOff);
+
+        if (group->id() == "0")
+        {
+            std::vector<Group>::iterator g = groups.begin();
+            std::vector<Group>::iterator gend = groups.end();
+
+            for (; g != gend; ++g)
+            {
+                if (g->state() != Group::StateDeleted && g->state() != Group::StateDeleteFromDB)
+                {
+                    updateEtag(g->etag);
+                    g->setIsOn(task.onOff);
+                }
+            }
+        }
+
         break;
 
     case TaskSetLevel:
