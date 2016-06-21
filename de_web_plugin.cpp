@@ -4872,19 +4872,30 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                 lightNode->setSceneCapacity(capacity);
                 groupInfo->setSceneCount(count);
 
+                QVector<quint8> responseScenes;
                 for (uint i = 0; i < count; i++)
                 {
                     if (!stream.atEnd())
                     {
                         uint8_t sceneId;
                         stream >> sceneId;
+                        responseScenes.push_back(sceneId);
 
                         DBG_Printf(DBG_INFO, "found scene 0x%02X for group 0x%04X\n", sceneId, groupId);
 
-                        if (group && lightNode)
-                        {
-                            foundScene(lightNode, group, sceneId);
-                        }
+                        foundScene(lightNode, group, sceneId);
+                    }
+                }
+
+                std::vector<Scene>::iterator i = group->scenes.begin();
+                std::vector<Scene>::iterator end = group->scenes.end();
+
+                for (; i != end; ++i)
+                {
+                    if (!responseScenes.contains(i->id))
+                    {
+                        DBG_Printf(DBG_INFO, "restore scene 0x%02X in group 0x%04X at lightNode %s\n", i->id, groupId, qPrintable(lightNode->address().toStringExt()));
+                        modifyScene(group, i->id);
                     }
                 }
 
@@ -4922,7 +4933,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
 
                 if (i != v.end())
                 {
-                    DBG_Printf(DBG_INFO, "Added/stored scene %u in node %s Response. Status: 0x%02X\n", sceneId, qPrintable(lightNode->id()), status);
+                    DBG_Printf(DBG_INFO, "Added/stored scene %u in node %s Response. Status: 0x%02X\n", sceneId, qPrintable(lightNode->address().toStringExt()), status);
                     groupInfo->addScenes.erase(i);
 
                     if (status == 0x00)

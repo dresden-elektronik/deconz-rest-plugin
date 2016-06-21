@@ -823,6 +823,7 @@ public:
     void loadAuthFromDb();
     void loadConfigFromDb();
     void loadAllGroupsFromDb();
+    void loadAllScenesFromDb();
     void loadAllSchedulesFromDb();
     void loadLightNodeFromDb(LightNode *lightNode);
     void loadSensorNodeFromDb(Sensor *sensorNode);
