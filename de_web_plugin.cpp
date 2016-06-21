@@ -2705,14 +2705,17 @@ Scene *DeRestPluginPrivate::getSceneForId(uint16_t gid, uint8_t sid)
 {
     Group *group = getGroupForId(gid);
 
-    std::vector<Scene>::iterator i = group->scenes.begin();
-    std::vector<Scene>::iterator end = group->scenes.end();
-
-    for (; i != end; ++i)
+    if (group)
     {
-        if (i->id == sid)
+        std::vector<Scene>::iterator i = group->scenes.begin();
+        std::vector<Scene>::iterator end = group->scenes.end();
+
+        for (; i != end; ++i)
         {
-            return &(*i);
+            if (i->id == sid)
+            {
+                return &(*i);
+            }
         }
     }
 
