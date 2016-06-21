@@ -25,6 +25,7 @@ static int sqliteLoadLightNodeCallback(void *user, int ncols, char **colval , ch
 static int sqliteLoadSensorNodeCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteLoadAllGroupsCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteLoadGroupCallback(void *user, int ncols, char **colval , char **colname);
+static int sqliteLoadAllScenesCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteLoadSceneCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteLoadAllRulesCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , char **colname);
@@ -176,6 +177,7 @@ void DeRestPluginPrivate::readDb()
     loadAuthFromDb();
     loadConfigFromDb();
     loadAllGroupsFromDb();
+    loadAllScenesFromDb();
     loadAllRulesFromDb();
     loadAllSchedulesFromDb();
     loadAllSensorsFromDb();
@@ -606,6 +608,106 @@ void DeRestPluginPrivate::loadAllGroupsFromDb()
     QString sql = QString("SELECT * FROM groups");
 
     rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadAllGroupsCallback, this, &errmsg);
+
+    if (rc != SQLITE_OK)
+    {
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR_L2, "sqlite3_exec %s, error: %s\n", qPrintable(sql), errmsg);
+            sqlite3_free(errmsg);
+        }
+    }
+}
+
+/*! Sqlite callback to load data for a scene.
+
+    Scenes will only be added to cache if not already known.
+    Known scenes will not be overwritten.
+ */
+static int sqliteLoadAllScenesCallback(void *user, int ncols, char **colval , char **colname)
+{
+    DBG_Assert(user != 0);
+
+    if (!user || (ncols <= 0))
+    {
+        return 0;
+    }
+
+    bool ok;
+    bool ok1;
+    bool ok2;
+    Scene scene;
+    DeRestPluginPrivate *d = static_cast<DeRestPluginPrivate*>(user);
+
+    for (int i = 0; i < ncols; i++)
+    {
+        if (colval[i] && (colval[i][0] != '\0'))
+        {
+            QString val = QString::fromUtf8(colval[i]);
+
+            DBG_Printf(DBG_INFO_L2, "Sqlite scene: %s = %s\n", colname[i], qPrintable(val));
+
+            if (strcmp(colname[i], "gid") == 0)
+            {
+                scene.groupAddress = val.toUInt(&ok1, 16);
+            }
+            else if (strcmp(colname[i], "sid") == 0)
+            {
+                scene.id = val.toUInt(&ok2, 16);
+            }
+            else if (strcmp(colname[i], "name") == 0)
+            {
+                scene.name = val;
+            }
+            else if (strcmp(colname[i], "transitiontime") == 0)
+            {
+                scene.setTransitiontime(val.toUInt(&ok));
+            }
+            else if (strcmp(colname[i], "lights") == 0)
+            {
+                scene.setLights(Scene::jsonToLights(val));
+            }
+        }
+    }
+
+    if (ok1 && ok2)
+    {
+        DBG_Printf(DBG_INFO_L2, "DB found scene sid: 0x%02X, gid: 0x%04X\n", scene.id, scene.groupAddress);
+
+        Group *g = d->getGroupForId(scene.groupAddress);
+        if (g)
+        {
+            // append scene to group if not already known
+            Scene *s = d->getSceneForId(scene.groupAddress,scene.id);
+            if (!s)
+            {
+                // append scene to group if not already known
+                d->updateEtag(g->etag);
+                g->scenes.push_back(scene);
+            }
+        }
+    }
+
+    return 0;
+}
+
+/*! Loads all scenes from database.
+ */
+void DeRestPluginPrivate::loadAllScenesFromDb()
+{
+    int rc;
+    char *errmsg = 0;
+
+    DBG_Assert(db != 0);
+
+    if (!db)
+    {
+        return;
+    }
+
+    QString sql = QString("SELECT * FROM scenes");
+
+    rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadAllScenesCallback, this, &errmsg);
 
     if (rc != SQLITE_OK)
     {
