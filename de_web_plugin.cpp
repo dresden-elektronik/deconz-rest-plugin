@@ -2363,11 +2363,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 quint32 lux = ia->numericValue().u16; // ZigBee uses a 16-bit value
 
-                                if (i->modelId().startsWith("FLS-NB"))
-                                {
-                                    // TODO check firmware version
-                                }
-                                else if (lux > 0 && lux < 0xffff)
+                                if (lux > 0 && lux < 0xffff)
                                 {
                                     // valid values are 1 - 0xfffe
                                     // 0, too low to measure
