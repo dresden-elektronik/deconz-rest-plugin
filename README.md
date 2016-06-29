@@ -50,7 +50,7 @@ Hardware requirements
 
 * Raspberry Pi
 * [RaspBee](http://www.dresden-elektronik.de/funktechnik/solutions/wireless-light-control/raspbee?L=1) ZigBee Shield for Raspberry Pi
-* or a deRFusb23e0x wireless USB dongle
+* or a [ConBee](https://www.dresden-elektronik.de/funktechnik/solutions/wireless-light-control/conbee/?L=1) USB dongle
 
 3rd party libraries
 -------------------
