@@ -372,6 +372,7 @@ int DeRestPluginPrivate::getGroupAttributes(const ApiRequest &req, ApiResponse &
 
     rsp.map["id"] = group->id();
     rsp.map["name"] = group->name();
+    rsp.map["hidden"] = group->hidden;
     QString etag = group->etag;
     etag.remove('"'); // no quotes allowed in string
     rsp.map["etag"] = etag;
@@ -523,6 +524,33 @@ int DeRestPluginPrivate::setGroupAttributes(const ApiRequest &req, ApiResponse &
         else
         {
             rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/groups/%1").arg(id), QString("invalid value, %1, for parameter, /groups/%2/name").arg(name).arg(id)));
+            rsp.httpStatus = HttpStatusBadRequest;
+        }
+    }
+
+    // hidden
+    if (map.contains("hidden"))
+    {
+        bool hidden = map["hidden"].toBool();
+
+        if (map["hidden"].type() == QVariant::Bool)
+        {
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/groups/%1/hidden").arg(id)] = (hidden == true) ? "true" : "false";
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+
+            if (group->hidden != hidden)
+            {
+                group->hidden = hidden;
+                changed = true;
+                queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
+            }
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/groups/%1").arg(id), QString("invalid value for parameter, /groups/%2/hidden").arg(id)));
             rsp.httpStatus = HttpStatusBadRequest;
         }
     }
@@ -1276,6 +1304,7 @@ bool DeRestPluginPrivate::groupToMap(const Group *group, QVariantMap &map)
     action["colormode"] = "hs"; // TODO
     map["action"] = action;
     map["name"] = group->name();
+    map["hidden"] = group->hidden;
     QString etag = group->etag;
     etag.remove('"'); // no quotes allowed in string
     map["etag"] = etag;

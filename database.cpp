@@ -62,7 +62,7 @@ void DeRestPluginPrivate::initDb()
         "ALTER TABLE auth add column createdate TEXT",
         "ALTER TABLE auth add column lastusedate TEXT",
         "ALTER TABLE auth add column useragent TEXT",
-        "CREATE TABLE IF NOT EXISTS groups (gid TEXT PRIMARY KEY, name TEXT, state TEXT, mids TEXT, devicemembership TEXT, lightsequence TEXT)",
+        "CREATE TABLE IF NOT EXISTS groups (gid TEXT PRIMARY KEY, name TEXT, state TEXT, mids TEXT, devicemembership TEXT, lightsequence TEXT, hidden TEXT)",
         "CREATE TABLE IF NOT EXISTS rules (rid TEXT PRIMARY KEY, name TEXT, created TEXT, etag TEXT, lasttriggered TEXT, owner TEXT, status TEXT, timestriggered TEXT, actions TEXT, conditions TEXT, periodic TEXT)",
         "CREATE TABLE IF NOT EXISTS sensors (sid TEXT PRIMARY KEY, name TEXT, type TEXT, modelid TEXT, manufacturername TEXT, uniqueid TEXT, swversion TEXT, state TEXT, config TEXT, fingerprint TEXT, deletedState TEXT, mode TEXT)",
         "CREATE TABLE IF NOT EXISTS scenes (gsid TEXT PRIMARY KEY, gid TEXT, sid TEXT, name TEXT, transitiontime TEXT, lights TEXT)",
@@ -74,6 +74,7 @@ void DeRestPluginPrivate::initDb()
         "ALTER TABLE groups add column mids TEXT",
         "ALTER TABLE groups add column devicemembership TEXT",
         "ALTER TABLE groups add column lightsequence TEXT",
+        "ALTER TABLE groups add column hidden TEXT",
         "ALTER TABLE scenes add column transitiontime TEXT",
         "ALTER TABLE scenes add column lights TEXT",
         "ALTER TABLE rules add column periodic TEXT",
@@ -571,6 +572,11 @@ static int sqliteLoadAllGroupsCallback(void *user, int ncols, char **colval , ch
             else if (strcmp(colname[i], "devicemembership") == 0)
             {
                 group.setDmFromString(val);
+            }
+            else if (strcmp(colname[i], "hidden") == 0)
+            {
+                bool hidden = (val == "true") ? true : false;
+                group.hidden = hidden;
             }
         }
     }
@@ -1933,14 +1939,16 @@ void DeRestPluginPrivate::saveDb()
             }
 
             QString grpState((i->state() == Group::StateDeleted ? "deleted" : "normal"));
+            QString hidden((i->hidden == true ? "true" : "false"));
 
-            QString sql = QString(QLatin1String("REPLACE INTO groups (gid, name, state, mids, devicemembership, lightsequence) VALUES ('%1', '%2', '%3', '%4', '%5', '%6')"))
+            QString sql = QString(QLatin1String("REPLACE INTO groups (gid, name, state, mids, devicemembership, lightsequence, hidden) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7')"))
                     .arg(gid)
                     .arg(i->name())
                     .arg(grpState)
                     .arg(i->midsToString())
                     .arg(i->dmToString())
-                    .arg(i->lightsequenceToString());
+                    .arg(i->lightsequenceToString())
+                    .arg(hidden);
 
             errmsg = NULL;
             rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);

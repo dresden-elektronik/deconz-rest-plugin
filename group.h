@@ -60,6 +60,7 @@ public:
     QString etag;
     std::vector<Scene> scenes;
     QTime sendTime;
+    bool hidden;
     std::vector<QString> m_multiDeviceIds;
     std::vector<QString> m_lightsequence;
     std::vector<QString> m_deviceMemberships;

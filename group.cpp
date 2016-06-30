@@ -18,6 +18,7 @@ Group::Group() :
     m_addr(0),
     m_id("0"),
     m_on(false),
+    hidden(false),
     m_colorLoopActive(false)
 {
    sendTime = QTime::currentTime();
