@@ -178,7 +178,7 @@ void DeRestPluginPrivate::readDb()
     loadAuthFromDb();
     loadConfigFromDb();
     loadAllGroupsFromDb();
-    loadAllScenesFromDb();
+    //loadAllScenesFromDb();
     loadAllRulesFromDb();
     loadAllSchedulesFromDb();
     loadAllSensorsFromDb();
