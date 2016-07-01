@@ -7282,7 +7282,7 @@ bool DeRestPluginPrivate::resetConfiguration(bool resetGW, bool deleteDB)
         if (resetGW)
         {
             uint8_t deviceType = deCONZ::Coordinator;
-            uint16_t panId = 0xde16;
+            uint16_t panId = (qrand() % 65532);
             quint64 apsUseExtPanId = 0x0000000000000000;
             uint16_t nwkAddress = 0x0000;
             //uint32_t channelMask = 33554432; // 25
