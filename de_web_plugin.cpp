@@ -5042,6 +5042,8 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                                 }
                             }
 
+                            queSaveDb(DB_SCENES,DB_SHORT_SAVE_DELAY);
+
                             uint8_t sceneCapacity = lightNode->sceneCapacity();
                             if (sceneCapacity < 255)
                             {

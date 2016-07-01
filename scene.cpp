@@ -79,6 +79,11 @@ bool Scene::deleteLight(const QString &lid)
         if (l->lid() == lid)
         {
             m_lights.erase(m_lights.begin() + position);
+            // delete scene if it contains no lights
+            if (m_lights.size() == 0)
+            {
+                state = Scene::StateDeleted;
+            }
             return true;
         }
         position++;

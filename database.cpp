@@ -178,7 +178,7 @@ void DeRestPluginPrivate::readDb()
     loadAuthFromDb();
     loadConfigFromDb();
     loadAllGroupsFromDb();
-    //loadAllScenesFromDb();
+    loadAllScenesFromDb();
     loadAllRulesFromDb();
     loadAllSchedulesFromDb();
     loadAllSensorsFromDb();
@@ -1962,7 +1962,7 @@ void DeRestPluginPrivate::saveDb()
                 }
             }
 
-            if (i->state() != Group::StateDeleted &&i->state() != Group::StateDeleteFromDB)
+            if (i->state() != Group::StateDeleted && i->state() != Group::StateDeleteFromDB)
             {
                 std::vector<Scene>::const_iterator si = i->scenes.begin();
                 std::vector<Scene>::const_iterator send = i->scenes.end();
@@ -1976,15 +1976,23 @@ void DeRestPluginPrivate::saveDb()
                     sid.sprintf("0x%02X", si->id);
 
                     QString lights = Scene::lightsToString(si->lights());
+                    QString sql;
 
-                    QString sql = QString(QLatin1String("REPLACE INTO scenes (gsid, gid, sid, name, transitiontime, lights) VALUES ('%1', '%2', '%3', '%4', '%5', '%6')"))
+                    if (si->state == Scene::StateDeleted)
+                    {
+                        // delete scene from db (if exist)
+                        sql = QString(QLatin1String("DELETE FROM scenes WHERE gsid='%1'")).arg(gsid);
+                    }
+                    else
+                    {
+                        sql = QString(QLatin1String("REPLACE INTO scenes (gsid, gid, sid, name, transitiontime, lights) VALUES ('%1', '%2', '%3', '%4', '%5', '%6')"))
                             .arg(gsid)
                             .arg(gid)
                             .arg(sid)
                             .arg(si->name)
                             .arg(si->transitiontime())
                             .arg(lights);
-
+                    }
                     errmsg = NULL;
                     rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
