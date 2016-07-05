@@ -2134,7 +2134,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_UBISYS)
     {
-        sensorNode.setManufacturer("Ubisys");
+        sensorNode.setManufacturer("ubisys");
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_BUSCH_JAEGER)
     {
