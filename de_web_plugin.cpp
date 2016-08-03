@@ -6180,6 +6180,11 @@ void DeRestPlugin::idleTimerFired()
         return;
     }
 
+    if (!d->isInNetwork())
+    {
+        return;
+    }
+
     // put coordinator into groups of switches
     // deCONZ firmware will put itself into a group after sending out a groupcast
     // therefore we will receives commands to the same group
@@ -6528,6 +6533,13 @@ void DeRestPlugin::appAboutToQuit()
 
         d->apsCtrl = 0;
     }
+}
+
+/*! Helper to start firmware update from main application.
+ */
+bool DeRestPlugin::startUpdateFirmware()
+{
+    return d->startUpdateFirmware();
 }
 
 /*! Query this plugin which features are supported.

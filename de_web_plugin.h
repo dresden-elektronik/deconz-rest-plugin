@@ -65,6 +65,7 @@ public Q_SLOTS:
     void stopZclAttributeTimer();
     void checkZclAttributeTimerFired();
     void appAboutToQuit();
+    bool startUpdateFirmware();
 
 private:
     QTimer *m_idleTimer;

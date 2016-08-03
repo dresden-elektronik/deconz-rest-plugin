@@ -889,6 +889,7 @@ public:
     };
     QTimer *fwUpdateTimer;
     int fwUpdateIdleTimeout;
+    bool fwUpdateStartedByUser;
     FW_UpdateState fwUpdateState;
     QString fwUpdateFile;
     QProcess *fwProcess;

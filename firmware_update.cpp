@@ -18,8 +18,9 @@
 #include "de_web_plugin_private.h"
 
 #define FW_IDLE_TIMEOUT (10 * 1000)
+#define FW_WAIT_UPDATE_READY (2) //s
 #define FW_IDLE_TIMEOUT_LONG (240 * 1000)
-#define FW_WAIT_USER_TIMEOUT (60 * 1000)
+#define FW_WAIT_USER_TIMEOUT (120 * 1000)
 
 /*! Inits the firmware update manager.
  */
@@ -29,14 +30,14 @@ void DeRestPluginPrivate::initFirmwareUpdate()
     fwUpdateState = FW_Idle;
 
     Q_ASSERT(apsCtrl);
-    apsCtrl->setParameter(deCONZ::ParamFirmwareUpdateActive, 0);
+    apsCtrl->setParameter(deCONZ::ParamFirmwareUpdateActive, deCONZ::FirmwareUpdateIdle);
 
+    fwUpdateStartedByUser = false;
     fwUpdateTimer = new QTimer(this);
-    fwUpdateTimer->setInterval(1000);
     fwUpdateTimer->setSingleShot(true);
     connect(fwUpdateTimer, SIGNAL(timeout()),
             this, SLOT(firmwareUpdateTimerFired()));
-    fwUpdateTimer->start(FW_IDLE_TIMEOUT);
+    fwUpdateTimer->start(1000);
 }
 
 /*! Starts the actual firmware update process.
@@ -49,7 +50,7 @@ void DeRestPluginPrivate::updateFirmware()
     }
 
     Q_ASSERT(apsCtrl);
-    if (apsCtrl->getParameter(deCONZ::ParamFirmwareUpdateActive) == 0 ||
+    if (apsCtrl->getParameter(deCONZ::ParamFirmwareUpdateActive) == deCONZ::FirmwareUpdateIdle ||
         apsCtrl->getParameter(deCONZ::ParamDeviceConnected) == 1)
     {
         DBG_Printf(DBG_INFO, "GW firmware update conditions not met, abort\n");
@@ -119,7 +120,8 @@ void DeRestPluginPrivate::updateFirmwareWaitFinished()
     // done
     if (fwProcess == 0)
     {
-        apsCtrl->setParameter(deCONZ::ParamFirmwareUpdateActive, 0);
+        fwUpdateStartedByUser = false;
+        apsCtrl->setParameter(deCONZ::ParamFirmwareUpdateActive, deCONZ::FirmwareUpdateIdle);
         fwUpdateState = FW_Idle;
         fwUpdateTimer->start(FW_IDLE_TIMEOUT);
     }
@@ -134,14 +136,15 @@ void DeRestPluginPrivate::updateFirmwareWaitFinished()
 void DeRestPluginPrivate::updateFirmwareDisconnectDevice()
 {
     Q_ASSERT(apsCtrl);
-    if (apsCtrl->getParameter(deCONZ::ParamFirmwareUpdateActive) == 0)
-    {
-        if (apsCtrl->getParameter(deCONZ::ParamDeviceConnected) == 1)
-        {
-            DBG_Printf(DBG_INFO, "GW firmware disconnect device before update\n");
-        }
-        apsCtrl->setParameter(deCONZ::ParamFirmwareUpdateActive, 1);
-    }
+//    if (apsCtrl->getParameter(deCONZ::ParamFirmwareUpdateActive) == deCONZ::FirmwareUpdateIdle)
+//    {
+//        if (apsCtrl->getParameter(deCONZ::ParamDeviceConnected) == 1)
+//        {
+//            DBG_Printf(DBG_INFO, "GW firmware disconnect device before update\n");
+//        }
+//    }
+
+    apsCtrl->setParameter(deCONZ::ParamFirmwareUpdateActive, deCONZ::FirmwareUpdateRunning);
 
     if (apsCtrl->getParameter(deCONZ::ParamDeviceConnected) == 1)
     {
@@ -159,6 +162,7 @@ void DeRestPluginPrivate::updateFirmwareDisconnectDevice()
  */
 bool DeRestPluginPrivate::startUpdateFirmware()
 {
+    fwUpdateStartedByUser = true;
     if (fwUpdateState == FW_WaitUserConfirm)
     {
         fwUpdateState = FW_DisconnectDevice;
@@ -203,7 +207,12 @@ void DeRestPluginPrivate::firmwareUpdateTimerFired()
     {
         updateFirmwareWaitFinished();
     }
-    else // also handle FW_WaitUserConfirm state timeout
+    else if (fwUpdateState == FW_WaitUserConfirm)
+    {
+        fwUpdateState = FW_Idle;
+        fwUpdateTimer->start(FW_IDLE_TIMEOUT);
+    }
+    else
     {
         fwUpdateState = FW_Idle;
         fwUpdateTimer->start(FW_IDLE_TIMEOUT);
@@ -286,9 +295,9 @@ void DeRestPluginPrivate::queryFirmwareVersion()
 
     if (devConnected == 0 || fwVersion == 0)
     {
-        // if even after 60 seconds no firmware was detected
+        // if even after some time no firmware was detected
         // ASSUME that a device is present and reachable but might not have firmware installed
-        if (getUptime() >= 60)
+//        if (getUptime() >= FW_WAIT_UPDATE_READY)
         {
             QString str;
             str.sprintf("0x%08x", GW_MIN_RPI_FW_VERSION);
@@ -301,8 +310,14 @@ void DeRestPluginPrivate::queryFirmwareVersion()
 
             fwUpdateState = FW_WaitUserConfirm;
             fwUpdateTimer->start(FW_WAIT_USER_TIMEOUT);
-            return;
+            apsCtrl->setParameter(deCONZ::ParamFirmwareUpdateActive, deCONZ::FirmwareUpdateReadyToStart);
+
+            if (fwUpdateStartedByUser)
+            {
+                startUpdateFirmware();
+            }
         }
+        return;
     }
     else if (devConnected)
     {
@@ -330,6 +345,7 @@ void DeRestPluginPrivate::queryFirmwareVersion()
                 DBG_Printf(DBG_INFO, "GW firmware version shall be updated to: 0x%08x\n", GW_MIN_RPI_FW_VERSION);
                 fwUpdateState = FW_WaitUserConfirm;
                 fwUpdateTimer->start(FW_WAIT_USER_TIMEOUT);
+                apsCtrl->setParameter(deCONZ::ParamFirmwareUpdateActive, deCONZ::FirmwareUpdateReadyToStart);
                 return;
             }
             else
