@@ -63,6 +63,10 @@ void DeRestPluginPrivate::updateFirmware()
 #ifdef Q_OS_WIN
     gcfFlasherBin.append(".exe");
     QString bin = gcfFlasherBin;
+#elif defined(Q_OS_LINUX) && !defined(ARCH_ARM) // on RPi a normal sudo is ok since we don't need password there
+    QString bin = "pkexec";
+    gcfFlasherBin = "/usr/bin/GCFFlasher";
+    fwProcessArgs.prepend(gcfFlasherBin);
 #else
     QString bin = "sudo";
     fwProcessArgs.prepend(gcfFlasherBin);
@@ -239,6 +243,8 @@ void DeRestPluginPrivate::queryFirmwareVersion()
         QString gcfFlasherBin = qApp->applicationDirPath() + "/GCFFlasher";
 #ifdef Q_OS_WIN
         gcfFlasherBin.append(".exe");
+#elif defined(Q_OS_LINUX)
+        gcfFlasherBin = "/usr/bin/GCFFlasher";
 #endif
 
         if (!QFile::exists(gcfFlasherBin))
