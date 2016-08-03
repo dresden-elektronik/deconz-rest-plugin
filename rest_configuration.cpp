@@ -667,21 +667,6 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
         setPermitJoinDuration(seconds);
 
-        // reactivate lights that were deleted
-        std::vector<LightNode>::iterator i = nodes.begin();
-        std::vector<LightNode>::iterator end = nodes.end();
-
-        for (; i != end; ++i)
-        {
-            if (i->state() == LightNode::StateDeleted)
-            {
-                if (i->isAvailable())
-                {
-                    i->setState(LightNode::StateNormal);
-                }
-            }
-        }
-
         QVariantMap rspItem;
         QVariantMap rspItemState;
         rspItemState["/config/permitjoin"] = (double)seconds;

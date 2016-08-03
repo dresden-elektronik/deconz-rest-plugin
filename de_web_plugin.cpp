@@ -5636,10 +5636,16 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
             if (!i->isAvailable())
             {
                 i->setIsAvailable(true);
+
+                if (i->state() == LightNode::StateDeleted)
+                {
+                    i->setState(LightNode::StateNormal);
+                    queSaveDb(DB_LIGHTS,DB_SHORT_SAVE_DELAY);
+                }
                 updateEtag(gwConfigEtag);
             }
 
-            DBG_Printf(DBG_INFO, "DeviceAnnce of LightNode: %s\n", qPrintable(ind.srcAddress().toStringExt()));
+            DBG_Printf(DBG_INFO, "DeviceAnnce of LightNode: %s Permit Join: %i\n", qPrintable(ind.srcAddress().toStringExt()), gwPermitJoinDuration);
 
             // force reading attributes
             i->setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongDelay));

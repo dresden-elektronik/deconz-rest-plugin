@@ -44,11 +44,12 @@ void DeRestPluginPrivate::checkResetState()
 
     for (; i != end; ++i)
     {
-        if (i->isAvailable() && i->state() == LightNode::StateDeleted && i->resetRetryCount() > 0)
+        if (i->isAvailable() /* && i->state() == LightNode::StateDeleted */ && i->resetRetryCount() > 0)
         {
             uint8_t retryCount = i->resetRetryCount();
             retryCount--;
             i->setResetRetryCount(retryCount);
+            DBG_Printf(DBG_INFO, "reset device retries: %i\n", retryCount);
 
             if (retryCount > 0 && i->address().ext() != lastNodeAddressExt) // prefer unhandled nodes
             {
@@ -170,8 +171,19 @@ void DeRestPluginPrivate::handleMgmtLeaveRspIndication(const deCONZ::ApsDataIndi
         DBG_Printf(DBG_INFO, "MgmtLeave_rsp %s seq: %u, status 0x%02X \n", qPrintable(node->address().toStringExt()), seqNo, status);
 
         if (status == deCONZ::ZdpSuccess || status == deCONZ::ZdpNotSupported)
-        {
-            node->setResetRetryCount(0);
+        {            
+            // set retryCount and isAvailable for all endpoints of that device
+            std::vector<LightNode>::iterator i;
+            std::vector<LightNode>::iterator end = nodes.end();
+
+            for (i = nodes.begin(); i != end; ++i)
+            {
+                if (i->address().ext() == ind.srcAddress().ext())
+                {
+                   i->setResetRetryCount(0);
+                   i->setIsAvailable(false);
+                }
+            }
         }
 
         resetDeviceState = ResetIdle;

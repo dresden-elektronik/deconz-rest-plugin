@@ -997,7 +997,7 @@ int DeRestPluginPrivate::deleteLight(const ApiRequest &req, ApiResponse &rsp)
 
             if (reset)
             {
-                lightNode->setResetRetryCount(60);
+                lightNode->setResetRetryCount(10);
             }
         }
         else
