@@ -323,7 +323,7 @@ int DeRestPluginPrivate::getGroupAttributes(const ApiRequest &req, ApiResponse &
     Group *group = getGroupForId(id);
     rsp.httpStatus = HttpStatusOk;
 
-    if (!group)
+    if (!group || group->state() == Group::StateDeleted || group->state() == Group::StateDeleteFromDB)
     {
         rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/groups/%1").arg(id), QString("resource, /groups/%1, not available").arg(id)));
         rsp.httpStatus = HttpStatusNotFound;
@@ -807,8 +807,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
         {
             bool on = map["on"].toBool();
             quint16 ontime = 0;
-            quint8 command = on ? ONOFF_COMMAND_ON : ONOFF_COMMAND_OFF;
-
+            quint8 command = on ? ONOFF_COMMAND_ON : ONOFF_COMMAND_OFF;         
             if (on)
             {
                 if (hasOnTime && map["ontime"].type() == QVariant::Double)
@@ -875,7 +874,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
 
     // brightness
     if (hasBri)
-    {
+    { 
         uint bri = map["bri"].toUInt(&ok);
 
         if ((map["bri"].type() == QVariant::String) && map["bri"].toString() == "stop")
