@@ -65,7 +65,7 @@ void DeRestPluginPrivate::permitJoinTimerFired()
         gwPermitJoinDuration--;
         updateEtag(gwConfigEtag); // update Etag so that webApp can count down permitJoin duration
 
-        //periodically check if their are deleted lights and undelete them
+        //periodically check if there are deleted lights and undelete them
         if (gwPermitJoinDuration % 10 == 0)
         {
             std::vector<LightNode>::iterator i = nodes.begin();

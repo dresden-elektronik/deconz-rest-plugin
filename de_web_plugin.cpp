@@ -122,6 +122,10 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     gwRfConnectedExpected = (deCONZ::appArgumentNumeric("--auto-connect", 1) == 1) ? true : false;
     gwPermitJoinDuration = 0;
     gwNetworkOpenDuration = 60;
+    gwWifi = false;
+    gwWifiType = "accesspoint";
+    gwWifiName = "RaspBee-AP";
+    gwWifiChannel = 1;
     gwRgbwDisplay = "1";
     gwTimezone = QString::fromStdString(getTimezone());
     gwTimeFormat = "12h";

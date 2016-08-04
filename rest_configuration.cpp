@@ -343,6 +343,10 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     map["networkopenduration"] = gwNetworkOpenDuration;
     map["timeformat"] = gwTimeFormat;
     map["whitelist"] = whitelist;
+    map["wifi"] = gwWifi;
+    map["wifitype"] = gwWifiType;
+    map["wifiname"] = gwWifiName;
+    map["wifichannel"] = gwWifiChannel;
     //map["rgbwdisplay"] = gwRgbwDisplay;
     map["linkbutton"] = gwLinkButton;
     map["portalservices"] = false;
@@ -718,6 +722,135 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         QVariantMap rspItem;
         QVariantMap rspItemState;
         rspItemState["/config/rgbwdisplay"] = rgbwDisplay;
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+    }
+
+    if (map.contains("wifi")) // optional
+    {
+        bool wifi = map["wifi"].toBool();
+
+        if (map["wifi"].type() != QVariant::Bool)
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/wifi"), QString("invalid value, %1, for parameter, wifi").arg(map["wifi"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+
+        if (gwWifi != wifi)
+        {
+            gwWifi = wifi;
+            changed = true;
+        }
+
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState["/config/wifi"] = wifi;
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+    }
+
+    if (map.contains("wifitype")) // optional
+    {
+        QString wifiType = map["wifitype"].toString();
+
+        if ((map["wifitype"].type() != QVariant::String) ||
+               ! ((wifiType == "accesspoint") ||
+                  (wifiType == "ad-hoc") ||
+                  (wifiType == "client")))
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/wifitype"), QString("invalid value, %1, for parameter, wifitype").arg(map["wifitype"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+
+        if (gwWifiType != wifiType)
+        {
+            gwWifiType = wifiType;
+            changed = true;
+        }
+
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState["/config/wifitype"] = wifiType;
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+    }
+
+    if (map.contains("wifiname")) // optional
+    {
+        QString wifiName = map["wifiname"].toString();
+
+        if ((map["wifiname"].type() != QVariant::String) ||
+            (map["wifiname"].toString().length() > 32))
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/wifiname"), QString("invalid value, %1, for parameter, wifiname").arg(map["wifiname"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+
+        if (gwWifiName != wifiName)
+        {
+            gwWifiName = wifiName;
+            changed = true;
+        }
+
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState["/config/wifiname"] = wifiName;
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+    }
+
+    if (map.contains("wifichannel")) // optional
+    {
+        int wifiChannel = map["wifichannel"].toInt(&ok);
+        if (!ok || !((wifiChannel >= 1) && (wifiChannel <= 11)))
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/wifichannel"), QString("invalid value, %1, for parameter, wifichannel").arg(map["wifichannel"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+
+        if (gwWifiChannel != wifiChannel)
+        {
+            gwWifiChannel = wifiChannel;
+            changed = true;
+        }
+
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState["/config/wifichannel"] = (double)wifiChannel;
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+    }
+
+    if (map.contains("wifipassword")) // optional
+    {
+        QString wifiPassword = map["wifipassword"].toString();
+
+        if (map["wifipassword"].type() != QVariant::String ||
+            wifiPassword.length() < 5 || wifiPassword.length() > 32)
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/wifipassword"), QString("invalid value, %1, for parameter, wifipassword").arg(map["wifipassword"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+
+#ifdef ARCH_ARM
+#ifdef Q_OS_LINUX
+            //set wifi password on rpi
+            std::string command = "oldpw=$(cat /etc/hostapd/hostapd.conf | grep wpa_passphrase=)";
+            system(command.c_str());
+
+            command = "sudo sed -i \"s/$oldpw/wpa_passphrase=" + wifiPassword + "/g\" /etc/hostapd/hostapd.conf";
+            system(command.c_str());
+#endif
+#endif
+
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState["/config/wifipassword"] = wifiPassword;
         rspItem["success"] = rspItemState;
         rsp.list.append(rspItem);
     }

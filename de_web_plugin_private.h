@@ -857,6 +857,10 @@ public:
     QString gwAnnounceUrl;
     uint8_t gwPermitJoinDuration; // global permit join state (last set)
     uint16_t gwNetworkOpenDuration; // user setting how long network remains open
+    bool gwWifi;
+    QString gwWifiType;
+    QString gwWifiName;
+    uint8_t gwWifiChannel;
     QString gwTimezone;
     QString gwTimeFormat;
     QString gwIpAddress;
