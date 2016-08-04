@@ -67,6 +67,11 @@ void DeRestPluginPrivate::updateFirmware()
     QString bin = "pkexec";
     gcfFlasherBin = "/usr/bin/GCFFlasher";
     fwProcessArgs.prepend(gcfFlasherBin);
+#elif defined(Q_OS_OSX)
+    // TODO
+    // /usr/bin/osascript -e 'do shell script "make install" with administrator privileges'
+    QString bin = "sudo";
+    fwProcessArgs.prepend(gcfFlasherBin);
 #else
     QString bin = "sudo";
     fwProcessArgs.prepend(gcfFlasherBin);
