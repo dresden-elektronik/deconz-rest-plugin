@@ -843,7 +843,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
             std::string command = "oldpw=$(cat /etc/hostapd/hostapd.conf | grep wpa_passphrase=)";
             system(command.c_str());
 
-            command = "sudo sed -i \"s/$oldpw/wpa_passphrase=" + wifiPassword + "/g\" /etc/hostapd/hostapd.conf";
+            command = "sudo sed -i \"s/$oldpw/wpa_passphrase=" + wifiPassword.toStdString() + "/g\" /etc/hostapd/hostapd.conf";
             system(command.c_str());
 #endif
 #endif
