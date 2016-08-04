@@ -80,7 +80,7 @@ void DeRestPluginPrivate::updateFirmware()
     fwProcessArgs << "-f" << fwUpdateFile;
 
     fwUpdateState = FW_UpdateWaitFinished;
-    fwUpdateTimer->start(1000);
+    fwUpdateTimer->start(250);
 
     fwProcess->start(bin, fwProcessArgs);
 }
@@ -95,6 +95,14 @@ void DeRestPluginPrivate::updateFirmwareWaitFinished()
         {
             QByteArray data = fwProcess->readAllStandardOutput();
             DBG_Printf(DBG_INFO, "%s", qPrintable(data));
+
+            if (apsCtrl->getParameter(deCONZ::ParamFirmwareUpdateActive) != deCONZ::FirmwareUpdateRunning)
+            {
+                if (data.contains("flashing"))
+                {
+                    apsCtrl->setParameter(deCONZ::ParamFirmwareUpdateActive, deCONZ::FirmwareUpdateRunning);
+                }
+            }
         }
 
         if (fwProcess->state() == QProcess::Starting)
@@ -103,7 +111,7 @@ void DeRestPluginPrivate::updateFirmwareWaitFinished()
         }
         else if (fwProcess->state() == QProcess::Running)
         {
-            DBG_Printf(DBG_INFO, "GW firmware update running ..\n");
+            DBG_Printf(DBG_INFO_L2, "GW firmware update running ..\n");
         }
         else if (fwProcess->state() == QProcess::NotRunning)
         {
@@ -131,7 +139,7 @@ void DeRestPluginPrivate::updateFirmwareWaitFinished()
     }
     else // recheck
     {
-        fwUpdateTimer->start(1000);
+        fwUpdateTimer->start(250);
     }
 }
 
@@ -147,8 +155,6 @@ void DeRestPluginPrivate::updateFirmwareDisconnectDevice()
 //            DBG_Printf(DBG_INFO, "GW firmware disconnect device before update\n");
 //        }
 //    }
-
-    apsCtrl->setParameter(deCONZ::ParamFirmwareUpdateActive, deCONZ::FirmwareUpdateRunning);
 
     if (apsCtrl->getParameter(deCONZ::ParamDeviceConnected) == 1)
     {
