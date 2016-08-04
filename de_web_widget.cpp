@@ -38,6 +38,16 @@ DeRestWidget::DeRestWidget(QWidget *parent) :
 
     for (; ifi != ifend; ++ifi)
     {
+        QString name = ifi->humanReadableName();
+
+        // filter
+        if (name.contains("vm", Qt::CaseInsensitive) ||
+            name.contains("virtual", Qt::CaseInsensitive) ||
+            name.contains("loop", Qt::CaseInsensitive))
+        {
+            continue;
+        }
+
         QList<QNetworkAddressEntry> addr = ifi->addressEntries();
 
         QList<QNetworkAddressEntry>::Iterator i = addr.begin();
