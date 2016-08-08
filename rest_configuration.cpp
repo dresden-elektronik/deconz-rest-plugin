@@ -19,6 +19,7 @@
 #include "de_web_plugin_private.h"
 #include "json.h"
 #include <stdlib.h>
+#include <QProcess>
 
 /*! Configuration REST API broker.
     \param req - request data
@@ -839,6 +840,11 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
+            if (!catProcess)
+            {
+                catProcess = new QProcess(this);
+            }
+
             catProcess->start("oldpw=$(cat /etc/hostapd/hostapd.conf | grep wpa_passphrase=)");
 
             catProcess->waitForFinished();
@@ -846,7 +852,12 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
             catProcess->deleteLater();
             catProcess = 0;
 
-            sedProcess->start("sudo sed -i 's/$oldpw/wpa_passphrase=" + wifiPassword.toStdString() + "/g' /etc/hostapd/hostapd.conf");
+            if (!sedProcess)
+            {
+                sedProcess = new QProcess(this);
+            }
+
+            sedProcess->start("sudo sed -i 's/$oldpw/wpa_passphrase=" + wifiPassword + "/g' /etc/hostapd/hostapd.conf");
 
             sedProcess->waitForFinished();
             DBG_Printf(DBG_INFO, "%s\n", qPrintable(sedProcess->readAllStandardOutput()));
