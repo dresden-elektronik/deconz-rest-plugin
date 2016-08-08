@@ -899,6 +899,8 @@ public:
     QProcess *fwProcess;
     QProcess *zipProcess;
     QProcess *archProcess;
+    QProcess *catProcess;
+    QProcess *sedProcess;
     QStringList fwProcessArgs;
     QStringList zipProcessArgs;
     QStringList archProcessArgs;
