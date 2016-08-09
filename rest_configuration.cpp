@@ -840,29 +840,34 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
-            if (!catProcess)
-            {
-                catProcess = new QProcess(this);
-            }
+        QDateTime now = QDateTime::currentDateTime();
 
-            catProcess->start("oldpw=$(cat /etc/hostapd/hostapd.conf | grep wpa_passphrase=)");
+        std::string command = "cp /etc/hostapd/hostapd.conf /etc/hostapd/hostapd_" + now.toString("yyyy-MM-ddThh_mm_ss").toStdString() + ".conf.bak";
+        system(command.c_str());
 
-            catProcess->waitForFinished();
-            DBG_Printf(DBG_INFO, "%s\n", qPrintable(catProcess->readAllStandardOutput()));
-            catProcess->deleteLater();
-            catProcess = 0;
+        char const* cmd = "cat /etc/hostapd/hostapd.conf";
+        FILE* pipe = popen(cmd, "r");
+        if (!pipe)
+        {
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/config/wifipassword"), QString("error while setting parameter wifipassword")));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+        char buffer[128];
+        std::string result = "";
+        while(!feof(pipe)) {
+            if(fgets(buffer, 128, pipe) != NULL)
+                result += buffer;
+        }
+        pclose(pipe);
 
-            if (!sedProcess)
-            {
-                sedProcess = new QProcess(this);
-            }
+        std::string temp = result.substr(result.find("wpa_passphrase="));
+        int pos = temp.find('\n');
 
-            sedProcess->start("sudo sed -i 's/$oldpw/wpa_passphrase=" + wifiPassword + "/g' /etc/hostapd/hostapd.conf");
+        result.replace(result.find("wpa_passphrase="), pos, "wpa_passphrase=" + wifiPassword.toStdString() + "\n");
 
-            sedProcess->waitForFinished();
-            DBG_Printf(DBG_INFO, "%s\n", qPrintable(sedProcess->readAllStandardOutput()));
-            sedProcess->deleteLater();
-            sedProcess = 0;
+        command = "echo " + result + " > /etc/hostapd/hostapd.conf";
+        system(command.c_str());
 #endif
 #endif
 
