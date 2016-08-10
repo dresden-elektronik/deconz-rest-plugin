@@ -840,12 +840,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
-        QDateTime now = QDateTime::currentDateTime();
-
-        std::string command = "cp /etc/hostapd/hostapd.conf /etc/hostapd/hostapd_" + now.toString("yyyy-MM-ddThh_mm_ss").toStdString() + ".conf.bak";
-        system(command.c_str());
-
-        char const* cmd = "cat /etc/hostapd/hostapd.conf";
+        char const* cmd = "cat /etc/hostapd/hostapd.conf | grep wpa_passphrase=";
         FILE* pipe = popen(cmd, "r");
         if (!pipe)
         {
@@ -854,20 +849,41 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
             return REQ_READY_SEND;
         }
         char buffer[128];
-        std::string result = "";
+        std::string oldpw = "";
         while(!feof(pipe)) {
             if(fgets(buffer, 128, pipe) != NULL)
-                result += buffer;
+                oldpw += buffer;
         }
         pclose(pipe);
 
-        std::string temp = result.substr(result.find("wpa_passphrase="));
-        int pos = temp.find('\n');
+        oldpw.erase(std::remove(oldpw.begin(), oldpw.end(), '\n'), oldpw.end());
 
-        result.replace(result.find("wpa_passphrase="), pos, "wpa_passphrase=" + wifiPassword.toStdString() + "\n");
-
-        command = "echo " + result + " > /etc/hostapd/hostapd.conf";
+        std::string command = "sudo sed -i 's/" + oldpw + "/wpa_passphrase=" + wifiPassword.toStdString() + "/g' /etc/hostapd/hostapd.conf";
         system(command.c_str());
+
+        if (!ifdownProcess)
+        {
+            ifdownProcess = new QProcess(this);
+        }
+
+        ifdownProcess->start("sudo ifdown wlan0");
+
+        ifdownProcess->waitForFinished(EXT_PROCESS_TIMEOUT);
+        DBG_Printf(DBG_INFO, "%s\n", qPrintable(ifdownProcess->readAllStandardOutput()));
+        ifdownProcess->deleteLater();
+        ifdownProcess = 0;
+
+        if (!ifupProcess)
+        {
+            ifupProcess = new QProcess(this);
+        }
+
+        ifupProcess->start("sudo ifup wlan0");
+
+        ifupProcess->waitForFinished(EXT_PROCESS_TIMEOUT);
+        DBG_Printf(DBG_INFO, "%s\n", qPrintable(ifupProcess->readAllStandardOutput()));
+        ifupProcess->deleteLater();
+        ifupProcess = 0;
 #endif
 #endif
 
