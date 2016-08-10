@@ -91,12 +91,8 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
 
     db = 0;
     saveDatabaseItems = 0;
-#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
-        sqliteDatabaseName = QStandardPaths::standardLocations(QStandardPaths::DataLocation).first();
-#else
-        sqliteDatabaseName = QDesktopServices::storageLocation(QDesktopServices::DataLocation);
-#endif
-    sqliteDatabaseName.append("/zll.db");
+    sqliteDatabaseName = deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation) + QLatin1String("/zll.db");
+
     idleLimit = 0;
     idleTotalCounter = IDLE_READ_LIMIT;
     idleLastActivity = 0;
