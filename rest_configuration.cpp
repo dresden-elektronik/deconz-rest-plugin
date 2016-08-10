@@ -1641,3 +1641,34 @@ std::string DeRestPluginPrivate::getTimezone()
 #endif
     return "none";
 }
+
+/*! check wifi state on raspberry pi.
+ */
+bool DeRestPluginPrivate::checkWifiState()
+{
+
+#ifdef ARCH_ARM
+#ifdef Q_OS_LINUX
+    char const* cmd = "sudo hostapd_cli interface";
+    FILE* pipe = popen(cmd, "r");
+    if (!pipe) return false;
+    char buffer[128];
+    std::string result = "";
+    while(!feof(pipe)) {
+        if(fgets(buffer, 128, pipe) != NULL)
+            result += buffer;
+    }
+    pclose(pipe);
+
+    if (QString::fromStdString(result).indexOf("wlan0") == -1)
+    {
+        return false;
+    }
+    else
+    {
+        return true;
+    }
+#endif
+#endif
+    return false;
+}
