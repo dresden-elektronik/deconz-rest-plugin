@@ -505,6 +505,7 @@ public:
     int resetConfig(const ApiRequest &req, ApiResponse &rsp);
     int changePassword(const ApiRequest &req, ApiResponse &rsp);
     int deletePassword(const ApiRequest &req, ApiResponse &rsp);
+    bool checkWifiState();
 
     void configToMap(const ApiRequest &req, QVariantMap &map);
 
