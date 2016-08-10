@@ -275,6 +275,9 @@ void DeRestPluginPrivate::queryFirmwareVersion()
 
         // search in different locations
         std::vector<QString> paths;
+#ifdef Q_OS_LINUX
+        paths.push_back(QLatin1String("/usr/share/deCONZ/firmware/"));
+#endif
         paths.push_back(deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation) + QLatin1String("/firmware/"));
         paths.push_back(deCONZ::getStorageLocation(deCONZ::HomeLocation) + QLatin1String("/raspbee_firmware/"));
 #ifdef Q_OS_OSX
