@@ -118,7 +118,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     gwRfConnectedExpected = (deCONZ::appArgumentNumeric("--auto-connect", 1) == 1) ? true : false;
     gwPermitJoinDuration = 0;
     gwNetworkOpenDuration = 60;
-    gwWifi = checkWifiState();
+    gwWifi = false;
     gwWifiType = "accesspoint";
     gwWifiName = "RaspBee-AP";
     gwWifiChannel = 1;

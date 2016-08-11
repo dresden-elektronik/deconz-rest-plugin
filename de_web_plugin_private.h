@@ -505,7 +505,6 @@ public:
     int resetConfig(const ApiRequest &req, ApiResponse &rsp);
     int changePassword(const ApiRequest &req, ApiResponse &rsp);
     int deletePassword(const ApiRequest &req, ApiResponse &rsp);
-    bool checkWifiState();
     bool checkWifiParameter();
 
     void configToMap(const ApiRequest &req, QVariantMap &map);
@@ -711,6 +710,9 @@ public Q_SLOTS:
     void updateFirmware();
     void updateFirmwareWaitFinished();
     bool startUpdateFirmware();
+
+    //wifi settings
+    void checkWifiState();
 
 public:
     void checkRfConnectState();

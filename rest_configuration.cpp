@@ -1629,14 +1629,14 @@ std::string DeRestPluginPrivate::getTimezone()
 
 /*! check wifi state on raspberry pi.
  */
-bool DeRestPluginPrivate::checkWifiState()
-{
+void DeRestPluginPrivate::checkWifiState()
+{    
 
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
     char const* cmd = "sudo hostapd_cli interface";
     FILE* pipe = popen(cmd, "r");
-    if (!pipe) return false;
+    if (!pipe) return;
     char buffer[128];
     std::string result = "";
     while(!feof(pipe)) {
@@ -1647,18 +1647,28 @@ bool DeRestPluginPrivate::checkWifiState()
 
     if (QString::fromStdString(result).indexOf("wlan0") == -1)
     {
-        gwWifi = false;
-        return false;
+        if (gwWifi == true)
+        {
+            // changed
+            updateEtag(gwConfigEtag);
+            gwWifi = false;
+        }
+        return;
     }
     else
     {
-        gwWifi = true;
-        return true;
+        if (gwWifi == false)
+        {
+            // changed
+            updateEtag(gwConfigEtag);
+            gwWifi = true;
+        }
+        return;
     }
 #endif
 #endif
     gwWifi = false;
-    return false;
+    return;
 }
 
 /*! check wifi parameter on raspberry pi.
