@@ -1675,3 +1675,54 @@ bool DeRestPluginPrivate::checkWifiState()
     gwWifi = false;
     return false;
 }
+
+/*! check wifi parameter on raspberry pi.
+ */
+bool DeRestPluginPrivate::checkWifiParameter()
+{
+
+#ifdef ARCH_ARM
+#ifdef Q_OS_LINUX
+    char const* cmd = "cat /etc/hostapd/hostapd.conf | grep -E '^ssid='";
+    FILE* pipe = popen(cmd, "r");
+    if (!pipe) return false;
+    char buffer[128];
+    std::string result = "";
+    while(!feof(pipe)) {
+        if(fgets(buffer, 128, pipe) != NULL)
+            result += buffer;
+    }
+    pclose(pipe);
+
+    if (QString::fromStdString(result).indexOf("ssid=") == -1)
+    {
+        gwWifiName = "Not available";
+    }
+    else
+    {
+        gwWifiName = QString::fromStdString(result.substr(5));
+    }
+
+    char const* cmd2 = "cat /etc/network/interfaces | grep wireless-mode";
+    FILE* pipe2 = popen(cmd2, "r");
+    if (!pipe2) return false;
+    char buffer2[128];
+    std::string result2 = "";
+    while(!feof(pipe2)) {
+        if(fgets(buffer2, 128, pipe2) != NULL)
+            result2 += buffer2;
+    }
+    pclose(pipe2);
+
+    if (QString::fromStdString(result2).indexOf("ad-hoc") == -1)
+    {
+        gwWifiType = "accesspoint";
+    }
+    else
+    {
+        gwWifiType = "ad-hoc";
+    }
+#endif
+#endif
+    return true;
+}

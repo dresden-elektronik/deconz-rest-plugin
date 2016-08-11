@@ -506,6 +506,7 @@ public:
     int changePassword(const ApiRequest &req, ApiResponse &rsp);
     int deletePassword(const ApiRequest &req, ApiResponse &rsp);
     bool checkWifiState();
+    bool checkWifiParameter();
 
     void configToMap(const ApiRequest &req, QVariantMap &map);
 
@@ -859,7 +860,7 @@ public:
     uint8_t gwPermitJoinDuration; // global permit join state (last set)
     uint16_t gwNetworkOpenDuration; // user setting how long network remains open
     bool gwWifi;
-    QString gwWifiType;
+    QString gwWifiType; // accesspoint | ad-hoc | client
     QString gwWifiName;
     uint8_t gwWifiChannel;
     QString gwTimezone;
