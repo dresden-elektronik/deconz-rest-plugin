@@ -861,29 +861,14 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         std::string command = "sudo sed -i 's/" + oldpw + "/wpa_passphrase=" + wifiPassword.toStdString() + "/g' /etc/hostapd/hostapd.conf";
         system(command.c_str());
 
-        if (!ifdownProcess)
-        {
-            ifdownProcess = new QProcess(this);
-        }
+        command = "sudo ifdown wlan0";
+        system(command.c_str());
 
-        ifdownProcess->start("sudo ifdown wlan0");
+        command = "sleep 3";
+        system(command.c_str());
 
-        ifdownProcess->waitForFinished(EXT_PROCESS_TIMEOUT);
-        DBG_Printf(DBG_INFO, "%s\n", qPrintable(ifdownProcess->readAllStandardOutput()));
-        ifdownProcess->deleteLater();
-        ifdownProcess = 0;
-
-        if (!ifupProcess)
-        {
-            ifupProcess = new QProcess(this);
-        }
-
-        ifupProcess->start("sudo ifup wlan0");
-
-        ifupProcess->waitForFinished(EXT_PROCESS_TIMEOUT);
-        DBG_Printf(DBG_INFO, "%s\n", qPrintable(ifupProcess->readAllStandardOutput()));
-        ifupProcess->deleteLater();
-        ifupProcess = 0;
+        command = "sudo ifup wlan0";
+        system(command.c_str());
 #endif
 #endif
 
