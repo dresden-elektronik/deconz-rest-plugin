@@ -1662,13 +1662,16 @@ bool DeRestPluginPrivate::checkWifiState()
 
     if (QString::fromStdString(result).indexOf("wlan0") == -1)
     {
+        gwWifi = false;
         return false;
     }
     else
     {
+        gwWifi = true;
         return true;
     }
 #endif
 #endif
+    gwWifi = false;
     return false;
 }

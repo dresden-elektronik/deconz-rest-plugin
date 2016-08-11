@@ -1067,6 +1067,9 @@ public:
     QUdpSocket *udpSockOut;
     uint8_t haEndpoint;
 
+    // Wifi connected state
+    QTimer *checkWifiTimer;
+
     // bindings
     size_t verifyRuleIter;
     bool gwReportingEnabled;
