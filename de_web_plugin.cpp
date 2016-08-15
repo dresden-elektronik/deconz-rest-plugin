@@ -4042,6 +4042,7 @@ bool DeRestPluginPrivate::modifyScene(Group *group, uint8_t sceneId)
 
             if (std::find(v.begin(), v.end(), sceneId) == v.end())
             {
+                DBG_Printf(DBG_INFO, "Start modify scene for 0x%016llX, groupId 0x%04X, scene 0x%02X\n", i->address().ext(), groupInfo->id, sceneId);
                 groupInfo->modifyScenes.push_back(sceneId);
             }
         }
@@ -4853,29 +4854,35 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
     }
     else if (zclFrame.commandId() == 0x06) // Get scene membership response
     {
-        DBG_Assert(zclFrame.payload().size() >= 4);
+        if (zclFrame.payload().size() < 4)
+        {
+            DBG_Printf(DBG_INFO, "get scene membership response payload size too small %d\n", zclFrame.payload().size());
+            return;
+        }
 
         QDataStream stream(zclFrame.payload());
         stream.setByteOrder(QDataStream::LittleEndian);
 
         uint8_t status;
-        uint8_t capacity;
-        uint16_t groupId;
-        uint8_t count;
-
         stream >> status;
-        stream >> capacity;
-        stream >> groupId;
 
-        if (status == deCONZ::ZclSuccessStatus)
+        if (status == deCONZ::ZclSuccessStatus && !stream.atEnd())
         {
+            uint8_t capacity;
+            uint16_t groupId;
+            uint8_t count;
+
+            stream >> capacity;
+            stream >> groupId;
+            stream >> count;
+
+            DBG_Printf(DBG_INFO, "get scene membership response capacity %u, groupId 0x%04X, count %u\n", capacity, groupId, count);
+
             Group *group = getGroupForId(groupId);
             LightNode *lightNode = getLightNodeForAddress(ind.srcAddress().ext(), ind.srcEndpoint());
             GroupInfo *groupInfo = getGroupInfo(lightNode, group->address());
 
-            stream >> count;
-
-            if (group && lightNode && groupInfo)
+            if (group && lightNode && groupInfo && stream.status() != QDataStream::ReadPastEnd)
             {
                 lightNode->setSceneCapacity(capacity);
                 groupInfo->setSceneCount(count);
@@ -4908,14 +4915,19 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                 }
 
                 lightNode->enableRead(READ_SCENE_DETAILS);
+
+                Q_Q(DeRestPlugin);
+                q->startZclAttributeTimer(checkZclAttributesDelay);
             }
-            Q_Q(DeRestPlugin);
-            q->startZclAttributeTimer(checkZclAttributesDelay);
         }
     }
     else if (zclFrame.commandId() == 0x04) // Store scene response
     {
-        DBG_Assert(zclFrame.payload().size() >= 3);
+        if (zclFrame.payload().size() < 4)
+        {
+            DBG_Printf(DBG_INFO, "store scene response payload size too small %d\n", zclFrame.payload().size());
+            return;
+        }
 
         QDataStream stream(zclFrame.payload());
         stream.setByteOrder(QDataStream::LittleEndian);
@@ -5007,8 +5019,12 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
         }
     }
     else if (zclFrame.commandId() == 0x02) // Remove scene response
-    {
-        DBG_Assert(zclFrame.payload().size() >= 4);
+    {       
+        if (zclFrame.payload().size() < 4)
+        {
+            DBG_Printf(DBG_INFO, "remove scene response payload size too small %d\n", zclFrame.payload().size());
+            return;
+        }
 
         QDataStream stream(zclFrame.payload());
         stream.setByteOrder(QDataStream::LittleEndian);
@@ -5079,7 +5095,11 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
     }
     else if (zclFrame.commandId() == 0x00) // Add scene response // will only be created by modifying scene, yet.
     {
-        DBG_Assert(zclFrame.payload().size() >= 4);
+        if (zclFrame.payload().size() < 4)
+        {
+            DBG_Printf(DBG_INFO, "add scene response payload size too small %d\n", zclFrame.payload().size());
+            return;
+        }
 
         QDataStream stream(zclFrame.payload());
         stream.setByteOrder(QDataStream::LittleEndian);
@@ -5112,8 +5132,12 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
         }
     }
     else if (zclFrame.commandId() == 0x01) // View scene response
-    {
-        DBG_Assert(zclFrame.payload().size() >= 4);
+    {       
+        if (zclFrame.payload().size() < 4)
+        {
+            DBG_Printf(DBG_INFO, "view scene response payload size too small %d\n", zclFrame.payload().size());
+            return;
+        }
 
         LightNode *lightNode = getLightNodeForAddress(ind.srcAddress().ext(), ind.srcEndpoint());
 
