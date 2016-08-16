@@ -209,17 +209,6 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
             this, SLOT(verifyRuleBindingsTimerFired()));
     verifyRulesTimer->start();
 
-#ifdef ARCH_ARM
-#ifdef Q_OS_LINUX
-    checkWifiTimer = new QTimer(this);
-    checkWifiTimer->setSingleShot(false);
-    checkWifiTimer->setInterval(5000);
-    connect(checkWifiTimer, SIGNAL(timeout()),
-            this, SLOT(checkWifiState()));
-    checkWifiTimer->start();
-#endif
-#endif
-
     bindingTimer = new QTimer(this);
     bindingTimer->setSingleShot(true);
     bindingTimer->setInterval(1000);
