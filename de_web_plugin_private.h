@@ -852,7 +852,7 @@ public:
     std::vector<ApiAuth> apiAuths;
     QString gwAdminUserName;
     QString gwAdminPasswordHash;
-    ApiAuth::UserRole gWUserRole;
+
 
     // configuration
     bool gwLinkButton;
