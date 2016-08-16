@@ -1660,7 +1660,7 @@ void DeRestPluginPrivate::checkWifiState()
 {        
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
-    char const* cmd = "sudo bash /usr/share/deCONZ/check_wifi.sh";
+    char const* cmd = "sudo bash /usr/bin/deCONZ-check-wifi.sh";
     FILE* pipe = popen(cmd, "r");
     if (!pipe) return;
     char buffer[128];
