@@ -505,7 +505,7 @@ public:
     int resetConfig(const ApiRequest &req, ApiResponse &rsp);
     int changePassword(const ApiRequest &req, ApiResponse &rsp);
     int deletePassword(const ApiRequest &req, ApiResponse &rsp);
-    bool checkWifiParameter();
+    int getWifiState(const ApiRequest &req, ApiResponse &rsp);
 
     void configToMap(const ApiRequest &req, QVariantMap &map);
 
@@ -852,6 +852,7 @@ public:
     std::vector<ApiAuth> apiAuths;
     QString gwAdminUserName;
     QString gwAdminPasswordHash;
+    ApiAuth::UserRole gWUserRole;
 
     // configuration
     bool gwLinkButton;
@@ -861,7 +862,7 @@ public:
     QString gwAnnounceUrl;
     uint8_t gwPermitJoinDuration; // global permit join state (last set)
     uint16_t gwNetworkOpenDuration; // user setting how long network remains open
-    bool gwWifi;
+    QString gwWifi;     // not-configured | not-installed | not-running | running
     QString gwWifiType; // accesspoint | ad-hoc | client
     QString gwWifiName;
     uint8_t gwWifiChannel;

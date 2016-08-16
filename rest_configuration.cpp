@@ -45,6 +45,11 @@ int DeRestPluginPrivate::handleConfigurationApi(const ApiRequest &req, ApiRespon
     {
         return getConfig(req, rsp);
     }
+    // GET /api/<apikey>/config/wifi
+    else if ((req.path.size() == 4) && (req.hdr.method() == "GET") && (req.path[2] == "config") && (req.path[3] == "wifi"))
+    {
+        return getWifiState(req, rsp);
+    }
     // PUT /api/<apikey>/config
     else if ((req.path.size() == 3) && (req.hdr.method() == "PUT") && (req.path[2] == "config"))
     {
@@ -729,9 +734,11 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
     if (map.contains("wifi")) // optional
     {
-        bool wifi = map["wifi"].toBool();
+        QString wifi = map["wifi"].toString();
 
-        if (map["wifi"].type() != QVariant::Bool)
+        if (map["wifi"].type() != QVariant::String ||
+                ! ((wifi == "not-running") ||
+                   (wifi == "running")))
         {
             rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/wifi"), QString("invalid value, %1, for parameter, wifi").arg(map["wifi"].toString())));
             rsp.httpStatus = HttpStatusBadRequest;
@@ -1627,14 +1634,33 @@ std::string DeRestPluginPrivate::getTimezone()
     return "none";
 }
 
+/*! GET /api/config/wifi
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::getWifiState(const ApiRequest &req, ApiResponse &rsp)
+{
+    Q_UNUSED(req);
+
+    checkWifiState();
+
+    rsp.map["wifi"] = gwWifi;
+    rsp.map["wifitype"] = gwWifiType;
+    rsp.map["wifiname"] = gwWifiName;
+    rsp.map["wifichannel"] = gwWifiChannel;
+
+    rsp.httpStatus = HttpStatusOk;
+
+    return REQ_READY_SEND;
+}
+
 /*! check wifi state on raspberry pi.
  */
 void DeRestPluginPrivate::checkWifiState()
-{    
-
+{        
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
-    char const* cmd = "sudo hostapd_cli interface";
+    char const* cmd = "sudo bash /usr/share/deCONZ/check_wifi.sh";
     FILE* pipe = popen(cmd, "r");
     if (!pipe) return;
     char buffer[128];
@@ -1645,79 +1671,100 @@ void DeRestPluginPrivate::checkWifiState()
     }
     pclose(pipe);
 
-    if (QString::fromStdString(result).indexOf("wlan0") == -1)
+    if (QString::fromStdString(result).indexOf("not_installed") != -1)
     {
-        if (gwWifi == true)
+        if (gwWifi != "not-installed")
         {
             // changed
             updateEtag(gwConfigEtag);
-            gwWifi = false;
+            gwWifi = "not-installed";
         }
         return;
     }
-    else
+    if (QString::fromStdString(result).indexOf("no_file") != -1 || QString::fromStdString(result).indexOf("not_configured") != -1)
     {
-        if (gwWifi == false)
+        if (gwWifi != "not-configured")
         {
             // changed
             updateEtag(gwConfigEtag);
-            gwWifi = true;
+            gwWifi = "not-configured";
+        }
+        return;
+    }
+    bool ok = false;
+    if (QString::fromStdString(result).indexOf("wlan0_down") != -1)
+    {
+        if (QString::fromStdString(result).indexOf("mode_") != -1)
+        {
+            int begin = QString::fromStdString(result).indexOf("mode_");
+            int end = QString::fromStdString(result).indexOf("/mode");
+            gwWifiType = QString::fromStdString(result.substr(begin+5, end));
+        }
+
+        if (QString::fromStdString(result).indexOf("ssid_") != -1)
+        {
+            int begin = QString::fromStdString(result).indexOf("ssid_");
+            int end = QString::fromStdString(result).indexOf("/ssid");
+            gwWifiName = QString::fromStdString(result.substr(begin+5, end));
+        }
+
+        if (QString::fromStdString(result).indexOf("channel_") != -1)
+        {
+            int begin = QString::fromStdString(result).indexOf("channel_");
+            int end = QString::fromStdString(result).indexOf("/channel");
+            uint8_t channel = gwWifiChannel = QString::fromStdString(result.substr(begin+8, end)).toUInt(&ok);
+            if (ok)
+            {
+                gwWifiChannel = channel;
+            }
+        }
+
+        if (gwWifi != "not-running")
+        {
+            // changed
+            updateEtag(gwConfigEtag);
+            gwWifi = "not-running";
+        }
+        return;
+    }
+    if (QString::fromStdString(result).indexOf("wifi_running") != -1)
+    {
+        if (QString::fromStdString(result).indexOf("mode_") != -1)
+        {
+            int begin = QString::fromStdString(result).indexOf("mode_");
+            int end = QString::fromStdString(result).indexOf("/mode");
+            gwWifiType = QString::fromStdString(result.substr(begin+5, end));
+        }
+
+        if (QString::fromStdString(result).indexOf("ssid_") != -1)
+        {
+            int begin = QString::fromStdString(result).indexOf("ssid_");
+            int end = QString::fromStdString(result).indexOf("/ssid");
+            gwWifiName = QString::fromStdString(result.substr(begin+5, end));
+        }
+
+        if (QString::fromStdString(result).indexOf("channel_") != -1)
+        {
+            int begin = QString::fromStdString(result).indexOf("channel_");
+            int end = QString::fromStdString(result).indexOf("/channel");
+            uint8_t channel = QString::fromStdString(result.substr(begin+8, end)).toUInt(&ok);
+            if (ok)
+            {
+                gwWifiChannel = channel;
+            }
+        }
+
+        if (gwWifi != "running")
+        {
+            // changed
+            updateEtag(gwConfigEtag);
+            gwWifi = "running";
         }
         return;
     }
 #endif
 #endif
-    gwWifi = false;
+
     return;
 }
 
-/*! check wifi parameter on raspberry pi.
- */
-bool DeRestPluginPrivate::checkWifiParameter()
-{
-
-#ifdef ARCH_ARM
-#ifdef Q_OS_LINUX
-    char const* cmd = "cat /etc/hostapd/hostapd.conf | grep -E '^ssid='";
-    FILE* pipe = popen(cmd, "r");
-    if (!pipe) return false;
-    char buffer[128];
-    std::string result = "";
-    while(!feof(pipe)) {
-        if(fgets(buffer, 128, pipe) != NULL)
-            result += buffer;
-    }
-    pclose(pipe);
-
-    if (QString::fromStdString(result).indexOf("ssid=") == -1)
-    {
-        gwWifiName = "Not available";
-    }
-    else
-    {
-        gwWifiName = QString::fromStdString(result.substr(5));
-    }
-
-    char const* cmd2 = "cat /etc/network/interfaces | grep wireless-mode";
-    FILE* pipe2 = popen(cmd2, "r");
-    if (!pipe2) return false;
-    char buffer2[128];
-    std::string result2 = "";
-    while(!feof(pipe2)) {
-        if(fgets(buffer2, 128, pipe2) != NULL)
-            result2 += buffer2;
-    }
-    pclose(pipe2);
-
-    if (QString::fromStdString(result2).indexOf("ad-hoc") == -1)
-    {
-        gwWifiType = "accesspoint";
-    }
-    else
-    {
-        gwWifiType = "ad-hoc";
-    }
-#endif
-#endif
-    return true;
-}

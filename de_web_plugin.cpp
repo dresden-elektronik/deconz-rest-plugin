@@ -118,9 +118,9 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     gwRfConnectedExpected = (deCONZ::appArgumentNumeric("--auto-connect", 1) == 1) ? true : false;
     gwPermitJoinDuration = 0;
     gwNetworkOpenDuration = 60;
-    gwWifi = false;
+    gwWifi = "not-configured";
     gwWifiType = "accesspoint";
-    gwWifiName = "RaspBee-AP";
+    gwWifiName = "Not set";
     gwWifiChannel = 1;
     gwRgbwDisplay = "1";
     gwTimezone = QString::fromStdString(getTimezone());
@@ -263,7 +263,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     initChangeChannelApi();
     initResetDeviceApi();
     initFirmwareUpdate();
-    checkWifiParameter();
+    checkWifiState();
 }
 
 /*! Deconstructor for pimpl.
