@@ -330,28 +330,30 @@ int DeRestPluginPrivate::getLightState(const ApiRequest &req, ApiResponse &rsp)
     if (req.hdr.hasKey("Query-State"))
     {
         bool enabled = false;
-        int diff = idleTotalCounter - lightNode->lastRead();
+        int diff = idleTotalCounter - lightNode->lastRead(READ_ON_OFF);
         QString attrs = req.hdr.value("Query-State");
 
         // only read if time since last read is not too short
         if (diff > 3)
         {
-
             if (attrs.contains("on"))
             {
                 lightNode->enableRead(READ_ON_OFF);
+                lightNode->setLastRead(READ_ON_OFF, idleTotalCounter);
                 enabled = true;
             }
 
             if (attrs.contains("bri"))
             {
                 lightNode->enableRead(READ_LEVEL);
+                lightNode->setLastRead(READ_LEVEL, idleTotalCounter);
                 enabled = true;
             }
 
             if (attrs.contains("color") && lightNode->hasColor())
             {
                 lightNode->enableRead(READ_COLOR);
+                lightNode->setLastRead(READ_COLOR, idleTotalCounter);
                 enabled = true;
             }
         }
@@ -359,7 +361,6 @@ int DeRestPluginPrivate::getLightState(const ApiRequest &req, ApiResponse &rsp)
         if (enabled)
         {
             DBG_Printf(DBG_INFO, "Force read the attributes %s, for node %s\n", qPrintable(attrs), qPrintable(lightNode->address().toStringExt()));
-            lightNode->setLastRead(idleTotalCounter);
             processZclAttributes(lightNode);
         }
     }

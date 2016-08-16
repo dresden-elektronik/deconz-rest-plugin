@@ -21,7 +21,13 @@ RestNodeBase::RestNodeBase() :
     m_lastRead(0),
     m_lastAttributeReportBind(0)
 {
+    QTime t = QTime::currentTime();
 
+    for (int i = 0; i < 16; i++)
+    {
+        m_lastRead.push_back(0);
+        m_nextReadTime.push_back(t);
+    }
 }
 
 /*! Deconstructor.
@@ -137,33 +143,69 @@ void RestNodeBase::clearRead(uint32_t readFlags)
 }
 
 /*! Returns the time than the next auto reading is queued.
+    \param item the item to read
  */
-const QTime &RestNodeBase::nextReadTime() const
+const QTime &RestNodeBase::nextReadTime(uint32_t item) const
 {
-    return m_nextReadTime;
+    for (size_t i = 0; i < m_nextReadTime.size(); i++)
+    {
+        if ((1u << i) == item)
+        {
+            return m_nextReadTime[i];
+        }
+    }
+    Q_ASSERT(0 || "m_nextReadTime[] too small");
+    return m_invalidTime;
 }
 
 /*! Sets the time than the next auto reading should be queued.
+    \param item the item to read
     \param time the time for reading
  */
-void RestNodeBase::setNextReadTime(const QTime &time)
+void RestNodeBase::setNextReadTime(uint32_t item, const QTime &time)
 {
-    m_nextReadTime = time;
+    for (size_t i = 0; i < m_nextReadTime.size(); i++)
+    {
+        if ((1u << i) == item)
+        {
+            m_nextReadTime[i] = time;
+            return;
+        }
+    }
+    Q_ASSERT(0 || "m_nextReadTime[] too small");
 }
 
 /*! Returns the value of the idleTotalCounter than the last reading happend.
+    \param item the item to read
  */
-int RestNodeBase::lastRead() const
+int RestNodeBase::lastRead(uint32_t item) const
 {
-    return m_lastRead;
+    for (size_t i = 0; i < m_lastRead.size(); i++)
+    {
+        if ((1u << i) == item)
+        {
+            return m_lastRead[i];
+        }
+    }
+    Q_ASSERT(0 || "m_lastRead[] too small");
+    return 0;
 }
 
 /*! Sets the last read counter.
+    \param item the item to read
     \param lastRead copy of idleTotalCounter
  */
-void RestNodeBase::setLastRead(int lastRead)
+void RestNodeBase::setLastRead(uint32_t item, int lastRead)
 {
-    m_lastRead = lastRead;
+    for (size_t i = 0; i < m_lastRead.size(); i++)
+    {
+        if ((1u << i) == item)
+        {
+            m_lastRead[i] = lastRead;
+            return;
+        }
+    }
+    Q_ASSERT(0 || "m_lastRead[] too small");
 }
 
 /*! Returns the value of the idleTotalCounter than the last attribute report binding was done.

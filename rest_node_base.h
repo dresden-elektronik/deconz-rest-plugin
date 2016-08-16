@@ -63,10 +63,10 @@ public:
     bool mustRead(uint32_t readFlags);
     void enableRead(uint32_t readFlags);
     void clearRead(uint32_t readFlags);
-    const QTime &nextReadTime() const;
-    void setNextReadTime(const QTime &time);
-    int lastRead() const;
-    void setLastRead(int lastRead);
+    const QTime &nextReadTime(uint32_t item) const;
+    void setNextReadTime(uint32_t item, const QTime &time);
+    int lastRead(uint32_t item) const;
+    void setLastRead(uint32_t item, int lastRead);
     int lastAttributeReportBind() const;
     void setLastAttributeReportBind(int lastBind);
     bool mgmtBindSupported() const;
@@ -84,12 +84,13 @@ private:
     bool m_mgmtBindSupported;
 
     uint32_t m_read; // bitmap of READ_* flags
-    int m_lastRead; // copy of idleTotalCounter
+    std::vector<int> m_lastRead; // copy of idleTotalCounter
     int m_lastAttributeReportBind; // copy of idleTotalCounter
-    QTime m_nextReadTime;
+    std::vector<QTime> m_nextReadTime;
 
     NodeValue m_invalidValue;
     std::vector<NodeValue> m_values;
+    QTime m_invalidTime;
 };
 
 #endif // REST_NODE_BASE_H

@@ -1053,7 +1053,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
             config.setDuration(duration);
             DBG_Printf(DBG_INFO, "Force read/write of occupaction delay for sensor %s\n", qPrintable(sensor->address().toStringExt()));
             sensor->enableRead(WRITE_OCCUPANCY_CONFIG);
-            sensor->setNextReadTime(QTime::currentTime());
+            sensor->setNextReadTime(WRITE_OCCUPANCY_CONFIG, QTime::currentTime());
             Q_Q(DeRestPlugin);
             q->startZclAttributeTimer(0);
         }

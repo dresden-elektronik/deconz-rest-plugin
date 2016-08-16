@@ -394,9 +394,9 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
                         Sensor *s = getSensorNodeForAddress(task.req.dstAddress().ext());
                         if (s && s->isAvailable())
                         {
-                            s->setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongDelay));
+                            s->setNextReadTime(READ_GROUP_IDENTIFIERS, QTime::currentTime().addMSecs(ReadAttributesLongDelay));
                             s->enableRead(READ_GROUP_IDENTIFIERS);
-                            s->setLastRead(idleTotalCounter);
+                            s->setLastRead(READ_GROUP_IDENTIFIERS, idleTotalCounter);
                         }
                     }
                 }
@@ -1212,7 +1212,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 // refresh all with new values
                 DBG_Printf(DBG_INFO, "LightNode %u: %s updated\n", lightNode2->id().toUInt(), qPrintable(lightNode2->name()));
                 lightNode2->setIsAvailable(true);
-                lightNode2->setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongDelay));
+
                 lightNode2->enableRead(READ_VENDOR_NAME |
                                        READ_MODEL_ID |
                                        READ_SWBUILD_ID |
@@ -1223,7 +1223,18 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                                        READ_SCENES |
                                        READ_BINDING_TABLE);
 
-                lightNode2->setLastRead(idleTotalCounter);
+                QTime t = QTime::currentTime().addMSecs(ReadAttributesLongDelay);
+                for (uint32_t i = 0; i < 32; i++)
+                {
+                    uint32_t item = 1 << i;
+                    if (lightNode.mustRead(item))
+                    {
+                        lightNode.setNextReadTime(item, t);
+                        lightNode.setLastRead(item, idleTotalCounter);
+                    }
+                }
+
+                //lightNode2->setLastRead(idleTotalCounter);
                 updateEtag(lightNode2->etag);
             }
 
@@ -1366,7 +1377,8 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             }
 
             // force reading attributes
-            lightNode.setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongDelay));
+            QTime t = QTime::currentTime().addMSecs(ReadAttributesLongDelay);
+
             lightNode.enableRead(READ_VENDOR_NAME |
                                  READ_MODEL_ID |
                                  READ_SWBUILD_ID |
@@ -1376,7 +1388,15 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                                  READ_GROUPS |
                                  READ_SCENES |
                                  READ_BINDING_TABLE);
-            lightNode.setLastRead(idleTotalCounter);
+            for (uint32_t i = 0; i < 32; i++)
+            {
+                uint32_t item = 1 << i;
+                if (lightNode.mustRead(item))
+                {
+                    lightNode.setNextReadTime(item, t);
+                    lightNode.setLastRead(item, idleTotalCounter);
+                }
+            }
             lightNode.setLastAttributeReportBind(idleTotalCounter);
 
             DBG_Printf(DBG_INFO, "LightNode %u: %s added\n", lightNode.id().toUInt(), qPrintable(lightNode.name()));
@@ -1905,9 +1925,9 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor)
             // refresh all with new values
             DBG_Printf(DBG_INFO, "SensorNode id: %s (%s) available\n", qPrintable(sensor->id()), qPrintable(sensor->name()));
             sensor->setIsAvailable(true);
-            sensor->setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongDelay));
+            sensor->setNextReadTime(READ_BINDING_TABLE, QTime::currentTime().addMSecs(ReadAttributesLongDelay));
             sensor->enableRead(READ_BINDING_TABLE/* | READ_GROUP_IDENTIFIERS | READ_MODEL_ID | READ_SWBUILD_ID | READ_VENDOR_NAME*/);
-            sensor->setLastRead(idleTotalCounter);
+            //sensor->setLastRead(READ_BINDING_TABLE, idleTotalCounter);
             checkSensorBindingsForAttributeReporting(sensor);
             updated = true;
         }
@@ -1916,9 +1936,9 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor)
         {
             DBG_Printf(DBG_INFO, "Rediscovered deleted SensorNode %s set node %s\n", qPrintable(sensor->id()), qPrintable(sensor->address().toStringExt()));
             sensor->setDeletedState(Sensor::StateNormal);
-            sensor->setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongDelay));
+            sensor->setNextReadTime(READ_BINDING_TABLE, QTime::currentTime().addMSecs(ReadAttributesLongDelay));
             sensor->enableRead(READ_BINDING_TABLE | READ_GROUP_IDENTIFIERS | READ_MODEL_ID | READ_VENDOR_NAME);
-            sensor->setLastRead(idleTotalCounter);
+            //sensor->setLastRead(READ_BINDING_TABLE, idleTotalCounter);
             updated = true;
         }
     }
@@ -2105,9 +2125,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
             }
             else
             {
-                sensor->setLastRead(idleTotalCounter);
+                //sensor->setLastRead(idleTotalCounter);
                 sensor->enableRead(READ_OCCUPANCY_CONFIG);
-                sensor->setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongDelay));
+                sensor->setNextReadTime(READ_OCCUPANCY_CONFIG, QTime::currentTime().addMSecs(ReadAttributesLongDelay));
                 checkSensorNodeReachable(sensor);
                 Q_Q(DeRestPlugin);
                 q->startZclAttributeTimer(checkZclAttributesDelay);
@@ -2183,10 +2203,12 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         }
     }
 
+    QTime t = QTime::currentTime().addMSecs(ReadAttributesLongDelay);
+
     // force reading attributes
-    sensorNode.setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongDelay));
+    sensorNode.setNextReadTime(READ_BINDING_TABLE, t);
     sensorNode.enableRead(READ_BINDING_TABLE);
-    sensorNode.setLastRead(idleTotalCounter);
+    //sensorNode.setLastRead(idleTotalCounter);
     {
         std::vector<quint16>::const_iterator ci = fingerPrint.inClusters.begin();
         std::vector<quint16>::const_iterator cend = fingerPrint.inClusters.end();
@@ -2194,23 +2216,24 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             if (*ci == OCCUPANCY_SENSING_CLUSTER_ID)
             {
-                sensorNode.setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongDelay));
+                sensorNode.setNextReadTime(READ_OCCUPANCY_CONFIG, t);
                 sensorNode.enableRead(READ_OCCUPANCY_CONFIG);
-                sensorNode.setLastRead(idleTotalCounter);
+                //sensorNode.setLastRead(idleTotalCounter);
             }
             else if (*ci == COMMISSIONING_CLUSTER_ID)
             {
                 DBG_Printf(DBG_INFO, "SensorNode %u: %s read group identifiers\n", sensorNode.id().toUInt(), qPrintable(sensorNode.name()));
-                sensorNode.setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongDelay));
+                sensorNode.setNextReadTime(READ_GROUP_IDENTIFIERS, t);
                 sensorNode.enableRead(READ_GROUP_IDENTIFIERS);
-                sensorNode.setLastRead(idleTotalCounter);
+                //sensorNode.setLastRead(idleTotalCounter);
             }
             else if (*ci == BASIC_CLUSTER_ID)
             {
                 DBG_Printf(DBG_INFO, "SensorNode %u: %s read model id and vendor name\n", sensorNode.id().toUInt(), qPrintable(sensorNode.name()));
-                sensorNode.setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongDelay));
+                sensorNode.setNextReadTime(READ_MODEL_ID, t);
+                sensorNode.setNextReadTime(READ_VENDOR_NAME, t);
                 sensorNode.enableRead(READ_MODEL_ID | READ_VENDOR_NAME);
-                sensorNode.setLastRead(idleTotalCounter);
+                //sensorNode.setLastRead(idleTotalCounter);
             }
         }
     }
@@ -2445,7 +2468,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         DBG_Printf(DBG_INFO, "occupied to unoccupied delay is %u should be %u, force rewrite\n", ia->numericValue().u16, (quint16)i->config().duration());
                                         i->enableRead(WRITE_OCCUPANCY_CONFIG);
                                         i->enableRead(READ_OCCUPANCY_CONFIG);
-                                        i->setNextReadTime(QTime::currentTime());
+                                        i->setNextReadTime(WRITE_OCCUPANCY_CONFIG, QTime::currentTime());
+                                        i->setNextReadTime(READ_OCCUPANCY_CONFIG, QTime::currentTime());
                                         Q_Q(DeRestPlugin);
                                         q->startZclAttributeTimer(checkZclAttributesDelay);
                                     }
@@ -2913,10 +2937,10 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
     }
 
     // check if read should happen now
-    if (lightNode->nextReadTime() > QTime::currentTime())
-    {
-        return false;
-    }
+//    if (lightNode->nextReadTime() > QTime::currentTime())
+//    {
+//        return false;
+//    }
 
     if (!lightNode->isAvailable())
     {
@@ -3069,7 +3093,7 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
         }
     }
 
-    if ((processed < 2) && readColor && lightNode->mustRead(READ_COLOR))
+    if ((processed < 2) && readColor && lightNode->mustRead(READ_COLOR) && lightNode->hasColor())
     {
         std::vector<uint16_t> attributes;
         attributes.push_back(0x0000); // Current hue
@@ -3203,11 +3227,11 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         return false;
     }
 
-    // check if read should happen now
-    if (sensorNode->nextReadTime() > QTime::currentTime())
-    {
-        return false;
-    }
+//    // check if read should happen now
+//    if (sensorNode->nextReadTime() > QTime::currentTime())
+//    {
+//        return false;
+//    }
 
     if (!sensorNode->isAvailable())
     {
@@ -3795,6 +3819,7 @@ void DeRestPluginPrivate::readAllInGroup(Group *group)
         return;
     }
 
+    QTime t = QTime::currentTime().addMSecs(ReadAttributesLongerDelay);
     std::vector<LightNode>::iterator i = nodes.begin();
     std::vector<LightNode>::iterator end = nodes.end();
 
@@ -3804,8 +3829,27 @@ void DeRestPluginPrivate::readAllInGroup(Group *group)
         if (isLightNodeInGroup(lightNode, group->address()))
         {
             // force reading attributes
-            lightNode->setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongerDelay));
-            lightNode->enableRead(READ_ON_OFF | READ_COLOR | READ_LEVEL);
+
+            const NodeValue &onOff = lightNode->getZclValue(ONOFF_CLUSTER_ID, 0x0000);
+            const NodeValue &level = lightNode->getZclValue(LEVEL_CLUSTER_ID, 0x0000);
+
+            if (onOff.updateType != NodeValue::UpdateByZclReport)
+            {
+                lightNode->setNextReadTime(READ_ON_OFF, t);
+                lightNode->enableRead(READ_ON_OFF);
+            }
+
+            if (level.updateType != NodeValue::UpdateByZclReport)
+            {
+                lightNode->setNextReadTime(READ_LEVEL, t);
+                lightNode->enableRead(READ_LEVEL);
+            }
+
+            if (lightNode->hasColor())
+            {
+                lightNode->setNextReadTime(READ_COLOR, t);
+                lightNode->enableRead(READ_COLOR);
+            }
         }
     }
 }
@@ -5705,8 +5749,6 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
             DBG_Printf(DBG_INFO, "DeviceAnnce of LightNode: %s Permit Join: %i\n", qPrintable(ind.srcAddress().toStringExt()), gwPermitJoinDuration);
 
             // force reading attributes
-            i->setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongDelay));
-            i->setLastRead(idleTotalCounter);
 
             i->enableRead(READ_MODEL_ID |
                           READ_SWBUILD_ID |
@@ -5715,6 +5757,18 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
                           READ_ON_OFF |
                           READ_GROUPS |
                           READ_SCENES);
+
+            QTime t = QTime::currentTime().addMSecs(ReadAttributesLongDelay);
+            for (uint32_t ii = 0; ii < 32; ii++)
+            {
+                uint32_t item = 1 << ii;
+                if (i->mustRead(item))
+                {
+                    i->setNextReadTime(item, t);
+                    i->setLastRead(item, idleTotalCounter);
+                }
+            }
+
             i->setSwBuildId(QString()); // might be changed due otau
             updateEtag(i->etag);
         }
@@ -6283,6 +6337,7 @@ void DeRestPlugin::idleTimerFired()
 
     if (d->idleLimit <= 0)
     {
+        QTime t = QTime::currentTime();
         DBG_Printf(DBG_INFO_L2, "Idle timer triggered\n");
 
         if (!d->nodes.empty())
@@ -6307,31 +6362,76 @@ void DeRestPlugin::idleTimerFired()
                     break;
                 }
 
-                if (lightNode->lastRead() < (d->idleTotalCounter - IDLE_READ_LIMIT))
-                {
-                    lightNode->enableRead(READ_ON_OFF | READ_LEVEL | READ_COLOR | READ_GROUPS | READ_SCENES /*| READ_BINDING_TABLE*/);
+                const uint32_t items[]   = { READ_ON_OFF, READ_LEVEL, READ_COLOR, READ_GROUPS, READ_SCENES, 0 };
+                const int tRead[]        = {         120,        120,        240,         600,         600, 0 };
+                const quint16 clusters[] = {      0x0006,     0x0008,     0x0300,      0xffff,      0xffff, 0 };
+                const quint16 attrs[]    = {      0x0000,     0x0000,     0x0003,           0,           0, 0 };
 
-                    if (lightNode->modelId().isEmpty() && !lightNode->mustRead(READ_MODEL_ID))
+                for (size_t i = 0; items[i] != 0; i++)
+                {
+                    if (lightNode->lastRead(items[i]) < (d->idleTotalCounter - tRead[i]))
                     {
-                        lightNode->enableRead(READ_MODEL_ID);
+                        if (clusters[i] == COLOR_CLUSTER_ID && !lightNode->hasColor())
+                        {
+                            continue;
+                        }
+
+                        if (clusters[i] != 0xffff)
+                        {
+                            const NodeValue &val = lightNode->getZclValue(clusters[i], attrs[i]);
+                            if (val.updateType == NodeValue::UpdateByZclReport)
+                            {
+                                if (val.timestampLastReport.elapsed() < (tRead[i] * 1000))
+                                {
+                                    // fresh enough
+                                    continue;
+                                }
+                            }
+                            if (val.updateType == NodeValue::UpdateByZclRead)
+                            {
+                                if (val.timestampLastReadRequest.elapsed() < (tRead[i] * 1000))
+                                {
+                                    // fresh enough
+                                    continue;
+                                }
+                            }
+                        }
+
+                        lightNode->setNextReadTime(items[i], t);
+                        lightNode->setLastRead(items[i], d->idleTotalCounter);
+                        lightNode->enableRead(items[i]);
                         processLights = true;
                     }
-                    if (lightNode->swBuildId().isEmpty() && !lightNode->mustRead(READ_SWBUILD_ID))
-                    {
-                        lightNode->enableRead(READ_SWBUILD_ID);
-                        processLights = true;
-                    }
-                    if ((lightNode->manufacturer().isEmpty() || lightNode->manufacturer() == "Unknown") && !lightNode->mustRead(READ_SWBUILD_ID))
-                    {
-                        lightNode->enableRead(READ_VENDOR_NAME);
-                        processLights = true;
-                    }
-                    lightNode->setNextReadTime(QTime::currentTime());
-                    lightNode->setLastRead(d->idleTotalCounter);
+                }
+
+                if (lightNode->modelId().isEmpty() && !lightNode->mustRead(READ_MODEL_ID))
+                {
+                    lightNode->setLastRead(READ_MODEL_ID, d->idleTotalCounter);
+                    lightNode->enableRead(READ_MODEL_ID);
+                    lightNode->setNextReadTime(READ_MODEL_ID, t);
+                    processLights = true;
+                }
+                if (lightNode->swBuildId().isEmpty() && !lightNode->mustRead(READ_SWBUILD_ID))
+                {
+                    lightNode->setLastRead(READ_SWBUILD_ID, d->idleTotalCounter);
+                    lightNode->enableRead(READ_SWBUILD_ID);
+                    lightNode->setNextReadTime(READ_SWBUILD_ID, t);
+                    processLights = true;
+                }
+                if ((lightNode->manufacturer().isEmpty() || lightNode->manufacturer() == "Unknown") && !lightNode->mustRead(READ_SWBUILD_ID))
+                {
+                    lightNode->setLastRead(READ_VENDOR_NAME, d->idleTotalCounter);
+                    lightNode->enableRead(READ_VENDOR_NAME);
+                    lightNode->setNextReadTime(READ_VENDOR_NAME, t);
+                    processLights = true;
+                }
+
+                if (processLights)
+                {
                     DBG_Printf(DBG_INFO, "Force read attributes for node %s\n", qPrintable(lightNode->name()));
                 }
 
-                if (lightNode->lastAttributeReportBind() < (d->idleTotalCounter - IDLE_ATTR_REPORT_BIND_LIMIT))
+                if (lightNode->lastRead(READ_BINDING_TABLE) < (d->idleTotalCounter - IDLE_ATTR_REPORT_BIND_LIMIT))
                 {
                     d->checkLightBindingsForAttributeReporting(lightNode);
                     lightNode->setLastAttributeReportBind(d->idleTotalCounter);
@@ -6374,6 +6474,8 @@ void DeRestPlugin::idleTimerFired()
                     }
                     else
                     {
+                        sensorNode->setLastRead(READ_MODEL_ID, d->idleTotalCounter);
+                        sensorNode->setNextReadTime(READ_MODEL_ID, t);
                         sensorNode->enableRead(READ_MODEL_ID);
                         processSensors = true;
                     }
@@ -6382,65 +6484,64 @@ void DeRestPlugin::idleTimerFired()
                 if (sensorNode->manufacturer().isEmpty() ||
                     sensorNode->manufacturer() == QLatin1String("unknown"))
                 {
+                    sensorNode->setLastRead(READ_VENDOR_NAME, d->idleTotalCounter);
+                    sensorNode->setNextReadTime(READ_VENDOR_NAME, t);
                     sensorNode->enableRead(READ_VENDOR_NAME);
                     processSensors = true;
                 }
 
-                if (sensorNode->lastRead() < (d->idleTotalCounter - IDLE_READ_LIMIT))
+                if (sensorNode->lastRead(READ_BINDING_TABLE) < (d->idleTotalCounter - IDLE_READ_LIMIT))
                 {
-                    bool checkBindingTable = false;
-                    sensorNode->setLastRead(d->idleTotalCounter);
-                    sensorNode->setNextReadTime(QTime::currentTime());
-
+                    std::vector<quint16>::const_iterator ci = sensorNode->fingerPrint().inClusters.begin();
+                    std::vector<quint16>::const_iterator cend = sensorNode->fingerPrint().inClusters.end();
+                    for (;ci != cend; ++ci)
                     {
-                        std::vector<quint16>::const_iterator ci = sensorNode->fingerPrint().inClusters.begin();
-                        std::vector<quint16>::const_iterator cend = sensorNode->fingerPrint().inClusters.end();
-                        for (;ci != cend; ++ci)
+                        NodeValue val;
+
+                        if (*ci == ILLUMINANCE_MEASUREMENT_CLUSTER_ID)
                         {
-                            NodeValue val;
+                            val = sensorNode->getZclValue(*ci, 0x0000); // measured value
+                        }
+                        else if (*ci == OCCUPANCY_SENSING_CLUSTER_ID)
+                        {
+                            val = sensorNode->getZclValue(*ci, 0x0000); // occupied state
+                        }
 
-                            if (*ci == ILLUMINANCE_MEASUREMENT_CLUSTER_ID)
-                            {
-                                val = sensorNode->getZclValue(*ci, 0x0000); // measured value
-                            }
-                            else if (*ci == OCCUPANCY_SENSING_CLUSTER_ID)
-                            {
-                                val = sensorNode->getZclValue(*ci, 0x0000); // occupied state
-                            }
+                        if (val.timestampLastReport.isValid() &&
+                            val.timestampLastReport.secsTo(t) < (60 * 45)) // got update in timely manner
+                        {
+                            DBG_Printf(DBG_INFO, "binding for attribute reporting SensorNode %s of cluster 0x%04X seems to be active\n", qPrintable(sensorNode->name()), *ci);
+                        }
+                        else if (!sensorNode->mustRead(READ_BINDING_TABLE))
+                        {
+                            sensorNode->enableRead(READ_BINDING_TABLE);
+                            sensorNode->setLastRead(READ_BINDING_TABLE, d->idleTotalCounter);
+                            sensorNode->setNextReadTime(READ_BINDING_TABLE, t);
+                            processSensors = true;
+                        }
 
-                            if (val.timestampLastReport.isValid() &&
-                                val.timestampLastReport.secsTo(QTime::currentTime()) < (60 * 45)) // got update in timely manner
+                        if (*ci == OCCUPANCY_SENSING_CLUSTER_ID)
+                        {
+                            if (!sensorNode->mustRead(READ_OCCUPANCY_CONFIG))
                             {
-                                DBG_Printf(DBG_INFO, "binding for attribute reporting SensorNode %s of cluster 0x%04X seems to be active\n", qPrintable(sensorNode->name()), *ci);
-                            }
-                            else
-                            {
-                                checkBindingTable = true;
-                            }
+                                val = sensorNode->getZclValue(*ci, 0x0010); // PIR occupied to unoccupied delay
 
-                            if (*ci == OCCUPANCY_SENSING_CLUSTER_ID)
-                            {
-                                if (!sensorNode->mustRead(READ_OCCUPANCY_CONFIG))
+                                if (!val.timestamp.isValid() || val.timestamp.secsTo(t) > 1800)
                                 {
                                     sensorNode->enableRead(READ_OCCUPANCY_CONFIG);
+                                    sensorNode->setLastRead(READ_OCCUPANCY_CONFIG, d->idleTotalCounter);
+                                    sensorNode->setNextReadTime(READ_OCCUPANCY_CONFIG, t);
                                     processSensors = true;
                                 }
                             }
                         }
                     }
 
-
-                    if (checkBindingTable && !sensorNode->mustRead(READ_BINDING_TABLE))
-                    {
-                        sensorNode->enableRead(READ_BINDING_TABLE);
-                        processSensors = true;
-                    }
-
                     DBG_Printf(DBG_INFO, "Force read attributes for SensorNode %s\n", qPrintable(sensorNode->name()));
                     //break;
                 }
 
-                if (sensorNode->lastAttributeReportBind() < (d->idleTotalCounter - IDLE_ATTR_REPORT_BIND_LIMIT))
+                if (sensorNode->lastRead(READ_BINDING_TABLE) < (d->idleTotalCounter - IDLE_ATTR_REPORT_BIND_LIMIT))
                 {
                     d->checkSensorBindingsForAttributeReporting(sensorNode);
                     sensorNode->setLastAttributeReportBind(d->idleTotalCounter);
@@ -6485,7 +6586,11 @@ void DeRestPlugin::idleTimerFired()
 
         if (processLights || processSensors)
         {
-            d->idleLimit = 1;
+            if      (d->nodes.size() < 10)  { d->idleLimit = 1; }
+            else if (d->nodes.size() < 20)  { d->idleLimit = 2; }
+            else if (d->nodes.size() < 50)  { d->idleLimit = 5; }
+            else if (d->nodes.size() < 100) { d->idleLimit = 7; }
+            else if (d->nodes.size() < 150) { d->idleLimit = 8; }
         }
         else
         {
@@ -6498,19 +6603,19 @@ void DeRestPlugin::idleTimerFired()
  */
 void DeRestPlugin::refreshAll()
 {
-    std::vector<LightNode>::iterator i = d->nodes.begin();
-    std::vector<LightNode>::iterator end = d->nodes.end();
+//    std::vector<LightNode>::iterator i = d->nodes.begin();
+//    std::vector<LightNode>::iterator end = d->nodes.end();
 
-    for (; i != end; ++i)
-    {
-        // force refresh on next idle timer timeout
-        i->setLastRead(d->idleTotalCounter - (IDLE_READ_LIMIT + 1));
-    }
+//    for (; i != end; ++i)
+//    {
+//        // force refresh on next idle timer timeout
+//        i->setLastRead(d->idleTotalCounter - (IDLE_READ_LIMIT + 1));
+//    }
 
     d->idleLimit = 0;
     d->idleLastActivity = IDLE_USER_LIMIT;
-    d->runningTasks.clear();
-    d->tasks.clear();
+//    d->runningTasks.clear();
+//    d->tasks.clear();
 }
 
 /*! Starts the read attributes timer with a given \p delay.

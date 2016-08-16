@@ -1124,7 +1124,7 @@ void DeRestPluginPrivate::queueCheckRuleBindings(const Rule &rule)
                                 srcAddress = sensorNode->address().ext();
                                 srcEndpoint = ep;
                                 sensorNode->enableRead(READ_BINDING_TABLE);
-                                sensorNode->setNextReadTime(QTime::currentTime());
+                                sensorNode->setNextReadTime(READ_BINDING_TABLE, QTime::currentTime());
                                 q->startZclAttributeTimer(1000);
                                 break;
                             }

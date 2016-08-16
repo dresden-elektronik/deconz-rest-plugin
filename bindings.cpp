@@ -543,7 +543,7 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
     }
 
     lightNode->enableRead(READ_BINDING_TABLE);
-    lightNode->setNextReadTime(QTime::currentTime());
+    lightNode->setNextReadTime(READ_BINDING_TABLE, QTime::currentTime());
     Q_Q(DeRestPlugin);
     q->startZclAttributeTimer(1000);
 
@@ -653,7 +653,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
     if (checkBindingTable)
     {
         sensor->enableRead(READ_BINDING_TABLE);
-        sensor->setNextReadTime(QTime::currentTime());
+        sensor->setNextReadTime(READ_BINDING_TABLE, QTime::currentTime());
         Q_Q(DeRestPlugin);
         q->startZclAttributeTimer(1000);
     }
@@ -747,7 +747,7 @@ void DeRestPluginPrivate::bindingTimerFired()
                     if (i->restNode->mgmtBindSupported())
                     {
                         i->restNode->enableRead(READ_BINDING_TABLE);
-                        i->restNode->setNextReadTime(QTime::currentTime());
+                        i->restNode->setNextReadTime(READ_BINDING_TABLE, QTime::currentTime());
                         q->startZclAttributeTimer(1000);
 
                         i->state = BindingTask::StateCheck;
