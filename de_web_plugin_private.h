@@ -759,7 +759,7 @@ public:
     void foundGroup(uint16_t groupId);
     bool isLightNodeInGroup(LightNode *lightNode, uint16_t groupId);
     void deleteLightFromScenes(QString lightId, uint16_t groupId);
-    void readAllInGroup(Group *group);
+//    void readAllInGroup(Group *group);
     void setAttributeOnOffGroup(Group *group, uint8_t onOff);
     bool readSceneMembership(LightNode *lightNode, Group *group);
     void foundScene(LightNode *lightNode, Group *group, uint8_t sceneId);
@@ -1045,6 +1045,7 @@ public:
 
     QTimer *saveCurrentRuleInDbTimer;
     // general
+    QTime queryTime;
     deCONZ::ApsController *apsCtrl;
     uint groupTaskNodeIter; // Iterates through nodes array
     int idleTotalCounter; // sys timer
