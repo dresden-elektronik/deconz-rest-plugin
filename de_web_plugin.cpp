@@ -1220,10 +1220,12 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                     if (lightNode.mustRead(item))
                     {
                         lightNode.setNextReadTime(item, queryTime);
-                        queryTime = queryTime.addSecs(5);
                         lightNode.setLastRead(item, idleTotalCounter);
                     }
+
                 }
+
+                queryTime = queryTime.addSecs(1);
 
                 //lightNode2->setLastRead(idleTotalCounter);
                 updateEtag(lightNode2->etag);
@@ -1383,11 +1385,11 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 if (lightNode.mustRead(item))
                 {
                     lightNode.setNextReadTime(item, queryTime);
-                    queryTime = queryTime.addSecs(5);
                     lightNode.setLastRead(item, idleTotalCounter);
                 }
             }
             lightNode.setLastAttributeReportBind(idleTotalCounter);
+            queryTime = queryTime.addSecs(1);
 
             DBG_Printf(DBG_INFO, "LightNode %u: %s added\n", lightNode.id().toUInt(), qPrintable(lightNode.name()));
             nodes.push_back(lightNode);
@@ -2202,7 +2204,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     sensorNode.setNextReadTime(READ_BINDING_TABLE, queryTime);
     sensorNode.enableRead(READ_BINDING_TABLE);
     sensorNode.setLastRead(READ_BINDING_TABLE, idleTotalCounter);
-    queryTime = queryTime.addSecs(5);
+    queryTime = queryTime.addSecs(1);
     {
         std::vector<quint16>::const_iterator ci = fingerPrint.inClusters.begin();
         std::vector<quint16>::const_iterator cend = fingerPrint.inClusters.end();
@@ -2213,7 +2215,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.setNextReadTime(READ_OCCUPANCY_CONFIG, queryTime);
                 sensorNode.enableRead(READ_OCCUPANCY_CONFIG);
                 sensorNode.setLastRead(READ_OCCUPANCY_CONFIG, idleTotalCounter);
-                queryTime = queryTime.addSecs(5);
+                queryTime = queryTime.addSecs(1);
             }
             else if (*ci == COMMISSIONING_CLUSTER_ID)
             {
@@ -2221,7 +2223,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.setNextReadTime(READ_GROUP_IDENTIFIERS, t);
                 sensorNode.enableRead(READ_GROUP_IDENTIFIERS);
                 sensorNode.setLastRead(READ_GROUP_IDENTIFIERS, idleTotalCounter);
-                queryTime = queryTime.addSecs(5);
+                queryTime = queryTime.addSecs(1);
             }
             else if (*ci == BASIC_CLUSTER_ID)
             {
@@ -2229,11 +2231,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.setNextReadTime(READ_MODEL_ID, queryTime);
                 sensorNode.setLastRead(READ_MODEL_ID, idleTotalCounter);
                 sensorNode.enableRead(READ_MODEL_ID);
-                queryTime = queryTime.addSecs(5);
+                queryTime = queryTime.addSecs(1);
                 sensorNode.setNextReadTime(READ_VENDOR_NAME, queryTime);
                 sensorNode.setLastRead(READ_VENDOR_NAME, idleTotalCounter);
                 sensorNode.enableRead(READ_VENDOR_NAME);
-                queryTime = queryTime.addSecs(5);
+                queryTime = queryTime.addSecs(1);
             }
         }
     }
@@ -2466,12 +2468,19 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     else
                                     {
                                         DBG_Printf(DBG_INFO, "occupied to unoccupied delay is %u should be %u, force rewrite\n", ia->numericValue().u16, (quint16)i->config().duration());
-                                        i->enableRead(WRITE_OCCUPANCY_CONFIG);
-                                        i->enableRead(READ_OCCUPANCY_CONFIG);
-                                        i->setNextReadTime(WRITE_OCCUPANCY_CONFIG, queryTime);
-                                        queryTime = queryTime.addSecs(5);
-                                        i->setNextReadTime(READ_OCCUPANCY_CONFIG, queryTime);
-                                        queryTime = queryTime.addSecs(5);
+                                        if (!i->mustRead(WRITE_OCCUPANCY_CONFIG))
+                                        {
+                                            i->enableRead(WRITE_OCCUPANCY_CONFIG);
+                                            i->setNextReadTime(WRITE_OCCUPANCY_CONFIG, queryTime);
+                                            queryTime = queryTime.addSecs(1);
+                                        }
+
+                                        if (!i->mustRead(READ_OCCUPANCY_CONFIG))
+                                        {
+                                            i->enableRead(READ_OCCUPANCY_CONFIG);
+                                            i->setNextReadTime(READ_OCCUPANCY_CONFIG, queryTime);
+                                            queryTime = queryTime.addSecs(5);
+                                        }
                                         Q_Q(DeRestPlugin);
                                         q->startZclAttributeTimer(checkZclAttributesDelay);
                                     }
@@ -5773,10 +5782,10 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
                 {
                     i->setNextReadTime(item, queryTime);
                     i->setLastRead(item, idleTotalCounter);
-                    queryTime = queryTime.addSecs(5);
                 }
             }
 
+            queryTime = queryTime.addSecs(1);
             i->setSwBuildId(QString()); // might be changed due otau
             updateEtag(i->etag);
         }
