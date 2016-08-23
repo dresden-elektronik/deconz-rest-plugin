@@ -534,6 +534,11 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
     bool changed = false;
     QVariant var = Json::parse(req.content, ok);
     QVariantMap map = var.toMap();
+#ifdef ARCH_ARM
+#ifdef Q_OS_LINUX
+    std::string command = "";
+#endif
+#endif
 
     DBG_Assert(apsCtrl != 0);
 
@@ -807,7 +812,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
-            std::string command = "sudo bash /usr/bin/deCONZ-configure-wifi.sh " + wifiType.toStdString() + " " + wifiName.toStdString() + " " + wifiPassword.toStdString() + " " + std::to_string(wifiChannel);
+            command = "sudo bash /usr/bin/deCONZ-configure-wifi.sh " + wifiType.toStdString() + " " + wifiName.toStdString() + " " + wifiPassword.toStdString() + " " + std::to_string(wifiChannel);
             system(command.c_str());
 #endif
 #endif
@@ -817,7 +822,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         {
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
-            std::string command = "sudo service hostapd restart";
+            command = "sudo service hostapd restart";
             system(command.c_str());
 #endif
 #endif
@@ -905,7 +910,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
-            std::string command = "sudo bash /usr/bin/deCONZ-configure-wifi.sh " + wifiType.toStdString() + " " + wifiName.toStdString() + " " + wifiPassword.toStdString() + " " + std::to_string(wifiChannel);
+            command = "sudo bash /usr/bin/deCONZ-configure-wifi.sh " + wifiType.toStdString() + " " + wifiName.toStdString() + " " + wifiPassword.toStdString() + " " + std::to_string(wifiChannel);
             system(command.c_str());
 #endif
 #endif
@@ -936,7 +941,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         {
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
-            std::string command = "sudo sed -i 's/^ssid=.*/ssid=" + wifiName.toStdString() + "/g' /etc/hostapd/hostapd.conf";
+            command = "sudo sed -i 's/^ssid=.*/ssid=" + wifiName.toStdString() + "/g' /etc/hostapd/hostapd.conf";
             system(command.c_str());
 #endif
 #endif
@@ -944,14 +949,8 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
             {
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
-                std::string command = "sudo service hostapd restart";
+                command = "sudo service hostapd restart";
                 system(command.c_str());
-#endif
-#endif
-
-#ifdef ARCH_ARM
-#ifdef Q_OS_LINUX
-                std::string command = "sudo service hostapd restart";
                 system(command.c_str());
 #endif
 #endif
@@ -981,7 +980,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         {
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
-            std::string command = "sudo sed -i 's/^channel=.*/channel=" + std::to_string(wifiChannel) + "/g' /etc/hostapd/hostapd.conf";
+            command = "sudo sed -i 's/^channel=.*/channel=" + std::to_string(wifiChannel) + "/g' /etc/hostapd/hostapd.conf";
             system(command.c_str());
 #endif
 #endif
@@ -989,14 +988,8 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
             {
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
-                std::string command = "sudo service hostapd restart";
+                command = "sudo service hostapd restart";
                 system(command.c_str());
-#endif
-#endif
-
-#ifdef ARCH_ARM
-#ifdef Q_OS_LINUX
-                std::string command = "sudo service hostapd restart";
                 system(command.c_str());
 #endif
 #endif
@@ -1026,7 +1019,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
-        std::string command = "sudo sed -i 's/wpa_passphrase=.*/wpa_passphrase=" + wifiPassword.toStdString() + "/g' /etc/hostapd/hostapd.conf";
+        command = "sudo sed -i 's/wpa_passphrase=.*/wpa_passphrase=" + wifiPassword.toStdString() + "/g' /etc/hostapd/hostapd.conf";
         system(command.c_str());
 #endif
 #endif
@@ -1034,14 +1027,8 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         {
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
-            std::string command = "sudo service hostapd restart";
+            command = "sudo service hostapd restart";
             system(command.c_str());
-#endif
-#endif
-
-#ifdef ARCH_ARM
-#ifdef Q_OS_LINUX
-            std::string command = "sudo service hostapd restart";
             system(command.c_str());
 #endif
 #endif
@@ -1219,7 +1206,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
             //set timezone under gnu linux
-            std::string command = "echo '" + timezone.toStdString() + "' | sudo tee /etc/timezone";
+            command = "echo '" + timezone.toStdString() + "' | sudo tee /etc/timezone";
             system(command.c_str());
 
             command = "sudo dpkg-reconfigure -f noninteractive tzdata";
@@ -1280,7 +1267,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
             QString date = map["utc"].toString().mid(0, 10);
             QString time = map["utc"].toString().mid(11, 8);
 
-            std::string command = "sudo date -s " + date.toStdString();
+            command = "sudo date -s " + date.toStdString();
             system(command.c_str());
 
             DBG_Printf(DBG_INFO, "command set date: %s\n", qPrintable(QString::fromStdString(command)));
