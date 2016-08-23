@@ -749,6 +749,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         QString wifiName = "RaspBee-AP";
         int wifiChannel = 1;
         QString wifiPassword = "raspbeegw";
+        bool ret = true;
 
         if (gwWifi == "not-configured" && wifi == "running")
         {
@@ -820,8 +821,12 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
             system(command.c_str());
 #endif
 #endif
+        }   
+        else if ((gwWifi == "running" && wifi == "running") ||
+                 (gwWifi == "not-running" && wifi == "not-running"))
+        {
+            ret = false;
         }
-
 
         if (gwWifi != wifi)
         {
@@ -834,7 +839,11 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         rspItemState["/config/wifi"] = wifi;
         rspItem["success"] = rspItemState;
         rsp.list.append(rspItem);
-        return REQ_READY_SEND;
+        if (ret == true)
+        {
+            // skip return here because user wants to set wifitype, ssid, pw or channel
+            return REQ_READY_SEND;
+        }
     }
 
     if (map.contains("wifitype")) // optional
