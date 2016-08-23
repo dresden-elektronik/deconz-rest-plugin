@@ -752,7 +752,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
         QString wifiType = "accesspoint";
         QString wifiName = "RaspBee-AP";
-        int wifiChannel = 1;
+        QString wifiChannel = "1";
         QString wifiPassword = "raspbeegw";
         bool ret = true;
 
@@ -788,8 +788,8 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
             if (map.contains("wifichannel"))
             {
-                wifiChannel = map["wifichannel"].toInt(&ok);
-                if (!ok || !((wifiChannel >= 1) && (wifiChannel <= 11)))
+                wifiChannel = map["wifichannel"].toString();
+                if (!((wifiChannel.toInt(&ok) >= 1) && (wifiChannel.toInt(&ok) <= 11)))
                 {
                     rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/wifichannel"), QString("invalid value, %1, for parameter, wifichannel").arg(map["wifichannel"].toString())));
                     rsp.httpStatus = HttpStatusBadRequest;
@@ -812,7 +812,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
-            command = "sudo bash /usr/bin/deCONZ-configure-wifi.sh " + wifiType.toStdString() + " " + wifiName.toStdString() + " " + wifiPassword.toStdString() + " " + std::to_string(wifiChannel);
+            command = "sudo bash /usr/bin/deCONZ-configure-wifi.sh " + wifiType.toStdString() + " " + wifiName.toStdString() + " " + wifiPassword.toStdString() + " " + wifiChannel.toStdString();
             system(command.c_str());
 #endif
 #endif
@@ -868,7 +868,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         if (gwWifiType != wifiType)
         {
             QString wifiName = "RaspBee-AP";
-            int wifiChannel = 1;
+            QString wifiChannel = "1";
             QString wifiPassword = "raspbeegw";
 
             if (map.contains("wifiname"))
@@ -886,8 +886,8 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
             if (map.contains("wifichannel"))
             {
-                wifiChannel = map["wifichannel"].toInt(&ok);
-                if (!ok || !((wifiChannel >= 1) && (wifiChannel <= 11)))
+                wifiChannel = map["wifichannel"].toString();
+                if (!((wifiChannel.toInt(&ok) >= 1) && (wifiChannel.toInt(&ok) <= 11)))
                 {
                     rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/wifichannel"), QString("invalid value, %1, for parameter, wifichannel").arg(map["wifichannel"].toString())));
                     rsp.httpStatus = HttpStatusBadRequest;
@@ -910,7 +910,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
-            command = "sudo bash /usr/bin/deCONZ-configure-wifi.sh " + wifiType.toStdString() + " " + wifiName.toStdString() + " " + wifiPassword.toStdString() + " " + std::to_string(wifiChannel);
+            command = "sudo bash /usr/bin/deCONZ-configure-wifi.sh " + wifiType.toStdString() + " " + wifiName.toStdString() + " " + wifiPassword.toStdString() + " " + wifiChannel.toStdString();
             system(command.c_str());
 #endif
 #endif
@@ -968,8 +968,8 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
     if (map.contains("wifichannel")) // optional
     {
-        int wifiChannel = map["wifichannel"].toInt(&ok);
-        if (!ok || !((wifiChannel >= 1) && (wifiChannel <= 11)))
+        QString wifiChannel = map["wifichannel"].toString();
+        if (!((wifiChannel.toInt(&ok) >= 1) && (wifiChannel.toInt(&ok) <= 11)))
         {
             rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/wifichannel"), QString("invalid value, %1, for parameter, wifichannel").arg(map["wifichannel"].toString())));
             rsp.httpStatus = HttpStatusBadRequest;
@@ -980,7 +980,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         {
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
-            command = "sudo sed -i 's/^channel=.*/channel=" + std::to_string(wifiChannel) + "/g' /etc/hostapd/hostapd.conf";
+            command = "sudo sed -i 's/^channel=.*/channel=" + wifiChannel.toStdString() + "/g' /etc/hostapd/hostapd.conf";
             system(command.c_str());
 #endif
 #endif
@@ -1000,7 +1000,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
         QVariantMap rspItem;
         QVariantMap rspItemState;
-        rspItemState["/config/wifichannel"] = (double)wifiChannel;
+        rspItemState["/config/wifichannel"] = wifiChannel;
         rspItem["success"] = rspItemState;
         rsp.list.append(rspItem);
     }
@@ -1866,7 +1866,7 @@ void DeRestPluginPrivate::checkWifiState()
         {
             int begin = QString::fromStdString(result).indexOf("channel_");
             int end = QString::fromStdString(result).indexOf("/channel");
-            uint8_t channel = gwWifiChannel = QString::fromStdString(result.substr(begin+8, end-begin)).toUInt(&ok);
+            QString channel = gwWifiChannel = QString::fromStdString(result.substr(begin+8, end-begin));
             if (ok)
             {
                 gwWifiChannel = channel;
@@ -1901,7 +1901,7 @@ void DeRestPluginPrivate::checkWifiState()
         {
             int begin = QString::fromStdString(result).indexOf("channel_");
             int end = QString::fromStdString(result).indexOf("/channel");
-            uint8_t channel = QString::fromStdString(result.substr(begin+8, end-begin)).toUInt(&ok);
+            QString channel = QString::fromStdString(result.substr(begin+8, end-begin));
             if (ok)
             {
                 gwWifiChannel = channel;

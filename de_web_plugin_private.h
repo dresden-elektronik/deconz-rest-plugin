@@ -865,7 +865,7 @@ public:
     QString gwWifi;     // not-configured | not-installed | not-running | running
     QString gwWifiType; // accesspoint | ad-hoc | client
     QString gwWifiName;
-    uint8_t gwWifiChannel;
+    QString gwWifiChannel;
     QString gwTimezone;
     QString gwTimeFormat;
     QString gwIpAddress;
