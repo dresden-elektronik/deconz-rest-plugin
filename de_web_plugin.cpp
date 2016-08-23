@@ -145,6 +145,9 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     }
     updateEtag(gwConfigEtag);
 
+    gwProxyPort = 0;
+    gwProxyAddress = "none";
+
     // set some default might be overwritten by database
     gwAnnounceInterval = ANNOUNCE_INTERVAL;
     gwAnnounceUrl = "http://dresden-light.appspot.com/discover";

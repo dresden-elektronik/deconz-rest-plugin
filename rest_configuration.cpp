@@ -341,8 +341,8 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         map["zigbeechannel"] = (double)gwZigbeeChannel;
     }
     map["dhcp"] = true; // dummy
-    map["proxyaddress"] = ""; // dummy
-    map["proxyport"] = (double)0; // dummy
+    map["proxyaddress"] = gwProxyAddress;
+    map["proxyport"] = (double)gwProxyPort;
     map["utc"] = datetime.toString("yyyy-MM-ddTHH:mm:ss"); // ISO 8601
     map["localtime"] = localtime.toString("yyyy-MM-ddTHH:mm:ss"); // ISO 8601
     map["timezone"] = gwTimezone;

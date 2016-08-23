@@ -238,6 +238,7 @@ extern const char *HttpContentSVG;
 class QUdpSocket;
 class QTcpSocket;
 class DeRestPlugin;
+class QHostInfo;
 class QNetworkReply;
 class QNetworkAccessManager;
 class QProcess;
@@ -643,6 +644,7 @@ public Q_SLOTS:
     void internetDiscoveryTimerFired();
     void internetDiscoveryFinishedRequest(QNetworkReply *reply);
     void internetDiscoveryExtractVersionInfo(QNetworkReply *reply);
+    void inetProxyHostLookupDone(const QHostInfo &host);
     void scheduleTimerFired();
     void permitJoinTimerFired();
     void otauTimerFired();
@@ -866,6 +868,8 @@ public:
     QString gwWifiType; // accesspoint | ad-hoc | client
     QString gwWifiName;
     QString gwWifiChannel;
+    QString gwProxyAddress;
+    quint16 gwProxyPort;
     QString gwTimezone;
     QString gwTimeFormat;
     QString gwIpAddress;
