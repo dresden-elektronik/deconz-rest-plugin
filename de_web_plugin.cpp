@@ -6764,6 +6764,24 @@ bool DeRestPlugin::startUpdateFirmware()
     return d->startUpdateFirmware();
 }
 
+const QString &DeRestPlugin::getNodeName(quint64 extAddress) const
+{
+    LightNode *lightNode = d->getLightNodeForAddress(extAddress);
+
+    if (lightNode)
+    {
+        return lightNode->name();
+    }
+
+    Sensor *sensor = d->getSensorNodeForAddress(extAddress);
+    if (sensor)
+    {
+        return sensor->name();
+    }
+
+    return d->emptyString;
+}
+
 /*! Query this plugin which features are supported.
     \param feature - feature to be checked
     \return true if supported

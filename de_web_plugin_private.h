@@ -849,6 +849,7 @@ public:
     std::vector<int> lightIds;
     std::vector<int> sensorIds;
     QTimer *databaseTimer;
+    QString emptyString;
 
     // authentification
     std::vector<ApiAuth> apiAuths;
