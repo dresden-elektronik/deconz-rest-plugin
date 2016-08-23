@@ -1856,21 +1856,21 @@ void DeRestPluginPrivate::checkWifiState()
         {
             int begin = QString::fromStdString(result).indexOf("mode_");
             int end = QString::fromStdString(result).indexOf("/mode");
-            gwWifiType = QString::fromStdString(result.substr(begin+5, end));
+            gwWifiType = QString::fromStdString(result.substr(begin+5, end-begin));
         }
 
         if (QString::fromStdString(result).indexOf("ssid_") != -1)
         {
             int begin = QString::fromStdString(result).indexOf("ssid_");
             int end = QString::fromStdString(result).indexOf("/ssid");
-            gwWifiName = QString::fromStdString(result.substr(begin+5, end));
+            gwWifiName = QString::fromStdString(result.substr(begin+5, end-begin));
         }
 
         if (QString::fromStdString(result).indexOf("channel_") != -1)
         {
             int begin = QString::fromStdString(result).indexOf("channel_");
             int end = QString::fromStdString(result).indexOf("/channel");
-            uint8_t channel = gwWifiChannel = QString::fromStdString(result.substr(begin+8, end)).toUInt(&ok);
+            uint8_t channel = gwWifiChannel = QString::fromStdString(result.substr(begin+8, end-begin)).toUInt(&ok);
             if (ok)
             {
                 gwWifiChannel = channel;
@@ -1891,21 +1891,21 @@ void DeRestPluginPrivate::checkWifiState()
         {
             int begin = QString::fromStdString(result).indexOf("mode_");
             int end = QString::fromStdString(result).indexOf("/mode");
-            gwWifiType = QString::fromStdString(result.substr(begin+5, end));
+            gwWifiType = QString::fromStdString(result.substr(begin+5, end-begin));
         }
 
         if (QString::fromStdString(result).indexOf("ssid_") != -1)
         {
             int begin = QString::fromStdString(result).indexOf("ssid_");
             int end = QString::fromStdString(result).indexOf("/ssid");
-            gwWifiName = QString::fromStdString(result.substr(begin+5, end));
+            gwWifiName = QString::fromStdString(result.substr(begin+5, end-begin));
         }
 
         if (QString::fromStdString(result).indexOf("channel_") != -1)
         {
             int begin = QString::fromStdString(result).indexOf("channel_");
             int end = QString::fromStdString(result).indexOf("/channel");
-            uint8_t channel = QString::fromStdString(result.substr(begin+8, end)).toUInt(&ok);
+            uint8_t channel = QString::fromStdString(result.substr(begin+8, end-begin)).toUInt(&ok);
             if (ok)
             {
                 gwWifiChannel = channel;
