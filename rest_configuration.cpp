@@ -822,8 +822,24 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         {
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
-            command = "sudo service hostapd restart";
-            system(command.c_str());
+            if (gwWifiType == "client")
+            {
+                if (gwWifi == "not-running" && wifi == "running")
+                {
+                    command = "sudo ifup wlan0";
+                    system(command.c_str());
+                }
+                else
+                {
+                    command = "sudo ifdown wlan0";
+                    system(command.c_str());
+                }
+            }
+            else
+            {
+                command = "sudo service hostapd restart";
+                system(command.c_str());
+            }
 #endif
 #endif
         }   
@@ -941,17 +957,41 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         {
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
-            command = "sudo sed -i 's/^ssid=.*/ssid=" + wifiName.toStdString() + "/g' /etc/hostapd/hostapd.conf";
-            system(command.c_str());
+            if (gwWifiType == "client")
+            {
+                command = "sudo sed -i 's/.*ssid=.*/ssid=\"" + wifiName.toStdString() + "\"/g' /etc/wpa_supplicant/wpa_supplicant.conf";
+                system(command.c_str());
+            }
+            else
+            {
+                command = "sudo sed -i 's/^ssid=.*/ssid=" + wifiName.toStdString() + "/g' /etc/hostapd/hostapd.conf";
+                system(command.c_str());
+            }
 #endif
 #endif
             if (gwWifi == "running")
             {
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
-                command = "sudo service hostapd restart";
-                system(command.c_str());
-                system(command.c_str());
+                if (gwWifiType == "client")
+                {
+                    command = "sudo ifdown wlan0";
+                    system(command.c_str());
+
+                    command = "sudo ifup wlan0";
+                    system(command.c_str());
+                }
+                else
+                {
+                    command = "sudo service hostapd restart";
+                    system(command.c_str());
+
+                    command = "sleep 1";
+                    system(command.c_str());
+
+                    command = "sudo service hostapd restart";
+                    system(command.c_str());
+                }
 #endif
 #endif
             }
@@ -1019,17 +1059,41 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
-        command = "sudo sed -i 's/wpa_passphrase=.*/wpa_passphrase=" + wifiPassword.toStdString() + "/g' /etc/hostapd/hostapd.conf";
-        system(command.c_str());
+        if (gwWifiType == "client")
+        {
+            command = "sudo sed -i 's/.*psk=.*/psk=\"" + wifiPassword.toStdString() + "\"/g' /etc/wpa_supplicant/wpa_supplicant.conf";
+            system(command.c_str());
+        }
+        else
+        {
+            command = "sudo sed -i 's/wpa_passphrase=.*/wpa_passphrase=" + wifiPassword.toStdString() + "/g' /etc/hostapd/hostapd.conf";
+            system(command.c_str());
+        }
 #endif
 #endif
         if (gwWifi == "running")
         {
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
-            command = "sudo service hostapd restart";
-            system(command.c_str());
-            system(command.c_str());
+            if (gwWifiType == "client")
+            {
+                command = "sudo ifdown wlan0";
+                system(command.c_str());
+
+                command = "sudo ifup wlan0";
+                system(command.c_str());
+            }
+            else
+            {
+                command = "sudo service hostapd restart";
+                system(command.c_str());
+
+                command = "sleep 1";
+                system(command.c_str());
+
+                command = "sudo service hostapd restart";
+                system(command.c_str());
+            }
 #endif
 #endif
         }
@@ -1845,7 +1909,6 @@ void DeRestPluginPrivate::checkWifiState()
         }
         return;
     }
-    bool ok = false;
     if (QString::fromStdString(result).indexOf("wlan0_down") != -1)
     {
         if (QString::fromStdString(result).indexOf("mode_") != -1)
