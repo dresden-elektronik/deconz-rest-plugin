@@ -756,60 +756,61 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         QString wifiPassword = "raspbeegw";
         bool ret = true;
 
-        if (gwWifi == "not-configured" && wifi == "running")
+        if (map.contains("wifitype"))
         {
-            if (map.contains("wifitype"))
+            wifiType = map["wifitype"].toString();
+
+            if ((map["wifitype"].type() != QVariant::String) ||
+                   ! ((wifiType == "accesspoint") ||
+                      (wifiType == "ad-hoc") ||
+                      (wifiType == "client")))
             {
-                wifiType = map["wifitype"].toString();
-
-                if ((map["wifitype"].type() != QVariant::String) ||
-                       ! ((wifiType == "accesspoint") ||
-                          (wifiType == "ad-hoc") ||
-                          (wifiType == "client")))
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/wifitype"), QString("invalid value, %1, for parameter, wifitype").arg(map["wifitype"].toString())));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
+                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/wifitype"), QString("invalid value, %1, for parameter, wifitype").arg(map["wifitype"].toString())));
+                rsp.httpStatus = HttpStatusBadRequest;
+                return REQ_READY_SEND;
             }
+        }
 
-            if (map.contains("wifiname"))
+        if (map.contains("wifiname"))
+        {
+            wifiName = map["wifiname"].toString();
+
+            if ((map["wifiname"].type() != QVariant::String) ||
+                (map["wifiname"].toString().length() > 32))
             {
-                wifiName = map["wifiname"].toString();
-
-                if ((map["wifiname"].type() != QVariant::String) ||
-                    (map["wifiname"].toString().length() > 32))
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/wifiname"), QString("invalid value, %1, for parameter, wifiname").arg(map["wifiname"].toString())));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
+                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/wifiname"), QString("invalid value, %1, for parameter, wifiname").arg(map["wifiname"].toString())));
+                rsp.httpStatus = HttpStatusBadRequest;
+                return REQ_READY_SEND;
             }
+        }
 
-            if (map.contains("wifichannel"))
+        if (map.contains("wifichannel"))
+        {
+            wifiChannel = map["wifichannel"].toString();
+            if (!((wifiChannel.toInt(&ok) >= 1) && (wifiChannel.toInt(&ok) <= 11)))
             {
-                wifiChannel = map["wifichannel"].toString();
-                if (!((wifiChannel.toInt(&ok) >= 1) && (wifiChannel.toInt(&ok) <= 11)))
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/wifichannel"), QString("invalid value, %1, for parameter, wifichannel").arg(map["wifichannel"].toString())));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
+                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/wifichannel"), QString("invalid value, %1, for parameter, wifichannel").arg(map["wifichannel"].toString())));
+                rsp.httpStatus = HttpStatusBadRequest;
+                return REQ_READY_SEND;
             }
+        }
 
-            if (map.contains("wifipassword"))
+        if (map.contains("wifipassword"))
+        {
+            wifiPassword = map["wifipassword"].toString();
+
+            if (map["wifipassword"].type() != QVariant::String ||
+                wifiPassword.length() < 8 || wifiPassword.length() > 64)
             {
-                wifiPassword = map["wifipassword"].toString();
-
-                if (map["wifipassword"].type() != QVariant::String ||
-                    wifiPassword.length() < 8 || wifiPassword.length() > 64)
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/wifipassword"), QString("invalid value, %1, for parameter, wifipassword").arg(map["wifipassword"].toString())));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
+                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/wifipassword"), QString("invalid value, %1, for parameter, wifipassword").arg(map["wifipassword"].toString())));
+                rsp.httpStatus = HttpStatusBadRequest;
+                return REQ_READY_SEND;
             }
+        }
 
+        if ((gwWifi == "not-configured" && wifi == "running") ||
+            (wifiType == "client" && map.contains("wifipassword") && map.contains("wifiname")))
+        { 
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
             command = "sudo bash /usr/bin/deCONZ-configure-wifi.sh " + wifiType.toStdString() + " \"" + wifiName.toStdString() + "\" \"" + wifiPassword.toStdString() + "\" " + wifiChannel.toStdString();
@@ -871,8 +872,8 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 #endif
 #endif
         }   
-        else if ((gwWifi == "running" && wifi == "running") ||
-                 (gwWifi == "not-running" && wifi == "not-running"))
+        else if ((gwWifi == "running" && wifi == "running" || gwWifi == "not-running" && wifi == "not-running") &&
+                 wifiType != "client")
         {
             ret = false;
         }
@@ -1009,12 +1010,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         {
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
-            if (gwWifiType == "client")
-            {
-                command = "sudo sed -i 's/.*ssid=.*/ssid=\"" + wifiName.toStdString() + "\"/g' /etc/wpa_supplicant/wpa_supplicant.conf";
-                system(command.c_str());
-            }
-            else
+            if (gwWifiType != "client")
             {
                 command = "sudo sed -i 's/^ssid=.*/ssid=" + wifiName.toStdString() + "/g' /etc/hostapd/hostapd.conf";
                 system(command.c_str());
@@ -1025,15 +1021,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
             {
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
-                if (gwWifiType == "client")
-                {
-                    command = "sudo ifdown wlan0";
-                    system(command.c_str());
-
-                    command = "sudo ifup wlan0";
-                    system(command.c_str());
-                }
-                else
+                if (gwWifiType != "client")
                 {
                     command = "sudo service hostapd restart";
                     system(command.c_str());
@@ -1111,12 +1099,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
-        if (gwWifiType == "client")
-        {
-            command = "sudo sed -i 's/.*psk=.*/psk=\"" + wifiPassword.toStdString() + "\"/g' /etc/wpa_supplicant/wpa_supplicant.conf";
-            system(command.c_str());
-        }
-        else
+        if (gwWifiType != "client")
         {
             command = "sudo sed -i 's/wpa_passphrase=.*/wpa_passphrase=" + wifiPassword.toStdString() + "/g' /etc/hostapd/hostapd.conf";
             system(command.c_str());
@@ -1127,15 +1110,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         {
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
-            if (gwWifiType == "client")
-            {
-                command = "sudo ifdown wlan0";
-                system(command.c_str());
-
-                command = "sudo ifup wlan0";
-                system(command.c_str());
-            }
-            else
+            if (gwWifiType != "client")
             {
                 command = "sudo service hostapd restart";
                 system(command.c_str());
