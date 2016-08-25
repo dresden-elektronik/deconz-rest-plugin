@@ -812,8 +812,33 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
-            command = "sudo bash /usr/bin/deCONZ-configure-wifi.sh " + wifiType.toStdString() + " " + wifiName.toStdString() + " " + wifiPassword.toStdString() + " " + wifiChannel.toStdString();
+            command = "sudo bash /usr/bin/deCONZ-configure-wifi.sh " + wifiType.toStdString() + " \"" + wifiName.toStdString() + "\" \"" + wifiPassword.toStdString() + "\" " + wifiChannel.toStdString();
             system(command.c_str());
+
+            char const* cmd = "ifconfig wlan0 | grep 'inet addr:' | cut -d: -f2 | cut -d' ' -f1";
+            FILE* pipe = popen(cmd, "r");
+            if (!pipe)
+            {
+                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/config/wifi"), QString("Error setting wifi")));
+                rsp.httpStatus = HttpStatusServiceUnavailable;
+                return REQ_READY_SEND;
+            }
+            char buffer[128];
+            std::string result = "";
+            while(!feof(pipe)) {
+                if(fgets(buffer, 128, pipe) != NULL)
+                    result += buffer;
+            }
+            pclose(pipe);
+
+            QString ip = QString::fromStdString(result);
+
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState["ip"] = ip;
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+
 #endif
 #endif
         }
@@ -826,6 +851,9 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
             {
                 if (gwWifi == "not-running" && wifi == "running")
                 {
+                    command = "sudo ifdown wlan0";
+                    system(command.c_str());
+
                     command = "sudo ifup wlan0";
                     system(command.c_str());
                 }
@@ -926,8 +954,32 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
-            command = "sudo bash /usr/bin/deCONZ-configure-wifi.sh " + wifiType.toStdString() + " " + wifiName.toStdString() + " " + wifiPassword.toStdString() + " " + wifiChannel.toStdString();
+            command = "sudo bash /usr/bin/deCONZ-configure-wifi.sh " + wifiType.toStdString() + " \"" + wifiName.toStdString() + "\" \"" + wifiPassword.toStdString() + "\" " + wifiChannel.toStdString();
             system(command.c_str());
+
+            char const* cmd = "ifconfig wlan0 | grep 'inet addr:' | cut -d: -f2 | cut -d' ' -f1";
+            FILE* pipe = popen(cmd, "r");
+            if (!pipe)
+            {
+                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/config/wifi"), QString("Error setting wifi")));
+                rsp.httpStatus = HttpStatusServiceUnavailable;
+                return REQ_READY_SEND;
+            }
+            char buffer[128];
+            std::string result = "";
+            while(!feof(pipe)) {
+                if(fgets(buffer, 128, pipe) != NULL)
+                    result += buffer;
+            }
+            pclose(pipe);
+
+            QString ip = QString::fromStdString(result);
+
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState["ip"] = ip;
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
 #endif
 #endif
             gwWifiType = wifiType;
