@@ -353,6 +353,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     map["wifitype"] = gwWifiType;
     map["wifiname"] = gwWifiName;
     map["wifichannel"] = gwWifiChannel;
+    map["wifiip"] = gwWifiIp;
     //map["rgbwdisplay"] = gwRgbwDisplay;
     map["linkbutton"] = gwLinkButton;
     map["portalservices"] = false;
@@ -1973,7 +1974,6 @@ void DeRestPluginPrivate::checkWifiState()
             int begin = QString::fromStdString(result).indexOf("ssid_") + 5;
             int end = QString::fromStdString(result).indexOf("/ssid");
             gwWifiName = QString::fromStdString(result.substr(begin, end-begin));
-            gwWifiName.replace("\"","");
         }
 
         if (QString::fromStdString(result).indexOf("channel_") != -1)
@@ -1987,7 +1987,7 @@ void DeRestPluginPrivate::checkWifiState()
         {
             int begin = QString::fromStdString(result).indexOf("ip_") + 3;
             int end = QString::fromStdString(result).indexOf("/ip");
-            QString ip = gwWifiChannel = QString::fromStdString(result.substr(begin, end-begin));
+            QString ip = QString::fromStdString(result.substr(begin, end-begin));
             gwWifiIp = ip;
         }
         if (gwWifi != "not-running")
@@ -2025,7 +2025,7 @@ void DeRestPluginPrivate::checkWifiState()
         {
             int begin = QString::fromStdString(result).indexOf("ip_") + 3;
             int end = QString::fromStdString(result).indexOf("/ip");
-            QString ip = gwWifiChannel = QString::fromStdString(result.substr(begin, end-begin));
+            QString ip = QString::fromStdString(result.substr(begin, end-begin));
             gwWifiIp = ip;
         }
         if (gwWifi != "running")
@@ -2042,3 +2042,17 @@ void DeRestPluginPrivate::checkWifiState()
     return;
 }
 
+/*! restore wifi state of raspberry pi after reboot.
+ */
+void DeRestPluginPrivate::restoreWifiState()
+{
+#ifdef ARCH_ARM
+#ifdef Q_OS_LINUX
+    if (gwWifi == "running")
+    {
+        std::string command = "sudo service hostapd start" ;
+        system(command.c_str());
+    }
+#endif
+#endif
+}

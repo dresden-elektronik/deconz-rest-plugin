@@ -257,7 +257,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     initChangeChannelApi();
     initResetDeviceApi();
     initFirmwareUpdate();
-    checkWifiState();
+    restoreWifiState();
 }
 
 /*! Deconstructor for pimpl.

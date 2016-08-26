@@ -715,6 +715,7 @@ public Q_SLOTS:
 
     //wifi settings
     void checkWifiState();
+    void restoreWifiState();
 
 public:
     void checkRfConnectState();

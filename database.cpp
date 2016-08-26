@@ -464,6 +464,46 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
             }
         }
     }
+    else if (strcmp(colval[0], "wifi") == 0)
+    {
+        if (!val.isEmpty())
+        {
+            d->gwConfig["wifi"] = val;
+            d->gwWifi = val;
+        }
+    }
+    else if (strcmp(colval[0], "wifichannel") == 0)
+    {
+        if (!val.isEmpty())
+        {
+            d->gwConfig["wifichannel"] = val;
+            d->gwWifiChannel = val;
+        }
+    }
+    else if (strcmp(colval[0], "wifiname") == 0)
+    {
+        if (!val.isEmpty())
+        {
+            d->gwConfig["wifiname"] = val;
+            d->gwWifiName = val;
+        }
+    }
+    else if (strcmp(colval[0], "wifitype") == 0)
+    {
+        if (!val.isEmpty())
+        {
+            d->gwConfig["wifitype"] = val;
+            d->gwWifiType = val;
+        }
+    }
+    else if (strcmp(colval[0], "wifiip") == 0)
+    {
+        if (!val.isEmpty())
+        {
+            d->gwConfig["wifiip"] = val;
+            d->gwWifiIp = val;
+        }
+    }
 
     return 0;
 }
@@ -1793,6 +1833,11 @@ void DeRestPluginPrivate::saveDb()
         gwConfig["updatechannel"] = gwUpdateChannel;
         gwConfig["uuid"] = gwUuid;
         gwConfig["otauactive"] = isOtauActive();
+        gwConfig["wifi"] = gwWifi;
+        gwConfig["wifitype"] = gwWifiType;
+        gwConfig["wifiname"] = gwWifiName;
+        gwConfig["wifichannel"] = gwWifiChannel;
+        gwConfig["wifiip"] = gwWifiIp;
 
         QVariantMap::iterator i = gwConfig.begin();
         QVariantMap::iterator end = gwConfig.end();
