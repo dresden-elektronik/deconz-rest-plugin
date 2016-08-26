@@ -869,6 +869,7 @@ public:
     QString gwWifiType; // accesspoint | ad-hoc | client
     QString gwWifiName;
     QString gwWifiChannel;
+    QString gwWifiIp;
     QString gwProxyAddress;
     quint16 gwProxyPort;
     QString gwTimezone;
