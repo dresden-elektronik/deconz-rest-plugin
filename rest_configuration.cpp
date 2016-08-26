@@ -848,32 +848,58 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         {
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
+
+            char const* cmd = "";
+
             if (gwWifiType == "client")
             {
-                if (gwWifi == "not-running" && wifi == "running")
+                if (wifi == "running")
                 {
-                    command = "sudo ifdown wlan0";
-                    system(command.c_str());
-
-                    command = "sudo ifup wlan0";
-                    system(command.c_str());
+                    cmd = "sudo bash /usr/bin/deCONZ-startstop-wifi.sh client start";
                 }
                 else
                 {
-                    command = "sudo ifdown wlan0";
-                    system(command.c_str());
+                    cmd = "sudo bash /usr/bin/deCONZ-startstop-wifi.sh client stop";
                 }
             }
             else
             {
-                command = "sudo service hostapd restart";
-                system(command.c_str());
+                if (wifi == "running")
+                {
+                    cmd = "sudo bash /usr/bin/deCONZ-startstop-wifi.sh accesspoint start";
+                }
+                else
+                {
+                    cmd = "sudo bash /usr/bin/deCONZ-startstop-wifi.sh accesspoint stop";
+                }
             }
+
+            FILE* pipe = popen(cmd, "r");
+            if (!pipe)
+            {
+                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/config/wifi"), QString("Error setting wifi")));
+                rsp.httpStatus = HttpStatusServiceUnavailable;
+                return REQ_READY_SEND;
+            }
+            char buffer[128];
+            std::string result = "";
+            while(!feof(pipe)) {
+                if(fgets(buffer, 128, pipe) != NULL)
+                    result += buffer;
+            }
+            pclose(pipe);
+
+            QString ip = QString::fromStdString(result);
+
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState["ip"] = ip;
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
 #endif
 #endif
         }   
-        else if ((gwWifi == "running" && wifi == "running" || gwWifi == "not-running" && wifi == "not-running") &&
-                 wifiType != "client")
+        else if ((gwWifi == "running" && wifi == "running") || (gwWifi == "not-running" && wifi == "not-running"))
         {
             ret = false;
         }
@@ -1023,13 +1049,10 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 #ifdef Q_OS_LINUX
                 if (gwWifiType != "client")
                 {
-                    command = "sudo service hostapd restart";
+                    command = "sudo service hostapd stop";
                     system(command.c_str());
 
-                    command = "sleep 1";
-                    system(command.c_str());
-
-                    command = "sudo service hostapd restart";
+                    command = "sudo service hostapd start";
                     system(command.c_str());
                 }
 #endif
@@ -1068,8 +1091,10 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
             {
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
-                command = "sudo service hostapd restart";
+                command = "sudo service hostapd stop";
                 system(command.c_str());
+
+                command = "sudo service hostapd start";
                 system(command.c_str());
 #endif
 #endif
@@ -1112,13 +1137,10 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 #ifdef Q_OS_LINUX
             if (gwWifiType != "client")
             {
-                command = "sudo service hostapd restart";
+                command = "sudo service hostapd stop";
                 system(command.c_str());
 
-                command = "sleep 1";
-                system(command.c_str());
-
-                command = "sudo service hostapd restart";
+                command = "sudo service hostapd start";
                 system(command.c_str());
             }
 #endif
@@ -1893,6 +1915,7 @@ int DeRestPluginPrivate::getWifiState(const ApiRequest &req, ApiResponse &rsp)
     rsp.map["wifitype"] = gwWifiType;
     rsp.map["wifiname"] = gwWifiName;
     rsp.map["wifichannel"] = gwWifiChannel;
+    rsp.map["wifiip"] = gwWifiIp;
 
     rsp.httpStatus = HttpStatusOk;
 
@@ -1950,6 +1973,7 @@ void DeRestPluginPrivate::checkWifiState()
             int begin = QString::fromStdString(result).indexOf("ssid_") + 5;
             int end = QString::fromStdString(result).indexOf("/ssid");
             gwWifiName = QString::fromStdString(result.substr(begin, end-begin));
+            gwWifiName.replace("\"","");
         }
 
         if (QString::fromStdString(result).indexOf("channel_") != -1)
@@ -1959,7 +1983,13 @@ void DeRestPluginPrivate::checkWifiState()
             QString channel = gwWifiChannel = QString::fromStdString(result.substr(begin, end-begin));
             gwWifiChannel = channel;
         }
-
+        if (QString::fromStdString(result).indexOf("ip_") != -1)
+        {
+            int begin = QString::fromStdString(result).indexOf("ip_") + 3;
+            int end = QString::fromStdString(result).indexOf("/ip");
+            QString ip = gwWifiChannel = QString::fromStdString(result.substr(begin, end-begin));
+            gwWifiIp = ip;
+        }
         if (gwWifi != "not-running")
         {
             // changed
@@ -1991,7 +2021,13 @@ void DeRestPluginPrivate::checkWifiState()
             QString channel = QString::fromStdString(result.substr(begin, end-begin));
             gwWifiChannel = channel;
         }
-
+        if (QString::fromStdString(result).indexOf("ip_") != -1)
+        {
+            int begin = QString::fromStdString(result).indexOf("ip_") + 3;
+            int end = QString::fromStdString(result).indexOf("/ip");
+            QString ip = gwWifiChannel = QString::fromStdString(result.substr(begin, end-begin));
+            gwWifiIp = ip;
+        }
         if (gwWifi != "running")
         {
             // changed
