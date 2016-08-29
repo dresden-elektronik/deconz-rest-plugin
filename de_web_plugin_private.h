@@ -507,6 +507,7 @@ public:
     int changePassword(const ApiRequest &req, ApiResponse &rsp);
     int deletePassword(const ApiRequest &req, ApiResponse &rsp);
     int getWifiState(const ApiRequest &req, ApiResponse &rsp);
+    int restoreWifiConfig(const ApiRequest &req, ApiResponse &rsp);
 
     void configToMap(const ApiRequest &req, QVariantMap &map);
 

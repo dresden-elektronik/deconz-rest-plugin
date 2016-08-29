@@ -908,6 +908,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         if (gwWifi != wifi)
         {
             gwWifi = wifi;
+            queSaveDb(DB_CONFIG,DB_SHORT_SAVE_DELAY);
             changed = true;
         }
 
@@ -1011,6 +1012,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 #endif
 #endif
             gwWifiType = wifiType;
+            queSaveDb(DB_CONFIG,DB_SHORT_SAVE_DELAY);
             changed = true;
         }
 
@@ -1060,6 +1062,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 #endif
             }
             gwWifiName = wifiName;
+            queSaveDb(DB_CONFIG,DB_SHORT_SAVE_DELAY);
             changed = true;
         }
 
@@ -1101,6 +1104,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 #endif
             }
             gwWifiChannel = wifiChannel;
+            queSaveDb(DB_CONFIG,DB_SHORT_SAVE_DELAY);
             changed = true;
         }
 
@@ -2034,6 +2038,8 @@ void DeRestPluginPrivate::checkWifiState()
             updateEtag(gwConfigEtag);
             gwWifi = "running";
         }
+
+        queSaveDb(DB_CONFIG,DB_SHORT_SAVE_DELAY);
         return;
     }
 #endif
