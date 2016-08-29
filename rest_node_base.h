@@ -56,6 +56,8 @@ public:
     const deCONZ::Address &address() const;
     bool isAvailable() const;
     void setIsAvailable(bool available);
+    bool needSaveDatabase() const;
+    void setNeedSaveDatabase(bool needSave);
     const QString &id() const;
     void setId(const QString &id);
     const QString &uniqueId() const;
@@ -82,6 +84,7 @@ private:
     QString m_uid;
     bool m_available;
     bool m_mgmtBindSupported;
+    bool m_needSaveDatabase;
 
     uint32_t m_read; // bitmap of READ_* flags
     std::vector<int> m_lastRead; // copy of idleTotalCounter

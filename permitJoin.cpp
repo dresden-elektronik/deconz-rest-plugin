@@ -78,6 +78,7 @@ void DeRestPluginPrivate::permitJoinTimerFired()
                     if (i->isAvailable())
                     {
                         i->setState(LightNode::StateNormal);
+                        i->setNeedSaveDatabase(true);
                         queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
                     }
                 }

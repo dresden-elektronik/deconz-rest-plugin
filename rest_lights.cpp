@@ -921,6 +921,7 @@ int DeRestPluginPrivate::renameLight(const ApiRequest &req, ApiResponse &rsp)
                 lightNode->setName(name);
                 updateEtag(gwConfigEtag);
                 updateEtag(lightNode->etag);
+                lightNode->setNeedSaveDatabase(true);
                 queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
             }
 
@@ -1035,7 +1036,11 @@ int DeRestPluginPrivate::deleteLight(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
-    lightNode->setState(LightNode::StateDeleted);
+    if (lightNode->state() != LightNode::StateDeleted)
+    {
+        lightNode->setState(LightNode::StateDeleted);
+        lightNode->setNeedSaveDatabase(true);
+    }
     updateEtag(gwConfigEtag);
     updateEtag(lightNode->etag);
     queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
@@ -1140,6 +1145,7 @@ int DeRestPluginPrivate::removeAllGroups(const ApiRequest &req, ApiResponse &rsp
         if (g->state != GroupInfo::StateNotInGroup)
         {
             g->state = GroupInfo::StateNotInGroup;
+            lightNode->setNeedSaveDatabase(true);
         }
     }
 

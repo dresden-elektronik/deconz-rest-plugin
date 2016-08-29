@@ -417,6 +417,7 @@ public:
 
     ApiAuth();
 
+    bool needSaveDatabase;
     State state;
     QString apikey; // also called username (10..32 chars)
     QString devicetype;

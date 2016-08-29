@@ -189,6 +189,7 @@ int DeRestPluginPrivate::createUser(const ApiRequest &req, ApiResponse &rsp)
     {
         auth.createDate = QDateTime::currentDateTimeUtc();
         auth.lastUseDate = QDateTime::currentDateTimeUtc();
+        auth.needSaveDatabase = true;
         apiAuths.push_back(auth);
         queSaveDb(DB_AUTH, DB_SHORT_SAVE_DELAY);
         updateEtag(gwConfigEtag);
@@ -1460,6 +1461,7 @@ int DeRestPluginPrivate::deleteUser(const ApiRequest &req, ApiResponse &rsp)
     {
         if (username2 == i->apikey && i->state == ApiAuth::StateNormal)
         {
+            i->needSaveDatabase = true;
             i->state = ApiAuth::StateDeleted;
             queSaveDb(DB_AUTH, DB_LONG_SAVE_DELAY);
 

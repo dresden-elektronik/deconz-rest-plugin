@@ -17,6 +17,7 @@ RestNodeBase::RestNodeBase() :
     m_node(0),
     m_available(false),
     m_mgmtBindSupported(true),
+    m_needSaveDatabase(false),
     m_read(0),
     m_lastRead(0),
     m_lastAttributeReportBind(0)
@@ -78,6 +79,21 @@ bool RestNodeBase::isAvailable() const
 void RestNodeBase::setIsAvailable(bool available)
 {
     m_available = available;
+}
+
+/*! Returns if the data needs to be saved to database.
+ */
+bool RestNodeBase::needSaveDatabase() const
+{
+    return m_needSaveDatabase;
+}
+
+/*! Sets if the data needs to be saved to database.
+    \param needSave true if needs to be saved
+ */
+void RestNodeBase::setNeedSaveDatabase(bool needSave)
+{
+    m_needSaveDatabase = needSave;
 }
 
 /*! Returns the unique identifier of the node.

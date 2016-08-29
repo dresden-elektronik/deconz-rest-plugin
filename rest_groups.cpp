@@ -593,6 +593,7 @@ int DeRestPluginPrivate::setGroupAttributes(const ApiRequest &req, ApiResponse &
                         if (!groupInfo)
                         {
                             groupInfo = createGroupInfo(lightNode, group->address());
+                            lightNode->setNeedSaveDatabase(true);
                         }
 
                         DBG_Assert(groupInfo != 0);
@@ -600,7 +601,12 @@ int DeRestPluginPrivate::setGroupAttributes(const ApiRequest &req, ApiResponse &
                         {
                             groupInfo->actions &= ~GroupInfo::ActionRemoveFromGroup; // sanity
                             groupInfo->actions |= GroupInfo::ActionAddToGroup;
-                            groupInfo->state = GroupInfo::StateInGroup;
+
+                            if (groupInfo->state != GroupInfo::StateInGroup)
+                            {
+                                lightNode->setNeedSaveDatabase(true);
+                                groupInfo->state = GroupInfo::StateInGroup;
+                            }
                         }
 
                         changed = true; // necessary for adding last available light to group from main view.
@@ -653,6 +659,7 @@ int DeRestPluginPrivate::setGroupAttributes(const ApiRequest &req, ApiResponse &
                         k->actions &= ~GroupInfo::ActionAddToGroup; // sanity
                         k->actions |= GroupInfo::ActionRemoveFromGroup;
                         k->state = GroupInfo::StateNotInGroup;
+                        j->setNeedSaveDatabase(true);
 
                         //delete Light from all scenes
                         deleteLightFromScenes(j->id(), k->id);

@@ -652,6 +652,7 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
         }
         updateEtag(sensor.etag);
         updateEtag(gwConfigEtag);
+        sensor.setNeedSaveDatabase(true);
         sensors.push_back(sensor);
         queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
 
@@ -764,14 +765,16 @@ int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
 
         if ((map["name"].type() == QVariant::String) && !(name.isEmpty()) && (name.size() <= MAX_SENSOR_NAME_LENGTH))
         {
-           sensor->setName(name);
-
-           rspItemState[QString("/sensors/%1/name:").arg(id)] = name;
-           rspItem["success"] = rspItemState;
-           rsp.list.append(rspItem);
-           updateEtag(sensor->etag);
-           updateEtag(gwConfigEtag);
-           queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+            if (sensor->name() != name)
+            {
+                sensor->setName(name);
+                queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+                updateEtag(sensor->etag);
+                updateEtag(gwConfigEtag);
+            }
+            rspItemState[QString("/sensors/%1/name:").arg(id)] = name;
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
         }
         else
         {
@@ -786,7 +789,12 @@ int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
 
         if ((map["mode"].type() == QVariant::Double) && (mode == 1 || mode == 2 || mode == 3))
         {
-           sensor->setMode(mode);
+            if (sensor->mode() != mode)
+            {
+                sensor->setNeedSaveDatabase(true);
+                sensor->setMode(mode);
+            }
+
            if (mode == 2)
            {
                std::vector<Sensor>::iterator s = sensors.begin();
@@ -797,6 +805,7 @@ int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
                    if (s->uniqueId() == sensor->uniqueId() && s->id() != sensor->id() && s->deletedState() == Sensor::StateDeleted)
                    {
                        s->setDeletedState(Sensor::StateNormal);
+                       s->setNeedSaveDatabase(true);
                        updateEtag(s->etag);
 
                        std::vector<Group>::iterator g = groups.begin();
@@ -1060,6 +1069,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     }
 
     sensor->setConfig(config);
+    sensor->setNeedSaveDatabase(true);
     rsp.list.append(rspItem);
     updateEtag(sensor->etag);
     updateEtag(gwConfigEtag);
@@ -1291,6 +1301,7 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
     }
 
     sensor->setState(state);
+    sensor->setNeedSaveDatabase(true);
     rsp.list.append(rspItem);
     updateEtag(sensor->etag);
     updateEtag(gwConfigEtag);
@@ -1317,6 +1328,7 @@ int DeRestPluginPrivate::deleteSensor(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
     sensor->setDeletedState(Sensor::StateDeleted);
+    sensor->setNeedSaveDatabase(true);
 
     QVariantMap rspItem;
     QVariantMap rspItemState;

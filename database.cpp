@@ -1827,6 +1827,13 @@ void DeRestPluginPrivate::saveDb()
 
         for (; i != end; ++i)
         {
+            if (!i->needSaveDatabase)
+            {
+                continue;
+            }
+
+            i->needSaveDatabase = false;
+
             if (i->state == ApiAuth::StateDeleted)
             {
                 // delete group from db (if exist)
@@ -1933,11 +1940,18 @@ void DeRestPluginPrivate::saveDb()
     // save nodes
     if (saveDatabaseItems & DB_LIGHTS)
     {
-        std::vector<LightNode>::const_iterator i = nodes.begin();
-        std::vector<LightNode>::const_iterator end = nodes.end();
+        std::vector<LightNode>::iterator i = nodes.begin();
+        std::vector<LightNode>::iterator end = nodes.end();
 
         for (; i != end; ++i)
         {
+            if (!i->needSaveDatabase())
+            {
+                continue;
+            }
+
+            i->setNeedSaveDatabase(false);
+
             /*
             if (i->state() == LightNode::StateDeleted)
             {
@@ -2245,12 +2259,18 @@ void DeRestPluginPrivate::saveDb()
     // save/delete sensors
     if (saveDatabaseItems & DB_SENSORS)
     {
-        std::vector<Sensor>::const_iterator i = sensors.begin();
-        std::vector<Sensor>::const_iterator end = sensors.end();
+        std::vector<Sensor>::iterator i = sensors.begin();
+        std::vector<Sensor>::iterator end = sensors.end();
 
         for (; i != end; ++i)
         {
-            QString sid = i->id();
+
+            if (!i->needSaveDatabase())
+            {
+                continue;
+            }
+
+            i->setNeedSaveDatabase(false);
 
             /*
             if (i->deletedState() == Sensor::StateDeleted)
@@ -2279,7 +2299,7 @@ void DeRestPluginPrivate::saveDb()
             QString deletedState((i->deletedState() == Sensor::StateDeleted ? "deleted" : "normal"));
 
             QString sql = QString(QLatin1String("REPLACE INTO sensors (sid, name, type, modelid, manufacturername, uniqueid, swversion, state, config, fingerprint, deletedState, mode) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7', '%8', '%9', '%10', '%11', '%12')"))
-                    .arg(sid)
+                    .arg(i->id())
                     .arg(i->name())
                     .arg(i->type())
                     .arg(i->modelId())

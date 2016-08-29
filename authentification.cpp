@@ -18,6 +18,7 @@
 #endif
 
 ApiAuth::ApiAuth() :
+    needSaveDatabase(false),
     state(StateNormal)
 {
 
@@ -116,6 +117,7 @@ bool DeRestPluginPrivate::checkApikeyAuthentification(const ApiRequest &req, Api
                 }
             }
 
+            i->needSaveDatabase = true;
             queSaveDb(DB_AUTH, DB_LONG_SAVE_DELAY);
             return true;
         }
@@ -125,6 +127,7 @@ bool DeRestPluginPrivate::checkApikeyAuthentification(const ApiRequest &req, Api
     if (gwLinkButton)
     {
         ApiAuth auth;
+        auth.needSaveDatabase = true;
         auth.apikey = apikey;
         auth.devicetype = "unknown";
         auth.createDate = QDateTime::currentDateTimeUtc();

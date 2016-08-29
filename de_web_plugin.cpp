@@ -1075,12 +1075,14 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             updateEtag(sensorNode.etag);
             updateEtag(gwConfigEtag);
 
+            sensorNode.setNeedSaveDatabase(true);
             sensors.push_back(sensorNode);
             queSaveDb(DB_SENSORS , DB_SHORT_SAVE_DELAY);
         }
         else if (sensor && sensor->deletedState() == Sensor::StateDeleted)
         {
             sensor->setDeletedState(Sensor::StateNormal);
+            sensor->setNeedSaveDatabase(true);
             DBG_Printf(DBG_INFO, "SensorNode %u: %s reactivated\n", sensor->id().toUInt(), qPrintable(sensor->name()));
             updateEtag(sensor->etag);
             updateEtag(gwConfigEtag);
@@ -1249,6 +1251,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                             a.bytes[3], a.bytes[2], a.bytes[1], a.bytes[0],
                             lightNode.haEndpoint().endpoint());
                 lightNode2->setUniqueId(uid);
+                lightNode2->setNeedSaveDatabase(true);
                 updateEtag(lightNode2->etag);
             }
 
@@ -1396,12 +1399,15 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             queryTime = queryTime.addSecs(1);
 
             DBG_Printf(DBG_INFO, "LightNode %u: %s added\n", lightNode.id().toUInt(), qPrintable(lightNode.name()));
+            lightNode.setNeedSaveDatabase(true);
             nodes.push_back(lightNode);
             lightNode2 = &nodes.back();
 
             Q_Q(DeRestPlugin);
             q->startZclAttributeTimer(checkZclAttributesDelay);
             updateEtag(lightNode2->etag);
+
+            queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
         }
     }
 }
@@ -1732,6 +1738,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         if (!str.isEmpty() && str != lightNode->manufacturer())
                         {
                             lightNode->setManufacturerName(str);
+                            lightNode->setNeedSaveDatabase(true);
                             queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
                             updated = true;
                         }
@@ -1742,6 +1749,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         if (!str.isEmpty() && str != lightNode->modelId())
                         {
                             lightNode->setModelId(str);
+                            lightNode->setNeedSaveDatabase(true);
                             queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
                             updated = true;
                         }
@@ -1752,6 +1760,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         if (!str.isEmpty() && str != lightNode->swBuildId())
                         {
                             lightNode->setSwBuildId(str);
+                            lightNode->setNeedSaveDatabase(true);
                             queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
                             updated = true;
                         }
@@ -1957,6 +1966,7 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor)
     {
         updateEtag(sensor->etag);
         updateEtag(gwConfigEtag);
+        sensor->setNeedSaveDatabase(true);
         queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
     }
 }
@@ -2190,6 +2200,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     {
         openDb();
         sensorNode.setId(QString::number(getFreeSensorId()));
+        sensorNode.setNeedSaveDatabase(true);
         closeDb();
     }
 
@@ -2250,6 +2261,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     DBG_Printf(DBG_INFO, "SensorNode %u: %s added\n", sensorNode.id().toUInt(), qPrintable(sensorNode.name()));
     updateEtag(sensorNode.etag);
 
+    sensorNode.setNeedSaveDatabase(true);
     sensors.push_back(sensorNode);
 
     checkSensorBindingsForAttributeReporting(&sensors.back());
@@ -2513,6 +2525,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     if (i->modelId() != str)
                                     {
                                         i->setModelId(str);
+                                        i->setNeedSaveDatabase(true);
                                         queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
                                         updated = true;
                                     }
@@ -2523,6 +2536,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         if (i->name() != name)
                                         {
                                             i->setName(name);
+                                            i->setNeedSaveDatabase(true);
                                             updated = true;
                                         }
                                     }
@@ -2541,6 +2555,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     if (i->manufacturer() != str)
                                     {
                                         i->setManufacturer(str);
+                                        i->setNeedSaveDatabase(true);
                                         queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
                                         updated = true;
                                     }
@@ -2558,6 +2573,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     if (str != i->swVersion())
                                     {
                                         i->setSwVersion(str);
+                                        i->setNeedSaveDatabase(true);
                                         queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
                                         updated = true;
                                     }
@@ -2667,6 +2683,7 @@ Sensor *DeRestPluginPrivate::getSensorNodeForFingerPrint(quint64 extAddr, const 
                 {
                     DBG_Printf(DBG_INFO, "updated fingerprint for sensor %s\n", qPrintable(i->name()));
                     i->fingerPrint() = fingerPrint;
+                    i->setNeedSaveDatabase(true);
                     updateEtag(i->etag);
                     queSaveDb(DB_SENSORS , DB_SHORT_SAVE_DELAY);
                 }
@@ -2687,6 +2704,7 @@ Sensor *DeRestPluginPrivate::getSensorNodeForFingerPrint(quint64 extAddr, const 
                 {
                     DBG_Printf(DBG_INFO, "updated fingerprint for sensor %s\n", qPrintable(i->name()));
                     i->fingerPrint() = fingerPrint;
+                    i->setNeedSaveDatabase(true);
                     updateEtag(i->etag);
                     queSaveDb(DB_SENSORS , DB_SHORT_SAVE_DELAY);
                 }
@@ -3703,6 +3721,7 @@ void DeRestPluginPrivate::foundGroupMembership(LightNode *lightNode, uint16_t gr
                 if (i->state != GroupInfo::StateNotInGroup)
                 {
                     i->state = GroupInfo::StateNotInGroup;
+                    lightNode->setNeedSaveDatabase(true);
                     queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
                 }
             }
@@ -3734,6 +3753,7 @@ void DeRestPluginPrivate::foundGroupMembership(LightNode *lightNode, uint16_t gr
     }
 
     queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
+    lightNode->setNeedSaveDatabase(true);
     lightNode->groups().push_back(groupInfo);
     markForPushUpdate(lightNode);
 }
@@ -4794,6 +4814,7 @@ void DeRestPluginPrivate::handleGroupClusterIndication(TaskItem &task, const deC
                     i->state = GroupInfo::StateInGroup;
                     updateEtag(group->etag);
                     updateEtag(gwConfigEtag);
+                    lightNode->setNeedSaveDatabase(true);
                     queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
             }
             else if (group && group->state() == Group::StateNormal
@@ -4812,6 +4833,7 @@ void DeRestPluginPrivate::handleGroupClusterIndication(TaskItem &task, const deC
                     }
                     updateEtag(group->etag);
                     updateEtag(gwConfigEtag);
+                    lightNode->setNeedSaveDatabase(true);
                     queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
                 }
                 else if (!responseGroups.contains(i->id)
@@ -4820,6 +4842,7 @@ void DeRestPluginPrivate::handleGroupClusterIndication(TaskItem &task, const deC
                     i->state = GroupInfo::StateNotInGroup;
                     updateEtag(group->etag);
                     updateEtag(gwConfigEtag);
+                    lightNode->setNeedSaveDatabase(true);
                     queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
                 }
             }
@@ -5542,6 +5565,7 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
                     break;
                 }
             }
+            sensorNode->setNeedSaveDatabase(true);
             updateEtag(sensorNode->etag);
 
             std::vector<Sensor>::iterator s = sensors.begin();
@@ -5551,6 +5575,7 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
             {
                 if (s->uniqueId() == sensorNode->uniqueId() && s->id() != sensorNode->id())
                 {
+                    s->setNeedSaveDatabase(true);
                     s->setDeletedState(Sensor::StateNormal);
                     updateEtag(s->etag);
 
@@ -5715,6 +5740,7 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
                     updateEtag(group.etag);
                     groups.push_back(group);
                     sensorNode->setMode(2); // sensor was reset -> set mode to '2 groups'
+                    sensorNode->setNeedSaveDatabase(true);
                     queSaveDb(DB_GROUPS | DB_SENSORS, DB_SHORT_SAVE_DELAY);
 
                     // put coordinator into group
@@ -5768,6 +5794,7 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
                 if (i->state() == LightNode::StateDeleted)
                 {
                     i->setState(LightNode::StateNormal);
+                    i->setNeedSaveDatabase(true);
                     queSaveDb(DB_LIGHTS,DB_SHORT_SAVE_DELAY);
                 }
                 updateEtag(gwConfigEtag);
@@ -5796,7 +5823,6 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
             }
 
             queryTime = queryTime.addSecs(1);
-            i->setSwBuildId(QString()); // might be changed due otau
             updateEtag(i->etag);
         }
     }
