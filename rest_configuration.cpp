@@ -1927,6 +1927,30 @@ int DeRestPluginPrivate::getWifiState(const ApiRequest &req, ApiResponse &rsp)
     return REQ_READY_SEND;
 }
 
+/*! PUT /api/config/wifi/restore
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::restoreWifiConfig(const ApiRequest &req, ApiResponse &rsp)
+{
+    Q_UNUSED(req);
+
+#ifdef ARCH_ARM
+#ifdef Q_OS_LINUX
+    std::string command = "sudo bash /usr/bin/deCONZ-startstop-wifi.sh accesspoint restore" ;
+    system(command.c_str());
+#endif
+#endif
+
+    rsp.httpStatus = HttpStatusOk;
+    QVariantMap rspItem;
+    QVariantMap rspItemState;
+    rspItemState["/config/wifi/restore"] = "original configuration restored";
+    rspItem["success"] = rspItemState;
+    rsp.list.append(rspItem);
+    return REQ_READY_SEND;
+}
+
 /*! check wifi state on raspberry pi.
  */
 void DeRestPluginPrivate::checkWifiState()
