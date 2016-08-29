@@ -260,8 +260,9 @@ void DeRestPluginPrivate::loadAuthFromDb()
         return;
     }
 
-    QString sql = QString("SELECT apikey,devicetype,createdate,lastusedate,useragent FROM auth");
+    QString sql = QString(QLatin1String("SELECT apikey,devicetype,createdate,lastusedate,useragent FROM auth"));
 
+    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
     rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadAuthCallback, this, &errmsg);
 
     if (rc != SQLITE_OK)
@@ -531,6 +532,7 @@ void DeRestPluginPrivate::loadConfigFromDb()
     {
         QString sql = QString("SELECT key FROM config2");
 
+        DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
         errmsg = NULL;
         rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -543,6 +545,7 @@ void DeRestPluginPrivate::loadConfigFromDb()
     {
         QString sql = QString("SELECT key,value FROM %1").arg(configTable);
 
+        DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
         rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadConfigCallback, this, &errmsg);
 
         if (rc != SQLITE_OK)
@@ -656,6 +659,7 @@ void DeRestPluginPrivate::loadAllGroupsFromDb()
 
     QString sql = QString("SELECT * FROM groups");
 
+    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
     rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadAllGroupsCallback, this, &errmsg);
 
     if (rc != SQLITE_OK)
@@ -756,6 +760,7 @@ void DeRestPluginPrivate::loadAllScenesFromDb()
 
     QString sql = QString("SELECT * FROM scenes");
 
+    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
     rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadAllScenesCallback, this, &errmsg);
 
     if (rc != SQLITE_OK)
@@ -851,6 +856,7 @@ void DeRestPluginPrivate::loadAllSchedulesFromDb()
 
     QString sql = QString("SELECT * FROM schedules");
 
+    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
     rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadAllSchedulesCallback, this, &errmsg);
 
     if (rc != SQLITE_OK)
@@ -1019,6 +1025,7 @@ void DeRestPluginPrivate::loadLightNodeFromDb(LightNode *lightNode)
     // check for new uniqueId format
     QString sql = QString("SELECT * FROM nodes WHERE mac='%1'").arg(lightNode->uniqueId());
 
+    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
     rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadLightNodeCallback, lightNode, &errmsg);
 
     if (rc != SQLITE_OK)
@@ -1045,6 +1052,7 @@ void DeRestPluginPrivate::loadLightNodeFromDb(LightNode *lightNode)
     {
         sql = QString("SELECT * FROM nodes WHERE mac='%1'").arg(lightNode->address().toStringExt());
 
+        DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
         rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadLightNodeCallback, lightNode, &errmsg);
 
         if (rc != SQLITE_OK)
@@ -1164,6 +1172,7 @@ void DeRestPluginPrivate::loadSensorNodeFromDb(Sensor *sensorNode)
 
     QString sql = QString("SELECT * FROM sensors WHERE uniqueid='%1' AND type='%2'").arg(sensorNode->address().toStringExt()).arg(sensorNode->type());
 
+    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
     rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadSensorNodeCallback, sensorNode, &errmsg);
 
     if (rc != SQLITE_OK)
@@ -1254,6 +1263,7 @@ void DeRestPluginPrivate::loadGroupFromDb(Group *group)
 
     QString sql = QString("SELECT * FROM groups WHERE gid='%1'").arg(gid);
 
+    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
     rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadGroupCallback, group, &errmsg);
 
     if (rc != SQLITE_OK)
@@ -1321,6 +1331,7 @@ void DeRestPluginPrivate::loadSceneFromDb(Scene *scene)
 
     QString sql = QString("SELECT * FROM scenes WHERE gsid='%1'").arg(gsid);
 
+    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
     rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadSceneCallback, scene, &errmsg);
 
     if (rc != SQLITE_OK)
@@ -1442,6 +1453,7 @@ void DeRestPluginPrivate::loadAllRulesFromDb()
 
     QString sql = QString("SELECT * FROM rules");
 
+    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
     rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadAllRulesCallback, this, &errmsg);
 
     if (rc != SQLITE_OK)
@@ -1585,6 +1597,7 @@ void DeRestPluginPrivate::loadAllSensorsFromDb()
 
     QString sql = QString("SELECT * FROM sensors");
 
+    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
     rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadAllSensorsCallback, this, &errmsg);
 
     if (rc != SQLITE_OK)
@@ -1658,6 +1671,7 @@ int DeRestPluginPrivate::getFreeLightId()
     // append all ids from database (dublicates are ok here)
     QString sql = QString("SELECT * FROM nodes");
 
+    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
     rc = sqlite3_exec(db, qPrintable(sql), sqliteGetAllLightIdsCallback, this, &errmsg);
 
     if (rc != SQLITE_OK)
@@ -1746,6 +1760,7 @@ int DeRestPluginPrivate::getFreeSensorId()
     // append all ids from database (dublicates are ok here)
     QString sql = QString("SELECT * FROM sensors");
 
+    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
     rc = sqlite3_exec(db, qPrintable(sql), sqliteGetAllSensorIdsCallback, this, &errmsg);
 
     if (rc != SQLITE_OK)
@@ -1800,6 +1815,7 @@ void DeRestPluginPrivate::saveDb()
         // create config table version 2 if not exist
         const char *sql = "CREATE TABLE IF NOT EXISTS config2 (key text PRIMARY KEY, value text)";
 
+        DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
         errmsg = NULL;
         rc = sqlite3_exec(db, sql, NULL, NULL, &errmsg);
 
@@ -1839,6 +1855,7 @@ void DeRestPluginPrivate::saveDb()
                 // delete group from db (if exist)
                 QString sql = QString(QLatin1String("DELETE FROM auth WHERE apikey='%1'")).arg(i->apikey);
 
+                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -1868,6 +1885,7 @@ void DeRestPluginPrivate::saveDb()
                         .arg(i->useragent);
 
 
+                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -1920,6 +1938,7 @@ void DeRestPluginPrivate::saveDb()
                         .arg(i.key())
                         .arg(i.value().toString());
 
+                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -1999,6 +2018,8 @@ void DeRestPluginPrivate::saveDb()
                     .arg(i->manufacturer())
                     .arg(i->swBuildId());
 
+
+            DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
             errmsg = NULL;
             rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -2031,6 +2052,7 @@ void DeRestPluginPrivate::saveDb()
                 // delete scenes of this group (if exist)
                 QString sql = QString(QLatin1String("DELETE FROM scenes WHERE gid='%1'")).arg(gid);
 
+                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -2049,6 +2071,7 @@ void DeRestPluginPrivate::saveDb()
                 // delete group from db (if exist)
                 QString sql = QString(QLatin1String("DELETE FROM groups WHERE gid='%1'")).arg(gid);
 
+                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -2075,6 +2098,7 @@ void DeRestPluginPrivate::saveDb()
                     .arg(i->lightsequenceToString())
                     .arg(hidden);
 
+            DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
             errmsg = NULL;
             rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -2118,6 +2142,7 @@ void DeRestPluginPrivate::saveDb()
                             .arg(si->transitiontime())
                             .arg(lights);
                     }
+                    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
                     errmsg = NULL;
                     rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -2151,6 +2176,7 @@ void DeRestPluginPrivate::saveDb()
                 // delete rule from db (if exist)
                 QString sql = QString(QLatin1String("DELETE FROM rules WHERE rid='%1'")).arg(rid);
 
+                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -2189,6 +2215,7 @@ void DeRestPluginPrivate::saveDb()
                     QString::number(i->triggerPeriodic()) + QLatin1String("')");
 
 
+            DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
             errmsg = NULL;
             rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -2219,6 +2246,7 @@ void DeRestPluginPrivate::saveDb()
                         .arg(i->id)
                         .arg(i->jsonString);
 
+                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -2235,6 +2263,7 @@ void DeRestPluginPrivate::saveDb()
             {
                 QString sql = QString(QLatin1String("DELETE FROM schedules WHERE id='%1'")).arg(i->id);
 
+                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -2312,6 +2341,7 @@ void DeRestPluginPrivate::saveDb()
                     .arg(deletedState)
                     .arg(QString::number(i->mode()));
 
+            DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
             errmsg = NULL;
             rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
