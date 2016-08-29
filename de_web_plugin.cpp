@@ -6440,7 +6440,19 @@ void DeRestPlugin::idleTimerFired()
                     }
                 }
 
-                if (lightNode->modelId().isEmpty() && !lightNode->mustRead(READ_MODEL_ID))
+                if (lightNode->modelId().isEmpty())
+                {
+                    Sensor *sensor = d->getSensorNodeForAddress(lightNode->address().ext());
+
+                    if (sensor && sensor->modelId().startsWith(QLatin1String("FLS-NB")))
+                    {
+                        // extract model id from sensor node
+                        lightNode->setModelId(sensor->modelId());
+                        lightNode->setLastRead(READ_MODEL_ID, d->idleTotalCounter);
+                    }
+                }
+
+                if (!lightNode->mustRead(READ_MODEL_ID) && (lightNode->modelId().isEmpty() || lightNode->lastRead(READ_MODEL_ID) < d->idleTotalCounter - READ_MODEL_ID_INTERVAL))
                 {
                     lightNode->setLastRead(READ_MODEL_ID, d->idleTotalCounter);
                     lightNode->enableRead(READ_MODEL_ID);
@@ -6448,7 +6460,8 @@ void DeRestPlugin::idleTimerFired()
                     d->queryTime = d->queryTime.addSecs(5);
                     processLights = true;
                 }
-                if (lightNode->swBuildId().isEmpty() && !lightNode->mustRead(READ_SWBUILD_ID))
+
+                if (!lightNode->mustRead(READ_SWBUILD_ID) && (lightNode->swBuildId().isEmpty() || lightNode->lastRead(READ_SWBUILD_ID) < d->idleTotalCounter - READ_SWBUILD_ID_INTERVAL))
                 {
                     lightNode->setLastRead(READ_SWBUILD_ID, d->idleTotalCounter);
                     lightNode->enableRead(READ_SWBUILD_ID);
@@ -6456,7 +6469,8 @@ void DeRestPlugin::idleTimerFired()
                     d->queryTime = d->queryTime.addSecs(5);
                     processLights = true;
                 }
-                if ((lightNode->manufacturer().isEmpty() || lightNode->manufacturer() == "Unknown") && !lightNode->mustRead(READ_SWBUILD_ID))
+
+                if (lightNode->manufacturer().isEmpty() || (lightNode->manufacturer() == QLatin1String("Unknown")))
                 {
                     lightNode->setLastRead(READ_VENDOR_NAME, d->idleTotalCounter);
                     lightNode->enableRead(READ_VENDOR_NAME);

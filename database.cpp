@@ -54,11 +54,14 @@ void DeRestPluginPrivate::initDb()
 
     const char *sql[] = {
         "CREATE TABLE IF NOT EXISTS auth (apikey TEXT PRIMARY KEY, devicetype TEXT)",
-        "CREATE TABLE IF NOT EXISTS nodes (mac TEXT PRIMARY KEY, id TEXT, name TEXT, groups TEXT)",
+        "CREATE TABLE IF NOT EXISTS nodes (mac TEXT PRIMARY KEY, id TEXT, state TEXT, name TEXT, groups TEXT, endpoint TEXT, modelid TEXT, manufacturername TEXT, swbuildid TEXT)",
         "ALTER TABLE nodes add column id TEXT",
         "ALTER TABLE nodes add column state TEXT",
         "ALTER TABLE nodes add column groups TEXT",
         "ALTER TABLE nodes add column endpoint TEXT",
+        "ALTER TABLE nodes add column modelid TEXT",
+        "ALTER TABLE nodes add column manufacturername TEXT",
+        "ALTER TABLE nodes add column swbuildid TEXT",
         "ALTER TABLE auth add column createdate TEXT",
         "ALTER TABLE auth add column lastusedate TEXT",
         "ALTER TABLE auth add column useragent TEXT",
@@ -899,6 +902,30 @@ static int sqliteLoadLightNodeCallback(void *user, int ncols, char **colval , ch
             {
                 name = val;
             }
+            else if (strcmp(colname[i], "modelid") == 0)
+            {
+                if (!val.isEmpty() && 0 != val.compare(QLatin1String("Unknown"), Qt::CaseInsensitive))
+                {
+                    lightNode->setModelId(val);
+                    lightNode->clearRead(READ_MODEL_ID);
+                }
+            }
+            else if (strcmp(colname[i], "manufacturername") == 0)
+            {
+                if (!val.isEmpty() && 0 != val.compare(QLatin1String("Unknown"), Qt::CaseInsensitive))
+                {
+                    lightNode->setManufacturerName(val);
+                    lightNode->clearRead(READ_VENDOR_NAME);
+                }
+            }
+            else if (strcmp(colname[i], "swbuildid") == 0)
+            {
+                if (!val.isEmpty() && 0 != val.compare(QLatin1String("Unknown"), Qt::CaseInsensitive))
+                {
+                    lightNode->setSwBuildId(val);
+                    lightNode->clearRead(READ_SWBUILD_ID);
+                }
+            }
             else if (strcmp(colname[i], "id") == 0)
             {
                 id = val;
@@ -1001,6 +1028,16 @@ void DeRestPluginPrivate::loadLightNodeFromDb(LightNode *lightNode)
             DBG_Printf(DBG_ERROR_L2, "sqlite3_exec %s, error: %s\n", qPrintable(sql), errmsg);
             sqlite3_free(errmsg);
         }
+    }
+
+    if (!lightNode->swBuildId().isEmpty())
+    {
+        lightNode->setLastRead(READ_SWBUILD_ID, idleTotalCounter);
+    }
+
+    if (!lightNode->modelId().isEmpty())
+    {
+        lightNode->setLastRead(READ_MODEL_ID, idleTotalCounter);
     }
 
     // check for old mac address only format
@@ -1911,13 +1948,16 @@ void DeRestPluginPrivate::saveDb()
                 }
             }
 
-            QString sql = QString(QLatin1String("REPLACE INTO nodes (id, state, mac, name, groups, endpoint) VALUES ('%1', '%2', '%3', '%4', '%5', '%6')"))
+            QString sql = QString(QLatin1String("REPLACE INTO nodes (id, state, mac, name, groups, endpoint, modelid, manufacturername, swbuildid) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7', '%8', '%9')"))
                     .arg(i->id())
                     .arg(lightState)
                     .arg(i->uniqueId())
                     .arg(i->name())
                     .arg(groupIds.join(","))
-                    .arg(i->haEndpoint().endpoint());
+                    .arg(i->haEndpoint().endpoint())
+                    .arg(i->modelId())
+                    .arg(i->manufacturer())
+                    .arg(i->swBuildId());
 
             errmsg = NULL;
             rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);

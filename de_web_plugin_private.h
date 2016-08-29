@@ -146,6 +146,9 @@
 #define READ_OCCUPANCY_CONFIG  (1 << 10)
 #define READ_GROUP_IDENTIFIERS (1 << 12)
 
+#define READ_MODEL_ID_INTERVAL   (60 * 60) // s
+#define READ_SWBUILD_ID_INTERVAL (60 * 30) // s
+
 // write flags
 #define WRITE_OCCUPANCY_CONFIG  (1 << 11)
 
