@@ -1102,9 +1102,11 @@ static int sqliteLoadSensorNodeCallback(void *user, int ncols, char **colval , c
     {
         if (colval[i] && (colval[i][0] != '\0'))
         {
+            QString val = QString::fromUtf8(colval[i]);
+
             if (strcmp(colname[i], "name") == 0)
             {
-                sensorNode->setName(QString::fromUtf8(colval[i]));
+                sensorNode->setName(val);
 
                 if (sensorNode->node())
                 {
@@ -1114,6 +1116,30 @@ static int sqliteLoadSensorNodeCallback(void *user, int ncols, char **colval , c
             else if (strcmp(colname[i], "id") == 0)
             {
                 sensorNode->setId(QString::fromUtf8(colval[i]));
+            }
+            else if (strcmp(colname[i], "modelid") == 0)
+            {
+                if (!val.isEmpty() && 0 != val.compare(QLatin1String("Unknown"), Qt::CaseInsensitive))
+                {
+                    sensorNode->setModelId(val);
+                    sensorNode->clearRead(READ_MODEL_ID);
+                }
+            }
+            else if (strcmp(colname[i], "manufacturername") == 0)
+            {
+                if (!val.isEmpty() && 0 != val.compare(QLatin1String("Unknown"), Qt::CaseInsensitive))
+                {
+                    sensorNode->setManufacturer(val);
+                    sensorNode->clearRead(READ_VENDOR_NAME);
+                }
+            }
+            else if (strcmp(colname[i], "swbuildid") == 0)
+            {
+                if (!val.isEmpty() && 0 != val.compare(QLatin1String("Unknown"), Qt::CaseInsensitive))
+                {
+                    sensorNode->setSwVersion(val);
+                    sensorNode->clearRead(READ_SWBUILD_ID);
+                }
             }
         }
     }
