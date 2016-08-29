@@ -500,6 +500,7 @@ int DeRestPluginPrivate::getConfig(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
+    rsp.hdrFields.append(qMakePair(QLatin1String("Access-Control-Allow-Origin"), QLatin1String("*")));
     checkRfConnectState();
 
     // handle ETag
