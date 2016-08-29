@@ -1732,24 +1732,27 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         if (!str.isEmpty() && str != lightNode->manufacturer())
                         {
                             lightNode->setManufacturerName(str);
+                            queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
                             updated = true;
                         }
                     }
                     else if (ia->id() == 0x0005) // Model identifier
                     {
                         QString str = ia->toString();
-                        if (!str.isEmpty())
+                        if (!str.isEmpty() && str != lightNode->modelId())
                         {
                             lightNode->setModelId(str);
+                            queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
                             updated = true;
                         }
                     }
                     else if (ia->id() == 0x4000) // Software build identifier
                     {
                         QString str = ia->toString();
-                        if (!str.isEmpty())
+                        if (!str.isEmpty() && str != lightNode->swBuildId())
                         {
                             lightNode->setSwBuildId(str);
+                            queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
                             updated = true;
                         }
                     }
@@ -2510,6 +2513,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     if (i->modelId() != str)
                                     {
                                         i->setModelId(str);
+                                        queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
                                         updated = true;
                                     }
 
@@ -2537,6 +2541,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     if (i->manufacturer() != str)
                                     {
                                         i->setManufacturer(str);
+                                        queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
                                         updated = true;
                                     }
                                 }
@@ -2553,6 +2558,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     if (str != i->swVersion())
                                     {
                                         i->setSwVersion(str);
+                                        queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
                                         updated = true;
                                     }
                                 }
