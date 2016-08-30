@@ -858,6 +858,7 @@ public:
     QString emptyString;
 
     // authentification
+    QTime apiAuthSaveDatabaseTime;
     std::vector<ApiAuth> apiAuths;
     QString gwAdminUserName;
     QString gwAdminPasswordHash;
