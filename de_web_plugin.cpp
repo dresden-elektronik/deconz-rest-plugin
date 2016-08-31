@@ -5008,7 +5008,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
 
                     if (!responseScenes.contains(i->id))
                     {
-                        std::vector<LightState>::iterator st = i->lights().end();
+                        std::vector<LightState>::iterator st = i->lights().begin();
                         std::vector<LightState>::iterator stend = i->lights().end();
 
                         for (; st != stend; ++st)
