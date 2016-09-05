@@ -118,6 +118,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     gwRfConnected = false; // will be detected later
     gwRfConnectedExpected = (deCONZ::appArgumentNumeric("--auto-connect", 1) == 1) ? true : false;
     gwPermitJoinDuration = 0;
+    gwPermitJoinResend = 0;
     gwNetworkOpenDuration = 60;
     gwWifi = "not-configured";
     gwWifiType = "accesspoint";
@@ -247,6 +248,11 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     saveCurrentRuleInDbTimer->setSingleShot(true);
     connect(saveCurrentRuleInDbTimer, SIGNAL(timeout()),
             this, SLOT(saveCurrentRuleInDbTimerFired()));
+
+    resendPermitJoinTimer = new QTimer(this);
+    resendPermitJoinTimer->setSingleShot(true);
+    connect(resendPermitJoinTimer, SIGNAL(timeout()),
+            this, SLOT(resendPermitJoinTimerFired()));
 
     initAuthentification();
     initInternetDicovery();

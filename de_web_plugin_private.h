@@ -875,6 +875,7 @@ public:
     int gwAnnounceInterval; // used by internet discovery [minutes]
     QString gwAnnounceUrl;
     uint8_t gwPermitJoinDuration; // global permit join state (last set)
+    int gwPermitJoinResend; // permit join of values > 255
     uint16_t gwNetworkOpenDuration; // user setting how long network remains open
     QString gwWifi;     // not-configured | not-installed | not-running | running
     QString gwWifiType; // accesspoint | ad-hoc | client
@@ -939,6 +940,7 @@ public:
     QTimer *permitJoinTimer;
     QTime permitJoinLastSendTime;
     bool permitJoinFlag; // indicates that permitJoin changed from greater than 0 to 0
+    QTimer *resendPermitJoinTimer;
 
     // schedules
     QTimer *scheduleTimer;

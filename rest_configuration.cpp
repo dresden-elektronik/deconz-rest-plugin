@@ -306,6 +306,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     {
         map["rfconnected"] = gwRfConnected;
         map["permitjoin"] = (double)gwPermitJoinDuration;
+        map["permitjoinfull"] = (double)gwPermitJoinResend;
         map["otauactive"] = isOtauActive();
         map["otaustate"] = (isOtauBusy() ? "busy" : (isOtauActive() ? "idle" : "off"));
         map["groupdelay"] = (double)gwGroupSendDelay;
@@ -697,19 +698,20 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
     if (map.contains("permitjoin")) // optional
     {
         int seconds = map["permitjoin"].toInt(&ok);
-        if (!ok || !((seconds >= 0) && (seconds <= 255)))
+        if (!ok || !(seconds >= 0))
         {
             rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/permitjoin"), QString("invalid value, %1, for parameter, permitjoin").arg(map["permitjoin"].toString())));
             rsp.httpStatus = HttpStatusBadRequest;
             return REQ_READY_SEND;
         }
 
-        if (gwPermitJoinDuration != seconds)
+        if (gwPermitJoinResend != seconds)
         {
+            gwPermitJoinResend = seconds;
             changed = true;
         }
 
-        setPermitJoinDuration(seconds);
+        resendPermitJoinTimer->start(100);
 
         QVariantMap rspItem;
         QVariantMap rspItemState;
@@ -2301,4 +2303,45 @@ void DeRestPluginPrivate::restoreWifiState()
     }
 #endif
 #endif
+}
+
+/*! Check if permitJoin is > 60 seconds then resend permitjoin with 60 seconds
+ */
+void DeRestPluginPrivate::resendPermitJoinTimerFired()
+{
+    resendPermitJoinTimer->stop();
+    if (gwPermitJoinDuration <= 1)
+    {
+        if (gwPermitJoinResend > 0)
+        {
+
+            if (gwPermitJoinResend >= 60)
+            {
+                setPermitJoinDuration(60);
+            }
+            else
+            {
+                setPermitJoinDuration(gwPermitJoinResend);
+            }
+            gwPermitJoinResend -= 60;
+            updateEtag(gwConfigEtag);
+            if (gwPermitJoinResend <= 0)
+            {
+                gwPermitJoinResend = 0;
+                return;
+            }
+
+        }
+        else if (gwPermitJoinResend == 0)
+        {
+            setPermitJoinDuration(0);
+            return;
+        }
+    }
+    else if (gwPermitJoinResend == 0)
+    {
+        setPermitJoinDuration(0);
+        return;
+    }
+    resendPermitJoinTimer->start(1000);
 }
