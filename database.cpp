@@ -508,7 +508,21 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
             d->gwWifiIp = val;
         }
     }
+    else if (strcmp(colval[0], "userparameter") == 0)
+    {
+        if (!val.isEmpty())
+        {
+            d->gwConfig["userparameter"] = Json::parse(val);
+            bool ok;
+            QVariant var = Json::parse(val, ok);
 
+            if (ok)
+            {
+                QVariantMap map = var.toMap();
+                d->gwUserParameter = map;
+            }
+        }
+    }
     return 0;
 }
 
@@ -1926,6 +1940,7 @@ void DeRestPluginPrivate::saveDb()
         gwConfig["wifiname"] = gwWifiName;
         gwConfig["wifichannel"] = gwWifiChannel;
         gwConfig["wifiip"] = gwWifiIp;
+        gwConfig["userparameter"] = Json::serialize(gwUserParameter);
 
         QVariantMap::iterator i = gwConfig.begin();
         QVariantMap::iterator end = gwConfig.end();
