@@ -661,6 +661,7 @@ public Q_SLOTS:
     void inetProxyHostLookupDone(const QHostInfo &host);
     void scheduleTimerFired();
     void permitJoinTimerFired();
+    void resendPermitJoinTimerFired();
     void otauTimerFired();
     void updateSoftwareTimerFired();
     void lockGatewayTimerFired();
