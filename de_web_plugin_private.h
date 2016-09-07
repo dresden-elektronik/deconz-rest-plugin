@@ -207,6 +207,7 @@
 #define DB_SCHEDULES   0x00000020
 #define DB_RULES       0x00000040
 #define DB_SENSORS     0x00000080
+#define DB_USERPARAM   0x00000100
 
 #define DB_LONG_SAVE_DELAY  (15 * 60 * 1000) // 15 minutes
 #define DB_SHORT_SAVE_DELAY (5 *  1 * 1000) // 5 seconds
@@ -512,12 +513,16 @@ public:
     int deletePassword(const ApiRequest &req, ApiResponse &rsp);
     int getWifiState(const ApiRequest &req, ApiResponse &rsp);
     int restoreWifiConfig(const ApiRequest &req, ApiResponse &rsp);
+
+    void configToMap(const ApiRequest &req, QVariantMap &map);
+
+    // REST API userparameter
+    int handleUserparameterApi(const ApiRequest &req, ApiResponse &rsp);
     int addUserParameter(const ApiRequest &req, ApiResponse &rsp);
     int modifyUserParameter(const ApiRequest &req, ApiResponse &rsp);
     int getUserParameter(const ApiRequest &req, ApiResponse &rsp);
+    int getAllUserParameter(const ApiRequest &req, ApiResponse &rsp);
     int deleteUserParameter(const ApiRequest &req, ApiResponse &rsp);
-
-    void configToMap(const ApiRequest &req, QVariantMap &map);
 
     // REST API lights
     int handleLightsApi(ApiRequest &req, ApiResponse &rsp);
@@ -838,6 +843,7 @@ public:
     void readDb();
     void loadAuthFromDb();
     void loadConfigFromDb();
+    void loadUserparameterFromDb();
     void loadAllGroupsFromDb();
     void loadAllScenesFromDb();
     void loadAllSchedulesFromDb();

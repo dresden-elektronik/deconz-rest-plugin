@@ -6912,6 +6912,7 @@ bool DeRestPlugin::isHttpTarget(const QHttpRequestHeader &hdr)
                 (ls[2] == "sensors") ||
                 (ls[2] == "touchlink") ||
                 (ls[2] == "rules") ||
+                (ls[2] == "userparameter") ||
                 (hdr.path().at(4) != '/') /* Bug in some clients */)
             {
                 return true;
@@ -7077,6 +7078,10 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         else if (path[2] == "rules")
         {
             ret = d->handleRulesApi(req, rsp);
+        }
+        else if (path[2] == "userparameter")
+        {
+            ret = d->handleUserparameterApi(req, rsp);
         }
     }
 
