@@ -7391,10 +7391,10 @@ bool DeRestPluginPrivate::exportConfiguration()
             //TODO: Win: provide 7zip or other
             //TODO: OS X
 #ifdef Q_OS_WIN
-            archProcess->start(path + "/7z.exe a " + path + "/deCONZ.tar " + path + "/deCONZ.conf " + path + "/zll.db");
+            archProcess->start(path + "/7z.exe a " + path + "/deCONZ.tar " + path + "/deCONZ.conf " + path + "/zll.db " + path + "/session.default");
 #endif
 #ifdef Q_OS_LINUX
-            archProcess->start("tar -cf " + path + "/deCONZ.tar -C " + path + " deCONZ.conf zll.db");
+            archProcess->start("tar -cf " + path + "/deCONZ.tar -C " + path + " deCONZ.conf zll.db session.default");
 #endif
             archProcess->waitForFinished(EXT_PROCESS_TIMEOUT);
             DBG_Printf(DBG_INFO, "%s\n", qPrintable(archProcess->readAllStandardOutput()));
