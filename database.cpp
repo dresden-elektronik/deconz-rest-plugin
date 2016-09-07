@@ -21,6 +21,7 @@
 ******************************************************************************/
 static int sqliteLoadAuthCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char **colname);
+static int sqliteLoadUserparameterCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteLoadLightNodeCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteLoadSensorNodeCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteLoadAllGroupsCallback(void *user, int ncols, char **colval , char **colname);
@@ -54,6 +55,7 @@ void DeRestPluginPrivate::initDb()
 
     const char *sql[] = {
         "CREATE TABLE IF NOT EXISTS auth (apikey TEXT PRIMARY KEY, devicetype TEXT)",
+        "CREATE TABLE IF NOT EXISTS userparameter (key TEXT PRIMARY KEY, value TEXT)",
         "CREATE TABLE IF NOT EXISTS nodes (mac TEXT PRIMARY KEY, id TEXT, state TEXT, name TEXT, groups TEXT, endpoint TEXT, modelid TEXT, manufacturername TEXT, swbuildid TEXT)",
         "ALTER TABLE nodes add column id TEXT",
         "ALTER TABLE nodes add column state TEXT",
@@ -118,6 +120,7 @@ void DeRestPluginPrivate::clearDb()
 
     const char *sql[] = {
         "DELETE FROM config2",
+        "DELETE FROM userparameter",
         "DELETE FROM nodes",
         "DELETE FROM groups",
         "DELETE FROM rules",
@@ -180,6 +183,7 @@ void DeRestPluginPrivate::readDb()
 
     loadAuthFromDb();
     loadConfigFromDb();
+    loadUserparameterFromDb();
     loadAllGroupsFromDb();
     loadAllScenesFromDb();
     loadAllRulesFromDb();
@@ -526,6 +530,31 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
     return 0;
 }
 
+/*! Sqlite callback to load userparameter data.
+ */
+static int sqliteLoadUserparameterCallback(void *user, int ncols, char **colval , char **colname)
+{
+    Q_UNUSED(colname);
+    DBG_Assert(user != 0);
+
+    if (!user || (ncols != 2))
+    {
+        return 0;
+    }
+
+    DeRestPluginPrivate *d = static_cast<DeRestPluginPrivate*>(user);
+
+    QString key = QString::fromUtf8(colval[0]);
+    QString val = QString::fromUtf8(colval[1]);
+
+    if (!val.isEmpty())
+    {
+        d->gwUserParameter[key] = val;
+    }
+
+    return 0;
+}
+
 /*! Loads all groups from database
  */
 void DeRestPluginPrivate::loadConfigFromDb()
@@ -561,6 +590,37 @@ void DeRestPluginPrivate::loadConfigFromDb()
 
         DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
         rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadConfigCallback, this, &errmsg);
+
+        if (rc != SQLITE_OK)
+        {
+            if (errmsg)
+            {
+                DBG_Printf(DBG_ERROR, "sqlite3_exec %s, error: %s\n", qPrintable(sql), errmsg);
+                sqlite3_free(errmsg);
+            }
+        }
+    }
+}
+
+/*! Loads all userparameter from database
+ */
+void DeRestPluginPrivate::loadUserparameterFromDb()
+{
+    int rc;
+    char *errmsg = 0;
+
+    DBG_Assert(db != 0);
+
+    if (!db)
+    {
+        return;
+    }
+
+    {
+        QString sql = QString("SELECT key,value FROM %1").arg("userparameter");
+
+        DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+        rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadUserparameterCallback, this, &errmsg);
 
         if (rc != SQLITE_OK)
         {
@@ -1940,7 +2000,6 @@ void DeRestPluginPrivate::saveDb()
         gwConfig["wifiname"] = gwWifiName;
         gwConfig["wifichannel"] = gwWifiChannel;
         gwConfig["wifiip"] = gwWifiIp;
-        gwConfig["userparameter"] = Json::serialize(gwUserParameter);
 
         QVariantMap::iterator i = gwConfig.begin();
         QVariantMap::iterator end = gwConfig.end();
@@ -1969,6 +2028,38 @@ void DeRestPluginPrivate::saveDb()
         }
 
         saveDatabaseItems &= ~DB_CONFIG;
+    }
+
+    // save userparameter
+    if (saveDatabaseItems & DB_USERPARAM)
+    {
+        QVariantMap::iterator i = gwUserParameter.begin();
+        QVariantMap::iterator end = gwUserParameter.end();
+
+        for (; i != end; ++i)
+        {
+            if (i->canConvert(QVariant::String))
+            {
+                QString sql = QString(QLatin1String("REPLACE INTO userparameter (key, value) VALUES ('%1', '%2')"))
+                        .arg(i.key())
+                        .arg(i.value().toString());
+
+                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+                errmsg = NULL;
+                rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
+
+                if (rc != SQLITE_OK)
+                {
+                    if (errmsg)
+                    {
+                        DBG_Printf(DBG_ERROR, "sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                        sqlite3_free(errmsg);
+                    }
+                }
+            }
+        }
+
+        saveDatabaseItems &= ~DB_USERPARAM;
     }
 
     // save nodes

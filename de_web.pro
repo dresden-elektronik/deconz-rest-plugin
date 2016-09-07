@@ -120,7 +120,8 @@ SOURCES  = authentification.cpp \
            scene.cpp \
            sensor.cpp \
            atmel_wsndemo_sensor.cpp \
-           reset_device.cpp
+           reset_device.cpp \
+    rest_userparameter.cpp
 
 win32:DESTDIR  = ../../debug/plugins # TODO adjust
 unix:DESTDIR  = ..
