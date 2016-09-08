@@ -136,6 +136,7 @@ int DeRestPluginPrivate::getAllGroups(const ApiRequest &req, ApiResponse &rsp)
             QString etag = i->etag;
             etag.remove('"'); // no quotes allowed in string
             mnode["etag"] = etag;
+            mnode["hidden"] = i->hidden;
 
             QStringList deviceIds;
             std::vector<QString>::const_iterator d = i->m_deviceMemberships.begin();
