@@ -6887,11 +6887,11 @@ QDialog *DeRestPlugin::createDialog()
  */
 bool DeRestPlugin::isHttpTarget(const QHttpRequestHeader &hdr)
 {
-    if (hdr.path().startsWith("/api/config"))
+    if (hdr.path().startsWith(QLatin1String("/api/config")))
     {
         return true;
     }
-    else if (hdr.path().startsWith("/api"))
+    else if (hdr.path().startsWith(QLatin1String("/api")))
     {
         QString path = hdr.path();
         int quest = path.indexOf('?');
@@ -6901,18 +6901,18 @@ bool DeRestPlugin::isHttpTarget(const QHttpRequestHeader &hdr)
             path = path.mid(0, quest);
         }
 
-        QStringList ls = path.split("/", QString::SkipEmptyParts);
+        QStringList ls = path.split(QLatin1String("/"), QString::SkipEmptyParts);
 
         if (ls.size() > 2)
         {
-            if ((ls[2] == "lights") ||
-                (ls[2] == "groups") ||
-                (ls[2] == "config") ||
-                (ls[2] == "schedules") ||
-                (ls[2] == "sensors") ||
-                (ls[2] == "touchlink") ||
-                (ls[2] == "rules") ||
-                (ls[2] == "userparameter") ||
+            if ((ls[2] == QLatin1String("lights")) ||
+                (ls[2] == QLatin1String("groups")) ||
+                (ls[2] == QLatin1String("config")) ||
+                (ls[2] == QLatin1String("schedules")) ||
+                (ls[2] == QLatin1String("sensors")) ||
+                (ls[2] == QLatin1String("touchlink")) ||
+                (ls[2] == QLatin1String("rules")) ||
+                (ls[2] == QLatin1String("userparameter")) ||
                 (hdr.path().at(4) != '/') /* Bug in some clients */)
             {
                 return true;
@@ -6923,7 +6923,7 @@ bool DeRestPlugin::isHttpTarget(const QHttpRequestHeader &hdr)
             return true;
         }
     }
-    else if (hdr.path().startsWith("/description.xml"))
+    else if (hdr.path().startsWith(QLatin1String("/description.xml")))
     {
         if (!d->descriptionXml.isEmpty())
         {
@@ -6959,7 +6959,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
     QUrl url(hdrmod.path()); // get rid of query string
     QString strpath = url.path();
 
-    if (hdrmod.path().startsWith("/api"))
+    if (hdrmod.path().startsWith(QLatin1String("/api")))
     {
         // some clients send /api123 instead of /api/123
         // correct the path here
@@ -6975,8 +6975,8 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
 
     //qDebug() << hdr.toString();
 
-    if(hdr.hasKey("Content-Type") &&
-       hdr.value("Content-Type").startsWith("multipart/form-data"))
+    if(hdr.hasKey(QLatin1String("Content-Type")) &&
+       hdr.value(QLatin1String("Content-Type")).startsWith(QLatin1String("multipart/form-data")))
     {
         DBG_Printf(DBG_HTTP, "Binary Data: \t%s\n", qPrintable(content));
     }
@@ -6989,7 +6989,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
     connect(sock, SIGNAL(destroyed()),
             d, SLOT(clientSocketDestroyed()));
 
-    QStringList path = hdrmod.path().split("/", QString::SkipEmptyParts);
+    QStringList path = hdrmod.path().split(QLatin1String("/"), QString::SkipEmptyParts);
     ApiRequest req(hdrmod, path, sock, content);
     ApiResponse rsp;
 
@@ -6999,7 +6999,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
     int ret = REQ_NOT_HANDLED;
 
     // general response to a OPTIONS HTTP method
-    if (req.hdr.method() == "OPTIONS")
+    if (req.hdr.method() == QLatin1String("OPTIONS"))
     {
         stream << "HTTP/1.1 200 OK\r\n";
         stream << "Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0\r\n";
@@ -7017,7 +7017,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         return 0;
     }
 
-    if (req.hdr.method() == "POST" && path.size() == 2 && path[1] == "fileupload")
+    if (req.hdr.method() == QLatin1String("POST") && path.size() == 2 && path[1] == QLatin1String("fileupload"))
     {
         QString path = deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation);
         QString filename = path + "/deCONZ.tar.gz";
@@ -7055,31 +7055,31 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
 
     if (path.size() > 2)
     {
-        if (path[2] == "lights")
+        if (path[2] == QLatin1String("lights"))
         {
             ret = d->handleLightsApi(req, rsp);
         }
-        else if (path[2] == "groups")
+        else if (path[2] == QLatin1String("groups"))
         {
             ret = d->handleGroupsApi(req, rsp);
         }
-        else if (path[2] == "schedules")
+        else if (path[2] == QLatin1String("schedules"))
         {
             ret = d->handleSchedulesApi(req, rsp);
         }
-        else if (path[2] == "touchlink")
+        else if (path[2] == QLatin1String("touchlink"))
         {
             ret = d->handleTouchlinkApi(req, rsp);
         }
-        else if (path[2] == "sensors")
+        else if (path[2] == QLatin1String("sensors"))
         {
             ret = d->handleSensorsApi(req, rsp);
         }
-        else if (path[2] == "rules")
+        else if (path[2] == QLatin1String("rules"))
         {
             ret = d->handleRulesApi(req, rsp);
         }
-        else if (path[2] == "userparameter")
+        else if (path[2] == QLatin1String("userparameter"))
         {
             ret = d->handleUserparameterApi(req, rsp);
         }
@@ -7099,7 +7099,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         // new api // TODO cleanup/remove later
         // sending below
     }
-    else if (hdr.path().startsWith("/description.xml") && (hdr.method() == "GET"))
+    else if (hdr.path().startsWith(QLatin1String("/description.xml")) && (hdr.method() == QLatin1String("GET")))
     {
         rsp.httpStatus = HttpStatusOk;
         rsp.contentType = HttpContentHtml;
@@ -7148,9 +7148,9 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
     stream << "Content-Length:" << QString::number(str.toUtf8().size()) << "\r\n";
 
     bool keepAlive = false;
-    if (hdr.hasKey("Connection"))
+    if (hdr.hasKey(QLatin1String("Connection")))
     {
-        if (hdr.value("Connection").toLower() == "keep-alive")
+        if (hdr.value(QLatin1String("Connection")).toLower() == QLatin1String("keep-alive"))
         {
             keepAlive = true;
             d->pushClientForClose(sock, 3);

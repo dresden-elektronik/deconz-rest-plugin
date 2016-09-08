@@ -78,7 +78,7 @@ void DeRestPluginPrivate::announceUpnp()
 {
     quint16 port = 1900;
     QHostAddress host;
-    QByteArray datagram = QString(
+    QByteArray datagram = QString(QLatin1String(
     "NOTIFY * HTTP/1.1\r\n"
     "HOST: 239.255.255.250:1900\r\n"
     "CACHE-CONTROL: max-age=100\r\n"
@@ -87,12 +87,12 @@ void DeRestPluginPrivate::announceUpnp()
     "NTS: ssdp:alive\r\n"
     "NT: upnp:rootdevice\r\n"
     "USN: uuid:%3::upnp:rootdevice\r\n"
-    "\r\n")
+    "\r\n"))
             .arg(gwConfig["ipaddress"].toString())
             .arg(gwConfig["port"].toDouble())
             .arg(gwConfig["uuid"].toString()).toLocal8Bit();
 
-    host.setAddress("239.255.255.250");
+    host.setAddress(QLatin1String("239.255.255.250"));
 
     if (udpSockOut->writeDatagram(datagram, host, port) == -1)
     {
