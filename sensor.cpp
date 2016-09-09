@@ -117,6 +117,7 @@ bool SensorFingerprint::readFromJsonString(const QString &json)
 /*! Constructor. */
 Sensor::Sensor() :
     m_deletedstate(Sensor::StateNormal),
+    m_resetRetryCount(0),
     m_name(""),
     m_type("undefined"),
     m_modelid(""),
@@ -218,6 +219,37 @@ void Sensor::setModelId(const QString &mid)
 {
     m_modelid = mid.trimmed();
 }
+
+/*! Returns the resetRetryCount.
+ */
+uint8_t Sensor::resetRetryCount() const
+{
+    return m_resetRetryCount;
+}
+
+/*! Sets the resetRetryCount.
+    \param resetRetryCount the resetRetryCount
+ */
+void Sensor::setResetRetryCount(uint8_t resetRetryCount)
+{
+    m_resetRetryCount = resetRetryCount;
+}
+
+/*! Returns the zdpResetSeq number.
+ */
+uint8_t Sensor::zdpResetSeq() const
+{
+    return m_zdpResetSeq;
+}
+
+/*! Sets the zdpResetSeq number.
+    \param resetRetryCount the resetRetryCount
+ */
+void Sensor::setZdpResetSeq(uint8_t zdpResetSeq)
+{
+    m_zdpResetSeq = zdpResetSeq;
+}
+
 
 /*! Returns the sensor manufacturer.
  */

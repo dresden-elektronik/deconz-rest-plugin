@@ -1327,15 +1327,56 @@ int DeRestPluginPrivate::deleteSensor(const ApiRequest &req, ApiResponse &rsp)
         rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/sensors/%1").arg(id), QString("resource, /sensors/%1, not available").arg(id)));
         return REQ_READY_SEND;
     }
+
+    bool ok;
+    QVariant var = Json::parse(req.content, ok);
+    QVariantMap map = var.toMap();
+
+    if (!ok)
+    {
+        rsp.list.append(errorToMap(ERR_INVALID_JSON, QString("/sensors/%1").arg(id), QString("body contains invalid JSON")));
+        rsp.httpStatus = HttpStatusBadRequest;
+        return REQ_READY_SEND;
+    }
+
     sensor->setDeletedState(Sensor::StateDeleted);
     sensor->setNeedSaveDatabase(true);
 
-    QVariantMap rspItem;
-    QVariantMap rspItemState;
-    rspItemState["id"] = id;
-    rspItem["success"] = rspItemState;
-    rsp.list.append(rspItem);
-    rsp.httpStatus = HttpStatusOk;
+    bool hasReset = map.contains("reset");
+
+    if (hasReset)
+    {
+        if (map["reset"].type() == QVariant::Bool)
+        {
+            bool reset = map["reset"].toBool();
+
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/sensors/%1/reset").arg(id)] = reset;
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+
+            if (reset)
+            {
+                sensor->setResetRetryCount(10);
+            }
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/reset").arg(id), QString("invalid value, %1, for parameter, reset").arg(map["reset"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+    }
+    else
+    {
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState["id"] = id;
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+        rsp.httpStatus = HttpStatusOk;
+    }
 
     queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
 
