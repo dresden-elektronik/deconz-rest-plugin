@@ -312,7 +312,7 @@ int DeRestPluginPrivate::getLightState(const ApiRequest &req, ApiResponse &rsp)
 
     if (req.path.size() != 4)
     {
-        return -1;
+        return REQ_NOT_HANDLED;
     }
 
     const QString &id = req.path[3];
@@ -958,7 +958,7 @@ int DeRestPluginPrivate::deleteLight(const ApiRequest &req, ApiResponse &rsp)
 
     if (req.path.size() != 4)
     {
-        return -1;
+        return REQ_NOT_HANDLED;
     }
 
     const QString &id = req.path[3];
@@ -1061,7 +1061,7 @@ int DeRestPluginPrivate::removeAllScenes(const ApiRequest &req, ApiResponse &rsp
 
     if (req.path.size() != 5)
     {
-        return -1;
+        return REQ_NOT_HANDLED;
     }
 
     const QString &id = req.path[3];
@@ -1110,7 +1110,7 @@ int DeRestPluginPrivate::removeAllGroups(const ApiRequest &req, ApiResponse &rsp
 
     if (req.path.size() != 5)
     {
-        return -1;
+        return REQ_NOT_HANDLED;
     }
 
     const QString &id = req.path[3];
@@ -1178,7 +1178,7 @@ int DeRestPluginPrivate::getConnectivity(const ApiRequest &req, ApiResponse &rsp
 
     if (req.path.size() != 5)
     {
-        return -1;
+        return REQ_NOT_HANDLED;
     }
 
     const QString &id = req.path[3];
