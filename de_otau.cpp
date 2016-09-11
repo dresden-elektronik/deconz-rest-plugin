@@ -23,6 +23,7 @@
 #define OTAU_QUERY_NEXT_IMAGE_REQUEST_CMD_ID 0x01
 #define OTAU_IMAGE_BLOCK_REQUEST_CMD_ID      0x03
 #define OTAU_IMAGE_PAGE_REQUEST_CMD_ID       0x04
+#define OTAU_UPGRADE_END_REQUEST_CMD_ID      0x06
 
 #define DONT_CARE_FILE_VERSION                 0xFFFFFFFFUL
 
@@ -89,6 +90,23 @@ void DeRestPluginPrivate::otauDataIndication(const deCONZ::ApsDataIndication &in
 
             lightNode->setSwBuildId(version);
             updateEtag(lightNode->etag);
+
+            // read real sw build id
+            lightNode->setLastRead(READ_SWBUILD_ID, idleTotalCounter);
+            lightNode->enableRead(READ_SWBUILD_ID);
+            lightNode->setNextReadTime(READ_SWBUILD_ID, queryTime);
+            queryTime = queryTime.addSecs(5);
+        }
+    }
+    else if ((ind.clusterId() == OTAU_CLUSTER_ID) && (zclFrame.commandId() == OTAU_UPGRADE_END_REQUEST_CMD_ID))
+    {
+        LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());
+
+        if (lightNode)
+        {
+            lightNode->setLastRead(READ_SWBUILD_ID, idleTotalCounter);
+            lightNode->enableRead(READ_SWBUILD_ID);
+            lightNode->setNextReadTime(READ_SWBUILD_ID, queryTime.addSecs(120));
         }
     }
 
