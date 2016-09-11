@@ -182,11 +182,6 @@ bool DeRestPluginPrivate::handleMgmtBindRspConfirm(const deCONZ::ApsDataConfirm 
  */
 void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndication &ind)
 {
-    if (!ind.srcAddress().hasExt())
-    {
-        return;
-    }
-
     if (ind.asdu().size() < 2)
     {
         // at least seq number and status
@@ -199,21 +194,35 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
         std::vector<BindingTableReader>::iterator i = bindingTableReaders.begin();
         std::vector<BindingTableReader>::iterator end = bindingTableReaders.end();
 
-        for (; i != end; ++i)
+        if (ind.srcAddress().hasExt())
         {
-            if (i->apsReq.dstAddress().ext() == ind.srcAddress().ext())
+            for (; i != end; ++i)
             {
-                btReader = &(*i);
-                break;
+                if (i->apsReq.dstAddress().ext() == ind.srcAddress().ext())
+                {
+                    btReader = &(*i);
+                    break;
+                }
+            }
+        }
+        else if (ind.srcAddress().hasNwk())
+        {
+            for (; i != end; ++i)
+            {
+                if (i->apsReq.dstAddress().nwk() == ind.srcAddress().nwk())
+                {
+                    btReader = &(*i);
+                    break;
+                }
             }
         }
     }
 
-    RestNodeBase *node = getSensorNodeForAddress(ind.srcAddress().ext());
+    RestNodeBase *node = getSensorNodeForAddress(ind.srcAddress());
 
     if (!node)
     {
-        node = getLightNodeForAddress(ind.srcAddress().ext());
+        node = getLightNodeForAddress(ind.srcAddress());
     }
 
     if (!node)
@@ -935,7 +944,9 @@ void DeRestPluginPrivate::bindingToRuleTimerFired()
 
     if (bnd.dstAddrMode == Binding::ExtendedAddressMode)
     {
-        LightNode *lightNode = getLightNodeForAddress(bnd.dstAddress.ext, bnd.dstEndpoint);
+        deCONZ::Address addr;
+        addr.setExt(bnd.dstAddress.ext);
+        LightNode *lightNode = getLightNodeForAddress(addr, bnd.dstEndpoint);
 
         if (lightNode)
         {

@@ -1293,7 +1293,7 @@ int DeRestPluginPrivate::getConnectivity(const ApiRequest &req, ApiResponse &rsp
     {
         if (neighborList[nl].address().ext() != coordinatorAddress)
         {
-            LightNode *nl_neighbor = getLightNodeForAddress(neighborList[nl].address().ext());
+            LightNode *nl_neighbor = getLightNodeForAddress(neighborList[nl].address());
             if ((nl_neighbor != NULL) && (neighborList[nl].lqi() != 0) && nl_neighbor->isAvailable())
             {
                 //lqi value from actual node to his neighbor

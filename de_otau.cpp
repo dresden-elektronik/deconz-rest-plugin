@@ -58,10 +58,9 @@ void DeRestPluginPrivate::initOtau()
  */
 void DeRestPluginPrivate::otauDataIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame)
 {
-    if (ind.srcAddress().hasExt() &&
-       (ind.clusterId() == OTAU_CLUSTER_ID) && (zclFrame.commandId() == OTAU_QUERY_NEXT_IMAGE_REQUEST_CMD_ID))
+    if ((ind.clusterId() == OTAU_CLUSTER_ID) && (zclFrame.commandId() == OTAU_QUERY_NEXT_IMAGE_REQUEST_CMD_ID))
     {
-        LightNode *lightNode = getLightNodeForAddress(ind.srcAddress().ext(), ind.srcEndpoint());
+        LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());
 
         // extract software version from request
         if (lightNode && lightNode->swBuildId().isEmpty())

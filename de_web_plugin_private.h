@@ -752,7 +752,7 @@ public:
     void addLightNode(const deCONZ::Node *node);
     void nodeZombieStateChanged(const deCONZ::Node *node);
     LightNode *updateLightNode(const deCONZ::NodeEvent &event);
-    LightNode *getLightNodeForAddress(quint64 extAddr, quint8 endpoint = 0);
+    LightNode *getLightNodeForAddress(const deCONZ::Address &addr, quint8 endpoint = 0);
     int getNumberOfEndpoints(quint64 extAddr);
     LightNode *getLightNodeForId(const QString &id);
     Rule *getRuleForId(const QString &id);
@@ -762,8 +762,9 @@ public:
     void checkSensorNodeReachable(Sensor *sensor);
     void updateSensorNode(const deCONZ::NodeEvent &event);
     void checkAllSensorsAvailable();
-    Sensor *getSensorNodeForAddressAndEndpoint(quint64 extAddr, quint8 ep);
+    Sensor *getSensorNodeForAddressAndEndpoint(const deCONZ::Address &addr, quint8 ep);
     Sensor *getSensorNodeForAddress(quint64 extAddr);
+    Sensor *getSensorNodeForAddress(const deCONZ::Address &addr);
     Sensor *getSensorNodeForFingerPrint(quint64 extAddr, const SensorFingerprint &fingerPrint, const QString &type);
     Sensor *getSensorNodeForUniqueId(const QString &uniqueId);
     Sensor *getSensorNodeForId(const QString &id);
@@ -825,7 +826,6 @@ public:
     bool addTaskStoreScene(TaskItem &task, uint16_t groupId, uint8_t sceneId);
     bool addTaskAddScene(TaskItem &task, uint16_t groupId, uint8_t sceneId, QString lightId);
     bool addTaskRemoveScene(TaskItem &task, uint16_t groupId, uint8_t sceneId);
-    bool obtainTaskCluster(TaskItem &task, const deCONZ::ApsDataIndication &ind);
     void handleGroupClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleSceneClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleOnOffClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);

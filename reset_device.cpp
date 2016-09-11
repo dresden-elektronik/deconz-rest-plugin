@@ -195,22 +195,17 @@ void DeRestPluginPrivate::handleMgmtLeaveRspIndication(const deCONZ::ApsDataIndi
 {
     if (resetDeviceState == ResetWaitIndication)
     {
-        if (!ind.srcAddress().hasExt())
-        {
-            return;
-        }
-
         if (ind.asdu().size() < 2)
         {
             // at least seq number and status
             return;
         }
 
-        RestNodeBase *node = getLightNodeForAddress(ind.srcAddress().ext());
+        RestNodeBase *node = getLightNodeForAddress(ind.srcAddress());
 
         if (!node)
         {
-            node = getSensorNodeForAddress(ind.srcAddress().ext());
+            node = getSensorNodeForAddress(ind.srcAddress());
         }
 
         if (!node)
@@ -239,7 +234,8 @@ void DeRestPluginPrivate::handleMgmtLeaveRspIndication(const deCONZ::ApsDataIndi
 
             for (i = nodes.begin(); i != end; ++i)
             {
-                if (i->address().ext() == ind.srcAddress().ext())
+                if ((ind.srcAddress().hasExt() && i->address().ext() == ind.srcAddress().ext()) ||
+                    (ind.srcAddress().hasNwk() && i->address().nwk() == ind.srcAddress().nwk()))
                 {
                    i->setResetRetryCount(0);
                    i->setIsAvailable(false);
@@ -251,7 +247,8 @@ void DeRestPluginPrivate::handleMgmtLeaveRspIndication(const deCONZ::ApsDataIndi
 
             for (s = sensors.begin(); s != send; ++s)
             {
-                if (s->address().ext() == ind.srcAddress().ext())
+                if ((ind.srcAddress().hasExt() && s->address().ext() == ind.srcAddress().ext()) ||
+                    (ind.srcAddress().hasNwk() && s->address().nwk() == ind.srcAddress().nwk()))
                 {
                    s->setResetRetryCount(0);
                    s->setIsAvailable(false);

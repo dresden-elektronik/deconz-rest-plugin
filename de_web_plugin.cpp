@@ -398,7 +398,7 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
                 {
                     if (task.taskType == TaskGetGroupIdentifiers)
                     {
-                        Sensor *s = getSensorNodeForAddress(task.req.dstAddress().ext());
+                        Sensor *s = getSensorNodeForAddress(task.req.dstAddress());
                         if (s && s->isAvailable())
                         {
                             s->setNextReadTime(READ_GROUP_IDENTIFIERS, queryTime);
@@ -1204,7 +1204,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         lightNode.setIsAvailable(true);
 
         // check if node already exist
-        LightNode *lightNode2 = getLightNodeForAddress(node->address().ext(), i->endpoint());
+        LightNode *lightNode2 = getLightNodeForAddress(node->address(), i->endpoint());
 
         if (lightNode2)
         {
@@ -1504,7 +1504,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
     }
 
     bool updated = false;
-    LightNode *lightNode = getLightNodeForAddress(event.node()->address().ext(), event.endpoint());
+    LightNode *lightNode = getLightNodeForAddress(event.node()->address(), event.endpoint());
 
     if (!lightNode)
     {
@@ -1794,20 +1794,36 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
     return lightNode;
 }
 
-/*! Returns a LightNode for a given MAC address or 0 if not found.
+/*! Returns a LightNode for a given MAC or NWK address or 0 if not found.
  */
-LightNode *DeRestPluginPrivate::getLightNodeForAddress(quint64 extAddr, quint8 endpoint)
+LightNode *DeRestPluginPrivate::getLightNodeForAddress(const deCONZ::Address &addr, quint8 endpoint)
 {
-    std::vector<LightNode>::iterator i;
+    std::vector<LightNode>::iterator i = nodes.begin();
     std::vector<LightNode>::iterator end = nodes.end();
 
-    for (i = nodes.begin(); i != end; ++i)
+    if (addr.hasExt())
     {
-        if (i->address().ext() == extAddr)
+        for (; i != end; ++i)
         {
-            if ((endpoint == 0) || (endpoint == i->haEndpoint().endpoint()))
+            if (i->address().ext() == addr.ext())
             {
-                return &(*i);
+                if ((endpoint == 0) || (endpoint == i->haEndpoint().endpoint()))
+                {
+                    return &(*i);
+                }
+            }
+        }
+    }
+    else if (addr.hasNwk())
+    {
+        for (; i != end; ++i)
+        {
+            if (i->address().nwk() == addr.nwk())
+            {
+                if ((endpoint == 0) || (endpoint == i->haEndpoint().endpoint()))
+                {
+                    return &(*i);
+                }
             }
         }
     }
@@ -2649,28 +2665,79 @@ Sensor *DeRestPluginPrivate::getSensorNodeForAddress(quint64 extAddr)
 
 }
 
-/*! Returns the first Sensor for its given \p extAddress and \p Endpoint or 0 if not found.
+/*! Returns the first Sensor for its given \p addr or 0 if not found.
+    \note There might be more sensors with the same address.
  */
-Sensor *DeRestPluginPrivate::getSensorNodeForAddressAndEndpoint(quint64 extAddr, quint8 ep)
+Sensor *DeRestPluginPrivate::getSensorNodeForAddress(const deCONZ::Address &addr)
 {
     std::vector<Sensor>::iterator i = sensors.begin();
     std::vector<Sensor>::iterator end = sensors.end();
 
-    for (; i != end; ++i)
+    if (addr.hasExt())
     {
-        if (i->address().ext() == extAddr && ep == i->fingerPrint().endpoint && i->deletedState() != Sensor::StateDeleted)
+        for (; i != end; ++i)
         {
-            return &(*i);
+            if (i->address().ext() == addr.ext() && i->deletedState() != Sensor::StateDeleted)
+            {
+                return &(*i);
+            }
+        }
+
+        for (i = sensors.begin(); i != end; ++i)
+        {
+            if (i->address().ext() == addr.ext())
+            {
+                return &(*i);
+            }
+        }
+    }
+    else if (addr.hasNwk())
+    {
+        for (; i != end; ++i)
+        {
+            if (i->address().nwk() == addr.nwk() && i->deletedState() != Sensor::StateDeleted)
+            {
+                return &(*i);
+            }
+        }
+
+        for (i = sensors.begin(); i != end; ++i)
+        {
+            if (i->address().nwk() == addr.nwk())
+            {
+                return &(*i);
+            }
         }
     }
 
-    end = sensors.end();
+    return 0;
+}
 
-    for (i = sensors.begin(); i != end; ++i)
+/*! Returns the first Sensor for its given \p Address and \p Endpoint or 0 if not found.
+ */
+Sensor *DeRestPluginPrivate::getSensorNodeForAddressAndEndpoint(const deCONZ::Address &addr, quint8 ep)
+{
+    std::vector<Sensor>::iterator i = sensors.begin();
+    std::vector<Sensor>::iterator end = sensors.end();
+
+    if (addr.hasExt())
     {
-        if (i->address().ext() == extAddr && ep == i->fingerPrint().endpoint)
+        for (; i != end; ++i)
         {
-            return &(*i);
+            if (i->address().ext() == addr.ext() && ep == i->fingerPrint().endpoint && i->deletedState() != Sensor::StateDeleted)
+            {
+                return &(*i);
+            }
+        }
+    }
+    else if (addr.hasNwk())
+    {
+        for (i = sensors.begin(); i != end; ++i)
+        {
+            if (i->address().nwk() == addr.nwk() && ep == i->fingerPrint().endpoint)
+            {
+                return &(*i);
+            }
         }
     }
 
@@ -4346,51 +4413,6 @@ bool DeRestPluginPrivate::addTask(const TaskItem &task)
     return false;
 }
 
-/*! Fills cluster, lightNode and node fields of \p task based on the information in \p ind.
-    \return true - on success
- */
-bool DeRestPluginPrivate::obtainTaskCluster(TaskItem &task, const deCONZ::ApsDataIndication &ind)
-{
-    deCONZ::SimpleDescriptor *sd = 0;
-
-    task.node = 0;
-    task.lightNode = 0;
-    task.cluster = 0;
-
-    if (task.req.dstAddressMode() == deCONZ::ApsExtAddress)
-    {
-        quint64 extAddr = task.req.dstAddress().ext();
-
-        task.lightNode = getLightNodeForAddress(extAddr, task.req.dstEndpoint());
-        task.node = getNodeForAddress(extAddr);
-
-        if (!task.node)
-        {
-            return false;
-        }
-
-        sd = task.node->getSimpleDescriptor(task.req.dstEndpoint());
-        if (!sd)
-        {
-            return false;
-        }
-
-        task.cluster = sd->cluster(ind.clusterId(), deCONZ::ServerCluster);
-    }
-    else
-    {
-        // broadcast not supported
-        return false;
-    }
-
-    if (!task.lightNode || !task.node || !task.cluster)
-    {
-        return false;
-    }
-
-    return true;
-}
-
 /*! Fires the next APS-DATA.request.
  */
 void DeRestPluginPrivate::processTasks()
@@ -4758,18 +4780,14 @@ void DeRestPluginPrivate::handleGroupClusterIndication(TaskItem &task, const deC
 {
     Q_UNUSED(task);
 
-    if (!ind.srcAddress().hasExt())
-    {
-        return;
-    }
-
-    LightNode *lightNode = getLightNodeForAddress(ind.srcAddress().ext(), ind.srcEndpoint());
-    int endpointCount = getNumberOfEndpoints(ind.srcAddress().ext());
+    LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());
 
     if (!lightNode)
     {
         return;
     }
+
+    int endpointCount = getNumberOfEndpoints(lightNode->address().ext());
 
     if (zclFrame.isDefaultResponse())
     {
@@ -4986,7 +5004,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
             DBG_Printf(DBG_INFO, "0x%016llX get scene membership response capacity %u, groupId 0x%04X, count %u\n", ind.srcAddress().ext(), capacity, groupId, count);
 
             Group *group = getGroupForId(groupId);
-            LightNode *lightNode = getLightNodeForAddress(ind.srcAddress().ext(), ind.srcEndpoint());
+            LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());
             GroupInfo *groupInfo = getGroupInfo(lightNode, group->address());
 
             if (group && lightNode && groupInfo && stream.status() != QDataStream::ReadPastEnd)
@@ -5068,7 +5086,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
         stream >> groupId;
         stream >> sceneId;
 
-        LightNode *lightNode = getLightNodeForAddress(ind.srcAddress().ext(), ind.srcEndpoint());
+        LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());
 
         if (lightNode)
         {
@@ -5165,7 +5183,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
         stream >> groupId;
         stream >> sceneId;
 
-        LightNode *lightNode = getLightNodeForAddress(ind.srcAddress().ext(), ind.srcEndpoint());
+        LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());
 
         if (lightNode)
         {
@@ -5240,7 +5258,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
         stream >> groupId;
         stream >> sceneId;
 
-        LightNode *lightNode = getLightNodeForAddress(ind.srcAddress().ext(), ind.srcEndpoint());
+        LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());
 
         if (lightNode)
         {
@@ -5267,7 +5285,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
             return;
         }
 
-        LightNode *lightNode = getLightNodeForAddress(ind.srcAddress().ext(), ind.srcEndpoint());
+        LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());
 
         if (lightNode)
         {
@@ -5346,7 +5364,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
         }
 
         // update Nodes and Groups state if Recall scene Command was send by a switch
-        Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress().ext(), ind.srcEndpoint());
+        Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
 
         if (sensorNode)
         {
@@ -5476,13 +5494,8 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
 {
     Q_UNUSED(task);
 
-    if (!ind.srcAddress().hasExt())
-    {
-        return;
-    }
-
     // update Nodes and Groups state if On/Off Command was send by a switch
-    Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress().ext(), ind.srcEndpoint());
+    Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
 
     if (sensorNode)
     {
@@ -5624,13 +5637,8 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
 {
     Q_UNUSED(task);
 
-    if (!ind.srcAddress().hasExt())
-    {
-        return;
-    }
-
     uint8_t ep = ind.srcEndpoint();
-    Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress().ext(),ep);
+    Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ep);
     //int endpointCount = getNumberOfEndpoints(ind.srcAddress().ext());
     int epIter = 0;
 
@@ -5671,10 +5679,10 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
 
             if (epIter < count && ep != ind.srcEndpoint())
             {
-                sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress().ext(), ep);
+                sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ep);
                 if (!sensorNode)
                 {
-                    sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress().ext(), ind.srcEndpoint());
+                    sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
                 }
             }
             epIter++;
@@ -5780,18 +5788,14 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
  */
 void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndication &ind)
 {
-    if (!ind.srcAddress().hasExt())
-    {
-        return;
-    }
-
     std::vector<LightNode>::iterator i = nodes.begin();
     std::vector<LightNode>::iterator end = nodes.end();
 
     for (; i != end; ++i)
     {
         deCONZ::Node *node = i->node();
-        if (node && i->address().ext() == ind.srcAddress().ext())
+        if (node && ((ind.srcAddress().hasExt() && i->address().ext() == ind.srcAddress().ext()) ||
+                     (ind.srcAddress().hasNwk() && i->address().nwk() == ind.srcAddress().nwk())))
         {
             if (node->endpoints().end() == std::find(node->endpoints().begin(),
                                                      node->endpoints().end(),
@@ -5813,7 +5817,7 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
                 updateEtag(gwConfigEtag);
             }
 
-            DBG_Printf(DBG_INFO, "DeviceAnnce of LightNode: %s Permit Join: %i\n", qPrintable(ind.srcAddress().toStringExt()), gwPermitJoinDuration);
+            DBG_Printf(DBG_INFO, "DeviceAnnce of LightNode: %s Permit Join: %i\n", qPrintable(i->address().toStringExt()), gwPermitJoinDuration);
 
             // force reading attributes
 
@@ -5845,9 +5849,10 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
 
     for (; si != send; ++si)
     {
-        if (si->address().ext() == ind.srcAddress().ext())
+        if ((ind.srcAddress().hasExt() && si->address().ext() == ind.srcAddress().ext()) ||
+            (ind.srcAddress().hasNwk() && si->address().nwk() == ind.srcAddress().nwk()))
         {
-            DBG_Printf(DBG_INFO, "DeviceAnnce of SensorNode: %s\n", qPrintable(ind.srcAddress().toStringExt()));
+            DBG_Printf(DBG_INFO, "DeviceAnnce of SensorNode: %s\n", qPrintable(si->address().toStringExt()));
             checkSensorNodeReachable(&(*si));
             /*
             if (si->deletedState() == Sensor::StateDeleted)
@@ -5913,7 +5918,7 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
     else if (task.req.dstAddress().hasExt())
     {
         group = &dummyGroup; // never mind
-        LightNode *lightNode = getLightNodeForAddress(task.req.dstAddress().ext(), task.req.dstEndpoint());
+        LightNode *lightNode = getLightNodeForAddress(task.req.dstAddress(), task.req.dstEndpoint());
         if (lightNode)
         {
             pushNodes.push_back(lightNode);
@@ -6487,7 +6492,7 @@ void DeRestPlugin::idleTimerFired()
 
                 if (lightNode->modelId().isEmpty())
                 {
-                    Sensor *sensor = d->getSensorNodeForAddress(lightNode->address().ext());
+                    Sensor *sensor = d->getSensorNodeForAddress(lightNode->address());
 
                     if (sensor && sensor->modelId().startsWith(QLatin1String("FLS-NB")))
                     {
@@ -6571,7 +6576,7 @@ void DeRestPlugin::idleTimerFired()
 
                 if (sensorNode->modelId().isEmpty())
                 {
-                    LightNode *lightNode = d->getLightNodeForAddress(sensorNode->address().ext());
+                    LightNode *lightNode = d->getLightNodeForAddress(sensorNode->address());
                     if (lightNode && !lightNode->modelId().isEmpty())
                     {
                         sensorNode->setModelId(lightNode->modelId());
@@ -6826,14 +6831,16 @@ bool DeRestPlugin::startUpdateFirmware()
 
 const QString &DeRestPlugin::getNodeName(quint64 extAddress) const
 {
-    LightNode *lightNode = d->getLightNodeForAddress(extAddress);
+    deCONZ::Address addr;
+    addr.setExt(extAddress);
+    LightNode *lightNode = d->getLightNodeForAddress(addr);
 
     if (lightNode)
     {
         return lightNode->name();
     }
 
-    Sensor *sensor = d->getSensorNodeForAddress(extAddress);
+    Sensor *sensor = d->getSensorNodeForAddress(addr);
     if (sensor)
     {
         return sensor->name();
