@@ -117,13 +117,13 @@ bool SensorFingerprint::readFromJsonString(const QString &json)
 /*! Constructor. */
 Sensor::Sensor() :
     m_deletedstate(Sensor::StateNormal),
-    m_resetRetryCount(0),
     m_name(""),
     m_type("undefined"),
     m_modelid(""),
     m_manufacturer("unknown"),
     m_swversion("1.0"),
-    m_mode(2)
+    m_mode(2),
+    m_resetRetryCount(0)
 {
     sensorTypes.append("CLIPSwitch");
     sensorTypes.append("CLIPOpenClose");
