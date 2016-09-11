@@ -1,16 +1,11 @@
+#include <QBuffer>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QTimer>
 #include <QTime>
 #include <deconz.h>
 #include "gateway.h"
-
-enum GW_State
-{
-    GW_StateOffline,
-    GW_StateNotAuthorized,
-    GW_StateConnected
-};
+#include "json.h"
 
 enum GW_Event
 {
@@ -27,8 +22,11 @@ public:
     void handleEventStateOffline(GW_Event event);
     void handleEventStateNotAuthorized(GW_Event event);
     void handleEventStateConnected(GW_Event event);
+    void checkConfigResponse(const QByteArray &data);
+    void checkGroupsResponse(const QByteArray &data);
 
-    GW_State state;
+    Gateway::State state;
+    bool pairingEnabled;
     QString apikey;
     QString name;
     QString uuid;
@@ -37,8 +35,9 @@ public:
     QTimer *timer;
     GW_Event timerAction;
     QNetworkAccessManager *manager;
+    QBuffer *reqBuffer;
     QNetworkReply *reply;
-    QTime tLastReply;
+    std::vector<Gateway::Group> groups;
 };
 
 Gateway::Gateway(QObject *parent) :
@@ -46,14 +45,15 @@ Gateway::Gateway(QObject *parent) :
     d_ptr(new GatewayPrivate)
 {
     Q_D(Gateway);
-    d->state = GW_StateOffline;
+    d->state = Gateway::StateOffline;
+    d->pairingEnabled = true;
     d->reply = 0;
     d->manager = new QNetworkAccessManager(this);
+    connect(d->manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(finished(QNetworkReply*)));
     d->timer = new QTimer(this);
     d->timer->setSingleShot(true);
+    d->reqBuffer = new QBuffer(this);
     connect(d->timer, SIGNAL(timeout()), this, SLOT(timerFired()));
-
-    d->apikey = "adasd90892msd";
 
     d->startTimer(5000, ActionProcess);
 }
@@ -129,6 +129,42 @@ void Gateway::setPort(quint16 port)
     }
 }
 
+void Gateway::setApiKey(const QString &apiKey)
+{
+    Q_D(Gateway);
+    if (d->apikey != apiKey)
+    {
+        d->apikey = apiKey;
+    }
+}
+
+bool Gateway::pairingEnabled() const
+{
+    Q_D(const Gateway);
+    return d->pairingEnabled;
+}
+
+void Gateway::setPairingEnabled(bool pairingEnabled)
+{
+    Q_D(Gateway);
+    if (d->pairingEnabled != pairingEnabled)
+    {
+        d->pairingEnabled = pairingEnabled;
+    }
+}
+
+Gateway::State Gateway::state() const
+{
+    Q_D(const Gateway);
+    return d->state;
+}
+
+const std::vector<Gateway::Group> &Gateway::groups() const
+{
+    Q_D(const Gateway);
+    return d->groups;
+}
+
 void Gateway::timerFired()
 {
     Q_D(Gateway);
@@ -162,9 +198,9 @@ void GatewayPrivate::startTimer(int msec, GW_Event event)
 
 void GatewayPrivate::handleEvent(GW_Event event)
 {
-    if      (state == GW_StateOffline)       { handleEventStateOffline(event); }
-    else if (state == GW_StateNotAuthorized) { handleEventStateNotAuthorized(event); }
-    else if (state == GW_StateConnected)     { handleEventStateConnected(event); }
+    if      (state == Gateway::StateOffline)       { handleEventStateOffline(event); }
+    else if (state == Gateway::StateNotAuthorized) { handleEventStateNotAuthorized(event); }
+    else if (state == Gateway::StateConnected)     { handleEventStateConnected(event); }
     else
     {
         Q_ASSERT(0);
@@ -190,37 +226,34 @@ void GatewayPrivate::handleEventStateOffline(GW_Event event)
         QObject::connect(reply, SIGNAL(error(QNetworkReply::NetworkError)),
                 manager->parent(), SLOT(error(QNetworkReply::NetworkError)));
 
-
-        startTimer(100, EventTimeout);
+        startTimer(2000, EventTimeout);
     }
     else if (event == EventResponse)
     {
-        timer->stop();
-        tLastReply.start();
-
         QNetworkReply *r = reply;
         if (reply)
         {
+            timer->stop();
             reply = 0;
             int code = r->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
 
-            if (code == 403 || code == 200) // not authorized or ok
-            {
-                QNetworkRequest req = r->request();
-                QByteArray data = r->readAll();
-                DBG_Printf(DBG_INFO, "GW reply code %d from %s\n%s\n", code, qPrintable(req.url().toString()), qPrintable(data));
-            }
             r->deleteLater();
 
             if (code == 403)
             {
-                state = GW_StateNotAuthorized;
-                startTimer(10, ActionProcess);
+                state = Gateway::StateNotAuthorized;
+                startTimer(1000, ActionProcess);
             }
             else if (code == 200)
             {
-                state = GW_StateConnected;
-                startTimer(10, ActionProcess);
+                checkConfigResponse(r->readAll());
+                state = Gateway::StateConnected;
+                startTimer(500, ActionProcess);
+            }
+            else
+            {
+                DBG_Printf(DBG_INFO, "unhandled http status code in offline state %d\n", code);
+                startTimer(10000, EventTimeout);
             }
         }
     }
@@ -242,10 +275,203 @@ void GatewayPrivate::handleEventStateOffline(GW_Event event)
 
 void GatewayPrivate::handleEventStateNotAuthorized(GW_Event event)
 {
+    if (event == ActionProcess)
+    {
+        if (!pairingEnabled)
+        {
+            startTimer(5000, ActionProcess);
+            return;
+        }
 
+        // try to create user account
+        QString url;
+        url.sprintf("http://%s:%u/api/", qPrintable(address.toString()), port);
+
+        QVariantMap map;
+        map[QLatin1String("devicetype")] = QLatin1String("x-gw");
+        map[QLatin1String("username")] = apikey;
+
+        QString json = deCONZ::jsonStringFromMap(map);
+
+        reqBuffer->close();
+        reqBuffer->setData(json.toUtf8());
+        reqBuffer->open(QBuffer::ReadOnly);
+
+        QNetworkRequest req(url);
+        reply = manager->sendCustomRequest(req, "POST", reqBuffer);
+
+        QObject::connect(reply, SIGNAL(error(QNetworkReply::NetworkError)),
+                manager->parent(), SLOT(error(QNetworkReply::NetworkError)));
+
+        startTimer(5000, EventTimeout);
+    }
+    else if (event == EventResponse)
+    {
+
+        QNetworkReply *r = reply;
+        if (reply)
+        {
+            timer->stop();
+            reply = 0;
+            int code = r->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+
+            {
+                QByteArray data = r->readAll();
+                DBG_Printf(DBG_INFO, "GW create user reply %d: %s\n", code, qPrintable(data));
+            }
+
+            r->deleteLater();
+
+            if (code == 403)
+            {
+                // retry
+                startTimer(10000, ActionProcess);
+            }
+            else if (code == 200)
+            {
+                // go to state offline first to query config
+                state = Gateway::StateOffline;
+                startTimer(100, ActionProcess);
+            }
+        }
+    }
+    else if (event == EventTimeout)
+    {
+        state = Gateway::StateOffline;
+        startTimer(5000, ActionProcess);
+    }
 }
 
 void GatewayPrivate::handleEventStateConnected(GW_Event event)
 {
+    if (event == ActionProcess)
+    {
+        QString url;
+        url.sprintf("http://%s:%u/api/%s/groups",
+                    qPrintable(address.toString()), port, qPrintable(apikey));
 
+        reply = manager->get(QNetworkRequest(url));
+        QObject::connect(reply, SIGNAL(error(QNetworkReply::NetworkError)),
+                manager->parent(), SLOT(error(QNetworkReply::NetworkError)));
+
+
+        startTimer(1000, EventTimeout);
+    }
+    else if (event == EventResponse)
+    {
+        QNetworkReply *r = reply;
+        if (reply)
+        {
+            timer->stop();
+            reply = 0;
+            int code = r->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+
+
+            if (code == 200)
+            {
+                //state = Gateway::StateConnected;
+                // ok check again later
+                checkGroupsResponse(r->readAll());
+                startTimer(15000, ActionProcess);
+            }
+            else
+            {
+                DBG_Printf(DBG_INFO, "unhandled http status code in connected state %d switch to offline state\n", code);
+                state = Gateway::StateOffline;
+                startTimer(5000, ActionProcess);
+            }
+
+            r->deleteLater();
+        }
+    }
+    else if (event == EventTimeout)
+    {
+        if (reply)
+        {
+            QNetworkReply *r = reply;
+            reply = 0;
+            if (r->isRunning())
+            {
+                r->abort();
+            }
+            r->deleteLater();
+        }
+        DBG_Printf(DBG_INFO, "request timeout in connected state switch to offline state\n");
+        state = Gateway::StateOffline;
+        startTimer(5000, ActionProcess);
+    }
+}
+
+void GatewayPrivate::checkConfigResponse(const QByteArray &data)
+{
+    bool ok;
+    QVariant var = Json::parse(data, ok);
+
+    if (var.type() != QVariant::Map)
+        return;
+
+    QVariantMap map = var.toMap();
+
+    if (!ok || map.isEmpty())
+    {
+        return;
+    }
+
+    if (map.contains(QLatin1String("name")))
+    {
+        name = map[QLatin1String("name")].toString();
+    }
+}
+
+void GatewayPrivate::checkGroupsResponse(const QByteArray &data)
+{
+    bool ok;
+    QVariant var = Json::parse(data, ok);
+
+    if (var.type() != QVariant::Map)
+        return;
+
+    QVariantMap map = var.toMap();
+
+    if (!ok || map.isEmpty())
+    {
+        return;
+    }
+
+    QStringList groupIds = map.keys();
+
+    QStringList::iterator i = groupIds.begin();
+    QStringList::iterator end = groupIds.end();
+
+    if (groups.size() != (size_t)groupIds.size())
+    {
+        groups.clear();
+    }
+
+    for (size_t j = 0; i != end; ++i, j++)
+    {
+
+        QVariantMap g = map[*i].toMap();
+        QString name = g["name"].toString();
+
+        if (j == groups.size())
+        {
+            Gateway::Group group;
+            group.name = name;
+            group.id = *i;
+            groups.push_back(group);
+            DBG_Printf(DBG_INFO, "\tgroup %s: %s\n", qPrintable(group.id), qPrintable(group.name));
+        }
+        else if (j < groups.size())
+        {
+            Gateway::Group &group = groups[j];
+            if (group.name != name || group.id != *i)
+            {
+                // update
+                group.name = name;
+                group.id = *i;
+                DBG_Printf(DBG_INFO, "\tgroup %s: %s\n", qPrintable(group.id), qPrintable(group.name));
+            }
+        }
+    }
 }

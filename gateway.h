@@ -6,10 +6,25 @@
 #include <QNetworkReply>
 
 class GatewayPrivate;
+
 class Gateway : public QObject
 {
     Q_OBJECT
 public:
+    class Group
+    {
+    public:
+        QString id;
+        QString name;
+    };
+
+    enum State
+    {
+        StateOffline,
+        StateNotAuthorized,
+        StateConnected
+    };
+
     explicit Gateway(QObject *parent = 0);
     ~Gateway();
 
@@ -21,6 +36,12 @@ public:
     void setAddress(const QHostAddress &address);
     quint16 port() const;
     void setPort(quint16 port);
+    void setApiKey(const QString &apiKey);
+    bool pairingEnabled() const;
+    void setPairingEnabled(bool pairingEnabled);
+    State state() const;
+
+    const std::vector<Group> &groups() const;
 
 signals:
 

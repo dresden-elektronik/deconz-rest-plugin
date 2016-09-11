@@ -33,62 +33,165 @@ int DeRestPluginPrivate::handleGatewaysApi(const ApiRequest &req, ApiResponse &r
         return REQ_NOT_HANDLED;
     }
 
+    if(!checkApikeyAuthentification(req, rsp))
+    {
+        return REQ_READY_SEND;
+    }
+
     // GET /api/<apikey>/gateways
     if ((req.path.size() == 3) && (req.hdr.method() == QLatin1String("GET")))
     {
-        return getGateways(req, rsp);
+        return getAllGateways(req, rsp);
+    }
+    // GET /api/<apikey>/gateways/<id>
+    else if ((req.path.size() == 4) && (req.hdr.method() == QLatin1String("GET")))
+    {
+        return getGatewayState(req, rsp);
     }
 
     return REQ_NOT_HANDLED;
 }
 
-int DeRestPluginPrivate::getGateways(const ApiRequest &req, ApiResponse &rsp)
+int DeRestPluginPrivate::getAllGateways(const ApiRequest &req, ApiResponse &rsp)
 {
     Q_UNUSED(req);
     rsp.httpStatus = HttpStatusOk;
-    rsp.str = "{}";
 
     for (size_t i = 0; i < gateways.size(); i++)
     {
-        Gateway *gw = gateways[i];
-        Q_ASSERT(gw);
-        QVariantMap g;
-        if (!gw->uuid().isEmpty())
+        QVariantMap map;
+        gatewayToMap(req, gateways[i], map);
+        if (!map.isEmpty())
         {
-            g[QLatin1String("uuid")] = gw->uuid();
+            rsp.map[QString::number(i + 1)] = map;
         }
-        if (!gw->name().isEmpty())
-        {
-            g[QLatin1String("name")] = gw->name();
-        }
-        g[QLatin1String("ip")] = gw->address().toString();
-        g[QLatin1String("port")] = (double)gw->port();
-        rsp.list.push_back(g);
+    }
+
+    if (rsp.map.isEmpty())
+    {
+        rsp.str = "{}";
+        return REQ_READY_SEND;
     }
 
     return REQ_READY_SEND;
 }
 
+/*! GET /api/<apikey>/gateways/<id>
+    \return 0 - on success
+           -1 - on error
+ */
+int DeRestPluginPrivate::getGatewayState(const ApiRequest &req, ApiResponse &rsp)
+{
+    DBG_Assert(req.path.size() == 4);
+
+    if (req.path.size() != 4)
+    {
+        return REQ_NOT_HANDLED;
+    }
+
+    rsp.httpStatus = HttpStatusOk;
+
+    bool ok;
+    size_t idx = req.path[3].toUInt(&ok);
+
+    if (!ok || idx == 0 || (idx - 1) >= gateways.size())
+    {
+        rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/gateways/%1").arg(req.path[3]), QString("resource, /gateways/%1, not available").arg(req.path[3])));
+        rsp.httpStatus = HttpStatusNotFound;
+        return REQ_READY_SEND;
+    }
+
+    idx -= 1;
+
+    gatewayToMap(req, gateways[idx], rsp.map);
+
+    if (rsp.map.isEmpty())
+    {
+        rsp.str = "{}";
+    }
+
+    return REQ_READY_SEND;
+}
+
+/*! Puts all parameters in a map for later JSON serialization.
+ */
+void DeRestPluginPrivate::gatewayToMap(const ApiRequest &req, const Gateway *gw, QVariantMap &map)
+{
+    Q_UNUSED(req);
+
+    if (!gw)
+    {
+        return;
+    }
+
+    if (!gw->uuid().isEmpty())
+    {
+        map[QLatin1String("uuid")] = gw->uuid();
+    }
+    if (!gw->name().isEmpty())
+    {
+        map[QLatin1String("name")] = gw->name();
+    }
+    map[QLatin1String("ip")] = gw->address().toString();
+    map[QLatin1String("port")] = (double)gw->port();
+    map[QLatin1String("pairing")] = gw->pairingEnabled();
+
+    if (!gw->groups().empty())
+    {
+        QVariantMap groups;
+
+        for (size_t i = 0; i < gw->groups().size(); i++)
+        {
+            const Gateway::Group &g = gw->groups()[i];
+            groups[g.id] = g.name;
+        }
+
+        map[QLatin1String("groups")] = groups;
+    }
+
+    switch (gw->state())
+    {
+    case Gateway::StateConnected:     { map[QLatin1String("state")] = QLatin1String("connected"); } break;
+    case Gateway::StateNotAuthorized: { map[QLatin1String("state")] = QLatin1String("not authorized"); } break;
+    case Gateway::StateOffline:       { map[QLatin1String("state")] = QLatin1String("offline"); } break;
+    default:                          { map[QLatin1String("state")] = QLatin1String("unknown"); }
+        break;
+    }
+}
+
 void DeRestPluginPrivate::foundGateway(quint32 ip, quint16 port, const QString &uuid, const QString &name)
 {
+    if (uuid.isEmpty())
+    {
+        return;
+    }
 
     for (size_t i = 0; i < gateways.size(); i++)
     {
         Gateway *gw = gateways[i];
         Q_ASSERT(gw);
 
-        if (gw->address().toIPv4Address() == ip && gw->port() == port)
-            return; // already known
+        if (gw && gw->uuid() == uuid)
+        {
+            if (gw->address().toIPv4Address() != ip || gw->port() != port)
+            {
+                gw->setAddress(QHostAddress(ip));
+                gw->setPort(port);
+            }
 
-        if (!uuid.isEmpty() && gw->uuid() == uuid)
             return; // already known
+        }
     }
+
+    Q_ASSERT(gwUuid.length() >= 10);
+    QString gwApikey = gwUuid.left(10);
 
     Gateway *gw = new Gateway(this);
     gw->setAddress(QHostAddress(ip));
     gw->setPort(port);
     gw->setUuid(uuid);
     gw->setName(name);
+    gw->setApiKey(gwApikey);
     DBG_Printf(DBG_INFO, "found gateway %s:%u\n", qPrintable(gw->address().toString()), port);
     gateways.push_back(gw);
 }

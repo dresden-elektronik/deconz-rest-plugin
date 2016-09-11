@@ -63,6 +63,7 @@ GatewayScanner::GatewayScanner(QObject *parent) :
     d->scanIteration = 0;
     d->state = StateInit;
     d->manager = new QNetworkAccessManager(this);
+    connect(d->manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(requestFinished(QNetworkReply*)));
     d->timer = new QTimer(this);
     d->timer->setSingleShot(true);
     connect(d->timer, SIGNAL(timeout()), this, SLOT(scanTimerFired()));
@@ -210,15 +211,42 @@ void GatewayScannerPrivate::handleEvent(ScanEvent event)
                 reply = 0;
                 int code = r->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
 
-                if (code == 403 || code == 200) // not authorized or ok
+                if (code == 200) // not authorized or ok
                 {
                     QNetworkRequest req = r->request();
-                    QByteArray data = r->readAll();
-                    DBG_Printf(DBG_INFO, "reply code %d from %s\n%s\n", code, qPrintable(req.url().toString()), qPrintable(data));
+                    DBG_Printf(DBG_INFO, "reply code %d from %s\n", code, qPrintable(req.url().toString()));
 
-                    QString uuid;
-                    QString name;
-                    q->foundGateway(scanIp, scanPort, uuid, name);
+                    bool isGateway = false;
+                    char buf[256];
+                    qint64 n = 0;
+                    while ((n = r->readLine(buf, sizeof(buf))) > 0)
+                    {
+                        if (n < 10 || (size_t)n >= sizeof(buf))
+                            continue;
+
+                        buf[n] = '\0';
+
+                        if (!isGateway)
+                        {
+                            if (strstr(buf, ">dresden elektronik<"))
+                            {
+                                isGateway = true;
+                            }
+                        }
+                        else
+                        {
+                            const char *uuid = strstr(buf, "<UDN>uuid:");
+                            const char *end = uuid ? strstr(uuid, "</UDN>") : 0;
+                            if (uuid && end)
+                            {
+                                uuid += strlen("<UDN>uuid:");
+                                buf[end - buf] = '\0';
+                                QString name;
+                                q->foundGateway(scanIp, scanPort, uuid, name);
+                                break;
+                            }
+                        }
+                    }
 
                 }
                 r->deleteLater();
@@ -267,12 +295,11 @@ void GatewayScannerPrivate::queryNextIp()
     scanIp = interfaces.back();
     scanPort = 80;
     QString url;
-    QString apikey = "adasd";
-    url.sprintf("http://%u.%u.%u.%u:%u/api/%s/config",
+    url.sprintf("http://%u.%u.%u.%u:%u/description.xml",
                 ((scanIp >> 24) & 0xff),
                 ((scanIp >> 16) & 0xff),
                 ((scanIp >> 8) & 0xff),
-                host & 0xff, scanPort, qPrintable(apikey));
+                host & 0xff, scanPort);
 
     scanIp &= 0xffffff00ull;
     scanIp |= host & 0xff;
