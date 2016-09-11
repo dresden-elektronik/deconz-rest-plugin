@@ -421,16 +421,16 @@ void DeRestPluginPrivate::checkFirmwareDevices()
 
     if (usbDongleCount > 1)
     {
-        DBG_Printf(DBG_INFO, "GW firmware update too many USB devices connected, abort\n");
+        DBG_Printf(DBG_INFO_L2, "GW firmware update too many USB devices connected, abort\n");
     }
     else if (usbDongleCount == 1)
     {
-        DBG_Printf(DBG_INFO, "GW firmware update select USB device\n");
+        DBG_Printf(DBG_INFO_L2, "GW firmware update select USB device\n");
         fwProcessArgs << "-d" << "0";
     }
     else if (raspBeeCount > 0 && usbDongleCount == 0 && !ttyPath.isEmpty())
     {
-        DBG_Printf(DBG_INFO, "GW firmware update select %s device\n", qPrintable(ttyPath));
+        DBG_Printf(DBG_INFO_L2, "GW firmware update select %s device\n", qPrintable(ttyPath));
         fwProcessArgs << "-d" << "RaspBee";
     }
 
