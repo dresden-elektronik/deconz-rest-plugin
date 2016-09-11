@@ -239,6 +239,8 @@ extern const char *HttpContentJPG;
 extern const char *HttpContentSVG;
 
 // Forward declarations
+class Gateway;
+class GatewayScanner;
 class QUdpSocket;
 class QTcpSocket;
 class DeRestPlugin;
@@ -497,6 +499,10 @@ public:
     bool checkApikeyAuthentification(const ApiRequest &req, ApiResponse &rsp);
     QString encryptString(const QString &str);
 
+    // REST API gateways
+    int handleGatewaysApi(const ApiRequest &req, ApiResponse &rsp);
+    int getGateways(const ApiRequest &req, ApiResponse &rsp);
+
     // REST API configuration
     int handleConfigurationApi(const ApiRequest &req, ApiResponse &rsp);
     int createUser(const ApiRequest &req, ApiResponse &rsp);
@@ -732,6 +738,9 @@ public Q_SLOTS:
     void checkWifiState();
     void restoreWifiState();
 
+    // gateways
+    void foundGateway(quint32 ip, quint16 port, const QString &uuid, const QString &name);
+
 public:
     void checkRfConnectState();
     bool isInNetwork();
@@ -867,6 +876,10 @@ public:
     std::vector<int> sensorIds;
     QTimer *databaseTimer;
     QString emptyString;
+
+    // gateways
+    std::vector<Gateway*> gateways;
+    GatewayScanner *gwScanner;
 
     // authentification
     QTime apiAuthSaveDatabaseTime;

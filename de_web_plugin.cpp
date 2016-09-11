@@ -29,6 +29,7 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "de_web_widget.h"
+#include "gateway_scanner.h"
 #include "json.h"
 
 const char *HttpStatusOk           = "200 OK"; // OK
@@ -88,6 +89,12 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
 
     connect(databaseTimer, SIGNAL(timeout()),
             this, SLOT(saveDatabaseTimerFired()));
+
+
+    gwScanner = new GatewayScanner(this);
+    connect(gwScanner, SIGNAL(foundGateway(quint32,quint16,QString,QString)),
+            this, SLOT(foundGateway(quint32,quint16,QString,QString)));
+    gwScanner->startScan();
 
     db = 0;
     saveDatabaseItems = 0;
@@ -6913,6 +6920,7 @@ bool DeRestPlugin::isHttpTarget(const QHttpRequestHeader &hdr)
                 (ls[2] == QLatin1String("touchlink")) ||
                 (ls[2] == QLatin1String("rules")) ||
                 (ls[2] == QLatin1String("userparameter")) ||
+                (ls[2] == QLatin1String("gateways")) ||
                 (hdr.path().at(4) != '/') /* Bug in some clients */)
             {
                 return true;
@@ -7010,8 +7018,10 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         stream << "Access-Control-Allow-Credentials: true\r\n";
         stream << "Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE\r\n";
         stream << "Access-Control-Allow-Headers: Content-Type\r\n";
-        stream << "Content-type: text/html\r\n";
+        stream << "Content-Type: text/html\r\n";
         stream << "Content-Length: 0\r\n";
+        stream << "Gateway-Name: " << d->gwName << "\r\n";
+        stream << "Gateway-Uuid: " << d->gwUuid << "\r\n";
         stream << "\r\n";
         req.sock->flush();
         return 0;
@@ -7082,6 +7092,10 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         else if (path[2] == QLatin1String("userparameter"))
         {
             ret = d->handleUserparameterApi(req, rsp);
+        }
+        else if (path[2] == QLatin1String("gateways"))
+        {
+            ret = d->handleGatewaysApi(req, rsp);
         }
     }
 
