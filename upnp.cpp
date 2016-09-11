@@ -46,9 +46,11 @@ void DeRestPluginPrivate::initUpnpDiscovery()
     timer->start(20 * 1000);
 
     // replace description_in.xml template with dynamic content
-    QString serverRoot = deCONZ::appArgumentString("--http-root", "");
 
-    if (serverRoot != "")
+    deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
+    QString serverRoot = apsCtrl->getParameter(deCONZ::ParamHttpRoot);
+
+    if (!serverRoot.isEmpty())
     {
         descriptionXml.clear();
         QFile f(serverRoot + "/description_in.xml");
