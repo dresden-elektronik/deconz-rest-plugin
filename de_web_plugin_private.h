@@ -503,6 +503,7 @@ public:
     int handleGatewaysApi(const ApiRequest &req, ApiResponse &rsp);
     int getAllGateways(const ApiRequest &req, ApiResponse &rsp);
     int getGatewayState(const ApiRequest &req, ApiResponse &rsp);
+    int setGatewayState(const ApiRequest &req, ApiResponse &rsp);
     void gatewayToMap(const ApiRequest &req, const Gateway *gw, QVariantMap &map);
 
     // REST API configuration

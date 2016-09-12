@@ -48,6 +48,11 @@ int DeRestPluginPrivate::handleGatewaysApi(const ApiRequest &req, ApiResponse &r
     {
         return getGatewayState(req, rsp);
     }
+    // PUT /api/<apikey>/gateways/<id>/state
+    else if ((req.path.size() == 5) && (req.hdr.method() == QLatin1String("PUT")) && (req.path[4] == QLatin1String("state")))
+    {
+        return setGatewayState(req, rsp);
+    }
 
     return REQ_NOT_HANDLED;
 }
@@ -77,8 +82,8 @@ int DeRestPluginPrivate::getAllGateways(const ApiRequest &req, ApiResponse &rsp)
 }
 
 /*! GET /api/<apikey>/gateways/<id>
-    \return 0 - on success
-           -1 - on error
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
  */
 int DeRestPluginPrivate::getGatewayState(const ApiRequest &req, ApiResponse &rsp)
 {
@@ -111,6 +116,75 @@ int DeRestPluginPrivate::getGatewayState(const ApiRequest &req, ApiResponse &rsp
     }
 
     return REQ_READY_SEND;
+}
+
+/*! PUT /api/<apikey>/gateways/<id>
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::setGatewayState(const ApiRequest &req, ApiResponse &rsp)
+{
+    DBG_Assert(req.path.size() == 5);
+
+    if (req.path.size() != 5)
+    {
+        return REQ_NOT_HANDLED;
+    }
+
+    rsp.httpStatus = HttpStatusOk;
+
+    bool ok;
+    const QString &id = req.path[3];
+    size_t idx = id.toUInt(&ok);
+
+    if (!ok || idx == 0 || (idx - 1) >= gateways.size())
+    {
+        rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/gateways/%1").arg(id), QString("resource, /gateways/%1, not available").arg(id)));
+        rsp.httpStatus = HttpStatusNotFound;
+        return REQ_READY_SEND;
+    }
+
+    Gateway *gw = gateways[idx - 1];
+
+    QVariant var = Json::parse(req.content, ok);
+    QVariantMap map = var.toMap();
+
+    if (!ok || map.isEmpty())
+    {
+        rsp.httpStatus = HttpStatusBadRequest;
+        rsp.list.append(errorToMap(ERR_INVALID_JSON, QString("/gateways/%1/state").arg(id), QLatin1String("body contains invalid JSON")));
+        return REQ_READY_SEND;
+    }
+
+    if (map.contains(QLatin1String("pairing")))
+    {
+        if (map[QLatin1String("pairing")].type() == QVariant::Bool)
+        {
+            bool pairing = map[QLatin1String("pairing")].toBool();
+            if (gw->pairingEnabled() != pairing)
+            {
+                gw->setPairingEnabled(pairing);
+            }
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/gateways/%1/state/pairing").arg(id)] = map[QLatin1String("pairing")];
+            rspItem[QLatin1String("success")] = rspItemState;
+            rsp.list.append(rspItem);
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/gateways/%1/state/pairing").arg(id), QString("invalid value, %1, for parameter, pairing").arg(map[QLatin1String("pairing")].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+    }
+
+    if (!rsp.list.empty())
+    {
+        return REQ_READY_SEND;
+    }
+
+    return REQ_NOT_HANDLED;
 }
 
 /*! Puts all parameters in a map for later JSON serialization.

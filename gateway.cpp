@@ -46,7 +46,7 @@ Gateway::Gateway(QObject *parent) :
 {
     Q_D(Gateway);
     d->state = Gateway::StateOffline;
-    d->pairingEnabled = true;
+    d->pairingEnabled = false;
     d->reply = 0;
     d->manager = new QNetworkAccessManager(this);
     connect(d->manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(finished(QNetworkReply*)));
