@@ -7382,6 +7382,7 @@ bool DeRestPluginPrivate::exportConfiguration()
         map["nwkUpdateId"] = nwkUpdateId;
         map["endpoint1"] = endpoint1;
         map["endpoint2"] = endpoint2;
+        map["deconzVersion"] = QString(GW_SW_VERSION).replace(QChar('.'), "");
 
         bool success = true;
         QString saveString = Json::serialize(map, success);
