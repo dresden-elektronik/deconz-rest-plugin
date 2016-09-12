@@ -408,6 +408,7 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
     QVariantMap configMap;
     QVariantMap schedulesMap;
     QVariantMap sensorsMap;
+    QVariantMap rulesMap;
 
     // lights
     {
@@ -478,6 +479,22 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
             }
         }
     }
+
+    // rules
+    {
+        std::vector<Rule>::const_iterator i = rules.begin();
+        std::vector<Rule>::const_iterator end = rules.end();
+
+        for (; i != end; ++i)
+        {
+            QVariantMap map;
+            if (ruleToMap(&(*i), map))
+            {
+                rulesMap[i->id()] = map;
+            }
+        }
+    }
+
     configToMap(req, configMap);
 
     rsp.map["lights"] = lightsMap;
@@ -485,6 +502,7 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
     rsp.map["config"] = configMap;
     rsp.map["schedules"] = schedulesMap;
     rsp.map["sensors"] = sensorsMap;
+    rsp.map["rules"] = rulesMap;
     rsp.etag = gwConfigEtag;
     rsp.httpStatus = HttpStatusOk;
     return REQ_READY_SEND;
