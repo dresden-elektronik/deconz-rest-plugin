@@ -161,6 +161,12 @@ void GatewayScannerPrivate::initScanner()
             if (a.protocol() == QAbstractSocket::IPv4Protocol)
             {
                 quint32 ipv4 = a.toIPv4Address();
+                if ((ipv4 & 0xff000000UL) == 0x7f000000UL)
+                {
+                    // 127.x.x.x
+                    continue;
+                }
+
                 if (std::find(interfaces.begin(), interfaces.end(), ipv4) == interfaces.end())
                 {
                     interfaces.push_back(ipv4);
@@ -292,8 +298,16 @@ void GatewayScannerPrivate::queryNextIp()
         return;
     }
 
+
     scanIp = interfaces.back();
     scanPort = 80;
+
+    if (host == (scanIp & 0x000000fful))
+    {
+        DBG_Printf(DBG_INFO, "scan skip host .%u\n", host);
+        host++; // don't scan own ip
+    }
+
     QString url;
     url.sprintf("http://%u.%u.%u.%u:%u/description.xml",
                 ((scanIp >> 24) & 0xff),
@@ -308,7 +322,6 @@ void GatewayScannerPrivate::queryNextIp()
     reply = manager->get(QNetworkRequest(url));
     QObject::connect(reply, SIGNAL(error(QNetworkReply::NetworkError)),
             manager->parent(), SLOT(onError(QNetworkReply::NetworkError)));
-
 
     startScanTimer(100, EventTimeout);
 }
