@@ -1012,6 +1012,43 @@ void DeRestPluginPrivate::scheduleTimerFired()
                     {
                         DBG_Printf(DBG_INFO, "schedule was neigher light nor group request.\n");
                     }
+                    else
+                    {
+                        // Request handled. Activate or deactivate sensor rules if present
+
+                        int begin = address.indexOf("groups/")+7;
+                        int end = address.indexOf("/action");
+                        QString groupId = address.mid(begin, end-begin);
+
+                        std::vector<Rule>::iterator ri = rules.begin();
+                        std::vector<Rule>::iterator rend = rules.end();
+                        for (; ri != rend; ++ri)
+                        {
+                            std::vector<RuleAction>::const_iterator a = ri->actions().begin();
+                            std::vector<RuleAction>::const_iterator aend = ri->actions().end();
+                            for (; a != aend; ++a)
+                            {
+                                if (a->address().indexOf("groups/" + groupId + "/action") != -1)
+                                {
+                                    if (content.indexOf("on\":true") != -1 && ri->status() == "disabled")
+                                    {
+                                        ri->setStatus("enabled");
+                                        //etag
+                                        //savedb
+                                        break;
+                                    }
+                                    else if (content.indexOf("on\":false") != -1 && ri->status() == "enabled")
+                                    {
+                                        ri->setStatus("disabled");
+                                        //etag
+                                        //savedb
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                    }
                 }
 
                 return;
