@@ -65,7 +65,7 @@ void DeRestPluginPrivate::updateFirmware()
     QString bin = gcfFlasherBin;
 #elif defined(Q_OS_LINUX) && !defined(ARCH_ARM) // on RPi a normal sudo is ok since we don't need password there
     QString bin = "pkexec";
-    gcfFlasherBin = "/usr/bin/GCFFlasher";
+    gcfFlasherBin = "/usr/bin/GCFFlasher_internal";
     fwProcessArgs.prepend(gcfFlasherBin);
 #elif defined(Q_OS_OSX)
     // TODO
@@ -74,6 +74,7 @@ void DeRestPluginPrivate::updateFirmware()
     fwProcessArgs.prepend(gcfFlasherBin);
 #else
     QString bin = "sudo";
+    gcfFlasherBin = "/usr/bin/GCFFlasher_internal";
     fwProcessArgs.prepend(gcfFlasherBin);
 #endif
 
