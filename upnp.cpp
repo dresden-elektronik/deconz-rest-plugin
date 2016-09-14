@@ -66,6 +66,7 @@ void DeRestPluginPrivate::initUpnpDiscovery()
                    line.replace(QString("{{PORT}}"), qPrintable(QString::number(gwPort)));
                    line.replace(QString("{{IPADDRESS}}"), qPrintable(gwIpAddress));
                    line.replace(QString("{{UUID}}"), qPrintable(gwUuid));
+                   line.replace(QString("{{GWNAME}}"), qPrintable(gwName));
                    descriptionXml.append(line);
 
                    DBG_Printf(DBG_INFO_L2, "%s", line.constData());
