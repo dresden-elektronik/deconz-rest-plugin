@@ -801,6 +801,7 @@ public:
     bool removeScene(Group *group, uint8_t sceneId);
     bool callScene(Group *group, uint8_t sceneId);
     bool removeAllScenes(Group *group);
+    void changeRuleStatusofGroup(QString groupId, bool enabled);
 
     bool pushState(QString json, QTcpSocket *sock);
 

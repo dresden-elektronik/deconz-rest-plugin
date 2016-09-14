@@ -2953,8 +2953,70 @@ GroupInfo *DeRestPluginPrivate::getGroupInfo(LightNode *lightNode, uint16_t id)
     return 0;
 }
 
-/*! Returns a GroupInfo in a LightNode for a given group (will be created if not exist).
+/*! Change the status of a rule that controls a group with the \p groupId to enabled if \p enabled == true else to disabled.
  */
+void DeRestPluginPrivate::changeRuleStatusofGroup(QString groupId, bool enabled)
+{
+    std::vector<Rule>::iterator ri = rules.begin();
+    std::vector<Rule>::iterator rend = rules.end();
+    for (; ri != rend; ++ri)
+    {
+        // find sensor id of that rule
+        QString sensorId = "";
+        std::vector<RuleCondition>::const_iterator c = ri->conditions().begin();
+        std::vector<RuleCondition>::const_iterator cend = ri->conditions().end();
+        for (; c != cend; ++c)
+        {
+            if (c->address().indexOf("sensors/") != -1 && c->address().indexOf("/state") != -1)
+            {
+                int begin = c->address().indexOf("sensors/")+9;
+                int end = c->address().indexOf("/state");
+                // assumption: all conditions of that rule use the same sensor
+                sensorId = c->address().mid(begin, end-begin);
+                break;
+            }
+        }
+
+        // detect sensor of that rule
+        QString sensorModelId = "";
+        std::vector<Sensor>::iterator si = sensors.begin();
+        std::vector<Sensor>::iterator send = sensors.end();
+        for (; si != send; ++si)
+        {
+            if (si->id() == sensorId)
+            {
+                sensorModelId = si->modelId();
+                break;
+            }
+        }
+
+        // disable or enable rule depending of group action
+        if (!sensorModelId.startsWith("FLS-NB"))
+        {
+            std::vector<RuleAction>::const_iterator a = ri->actions().begin();
+            std::vector<RuleAction>::const_iterator aend = ri->actions().end();
+            for (; a != aend; ++a)
+            {
+                if (a->address().indexOf("groups/" + groupId + "/action") != -1)
+                {
+                    if (enabled == true && ri->status() == "disabled")
+                    {
+                        ri->setStatus("enabled");
+                        queSaveDb(DB_RULES, DB_SHORT_SAVE_DELAY);
+                        break;
+                    }
+                    else if (enabled == false && ri->status() == "enabled")
+                    {
+                        ri->setStatus("disabled");
+                        queSaveDb(DB_RULES, DB_SHORT_SAVE_DELAY);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+}
+
 GroupInfo *DeRestPluginPrivate::createGroupInfo(LightNode *lightNode, uint16_t id)
 {
     DBG_Assert(lightNode != 0);
@@ -5516,10 +5578,14 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
                        if (zclFrame.commandId() == 0x00 || zclFrame.commandId() == 0x40) // Off || Off with effect
                        {
                            i->setIsOn(false);
+                           // Deactivate sensor rules if present
+                           changeRuleStatusofGroup(i->id(), false);
                        }
                        else if (zclFrame.commandId() == 0x01) // On
                        {
                            i->setIsOn(true);
+                           // Activate sensor rules if present
+                           changeRuleStatusofGroup(i->id(), true);
                            if (i->isColorLoopActive())
                            {
                                TaskItem task1;
