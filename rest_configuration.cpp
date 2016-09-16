@@ -461,6 +461,10 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
 
         for (; i != end; ++i)
         {
+            if (i->state == Schedule::StateDeleted)
+            {
+                continue;
+            }
             schedulesMap[i->id] = i->jsonMap;
         }
     }
@@ -472,6 +476,10 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
 
         for (; i != end; ++i)
         {
+            if (i->deletedState() == Sensor::StateDeleted)
+            {
+                continue;
+            }
             QVariantMap map;
             if (sensorToMap(&(*i), map))
             {
@@ -487,6 +495,10 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
 
         for (; i != end; ++i)
         {
+            if (i->state() == Rule::StateDeleted)
+            {
+                continue;
+            }
             QVariantMap map;
             if (ruleToMap(&(*i), map))
             {
