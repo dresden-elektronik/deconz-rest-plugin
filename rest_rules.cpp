@@ -1085,9 +1085,11 @@ int DeRestPluginPrivate::deleteRule(const ApiRequest &req, ApiResponse &rsp)
     rsp.list.append(rspItem);
     rsp.httpStatus = HttpStatusOk;
 
+    updateEtag(gwConfigEtag);
+    updateEtag(rule->etag);
+
     queSaveDb(DB_RULES, DB_SHORT_SAVE_DELAY);
 
-    updateEtag(gwConfigEtag);
     rsp.httpStatus = HttpStatusOk;
 
     return REQ_READY_SEND;
