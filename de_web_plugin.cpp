@@ -170,6 +170,14 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     readDb();
     closeDb();
 
+    if (!gwUserParameter.contains("groupssequenceleft"))
+    {
+        gwUserParameter["groupssequenceleft"] = "[]";
+    }
+    if (!gwUserParameter.contains("groupssequenceright"))
+    {
+        gwUserParameter["groupssequenceright"] = "[]";
+    }
     if (gwUuid.isEmpty())
     {
         generateGatewayUuid();
