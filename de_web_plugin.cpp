@@ -4536,7 +4536,7 @@ void DeRestPluginPrivate::fixSceneTableReadResponse(LightNode *lightNode, const 
 
             DBG_Printf(DBG_INFO, "Fix scene table offset 0x%04X free %u, scene 0x%02X, group 0x%04X\n", offset, isFree, sceneId, groupId);
 
-            if (isFree)
+            if (isFree || (sceneId > 0 || groupId > 0))
             {
                 fixSceneTableRead(lightNode, offset + 9); // process next entry
             }
