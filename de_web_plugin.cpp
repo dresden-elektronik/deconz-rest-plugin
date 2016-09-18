@@ -4421,7 +4421,7 @@ void DeRestPluginPrivate::handleDEClusterIndication(const deCONZ::ApsDataIndicat
 
     if (zclFrame.isDefaultResponse())
     {
-        DBG_Printf("DE cluster default response cmd 0x%02X, status 0x%02X\n", zclFrame.defaultResponseCommandId(), zclFrame.defaultResponseStatus());
+        DBG_Printf(DBG_INFO, "DE cluster default response cmd 0x%02X, status 0x%02X\n", zclFrame.defaultResponseCommandId(), zclFrame.defaultResponseStatus());
     }
 }
 
