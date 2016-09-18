@@ -1432,7 +1432,7 @@ int DeRestPluginPrivate::createScene(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    if (!group || (group->state() == Group::StateDeleted))
+    if (!group || (group->state() != Group::StateNormal))
     {
         rsp.httpStatus = HttpStatusNotFound;
         rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/groups/%1").arg(id), QString("resource, /groups/%1, not available").arg(id)));
@@ -1912,8 +1912,8 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
     bool ok;
     QVariantMap rspItem;
     QVariantMap rspItemState;
-    QString gid = req.path[3];
-    QString sid = req.path[5];
+    const QString &gid = req.path[3];
+    const QString &sid = req.path[5];
     Group *group = getGroupForId(gid);
     rsp.httpStatus = HttpStatusOk;
 
@@ -1926,7 +1926,7 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    if (!group || (group->state() == Group::StateDeleted))
+    if (!group || (group->state() != Group::StateNormal))
     {
         rsp.httpStatus = HttpStatusNotFound;
         rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/groups/%1/scenes/%2").arg(gid).arg(sid), QString("resource, /groups/%1/scenes/%2, not available").arg(gid).arg(sid)));
@@ -1934,62 +1934,55 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
     }
 
     // check if scene exists
-    Scene scene;
-    TaskItem task2;
-
-    std::vector<Scene>::const_iterator i = group->scenes.begin();
-    std::vector<Scene>::const_iterator end = group->scenes.end();
 
     uint8_t sceneId = sid.toUInt(&ok);
+    Scene *scene = ok ? group->getScene(sceneId) : 0;
 
-    if (ok)
-    {
-        ok = false;
-        for (; i != end; ++i)
-        {
-            if ((i->id == sceneId) && (i->state != Scene::StateDeleted))
-            {
-                scene = *i;
-                ok = true;
-
-                std::vector<LightState>::const_iterator ls = scene.lights().begin();
-                std::vector<LightState>::const_iterator lsend = scene.lights().end();
-
-                for (; ls != lsend; ++ls)
-                {
-                    LightNode *light = getLightNodeForId(ls->lid());
-
-                    if (light &&
-                        light->isAvailable() && light->state() != LightNode::StateDeleted &&
-                        !ls->colorloopActive() && light->isColorLoopActive() != ls->colorloopActive())
-                    {
-                        //stop colorloop if scene was saved without colorloop (Osram don't stop colorloop if another scene is called)
-                        task2.lightNode = light;
-                        task2.req.dstAddress() = task2.lightNode->address();
-                        task2.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
-                        task2.req.setDstEndpoint(task2.lightNode->haEndpoint().endpoint());
-                        task2.req.setSrcEndpoint(getSrcEndpoint(task2.lightNode, task2.req));
-                        task2.req.setDstAddressMode(deCONZ::ApsExtAddress);
-
-                        light->setColorLoopActive(false);
-                        addTaskSetColorLoop(task2, false, 15);
-
-                        updateEtag(light->etag);
-                    }
-                }
-                break;
-            }
-        }
-    }
-
-    if (!ok)
+    if (!scene || (scene->state != Scene::StateNormal))
     {
         rsp.httpStatus = HttpStatusNotFound;
         rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/groups/%1/scenes/%2").arg(gid).arg(sid), QString("resource, /groups/%1/scenes/%2, not available").arg(gid).arg(sid)));
         return REQ_READY_SEND;
     }
 
-    if (!callScene(group, scene.id))
+    bool groupOn = false;
+    std::vector<LightState>::const_iterator ls = scene->lights().begin();
+    std::vector<LightState>::const_iterator lsend = scene->lights().end();
+
+    for (; ls != lsend; ++ls)
+    {
+        LightNode *lightNode = getLightNodeForId(ls->lid());
+
+        if (lightNode && lightNode->isAvailable() && lightNode->state() == LightNode::StateNormal)
+        {
+            if (ls->on())
+            {
+                groupOn = true;
+            }
+
+            if (lightNode->hasColor())
+            {
+                if (!ls->colorloopActive() && lightNode->isColorLoopActive() != ls->colorloopActive())
+                {
+                    //stop colorloop if scene was saved without colorloop (Osram don't stop colorloop if another scene is called)
+                    TaskItem task2;
+                    task2.lightNode = lightNode;
+                    task2.req.dstAddress() = task2.lightNode->address();
+                    task2.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+                    task2.req.setDstEndpoint(task2.lightNode->haEndpoint().endpoint());
+                    task2.req.setSrcEndpoint(getSrcEndpoint(task2.lightNode, task2.req));
+                    task2.req.setDstAddressMode(deCONZ::ApsExtAddress);
+
+                    lightNode->setColorLoopActive(false);
+                    addTaskSetColorLoop(task2, false, 15);
+                    updateEtag(lightNode->etag);
+                }
+            }
+
+        }
+    }
+
+    if (!callScene(group, sceneId))
     {
         rsp.httpStatus = HttpStatusServiceUnavailable;
         rsp.list.append(errorToMap(ERR_BRIDGE_BUSY, QString("/groups/%1/scenes/%2").arg(gid).arg(sid), QString("gateway busy")));
@@ -1997,62 +1990,71 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
     }
 
     // turning 'on' the group is also a assumtion but a very likely one
-    if (!group->isOn())
+    if (groupOn && !group->isOn())
     {
         group->setIsOn(true);
         updateEtag(group->etag);
     }
 
     //turn on colorloop if scene was saved with colorloop (FLS don't save colorloop at device)
-    std::vector<LightState>::const_iterator ls = scene.lights().begin();
-    std::vector<LightState>::const_iterator lsend = scene.lights().end();
+    ls = scene->lights().begin();
+    lsend = scene->lights().end();
 
     for (; ls != lsend; ++ls)
     {
-        LightNode *light = getLightNodeForId(ls->lid());
+        LightNode *lightNode = getLightNodeForId(ls->lid());
 
-        if (light && light->isAvailable() && light->state() != LightNode::StateDeleted)
+        if (lightNode && lightNode->isAvailable() && lightNode->state() == LightNode::StateNormal)
         {
             bool changed = false;
-            if (ls->colorloopActive() && light->isColorLoopActive() != ls->colorloopActive())
+
+            if (lightNode->hasColor() && ls->colorloopActive() && lightNode->isColorLoopActive() != ls->colorloopActive())
             {
-                task2.lightNode = light;
+                TaskItem task2;
+                task2.lightNode = lightNode;
                 task2.req.dstAddress() = task2.lightNode->address();
                 task2.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
                 task2.req.setDstEndpoint(task2.lightNode->haEndpoint().endpoint());
                 task2.req.setSrcEndpoint(getSrcEndpoint(task2.lightNode, task2.req));
                 task2.req.setDstAddressMode(deCONZ::ApsExtAddress);
 
-                light->setColorLoopActive(true);
-                light->setColorLoopSpeed(ls->colorloopTime());
+                lightNode->setColorLoopActive(true);
+                lightNode->setColorLoopSpeed(ls->colorloopTime());
                 addTaskSetColorLoop(task2, true, ls->colorloopTime());
                 changed = true;
             }
-            if (ls->on() && !light->isOn())
+
+            if (ls->on() != lightNode->isOn())
             {
-                light->setIsOn(true);
+                lightNode->setIsOn(ls->on());
                 changed = true;
             }
-            if (!ls->on() && light->isOn())
+
+            if ((uint16_t)ls->bri() != lightNode->level())
             {
-                light->setIsOn(false);
+                lightNode->setLevel((uint16_t)ls->bri());
                 changed = true;
             }
-            if ((uint16_t)ls->bri() != light->level())
+
+            if (lightNode->hasColor())
             {
-                light->setLevel((uint16_t)ls->bri());
-                changed = true;
+                if (ls->x() != lightNode->colorX() || ls->y() != lightNode->colorY())
+                {
+                    lightNode->setColorXY(ls->x(), ls->y());
+                    changed = true;
+                }
             }
+
             if (changed)
             {
-                updateEtag(light->etag);
+                updateEtag(lightNode->etag);
             }
         }
     }
 
     updateEtag(gwConfigEtag);
 
-    rspItemState["id"] = QString::number(scene.id);
+    rspItemState["id"] = sid;
     rspItem["success"] = rspItemState;
     rsp.list.append(rspItem);
     rsp.httpStatus = HttpStatusOk;

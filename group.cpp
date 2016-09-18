@@ -220,7 +220,7 @@ Scene *Group::getScene(quint8 sceneId)
     std::vector<Scene>::iterator end = scenes.end();
     for (; i != end; ++i)
     {
-        if (i->id == sceneId)
+        if (i->id == sceneId && i->state == Scene::StateNormal)
         {
             return &*i;
         }
