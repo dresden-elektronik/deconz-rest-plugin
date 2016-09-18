@@ -4589,8 +4589,8 @@ void DeRestPluginPrivate::fixSceneTableWrite(LightNode *lightNode, quint16 offse
             zclFrame.setSequenceNumber(zclSeq++);
             zclFrame.setCommandId(0x04);
             zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
-                                     deCONZ::ZclFCDirectionClientToServer |
-                                     deCONZ::ZclFCDisableDefaultResponse);
+                                     deCONZ::ZclFCDirectionClientToServer/* |
+                                     deCONZ::ZclFCDisableDefaultResponse*/);
 
             { // payload
                 QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
@@ -4996,6 +4996,13 @@ void DeRestPluginPrivate::processGroupTasks()
         return;
     }
 
+    QTime t = QTime::currentTime();
+
+    if (t.secsTo(queryTime) > 2)
+    {
+        return;
+    }
+
     if (groupTaskNodeIter >= nodes.size())
     {
         groupTaskNodeIter = 0;
@@ -5061,6 +5068,7 @@ void DeRestPluginPrivate::processGroupTasks()
 
         if (!i->modifyScenes.empty())
         {
+
             if (i->modifyScenesRetries < GroupInfo::MaxActionRetries)
             {
                 i->modifyScenesRetries++;
@@ -6844,7 +6852,7 @@ void DeRestPlugin::idleTimerFired()
 
         if (d->queryTime > t)
         {
-            DBG_Printf(DBG_INFO, "Wait %ds till query finished\n", t.secsTo(d->queryTime));
+            DBG_Printf(DBG_INFO_L2, "Wait %ds till query finished\n", t.secsTo(d->queryTime));
             return; // wait finish
         }
 

@@ -918,6 +918,8 @@ bool DeRestPluginPrivate::addTaskAddScene(TaskItem &task, uint16_t groupId, uint
                         task.zclFrame.writeToStream(stream);
                     }
 
+                    queryTime = queryTime.addSecs(2);
+
                     return addTask(task);
                 }
             }
