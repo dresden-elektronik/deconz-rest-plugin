@@ -805,8 +805,9 @@ public:
     bool removeScene(Group *group, uint8_t sceneId);
     bool callScene(Group *group, uint8_t sceneId);
     bool removeAllScenes(Group *group);
-    void fixSceneTable(LightNode *lightNode, quint16 offset);
+    void fixSceneTableRead(LightNode *lightNode, quint16 offset);
     void fixSceneTableReadResponse(LightNode *lightNode, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void fixSceneTableWrite(LightNode *lightNode, quint16 offset);
 
     void changeRuleStatusofGroup(QString groupId, bool enabled);
 

@@ -4419,15 +4419,15 @@ void DeRestPluginPrivate::handleDEClusterIndication(const deCONZ::ApsDataIndicat
         return;
     }
 
-    if (zclFrame.commandId() == 0x03)
+    if (zclFrame.isClusterCommand() && zclFrame.commandId() == 0x03)
     {
         fixSceneTableReadResponse(lightNode, ind, zclFrame);
     }
 }
 
-/*! Attemp to hotify a broken scene table initialisation (temp, will be removed soon).
+/*! Attemp to hotfix a broken scene table initialisation (temp, will be removed soon).
  */
-void DeRestPluginPrivate::fixSceneTable(LightNode *lightNode, quint16 offset)
+void DeRestPluginPrivate::fixSceneTableRead(LightNode *lightNode, quint16 offset)
 {
     if (!lightNode)
     {
@@ -4487,12 +4487,14 @@ void DeRestPluginPrivate::fixSceneTable(LightNode *lightNode, quint16 offset)
 
             if (apsCtrl && apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
             {
-                queryTime = queryTime.addSecs(5);
+                queryTime = queryTime.addSecs(2);
             }
         }
     }
 }
 
+/*! Attemp to hotfix a broken scene table initialisation (temp, will be removed soon).
+ */
 void DeRestPluginPrivate::fixSceneTableReadResponse(LightNode *lightNode, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
     Q_UNUSED(ind);
@@ -4524,17 +4526,90 @@ void DeRestPluginPrivate::fixSceneTableReadResponse(LightNode *lightNode, const 
                 return; // unexpected
             }
 
-            quint8 used;
+            quint8 isFree;
             quint8 sceneId;
             quint16 groupId;
 
-            stream >> used;
+            stream >> isFree;
             stream >> sceneId;
             stream >> groupId;
 
-            DBG_Printf(DBG_INFO, "Fix scene table offset 0x%04X free %u, scene 0x%02X, group 0x%04X\n", offset, used, sceneId, groupId);
+            DBG_Printf(DBG_INFO, "Fix scene table offset 0x%04X free %u, scene 0x%02X, group 0x%04X\n", offset, isFree, sceneId, groupId);
 
-            fixSceneTable(lightNode, offset + 9); // process next entry
+            if (isFree)
+            {
+                fixSceneTableRead(lightNode, offset + 9); // process next entry
+            }
+            else if (groupId == 0 && sceneId == 0)
+            {
+                // entry must be fixed
+                fixSceneTableWrite(lightNode, offset);
+            }
+        }
+    }
+}
+
+/*! Attemp to hotfix a broken scene table initialisation (temp, will be removed soon).
+ */
+void DeRestPluginPrivate::fixSceneTableWrite(LightNode *lightNode, quint16 offset)
+{
+    if (!lightNode)
+    {
+        return;
+    }
+
+    if (lightNode->modelId().startsWith(QLatin1String("FLS-NB")))
+    {
+        if (lightNode->swBuildId().endsWith(QLatin1String("200000D2")) ||
+            lightNode->swBuildId().endsWith(QLatin1String("200000D3")))
+        {
+
+            if (offset >= (0x4b16 + (16 * 9)))
+            {
+                return; // done
+            }
+
+            deCONZ::ApsDataRequest req;
+
+            req.setClusterId(DE_CLUSTER_ID);
+            req.setProfileId(HA_PROFILE_ID);
+            req.dstAddress() = lightNode->address();
+            req.setDstAddressMode(deCONZ::ApsExtAddress);
+            req.setDstEndpoint(0x0A);
+            req.setSrcEndpoint(endpoint());
+
+            deCONZ::ZclFrame zclFrame;
+
+            zclFrame.setSequenceNumber(zclSeq++);
+            zclFrame.setCommandId(0x04);
+            zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
+                                     deCONZ::ZclFCDirectionClientToServer |
+                                     deCONZ::ZclFCDisableDefaultResponse);
+
+            { // payload
+                QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
+                stream.setByteOrder(QDataStream::LittleEndian);
+
+                quint8 length = 1;
+                quint8 isFree = 0x01;
+                stream << offset;
+                stream << length;
+                stream << isFree;
+            }
+
+            { // ZCL frame
+                req.asdu().clear(); // cleanup old request data if there is any
+                QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
+                stream.setByteOrder(QDataStream::LittleEndian);
+                zclFrame.writeToStream(stream);
+            }
+
+            deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
+
+            if (apsCtrl && apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
+            {
+                queryTime = queryTime.addSecs(2);
+            }
         }
     }
 }
@@ -5511,7 +5586,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                         if (lightNode->modelId().startsWith(QLatin1String("FLS-NB")))
                         {
                             DBG_Printf(DBG_INFO, "Start repair scene table for node %s (%s)\n", qPrintable(lightNode->name()), qPrintable(lightNode->swBuildId()));
-                            fixSceneTable(lightNode, 0);
+                            fixSceneTableRead(lightNode, 0);
                         }
                     }
                 }
