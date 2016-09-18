@@ -4536,11 +4536,15 @@ void DeRestPluginPrivate::fixSceneTableReadResponse(LightNode *lightNode, const 
 
             DBG_Printf(DBG_INFO, "Fix scene table offset 0x%04X free %u, scene 0x%02X, group 0x%04X\n", offset, isFree, sceneId, groupId);
 
-            if (isFree || (sceneId > 0 || groupId > 0))
+            if (isFree)
+            {
+                // stop here
+            }
+            else if (!isFree || (sceneId > 0 || groupId > 0))
             {
                 fixSceneTableRead(lightNode, offset + 9); // process next entry
             }
-            else if (groupId == 0 && sceneId == 0)
+            else if (!isFree && groupId == 0 && sceneId == 0)
             {
                 // entry must be fixed
                 fixSceneTableWrite(lightNode, offset);
@@ -4568,6 +4572,8 @@ void DeRestPluginPrivate::fixSceneTableWrite(LightNode *lightNode, quint16 offse
             {
                 return; // done
             }
+
+            DBG_Printf(DBG_INFO, "Write fix to scene table offset 0x%04X\n", offset);
 
             deCONZ::ApsDataRequest req;
 
