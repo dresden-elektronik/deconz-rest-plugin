@@ -346,6 +346,10 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
              handleClusterIndicationGateways(ind, zclFrame);
             break;
 
+        case DE_CLUSTER_ID:
+            handleDEClusterIndication(ind, zclFrame);
+            break;
+
         default:
         {
             if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReportAttributesId)
@@ -4399,6 +4403,142 @@ bool DeRestPluginPrivate::callScene(Group *group, uint8_t sceneId)
     return false;
 }
 
+/*! Handle incoming DE cluster commands.
+ */
+void DeRestPluginPrivate::handleDEClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
+{
+    if (!zclFrame.isClusterCommand())
+    {
+        return;
+    }
+
+    LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());
+
+    if (!lightNode)
+    {
+        return;
+    }
+
+    if (zclFrame.commandId() == 0x03)
+    {
+        fixSceneTableReadResponse(lightNode, ind, zclFrame);
+    }
+}
+
+/*! Attemp to hotify a broken scene table initialisation (temp, will be removed soon).
+ */
+void DeRestPluginPrivate::fixSceneTable(LightNode *lightNode, quint16 offset)
+{
+    if (!lightNode)
+    {
+        return;
+    }
+
+    if (lightNode->modelId().startsWith(QLatin1String("FLS-NB")))
+    {
+        if (lightNode->swBuildId().endsWith(QLatin1String("200000D2")) ||
+            lightNode->swBuildId().endsWith(QLatin1String("200000D3")))
+        {
+
+            if (offset >= (0x4b16 + (16 * 9)))
+            {
+                return; // done
+            }
+
+            deCONZ::ApsDataRequest req;
+
+            req.setClusterId(DE_CLUSTER_ID);
+            req.setProfileId(HA_PROFILE_ID);
+            req.dstAddress() = lightNode->address();
+            req.setDstAddressMode(deCONZ::ApsExtAddress);
+            req.setDstEndpoint(0x0A);
+            req.setSrcEndpoint(endpoint());
+
+            deCONZ::ZclFrame zclFrame;
+
+            zclFrame.setSequenceNumber(zclSeq++);
+            zclFrame.setCommandId(0x03);
+            zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
+                                     deCONZ::ZclFCDirectionClientToServer |
+                                     deCONZ::ZclFCDisableDefaultResponse);
+
+            { // payload
+                QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
+                stream.setByteOrder(QDataStream::LittleEndian);
+
+                if (offset == 0) // first request
+                {
+                    offset = 0x4B16 + 9;
+                }
+
+                quint8 length = 4;
+                stream << offset;
+                stream << length;
+            }
+
+            { // ZCL frame
+                req.asdu().clear(); // cleanup old request data if there is any
+                QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
+                stream.setByteOrder(QDataStream::LittleEndian);
+                zclFrame.writeToStream(stream);
+            }
+
+            deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
+
+            if (apsCtrl && apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
+            {
+                queryTime = queryTime.addSecs(5);
+            }
+        }
+    }
+}
+
+void DeRestPluginPrivate::fixSceneTableReadResponse(LightNode *lightNode, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
+{
+    Q_UNUSED(ind);
+
+    if (!lightNode)
+    {
+        return;
+    }
+
+    if (lightNode->modelId().startsWith(QLatin1String("FLS-NB")))
+    {
+        if (lightNode->swBuildId().endsWith(QLatin1String("200000D2")) ||
+            lightNode->swBuildId().endsWith(QLatin1String("200000D3")))
+        {
+
+            quint8 status;
+            quint16 offset;
+            quint8 length;
+
+            QDataStream stream(zclFrame.payload());
+            stream.setByteOrder(QDataStream::LittleEndian);
+
+            stream >> status;
+            stream >> offset;
+            stream >> length;
+
+            if (status != deCONZ::ZclSuccessStatus || length != 4)
+            {
+                return; // unexpected
+            }
+
+            quint8 used;
+            quint8 sceneId;
+            quint16 groupId;
+
+            stream >> used;
+            stream >> sceneId;
+            stream >> groupId;
+
+            DBG_Printf(DBG_INFO, "Fix scene table offset 0x%04X free %u, scene 0x%02X, group 0x%04X\n", offset, used, sceneId, groupId);
+
+            fixSceneTable(lightNode, offset + 9); // process next entry
+        }
+    }
+}
+
 /*! Queues a client for closing the connection.
     \param sock the client socket
     \param closeTimeout timeout in seconds then the socket should be closed
@@ -5327,7 +5467,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
             }
         }
     }
-    else if (zclFrame.commandId() == 0x00) // Add scene response // will only be created by modifying scene, yet.
+    else if (zclFrame.commandId() == 0x00) // Add scene response
     {
         if (zclFrame.payload().size() < 4)
         {
@@ -5371,6 +5511,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                         if (lightNode->modelId().startsWith(QLatin1String("FLS-NB")))
                         {
                             DBG_Printf(DBG_INFO, "Start repair scene table for node %s (%s)\n", qPrintable(lightNode->name()), qPrintable(lightNode->swBuildId()));
+                            fixSceneTable(lightNode, 0);
                         }
                     }
                 }

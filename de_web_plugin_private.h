@@ -123,6 +123,7 @@
 #define ILLUMINANCE_LEVEL_SENSING_CLUSTER_ID 0x0401
 #define OCCUPANCY_SENSING_CLUSTER_ID         0x0406
 #define OTAU_CLUSTER_ID  0x0019
+#define DE_CLUSTER_ID    0xFC00
 #define GREEN_POWER_CLUSTER_ID 0x0021
 #define GREEN_POWER_ENDPOINT 0xf2
 #define COMMISSIONING_CLUSTER_ID  0x1000
@@ -804,6 +805,9 @@ public:
     bool removeScene(Group *group, uint8_t sceneId);
     bool callScene(Group *group, uint8_t sceneId);
     bool removeAllScenes(Group *group);
+    void fixSceneTable(LightNode *lightNode, quint16 offset);
+    void fixSceneTableReadResponse(LightNode *lightNode, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+
     void changeRuleStatusofGroup(QString groupId, bool enabled);
 
     bool pushState(QString json, QTcpSocket *sock);
@@ -842,6 +846,7 @@ public:
     void handleMgmtBindRspIndication(const deCONZ::ApsDataIndication &ind);
     void handleBindAndUnbindRspIndication(const deCONZ::ApsDataIndication &ind);
     void handleMgmtLeaveRspIndication(const deCONZ::ApsDataIndication &ind);
+    void handleDEClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void broadCastNodeUpdate(LightNode *webNode);
     void markForPushUpdate(LightNode *lightNode);
     void taskToLocalData(const TaskItem &task);
