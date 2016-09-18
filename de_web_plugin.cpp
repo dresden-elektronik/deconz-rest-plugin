@@ -4598,9 +4598,13 @@ void DeRestPluginPrivate::fixSceneTableWrite(LightNode *lightNode, quint16 offse
 
                 quint8 length = 1;
                 quint8 isFree = 0x01;
+                quint8 dummy = 0; // at least 4 bytes must be in the request
                 stream << offset;
                 stream << length;
                 stream << isFree;
+                stream << dummy;
+                stream << dummy;
+                stream << dummy;
             }
 
             { // ZCL frame
