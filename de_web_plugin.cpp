@@ -4243,13 +4243,13 @@ bool DeRestPluginPrivate::storeScene(Group *group, uint8_t sceneId)
         {
             GroupInfo *groupInfo = getGroupInfo(lightNode, group->address());
 
-            if (lightNode->sceneCapacity() != 0 || groupInfo->sceneCount() != 0) //xxx workaround
+            //if (lightNode->sceneCapacity() != 0 || groupInfo->sceneCount() != 0) //xxx workaround
             {
-                std::vector<uint8_t> &v = groupInfo->addScenes;
+                std::vector<uint8_t> &v = groupInfo->modifyScenes;
 
                 if (std::find(v.begin(), v.end(), sceneId) == v.end())
                 {
-                    groupInfo->addScenes.push_back(sceneId);
+                    groupInfo->modifyScenes.push_back(sceneId);
                 }
             }
         }
@@ -4832,10 +4832,20 @@ void DeRestPluginPrivate::processGroupTasks()
 
         if (!i->modifyScenes.empty())
         {
-            if (addTaskAddScene(task, i->id, i->modifyScenes[0], task.lightNode->id()))
+            if (i->modifyScenesRetries < GroupInfo::MaxActionRetries)
             {
-                processTasks();
-                return;
+                i->modifyScenesRetries++;
+                if (addTaskAddScene(task, i->id, i->modifyScenes[0], task.lightNode->id()))
+                {
+                    processTasks();
+                    return;
+                }
+            }
+            else
+            {
+                i->modifyScenes.front() = i->modifyScenes.back();
+                i->modifyScenes.pop_back();
+                i->modifyScenesRetries = 0;
             }
         }
     }
@@ -5200,14 +5210,14 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                             if (!foundLightstate)
                             {
                                 LightState state;
-                                state.setLid(lightNode->id());
+                                state.setLightId(lightNode->id());
                                 state.setOn(lightNode->isOn());
                                 state.setBri((uint8_t)lightNode->level());
                                 state.setX(lightNode->colorX());
                                 state.setY(lightNode->colorY());
                                 state.setColorloopActive(lightNode->isColorLoopActive());
                                 state.setColorloopTime(lightNode->colorLoopSpeed());
-                                scene->addLight(state);
+                                scene->addLightState(state);
 
                                 // only change capacity and count when creating a new scene
                                 uint8_t sceneCapacity = lightNode->sceneCapacity();
@@ -5342,7 +5352,19 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                 if (i != v.end())
                 {
                     DBG_Printf(DBG_INFO, "Modified scene %u in node %s status 0x%02X\n", sceneId, qPrintable(lightNode->address().toStringExt()), status);
-                    groupInfo->modifyScenes.erase(i);
+
+                    if (status == deCONZ::ZclSuccessStatus)
+                    {
+                        groupInfo->modifyScenesRetries = 0;
+                        groupInfo->modifyScenes.erase(i);
+                    }
+                    else if (status == deCONZ::ZclInsufficientSpaceStatus)
+                    {
+                        if (lightNode->modelId().startsWith(QLatin1String("FLS-NB")))
+                        {
+                            DBG_Printf(DBG_INFO, "Start repair scene table for node %s (%s)\n", qPrintable(lightNode->name()), qPrintable(lightNode->swBuildId()));
+                        }
+                    }
                 }
             }
         }
@@ -5357,72 +5379,178 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
 
         LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());
 
-        if (lightNode)
+        if (!lightNode)
         {
-            QDataStream stream(zclFrame.payload());
-            stream.setByteOrder(QDataStream::LittleEndian);
+            return;
+        }
 
-            uint8_t status;
+        QDataStream stream(zclFrame.payload());
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        uint8_t status;
+
+        stream >> status;
+        if (status == 0x00 && !stream.atEnd())
+        {
             uint16_t groupId;
             uint8_t sceneId;
-            uint16_t transitiontime;
-            uint8_t length;
-            QString sceneName = "";
-            LightState light;
+            uint16_t transitionTime;
+            uint8_t nameLength;
 
-            light.setLid(lightNode->id());
+            stream >> groupId;
+            stream >> sceneId;
+            stream >> transitionTime;
+            stream >> nameLength;
 
-            stream >> status;
-            if (status == 0x00)
+            Group *group = getGroupForId(groupId);
+            Scene *scene = group->getScene(sceneId);
+
+            if (!group)
             {
-                stream >> groupId;
-                stream >> sceneId;
-                stream >> transitiontime;
-                stream >> length;
+                return;
+            }
 
-                light.setTransitiontime(transitiontime*10);
+            // discard scene name
+            for (int i = 0; i < nameLength && !stream.atEnd(); i++)
+            {
+                quint8 c;
+                stream >> c;
+            }
 
-                for (int i = 0; i < length; i++)
+            bool hasOnOff = false;
+            bool hasBri = false;
+            bool hasXY = false;
+            quint8 onOff;
+            quint8 bri;
+            quint16 x;
+            quint16 y;
+
+            while (!stream.atEnd())
+            {
+                uint16_t clusterId;
+                uint8_t extLength; // extension
+
+                stream >> clusterId;
+                stream >> extLength;
+
+                if (clusterId == 0x0006 && extLength >= 1)
                 {
-                    char *c;
+                    stream >> onOff;
+                    extLength -= 1;
+                    if ((onOff == 0x00 || onOff == 0x01) && stream.status() != QDataStream::ReadPastEnd)
+                    {
+                        hasOnOff = true;
+                    }
+                }
+                else if (clusterId == 0x0008 && extLength >= 1)
+                {
+                    stream >> bri;
+                    extLength -= 1;
+                    if (stream.status() != QDataStream::ReadPastEnd)
+                    {
+                        hasBri = true;
+                    }
+                }
+                else if (clusterId == 0x0300 && extLength >= 4)
+                {
+                    stream >> x;
+                    stream >> y;
+                    extLength -= 4;
+
+                    if (stream.status() != QDataStream::ReadPastEnd)
+                    {
+                        hasXY = true;
+                    }
+                }
+
+                // discard unknown data
+                while (extLength > 0)
+                {
+                    extLength--;
+                    quint8 c;
                     stream >> c;
-                    sceneName.append(c);
                 }
+            }
 
-                while (!stream.atEnd())
+            if (scene)
+            {
+                LightState *lightState = 0;
+                std::vector<LightState>::iterator i = scene->lights().begin();
+                std::vector<LightState>::iterator end = scene->lights().end();
+
+                for (; i != end; ++i)
                 {
-                    uint16_t clusterId;
-                    uint8_t l;
-                    uint8_t fs8;
-                    uint16_t fs16;
-
-                    stream >> clusterId;
-                    stream >> l;
-
-                    if (clusterId == 0x0006)
+                    if (i->lid() == lightNode->id())
                     {
-                        stream >> fs8;
-                        bool on = (fs8 == 0x01) ? true : false;
-                        light.setOn(on);
-                    }
-                    else if (clusterId == 0x0008)
-                    {
-                        stream >> fs8;
-                        light.setBri(fs8);
-                    }
-                    else if (clusterId == 0x0300)
-                    {
-                        stream >> fs16;
-                        light.setX(fs16);
-
-                        stream >> fs16;
-                        light.setY(fs16);
+                        lightState = &*i;
+                        break;
                     }
                 }
 
+                if (scene->state == Scene::StateDeleted)
+                {
+                    // TODO
+                }
+
+                if (lightState)
+                {
+                    bool needModify = false;
+
+                    // validate
+                    if (hasOnOff && lightState->on() != onOff)
+                    {
+                        needModify = true;
+                    }
+
+                    if (hasBri && lightState->bri() != bri)
+                    {
+                        needModify = true;
+                    }
+
+                    if (hasXY && (lightState->x() != x || lightState->y() != y))
+                    {
+                        needModify = true;
+                    }
+
+                    if (needModify)
+                    {
+                        if (!scene->externalMaster)
+                        {
+                            // TODO trigger add scene command to update scene
+                        }
+                        else // a switch might have changed settings
+                        {
+                            if (hasOnOff) { lightState->setOn(onOff); }
+                            if (hasBri)   { lightState->setBri(bri); }
+                            if (hasXY)    { lightState->setX(x); lightState->setY(y); }
+                            lightState->tVerified.start();
+                            queSaveDb(DB_SCENES, DB_LONG_SAVE_DELAY);
+                        }
+                    }
+                    else
+                    {
+                        lightState->tVerified.start();
+                    }
+                }
+                else
+                {
+                    LightState newLightState;
+                    newLightState.setLightId(lightNode->id());
+                    newLightState.setTransitionTime(transitionTime * 10);
+                    newLightState.tVerified.start();
+                    if (hasOnOff) { newLightState.setOn(onOff); }
+                    if (hasBri)   { newLightState.setBri(bri); }
+                    if (hasXY)    { newLightState.setX(x); newLightState.setY(y); }
+                    scene->addLightState(newLightState);
+                    queSaveDb(DB_SCENES, DB_LONG_SAVE_DELAY);
+                }
+            }
+
+            if (hasOnOff || hasBri || hasXY)
+            {
                 DBG_Printf(DBG_INFO_L2, "Validaded Scene (gid: %u, sid: %u) for Light %s\n", groupId, sceneId, qPrintable(lightNode->id()));
                 DBG_Printf(DBG_INFO_L2, "On: %u, Bri: %u, X: %u, Y: %u, Transitiontime: %u\n",
-                        light.on(), light.bri(), light.x(), light.y(), light.transitiontime());
+                        onOff, bri, x, y, transitionTime);
             }
         }
     }

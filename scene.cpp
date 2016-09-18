@@ -14,6 +14,7 @@
  */
 Scene::Scene() :
     state(StateNormal),
+    externalMaster(false),
     groupAddress(0),
     id(0),
     m_transitiontime(0)
@@ -60,7 +61,7 @@ void Scene::setLights(const std::vector<LightState> &lights)
 /*! Adds a light to the lights of the scene.
     \param light the light that should be added
  */
-void Scene::addLight(const LightState &light)
+void Scene::addLightState(const LightState &light)
 {
     m_lights.push_back(light);
 }
@@ -110,7 +111,7 @@ QString Scene::lightsToString(const std::vector<LightState> &lights)
         jsonString.append("\"bri\":" + QString::number(i->bri()) + ",");
         jsonString.append("\"x\":" + QString::number(i->x()) + ",");
         jsonString.append("\"y\":\"" + QString::number(i->y()) + "\",");
-        jsonString.append("\"tt\":\"" + QString::number(i->transitiontime()) + "\",");
+        jsonString.append("\"tt\":\"" + QString::number(i->transitionTime()) + "\",");
         jsonString.append("\"cl\":\"" + cl + "\",");
         jsonString.append("\"clTime\":\"" + QString::number(i->colorloopTime()) + "\"},");
     }
@@ -137,12 +138,12 @@ std::vector<LightState> Scene::jsonToLights(const QString &json)
     for (; i != i_end; ++i)
     {
         map = i->toMap();
-        state.setLid(map["lid"].toString());
+        state.setLightId(map["lid"].toString());
         state.setOn(map["on"].toBool());
         state.setBri(map["bri"].toUInt());
         state.setX(map["x"].toUInt());
         state.setY(map["y"].toUInt());
-        state.setTransitiontime(map["tt"].toUInt());
+        state.setTransitionTime(map["tt"].toUInt());
         state.setColorloopActive(map["cl"].toBool());
         state.setColorloopTime(map["clTime"].toUInt());
 
@@ -182,14 +183,14 @@ const QString &LightState::lid() const
 /*! Sets the id of the light of the scene.
     \param state the rule state
  */
-void LightState::setLid(const QString &lid)
+void LightState::setLightId(const QString &lid)
 {
     m_lid = lid;
 }
 
 /*! Returns the on status of the light of the scene.
  */
-const bool &LightState::on() const
+bool LightState::on() const
 {
     return m_on;
 }
@@ -324,7 +325,7 @@ void LightState::setColorloopTime(const uint8_t &time)
 
 /*! Returns the transitiontime of the scene.
  */
-const uint16_t &LightState::transitiontime() const
+const uint16_t &LightState::transitionTime() const
 {
     return m_transitiontime;
 }
@@ -332,7 +333,7 @@ const uint16_t &LightState::transitiontime() const
 /*! Sets the transitiontime of the scene.
     \param transitiontime the transitiontime of the scene
  */
-void LightState::setTransitiontime(const uint16_t &transitiontime)
+void LightState::setTransitionTime(uint16_t transitiontime)
 {
     m_transitiontime = transitiontime;
 }

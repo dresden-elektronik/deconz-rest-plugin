@@ -827,7 +827,7 @@ public:
     bool addTaskViewGroup(TaskItem &task, uint16_t groupId);
     bool addTaskRemoveFromGroup(TaskItem &task, uint16_t groupId);
     bool addTaskStoreScene(TaskItem &task, uint16_t groupId, uint8_t sceneId);
-    bool addTaskAddScene(TaskItem &task, uint16_t groupId, uint8_t sceneId, QString lightId);
+    bool addTaskAddScene(TaskItem &task, uint16_t groupId, uint8_t sceneId, const QString &lightId);
     bool addTaskRemoveScene(TaskItem &task, uint16_t groupId, uint8_t sceneId);
     void handleGroupClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleSceneClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);

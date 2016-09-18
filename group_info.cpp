@@ -16,6 +16,7 @@ GroupInfo::GroupInfo() :
    state(StateInGroup),
    actions(ActionNone),
    id(0),
+   modifyScenesRetries(0),
    m_sceneCount(0)
 {
 }
