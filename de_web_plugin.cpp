@@ -5001,13 +5001,6 @@ void DeRestPluginPrivate::processGroupTasks()
         return;
     }
 
-    QTime t = QTime::currentTime();
-
-    if (t.secsTo(queryTime) > 2)
-    {
-        return;
-    }
-
     if (groupTaskNodeIter >= nodes.size())
     {
         groupTaskNodeIter = 0;
