@@ -299,6 +299,20 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         {
             map["fwversionupdate"] = gwFirmwareVersionUpdate;
         }
+
+        switch (fwUpdateState)
+        {
+        case FW_DisconnectDevice:
+        case FW_Update:
+        case FW_UpdateWaitFinished:
+        { map[QLatin1String("fwupdatestate")] = QLatin1String("running"); }
+            break;
+
+        default:
+        { map[QLatin1String("fwupdatestate")] = QLatin1String("idle"); }
+            break;
+        }
+
         map["announceurl"] = gwAnnounceUrl;
         map["announceinterval"] = (double)gwAnnounceInterval;
         map["swversion"] = GW_SW_VERSION;

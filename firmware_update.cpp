@@ -56,6 +56,7 @@ void DeRestPluginPrivate::updateFirmware()
         DBG_Printf(DBG_INFO, "GW firmware update conditions not met, abort\n");
         fwUpdateState = FW_Idle;
         fwUpdateTimer->start(FW_IDLE_TIMEOUT);
+        updateEtag(gwConfigEtag);
         return;
     }
 
@@ -86,6 +87,7 @@ void DeRestPluginPrivate::updateFirmware()
     fwProcessArgs << "-f" << fwUpdateFile;
 
     fwUpdateState = FW_UpdateWaitFinished;
+    updateEtag(gwConfigEtag);
     fwUpdateTimer->start(250);
 
     fwProcess->start(bin, fwProcessArgs);
@@ -139,6 +141,7 @@ void DeRestPluginPrivate::updateFirmwareWaitFinished()
     if (fwProcess == 0)
     {
         fwUpdateStartedByUser = false;
+        updateEtag(gwConfigEtag);
         apsCtrl->setParameter(deCONZ::ParamFirmwareUpdateActive, deCONZ::FirmwareUpdateIdle);
         fwUpdateState = FW_Idle;
         fwUpdateTimer->start(FW_IDLE_TIMEOUT);
@@ -171,6 +174,7 @@ void DeRestPluginPrivate::updateFirmwareDisconnectDevice()
         DBG_Printf(DBG_INFO, "GW firmware start update (device not connected)\n");
         fwUpdateState = FW_Update;
         fwUpdateTimer->start(0);
+        updateEtag(gwConfigEtag);
     }
 }
 
@@ -181,6 +185,8 @@ bool DeRestPluginPrivate::startUpdateFirmware()
     fwUpdateStartedByUser = true;
     if (fwUpdateState == FW_WaitUserConfirm)
     {
+        apsCtrl->setParameter(deCONZ::ParamFirmwareUpdateActive, deCONZ::FirmwareUpdateRunning);
+        updateEtag(gwConfigEtag);
         fwUpdateState = FW_DisconnectDevice;
         fwUpdateTimer->start(100);
         return true;
@@ -255,8 +261,12 @@ void DeRestPluginPrivate::queryFirmwareVersion()
         QString gcfFlasherBin = qApp->applicationDirPath() + "/GCFFlasher";
 #ifdef Q_OS_WIN
         gcfFlasherBin.append(".exe");
-#elif defined(Q_OS_LINUX)
-        gcfFlasherBin = "/usr/bin/GCFFlasher";
+#elif defined(Q_OS_LINUX) && !defined(ARCH_ARM) // on RPi a normal sudo is ok since we don't need password there
+        gcfFlasherBin = "/usr/bin/GCFFlasher_internal";
+#elif defined(Q_OS_OSX)
+        // TODO
+#else
+        gcfFlasherBin = "/usr/bin/GCFFlasher_internal";
 #endif
 
         if (!QFile::exists(gcfFlasherBin))
