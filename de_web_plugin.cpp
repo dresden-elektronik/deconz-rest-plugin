@@ -4540,14 +4540,14 @@ void DeRestPluginPrivate::fixSceneTableReadResponse(LightNode *lightNode, const 
             {
                 // stop here
             }
-            else if (!isFree || (sceneId > 0 || groupId > 0))
-            {
-                fixSceneTableRead(lightNode, offset + 9); // process next entry
-            }
-            else if (!isFree && groupId == 0 && sceneId == 0)
+            else if (isFree == 0 && groupId == 0 && sceneId == 0)
             {
                 // entry must be fixed
                 fixSceneTableWrite(lightNode, offset);
+            }
+            else if (sceneId > 0 || groupId > 0)
+            {
+                fixSceneTableRead(lightNode, offset + 9); // process next entry
             }
         }
     }
