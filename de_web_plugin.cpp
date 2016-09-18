@@ -4407,11 +4407,6 @@ bool DeRestPluginPrivate::callScene(Group *group, uint8_t sceneId)
  */
 void DeRestPluginPrivate::handleDEClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
-    if (!zclFrame.isClusterCommand())
-    {
-        return;
-    }
-
     LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());
 
     if (!lightNode)
@@ -4422,6 +4417,11 @@ void DeRestPluginPrivate::handleDEClusterIndication(const deCONZ::ApsDataIndicat
     if (zclFrame.isClusterCommand() && zclFrame.commandId() == 0x03)
     {
         fixSceneTableReadResponse(lightNode, ind, zclFrame);
+    }
+
+    if (zclFrame.isDefaultResponse())
+    {
+        DBG_Printf("DE cluster default response cmd 0x%02X, status 0x%02X\n", zclFrame.defaultResponseCommandId(), zclFrame.defaultResponseStatus());
     }
 }
 
@@ -4612,6 +4612,7 @@ void DeRestPluginPrivate::fixSceneTableWrite(LightNode *lightNode, quint16 offse
 
             deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
 
+            req.setSendDelay(1000);
             if (apsCtrl && apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
             {
                 queryTime = queryTime.addSecs(2);
