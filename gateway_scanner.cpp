@@ -222,6 +222,7 @@ void GatewayScannerPrivate::handleEvent(ScanEvent event)
                     QNetworkRequest req = r->request();
                     DBG_Printf(DBG_INFO, "reply code %d from %s\n", code, qPrintable(req.url().toString()));
 
+                    QString name;
                     bool isGateway = false;
                     char buf[256];
                     qint64 n = 0;
@@ -239,21 +240,26 @@ void GatewayScannerPrivate::handleEvent(ScanEvent event)
                                 isGateway = true;
                             }
                         }
-                        else
+                        else if (strstr(buf, "<gatewayName>"))
                         {
-                            const char *uuid = strstr(buf, "<UDN>uuid:");
-                            const char *end = uuid ? strstr(uuid, "</UDN>") : 0;
-                            if (uuid && end)
-                            {
-                                uuid += strlen("<UDN>uuid:");
-                                buf[end - buf] = '\0';
-                                QString name;
-                                q->foundGateway(scanIp, scanPort, uuid, name);
-                                break;
-                            }
+                            const char *start = strchr(buf, '>') + 1;
+                            const char *end = strstr(start, "</gatewayName>");
+                            if (!end ||  start == end)
+                                continue;
+                            buf[end - buf] = '\0';
+                            name = start;
+                        }
+                        else if (strstr(buf, "<UDN>uuid:"))
+                        {
+                            const char *start = strchr(buf, ':') + 1;
+                            const char *end = strstr(start, "</UDN>");
+                            if (!end || start == end)
+                                continue;
+                            buf[end - buf] = '\0';
+                            q->foundGateway(scanIp, scanPort, start, name);
+                            break;
                         }
                     }
-
                 }
                 r->deleteLater();
             }
@@ -297,7 +303,6 @@ void GatewayScannerPrivate::queryNextIp()
         DBG_Printf(DBG_INFO, "scan finished\n");
         return;
     }
-
 
     scanIp = interfaces.back();
     scanPort = 80;

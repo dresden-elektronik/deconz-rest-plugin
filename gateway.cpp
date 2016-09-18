@@ -7,11 +7,32 @@
 #include "gateway.h"
 #include "json.h"
 
+
+#define ONOFF_COMMAND_OFF     0x00
+#define ONOFF_COMMAND_ON      0x01
+#define ONOFF_COMMAND_TOGGLE  0x02
+#define ONOFF_COMMAND_ON_WITH_TIMED_OFF  0x42
+
 enum GW_Event
 {
     ActionProcess,
     EventTimeout,
-    EventResponse
+    EventResponse,
+    EventCommandAdded
+};
+
+class Command
+{
+public:
+    quint16 groupId;
+    quint16 clusterId;
+    quint8 commandId;
+
+    union {
+        quint8 sceneId;
+        quint8 level;
+    } param;
+    quint16 transitionTime;
 };
 
 class GatewayPrivate
@@ -27,6 +48,7 @@ public:
 
     Gateway::State state;
     bool pairingEnabled;
+    bool needSaveDatabase;
     QString apikey;
     QString name;
     QString uuid;
@@ -37,7 +59,10 @@ public:
     QNetworkAccessManager *manager;
     QBuffer *reqBuffer;
     QNetworkReply *reply;
+    int pings;
     std::vector<Gateway::Group> groups;
+    std::vector<Gateway::CascadeGroup> cascadeGroups;
+    std::vector<Command> commands;
 };
 
 Gateway::Gateway(QObject *parent) :
@@ -45,8 +70,10 @@ Gateway::Gateway(QObject *parent) :
     d_ptr(new GatewayPrivate)
 {
     Q_D(Gateway);
+    d->pings = 0;
     d->state = Gateway::StateOffline;
     d->pairingEnabled = false;
+    d->needSaveDatabase = false;
     d->reply = 0;
     d->manager = new QNetworkAccessManager(this);
     connect(d->manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(finished(QNetworkReply*)));
@@ -75,6 +102,7 @@ void Gateway::setAddress(const QHostAddress &address)
     if (d->address != address)
     {
         d->address = address;
+        d->needSaveDatabase = true;
     }
 }
 
@@ -90,6 +118,7 @@ void Gateway::setName(const QString &name)
     if (d->name != name)
     {
         d->name = name;
+        d->needSaveDatabase = true;
     }
 }
 
@@ -105,6 +134,7 @@ void Gateway::setUuid(const QString &uuid)
     if (d->uuid != uuid)
     {
         d->uuid = uuid;
+        d->needSaveDatabase = true;
     }
 }
 
@@ -126,6 +156,7 @@ void Gateway::setPort(quint16 port)
     if (d->port != port)
     {
         d->port = port;
+        d->needSaveDatabase = true;
     }
 }
 
@@ -135,7 +166,14 @@ void Gateway::setApiKey(const QString &apiKey)
     if (d->apikey != apiKey)
     {
         d->apikey = apiKey;
+        d->needSaveDatabase = true;
     }
+}
+
+const QString &Gateway::apiKey() const
+{
+    Q_D(const Gateway);
+    return d->apikey;
 }
 
 bool Gateway::pairingEnabled() const
@@ -150,6 +188,7 @@ void Gateway::setPairingEnabled(bool pairingEnabled)
     if (d->pairingEnabled != pairingEnabled)
     {
         d->pairingEnabled = pairingEnabled;
+        d->needSaveDatabase = true;
     }
 }
 
@@ -159,10 +198,115 @@ Gateway::State Gateway::state() const
     return d->state;
 }
 
+bool Gateway::needSaveDatabase() const
+{
+    Q_D(const Gateway);
+    return d->needSaveDatabase;
+}
+
+void Gateway::setNeedSaveDatabase(bool save)
+{
+    Q_D(Gateway);
+    d->needSaveDatabase = save;
+}
+
+void Gateway::addCascadeGroup(quint16 local, quint16 remote)
+{
+    Q_D(Gateway);
+    for (size_t i = 0; i < d->cascadeGroups.size(); i++)
+    {
+        if (d->cascadeGroups[i].local == local && d->cascadeGroups[i].remote == remote)
+        {
+            // already known
+            return;
+        }
+    }
+
+    CascadeGroup cg;
+    cg.local = local;
+    cg.remote = remote;
+    d->cascadeGroups.push_back(cg);
+    d->needSaveDatabase = true;
+}
+
+void Gateway::removeCascadeGroup(quint16 local, quint16 remote)
+{
+    Q_D(Gateway);
+    for (size_t i = 0; i < d->cascadeGroups.size(); i++)
+    {
+        if (d->cascadeGroups[i].local == local && d->cascadeGroups[i].remote == remote)
+        {
+            d->cascadeGroups[i].local = d->cascadeGroups.back().local;
+            d->cascadeGroups[i].remote = d->cascadeGroups.back().remote;
+            d->cascadeGroups.pop_back();
+            d->needSaveDatabase = true;
+            return;
+        }
+    }
+}
+
+void Gateway::handleGroupCommand(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
+{
+    Q_D(Gateway);
+    if (d->state != StateConnected)
+    {
+        return;
+    }
+
+    if (ind.dstAddressMode() != deCONZ::ApsGroupAddress)
+    {
+        return;
+    }
+
+    for (size_t j = 0; j < d->cascadeGroups.size(); j++)
+    {
+        const CascadeGroup &cg = d->cascadeGroups[j];
+        if (cg.local == ind.dstAddress().group())
+        {
+            Command cmd;
+
+            // filter
+            if (ind.clusterId() == 0x0005 && zclFrame.commandId() == 0x05) // recall scene
+            {
+                if (zclFrame.payload().size() < 3) // sanity
+                    continue;
+
+                // payload U16 group, U8 scene
+                cmd.param.sceneId = zclFrame.payload().at(2);
+            }
+            else if (ind.clusterId() == 0x0006) // onoff
+            {
+            }
+//            else if (ind.clusterId() == 0x0008) // level
+//            {
+//            }
+            else
+            {
+                continue;
+            }
+
+            cmd.clusterId = ind.clusterId();
+            cmd.groupId = cg.remote;
+            cmd.commandId = zclFrame.commandId();
+            cmd.transitionTime = 0;
+            d->commands.push_back(cmd);
+            d->handleEvent(EventCommandAdded);
+
+            DBG_Printf(DBG_INFO, "GW %s forward command 0x%02X on cluster 0x%04X on group 0x%04X to remote group 0x%04X\n", qPrintable(d->name), zclFrame.commandId(), ind.clusterId(), cg.local, cg.remote);
+        }
+    }
+}
+
 const std::vector<Gateway::Group> &Gateway::groups() const
 {
     Q_D(const Gateway);
     return d->groups;
+}
+
+const std::vector<Gateway::CascadeGroup> &Gateway::cascadeGroups() const
+{
+    Q_D(const Gateway);
+    return d->cascadeGroups;
 }
 
 void Gateway::timerFired()
@@ -218,6 +362,8 @@ void GatewayPrivate::handleEventStateOffline(GW_Event event)
             return;
         }
 
+        pings = 0;
+
         QString url;
         url.sprintf("http://%s:%u/api/%s/config",
                     qPrintable(address.toString()), port, qPrintable(apikey));
@@ -242,13 +388,13 @@ void GatewayPrivate::handleEventStateOffline(GW_Event event)
             if (code == 403)
             {
                 state = Gateway::StateNotAuthorized;
-                startTimer(1000, ActionProcess);
+                startTimer(5000, ActionProcess);
             }
             else if (code == 200)
             {
                 checkConfigResponse(r->readAll());
                 state = Gateway::StateConnected;
-                startTimer(500, ActionProcess);
+                startTimer(5000, ActionProcess);
             }
             else
             {
@@ -283,6 +429,8 @@ void GatewayPrivate::handleEventStateNotAuthorized(GW_Event event)
             return;
         }
 
+        pings = 0;
+
         // try to create user account
         QString url;
         url.sprintf("http://%s:%u/api/", qPrintable(address.toString()), port);
@@ -307,7 +455,6 @@ void GatewayPrivate::handleEventStateNotAuthorized(GW_Event event)
     }
     else if (event == EventResponse)
     {
-
         QNetworkReply *r = reply;
         if (reply)
         {
@@ -315,23 +462,28 @@ void GatewayPrivate::handleEventStateNotAuthorized(GW_Event event)
             reply = 0;
             int code = r->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
 
-            {
-                QByteArray data = r->readAll();
-                DBG_Printf(DBG_INFO, "GW create user reply %d: %s\n", code, qPrintable(data));
-            }
+//            {
+//                QByteArray data = r->readAll();
+//                DBG_Printf(DBG_INFO, "GW create user reply %d: %s\n", code, qPrintable(data));
+//            }
 
             r->deleteLater();
 
             if (code == 403)
             {
-                // retry
-                startTimer(10000, ActionProcess);
+                // gateway must be unlocked ...
             }
             else if (code == 200)
             {
                 // go to state offline first to query config
                 state = Gateway::StateOffline;
                 startTimer(100, ActionProcess);
+            }
+
+            // retry
+            if (!timer->isActive())
+            {
+                startTimer(10000, ActionProcess);
             }
         }
     }
@@ -346,14 +498,66 @@ void GatewayPrivate::handleEventStateConnected(GW_Event event)
 {
     if (event == ActionProcess)
     {
-        QString url;
-        url.sprintf("http://%s:%u/api/%s/groups",
-                    qPrintable(address.toString()), port, qPrintable(apikey));
+        Q_ASSERT(reply == 0);
 
-        reply = manager->get(QNetworkRequest(url));
-        QObject::connect(reply, SIGNAL(error(QNetworkReply::NetworkError)),
-                manager->parent(), SLOT(error(QNetworkReply::NetworkError)));
+        if (commands.empty())
+        {
+            QString url;
+            url.sprintf("http://%s:%u/api/%s/groups",
+                        qPrintable(address.toString()), port, qPrintable(apikey));
 
+            pings++;
+            reply = manager->get(QNetworkRequest(url));
+            QObject::connect(reply, SIGNAL(error(QNetworkReply::NetworkError)),
+                    manager->parent(), SLOT(error(QNetworkReply::NetworkError)));
+        }
+        else
+        {
+            QString url;
+            QVariantMap map;
+            const Command &cmd = commands.back();
+
+            if (cmd.clusterId == 0x0005 && cmd.commandId == 0x05) // recall scene
+            {
+                url.sprintf("http://%s:%u/api/%s/groups/%u/scenes/%u/recall",
+                            qPrintable(address.toString()), port, qPrintable(apikey), cmd.groupId, cmd.param.sceneId);
+            }
+            else if (cmd.clusterId == 0x0006)
+            {
+                url.sprintf("http://%s:%u/api/%s/groups/%u/action",
+                            qPrintable(address.toString()), port, qPrintable(apikey), cmd.groupId);
+
+                if (cmd.commandId == ONOFF_COMMAND_ON) { map[QLatin1String("on")] = true; }
+                if (cmd.commandId == ONOFF_COMMAND_OFF) { map[QLatin1String("on")] = false; }
+            }
+
+            commands.pop_back();
+
+            if (url.isEmpty())
+            {
+                startTimer(50, EventTimeout);
+                return;
+            }
+
+            QString json;
+            if (!map.isEmpty())
+            {
+                json = deCONZ::jsonStringFromMap(map);
+            }
+            else
+            {
+                json = QLatin1String("{}");
+            }
+            reqBuffer->close();
+            reqBuffer->setData(json.toUtf8());
+            reqBuffer->open(QBuffer::ReadOnly);
+
+            QNetworkRequest req(url);
+            reply = manager->put(req, reqBuffer);
+
+            QObject::connect(reply, SIGNAL(error(QNetworkReply::NetworkError)),
+                    manager->parent(), SLOT(error(QNetworkReply::NetworkError)));
+        }
 
         startTimer(1000, EventTimeout);
     }
@@ -366,12 +570,14 @@ void GatewayPrivate::handleEventStateConnected(GW_Event event)
             reply = 0;
             int code = r->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
 
-
             if (code == 200)
             {
-                //state = Gateway::StateConnected;
                 // ok check again later
-                checkGroupsResponse(r->readAll());
+                if (r->url().toString().endsWith(QLatin1String("/groups")))
+                {
+                    pings = 0;
+                    checkGroupsResponse(r->readAll());
+                }
                 startTimer(15000, ActionProcess);
             }
             else
@@ -396,9 +602,19 @@ void GatewayPrivate::handleEventStateConnected(GW_Event event)
             }
             r->deleteLater();
         }
-        DBG_Printf(DBG_INFO, "request timeout in connected state switch to offline state\n");
-        state = Gateway::StateOffline;
+        if (pings > 5)
+        {
+            DBG_Printf(DBG_INFO, "max request timeout in connected state switch to offline state\n");
+            state = Gateway::StateOffline;
+        }
         startTimer(5000, ActionProcess);
+    }
+    else if (event == EventCommandAdded)
+    {
+        if (!reply) // not busy
+        {
+            startTimer(50, ActionProcess);
+        }
     }
 }
 

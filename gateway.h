@@ -5,6 +5,11 @@
 #include <QHostAddress>
 #include <QNetworkReply>
 
+namespace deCONZ {
+    class ApsDataIndication;
+    class ZclFrame;
+}
+
 class GatewayPrivate;
 
 class Gateway : public QObject
@@ -16,6 +21,13 @@ public:
     public:
         QString id;
         QString name;
+    };
+
+    class CascadeGroup
+    {
+    public:
+        quint16 local;
+        quint16 remote;
     };
 
     enum State
@@ -37,11 +49,18 @@ public:
     quint16 port() const;
     void setPort(quint16 port);
     void setApiKey(const QString &apiKey);
+    const QString &apiKey() const;
     bool pairingEnabled() const;
     void setPairingEnabled(bool pairingEnabled);
     State state() const;
+    bool needSaveDatabase() const;
+    void setNeedSaveDatabase(bool save);
+    void addCascadeGroup(quint16 local, quint16 remote);
+    void removeCascadeGroup(quint16 local, quint16 remote);
+    void handleGroupCommand(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
 
     const std::vector<Group> &groups() const;
+    const std::vector<CascadeGroup> &cascadeGroups() const;
 
 signals:
 

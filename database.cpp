@@ -14,6 +14,7 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "deconz/dbg_trace.h"
+#include "gateway.h"
 #include "json.h"
 
 /******************************************************************************
@@ -32,6 +33,7 @@ static int sqliteLoadAllRulesCallback(void *user, int ncols, char **colval , cha
 static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteGetAllLightIdsCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteGetAllSensorIdsCallback(void *user, int ncols, char **colval , char **colname);
+static int sqliteLoadAllGatewaysCallback(void *user, int ncols, char **colval , char **colname);
 
 /******************************************************************************
                     Implementation
@@ -72,6 +74,7 @@ void DeRestPluginPrivate::initDb()
         "CREATE TABLE IF NOT EXISTS sensors (sid TEXT PRIMARY KEY, name TEXT, type TEXT, modelid TEXT, manufacturername TEXT, uniqueid TEXT, swversion TEXT, state TEXT, config TEXT, fingerprint TEXT, deletedState TEXT, mode TEXT)",
         "CREATE TABLE IF NOT EXISTS scenes (gsid TEXT PRIMARY KEY, gid TEXT, sid TEXT, name TEXT, transitiontime TEXT, lights TEXT)",
         "CREATE TABLE IF NOT EXISTS schedules (id TEXT PRIMARY KEY, json TEXT)",
+        "CREATE TABLE IF NOT EXISTS gateways (uuid TEXT PRIMARY KEY, name TEXT, ip TEXT, port TEXT, pairing TEXT, apikey TEXT, cgroups TEXT)",
         "ALTER TABLE sensors add column fingerprint TEXT",
         "ALTER TABLE sensors add column deletedState TEXT",
         "ALTER TABLE sensors add column mode TEXT",
@@ -189,6 +192,7 @@ void DeRestPluginPrivate::readDb()
     loadAllRulesFromDb();
     loadAllSchedulesFromDb();
     loadAllSensorsFromDb();
+    loadAllGatewaysFromDb();
 }
 
 /*! Sqlite callback to load authentification data.
@@ -1684,6 +1688,35 @@ void DeRestPluginPrivate::loadAllSensorsFromDb()
     }
 }
 
+/*! Loads all gateways from database
+ */
+void DeRestPluginPrivate::loadAllGatewaysFromDb()
+{
+    int rc;
+    char *errmsg = 0;
+
+    DBG_Assert(db != 0);
+
+    if (!db)
+    {
+        return;
+    }
+
+    QString sql(QLatin1String("SELECT * FROM gateways"));
+
+    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+    rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadAllGatewaysCallback, this, &errmsg);
+
+    if (rc != SQLITE_OK)
+    {
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR_L2, "sqlite3_exec %s, error: %s\n", qPrintable(sql), errmsg);
+            sqlite3_free(errmsg);
+        }
+    }
+}
+
 /*! Sqlite callback to load all light ids into temporary array.
  */
 static int sqliteGetAllLightIdsCallback(void *user, int ncols, char **colval , char **colname)
@@ -1802,6 +1835,82 @@ static int sqliteGetAllSensorIdsCallback(void *user, int ncols, char **colval , 
             }
         }
     }
+
+    return 0;
+}
+
+static int sqliteLoadAllGatewaysCallback(void *user, int ncols, char **colval , char **colname)
+{
+    DBG_Assert(user != 0);
+
+    if (!user || (ncols <= 0))
+    {
+        return 0;
+    }
+
+    DeRestPluginPrivate *d = static_cast<DeRestPluginPrivate*>(user);
+
+    int idxUuid = -1;
+    int idxName = -1;
+    int idxIp = -1;
+    int idxPort = -1;
+    int idxApikey = -1;
+    int idxPairing = -1;
+    int idxCgroups = -1;
+
+    for (int i = 0; i < ncols; i++)
+    {
+        if (colval[i] && (colval[i][0] != '\0'))
+        {
+            if      (strcmp(colname[i], "uuid") == 0)    { idxUuid = i; }
+            else if (strcmp(colname[i], "name") == 0)    { idxName = i; }
+            else if (strcmp(colname[i], "ip") == 0)      { idxIp = i; }
+            else if (strcmp(colname[i], "port") == 0)    { idxPort = i; }
+            else if (strcmp(colname[i], "apikey") == 0)  { idxApikey = i; }
+            else if (strcmp(colname[i], "pairing") == 0)  { idxPairing = i; }
+            else if (strcmp(colname[i], "cgroups") == 0) { idxCgroups = i; }
+        }
+    }
+
+    if (idxUuid == -1)
+    {
+        return 0; // required
+    }
+
+    Gateway *gw = new Gateway(d);
+
+    gw->setUuid(colval[idxUuid]);
+    if (idxName != -1) { gw->setName(colval[idxName]); }
+    if (idxIp != -1) { gw->setAddress(QHostAddress(colval[idxIp])); }
+    if (idxPort != -1) { gw->setPort(QString(colval[idxPort]).toUShort()); }
+    if (idxApikey != -1) { gw->setApiKey(colval[idxApikey]); }
+    if (idxPairing != -1) { gw->setPairingEnabled(colval[idxPairing][0] == '1'); }
+    if (idxCgroups != -1 && colval[idxCgroups][0] == '[') // must be json array
+    {
+        bool ok;
+        QVariant var = Json::parse(colval[idxCgroups], ok);
+
+        if (ok && var.type() == QVariant::List)
+        {
+            QVariantList ls = var.toList();
+            for (int i = 0; i < ls.size(); i++)
+            {
+                QVariantMap e = ls[i].toMap();
+                if (e.contains(QLatin1String("lg")) && e.contains(QLatin1String("rg")))
+                {
+                    double lg = e[QLatin1String("lg")].toDouble();
+                    double rg = e[QLatin1String("rg")].toDouble();
+
+                    if (lg > 0 && lg <= 0xfffful && rg > 0 && rg <= 0xfffful)
+                    {
+                        gw->addCascadeGroup(lg, rg);
+                    }
+                }
+            }
+        }
+    }
+    gw->setNeedSaveDatabase(false);
+    d->gateways.push_back(gw);
 
     return 0;
 }
@@ -2060,6 +2169,84 @@ void DeRestPluginPrivate::saveDb()
         }
 
         saveDatabaseItems &= ~DB_USERPARAM;
+    }
+
+    // save gateways
+    if (saveDatabaseItems & DB_GATEWAYS)
+    {
+        std::vector<Gateway*>::iterator i = gateways.begin();
+        std::vector<Gateway*>::iterator end = gateways.end();
+
+        for (; i != end; ++i)
+        {
+            Gateway *gw = *i;
+            if (!gw->needSaveDatabase())
+            {
+                continue;
+            }
+
+            gw->setNeedSaveDatabase(false);
+
+            if (!gw->pairingEnabled())
+            {
+                // delete gateways from db (if exist)
+                QString sql = QString(QLatin1String("DELETE FROM gateways WHERE uuid='%1'")).arg(gw->uuid());
+
+                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+                errmsg = NULL;
+                rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
+
+                if (rc != SQLITE_OK)
+                {
+                    if (errmsg)
+                    {
+                        DBG_Printf(DBG_ERROR, "sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                        sqlite3_free(errmsg);
+                    }
+                }
+            }
+            else
+            {
+                QByteArray cgroups("[]");
+                if (!gw->cascadeGroups().empty())
+                {
+                    QVariantList ls;
+                    for (size_t i = 0; i < gw->cascadeGroups().size(); i++)
+                    {
+                        const Gateway::CascadeGroup &cg = gw->cascadeGroups()[i];
+                        QVariantMap e;
+                        e[QLatin1String("lg")] = (double)cg.local;
+                        e[QLatin1String("rg")] = (double)cg.remote;
+                        ls.push_back(e);
+                    }
+                    cgroups = Json::serialize(ls);
+                }
+
+                QString sql = QString(QLatin1String("REPLACE INTO gateways (uuid, name, ip, port, pairing, apikey, cgroups) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7')"))
+                        .arg(gw->uuid())
+                        .arg(gw->name())
+                        .arg(gw->address().toString())
+                        .arg(gw->port())
+                        .arg((gw->pairingEnabled() ? '1' : '0'))
+                        .arg(gw->apiKey())
+                        .arg(qPrintable(cgroups));
+
+                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+                errmsg = NULL;
+                rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
+
+                if (rc != SQLITE_OK)
+                {
+                    if (errmsg)
+                    {
+                        DBG_Printf(DBG_ERROR, "sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                        sqlite3_free(errmsg);
+                    }
+                }
+            }
+        }
+
+        saveDatabaseItems &= ~DB_GATEWAYS;
     }
 
     // save nodes

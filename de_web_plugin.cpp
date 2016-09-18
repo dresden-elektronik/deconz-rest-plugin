@@ -326,16 +326,24 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
         case SCENE_CLUSTER_ID:
             handleSceneClusterIndication(task, ind, zclFrame);
+            handleClusterIndicationGateways(ind, zclFrame);
             break;
 
         case OTAU_CLUSTER_ID:
             otauDataIndication(ind, zclFrame);
             break;
+
         case COMMISSIONING_CLUSTER_ID:
             handleCommissioningClusterIndication(task, ind, zclFrame);
             break;
+
+        case LEVEL_CLUSTER_ID:
+            handleClusterIndicationGateways(ind, zclFrame);
+            break;
+
         case ONOFF_CLUSTER_ID:
              handleOnOffClusterIndication(task, ind, zclFrame);
+             handleClusterIndicationGateways(ind, zclFrame);
             break;
 
         default:

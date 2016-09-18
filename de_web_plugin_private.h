@@ -208,6 +208,7 @@
 #define DB_RULES       0x00000040
 #define DB_SENSORS     0x00000080
 #define DB_USERPARAM   0x00000100
+#define DB_GATEWAYS    0x00000200
 
 #define DB_LONG_SAVE_DELAY  (15 * 60 * 1000) // 15 minutes
 #define DB_SHORT_SAVE_DELAY (5 *  1 * 1000) // 5 seconds
@@ -504,6 +505,8 @@ public:
     int getAllGateways(const ApiRequest &req, ApiResponse &rsp);
     int getGatewayState(const ApiRequest &req, ApiResponse &rsp);
     int setGatewayState(const ApiRequest &req, ApiResponse &rsp);
+    int addCascadeGroup(const ApiRequest &req, ApiResponse &rsp);
+    int deleteCascadeGroup(const ApiRequest &req, ApiResponse &rsp);
     void gatewayToMap(const ApiRequest &req, const Gateway *gw, QVariantMap &map);
 
     // REST API configuration
@@ -832,6 +835,7 @@ public:
     void handleGroupClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleSceneClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleOnOffClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleClusterIndicationGateways(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleCommissioningClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     bool handleMgmtBindRspConfirm(const deCONZ::ApsDataConfirm &conf);
     void handleDeviceAnnceIndication(const deCONZ::ApsDataIndication &ind);
@@ -868,6 +872,7 @@ public:
     void loadSceneFromDb(Scene *scene);
     void loadAllRulesFromDb();
     void loadAllSensorsFromDb();
+    void loadAllGatewaysFromDb();
     int getFreeLightId();
     int getFreeSensorId();
     void saveDb();
