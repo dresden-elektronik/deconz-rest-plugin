@@ -37,7 +37,7 @@ void DeRestPluginPrivate::initFirmwareUpdate()
     fwUpdateTimer->setSingleShot(true);
     connect(fwUpdateTimer, SIGNAL(timeout()),
             this, SLOT(firmwareUpdateTimerFired()));
-    fwUpdateTimer->start(1000);
+    fwUpdateTimer->start(5000);
 }
 
 /*! Starts the actual firmware update process.
