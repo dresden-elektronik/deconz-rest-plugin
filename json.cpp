@@ -126,7 +126,12 @@ QByteArray Json::serialize(const QVariant &data, bool &success)
 	}
 	else if((data.type() == QVariant::String) || (data.type() == QVariant::ByteArray)) // a string or a byte array?
 	{
-		str = sanitizeString(data.toString()).toUtf8();
+		str = sanitizeString(data.toString())
+#if QT_VERSION >= 0x050000
+		.toUtf8();
+#else
+		.toAscii();
+#endif
 	}
 	else if(data.type() == QVariant::Double) // double?
 	{
@@ -147,7 +152,12 @@ QByteArray Json::serialize(const QVariant &data, bool &success)
 	else if (data.canConvert<QString>()) // can value be converted to string?
 	{
 		// this will catch QDate, QDateTime, QUrl, ...
-		str = sanitizeString(data.toString()).toUtf8();
+		str = sanitizeString(data.toString())
+#if QT_VERSION >= 0x050000
+		.toUtf8();
+#else
+		.toAscii();
+#endif
 	}
 	else
 	{
