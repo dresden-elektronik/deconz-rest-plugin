@@ -1019,11 +1019,11 @@ void DeRestPluginPrivate::scheduleTimerFired()
                         int end = address.indexOf("/action");
                         QString groupId = address.mid(begin, end-begin);
 
-                        if (content.indexOf("on\":true"))
+                        if (content.indexOf("on\":true") != -1)
                         {
                             changeRuleStatusofGroup(groupId,true);
                         }
-                        else if (content.indexOf("on\":false"))
+                        else if (content.indexOf("on\":false") != -1)
                         {
                             changeRuleStatusofGroup(groupId,false);
                         }
