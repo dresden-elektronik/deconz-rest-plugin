@@ -1101,7 +1101,7 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
 
             if (sensorNode.name().isEmpty())
             {
-                sensorNode.setName(QString("%1 %2").arg(sensorNode.type()).arg(sensorNode.id()));
+                sensorNode.setName(QString("Hue Tap %2").arg(sensorNode.id()));
             }
 
             DBG_Printf(DBG_INFO, "SensorNode %u: %s added\n", sensorNode.id().toUInt(), qPrintable(sensorNode.name()));
