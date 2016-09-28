@@ -57,7 +57,7 @@ DEFINES += GW_SW_VERSION=\\\"2.04.16\\\"
 
 # Minimum version of the RaspBee firmware
 # which shall be used in order to support all features for this software release (case sensitive)
-DEFINES += GW_MIN_RPI_FW_VERSION=0x260a0500
+DEFINES += GW_MIN_RPI_FW_VERSION=0x260b0500
 
 # Minimum version of the deRFusb23E0X firmware
 # which shall be used in order to support all features for this software release
