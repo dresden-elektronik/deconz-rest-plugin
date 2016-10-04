@@ -2989,7 +2989,7 @@ void DeRestPluginPrivate::changeRuleStatusofGroup(QString groupId, bool enabled)
         {
             if (c->address().indexOf("sensors/") != -1 && c->address().indexOf("/state") != -1)
             {
-                int begin = c->address().indexOf("sensors/")+9;
+                int begin = c->address().indexOf("sensors/")+8;
                 int end = c->address().indexOf("/state");
                 // assumption: all conditions of that rule use the same sensor
                 sensorId = c->address().mid(begin, end-begin);
@@ -2999,19 +2999,21 @@ void DeRestPluginPrivate::changeRuleStatusofGroup(QString groupId, bool enabled)
 
         // detect sensor of that rule
         QString sensorModelId = "";
+        QString sensorType = "";
         std::vector<Sensor>::iterator si = sensors.begin();
         std::vector<Sensor>::iterator send = sensors.end();
         for (; si != send; ++si)
         {
             if (si->id() == sensorId)
             {
+                sensorType = si->type();
                 sensorModelId = si->modelId();
                 break;
             }
         }
 
         // disable or enable rule depending of group action
-        if (!sensorModelId.startsWith("FLS-NB"))
+        if (sensorType == "ZHALight" && !sensorModelId.startsWith("FLS-NB") && sensorModelId != "")
         {
             std::vector<RuleAction>::const_iterator a = ri->actions().begin();
             std::vector<RuleAction>::const_iterator aend = ri->actions().end();
