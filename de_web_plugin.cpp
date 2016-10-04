@@ -1312,6 +1312,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 case DEV_ID_ZLL_COLOR_LIGHT:
                 case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:
                 case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT:
+                case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT:
                     {
                         lightNode.setHaEndpoint(*i);
                     }
@@ -1358,6 +1359,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 case DEV_ID_ZLL_COLOR_LIGHT:
                 case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:
                 case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT:
+                case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT:
                 case DEV_ID_ZLL_DIMMABLE_LIGHT:
                 case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:
                 case DEV_ID_ZLL_ONOFF_LIGHT:
@@ -1585,6 +1587,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
             case DEV_ID_ZLL_COLOR_LIGHT:
             case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:
             case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT:
+            case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT:
             case DEV_ID_HA_DIMMABLE_LIGHT:
             //case DEV_ID_ZLL_DIMMABLE_LIGHT: // same as DEV_ID_HA_ONOFF_LIGHT
             case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:
@@ -3169,6 +3172,7 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
         case DEV_ID_ZLL_COLOR_LIGHT:
         case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:
         case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT:
+        case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT:
             readColor = true;
             //fall through
 

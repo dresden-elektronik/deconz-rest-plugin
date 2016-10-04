@@ -100,6 +100,8 @@
 #define DEV_ID_ZLL_COLOR_LIGHT              0x0200 // Color light
 #define DEV_ID_ZLL_EXTENDED_COLOR_LIGHT     0x0210 // Extended color light
 #define DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT  0x0220 // Color temperature light
+// ZigBee 3.0 lighting devices
+#define DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT  0x010c // Color temperature light
 // ZLL controller devices
 #define DEV_ID_ZLL_COLOR_CONTROLLER         0x0800 // Color controller
 #define DEV_ID_ZLL_COLOR_SCENE_CONTROLLER   0x0810 // Color scene controller
