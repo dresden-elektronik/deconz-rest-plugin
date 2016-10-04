@@ -7846,7 +7846,20 @@ bool DeRestPluginPrivate::exportConfiguration()
             //TODO: Win: provide 7zip or other
             //TODO: OS X
 #ifdef Q_OS_WIN
-            archProcess->start(path + "/7z.exe a " + path + "/deCONZ.tar " + path + "/deCONZ.conf " + path + "/zll.db " + path + "/session.default");
+            QString appPath = qApp->applicationDirPath();
+            if (!QFile::exists(appPath + "/7za.exe"))
+            {
+                DBG_Printf(DBG_INFO, "7z not found: %s\n", qPrintable(appPath + "/7za.exe"));
+                return false;
+            }
+            QString cmd = appPath + "/7za.exe";
+            QStringList args;
+            args.append("a");
+            args.append(path + "/deCONZ.tar");
+            args.append(path + "/deCONZ.conf");
+            args.append(path + "/zll.db");
+            args.append(path + "/session.default");
+            archProcess->start(cmd, args);
 #endif
 #ifdef Q_OS_LINUX
             archProcess->start("tar -cf " + path + "/deCONZ.tar -C " + path + " deCONZ.conf zll.db session.default");
@@ -7862,7 +7875,13 @@ bool DeRestPluginPrivate::exportConfiguration()
                 zipProcess = new QProcess(this);
             }
 #ifdef Q_OS_WIN
-            zipProcess->start(path + "/7z.exe a " + path + "/deCONZ.tar.gz " + path + "/deCONZ.tar");
+
+            cmd = appPath + "/7za.exe";
+            args.clear();
+            args.append("a");
+            args.append(path + "/deCONZ.tar.gz");
+            args.append(path + "/deCONZ.tar");
+            zipProcess->start(cmd, args);
 #endif
 #ifdef Q_OS_LINUX
             zipProcess->start("gzip -f " + path + "/deCONZ.tar");
@@ -7909,15 +7928,22 @@ bool DeRestPluginPrivate::importConfiguration()
         {
             archProcess = new QProcess(this);
         }
-        //TODO: Win: provide 7zip or other
         //TODO: OS X
 #ifdef Q_OS_WIN
-        archProcess->start(path + "/7z.exe e -y " + path + "/deCONZ.tar.gz -o" + path);
+        QString appPath = qApp->applicationDirPath();
+        QString cmd = appPath + "/7za.exe";
+        QStringList args;
+        args.append("e");
+        args.append("-y");
+        args.append(path + "/deCONZ.tar.gz");
+        args.append("-o");
+        args.append(path);
+        archProcess->start(cmd, args);
 #endif
 #ifdef Q_OS_LINUX
         archProcess->start("gzip -df " + path + "/deCONZ.tar.gz");
 #endif
-        archProcess->waitForFinished(5000);
+        archProcess->waitForFinished(EXT_PROCESS_TIMEOUT);
         DBG_Printf(DBG_INFO, "%s\n", qPrintable(archProcess->readAllStandardOutput()));
         archProcess->deleteLater();
         archProcess = 0;
@@ -7928,12 +7954,19 @@ bool DeRestPluginPrivate::importConfiguration()
             zipProcess = new QProcess(this);
         }
 #ifdef Q_OS_WIN
-        zipProcess->start(path + "/7z.exe e -y " + path + "/deCONZ.tar -o" + path);
+        cmd = appPath + "/7za.exe";
+        args.clear();
+        args.append("e");
+        args.append("-y");
+        args.append(path + "/deCONZ.tar");
+        args.append("-o");
+        args.append(path);
+        zipProcess->start(cmd, args);
 #endif
 #ifdef Q_OS_LINUX
         zipProcess->start("tar -xf " + path + "/deCONZ.tar -C " + path);
 #endif
-        zipProcess->waitForFinished(5000);
+        zipProcess->waitForFinished(EXT_PROCESS_TIMEOUT);
         DBG_Printf(DBG_INFO, "%s\n", qPrintable(zipProcess->readAllStandardOutput()));
         zipProcess->deleteLater();
         zipProcess = 0;
@@ -7997,6 +8030,7 @@ bool DeRestPluginPrivate::importConfiguration()
                 apsCtrl->setParameter(deCONZ::ParamHAEndpoint, endpoint1);
                 apsCtrl->setParameter(deCONZ::ParamHAEndpoint, endpoint2);
             }
+
             //cleanup
             if (file.exists())
             {
