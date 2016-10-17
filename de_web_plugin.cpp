@@ -3024,13 +3024,13 @@ void DeRestPluginPrivate::changeRuleStatusofGroup(QString groupId, bool enabled)
             {
                 if (a->address().indexOf("groups/" + groupId + "/action") != -1)
                 {
-                    if (enabled == true && ri->status() == "disabled")
+                    if (enabled && ri->status() == "disabled")
                     {
                         ri->setStatus("enabled");
                         queSaveDb(DB_RULES, DB_SHORT_SAVE_DELAY);
                         break;
                     }
-                    else if (enabled == false && ri->status() == "enabled")
+                    else if (!enabled && ri->status() == "enabled")
                     {
                         ri->setStatus("disabled");
                         queSaveDb(DB_RULES, DB_SHORT_SAVE_DELAY);
