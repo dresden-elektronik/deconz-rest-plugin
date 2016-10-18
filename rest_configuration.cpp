@@ -370,6 +370,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     map["wifiname"] = gwWifiName;
     map["wifichannel"] = gwWifiChannel;
     map["wifiip"] = gwWifiIp;
+    map["wifiPw"] = gwWifiPw;
     //map["rgbwdisplay"] = gwRgbwDisplay;
     map["linkbutton"] = gwLinkButton;
     map["portalservices"] = false;
@@ -1970,6 +1971,7 @@ int DeRestPluginPrivate::getWifiState(const ApiRequest &req, ApiResponse &rsp)
     rsp.map["wifiname"] = gwWifiName;
     rsp.map["wifichannel"] = gwWifiChannel;
     rsp.map["wifiip"] = gwWifiIp;
+    rsp.map["wifipw"] = gwWifiPw;
 
     rsp.httpStatus = HttpStatusOk;
 
@@ -2060,6 +2062,13 @@ void DeRestPluginPrivate::checkWifiState()
             QString channel = gwWifiChannel = QString::fromStdString(result.substr(begin, end-begin));
             gwWifiChannel = channel;
         }
+        if (QString::fromStdString(result).indexOf("pw_") != -1)
+        {
+            int begin = QString::fromStdString(result).indexOf("pw_") + 3;
+            int end = QString::fromStdString(result).indexOf("/pw");
+            QString pw = QString::fromStdString(result.substr(begin, end-begin));
+            gwWifiPw = pw;
+        }
         if (QString::fromStdString(result).indexOf("ip_") != -1)
         {
             int begin = QString::fromStdString(result).indexOf("ip_") + 3;
@@ -2097,6 +2106,13 @@ void DeRestPluginPrivate::checkWifiState()
             int end = QString::fromStdString(result).indexOf("/channel");
             QString channel = QString::fromStdString(result.substr(begin, end-begin));
             gwWifiChannel = channel;
+        }
+        if (QString::fromStdString(result).indexOf("pw_") != -1)
+        {
+            int begin = QString::fromStdString(result).indexOf("pw_") + 3;
+            int end = QString::fromStdString(result).indexOf("/pw");
+            QString pw = QString::fromStdString(result.substr(begin, end-begin));
+            gwWifiPw = pw;
         }
         if (QString::fromStdString(result).indexOf("ip_") != -1)
         {

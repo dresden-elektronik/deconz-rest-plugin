@@ -132,6 +132,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     gwWifiName = "Not set";
     gwWifiChannel = "1";
     gwWifiIp ="192.168.8.1";
+    gwWifiPw = "";
     gwRgbwDisplay = "1";
     gwTimezone = QString::fromStdString(getTimezone());
     gwTimeFormat = "12h";

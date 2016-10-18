@@ -920,6 +920,7 @@ public:
     QString gwWifiName;
     QString gwWifiChannel;
     QString gwWifiIp;
+    QString gwWifiPw;
     QString gwProxyAddress;
     quint16 gwProxyPort;
     QString gwTimezone;
