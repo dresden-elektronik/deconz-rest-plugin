@@ -14,6 +14,7 @@
 #include <stdint.h>
 #include <QString>
 #include <vector>
+#include <QTime>
 #include "json.h"
 
 class LightState;
@@ -34,6 +35,7 @@ public:
 
     Scene();
     State state;
+    bool externalMaster;
     uint16_t groupAddress;
     uint8_t id;
     QString name;
@@ -44,7 +46,7 @@ public:
     std::vector<LightState> &lights();
     const std::vector<LightState> &lights() const;
     void setLights(const std::vector<LightState> &lights);
-    void addLight(const LightState &light);
+    void addLightState(const LightState &light);
     bool deleteLight(const QString &lid);
 
     static QString lightsToString(const std::vector<LightState> &lights);
@@ -67,8 +69,8 @@ public:
     LightState();
 
     const QString &lid() const;
-    void setLid(const QString &lid);
-    const bool &on() const;
+    void setLightId(const QString &lid);
+    bool on() const;
     void setOn(const bool &on);
     const uint8_t &bri() const;
     void setBri(const uint8_t &bri);
@@ -87,8 +89,10 @@ public:
     const uint8_t &colorloopTime() const;
     void setColorloopTime(const uint8_t &time);
 
-    const uint16_t &transitiontime() const;
-    void setTransitiontime(const uint16_t &transitiontime);
+    const uint16_t &transitionTime() const;
+    void setTransitionTime(uint16_t transitionTime);
+
+    QTime tVerified;
 
 private:
     QString m_lid;

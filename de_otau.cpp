@@ -19,9 +19,11 @@
 #define OTAU_REPORT_STATUS_CLID                0x0205
 
 // std otau specific
-#define OTAU_IMAGE_NOTIFY_CMD_ID          0x00
-#define OTAU_IMAGE_BLOCK_REQUEST_CMD_ID   0x03
-#define OTAU_IMAGE_PAGE_REQUEST_CMD_ID    0x04
+#define OTAU_IMAGE_NOTIFY_CMD_ID             0x00
+#define OTAU_QUERY_NEXT_IMAGE_REQUEST_CMD_ID 0x01
+#define OTAU_IMAGE_BLOCK_REQUEST_CMD_ID      0x03
+#define OTAU_IMAGE_PAGE_REQUEST_CMD_ID       0x04
+#define OTAU_UPGRADE_END_REQUEST_CMD_ID      0x06
 
 #define DONT_CARE_FILE_VERSION                 0xFFFFFFFFUL
 
@@ -57,6 +59,57 @@ void DeRestPluginPrivate::initOtau()
  */
 void DeRestPluginPrivate::otauDataIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame)
 {
+    if ((ind.clusterId() == OTAU_CLUSTER_ID) && (zclFrame.commandId() == OTAU_QUERY_NEXT_IMAGE_REQUEST_CMD_ID))
+    {
+        LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());
+
+        // extract software version from request
+        if (lightNode && lightNode->swBuildId().isEmpty())
+        {
+            QDataStream stream(zclFrame.payload());
+            stream.setByteOrder(QDataStream::LittleEndian);
+
+            quint8 fieldControl;
+            quint16 manufacturerId;
+            quint16 imageType;
+            quint32 swVersion;
+            quint16 hwVersion;
+
+            stream >> fieldControl;
+            stream >> manufacturerId;
+            stream >> imageType;
+            stream >> swVersion;
+
+            if (fieldControl & 0x01)
+            {
+                stream >> hwVersion;
+            }
+
+            QString version;
+            version.sprintf("%08X", swVersion);
+
+            lightNode->setSwBuildId(version);
+            updateEtag(lightNode->etag);
+
+            // read real sw build id
+            lightNode->setLastRead(READ_SWBUILD_ID, idleTotalCounter);
+            lightNode->enableRead(READ_SWBUILD_ID);
+            lightNode->setNextReadTime(READ_SWBUILD_ID, queryTime);
+            queryTime = queryTime.addSecs(5);
+        }
+    }
+    else if ((ind.clusterId() == OTAU_CLUSTER_ID) && (zclFrame.commandId() == OTAU_UPGRADE_END_REQUEST_CMD_ID))
+    {
+        LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());
+
+        if (lightNode)
+        {
+            lightNode->setLastRead(READ_SWBUILD_ID, idleTotalCounter);
+            lightNode->enableRead(READ_SWBUILD_ID);
+            lightNode->setNextReadTime(READ_SWBUILD_ID, queryTime.addSecs(120));
+        }
+    }
+
     if (!isOtauActive())
     {
         return;

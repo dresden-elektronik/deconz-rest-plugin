@@ -120,7 +120,7 @@ void LightNode::setModelId(const QString &modelId)
 
 /*! Returns the software build identifier.
  */
-const QString LightNode::swBuildId() const
+const QString &LightNode::swBuildId() const
 {
     return m_swBuildId;
 }

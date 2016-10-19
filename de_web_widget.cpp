@@ -20,6 +20,9 @@ DeRestWidget::DeRestWidget(QWidget *parent) :
 {
     ui->setupUi(this);
     setWindowTitle(tr("DE Web App"));
+    deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
+
+    quint16 httpPort = apsCtrl ? deCONZ::ApsController::instance()->getParameter(deCONZ::ParamHttpPort) : 0;
 
     connect(ui->refreshAllButton, SIGNAL(clicked()),
             this, SIGNAL(refreshAllClicked()));
@@ -30,6 +33,10 @@ DeRestWidget::DeRestWidget(QWidget *parent) :
     ui->changeChannelButton->hide();
     ui->channelSpinBox->hide();
 
+    ui->ipAddressesLabel->setTextFormat(Qt::RichText);
+    ui->ipAddressesLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
+    ui->ipAddressesLabel->setOpenExternalLinks(true);
+
     QString str;
     QList<QNetworkInterface> ifaces = QNetworkInterface::allInterfaces();
 
@@ -38,6 +45,16 @@ DeRestWidget::DeRestWidget(QWidget *parent) :
 
     for (; ifi != ifend; ++ifi)
     {
+        QString name = ifi->humanReadableName();
+
+        // filter
+        if (name.contains("vm", Qt::CaseInsensitive) ||
+            name.contains("virtual", Qt::CaseInsensitive) ||
+            name.contains("loop", Qt::CaseInsensitive))
+        {
+            continue;
+        }
+
         QList<QNetworkAddressEntry> addr = ifi->addressEntries();
 
         QList<QNetworkAddressEntry>::Iterator i = addr.begin();
@@ -46,16 +63,22 @@ DeRestWidget::DeRestWidget(QWidget *parent) :
         for (; i != end; ++i)
         {
             QHostAddress a = i->ip();
+
             if (a.protocol() == QAbstractSocket::IPv4Protocol)
             {
+                QString url = QString("http://%1:%2").arg(a.toString()).arg(httpPort);
+
                 str.append("<b>");
                 str.append(ifi->humanReadableName());
                 str.append("</b>&nbsp;&nbsp;&nbsp;&nbsp;");
-                str.append(a.toString());
-                str.append("<br/>");
+                str.append(QString("<a href=\"%1\">%2</a><br/>").arg(url).arg(url));
             }
         }
+    }
 
+    if (httpPort == 0)
+    {
+        str = tr("No HTTP server is running");
     }
 
     ui->ipAddressesLabel->setText(str);

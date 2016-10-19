@@ -38,7 +38,7 @@ public:
     void setManufacturerName(const QString &name);
     const QString &modelId() const;
     void setModelId(const QString &modelId);
-    const QString swBuildId() const;
+    const QString &swBuildId() const;
     void setSwBuildId(const QString & swBuildId);
     const QString &name() const;
     void setName(const QString &name);

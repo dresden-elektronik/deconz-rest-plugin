@@ -44,11 +44,12 @@ void DeRestPluginPrivate::checkResetState()
 
     for (; i != end; ++i)
     {
-        if (i->isAvailable() && i->state() == LightNode::StateDeleted && i->resetRetryCount() > 0)
+        if (i->isAvailable() /* && i->state() == LightNode::StateDeleted */ && i->resetRetryCount() > 0)
         {
             uint8_t retryCount = i->resetRetryCount();
             retryCount--;
             i->setResetRetryCount(retryCount);
+            DBG_Printf(DBG_INFO, "reset device retries: %i\n", retryCount);
 
             if (retryCount > 0 && i->address().ext() != lastNodeAddressExt) // prefer unhandled nodes
             {
@@ -98,6 +99,68 @@ void DeRestPluginPrivate::checkResetState()
         }
         lastNodeAddressExt = 0;
     }
+
+    std::vector<Sensor>::iterator si = sensors.begin();
+    std::vector<Sensor>::iterator si_end = sensors.end();
+
+    for (; si != si_end; ++si)
+    {
+        if (si->isAvailable() && si->resetRetryCount() > 0)
+        {
+            uint8_t retryCount = si->resetRetryCount();
+            retryCount--;
+            si->setResetRetryCount(retryCount);
+            DBG_Printf(DBG_INFO, "reset device retries: %i\n", retryCount);
+
+            if (retryCount > 0 && si->address().ext() != lastNodeAddressExt) // prefer unhandled nodes
+            {
+                // send mgmt_leave_request
+                DBG_Assert(apsCtrl != 0);
+                if (apsCtrl)
+                {
+                    lastNodeAddressExt = si->address().ext();
+                    zdpResetSeq += 1;
+                    si->setZdpResetSeq(zdpResetSeq);
+
+                    deCONZ::ApsDataRequest req;
+
+                    req.setTxOptions(0);
+                    req.setDstEndpoint(ZDO_ENDPOINT);
+                    req.setDstAddressMode(deCONZ::ApsExtAddress);
+                    req.dstAddress().setExt(si->address().ext());
+                    req.setProfileId(ZDP_PROFILE_ID);
+                    req.setClusterId(ZDP_MGMT_LEAVE_REQ_CLID);
+                    req.setSrcEndpoint(ZDO_ENDPOINT);
+                    req.setRadius(0);
+
+                    QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
+                    stream.setByteOrder(QDataStream::LittleEndian);
+                    stream << zdpResetSeq; // seq no.
+                    stream << (quint64)si->address().ext(); // device address
+
+                    uint8_t flags = 0;
+//                    flags |= 1; // rejoin
+//                    flags |= 2; // remove children
+                    stream << flags; // flags
+
+                    if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
+                    {
+                        resetDeviceApsRequestId = req.id();
+                        resetDeviceState = ResetWaitConfirm;
+                        resetDeviceTimer->start(WAIT_CONFIRM);
+                        DBG_Printf(DBG_INFO, "reset device apsdeDataRequest success\n");
+                        return;
+                    }
+                    else
+                    {
+                        DBG_Printf(DBG_ERROR, "can't send reset device apsdeDataRequest\n");
+                    }
+                }
+            }
+        }
+        lastNodeAddressExt = 0;
+    }
+
     resetDeviceState = ResetIdle;
     resetDeviceTimer->start(CHECK_RESET_DEVICES);
     return;
@@ -132,24 +195,18 @@ void DeRestPluginPrivate::handleMgmtLeaveRspIndication(const deCONZ::ApsDataIndi
 {
     if (resetDeviceState == ResetWaitIndication)
     {
-        if (!ind.srcAddress().hasExt())
-        {
-            return;
-        }
-
         if (ind.asdu().size() < 2)
         {
             // at least seq number and status
             return;
         }
 
-        LightNode *node = getLightNodeForAddress(ind.srcAddress().ext());
+        RestNodeBase *node = getLightNodeForAddress(ind.srcAddress());
 
-        // extend to Sensor Nodes? // RestNodeBase node
-        //if (!node)
-        //{
-        //    node = getSensorNodeForAddress(ind.srcAddress().ext());
-        //}
+        if (!node)
+        {
+            node = getSensorNodeForAddress(ind.srcAddress());
+        }
 
         if (!node)
         {
@@ -170,8 +227,33 @@ void DeRestPluginPrivate::handleMgmtLeaveRspIndication(const deCONZ::ApsDataIndi
         DBG_Printf(DBG_INFO, "MgmtLeave_rsp %s seq: %u, status 0x%02X \n", qPrintable(node->address().toStringExt()), seqNo, status);
 
         if (status == deCONZ::ZdpSuccess || status == deCONZ::ZdpNotSupported)
-        {
-            node->setResetRetryCount(0);
+        {            
+            // set retryCount and isAvailable for all endpoints of that device
+            std::vector<LightNode>::iterator i;
+            std::vector<LightNode>::iterator end = nodes.end();
+
+            for (i = nodes.begin(); i != end; ++i)
+            {
+                if ((ind.srcAddress().hasExt() && i->address().ext() == ind.srcAddress().ext()) ||
+                    (ind.srcAddress().hasNwk() && i->address().nwk() == ind.srcAddress().nwk()))
+                {
+                   i->setResetRetryCount(0);
+                   i->setIsAvailable(false);
+                }
+            }
+
+            std::vector<Sensor>::iterator s;
+            std::vector<Sensor>::iterator send = sensors.end();
+
+            for (s = sensors.begin(); s != send; ++s)
+            {
+                if ((ind.srcAddress().hasExt() && s->address().ext() == ind.srcAddress().ext()) ||
+                    (ind.srcAddress().hasNwk() && s->address().nwk() == ind.srcAddress().nwk()))
+                {
+                   s->setResetRetryCount(0);
+                   s->setIsAvailable(false);
+                }
+            }
         }
 
         resetDeviceState = ResetIdle;

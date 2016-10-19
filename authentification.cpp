@@ -18,6 +18,7 @@
 #endif
 
 ApiAuth::ApiAuth() :
+    needSaveDatabase(false),
     state(StateNormal)
 {
 
@@ -116,7 +117,12 @@ bool DeRestPluginPrivate::checkApikeyAuthentification(const ApiRequest &req, Api
                 }
             }
 
-            queSaveDb(DB_AUTH, DB_LONG_SAVE_DELAY);
+            i->needSaveDatabase = true;
+            if (!apiAuthSaveDatabaseTime.isValid() || apiAuthSaveDatabaseTime.elapsed() > (1000 * 60 * 30))
+            {
+                apiAuthSaveDatabaseTime.start();
+                queSaveDb(DB_AUTH, DB_LONG_SAVE_DELAY);
+            }
             return true;
         }
     }
@@ -125,6 +131,7 @@ bool DeRestPluginPrivate::checkApikeyAuthentification(const ApiRequest &req, Api
     if (gwLinkButton)
     {
         ApiAuth auth;
+        auth.needSaveDatabase = true;
         auth.apikey = apikey;
         auth.devicetype = "unknown";
         auth.createDate = QDateTime::currentDateTimeUtc();

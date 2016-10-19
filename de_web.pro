@@ -53,11 +53,11 @@ unix:INCLUDEPATH += /usr/include
 
 # Version Major.Minor.Build
 # Important: don't change the format of this line since it's parsed by scripts!
-DEFINES += GW_SW_VERSION=\\\"2.04.02\\\"
+DEFINES += GW_SW_VERSION=\\\"2.04.18\\\"
 
 # Minimum version of the RaspBee firmware
 # which shall be used in order to support all features for this software release (case sensitive)
-DEFINES += GW_MIN_RPI_FW_VERSION=0x26050500
+DEFINES += GW_MIN_RPI_FW_VERSION=0x260b0500
 
 # Minimum version of the deRFusb23E0X firmware
 # which shall be used in order to support all features for this software release
@@ -73,54 +73,60 @@ else {
 QMAKE_CXXFLAGS += -Wno-attributes
 
 HEADERS  = bindings.h \
-           de_web_plugin.h \
-           de_web_widget.h \
            connectivity.h \
-           json.h \
            colorspace.h \
-           sqlite3.h \
+           de_web_plugin.h \
            de_web_plugin_private.h \
-           rest_node_base.h \
-           light_node.h \
+           de_web_widget.h \
+           gateway.h \
+           gateway_scanner.h \
            group.h \
            group_info.h \
+           json.h \
+           light_node.h \
+           sqlite3.h \
+           rest_node_base.h \
            rule.h \
            scene.h \
            sensor.h
 
 SOURCES  = authentification.cpp \
+           atmel_wsndemo_sensor.cpp \
            bindings.cpp \
            change_channel.cpp \
            connectivity.cpp \
+           colorspace.cpp \
            database.cpp \
            discovery.cpp \
            de_web_plugin.cpp \
            de_web_widget.cpp \
            de_otau.cpp \
            firmware_update.cpp \
+           gateway.cpp \
+           gateway_scanner.cpp \
+           group.cpp \
+           group_info.cpp \
+           gw_uuid.cpp \
            json.cpp \
-           colorspace.cpp \
+           light_node.cpp \
            sqlite3.c \
-           rest_lights.cpp \
            rest_configuration.cpp \
+           rest_gateways.cpp \
            rest_groups.cpp \
+           rest_lights.cpp \
+           rest_node_base.cpp \
            rest_rules.cpp \
            rest_sensors.cpp \
            rest_schedules.cpp \
            rest_touchlink.cpp \
            rule.cpp \
            upnp.cpp \
-           zcl_tasks.cpp \
-           gw_uuid.cpp \
            permitJoin.cpp \
-           rest_node_base.cpp \
-           light_node.cpp \
-           group.cpp \
-           group_info.cpp \
            scene.cpp \
            sensor.cpp \
-           atmel_wsndemo_sensor.cpp \
-           reset_device.cpp
+           reset_device.cpp \
+           rest_userparameter.cpp \
+           zcl_tasks.cpp
 
 win32:DESTDIR  = ../../debug/plugins # TODO adjust
 unix:DESTDIR  = ..

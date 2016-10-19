@@ -9,8 +9,10 @@
  */
 
 #include <QFile>
+#include <QHostInfo>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
+#include <QNetworkProxy>
 #include <QSysInfo>
 #include "de_web_plugin_private.h"
 #include "json.h"
@@ -36,6 +38,23 @@ void DeRestPluginPrivate::initInternetDicovery()
 
     inetDiscoveryTimer = new QTimer(this);
     inetDiscoveryTimer->setSingleShot(false);
+
+    {
+        QList<QNetworkProxy> proxies = QNetworkProxyFactory::systemProxyForQuery(QNetworkProxyQuery(gwAnnounceUrl));
+
+        if (!proxies.isEmpty())
+        {
+            const QNetworkProxy &proxy = proxies.first();
+            if (proxy.type() == QNetworkProxy::HttpProxy || proxy.type() == QNetworkProxy::HttpCachingProxy)
+            {
+                gwProxyPort = proxy.port();
+                gwProxyAddress = proxy.hostName();
+                inetDiscoveryManager->setProxy(proxy);
+                QHostInfo::lookupHost(proxy.hostName(),
+                                      this, SLOT(inetProxyHostLookupDone(QHostInfo)));
+            }
+        }
+    }
 
     connect(inetDiscoveryTimer, SIGNAL(timeout()),
             this, SLOT(internetDiscoveryTimerFired()));
@@ -278,5 +297,32 @@ void DeRestPluginPrivate::internetDiscoveryExtractVersionInfo(QNetworkReply *rep
     else
     {
         DBG_Printf(DBG_ERROR, "discovery reply doesn't contain valid version info\n");
+    }
+}
+
+/*! Finished Lookup of http proxy IP address.
+
+    \param host holds the proxy host info
+ */
+void DeRestPluginPrivate::inetProxyHostLookupDone(const QHostInfo &host)
+{
+    if (host.error() != QHostInfo::NoError)
+    {
+        DBG_Printf(DBG_ERROR, "Proxy host lookup failed: %s\n", qPrintable(host.errorString()));
+        return;
+    }
+
+    foreach (const QHostAddress &address, host.addresses())
+    {
+
+        QString addr = address.toString();
+        if (address.protocol() == QAbstractSocket::IPv4Protocol &&
+            !addr.isEmpty() && gwProxyAddress != address.toString())
+        {
+            DBG_Printf(DBG_INFO, "Found proxy IP address: %s\n", qPrintable(address.toString()));
+            gwProxyAddress = address.toString();
+            updateEtag(gwConfigEtag);
+            return;
+        }
     }
 }

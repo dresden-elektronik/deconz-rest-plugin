@@ -312,7 +312,7 @@ int DeRestPluginPrivate::getLightState(const ApiRequest &req, ApiResponse &rsp)
 
     if (req.path.size() != 4)
     {
-        return -1;
+        return REQ_NOT_HANDLED;
     }
 
     const QString &id = req.path[3];
@@ -330,28 +330,30 @@ int DeRestPluginPrivate::getLightState(const ApiRequest &req, ApiResponse &rsp)
     if (req.hdr.hasKey("Query-State"))
     {
         bool enabled = false;
-        int diff = idleTotalCounter - lightNode->lastRead();
+        int diff = idleTotalCounter - lightNode->lastRead(READ_ON_OFF);
         QString attrs = req.hdr.value("Query-State");
 
         // only read if time since last read is not too short
         if (diff > 3)
         {
-
             if (attrs.contains("on"))
             {
                 lightNode->enableRead(READ_ON_OFF);
+                lightNode->setLastRead(READ_ON_OFF, idleTotalCounter);
                 enabled = true;
             }
 
             if (attrs.contains("bri"))
             {
                 lightNode->enableRead(READ_LEVEL);
+                lightNode->setLastRead(READ_LEVEL, idleTotalCounter);
                 enabled = true;
             }
 
             if (attrs.contains("color") && lightNode->hasColor())
             {
                 lightNode->enableRead(READ_COLOR);
+                lightNode->setLastRead(READ_COLOR, idleTotalCounter);
                 enabled = true;
             }
         }
@@ -359,7 +361,6 @@ int DeRestPluginPrivate::getLightState(const ApiRequest &req, ApiResponse &rsp)
         if (enabled)
         {
             DBG_Printf(DBG_INFO, "Force read the attributes %s, for node %s\n", qPrintable(attrs), qPrintable(lightNode->address().toStringExt()));
-            lightNode->setLastRead(idleTotalCounter);
             processZclAttributes(lightNode);
         }
     }
@@ -920,6 +921,7 @@ int DeRestPluginPrivate::renameLight(const ApiRequest &req, ApiResponse &rsp)
                 lightNode->setName(name);
                 updateEtag(gwConfigEtag);
                 updateEtag(lightNode->etag);
+                lightNode->setNeedSaveDatabase(true);
                 queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
             }
 
@@ -956,7 +958,7 @@ int DeRestPluginPrivate::deleteLight(const ApiRequest &req, ApiResponse &rsp)
 
     if (req.path.size() != 4)
     {
-        return -1;
+        return REQ_NOT_HANDLED;
     }
 
     const QString &id = req.path[3];
@@ -997,7 +999,7 @@ int DeRestPluginPrivate::deleteLight(const ApiRequest &req, ApiResponse &rsp)
 
             if (reset)
             {
-                lightNode->setResetRetryCount(60);
+                lightNode->setResetRetryCount(10);
             }
         }
         else
@@ -1034,7 +1036,11 @@ int DeRestPluginPrivate::deleteLight(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
-    lightNode->setState(LightNode::StateDeleted);
+    if (lightNode->state() != LightNode::StateDeleted)
+    {
+        lightNode->setState(LightNode::StateDeleted);
+        lightNode->setNeedSaveDatabase(true);
+    }
     updateEtag(gwConfigEtag);
     updateEtag(lightNode->etag);
     queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
@@ -1055,7 +1061,7 @@ int DeRestPluginPrivate::removeAllScenes(const ApiRequest &req, ApiResponse &rsp
 
     if (req.path.size() != 5)
     {
-        return -1;
+        return REQ_NOT_HANDLED;
     }
 
     const QString &id = req.path[3];
@@ -1104,7 +1110,7 @@ int DeRestPluginPrivate::removeAllGroups(const ApiRequest &req, ApiResponse &rsp
 
     if (req.path.size() != 5)
     {
-        return -1;
+        return REQ_NOT_HANDLED;
     }
 
     const QString &id = req.path[3];
@@ -1139,6 +1145,7 @@ int DeRestPluginPrivate::removeAllGroups(const ApiRequest &req, ApiResponse &rsp
         if (g->state != GroupInfo::StateNotInGroup)
         {
             g->state = GroupInfo::StateNotInGroup;
+            lightNode->setNeedSaveDatabase(true);
         }
     }
 
@@ -1171,7 +1178,7 @@ int DeRestPluginPrivate::getConnectivity(const ApiRequest &req, ApiResponse &rsp
 
     if (req.path.size() != 5)
     {
-        return -1;
+        return REQ_NOT_HANDLED;
     }
 
     const QString &id = req.path[3];
@@ -1286,7 +1293,7 @@ int DeRestPluginPrivate::getConnectivity(const ApiRequest &req, ApiResponse &rsp
     {
         if (neighborList[nl].address().ext() != coordinatorAddress)
         {
-            LightNode *nl_neighbor = getLightNodeForAddress(neighborList[nl].address().ext());
+            LightNode *nl_neighbor = getLightNodeForAddress(neighborList[nl].address());
             if ((nl_neighbor != NULL) && (neighborList[nl].lqi() != 0) && nl_neighbor->isAvailable())
             {
                 //lqi value from actual node to his neighbor

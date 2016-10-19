@@ -182,11 +182,6 @@ bool DeRestPluginPrivate::handleMgmtBindRspConfirm(const deCONZ::ApsDataConfirm 
  */
 void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndication &ind)
 {
-    if (!ind.srcAddress().hasExt())
-    {
-        return;
-    }
-
     if (ind.asdu().size() < 2)
     {
         // at least seq number and status
@@ -199,21 +194,35 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
         std::vector<BindingTableReader>::iterator i = bindingTableReaders.begin();
         std::vector<BindingTableReader>::iterator end = bindingTableReaders.end();
 
-        for (; i != end; ++i)
+        if (ind.srcAddress().hasExt())
         {
-            if (i->apsReq.dstAddress().ext() == ind.srcAddress().ext())
+            for (; i != end; ++i)
             {
-                btReader = &(*i);
-                break;
+                if (i->apsReq.dstAddress().ext() == ind.srcAddress().ext())
+                {
+                    btReader = &(*i);
+                    break;
+                }
+            }
+        }
+        else if (ind.srcAddress().hasNwk())
+        {
+            for (; i != end; ++i)
+            {
+                if (i->apsReq.dstAddress().nwk() == ind.srcAddress().nwk())
+                {
+                    btReader = &(*i);
+                    break;
+                }
             }
         }
     }
 
-    RestNodeBase *node = getSensorNodeForAddress(ind.srcAddress().ext());
+    RestNodeBase *node = getSensorNodeForAddress(ind.srcAddress());
 
     if (!node)
     {
-        node = getLightNodeForAddress(ind.srcAddress().ext());
+        node = getLightNodeForAddress(ind.srcAddress());
     }
 
     if (!node)
@@ -543,7 +552,8 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
     }
 
     lightNode->enableRead(READ_BINDING_TABLE);
-    lightNode->setNextReadTime(QTime::currentTime());
+    lightNode->setNextReadTime(READ_BINDING_TABLE, queryTime);
+    queryTime = queryTime.addSecs(5);
     Q_Q(DeRestPlugin);
     q->startZclAttributeTimer(1000);
 
@@ -653,7 +663,8 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
     if (checkBindingTable)
     {
         sensor->enableRead(READ_BINDING_TABLE);
-        sensor->setNextReadTime(QTime::currentTime());
+        sensor->setNextReadTime(READ_BINDING_TABLE, queryTime);
+        queryTime = queryTime.addSecs(5);
         Q_Q(DeRestPlugin);
         q->startZclAttributeTimer(1000);
     }
@@ -747,7 +758,8 @@ void DeRestPluginPrivate::bindingTimerFired()
                     if (i->restNode->mgmtBindSupported())
                     {
                         i->restNode->enableRead(READ_BINDING_TABLE);
-                        i->restNode->setNextReadTime(QTime::currentTime());
+                        i->restNode->setNextReadTime(READ_BINDING_TABLE, queryTime);
+                        queryTime = queryTime.addSecs(5);
                         q->startZclAttributeTimer(1000);
 
                         i->state = BindingTask::StateCheck;
@@ -932,7 +944,9 @@ void DeRestPluginPrivate::bindingToRuleTimerFired()
 
     if (bnd.dstAddrMode == Binding::ExtendedAddressMode)
     {
-        LightNode *lightNode = getLightNodeForAddress(bnd.dstAddress.ext, bnd.dstEndpoint);
+        deCONZ::Address addr;
+        addr.setExt(bnd.dstAddress.ext);
+        LightNode *lightNode = getLightNodeForAddress(addr, bnd.dstEndpoint);
 
         if (lightNode)
         {

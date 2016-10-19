@@ -14,6 +14,7 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "deconz/dbg_trace.h"
+#include "gateway.h"
 #include "json.h"
 
 /******************************************************************************
@@ -21,15 +22,18 @@
 ******************************************************************************/
 static int sqliteLoadAuthCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char **colname);
+static int sqliteLoadUserparameterCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteLoadLightNodeCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteLoadSensorNodeCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteLoadAllGroupsCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteLoadGroupCallback(void *user, int ncols, char **colval , char **colname);
+static int sqliteLoadAllScenesCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteLoadSceneCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteLoadAllRulesCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteGetAllLightIdsCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteGetAllSensorIdsCallback(void *user, int ncols, char **colval , char **colname);
+static int sqliteLoadAllGatewaysCallback(void *user, int ncols, char **colval , char **colname);
 
 /******************************************************************************
                     Implementation
@@ -53,19 +57,24 @@ void DeRestPluginPrivate::initDb()
 
     const char *sql[] = {
         "CREATE TABLE IF NOT EXISTS auth (apikey TEXT PRIMARY KEY, devicetype TEXT)",
-        "CREATE TABLE IF NOT EXISTS nodes (mac TEXT PRIMARY KEY, id TEXT, name TEXT, groups TEXT)",
+        "CREATE TABLE IF NOT EXISTS userparameter (key TEXT PRIMARY KEY, value TEXT)",
+        "CREATE TABLE IF NOT EXISTS nodes (mac TEXT PRIMARY KEY, id TEXT, state TEXT, name TEXT, groups TEXT, endpoint TEXT, modelid TEXT, manufacturername TEXT, swbuildid TEXT)",
         "ALTER TABLE nodes add column id TEXT",
         "ALTER TABLE nodes add column state TEXT",
         "ALTER TABLE nodes add column groups TEXT",
         "ALTER TABLE nodes add column endpoint TEXT",
+        "ALTER TABLE nodes add column modelid TEXT",
+        "ALTER TABLE nodes add column manufacturername TEXT",
+        "ALTER TABLE nodes add column swbuildid TEXT",
         "ALTER TABLE auth add column createdate TEXT",
         "ALTER TABLE auth add column lastusedate TEXT",
         "ALTER TABLE auth add column useragent TEXT",
-        "CREATE TABLE IF NOT EXISTS groups (gid TEXT PRIMARY KEY, name TEXT, state TEXT, mids TEXT, devicemembership TEXT, lightsequence TEXT)",
+        "CREATE TABLE IF NOT EXISTS groups (gid TEXT PRIMARY KEY, name TEXT, state TEXT, mids TEXT, devicemembership TEXT, lightsequence TEXT, hidden TEXT)",
         "CREATE TABLE IF NOT EXISTS rules (rid TEXT PRIMARY KEY, name TEXT, created TEXT, etag TEXT, lasttriggered TEXT, owner TEXT, status TEXT, timestriggered TEXT, actions TEXT, conditions TEXT, periodic TEXT)",
         "CREATE TABLE IF NOT EXISTS sensors (sid TEXT PRIMARY KEY, name TEXT, type TEXT, modelid TEXT, manufacturername TEXT, uniqueid TEXT, swversion TEXT, state TEXT, config TEXT, fingerprint TEXT, deletedState TEXT, mode TEXT)",
         "CREATE TABLE IF NOT EXISTS scenes (gsid TEXT PRIMARY KEY, gid TEXT, sid TEXT, name TEXT, transitiontime TEXT, lights TEXT)",
         "CREATE TABLE IF NOT EXISTS schedules (id TEXT PRIMARY KEY, json TEXT)",
+        "CREATE TABLE IF NOT EXISTS gateways (uuid TEXT PRIMARY KEY, name TEXT, ip TEXT, port TEXT, pairing TEXT, apikey TEXT, cgroups TEXT)",
         "ALTER TABLE sensors add column fingerprint TEXT",
         "ALTER TABLE sensors add column deletedState TEXT",
         "ALTER TABLE sensors add column mode TEXT",
@@ -73,6 +82,7 @@ void DeRestPluginPrivate::initDb()
         "ALTER TABLE groups add column mids TEXT",
         "ALTER TABLE groups add column devicemembership TEXT",
         "ALTER TABLE groups add column lightsequence TEXT",
+        "ALTER TABLE groups add column hidden TEXT",
         "ALTER TABLE scenes add column transitiontime TEXT",
         "ALTER TABLE scenes add column lights TEXT",
         "ALTER TABLE rules add column periodic TEXT",
@@ -94,6 +104,51 @@ void DeRestPluginPrivate::initDb()
         }
     }
 }
+
+/*! Clears all content of tables of db except auth table
+ */
+void DeRestPluginPrivate::clearDb()
+{
+    DBG_Assert(db != 0);
+
+    if (!db)
+    {
+        return;
+    }
+
+    int rc;
+    char *errmsg;
+
+    // clear tables
+
+    const char *sql[] = {
+        "DELETE FROM config2",
+        "DELETE FROM userparameter",
+        "DELETE FROM nodes",
+        "DELETE FROM groups",
+        "DELETE FROM rules",
+        "DELETE FROM sensors",
+        "DELETE FROM scenes",
+        "DELETE FROM schedules",
+        NULL
+        };
+
+    for (int i = 0; sql[i] != NULL; i++)
+    {
+        errmsg = NULL;
+        rc = sqlite3_exec(db, sql[i], NULL, NULL, &errmsg);
+
+        if (rc != SQLITE_OK)
+        {
+            if (errmsg)
+            {
+                DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s\n", sql[i], errmsg);
+                sqlite3_free(errmsg);
+            }
+        }
+    }
+}
+
 
 /*! Opens/creates sqlite database.
  */
@@ -131,10 +186,13 @@ void DeRestPluginPrivate::readDb()
 
     loadAuthFromDb();
     loadConfigFromDb();
+    loadUserparameterFromDb();
     loadAllGroupsFromDb();
+    loadAllScenesFromDb();
     loadAllRulesFromDb();
     loadAllSchedulesFromDb();
     loadAllSensorsFromDb();
+    loadAllGatewaysFromDb();
 }
 
 /*! Sqlite callback to load authentification data.
@@ -210,8 +268,9 @@ void DeRestPluginPrivate::loadAuthFromDb()
         return;
     }
 
-    QString sql = QString("SELECT apikey,devicetype,createdate,lastusedate,useragent FROM auth");
+    QString sql = QString(QLatin1String("SELECT apikey,devicetype,createdate,lastusedate,useragent FROM auth"));
 
+    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
     rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadAuthCallback, this, &errmsg);
 
     if (rc != SQLITE_OK)
@@ -417,6 +476,85 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
             }
         }
     }
+    else if (strcmp(colval[0], "wifi") == 0)
+    {
+        if (!val.isEmpty())
+        {
+            d->gwConfig["wifi"] = val;
+            d->gwWifi = val;
+        }
+    }
+    else if (strcmp(colval[0], "wifichannel") == 0)
+    {
+        if (!val.isEmpty())
+        {
+            d->gwConfig["wifichannel"] = val;
+            d->gwWifiChannel = val;
+        }
+    }
+    else if (strcmp(colval[0], "wifiname") == 0)
+    {
+        if (!val.isEmpty())
+        {
+            d->gwConfig["wifiname"] = val;
+            d->gwWifiName = val;
+        }
+    }
+    else if (strcmp(colval[0], "wifitype") == 0)
+    {
+        if (!val.isEmpty())
+        {
+            d->gwConfig["wifitype"] = val;
+            d->gwWifiType = val;
+        }
+    }
+    else if (strcmp(colval[0], "wifiip") == 0)
+    {
+        if (!val.isEmpty())
+        {
+            d->gwConfig["wifiip"] = val;
+            d->gwWifiIp = val;
+        }
+    }
+    else if (strcmp(colval[0], "userparameter") == 0)
+    {
+        if (!val.isEmpty())
+        {
+            d->gwConfig["userparameter"] = Json::parse(val);
+            bool ok;
+            QVariant var = Json::parse(val, ok);
+
+            if (ok)
+            {
+                QVariantMap map = var.toMap();
+                d->gwUserParameter = map;
+            }
+        }
+    }
+    return 0;
+}
+
+/*! Sqlite callback to load userparameter data.
+ */
+static int sqliteLoadUserparameterCallback(void *user, int ncols, char **colval , char **colname)
+{
+    Q_UNUSED(colname);
+    DBG_Assert(user != 0);
+
+    if (!user || (ncols != 2))
+    {
+        return 0;
+    }
+
+    DeRestPluginPrivate *d = static_cast<DeRestPluginPrivate*>(user);
+
+    QString key = QString::fromUtf8(colval[0]);
+    QString val = QString::fromUtf8(colval[1]);
+
+    if (!val.isEmpty())
+    {
+        d->gwUserParameter[key] = val;
+    }
 
     return 0;
 }
@@ -441,6 +579,7 @@ void DeRestPluginPrivate::loadConfigFromDb()
     {
         QString sql = QString("SELECT key FROM config2");
 
+        DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
         errmsg = NULL;
         rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -453,7 +592,39 @@ void DeRestPluginPrivate::loadConfigFromDb()
     {
         QString sql = QString("SELECT key,value FROM %1").arg(configTable);
 
+        DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
         rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadConfigCallback, this, &errmsg);
+
+        if (rc != SQLITE_OK)
+        {
+            if (errmsg)
+            {
+                DBG_Printf(DBG_ERROR, "sqlite3_exec %s, error: %s\n", qPrintable(sql), errmsg);
+                sqlite3_free(errmsg);
+            }
+        }
+    }
+}
+
+/*! Loads all userparameter from database
+ */
+void DeRestPluginPrivate::loadUserparameterFromDb()
+{
+    int rc;
+    char *errmsg = 0;
+
+    DBG_Assert(db != 0);
+
+    if (!db)
+    {
+        return;
+    }
+
+    {
+        QString sql = QString("SELECT key,value FROM %1").arg("userparameter");
+
+        DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+        rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadUserparameterCallback, this, &errmsg);
 
         if (rc != SQLITE_OK)
         {
@@ -526,6 +697,11 @@ static int sqliteLoadAllGroupsCallback(void *user, int ncols, char **colval , ch
             {
                 group.setDmFromString(val);
             }
+            else if (strcmp(colname[i], "hidden") == 0)
+            {
+                bool hidden = (val == "true") ? true : false;
+                group.hidden = hidden;
+            }
         }
     }
 
@@ -561,7 +737,109 @@ void DeRestPluginPrivate::loadAllGroupsFromDb()
 
     QString sql = QString("SELECT * FROM groups");
 
+    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
     rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadAllGroupsCallback, this, &errmsg);
+
+    if (rc != SQLITE_OK)
+    {
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR_L2, "sqlite3_exec %s, error: %s\n", qPrintable(sql), errmsg);
+            sqlite3_free(errmsg);
+        }
+    }
+}
+
+/*! Sqlite callback to load data for a scene.
+
+    Scenes will only be added to cache if not already known.
+    Known scenes will not be overwritten.
+ */
+static int sqliteLoadAllScenesCallback(void *user, int ncols, char **colval , char **colname)
+{
+    DBG_Assert(user != 0);
+
+    if (!user || (ncols <= 0))
+    {
+        return 0;
+    }
+
+    bool ok;
+    bool ok1;
+    bool ok2;
+    Scene scene;
+    DeRestPluginPrivate *d = static_cast<DeRestPluginPrivate*>(user);
+
+    for (int i = 0; i < ncols; i++)
+    {
+        if (colval[i] && (colval[i][0] != '\0'))
+        {
+            QString val = QString::fromUtf8(colval[i]);
+
+            DBG_Printf(DBG_INFO_L2, "Sqlite scene: %s = %s\n", colname[i], qPrintable(val));
+
+            if (strcmp(colname[i], "gid") == 0)
+            {
+                scene.groupAddress = val.toUInt(&ok1, 16);
+            }
+            else if (strcmp(colname[i], "sid") == 0)
+            {
+                scene.id = val.toUInt(&ok2, 16);
+            }
+            else if (strcmp(colname[i], "name") == 0)
+            {
+                scene.name = val;
+            }
+            else if (strcmp(colname[i], "transitiontime") == 0)
+            {
+                scene.setTransitiontime(val.toUInt(&ok));
+            }
+            else if (strcmp(colname[i], "lights") == 0)
+            {
+                scene.setLights(Scene::jsonToLights(val));
+            }
+        }
+    }
+
+    if (ok1 && ok2)
+    {
+        DBG_Printf(DBG_INFO_L2, "DB found scene sid: 0x%02X, gid: 0x%04X\n", scene.id, scene.groupAddress);
+
+        Group *g = d->getGroupForId(scene.groupAddress);
+        if (g)
+        {
+            // append scene to group if not already known
+            Scene *s = d->getSceneForId(scene.groupAddress,scene.id);
+            if (!s)
+            {
+                // append scene to group if not already known
+                d->updateEtag(g->etag);
+                g->scenes.push_back(scene);
+            }
+        }
+    }
+
+    return 0;
+}
+
+/*! Loads all scenes from database.
+ */
+void DeRestPluginPrivate::loadAllScenesFromDb()
+{
+    int rc;
+    char *errmsg = 0;
+
+    DBG_Assert(db != 0);
+
+    if (!db)
+    {
+        return;
+    }
+
+    QString sql = QString("SELECT * FROM scenes");
+
+    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+    rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadAllScenesCallback, this, &errmsg);
 
     if (rc != SQLITE_OK)
     {
@@ -656,6 +934,7 @@ void DeRestPluginPrivate::loadAllSchedulesFromDb()
 
     QString sql = QString("SELECT * FROM schedules");
 
+    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
     rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadAllSchedulesCallback, this, &errmsg);
 
     if (rc != SQLITE_OK)
@@ -706,6 +985,30 @@ static int sqliteLoadLightNodeCallback(void *user, int ncols, char **colval , ch
             else if (strcmp(colname[i], "name") == 0)
             {
                 name = val;
+            }
+            else if (strcmp(colname[i], "modelid") == 0)
+            {
+                if (!val.isEmpty() && 0 != val.compare(QLatin1String("Unknown"), Qt::CaseInsensitive))
+                {
+                    lightNode->setModelId(val);
+                    lightNode->clearRead(READ_MODEL_ID);
+                }
+            }
+            else if (strcmp(colname[i], "manufacturername") == 0)
+            {
+                if (!val.isEmpty() && 0 != val.compare(QLatin1String("Unknown"), Qt::CaseInsensitive))
+                {
+                    lightNode->setManufacturerName(val);
+                    lightNode->clearRead(READ_VENDOR_NAME);
+                }
+            }
+            else if (strcmp(colname[i], "swbuildid") == 0)
+            {
+                if (!val.isEmpty() && 0 != val.compare(QLatin1String("Unknown"), Qt::CaseInsensitive))
+                {
+                    lightNode->setSwBuildId(val);
+                    lightNode->clearRead(READ_SWBUILD_ID);
+                }
             }
             else if (strcmp(colname[i], "id") == 0)
             {
@@ -800,6 +1103,7 @@ void DeRestPluginPrivate::loadLightNodeFromDb(LightNode *lightNode)
     // check for new uniqueId format
     QString sql = QString("SELECT * FROM nodes WHERE mac='%1'").arg(lightNode->uniqueId());
 
+    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
     rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadLightNodeCallback, lightNode, &errmsg);
 
     if (rc != SQLITE_OK)
@@ -811,11 +1115,22 @@ void DeRestPluginPrivate::loadLightNodeFromDb(LightNode *lightNode)
         }
     }
 
+    if (!lightNode->swBuildId().isEmpty())
+    {
+        lightNode->setLastRead(READ_SWBUILD_ID, idleTotalCounter);
+    }
+
+    if (!lightNode->modelId().isEmpty())
+    {
+        lightNode->setLastRead(READ_MODEL_ID, idleTotalCounter);
+    }
+
     // check for old mac address only format
     if (lightNode->id().isEmpty())
     {
         sql = QString("SELECT * FROM nodes WHERE mac='%1'").arg(lightNode->address().toStringExt());
 
+        DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
         rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadLightNodeCallback, lightNode, &errmsg);
 
         if (rc != SQLITE_OK)
@@ -873,9 +1188,11 @@ static int sqliteLoadSensorNodeCallback(void *user, int ncols, char **colval , c
     {
         if (colval[i] && (colval[i][0] != '\0'))
         {
+            QString val = QString::fromUtf8(colval[i]);
+
             if (strcmp(colname[i], "name") == 0)
             {
-                sensorNode->setName(QString::fromUtf8(colval[i]));
+                sensorNode->setName(val);
 
                 if (sensorNode->node())
                 {
@@ -885,6 +1202,30 @@ static int sqliteLoadSensorNodeCallback(void *user, int ncols, char **colval , c
             else if (strcmp(colname[i], "id") == 0)
             {
                 sensorNode->setId(QString::fromUtf8(colval[i]));
+            }
+            else if (strcmp(colname[i], "modelid") == 0)
+            {
+                if (!val.isEmpty() && 0 != val.compare(QLatin1String("Unknown"), Qt::CaseInsensitive))
+                {
+                    sensorNode->setModelId(val);
+                    sensorNode->clearRead(READ_MODEL_ID);
+                }
+            }
+            else if (strcmp(colname[i], "manufacturername") == 0)
+            {
+                if (!val.isEmpty() && 0 != val.compare(QLatin1String("Unknown"), Qt::CaseInsensitive))
+                {
+                    sensorNode->setManufacturer(val);
+                    sensorNode->clearRead(READ_VENDOR_NAME);
+                }
+            }
+            else if (strcmp(colname[i], "swbuildid") == 0)
+            {
+                if (!val.isEmpty() && 0 != val.compare(QLatin1String("Unknown"), Qt::CaseInsensitive))
+                {
+                    sensorNode->setSwVersion(val);
+                    sensorNode->clearRead(READ_SWBUILD_ID);
+                }
             }
         }
     }
@@ -909,6 +1250,7 @@ void DeRestPluginPrivate::loadSensorNodeFromDb(Sensor *sensorNode)
 
     QString sql = QString("SELECT * FROM sensors WHERE uniqueid='%1' AND type='%2'").arg(sensorNode->address().toStringExt()).arg(sensorNode->type());
 
+    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
     rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadSensorNodeCallback, sensorNode, &errmsg);
 
     if (rc != SQLITE_OK)
@@ -999,6 +1341,7 @@ void DeRestPluginPrivate::loadGroupFromDb(Group *group)
 
     QString sql = QString("SELECT * FROM groups WHERE gid='%1'").arg(gid);
 
+    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
     rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadGroupCallback, group, &errmsg);
 
     if (rc != SQLITE_OK)
@@ -1066,6 +1409,7 @@ void DeRestPluginPrivate::loadSceneFromDb(Scene *scene)
 
     QString sql = QString("SELECT * FROM scenes WHERE gsid='%1'").arg(gsid);
 
+    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
     rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadSceneCallback, scene, &errmsg);
 
     if (rc != SQLITE_OK)
@@ -1187,6 +1531,7 @@ void DeRestPluginPrivate::loadAllRulesFromDb()
 
     QString sql = QString("SELECT * FROM rules");
 
+    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
     rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadAllRulesCallback, this, &errmsg);
 
     if (rc != SQLITE_OK)
@@ -1330,7 +1675,37 @@ void DeRestPluginPrivate::loadAllSensorsFromDb()
 
     QString sql = QString("SELECT * FROM sensors");
 
+    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
     rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadAllSensorsCallback, this, &errmsg);
+
+    if (rc != SQLITE_OK)
+    {
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR_L2, "sqlite3_exec %s, error: %s\n", qPrintable(sql), errmsg);
+            sqlite3_free(errmsg);
+        }
+    }
+}
+
+/*! Loads all gateways from database
+ */
+void DeRestPluginPrivate::loadAllGatewaysFromDb()
+{
+    int rc;
+    char *errmsg = 0;
+
+    DBG_Assert(db != 0);
+
+    if (!db)
+    {
+        return;
+    }
+
+    QString sql(QLatin1String("SELECT * FROM gateways"));
+
+    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+    rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadAllGatewaysCallback, this, &errmsg);
 
     if (rc != SQLITE_OK)
     {
@@ -1403,6 +1778,7 @@ int DeRestPluginPrivate::getFreeLightId()
     // append all ids from database (dublicates are ok here)
     QString sql = QString("SELECT * FROM nodes");
 
+    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
     rc = sqlite3_exec(db, qPrintable(sql), sqliteGetAllLightIdsCallback, this, &errmsg);
 
     if (rc != SQLITE_OK)
@@ -1463,6 +1839,82 @@ static int sqliteGetAllSensorIdsCallback(void *user, int ncols, char **colval , 
     return 0;
 }
 
+static int sqliteLoadAllGatewaysCallback(void *user, int ncols, char **colval , char **colname)
+{
+    DBG_Assert(user != 0);
+
+    if (!user || (ncols <= 0))
+    {
+        return 0;
+    }
+
+    DeRestPluginPrivate *d = static_cast<DeRestPluginPrivate*>(user);
+
+    int idxUuid = -1;
+    int idxName = -1;
+    int idxIp = -1;
+    int idxPort = -1;
+    int idxApikey = -1;
+    int idxPairing = -1;
+    int idxCgroups = -1;
+
+    for (int i = 0; i < ncols; i++)
+    {
+        if (colval[i] && (colval[i][0] != '\0'))
+        {
+            if      (strcmp(colname[i], "uuid") == 0)    { idxUuid = i; }
+            else if (strcmp(colname[i], "name") == 0)    { idxName = i; }
+            else if (strcmp(colname[i], "ip") == 0)      { idxIp = i; }
+            else if (strcmp(colname[i], "port") == 0)    { idxPort = i; }
+            else if (strcmp(colname[i], "apikey") == 0)  { idxApikey = i; }
+            else if (strcmp(colname[i], "pairing") == 0)  { idxPairing = i; }
+            else if (strcmp(colname[i], "cgroups") == 0) { idxCgroups = i; }
+        }
+    }
+
+    if (idxUuid == -1)
+    {
+        return 0; // required
+    }
+
+    Gateway *gw = new Gateway(d);
+
+    gw->setUuid(colval[idxUuid]);
+    if (idxName != -1) { gw->setName(colval[idxName]); }
+    if (idxIp != -1) { gw->setAddress(QHostAddress(colval[idxIp])); }
+    if (idxPort != -1) { gw->setPort(QString(colval[idxPort]).toUShort()); }
+    if (idxApikey != -1) { gw->setApiKey(colval[idxApikey]); }
+    if (idxPairing != -1) { gw->setPairingEnabled(colval[idxPairing][0] == '1'); }
+    if (idxCgroups != -1 && colval[idxCgroups][0] == '[') // must be json array
+    {
+        bool ok;
+        QVariant var = Json::parse(colval[idxCgroups], ok);
+
+        if (ok && var.type() == QVariant::List)
+        {
+            QVariantList ls = var.toList();
+            for (int i = 0; i < ls.size(); i++)
+            {
+                QVariantMap e = ls[i].toMap();
+                if (e.contains(QLatin1String("lg")) && e.contains(QLatin1String("rg")))
+                {
+                    double lg = e[QLatin1String("lg")].toDouble();
+                    double rg = e[QLatin1String("rg")].toDouble();
+
+                    if (lg > 0 && lg <= 0xfffful && rg > 0 && rg <= 0xfffful)
+                    {
+                        gw->addCascadeGroup(lg, rg);
+                    }
+                }
+            }
+        }
+    }
+    gw->setNeedSaveDatabase(false);
+    d->gateways.push_back(gw);
+
+    return 0;
+}
+
 /*! Determines a unused id for a sensor.
  */
 int DeRestPluginPrivate::getFreeSensorId()
@@ -1491,6 +1943,7 @@ int DeRestPluginPrivate::getFreeSensorId()
     // append all ids from database (dublicates are ok here)
     QString sql = QString("SELECT * FROM sensors");
 
+    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
     rc = sqlite3_exec(db, qPrintable(sql), sqliteGetAllSensorIdsCallback, this, &errmsg);
 
     if (rc != SQLITE_OK)
@@ -1545,6 +1998,7 @@ void DeRestPluginPrivate::saveDb()
         // create config table version 2 if not exist
         const char *sql = "CREATE TABLE IF NOT EXISTS config2 (key text PRIMARY KEY, value text)";
 
+        DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
         errmsg = NULL;
         rc = sqlite3_exec(db, sql, NULL, NULL, &errmsg);
 
@@ -1572,11 +2026,19 @@ void DeRestPluginPrivate::saveDb()
 
         for (; i != end; ++i)
         {
+            if (!i->needSaveDatabase)
+            {
+                continue;
+            }
+
+            i->needSaveDatabase = false;
+
             if (i->state == ApiAuth::StateDeleted)
             {
                 // delete group from db (if exist)
                 QString sql = QString(QLatin1String("DELETE FROM auth WHERE apikey='%1'")).arg(i->apikey);
 
+                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -1606,6 +2068,7 @@ void DeRestPluginPrivate::saveDb()
                         .arg(i->useragent);
 
 
+                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -1641,6 +2104,11 @@ void DeRestPluginPrivate::saveDb()
         gwConfig["updatechannel"] = gwUpdateChannel;
         gwConfig["uuid"] = gwUuid;
         gwConfig["otauactive"] = isOtauActive();
+        gwConfig["wifi"] = gwWifi;
+        gwConfig["wifitype"] = gwWifiType;
+        gwConfig["wifiname"] = gwWifiName;
+        gwConfig["wifichannel"] = gwWifiChannel;
+        gwConfig["wifiip"] = gwWifiIp;
 
         QVariantMap::iterator i = gwConfig.begin();
         QVariantMap::iterator end = gwConfig.end();
@@ -1653,6 +2121,7 @@ void DeRestPluginPrivate::saveDb()
                         .arg(i.key())
                         .arg(i.value().toString());
 
+                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -1670,14 +2139,131 @@ void DeRestPluginPrivate::saveDb()
         saveDatabaseItems &= ~DB_CONFIG;
     }
 
-    // save nodes
-    if (saveDatabaseItems & DB_LIGHTS)
+    // save userparameter
+    if (saveDatabaseItems & DB_USERPARAM)
     {
-        std::vector<LightNode>::const_iterator i = nodes.begin();
-        std::vector<LightNode>::const_iterator end = nodes.end();
+        QVariantMap::iterator i = gwUserParameter.begin();
+        QVariantMap::iterator end = gwUserParameter.end();
 
         for (; i != end; ++i)
         {
+            if (i->canConvert(QVariant::String))
+            {
+                QString sql = QString(QLatin1String("REPLACE INTO userparameter (key, value) VALUES ('%1', '%2')"))
+                        .arg(i.key())
+                        .arg(i.value().toString());
+
+                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+                errmsg = NULL;
+                rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
+
+                if (rc != SQLITE_OK)
+                {
+                    if (errmsg)
+                    {
+                        DBG_Printf(DBG_ERROR, "sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                        sqlite3_free(errmsg);
+                    }
+                }
+            }
+        }
+
+        saveDatabaseItems &= ~DB_USERPARAM;
+    }
+
+    // save gateways
+    if (saveDatabaseItems & DB_GATEWAYS)
+    {
+        std::vector<Gateway*>::iterator i = gateways.begin();
+        std::vector<Gateway*>::iterator end = gateways.end();
+
+        for (; i != end; ++i)
+        {
+            Gateway *gw = *i;
+            if (!gw->needSaveDatabase())
+            {
+                continue;
+            }
+
+            gw->setNeedSaveDatabase(false);
+
+            if (!gw->pairingEnabled())
+            {
+                // delete gateways from db (if exist)
+                QString sql = QString(QLatin1String("DELETE FROM gateways WHERE uuid='%1'")).arg(gw->uuid());
+
+                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+                errmsg = NULL;
+                rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
+
+                if (rc != SQLITE_OK)
+                {
+                    if (errmsg)
+                    {
+                        DBG_Printf(DBG_ERROR, "sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                        sqlite3_free(errmsg);
+                    }
+                }
+            }
+            else
+            {
+                QByteArray cgroups("[]");
+                if (!gw->cascadeGroups().empty())
+                {
+                    QVariantList ls;
+                    for (size_t i = 0; i < gw->cascadeGroups().size(); i++)
+                    {
+                        const Gateway::CascadeGroup &cg = gw->cascadeGroups()[i];
+                        QVariantMap e;
+                        e[QLatin1String("lg")] = (double)cg.local;
+                        e[QLatin1String("rg")] = (double)cg.remote;
+                        ls.push_back(e);
+                    }
+                    cgroups = Json::serialize(ls);
+                }
+
+                QString sql = QString(QLatin1String("REPLACE INTO gateways (uuid, name, ip, port, pairing, apikey, cgroups) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7')"))
+                        .arg(gw->uuid())
+                        .arg(gw->name())
+                        .arg(gw->address().toString())
+                        .arg(gw->port())
+                        .arg((gw->pairingEnabled() ? '1' : '0'))
+                        .arg(gw->apiKey())
+                        .arg(qPrintable(cgroups));
+
+                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+                errmsg = NULL;
+                rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
+
+                if (rc != SQLITE_OK)
+                {
+                    if (errmsg)
+                    {
+                        DBG_Printf(DBG_ERROR, "sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                        sqlite3_free(errmsg);
+                    }
+                }
+            }
+        }
+
+        saveDatabaseItems &= ~DB_GATEWAYS;
+    }
+
+    // save nodes
+    if (saveDatabaseItems & DB_LIGHTS)
+    {
+        std::vector<LightNode>::iterator i = nodes.begin();
+        std::vector<LightNode>::iterator end = nodes.end();
+
+        for (; i != end; ++i)
+        {
+            if (!i->needSaveDatabase())
+            {
+                continue;
+            }
+
+            i->setNeedSaveDatabase(false);
+
             /*
             if (i->state() == LightNode::StateDeleted)
             {
@@ -1714,14 +2300,19 @@ void DeRestPluginPrivate::saveDb()
                 }
             }
 
-            QString sql = QString(QLatin1String("REPLACE INTO nodes (id, state, mac, name, groups, endpoint) VALUES ('%1', '%2', '%3', '%4', '%5', '%6')"))
+            QString sql = QString(QLatin1String("REPLACE INTO nodes (id, state, mac, name, groups, endpoint, modelid, manufacturername, swbuildid) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7', '%8', '%9')"))
                     .arg(i->id())
                     .arg(lightState)
                     .arg(i->uniqueId())
                     .arg(i->name())
                     .arg(groupIds.join(","))
-                    .arg(i->haEndpoint().endpoint());
+                    .arg(i->haEndpoint().endpoint())
+                    .arg(i->modelId())
+                    .arg(i->manufacturer())
+                    .arg(i->swBuildId());
 
+
+            DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
             errmsg = NULL;
             rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -1754,6 +2345,7 @@ void DeRestPluginPrivate::saveDb()
                 // delete scenes of this group (if exist)
                 QString sql = QString(QLatin1String("DELETE FROM scenes WHERE gid='%1'")).arg(gid);
 
+                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -1772,6 +2364,7 @@ void DeRestPluginPrivate::saveDb()
                 // delete group from db (if exist)
                 QString sql = QString(QLatin1String("DELETE FROM groups WHERE gid='%1'")).arg(gid);
 
+                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -1787,15 +2380,18 @@ void DeRestPluginPrivate::saveDb()
             }
 
             QString grpState((i->state() == Group::StateDeleted ? "deleted" : "normal"));
+            QString hidden((i->hidden == true ? "true" : "false"));
 
-            QString sql = QString(QLatin1String("REPLACE INTO groups (gid, name, state, mids, devicemembership, lightsequence) VALUES ('%1', '%2', '%3', '%4', '%5', '%6')"))
+            QString sql = QString(QLatin1String("REPLACE INTO groups (gid, name, state, mids, devicemembership, lightsequence, hidden) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7')"))
                     .arg(gid)
                     .arg(i->name())
                     .arg(grpState)
                     .arg(i->midsToString())
                     .arg(i->dmToString())
-                    .arg(i->lightsequenceToString());
+                    .arg(i->lightsequenceToString())
+                    .arg(hidden);
 
+            DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
             errmsg = NULL;
             rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -1808,7 +2404,7 @@ void DeRestPluginPrivate::saveDb()
                 }
             }
 
-            if (i->state() != Group::StateDeleted &&i->state() != Group::StateDeleteFromDB)
+            if (i->state() != Group::StateDeleted && i->state() != Group::StateDeleteFromDB)
             {
                 std::vector<Scene>::const_iterator si = i->scenes.begin();
                 std::vector<Scene>::const_iterator send = i->scenes.end();
@@ -1822,15 +2418,24 @@ void DeRestPluginPrivate::saveDb()
                     sid.sprintf("0x%02X", si->id);
 
                     QString lights = Scene::lightsToString(si->lights());
+                    QString sql;
 
-                    QString sql = QString(QLatin1String("REPLACE INTO scenes (gsid, gid, sid, name, transitiontime, lights) VALUES ('%1', '%2', '%3', '%4', '%5', '%6')"))
+                    if (si->state == Scene::StateDeleted)
+                    {
+                        // delete scene from db (if exist)
+                        sql = QString(QLatin1String("DELETE FROM scenes WHERE gsid='%1'")).arg(gsid);
+                    }
+                    else
+                    {
+                        sql = QString(QLatin1String("REPLACE INTO scenes (gsid, gid, sid, name, transitiontime, lights) VALUES ('%1', '%2', '%3', '%4', '%5', '%6')"))
                             .arg(gsid)
                             .arg(gid)
                             .arg(sid)
                             .arg(si->name)
                             .arg(si->transitiontime())
                             .arg(lights);
-
+                    }
+                    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
                     errmsg = NULL;
                     rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -1864,6 +2469,7 @@ void DeRestPluginPrivate::saveDb()
                 // delete rule from db (if exist)
                 QString sql = QString(QLatin1String("DELETE FROM rules WHERE rid='%1'")).arg(rid);
 
+                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -1902,6 +2508,7 @@ void DeRestPluginPrivate::saveDb()
                     QString::number(i->triggerPeriodic()) + QLatin1String("')");
 
 
+            DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
             errmsg = NULL;
             rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -1932,6 +2539,7 @@ void DeRestPluginPrivate::saveDb()
                         .arg(i->id)
                         .arg(i->jsonString);
 
+                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -1948,6 +2556,7 @@ void DeRestPluginPrivate::saveDb()
             {
                 QString sql = QString(QLatin1String("DELETE FROM schedules WHERE id='%1'")).arg(i->id);
 
+                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -1972,12 +2581,18 @@ void DeRestPluginPrivate::saveDb()
     // save/delete sensors
     if (saveDatabaseItems & DB_SENSORS)
     {
-        std::vector<Sensor>::const_iterator i = sensors.begin();
-        std::vector<Sensor>::const_iterator end = sensors.end();
+        std::vector<Sensor>::iterator i = sensors.begin();
+        std::vector<Sensor>::iterator end = sensors.end();
 
         for (; i != end; ++i)
         {
-            QString sid = i->id();
+
+            if (!i->needSaveDatabase())
+            {
+                continue;
+            }
+
+            i->setNeedSaveDatabase(false);
 
             /*
             if (i->deletedState() == Sensor::StateDeleted)
@@ -2006,7 +2621,7 @@ void DeRestPluginPrivate::saveDb()
             QString deletedState((i->deletedState() == Sensor::StateDeleted ? "deleted" : "normal"));
 
             QString sql = QString(QLatin1String("REPLACE INTO sensors (sid, name, type, modelid, manufacturername, uniqueid, swversion, state, config, fingerprint, deletedState, mode) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7', '%8', '%9', '%10', '%11', '%12')"))
-                    .arg(sid)
+                    .arg(i->id())
                     .arg(i->name())
                     .arg(i->type())
                     .arg(i->modelId())
@@ -2019,6 +2634,7 @@ void DeRestPluginPrivate::saveDb()
                     .arg(deletedState)
                     .arg(QString::number(i->mode()));
 
+            DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
             errmsg = NULL;
             rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 

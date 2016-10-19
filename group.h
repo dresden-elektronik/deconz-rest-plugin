@@ -49,6 +49,7 @@ public:
     void setDmFromString(const QString deviceIds);
     const QString lightsequenceToString() const;
     void setLightsequenceFromString(const QString deviceIds);
+    Scene *getScene(quint8 sceneId);
 
     uint16_t colorX;
     uint16_t colorY;
@@ -60,6 +61,7 @@ public:
     QString etag;
     std::vector<Scene> scenes;
     QTime sendTime;
+    bool hidden;
     std::vector<QString> m_multiDeviceIds;
     std::vector<QString> m_lightsequence;
     std::vector<QString> m_deviceMemberships;

@@ -152,6 +152,10 @@ public:
     void setConfig(const SensorConfig &config);
     const uint8_t &mode() const;
     void setMode(const uint8_t &mode);
+    uint8_t resetRetryCount() const;
+    void setResetRetryCount(uint8_t resetRetryCount);
+    uint8_t zdpResetSeq() const;
+    void setZdpResetSeq(uint8_t zdpResetSeq);
 
     static QString stateToString(const SensorState &state);
     static QString configToString(const SensorConfig &config);
@@ -175,6 +179,8 @@ private:
     SensorConfig m_config;
     SensorFingerprint m_fingerPrint;
     uint8_t m_mode;
+    uint8_t m_resetRetryCount;
+    uint8_t m_zdpResetSeq;
 };
 
 #endif // SENSOR_H

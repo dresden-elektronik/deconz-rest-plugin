@@ -25,6 +25,11 @@ public:
         ActionRemoveFromGroup = 0x04
     };
 
+    enum Constants
+    {
+        MaxActionRetries = 3
+    };
+
     enum State
     {
         StateInGroup,
@@ -39,6 +44,7 @@ public:
     std::vector<uint8_t> addScenes;
     std::vector<uint8_t> removeScenes;
     std::vector<uint8_t> modifyScenes;
+    int modifyScenesRetries;
 
     uint8_t sceneCount() const;
     void setSceneCount(uint8_t sceneCount);

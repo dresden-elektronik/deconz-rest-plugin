@@ -65,6 +65,8 @@ public Q_SLOTS:
     void stopZclAttributeTimer();
     void checkZclAttributeTimerFired();
     void appAboutToQuit();
+    bool startUpdateFirmware();
+    const QString &getNodeName(quint64 extAddress) const;
 
 private:
     QTimer *m_idleTimer;

@@ -853,7 +853,7 @@ bool DeRestPluginPrivate::addTaskStoreScene(TaskItem &task, uint16_t groupId, ui
    \return true - on success
            false - on error
  */
-bool DeRestPluginPrivate::addTaskAddScene(TaskItem &task, uint16_t groupId, uint8_t sceneId, QString lightId)
+bool DeRestPluginPrivate::addTaskAddScene(TaskItem &task, uint16_t groupId, uint8_t sceneId, const QString &lightId)
 {
     Group *group = getGroupForId(groupId);
 
@@ -888,7 +888,7 @@ bool DeRestPluginPrivate::addTaskAddScene(TaskItem &task, uint16_t groupId, uint
                         stream.setByteOrder(QDataStream::LittleEndian);
 
                         uint8_t on = (l->on()) ? 0x01 : 0x00;
-                        uint16_t tt = floor(l->transitiontime() / 10); //deci-seconds -> seconds
+                        uint16_t tt = floor(l->transitionTime() / 10); //deci-seconds -> seconds
 
                         stream << groupId;
                         stream << sceneId;
@@ -902,10 +902,13 @@ bool DeRestPluginPrivate::addTaskAddScene(TaskItem &task, uint16_t groupId, uint
                         stream << (uint16_t)0x0008; // level cluster
                         stream << (uint8_t)0x01;
                         stream << l->bri();
-                        stream << (uint16_t)0x0300; // color cluster
-                        stream << (uint8_t)0x04;
-                        stream << l->x();
-                        stream << l->y();
+                        if (task.lightNode && task.lightNode->hasColor())
+                        {
+                            stream << (uint16_t)0x0300; // color cluster
+                            stream << (uint8_t)0x04;
+                            stream << l->x();
+                            stream << l->y();
+                        }
                     }
 
                     { // ZCL frame
@@ -914,6 +917,8 @@ bool DeRestPluginPrivate::addTaskAddScene(TaskItem &task, uint16_t groupId, uint
                         stream.setByteOrder(QDataStream::LittleEndian);
                         task.zclFrame.writeToStream(stream);
                     }
+
+                    queryTime = queryTime.addSecs(2);
 
                     return addTask(task);
                 }

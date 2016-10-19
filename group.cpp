@@ -21,6 +21,7 @@ Group::Group() :
     m_colorLoopActive(false)
 {
    sendTime = QTime::currentTime();
+   hidden = false;
    hueReal = 0;
    hue = 0;
    sat = 127;
@@ -210,4 +211,20 @@ void Group::setLightsequenceFromString(const QString lightsequence)
     {
         m_lightsequence.push_back(*i);
     }
+}
+
+/*! Returns the scene for a given \p sceneId or 0 if not present. */
+Scene *Group::getScene(quint8 sceneId)
+{
+    std::vector<Scene>::iterator i = scenes.begin();
+    std::vector<Scene>::iterator end = scenes.end();
+    for (; i != end; ++i)
+    {
+        if (i->id == sceneId && i->state == Scene::StateNormal)
+        {
+            return &*i;
+        }
+    }
+
+    return 0;
 }

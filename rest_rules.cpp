@@ -148,6 +148,83 @@ int DeRestPluginPrivate::getAllRules(const ApiRequest &req, ApiResponse &rsp)
     return REQ_READY_SEND;
 }
 
+/*! Put all parameters in a map for later json serialization.
+    \return true - on success
+            false - on error
+ */
+bool DeRestPluginPrivate::ruleToMap(const Rule *rule, QVariantMap &map)
+{
+    if (!rule)
+    {
+        return false;
+    }
+
+    std::vector<RuleCondition>::const_iterator c = rule->conditions().begin();
+    std::vector<RuleCondition>::const_iterator c_end = rule->conditions().end();
+
+    QVariantList conditions;
+
+    for (; c != c_end; ++c)
+    {
+        QVariantMap condition;
+        condition["address"] = c->address();
+        condition["operator"] = c->ooperator();
+        if (c->value() != "" )
+        {
+            condition["value"] = c->value();
+        }
+        conditions.append(condition);
+    }
+
+    std::vector<RuleAction>::const_iterator a = rule->actions().begin();
+    std::vector<RuleAction>::const_iterator a_end = rule->actions().end();
+
+    QVariantList actions;
+
+    for (; a != a_end; ++a)
+    {
+        QVariantMap action;
+        action["address"] = a->address();
+        action["method"] = a->method();
+
+        //parse body
+        bool ok;
+        QVariant body = Json::parse(a->body(), ok);
+        QVariantMap bodymap = body.toMap();
+
+        QVariantMap::const_iterator b = bodymap.begin();
+        QVariantMap::const_iterator b_end = bodymap.end();
+
+        QVariantMap resultmap;
+
+        for (; b != b_end; ++b)
+        {
+            resultmap[b.key()] = b.value();
+        }
+
+        action["body"] = resultmap;
+        actions.append(action);
+    }
+
+    map["actions"] = actions;
+    map["conditions"] = conditions;
+
+    map["actions"] = actions;
+    map["conditions"] = conditions;
+    map["created"] = rule->creationtime();
+    map["lasttriggered"] = rule->lastTriggered();
+    map["name"] = rule->name();
+    map["owner"] = rule->owner();
+    map["periodic"] = rule->triggerPeriodic();
+    map["status"] = rule->status();
+    map["timestriggered"] = rule->timesTriggered();
+    QString etag = rule->etag;
+    etag.remove('"'); // no quotes allowed in string
+    map["etag"] = etag;
+
+    return true;
+}
+
 
 /*! GET /api/<apikey>/rules/<id>
     \return REQ_READY_SEND
@@ -1008,9 +1085,11 @@ int DeRestPluginPrivate::deleteRule(const ApiRequest &req, ApiResponse &rsp)
     rsp.list.append(rspItem);
     rsp.httpStatus = HttpStatusOk;
 
+    updateEtag(gwConfigEtag);
+    updateEtag(rule->etag);
+
     queSaveDb(DB_RULES, DB_SHORT_SAVE_DELAY);
 
-    updateEtag(gwConfigEtag);
     rsp.httpStatus = HttpStatusOk;
 
     return REQ_READY_SEND;
@@ -1124,7 +1203,7 @@ void DeRestPluginPrivate::queueCheckRuleBindings(const Rule &rule)
                                 srcAddress = sensorNode->address().ext();
                                 srcEndpoint = ep;
                                 sensorNode->enableRead(READ_BINDING_TABLE);
-                                sensorNode->setNextReadTime(QTime::currentTime());
+                                sensorNode->setNextReadTime(READ_BINDING_TABLE, QTime::currentTime());
                                 q->startZclAttributeTimer(1000);
                                 break;
                             }

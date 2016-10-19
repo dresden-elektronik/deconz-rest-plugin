@@ -18,8 +18,9 @@
 #include "de_web_plugin_private.h"
 
 #define FW_IDLE_TIMEOUT (10 * 1000)
+#define FW_WAIT_UPDATE_READY (2) //s
 #define FW_IDLE_TIMEOUT_LONG (240 * 1000)
-#define FW_WAIT_USER_TIMEOUT (60 * 1000)
+#define FW_WAIT_USER_TIMEOUT (120 * 1000)
 
 /*! Inits the firmware update manager.
  */
@@ -29,14 +30,14 @@ void DeRestPluginPrivate::initFirmwareUpdate()
     fwUpdateState = FW_Idle;
 
     Q_ASSERT(apsCtrl);
-    apsCtrl->setParameter(deCONZ::ParamFirmwareUpdateActive, 0);
+    apsCtrl->setParameter(deCONZ::ParamFirmwareUpdateActive, deCONZ::FirmwareUpdateIdle);
 
+    fwUpdateStartedByUser = false;
     fwUpdateTimer = new QTimer(this);
-    fwUpdateTimer->setInterval(1000);
     fwUpdateTimer->setSingleShot(true);
     connect(fwUpdateTimer, SIGNAL(timeout()),
             this, SLOT(firmwareUpdateTimerFired()));
-    fwUpdateTimer->start(FW_IDLE_TIMEOUT);
+    fwUpdateTimer->start(5000);
 }
 
 /*! Starts the actual firmware update process.
@@ -49,12 +50,13 @@ void DeRestPluginPrivate::updateFirmware()
     }
 
     Q_ASSERT(apsCtrl);
-    if (apsCtrl->getParameter(deCONZ::ParamFirmwareUpdateActive) == 0 ||
+    if (apsCtrl->getParameter(deCONZ::ParamFirmwareUpdateActive) == deCONZ::FirmwareUpdateIdle ||
         apsCtrl->getParameter(deCONZ::ParamDeviceConnected) == 1)
     {
         DBG_Printf(DBG_INFO, "GW firmware update conditions not met, abort\n");
         fwUpdateState = FW_Idle;
         fwUpdateTimer->start(FW_IDLE_TIMEOUT);
+        updateEtag(gwConfigEtag);
         return;
     }
 
@@ -62,8 +64,18 @@ void DeRestPluginPrivate::updateFirmware()
 #ifdef Q_OS_WIN
     gcfFlasherBin.append(".exe");
     QString bin = gcfFlasherBin;
+#elif defined(Q_OS_LINUX) && !defined(ARCH_ARM) // on RPi a normal sudo is ok since we don't need password there
+    QString bin = "pkexec";
+    gcfFlasherBin = "/usr/bin/GCFFlasher_internal";
+    fwProcessArgs.prepend(gcfFlasherBin);
+#elif defined(Q_OS_OSX)
+    // TODO
+    // /usr/bin/osascript -e 'do shell script "make install" with administrator privileges'
+    QString bin = "sudo";
+    fwProcessArgs.prepend(gcfFlasherBin);
 #else
     QString bin = "sudo";
+    gcfFlasherBin = "/usr/bin/GCFFlasher_internal";
     fwProcessArgs.prepend(gcfFlasherBin);
 #endif
 
@@ -75,7 +87,8 @@ void DeRestPluginPrivate::updateFirmware()
     fwProcessArgs << "-f" << fwUpdateFile;
 
     fwUpdateState = FW_UpdateWaitFinished;
-    fwUpdateTimer->start(1000);
+    updateEtag(gwConfigEtag);
+    fwUpdateTimer->start(250);
 
     fwProcess->start(bin, fwProcessArgs);
 }
@@ -90,6 +103,14 @@ void DeRestPluginPrivate::updateFirmwareWaitFinished()
         {
             QByteArray data = fwProcess->readAllStandardOutput();
             DBG_Printf(DBG_INFO, "%s", qPrintable(data));
+
+            if (apsCtrl->getParameter(deCONZ::ParamFirmwareUpdateActive) != deCONZ::FirmwareUpdateRunning)
+            {
+                if (data.contains("flashing"))
+                {
+                    apsCtrl->setParameter(deCONZ::ParamFirmwareUpdateActive, deCONZ::FirmwareUpdateRunning);
+                }
+            }
         }
 
         if (fwProcess->state() == QProcess::Starting)
@@ -98,7 +119,7 @@ void DeRestPluginPrivate::updateFirmwareWaitFinished()
         }
         else if (fwProcess->state() == QProcess::Running)
         {
-            DBG_Printf(DBG_INFO, "GW firmware update running ..\n");
+            DBG_Printf(DBG_INFO_L2, "GW firmware update running ..\n");
         }
         else if (fwProcess->state() == QProcess::NotRunning)
         {
@@ -119,13 +140,16 @@ void DeRestPluginPrivate::updateFirmwareWaitFinished()
     // done
     if (fwProcess == 0)
     {
-        apsCtrl->setParameter(deCONZ::ParamFirmwareUpdateActive, 0);
+        fwUpdateStartedByUser = false;
+        gwFirmwareNeedUpdate = false;
+        updateEtag(gwConfigEtag);
+        apsCtrl->setParameter(deCONZ::ParamFirmwareUpdateActive, deCONZ::FirmwareUpdateIdle);
         fwUpdateState = FW_Idle;
-        fwUpdateTimer->start(FW_IDLE_TIMEOUT);
+        fwUpdateTimer->start(FW_IDLE_TIMEOUT_LONG);
     }
     else // recheck
     {
-        fwUpdateTimer->start(1000);
+        fwUpdateTimer->start(250);
     }
 }
 
@@ -134,14 +158,13 @@ void DeRestPluginPrivate::updateFirmwareWaitFinished()
 void DeRestPluginPrivate::updateFirmwareDisconnectDevice()
 {
     Q_ASSERT(apsCtrl);
-    if (apsCtrl->getParameter(deCONZ::ParamFirmwareUpdateActive) == 0)
-    {
-        if (apsCtrl->getParameter(deCONZ::ParamDeviceConnected) == 1)
-        {
-            DBG_Printf(DBG_INFO, "GW firmware disconnect device before update\n");
-        }
-        apsCtrl->setParameter(deCONZ::ParamFirmwareUpdateActive, 1);
-    }
+//    if (apsCtrl->getParameter(deCONZ::ParamFirmwareUpdateActive) == deCONZ::FirmwareUpdateIdle)
+//    {
+//        if (apsCtrl->getParameter(deCONZ::ParamDeviceConnected) == 1)
+//        {
+//            DBG_Printf(DBG_INFO, "GW firmware disconnect device before update\n");
+//        }
+//    }
 
     if (apsCtrl->getParameter(deCONZ::ParamDeviceConnected) == 1)
     {
@@ -152,6 +175,7 @@ void DeRestPluginPrivate::updateFirmwareDisconnectDevice()
         DBG_Printf(DBG_INFO, "GW firmware start update (device not connected)\n");
         fwUpdateState = FW_Update;
         fwUpdateTimer->start(0);
+        updateEtag(gwConfigEtag);
     }
 }
 
@@ -159,8 +183,11 @@ void DeRestPluginPrivate::updateFirmwareDisconnectDevice()
  */
 bool DeRestPluginPrivate::startUpdateFirmware()
 {
+    fwUpdateStartedByUser = true;
     if (fwUpdateState == FW_WaitUserConfirm)
     {
+        apsCtrl->setParameter(deCONZ::ParamFirmwareUpdateActive, deCONZ::FirmwareUpdateRunning);
+        updateEtag(gwConfigEtag);
         fwUpdateState = FW_DisconnectDevice;
         fwUpdateTimer->start(100);
         return true;
@@ -203,7 +230,12 @@ void DeRestPluginPrivate::firmwareUpdateTimerFired()
     {
         updateFirmwareWaitFinished();
     }
-    else // also handle FW_WaitUserConfirm state timeout
+    else if (fwUpdateState == FW_WaitUserConfirm)
+    {
+        fwUpdateState = FW_Idle;
+        fwUpdateTimer->start(FW_IDLE_TIMEOUT);
+    }
+    else
     {
         fwUpdateState = FW_Idle;
         fwUpdateTimer->start(FW_IDLE_TIMEOUT);
@@ -230,6 +262,12 @@ void DeRestPluginPrivate::queryFirmwareVersion()
         QString gcfFlasherBin = qApp->applicationDirPath() + "/GCFFlasher";
 #ifdef Q_OS_WIN
         gcfFlasherBin.append(".exe");
+#elif defined(Q_OS_LINUX) && !defined(ARCH_ARM) // on RPi a normal sudo is ok since we don't need password there
+        gcfFlasherBin = "/usr/bin/GCFFlasher_internal";
+#elif defined(Q_OS_OSX)
+        // TODO
+#else
+        gcfFlasherBin = "/usr/bin/GCFFlasher_internal";
 #endif
 
         if (!QFile::exists(gcfFlasherBin))
@@ -249,6 +287,9 @@ void DeRestPluginPrivate::queryFirmwareVersion()
 
         // search in different locations
         std::vector<QString> paths;
+#ifdef Q_OS_LINUX
+        paths.push_back(QLatin1String("/usr/share/deCONZ/firmware/"));
+#endif
         paths.push_back(deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation) + QLatin1String("/firmware/"));
         paths.push_back(deCONZ::getStorageLocation(deCONZ::HomeLocation) + QLatin1String("/raspbee_firmware/"));
 #ifdef Q_OS_OSX
@@ -286,9 +327,9 @@ void DeRestPluginPrivate::queryFirmwareVersion()
 
     if (devConnected == 0 || fwVersion == 0)
     {
-        // if even after 60 seconds no firmware was detected
+        // if even after some time no firmware was detected
         // ASSUME that a device is present and reachable but might not have firmware installed
-        if (getUptime() >= 60)
+//        if (getUptime() >= FW_WAIT_UPDATE_READY)
         {
             QString str;
             str.sprintf("0x%08x", GW_MIN_RPI_FW_VERSION);
@@ -301,8 +342,14 @@ void DeRestPluginPrivate::queryFirmwareVersion()
 
             fwUpdateState = FW_WaitUserConfirm;
             fwUpdateTimer->start(FW_WAIT_USER_TIMEOUT);
-            return;
+            apsCtrl->setParameter(deCONZ::ParamFirmwareUpdateActive, deCONZ::FirmwareUpdateReadyToStart);
+
+            if (fwUpdateStartedByUser)
+            {
+                startUpdateFirmware();
+            }
         }
+        return;
     }
     else if (devConnected)
     {
@@ -330,6 +377,7 @@ void DeRestPluginPrivate::queryFirmwareVersion()
                 DBG_Printf(DBG_INFO, "GW firmware version shall be updated to: 0x%08x\n", GW_MIN_RPI_FW_VERSION);
                 fwUpdateState = FW_WaitUserConfirm;
                 fwUpdateTimer->start(FW_WAIT_USER_TIMEOUT);
+                apsCtrl->setParameter(deCONZ::ParamFirmwareUpdateActive, deCONZ::FirmwareUpdateReadyToStart);
                 return;
             }
             else
@@ -385,16 +433,16 @@ void DeRestPluginPrivate::checkFirmwareDevices()
 
     if (usbDongleCount > 1)
     {
-        DBG_Printf(DBG_INFO, "GW firmware update too many USB devices connected, abort\n");
+        DBG_Printf(DBG_INFO_L2, "GW firmware update too many USB devices connected, abort\n");
     }
     else if (usbDongleCount == 1)
     {
-        DBG_Printf(DBG_INFO, "GW firmware update select USB device\n");
+        DBG_Printf(DBG_INFO_L2, "GW firmware update select USB device\n");
         fwProcessArgs << "-d" << "0";
     }
     else if (raspBeeCount > 0 && usbDongleCount == 0 && !ttyPath.isEmpty())
     {
-        DBG_Printf(DBG_INFO, "GW firmware update select %s device\n", qPrintable(ttyPath));
+        DBG_Printf(DBG_INFO_L2, "GW firmware update select %s device\n", qPrintable(ttyPath));
         fwProcessArgs << "-d" << "RaspBee";
     }
 

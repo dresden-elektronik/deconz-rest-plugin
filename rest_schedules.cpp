@@ -1012,6 +1012,23 @@ void DeRestPluginPrivate::scheduleTimerFired()
                     {
                         DBG_Printf(DBG_INFO, "schedule was neigher light nor group request.\n");
                     }
+                    else
+                    {
+                        // Request handled. Activate or deactivate sensor rules if present
+                        int begin = address.indexOf("groups/")+7;
+                        int end = address.indexOf("/action");
+                        QString groupId = address.mid(begin, end-begin);
+
+                        if (content.indexOf("on\":true") != -1)
+                        {
+                            changeRuleStatusofGroup(groupId,true);
+                        }
+                        else if (content.indexOf("on\":false") != -1)
+                        {
+                            changeRuleStatusofGroup(groupId,false);
+                        }
+
+                    }
                 }
 
                 return;
