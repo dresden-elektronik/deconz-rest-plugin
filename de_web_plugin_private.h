@@ -747,6 +747,7 @@ public Q_SLOTS:
     //wifi settings
     void checkWifiState();
     void restoreWifiState();
+    int scanWifiNetworks(const ApiRequest &req, ApiResponse &rsp);
 
     // gateways
     void foundGateway(quint32 ip, quint16 port, const QString &uuid, const QString &name);

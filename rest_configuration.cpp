@@ -85,6 +85,11 @@ int DeRestPluginPrivate::handleConfigurationApi(const ApiRequest &req, ApiRespon
     {
         return resetConfig(req, rsp);
     }
+    // POST /api/<apikey>/config/wifiscan
+    else if ((req.path.size() == 4) && (req.hdr.method() == "POST") && (req.path[2] == "config") && (req.path[3] == "wifiscan"))
+    {
+        return scanWifiNetworks(req, rsp);
+    }
     // PUT /api/<apikey>/config/password
     else if ((req.path.size() == 4) && (req.hdr.method() == "PUT") && (req.path[2] == "config") && (req.path[3] == "password"))
     {
@@ -370,7 +375,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     map["wifiname"] = gwWifiName;
     map["wifichannel"] = gwWifiChannel;
     map["wifiip"] = gwWifiIp;
-    map["wifiPw"] = gwWifiPw;
+    map["wifiappw"] = gwWifiPw;
     //map["rgbwdisplay"] = gwRgbwDisplay;
     map["linkbutton"] = gwLinkButton;
     map["portalservices"] = false;
@@ -1971,7 +1976,7 @@ int DeRestPluginPrivate::getWifiState(const ApiRequest &req, ApiResponse &rsp)
     rsp.map["wifiname"] = gwWifiName;
     rsp.map["wifichannel"] = gwWifiChannel;
     rsp.map["wifiip"] = gwWifiIp;
-    rsp.map["wifipw"] = gwWifiPw;
+    rsp.map["wifiappw"] = gwWifiPw;
 
     rsp.httpStatus = HttpStatusOk;
 
@@ -2135,6 +2140,114 @@ void DeRestPluginPrivate::checkWifiState()
 #endif
 
     return;
+}
+
+/*! POST /api/<apikey>/config/wifiscan
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::scanWifiNetworks(const ApiRequest &req, ApiResponse &rsp)
+{
+    Q_UNUSED(req);
+#ifdef ARCH_ARM
+#ifdef Q_OS_LINUX
+
+    char const* cmd = "sudo iwlist wlan0 scan";
+    FILE* pipe = popen(cmd, "r");
+    if (!pipe) return;
+    char buffer[128];
+    std::string result = "";
+    while(!feof(pipe)) {
+        if(fgets(buffer, 128, pipe) != NULL)
+            result += buffer;
+    }
+    pclose(pipe);
+
+    //std::string result = "wlan0     Scan completed :            Cell 01 - Address: 00:1C:10:27:EF:1B                      Channel:11            Frequency:2.462 GHz (Channel 11)                      Quality=34/70  Signal level=-76 dBm                      Encryption key:on                      ESSID:\"internet@ddel.de\"                      Bit Rates:1 Mb/s; 2 Mb/s; 5.5 Mb/s; 11 Mb/s; 18 Mb/s                                24 Mb/s; 36 Mb/s; 54 Mb/s                      Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 48 Mb/s                      Mode:Master                      Extra:tsf=0000000000000000                      Extra: Last beacon: 90ms ago                      IE: Unknown: 0010696E7465726E6574406464656C2E6465                      IE: Unknown: 010882848B962430486C                      IE: Unknown: 03010B                      IE: Unknown: 050400010040                      IE: Unknown: 2A0104                      IE: Unknown: 2F0104                      IE: IEEE 802.11i/WPA2 Version 1                          Group Cipher : CCMP                          Pairwise Ciphers (1) : CCMP                          Authentication Suites (1) : PSK                      IE: Unknown: 32040C121860                      IE: Unknown: DD06001018020F04            Cell 02 - Address: B8:27:EB:03:0C:7F                      Channel:8                      Frequency:2.447 GHz (Channel 8)                      Quality=63/70  Signal level=-47 dBm                      Encryption key:on                      ESSID:\"RaspBee-AP-XXX\"                      Bit Rates:1 Mb/s; 2 Mb/s; 5.5 Mb/s; 11 Mb/s; 18 Mb/s                                24 Mb/s; 36 Mb/s; 54 Mb/s                      Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 48 Mb/s                      Mode:Master                      Extra:tsf=0000000000000000                      Extra: Last beacon: 90ms ago                      IE: Unknown: 000E526173704265652D41502D585858                      IE: Unknown: 010882848B962430486C                      IE: Unknown: 030108                      IE: Unknown: 050401020000                      IE: Unknown: 0706555320010B1E                      IE: Unknown: 200100                      IE: Unknown: 23021300                      IE: Unknown: 2A0100                      IE: Unknown: 32040C121860                      IE: IEEE 802.11i/WPA2 Version 1                          Group Cipher : CCMP                          Pairwise Ciphers (1) : CCMP                          Authentication Suites (1) : PSK                      IE: Unknown: 2D1A21001FFF00000000000000000080010000000000000000000000                      IE: Unknown: 3D1608081100000000000000000000000000000000000000                      IE: Unknown: 7F0104                      IE: Unknown: DD090010180200100C0000            Cell 03 - Address: 7C:DD:90:9A:C3:B1                      Channel:11                      Frequency:2.462 GHz (Channel 11)                      Quality=67/70  Signal level=-43 dBm                      Encryption key:on                      ESSID:\"RPI-YKO-AP\"                      Bit Rates:1 Mb/s; 2 Mb/s; 5.5 Mb/s; 11 Mb/s; 6 Mb/s                                9 Mb/s; 12 Mb/s; 18 Mb/s                      Bit Rates:24 Mb/s; 36 Mb/s; 48 Mb/s; 54 Mb/s                      Mode:Master                      Extra:tsf=0000000000000000                      Extra: Last beacon: 90ms ago                      IE: Unknown: 000A5250492D594B4F2D4150                      IE: Unknown: 010882848B960C121824                      IE: Unknown: 03010B                      IE: Unknown: 050400020000                      IE: Unknown: 2A0104                      IE: Unknown: 32043048606C                      IE: IEEE 802.11i/WPA2 Version 1                          Group Cipher : CCMP                          Pairwise Ciphers (1) : CCMP                          Authentication Suites (1) : PSK                      IE: Unknown: 7F080000000200000040            Cell 04 - Address: B8:27:EB:25:B0:7F                      Channel:11                      Frequency:2.462 GHz (Channel 11)                      Quality=44/70  Signal level=-66 dBm                      Encryption key:on                      ESSID:\"adhoc\"                      Bit Rates:1 Mb/s; 2 Mb/s; 5.5 Mb/s; 11 Mb/s; 18 Mb/s                                24 Mb/s; 36 Mb/s; 54 Mb/s                      Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 48 Mb/s                      Mode:Master                      Extra:tsf=0000000000000000                      Extra: Last beacon: 90ms ago                      IE: Unknown: 00056164686F63                      IE: Unknown: 010882848B962430486C                      IE: Unknown: 03010B                      IE: Unknown: 0706555320010B1E                      IE: Unknown: 200100                      IE: Unknown: 23021300                      IE: Unknown: 2A0100                      IE: Unknown: 32040C121860                      IE: IEEE 802.11i/WPA2 Version 1                          Group Cipher : CCMP                          Pairwise Ciphers (1) : CCMP                          Authentication Suites (1) : PSK                      IE: Unknown: 2D1A21001FFF00000000000000000080010000000000000000000000                      IE: Unknown: 3D160B081100000000000000000000000000000000000000                      IE: Unknown: 7F0104                      IE: Unknown: DD090010180200100C0000";
+
+
+
+#endif
+#endif
+
+    QStringList wifiCells = QString::fromStdString(result).split("Cell");
+
+    QString channel = "";
+    QString security = "";
+    QString name = "";
+    QString signalStrength = "";
+
+    QVariantMap cell;
+    QVariantMap cells;
+
+    QList<QString>::const_iterator i = wifiCells.begin();
+    QList<QString>::const_iterator end = wifiCells.end();
+    int n = 1;
+    for (; i != end; ++i)
+    {
+        if (QString(*i).indexOf("ESSID:") != -1)
+        {
+            int begin = QString(*i).indexOf("ESSID:\"") + 7;
+            int end = QString(*i).indexOf("\"\n");
+            name = QString(*i).mid(begin, end-begin);
+            cell["name"] = name;
+
+            if (QString(*i).indexOf("Channel:") != -1)
+            {
+                int begin = QString(*i).indexOf("Channel:") + 8;
+                int end = QString(*i).indexOf("Frequency:");
+                channel = QString(*i).mid(begin, end-begin);
+                cell["channel"] = channel;
+            }
+            if (QString(*i).indexOf("Channel:") != -1)
+            {
+                int begin = QString(*i).indexOf("Channel:") + 8;
+                int end = QString(*i).indexOf("\nFrequency:");
+                channel = QString(*i).mid(begin, end-begin);
+                cell["zzz_channel-test"] = channel;
+            }
+
+            if (QString(*i).indexOf("Channel:") != -1)
+            {
+                int begin = QString(*i).indexOf("Channel:") + 8;
+                int end = QString(*i).indexOf("\n Frequency:");
+                channel = QString(*i).mid(begin, end-begin);
+                cell["zzz_channel-test2"] = channel;
+            }
+
+            if (QString(*i).indexOf("Signal level=") != -1)
+            {
+                int begin = QString(*i).indexOf("Signal level=") + 13;
+                int end = QString(*i).indexOf(" dBm");
+                signalStrength = QString(*i).mid(begin, end-begin);
+                cell["signalstrength"] = signalStrength;
+            }
+            if (QString(*i).indexOf("WPA") != -1)
+            {
+                security = "WPA";
+            }
+            if (QString(*i).indexOf("WPA2") != -1)
+            {
+                security = "WPA2";
+            }
+            if (QString(*i).indexOf("WEP") != -1)
+            {
+                security = "WEP";
+            }
+            if (QString(*i).indexOf("PSK") != -1)
+            {
+                security = security + "-PSK";
+            }
+            cell["security"] = security;
+
+            cells[QString::number(n)] = cell;
+            n++;
+        }
+    }
+
+    rsp.httpStatus = HttpStatusOk;
+    rsp.map["cells"] = cells;
+    return REQ_READY_SEND;
 }
 
 /*! restore wifi state of raspberry pi after reboot.
