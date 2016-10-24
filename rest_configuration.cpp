@@ -2168,24 +2168,31 @@ int DeRestPluginPrivate::scanWifiNetworks(const ApiRequest &req, ApiResponse &rs
 //#endif
 //#endif
 
-    //std::string result = "wlan0     Scan completed :            Cell 01 - Address: 00:1C:10:27:EF:1B                      Channel:11            Frequency:2.462 GHz (Channel 11)                      Quality=34/70  Signal level=-76 dBm                      Encryption key:on                      ESSID:\"internet@ddel.de\"\n                      Bit Rates:1 Mb/s; 2 Mb/s; 5.5 Mb/s; 11 Mb/s; 18 Mb/s                                24 Mb/s; 36 Mb/s; 54 Mb/s                      Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 48 Mb/s                      Mode:Master                      Extra:tsf=0000000000000000                      Extra: Last beacon: 90ms ago                      IE: Unknown: 0010696E7465726E6574406464656C2E6465                      IE: Unknown: 010882848B962430486C                      IE: Unknown: 03010B                      IE: Unknown: 050400010040                      IE: Unknown: 2A0104                      IE: Unknown: 2F0104                      IE: IEEE 802.11i/WPA2 Version 1                          Group Cipher : CCMP                          Pairwise Ciphers (1) : CCMP                          Authentication Suites (1) : PSK                      IE: Unknown: 32040C121860                      IE: Unknown: DD06001018020F04            Cell 02 - Address: B8:27:EB:03:0C:7F                      Channel:8                      Frequency:2.447 GHz (Channel 8)                      Quality=63/70  Signal level=-47 dBm                      Encryption key:on                      ESSID:\"RaspBee-AP-XXX\"\n                      Bit Rates:1 Mb/s; 2 Mb/s; 5.5 Mb/s; 11 Mb/s; 18 Mb/s                                24 Mb/s; 36 Mb/s; 54 Mb/s                      Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 48 Mb/s                      Mode:Master                      Extra:tsf=0000000000000000                      Extra: Last beacon: 90ms ago                      IE: Unknown: 000E526173704265652D41502D585858                      IE: Unknown: 010882848B962430486C                      IE: Unknown: 030108                      IE: Unknown: 050401020000                      IE: Unknown: 0706555320010B1E                      IE: Unknown: 200100                      IE: Unknown: 23021300                      IE: Unknown: 2A0100                      IE: Unknown: 32040C121860                      IE: IEEE 802.11i/WPA2 Version 1                          Group Cipher : CCMP                          Pairwise Ciphers (1) : CCMP                          Authentication Suites (1) : PSK                      IE: Unknown: 2D1A21001FFF00000000000000000080010000000000000000000000                      IE: Unknown: 3D1608081100000000000000000000000000000000000000                      IE: Unknown: 7F0104                      IE: Unknown: DD090010180200100C0000            Cell 03 - Address: 7C:DD:90:9A:C3:B1                      Channel:11                      Frequency:2.462 GHz (Channel 11)                      Quality=67/70  Signal level=-43 dBm                      Encryption key:on                      ESSID:\"RPI-YKO-AP\"\n                      Bit Rates:1 Mb/s; 2 Mb/s; 5.5 Mb/s; 11 Mb/s; 6 Mb/s                                9 Mb/s; 12 Mb/s; 18 Mb/s                      Bit Rates:24 Mb/s; 36 Mb/s; 48 Mb/s; 54 Mb/s                      Mode:Master                      Extra:tsf=0000000000000000                      Extra: Last beacon: 90ms ago                      IE: Unknown: 000A5250492D594B4F2D4150                      IE: Unknown: 010882848B960C121824                      IE: Unknown: 03010B                      IE: Unknown: 050400020000                      IE: Unknown: 2A0104                      IE: Unknown: 32043048606C                      IE: IEEE 802.11i/WPA2 Version 1                          Group Cipher : CCMP                          Pairwise Ciphers (1) : CCMP                          Authentication Suites (1) : PSK                      IE: Unknown: 7F080000000200000040            Cell 04 - Address: B8:27:EB:25:B0:7F                      Channel:11                      Frequency:2.462 GHz (Channel 11)                      Quality=44/70  Signal level=-66 dBm                      Encryption key:on                      ESSID:\"adhoc\"\n                      Bit Rates:1 Mb/s; 2 Mb/s; 5.5 Mb/s; 11 Mb/s; 18 Mb/s                                24 Mb/s; 36 Mb/s; 54 Mb/s                      Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 48 Mb/s                      Mode:Master                      Extra:tsf=0000000000000000                      Extra: Last beacon: 90ms ago                      IE: Unknown: 00056164686F63                      IE: Unknown: 010882848B962430486C                      IE: Unknown: 03010B                      IE: Unknown: 0706555320010B1E                      IE: Unknown: 200100                      IE: Unknown: 23021300                      IE: Unknown: 2A0100                      IE: Unknown: 32040C121860                      IE: IEEE 802.11i/WPA2 Version 1                          Group Cipher : CCMP                          Pairwise Ciphers (1) : CCMP                          Authentication Suites (1) : PSK                      IE: Unknown: 2D1A21001FFF00000000000000000080010000000000000000000000                      IE: Unknown: 3D160B081100000000000000000000000000000000000000                      IE: Unknown: 7F0104                      IE: Unknown: DD090010180200100C0000";
+    //std::string result = "wlan0     Scan completed :            Cell 01 - Address: 00:1C:10:27:EF:1B                      Channel:11            Frequency:2.462 GHz (Channel 11)                      Quality=34/70  Signal level=-76 dBm                      Encryption key:on                      ESSID:\"internet@ddel.de\"\n                      Bit Rates:1 Mb/s; 2 Mb/s; 5.5 Mb/s; 11 Mb/s; 18 Mb/s                                24 Mb/s; 36 Mb/s; 54 Mb/s                      Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 48 Mb/s                      Mode:Master                      Extra:tsf=0000000000000000                      Extra: Last beacon: 90ms ago                      IE: Unknown: 0010696E7465726E6574406464656C2E6465                      IE: Unknown: 010882848B962430486C                      IE: Unknown: 03010B                      IE: Unknown: 050400010040                      IE: Unknown: 2A0104                      IE: Unknown: 2F0104                      IE: IEEE 802.11i/WPA2 Version 1                          Group Cipher : CCMP                          Pairwise Ciphers (1) : CCMP                          Authentication Suites (1) : PSK                      IE: Unknown: 32040C121860                      IE: Unknown: DD06001018020F04            Cell 05 - Address: 0E:03:23:61:69:95 Channel:11 Frequency:2.462 GHz (Channel 11) Quality=36/70  Signal level=-74 dBm Encryption key:off ESSID:\"EB-G5750WU-000000dy9e28QTN\" Bit Rates:1 Mb/s; 2 Mb/s; 5.5 Mb/s; 11 Mb/s Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 18 Mb/s; 24 Mb/s 36 Mb/s; 48 Mb/s; 54 Mb/s Mode:Ad-Hoc Extra:tsf=0000000000000000 Extra: Last beacon: 50ms ago IE: Unknown: 001A45422D473537353057552D30303030303064793965323851544E IE: Unknown: 010482848B96 IE: Unknown: 03010B IE: Unknown: 06020000 IE: Unknown: 2A0104 IE: Unknown: 32080C1218243048606CCell 03 - Address: 7C:DD:90:9A:C3:B1                      Channel:11                      Frequency:2.462 GHz (Channel 11)                      Quality=67/70  Signal level=-43 dBm                      Encryption key:on                      ESSID:\"RPI-YKO-AP\"\n                      Bit Rates:1 Mb/s; 2 Mb/s; 5.5 Mb/s; 11 Mb/s; 6 Mb/s                                9 Mb/s; 12 Mb/s; 18 Mb/s                      Bit Rates:24 Mb/s; 36 Mb/s; 48 Mb/s; 54 Mb/s                      Mode:Master                      Extra:tsf=0000000000000000                      Extra: Last beacon: 90ms ago                      IE: Unknown: 000A5250492D594B4F2D4150                      IE: Unknown: 010882848B960C121824                      IE: Unknown: 03010B                      IE: Unknown: 050400020000                      IE: Unknown: 2A0104                      IE: Unknown: 32043048606C                      IE: IEEE 802.11i/WPA2 Version 1                          Group Cipher : CCMP                          Pairwise Ciphers (1) : CCMP                          Authentication Suites (1) : PSK                      IE: Unknown: 7F080000000200000040            Cell 04 - Address: B8:27:EB:25:B0:7F                      Channel:11                      Frequency:2.462 GHz (Channel 11)                      Quality=44/70  Signal level=-66 dBm                      Encryption key:on                      ESSID:\"adhoc\"\n                      Bit Rates:1 Mb/s; 2 Mb/s; 5.5 Mb/s; 11 Mb/s; 18 Mb/s                                24 Mb/s; 36 Mb/s; 54 Mb/s                      Bit Rates:6 Mb/s; 9 Mb/s; 12 Mb/s; 48 Mb/s                      Mode:Master                      Extra:tsf=0000000000000000                      Extra: Last beacon: 90ms ago                      IE: Unknown: 00056164686F63                      IE: Unknown: 010882848B962430486C                      IE: Unknown: 03010B                      IE: Unknown: 0706555320010B1E                      IE: Unknown: 200100                      IE: Unknown: 23021300                      IE: Unknown: 2A0100                      IE: Unknown: 32040C121860                      IE: IEEE 802.11i/WPA2 Version 1                          Group Cipher : CCMP                          Pairwise Ciphers (1) : CCMP                          Authentication Suites (1) : PSK                      IE: Unknown: 2D1A21001FFF00000000000000000080010000000000000000000000                      IE: Unknown: 3D160B081100000000000000000000000000000000000000                      IE: Unknown: 7F0104                      IE: Unknown: DD090010180200100C0000";
 
     QStringList wifiCells = QString::fromStdString(result).split("Cell");
 
-    QString channel = "";
-    QString security = "";
-    QString cipher = "";
-    QString key = "";
-    QString name = "";
-    QString signalStrength = "";  
+    QString channel;
+    QString security;
+    QString cipher;
+    QString key;
+    QString name;
+    QString signalStrength;
 
     QList<QString>::const_iterator i = wifiCells.begin();
     QList<QString>::const_iterator end = wifiCells.end();
     int n = 1;
     for (; i != end; ++i)
     {
-        if (QString(*i).indexOf("ESSID:") != -1)
+        if (QString(*i).indexOf("ESSID:") != -1 && QString(*i).indexOf("Mode:Ad-Hoc") == -1)
         {
+            channel = "";
+            security = "";
+            cipher = "";
+            key = "";
+            name = "";
+            signalStrength = "";
+
             int begin = QString(*i).indexOf("ESSID:\"") + 7;
             int end = QString(*i).indexOf("\"\n");
             name = QString(*i).mid(begin, end-begin);
@@ -2206,7 +2213,7 @@ int DeRestPluginPrivate::scanWifiNetworks(const ApiRequest &req, ApiResponse &rs
                 signalStrength = QString(*i).mid(begin, end-begin);
                 cell["signalstrength"] = signalStrength;
             }
-
+            // security
             if (QString(*i).indexOf("WPA") != -1)
             {
                 security = "WPA";
@@ -2218,7 +2225,8 @@ int DeRestPluginPrivate::scanWifiNetworks(const ApiRequest &req, ApiResponse &rs
             if (QString(*i).indexOf("WEP") != -1)
             {
                 security = "WEP";
-            }          
+            }
+            //group cipher TODO
             if (QString(*i).indexOf("CCMP") != -1)
             {
                 cipher = "(CCMP)";
@@ -2231,12 +2239,12 @@ int DeRestPluginPrivate::scanWifiNetworks(const ApiRequest &req, ApiResponse &rs
             {
                 cipher = "(TKIP)";
             }
-
+            // authentication suites
             if (QString(*i).indexOf("PSK") != -1)
             {
                 key = "-PSK";
             }
-            cell["security"] = QString("%1%2%3").arg(security).arg(cipher).arg(key);
+            cell["security"] = QString("%1%2").arg(security).arg(key);
 
             cells[QString::number(n)] = cell;
             n++;
