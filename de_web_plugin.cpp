@@ -6372,7 +6372,7 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
         updateEtag(group->etag);
         group->setIsOn(task.onOff);
 
-        if (group->id() == "0")
+        if (!task.lightNode && group->id() == "0")
         {
             std::vector<Group>::iterator g = groups.begin();
             std::vector<Group>::iterator gend = groups.end();
