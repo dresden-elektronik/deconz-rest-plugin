@@ -1365,7 +1365,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:
                 case DEV_ID_ZLL_ONOFF_LIGHT:
                 case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:
-                case DEV_ID_ZLL_ONOFF_SENSOR:
+                //case DEV_ID_ZLL_ONOFF_SENSOR:
                     {
                         lightNode.setHaEndpoint(*i);
                     }
