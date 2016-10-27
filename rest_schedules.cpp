@@ -528,7 +528,7 @@ int DeRestPluginPrivate::deleteSchedule(const ApiRequest &req, ApiResponse &rsp)
             DBG_Printf(DBG_INFO, "/schedules/%s deleted\n", qPrintable(id));
             i->state = Schedule::StateDeleted;
             queSaveDb(DB_SCHEDULES, DB_SHORT_SAVE_DELAY);
-            return REQ_NOT_HANDLED;
+            return REQ_READY_SEND;
         }
     }
 
