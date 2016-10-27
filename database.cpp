@@ -2570,7 +2570,7 @@ void DeRestPluginPrivate::saveDb()
                 }
                 else
                 {
-                    i = schedules.erase(i);
+                    //i = schedules.erase(i);
                 }
             }
         }
