@@ -135,7 +135,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include <cstdint>
 #include "colorspace.h"
 
 #ifdef MATLAB_MEX_FILE
@@ -1333,8 +1332,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray*prhs[])
 ******************************************************************************/
 void MiredColorTemperatureToXY(unsigned short int temperature, unsigned short int *x, unsigned short int *y)
 {
-  uint64_t localX, localY;
-  uint16_t temp = 1000000 / temperature;
+  unsigned long long localX, localY;
+  unsigned short int temp = 1000000 / temperature;
 
   if (TEMPERATURE_TO_X_TEMPERATURE_TRESHOLD > temp)
     localX =  TEMPERATURE_TO_X_THIRD_FACTOR_FIRST_EQUATION / temp +
@@ -1367,6 +1366,6 @@ void MiredColorTemperatureToXY(unsigned short int temperature, unsigned short in
 
   localY *= 4;
 
-  *x = (uint16_t)localX;
-  *y = (uint16_t)localY;
+  *x = (unsigned)localX;
+  *y = (unsigned)localY;
 }
