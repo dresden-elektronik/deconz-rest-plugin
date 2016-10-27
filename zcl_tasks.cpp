@@ -547,7 +547,6 @@ bool DeRestPluginPrivate::addTaskSetXyColor(TaskItem &task, double x, double y)
     task.colorX = x * 65279.0f; // current X in range 0 .. 65279
     task.colorY = y * 65279.0f; // current Y in range 0 .. 65279
 
-
     if (task.lightNode)
     {
         task.lightNode->setColorMode("xy");
@@ -905,9 +904,42 @@ bool DeRestPluginPrivate::addTaskAddScene(TaskItem &task, uint16_t groupId, uint
                         if (task.lightNode && task.lightNode->hasColor())
                         {
                             stream << (uint16_t)0x0300; // color cluster
-                            stream << (uint8_t)0x04;
-                            stream << l->x();
-                            stream << l->y();
+                            stream << (uint8_t)11;
+                            if (l->colorMode() == QLatin1String("xy"))
+                            {
+                                stream << l->x();
+                                stream << l->y();
+                                stream << (quint16)0; //enhanced hue
+                                stream << (quint8)0; // saturation
+                            }
+                            else if (l->colorMode() == QLatin1String("ct"))
+                            {
+                                quint16 x,y;
+                                if (task.lightNode->modelId().startsWith(QLatin1String("FLS-H")))
+                                {
+                                    // quirks mode FLS-H stores color temperature in x
+                                    x = l->colorTemperature();
+                                    y = 0;
+                                }
+                                else
+                                {
+                                    MiredColorTemperatureToXY(l->colorTemperature(), &x, &y);
+                                }
+                                stream << x;
+                                stream << y;
+                                stream << (quint16)0; //enhanced hue
+                                stream << (quint8)0; // saturation
+                            }
+                            else if (l->colorMode() == QLatin1String("hs"))
+                            {
+                                stream << l->x();
+                                stream << l->y();
+                                stream << l->enhancedHue();
+                                stream << l->saturation();
+                            }
+                            stream << (quint8)l->colorloopActive();
+                            stream << (quint8)l->colorloopDirection();
+                            stream << (quint16)l->colorloopTime();
                         }
                     }
 

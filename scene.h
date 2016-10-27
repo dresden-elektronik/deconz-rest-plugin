@@ -78,8 +78,10 @@ public:
     void setX(const uint16_t &x);
     const uint16_t &y() const;
     void setY(const uint16_t &y);
-    const uint16_t &enHue() const;
-    void setEnHue(const uint16_t &enHue);
+    uint16_t colorTemperature() const;
+    void setColorTemperature(uint16_t colorTemperature);
+    const uint16_t &enhancedHue() const;
+    void setEnhancedHue(const uint16_t &enhancedHue);
     const uint8_t &saturation() const;
     void setSaturation(const uint8_t &sat);
     const bool &colorloopActive() const;
@@ -88,7 +90,8 @@ public:
     void setColorloopDirection(const uint8_t &direction);
     const uint8_t &colorloopTime() const;
     void setColorloopTime(const uint8_t &time);
-
+    const QString &colorMode() const;
+    void setColorMode(const QString &colorMode);
     const uint16_t &transitionTime() const;
     void setTransitionTime(uint16_t transitionTime);
 
@@ -100,11 +103,13 @@ private:
     uint8_t m_bri;
     uint16_t m_x;
     uint16_t m_y;
+    uint16_t m_colorTemperature;
     uint16_t m_enhancedHue;
     uint8_t m_saturation;
     bool m_colorloopActive;
     uint8_t m_colorloopDirection;
     uint8_t m_colorloopTime;
+    QString m_colorMode;
     uint16_t m_transitiontime;
 };
 

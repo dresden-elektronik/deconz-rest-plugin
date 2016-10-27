@@ -70,4 +70,6 @@ void Lch2Rgb(num *R, num *G, num *B, num L, num C, num H);
 void Rgb2Cat02lms(num *L, num *M, num *S, num R, num G, num B);
 void Cat02lms2Rgb(num *R, num *G, num *B, num L, num M, num S);
 
+void MiredColorTemperatureToXY(unsigned short int temperature, unsigned short int *x, unsigned short int *y);
+
 #endif  /* _COLORSPACE_H_ */

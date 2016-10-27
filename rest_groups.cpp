@@ -12,6 +12,7 @@
 #include <QTextCodec>
 #include <QTcpSocket>
 #include <QVariantMap>
+#include "colorspace.h"
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "json.h"
@@ -1439,23 +1440,6 @@ int DeRestPluginPrivate::createScene(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    // search for lights that have their scenes capacity reached
-    std::vector<LightNode>::iterator ni = nodes.begin();
-    std::vector<LightNode>::iterator nend = nodes.end();
-    for (; ni != nend; ++ni)
-    {
-        LightNode *lightNode = &(*ni);
-
-        if (lightNode->isAvailable() &&
-            isLightNodeInGroup(lightNode, group->address()))
-        {
-            if (lightNode->sceneCapacity() <= 0)
-            {
-                rsp.list.append(errorToMap(ERR_DEVICE_SCENES_TABLE_FULL, QString("/groups/%1/scenes/lights/%2").arg(id).arg(lightNode->id()), QString("Could not set scene for %1. Scene capacity of the device is reached.").arg(qPrintable(lightNode->name()))));
-            }
-        }
-    }
-
     // name
     if (map.contains("name")) // required
     {
@@ -1543,6 +1527,58 @@ int DeRestPluginPrivate::createScene(const ApiRequest &req, ApiResponse &rsp)
     if (scene.name.isEmpty())
     {
         scene.name.sprintf("Scene %u", scene.id);
+    }
+
+    std::vector<LightNode>::iterator ni = nodes.begin();
+    std::vector<LightNode>::iterator nend = nodes.end();
+    for (; ni != nend; ++ni)
+    {
+        LightNode *lightNode = &(*ni);
+
+        if (lightNode->isAvailable() &&
+            isLightNodeInGroup(lightNode, group->address()))
+        {
+            if (lightNode->sceneCapacity() <= 0)
+            {
+                rsp.list.append(errorToMap(ERR_DEVICE_SCENES_TABLE_FULL, QString("/groups/%1/scenes/lights/%2").arg(id).arg(lightNode->id()), QString("Could not set scene for %1. Scene capacity of the device is reached.").arg(qPrintable(lightNode->name()))));
+                continue;
+            }
+
+            LightState state;
+            state.setLightId(lightNode->id());
+            state.setTransitionTime(10);
+            state.setOn(lightNode->isOn());
+            state.setBri(qMin(lightNode->level(), (quint16)254));
+
+            if (lightNode->hasColor())
+            {
+                if (lightNode->colorMode() == QLatin1String("xy"))
+                {
+                    state.setX(lightNode->colorX());
+                    state.setY(lightNode->colorY());
+                }
+                else if (lightNode->colorMode() == QLatin1String("ct"))
+                {
+                    state.setColorTemperature(lightNode->colorTemperature());
+                }
+                else if (lightNode->colorMode() == QLatin1String("hs"))
+                {
+                    state.setEnhancedHue(lightNode->enhancedHue());
+                    state.setSaturation(lightNode->saturation());
+                }
+
+                state.setColorloopActive(lightNode->isColorLoopActive());
+                state.setColorloopTime(lightNode->colorLoopSpeed());
+                state.setColorMode(lightNode->colorMode());
+            }
+            else
+            {
+                state.setColorMode(QLatin1String("none"));
+            }
+
+            scene.addLightState(state);
+            queSaveDb(DB_SCENES, DB_LONG_SAVE_DELAY);
+        }
     }
 
     group->scenes.push_back(scene);
@@ -1639,16 +1675,36 @@ int DeRestPluginPrivate::getSceneAttributes(const ApiRequest &req, ApiResponse &
             if ((i->id == sceneId) && (i->state == Scene::StateNormal))
             {
                 QVariantList lights;
-                QVariantMap lstate;
                 std::vector<LightState>::const_iterator l = i->lights().begin();
                 std::vector<LightState>::const_iterator lend = i->lights().end();
                 for (; l != lend; ++l)
                 {
+                    QVariantMap lstate;
                     lstate["id"] = l->lid();
                     lstate["on"] = l->on();
                     lstate["bri"] = l->bri();
-                    lstate["x"] = l->x();
-                    lstate["y"] = l->y();
+                    LightNode *lightNode = getLightNodeForId(l->lid());
+                    if (lightNode && lightNode->hasColor()) // TODO store hasColor in LightState
+                    {
+                        if (l->colorMode() == QLatin1String("xy"))
+                        {
+                            double x = l->x() / 65279.0f;
+                            double y = l->y() / 65279.0f;
+                            lstate["x"] = x;
+                            lstate["y"] = y;
+                        }
+                        else if (l->colorMode() == QLatin1String("ct"))
+                        {
+                            lstate["ct"] = (double)l->colorTemperature();
+                        }
+                        else if (l->colorMode() == QLatin1String("hs"))
+                        {
+                            lstate["hue"] = (double)l->enhancedHue();
+                            lstate["sat"] = (double)l->saturation();
+                        }
+
+                        lstate["colormode"] = l->colorMode();
+                    }
                     lstate["transitiontime"] = l->transitionTime();
 
                     lights.append(lstate);
@@ -1837,12 +1893,44 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
 
                     if (lightNode->hasColor())
                     {
-                        if (ls->x() != lightNode->colorX() || ls->y() != lightNode->colorY())
+                        if (ls->colorMode() != lightNode->colorMode())
                         {
-                            ls->setX(lightNode->colorX());
-                            ls->setY(lightNode->colorY());
+                            ls->setColorMode(lightNode->colorMode());
                             needModify = true;
                         }
+
+                        if (lightNode->colorMode() == QLatin1String("xy"))
+                        {
+                            if (ls->x() != lightNode->colorX() || ls->y() != lightNode->colorY())
+                            {
+                                ls->setX(lightNode->colorX());
+                                ls->setY(lightNode->colorY());
+                                needModify = true;
+                            }
+                        }
+                        else if (lightNode->colorMode() == QLatin1String("ct"))
+                        {
+                            if (ls->colorTemperature() != lightNode->colorTemperature())
+                            {
+                                ls->setColorTemperature(lightNode->colorTemperature());
+                                needModify = true;
+                            }
+                        }
+                        else if (lightNode->colorMode() == QLatin1String("hs"))
+                        {
+                            if (ls->enhancedHue() != lightNode->enhancedHue() || ls->saturation() != lightNode->saturation())
+                            {
+                                ls->setEnhancedHue(lightNode->enhancedHue());
+                                ls->setSaturation(lightNode->saturation());
+                                needModify = true;
+                            }
+                        }
+                    }
+                    else if (ls->colorMode() != QLatin1String("none"))
+                    {
+                        ls->setColorMode("none");
+                        needModify = true;
+
                     }
 
                     if (ls->transitionTime() != 10)
@@ -1874,12 +1962,27 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
                 state.setTransitionTime(10);
                 state.setOn(lightNode->isOn());
                 state.setBri(qMin(lightNode->level(), (quint16)254));
+
                 if (lightNode->hasColor())
                 {
-                    state.setX(lightNode->colorX());
-                    state.setY(lightNode->colorY());
+                    if (lightNode->colorMode() == QLatin1String("xy"))
+                    {
+                        state.setX(lightNode->colorX());
+                        state.setY(lightNode->colorY());
+                    }
+                    else if (lightNode->colorMode() == QLatin1String("ct"))
+                    {
+                        state.setColorTemperature(lightNode->colorTemperature());
+                    }
+                    else if (lightNode->colorMode() == QLatin1String("hs"))
+                    {
+                        state.setEnhancedHue(lightNode->enhancedHue());
+                        state.setSaturation(lightNode->saturation());
+                    }
+
                     state.setColorloopActive(lightNode->isColorLoopActive());
                     state.setColorloopTime(lightNode->colorLoopSpeed());
+                    state.setColorMode(lightNode->colorMode());
                 }
 
                 scene->addLightState(state);
@@ -2038,9 +2141,35 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
 
             if (lightNode->hasColor())
             {
-                if (ls->x() != lightNode->colorX() || ls->y() != lightNode->colorY())
+                if (ls->colorMode() == QLatin1String("xy"))
                 {
-                    lightNode->setColorXY(ls->x(), ls->y());
+                    if (ls->x() != lightNode->colorX() || ls->y() != lightNode->colorY())
+                    {
+                        lightNode->setColorXY(ls->x(), ls->y());
+                        changed = true;
+                    }
+                }
+                else if(ls->colorMode() == QLatin1String("ct"))
+                {
+                    if (ls->colorTemperature() != lightNode->colorTemperature())
+                    {
+                        lightNode->setColorTemperature(ls->colorTemperature());
+                        changed = true;
+                    }
+                }
+                else if (ls->colorMode() == QLatin1String("hs"))
+                {
+                    if (ls->enhancedHue() != lightNode->enhancedHue() || ls->saturation() != lightNode->saturation())
+                    {
+                        lightNode->setEnhancedHue(ls->enhancedHue());
+                        lightNode->setSaturation(ls->saturation());
+                        changed = true;
+                    }
+                }
+
+                if (ls->colorMode() != lightNode->colorMode())
+                {
+                    lightNode->setColorMode(ls->colorMode());
                     changed = true;
                 }
             }

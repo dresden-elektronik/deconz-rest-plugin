@@ -7,7 +7,7 @@
  * the LICENSE.txt file.
  *
  */
-
+#include <QStringBuilder>
 #include "scene.h"
 
 /*! Constructor.
@@ -97,55 +97,115 @@ bool Scene::deleteLight(const QString &lid)
  */
 QString Scene::lightsToString(const std::vector<LightState> &lights)
 {
-    QString jsonString = "[";
     std::vector<LightState>::const_iterator i = lights.begin();
     std::vector<LightState>::const_iterator i_end = lights.end();
+    QVariantList ls;
 
     for (; i != i_end; ++i)
     {
-        QString on = (i->on()) ? "true" : "false";
-        QString cl = (i->colorloopActive()) ? "true" : "false";
+        QVariantMap map;
+        map[QLatin1String("lid")] = i->lid();
+        map[QLatin1String("on")] = i->on();
+        map[QLatin1String("bri")] = (double)i->bri();
+        map[QLatin1String("tt")] = (double)i->transitionTime();
+        map[QLatin1String("cm")] = i->colorMode();
 
-        jsonString.append("{\"lid\":\"" + i->lid() + "\",");
-        jsonString.append("\"on\":" + on + ",");
-        jsonString.append("\"bri\":" + QString::number(i->bri()) + ",");
-        jsonString.append("\"x\":" + QString::number(i->x()) + ",");
-        jsonString.append("\"y\":\"" + QString::number(i->y()) + "\",");
-        jsonString.append("\"tt\":\"" + QString::number(i->transitionTime()) + "\",");
-        jsonString.append("\"cl\":\"" + cl + "\",");
-        jsonString.append("\"clTime\":\"" + QString::number(i->colorloopTime()) + "\"},");
-    }
-    if (lights.size() > 0)
-    {
-        jsonString.chop(1);
-    }
-    jsonString.append("]");
+        if (i->colorMode() != QLatin1String("none"))
+        {
+            map[QLatin1String("x")] = (double)i->x();
+            map[QLatin1String("y")] = (double)i->y();
 
-    return jsonString;
+            if (i->colorMode() == QLatin1String("hs"))
+            {
+                map[QLatin1String("ehue")] = (double)i->enhancedHue();
+                map[QLatin1String("sat")] = (double)i->saturation();
+            }
+            else if (i->colorMode() == QLatin1String("ct"))
+            {
+                map[QLatin1String("ct")] = (double)i->colorTemperature();
+            }
+
+            map[QLatin1String("cl")] = i->colorloopActive();
+            map[QLatin1String("clTime")] = (double)i->colorloopTime();
+        }
+
+        ls.append(map);
+    }
+
+    return Json::serialize(ls);
 }
 
 std::vector<LightState> Scene::jsonToLights(const QString &json)
 {
     bool ok;
-    QVariantList var = (Json::parse(json, ok)).toList();
+    QVariantList var = Json::parse(json, ok).toList();
     QVariantMap map;
-    LightState state;
     std::vector<LightState> lights;
 
     QVariantList::const_iterator i = var.begin();
     QVariantList::const_iterator i_end = var.end();
 
+    if (!ok)
+    {
+        return lights;
+    }
+
     for (; i != i_end; ++i)
     {
+        LightState state;
         map = i->toMap();
-        state.setLightId(map["lid"].toString());
-        state.setOn(map["on"].toBool());
-        state.setBri(map["bri"].toUInt());
-        state.setX(map["x"].toUInt());
-        state.setY(map["y"].toUInt());
-        state.setTransitionTime(map["tt"].toUInt());
-        state.setColorloopActive(map["cl"].toBool());
-        state.setColorloopTime(map["clTime"].toUInt());
+        state.setLightId(map[QLatin1String("lid")].toString());
+        state.setOn(map[QLatin1String("on")].toBool());
+        state.setBri(map[QLatin1String("bri")].toUInt());
+        state.setTransitionTime(map[QLatin1String("tt")].toUInt());
+
+        if (map.contains(QLatin1String("x")) && map.contains(QLatin1String("y")))
+        {
+            state.setX(map[QLatin1String("x")].toUInt());
+            state.setY(map[QLatin1String("y")].toUInt());
+
+            if (!map.contains(QLatin1String("cm")))
+            {
+                state.setColorMode(QLatin1String("xy")); // backward compatibility
+            }
+        }
+
+        if (map.contains(QLatin1String("cl")) && map.contains(QLatin1String("clTime")))
+        {
+            state.setColorloopActive(map[QLatin1String("cl")].toBool());
+            state.setColorloopTime(map[QLatin1String("clTime")].toUInt());
+        }
+
+        if (map.contains(QLatin1String("cm")))
+        {
+            QString colorMode = map[QLatin1String("cm")].toString();
+            if (!colorMode.isEmpty())
+            {
+                state.setColorMode(colorMode);
+            }
+        }
+
+        if (state.colorMode() == QLatin1String("ct") && map.contains(QLatin1String("ct")))
+        {
+            quint16 ct = map[QLatin1String("ct")].toUInt(&ok);
+            if (ok)
+            {
+                state.setColorTemperature(ct);
+            }
+        }
+        else if (state.colorMode() == QLatin1String("hs") && map.contains(QLatin1String("ehue")) && map.contains(QLatin1String("sat")))
+        {
+            quint16 ehue = map[QLatin1String("ehue")].toUInt(&ok);
+            if (ok)
+            {
+                quint16 sat = map[QLatin1String("sat")].toUInt(&ok);
+                if (ok)
+                {
+                    state.setEnhancedHue(ehue);
+                    state.setSaturation(sat);
+                }
+            }
+        }
 
         lights.push_back(state);
     }
@@ -169,6 +229,7 @@ LightState::LightState() :
     m_colorloopActive(false),
     m_colorloopDirection(0),
     m_colorloopTime(0),
+    m_colorMode(QLatin1String("none")),
     m_transitiontime(0)
 {
 }
@@ -248,19 +309,34 @@ void LightState::setY(const uint16_t &y)
     m_y = y;
 }
 
+/*! Returns the color temperature value of the light in the scene.
+ */
+uint16_t LightState::colorTemperature() const
+{
+    return m_colorTemperature;
+}
+
+/*! Sets the color temperature value of the light in the scene.
+    \param colorTemperature the color temperature value of the light
+ */
+void LightState::setColorTemperature(uint16_t colorTemperature)
+{
+    m_colorTemperature = colorTemperature;
+}
+
 /*! Returns the enhancedHue value of the light of the scene.
  */
-const uint16_t &LightState::enHue() const
+const uint16_t &LightState::enhancedHue() const
 {
     return m_enhancedHue;
 }
 
 /*! Sets the enhancedHue value of the light of the scene.
-    \param enHue the enhancedHue value of the light
+    \param enhancedHue the enhancedHue value of the light
  */
-void LightState::setEnHue(const uint16_t &enHue)
+void LightState::setEnhancedHue(const uint16_t &enhancedHue)
 {
-    m_enhancedHue = enHue;
+    m_enhancedHue = enhancedHue;
 }
 
 /*! Returns the saturation of the light of the scene.
@@ -321,6 +397,24 @@ const uint8_t &LightState::colorloopTime() const
 void LightState::setColorloopTime(const uint8_t &time)
 {
     m_colorloopTime = time;
+}
+
+/*! Returns the color mode of the light in the scene.
+ */
+const QString &LightState::colorMode() const
+{
+    return m_colorMode;
+}
+
+/*! Sets the color mode of the light in the scene.
+    \param colorMode the color mode of the light
+ */
+void LightState::setColorMode(const QString &colorMode)
+{
+    if (m_colorMode != colorMode)
+    {
+        m_colorMode = colorMode;
+    }
 }
 
 /*! Returns the transitiontime of the scene.
