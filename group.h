@@ -50,6 +50,7 @@ public:
     const QString lightsequenceToString() const;
     void setLightsequenceFromString(const QString deviceIds);
     Scene *getScene(quint8 sceneId);
+    void addDeviceMembership(const QString &id);
 
     uint16_t colorX;
     uint16_t colorY;

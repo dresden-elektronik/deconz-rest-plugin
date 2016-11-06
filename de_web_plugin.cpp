@@ -166,6 +166,10 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     archProcess = 0;
     zipProcess = 0;
 
+    // sensors
+    findSensorsState = FindSensorsIdle;
+    findSensorsTimeout = 0;
+
     openDb();
     initDb();
     readDb();
@@ -359,6 +363,11 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             }
         }
             break;
+        }
+
+        if (findSensorsState == FindSensorsActive)
+        {
+            handleIndicationFindSensors(ind, zclFrame);
         }
     }
     else if (ind.profileId() == ZDP_PROFILE_ID)
@@ -2316,6 +2325,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
 
     sensorNode.setNeedSaveDatabase(true);
     sensors.push_back(sensorNode);
+
+    if (findSensorsState == FindSensorsActive)
+    {
+        // id to list
+    }
 
     checkSensorBindingsForAttributeReporting(&sensors.back());
 
@@ -6131,13 +6145,9 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
                     {
                         group1->setState(Group::StateNormal);
                     }
-                    if (group1->m_deviceMemberships.end() == std::find(group1->m_deviceMemberships.begin(),
-                                                                        group1->m_deviceMemberships.end(),
-                                                                        sensorNode->id()))
-                    {
-                        //not found
-                        group1->m_deviceMemberships.push_back(sensorNode->id());
-                    }
+
+                    //not found
+                    group1->addDeviceMembership(sensorNode->id());
 
                     queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
                     updateEtag(group1->etag);
@@ -6198,6 +6208,8 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
 {
     std::vector<LightNode>::iterator i = nodes.begin();
     std::vector<LightNode>::iterator end = nodes.end();
+
+    // TODO use actual zdp payload for ext and nwk address
 
     for (; i != end; ++i)
     {
@@ -6277,6 +6289,12 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
             }
             */
         }
+    }
+
+    if (findSensorsState == FindSensorsActive)
+    {
+        deCONZ::ZclFrame zclFrame; // dummy
+        handleIndicationFindSensors(ind, zclFrame);
     }
 }
 

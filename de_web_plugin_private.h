@@ -734,6 +734,10 @@ public Q_SLOTS:
     void checkResetState();
     void resetDeviceSendConfirm(bool success);
 
+    // sensors
+    void startFindSensors();
+    void findSensorsTimerFired();
+
     // firmware update
     void initFirmwareUpdate();
     void firmwareUpdateTimerFired();
@@ -844,6 +848,7 @@ public:
     void handleSceneClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleOnOffClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleClusterIndicationGateways(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleIndicationFindSensors(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleCommissioningClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     bool handleMgmtBindRspConfirm(const deCONZ::ApsDataConfirm &conf);
     void handleDeviceAnnceIndication(const deCONZ::ApsDataIndication &ind);
@@ -1097,7 +1102,48 @@ public:
     uint8_t resetDeviceApsRequestId;
 
     // sensors
-    QString lastscan;
+    enum FindSensorsState
+    {
+        FindSensorsIdle,
+        FindSensorsActive,
+        FindSensorsDone,
+    };
+
+    class SensorCommand
+    {
+    public:
+        bool operator ==(const SensorCommand &other) const
+        {
+            return endpoint == other.endpoint &&
+                    cluster == other.cluster &&
+                    zclCommand == other.zclCommand &&
+                    zclCommandParameter == other.zclCommandParameter &&
+                    dstGroup == other.dstGroup;
+        }
+        quint8 endpoint;
+        quint16 cluster;
+        quint8 zclCommand;
+        quint16 dstGroup;
+        uint zclCommandParameter;
+    };
+
+    class SensorCandidate
+    {
+    public:
+        SensorCandidate() :
+            macCapabilities(0)
+        {
+
+        }
+        deCONZ::Address address;
+        quint8 macCapabilities;
+        std::vector<SensorCommand> rxCommands;
+    };
+
+    FindSensorsState findSensorsState;
+    int findSensorsTimeout;
+    QString lastSensorsScan;
+    std::vector<SensorCandidate> findSensorCandidates;
 
     // rules
 

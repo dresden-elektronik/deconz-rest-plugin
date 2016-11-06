@@ -1391,25 +1391,27 @@ int DeRestPluginPrivate::deleteSensor(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::findNewSensors(const ApiRequest &req, ApiResponse &rsp)
 {
-    bool ok;
-    QVariant var = Json::parse(req.content, ok);
-    QVariantMap map = var.toMap();
+    Q_UNUSED(req);
 
-    Q_UNUSED(map);
-
-    if (!ok)
+    if (!isInNetwork())
     {
-        rsp.list.append(errorToMap(ERR_INVALID_JSON, QString("/sensors"), QString("body contains invalid JSON")));
-        rsp.httpStatus = HttpStatusBadRequest;
+        rsp.list.append(errorToMap(ERR_NOT_CONNECTED, QLatin1String("/sensors"), QLatin1String("Not connected")));
+        rsp.httpStatus = HttpStatusServiceUnavailable;
         return REQ_READY_SEND;
     }
 
-    lastscan = QDateTime::currentDateTimeUtc().toString("yyyy-MM-ddTHH:mm:ss");
+    startFindSensors();
+    {
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState[QLatin1String("/sensors")] = QLatin1String("Searching for new devices");
+        rspItemState[QLatin1String("/sensors/duration")] = (double)findSensorsTimeout;
+        rspItem[QLatin1String("success")] = rspItemState;
+        rsp.list.append(rspItem);
+    }
 
-    QVariantMap rspItem;
-    rspItem["success"] = QString("/sensors\": \"Searching for new devices");
-    rsp.list.append(rspItem);
     rsp.httpStatus = HttpStatusOk;
+
     return REQ_READY_SEND;
 }
 
@@ -1422,7 +1424,7 @@ int DeRestPluginPrivate::getNewSensors(const ApiRequest &req, ApiResponse &rsp)
     Q_UNUSED(req);
 
     QVariantMap rspItem;
-    rspItem["success"] = QString("lastscan\": \""+ lastscan);
+    rspItem["success"] = QString("lastscan\": \""+ lastSensorsScan);
     rsp.list.append(rspItem);
     rsp.httpStatus = HttpStatusOk;
     return REQ_READY_SEND;
@@ -1545,4 +1547,335 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map)
     etag.remove('"'); // no quotes allowed in string
     map["etag"] = etag;
     return true;
+}
+
+/*! Starts the search for new sensors.
+ */
+void DeRestPluginPrivate::startFindSensors()
+{
+    if (findSensorsState == FindSensorsIdle || findSensorsState == FindSensorsDone)
+    {
+        findSensorCandidates.clear();
+        lastSensorsScan = QDateTime::currentDateTimeUtc().toString(QLatin1String("yyyy-MM-ddTHH:mm:ss"));
+        QTimer::singleShot(1000, this, SLOT(findSensorsTimerFired()));
+        findSensorsState = FindSensorsActive;
+    }
+    else
+    {
+        Q_ASSERT(findSensorsState == FindSensorsActive);
+    }
+
+    findSensorsTimeout = gwNetworkOpenDuration;
+    gwPermitJoinResend = findSensorsTimeout;
+    if (!resendPermitJoinTimer->isActive())
+    {
+        resendPermitJoinTimer->start(100);
+    }
+}
+
+/*! Handler for find sensors active state.
+ */
+void DeRestPluginPrivate::findSensorsTimerFired()
+{
+    if (gwPermitJoinResend == 0)
+    {
+        findSensorsTimeout = 0; // done
+    }
+
+    if (findSensorsTimeout > 0)
+    {
+        findSensorsTimeout--;
+        QTimer::singleShot(1000, this, SLOT(findSensorsTimerFired()));
+    }
+
+    if (findSensorsTimeout == 0)
+    {
+        findSensorsState = FindSensorsDone;
+    }
+}
+
+/*! Heuristic to detect the type and configuration of devices.
+ */
+void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
+{
+    if (ind.profileId() == ZDP_PROFILE_ID && ind.clusterId() == ZDP_DEVICE_ANNCE_CLID)
+    {
+        QDataStream stream(ind.asdu());
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        quint8 seq;
+        quint16 nwk;
+        quint64 ext;
+        quint8 macCapabilities;
+
+        stream >> seq;
+        stream >> nwk;
+        stream >> ext;
+        stream >> macCapabilities;
+
+        std::vector<SensorCandidate>::const_iterator i = findSensorCandidates.begin();
+        std::vector<SensorCandidate>::const_iterator end = findSensorCandidates.end();
+
+        for (; i != end; ++i)
+        {
+            if (i->address.ext() == ext || i->address.nwk() == nwk)
+            {
+                return;
+            }
+        }
+
+        SensorCandidate sc;
+        sc.address.setExt(ext);
+        sc.address.setNwk(nwk);
+        sc.macCapabilities = macCapabilities;
+        findSensorCandidates.push_back(sc);
+        return;
+    }
+
+    if (ind.dstAddressMode() != deCONZ::ApsGroupAddress && ind.dstAddressMode() != deCONZ::ApsNwkAddress)
+    {
+        return;
+    }
+
+    Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
+
+    if (sensor)
+    {
+        // TODO check updates to group, mode, etc.
+        //return; // already known
+    }
+
+    SensorCandidate *sc = 0;
+    {
+        std::vector<SensorCandidate>::iterator i = findSensorCandidates.begin();
+        std::vector<SensorCandidate>::iterator end = findSensorCandidates.end();
+
+        for (; i != end; ++i)
+        {
+            if (ind.srcAddress().hasExt() && i->address.ext() == ind.srcAddress().ext())
+            {
+                sc = &*i;
+                break;
+            }
+
+            if (ind.srcAddress().hasNwk() && i->address.nwk() == ind.srcAddress().nwk())
+            {
+                sc = &*i;
+                break;
+            }
+        }
+    }
+
+    if (!sc && sensor)
+    {
+        SensorCandidate sc2;
+        sc2.address.setExt(sensor->address().ext());
+        sc2.address.setNwk(sensor->address().nwk());
+        sc2.macCapabilities = sensor->node() ? (int)sensor->node()->nodeDescriptor().macCapabilities() : 0;
+        findSensorCandidates.push_back(sc2);
+        sc = &findSensorCandidates.back();
+    }
+
+    if (!sc) // we need a valid candidate from device announce
+    {
+        return;
+    }
+
+    const quint64 deMacPrefix = 0x00212effff000000ULL;
+
+    // check for dresden elektronik devices
+    if ((sc->address.ext() & deMacPrefix) == deMacPrefix)
+    {
+        if (sc->macCapabilities != 0x80) // end-devices
+            return;
+
+        if (ind.profileId() != HA_PROFILE_ID)
+            return;
+
+        SensorCommand cmd;
+        cmd.cluster = ind.clusterId();
+        cmd.endpoint = ind.srcEndpoint();
+        cmd.dstGroup = ind.dstAddress().group();
+        cmd.zclCommand = zclFrame.commandId();
+        cmd.zclCommandParameter = 0;
+
+        // filter
+        if (cmd.endpoint == 0x01 && cmd.cluster == ONOFF_CLUSTER_ID)
+        {
+            // on: Lighting and Scene Switch left button
+            DBG_Printf(DBG_INFO, "Lighting or Scene Switch left button\n");
+        }
+        else if (cmd.endpoint == 0x02 && cmd.cluster == ONOFF_CLUSTER_ID)
+        {
+            // on: Lighting Switch right button
+            DBG_Printf(DBG_INFO, "Lighting Switch right button\n");
+        }
+        else if (cmd.endpoint == 0x01 && cmd.cluster == SCENE_CLUSTER_ID && cmd.zclCommand == 0x05
+                 && zclFrame.payload().size() >= 3 && zclFrame.payload().at(2) == 0x04)
+        {
+            // recall scene: Scene Switch
+            cmd.zclCommandParameter = zclFrame.payload()[2]; // sceneId
+            DBG_Printf(DBG_INFO, "Scene Switch scene %u\n", cmd.zclCommandParameter);
+        }
+        else
+        {
+            return;
+        }
+
+        for (size_t i = 0; i < sc->rxCommands.size(); i++)
+        {
+            if (sc->rxCommands[i] == cmd)
+                break; // already known
+        }
+
+        sc->rxCommands.push_back(cmd);
+
+        bool isLightingSwitch = false;
+        bool isSceneSwitch = false;
+        quint16 group1 = 0;
+        quint16 group2 = 0;
+
+        for (size_t i = 0; i < sc->rxCommands.size(); i++)
+        {
+            const SensorCommand &c = sc->rxCommands[i];
+            if (c.cluster == SCENE_CLUSTER_ID && c.zclCommandParameter == 0x04 && c.endpoint == 0x01)
+            {
+                group1 = c.dstGroup;
+                isSceneSwitch = true;
+                DBG_Printf(DBG_INFO, "Scene Switch group1 0x%04X\n", group1);
+                break;
+            }
+            else if (c.cluster == ONOFF_CLUSTER_ID && c.endpoint == 0x01)
+            {
+                group1 = c.dstGroup;
+            }
+            else if (c.cluster == ONOFF_CLUSTER_ID && c.endpoint == 0x02)
+            {
+                group2 = c.dstGroup;
+            }
+
+            if (!isSceneSwitch && group1 != 0 && group2 != 0)
+            {
+                if (group1 > group2)
+                {
+                    std::swap(group1, group2); // reorder
+                }
+                isLightingSwitch = true;
+                DBG_Printf(DBG_INFO, "Lighting Switch group1 0x%04X, group2 0x%04X\n", group1, group2);
+                break;
+            }
+        }
+
+        Sensor *s1 = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
+        Sensor *s2 = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x02);
+
+        if (isSceneSwitch || isLightingSwitch)
+        {
+            Sensor sensorNode;
+            SensorFingerprint &fp = sensorNode.fingerPrint();
+            fp.endpoint = 0x01;
+            fp.deviceId = DEV_ID_ZLL_COLOR_CONTROLLER;
+            fp.profileId = HA_PROFILE_ID;
+            fp.inClusters.push_back(BASIC_CLUSTER_ID);
+            fp.inClusters.push_back(COMMISSIONING_CLUSTER_ID);
+            fp.outClusters.push_back(ONOFF_CLUSTER_ID);
+            fp.outClusters.push_back(LEVEL_CLUSTER_ID);
+            fp.outClusters.push_back(SCENE_CLUSTER_ID);
+
+            sensorNode.setIsAvailable(true);
+            sensorNode.setNode(0);
+            sensorNode.address() = sc->address;
+            sensorNode.setType("ZHASwitch");
+            sensorNode.setUniqueId(sc->address.toStringExt());
+            sensorNode.fingerPrint() = fp;
+            sensorNode.setManufacturer("dresden elektronik");
+
+            SensorConfig sensorConfig;
+            sensorConfig.setReachable(true);
+            sensorNode.setConfig(sensorConfig);
+
+            sensorNode.setNeedSaveDatabase(true);
+            updateEtag(sensorNode.etag);
+
+            openDb();
+            if (!s1 && isSceneSwitch)
+            {
+                sensorNode.setId(QString::number(getFreeSensorId()));
+                sensorNode.setMode(Sensor::ModeScenes);
+                sensorNode.setModelId("Scene Switch");
+                sensorNode.setName(QString("Scene Switch %1").arg(sensorNode.id()));
+                sensorNode.setNeedSaveDatabase(true);
+                sensors.push_back(sensorNode);
+                s1 = &sensors.back();
+            }
+            else if (isLightingSwitch)
+            {
+                if (!s1)
+                {
+                    sensorNode.setId(QString::number(getFreeSensorId()));
+                    sensorNode.setMode(Sensor::ModeTwoGroups);
+                    sensorNode.setModelId("Lighting Switch");
+                    sensorNode.setName(QString("Lighting Switch %1").arg(sensorNode.id()));
+                    sensorNode.setNeedSaveDatabase(true);
+                    sensors.push_back(sensorNode);
+                    s1 = &sensors.back();
+                }
+
+                if (!s2)
+                {
+                    sensorNode.setId(QString::number(getFreeSensorId()));
+                    sensorNode.setName(QString("Lighting Switch %1").arg(sensorNode.id()));
+                    sensorNode.setNeedSaveDatabase(true);
+                    sensorNode.fingerPrint().endpoint = 0x02;
+                    sensors.push_back(sensorNode);
+                    s2 = &sensors.back();
+                }
+            }
+            closeDb();
+
+            // create or update first group
+            Group *g = (s1 && group1 != 0) ? getGroupForId(group1) : 0;
+            if (!g && s1)
+            {
+                //create new switch group
+                Group group;
+                group.setAddress(group1);
+                group.addDeviceMembership(s1->id());
+                group.setName(QString("%1").arg(s1->name()));
+                updateEtag(group.etag);
+                groups.push_back(group);
+            }
+            else if (g && s1)
+            {
+                if (g->state() == Group::StateDeleted)
+                {
+                    g->setState(Group::StateNormal);
+                }
+                g->addDeviceMembership(s1->id());
+            }
+
+            // create or update second group (if needed)
+            g = (s2 && group2 != 0) ? getGroupForId(group2) : 0;
+            if (!g && s2)
+            {
+                //create new switch group
+                Group group;
+                group.setAddress(group2);
+                group.addDeviceMembership(s2->id());
+                group.setName(QString("%1").arg(s2->name()));
+                updateEtag(group.etag);
+                groups.push_back(group);
+            }
+            else if (g && s2)
+            {
+                if (g->state() == Group::StateDeleted)
+                {
+                    g->setState(Group::StateNormal);
+                }
+                g->addDeviceMembership(s2->id());
+            }
+
+            queSaveDb(DB_GROUPS | DB_SENSORS, DB_SHORT_SAVE_DELAY);
+        }
+    }
 }
