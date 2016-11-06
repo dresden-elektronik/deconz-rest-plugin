@@ -125,6 +125,13 @@ struct SensorFingerprint
 class Sensor : public RestNodeBase
 {
 public:    
+    enum SensorMode
+    {
+        ModeScenes = 1,
+        ModeTwoGroups = 2,
+        ModeColorTemperature = 3
+    };
+
     enum DeletedState
     {
         StateNormal,
@@ -150,8 +157,8 @@ public:
     void setState(const SensorState &state);
     const SensorConfig &config() const;
     void setConfig(const SensorConfig &config);
-    const uint8_t &mode() const;
-    void setMode(const uint8_t &mode);
+    SensorMode mode() const;
+    void setMode(SensorMode mode);
     uint8_t resetRetryCount() const;
     void setResetRetryCount(uint8_t resetRetryCount);
     uint8_t zdpResetSeq() const;
@@ -178,7 +185,7 @@ private:
     SensorState m_state;
     SensorConfig m_config;
     SensorFingerprint m_fingerPrint;
-    uint8_t m_mode;
+    SensorMode m_mode;
     uint8_t m_resetRetryCount;
     uint8_t m_zdpResetSeq;
 };

@@ -6181,7 +6181,7 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
 
                     updateEtag(group.etag);
                     groups.push_back(group);
-                    sensorNode->setMode(2); // sensor was reset -> set mode to '2 groups'
+                    sensorNode->setMode(Sensor::ModeTwoGroups); // sensor was reset -> set mode to '2 groups'
                     sensorNode->setNeedSaveDatabase(true);
                     queSaveDb(DB_GROUPS | DB_SENSORS, DB_SHORT_SAVE_DELAY);
                 }

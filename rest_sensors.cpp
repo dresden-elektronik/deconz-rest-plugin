@@ -675,7 +675,6 @@ int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
     QString id = req.path[3];
     Sensor *sensor = getSensorNodeForId(id);
     QString name;
-    uint8_t mode;
     bool ok;
     bool error = false;
     QVariant var = Json::parse(req.content, ok);
@@ -785,9 +784,9 @@ int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
 
     if (map.contains("mode")) // optional
     {
-        mode = map["mode"].toUInt();
+        Sensor::SensorMode mode = (Sensor::SensorMode)map["mode"].toUInt(&ok);
 
-        if ((map["mode"].type() == QVariant::Double) && (mode == 1 || mode == 2 || mode == 3))
+        if (ok && (map["mode"].type() == QVariant::Double) && (mode == Sensor::ModeScenes || mode == Sensor::ModeTwoGroups || mode == Sensor::ModeColorTemperature))
         {
             if (sensor->mode() != mode)
             {
@@ -795,7 +794,7 @@ int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
                 sensor->setMode(mode);
             }
 
-           if (mode == 2)
+           if (mode == Sensor::ModeTwoGroups)
            {
                std::vector<Sensor>::iterator s = sensors.begin();
                std::vector<Sensor>::iterator send = sensors.end();
@@ -826,7 +825,7 @@ int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
                    }
                }
            }
-           rspItemState[QString("/sensors/%1/mode:").arg(id)] = mode;
+           rspItemState[QString("/sensors/%1/mode:").arg(id)] = (double)mode;
            rspItem["success"] = rspItemState;
            rsp.list.append(rspItem);
            updateEtag(sensor->etag);
@@ -835,7 +834,7 @@ int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
         }
         else
         {
-            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/mode").arg(id), QString("invalid value, %1, for parameter, /sensors/%2/mode").arg(mode).arg(id)));
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/mode").arg(id), QString("invalid value, %1, for parameter, /sensors/%2/mode").arg((int)mode).arg(id)));
             rsp.httpStatus = HttpStatusBadRequest;
         }
     }

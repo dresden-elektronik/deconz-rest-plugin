@@ -1586,7 +1586,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             else if (strcmp(colname[i], "mode") == 0)
             {
-                sensor.setMode(val.toUInt());
+                sensor.setMode((Sensor::SensorMode)val.toUInt());
             }
             else if (strcmp(colname[i], "etag") == 0)
             {

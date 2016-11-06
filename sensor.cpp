@@ -122,7 +122,7 @@ Sensor::Sensor() :
     m_modelid(""),
     m_manufacturer("unknown"),
     m_swversion("1.0"),
-    m_mode(2),
+    m_mode(ModeTwoGroups),
     m_resetRetryCount(0)
 {
     sensorTypes.append("CLIPSwitch");
@@ -174,7 +174,7 @@ void Sensor::setName(const QString &name)
  * 2 = Groups
  * 3 = Color Temperature
  */
-const uint8_t &Sensor::mode() const
+Sensor::SensorMode Sensor::mode() const
 {
    return m_mode;
 }
@@ -185,7 +185,7 @@ const uint8_t &Sensor::mode() const
  * 3 = Color Temperature
     \param mode the sensor mode
  */
-void Sensor::setMode(const uint8_t &mode)
+void Sensor::setMode(SensorMode mode)
 {
     m_mode = mode;
 }
