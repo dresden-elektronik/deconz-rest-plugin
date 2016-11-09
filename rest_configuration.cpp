@@ -2280,19 +2280,20 @@ void DeRestPluginPrivate::restoreWifiState()
 #ifdef Q_OS_LINUX
     if (gwWifi == "running")
     {
+        QString command;
         if (gwWifiType == "client")
         {
-            std::string command = "sudo ifdown wlan0" ;
-            system(command.c_str());
-            std::string command = "sudo ifup wlan0" ;
-            system(command.c_str());
+            command = "sudo ifdown wlan0";
+            system(qPrintable(command));
+            command = "sudo ifup wlan0";
+            system(qPrintable(command));
         }
         else
         {
-            std::string command = "sudo service hostapd stop" ;
-            system(command.c_str());
-            std::string command = "sudo service hostapd start" ;
-            system(command.c_str());
+            command = "sudo service hostapd stop";
+            system(qPrintable(command));
+            command = "sudo service hostapd start";
+            system(qPrintable(command));
         }
     }
 #endif
