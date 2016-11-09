@@ -5918,7 +5918,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
             }
         }
         // turning 'on' the group is also a assumtion but a very likely one
-        if (!group->isOn())
+        if (group && !group->isOn())
         {
             group->setIsOn(true);
             updateEtag(group->etag);
