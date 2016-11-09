@@ -1637,14 +1637,6 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
         return;
     }
 
-    Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
-
-    if (sensor)
-    {
-        // TODO check updates to group, mode, etc.
-        //return; // already known
-    }
-
     SensorCandidate *sc = 0;
     {
         std::vector<SensorCandidate>::iterator i = findSensorCandidates.begin();
@@ -1666,17 +1658,35 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
         }
     }
 
-    if (!sc && sensor)
+
+    quint8 macCapabilities = 0;
+    deCONZ::Address indAddress;
+    if (!sc)
+    {
+        Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
+
+        if (sensor)
+        {
+            indAddress = sensor->address();
+            macCapabilities = sensor->node() ? (int)sensor->node()->nodeDescriptor().macCapabilities() : 0x80;
+        }
+        else if (apsCtrl)
+        {
+            apsCtrl->resolveAddress(indAddress);
+            macCapabilities = 0x80; // assume end-device
+        }
+    }
+
+    if (!sc && indAddress.hasExt() && indAddress.hasNwk())
     {
         SensorCandidate sc2;
-        sc2.address.setExt(sensor->address().ext());
-        sc2.address.setNwk(sensor->address().nwk());
-        sc2.macCapabilities = sensor->node() ? (int)sensor->node()->nodeDescriptor().macCapabilities() : 0;
+        sc2.address = indAddress;
+        sc2.macCapabilities = macCapabilities;
         findSensorCandidates.push_back(sc2);
         sc = &findSensorCandidates.back();
     }
 
-    if (!sc) // we need a valid candidate from device announce
+    if (!sc) // we need a valid candidate from device announce or cache
     {
         return;
     }
