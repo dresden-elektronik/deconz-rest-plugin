@@ -25,6 +25,9 @@
 #define OTAU_IMAGE_PAGE_REQUEST_CMD_ID       0x04
 #define OTAU_UPGRADE_END_REQUEST_CMD_ID      0x06
 
+// artifical attribute ids for some OTAU related parameters
+#define OTAU_SWVERSION_ID     0x1000
+
 #define DONT_CARE_FILE_VERSION                 0xFFFFFFFFUL
 
 #define OTAU_IMAGE_TYPE_QJ             0x00 // Query jitter
@@ -32,6 +35,7 @@
 #define OTAU_IMAGE_TYPE_QJ_MFC_IT      0x02 // Query jitter, manufacturer code, image type
 #define OTAU_IMAGE_TYPE_QJ_MFC_IT_FV   0x03 // Query jitter, manufacturer code, image type, file version
 
+#define OTAU_NOTIFY_INTERVAL      (1000 * 60 * 30)
 #define OTAU_IDLE_TICKS_NOTIFY    60  // seconds
 #define OTAU_BUSY_TICKS           60  // seconds
 
@@ -64,7 +68,7 @@ void DeRestPluginPrivate::otauDataIndication(const deCONZ::ApsDataIndication &in
         LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());
 
         // extract software version from request
-        if (lightNode && lightNode->swBuildId().isEmpty())
+        if (lightNode)
         {
             QDataStream stream(zclFrame.payload());
             stream.setByteOrder(QDataStream::LittleEndian);
@@ -85,17 +89,25 @@ void DeRestPluginPrivate::otauDataIndication(const deCONZ::ApsDataIndication &in
                 stream >> hwVersion;
             }
 
-            QString version;
-            version.sprintf("%08X", swVersion);
+            deCONZ::NumericUnion val;
+            val.u32 = swVersion;
 
-            lightNode->setSwBuildId(version);
-            updateEtag(lightNode->etag);
+            lightNode->setZclValue(NodeValue::UpdateByZclRead, OTAU_CLUSTER_ID, OTAU_SWVERSION_ID, val);
 
-            // read real sw build id
-            lightNode->setLastRead(READ_SWBUILD_ID, idleTotalCounter);
-            lightNode->enableRead(READ_SWBUILD_ID);
-            lightNode->setNextReadTime(READ_SWBUILD_ID, queryTime);
-            queryTime = queryTime.addSecs(5);
+            if (lightNode->swBuildId().isEmpty())
+            {
+                QString version;
+                version.sprintf("%08X", swVersion);
+
+                lightNode->setSwBuildId(version);
+                updateEtag(lightNode->etag);
+
+                // read real sw build id
+                lightNode->setLastRead(READ_SWBUILD_ID, idleTotalCounter);
+                lightNode->enableRead(READ_SWBUILD_ID);
+                lightNode->setNextReadTime(READ_SWBUILD_ID, queryTime);
+                queryTime = queryTime.addSecs(5);
+            }
         }
     }
     else if ((ind.clusterId() == OTAU_CLUSTER_ID) && (zclFrame.commandId() == OTAU_UPGRADE_END_REQUEST_CMD_ID))
@@ -130,55 +142,6 @@ void DeRestPluginPrivate::otauDataIndication(const deCONZ::ApsDataIndication &in
         }
 
         otauBusyTicks = OTAU_BUSY_TICKS;
-    }
-}
-
-/*! Sends otau notifcation (de specific otau cluster) to \p node.
- */
-void DeRestPluginPrivate::otauSendNotify(LightNode *node)
-{
-    if (!node->isAvailable())
-    {
-        return;
-    }
-
-    deCONZ::ApsDataRequest req;
-
-    req.setDstAddressMode(deCONZ::ApsExtAddress);
-    req.dstAddress() = node->address();
-    req.setDstEndpoint(DE_OTAU_ENDPOINT);
-    req.setSrcEndpoint(DE_OTAU_ENDPOINT);
-    req.setProfileId(DE_PROFILE_ID);
-    req.setClusterId(OTAU_IMAGE_NOTIFY_CLID);
-
-    req.setTxOptions(0);
-    req.setRadius(0);
-
-    QByteArray arr;
-    QDataStream stream(&arr, QIODevice::WriteOnly);
-    stream.setByteOrder(QDataStream::LittleEndian);
-
-    uint8_t reqType = OTAU_IMAGE_TYPE_QJ_MFC_IT_FV;
-    uint8_t queryJitter = 100;
-    uint16_t manufacturerCode = VENDOR_ATMEL;
-    uint16_t imageType = 0x0000;
-    uint32_t fileVersion = DONT_CARE_FILE_VERSION; // any node shall answer
-
-    stream << reqType;
-    stream << queryJitter;
-    stream << manufacturerCode;
-    stream << imageType;
-    stream << fileVersion;
-
-    req.setAsdu(arr);
-
-    if (deCONZ::ApsController::instance()->apsdeDataRequest(req) == 0)
-    {
-        DBG_Printf(DBG_INFO, "otau send image notify\n");
-    }
-    else
-    {
-        DBG_Printf(DBG_INFO, "otau send image notify failed\n");
     }
 }
 
@@ -296,33 +259,55 @@ void DeRestPluginPrivate::otauTimerFired()
         return;
     }
 
-    otauIdleTicks = 0;
-
     if (otauNotifyIter >= nodes.size())
     {
         otauNotifyIter = 0;
     }
 
     LightNode *lightNode = &nodes[otauNotifyIter];
+    otauNotifyIter++;
 
-    if (lightNode->isAvailable() &&
-        lightNode->otauClusterId() == OTAU_CLUSTER_ID)
+    if (!lightNode->isAvailable() &&
+        lightNode->otauClusterId() != OTAU_CLUSTER_ID)
     {
-        // std otau
-        if (lightNode->manufacturerCode() == VENDOR_DDEL)
-        {
-            // whitelist active notify to some devices
-            if (lightNode->modelId().startsWith("FLS-NB"))
-            {
-                otauSendStdNotify(lightNode);
-            }
-        }
+        return;
     }
+
+    // filter vendor
+    if (lightNode->manufacturerCode() != VENDOR_DDEL)
+    {
+        return;
+    }
+
+    // whitelist active notify to some devices
+    if (lightNode->modelId().startsWith("FLS-NB"))
+    { }
+    else if (lightNode->modelId().startsWith("FLS-PP3"))
+    { }
+    else if (lightNode->modelId().startsWith("FLS-A"))
+    { }
     else
     {
-        // de specific otau
-        //otauSendNotify(lightNode);
+        return;
     }
 
-    otauNotifyIter++;
+    NodeValue &val = lightNode->getZclValue(OTAU_CLUSTER_ID, OTAU_SWVERSION_ID);
+
+    if (val.updateType == NodeValue::UpdateByZclRead)
+    {
+        if (val.timestamp.isValid() && val.timestamp.elapsed() < OTAU_NOTIFY_INTERVAL)
+        {
+            return;
+        }
+
+        if (val.timestampLastReadRequest.isValid() && val.timestampLastReadRequest.elapsed() < OTAU_NOTIFY_INTERVAL)
+        {
+            return;
+        }
+
+        val.timestampLastReadRequest.start();
+    }
+
+    otauSendStdNotify(lightNode);
+    otauIdleTicks = 0;
 }

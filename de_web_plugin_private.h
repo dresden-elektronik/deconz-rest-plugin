@@ -637,7 +637,6 @@ public:
     // Otau
     void initOtau();
     void otauDataIndication(const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
-    void otauSendNotify(LightNode *node);
     void otauSendStdNotify(LightNode *node);
     bool isOtauBusy();
     bool isOtauActive();
