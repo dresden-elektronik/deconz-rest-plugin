@@ -1788,7 +1788,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
             sensorNode.setType("ZHASwitch");
             sensorNode.setUniqueId(sc->address.toStringExt());
             sensorNode.fingerPrint() = fp;
-            sensorNode.setManufacturer("dresden elektronik");
+            sensorNode.setManufacturer(QLatin1String("dresden elektronik"));
 
             SensorConfig sensorConfig;
             sensorConfig.setReachable(true);
@@ -1802,7 +1802,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
             {
                 sensorNode.setId(QString::number(getFreeSensorId()));
                 sensorNode.setMode(Sensor::ModeScenes);
-                sensorNode.setModelId("Scene Switch");
+                sensorNode.setModelId(QLatin1String("Scene Switch"));
                 sensorNode.setName(QString("Scene Switch %1").arg(sensorNode.id()));
                 sensorNode.setNeedSaveDatabase(true);
                 sensors.push_back(sensorNode);
@@ -1833,9 +1833,35 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
             }
             closeDb();
 
+            // check updated data
+            if (s1 && s1->modelId().isEmpty())
+            {
+                if      (isSceneSwitch)    { s1->setModelId(QLatin1String("Scene Switch")); }
+                else if (isLightingSwitch) { s1->setModelId(QLatin1String("Lighting Switch")); }
+                s1->setNeedSaveDatabase(true);
+            }
+
+            if (s2 && s2->modelId().isEmpty())
+            {
+                if (isLightingSwitch) { s2->setModelId(QLatin1String("Lighting Switch")); }
+                s2->setNeedSaveDatabase(true);
+            }
+
+            if (s1 && s1->manufacturer().isEmpty())
+            {
+                s1->setManufacturer(QLatin1String("dresden elektronik"));
+                s1->setNeedSaveDatabase(true);
+            }
+
+            if (s2 && s2->manufacturer().isEmpty())
+            {
+                s2->setManufacturer(QLatin1String("dresden elektronik"));
+                s2->setNeedSaveDatabase(true);
+            }
+
             // create or update first group
             Group *g = (s1 && group1 != 0) ? getGroupForId(group1) : 0;
-            if (!g && s1)
+            if (!g && s1 && group1 != 0)
             {
                 //create new switch group
                 Group group;
@@ -1856,7 +1882,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
 
             // create or update second group (if needed)
             g = (s2 && group2 != 0) ? getGroupForId(group2) : 0;
-            if (!g && s2)
+            if (!g && s2 && group2 != 0)
             {
                 //create new switch group
                 Group group;
