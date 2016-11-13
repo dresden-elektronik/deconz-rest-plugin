@@ -49,7 +49,7 @@ QT             += network
 INCLUDEPATH    += ../.. \
                   ../../common
                   
-unix:INCLUDEPATH += /usr/include
+#unix:INCLUDEPATH += /usr/include
 
 # Version Major.Minor.Build
 # Important: don't change the format of this line since it's parsed by scripts!
