@@ -365,10 +365,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             break;
         }
 
-        if (findSensorsState == FindSensorsActive)
-        {
-            handleIndicationFindSensors(ind, zclFrame);
-        }
+        handleIndicationFindSensors(ind, zclFrame);
     }
     else if (ind.profileId() == ZDP_PROFILE_ID)
     {

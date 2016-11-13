@@ -229,10 +229,13 @@ Scene *Group::getScene(quint8 sceneId)
     return 0;
 }
 
-void Group::addDeviceMembership(const QString &id)
+bool Group::addDeviceMembership(const QString &id)
 {
     if (std::find(m_deviceMemberships.begin(), m_deviceMemberships.end(), id) == m_deviceMemberships.end())
     {
         m_deviceMemberships.push_back(id);
+        return true;
     }
+
+    return false;
 }

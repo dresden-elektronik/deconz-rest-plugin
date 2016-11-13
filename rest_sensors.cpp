@@ -1658,7 +1658,6 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
         }
     }
 
-
     quint8 macCapabilities = 0;
     deCONZ::Address indAddress;
     if (!sc)
@@ -1672,6 +1671,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
         }
         else if (apsCtrl)
         {
+            indAddress = ind.srcAddress();
             apsCtrl->resolveAddress(indAddress);
             macCapabilities = 0x80; // assume end-device
         }
@@ -1732,13 +1732,20 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
             return;
         }
 
+        bool found = false;
         for (size_t i = 0; i < sc->rxCommands.size(); i++)
         {
             if (sc->rxCommands[i] == cmd)
-                break; // already known
+            {
+                found = true;
+                break;
+            }
         }
 
-        sc->rxCommands.push_back(cmd);
+        if (!found)
+        {
+            sc->rxCommands.push_back(cmd);
+        }
 
         bool isLightingSwitch = false;
         bool isSceneSwitch = false;
@@ -1807,41 +1814,50 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
             sensorNode.setNeedSaveDatabase(true);
             updateEtag(sensorNode.etag);
 
-            openDb();
+            bool update = false;
+
             if (!s1 && isSceneSwitch)
             {
+                openDb();
                 sensorNode.setId(QString::number(getFreeSensorId()));
+                closeDb();
                 sensorNode.setMode(Sensor::ModeScenes);
                 sensorNode.setModelId(QLatin1String("Scene Switch"));
                 sensorNode.setName(QString("Scene Switch %1").arg(sensorNode.id()));
                 sensorNode.setNeedSaveDatabase(true);
                 sensors.push_back(sensorNode);
                 s1 = &sensors.back();
+                update = true;
             }
             else if (isLightingSwitch)
             {
                 if (!s1)
                 {
+                    openDb();
                     sensorNode.setId(QString::number(getFreeSensorId()));
+                    closeDb();
                     sensorNode.setMode(Sensor::ModeTwoGroups);
                     sensorNode.setModelId("Lighting Switch");
                     sensorNode.setName(QString("Lighting Switch %1").arg(sensorNode.id()));
                     sensorNode.setNeedSaveDatabase(true);
                     sensors.push_back(sensorNode);
                     s1 = &sensors.back();
+                    update = true;
                 }
 
                 if (!s2)
                 {
+                    openDb();
                     sensorNode.setId(QString::number(getFreeSensorId()));
+                    closeDb();
                     sensorNode.setName(QString("Lighting Switch %1").arg(sensorNode.id()));
                     sensorNode.setNeedSaveDatabase(true);
                     sensorNode.fingerPrint().endpoint = 0x02;
                     sensors.push_back(sensorNode);
                     s2 = &sensors.back();
+                    update = true;
                 }
             }
-            closeDb();
 
             // check updated data
             if (s1 && s1->modelId().isEmpty())
@@ -1849,24 +1865,28 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
                 if      (isSceneSwitch)    { s1->setModelId(QLatin1String("Scene Switch")); }
                 else if (isLightingSwitch) { s1->setModelId(QLatin1String("Lighting Switch")); }
                 s1->setNeedSaveDatabase(true);
+                update = true;
             }
 
             if (s2 && s2->modelId().isEmpty())
             {
                 if (isLightingSwitch) { s2->setModelId(QLatin1String("Lighting Switch")); }
                 s2->setNeedSaveDatabase(true);
+                update = true;
             }
 
             if (s1 && s1->manufacturer().isEmpty())
             {
                 s1->setManufacturer(QLatin1String("dresden elektronik"));
                 s1->setNeedSaveDatabase(true);
+                update = true;
             }
 
             if (s2 && s2->manufacturer().isEmpty())
             {
                 s2->setManufacturer(QLatin1String("dresden elektronik"));
                 s2->setNeedSaveDatabase(true);
+                update = true;
             }
 
             // create or update first group
@@ -1880,6 +1900,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
                 group.setName(QString("%1").arg(s1->name()));
                 updateEtag(group.etag);
                 groups.push_back(group);
+                update = true;
             }
             else if (g && s1)
             {
@@ -1887,7 +1908,10 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
                 {
                     g->setState(Group::StateNormal);
                 }
-                g->addDeviceMembership(s1->id());
+                if (g->addDeviceMembership(s1->id()))
+                {
+                    update = true;
+                }
             }
 
             // create or update second group (if needed)
@@ -1908,10 +1932,16 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
                 {
                     g->setState(Group::StateNormal);
                 }
-                g->addDeviceMembership(s2->id());
+                if (g->addDeviceMembership(s2->id()))
+                {
+                    update = true;
+                }
             }
 
-            queSaveDb(DB_GROUPS | DB_SENSORS, DB_SHORT_SAVE_DELAY);
+            if (update)
+            {
+                queSaveDb(DB_GROUPS | DB_SENSORS, DB_SHORT_SAVE_DELAY);
+            }
         }
     }
 }
