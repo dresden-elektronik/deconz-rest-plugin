@@ -50,11 +50,6 @@ int DeRestPluginPrivate::handleConfigurationApi(const ApiRequest &req, ApiRespon
     {
         return getWifiState(req, rsp);
     }
-    // PUT /api/<apikey>/config/wifi/restore
-    else if ((req.path.size() == 5) && (req.hdr.method() == "PUT") && (req.path[2] == "config") && (req.path[3] == "wifi") && (req.path[4] == "restore"))
-    {
-        return restoreWifiConfig(req, rsp);
-    }
     // PUT /api/<apikey>/config
     else if ((req.path.size() == 3) && (req.hdr.method() == "PUT") && (req.path[2] == "config"))
     {
@@ -870,7 +865,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
         if ((gwWifi == "not-configured" && wifi == "running") ||
             (wifiType == "client" && map.contains("wifipassword") && map.contains("wifiname")))
-        { 
+        {
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
             command = "sudo bash /usr/bin/deCONZ-configure-wifi.sh " + wifiType.toStdString() + " \"" + wifiName.toStdString() + "\" \"" + wifiPassword.toStdString() + "\" " + wifiChannel.toStdString();
@@ -958,7 +953,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
             rsp.list.append(rspItem);
 #endif
 #endif
-        }   
+        }
         else if ((gwWifi == "running" && wifi == "running") || (gwWifi == "not-running" && wifi == "not-running"))
         {
             ret = false;
@@ -2015,7 +2010,7 @@ int DeRestPluginPrivate::restoreWifiConfig(const ApiRequest &req, ApiResponse &r
 /*! check wifi state on raspberry pi.
  */
 void DeRestPluginPrivate::checkWifiState()
-{        
+{
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
     char const* cmd = "sudo bash /usr/bin/deCONZ-check-wifi.sh";
