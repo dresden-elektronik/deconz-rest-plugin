@@ -50,6 +50,11 @@ int DeRestPluginPrivate::handleConfigurationApi(const ApiRequest &req, ApiRespon
     {
         return getWifiState(req, rsp);
     }
+    // PUT /api/<apikey>/config/wifi/restore
+    else if ((req.path.size() == 5) && (req.hdr.method() == "PUT") && (req.path[2] == "config") && (req.path[3] == "wifi") && (req.path[4] == "restore"))
+    {
+        return restoreWifiConfig(req, rsp);
+    }
     // PUT /api/<apikey>/config
     else if ((req.path.size() == 3) && (req.hdr.method() == "PUT") && (req.path[2] == "config"))
     {
