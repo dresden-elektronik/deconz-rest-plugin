@@ -1201,6 +1201,12 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 #ifdef Q_OS_LINUX
             if (gwWifiType != "client")
             {
+                command = "sudo ifdown wlan0";
+                system(command.c_str());
+
+                command = "sudo ifup wlan0";
+                system(command.c_str());
+
                 command = "sudo service hostapd stop";
                 system(command.c_str());
 
