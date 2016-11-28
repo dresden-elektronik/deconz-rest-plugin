@@ -860,7 +860,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
             wifiPassword = map["wifipassword"].toString();
 
             if (map["wifipassword"].type() != QVariant::String ||
-                wifiPassword.length() < 8 || wifiPassword.length() > 64)
+                wifiPassword.length() < 8 || wifiPassword.length() > 63)
             {
                 rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/wifipassword"), QString("invalid value, %1, for parameter, wifipassword").arg(map["wifipassword"].toString())));
                 rsp.httpStatus = HttpStatusBadRequest;
@@ -1032,7 +1032,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
                 wifiPassword = map["wifipassword"].toString();
 
                 if (map["wifipassword"].type() != QVariant::String ||
-                    wifiPassword.length() < 8 || wifiPassword.length() > 64)
+                    wifiPassword.length() < 8 || wifiPassword.length() > 63)
                 {
                     rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/wifipassword"), QString("invalid value, %1, for parameter, wifipassword").arg(map["wifipassword"].toString())));
                     rsp.httpStatus = HttpStatusBadRequest;
@@ -1179,7 +1179,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         QString wifiPassword = map["wifipassword"].toString();
 
         if (map["wifipassword"].type() != QVariant::String ||
-            wifiPassword.length() < 8 || wifiPassword.length() > 64)
+            wifiPassword.length() < 8 || wifiPassword.length() > 63)
         {
             rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/wifipassword"), QString("invalid value, %1, for parameter, wifipassword").arg(map["wifipassword"].toString())));
             rsp.httpStatus = HttpStatusBadRequest;
