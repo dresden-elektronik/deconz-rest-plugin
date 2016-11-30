@@ -591,6 +591,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
     bool ok;
     bool changed = false;
+    bool restartNetwork = false;
     QVariant var = Json::parse(req.content, ok);
     QVariantMap map = var.toMap();
 #ifdef ARCH_ARM
@@ -875,7 +876,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 #ifdef Q_OS_LINUX
             command = "sudo bash /usr/bin/deCONZ-configure-wifi.sh " + wifiType.toStdString() + " \"" + wifiName.toStdString() + "\" \"" + wifiPassword.toStdString() + "\" " + wifiChannel.toStdString();
             system(command.c_str());
-
+/*
             char const* cmd = "ifconfig wlan0 | grep 'inet addr:' | cut -d: -f2 | cut -d' ' -f1";
             FILE* pipe = popen(cmd, "r");
             if (!pipe)
@@ -899,10 +900,10 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
             rspItemState["ip"] = ip;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
-
+*/
 #endif
 #endif
-        }
+        }       
         else if ((gwWifi == "not-running" && wifi == "running") ||
                  (gwWifi == "running" && wifi == "not-running"))
         {
@@ -1044,7 +1045,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 #ifdef Q_OS_LINUX
             command = "sudo bash /usr/bin/deCONZ-configure-wifi.sh " + wifiType.toStdString() + " \"" + wifiName.toStdString() + "\" \"" + wifiPassword.toStdString() + "\" " + wifiChannel.toStdString();
             system(command.c_str());
-
+/*
             char const* cmd = "ifconfig wlan0 | grep 'inet addr:' | cut -d: -f2 | cut -d' ' -f1";
             FILE* pipe = popen(cmd, "r");
             if (!pipe)
@@ -1068,6 +1069,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
             rspItemState["ip"] = ip;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
+*/
 #endif
 #endif
             gwWifiType = wifiType;
@@ -1107,18 +1109,11 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 #endif
             if (gwWifi == "running")
             {
-#ifdef ARCH_ARM
-#ifdef Q_OS_LINUX
                 if (gwWifiType != "client")
                 {
-                    command = "sudo service hostapd stop";
-                    system(command.c_str());
-
-                    command = "sudo service hostapd start";
-                    system(command.c_str());
+                    restartNetwork = true;
                 }
-#endif
-#endif
+
             }
             gwWifiName = wifiName;
             queSaveDb(DB_CONFIG,DB_SHORT_SAVE_DELAY);
@@ -1152,15 +1147,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 #endif
             if (gwWifi == "running")
             {
-#ifdef ARCH_ARM
-#ifdef Q_OS_LINUX
-                command = "sudo service hostapd stop";
-                system(command.c_str());
-
-                command = "sudo service hostapd start";
-                system(command.c_str());
-#endif
-#endif
+                restartNetwork = true;
             }
             gwWifiChannel = wifiChannel;
             queSaveDb(DB_CONFIG,DB_SHORT_SAVE_DELAY);
@@ -1197,24 +1184,11 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 #endif
         if (gwWifi == "running")
         {
-#ifdef ARCH_ARM
-#ifdef Q_OS_LINUX
             if (gwWifiType != "client")
             {
-                command = "sudo ifdown wlan0";
-                system(command.c_str());
-
-                command = "sudo ifup wlan0";
-                system(command.c_str());
-
-                command = "sudo service hostapd stop";
-                system(command.c_str());
-
-                command = "sudo service hostapd start";
-                system(command.c_str());
+                restartNetwork = true;
             }
-#endif
-#endif
+
         }
         QVariantMap rspItem;
         QVariantMap rspItemState;
@@ -1498,6 +1472,19 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
     if (changed)
     {
         updateEtag(gwConfigEtag);
+    }
+
+    if (restartNetwork)
+    {
+#ifdef ARCH_ARM
+#ifdef Q_OS_LINUX
+        command = "sudo service hostapd stop";
+        system(command.c_str());
+
+        command = "sudo service hostapd start";
+        system(command.c_str());
+#endif
+#endif
     }
 
     rsp.etag = gwConfigEtag;
