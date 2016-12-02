@@ -2102,6 +2102,7 @@ void DeRestPluginPrivate::checkWifiState()
             // changed
             updateEtag(gwConfigEtag);
             gwWifi = "not-running";
+            queSaveDb(DB_CONFIG,DB_SHORT_SAVE_DELAY);
         }
         return;
     }
@@ -2147,9 +2148,9 @@ void DeRestPluginPrivate::checkWifiState()
             // changed
             updateEtag(gwConfigEtag);
             gwWifi = "running";
+            queSaveDb(DB_CONFIG,DB_SHORT_SAVE_DELAY);
         }
 
-        queSaveDb(DB_CONFIG,DB_SHORT_SAVE_DELAY);
         return;
     }
 #endif
