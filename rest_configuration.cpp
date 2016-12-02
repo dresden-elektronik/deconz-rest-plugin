@@ -1484,11 +1484,23 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
     {
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
-        command = "sudo service hostapd stop";
-        system(command.c_str());
 
-        command = "sudo service hostapd start";
-        system(command.c_str());
+        char const* cmd = "";
+        cmd = "sudo bash /usr/bin/deCONZ-startstop-wifi.sh accesspoint start";
+        FILE* pipe = popen(cmd, "r");
+        if (!pipe)
+        {
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/config/wifi"), QString("Error setting wifi")));
+            rsp.httpStatus = HttpStatusServiceUnavailable;
+            return REQ_READY_SEND;
+        }
+        char buffer[128];
+        std::string result = "";
+        while(!feof(pipe)) {
+            if(fgets(buffer, 128, pipe) != NULL)
+                result += buffer;
+        }
+        pclose(pipe);
 #endif
 #endif
     }
