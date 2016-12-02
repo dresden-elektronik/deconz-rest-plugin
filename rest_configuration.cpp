@@ -1141,13 +1141,19 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         {
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
-            command = "sudo sed -i 's/^channel=.*/channel=" + wifiChannel.toStdString() + "/g' /etc/hostapd/hostapd.conf";
-            system(command.c_str());
+            if (gwWifiType != "client")
+            {
+                command = "sudo sed -i 's/^channel=.*/channel=" + wifiChannel.toStdString() + "/g' /etc/hostapd/hostapd.conf";
+                system(command.c_str())
+            }
 #endif
 #endif
             if (gwWifi == "running")
             {
-                restartNetwork = true;
+                if (gwWifiType != "client")
+                {
+                    restartNetwork = true;
+                }
             }
             gwWifiChannel = wifiChannel;
             queSaveDb(DB_CONFIG,DB_SHORT_SAVE_DELAY);
