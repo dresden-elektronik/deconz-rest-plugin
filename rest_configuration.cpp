@@ -2289,37 +2289,6 @@ int DeRestPluginPrivate::scanWifiNetworks(const ApiRequest &req, ApiResponse &rs
     return REQ_READY_SEND;
 }
 
-/*! restore wifi state of raspberry pi after reboot.
- */
-void DeRestPluginPrivate::restoreWifiState()
-{
-#ifdef ARCH_ARM
-#ifdef Q_OS_LINUX
-    if (gwUpdateChannel == "alpha")
-    {
-        if (gwWifi == "running")
-        {
-            QString command;
-            if (gwWifiType == "client")
-            {
-                command = "sudo ifdown wlan0";
-                system(qPrintable(command));
-                command = "sudo ifup wlan0";
-                system(qPrintable(command));
-            }
-            else
-            {
-                command = "sudo service hostapd stop";
-                system(qPrintable(command));
-                command = "sudo service hostapd start";
-                system(qPrintable(command));
-            }
-        }
-    }
-#endif
-#endif
-}
-
 /*! Check if permitJoin is > 60 seconds then resend permitjoin with 60 seconds
  */
 void DeRestPluginPrivate::resendPermitJoinTimerFired()

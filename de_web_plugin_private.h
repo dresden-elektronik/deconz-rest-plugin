@@ -749,7 +749,6 @@ public Q_SLOTS:
 
     //wifi settings
     void checkWifiState();
-    void restoreWifiState();
     int scanWifiNetworks(const ApiRequest &req, ApiResponse &rsp);
 
     // gateways
