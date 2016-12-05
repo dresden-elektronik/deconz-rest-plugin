@@ -1144,7 +1144,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
             if (gwWifiType != "client")
             {
                 command = "sudo sed -i 's/^channel=.*/channel=" + wifiChannel.toStdString() + "/g' /etc/hostapd/hostapd.conf";
-                system(command.c_str())
+                system(command.c_str());
             }
 #endif
 #endif
