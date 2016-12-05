@@ -53,7 +53,7 @@ INCLUDEPATH    += ../.. \
 
 # Version Major.Minor.Build
 # Important: don't change the format of this line since it's parsed by scripts!
-DEFINES += GW_SW_VERSION=\\\"2.04.23\\\"
+DEFINES += GW_SW_VERSION=\\\"2.04.24\\\"
 
 # Minimum version of the RaspBee firmware
 # which shall be used in order to support all features for this software release (case sensitive)
