@@ -2965,6 +2965,36 @@ Group *DeRestPluginPrivate::getGroupForId(const QString &id)
     return 0;
 }
 
+/*! Delete a group of a switch from database permanently.
+ */
+bool DeRestPluginPrivate::deleteOldGroupOfSwitch(const QString &switchId)
+{
+    DBG_Assert(switchId.isEmpty() == false);
+    if (switchId.isEmpty())
+    {
+        return false;
+    }
+
+    std::vector<Group>::iterator i = groups.begin();
+    std::vector<Group>::iterator end = groups.end();
+
+    for (; i != end; ++i)
+    {
+        if (i->m_deviceMemberships.end() != std::find(i->m_deviceMemberships.begin(),
+                                                    i->m_deviceMemberships.end(),
+                                                    switchId))
+        {
+            //found
+            if (i->state() == Group::StateDeleted)
+            {
+                i->setState(Group::StateDeleteFromDB);
+            }
+        }
+    }
+    return true;
+}
+
+
 /*! Returns GroupInfo in a LightNode for a given group id or 0 if not found.
  */
 GroupInfo *DeRestPluginPrivate::getGroupInfo(LightNode *lightNode, uint16_t id)
@@ -6152,22 +6182,7 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
                 else
                 {
                     // delete older groups of this switch permanently
-                    std::vector<Group>::iterator i = groups.begin();
-                    std::vector<Group>::iterator end = groups.end();
-
-                    for (; i != end; ++i)
-                    {
-                        if (i->m_deviceMemberships.end() != std::find(i->m_deviceMemberships.begin(),
-                                                                    i->m_deviceMemberships.end(),
-                                                                    sensorNode->id()))
-                        {
-                            //found
-                            if (i->state() == Group::StateDeleted)
-                            {
-                                i->setState(Group::StateDeleteFromDB);
-                            }
-                        }
-                    }
+                    deleteOldGroupOfSwitch(sensorNode->id());
 
                     //create new switch group
                     Group group;

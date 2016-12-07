@@ -782,6 +782,7 @@ public:
     Group *getGroupForName(const QString &name);
     Group *getGroupForId(uint16_t id);
     Group *getGroupForId(const QString &id);
+    bool deleteOldGroupOfSwitch(const QString &switchId);
     Scene *getSceneForId(uint16_t gid, uint8_t sid);
     GroupInfo *getGroupInfo(LightNode *lightNode, uint16_t id);
     GroupInfo *createGroupInfo(LightNode *lightNode, uint16_t id);

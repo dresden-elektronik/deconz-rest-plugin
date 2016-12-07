@@ -1896,6 +1896,9 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
             Group *g = (s1 && group1 != 0) ? getGroupForId(group1) : 0;
             if (!g && s1 && group1 != 0)
             {
+                // delete older groups of this switch permanently
+                deleteOldGroupOfSwitch(s1->id());
+
                 //create new switch group
                 Group group;
                 group.setAddress(group1);
@@ -1921,6 +1924,9 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
             g = (s2 && group2 != 0) ? getGroupForId(group2) : 0;
             if (!g && s2 && group2 != 0)
             {
+                // delete older groups of this switch permanently
+                deleteOldGroupOfSwitch(s2->id());
+
                 //create new switch group
                 Group group;
                 group.setAddress(group2);
