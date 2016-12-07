@@ -1579,7 +1579,10 @@ void DeRestPluginPrivate::findSensorsTimerFired()
 {
     if (gwPermitJoinResend == 0)
     {
-        findSensorsTimeout = 0; // done
+        if (gwPermitJoinDuration == 0)
+        {
+            findSensorsTimeout = 0; // done
+        }
     }
 
     if (findSensorsTimeout > 0)
