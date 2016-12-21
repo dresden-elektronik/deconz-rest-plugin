@@ -121,6 +121,38 @@ void DeRestPluginPrivate::otauDataIndication(const deCONZ::ApsDataIndication &in
             lightNode->setNextReadTime(READ_SWBUILD_ID, queryTime.addSecs(120));
         }
     }
+    else if ((ind.clusterId() == OTAU_CLUSTER_ID) && ((zclFrame.commandId() == OTAU_IMAGE_PAGE_REQUEST_CMD_ID) || (zclFrame.commandId() == OTAU_IMAGE_BLOCK_REQUEST_CMD_ID)))
+    {
+        LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());
+
+        if (lightNode)
+        {
+            std::vector<RecoverOnOff>::iterator i = recoverOnOff.begin();
+            std::vector<RecoverOnOff>::iterator end = recoverOnOff.end();
+            for (; i != end; ++i)
+            {
+                if (i->address.hasNwk() && lightNode->address().hasNwk() &&
+                    i->address.nwk() == lightNode->address().nwk())
+                {
+                    i->onOff = lightNode->isOn();
+                    i->idleTotalCounterCopy = idleTotalCounter;
+                    lightNode = 0; // release
+                    break;
+                }
+            }
+
+            if (lightNode && lightNode->address().hasNwk())
+            {
+                DBG_Printf(DBG_INFO, "New OTA recover onOff entry 0x%016llX\n", lightNode->address().ext());
+                // create new Entry
+                RecoverOnOff rc;
+                rc.address = lightNode->address();
+                rc.onOff = lightNode->isOn();
+                rc.idleTotalCounterCopy = idleTotalCounter;
+                recoverOnOff.push_back(rc);
+            }
+        }
+    }
 
     if (!isOtauActive())
     {

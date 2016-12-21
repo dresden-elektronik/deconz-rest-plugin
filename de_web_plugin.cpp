@@ -111,6 +111,10 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     groupDeviceMembershipChecked = false;
     gwLinkButton = false;
 
+    // preallocate memory to get consistent pointers
+    nodes.reserve(150);
+    sensors.reserve(150);
+
     apsCtrl = deCONZ::ApsController::instance();
     DBG_Assert(apsCtrl != 0);
 
@@ -6218,17 +6222,57 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
  */
 void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndication &ind)
 {
-    std::vector<LightNode>::iterator i = nodes.begin();
+    std::vector<LightNode>::iterator i = nodes.begin(); // TODO
     std::vector<LightNode>::iterator end = nodes.end();
 
-    // TODO use actual zdp payload for ext and nwk address
+    // TODO use actual zdp payload for ext and nwk address   
+    quint16 nwk;
+    quint64 ext;
+    quint8 macCapabilities;
+
+    {
+        QDataStream stream(ind.asdu());
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        quint8 seq;
+
+        stream >> seq;
+        stream >> nwk;
+        stream >> ext;
+        stream >> macCapabilities;
+    }
 
     for (; i != end; ++i)
     {
         deCONZ::Node *node = i->node();
-        if (node && ((ind.srcAddress().hasExt() && i->address().ext() == ind.srcAddress().ext()) ||
-                     (ind.srcAddress().hasNwk() && i->address().nwk() == ind.srcAddress().nwk())))
+        if (node && (i->address().ext() == ext))
         {
+            std::vector<RecoverOnOff>::iterator rc = recoverOnOff.begin();
+            std::vector<RecoverOnOff>::iterator rcend = recoverOnOff.end();
+            for (; rc != rcend; ++rc)
+            {
+                if (rc->address.ext() == ext || rc->address.nwk() == nwk)
+                {
+                    rc->idleTotalCounterCopy -= 60; // speedup release
+                    // light was off before, turn off again
+                    if (!rc->onOff)
+                    {
+                        DBG_Printf(DBG_INFO, "Turn off light 0x%016llX again after OTA\n", rc->address.ext());
+                        TaskItem task;
+                        task.lightNode = &*i;
+                        task.req.dstAddress().setNwk(nwk);
+                        task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+                        task.req.setDstEndpoint(task.lightNode->haEndpoint().endpoint());
+                        task.req.setSrcEndpoint(getSrcEndpoint(task.lightNode, task.req));
+                        task.req.setDstAddressMode(deCONZ::ApsNwkAddress);
+                        task.req.setSendDelay(1000);
+                        queryTime = queryTime.addSecs(5);
+                        addTaskSetOnOff(task, ONOFF_COMMAND_OFF, 0);
+                    }
+                    break;
+                }
+            }
+
             if (node->endpoints().end() == std::find(node->endpoints().begin(),
                                                      node->endpoints().end(),
                                                      i->haEndpoint().endpoint()))
@@ -6784,6 +6828,7 @@ void DeRestPlugin::idleTimerFired()
     if (d->idleTotalCounter < 0) // overflow
     {
         d->idleTotalCounter = 0;
+        d->recoverOnOff.clear();
     }
 
     if (d->idleLastActivity < 0) // overflow
@@ -6809,6 +6854,17 @@ void DeRestPlugin::idleTimerFired()
     if (!d->isInNetwork())
     {
         return;
+    }
+
+
+    if (!d->recoverOnOff.empty())
+    {
+        DeRestPluginPrivate::RecoverOnOff &rc = d->recoverOnOff.back();
+        if ((d->idleTotalCounter - rc.idleTotalCounterCopy) > 240)
+        {
+            DBG_Printf(DBG_INFO, "Pop recover info for 0x%016llX\n", rc.address.ext());
+            d->recoverOnOff.pop_back();
+        }
     }
 
     // put coordinator into groups of switches

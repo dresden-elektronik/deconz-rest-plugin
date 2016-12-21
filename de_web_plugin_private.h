@@ -1144,6 +1144,15 @@ public:
     QString lastSensorsScan;
     std::vector<SensorCandidate> findSensorCandidates;
 
+    class RecoverOnOff
+    {
+    public:
+        deCONZ::Address address;
+        bool onOff;
+        int idleTotalCounterCopy;
+    };
+    std::vector<RecoverOnOff> recoverOnOff;
+
     // rules
 
     QTimer *saveCurrentRuleInDbTimer;
