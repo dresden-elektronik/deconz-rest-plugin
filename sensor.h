@@ -17,6 +17,7 @@
 #include "json.h"
 
 // Sensor State
+#define INVALID_ENDPOINT 0xff
 
 class SensorState
 {
@@ -99,7 +100,7 @@ private:
 
 struct SensorFingerprint
 {
-    SensorFingerprint() : endpoint(0xff), profileId(0xffff), deviceId(0xffff) {}
+    SensorFingerprint() : endpoint(INVALID_ENDPOINT), profileId(0xffff), deviceId(0xffff) {}
     bool operator==(const SensorFingerprint &rhs) const
     {
         return (endpoint == rhs.endpoint &&

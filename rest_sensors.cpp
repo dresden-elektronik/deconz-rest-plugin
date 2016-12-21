@@ -205,8 +205,11 @@ int DeRestPluginPrivate::getAllSensors(const ApiRequest &req, ApiResponse &rsp)
         {
             sensor["swversion"] = i->swVersion();
         }
+        if (i->fingerPrint().endpoint != INVALID_ENDPOINT)
+        {
+            sensor["ep"] = i->fingerPrint().endpoint;
+        }
         sensor["uniqueid"] = i->uniqueId();
-        sensor["ep"] = i->fingerPrint().endpoint;
         sensor["manufacturername"] = i->manufacturer();
         sensor["state"] = state;
         sensor["config"] = config;
@@ -350,8 +353,11 @@ int DeRestPluginPrivate::getSensor(const ApiRequest &req, ApiResponse &rsp)
     {
         rsp.map["mode"] = sensor->mode();
     }
+    if (sensor->fingerPrint().endpoint != INVALID_ENDPOINT)
+    {
+        rsp.map["ep"] = sensor->fingerPrint().endpoint;
+    }
     rsp.map["uniqueid"] = sensor->uniqueId();
-    rsp.map["ep"] = sensor->fingerPrint().endpoint;
     rsp.map["manufacturername"] = sensor->manufacturer();
     rsp.map["state"] = state;
     rsp.map["config"] = config;
@@ -1530,6 +1536,10 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map)
     map["name"] = sensor->name();
     map["type"] = sensor->type();
     map["modelid"] = sensor->modelId();
+    if (sensor->fingerPrint().endpoint != INVALID_ENDPOINT)
+    {
+        map["ep"] = sensor->fingerPrint().endpoint;
+    }
     if (sensor->swVersion() != "")
     {
         map["swversion"] = sensor->swVersion();
