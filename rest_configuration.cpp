@@ -325,7 +325,8 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
 
         map["announceurl"] = gwAnnounceUrl;
         map["announceinterval"] = (double)gwAnnounceInterval;
-        map["swversion"] = GW_SW_VERSION;
+        map["swversion"] = QLatin1String(GW_SW_VERSION);
+        map["swcommit"] = QLatin1String(GIT_COMMMIT);
         swupdate["version"] = gwUpdateVersion;
         swupdate["updatestate"] = (double)0;
         swupdate["url"] = "";
@@ -334,7 +335,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         map["swupdate"] = swupdate;
         map["port"] = (double)(apsCtrl ? apsCtrl->getParameter(deCONZ::ParamHttpPort) : 80);
         // since api version 1.2.1
-        map["apiversion"] = GW_SW_VERSION;
+        map["apiversion"] = QLatin1String(GW_SW_VERSION);
         map["system"] = "other";
 #if defined(ARCH_ARMV6) || defined (ARCH_ARMV7)
 #ifdef Q_OS_LINUX
