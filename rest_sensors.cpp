@@ -1455,15 +1455,15 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map)
 
     if (sensor->state().flag() != "")
     {
-        state["flag"] = (sensor->state().flag() == "true") ? true : false;
+        state["flag"] = (sensor->state().flag() == QLatin1String("true")) ? true : false;
     }
-    if (sensor->state().status() != "")
+    if (sensor->state().status() != QLatin1String(""))
     {
         state["status"] = sensor->state().status().toInt();
     }
-    if (sensor->state().open() != "")
+    if (sensor->state().open() != QLatin1String(""))
     {
-        state["open"] = (sensor->state().open() == "true")?true:false;
+        state["open"] = (sensor->state().open() == QLatin1String("true"))? true : false;
     }
     if (sensor->state().buttonevent() >= 0)
     {
@@ -1479,18 +1479,18 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map)
     }
     if (sensor->state().daylight() != "")
     {
-        state["daylight"] = (sensor->state().daylight() == "true") ? true : false;
+        state["daylight"] = (sensor->state().daylight() == QLatin1String("true")) ? true : false;
     }
 
-    if (sensor->type() == "ZHALight")
+    if (sensor->type() == QLatin1String("ZHALight"))
     {
         state["lux"] = (double)sensor->state().lux();
     }
-    else if (sensor->type() == "ZHAPresence")
+    else if (sensor->type() == QLatin1String("ZHAPresence"))
     {
-        if (sensor->state().presence() != "")
+        if (sensor->state().presence() != QLatin1String(""))
         {
-            state["presence"] = (sensor->state().presence() == "true") ? true : false;
+            state["presence"] = (sensor->state().presence() == QLatin1String("true")) ? true : false;
         }
 
         if (sensor->config().duration() >= 0)
@@ -1502,7 +1502,7 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map)
     //config
     config["on"] = sensor->config().on();
 
-    if (sensor->type() != "ZGPSwitch")
+    if (sensor->type() != QLatin1String("ZGPSwitch"))
     {
         config["reachable"] = sensor->config().reachable();
     }
@@ -1515,22 +1515,23 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map)
     {
         config["url"] = sensor->config().url();
     }
-    if (sensor->config().longitude() != "" )
+    if (sensor->config().longitude() != QLatin1String(""))
     {
         config["long"] = sensor->config().longitude();
     }
-    if (sensor->config().lat() != "" )
+    if (sensor->config().lat() != QLatin1String(""))
     {
         config["lat"] = sensor->config().lat();
     }
-    if (sensor->config().sunriseoffset() != "" )
+    if (sensor->config().sunriseoffset() != QLatin1String(""))
     {
         config["sunriseoffset"] = sensor->config().sunriseoffset().toInt();
     }
-    if (sensor->config().sunsetoffset() != "" )
+    if (sensor->config().sunsetoffset() != QLatin1String(""))
     {
         config["sunsetoffset"] = sensor->config().sunsetoffset().toInt();
     }
+
 
     //sensor
     map["name"] = sensor->name();
@@ -1540,11 +1541,11 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map)
     {
         map["ep"] = sensor->fingerPrint().endpoint;
     }
-    if (sensor->swVersion() != "")
+    if (sensor->swVersion() != QLatin1String(""))
     {
         map["swversion"] = sensor->swVersion();
     }
-    if (sensor->modelId() == "Lighting Switch")
+    if (sensor->modelId() == QLatin1String("Lighting Switch"))
     {
         map["mode"] = sensor->mode();
     }
