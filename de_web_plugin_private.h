@@ -640,6 +640,7 @@ public:
     void otauSendStdNotify(LightNode *node);
     bool isOtauBusy();
     bool isOtauActive();
+    int otauLastBusyTimeDelta() const;
 
     // WSNDemo sensor
     void wsnDemoDataIndication(const deCONZ::ApsDataIndication &ind);
@@ -855,6 +856,7 @@ public:
     void handleBindAndUnbindRspIndication(const deCONZ::ApsDataIndication &ind);
     void handleMgmtLeaveRspIndication(const deCONZ::ApsDataIndication &ind);
     void handleDEClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleZclAttributeReportIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void broadCastNodeUpdate(LightNode *webNode);
     void markForPushUpdate(LightNode *lightNode);
     void taskToLocalData(const TaskItem &task);
@@ -999,6 +1001,7 @@ public:
     QTimer *otauTimer;
     int otauIdleTicks;
     int otauBusyTicks;
+    int otauIdleTotalCounter;
     uint otauNotifyIter; // iterator over nodes
     int otauNotifyDelay;
 

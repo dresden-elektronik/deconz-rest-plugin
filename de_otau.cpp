@@ -46,6 +46,7 @@ void DeRestPluginPrivate::initOtau()
     otauIdleTicks = 0;
     otauBusyTicks = 0;
     otauNotifyIter = 0;
+    otauIdleTotalCounter = 0;
     otauNotifyDelay = deCONZ::appArgumentNumeric("--otau-notify-delay", OTAU_IDLE_TICKS_NOTIFY);
 
     otauTimer = new QTimer(this);
@@ -123,6 +124,9 @@ void DeRestPluginPrivate::otauDataIndication(const deCONZ::ApsDataIndication &in
     }
     else if ((ind.clusterId() == OTAU_CLUSTER_ID) && ((zclFrame.commandId() == OTAU_IMAGE_PAGE_REQUEST_CMD_ID) || (zclFrame.commandId() == OTAU_IMAGE_BLOCK_REQUEST_CMD_ID)))
     {
+        // remember last activity time
+        otauIdleTotalCounter = idleTotalCounter;
+
         LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());
 
         if (lightNode)
@@ -245,6 +249,17 @@ bool DeRestPluginPrivate::isOtauActive()
     }
 
     return false;
+}
+
+int DeRestPluginPrivate::otauLastBusyTimeDelta() const
+{
+    DBG_Assert(idleTotalCounter >= otauIdleTotalCounter);
+    if (idleTotalCounter >= otauIdleTotalCounter)
+    {
+        return idleTotalCounter - otauIdleTotalCounter;
+    }
+
+    return 0;
 }
 
 /*! Unicasts otau notify packets to the nodes.

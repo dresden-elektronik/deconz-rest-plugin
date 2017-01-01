@@ -361,12 +361,13 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
         default:
         {
-            if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReportAttributesId)
-            {
-                DBG_Printf(DBG_INFO, "ZCL attribute report 0x%016llX for cluster 0x%04X\n", ind.srcAddress().ext(), ind.clusterId());
-            }
         }
             break;
+        }
+
+        if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReportAttributesId)
+        {
+            handleZclAttributeReportIndication(ind, zclFrame);
         }
 
         handleIndicationFindSensors(ind, zclFrame);
@@ -4477,6 +4478,38 @@ void DeRestPluginPrivate::handleDEClusterIndication(const deCONZ::ApsDataIndicat
     }
 }
 
+/*! Handle incoming ZCL attribute report commands.
+ */
+void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
+{
+    Q_UNUSED(zclFrame);
+
+    if (otauLastBusyTimeDelta() < (60 * 60))
+    {
+        LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());
+
+        if (lightNode && lightNode->modelId().startsWith(QLatin1String("FLS-")))
+        {
+            DBG_Printf(DBG_INFO, "ZCL attribute report 0x%016llX for cluster 0x%04X --> unbind (otau busy)\n", ind.srcAddress().ext(), ind.clusterId());
+
+            BindingTask bindingTask;
+            Binding &bnd = bindingTask.binding;
+
+            bindingTask.action = BindingTask::ActionUnbind;
+            bindingTask.state = BindingTask::StateIdle;
+
+            bnd.srcAddress = lightNode->address().ext();
+            bnd.srcEndpoint = ind.srcEndpoint();
+            bnd.clusterId = ind.clusterId();
+            bnd.dstAddress.ext = apsCtrl->getParameter(deCONZ::ParamMacAddress);
+            bnd.dstAddrMode = deCONZ::ApsExtAddress;
+            bnd.dstEndpoint = endpoint();
+
+            queueBindingTask(bindingTask);
+        }
+    }
+}
+
 /*! Attemp to hotfix a broken scene table initialisation (temp, will be removed soon).
  */
 void DeRestPluginPrivate::fixSceneTableRead(LightNode *lightNode, quint16 offset)
@@ -6828,6 +6861,7 @@ void DeRestPlugin::idleTimerFired()
     if (d->idleTotalCounter < 0) // overflow
     {
         d->idleTotalCounter = 0;
+        d->otauIdleTotalCounter = 0;
         d->recoverOnOff.clear();
     }
 
@@ -6856,6 +6890,13 @@ void DeRestPlugin::idleTimerFired()
         return;
     }
 
+    int tSpacing = 5;
+
+    // slow down query if otau was busy recently
+    if (d->otauLastBusyTimeDelta() < (60 * 10))
+    {
+        tSpacing = 20;
+    }
 
     if (!d->recoverOnOff.empty())
     {
@@ -6864,37 +6905,6 @@ void DeRestPlugin::idleTimerFired()
         {
             DBG_Printf(DBG_INFO, "Pop recover info for 0x%016llX\n", rc.address.ext());
             d->recoverOnOff.pop_back();
-        }
-    }
-
-    // put coordinator into groups of switches
-    // deCONZ firmware will put itself into a group after sending out a groupcast
-    // therefore we will receives commands to the same group
-    if (!d->groupDeviceMembershipChecked)
-    {
-        TaskItem task;
-
-        std::vector<Group>::const_iterator i = d->groups.begin();
-        std::vector<Group>::const_iterator end = d->groups.end();
-
-        for (; i != end; ++i)
-        {
-            if (/*i->state() == Group::StateNormal && */i->m_deviceMemberships.size() > 0)
-            {
-                task.req.setDstAddressMode(deCONZ::ApsGroupAddress);
-                task.req.dstAddress().setGroup(i->address());
-                task.req.setDstEndpoint(0xFF); // broadcast endpoint
-                task.req.setSrcEndpoint(d->getSrcEndpoint(0, task.req));
-                task.req.setRadius(1);
-                if (!d->addTaskViewGroup(task, i->address()))
-                {
-                    DBG_Printf(DBG_INFO, "failed to send view group\n");
-                }
-                else
-                {
-                    d->groupDeviceMembershipChecked = true;
-                }
-            }
         }
     }
 
@@ -6979,7 +6989,7 @@ void DeRestPlugin::idleTimerFired()
                         lightNode->setNextReadTime(items[i], d->queryTime);
                         lightNode->setLastRead(items[i], d->idleTotalCounter);
                         lightNode->enableRead(items[i]);
-                        d->queryTime = d->queryTime.addSecs(5);
+                        d->queryTime = d->queryTime.addSecs(tSpacing);
                         processLights = true;
                     }
                 }
@@ -7001,7 +7011,7 @@ void DeRestPlugin::idleTimerFired()
                     lightNode->setLastRead(READ_MODEL_ID, d->idleTotalCounter);
                     lightNode->enableRead(READ_MODEL_ID);
                     lightNode->setNextReadTime(READ_MODEL_ID, d->queryTime);
-                    d->queryTime = d->queryTime.addSecs(5);
+                    d->queryTime = d->queryTime.addSecs(tSpacing);
                     processLights = true;
                 }
 
@@ -7010,7 +7020,7 @@ void DeRestPlugin::idleTimerFired()
                     lightNode->setLastRead(READ_SWBUILD_ID, d->idleTotalCounter);
                     lightNode->enableRead(READ_SWBUILD_ID);
                     lightNode->setNextReadTime(READ_SWBUILD_ID, d->queryTime);
-                    d->queryTime = d->queryTime.addSecs(5);
+                    d->queryTime = d->queryTime.addSecs(tSpacing);
                     processLights = true;
                 }
 
@@ -7019,7 +7029,7 @@ void DeRestPlugin::idleTimerFired()
                     lightNode->setLastRead(READ_VENDOR_NAME, d->idleTotalCounter);
                     lightNode->enableRead(READ_VENDOR_NAME);
                     lightNode->setNextReadTime(READ_VENDOR_NAME, d->queryTime);
-                    d->queryTime = d->queryTime.addSecs(5);
+                    d->queryTime = d->queryTime.addSecs(tSpacing);
                     processLights = true;
                 }
 
@@ -7035,7 +7045,7 @@ void DeRestPlugin::idleTimerFired()
                     {
                         lightNode->setLastRead(READ_BINDING_TABLE, d->idleTotalCounter);
                         lightNode->setNextReadTime(READ_BINDING_TABLE, d->queryTime);
-                        d->queryTime = d->queryTime.addSecs(5);
+                        d->queryTime = d->queryTime.addSecs(tSpacing);
                     }
                     lightNode->setLastAttributeReportBind(d->idleTotalCounter);
                     DBG_Printf(DBG_INFO, "Force binding of attribute reporting for node %s\n", qPrintable(lightNode->name()));
@@ -7080,7 +7090,7 @@ void DeRestPlugin::idleTimerFired()
                         sensorNode->setLastRead(READ_MODEL_ID, d->idleTotalCounter);
                         sensorNode->setNextReadTime(READ_MODEL_ID, d->queryTime);
                         sensorNode->enableRead(READ_MODEL_ID);
-                        d->queryTime = d->queryTime.addSecs(5);
+                        d->queryTime = d->queryTime.addSecs(tSpacing);
                         processSensors = true;
                     }
                 }
@@ -7092,7 +7102,7 @@ void DeRestPlugin::idleTimerFired()
                     sensorNode->setLastRead(READ_VENDOR_NAME, d->idleTotalCounter);
                     sensorNode->setNextReadTime(READ_VENDOR_NAME, d->queryTime);
                     sensorNode->enableRead(READ_VENDOR_NAME);
-                    d->queryTime = d->queryTime.addSecs(5);
+                    d->queryTime = d->queryTime.addSecs(tSpacing);
                     processSensors = true;
                 }
 
@@ -7123,7 +7133,7 @@ void DeRestPlugin::idleTimerFired()
                             sensorNode->enableRead(READ_BINDING_TABLE);
                             sensorNode->setLastRead(READ_BINDING_TABLE, d->idleTotalCounter);
                             sensorNode->setNextReadTime(READ_BINDING_TABLE, d->queryTime);
-                            d->queryTime = d->queryTime.addSecs(5);
+                            d->queryTime = d->queryTime.addSecs(tSpacing);
                             processSensors = true;
                         }
 
@@ -7138,7 +7148,7 @@ void DeRestPlugin::idleTimerFired()
                                     sensorNode->enableRead(READ_OCCUPANCY_CONFIG);
                                     sensorNode->setLastRead(READ_OCCUPANCY_CONFIG, d->idleTotalCounter);
                                     sensorNode->setNextReadTime(READ_OCCUPANCY_CONFIG, d->queryTime);
-                                    d->queryTime = d->queryTime.addSecs(5);
+                                    d->queryTime = d->queryTime.addSecs(tSpacing);
                                     processSensors = true;
                                 }
                             }
@@ -7156,7 +7166,7 @@ void DeRestPlugin::idleTimerFired()
                     if (sensorNode->mustRead(READ_BINDING_TABLE))
                     {
                         sensorNode->setNextReadTime(READ_BINDING_TABLE, d->queryTime);
-                        d->queryTime = d->queryTime.addSecs(5);
+                        d->queryTime = d->queryTime.addSecs(tSpacing);
                     }
                     DBG_Printf(DBG_INFO, "Force binding of attribute reporting for node %s\n", qPrintable(sensorNode->name()));
                     processSensors = true;

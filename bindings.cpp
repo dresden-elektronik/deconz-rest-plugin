@@ -503,12 +503,22 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         return;
     }
 
+    // prevent binding action if otau was busy recently
+    if (otauLastBusyTimeDelta() < (60 * 60))
+    {
+        if (lightNode->modelId().startsWith(QLatin1String("FLS-")))
+        {
+            DBG_Printf(DBG_INFO, "don't check binding for attribute reporting of %s (otau busy)\n", qPrintable(lightNode->name()));
+            return;
+        }
+    }
+
     BindingTask::Action action = BindingTask::ActionUnbind;
 
     // whitelist by Model ID
     if (gwReportingEnabled)
     {
-        if (lightNode->modelId().startsWith("FLS-NB"))
+        if (lightNode->modelId().startsWith(QLatin1String("FLS-NB")))
         {
             action = BindingTask::ActionBind;
         }
@@ -582,12 +592,22 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         }
     }
 
+    // prevent binding action if otau was busy recently
+    if (otauLastBusyTimeDelta() < (60 * 60))
+    {
+        if (sensor->modelId().startsWith(QLatin1String("FLS-")))
+        {
+            DBG_Printf(DBG_INFO, "don't check binding for attribute reporting of %s (otau busy)\n", qPrintable(sensor->name()));
+            return;
+        }
+    }
+
     BindingTask::Action action = BindingTask::ActionUnbind;
 
     // whitelist by Model ID
     if (gwReportingEnabled)
     {
-        if (sensor->modelId().startsWith("FLS-NB") ||
+        if (sensor->modelId().startsWith(QLatin1String("FLS-NB")) ||
             sensor->modelId() == QLatin1String("LM_00.00.03.02TC"))
         {
             action = BindingTask::ActionBind;
