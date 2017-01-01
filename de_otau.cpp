@@ -253,13 +253,17 @@ bool DeRestPluginPrivate::isOtauActive()
 
 int DeRestPluginPrivate::otauLastBusyTimeDelta() const
 {
-    DBG_Assert(idleTotalCounter >= otauIdleTotalCounter);
+    if (otauIdleTotalCounter == 0)
+    {
+        return INT_MAX; // not valid
+    }
+
     if (idleTotalCounter >= otauIdleTotalCounter)
     {
         return idleTotalCounter - otauIdleTotalCounter;
     }
 
-    return 0;
+    return INT_MAX;
 }
 
 /*! Unicasts otau notify packets to the nodes.

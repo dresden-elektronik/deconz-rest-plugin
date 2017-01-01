@@ -4486,7 +4486,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
 
     if (otauLastBusyTimeDelta() < (60 * 60))
     {
-        LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());
+        LightNode *lightNode = getLightNodeForAddress(ind.srcAddress());
 
         if (lightNode && lightNode->modelId().startsWith(QLatin1String("FLS-")))
         {
