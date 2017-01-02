@@ -896,6 +896,7 @@ public:
 
     sqlite3 *db;
     int saveDatabaseItems;
+    int saveDatabaseIdleTotalCounter;
     QString sqliteDatabaseName;
     std::vector<int> lightIds;
     std::vector<int> sensorIds;

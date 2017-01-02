@@ -98,6 +98,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
 
     db = 0;
     saveDatabaseItems = 0;
+    saveDatabaseIdleTotalCounter = 0;
     sqliteDatabaseName = deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation) + QLatin1String("/zll.db");
 
     idleLimit = 0;
@@ -6877,6 +6878,7 @@ void DeRestPlugin::idleTimerFired()
     {
         d->idleTotalCounter = 0;
         d->otauIdleTotalCounter = 0;
+        d->saveDatabaseIdleTotalCounter = 0;
         d->recoverOnOff.clear();
     }
 

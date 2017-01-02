@@ -2698,14 +2698,18 @@ void DeRestPluginPrivate::queSaveDb(int items, int msec)
  */
 void DeRestPluginPrivate::saveDatabaseTimerFired()
 {
-    if (isOtauBusy())
+    if (otauLastBusyTimeDelta() < 60)
     {
-        databaseTimer->start(DB_SHORT_SAVE_DELAY);
-        return;
+        if ((idleTotalCounter - saveDatabaseIdleTotalCounter) < (60 * 30))
+        {
+            databaseTimer->start(DB_SHORT_SAVE_DELAY);
+            return;
+        }
     }
 
     if (saveDatabaseItems)
     {
+        saveDatabaseIdleTotalCounter = idleTotalCounter;
         openDb();
         saveDb();
         closeDb();
