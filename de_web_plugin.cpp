@@ -6028,7 +6028,7 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
             // Deactivate sensor rules if present
             changeRuleStatusofGroup(group->id(), false);
         }
-        else if (zclFrame.commandId() == 0x01) // On
+        else if (zclFrame.commandId() == 0x01 || zclFrame.commandId() == 0x42) // On || On with timed off
         {
             group->setIsOn(true);
             // Activate sensor rules if present
