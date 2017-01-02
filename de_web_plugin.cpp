@@ -103,6 +103,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     idleLimit = 0;
     idleTotalCounter = IDLE_READ_LIMIT;
     idleLastActivity = 0;
+    sensorIndIdleTotalCounter = 0;
     queryTime = QTime::currentTime();
     udpSock = 0;
     haEndpoint = 0;

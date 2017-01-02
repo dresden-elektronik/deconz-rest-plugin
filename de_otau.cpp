@@ -315,6 +315,12 @@ void DeRestPluginPrivate::otauTimerFired()
         otauNotifyIter = 0;
     }
 
+    // dont do anything if sensors are triggering group commands
+    if ((idleTotalCounter - sensorIndIdleTotalCounter) < (60 * 10))
+    {
+        return;
+    }
+
     LightNode *lightNode = &nodes[otauNotifyIter];
     otauNotifyIter++;
 

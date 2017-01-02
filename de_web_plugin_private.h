@@ -1111,6 +1111,8 @@ public:
         FindSensorsDone,
     };
 
+    int sensorIndIdleTotalCounter;
+
     class SensorCommand
     {
     public:
