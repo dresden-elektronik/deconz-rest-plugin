@@ -6002,141 +6002,155 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
 {
     Q_UNUSED(task);
 
-    // update Nodes and Groups state if On/Off Command was send by a switch
+    if (zclFrame.isDefaultResponse())
+    {
+        return;
+    }
+
+    Group *group = 0;
+
+    if (ind.dstAddressMode() == deCONZ::ApsGroupAddress)
+    {
+        group = getGroupForId(ind.dstAddress().group());
+    }
+
+    // update Nodes and Groups state if On/Off Command was send by a sensor
+    if (group &&
+        group->state() != Group::StateDeleted &&
+        group->state() != Group::StateDeleteFromDB)
+    {
+        //found
+        if (zclFrame.commandId() == 0x00 || zclFrame.commandId() == 0x40) // Off || Off with effect
+        {
+            group->setIsOn(false);
+            // Deactivate sensor rules if present
+            changeRuleStatusofGroup(group->id(), false);
+        }
+        else if (zclFrame.commandId() == 0x01) // On
+        {
+            group->setIsOn(true);
+            // Activate sensor rules if present
+            changeRuleStatusofGroup(group->id(), true);
+            if (group->isColorLoopActive())
+            {
+                TaskItem task1;
+                task1.req.dstAddress().setGroup(group->address());
+                task1.req.setDstAddressMode(deCONZ::ApsGroupAddress);
+                task1.req.setDstEndpoint(0xFF); // broadcast endpoint
+                task1.req.setSrcEndpoint(getSrcEndpoint(0, task1.req));
+
+                addTaskSetColorLoop(task1, false, 15);
+                group->setColorLoopActive(false);
+            }
+        }
+        updateEtag(group->etag);
+
+        // check each light if colorloop needs to be disabled
+        std::vector<LightNode>::iterator l = nodes.begin();
+        std::vector<LightNode>::iterator lend = nodes.end();
+
+        for (; l != lend; ++l)
+        {
+            if (isLightNodeInGroup(&*l, group->address()))
+            {
+                bool updated = false;
+                if (zclFrame.commandId() == 0x00 || zclFrame.commandId() == 0x40) // Off || Off with effect
+                {
+                    if (l->isOn())
+                    {
+                        l->setIsOn(false);
+                        updated = true;
+                    }
+                }
+                else if (zclFrame.commandId() == 0x01 || zclFrame.commandId() == 0x42) // On || On with timed off
+                {
+                    if (!l->isOn())
+                    {
+                        l->setIsOn(true);
+                        updated = true;
+                    }
+
+                    if (l->isAvailable() && l->hasColor() && l->state() != LightNode::StateDeleted && l->isColorLoopActive())
+                    {
+                        TaskItem task2;
+                        task2.lightNode = &(*l);
+                        task2.req.dstAddress() = task2.lightNode->address();
+                        task2.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+                        task2.req.setDstEndpoint(task2.lightNode->haEndpoint().endpoint());
+                        task2.req.setSrcEndpoint(getSrcEndpoint(task2.lightNode, task2.req));
+                        task2.req.setDstAddressMode(deCONZ::ApsExtAddress);
+
+                        addTaskSetColorLoop(task2, false, 15);
+                        l->setColorLoopActive(false);
+                        updated = true;
+                    }
+                }
+
+                if (updated)
+                {
+                    updateEtag(l->etag);
+                }
+            }
+        }
+
+        updateEtag(gwConfigEtag);
+    }
+
     Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
 
-    if (sensorNode)
+    if (sensorNode && sensorNode->deletedState() == Sensor::StateDeleted && gwPermitJoinDuration > 0)
     {
-        if (sensorNode->deletedState() != Sensor::StateDeleted)
+        // reactivate deleted switch and recover group
+        sensorNode->setDeletedState(Sensor::StateNormal);
+
+        std::vector<Group>::iterator g = groups.begin();
+        std::vector<Group>::iterator gend = groups.end();
+
+        for (; g != gend; ++g)
         {
-            std::vector<Group>::iterator i = groups.begin();
-            std::vector<Group>::iterator end = groups.end();
+            std::vector<QString> &v = g->m_deviceMemberships;
 
-            for (; i != end; ++i)
+            if ((std::find(v.begin(), v.end(), sensorNode->id()) != v.end()) && (g->state() == Group::StateDeleted))
             {
-                if (i->state() != Group::StateDeleted && i->state() != Group::StateDeleteFromDB)
+                g->setState(Group::StateNormal);
+                updateEtag(g->etag);
+                break;
+            }
+        }
+
+        sensorNode->setNeedSaveDatabase(true);
+        updateEtag(sensorNode->etag);
+
+        std::vector<Sensor>::iterator s = sensors.begin();
+        std::vector<Sensor>::iterator send = sensors.end();
+
+        for (; s != send; ++s)
+        {
+            if (s->uniqueId() == sensorNode->uniqueId() && s->id() != sensorNode->id())
+            {
+                s->setNeedSaveDatabase(true);
+                s->setDeletedState(Sensor::StateNormal);
+                updateEtag(s->etag);
+
+                std::vector<Group>::iterator g = groups.begin();
+                std::vector<Group>::iterator gend = groups.end();
+
+                for (; g != gend; ++g)
                 {
-                    if (i->m_deviceMemberships.end() != std::find(i->m_deviceMemberships.begin(),
-                                                                    i->m_deviceMemberships.end(),
-                                                                    sensorNode->id()))
+                    std::vector<QString> &v = g->m_deviceMemberships;
+
+                    if ((std::find(v.begin(), v.end(), s->id()) != v.end()) && (g->state() == Group::StateDeleted))
                     {
-                       //found
-                       if (zclFrame.commandId() == 0x00 || zclFrame.commandId() == 0x40) // Off || Off with effect
-                       {
-                           i->setIsOn(false);
-                           // Deactivate sensor rules if present
-                           changeRuleStatusofGroup(i->id(), false);
-                       }
-                       else if (zclFrame.commandId() == 0x01) // On
-                       {
-                           i->setIsOn(true);
-                           // Activate sensor rules if present
-                           changeRuleStatusofGroup(i->id(), true);
-                           if (i->isColorLoopActive())
-                           {
-                               TaskItem task1;
-                               task1.req.dstAddress().setGroup(i->address());
-                               task1.req.setDstAddressMode(deCONZ::ApsGroupAddress);
-                               task1.req.setDstEndpoint(0xFF); // broadcast endpoint
-                               task1.req.setSrcEndpoint(getSrcEndpoint(0, task1.req));
-
-                               addTaskSetColorLoop(task1, false, 15);
-                               i->setColorLoopActive(false);
-                           }
-                       }
-                       updateEtag(i->etag);
-
-                       // check each light if colorloop needs to be disabled
-                       std::vector<LightNode>::iterator l = nodes.begin();
-                       std::vector<LightNode>::iterator lend = nodes.end();
-
-                       for (; l != lend; ++l)
-                       {
-                           if (isLightNodeInGroup(&(*l),i->address()))
-                           {
-                               if (zclFrame.commandId() == 0x00 || zclFrame.commandId() == 0x40) // Off || Off with effect
-                               {
-                                   l->setIsOn(false);
-                               }
-                               else if (zclFrame.commandId() == 0x01) // On
-                               {
-                                   l->setIsOn(true);
-
-                                   if (l->isAvailable() && l->state() != LightNode::StateDeleted && l->isColorLoopActive())
-                                   {
-                                       TaskItem task2;
-                                       task2.lightNode = &(*l);
-                                       task2.req.dstAddress() = task2.lightNode->address();
-                                       task2.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
-                                       task2.req.setDstEndpoint(task2.lightNode->haEndpoint().endpoint());
-                                       task2.req.setSrcEndpoint(getSrcEndpoint(task2.lightNode, task2.req));
-                                       task2.req.setDstAddressMode(deCONZ::ApsExtAddress);
-
-                                       addTaskSetColorLoop(task2, false, 15);
-                                       l->setColorLoopActive(false);
-                                   }
-                               }
-                               updateEtag(l->etag);
-                           }
-                       }
+                        g->setState(Group::StateNormal);
+                        updateEtag(g->etag);
+                        break;
                     }
                 }
             }
-            updateEtag(gwConfigEtag);
         }
-        else if (sensorNode->deletedState() == Sensor::StateDeleted && gwPermitJoinDuration > 0)
-        {
-            // reactivate deleted switch and recover group
-            sensorNode->setDeletedState(Sensor::StateNormal);
 
-            std::vector<Group>::iterator g = groups.begin();
-            std::vector<Group>::iterator gend = groups.end();
-
-            for (; g != gend; ++g)
-            {
-                std::vector<QString> &v = g->m_deviceMemberships;
-
-                if ((std::find(v.begin(), v.end(), sensorNode->id()) != v.end()) && (g->state() == Group::StateDeleted))
-                {
-                    g->setState(Group::StateNormal);
-                    updateEtag(g->etag);
-                    break;
-                }
-            }
-            sensorNode->setNeedSaveDatabase(true);
-            updateEtag(sensorNode->etag);
-
-            std::vector<Sensor>::iterator s = sensors.begin();
-            std::vector<Sensor>::iterator send = sensors.end();
-
-            for (; s != send; ++s)
-            {
-                if (s->uniqueId() == sensorNode->uniqueId() && s->id() != sensorNode->id())
-                {
-                    s->setNeedSaveDatabase(true);
-                    s->setDeletedState(Sensor::StateNormal);
-                    updateEtag(s->etag);
-
-                    std::vector<Group>::iterator g = groups.begin();
-                    std::vector<Group>::iterator gend = groups.end();
-
-                    for (; g != gend; ++g)
-                    {
-                        std::vector<QString> &v = g->m_deviceMemberships;
-
-                        if ((std::find(v.begin(), v.end(), s->id()) != v.end()) && (g->state() == Group::StateDeleted))
-                        {
-                            g->setState(Group::StateNormal);
-                            updateEtag(g->etag);
-                            break;
-                        }
-                    }
-                }
-            }
-
-            updateEtag(gwConfigEtag);
-            queSaveDb(DB_GROUPS | DB_SENSORS, DB_SHORT_SAVE_DELAY);
-        }
+        updateEtag(gwConfigEtag);
+        queSaveDb(DB_GROUPS | DB_SENSORS, DB_SHORT_SAVE_DELAY);
     }
 }
 
