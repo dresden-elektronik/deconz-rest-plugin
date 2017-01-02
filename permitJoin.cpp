@@ -97,6 +97,12 @@ void DeRestPluginPrivate::permitJoinTimerFired()
         return;
     }
 
+    if (gwPermitJoinDuration == 0 && otauLastBusyTimeDelta() < (60 * 5))
+    {
+        // don't pollute channel while OTA is running
+        return;
+    }
+
     QTime now = QTime::currentTime();
     int diff = permitJoinLastSendTime.msecsTo(now);
 
