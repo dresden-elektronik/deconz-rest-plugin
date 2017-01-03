@@ -47,6 +47,7 @@ void DeRestPluginPrivate::initOtau()
     otauBusyTicks = 0;
     otauNotifyIter = 0;
     otauIdleTotalCounter = 0;
+    otauUnbindIdleTotalCounter = 0;
     otauNotifyDelay = deCONZ::appArgumentNumeric("--otau-notify-delay", OTAU_IDLE_TICKS_NOTIFY);
 
     otauTimer = new QTimer(this);

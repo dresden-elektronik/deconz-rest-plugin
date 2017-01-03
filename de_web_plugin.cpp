@@ -4488,26 +4488,30 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
 
     if (otauLastBusyTimeDelta() < (60 * 60))
     {
-        LightNode *lightNode = getLightNodeForAddress(ind.srcAddress());
-
-        if (lightNode && lightNode->modelId().startsWith(QLatin1String("FLS-")))
+        if ((idleTotalCounter - otauUnbindIdleTotalCounter) > 5)
         {
-            DBG_Printf(DBG_INFO, "ZCL attribute report 0x%016llX for cluster 0x%04X --> unbind (otau busy)\n", ind.srcAddress().ext(), ind.clusterId());
+            LightNode *lightNode = getLightNodeForAddress(ind.srcAddress());
 
-            BindingTask bindingTask;
-            Binding &bnd = bindingTask.binding;
+            if (lightNode && lightNode->modelId().startsWith(QLatin1String("FLS-")))
+            {
+                otauUnbindIdleTotalCounter = idleTotalCounter;
+                DBG_Printf(DBG_INFO, "ZCL attribute report 0x%016llX for cluster 0x%04X --> unbind (otau busy)\n", ind.srcAddress().ext(), ind.clusterId());
 
-            bindingTask.action = BindingTask::ActionUnbind;
-            bindingTask.state = BindingTask::StateIdle;
+                BindingTask bindingTask;
+                Binding &bnd = bindingTask.binding;
 
-            bnd.srcAddress = lightNode->address().ext();
-            bnd.srcEndpoint = ind.srcEndpoint();
-            bnd.clusterId = ind.clusterId();
-            bnd.dstAddress.ext = apsCtrl->getParameter(deCONZ::ParamMacAddress);
-            bnd.dstAddrMode = deCONZ::ApsExtAddress;
-            bnd.dstEndpoint = endpoint();
+                bindingTask.action = BindingTask::ActionUnbind;
+                bindingTask.state = BindingTask::StateIdle;
 
-            queueBindingTask(bindingTask);
+                bnd.srcAddress = lightNode->address().ext();
+                bnd.srcEndpoint = ind.srcEndpoint();
+                bnd.clusterId = ind.clusterId();
+                bnd.dstAddress.ext = apsCtrl->getParameter(deCONZ::ParamMacAddress);
+                bnd.dstAddrMode = deCONZ::ApsExtAddress;
+                bnd.dstEndpoint = endpoint();
+
+                queueBindingTask(bindingTask);
+            }
         }
     }
 }
@@ -6878,6 +6882,7 @@ void DeRestPlugin::idleTimerFired()
     {
         d->idleTotalCounter = 0;
         d->otauIdleTotalCounter = 0;
+        d->otauUnbindIdleTotalCounter = 0;
         d->saveDatabaseIdleTotalCounter = 0;
         d->recoverOnOff.clear();
     }
@@ -6912,7 +6917,7 @@ void DeRestPlugin::idleTimerFired()
     // slow down query if otau was busy recently
     if (d->otauLastBusyTimeDelta() < (60 * 10))
     {
-        tSpacing = 20;
+        tSpacing = 60;
     }
 
     if (!d->recoverOnOff.empty())
@@ -7224,7 +7229,11 @@ void DeRestPlugin::idleTimerFired()
 
         startZclAttributeTimer(checkZclAttributesDelay);
 
-        if (processLights || processSensors)
+        if (d->otauLastBusyTimeDelta() < 60)
+        {
+            d->idleLimit = 60;
+        }
+        else if (processLights || processSensors)
         {
             if      (d->nodes.size() < 10)  { d->idleLimit = 1; }
             else if (d->nodes.size() < 20)  { d->idleLimit = 2; }

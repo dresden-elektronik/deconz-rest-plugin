@@ -1003,6 +1003,7 @@ public:
     int otauIdleTicks;
     int otauBusyTicks;
     int otauIdleTotalCounter;
+    int otauUnbindIdleTotalCounter;
     uint otauNotifyIter; // iterator over nodes
     int otauNotifyDelay;
 
