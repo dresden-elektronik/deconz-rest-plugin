@@ -367,6 +367,11 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             break;
         }
 
+        if (ind.dstAddressMode() == deCONZ::ApsGroupAddress)
+        {
+            foundGroup(ind.dstAddress().group());
+        }
+
         if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReportAttributesId)
         {
             handleZclAttributeReportIndication(ind, zclFrame);
