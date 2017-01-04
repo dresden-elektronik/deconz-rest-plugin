@@ -2698,7 +2698,7 @@ void DeRestPluginPrivate::queSaveDb(int items, int msec)
  */
 void DeRestPluginPrivate::saveDatabaseTimerFired()
 {
-    if (otauLastBusyTimeDelta() < 60)
+    if (otauLastBusyTimeDelta() < OTA_LOW_PRIORITY_TIME)
     {
         if ((idleTotalCounter - saveDatabaseIdleTotalCounter) < (60 * 30))
         {

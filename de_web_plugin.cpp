@@ -6939,6 +6939,7 @@ void DeRestPlugin::idleTimerFired()
 
     if (d->idleLimit <= 0)
     {
+        DBG_Printf(DBG_INFO, "OTA last busy dt %d s\n", otauLastBusyTimeDelta());
         QTime t = QTime::currentTime();
 
         if (d->queryTime > t)

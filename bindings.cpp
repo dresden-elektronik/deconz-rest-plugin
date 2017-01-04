@@ -504,7 +504,7 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
     }
 
     // prevent binding action if otau was busy recently
-    if (otauLastBusyTimeDelta() < (60 * 60))
+    if (otauLastBusyTimeDelta() < OTA_LOW_PRIORITY_TIME)
     {
         if (lightNode->modelId().startsWith(QLatin1String("FLS-")))
         {
@@ -593,7 +593,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
     }
 
     // prevent binding action if otau was busy recently
-    if (otauLastBusyTimeDelta() < (60 * 60))
+    if (otauLastBusyTimeDelta() < OTA_LOW_PRIORITY_TIME)
     {
         if (sensor->modelId().startsWith(QLatin1String("FLS-")))
         {
