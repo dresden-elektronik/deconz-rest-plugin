@@ -8207,7 +8207,20 @@ bool DeRestPluginPrivate::resetConfiguration(bool resetGW, bool deleteDB)
             uint8_t securityMode = 3;
             // TODO: original macAddress
             quint64 macAddress = apsCtrl->getParameter(deCONZ::ParamMacAddress);
-            QByteArray nwkKey = QByteArray::fromHex(qPrintable("cccccccccccccccccccccccccccccccc"));
+
+            uint32_t rndNwkKey1 = (qrand() % 4294967295);
+            uint32_t rndNwkKey2 = (qrand() % 4294967295);
+            uint32_t rndNwkKey3 = (qrand() % 4294967295);
+            uint32_t rndNwkKey4 = (qrand() % 4294967293);
+
+            QByteArray nwkKey1 = QByteArray::number(rndNwkKey1, 16);
+            QByteArray nwkKey2 = QByteArray::number(rndNwkKey2, 16);
+            QByteArray nwkKey3 = QByteArray::number(rndNwkKey3, 16);
+            QByteArray nwkKey4 = QByteArray::number(rndNwkKey4, 16);
+
+            QByteArray nwkKey = nwkKey1.append(nwkKey2).append(nwkKey3).append(nwkKey4);
+            nwkKey.resize(16);
+
             QByteArray tcLinkKey = QByteArray::fromHex(qPrintable("5a6967426565416c6c69616e63653039"));
             uint8_t nwkUpdateId = 1;
 
