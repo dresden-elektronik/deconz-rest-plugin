@@ -69,6 +69,7 @@
 #define PERMIT_JOIN_SEND_INTERVAL (1000 * 160)
 #define EXT_PROCESS_TIMEOUT 10000
 #define SET_ENDPOINTCONFIG_DURATION (1000 * 16) // time deCONZ needs to update Endpoints
+#define OTA_LOW_PRIORITY_TIME (60 * 2)
 
 #define DE_OTAU_ENDPOINT             0x50
 #define DE_PROFILE_ID              0xDE00

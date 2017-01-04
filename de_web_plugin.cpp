@@ -6915,7 +6915,7 @@ void DeRestPlugin::idleTimerFired()
     int tSpacing = 5;
 
     // slow down query if otau was busy recently
-    if (d->otauLastBusyTimeDelta() < (60 * 10))
+    if (d->otauLastBusyTimeDelta() < OTA_LOW_PRIORITY_TIME)
     {
         tSpacing = 60;
     }
@@ -6978,6 +6978,15 @@ void DeRestPlugin::idleTimerFired()
                     if (lightNode->mustRead(items[i]))
                     {
                         continue;
+                    }
+
+                    if (items[i] == READ_GROUPS || items[i] == READ_SCENES)
+                    {
+                        // don't query low priority items when OTA is busy
+                        if (d->otauLastBusyTimeDelta() < OTA_LOW_PRIORITY_TIME)
+                        {
+                            continue;
+                        }
                     }
 
                     if (lightNode->lastRead(items[i]) < (d->idleTotalCounter - tRead[i]))
@@ -7060,18 +7069,22 @@ void DeRestPlugin::idleTimerFired()
                     DBG_Printf(DBG_INFO, "Force read attributes for node %s\n", qPrintable(lightNode->name()));
                 }
 
-                if (lightNode->lastAttributeReportBind() < (d->idleTotalCounter - IDLE_ATTR_REPORT_BIND_LIMIT))
+                // don't query low priority items when OTA is busy
+                if (d->otauLastBusyTimeDelta() > OTA_LOW_PRIORITY_TIME)
                 {
-                    d->checkLightBindingsForAttributeReporting(lightNode);
-                    if (lightNode->mustRead(READ_BINDING_TABLE))
+                    if (lightNode->lastAttributeReportBind() < (d->idleTotalCounter - IDLE_ATTR_REPORT_BIND_LIMIT))
                     {
-                        lightNode->setLastRead(READ_BINDING_TABLE, d->idleTotalCounter);
-                        lightNode->setNextReadTime(READ_BINDING_TABLE, d->queryTime);
-                        d->queryTime = d->queryTime.addSecs(tSpacing);
+                        d->checkLightBindingsForAttributeReporting(lightNode);
+                        if (lightNode->mustRead(READ_BINDING_TABLE))
+                        {
+                            lightNode->setLastRead(READ_BINDING_TABLE, d->idleTotalCounter);
+                            lightNode->setNextReadTime(READ_BINDING_TABLE, d->queryTime);
+                            d->queryTime = d->queryTime.addSecs(tSpacing);
+                        }
+                        lightNode->setLastAttributeReportBind(d->idleTotalCounter);
+                        DBG_Printf(DBG_INFO, "Force binding of attribute reporting for node %s\n", qPrintable(lightNode->name()));
+                        processLights = true;
                     }
-                    lightNode->setLastAttributeReportBind(d->idleTotalCounter);
-                    DBG_Printf(DBG_INFO, "Force binding of attribute reporting for node %s\n", qPrintable(lightNode->name()));
-                    processLights = true;
                 }
             }
         }
@@ -7128,7 +7141,7 @@ void DeRestPlugin::idleTimerFired()
                     processSensors = true;
                 }
 
-                if (sensorNode->lastRead(READ_BINDING_TABLE) < (d->idleTotalCounter - IDLE_READ_LIMIT))
+                if ((d->otauLastBusyTimeDelta() > OTA_LOW_PRIORITY_TIME) && (sensorNode->lastRead(READ_BINDING_TABLE) < (d->idleTotalCounter - IDLE_READ_LIMIT)))
                 {
                     std::vector<quint16>::const_iterator ci = sensorNode->fingerPrint().inClusters.begin();
                     std::vector<quint16>::const_iterator cend = sensorNode->fingerPrint().inClusters.end();
@@ -7181,7 +7194,7 @@ void DeRestPlugin::idleTimerFired()
                     //break;
                 }
 
-                if (sensorNode->lastAttributeReportBind() < (d->idleTotalCounter - IDLE_ATTR_REPORT_BIND_LIMIT))
+                if ((d->otauLastBusyTimeDelta() > OTA_LOW_PRIORITY_TIME) && (sensorNode->lastAttributeReportBind() < (d->idleTotalCounter - IDLE_ATTR_REPORT_BIND_LIMIT)))
                 {
                     d->checkSensorBindingsForAttributeReporting(sensorNode);
                     sensorNode->setLastAttributeReportBind(d->idleTotalCounter);
@@ -7229,7 +7242,7 @@ void DeRestPlugin::idleTimerFired()
 
         startZclAttributeTimer(checkZclAttributesDelay);
 
-        if (d->otauLastBusyTimeDelta() < 60)
+        if (d->otauLastBusyTimeDelta() < OTA_LOW_PRIORITY_TIME)
         {
             d->idleLimit = 60;
         }
