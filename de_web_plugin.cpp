@@ -3511,12 +3511,6 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         return false;
     }
 
-//    // check if read should happen now
-//    if (sensorNode->nextReadTime() > QTime::currentTime())
-//    {
-//        return false;
-//    }
-
     if (!sensorNode->isAvailable())
     {
         return false;
@@ -3541,11 +3535,11 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         bool ok = false;
         // only read binding table of chosen sensors
         // whitelist by Model ID
-        if (sensorNode->modelId().startsWith("FLS-NB") ||
-            sensorNode->modelId().startsWith("D1") || sensorNode->modelId().startsWith("S1") ||
-            sensorNode->modelId().startsWith("S2") || sensorNode->manufacturer().startsWith("BEGA") ||
-            sensorNode->modelId().startsWith("C4") ||
-            sensorNode->modelId().startsWith("LM_00.00"))
+        if (sensorNode->modelId().startsWith(QLatin1String("FLS-NB")) ||
+            sensorNode->modelId().startsWith(QLatin1String("D1")) || sensorNode->modelId().startsWith(QLatin1String("S1")) ||
+            sensorNode->modelId().startsWith(QLatin1String("S2")) || sensorNode->manufacturer().startsWith(QLatin1String("BEGA")) ||
+            sensorNode->modelId().startsWith(QLatin1String("C4")) ||
+            sensorNode->modelId().startsWith(QLatin1String("LM_00.00")))
         {
             ok = true;
         }
@@ -3610,7 +3604,7 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
 
     if (sensorNode->mustRead(READ_GROUP_IDENTIFIERS) && tNow > sensorNode->nextReadTime(READ_GROUP_IDENTIFIERS))
     {
-        if (sensorNode->modelId() != "RWL021" &&
+        if (sensorNode->modelId() != QLatin1String("RWL021") &&
             std::find(sensorNode->fingerPrint().inClusters.begin(),
                       sensorNode->fingerPrint().inClusters.end(), COMMISSIONING_CLUSTER_ID)
                    == sensorNode->fingerPrint().inClusters.end())
@@ -3619,9 +3613,10 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
             // disable reading of group identifiers here
             sensorNode->clearRead(READ_GROUP_IDENTIFIERS);
         }
-        else if (sensorNode->modelId() == "TRADFRI remote control")
+        else if (((sensorNode->address().ext() & 0x000b570000000000LLU) == 0x000b570000000000LLU) ||
+                 sensorNode->modelId() == QLatin1String("TRADFRI remote control"))
         {
-            // not supported yet
+            // IKEA remote not supported yet
             sensorNode->clearRead(READ_GROUP_IDENTIFIERS);
         }
         else if (getGroupIdentifiers(sensorNode, sensorNode->fingerPrint().endpoint, 0))
