@@ -1650,8 +1650,23 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
         QList<deCONZ::ZclCluster>::const_iterator ic = lightNode->haEndpoint().inClusters().constBegin();
         QList<deCONZ::ZclCluster>::const_iterator endc = lightNode->haEndpoint().inClusters().constEnd();
 
+        NodeValue::UpdateType updateType = NodeValue::UpdateInvalid;
+        if (event.event() == deCONZ::NodeEvent::UpdatedClusterDataZclRead)
+        {
+            updateType = NodeValue::UpdateByZclRead;
+        }
+        else if (event.event() == deCONZ::NodeEvent::UpdatedClusterDataZclReport)
+        {
+            updateType = NodeValue::UpdateByZclReport;
+        }
+
         for (; ic != endc; ++ic)
         {
+            if (updateType == NodeValue::UpdateInvalid)
+            {
+                break;
+            }
+
             if (ic->id() == COLOR_CLUSTER_ID && (event.clusterId() == COLOR_CLUSTER_ID))
             {
                 std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
@@ -1758,10 +1773,13 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             DBG_Printf(DBG_INFO, "level %u --> %u\n", lightNode->level(), level);
                             lightNode->clearRead(READ_LEVEL);
                             lightNode->setLevel(level);
+                            lightNode->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
                             updated = true;
                         }
+                        break;
                     }
                 }
+                break;
             }
             else if (ic->id() == ONOFF_CLUSTER_ID && (event.clusterId() == ONOFF_CLUSTER_ID))
             {
@@ -1776,9 +1794,12 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         {
                             lightNode->clearRead(READ_ON_OFF);
                             lightNode->setIsOn(on);
+                            lightNode->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
                             updated = true;
                         }
+                        break;
                     }
+                    break;
                 }
             }
             else if (ic->id() == BASIC_CLUSTER_ID && (event.clusterId() == BASIC_CLUSTER_ID))
@@ -8206,6 +8227,7 @@ bool DeRestPluginPrivate::resetConfiguration(bool resetGW, bool deleteDB)
             // TODO: original macAddress
             quint64 macAddress = apsCtrl->getParameter(deCONZ::ParamMacAddress);
 
+            // TODO omit warning
             uint32_t rndNwkKey1 = (qrand() % 4294967295);
             uint32_t rndNwkKey2 = (qrand() % 4294967295);
             uint32_t rndNwkKey3 = (qrand() % 4294967295);
