@@ -3598,6 +3598,11 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
             // disable reading of group identifiers here
             sensorNode->clearRead(READ_GROUP_IDENTIFIERS);
         }
+        else if (sensorNode->modelId() == "TRADFRI remote control")
+        {
+            // not supported yet
+            sensorNode->clearRead(READ_GROUP_IDENTIFIERS);
+        }
         else if (getGroupIdentifiers(sensorNode, sensorNode->fingerPrint().endpoint, 0))
         {
             sensorNode->clearRead(READ_GROUP_IDENTIFIERS);
