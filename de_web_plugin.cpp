@@ -8217,8 +8217,9 @@ bool DeRestPluginPrivate::resetConfiguration(bool resetGW, bool deleteDB)
     {
         if (resetGW)
         {
+            qsrand(QDateTime::currentDateTime().toTime_t());
             uint8_t deviceType = deCONZ::Coordinator;
-            uint16_t panId = (qrand() % 65532);
+            uint16_t panId = qrand();
             quint64 apsUseExtPanId = 0x0000000000000000;
             uint16_t nwkAddress = 0x0000;
             //uint32_t channelMask = 33554432; // 25
@@ -8227,21 +8228,15 @@ bool DeRestPluginPrivate::resetConfiguration(bool resetGW, bool deleteDB)
             // TODO: original macAddress
             quint64 macAddress = apsCtrl->getParameter(deCONZ::ParamMacAddress);
 
-            // TODO omit warning
-            uint32_t rndNwkKey1 = (qrand() % 4294967295);
-            uint32_t rndNwkKey2 = (qrand() % 4294967295);
-            uint32_t rndNwkKey3 = (qrand() % 4294967295);
-            uint32_t rndNwkKey4 = (qrand() % 4294967293);
-
-            QByteArray nwkKey1 = QByteArray::number(rndNwkKey1, 16);
-            QByteArray nwkKey2 = QByteArray::number(rndNwkKey2, 16);
-            QByteArray nwkKey3 = QByteArray::number(rndNwkKey3, 16);
-            QByteArray nwkKey4 = QByteArray::number(rndNwkKey4, 16);
+            QByteArray nwkKey1 = QByteArray::number(qrand(), 16);
+            QByteArray nwkKey2 = QByteArray::number(qrand(), 16);
+            QByteArray nwkKey3 = QByteArray::number(qrand(), 16);
+            QByteArray nwkKey4 = QByteArray::number(qrand(), 16);
 
             QByteArray nwkKey = nwkKey1.append(nwkKey2).append(nwkKey3).append(nwkKey4);
             nwkKey.resize(16);
 
-            QByteArray tcLinkKey = QByteArray::fromHex(qPrintable("5a6967426565416c6c69616e63653039"));
+            QByteArray tcLinkKey = QByteArray::fromHex("5a6967426565416c6c69616e63653039");
             uint8_t nwkUpdateId = 1;
 
             apsCtrl->setParameter(deCONZ::ParamDeviceType, deviceType);
