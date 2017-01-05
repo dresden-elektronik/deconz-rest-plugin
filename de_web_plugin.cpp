@@ -6939,7 +6939,6 @@ void DeRestPlugin::idleTimerFired()
 
     if (d->idleLimit <= 0)
     {
-        DBG_Printf(DBG_INFO, "OTA last busy dt %d s\n", d->otauLastBusyTimeDelta());
         QTime t = QTime::currentTime();
 
         if (d->queryTime > t)
@@ -7005,17 +7004,11 @@ void DeRestPlugin::idleTimerFired()
                         if (clusters[i] != 0xffff)
                         {
                             const NodeValue &val = lightNode->getZclValue(clusters[i], attrs[i]);
-                            if (val.updateType == NodeValue::UpdateByZclReport)
+
+                            if (val.updateType == NodeValue::UpdateByZclRead ||
+                                val.updateType == NodeValue::UpdateByZclReport)
                             {
-                                if (val.timestampLastReport.elapsed() < (tRead[i] * 1000))
-                                {
-                                    // fresh enough
-                                    continue;
-                                }
-                            }
-                            if (val.updateType == NodeValue::UpdateByZclRead)
-                            {
-                                if (val.timestampLastReadRequest.elapsed() < (tRead[i] * 1000))
+                                if (val.timestamp.isValid() && val.timestamp.elapsed() < (tRead[i] * 1000))
                                 {
                                     // fresh enough
                                     continue;
