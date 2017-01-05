@@ -1773,9 +1773,9 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             DBG_Printf(DBG_INFO, "level %u --> %u\n", lightNode->level(), level);
                             lightNode->clearRead(READ_LEVEL);
                             lightNode->setLevel(level);
-                            lightNode->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
                             updated = true;
                         }
+                        lightNode->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
                         break;
                     }
                 }
@@ -1794,9 +1794,9 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         {
                             lightNode->clearRead(READ_ON_OFF);
                             lightNode->setIsOn(on);
-                            lightNode->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
                             updated = true;
                         }
+                        lightNode->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
                         break;
                     }
                     break;
