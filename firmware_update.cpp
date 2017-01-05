@@ -200,7 +200,7 @@ bool DeRestPluginPrivate::startUpdateFirmware()
  */
 void DeRestPluginPrivate::firmwareUpdateTimerFired()
 {
-    if (d->otauLastBusyTimeDelta() < OTA_LOW_PRIORITY_TIME)
+    if (otauLastBusyTimeDelta() < OTA_LOW_PRIORITY_TIME)
     {
         fwUpdateState = FW_Idle;
         fwUpdateTimer->start(FW_IDLE_TIMEOUT);
