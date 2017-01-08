@@ -1365,7 +1365,6 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
                 default:
                     {
-                        DBG_Printf(DBG_INFO, "Unsupported HA deviceId 0x%04X\n", i->deviceId());
                     }
                     break;
                 }
@@ -3000,10 +2999,10 @@ Group *DeRestPluginPrivate::getGroupForId(const QString &id)
 
 /*! Delete a group of a switch from database permanently.
  */
-bool DeRestPluginPrivate::deleteOldGroupOfSwitch(const QString &switchId)
+bool DeRestPluginPrivate::deleteOldGroupOfSwitch(Sensor *sensor, quint16 newGroupId)
 {
-    DBG_Assert(switchId.isEmpty() == false);
-    if (switchId.isEmpty())
+    DBG_Assert(sensor && !sensor->id().isEmpty());
+    if (!sensor || sensor->id().isEmpty())
     {
         return false;
     }
@@ -3013,15 +3012,23 @@ bool DeRestPluginPrivate::deleteOldGroupOfSwitch(const QString &switchId)
 
     for (; i != end; ++i)
     {
-        if (i->m_deviceMemberships.end() != std::find(i->m_deviceMemberships.begin(),
-                                                    i->m_deviceMemberships.end(),
-                                                    switchId))
+        if (i->address() == newGroupId)
         {
-            //found
-            if (i->state() == Group::StateDeleted)
-            {
-                i->setState(Group::StateDeleteFromDB);
-            }
+            continue;
+        }
+
+        if (i->state() != Group::StateNormal)
+        {
+            continue;
+        }
+
+        if (i->m_deviceMemberships.end() != std::find(i->m_deviceMemberships.begin(),
+                                                      i->m_deviceMemberships.end(),
+                                                      sensor->id()))
+        {
+            DBG_Printf(DBG_INFO, "delete old switch group 0x%04X of sensor %s\n", i->address(), qPrintable(sensor->name()));
+            //found            
+            i->setState(Group::StateDeleted);
         }
     }
     return true;
@@ -6247,8 +6254,13 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
             // assumption: different groups from consecutive endpoints
             ep++;
 
-            if (sensorNode->deletedState() != Sensor::StateDeleted)
+            if (sensorNode && sensorNode->deletedState() != Sensor::StateDeleted)
             {
+                sensorNode->clearRead(READ_GROUP_IDENTIFIERS);
+
+                // delete older groups of this switch permanently
+                deleteOldGroupOfSwitch(sensorNode, groupId);
+
                 if (group1)
                 {
                     if (group1->state() == Group::StateDeleted)
@@ -6264,9 +6276,6 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
                 }
                 else
                 {
-                    // delete older groups of this switch permanently
-                    deleteOldGroupOfSwitch(sensorNode->id());
-
                     //create new switch group
                     Group group;
                     group.setAddress(groupId);
@@ -6647,6 +6656,136 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
 
         default:
             break;
+        }
+    }
+}
+
+/*! Speed up discovery of Philips end devices.
+ */
+void DeRestPluginPrivate::fastProbePhilips(quint64 ext, quint16 nwk, quint8 macCapabilities)
+{
+    Q_UNUSED(ext);
+    // known end-devices have endpoints 0x01 and 0x02
+    // Philips hue Motion Sensor
+    // Philips hue Dimmer Switch
+    if (!(macCapabilities & deCONZ::MacDeviceIsFFD))
+    {
+        // simple descriptor for endpoint 0x01
+        {
+            deCONZ::ApsDataRequest apsReq;
+
+            // ZDP Header
+            apsReq.dstAddress().setExt(ext);
+            apsReq.setDstAddressMode(deCONZ::ApsExtAddress);
+            apsReq.setDstEndpoint(ZDO_ENDPOINT);
+            apsReq.setSrcEndpoint(ZDO_ENDPOINT);
+            apsReq.setProfileId(ZDP_PROFILE_ID);
+            apsReq.setRadius(0);
+            apsReq.setClusterId(ZDP_SIMPLE_DESCRIPTOR_CLID);
+            apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+            apsReq.setSendDelay(2000);
+
+            QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
+            stream.setByteOrder(QDataStream::LittleEndian);
+
+            stream << zclSeq++;
+            stream << nwk;
+            stream << (quint8)0x01;
+
+            deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
+
+            if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+            {
+                queryTime = queryTime.addSecs(1);
+            }
+        }
+
+        // model id
+        {
+            deCONZ::ApsDataRequest apsReq;
+
+            // ZDP Header
+            apsReq.dstAddress().setExt(ext);
+            apsReq.setDstAddressMode(deCONZ::ApsExtAddress);
+            apsReq.setDstEndpoint(0x01);
+            apsReq.setSrcEndpoint(endpoint());
+            apsReq.setProfileId(HA_PROFILE_ID);
+            apsReq.setRadius(0);
+            apsReq.setClusterId(BASIC_CLUSTER_ID);
+            apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+            apsReq.setSendDelay(2000);
+
+            deCONZ::ZclFrame zclFrame;
+            zclFrame.setSequenceNumber(zclSeq++);
+            zclFrame.setCommandId(deCONZ::ZclReadAttributesId);
+            zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                                     deCONZ::ZclFCDirectionClientToServer |
+                                     deCONZ::ZclFCDisableDefaultResponse);
+
+            { // payload
+                QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
+                stream.setByteOrder(QDataStream::LittleEndian);
+
+                quint16 attributeId = 0x0005; // model id
+                stream << attributeId;
+            }
+
+            { // ZCL frame
+                QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
+                stream.setByteOrder(QDataStream::LittleEndian);
+                zclFrame.writeToStream(stream);
+            }
+
+            deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
+
+            if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+            {
+                queryTime = queryTime.addSecs(1);
+            }
+        }
+
+        // get group identifiers
+        {
+            deCONZ::ApsDataRequest apsReq;
+
+            // ZDP Header
+            apsReq.dstAddress().setExt(ext);
+            apsReq.setDstAddressMode(deCONZ::ApsExtAddress);
+            apsReq.setDstEndpoint(0x01);
+            apsReq.setSrcEndpoint(endpoint());
+            apsReq.setProfileId(HA_PROFILE_ID);
+            apsReq.setRadius(0);
+            apsReq.setClusterId(COMMISSIONING_CLUSTER_ID);
+            apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+            apsReq.setSendDelay(2000);
+
+            deCONZ::ZclFrame zclFrame;
+            zclFrame.setSequenceNumber(zclSeq++);
+            zclFrame.setCommandId(0x41); // get group identifiers cmd
+            zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
+                                     deCONZ::ZclFCDirectionClientToServer |
+                                     deCONZ::ZclFCDisableDefaultResponse);
+
+            { // payload
+                QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
+                stream.setByteOrder(QDataStream::LittleEndian);
+
+                quint8 startIndex = 0;
+                stream << startIndex;
+            }
+
+            { // ZCL frame
+                QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
+                stream.setByteOrder(QDataStream::LittleEndian);
+                zclFrame.writeToStream(stream);
+            }
+
+            deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
+
+            if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+            {
+                queryTime = queryTime.addSecs(1);
+            }
         }
     }
 }

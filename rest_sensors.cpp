@@ -1627,6 +1627,14 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
         stream >> ext;
         stream >> macCapabilities;
 
+        const quint64 philipsMacPrefix = 0x0017880000000000ULL;
+
+        if ((ext & philipsMacPrefix) == philipsMacPrefix)
+        {
+            fastProbePhilips(ext, nwk, macCapabilities);
+            return;
+        }
+
         std::vector<SensorCandidate>::const_iterator i = findSensorCandidates.begin();
         std::vector<SensorCandidate>::const_iterator end = findSensorCandidates.end();
 
@@ -1908,7 +1916,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
             if (!g && s1 && group1 != 0)
             {
                 // delete older groups of this switch permanently
-                deleteOldGroupOfSwitch(s1->id());
+                deleteOldGroupOfSwitch(s1, group1);
 
                 //create new switch group
                 Group group;
@@ -1936,7 +1944,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
             if (!g && s2 && group2 != 0)
             {
                 // delete older groups of this switch permanently
-                deleteOldGroupOfSwitch(s2->id());
+                deleteOldGroupOfSwitch(s2, group2);
 
                 //create new switch group
                 Group group;

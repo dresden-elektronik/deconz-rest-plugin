@@ -784,7 +784,7 @@ public:
     Group *getGroupForName(const QString &name);
     Group *getGroupForId(uint16_t id);
     Group *getGroupForId(const QString &id);
-    bool deleteOldGroupOfSwitch(const QString &switchId);
+    bool deleteOldGroupOfSwitch(Sensor *sensor, quint16 newGroupId);
     Scene *getSceneForId(uint16_t gid, uint8_t sid);
     GroupInfo *getGroupInfo(LightNode *lightNode, uint16_t id);
     GroupInfo *createGroupInfo(LightNode *lightNode, uint16_t id);
@@ -861,6 +861,8 @@ public:
     void broadCastNodeUpdate(LightNode *webNode);
     void markForPushUpdate(LightNode *lightNode);
     void taskToLocalData(const TaskItem &task);
+
+    void fastProbePhilips(quint64 ext, quint16 nwk, quint8 macCapabilities);
 
     // Modify node attributes
     void setAttributeOnOff(LightNode *lightNode);
