@@ -7930,7 +7930,7 @@ bool DeRestPlugin::pluginActive() const
     {
         return m_w->pluginActive();
     }
-    return false;
+    return true;
 }
 
 /*! save Rule State (timesTriggered, lastTriggered) in DB only if
