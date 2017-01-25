@@ -313,6 +313,8 @@ int DeRestPluginPrivate::resetLight(ApiRequest &req, ApiResponse &rsp)
     touchlinkAction = TouchlinkReset;
     touchlinkChannel = touchlinkDevice.channel;
 
+    DBG_Printf(DBG_TLINK, "start touchlink reset for 0x%016llX\n", touchlinkDevice.address.ext());
+
     touchlinkDisconnectNetwork();
 
     rsp.httpStatus = HttpStatusOk;
@@ -483,7 +485,15 @@ void DeRestPluginPrivate::sendTouchlinkScanRequest()
 
     if (touchlinkCtrl->sendInterpanRequest(touchlinkReq) == 0)
     {
-        touchlinkState = TL_SendingScanRequest;
+        if (touchlinkAction == TouchlinkIdentify || touchlinkAction == TouchlinkReset)
+        {
+            touchlinkState = TL_WaitScanResponses;
+            touchlinkTimer->start(TL_SCAN_WAIT_TIME);
+        }
+        else
+        {
+            touchlinkState = TL_SendingScanRequest;
+        }
     }
     else
     {
@@ -628,14 +638,6 @@ void DeRestPluginPrivate::sendTouchlinkConfirm(deCONZ::TouchlinkStatus status)
         case TouchlinkScan:
         {
             touchlinkTimer->start(1);
-        }
-            break;
-
-        case TouchlinkIdentify:
-        case TouchlinkReset:
-        {
-            touchlinkState = TL_WaitScanResponses;
-            touchlinkTimer->start(TL_SCAN_WAIT_TIME);
         }
             break;
 
