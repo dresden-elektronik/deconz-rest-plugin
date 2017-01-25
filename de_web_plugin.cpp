@@ -4343,6 +4343,11 @@ bool DeRestPluginPrivate::storeScene(Group *group, uint8_t sceneId)
         {
             GroupInfo *groupInfo = getGroupInfo(lightNode, group->address());
 
+            if (!groupInfo)
+            {
+                continue;
+            }
+
             //if (lightNode->sceneCapacity() != 0 || groupInfo->sceneCount() != 0) //xxx workaround
             {
                 std::vector<uint8_t> &v = groupInfo->modifyScenes;
@@ -4350,6 +4355,18 @@ bool DeRestPluginPrivate::storeScene(Group *group, uint8_t sceneId)
                 if (std::find(v.begin(), v.end(), sceneId) == v.end())
                 {
                     groupInfo->modifyScenes.push_back(sceneId);
+                }
+            }
+
+            if (lightNode->manufacturerCode() == VENDOR_OSRAM ||
+                lightNode->manufacturerCode() == VENDOR_OSRAM_STACK)
+            {
+                // quirks mode: need extra store scene command (color temperature issue)
+                std::vector<uint8_t> &v = groupInfo->addScenes;
+
+                if (std::find(v.begin(), v.end(), sceneId) == v.end())
+                {
+                    groupInfo->addScenes.push_back(sceneId);
                 }
             }
         }
@@ -5190,7 +5207,6 @@ void DeRestPluginPrivate::processGroupTasks()
 
         if (!i->modifyScenes.empty())
         {
-
             if (i->modifyScenesRetries < GroupInfo::MaxActionRetries)
             {
                 i->modifyScenesRetries++;
@@ -5785,6 +5801,8 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
             quint16 x;
             quint16 y;
 
+            DBG_Printf(DBG_INFO, "View scene rsp 0x%016llX group 0x%04X scene 0x%02X\n", lightNode->address().ext(), groupId, sceneId);
+
             while (!stream.atEnd())
             {
                 uint16_t clusterId;
@@ -5831,6 +5849,8 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                     stream >> c;
                 }
             }
+
+            DBG_Printf(DBG_INFO, "\t t=%u, on=%u, bri=%u, x=%u, y=%u\n", transitionTime, onOff, bri, x, y);
 
             if (scene)
             {
@@ -5900,7 +5920,22 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                     newLightState.tVerified.start();
                     if (hasOnOff) { newLightState.setOn(onOff); }
                     if (hasBri)   { newLightState.setBri(bri); }
-                    if (hasXY)    { newLightState.setX(x); newLightState.setY(y); }
+                    if (hasXY)
+                    {
+                        newLightState.setX(x);
+                        newLightState.setY(y);
+
+                        if (lightNode->modelId().startsWith(QLatin1String("FLS-H")) ||
+                            lightNode->modelId().startsWith(QLatin1String("FLS-CT")))
+                        {
+                            newLightState.setColorMode(QLatin1String("ct"));
+                            newLightState.setColorTemperature(x);
+                        }
+                        else
+                        {
+                            newLightState.setColorMode(QLatin1String("xy"));
+                        }
+                    }
                     scene->addLightState(newLightState);
                     queSaveDb(DB_SCENES, DB_LONG_SAVE_DELAY);
                 }

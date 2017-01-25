@@ -159,6 +159,7 @@
 // manufacturer codes
 #define VENDOR_ATMEL    0x1014
 #define VENDOR_DDEL     0x1135
+#define VENDOR_IKEA     0x117c
 #define VENDOR_PHILIPS  0x100B
 #define VENDOR_OSRAM_STACK  0xBBAA
 #define VENDOR_OSRAM    0x110C

@@ -863,8 +863,8 @@ bool DeRestPluginPrivate::addTaskAddScene(TaskItem &task, uint16_t groupId, uint
     {
         if (i->id == sceneId && i->state != Scene::StateDeleted)
         {
-            std::vector<LightState>::const_iterator l = i->lights().begin();
-            std::vector<LightState>::const_iterator lend = i->lights().end();
+            std::vector<LightState>::iterator l = i->lights().begin();
+            std::vector<LightState>::iterator lend = i->lights().end();
 
             for ( ;l != lend; ++l)
             {
@@ -921,10 +921,24 @@ bool DeRestPluginPrivate::addTaskAddScene(TaskItem &task, uint16_t groupId, uint
                                     x = l->colorTemperature();
                                     y = 0;
                                 }
+                                else if (task.lightNode->modelId().startsWith(QLatin1String("FLS-CT")))
+                                {
+                                    // quirks mode FLS-CT stores color temperature in x
+                                    x = l->colorTemperature();
+                                    y = 0;
+                                }
                                 else
                                 {
                                     MiredColorTemperatureToXY(l->colorTemperature(), &x, &y);
                                 }
+
+                                // view scene command will be used to verify x, y values
+                                if (l->x() != x || l->y() != y)
+                                {
+                                    l->setX(x);
+                                    l->setY(y);
+                                }
+
                                 stream << x;
                                 stream << y;
                                 stream << (quint16)0; //enhanced hue

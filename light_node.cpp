@@ -70,7 +70,7 @@ void LightNode::setManufacturerCode(uint16_t code)
     {
         m_manufacturerCode = code;
 
-        if (!m_manufacturer.isEmpty() && (m_manufacturer != "Unknown"))
+        if (!m_manufacturer.isEmpty() && (m_manufacturer != QLatin1String("Unknown")))
         {
             return;
         }
@@ -78,12 +78,15 @@ void LightNode::setManufacturerCode(uint16_t code)
         switch (code)
         {
         case VENDOR_ATMEL: // fall through
-        case VENDOR_DDEL:    m_manufacturer = "dresden elektronik"; break;
-        case VENDOR_PHILIPS: m_manufacturer = "Philips"; break;
-        case VENDOR_OSRAM:   m_manufacturer = "OSRAM"; break;
-        case VENDOR_UBISYS:  m_manufacturer = "ubisys"; break;
+        case VENDOR_DDEL:    m_manufacturer = QLatin1String("dresden elektronik"); break;
+        case VENDOR_BEGA:    m_manufacturer = QLatin1String("BEGA"); break;
+        case VENDOR_IKEA:    m_manufacturer = QLatin1String("IKEA"); break;
+        case VENDOR_PHILIPS: m_manufacturer = QLatin1String("Philips"); break;
+        case VENDOR_OSRAM_STACK: // fall through
+        case VENDOR_OSRAM:   m_manufacturer = QLatin1String("OSRAM"); break;
+        case VENDOR_UBISYS:  m_manufacturer = QLatin1String("ubisys"); break;
         default:
-            m_manufacturer = "Unknown";
+            m_manufacturer = QLatin1String("Unknown");
             break;
         }
     }
@@ -474,15 +477,16 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
         {
             switch(haEndpoint().deviceId())
             {
-            case DEV_ID_HA_ONOFF_LIGHT:           m_type = "On/Off light"; m_hasColor = false; break;
-            case DEV_ID_ONOFF_OUTPUT:             m_type = "On/Off output"; m_hasColor = false; break;
-            case DEV_ID_HA_DIMMABLE_LIGHT:        m_type = "Dimmable light"; m_hasColor = false; break;
-            case DEV_ID_HA_COLOR_DIMMABLE_LIGHT:  m_type = "Color dimmable light"; m_hasColor = true; break;
-            case DEV_ID_ZLL_ONOFF_LIGHT:             m_type = "On/Off light"; m_hasColor = false; break;
-            //case DEV_ID_ZLL_DIMMABLE_LIGHT:          m_type = "Dimmable light"; m_hasColor = false; break; // clash with on/off light
-            case DEV_ID_ZLL_COLOR_LIGHT:             m_type = "Color light"; m_hasColor = true; break;
-            case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:    m_type = "Extended color light"; m_hasColor = true; break;
-            case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT: m_type = "Color temperature light"; m_hasColor = true; break;
+            case DEV_ID_HA_ONOFF_LIGHT:           m_type = QLatin1String("On/Off light"); m_hasColor = false; break;
+            case DEV_ID_ONOFF_OUTPUT:             m_type = QLatin1String("On/Off output"); m_hasColor = false; break;
+            case DEV_ID_HA_DIMMABLE_LIGHT:        m_type = QLatin1String("Dimmable light"); m_hasColor = false; break;
+            case DEV_ID_HA_COLOR_DIMMABLE_LIGHT:  m_type = QLatin1String("Color dimmable light"); m_hasColor = true; break;
+            case DEV_ID_ZLL_ONOFF_LIGHT:             m_type = QLatin1String("On/Off light"); m_hasColor = false; break;
+            //case DEV_ID_ZLL_DIMMABLE_LIGHT:          m_type = QLatin1String("Dimmable light"); m_hasColor = false; break; // clash with on/off light
+            case DEV_ID_ZLL_COLOR_LIGHT:             m_type = QLatin1String("Color light"); m_hasColor = true; break;
+            case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:    m_type = QLatin1String("Extended color light"); m_hasColor = true; break;
+            case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT: // fall through
+            case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT: m_type = QLatin1String("Color temperature light"); m_hasColor = true; m_colorMode = QLatin1String("ct"); break;
             default:
                 break;
             }
@@ -492,12 +496,13 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
         {
             switch(haEndpoint().deviceId())
             {
-            case DEV_ID_ZLL_ONOFF_LIGHT:             m_type = "On/Off light"; m_hasColor = false; break;
-            case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:       m_type = "On/Off plug-in unit"; m_hasColor = false; break;
-            case DEV_ID_ZLL_DIMMABLE_LIGHT:          m_type = "Dimmable light"; m_hasColor = false; break;
-            case DEV_ID_ZLL_COLOR_LIGHT:             m_type = "Color light"; m_hasColor = true; break;
-            case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:    m_type = "Extended color light"; m_hasColor = true; break;
-            case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT: m_type = "Color temperature light"; m_hasColor = true; break;
+            case DEV_ID_ZLL_ONOFF_LIGHT:             m_type = QLatin1String("On/Off light"); m_hasColor = false; break;
+            case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:       m_type = QLatin1String("On/Off plug-in unit"); m_hasColor = false; break;
+            case DEV_ID_ZLL_DIMMABLE_LIGHT:          m_type = QLatin1String("Dimmable light"); m_hasColor = false; break;
+            case DEV_ID_ZLL_COLOR_LIGHT:             m_type = QLatin1String("Color light"); m_hasColor = true; break;
+            case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:    m_type = QLatin1String("Extended color light"); m_hasColor = true; break;
+            case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT: // fall through
+            case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT: m_type = QLatin1String("Color temperature light"); m_hasColor = true; m_colorMode = QLatin1String("ct"); break;
             default:
                 break;
             }
@@ -506,7 +511,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
 
     if (m_type.isEmpty())
     {
-        m_type = "Unknown";
+        m_type = QLatin1String("Unknown");
     }
 }
 
