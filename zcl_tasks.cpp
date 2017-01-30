@@ -909,8 +909,18 @@ bool DeRestPluginPrivate::addTaskAddScene(TaskItem &task, uint16_t groupId, uint
                             {
                                 stream << l->x();
                                 stream << l->y();
-                                stream << (quint16)0; //enhanced hue
-                                stream << (quint8)0; // saturation
+
+                                if (task.lightNode->manufacturerCode() == VENDOR_OSRAM ||
+                                    task.lightNode->manufacturerCode() == VENDOR_OSRAM_STACK)
+                                {
+                                    stream << l->enhancedHue();
+                                    stream << l->saturation();
+                                }
+                                else
+                                {
+                                    stream << (quint16)0; //enhanced hue
+                                    stream << (quint8)0; // saturation
+                                }
                             }
                             else if (l->colorMode() == QLatin1String("ct"))
                             {

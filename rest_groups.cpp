@@ -734,8 +734,6 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     TaskItem task;
     QString id = req.path[3];
     Group *group = getGroupForId(id);
-    uint hue = UINT_MAX;
-    uint sat = UINT_MAX;
 
     userActivity();
 
@@ -793,10 +791,13 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     bool hasEffectColorLoop = false;
     bool hasAlert = map.contains("alert");
 
-    if (!supportColorModeXyForGroups)
-    {
-        hasXy = false;
-    }
+    bool on = false;
+    uint bri = 0;
+    uint hue = UINT_MAX;
+    uint sat = UINT_MAX;
+    double x = 0;
+    double y = 0;
+    uint ct = 0;
 
     // transition time
     if (map.contains("transitiontime"))
@@ -812,9 +813,11 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     // on/off
     if (hasOn)
     {
+        hasOn = false;
         if (map["on"].type() == QVariant::Bool)
         {
-            bool on = map["on"].toBool();
+            hasOn = true;
+            on = map["on"].toBool();
             quint16 ontime = 0;
             quint8 command = on ? ONOFF_COMMAND_ON : ONOFF_COMMAND_OFF;         
             if (on)
@@ -866,7 +869,6 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
                 rspItemState[QString("/groups/%1/action/on").arg(id)] = on;
                 rspItem["success"] = rspItemState;
                 rsp.list.append(rspItem);
-                taskToLocalData(task);
             }
             else
             {
@@ -884,7 +886,8 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     // brightness
     if (hasBri)
     { 
-        uint bri = map["bri"].toUInt(&ok);
+        hasBri = false;
+        bri = map["bri"].toUInt(&ok);
 
         if ((map["bri"].type() == QVariant::String) && map["bri"].toString() == "stop")
         {
@@ -904,6 +907,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
         }
         else if (ok && (map["bri"].type() == QVariant::Double) && (bri < 256))
         {
+            hasBri = true;
             if (addTaskSetBrightness(task, bri, hasOn))
             {
                 QVariantMap rspItem;
@@ -911,7 +915,6 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
                 rspItemState[QString("/groups/%1/action/bri").arg(id)] = map["bri"];
                 rspItem["success"] = rspItemState;
                 rsp.list.append(rspItem);
-                taskToLocalData(task);
             }
             else
             {
@@ -929,10 +932,12 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     // hue
     if (hasHue)
     {
+        hasHue = false;
         uint hue2 = map["hue"].toUInt(&ok);
 
         if (ok && (map["hue"].type() == QVariant::Double) && (hue2 < (MAX_ENHANCED_HUE + 1)))
         {
+            hasHue = true;
             hue = hue2;
             { // TODO: this is needed if saturation is set and addTaskSetEnhancedHue() will not be called
                 task.hueReal = (double)hue / (360.0f * 182.04444f);
@@ -948,7 +953,6 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
                 task.hue = task.hueReal * 254.0f;
                 task.enhancedHue = hue;
                 task.taskType = TaskSetEnhancedHue;
-                taskToLocalData(task);
             }
 
             if (hasSat || // merge later to set hue and saturation
@@ -977,10 +981,12 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     // saturation
     if (hasSat)
     {
+        hasSat = false;
         uint sat2 = map["sat"].toUInt(&ok);
 
         if (ok && (map["sat"].type() == QVariant::Double) && (sat2 < 256))
         {
+            hasSat = true;
             if (sat2 == 255)
             {
                 sat2 = 254; // max valid value for level attribute
@@ -989,7 +995,6 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
             sat = sat2;
             task.sat = sat;
             task.taskType = TaskSetSat;
-            taskToLocalData(task);
 
             if (hasXy || hasCt
                || (!hasEffectColorLoop && hasHue && (hue != UINT_MAX)) // merge later to set hue and saturation
@@ -1015,7 +1020,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     }
 
     // hue and saturation
-    if (hasHue && hasSat && !hasXy && !hasCt)
+    if (hasHue && hasSat && (!supportColorModeXyForGroups || (!hasXy && !hasCt)))
     {
         if (!hasEffectColorLoop && (hue != UINT_MAX) && (sat != UINT_MAX))
         {
@@ -1046,12 +1051,13 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     // xy
     if (hasXy)
     {
+        hasXy = false;
         QVariantList ls = map["xy"].toList();
 
         if ((ls.size() == 2) && (ls[0].type() == QVariant::Double) && (ls[1].type() == QVariant::Double))
         {
-            double x = ls[0].toDouble();
-            double y = ls[1].toDouble();
+            x = ls[0].toDouble();
+            y = ls[1].toDouble();
 
             if ((x < 0.0f) || (x > 1.0f) || (y < 0.0f) || (y > 1.0f))
             {
@@ -1065,7 +1071,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
                 rspItemState[QString("/groups/%1/action/xy").arg(id)] = map["xy"];
                 rspItem["success"] = rspItemState;
                 rsp.list.append(rspItem);
-                taskToLocalData(task);
+                hasXy = true;
             }
             else
             {
@@ -1083,18 +1089,19 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     // color temperature
     if (hasCt)
     {
-        uint16_t ct = map["ct"].toUInt(&ok);
+        hasCt = false;
+        ct = map["ct"].toUInt(&ok);
 
         if (ok && (map["ct"].type() == QVariant::Double))
         {
             if (addTaskSetColorTemperature(task, ct))
             {
+                hasCt = true;
                 QVariantMap rspItem;
                 QVariantMap rspItemState;
                 rspItemState[QString("/groups/%1/action/ct").arg(id)] = map["ct"];
                 rspItem["success"] = rspItemState;
                 rsp.list.append(rspItem);
-                taskToLocalData(task);
             }
             else
             {
@@ -1205,6 +1212,85 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
             rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/groups/%1/action/effect").arg(id), QString("invalid value, %1, for parameter, effect").arg(map["effect"].toString())));
             rsp.httpStatus = HttpStatusBadRequest;
             return REQ_READY_SEND;
+        }
+    }
+
+    { // update lights state
+        std::vector<LightNode>::iterator i = nodes.begin();
+        std::vector<LightNode>::iterator end = nodes.end();
+
+        for (; i != end; ++i)
+        {
+            if (/*i->isAvailable() &&*/ i->state() != LightNode::StateDeleted && isLightNodeInGroup(&*i, group->address()))
+            {
+                bool modified = false;
+                if (hasOn && on != i->isOn())
+                {
+                    i->setIsOn(on);
+                    modified = true;
+                }
+
+                if (hasBri && bri != i->level())
+                {
+                    i->setLevel(bri);
+                    modified = true;
+                }
+
+                if (i->hasColor())
+                {
+                    if (hasXy && i->modelId() != QLatin1String("FLS-PP")) // don't use xy for old black FLS-PP
+                    {
+                        if (i->colorMode() != QLatin1String("xy"))
+                        {
+                            i->setColorMode(QLatin1String("xy"));
+                            modified = true;
+                        }
+
+                        quint16 colorX = x * 65279.0f; // current X in range 0 .. 65279
+                        quint16 colorY = y * 65279.0f; // current Y in range 0 .. 65279
+
+                        if (i->colorX() != colorX || i->colorY() != colorY)
+                        {
+                            i->setColorXY(colorX, colorY);
+                            modified = true;
+                        }
+                    }
+                    else if (hasCt)
+                    {
+                        if (i->colorMode() != QLatin1String("ct"))
+                        {
+                            i->setColorMode(QLatin1String("ct"));
+                            modified = true;
+                        }
+
+                        if (i->colorTemperature() != ct)
+                        {
+                            i->setColorTemperature(ct);
+                            modified = true;
+                        }
+                    }
+                    else if (hasHue && hasSat)
+                    {
+                        if (i->colorMode() != QLatin1String("hs"))
+                        {
+                            i->setColorMode(QLatin1String("hs"));
+                            modified = true;
+                        }
+
+                        if (i->enhancedHue() != hue || i->saturation() != sat)
+                        {
+                            i->setEnhancedHue(hue);
+                            i->setSaturation(sat);
+                            modified = true;
+                        }
+                    }
+                }
+
+                if (modified)
+                {
+                    updateEtag(i->etag);
+                }
+            }
         }
     }
 
@@ -1552,19 +1638,16 @@ int DeRestPluginPrivate::createScene(const ApiRequest &req, ApiResponse &rsp)
 
             if (lightNode->hasColor())
             {
-                if (lightNode->colorMode() == QLatin1String("xy"))
+                if (lightNode->colorMode() == QLatin1String("xy") || lightNode->colorMode() == QLatin1String("hs"))
                 {
                     state.setX(lightNode->colorX());
                     state.setY(lightNode->colorY());
+                    state.setEnhancedHue(lightNode->enhancedHue());
+                    state.setSaturation(lightNode->saturation());
                 }
                 else if (lightNode->colorMode() == QLatin1String("ct"))
                 {
                     state.setColorTemperature(lightNode->colorTemperature());
-                }
-                else if (lightNode->colorMode() == QLatin1String("hs"))
-                {
-                    state.setEnhancedHue(lightNode->enhancedHue());
-                    state.setSaturation(lightNode->saturation());
                 }
 
                 state.setColorloopActive(lightNode->isColorLoopActive());

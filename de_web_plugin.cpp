@@ -6647,12 +6647,14 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
         case TaskSetSat:
             updateEtag(lightNode->etag);
             lightNode->setSaturation(task.sat);
+            lightNode->setColorMode(QLatin1String("hs"));
             setAttributeSaturation(lightNode);
             break;
 
         case TaskSetEnhancedHue:
             updateEtag(lightNode->etag);
             lightNode->setEnhancedHue(task.enhancedHue);
+            lightNode->setColorMode(QLatin1String("hs"));
             setAttributeEnhancedHue(lightNode);
             break;
 
@@ -6660,6 +6662,7 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
             updateEtag(lightNode->etag);
             lightNode->setSaturation(task.sat);
             lightNode->setEnhancedHue(task.enhancedHue);
+            lightNode->setColorMode(QLatin1String("hs"));
             setAttributeSaturation(lightNode);
             setAttributeEnhancedHue(lightNode);
             break;
@@ -6667,12 +6670,14 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
         case TaskSetXyColor:
             updateEtag(lightNode->etag);
             lightNode->setColorXY(task.colorX, task.colorY);
+            lightNode->setColorMode(QLatin1String("xy"));
             setAttributeColorXy(lightNode);
             break;
 
         case TaskSetColorTemperature:
             updateEtag(lightNode->etag);
             lightNode->setColorTemperature(task.colorTemperature);
+            lightNode->setColorMode(QLatin1String("ct"));
             setAttributeColorTemperature(lightNode);
             break;
 
