@@ -18,12 +18,13 @@
 
 // duration to wait for scan responses
 #define TL_SCAN_WAIT_TIME 250
+#define TL_TRANSACTION_TIMEOUT 7000 // default 8s, subtract 1s for sanity
 
 #define TL_RECONNECT_NOW          100 // small delay to prevent false positives
 #define TL_RECONNECT_CHECK_DELAY  5000
 #define TL_DISCONNECT_CHECK_DELAY 100
 
-#define TL_SCAN_COUNT 3
+#define TL_SCAN_COUNT (touchlinkChannel == 11 ? 5 : 1)
 
 // Touchlink ZCL command ids
 #define TL_CMD_SCAN_REQ                    0x00
@@ -483,17 +484,11 @@ void DeRestPluginPrivate::sendTouchlinkScanRequest()
 
     touchlinkScanCount++;
 
+    DBG_Printf(DBG_TLINK, "send scan request TrId: 0x%08X\n", touchlinkReq.transactionId());
+
     if (touchlinkCtrl->sendInterpanRequest(touchlinkReq) == 0)
     {
-        if (touchlinkAction == TouchlinkIdentify || touchlinkAction == TouchlinkReset)
-        {
-            touchlinkState = TL_WaitScanResponses;
-            touchlinkTimer->start(TL_SCAN_WAIT_TIME);
-        }
-        else
-        {
-            touchlinkState = TL_SendingScanRequest;
-        }
+        touchlinkState = TL_SendingScanRequest;
     }
     else
     {
@@ -501,15 +496,6 @@ void DeRestPluginPrivate::sendTouchlinkScanRequest()
         // abort and restore previous network state
         touchlinkStartReconnectNetwork(TL_RECONNECT_NOW);
         return;
-    }
-
-    if (touchlinkAction == TouchlinkScan)
-    {
-        if (touchlinkScanCount > TL_SCAN_COUNT)
-        {
-            touchlinkState = TL_WaitScanResponses;
-            touchlinkTimer->start(TL_SCAN_WAIT_TIME);
-        }
     }
 }
 
@@ -541,6 +527,7 @@ void DeRestPluginPrivate::sendTouchlinkIdentifyRequest()
     stream << touchlinkReq.transactionId();
     stream << duration;
 
+    DBG_Printf(DBG_TLINK, "send identify request TrId: 0x%08X\n", touchlinkReq.transactionId());
     if (touchlinkCtrl->sendInterpanRequest(touchlinkReq) == 0)
     {
         touchlinkState = TL_SendingIdentifyRequest;
@@ -578,6 +565,7 @@ void DeRestPluginPrivate::sendTouchlinkResetRequest()
     stream << cmd;
     stream << touchlinkReq.transactionId();
 
+    DBG_Printf(DBG_TLINK, "send reset request TrId: 0x%08X\n", touchlinkReq.transactionId());
     if (touchlinkCtrl->sendInterpanRequest(touchlinkReq) == 0)
     {
         touchlinkState = TL_SendingResetRequest;
@@ -637,7 +625,24 @@ void DeRestPluginPrivate::sendTouchlinkConfirm(deCONZ::TouchlinkStatus status)
         {
         case TouchlinkScan:
         {
-            touchlinkTimer->start(1);
+            if (touchlinkScanCount > TL_SCAN_COUNT)
+            {
+                touchlinkState = TL_WaitScanResponses;
+                touchlinkTimer->start(TL_SCAN_WAIT_TIME);
+            }
+            else
+            {
+                touchlinkTimer->start(1);
+            }
+
+        }
+            break;
+
+        case TouchlinkIdentify:
+        case TouchlinkReset:
+        {
+            touchlinkState = TL_WaitScanResponses;
+            touchlinkTimer->start(TL_TRANSACTION_TIMEOUT);
         }
             break;
 
@@ -696,23 +701,25 @@ void DeRestPluginPrivate::touchlinkScanTimeout()
         return;
     }
 
-    if (touchlinkAction == TouchlinkReset)
+    if (touchlinkAction == TouchlinkReset || touchlinkAction == TouchlinkIdentify)
     {
-        DBG_Printf(DBG_TLINK, "wait for scan response before reset to fn timeout\n");
+        DBG_Printf(DBG_TLINK, "wait for scan response before reset/identify to fn timeout\n");
         touchlinkStartReconnectNetwork(TL_RECONNECT_NOW);
         return;
     }
-
-    if (touchlinkChannel < 26)
+    else if (touchlinkAction == TouchlinkScan)
     {
-        touchlinkChannel++;
-        touchlinkScanCount = 0;
-        startTouchlinkMode(touchlinkChannel);
-    }
-    else
-    {
-        DBG_Printf(DBG_TLINK, "scan finished found %u device(s)\n", (uint)touchlinkScanResponses.size());
-        touchlinkStartReconnectNetwork(TL_RECONNECT_NOW);
+        if (touchlinkChannel < 26)
+        {
+            touchlinkChannel++;
+            touchlinkScanCount = 0;
+            startTouchlinkMode(touchlinkChannel);
+        }
+        else
+        {
+            DBG_Printf(DBG_TLINK, "scan finished found %u device(s)\n", (uint)touchlinkScanResponses.size());
+            touchlinkStartReconnectNetwork(TL_RECONNECT_NOW);
+        }
     }
 }
 
@@ -723,6 +730,7 @@ void DeRestPluginPrivate::interpanDataIndication(const QByteArray &data)
 {
     if (touchlinkState == TL_Idle)
     {
+        DBG_Printf(DBG_TLINK, "discard ipan frame in TL_Idle state\n");
         return;
     }
 
@@ -791,7 +799,10 @@ void DeRestPluginPrivate::interpanDataIndication(const QByteArray &data)
             scanResponse.transactionId = touchlinkReq.transactionId();
             scanResponse.rssi = rssi;
 
-            DBG_Printf(DBG_TLINK, "scan response %s, fn=%u, channel=%u rssi=%d\n", qPrintable(scanResponse.address.toStringExt()), scanResponse.factoryNew, touchlinkChannel, rssi);
+            DBG_Printf(DBG_TLINK, "scan response %s, fn=%u, channel=%u rssi=%d TrId=0x%08X in state=%d action=%d\n",
+                       qPrintable(scanResponse.address.toStringExt()),
+                       scanResponse.factoryNew, touchlinkChannel, rssi, scanResponse.transactionId,
+                       touchlinkState, touchlinkAction);
 
             if (touchlinkAction == TouchlinkScan)
             {
@@ -816,24 +827,18 @@ void DeRestPluginPrivate::interpanDataIndication(const QByteArray &data)
             }
             else if (touchlinkAction == TouchlinkReset)
             {
-                if (touchlinkState == TL_WaitScanResponses)
+                if (scanResponse.address.ext() == touchlinkDevice.address.ext())
                 {
-                    if (scanResponse.address.ext() == touchlinkDevice.address.ext())
-                    {
-                        touchlinkTimer->stop();
-                        sendTouchlinkResetRequest();
-                    }
+                    touchlinkTimer->stop();
+                    sendTouchlinkResetRequest();
                 }
             }
             else if (touchlinkAction == TouchlinkIdentify)
             {
-                if (touchlinkState == TL_WaitScanResponses)
+                if (scanResponse.address.ext() == touchlinkDevice.address.ext())
                 {
-                    if (scanResponse.address.ext() == touchlinkDevice.address.ext())
-                    {
-                        touchlinkTimer->stop();
-                        sendTouchlinkIdentifyRequest();
-                    }
+                    touchlinkTimer->stop();
+                    sendTouchlinkIdentifyRequest();
                 }
             }
         }
