@@ -124,7 +124,7 @@ const QString Group::midsToString() const
         result.append(*i);
         if (i != end-1)
         {
-            result.append(",");
+            result.append(QLatin1String(","));
         }
     }
 
@@ -132,9 +132,9 @@ const QString Group::midsToString() const
 }
 
 /*! multiDeviceIds String to vector. */
-void Group::setMidsFromString(const QString mids)
+void Group::setMidsFromString(const QString &mids)
 {
-    QStringList list = mids.split(",", QString::SkipEmptyParts);
+    QStringList list = mids.split(QLatin1String(","), QString::SkipEmptyParts);
 
     QStringList::const_iterator i = list.begin();
     QStringList::const_iterator end = list.end();
@@ -148,7 +148,7 @@ void Group::setMidsFromString(const QString mids)
 /*! deviceMembership to string. */
 const QString Group::dmToString() const
 {
-    QString result = "";
+    QString result(QLatin1String(""));
 
     std::vector<QString>::const_iterator i = m_deviceMemberships.begin();
     std::vector<QString>::const_iterator end = m_deviceMemberships.end();
@@ -166,9 +166,9 @@ const QString Group::dmToString() const
 }
 
 /*! deviceMembership String to vector. */
-void Group::setDmFromString(const QString deviceIds)
+void Group::setDmFromString(const QString &deviceIds)
 {
-    QStringList list = deviceIds.split(",", QString::SkipEmptyParts);
+    QStringList list = deviceIds.split(QLatin1String(","), QString::SkipEmptyParts);
 
     QStringList::const_iterator i = list.begin();
     QStringList::const_iterator end = list.end();
@@ -182,7 +182,7 @@ void Group::setDmFromString(const QString deviceIds)
 /*! lightsequence to string. */
 const QString Group::lightsequenceToString() const
 {
-    QString result = "";
+    QString result(QLatin1String(""));
 
     std::vector<QString>::const_iterator i = m_lightsequence.begin();
     std::vector<QString>::const_iterator end = m_lightsequence.end();
@@ -192,7 +192,7 @@ const QString Group::lightsequenceToString() const
         result.append(*i);
         if (i != end-1)
         {
-            result.append(",");
+            result.append(QLatin1String(","));
         }
     }
 
@@ -200,9 +200,9 @@ const QString Group::lightsequenceToString() const
 }
 
 /*! lightsequence String to vector. */
-void Group::setLightsequenceFromString(const QString lightsequence)
+void Group::setLightsequenceFromString(const QString &lightsequence)
 {
-    QStringList list = lightsequence.split(",", QString::SkipEmptyParts);
+    QStringList list = lightsequence.split(QLatin1String(","), QString::SkipEmptyParts);
 
     QStringList::const_iterator i = list.begin();
     QStringList::const_iterator end = list.end();

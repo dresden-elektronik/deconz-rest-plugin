@@ -44,11 +44,11 @@ public:
     void setColorLoopActive(bool colorLoopActive);
     bool isColorLoopActive() const;
     const QString midsToString() const;
-    void setMidsFromString(const QString mids);
+    void setMidsFromString(const QString &mids);
     const QString dmToString() const;
-    void setDmFromString(const QString deviceIds);
+    void setDmFromString(const QString &deviceIds);
     const QString lightsequenceToString() const;
-    void setLightsequenceFromString(const QString deviceIds);
+    void setLightsequenceFromString(const QString &deviceIds);
     Scene *getScene(quint8 sceneId);
     bool addDeviceMembership(const QString &id);
 
