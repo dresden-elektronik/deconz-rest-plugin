@@ -1653,6 +1653,31 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
         findSensorCandidates.push_back(sc);
         return;
     }
+    else if (ind.profileId() == ZLL_PROFILE_ID || ind.profileId() == HA_PROFILE_ID)
+    {
+        switch (ind.clusterId())
+        {
+        case ONOFF_CLUSTER_ID:
+        case SCENE_CLUSTER_ID:
+            if ((zclFrame.frameControl() & deCONZ::ZclFCClusterCommand) == 0)
+            {
+                return;
+            }
+
+            if (zclFrame.frameControl() & deCONZ::ZclFCDirectionServerToClient)
+            {
+                return;
+            }
+            break; // ok
+
+        default:
+            return;
+        }
+    }
+    else
+    {
+        return;
+    }
 
     if (ind.dstAddressMode() != deCONZ::ApsGroupAddress && ind.dstAddressMode() != deCONZ::ApsNwkAddress)
     {
@@ -1686,16 +1711,35 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
     {
         Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
 
-        if (sensor)
+        if (sensor && sensor->node())
         {
             indAddress = sensor->address();
-            macCapabilities = sensor->node() ? (int)sensor->node()->nodeDescriptor().macCapabilities() : 0x80;
+            macCapabilities = (int)sensor->node()->macCapabilities();
         }
         else if (apsCtrl)
         {
-            indAddress = ind.srcAddress();
-            apsCtrl->resolveAddress(indAddress);
-            macCapabilities = 0x80; // assume end-device
+            int i = 0;
+            const deCONZ::Node *node;
+
+            while (apsCtrl->getNode(i, &node) == 0)
+            {
+                if (node->address().hasExt() && ind.srcAddress().hasExt() &&
+                    ind.srcAddress().ext() == node->address().ext())
+                {
+                    indAddress = node->address();
+                    macCapabilities = node->macCapabilities();
+                    break;
+                }
+
+                if (node->address().hasNwk() && ind.srcAddress().hasNwk() &&
+                    ind.srcAddress().nwk() == node->address().nwk())
+                {
+                    indAddress = node->address();
+                    macCapabilities = node->macCapabilities();
+                    break;
+                }
+                i++;
+            }
         }
     }
 
