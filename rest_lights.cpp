@@ -713,7 +713,6 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     // hue and saturation
     if (hasHue && hasSat && !hasXy && !hasCt)
     {
-
         if (!task.lightNode->isOn())
         {
             // no error here

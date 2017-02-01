@@ -1627,6 +1627,12 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
         stream >> ext;
         stream >> macCapabilities;
 
+        // currently only end-devices are supported
+        if (macCapabilities == 0 || (macCapabilities & deCONZ::MacDeviceIsFFD))
+        {
+            return;
+        }
+
         const quint64 philipsMacPrefix = 0x0017880000000000ULL;
 
         if ((ext & philipsMacPrefix) == philipsMacPrefix)
@@ -1711,27 +1717,34 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
     {
         Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
 
-        if (sensor && sensor->node())
+        if (sensor)
         {
             indAddress = sensor->address();
-            macCapabilities = (int)sensor->node()->macCapabilities();
+            if (sensor->node())
+            {
+                macCapabilities = (int)sensor->node()->macCapabilities();
+            }
         }
-        else if (apsCtrl)
+
+        if (apsCtrl && (!sensor || (macCapabilities == 0)))
         {
             int i = 0;
             const deCONZ::Node *node;
 
             while (apsCtrl->getNode(i, &node) == 0)
             {
-                if (node->address().hasExt() && ind.srcAddress().hasExt() &&
+                /*if (node->macCapabilities() == 0)
+                {
+                    // ignore
+                }
+                else*/ if (node->address().hasExt() && ind.srcAddress().hasExt() &&
                     ind.srcAddress().ext() == node->address().ext())
                 {
                     indAddress = node->address();
                     macCapabilities = node->macCapabilities();
                     break;
                 }
-
-                if (node->address().hasNwk() && ind.srcAddress().hasNwk() &&
+                else if (node->address().hasNwk() && ind.srcAddress().hasNwk() &&
                     ind.srcAddress().nwk() == node->address().nwk())
                 {
                     indAddress = node->address();
@@ -1741,6 +1754,12 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
                 i++;
             }
         }
+    }
+
+    // currently only end-devices are supported
+    if (!sc && (macCapabilities == 0 || (macCapabilities & deCONZ::MacDeviceIsFFD)))
+    {
+        return;
     }
 
     if (!sc && indAddress.hasExt() && indAddress.hasNwk())
@@ -1762,7 +1781,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
     // check for dresden elektronik devices
     if ((sc->address.ext() & deMacPrefix) == deMacPrefix)
     {
-        if (sc->macCapabilities != 0x80) // end-devices
+        if (sc->macCapabilities & deCONZ::MacDeviceIsFFD) // end-devices only
             return;
 
         if (ind.profileId() != HA_PROFILE_ID)
@@ -1977,8 +1996,22 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
                 {
                     g->setState(Group::StateNormal);
                 }
+
+                // check for changed device memberships
+                if (!g->m_deviceMemberships.empty())
+                {
+                    if (isLightingSwitch || isSceneSwitch) // only support one device member per group
+                    {
+                        if (g->m_deviceMemberships.size() > 1 || g->m_deviceMemberships.front() != s1->id())
+                        {
+                            g->m_deviceMemberships.clear();
+                        }
+                    }
+                }
+
                 if (g->addDeviceMembership(s1->id()))
                 {
+                    updateEtag(g->etag);
                     update = true;
                 }
             }
@@ -2004,8 +2037,22 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
                 {
                     g->setState(Group::StateNormal);
                 }
+
+                // check for changed device memberships
+                if (!g->m_deviceMemberships.empty())
+                {
+                    if (isLightingSwitch || isSceneSwitch) // only support one device member per group
+                    {
+                        if (g->m_deviceMemberships.size() > 1 || g->m_deviceMemberships.front() != s2->id())
+                        {
+                            g->m_deviceMemberships.clear();
+                        }
+                    }
+                }
+
                 if (g->addDeviceMembership(s2->id()))
                 {
+                    updateEtag(g->etag);
                     update = true;
                 }
             }
