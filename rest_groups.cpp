@@ -350,10 +350,10 @@ int DeRestPluginPrivate::getGroupAttributes(const ApiRequest &req, ApiResponse &
 
     action["on"] = group->isOn();
     action["hue"] = (double)((uint16_t)(group->hueReal * 65535));
-    action["effect"] = group->isColorLoopActive() ? "colorloop" : "none";
+    action["effect"] = group->isColorLoopActive() ? QLatin1String("colorloop") : QLatin1String("none");
     action["bri"] = (double)group->level;
     action["sat"] = (double)group->sat;
-    action["ct"] = (double)500; // TODO
+    action["ct"] = (double)group->colorTemperature;
     QVariantList xy;
 
     // sanity for colorX
@@ -818,6 +818,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
         {
             hasOn = true;
             on = map["on"].toBool();
+            group->setIsOn(on);
             quint16 ontime = 0;
             quint8 command = on ? ONOFF_COMMAND_ON : ONOFF_COMMAND_OFF;         
             if (on)
@@ -908,6 +909,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
         else if (ok && (map["bri"].type() == QVariant::Double) && (bri < 256))
         {
             hasBri = true;
+            group->level = bri;
             if (addTaskSetBrightness(task, bri, hasOn))
             {
                 QVariantMap rspItem;
@@ -953,6 +955,9 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
                 task.hue = task.hueReal * 254.0f;
                 task.enhancedHue = hue;
                 task.taskType = TaskSetEnhancedHue;
+
+                group->hue = hue;
+                group->hueReal = task.hueReal;
             }
 
             if (hasSat || // merge later to set hue and saturation
@@ -995,6 +1000,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
             sat = sat2;
             task.sat = sat;
             task.taskType = TaskSetSat;
+            group->sat = sat;
 
             if (hasXy || hasCt
                || (!hasEffectColorLoop && hasHue && (hue != UINT_MAX)) // merge later to set hue and saturation
@@ -1072,6 +1078,8 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
                 rspItem["success"] = rspItemState;
                 rsp.list.append(rspItem);
                 hasXy = true;
+                group->colorX = x * 65279.0f; // current X in range 0 .. 65279
+                group->colorY = y * 65279.0f; // current Y in range 0 .. 65279
             }
             else
             {
@@ -1094,6 +1102,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
 
         if (ok && (map["ct"].type() == QVariant::Double))
         {
+            group->colorTemperature = ct;
             if (addTaskSetColorTemperature(task, ct))
             {
                 hasCt = true;
@@ -1376,7 +1385,7 @@ bool DeRestPluginPrivate::groupToMap(const Group *group, QVariantMap &map)
     action["effect"] = "none"; // TODO
     action["bri"] = (double)group->level;
     action["sat"] = (double)group->sat;
-    action["ct"] = (double)500; // TODO
+    action["ct"] = (double)group->colorTemperature;
     QVariantList xy;
     uint16_t colorX = group->colorX;
     uint16_t colorY = group->colorY;
