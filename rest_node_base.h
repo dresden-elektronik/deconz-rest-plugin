@@ -12,7 +12,7 @@
 #define REST_NODE_BASE_H
 
 #include <QTime>
-#include "deconz.h"
+#include <deconz.h>
 
 /*! \class NodeValue
 

@@ -49,6 +49,8 @@ QT             += network
 INCLUDEPATH    += ../.. \
                   ../../common
                   
+unix:INCLUDEPATH += /usr/include
+
 GIT_COMMIT = $$system("git rev-list HEAD --max-count=1")
 
 # Version Major.Minor.Build
