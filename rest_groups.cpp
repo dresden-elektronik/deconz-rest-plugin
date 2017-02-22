@@ -2300,12 +2300,13 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    // turning 'on' the group is also a assumtion but a very likely one
-    if (groupOn && !group->isOn())
-    {
-        group->setIsOn(true);
-        updateEtag(group->etag);
-    }
+    bool groupOnChanged = false;
+    bool groupBriChanged = false;
+    bool groupHueSatChanged = false;
+    bool groupCtChanged = false;
+    bool groupColorModeChanged = false;
+    uint countColorMode = 0;
+    uint countColorTempMode = 0;
 
     //turn on colorloop if scene was saved with colorloop (FLS don't save colorloop at device)
     ls = scene->lights().begin();
@@ -2339,12 +2340,14 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
             {
                 lightNode->setIsOn(ls->on());
                 changed = true;
+                groupOnChanged = true;
             }
 
             if ((uint16_t)ls->bri() != lightNode->level())
             {
                 lightNode->setLevel((uint16_t)ls->bri());
                 changed = true;
+                groupBriChanged = true;
             }
 
             if (lightNode->hasColor())
@@ -2356,6 +2359,7 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
                         lightNode->setColorXY(ls->x(), ls->y());
                         changed = true;
                     }
+                    countColorMode += 1;
                 }
                 else if(ls->colorMode() == QLatin1String("ct"))
                 {
@@ -2363,7 +2367,9 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
                     {
                         lightNode->setColorTemperature(ls->colorTemperature());
                         changed = true;
+                        groupCtChanged = true;
                     }
+                    countColorTempMode += 1;
                 }
                 else if (ls->colorMode() == QLatin1String("hs"))
                 {
@@ -2372,13 +2378,16 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
                         lightNode->setEnhancedHue(ls->enhancedHue());
                         lightNode->setSaturation(ls->saturation());
                         changed = true;
+                        groupHueSatChanged = true;
                     }
+                    countColorMode += 1;
                 }
 
                 if (ls->colorMode() != lightNode->colorMode())
                 {
                     lightNode->setColorMode(ls->colorMode());
                     changed = true;
+                    groupColorModeChanged = true;
                 }
             }
 
@@ -2387,6 +2396,39 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
                 updateEtag(lightNode->etag);
             }
         }
+    }
+    if (groupOnChanged || groupBriChanged || groupHueSatChanged || groupCtChanged || groupColorModeChanged)
+    {
+        if (groupOnChanged)
+        {
+            reCalcGroupParameter(group, LightParameter::on);
+        }
+        if (groupBriChanged)
+        {
+            reCalcGroupParameter(group, LightParameter::level);
+        }
+        //if (groupXyChanged)
+        //{
+        //    reCalcGroupParameter(group, LightParameter);
+        //}
+        if (groupHueSatChanged)
+        {
+            reCalcGroupParameter(group, LightParameter::hue);
+            reCalcGroupParameter(group, LightParameter::sat);
+        }
+        if (groupCtChanged)
+        {
+            reCalcGroupParameter(group, LightParameter::ct);
+        }
+        if (countColorMode >= countColorTempMode)
+        {
+            group->colormode = "hs";
+        }
+        else
+        {
+            group->colormode = "ct";
+        }
+         updateEtag(group->etag);
     }
 
     updateEtag(gwConfigEtag);
