@@ -6773,7 +6773,7 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
         for (; i != end; ++i)
         {
             LightNode *lightNode = &(*i);
-            if (isLightNodeInGroup(lightNode, task.req.dstAddress().group()))
+            if (isLightNodeInGroup(lightNode, task.req.dstAddress().group()) || group->id() == "0")
             {
                 pushNodes.push_back(lightNode);
             }
