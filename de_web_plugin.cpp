@@ -6956,6 +6956,43 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
         default:
             break;
         }
+
+        // if light is on: set group state of all groups of that light to on
+        if ((task.taskType == TaskSendOnOffToggle && task.onOff) || (task.taskType == TaskSetLevel && task.level > 0))
+        {
+            updateGroupBoolParameterOfLightNode(lightNode, LightParameter::on, true);
+        }
+        // if light is off: check groups if all lights of that group are off, then set group state to off
+        if ((task.taskType == TaskSendOnOffToggle && !task.onOff) || (task.taskType == TaskSetLevel && task.level == 0))
+        {
+            updateGroupBoolParameterOfLightNode(lightNode, LightParameter::on, false);
+        }
+        // update group level
+        if (task.taskType == TaskSetLevel)
+        {
+            updateGroupU8ParameterOfLightNode(lightNode, LightParameter::level, task.level);
+        }
+        // update group hue
+        if (task.taskType == TaskSetEnhancedHue)
+        {
+            updateGroupU16ParameterOfLightNode(lightNode, LightParameter::hue, task.enhancedHue);
+        }
+        // update group hue and sat
+        if (task.taskType == TaskSetHueAndSaturation)
+        {
+            updateGroupU16ParameterOfLightNode(lightNode, LightParameter::hue, task.enhancedHue);
+            updateGroupU8ParameterOfLightNode(lightNode, LightParameter::sat, task.sat);
+        }
+        // update group sat
+        if (task.taskType == TaskSetSat)
+        {
+            updateGroupU8ParameterOfLightNode(lightNode, LightParameter::sat, task.sat);
+        }
+        // update group ct
+        if (task.taskType == TaskSetColorTemperature)
+        {
+            updateGroupU16ParameterOfLightNode(lightNode, LightParameter::ct, task.colorTemperature);
+        }
     }
 }
 
