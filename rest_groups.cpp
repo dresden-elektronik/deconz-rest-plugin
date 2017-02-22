@@ -2126,7 +2126,10 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
                             if (ls->enhancedHue() != lightNode->enhancedHue() || ls->saturation() != lightNode->saturation())
                             {
                                 ls->setEnhancedHue(lightNode->enhancedHue());
-                                ls->setSaturation(lightNode->saturation());
+                                ls->setSaturation(lightNode->saturation());  
+                                ls->setX(lightNode->colorX());
+                                ls->setY(lightNode->colorY());
+
                                 needModify = true;
                             }
                         }
