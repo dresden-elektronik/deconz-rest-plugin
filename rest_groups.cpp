@@ -958,6 +958,23 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
 
                 group->hue = hue;
                 group->hueReal = task.hueReal;
+                group->colormode = QLatin1String("hs");
+            }
+
+            if (!hasXy && !hasSat)
+            {
+                double r, g, b;
+                double x, y;
+                double h = ((360.0f / 65535.0f) * hue);
+                double s = group->sat / 255.0f;
+                double v = 1.0f;
+
+                Hsv2Rgb(&r, &g, &b, h, s, v);
+                Rgb2xy(&x, &y, r, g, b);
+
+                DBG_Printf(DBG_INFO, "x: %f, y: %f\n", x, y);
+                group->colorX = x * 65279.0f;
+                group->colorY = y * 65279.0f;
             }
 
             if (hasSat || // merge later to set hue and saturation
@@ -1001,6 +1018,23 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
             task.sat = sat;
             task.taskType = TaskSetSat;
             group->sat = sat;
+            group->colormode = QLatin1String("hs");
+
+            if (!hasXy && !hasHue)
+            {
+                double r, g, b;
+                double x, y;
+                double h = ((360.0f / 65535.0f) * group->hue);
+                double s = sat / 254.0f;
+                double v = 1.0f;
+
+                Hsv2Rgb(&r, &g, &b, h, s, v);
+                Rgb2xy(&x, &y, r, g, b);
+
+                DBG_Printf(DBG_INFO, "x: %f, y: %f\n", x, y);
+                group->colorX = x * 65279.0f;
+                group->colorY = y * 65279.0f;
+            }
 
             if (hasXy || hasCt
                || (!hasEffectColorLoop && hasHue && (hue != UINT_MAX)) // merge later to set hue and saturation
@@ -1080,6 +1114,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
                 hasXy = true;
                 group->colorX = x * 65279.0f; // current X in range 0 .. 65279
                 group->colorY = y * 65279.0f; // current Y in range 0 .. 65279
+                group->colormode = QLatin1String("xy");
             }
             else
             {
@@ -1103,6 +1138,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
         if (ok && (map["ct"].type() == QVariant::Double))
         {
             group->colorTemperature = ct;
+            group->colormode = QLatin1String("ct");
             if (addTaskSetColorTemperature(task, ct))
             {
                 hasCt = true;
@@ -1278,7 +1314,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
                             modified = true;
                         }
                     }
-                    else if (hasHue && hasSat)
+                    else if (hasHue)
                     {
                         if (i->colorMode() != QLatin1String("hs"))
                         {
@@ -1286,9 +1322,50 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
                             modified = true;
                         }
 
-                        if (i->enhancedHue() != hue || i->saturation() != sat)
+                        if (i->enhancedHue() != hue)
                         {
+                            if (!hasXy && !hasSat)
+                            {
+                                double r, g, b;
+                                double x, y;
+                                double h = ((360.0f / 65535.0f) * hue);
+                                double s = i->saturation() / 255.0f;
+                                double v = 1.0f;
+
+                                Hsv2Rgb(&r, &g, &b, h, s, v);
+                                Rgb2xy(&x, &y, r, g, b);
+
+                                DBG_Printf(DBG_INFO, "x: %f, y: %f\n", x, y);
+                                i->setColorXY(x * 65279.0f, y * 65279.0f);
+                            }
                             i->setEnhancedHue(hue);
+                        }
+                    }
+                    else if (hasSat)
+                    {
+                        if (i->colorMode() != QLatin1String("hs"))
+                        {
+                            i->setColorMode(QLatin1String("hs"));
+                            modified = true;
+                        }
+
+                        if (i->saturation() != sat)
+                        {
+                            if (!hasXy)
+                            {
+                                double r, g, b;
+                                double x, y;
+                                double h = (!hasHue) ? ((360.0f / 65535.0f) * i->enhancedHue()) : ((360.0f / 65535.0f) * hue);
+                                double s = sat / 254.0f;
+                                double v = 1.0f;
+
+                                Hsv2Rgb(&r, &g, &b, h, s, v);
+                                Rgb2xy(&x, &y, r, g, b);
+
+                                DBG_Printf(DBG_INFO, "x: %f, y: %f\n", x, y);
+                                i->setColorXY(x * 65279.0f, y * 65279.0f);
+                            }
+
                             i->setSaturation(sat);
                             modified = true;
                         }
