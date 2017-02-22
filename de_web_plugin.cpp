@@ -1866,8 +1866,6 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
 void DeRestPluginPrivate::updateGroupU8ParameterOfLightNode(LightNode *lightNode, LightParameter parameter, uint8_t value)
 {
     bool changed = false;
-    double x;
-    uint16_t groupHue;
 
     std::vector<GroupInfo>::const_iterator i = lightNode->groups().begin();
     std::vector<GroupInfo>::const_iterator end = lightNode->groups().end();
