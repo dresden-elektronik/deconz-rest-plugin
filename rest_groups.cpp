@@ -1553,6 +1553,7 @@ bool DeRestPluginPrivate::groupToMap(const Group *group, QVariantMap &map)
             QString sid = QString::number(si->id);
             scene["id"] = sid;
             scene["name"] = si->name;
+            scene["transitiontime"] = si->transitiontime();
 
             scenes.append(scene);
         }
@@ -1998,6 +1999,12 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
     Group *group = getGroupForId(gid);
     rsp.httpStatus = HttpStatusOk;
 
+    QVariant var = Json::parse(req.content, ok);
+    QVariantMap map = var.toMap();
+
+    uint tt = 0;
+    bool hasTt = false;
+
     userActivity();
 
     if (!isInNetwork())
@@ -2014,6 +2021,13 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
+    if (!ok)
+    {
+        rsp.list.append(errorToMap(ERR_INVALID_JSON, QString("/groups/%1/scenes/%2").arg(gid).arg(sid), QString("body contains invalid JSON")));
+        rsp.httpStatus = HttpStatusBadRequest;
+        return REQ_READY_SEND;
+    }
+
     // check if scene exists
     uint8_t sceneId = sid.toUInt(&ok);
     Scene *scene = ok ? group->getScene(sceneId) : 0;
@@ -2023,6 +2037,23 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
         rsp.httpStatus = HttpStatusNotFound;
         rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/groups/%1/scenes/%2").arg(gid).arg(sid), QString("resource, /groups/%1/scenes/%2, not available").arg(gid).arg(sid)));
         return REQ_READY_SEND;
+    }
+
+    if (map.contains("transitiontime"))
+    {
+        tt = map["transitiontime"].toUInt(&ok);
+
+        if (ok && tt < 0xFFFFUL)
+        {
+            hasTt = true;
+            scene->setTransitiontime(tt);
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/groups/%1/scenes/%2/transitiontime").arg(gid).arg(sid), QString("invalid value, %1, for parameter transitiontime").arg(tt)));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
     }
 
     if (scene->externalMaster)
@@ -2102,7 +2133,15 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
 
                     }
 
-                    if (ls->transitionTime() != 10)
+                    if (hasTt)
+                    {
+                        if (ls->transitionTime() != tt)
+                        {
+                            ls->setTransitionTime(tt);
+                            needModify = true;
+                        }
+                    }
+                    else if (ls->transitionTime() != 10)
                     {
                         ls->setTransitionTime(10);
                         needModify = true;
