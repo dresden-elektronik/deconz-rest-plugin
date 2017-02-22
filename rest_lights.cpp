@@ -16,6 +16,7 @@
 #include "de_web_plugin_private.h"
 #include "json.h"
 #include "connectivity.h"
+#include "colorspace.h"
 
 /*! Lights REST API broker.
     \param req - request data
@@ -476,8 +477,6 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 // map.contains("transitiontime") || // FIXME: use bri if transitionTime is given
                 addTaskSetOnOff(task, on ? ONOFF_COMMAND_ON : ONOFF_COMMAND_OFF, 0)) // onOff task only if no bri or transitionTime is given
             {
-
-
                 QVariantMap rspItem;
                 QVariantMap rspItemState;
                 rspItemState[QString("/lights/%1/state/on").arg(id)] = on;
@@ -643,6 +642,21 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 taskToLocalData(task);
             }
 
+            if (!hasXy && !hasSat)
+            {
+                double r, g, b;
+                double x, y;
+                double h = ((360.0f / 65535.0f) * hue);
+                double s = task.lightNode->saturation() / 255.0f;
+                double v = 1.0f;
+
+                Hsv2Rgb(&r, &g, &b, h, s, v);
+                Rgb2xy(&x, &y, r, g, b);
+
+                DBG_Printf(DBG_INFO, "x: %f, y: %f\n", x, y);
+                task.lightNode->setColorXY(x * 65279.0f, y * 65279.0f);
+            }
+
             if (hasSat || // merge later to set hue and saturation
                 hasXy || hasCt || hasEffectColorLoop ||
                 addTaskSetEnhancedHue(task, hue)) // will only be evaluated if no sat, xy, ct or colorloop is set
@@ -686,6 +700,21 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             task.sat = sat;
             task.taskType = TaskSetSat;
             taskToLocalData(task);
+
+            if (!hasXy && !hasHue)
+            {
+                double r, g, b;
+                double x, y;
+                double h = ((360.0f / 65535.0f) * task.lightNode->enhancedHue());
+                double s = sat / 254.0f;
+                double v = 1.0f;
+
+                Hsv2Rgb(&r, &g, &b, h, s, v);
+                Rgb2xy(&x, &y, r, g, b);
+
+                DBG_Printf(DBG_INFO, "x: %f, y: %f\n", x, y);
+                task.lightNode->setColorXY(x * 65279.0f, y * 65279.0f);
+            }
 
             if (hasXy || hasCt
                || (!hasEffectColorLoop && hasHue && (hue != UINT_MAX)) // merge later to set hue and saturation
@@ -732,6 +761,19 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             hue = f * 254.0f;
 
             DBG_Printf(DBG_INFO, "hue: %u, sat: %u\n", hue, sat);
+
+            double r, g, b;
+            double x, y;
+            double h = ((360.0f / 65535.0f) * hue);
+            double s = sat / 254.0f;
+            double v = 1.0f;
+
+            Hsv2Rgb(&r, &g, &b, h, s, v);
+            Rgb2xy(&x, &y, r, g, b);
+
+            DBG_Printf(DBG_INFO, "x: %f, y: %f\n", x, y);
+            task.lightNode->setColorXY(x * 65279.0f, y * 65279.0f);
+
             if (!addTaskSetHueAndSaturation(task, hue, sat))
             {
                 DBG_Printf(DBG_INFO, "can't send task set hue and saturation\n");
