@@ -368,6 +368,14 @@ enum TaskType
     TaskViewGroup
 };
 
+enum LightParameter {
+    hue,
+    sat,
+    ct,
+    level,
+    on
+};
+
 struct TaskItem
 {
     TaskItem()
@@ -564,6 +572,10 @@ public:
     int setGroupAttributes(const ApiRequest &req, ApiResponse &rsp);
     int setGroupState(const ApiRequest &req, ApiResponse &rsp);
     int deleteGroup(const ApiRequest &req, ApiResponse &rsp);
+    void updateGroupU8ParameterOfLightNode(LightNode *lightNode, LightParameter parameter, uint8_t value);
+    void updateGroupU16ParameterOfLightNode(LightNode *lightNode, LightParameter parameter, uint16_t value);
+    void updateGroupBoolParameterOfLightNode(LightNode *lightNode, LightParameter parameter, bool value);
+    void reCalcGroupParameter(Group *group, LightParameter parameter);
 
     // REST API groups > scenes
     int createScene(const ApiRequest &req, ApiResponse &rsp);
