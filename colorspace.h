@@ -51,6 +51,7 @@ void Rgb2Hsi(num *H, num *S, num *I, num R, num G, num B);
 void Hsi2Rgb(num *R, num *G, num *B, num H, num S, num I);
 
 void Rgb2Xyz(num *X, num *Y, num *Z, num R, num G, num B);
+void Rgb2xy(num *x, num *y, num R, num G, num B);
 void Xyz2Rgb(num *R, num *G, num *B, num X, num Y, num Z);
 void Xyz2Lab(num *L, num *a, num *b, num X, num Y, num Z);
 void Lab2Xyz(num *X, num *Y, num *Z, num L, num a, num b);

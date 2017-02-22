@@ -712,6 +712,24 @@ void Rgb2Xyz(num *X, num *Y, num *Z, num R, num G, num B)
 	*Z = (num)(0.01929721549174694484*R + 0.1191838645808485318*G + 0.9504971251315797660*B);
 }
 
+/**
+ * @brief Transform sRGB to xy
+ *
+ * @param X, Y pointers to hold the result
+ * @param R, G, B the input sRGB values
+ */
+void Rgb2xy(num *x, num *y, num R, num G, num B)
+{
+    R = INVGAMMACORRECTION(R);
+    G = INVGAMMACORRECTION(G);
+    B = INVGAMMACORRECTION(B);
+    num X = (num)(0.4123955889674142161*R + 0.3575834307637148171*G + 0.1804926473817015735*B);
+    num Y = (num)(0.2125862307855955516*R + 0.7151703037034108499*G + 0.07220049864333622685*B);
+    num Z = (num)(0.01929721549174694484*R + 0.1191838645808485318*G + 0.9504971251315797660*B);
+    *x = X / (X + Y + Z);
+    *y = Y / (X + Y + Z);
+
+}
 
 /**
  * @brief Transform CIE XYZ to sRGB with the D65 white point
