@@ -29,6 +29,7 @@ Group::Group() :
    colorX = 0;
    colorY = 0;
    colorTemperature = 0;
+   colormode = QLatin1String("hs");
 }
 
 /*! Returns the 16 bit group address.

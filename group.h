@@ -60,6 +60,7 @@ public:
     uint16_t level;
     uint16_t colorTemperature;
     QString etag;
+    QString colormode;
     std::vector<Scene> scenes;
     QTime sendTime;
     bool hidden;
