@@ -608,6 +608,11 @@ int DeRestPluginPrivate::setGroupAttributes(const ApiRequest &req, ApiResponse &
                             {
                                 lightNode->setNeedSaveDatabase(true);
                                 groupInfo->state = GroupInfo::StateInGroup;
+                                if (lightNode->isOn())
+                                {
+                                    group->setIsOn(true);
+                                    group->level = lightNode->level();
+                                }
                             }
                         }
 
