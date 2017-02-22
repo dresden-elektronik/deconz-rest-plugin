@@ -1481,7 +1481,7 @@ bool DeRestPluginPrivate::groupToMap(const Group *group, QVariantMap &map)
     xy.append(x);
     xy.append(y);
     action["xy"] = xy;
-    action["colormode"] = "hs"; // TODO
+    action["colormode"] = group->colormode; // TODO
     map["action"] = action;
     map["name"] = group->name();
     map["hidden"] = group->hidden;
