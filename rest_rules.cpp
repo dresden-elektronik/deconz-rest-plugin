@@ -806,7 +806,10 @@ int DeRestPluginPrivate::updateRule(const ApiRequest &req, ApiResponse &rsp)
             }
             DBG_Printf(DBG_INFO, "force verify of rule %s: %s\n", qPrintable(i->id()), qPrintable(i->name()));
             i->lastVerify = 0;
-            verifyRulesTimer->start(500);
+            if (!verifyRulesTimer->isActive())
+            {
+                verifyRulesTimer->start(500);
+            }
 
             if (changed)
             {
@@ -1136,11 +1139,11 @@ void DeRestPluginPrivate::queueCheckRuleBindings(const Rule &rule)
         return;
     }
 
-    if (rule.state() == Rule::StateNormal && rule.status() == "enabled")
+    if (rule.state() == Rule::StateNormal && rule.status() == QLatin1String("enabled"))
     {
         bindingTask.action = BindingTask::ActionBind;
     }
-    else if (rule.state() == Rule::StateDeleted || rule.status() == "disabled")
+    else if (rule.state() == Rule::StateDeleted || rule.status() == QLatin1String("disabled"))
     {
         bindingTask.action = BindingTask::ActionUnbind;
     }
@@ -1158,7 +1161,7 @@ void DeRestPluginPrivate::queueCheckRuleBindings(const Rule &rule)
         for (; i != end; ++i)
         {
             // operator equal used to refer to srcEndpoint
-            if (i->ooperator() != "eq")
+            if (i->ooperator() != QLatin1String("eq"))
             {
                 continue;
             }
@@ -1170,19 +1173,19 @@ void DeRestPluginPrivate::queueCheckRuleBindings(const Rule &rule)
                 continue;
             }
 
-            if (srcAddressLs[0] != "sensors")
+            if (srcAddressLs[0] != QLatin1String("sensors"))
             {
                 continue;
             }
 
-            if (srcAddressLs[2] != "state")
+            if (srcAddressLs[2] != QLatin1String("state"))
             {
                 continue;
             }
 
-            if ((srcAddressLs[3] == "buttonevent") ||
-                (srcAddressLs[3] == "illuminance") ||
-                (srcAddressLs[3] == "presence"))
+            if ((srcAddressLs[3] == QLatin1String("buttonevent")) ||
+                (srcAddressLs[3] == QLatin1String("illuminance")) ||
+                (srcAddressLs[3] == QLatin1String("presence")))
             {
                 sensorNode = getSensorNodeForId(srcAddressLs[1]);
 
@@ -1202,8 +1205,11 @@ void DeRestPluginPrivate::queueCheckRuleBindings(const Rule &rule)
                             {
                                 srcAddress = sensorNode->address().ext();
                                 srcEndpoint = ep;
-                                sensorNode->enableRead(READ_BINDING_TABLE);
-                                sensorNode->setNextReadTime(READ_BINDING_TABLE, QTime::currentTime());
+                                if (!sensorNode->mustRead(READ_BINDING_TABLE))
+                                {
+                                    sensorNode->enableRead(READ_BINDING_TABLE);
+                                    sensorNode->setNextReadTime(READ_BINDING_TABLE, QTime::currentTime());
+                                }
                                 q->startZclAttributeTimer(1000);
                                 break;
                             }
@@ -1256,7 +1262,7 @@ void DeRestPluginPrivate::queueCheckRuleBindings(const Rule &rule)
 
         for (; i != end; ++i)
         {
-            if (i->method() != "BIND")
+            if (i->method() != QLatin1String("BIND"))
             {
                 continue;
             }
@@ -1281,12 +1287,12 @@ void DeRestPluginPrivate::queueCheckRuleBindings(const Rule &rule)
             // /lights/2/state
             if (dstAddressLs.size() == 3)
             {
-                if (dstAddressLs[0] == "groups")
+                if (dstAddressLs[0] == QLatin1String("groups"))
                 {
                     bnd.dstAddress.group = dstAddressLs[1].toUShort(&ok);
                     bnd.dstAddrMode = deCONZ::ApsGroupAddress;
                 }
-                else if (dstAddressLs[0] == "lights")
+                else if (dstAddressLs[0] == QLatin1String("lights"))
                 {
                     LightNode *lightNode = getLightNodeForId(dstAddressLs[1]);
                     if (lightNode)
@@ -1311,31 +1317,31 @@ void DeRestPluginPrivate::queueCheckRuleBindings(const Rule &rule)
                 // action.body might contain multiple 'bindings'
                 // TODO check if clusterId is available (finger print?)
 
-                if (i->body().contains("on"))
+                if (i->body().contains(QLatin1String("on")))
                 {
                     bnd.clusterId = ONOFF_CLUSTER_ID;
                     queueBindingTask(bindingTask);
                 }
 
-                if (i->body().contains("bri"))
+                if (i->body().contains(QLatin1String("bri")))
                 {
                     bnd.clusterId = LEVEL_CLUSTER_ID;
                     queueBindingTask(bindingTask);
                 }
 
-                if (i->body().contains("scene"))
+                if (i->body().contains(QLatin1String("scene")))
                 {
                     bnd.clusterId = SCENE_CLUSTER_ID;
                     queueBindingTask(bindingTask);
                 }
 
-                if (i->body().contains("illum"))
+                if (i->body().contains(QLatin1String("illum")))
                 {
                     bnd.clusterId = ILLUMINANCE_MEASUREMENT_CLUSTER_ID;
                     queueBindingTask(bindingTask);
                 }
 
-                if (i->body().contains("occ"))
+                if (i->body().contains(QLatin1String("occ")))
                 {
                     bnd.clusterId = OCCUPANCY_SENSING_CLUSTER_ID;
                     queueBindingTask(bindingTask);

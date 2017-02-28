@@ -287,7 +287,7 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
     {
         if (btReader)
         {
-            if (btReader->state == BindingTableReader::StateWaitResponse)
+            if (btReader->state == BindingTableReader::StateWaitResponse || btReader->state == BindingTableReader::StateWaitConfirm)
             {
                 // read more
                 btReader->state = BindingTableReader::StateIdle;
@@ -342,15 +342,14 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
 
             for (;i != end; ++i)
             {
-                if (i->state == BindingTask::StateCheck &&
-                    i->binding == bnd)
+                if (i->binding == bnd)
                 {
-                    if (i->action == BindingTask::ActionBind)
+                    if (i->action == BindingTask::ActionBind && i->state != BindingTask::StateFinished)
                     {
                         DBG_Printf(DBG_INFO, "binding 0x%04X, 0x%02X already exists, drop task\n", bnd.clusterId, bnd.dstEndpoint);
                         i->state = BindingTask::StateFinished; // already existing
                     }
-                    else if (i->action == BindingTask::ActionUnbind)
+                    else if (i->action == BindingTask::ActionUnbind && i->state == BindingTask::StateCheck)
                     {
                         DBG_Printf(DBG_INFO, "binding 0x%04X, 0x%02X exists, start unbind task\n", bnd.clusterId, bnd.dstEndpoint);
                         i->state = BindingTask::StateIdle; // exists -> unbind
@@ -477,9 +476,6 @@ bool DeRestPluginPrivate::sendBindRequest(BindingTask &bt)
     // generate and remember a new ZDP transaction sequence number
     bt.zdpSeqNum = (uint8_t)qrand();
 
-    // write payload according to ZigBee specification (2.4.3.1.7 Match_Descr_req)
-    // here we search for ZLL device which provides a OnOff server cluster
-    // NOTE: explicit castings ensure correct size of the fields
     stream << bt.zdpSeqNum; // ZDP transaction sequence number
 
     if (!bnd.writeToStream(stream))
@@ -777,9 +773,12 @@ void DeRestPluginPrivate::bindingTimerFired()
                 {
                     if (i->restNode->mgmtBindSupported())
                     {
-                        i->restNode->enableRead(READ_BINDING_TABLE);
-                        i->restNode->setNextReadTime(READ_BINDING_TABLE, queryTime);
-                        queryTime = queryTime.addSecs(5);
+                        if (!i->restNode->mustRead(READ_BINDING_TABLE))
+                        {
+                            i->restNode->enableRead(READ_BINDING_TABLE);
+                            i->restNode->setNextReadTime(READ_BINDING_TABLE, queryTime);
+                            queryTime = queryTime.addSecs(5);
+                        }
                         q->startZclAttributeTimer(1000);
 
                         i->state = BindingTask::StateCheck;

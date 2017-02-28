@@ -7411,7 +7411,7 @@ void DeRestPlugin::idleTimerFired()
         return;
     }
 
-    int tSpacing = 5;
+    int tSpacing = 2;
 
     // slow down query if otau was busy recently
     if (d->otauLastBusyTimeDelta() < OTA_LOW_PRIORITY_TIME)
