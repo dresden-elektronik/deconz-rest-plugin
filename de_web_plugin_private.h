@@ -368,12 +368,13 @@ enum TaskType
     TaskViewGroup
 };
 
-enum LightParameter {
-    hue,
-    sat,
-    ct,
-    level,
-    on
+enum LightParameter
+{
+    LP_Hue,
+    LP_Saturation,
+    LP_ColorTemperature,
+    LP_Level,
+    LP_On
 };
 
 struct TaskItem

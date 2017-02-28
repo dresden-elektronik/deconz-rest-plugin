@@ -2409,11 +2409,11 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
     {
         if (groupOnChanged)
         {
-            reCalcGroupParameter(group, LightParameter::on);
+            reCalcGroupParameter(group, LP_On);
         }
         if (groupBriChanged)
         {
-            reCalcGroupParameter(group, LightParameter::level);
+            reCalcGroupParameter(group, LP_Level);
         }
         //if (groupXyChanged)
         //{
@@ -2421,12 +2421,12 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
         //}
         if (groupHueSatChanged)
         {
-            reCalcGroupParameter(group, LightParameter::hue);
-            reCalcGroupParameter(group, LightParameter::sat);
+            reCalcGroupParameter(group, LP_Hue);
+            reCalcGroupParameter(group, LP_Saturation);
         }
         if (groupCtChanged)
         {
-            reCalcGroupParameter(group, LightParameter::ct);
+            reCalcGroupParameter(group, LP_ColorTemperature);
         }
         if (countColorMode >= countColorTempMode)
         {
