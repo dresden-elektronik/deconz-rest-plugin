@@ -2062,6 +2062,10 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
             return REQ_READY_SEND;
         }
     }
+    else
+    {
+        scene->setTransitiontime(10);
+    }
 
     if (scene->externalMaster)
     {
