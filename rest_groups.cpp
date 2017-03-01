@@ -2220,6 +2220,9 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
+    updateEtag(gwConfigEtag);
+    updateEtag(group->etag);
+
     rspItemState["id"] = sid;
     rspItem["success"] = rspItemState;
     rsp.list.append(rspItem);
