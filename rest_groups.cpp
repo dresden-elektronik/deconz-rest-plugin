@@ -1618,6 +1618,8 @@ int DeRestPluginPrivate::createScene(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
+    scene.setTransitiontime(10);
+
     // name
     if (map.contains("name")) // required
     {
