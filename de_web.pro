@@ -8,13 +8,11 @@ DEFINES += DECONZ_DLLSPEC=Q_DECL_IMPORT
 
 unix:contains(QMAKE_HOST.arch, armv6l) {
     DEFINES += ARCH_ARM ARCH_ARMV6
+    INCLUDEPATH += /usr/include
 }
 unix:contains(QMAKE_HOST.arch, armv7l) {
     DEFINES += ARCH_ARM ARCH_ARMV7
-}
-
-unix:contains(QMAKE_HOST.arch, armv7l) {
-    DEFINES += ARCH_ARM ARCH_ARMV7
+    INCLUDEPATH += /usr/include
 }
 
 QMAKE_CXXFLAGS += -Wno-attributes \
@@ -48,8 +46,6 @@ QT             += network
 
 INCLUDEPATH    += ../.. \
                   ../../common
-                  
-unix:INCLUDEPATH += /usr/include
 
 GIT_COMMIT = $$system("git rev-list HEAD --max-count=1")
 
