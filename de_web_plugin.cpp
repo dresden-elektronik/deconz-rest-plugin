@@ -1100,8 +1100,8 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             }
 
             sensorNode.address().setExt(ind.gpdSrcId());
-            sensorNode.setUniqueId(sensorNode.address().toStringExt());
             sensorNode.fingerPrint() = fp;
+            sensorNode.setUniqueId(generateUniqueId(sensorNode.address().ext(), sensorNode.fingerPrint().endpoint));
 
             SensorConfig sensorConfig;
             sensorConfig.setReachable(true);
@@ -1291,17 +1291,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
             if (lightNode2->uniqueId().isEmpty() || lightNode2->uniqueId().startsWith("0x"))
             {
-                QString uid;
-                union _a
-                {
-                    quint8 bytes[8];
-                    quint64 mac;
-                } a;
-                a.mac = lightNode2->address().ext();
-                uid.sprintf("%02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X-%02X",
-                            a.bytes[7], a.bytes[6], a.bytes[5], a.bytes[4],
-                            a.bytes[3], a.bytes[2], a.bytes[1], a.bytes[0],
-                            lightNode.haEndpoint().endpoint());
+                QString uid = generateUniqueId(lightNode2->address().ext(), lightNode2->haEndpoint().endpoint());
                 lightNode2->setUniqueId(uid);
                 lightNode2->setNeedSaveDatabase(true);
                 updateEtag(lightNode2->etag);
@@ -1400,17 +1390,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             lightNode.address() = node->address();
             lightNode.setManufacturerCode(node->nodeDescriptor().manufacturerCode());
 
-            QString uid;
-            union _a
-            {
-                quint8 bytes[8];
-                quint64 mac;
-            } a;
-            a.mac = lightNode.address().ext();
-            uid.sprintf("%02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X-%02X",
-                        a.bytes[7], a.bytes[6], a.bytes[5], a.bytes[4],
-                        a.bytes[3], a.bytes[2], a.bytes[1], a.bytes[0],
-                        lightNode.haEndpoint().endpoint());
+            QString uid = generateUniqueId(lightNode.address().ext(), lightNode.haEndpoint().endpoint());
             lightNode.setUniqueId(uid);
 
             openDb();
@@ -2319,6 +2299,85 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor)
     }
 }
 
+void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame)
+{
+    DBG_Assert(sensor != 0);
+
+    if (!sensor)
+    {
+        return;
+    }
+
+    const Sensor::ButtonMap *buttonMap = sensor->buttonMap();
+    if (!buttonMap)
+    {
+        return;
+    }
+
+    // DE Lighting Switch: probe for mode changes
+    if (sensor->modelId() == QLatin1String("Lighting Switch") && ind.dstAddressMode() == deCONZ::ApsGroupAddress)
+    {
+        if (ind.srcEndpoint() == 2 && sensor->mode() != Sensor::ModeTwoGroups)
+        {
+            sensor->setMode(Sensor::ModeTwoGroups);
+        }
+        else if (ind.clusterId() == SCENE_CLUSTER_ID && sensor->mode() != Sensor::ModeScenes)
+        {
+            sensor->setMode(Sensor::ModeScenes);
+        }
+        else if (ind.clusterId() == COLOR_CLUSTER_ID && sensor->mode() != Sensor::ModeColorTemperature)
+        {
+            sensor->setMode(Sensor::ModeColorTemperature);
+        }
+    }
+    else if (ind.dstAddressMode() == deCONZ::ApsGroupAddress)
+    {
+        if (sensor->mode() != Sensor::ModeScenes) // for now all other switches only support scene mode
+        {
+            sensor->setMode(Sensor::ModeScenes);
+        }
+    }
+
+    while (buttonMap->mode != Sensor::ModeNone)
+    {
+        if (buttonMap->mode == sensor->mode() &&
+            buttonMap->endpoint == ind.srcEndpoint() &&
+            buttonMap->clusterId == ind.clusterId() &&
+            buttonMap->zclCommandId == zclFrame.commandId())
+        {
+            bool ok = true;
+
+            if (ind.clusterId() == SCENE_CLUSTER_ID && zclFrame.commandId() == 0x05) // recall scene
+            {
+                ok = false; // payload: groupId, sceneId
+                if (zclFrame.payload().size() >= 3 && buttonMap->zclParam0 == zclFrame.payload().at(2))
+                {
+                    ok = true;
+                }
+            }
+            else if (ind.clusterId() == LEVEL_CLUSTER_ID && zclFrame.commandId() == 0x01)   // move level
+            {
+                ok = false;
+                if (zclFrame.payload().size() >= 1 && buttonMap->zclParam0 == zclFrame.payload().at(0))
+                {
+                    ok = true;
+                }
+            }
+
+            if (ok)
+            {
+                DBG_Printf(DBG_INFO, "button %u %s\n", buttonMap->button, buttonMap->name);
+                sensor->state().setButtonevent(buttonMap->button);
+                sensor->state().setLastupdated(QDateTime::currentDateTimeUtc().toString("yyyy-MM-ddTHH:mm:ss"));
+                updateEtag(sensor->etag);
+                updateEtag(gwConfigEtag);
+                return;
+            }
+        }
+        buttonMap++;
+    }
+}
+
 /*! Adds a new sensor node to node cache.
     Only supported ZLL and HA nodes will be added.
     \param node - the base for the SensorNode
@@ -2505,12 +2564,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     }
 
     Sensor sensorNode;
+    sensorNode.setMode(Sensor::ModeScenes);
     sensorNode.setIsAvailable(true);
     sensorNode.setNode(const_cast<deCONZ::Node*>(node));
     sensorNode.address() = node->address();
     sensorNode.setType(type);
-    sensorNode.setUniqueId(node->address().toStringExt());
     sensorNode.fingerPrint() = fingerPrint;
+    QString uid = generateUniqueId(sensorNode.address().ext(), sensorNode.fingerPrint().endpoint);
+    sensorNode.setUniqueId(uid);
 
     SensorConfig sensorConfig;
     sensorConfig.setReachable(true);
@@ -2539,6 +2600,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_BEGA)
     {
         sensorNode.setManufacturer("BEGA Gantenbrink-Leuchten KG");
+    }
+    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_INSTA)
+    {
+        sensorNode.setManufacturer("Insta");
     }
     openDb();
     loadSensorNodeFromDb(&sensorNode);
@@ -2872,7 +2937,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->clearRead(READ_MODEL_ID);
                                 }
 
-                                QString str = ia->toString();
+                                QString str = ia->toString().simplified();
                                 if (!str.isEmpty())
                                 {
                                     if (i->modelId() != str)
@@ -2902,7 +2967,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->clearRead(READ_VENDOR_NAME);
                                 }
 
-                                QString str = ia->toString();
+                                QString str = ia->toString().simplified();
                                 if (!str.isEmpty())
                                 {
                                     if (i->manufacturer() != str)
@@ -2920,7 +2985,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     i->clearRead(READ_SWBUILD_ID);
                                 }
-                                QString str = ia->toString();
+                                QString str = ia->toString().simplified();
                                 if (!str.isEmpty())
                                 {
                                     if (str != i->swVersion())
@@ -5779,7 +5844,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
             }
         }
     }
-    else if (zclFrame.commandId() == 0x04) // Store scene response
+    else if (zclFrame.commandId() == 0x04 && (zclFrame.frameControl() & deCONZ::ZclFCDirectionServerToClient)) // Store scene response
     {
         if (zclFrame.payload().size() < 4)
         {
@@ -6206,7 +6271,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
             }
         }
     }
-    else if (zclFrame.commandId() == 0x05) // Recall scene command
+    else if (zclFrame.commandId() == 0x05 && !(zclFrame.frameControl() & deCONZ::ZclFCDirectionServerToClient)) // Recall scene command
     {
         // update Nodes and Groups state if Recall scene Command was send by a switch
         Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
@@ -6217,6 +6282,8 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
         }
 
         DBG_Assert(zclFrame.payload().size() >= 3);
+
+        checkSensorButtonEvent(sensorNode, ind, zclFrame);
 
         QDataStream stream(zclFrame.payload());
         stream.setByteOrder(QDataStream::LittleEndian);
@@ -6298,6 +6365,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                             lightNode->setColorXY(ls->x(), ls->y());
                             changed = true;
                         }
+                        // TODO colormode ct, hue-sat, etc
                     }
                     if (changed)
                     {
@@ -6429,7 +6497,7 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
 
     Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
 
-    if (sensorNode && sensorNode->deletedState() == Sensor::StateDeleted && gwPermitJoinDuration > 0)
+    if (sensorNode && sensorNode->deletedState() == Sensor::StateDeleted && findSensorsState == FindSensorsActive)
     {
         // reactivate deleted switch and recover group
         sensorNode->setDeletedState(Sensor::StateNormal);
@@ -6482,6 +6550,11 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
 
         updateEtag(gwConfigEtag);
         queSaveDb(DB_GROUPS | DB_SENSORS, DB_SHORT_SAVE_DELAY);
+    }
+
+    if (sensorNode)
+    {
+        checkSensorButtonEvent(sensorNode, ind, zclFrame);
     }
 }
 
@@ -8367,6 +8440,23 @@ uint8_t DeRestPluginPrivate::endpoint()
     }
 
     return 0;
+}
+
+QString DeRestPluginPrivate::generateUniqueId(quint64 extAddress, quint8 endpoint)
+{
+    QString uid;
+    union _a
+    {
+        quint8 bytes[8];
+        quint64 mac;
+    } a;
+    a.mac = extAddress;
+
+    uid.sprintf("%02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X-%02X",
+                a.bytes[7], a.bytes[6], a.bytes[5], a.bytes[4],
+                a.bytes[3], a.bytes[2], a.bytes[1], a.bytes[0],
+                endpoint);
+    return uid;
 }
 
 /*! Returns the name of this plugin.

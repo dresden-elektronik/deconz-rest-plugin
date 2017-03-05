@@ -1207,7 +1207,7 @@ static int sqliteLoadSensorNodeCallback(void *user, int ncols, char **colval , c
             {
                 if (!val.isEmpty() && 0 != val.compare(QLatin1String("Unknown"), Qt::CaseInsensitive))
                 {
-                    sensorNode->setModelId(val);
+                    sensorNode->setModelId(val.simplified());
                     sensorNode->clearRead(READ_MODEL_ID);
                 }
             }
@@ -1215,7 +1215,7 @@ static int sqliteLoadSensorNodeCallback(void *user, int ncols, char **colval , c
             {
                 if (!val.isEmpty() && 0 != val.compare(QLatin1String("Unknown"), Qt::CaseInsensitive))
                 {
-                    sensorNode->setManufacturer(val);
+                    sensorNode->setManufacturer(val.simplified());
                     sensorNode->clearRead(READ_VENDOR_NAME);
                 }
             }
@@ -1223,7 +1223,7 @@ static int sqliteLoadSensorNodeCallback(void *user, int ncols, char **colval , c
             {
                 if (!val.isEmpty() && 0 != val.compare(QLatin1String("Unknown"), Qt::CaseInsensitive))
                 {
-                    sensorNode->setSwVersion(val);
+                    sensorNode->setSwVersion(val.simplified());
                     sensorNode->clearRead(READ_SWBUILD_ID);
                 }
             }
@@ -1582,7 +1582,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             else if (strcmp(colname[i], "modelid") == 0)
             {
-                sensor.setModelId(val);
+                sensor.setModelId(val.simplified());
             }
             else if (strcmp(colname[i], "mode") == 0)
             {
@@ -1594,7 +1594,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             else if (strcmp(colname[i], "manufacturername") == 0)
             {
-                sensor.setManufacturer(val);
+                sensor.setManufacturer(val.simplified());
             }
             else if (strcmp(colname[i], "uniqueid") == 0)
             {
@@ -1602,7 +1602,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             else if (strcmp(colname[i], "swversion") == 0)
             {
-                sensor.setSwVersion(val);
+                sensor.setSwVersion(val.simplified());
             }
             else if (strcmp(colname[i], "state") == 0)
             {
@@ -1638,10 +1638,33 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
     if (!sensor.id().isEmpty() && !sensor.name().isEmpty() && !sensor.uniqueId().isEmpty())
     {
+        bool ok;
         DBG_Printf(DBG_INFO_L2, "DB found sensor %s %s\n", qPrintable(sensor.name()), qPrintable(sensor.id()));
-        // check doubles
-        bool ok = false;
-        quint64 extAddr = sensor.uniqueId().toULongLong(&ok, 16);
+
+        // convert from old format 0x0011223344556677 to 00:11:22:33:44:55:66:77-AB where AB is the endpoint
+        if (sensor.uniqueId().startsWith(QLatin1String("0x")))
+        {
+            quint64 extAddr = sensor.uniqueId().toULongLong(&ok, 16);
+            if (ok)
+            {
+                sensor.setUniqueId(d->generateUniqueId(extAddr, sensor.fingerPrint().endpoint));
+                sensor.setNeedSaveDatabase(true);
+            }
+        }
+
+        // temp. workaround for default value of 'two groups' which is only supported by lighting switch
+        if (sensor.mode() != Sensor::ModeScenes)
+        {
+            if (sensor.modelId() != QLatin1String("Lighting Switch"))
+            {
+                sensor.setMode(Sensor::ModeScenes);
+            }
+        }
+
+        // check doubles, split uid into mac address and endpoint
+        QString mac = sensor.uniqueId(); // need copy
+        mac = mac.remove(':').split('-').first();
+        quint64 extAddr = mac.toULongLong(&ok, 16);
         if (ok)
         {
             Sensor *s = d->getSensorNodeForFingerPrint(extAddr, sensor.fingerPrint(), sensor.type());

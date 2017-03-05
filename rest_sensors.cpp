@@ -201,13 +201,17 @@ int DeRestPluginPrivate::getAllSensors(const ApiRequest &req, ApiResponse &rsp)
         sensor["name"] = i->name();
         sensor["type"] = i->type();
         sensor["modelid"] = i->modelId();
-        if (i->swVersion() != "")
+        if (!i->swVersion().isEmpty())
         {
             sensor["swversion"] = i->swVersion();
         }
         if (i->fingerPrint().endpoint != INVALID_ENDPOINT)
         {
             sensor["ep"] = i->fingerPrint().endpoint;
+        }
+        if (i->modelId() == QLatin1String("Lighting Switch"))
+        {
+            sensor["mode"] = (double)i->mode();
         }
         sensor["uniqueid"] = i->uniqueId();
         sensor["manufacturername"] = i->manufacturer();
@@ -1429,9 +1433,19 @@ int DeRestPluginPrivate::getNewSensors(const ApiRequest &req, ApiResponse &rsp)
 {
     Q_UNUSED(req);
 
-    QVariantMap rspItem;
-    rspItem["success"] = QString("lastscan\": \""+ lastSensorsScan);
-    rsp.list.append(rspItem);
+    if (findSensorsState == FindSensorsActive)
+    {
+        rsp.map["lastscan"] = QLatin1String("active");
+    }
+    else if (findSensorsState == FindSensorsDone)
+    {
+        rsp.map["lastscan"] = lastSensorsScan;
+    }
+    else
+    {
+        rsp.map["lastscan"] = QLatin1String("none");
+    }
+
     rsp.httpStatus = HttpStatusOk;
     return REQ_READY_SEND;
 }
@@ -1888,8 +1902,8 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
             sensorNode.setNode(0);
             sensorNode.address() = sc->address;
             sensorNode.setType("ZHASwitch");
-            sensorNode.setUniqueId(sc->address.toStringExt());
             sensorNode.fingerPrint() = fp;
+            sensorNode.setUniqueId(generateUniqueId(sensorNode.address().ext(), sensorNode.fingerPrint().endpoint));
             sensorNode.setManufacturer(QLatin1String("dresden elektronik"));
 
             SensorConfig sensorConfig;
@@ -1935,9 +1949,11 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
                     openDb();
                     sensorNode.setId(QString::number(getFreeSensorId()));
                     closeDb();
+                    sensorNode.setMode(Sensor::ModeTwoGroups);
                     sensorNode.setName(QString("Lighting Switch %1").arg(sensorNode.id()));
                     sensorNode.setNeedSaveDatabase(true);
                     sensorNode.fingerPrint().endpoint = 0x02;
+                    sensorNode.setUniqueId(generateUniqueId(sensorNode.address().ext(), sensorNode.fingerPrint().endpoint));
                     sensors.push_back(sensorNode);
                     s2 = &sensors.back();
                     update = true;

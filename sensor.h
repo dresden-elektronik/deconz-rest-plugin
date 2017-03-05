@@ -19,6 +19,20 @@
 // Sensor State
 #define INVALID_ENDPOINT 0xff
 
+#define S_BUTTON_ACTION_INITIAL_PRESS  0
+#define S_BUTTON_ACTION_HOLD           1
+#define S_BUTTON_ACTION_SHORT_RELEASED 2
+#define S_BUTTON_ACTION_LONG_RELEASED  3
+
+#define S_BUTTON_1   1000
+#define S_BUTTON_2   2000
+#define S_BUTTON_3   3000
+#define S_BUTTON_4   4000
+#define S_BUTTON_5   5000
+#define S_BUTTON_6   6000
+#define S_BUTTON_7   7000
+#define S_BUTTON_8   8000
+
 class SensorState
 {
 public:
@@ -128,6 +142,7 @@ class Sensor : public RestNodeBase
 public:    
     enum SensorMode
     {
+        ModeNone = 0,
         ModeScenes = 1,
         ModeTwoGroups = 2,
         ModeColorTemperature = 3
@@ -137,6 +152,17 @@ public:
     {
         StateNormal,
         StateDeleted
+    };
+
+    struct ButtonMap
+    {
+        Sensor::SensorMode mode;
+        quint8 endpoint;
+        quint16 clusterId;
+        quint8 zclCommandId;
+        quint16 zclParam0;
+        int button;
+        const char *name;
     };
 
     Sensor();
@@ -175,6 +201,7 @@ public:
 
     QVector<QString> sensorTypes;
     QString etag;
+    const ButtonMap *buttonMap();
 
 private:
     DeletedState m_deletedstate;
@@ -189,6 +216,7 @@ private:
     SensorMode m_mode;
     uint8_t m_resetRetryCount;
     uint8_t m_zdpResetSeq;
+    const ButtonMap *m_buttonMap;
 };
 
 #endif // SENSOR_H

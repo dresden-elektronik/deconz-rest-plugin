@@ -159,6 +159,7 @@
 // manufacturer codes
 #define VENDOR_ATMEL    0x1014
 #define VENDOR_DDEL     0x1135
+#define VENDOR_INSTA    0x117a
 #define VENDOR_IKEA     0x117c
 #define VENDOR_PHILIPS  0x100B
 #define VENDOR_OSRAM_STACK  0xBBAA
@@ -787,6 +788,7 @@ public:
     void addSensorNode(const deCONZ::Node *node);
     void addSensorNode(const deCONZ::Node *node, const SensorFingerprint &fingerPrint, const QString &type);
     void checkSensorNodeReachable(Sensor *sensor);
+    void checkSensorButtonEvent(Sensor *sensor, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
     void updateSensorNode(const deCONZ::NodeEvent &event);
     void checkAllSensorsAvailable();
     Sensor *getSensorNodeForAddressAndEndpoint(const deCONZ::Address &addr, quint8 ep);
@@ -838,6 +840,7 @@ public:
     void pushClientForClose(QTcpSocket *sock, int closeTimeout);
 
     uint8_t endpoint();
+    QString generateUniqueId(quint64 extAddress, quint8 endpoint);
 
     // Task interface
     bool addTask(const TaskItem &task);
