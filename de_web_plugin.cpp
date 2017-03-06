@@ -2112,6 +2112,20 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 DBG_Printf(DBG_INFO, "button %u %s\n", buttonMap->button, buttonMap->name);
                 sensor->state().setButtonevent(buttonMap->button);
                 sensor->state().setLastupdated(QDateTime::currentDateTimeUtc().toString("yyyy-MM-ddTHH:mm:ss"));
+
+                if (ind.dstAddressMode() == deCONZ::ApsGroupAddress)
+                {
+                    Group *group = getGroupForId(ind.dstAddress().group());
+
+                    if (group && group->addDeviceMembership(sensor->id()))
+                    {
+                        DBG_Printf(DBG_INFO, "Attached sensor %s to group %s\n", qPrintable(sensor->id()), qPrintable(group->name()));
+                        queSaveDb(DB_GROUPS, DB_LONG_SAVE_DELAY);
+                        updateEtag(group->etag);
+                        // TODO check old sensors?
+                    }
+                }
+
                 updateEtag(sensor->etag);
                 updateEtag(gwConfigEtag);
                 return;
