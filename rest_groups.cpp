@@ -2416,36 +2416,12 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
     }
     if (groupOnChanged || groupBriChanged || groupHueSatChanged || groupCtChanged || groupColorModeChanged)
     {
-        if (groupOnChanged)
+        if (groupOn && !group->isOn())
         {
-            reCalcGroupParameter(group, LP_On);
+            group->setIsOn(true);
+            updateEtag(group->etag);
         }
-        if (groupBriChanged)
-        {
-            reCalcGroupParameter(group, LP_Level);
-        }
-        //if (groupXyChanged)
-        //{
-        //    reCalcGroupParameter(group, LightParameter);
-        //}
-        if (groupHueSatChanged)
-        {
-            reCalcGroupParameter(group, LP_Hue);
-            reCalcGroupParameter(group, LP_Saturation);
-        }
-        if (groupCtChanged)
-        {
-            reCalcGroupParameter(group, LP_ColorTemperature);
-        }
-        if (countColorMode >= countColorTempMode)
-        {
-            group->colormode = "hs";
-        }
-        else
-        {
-            group->colormode = "ct";
-        }
-         updateEtag(group->etag);
+        // recalc other group parameter in webapp
     }
 
     updateEtag(gwConfigEtag);

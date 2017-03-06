@@ -1663,7 +1663,6 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             }
 
                             lightNode->setHue(hue);
-                            updateGroupU8ParameterOfLightNode(lightNode, LP_Hue, hue);
                             updated = true;
                         }
                     }
@@ -1673,7 +1672,6 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         if (lightNode->saturation() != sat)
                         {
                             lightNode->setSaturation(sat);
-                            updateGroupU8ParameterOfLightNode(lightNode, LP_Saturation, sat);
                             updated = true;
                         }
                     }
@@ -1701,7 +1699,6 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         if (lightNode->colorTemperature() != ct)
                         {
                             lightNode->setColorTemperature(ct);
-                            updateGroupU16ParameterOfLightNode(lightNode, LP_ColorTemperature, ct);
                             updated = true;
                         }
                     }
@@ -1755,7 +1752,6 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             DBG_Printf(DBG_INFO, "level %u --> %u\n", lightNode->level(), level);
                             lightNode->clearRead(READ_LEVEL);
                             lightNode->setLevel(level);
-                            updateGroupU8ParameterOfLightNode(lightNode, LP_Level, level);
                             updated = true;
                         }
                         lightNode->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
@@ -1777,7 +1773,6 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         {
                             lightNode->clearRead(READ_ON_OFF);
                             lightNode->setIsOn(on);
-                            updateGroupBoolParameterOfLightNode(lightNode, LP_On, on);
                             updated = true;
                         }
                         lightNode->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
@@ -1839,258 +1834,6 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
     }
 
     return lightNode;
-}
-
-/*! Set the \param parameter (uint8) with the \param value of every group of the given \param lightNode.
- */
-void DeRestPluginPrivate::updateGroupU8ParameterOfLightNode(LightNode *lightNode, LightParameter parameter, uint8_t value)
-{
-    bool changed = false;
-
-    std::vector<GroupInfo>::const_iterator i = lightNode->groups().begin();
-    std::vector<GroupInfo>::const_iterator end = lightNode->groups().end();
-
-    for (; i != end; ++i)
-    {
-        Group *group = getGroupForId(i->id);
-
-        if (!group || group->state() == Group::StateDeleted || group->state() == Group::StateDeleteFromDB)
-        {
-            continue;
-        }
-
-        switch (parameter)
-        {
-            case LP_Level:
-                reCalcGroupParameter(group, parameter);
-                updateEtag(group->etag);
-                changed = true;
-                break;
-
-            case LP_Hue:
-                reCalcGroupParameter(group, parameter);
-                updateEtag(group->etag);
-                changed = true;
-                break;
-
-            case LP_Saturation:
-                reCalcGroupParameter(group, parameter);
-                updateEtag(group->etag);
-                changed = true;
-                break;
-
-            default:
-                break;
-        }
-    }
-    if (changed)
-    {
-        updateEtag(gwConfigEtag);
-    }
-}
-
-/*! Set the \param parameter (uint16) with the \param value of every group of the given \param lightNode.
- */
-void DeRestPluginPrivate::updateGroupU16ParameterOfLightNode(LightNode *lightNode, LightParameter parameter, uint16_t value)
-{
-    bool changed = false;
-
-    std::vector<GroupInfo>::const_iterator i = lightNode->groups().begin();
-    std::vector<GroupInfo>::const_iterator end = lightNode->groups().end();
-
-    for (; i != end; ++i)
-    {
-        Group *group = getGroupForId(i->id);
-
-        if (!group || group->state() == Group::StateDeleted || group->state() == Group::StateDeleteFromDB)
-        {
-            continue;
-        }
-
-        switch (parameter)
-        {
-            case LP_ColorTemperature:
-                // set group ct to lightNode ct
-                reCalcGroupParameter(group, parameter);
-                updateEtag(group->etag);
-                changed = true;
-                break;
-
-            case LP_Hue:
-                reCalcGroupParameter(group, parameter);
-                updateEtag(group->etag);
-                changed = true;
-                break;
-
-            default:
-                break;
-        }
-    }
-    if (changed)
-    {
-        updateEtag(gwConfigEtag);
-    }
-}
-
-/*! Set the \param parameter (bool) with the \param value of every group of the given \param lightNode.
- */
-void DeRestPluginPrivate::updateGroupBoolParameterOfLightNode(LightNode *lightNode, LightParameter parameter, bool value)
-{
-    bool changed = false;
-    bool setGroupOff = true;
-
-    std::vector<GroupInfo>::const_iterator i = lightNode->groups().begin();
-    std::vector<GroupInfo>::const_iterator end = lightNode->groups().end();
-
-    for (; i != end; ++i)
-    {
-        Group *group = getGroupForId(i->id);
-
-        if (!group || group->state() == Group::StateDeleted || group->state() == Group::StateDeleteFromDB)
-        {
-            continue;
-        }
-
-        switch (parameter)
-        {
-            case LP_On:
-                // set group to on if at least on light of that group is on
-                if (!group->isOn() && value)
-                {
-                    group->setIsOn(value);
-                    updateEtag(group->etag);
-                    changed = true;
-                }
-                else if (group->isOn() && !value)
-                {
-                    std::vector<LightNode>::iterator l = nodes.begin();
-                    std::vector<LightNode>::iterator lend = nodes.end();
-
-                    for (; l != lend; ++l)
-                    {
-                        if (isLightNodeInGroup(&(*l), group->address()))
-                        {
-                            if (l->isAvailable() && l->isOn())
-                            {
-                               setGroupOff = false;
-                               break;
-                            }
-                        }
-
-                    }
-
-                    if (setGroupOff)
-                    {
-                        group->setIsOn(false);
-                        updateEtag(group->etag);
-                        updateEtag(gwConfigEtag);
-                    }
-                }
-                break;
-
-            default:
-                break;
-        }
-    }
-    if (changed)
-    {
-        updateEtag(gwConfigEtag);
-    }
-}
-
-/*! Recalculate the \param parameter of a \param group dependend of the state of the lights of the group.
- */
-void DeRestPluginPrivate::reCalcGroupParameter(Group *group, LightParameter parameter)
-{
-    double u8Parameter = 0;
-    double u16Parameter = 0;
-    int countLights = 0;
-    double result = 0;
-
-    std::vector<LightNode>::iterator i = nodes.begin();
-    std::vector<LightNode>::iterator end = nodes.end();
-
-    for (; i != end; ++i)
-    {
-        if (i->state() == LightNode::StateDeleted)
-        {
-            continue;
-        }
-
-        if (isLightNodeInGroup(&(*i), group->address()))
-        {
-            switch (parameter)
-            {
-                case LP_Level:
-                    if (i->modelId() != QLatin1String("FLS-PP3 White") &&
-                        !(i->type().startsWith(QLatin1String("On/Off"))) ) {
-                        countLights++;
-                        u16Parameter += i->level();
-                    }
-                    break;
-
-                case LP_Hue:
-                    if ((i->type() == QLatin1String("Extended color light")) ||
-                        (i->type() == QLatin1String("Color light")) ||
-                        (i->type() == QLatin1String("Color dimmable light"))) {
-                        countLights++;
-                        u16Parameter += i->enhancedHue();
-                    }
-                    break;
-
-                case LP_Saturation:
-                    if ((i->type() == QLatin1String("Extended color light")) ||
-                        (i->type() == QLatin1String("Color light")) ||
-                        (i->type() == QLatin1String("Color dimmable light"))) {
-                        countLights++;
-                        u8Parameter += i->saturation();
-                    }
-                    break;
-
-                case LP_ColorTemperature:
-                    if ((i->type() == QLatin1String("Extended color light")) ||
-                        (i->type() == QLatin1String("Color temperature light"))) {
-                        countLights++;
-                        u16Parameter += i->colorTemperature();
-                    }
-                    break;
-
-                default:
-                    break;
-            }
-        }
-    }
-
-    switch (parameter)
-    {
-        case LP_Level:
-            // set mean level of all lights
-            result = ((double)u16Parameter / countLights);
-            group->level = (uint16_t)result;
-            break;
-
-        case LP_Hue:
-            //set the mean hue of all lights
-            result = ((double)u16Parameter / countLights);
-            group->hue = (uint16_t)result;
-            group->hueReal = (double)result / (360.0f * 182.04444f);
-            break;
-
-        case LP_Saturation:
-            // set mean sat of all lights
-            result = ((double)u8Parameter / countLights);
-            group->sat = (uint8_t)result;
-            break;
-
-        case LP_ColorTemperature:
-            // set mean ct of all lights
-            result = ((double)u16Parameter / countLights);
-            group->colorTemperature = (uint16_t)result;
-            break;
-
-        default:
-            break;
-    }
 }
 
 /*! Returns a LightNode for a given MAC or NWK address or 0 if not found.
@@ -7026,43 +6769,6 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
 
         default:
             break;
-        }
-
-        // if light is on: set group state of all groups of that light to on
-        if ((task.taskType == TaskSendOnOffToggle && task.onOff) || (task.taskType == TaskSetLevel && task.level > 0))
-        {
-            updateGroupBoolParameterOfLightNode(lightNode, LP_On, true);
-        }
-        // if light is off: check groups if all lights of that group are off, then set group state to off
-        if ((task.taskType == TaskSendOnOffToggle && !task.onOff) || (task.taskType == TaskSetLevel && task.level == 0))
-        {
-            updateGroupBoolParameterOfLightNode(lightNode, LP_On, false);
-        }
-        // update group level
-        if (task.taskType == TaskSetLevel)
-        {
-            updateGroupU8ParameterOfLightNode(lightNode, LP_Level, task.level);
-        }
-        // update group hue
-        if (task.taskType == TaskSetEnhancedHue)
-        {
-            updateGroupU16ParameterOfLightNode(lightNode, LP_Hue, task.enhancedHue);
-        }
-        // update group hue and sat
-        if (task.taskType == TaskSetHueAndSaturation)
-        {
-            updateGroupU16ParameterOfLightNode(lightNode, LP_Hue, task.enhancedHue);
-            updateGroupU8ParameterOfLightNode(lightNode, LP_Saturation, task.sat);
-        }
-        // update group sat
-        if (task.taskType == TaskSetSat)
-        {
-            updateGroupU8ParameterOfLightNode(lightNode, LP_Saturation, task.sat);
-        }
-        // update group ct
-        if (task.taskType == TaskSetColorTemperature)
-        {
-            updateGroupU16ParameterOfLightNode(lightNode, LP_ColorTemperature, task.colorTemperature);
         }
     }
 }
