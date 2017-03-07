@@ -370,6 +370,15 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
         if (ind.dstAddressMode() == deCONZ::ApsGroupAddress)
         {
             foundGroup(ind.dstAddress().group());
+
+            if (zclFrame.isClusterCommand())
+            {
+                Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
+                if (sensorNode)
+                {
+                    checkSensorButtonEvent(sensorNode, ind, zclFrame);
+                }
+            }
         }
 
         if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReportAttributesId)
@@ -2098,10 +2107,22 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     ok = true;
                 }
             }
-            else if (ind.clusterId() == LEVEL_CLUSTER_ID && zclFrame.commandId() == 0x01)   // move level
+            else if (ind.clusterId() == SCENE_CLUSTER_ID && zclFrame.commandId() == 0x07) // IKEA non-standard scene
             {
                 ok = false;
-                if (zclFrame.payload().size() >= 1 && buttonMap->zclParam0 == zclFrame.payload().at(0))
+                if (zclFrame.payload().size() >= 1 && buttonMap->zclParam0 == zclFrame.payload().at(0)) // next, prev scene
+                {
+                    ok = true;
+                }
+            }
+            else if (ind.clusterId() == LEVEL_CLUSTER_ID &&
+                     (zclFrame.commandId() == 0x01 ||  // move
+                      zclFrame.commandId() == 0x02 ||  // step
+                      zclFrame.commandId() == 0x05 ||  // move (with on/off)
+                      zclFrame.commandId() == 0x06))  // step (with on/off)
+            {
+                ok = false;
+                if (zclFrame.payload().size() >= 1 && buttonMap->zclParam0 == zclFrame.payload().at(0)) // direction
                 {
                     ok = true;
                 }
@@ -6040,8 +6061,6 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
 
         DBG_Assert(zclFrame.payload().size() >= 3);
 
-        checkSensorButtonEvent(sensorNode, ind, zclFrame);
-
         QDataStream stream(zclFrame.payload());
         stream.setByteOrder(QDataStream::LittleEndian);
 
@@ -6307,11 +6326,6 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
 
         updateEtag(gwConfigEtag);
         queSaveDb(DB_GROUPS | DB_SENSORS, DB_SHORT_SAVE_DELAY);
-    }
-
-    if (sensorNode)
-    {
-        checkSensorButtonEvent(sensorNode, ind, zclFrame);
     }
 }
 
