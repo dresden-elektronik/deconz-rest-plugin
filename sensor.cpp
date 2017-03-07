@@ -98,7 +98,7 @@ static const Sensor::ButtonMap ikeaRemoteMap[] = {
 // left button (non-standard)
     { Sensor::ModeScenes,           0x01, 0x0005, 0x07, 1,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED,           "Previous scene" },
 // right button (non-standard)
-    { Sensor::ModeScenes,           0x01, 0x0005, 0x07, 0,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED,           "Next scene" },
+    { Sensor::ModeScenes,           0x01, 0x0005, 0x07, 0,    S_BUTTON_5 + S_BUTTON_ACTION_SHORT_RELEASED,           "Next scene" },
 
     // end
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
