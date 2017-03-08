@@ -83,6 +83,19 @@ static const Sensor::ButtonMap instaRemoteMap[] = {
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
 };
 
+static const Sensor::ButtonMap philipsDimmerSwitchMap[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x01, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x40, 0,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Off with effect" },
+
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "Step up" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "Dimm stop" }, // might be button 2 as well
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 1,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD,           "Step down" },
+
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
+};
+
 static const Sensor::ButtonMap ikeaRemoteMap[] = {
 //    mode                          ep    cluster cmd   param button                                       name
 // big button
@@ -523,6 +536,9 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         else if (m_manufacturer == QLatin1String("Insta"))
         {
             if      (m_modelid.contains(QLatin1String("Remote"))) { m_buttonMap = instaRemoteMap; }
+        else if (m_manufacturer == QLatin1String("Philips"))
+        {
+            if      (m_modelid == QLatin1String("RWL021"))          { m_buttonMap = philipsDimmerSwitchMap; }
         }
         else if (m_manufacturer == QLatin1String("Busch-Jaeger"))
         {
