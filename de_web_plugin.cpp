@@ -181,6 +181,8 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     readDb();
     closeDb();
 
+    checkConsistency();
+
     if (!gwUserParameter.contains("groupssequenceleft"))
     {
         gwUserParameter["groupssequenceleft"] = "[]";

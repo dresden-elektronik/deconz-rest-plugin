@@ -901,6 +901,8 @@ public:
     void closeDb();
     void queSaveDb(int items, int msec);
 
+    void checkConsistency();
+
     sqlite3 *db;
     int saveDatabaseItems;
     int saveDatabaseIdleTotalCounter;
