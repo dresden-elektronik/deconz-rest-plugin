@@ -2063,6 +2063,9 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     const Sensor::ButtonMap *buttonMap = sensor->buttonMap();
     if (!buttonMap)
     {
+        quint8 pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(0);
+        DBG_Printf(DBG_INFO, "no button map for: %s cl: 0x%04X cmd: 0x%02X pl[0]: 0%02X\n",
+                   qPrintable(sensor->modelId()), ind.clusterId(), zclFrame.commandId(), pl0);
         return;
     }
 
@@ -2406,6 +2409,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     loadSensorNodeFromDb(&sensorNode);
     closeDb();
 
+
+
     if (sensorNode.id().isEmpty())
     {
         openDb();
@@ -2476,7 +2481,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
 
     if (findSensorsState == FindSensorsActive)
     {
-        // id to list
+        // TODO id to list
     }
 
     checkSensorBindingsForAttributeReporting(&sensors.back());
