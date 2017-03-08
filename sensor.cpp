@@ -535,7 +535,9 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         }
         else if (m_manufacturer == QLatin1String("Insta"))
         {
-            if      (m_modelid.contains(QLatin1String("Remote"))) { m_buttonMap = instaRemoteMap; }
+            if      (m_modelid.endsWith(QLatin1String("_1")))       { m_buttonMap = instaRemoteMap; }
+            if      (m_modelid.contains(QLatin1String("Remote")))   { m_buttonMap = instaRemoteMap; }
+        }
         else if (m_manufacturer == QLatin1String("Philips"))
         {
             if      (m_modelid == QLatin1String("RWL021"))          { m_buttonMap = philipsDimmerSwitchMap; }
