@@ -209,7 +209,7 @@ int DeRestPluginPrivate::getAllSensors(const ApiRequest &req, ApiResponse &rsp)
         {
             sensor["ep"] = i->fingerPrint().endpoint;
         }
-        if (i->modelId() == QLatin1String("Lighting Switch"))
+        if (i->mode() != Sensor::ModeNone)
         {
             sensor["mode"] = (double)i->mode();
         }
@@ -353,9 +353,9 @@ int DeRestPluginPrivate::getSensor(const ApiRequest &req, ApiResponse &rsp)
     {
         rsp.map["swversion"] = sensor->swVersion();
     }
-    if (sensor->modelId() == "Lighting Switch")
+    if (sensor->mode() != Sensor::ModeNone)
     {
-        rsp.map["mode"] = sensor->mode();
+        rsp.map["mode"] = (double)sensor->mode();
     }
     if (sensor->fingerPrint().endpoint != INVALID_ENDPOINT)
     {
@@ -1559,9 +1559,9 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map)
     {
         map["swversion"] = sensor->swVersion();
     }
-    if (sensor->modelId() == QLatin1String("Lighting Switch"))
+    if (sensor->mode() != Sensor::ModeNone)
     {
-        map["mode"] = sensor->mode();
+        map["mode"] = (double)sensor->mode();
     }
     map["uniqueid"] = sensor->uniqueId();
     map["manufacturername"] = sensor->manufacturer();
