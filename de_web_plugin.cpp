@@ -7270,8 +7270,11 @@ void DeRestPlugin::idleTimerFired()
 
         if (d->queryTime > t)
         {
-            DBG_Printf(DBG_INFO_L2, "Wait %ds till query finished\n", t.secsTo(d->queryTime));
-            return; // wait finish
+            if (t.secsTo(d->queryTime) < (60 * 30)) // prevent stallation
+            {
+                DBG_Printf(DBG_INFO_L2, "Wait %ds till query finished\n", t.secsTo(d->queryTime));
+                return; // wait finish
+            }
         }
 
         d->queryTime = t;
