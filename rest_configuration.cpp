@@ -149,8 +149,6 @@ int DeRestPluginPrivate::createUser(const ApiRequest &req, ApiResponse &rsp)
 
     auth.devicetype = map["devicetype"].toString();
 
-    // TODO check for valid devicetype
-
     if (map.contains("username")) // optional (note username = apikey)
     {
         if ((map["username"].type() != QVariant::String) ||
@@ -178,13 +176,33 @@ int DeRestPluginPrivate::createUser(const ApiRequest &req, ApiResponse &rsp)
     }
     else
     {
-        // create a random key (used only if not provided)
-        for (int i = 0; i < 5; i++)
+        // check for glitches from some devices registering too fast (Amazon Echo)
+        std::vector<ApiAuth>::const_iterator i = apiAuths.begin();
+        std::vector<ApiAuth>::const_iterator end = apiAuths.end();
+
+        for (; i != end && !found ; ++i)
         {
-            uint8_t rnd = (uint8_t)qrand();
-            QString frac;
-            frac.sprintf("%02X", rnd);
-            auth.apikey.append(frac);
+            if (auth.devicetype == i->devicetype)
+            {
+                if (i->createDate.secsTo(QDateTime::currentDateTimeUtc()) < 30)
+                {
+                    auth = *i;
+                    found = true;
+                    DBG_Printf(DBG_INFO, "reuse recently craeted auth username: %s, devicetype: %s\n", qPrintable(auth.apikey), qPrintable(auth.devicetype));
+                }
+            }
+        }
+
+        if (!found)
+        {
+            // create a random key (used only if not provided)
+            for (int i = 0; i < 5; i++)
+            {
+                uint8_t rnd = (uint8_t)qrand();
+                QString frac;
+                frac.sprintf("%02X", rnd);
+                auth.apikey.append(frac);
+            }
         }
     }
 
