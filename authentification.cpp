@@ -127,6 +127,7 @@ bool DeRestPluginPrivate::checkApikeyAuthentification(const ApiRequest &req, Api
         }
     }
 
+#if 0
     // allow non registered devices to use the api if the link button is pressed
     if (gwLinkButton)
     {
@@ -140,6 +141,7 @@ bool DeRestPluginPrivate::checkApikeyAuthentification(const ApiRequest &req, Api
         queSaveDb(DB_AUTH, DB_SHORT_SAVE_DELAY);
         return true;
     }
+#endif
 
     rsp.httpStatus = HttpStatusForbidden;
     rsp.list.append(errorToMap(ERR_UNAUTHORIZED_USER, req.path.join("/"), "unauthorized user"));
