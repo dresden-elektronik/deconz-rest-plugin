@@ -2178,6 +2178,10 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         }
         buttonMap++;
     }
+
+    quint8 pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(0);
+    DBG_Printf(DBG_INFO, "no button handler for: %s cl: 0x%04X cmd: 0x%02X pl[0]: 0%02X\n",
+                 qPrintable(sensor->modelId()), ind.clusterId(), zclFrame.commandId(), pl0);
 }
 
 /*! Adds a new sensor node to node cache.
