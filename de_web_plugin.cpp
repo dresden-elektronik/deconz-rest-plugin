@@ -2748,6 +2748,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         i->setModelId(str);
                                         i->setNeedSaveDatabase(true);
+                                        updateEtag(i->etag);
                                         queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
                                         updated = true;
                                     }
@@ -2776,6 +2777,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     if (i->manufacturer() != str)
                                     {
+                                        updateEtag(i->etag);
                                         i->setManufacturer(str);
                                         i->setNeedSaveDatabase(true);
                                         queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
@@ -2794,6 +2796,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     if (str != i->swVersion())
                                     {
+                                        updateEtag(i->etag);
                                         i->setSwVersion(str);
                                         i->setNeedSaveDatabase(true);
                                         queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
