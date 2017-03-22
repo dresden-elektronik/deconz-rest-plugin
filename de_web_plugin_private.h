@@ -877,6 +877,11 @@ public:
     void setAttributeColorTemperature(LightNode *lightNode);
     void setAttributeColorLoopActive(LightNode *lightNode);
 
+    // Etag helper
+    void updateSensorEtag(Sensor *sensorNode);
+    void updateLightEtag(LightNode *lightNode);
+    void updateGroupEtag(Group *group);
+
     // Database interface
     void initDb();
     void clearDb();
@@ -955,6 +960,9 @@ public:
     int gwGroupSendDelay;
     uint gwZigbeeChannel;
     QVariantMap gwConfig;
+    QString gwSensorsEtag;
+    QString gwLightsEtag;
+    QString gwGroupsEtag;
     QString gwConfigEtag;
     bool gwRunFromShellScript;
     bool gwDeleteUnknownRules;

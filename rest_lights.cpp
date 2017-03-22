@@ -903,8 +903,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
     if (task.lightNode)
     {
-        updateEtag(task.lightNode->etag);
-        updateEtag(gwConfigEtag);
+        updateLightEtag(task.lightNode);
         rsp.etag = task.lightNode->etag;
     }
 
@@ -960,8 +959,8 @@ int DeRestPluginPrivate::renameLight(const ApiRequest &req, ApiResponse &rsp)
             if (lightNode->name() != name)
             {
                 lightNode->setName(name);
-                updateEtag(gwConfigEtag);
-                updateEtag(lightNode->etag);
+
+                updateLightEtag(lightNode);
                 lightNode->setNeedSaveDatabase(true);
                 queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
             }
@@ -1082,8 +1081,7 @@ int DeRestPluginPrivate::deleteLight(const ApiRequest &req, ApiResponse &rsp)
         lightNode->setState(LightNode::StateDeleted);
         lightNode->setNeedSaveDatabase(true);
     }
-    updateEtag(gwConfigEtag);
-    updateEtag(lightNode->etag);
+    updateLightEtag(lightNode);
     queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
 
     rsp.httpStatus = HttpStatusOk;
@@ -1190,8 +1188,7 @@ int DeRestPluginPrivate::removeAllGroups(const ApiRequest &req, ApiResponse &rsp
         }
     }
 
-    updateEtag(gwConfigEtag);
-    updateEtag(lightNode->etag);
+    updateLightEtag(lightNode);
     queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
 
     rsp.httpStatus = HttpStatusOk;
@@ -1398,7 +1395,7 @@ int DeRestPluginPrivate::getConnectivity(const ApiRequest &req, ApiResponse &rsp
     connectivityMap["routesToGateway"] = (double)newConn.getRLQIList().size();
     connectivityMap["neighbours"] = neighborsMap;
 
-    updateEtag(lightNode->etag);
+    updateLightEtag(lightNode);
     rsp.httpStatus = HttpStatusOk;
     rsp.etag = lightNode->etag;
     rsp.map = connectivityMap;

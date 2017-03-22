@@ -289,9 +289,8 @@ int DeRestPluginPrivate::createGroup(const ApiRequest &req, ApiResponse &rsp)
             group.hue = 0;
             group.hueReal = 0.0f;
             group.sat = 128;
-            updateEtag(group.etag);
-            updateEtag(gwConfigEtag);
             groups.push_back(group);
+            updateGroupEtag(&groups.back());
             queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
 
             rspItemState["id"] = group.id();
@@ -721,8 +720,7 @@ int DeRestPluginPrivate::setGroupAttributes(const ApiRequest &req, ApiResponse &
 
     if (changed)
     {
-        updateEtag(group->etag);
-        updateEtag(gwConfigEtag);
+        updateGroupEtag(group);
     }
 
     rsp.etag = group->etag;
@@ -1379,14 +1377,13 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
 
                 if (modified)
                 {
-                    updateEtag(i->etag);
+                    updateLightEtag(&*i);
                 }
             }
         }
     }
 
-    updateEtag(group->etag);
-    updateEtag(gwConfigEtag);
+    updateGroupEtag(group);
     rsp.etag = group->etag;
 
     processTasks();
@@ -1759,8 +1756,7 @@ int DeRestPluginPrivate::createScene(const ApiRequest &req, ApiResponse &rsp)
     }
 
     group->scenes.push_back(scene);
-    updateEtag(group->etag);
-    updateEtag(gwConfigEtag);
+    updateGroupEtag(group);
     queSaveDb(DB_SCENES, DB_SHORT_SAVE_DELAY);
 
     if (!storeScene(group, scene.id))
@@ -1969,8 +1965,7 @@ int DeRestPluginPrivate::setSceneAttributes(const ApiRequest &req, ApiResponse &
                     if (i->name != name)
                     {
                         i->name = name;
-                        updateEtag(group->etag);
-                        updateEtag(gwConfigEtag);
+                        updateGroupEtag(group);
                         queSaveDb(DB_SCENES, DB_SHORT_SAVE_DELAY);
                     }
 
@@ -2220,8 +2215,7 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    updateEtag(gwConfigEtag);
-    updateEtag(group->etag);
+    updateGroupEtag(group);
 
     rspItemState["id"] = sid;
     rspItem["success"] = rspItemState;
@@ -2303,7 +2297,7 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
 
                     lightNode->setColorLoopActive(false);
                     addTaskSetColorLoop(task2, false, 15);
-                    updateEtag(lightNode->etag);
+                    updateLightEtag(lightNode);
                 }
             }
 
@@ -2410,7 +2404,7 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
 
             if (changed)
             {
-                updateEtag(lightNode->etag);
+                updateLightEtag(lightNode);
             }
         }
     }
@@ -2419,7 +2413,7 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
         if (groupOn && !group->isOn())
         {
             group->setIsOn(true);
-            updateEtag(group->etag);
+            updateGroupEtag(group);
         }
         // recalc other group parameter in webapp
     }
@@ -2678,8 +2672,7 @@ int DeRestPluginPrivate::modifyScene(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    updateEtag(group->etag);
-    updateEtag(gwConfigEtag);  
+    updateGroupEtag(group);
 
     queSaveDb(DB_SCENES, DB_SHORT_SAVE_DELAY);
 
@@ -2757,8 +2750,7 @@ int DeRestPluginPrivate::deleteScene(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    updateEtag(group->etag);
-    updateEtag(gwConfigEtag);
+    updateGroupEtag(group);
     queSaveDb(DB_SCENES, DB_SHORT_SAVE_DELAY);
 
     rspItemState["id"] = QString::number(scene.id);

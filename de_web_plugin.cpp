@@ -160,6 +160,9 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
         configToMap(dummyReq, gwConfig);
     }
     updateEtag(gwConfigEtag);
+    updateEtag(gwSensorsEtag);
+    updateEtag(gwGroupsEtag);
+    updateEtag(gwLightsEtag);
 
     gwProxyPort = 0;
     gwProxyAddress = "none";
@@ -519,7 +522,7 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
 
     sensor->state().setButtonevent(ind.gpdCommandId());
     sensor->state().updateTime();
-    updateEtag(sensor->etag);
+    updateSensorEtag(sensor);
 
     QString address = "";
     QString id = "";
@@ -2046,8 +2049,7 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor)
 
     if (updated)
     {
-        updateEtag(sensor->etag);
-        updateEtag(gwConfigEtag);
+        updateSensorEtag(sensor);
         sensor->setNeedSaveDatabase(true);
         queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
     }
@@ -2166,13 +2168,12 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     {
                         DBG_Printf(DBG_INFO, "Attached sensor %s to group %s\n", qPrintable(sensor->id()), qPrintable(group->name()));
                         queSaveDb(DB_GROUPS, DB_LONG_SAVE_DELAY);
-                        updateEtag(group->etag);
+                        updateGroupEtag(group);
                         // TODO check old sensors?
                     }
                 }
 
-                updateEtag(sensor->etag);
-                updateEtag(gwConfigEtag);
+                updateSensorEtag(sensor);
                 return;
             }
         }
@@ -2480,7 +2481,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     }
 
     DBG_Printf(DBG_INFO, "SensorNode %u: %s added\n", sensorNode.id().toUInt(), qPrintable(sensorNode.name()));
-    updateEtag(sensorNode.etag);
 
     sensorNode.setNeedSaveDatabase(true);
     sensors.push_back(sensorNode);
@@ -2491,6 +2491,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     }
 
     checkSensorBindingsForAttributeReporting(&sensors.back());
+    updateSensorEtag(&sensors.back());
 
     Q_Q(DeRestPlugin);
     q->startZclAttributeTimer(checkZclAttributesDelay);
@@ -2562,8 +2563,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                 }
 
                 i->setConfig(config);
-                updateEtag(i->etag);
-                updateEtag(gwConfigEtag);
+                updateSensorEtag(&*i);
             }
             return;
         }
@@ -2677,10 +2677,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (i->state().lux() != lux)
                                 {
                                     i->state().setLux(lux);
-                                    updateEtag(i->etag);
-                                    updateEtag(gwConfigEtag);
-//                                    updated = true;
                                 }
+                                updateSensorEtag(&*i);
                             }
                         }
                     }
@@ -2707,7 +2705,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         SensorConfig config = i->config();
                                         config.setDuration(duration);
                                         i->setConfig(config);
-                                        updateEtag(i->etag);
+                                        updateSensorEtag(&*i);
                                         updated = true;
                                     }
                                     else
@@ -2752,7 +2750,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         i->setModelId(str);
                                         i->setNeedSaveDatabase(true);
-                                        updateEtag(i->etag);
+                                        updateSensorEtag(&*i);
                                         queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
                                         updated = true;
                                     }
@@ -2764,6 +2762,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         {
                                             i->setName(name);
                                             i->setNeedSaveDatabase(true);
+                                            updateSensorEtag(&*i);
                                             updated = true;
                                         }
                                     }
@@ -2781,7 +2780,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     if (i->manufacturer() != str)
                                     {
-                                        updateEtag(i->etag);
+                                        updateSensorEtag(&*i);
                                         i->setManufacturer(str);
                                         i->setNeedSaveDatabase(true);
                                         queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
@@ -2800,10 +2799,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     if (str != i->swVersion())
                                     {
-                                        updateEtag(i->etag);
                                         i->setSwVersion(str);
                                         i->setNeedSaveDatabase(true);
                                         queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
+                                        updateSensorEtag(&*i);
                                         updated = true;
                                     }
                                 }
@@ -2817,7 +2816,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
     if (updated)
     {
-        updateEtag(gwConfigEtag);
         queSaveDb(DB_SENSORS , DB_SHORT_SAVE_DELAY);
     }
 }
@@ -7131,6 +7129,42 @@ void DeRestPluginPrivate::setAttributeColorLoopActive(LightNode *lightNode)
                 break;
             }
         }
+    }
+}
+
+/*! Shall be called whenever the sensor changed.
+ */
+void DeRestPluginPrivate::updateSensorEtag(Sensor *sensorNode)
+{
+    if (sensorNode)
+    {
+        updateEtag(sensorNode->etag);
+        gwSensorsEtag = sensorNode->etag;
+        gwConfigEtag = sensorNode->etag;
+    }
+}
+
+/*! Shall be called whenever the light changed.
+ */
+void DeRestPluginPrivate::updateLightEtag(LightNode *lightNode)
+{
+    if (lightNode)
+    {
+        updateEtag(lightNode->etag);
+        gwLightsEtag = lightNode->etag;
+        gwConfigEtag = lightNode->etag;
+    }
+}
+
+/*! Shall be called whenever the group changed.
+ */
+void DeRestPluginPrivate::updateGroupEtag(Group *group)
+{
+    if (group)
+    {
+        updateEtag(group->etag);
+        gwGroupsEtag = group->etag;
+        gwConfigEtag = group->etag;
     }
 }
 

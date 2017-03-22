@@ -98,6 +98,19 @@ int DeRestPluginPrivate::getAllSensors(const ApiRequest &req, ApiResponse &rsp)
     Q_UNUSED(req);
     rsp.httpStatus = HttpStatusOk;
 
+    // handle ETag
+    if (req.hdr.hasKey("If-None-Match"))
+    {
+        QString etag = req.hdr.value("If-None-Match");
+
+        if (gwSensorsEtag == etag)
+        {
+            rsp.httpStatus = HttpStatusNotModified;
+            rsp.etag = etag;
+            return REQ_READY_SEND;
+        }
+    }
+
     std::vector<Sensor>::iterator i = sensors.begin();
     std::vector<Sensor>::iterator end = sensors.end();
 
@@ -230,6 +243,8 @@ int DeRestPluginPrivate::getAllSensors(const ApiRequest &req, ApiResponse &rsp)
         rsp.str = "{}"; // return empty object
     }
 
+    rsp.etag = gwSensorsEtag;
+
     return REQ_READY_SEND;
 }
 
@@ -243,8 +258,9 @@ int DeRestPluginPrivate::getSensor(const ApiRequest &req, ApiResponse &rsp)
 
     if (req.path.size() != 4)
     {
-        return -1;
+        return REQ_NOT_HANDLED;
     }
+
 
     const QString &id = req.path[3];
 
@@ -255,6 +271,19 @@ int DeRestPluginPrivate::getSensor(const ApiRequest &req, ApiResponse &rsp)
         rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/sensors/%1").arg(id), QString("resource, /sensors/%1, not available").arg(id)));
         rsp.httpStatus = HttpStatusNotFound;
         return REQ_READY_SEND;
+    }
+
+    // handle ETag
+    if (req.hdr.hasKey("If-None-Match"))
+    {
+        QString etag = req.hdr.value("If-None-Match");
+
+        if (sensor->etag == etag)
+        {
+            rsp.httpStatus = HttpStatusNotModified;
+            rsp.etag = etag;
+            return REQ_READY_SEND;
+        }
     }
 
     rsp.httpStatus = HttpStatusOk;
@@ -369,6 +398,8 @@ int DeRestPluginPrivate::getSensor(const ApiRequest &req, ApiResponse &rsp)
     QString etag = sensor->etag;
     etag.remove('"'); // no quotes allowed in string
     rsp.map["etag"] = etag;
+
+    rsp.etag = sensor->etag;
 
     return REQ_READY_SEND;
 }
