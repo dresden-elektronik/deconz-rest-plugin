@@ -2098,17 +2098,33 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     // DE Lighting Switch: probe for mode changes
     if (sensor->modelId() == QLatin1String("Lighting Switch") && ind.dstAddressMode() == deCONZ::ApsGroupAddress)
     {
-        if (ind.srcEndpoint() == 2 && sensor->mode() != Sensor::ModeTwoGroups)
+        Sensor::SensorMode mode = sensor->mode();
+
+        if (ind.srcEndpoint() == 2 && mode != Sensor::ModeTwoGroups)
         {
-            sensor->setMode(Sensor::ModeTwoGroups);
+            mode = Sensor::ModeTwoGroups;
         }
-        else if (ind.clusterId() == SCENE_CLUSTER_ID && sensor->mode() != Sensor::ModeScenes)
+        else if (ind.clusterId() == SCENE_CLUSTER_ID && mode != Sensor::ModeScenes)
         {
-            sensor->setMode(Sensor::ModeScenes);
+            mode = Sensor::ModeScenes;
         }
-        else if (ind.clusterId() == COLOR_CLUSTER_ID && sensor->mode() != Sensor::ModeColorTemperature)
+        else if (ind.clusterId() == COLOR_CLUSTER_ID && mode != Sensor::ModeColorTemperature)
         {
-            sensor->setMode(Sensor::ModeColorTemperature);
+            mode = Sensor::ModeColorTemperature;
+        }
+
+        if (mode != sensor->mode())
+        {
+            sensor->setMode(mode);
+            updateSensorEtag(sensor);
+
+            // set changed mode for sensor endpoints 1 and 2
+            Sensor *other = getSensorNodeForAddressAndEndpoint(sensor->address(), (ind.srcEndpoint() == 2) ? 1 : 2);
+            if (other)
+            {
+                other->setMode(mode);
+                updateSensorEtag(other);
+            }
         }
     }
     else if (ind.dstAddressMode() == deCONZ::ApsGroupAddress)
