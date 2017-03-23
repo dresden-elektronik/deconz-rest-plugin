@@ -2080,13 +2080,16 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             if (!sensor->modelId().endsWith(QLatin1String("_1")))
             {   // extract model identifier from mac address 6th byte
                 const quint64 model = (sensor->address().ext() >> 16) & 0xff;
-                if      (model == 0x01) { sensor->setModelId(QLatin1String("HS_4f_GJ_1")); }
-                else if (model == 0x02) { sensor->setModelId(QLatin1String("WS_4f_J_1")); }
-                else if (model == 0x03) { sensor->setModelId(QLatin1String("WS_3f_G_1")); }
+                QString modelId;
+                if      (model == 0x01) { modelId = QLatin1String("HS_4f_GJ_1"); }
+                else if (model == 0x02) { modelId = QLatin1String("WS_4f_J_1"); }
+                else if (model == 0x03) { modelId = QLatin1String("WS_3f_G_1"); }
 
-                if (model > 0 && model < 4)
+                if (!modelId.isEmpty() && sensor->modelId() != modelId)
                 {
+                    sensor->setModelId(modelId);
                     sensor->setNeedSaveDatabase(true);
+                    updateSensorEtag(sensor);
                 }
             }
         }
@@ -2113,6 +2116,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         if (sensor->mode() != Sensor::ModeScenes) // for now all other switches only support scene mode
         {
             sensor->setMode(Sensor::ModeScenes);
+            updateSensorEtag(sensor);
         }
     }
 
