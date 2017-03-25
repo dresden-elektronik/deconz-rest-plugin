@@ -251,27 +251,10 @@ bool SensorFingerprint::readFromJsonString(const QString &json)
 /*! Constructor. */
 Sensor::Sensor() :
     m_deletedstate(Sensor::StateNormal),
-    m_name(""),
-    m_type("undefined"),
-    m_modelid(""),
-    m_manufacturer("unknown"),
-    m_swversion("1.0"),
     m_mode(ModeTwoGroups),
     m_resetRetryCount(0),
     m_buttonMap(0)
 {
-    sensorTypes.append("CLIPSwitch");
-    sensorTypes.append("CLIPOpenClose");
-    sensorTypes.append("CLIPPresence");
-    sensorTypes.append("CLIPTemperature");
-    sensorTypes.append("CLIPGenericFlag");
-    sensorTypes.append("CLIPGenericStatus");
-    sensorTypes.append("CLIPHumidity");
-    sensorTypes.append("Daylight");
-    sensorTypes.append("ZGPSwitch");
-    sensorTypes.append("ZHASwitch");
-    sensorTypes.append("ZHALight");
-    sensorTypes.append("ZHAPresence");
 }
 
 /*! Returns the sensor deleted state.
@@ -502,7 +485,7 @@ SensorState Sensor::jsonToState(const QString &json)
     state.setHumidity(map["humidity"].toString());
     state.setLastupdated(map["lastupdated"].toString());
     state.setOpen(map["open"].toString());
-    state.setPresence(map["presence"].toString());
+    state.setPresence(map["presence"].toBool());
     state.setStatus(map["status"].toString());
     state.setTemperature(map["temperature"].toString());
 
@@ -588,7 +571,7 @@ SensorState::SensorState() :
 //    m_lastupdated(""),
     m_flag(""),
     m_status(""),
-    m_presence(""),
+    m_presence(false),
     m_open(""),
     m_buttonevent(-1),
     m_temperature(""),
@@ -659,7 +642,7 @@ void SensorState::setStatus(const QString &status)
 
 /*! Returns the sensor state presence attribute.
  */
-const QString &SensorState::presence() const
+bool SensorState::presence() const
 {
     return m_presence;
 }
@@ -668,7 +651,7 @@ const QString &SensorState::presence() const
     Sensortypes: CLIPPresence
     \param presence the sensor state presence
  */
-void SensorState::setPresence(const QString &presence)
+void SensorState::setPresence(bool presence)
 {
     m_presence = presence;
 }

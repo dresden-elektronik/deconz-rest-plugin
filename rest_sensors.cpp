@@ -122,120 +122,9 @@ int DeRestPluginPrivate::getAllSensors(const ApiRequest &req, ApiResponse &rsp)
             continue;
         }
 
-        QVariantMap sensor;
-        QVariantMap state;
-        QVariantMap config;
-
-        //state
-        state["lastupdated"] = i->state().lastupdated();
-
-        if (i->state().flag() != "")
-        {
-            state["flag"] = (i->state().flag() == "true")?true:false;
-        }
-        if (i->state().status() != "")
-        {
-            state["status"] = i->state().status().toInt();
-        }
-        if (i->state().open() != "")
-        {
-            state["open"] = (i->state().open() == "true")?true:false;
-        }
-        if (i->state().buttonevent() >= 0)
-        {
-            state["buttonevent"] = (double)i->state().buttonevent();
-        }
-        if (i->state().temperature() != "")
-        {
-            state["temperature"] = i->state().temperature().toInt();
-        }
-        if (i->state().humidity() != "")
-        {
-            state["humidity"] = i->state().humidity().toInt();
-        }
-        if (i->state().daylight() != "")
-        {
-            state["daylight"] = (i->state().daylight() == "true")?true:false;
-        }
-
-        if (i->type() == "ZHALight")
-        {
-            state["lux"] = (double)i->state().lux();
-        }
-        else if (i->type() == "ZHAPresence")
-        {
-            if (i->state().presence() != "")
-            {
-                state["presence"] = (i->state().presence() == "true")?true:false;
-            }
-
-            if (i->config().duration() >= 0)
-            {
-                config["duration"] = (double)i->config().duration();
-            }
-        }
-
-        //config
-        config["on"] = i->config().on();
-
-        if (i->type() != "ZGPSwitch")
-        {
-            config["reachable"] = i->config().reachable();
-        }
-
-        if (i->config().battery() <= 100) // valid value?
-        {
-            config["battery"] = (double)i->config().battery();
-        }
-
-        if (i->config().url() != "" )
-        {
-            config["url"] = i->config().url();
-        }
-        if (i->config().longitude() != "" )
-        {
-            config["long"] = i->config().longitude();
-        }
-        if (i->config().lat() != "" )
-        {
-            config["lat"] = i->config().lat();
-        }
-        if (i->config().sunriseoffset() != "" )
-        {
-            config["sunriseoffset"] = i->config().sunriseoffset().toInt();
-        }
-        if (i->config().sunsetoffset() != "" )
-        {
-            config["sunsetoffset"] = i->config().sunsetoffset().toInt();
-        }
-
-
-        //sensor
-        sensor["name"] = i->name();
-        sensor["type"] = i->type();
-        sensor["modelid"] = i->modelId();
-        if (!i->swVersion().isEmpty())
-        {
-            sensor["swversion"] = i->swVersion();
-        }
-        if (i->fingerPrint().endpoint != INVALID_ENDPOINT)
-        {
-            sensor["ep"] = i->fingerPrint().endpoint;
-        }
-        if (i->mode() != Sensor::ModeNone)
-        {
-            sensor["mode"] = (double)i->mode();
-        }
-        sensor["uniqueid"] = i->uniqueId();
-        sensor["manufacturername"] = i->manufacturer();
-        sensor["state"] = state;
-        sensor["config"] = config;
-
-        QString etag = i->etag;
-        etag.remove('"'); // no quotes allowed in string
-        sensor["etag"] = etag;
-
-        rsp.map[i->id()] = sensor;
+        QVariantMap map;
+        sensorToMap(&*i, map);
+        rsp.map[i->id()] = map;
     }
 
     if (rsp.map.isEmpty())
@@ -286,119 +175,8 @@ int DeRestPluginPrivate::getSensor(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
+    sensorToMap(sensor, rsp.map);
     rsp.httpStatus = HttpStatusOk;
-
-    QVariantMap state;
-    QVariantMap config;
-
-    //state
-    state["lastupdated"] = sensor->state().lastupdated();
-
-    if (sensor->state().flag() != "")
-    {
-        state["flag"] = (sensor->state().flag() == "true")?true:false;
-    }
-    if (sensor->state().status() != "")
-    {
-        state["status"] = sensor->state().status().toInt();
-    }
-    if (sensor->state().open() != "")
-    {
-        state["open"] = (sensor->state().open() == "true")?true:false;
-    }
-    if (sensor->state().buttonevent() >= 0)
-    {
-        state["buttonevent"] = (double)sensor->state().buttonevent();
-    }
-    if (sensor->state().temperature() != "")
-    {
-        state["temperature"] = sensor->state().temperature().toInt();
-    }
-    if (sensor->state().humidity() != "")
-    {
-        state["humidity"] = sensor->state().humidity().toInt();
-    }
-    if (sensor->state().daylight() != "")
-    {
-        state["daylight"] = (sensor->state().daylight() == "true")?true:false;
-    }
-
-    if (sensor->type() == "ZHALight")
-    {
-        state["lux"] = (double)sensor->state().lux();
-    }
-    else if (sensor->type() == "ZHAPresence")
-    {
-        if (sensor->state().presence() != "")
-        {
-            state["presence"] = (sensor->state().presence() == "true")?true:false;
-        }
-
-        if (sensor->config().duration() >= 0)
-        {
-            config["duration"] = sensor->config().duration();
-        }
-    }
-
-    //config
-    config["on"] = sensor->config().on();
-
-    if (sensor->type() != "ZGPSwitch")
-    {
-        config["reachable"] = sensor->config().reachable();
-    }
-
-    if (sensor->config().battery() <= 100) // valid value?
-    {
-        config["battery"] = (double)sensor->config().battery();
-    }
-
-    if (sensor->config().url() != "" )
-    {
-        config["url"] = sensor->config().url();
-    }
-    if (sensor->config().longitude() != "" )
-    {
-        config["long"] = sensor->config().longitude();
-    }
-    if (sensor->config().lat() != "" )
-    {
-        config["lat"] = sensor->config().lat();
-    }
-    if (sensor->config().sunriseoffset() != "" )
-    {
-        config["sunriseoffset"] = sensor->config().sunriseoffset().toInt();
-    }
-    if (sensor->config().sunsetoffset() != "" )
-    {
-        config["sunsetoffset"] = sensor->config().sunsetoffset().toInt();
-    }
-
-    //sensor
-    rsp.map["name"] = sensor->name();
-    rsp.map["type"] = sensor->type();
-    rsp.map["modelid"] = sensor->modelId();
-    if (sensor->swVersion() != "")
-    {
-        rsp.map["swversion"] = sensor->swVersion();
-    }
-    if (sensor->mode() != Sensor::ModeNone)
-    {
-        rsp.map["mode"] = (double)sensor->mode();
-    }
-    if (sensor->fingerPrint().endpoint != INVALID_ENDPOINT)
-    {
-        rsp.map["ep"] = sensor->fingerPrint().endpoint;
-    }
-    rsp.map["uniqueid"] = sensor->uniqueId();
-    rsp.map["manufacturername"] = sensor->manufacturer();
-    rsp.map["state"] = state;
-    rsp.map["config"] = config;
-
-    QString etag = sensor->etag;
-    etag.remove('"'); // no quotes allowed in string
-    rsp.map["etag"] = etag;
-
     rsp.etag = sensor->etag;
 
     return REQ_READY_SEND;
@@ -460,7 +238,7 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
     }
 
     //check valid sensortype
-    if (!sensor.sensorTypes.contains(type))
+    if (!sensorTypes.contains(type))
     {
         rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors"), QString("invalid value, %1, for parameter, type").arg(type)));
         rsp.httpStatus = HttpStatusBadRequest;
@@ -591,7 +369,7 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
                     rsp.httpStatus = HttpStatusBadRequest;
                     return REQ_READY_SEND;
                 }
-                newState.setPresence(state["presence"].toString());
+                newState.setPresence(state["presence"].toBool());
             }
             if (!state["open"].isNull())
             {
@@ -1277,7 +1055,7 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
         }
             rspItemState[QString("/sensors/%1/state/presence").arg(id)] = map["presence"];
             rspItem["success"] = rspItemState;
-            state.setPresence(map["presence"].toString());
+            state.setPresence(map["presence"].toBool());
     }
     if (map.contains("open"))
     {
@@ -1496,55 +1274,65 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map)
     QVariantMap config;
 
     //state
-    state["lastupdated"] = sensor->state().lastupdated();
-
-    if (sensor->state().flag() != "")
+    if (!sensor->state().lastupdated().isEmpty())
     {
-        state["flag"] = (sensor->state().flag() == QLatin1String("true")) ? true : false;
+        state["lastupdated"] = sensor->state().lastupdated();
     }
-    if (sensor->state().status() != QLatin1String(""))
-    {
-        state["status"] = sensor->state().status().toInt();
-    }
-    if (sensor->state().open() != QLatin1String(""))
-    {
-        state["open"] = (sensor->state().open() == QLatin1String("true"))? true : false;
-    }
-    if (sensor->state().buttonevent() >= 0)
-    {
-        state["buttonevent"] = (double)sensor->state().buttonevent();
-    }
-    if (sensor->state().temperature() != "")
-    {
-        state["temperature"] = sensor->state().temperature().toInt();
-    }
-    if (sensor->state().humidity() != "")
-    {
-        state["humidity"] = sensor->state().humidity().toInt();
-    }
-    if (sensor->state().daylight() != "")
-    {
-        state["daylight"] = (sensor->state().daylight() == QLatin1String("true")) ? true : false;
-    }
-
-    if (sensor->type() == QLatin1String("ZHALight"))
+    if (sensor->type().endsWith(QLatin1String("Light")))
     {
         state["lux"] = (double)sensor->state().lux();
     }
-    else if (sensor->type() == QLatin1String("ZHAPresence"))
+    else if (sensor->type().endsWith(QLatin1String("Presence")))
     {
-        if (sensor->state().presence() != QLatin1String(""))
-        {
-            state["presence"] = (sensor->state().presence() == QLatin1String("true")) ? true : false;
-        }
+        state["presence"] = sensor->state().presence();
 
         if (sensor->config().duration() >= 0)
         {
             config["duration"] = sensor->config().duration();
         }
     }
+    else if (sensor->type().endsWith(QLatin1String("Temperature")))
+    {
+        if (!sensor->state().temperature().isEmpty())
+        {
+            state["temperature"] = sensor->state().temperature().toInt();
+        }
+    }
+    else if (sensor->type().endsWith(QLatin1String("Switch")))
+    {
+        if (sensor->state().buttonevent() >= 0)
+        {
+            state["buttonevent"] = (double)sensor->state().buttonevent();
+        }
+    }
+    else
+    {
+        if (!sensor->state().flag().isEmpty())
+        {
+            state["flag"] = (sensor->state().flag() == "true")?true:false;
+        }
+        if (!sensor->state().status().isEmpty())
+        {
+            state["status"] = sensor->state().status().toInt();
+        }
+        if (!sensor->state().open().isEmpty())
+        {
+            state["open"] = (sensor->state().open() == "true")?true:false;
+        }
+        if (!sensor->state().humidity().isEmpty())
+        {
+            state["humidity"] = sensor->state().humidity().toInt();
+        }
+        if (!sensor->state().daylight().isEmpty())
+        {
+            state["daylight"] = (sensor->state().daylight() == "true")?true:false;
+        }
+    }
 
     //config
+    config["on"] = sensor->config().on();
+
+//config
     config["on"] = sensor->config().on();
 
     if (sensor->type() != QLatin1String("ZGPSwitch"))
@@ -1552,27 +1340,28 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map)
         config["reachable"] = sensor->config().reachable();
     }
 
-    if (sensor->config().battery() <= 100)
+    if (sensor->config().battery() <= 100) // valid value?
     {
         config["battery"] = (double)sensor->config().battery();
     }
-    if (sensor->config().url() != "" )
+
+    if (!sensor->config().url().isEmpty())
     {
         config["url"] = sensor->config().url();
     }
-    if (sensor->config().longitude() != QLatin1String(""))
+    if (!sensor->config().longitude().isEmpty())
     {
         config["long"] = sensor->config().longitude();
     }
-    if (sensor->config().lat() != QLatin1String(""))
+    if (!sensor->config().lat().isEmpty())
     {
         config["lat"] = sensor->config().lat();
     }
-    if (sensor->config().sunriseoffset() != QLatin1String(""))
+    if (!sensor->config().sunriseoffset().isEmpty())
     {
         config["sunriseoffset"] = sensor->config().sunriseoffset().toInt();
     }
-    if (sensor->config().sunsetoffset() != QLatin1String(""))
+    if (!sensor->config().sunsetoffset().isEmpty())
     {
         config["sunsetoffset"] = sensor->config().sunsetoffset().toInt();
     }
@@ -1581,21 +1370,28 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map)
     //sensor
     map["name"] = sensor->name();
     map["type"] = sensor->type();
-    map["modelid"] = sensor->modelId();
+    if (!sensor->modelId().isEmpty())
+    {
+        map["modelid"] = sensor->modelId();
+    }
     if (sensor->fingerPrint().endpoint != INVALID_ENDPOINT)
     {
         map["ep"] = sensor->fingerPrint().endpoint;
     }
-    if (sensor->swVersion() != QLatin1String(""))
+    if (!sensor->swVersion().isEmpty())
     {
         map["swversion"] = sensor->swVersion();
     }
-    if (sensor->mode() != Sensor::ModeNone)
+    if (sensor->mode() != Sensor::ModeNone &&
+        sensor->type().endsWith(QLatin1String("Switch")))
     {
         map["mode"] = (double)sensor->mode();
     }
+    if (!sensor->manufacturer().isEmpty())
+    {
+        map["manufacturername"] = sensor->manufacturer();
+    }
     map["uniqueid"] = sensor->uniqueId();
-    map["manufacturername"] = sensor->manufacturer();
     map["state"] = state;
     map["config"] = config;
 

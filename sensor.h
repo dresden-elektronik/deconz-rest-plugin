@@ -45,8 +45,8 @@ public:
     void setFlag(const QString &flag);
     const QString &status() const;
     void setStatus(const QString &status);
-    const QString &presence() const;
-    void setPresence(const QString &presence);
+    bool presence() const;
+    void setPresence(bool presence);
     const QString &open() const;
     void setOpen(const QString &open);
     int buttonevent() const;
@@ -64,7 +64,7 @@ private:
     QString m_lastupdated;
     QString m_flag;//bool
     QString m_status;//int
-    QString m_presence;//bool
+    bool m_presence;//bool
     QString m_open;//bool
     int m_buttonevent;
     QString m_temperature;//int
@@ -199,7 +199,6 @@ public:
     SensorFingerprint &fingerPrint();
     const SensorFingerprint &fingerPrint() const;
 
-    QVector<QString> sensorTypes;
     QString etag;
     const ButtonMap *buttonMap();
 
