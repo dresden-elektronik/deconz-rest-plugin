@@ -40,6 +40,7 @@ public:
 
     const QString &lastupdated() const;
     void setLastupdated(const QString &lastupdated);
+    void updateTimestamp();
     const QString &flag() const;
     void setFlag(const QString &flag);
     const QString &status() const;
@@ -58,7 +59,6 @@ public:
     void setDaylight(const QString &daylight);
     quint32 lux() const;
     void setLux(quint32 lux);
-    void updateTime();
 
 private:
     QString m_lastupdated;

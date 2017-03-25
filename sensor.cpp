@@ -596,7 +596,7 @@ SensorState::SensorState() :
     m_daylight(""),
     m_lux(0)
 {
-    updateTime();
+    updateTimestamp();
 }
 
 /*! Returns the sensor state lastupdated attribute.
@@ -614,6 +614,13 @@ const QString &SensorState::lastupdated() const
 void SensorState::setLastupdated(const QString &lastupdated)
 {
     m_lastupdated = lastupdated;
+}
+
+/*! Updates state timestamp.
+ */
+void SensorState::updateTimestamp()
+{
+    m_lastupdated = QDateTime::currentDateTimeUtc().toString("yyyy-MM-ddTHH:mm:ss");
 }
 
 /*! Returns the sensor state flag attribute.
@@ -767,14 +774,6 @@ quint32 SensorState::lux() const
 void SensorState::setLux(quint32 lux)
 {
     m_lux = lux;
-}
-
-/*! Refreshs the last updated time.
- */
-void SensorState::updateTime()
-{
-    QDateTime datetime = QDateTime::currentDateTimeUtc();
-    m_lastupdated = datetime.toString("yyyy-MM-ddTHH:mm:ss"); // ISO 8601
 }
 
 // Sensor Config

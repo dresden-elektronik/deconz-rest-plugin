@@ -521,7 +521,7 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
     QString lastUpdatedOld = sensor->state().lastupdated();
 
     sensor->state().setButtonevent(ind.gpdCommandId());
-    sensor->state().updateTime();
+    sensor->state().updateTimestamp();
     updateSensorEtag(sensor);
 
     QString address = "";
@@ -2178,7 +2178,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             {
                 DBG_Printf(DBG_INFO, "button %u %s\n", buttonMap->button, buttonMap->name);
                 sensor->state().setButtonevent(buttonMap->button);
-                sensor->state().setLastupdated(QDateTime::currentDateTimeUtc().toString("yyyy-MM-ddTHH:mm:ss"));
+                sensor->state().updateTimestamp();
 
                 if (ind.dstAddressMode() == deCONZ::ApsGroupAddress)
                 {
@@ -2693,7 +2693,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     }
                                 }
 
-                                i->state().updateTime();
+                                i->state().updateTimestamp();
                                 if (i->state().lux() != lux)
                                 {
                                     i->state().setLux(lux);
