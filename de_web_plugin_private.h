@@ -31,6 +31,7 @@
 #include "rule.h"
 #include "bindings.h"
 #include <math.h>
+#include "websocket_server.h"
 
 /*! JSON generic error message codes */
 #define ERR_UNAUTHORIZED_USER          1
@@ -1225,6 +1226,8 @@ public:
     // TCP connection watcher
     QTimer *openClientTimer;
     std::list<TcpClient> openClients;
+
+    WebSocketServer *webSocketServer;
 
     // will be set at startup to calculate the uptime
     QElapsedTimer starttimeRef;

@@ -28,6 +28,11 @@ CONFIG(release, debug|release) {
 
 greaterThan(QT_MAJOR_VERSION, 4) {
     QT += core gui widgets serialport
+
+    greaterThan(QT_MINOR_VERSION, 2) {
+        DEFINES += USE_WEBSOCKETS
+        QT += websockets
+    }
 }
 
 win32:LIBS +=  -L../.. -ldeCONZ1
@@ -87,7 +92,8 @@ HEADERS  = bindings.h \
            rest_node_base.h \
            rule.h \
            scene.h \
-           sensor.h
+           sensor.h \
+           websocket_server.h
 
 SOURCES  = authentification.cpp \
            atmel_wsndemo_sensor.cpp \
@@ -125,7 +131,8 @@ SOURCES  = authentification.cpp \
            sensor.cpp \
            reset_device.cpp \
            rest_userparameter.cpp \
-           zcl_tasks.cpp
+           zcl_tasks.cpp \
+           websocket_server.cpp
 
 win32:DESTDIR  = ../../debug/plugins # TODO adjust
 unix:DESTDIR  = ..

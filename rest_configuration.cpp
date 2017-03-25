@@ -403,6 +403,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     //map["rgbwdisplay"] = gwRgbwDisplay;
     map["linkbutton"] = gwLinkButton;
     map["portalservices"] = false;
+    map["websocketport"] = (double)webSocketServer->port();
 
     gwIpAddress = map["ipaddress"].toString(); // cache
     gwPort = deCONZ::appArgumentNumeric("--http-port", 80); // cache

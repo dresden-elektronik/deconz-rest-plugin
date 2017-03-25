@@ -90,6 +90,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     connect(databaseTimer, SIGNAL(timeout()),
             this, SLOT(saveDatabaseTimerFired()));
 
+    webSocketServer = new WebSocketServer(this);
 
     gwScanner = new GatewayScanner(this);
     connect(gwScanner, SIGNAL(foundGateway(quint32,quint16,QString,QString)),
