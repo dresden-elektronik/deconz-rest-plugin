@@ -7311,6 +7311,12 @@ void DeRestPlugin::idleTimerFired()
         return;
     }
 
+    if (!d->gwDeviceAddress.hasExt() && d->apsCtrl)
+    {
+        d->gwDeviceAddress.setExt(d->apsCtrl->getParameter(deCONZ::ParamMacAddress));
+        d->gwDeviceAddress.setNwk(d->apsCtrl->getParameter(deCONZ::ParamNwkAddress));
+    }
+
     if (!pluginActive())
     {
         return;

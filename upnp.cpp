@@ -35,7 +35,6 @@ void DeRestPluginPrivate::initUpnpDiscovery()
         DBG_Printf(DBG_ERROR, "UPNP error %s\n", qPrintable(udpSock->errorString()));
     }
 
-
     connect(udpSock, SIGNAL(readyRead()),
             this, SLOT(upnpReadyRead()));
 
@@ -57,7 +56,6 @@ void DeRestPluginPrivate::initUpnpDiscovery()
 
         if (f.open(QFile::ReadOnly))
         {
-
             QByteArray line;
             do {
                line = f.readLine(320);
@@ -86,14 +84,16 @@ void DeRestPluginPrivate::announceUpnp()
     "HOST: 239.255.255.250:1900\r\n"
     "CACHE-CONTROL: max-age=100\r\n"
     "LOCATION: http://%1:%2/description.xml\r\n"
-    "SERVER: FreeRTOS/6.0.5, UPnP/1.0, IpBridge/0.1\r\n"
+    "SERVER: FreeRTOS/7.4.2, UPnP/1.0, IpBridge/1.8.0\r\n"
     "NTS: ssdp:alive\r\n"
     "NT: upnp:rootdevice\r\n"
     "USN: uuid:%3::upnp:rootdevice\r\n"
+    "GWID.phoscon.de:%4\r\n"
     "\r\n"))
             .arg(gwConfig["ipaddress"].toString())
             .arg(gwConfig["port"].toDouble())
-            .arg(gwConfig["uuid"].toString()).toLocal8Bit();
+            .arg(gwConfig["uuid"].toString())
+            .arg(gwDeviceAddress.toStringExt()).toLocal8Bit();
 
     host.setAddress(QLatin1String("239.255.255.250"));
 
@@ -126,44 +126,9 @@ void DeRestPluginPrivate::upnpReadyRead()
                             .arg(gwConfig["ipaddress"].toString())
                             .arg(gwConfig["port"].toDouble()).toLocal8Bit());
             datagram.append("SERVER: FreeRTOS/7.4.2, UPnP/1.0, IpBridge/1.8.0\r\n");
-            datagram.append("ST: upnp:rootdevice\r\n");
-            datagram.append(QString("USN: uuid:%1::upnp:rootdevice\r\n").arg(gwUuid));
-            datagram.append("\r\n");
-
-            if (udpSockOut->writeDatagram(datagram.data(), datagram.size(), host, port) == -1)
-            {
-                DBG_Printf(DBG_ERROR, "UDP send error %s\n", qPrintable(udpSockOut->errorString()));
-            }
-
-            datagram.clear();
-
-            datagram.append("HTTP/1.1 200 OK\r\n");
-            datagram.append("CACHE-CONTROL: max-age=100\r\n");
-            datagram.append("EXT:\r\n");
-            datagram.append(QString("LOCATION: http://%1:%2/description.xml\r\n")
-                            .arg(gwConfig["ipaddress"].toString())
-                            .arg(gwConfig["port"].toDouble()).toLocal8Bit());
-            datagram.append("SERVER: FreeRTOS/7.4.2, UPnP/1.0, IpBridge/1.8.0\r\n");
-            datagram.append("ST: uuid:rootdevice\r\n");
-            datagram.append(QString("USN: uuid:%1::upnp:rootdevice\r\n").arg(gwUuid));
-            datagram.append("\r\n");
-
-            if (udpSockOut->writeDatagram(datagram.data(), datagram.size(), host, port) == -1)
-            {
-                DBG_Printf(DBG_ERROR, "UDP send error %s\n", qPrintable(udpSockOut->errorString()));
-            }
-
-            datagram.clear();
-
-            datagram.append("HTTP/1.1 200 OK\r\n");
-            datagram.append("CACHE-CONTROL: max-age=100\r\n");
-            datagram.append("EXT:\r\n");
-            datagram.append(QString("LOCATION: http://%1:%2/description.xml\r\n")
-                            .arg(gwConfig["ipaddress"].toString())
-                            .arg(gwConfig["port"].toDouble()).toLocal8Bit());
-            datagram.append("SERVER: FreeRTOS/7.4.2, UPnP/1.0, IpBridge/1.8.0\r\n");
             datagram.append("ST: urn:schemas-upnp-org:device:basic:1\r\n");
             datagram.append(QString("USN: uuid:%1::upnp:rootdevice\r\n").arg(gwUuid));
+            datagram.append(QString("GWID.phoscon.de:%4\r\n").arg(gwDeviceAddress.toStringExt()));
             datagram.append("\r\n");
 
             if (udpSockOut->writeDatagram(datagram.data(), datagram.size(), host, port) == -1)

@@ -969,6 +969,7 @@ public:
     bool gwDeleteUnknownRules;
     bool groupDeviceMembershipChecked;
     QVariantMap gwUserParameter;
+    deCONZ::Address gwDeviceAddress;
 
     // firmware update
     enum FW_UpdateState {
