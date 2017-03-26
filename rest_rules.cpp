@@ -124,9 +124,9 @@ int DeRestPluginPrivate::getAllRules(const ApiRequest &req, ApiResponse &rsp)
             QVariantMap condition;
             condition["address"] = c->address();
             condition["operator"] = c->ooperator();
-            if (c->value() != "" )
+            if (c->value().isValid())
             {
-                condition["value"] = c->value();
+                condition["value"] = c->value().toString();
             }
             conditions.append(condition);
         }

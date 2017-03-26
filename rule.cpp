@@ -394,7 +394,8 @@ RuleCondition::RuleCondition(const QVariantMap &map)
     m_value = map["value"];
 
     // cache id
-    if (m_address.startsWith(QLatin1String("/sensors"))) // /sensors/id/state/buttonevent, ...
+    if (m_address.startsWith(QLatin1String("/sensors")) ||
+        m_address.startsWith(QLatin1String("/groups"))) // /sensors/id/state/buttonevent, ...
     {
         QStringList addrList = m_address.split('/', QString::SkipEmptyParts);
         if (addrList.size() > 1)
@@ -409,7 +410,7 @@ RuleCondition::RuleCondition(const QVariantMap &map)
     else if (m_operator == QLatin1String("dx")) { m_op = OpDx; }
     else { m_op = OpUnknown; }
 
-    // check if proper datatype
+    // extract proper datatype
     if (m_value.type() == QVariant::String)
     {
         QString str = m_value.toString();
