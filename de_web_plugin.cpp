@@ -1115,6 +1115,11 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
 
         if (!sensor)
         {
+            if (findSensorsState != FindSensorsActive)
+            {
+                return;
+            }
+
             // create new sensor
             Sensor sensorNode;
 
@@ -2236,6 +2241,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
     DBG_Assert(node != 0);
 
     if (!node)
+    {
+        return;
+    }
+
+    if (findSensorsState != FindSensorsActive)
     {
         return;
     }
@@ -6519,10 +6529,9 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
  */
 void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndication &ind)
 {
-    std::vector<LightNode>::iterator i = nodes.begin(); // TODO
+    std::vector<LightNode>::iterator i = nodes.begin();
     std::vector<LightNode>::iterator end = nodes.end();
 
-    // TODO use actual zdp payload for ext and nwk address   
     quint16 nwk;
     quint64 ext;
     quint8 macCapabilities;
@@ -6617,35 +6626,40 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
         }
     }
 
+    int found = 0;
     std::vector<Sensor>::iterator si = sensors.begin();
     std::vector<Sensor>::iterator send = sensors.end();
 
     for (; si != send; ++si)
     {
-        if ((ind.srcAddress().hasExt() && si->address().ext() == ind.srcAddress().ext()) ||
-            (ind.srcAddress().hasNwk() && si->address().nwk() == ind.srcAddress().nwk()))
+        if ((si->address().ext() == ext) || (si->address().nwk() == nwk))
         {
+            found++;
             DBG_Printf(DBG_INFO, "DeviceAnnce of SensorNode: %s\n", qPrintable(si->address().toStringExt()));
             checkSensorNodeReachable(&(*si));
-            /*
-            if (si->deletedState() == Sensor::StateDeleted)
-            {
-                si->setIsAvailable(true);
-                si->setNextReadTime(QTime::currentTime().addMSecs(ReadAttributesLongDelay));
-                si->enableRead(READ_BINDING_TABLE | READ_GROUP_IDENTIFIERS | READ_MODEL_ID | READ_SWBUILD_ID);
-                si->setLastRead(idleTotalCounter);
-                si->setDeletedState(Sensor::StateNormal);
-
-                updateEtag(si->etag);
-                updateEtag(gwConfigEtag);
-                queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
-            }
-            */
         }
     }
 
     if (findSensorsState == FindSensorsActive)
     {
+        if (!found && apsCtrl)
+        {
+            int i = 0;
+            const deCONZ::Node *node;
+
+            // try to add sensor nodes even if they existed in deCONZ bevor and therefore
+            // no node added event will be triggert in this phase
+            while (apsCtrl->getNode(i, &node) == 0)
+            {
+                if (ext == node->address().ext())
+                {
+                    addSensorNode(node);
+                    break;
+                }
+                i++;
+            }
+        }
+
         deCONZ::ZclFrame zclFrame; // dummy
         handleIndicationFindSensors(ind, zclFrame);
     }
