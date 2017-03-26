@@ -198,6 +198,13 @@ void Rule::setActions(const std::vector<RuleAction> &actions)
     this->m_actions = actions;
 }
 
+/*! Returns true if rule is enabled.
+ */
+bool Rule::isEnabled() const
+{
+    return m_status == QLatin1String("enabled");
+}
+
 /*! Transfers actions into JSONString.
     \param actions vector<Action>
  */
@@ -225,21 +232,21 @@ QString Rule::actionsToString(const std::vector<RuleAction> &actions)
  */
 QString Rule::conditionsToString(const std::vector<RuleCondition> &conditions)
 {
-    QString jsonString = QLatin1String("[");
+    QVariantList ls;
+
     std::vector<RuleCondition>::const_iterator i = conditions.begin();
-    std::vector<RuleCondition>::const_iterator i_end = conditions.end();
+    std::vector<RuleCondition>::const_iterator iend = conditions.end();
 
-    for (; i != i_end; ++i)
+    for (; i != iend; ++i)
     {
-        jsonString.append(QLatin1String("{\"address\":"));
-        jsonString.append(QLatin1String("\"") + i->address() + QLatin1String("\","));
-        jsonString.append(QLatin1String("\"operator\":\"") + i->ooperator() + QLatin1String("\","));
-        jsonString.append(QLatin1String("\"value\":\"") + i->value() + QLatin1String("\"},"));
+        QVariantMap map;
+        map["address"] = i->address();
+        map["operator"] = i->ooperator();
+        map["value"] = i->value();
+        ls.append(map);
     }
-    jsonString.chop(1);
-    jsonString.append(QLatin1String("]"));
 
-    return jsonString;
+    return Json::serialize(ls);
 }
 
 /*! Parse a JSON string into RuleAction array.
@@ -277,21 +284,22 @@ std::vector<RuleAction> Rule::jsonToActions(const QString &json)
 std::vector<RuleCondition> Rule::jsonToConditions(const QString &json)
 {
     bool ok;
-    QVariantList var = (Json::parse(json, ok)).toList();
-    QVariantMap map;
-    RuleCondition condition;
+    QVariantList var = Json::parse(json, ok).toList();
     std::vector<RuleCondition> conditions;
 
-    QVariantList::const_iterator i = var.begin();
-    QVariantList::const_iterator i_end = var.end();
-
-    for (; i != i_end; ++i)
+    if (!ok)
     {
-        map = i->toMap();
-        condition.setAddress(map["address"].toString());
-        condition.setOperator(map["operator"].toString());
-        condition.setValue(map["value"].toString());
-        conditions.push_back(condition);
+        DBG_Printf(DBG_INFO, "failed to parse rule conditions: %s\n", qPrintable(json));
+        return conditions;
+    }
+
+    QVariantList::const_iterator i = var.begin();
+    QVariantList::const_iterator end = var.end();
+
+    for (; i != end; ++i)
+    {
+        RuleCondition cond(i->toMap());
+        conditions.push_back(cond);
     }
 
     return conditions;
@@ -372,12 +380,65 @@ const QString &RuleAction::body() const
 
 
 // Condition
-
 RuleCondition::RuleCondition() :
-    m_address(""),
-    m_operator(""),
-    m_value("")
+    m_op(OpUnknown),
+    m_num(0)
 {
+}
+
+RuleCondition::RuleCondition(const QVariantMap &map)
+{
+    bool ok;
+    m_address = map["address"].toString();
+    m_operator = map["operator"].toString();
+    m_value = map["value"];
+
+    // cache id
+    if (m_address.startsWith(QLatin1String("/sensors"))) // /sensors/id/state/buttonevent, ...
+    {
+        QStringList addrList = m_address.split('/', QString::SkipEmptyParts);
+        if (addrList.size() > 1)
+        {
+            m_id = addrList[1];
+        }
+    }
+
+    if (m_operator == QLatin1String("eq")) { m_op = OpEqual; }
+    else if (m_operator == QLatin1String("gt")) { m_op = OpGreaterThan; }
+    else if (m_operator == QLatin1String("lt")) { m_op = OpLowerThan; }
+    else if (m_operator == QLatin1String("dx")) { m_op = OpDx; }
+    else { m_op = OpUnknown; }
+
+    // check if proper datatype
+    if (m_value.type() == QVariant::String)
+    {
+        QString str = m_value.toString();
+
+        if (str.at(0).isDigit())
+        {
+            int num = str.toUInt(&ok);
+            if (ok)
+            {
+                m_value = (double)num;
+            }
+        } else if (str == QLatin1String("true") ||
+                   str == QLatin1String("false"))
+        {
+            m_value = m_value.toBool();
+        }
+    }
+
+    if (m_value.type() == QVariant::Double ||
+        m_value.type() == QVariant::UInt ||
+        m_value.type() == QVariant::Int)
+    {
+        m_num = m_value.toInt(&ok);
+        if (!ok) { m_num = 0; }
+    } else if (m_value.type() == QVariant::Bool)
+    {
+        m_num = m_value.toBool() ? 1 : 0;
+    }
+    else { m_num = 0; }
 }
 
 /*! Sets the condition address.
@@ -419,13 +480,20 @@ const QString &RuleCondition::ooperator() const
     return m_operator;
 }
 
+/*! Returns the condition value.
+ */
+const QVariant &RuleCondition::value() const
+{
+    return m_value;
+}
+
 /*! Sets the condition value.
     The resource attribute is compared to this value using the given operator.
     The value is cast to the data type of the resource attribute (in case of time, casted to a timePattern).
     If the cast fails or the operator does not support the data type the value is cast to the rule is rejected.
     \param value the condition value
  */
-void RuleCondition::setValue(const QString &value)
+void RuleCondition::setValue(const QVariant &value)
 {
     m_value = value;
 }
@@ -437,11 +505,25 @@ bool RuleCondition::operator==(const RuleCondition &other) const
             m_value == other.m_value);
 }
 
-/*! Returns the condition value.
+/*! Returns operator as enum.
  */
-const QString &RuleCondition::value() const
+RuleCondition::Operator RuleCondition::op() const
 {
-    return m_value;
+    return m_op;
+}
+
+/*! Returns resource id of address.
+ */
+const QString RuleCondition::id() const
+{
+    return m_id;
+}
+
+/*! Returns value as int (for numeric and bool types).
+ */
+int RuleCondition::numericValue() const
+{
+    return m_num;
 }
 
 /*! Returns true if two BindingTasks are equal.

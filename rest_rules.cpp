@@ -17,7 +17,37 @@
 #include "json.h"
 
 #define MAX_RULES_COUNT 500
+#define RTYPE_NONE 0x01
+#define RTYPE_BOOL 0x02
+#define RTYPE_INT  0x04
 
+struct SensorResourceDescriptor {
+    const char *sensorType;
+    const char *resource;
+    const char *operators;
+    quint8 type;
+};
+
+static const SensorResourceDescriptor  resourceDescriptors[] = {
+    { "ZHAPresence",       "/state/presence",      "eq",       RTYPE_BOOL },
+    { "CLIPPresence",      "/state/presence",      "eq",       RTYPE_BOOL },
+    { "CLIPOpenClose",     "/state/open",          "eq",       RTYPE_BOOL },
+    { "ZHALight",          "/state/dark",          "eq",       RTYPE_BOOL },
+    { "ZHALight",          "/state/lux",           "eq gt lt", RTYPE_INT },
+    { "ZHALight",          "/state/lightlevel",    "eq gt lt", RTYPE_INT },
+    { "ZHASwitch",         "/state/buttonevent",   "eq gt lt", RTYPE_INT },
+    { "ZHATemperature",    "/state/temperature",   "eq gt lt", RTYPE_INT },
+    { "ZHAHumidity",       "/state/humidity",      "eq gt lt", RTYPE_INT },
+    { "CLIPSwitch",        "/state/buttonevent",   "eq gt lt", RTYPE_INT },
+    { "CLIPTemperature",   "/state/temperature",   "eq gt lt", RTYPE_INT },
+    { "CLIPHumidity",      "/state/humidity",      "eq gt lt", RTYPE_INT },
+    { "CLIPGenericFlag",   "/state/flag",          "eq",       RTYPE_BOOL },
+    { "CLIPGenericStatus", "/state/status",        "eq gt lt", RTYPE_INT },
+    { "0",                 "/state/lastupdated",   "dx",       RTYPE_NONE },
+    { "0",                 "/config/on",           "eq",       RTYPE_BOOL },
+    { "0",                 "/config/reachable",    "eq",       RTYPE_BOOL },
+    { 0,                   0,                      0,          0 }
+};
 
 /*! Rules REST API broker.
     \param req - request data
@@ -316,7 +346,6 @@ int DeRestPluginPrivate::getRule(const ApiRequest &req, ApiResponse &rsp)
     return REQ_READY_SEND;
 }
 
-
 /*! POST /api/<apikey>/rules
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
@@ -486,11 +515,8 @@ int DeRestPluginPrivate::createRule(const ApiRequest &req, ApiResponse &rsp)
 
                 for (; ci != cend; ++ci)
                 {
-                    RuleCondition newCondition;
-                    newCondition.setAddress(ci->toMap()["address"].toString());
-                    newCondition.setOperator(ci->toMap()["operator"].toString());
-                    newCondition.setValue(ci->toMap()["value"].toString());
-                    conditions.push_back(newCondition);
+                    RuleCondition cond(ci->toMap());
+                    conditions.push_back(cond);
                 }
 
                 rule.setConditions(conditions);
@@ -826,7 +852,7 @@ int DeRestPluginPrivate::updateRule(const ApiRequest &req, ApiResponse &rsp)
 }
 
 
-/*! Rule actions contain errors or multiple actions with the same resource address.
+/*! Validate rule actions.
     \param actionsList the actionsList
  */
 bool DeRestPluginPrivate::checkActions(QVariantList actionsList, ApiResponse &rsp)
@@ -834,27 +860,45 @@ bool DeRestPluginPrivate::checkActions(QVariantList actionsList, ApiResponse &rs
     QVariantList::const_iterator ai = actionsList.begin();
     QVariantList::const_iterator aend = actionsList.end();
 
-    QList<QString> addresses;
-
     for (; ai != aend; ++ai)
     {
-        QString address = (ai->toMap()["address"]).toString();
-        QString method = (ai->toMap()["method"]).toString();
-        QString body = (ai->toMap()["body"]).toString();
+        QString address = ai->toMap()["address"].toString();
+        QString method = ai->toMap()["method"].toString();
+        QString body = ai->toMap()["body"].toString();
+
+        QStringList addrList = ai->toMap()["address"].toString().split('/', QString::SkipEmptyParts);
 
         //check addresses
         //address must begin with / and a valid resource
-        //no dublicate addresses allowed
-        if (!((address.indexOf(QLatin1String("/lights")) == 0) || (address.indexOf(QLatin1String("/groups")) == 0) || (address.indexOf(QLatin1String("/scenes")) == 0) ||
-            (address.indexOf(QLatin1String("/schedules")) == 0) || (address.indexOf(QLatin1String("/sensors")) == 0)) || (addresses.contains(address)))
+        // /<ressouce>/<id>
+        // /groups/7/action
+        // /lights/1/state
+        // /schedules/5
+        // /sensors/2
+
+        if (addrList.size() < 2)
         {
             rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString(address),
-                QString("Rule actions contain errors or multiple actions with the same resource address or an action on a unsupported resource")));
+                            QString("Rule actions contain errors or an action on a unsupported resource")));
             return false;
         }
-        else
+
+        //no dublicate addresses allowed
+        const char *resources[] = { "groups", "lights", "schedules", "sensors", 0 };
+
+        for (int i = 0; ; i++)
         {
-            addresses.append(address);
+            if (!resources[i])
+            {
+                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString(address),
+                                QString("Rule actions contain errors or an action on a unsupported resource")));
+                return false;
+            }
+
+            if (addrList[0] == resources[i])
+            {
+                break; // supported
+            }
         }
 
         //check methods
@@ -877,150 +921,68 @@ bool DeRestPluginPrivate::checkActions(QVariantList actionsList, ApiResponse &rs
     return true;
 }
 
-
 /*! Rule conditions contain errors or operator combination is not allowed.
     \param conditionsList the conditionsList
  */
 bool DeRestPluginPrivate::checkConditions(QVariantList conditionsList, ApiResponse &rsp)
 {
-    // get valid and present sensor resources
-    QVector<QString> validAddresses;
-    QVector<QString> validOperators;
-    QString validValues = "";
-
-    std::vector<Sensor>::const_iterator si = sensors.begin();
-    std::vector<Sensor>::const_iterator send = sensors.end();
-
-    for (; si != send; ++si)
-    {
-        QString base(QLatin1String("/sensors/") + si->id());
-        const QString &type = si->type();
-
-        validAddresses.push_back(base + QLatin1String("/config/reachable"));
-        validAddresses.push_back(base + QLatin1String("/config/on"));
-        validAddresses.push_back(base + QLatin1String("/config/battery"));
-        validAddresses.push_back(base + QLatin1String("/state/lastupdated"));
-
-        if (type == QLatin1String("ZGPSwitch"))
-        {
-            validAddresses.push_back(base + QLatin1String("/state/buttonevent"));
-        }
-        else if (type == QLatin1String("ZHASwitch"))
-        {
-            validAddresses.push_back(base + QLatin1String("/state/buttonevent"));
-        }
-        else if (type == QLatin1String("ZHALight"))
-        {
-            validAddresses.push_back(base + QLatin1String("/state/illuminance"));
-        }
-        else if (type == QLatin1String("ZHAPresence"))
-        {
-            validAddresses.push_back(base + QLatin1String("/state/presence"));
-        }
-        else if (type == QLatin1String("CLIPOpenClose"))
-        {
-            validAddresses.push_back(base + QLatin1String("/state/open"));
-        }
-        else if (type == QLatin1String("CLIPPresence"))
-        {
-            validAddresses.push_back(base + QLatin1String("/state/presence"));
-        }
-        else if (type == QLatin1String("CLIPTemperature"))
-        {
-            validAddresses.push_back(base + QLatin1String("/state/temperature"));
-        }
-        else if (type == QLatin1String("CLIPHumidity"))
-        {
-            validAddresses.push_back(base + QLatin1String("/state/humidity"));
-        }
-        else if (type == QLatin1String("DaylightSensor"))
-        {
-            validAddresses.push_back(base + QLatin1String("/state/daylight"));
-            validAddresses.push_back(base + QLatin1String("/config/long"));
-            validAddresses.push_back(base + QLatin1String("/config/lat"));
-            validAddresses.push_back(base + QLatin1String("/config/sunriseoffset"));
-            validAddresses.push_back(base + QLatin1String("/config/sunsetoffset"));
-        }
-        else if (type == QLatin1String("CLIPGenericFlag"))
-        {
-            validAddresses.push_back(base + QLatin1String("/state/flag"));
-        }
-        else if (type == QLatin1String("CLIPGenericStatus"))
-        {
-            validAddresses.push_back(base + QLatin1String("/state/status"));
-        }
-    }
-
     // check condition parameters
     QVariantList::const_iterator ci = conditionsList.begin();
     QVariantList::const_iterator cend = conditionsList.end();
 
     for (; ci != cend; ++ci)
     {
-        QString address = (ci->toMap()["address"]).toString();
-        QString ooperator = (ci->toMap()["operator"]).toString();
-        QString value = (ci->toMap()["value"]).toString();
+        QVariantMap condition = ci->toMap();
+        QString address = condition["address"].toString();
+        QString op = condition["operator"].toString();
 
-        QString confstate = "";
-        if (address.contains(QLatin1String("/config")))
-        {
-            confstate = address.mid(address.indexOf(QLatin1String("/config")));
-        }
-        else if (address.contains(QLatin1String("/state")))
-        {
-            confstate = address.mid(address.indexOf(QLatin1String("/state")));
-        }
+        QStringList addrList = address.split('/', QString::SkipEmptyParts);
 
-        // check address: whole address must be a valid and present resource
-        if (!validAddresses.contains(address))
+        Sensor *sensor = (addrList.size() > 3) ? getSensorNodeForId(addrList[1]) : 0;
+
+        if (!sensor || address.isEmpty() || op.isEmpty())
         {
-            rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString(address),
-                QString("Resource, %1, not available").arg(address)));
+            rsp.list.append(errorToMap(ERR_CONDITION_ERROR, QString(address),
+                QString("Condition error")));
             return false;
         }
 
-        //check operator in dependence of config and state of sensortype
-        if ((confstate == QLatin1String("/state/lastupdated")) || (confstate == QLatin1String("/state/long")) || (confstate == QLatin1String("/state/lat")))
+        const SensorResourceDescriptor *rd = resourceDescriptors;
+
+        while (rd->sensorType)
         {
-            validOperators.push_back(QLatin1String("dx"));
-        }
-        else if ((confstate == QLatin1String("/state/illuminance")) || (confstate == QLatin1String("/state/presence")))
-        {
-            validOperators.push_back(QLatin1String("dx"));
-            validOperators.push_back(QLatin1String("eq"));
-            validOperators.push_back(QLatin1String("lt"));
-            validOperators.push_back(QLatin1String("gt"));
-            validValues = QLatin1String("numbers");
-        }
-        else if ((confstate == QLatin1String("/config/reachable")) || (confstate == QLatin1String("/config/on")) || (confstate == QLatin1String("/state/open"))
-            || (confstate == QLatin1String("/state/presence")) || (confstate == QLatin1String("/state/flag")) || (confstate == QLatin1String("/state/daylight")))
-        {
-            validOperators.push_back(QLatin1String("dx"));
-            validOperators.push_back(QLatin1String("eq"));
-            validValues = QLatin1String("boolean");
-        }
-        else if ((confstate == QLatin1String("/config/battery")) || (confstate == QLatin1String("/state/buttonevent")) || (confstate == QLatin1String("/state/temperature"))
-             || (confstate == QLatin1String("/state/humidity")))
-        {
-            validOperators.push_back(QLatin1String("dx"));
-            validOperators.push_back(QLatin1String("eq"));
-            validOperators.push_back(QLatin1String("gt"));
-            validOperators.push_back(QLatin1String("lt"));
-            validValues = QLatin1String("numbers");
-        }
-        else if ((confstate == QLatin1String("/config/sunriseoffset")) || (confstate == QLatin1String("/config/sunsetoffset")))
-        {
-            validOperators.push_back(QLatin1String("eq"));
-            validOperators.push_back(QLatin1String("gt"));
-            validOperators.push_back(QLatin1String("lt"));
-            validValues = QLatin1String("numbers");
+            if ((rd->sensorType[0] == '0' || // any
+                 rd->sensorType == sensor->type()) &&
+                address.contains(rd->resource) &&
+                strstr(rd->operators, qPrintable(op)))
+            {
+                break; // match
+            }
+            rd++;
         }
 
-        if (!validOperators.contains(ooperator))
+        if (!rd)
         {
-            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/rules/operator"), QString("invalid value, %1, for parameter, operator").arg(ooperator)));
+            rsp.list.append(errorToMap(ERR_CONDITION_ERROR, QString(address),
+                QString("Condition error")));
             return false;
         }
+
+
+        bool ok = false;
+        if      (rd->type == RTYPE_INT && condition["value"].type() == QVariant::Double) { ok = true; }
+        else if (rd->type == RTYPE_BOOL && condition["value"].type() == QVariant::Bool) { ok = true; }
+        else if (rd->type == RTYPE_NONE && !condition.contains("value")) { ok = true; }
+
+        if (!ok)
+        {
+            rsp.list.append(errorToMap(ERR_CONDITION_ERROR, QString(address),
+                QString("Condition error")));
+            return false;
+        }
+    }
+    return true;
+}
 
 
         //check value in dependence of config and state of sensortype
@@ -1057,7 +1019,6 @@ bool DeRestPluginPrivate::checkConditions(QVariantList conditionsList, ApiRespon
     }
     return true;
 }
-
 
 /*! DELETE /api/<apikey>/rules/<id>
     \return REQ_READY_SEND
@@ -1192,7 +1153,7 @@ void DeRestPluginPrivate::queueCheckRuleBindings(const Rule &rule)
                 if (sensorNode && sensorNode->isAvailable() && sensorNode->node())
                 {
                     bool ok = false;
-                    quint16 ep = i->value().toUShort(&ok);
+                    quint16 ep = i->value().toUInt(&ok);
 
                     if (ok)
                     {
@@ -1379,7 +1340,6 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
     if (rule.triggerPeriodic() == 0)
     {
         // trigger on event
-        // TODO implement events for rule
         return;
     }
 
@@ -1398,17 +1358,12 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
 
     for (; ci != cend; ++ci)
     {
-        QStringList ls = ci->address().split(QChar('/'), QString::SkipEmptyParts);
-
-        if (ls.size() < 4) // sensors, <id>, state, (illuminance|buttonevent)
-            return;
-
-        if (ls[0] != QLatin1String("sensors"))
+        if (!ci->address().startsWith(QLatin1String("/sensors")))
         {
             return;
         }
 
-        Sensor *sensor = getSensorNodeForId(ls[1]);
+        Sensor *sensor = getSensorNodeForId(ci->id());
 
         if (!sensor)
         {
@@ -1420,11 +1375,11 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
             return;
         }
 
-        if (ls.last() == QLatin1String("buttonevent"))
+        if (ci->address().endsWith(QLatin1String("buttonevent")))
         {
             return; // TODO
         }
-        else if (ls.last() == QLatin1String("illuminance"))
+        else if (ci->address().endsWith(QLatin1String("illuminance")))
         {
             { // check if value is fresh enough
                 NodeValue &val = sensor->getZclValue(ILLUMINANCE_MEASUREMENT_CLUSTER_ID, 0x0000);
@@ -1450,22 +1405,16 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
                 }
             }
 
-            bool ok;
-            uint cval = ci->value().toUInt(&ok);
+            uint cval = ci->numericValue();
 
-            if (!ok)
-            {
-                DBG_Printf(DBG_INFO, "invalid rule.condition.value %s\n", qPrintable(ci->value()));
-            }
-
-            if (ci->ooperator() == QLatin1String("lt"))
+            if (ci->op() == RuleCondition::OpLowerThan)
             {
                 if (sensor->state().lux() >= cval)
                 {
                     return; // condition not met
                 }
             }
-            else if (ci->ooperator() == QLatin1String("gt"))
+            else if (ci->op() == RuleCondition::OpGreaterThan)
             {
                 if (sensor->state().lux() <= cval)
                 {
@@ -1483,7 +1432,21 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
         }
     }
 
-    // conditions ok, trigger action
+    triggerRule(rule);
+}
+
+/*! Triggers actions of a rule.
+    \param rule - the rule to trigger
+ */
+void DeRestPluginPrivate::triggerRule(Rule &rule)
+{
+    if (rule.state() != Rule::StateNormal || !rule.isEnabled())
+    {
+        return;
+    }
+
+    DBG_Printf(DBG_INFO, "trigger rule %s - %s\n", qPrintable(rule.id()), qPrintable(rule.name()));
+
     bool triggered = false;
     std::vector<RuleAction>::const_iterator ai = rule.actions().begin();
     std::vector<RuleAction>::const_iterator aend = rule.actions().end();
@@ -1507,6 +1470,7 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
         ApiRequest req(hdr, path, NULL, ai->body());
         ApiResponse rsp; // dummy
 
+        // todo, dispatch request function
         if (path[2] == QLatin1String("groups"))
         {
             if (handleGroupsApi(req, rsp) == REQ_NOT_HANDLED)

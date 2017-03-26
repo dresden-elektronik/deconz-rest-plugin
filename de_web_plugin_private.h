@@ -621,6 +621,7 @@ public:
     int deleteRule(const ApiRequest &req, ApiResponse &rsp);
     void queueCheckRuleBindings(const Rule &rule);
     void triggerRuleIfNeeded(Rule &rule);
+    void triggerRule(Rule &rule);
     bool ruleToMap(const Rule *rule, QVariantMap &map);
 
     bool checkActions(QVariantList actionsList, ApiResponse &rsp);

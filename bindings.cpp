@@ -1028,7 +1028,7 @@ void DeRestPluginPrivate::bindingToRuleTimerFired()
 
     cond.setAddress(QString("/sensors/%1/state/%2").arg(sensor->id()).arg(item));
     cond.setOperator("eq");
-    cond.setValue(QString::number(bnd.srcEndpoint));
+    cond.setValue(bnd.srcEndpoint);
 
     // check if a rule for that binding already exists
     bool foundRule = false;
@@ -1106,7 +1106,7 @@ void DeRestPluginPrivate::bindingToRuleTimerFired()
     }
 
     DBG_Printf(DBG_INFO, "cond.address: %s\n", qPrintable(cond.address()));
-    DBG_Printf(DBG_INFO, "cond.value: %s\n", qPrintable(cond.value()));
+    DBG_Printf(DBG_INFO, "cond.value: %s\n", qPrintable(cond.value().toString()));
     DBG_Printf(DBG_INFO, "action.address: %s\n", qPrintable(action.address()));
     DBG_Printf(DBG_INFO, "action.body: %s\n", qPrintable(action.body()));
 

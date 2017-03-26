@@ -570,7 +570,7 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
                 }
                 event = (address.indexOf("buttonevent") != -1) ? "buttonevent" : "lastupdated";
                 op = c->ooperator();
-                val = c->value();
+                val = c->value().toString();
 
                 //each condition in rule must meet condition in sensor event
                 if ((id != "") && (id == sensor->id()))

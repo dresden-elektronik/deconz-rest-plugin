@@ -113,6 +113,7 @@ public:
     void setConditions(const std::vector<RuleCondition> &conditions);
     const std::vector<RuleAction> &actions() const;
     void setActions(const std::vector<RuleAction> &actions);
+    bool isEnabled() const;
 
     static QString actionsToString(const std::vector<RuleAction> &actions);
     static QString conditionsToString(const std::vector<RuleCondition> &conditions);
@@ -161,19 +162,41 @@ private:
 class RuleCondition
 {
 public:
+    enum Operator
+    {
+        OpEqual,
+        OpGreaterThan,
+        OpLowerThan,
+        OpDx,
+
+        OpUnknown
+    };
+
     RuleCondition();
+    RuleCondition(const QVariantMap &map);
 
     const QString &address() const;
     void setAddress(const QString &address);
     const QString &ooperator() const;
     void setOperator(const QString &ooperator);
-    const QString &value() const;
-    void setValue(const QString &value);
+    const QVariant &value() const;
+    void setValue(const QVariant &value);
     bool operator==(const RuleCondition &other) const;
+
+
+    Operator op() const;
+    const QString id() const;
+    int numericValue() const;
 
 private:
     QString m_address;
     QString m_operator;
-    QString m_value;
+    QVariant m_value;
+
+    // internal calculated values for faster access
+    QString m_id;
+    Operator m_op;
+    int m_num;
+
 };
 #endif // RULE_H

@@ -760,7 +760,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     if (id == "0")
     {
         // use a broadcast
-        task.req.dstAddress().setNwk(0xFFFF);
+        task.req.dstAddress().setNwk(deCONZ::BroadcastRouters);
         task.req.dstAddress().setGroup(0); // taskToLocal() needs this
         task.req.setDstAddressMode(deCONZ::ApsNwkAddress);
     }
