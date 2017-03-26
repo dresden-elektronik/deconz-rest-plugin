@@ -2096,27 +2096,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         return;
     }
 
-    { // check insta mac address to model identifier
-        const quint64 instaMacPrefix = 0x000f171241000000ULL;
-        if ((sensor->address().ext() & instaMacPrefix) == instaMacPrefix)
-        {
-            if (!sensor->modelId().endsWith(QLatin1String("_1")))
-            {   // extract model identifier from mac address 6th byte
-                const quint64 model = (sensor->address().ext() >> 16) & 0xff;
-                QString modelId;
-                if      (model == 0x01) { modelId = QLatin1String("HS_4f_GJ_1"); }
-                else if (model == 0x02) { modelId = QLatin1String("WS_4f_J_1"); }
-                else if (model == 0x03) { modelId = QLatin1String("WS_3f_G_1"); }
-
-                if (!modelId.isEmpty() && sensor->modelId() != modelId)
-                {
-                    sensor->setModelId(modelId);
-                    sensor->setNeedSaveDatabase(true);
-                    updateSensorEtag(sensor);
-                }
-            }
-        }
-    }
+    checkInstaModelId(sensor);
 
     // DE Lighting Switch: probe for mode changes
     if (sensor->modelId() == QLatin1String("Lighting Switch") && ind.dstAddressMode() == deCONZ::ApsGroupAddress)
@@ -2463,12 +2443,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_INSTA)
     {
         sensorNode.setManufacturer("Insta");
+        checkInstaModelId(&sensorNode);
     }
     openDb();
     loadSensorNodeFromDb(&sensorNode);
     closeDb();
-
-
 
     if (sensorNode.id().isEmpty())
     {
@@ -2519,15 +2498,22 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             }
             else if (*ci == BASIC_CLUSTER_ID)
             {
-                DBG_Printf(DBG_INFO, "SensorNode %u: %s read model id and vendor name\n", sensorNode.id().toUInt(), qPrintable(sensorNode.name()));
-                sensorNode.setNextReadTime(READ_MODEL_ID, queryTime);
-                sensorNode.setLastRead(READ_MODEL_ID, idleTotalCounter);
-                sensorNode.enableRead(READ_MODEL_ID);
-                queryTime = queryTime.addSecs(1);
-                sensorNode.setNextReadTime(READ_VENDOR_NAME, queryTime);
-                sensorNode.setLastRead(READ_VENDOR_NAME, idleTotalCounter);
-                sensorNode.enableRead(READ_VENDOR_NAME);
-                queryTime = queryTime.addSecs(1);
+                if (sensorNode.modelId().isEmpty())
+                {
+                    DBG_Printf(DBG_INFO, "SensorNode %u: %s read model id and vendor name\n", sensorNode.id().toUInt(), qPrintable(sensorNode.name()));
+                    sensorNode.setNextReadTime(READ_MODEL_ID, queryTime);
+                    sensorNode.setLastRead(READ_MODEL_ID, idleTotalCounter);
+                    sensorNode.enableRead(READ_MODEL_ID);
+                    queryTime = queryTime.addSecs(1);
+                }
+
+                if (sensorNode.manufacturer().isEmpty())
+                {
+                    sensorNode.setNextReadTime(READ_VENDOR_NAME, queryTime);
+                    sensorNode.setLastRead(READ_VENDOR_NAME, idleTotalCounter);
+                    sensorNode.enableRead(READ_VENDOR_NAME);
+                    queryTime = queryTime.addSecs(1);
+                }
             }
         }
     }
@@ -2802,6 +2788,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         i->setModelId(str);
                                         i->setNeedSaveDatabase(true);
+                                        checkInstaModelId(&*i);
                                         updateSensorEtag(&*i);
                                         queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
                                         updated = true;

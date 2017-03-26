@@ -1449,6 +1449,31 @@ void DeRestPluginPrivate::findSensorsTimerFired()
     }
 }
 
+/*! Check insta mac address to model identifier.
+ */
+void DeRestPluginPrivate::checkInstaModelId(Sensor *sensor)
+{
+    const quint64 instaMacPrefix = 0x000f171241000000ULL;
+    if (sensor && (sensor->address().ext() & instaMacPrefix) == instaMacPrefix)
+    {
+        if (!sensor->modelId().endsWith(QLatin1String("_1")))
+        {   // extract model identifier from mac address 6th byte
+            const quint64 model = (sensor->address().ext() >> 16) & 0xff;
+            QString modelId;
+            if      (model == 0x01) { modelId = QLatin1String("HS_4f_GJ_1"); }
+            else if (model == 0x02) { modelId = QLatin1String("WS_4f_J_1"); }
+            else if (model == 0x03) { modelId = QLatin1String("WS_3f_G_1"); }
+
+            if (!modelId.isEmpty() && sensor->modelId() != modelId)
+            {
+                sensor->setModelId(modelId);
+                sensor->setNeedSaveDatabase(true);
+                updateSensorEtag(sensor);
+            }
+        }
+    }
+}
+
 /*! Heuristic to detect the type and configuration of devices.
  */
 void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)

@@ -744,6 +744,7 @@ public Q_SLOTS:
     // sensors
     void startFindSensors();
     void findSensorsTimerFired();
+    void checkInstaModelId(Sensor *sensor);
 
     // events
     void initEventQueue();
