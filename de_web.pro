@@ -115,6 +115,7 @@ SOURCES  = authentification.cpp \
            group.cpp \
            group_info.cpp \
            gw_uuid.cpp \
+           ias_zone.cpp \
            json.cpp \
            light_node.cpp \
            sqlite3.c \

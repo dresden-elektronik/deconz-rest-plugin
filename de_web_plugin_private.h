@@ -127,6 +127,7 @@
 #define ILLUMINANCE_MEASUREMENT_CLUSTER_ID   0x0400
 #define ILLUMINANCE_LEVEL_SENSING_CLUSTER_ID 0x0401
 #define OCCUPANCY_SENSING_CLUSTER_ID         0x0406
+#define IAS_ZONE_CLUSTER_ID 0x0500
 #define OTAU_CLUSTER_ID  0x0019
 #define DE_CLUSTER_ID    0xFC00
 #define GREEN_POWER_CLUSTER_ID 0x0021
@@ -863,6 +864,8 @@ public:
     void handleSceneClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleOnOffClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleClusterIndicationGateways(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleIasZoneClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void sendIasZoneEnrollResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleIndicationFindSensors(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleCommissioningClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     bool handleMgmtBindRspConfirm(const deCONZ::ApsDataConfirm &conf);

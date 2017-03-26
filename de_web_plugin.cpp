@@ -380,6 +380,10 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
              handleClusterIndicationGateways(ind, zclFrame);
             break;
 
+        case IAS_ZONE_CLUSTER_ID:
+            handleIasZoneClusterIndication(ind, zclFrame);
+            break;
+
         case DE_CLUSTER_ID:
             handleDEClusterIndication(ind, zclFrame);
             break;
@@ -2309,6 +2313,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                 }
                     break;
 
+                case IAS_ZONE_CLUSTER_ID:
                 case OCCUPANCY_SENSING_CLUSTER_ID:
                 {
                     fpPresenceSensor.inClusters.push_back(ci->id());
