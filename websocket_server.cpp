@@ -5,6 +5,9 @@
 #include "deconz/dbg_trace.h"
 #include "websocket_server.h"
 
+#define MAX_ATTEMPS 50
+#define WS_PORT 20877
+
 /*! Constructor.
  */
 WebSocketServer::WebSocketServer(QObject *parent) :
@@ -12,16 +15,29 @@ WebSocketServer::WebSocketServer(QObject *parent) :
 {
     srv = new QWebSocketServer("deconz", QWebSocketServer::NonSecureMode, this);
 
-    if (srv->listen())
+    quint16 p = WS_PORT;
+
+    while (!srv->listen(QHostAddress::AnyIPv4, p))
     {
-        DBG_Printf(DBG_INFO, "started websocket server at port %u\n", srv->serverPort());
-    }
-    else
-    {
-        DBG_Printf(DBG_ERROR, "failed to start websocket server %s\n", qPrintable(srv->errorString()));
+        if (p == 0)
+        {
+            DBG_Printf(DBG_ERROR, "giveup starting websocket server on port %u. error: %s\n", qPrintable(srv->errorString()));
+            break;
+        }
+
+        DBG_Printf(DBG_ERROR, "failed to start websocket server on port %u. error: %s\n", qPrintable(srv->errorString()));
+
+        if (p < (WS_PORT  + MAX_ATTEMPS))
+        { p++; }
+        else
+        { p = 0; }
     }
 
-    connect(srv, SIGNAL(newConnection()), this, SLOT(onNewConnection()));
+    if (srv->isListening())
+    {
+        DBG_Printf(DBG_INFO, "started websocket server at port %u\n", srv->serverPort());
+        connect(srv, SIGNAL(newConnection()), this, SLOT(onNewConnection()));
+    }
 }
 
 /*! Returns the websocket server port.
