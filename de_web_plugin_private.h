@@ -22,6 +22,7 @@
 #endif
 #include "sqlite3.h"
 #include <deconz.h>
+#include "event.h"
 #include "rest_node_base.h"
 #include "light_node.h"
 #include "group.h"
@@ -626,6 +627,7 @@ public:
 
     bool checkActions(QVariantList actionsList, ApiResponse &rsp);
     bool checkConditions(QVariantList conditionsList, ApiResponse &rsp);
+    void handleRuleEvent(const Event &event);
 
     // REST API common
     QVariantMap errorToMap(int id, const QString &ressource, const QString &description);
@@ -742,6 +744,11 @@ public Q_SLOTS:
     // sensors
     void startFindSensors();
     void findSensorsTimerFired();
+
+    // events
+    void initEventQueue();
+    void eventQueueTimerFired();
+    void enqueueEvent(const Event &event);
 
     // firmware update
     void initFirmwareUpdate();
@@ -1214,6 +1221,10 @@ public:
 
     // Wifi connected state
     QTimer *checkWifiTimer;
+
+    // events
+    QTimer *eventTimer;
+    std::deque<Event> eventQueue;
 
     // bindings
     size_t verifyRuleIter;

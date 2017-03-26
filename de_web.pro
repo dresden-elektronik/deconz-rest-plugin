@@ -82,6 +82,7 @@ HEADERS  = bindings.h \
            de_web_plugin.h \
            de_web_plugin_private.h \
            de_web_widget.h \
+           event.h \
            gateway.h \
            gateway_scanner.h \
            group.h \
@@ -106,6 +107,8 @@ SOURCES  = authentification.cpp \
            de_web_plugin.cpp \
            de_web_widget.cpp \
            de_otau.cpp \
+           event.cpp \
+           event_queue.cpp \
            firmware_update.cpp \
            gateway.cpp \
            gateway_scanner.cpp \

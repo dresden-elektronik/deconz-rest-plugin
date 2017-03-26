@@ -984,40 +984,70 @@ bool DeRestPluginPrivate::checkConditions(QVariantList conditionsList, ApiRespon
     return true;
 }
 
+/*! Trigger rules based on events.
+    \param event the event to process
+ */
+void DeRestPluginPrivate::handleRuleEvent(const Event &event)
+{
+    std::vector<Rule>::iterator r = rules.begin();
+    std::vector<Rule>::iterator rend = rules.end();
 
-        //check value in dependence of config and state of sensortype
-        QRegExp numbers("^[1-9]\\d*$");
-        QRegExp boolean("^(true|false)$");
-        //QRegExp timestamp("^\\d{4,4}-\\d{2,2}-\\d{2,2}T\\d{2,2}:\\d{2,2}:\\d{2,2}.*$");
-        if (ooperator == QLatin1String("dx"))
+    for (; r != rend; ++r)
+    {
+        std::vector<RuleCondition>::const_iterator c = r->conditions().begin();
+        std::vector<RuleCondition>::const_iterator cend = r->conditions().end();
+
+        bool ok = !r->conditions().empty();
+
+        for (; ok && c != cend; ++c)
         {
-            //no value allowed
-            if (value != QLatin1String(""))
+            // check prefix (sensors, lights, ...)
+            if (!c->address().startsWith(event.resource()))
             {
-                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/rules/conditions"), QString("parameter, value, is not modifiable")));
-                return false;
+                ok = false;
+                break;
+            }
+
+            // check suffix (state/buttonevent, ...)
+            if (!c->address().endsWith(event.what()))
+            {
+                ok = false;
+                break;
+            }
+
+            if (!event.id().isEmpty())
+            {
+                // check id
+                if (event.id() != c->id())
+                {
+                    ok = false;
+                    break;
+                }
+            }
+
+            if (c->op() == RuleCondition::OpEqual)
+            {
+                if (c->numericValue() != event.numericValue()) { ok = false; break; }
+            }
+            else if (c->op() == RuleCondition::OpGreaterThan)
+            {
+                if (c->numericValue() < event.numericValue()) { ok = false; break; }
+            }
+            else if (c->op() == RuleCondition::OpLowerThan)
+            {
+                if (c->numericValue() > event.numericValue()) { ok = false; break; }
+            }
+            else if (c->op() == RuleCondition::OpDx)
+            {
+                // TODO
             }
         }
-        else if (validValues == QLatin1String("numbers"))
+
+        if (ok)
         {
-                if (!value.contains(numbers))
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/rules/conditions"), QString("invalid value, %1, for parameter, value").arg(value)));
-                    return false;
-                }
+            triggerRule(*r);
         }
-        else if (validValues == QLatin1String("boolean"))
-        {
-                if (!value.contains(boolean))
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/rules/conditions"), QString("invalid value, %1, for parameter, value").arg(value)));
-                    return false;
-                }
-        }
-        validValues = "";
-        validOperators.clear();
     }
-    return true;
 }
 
 /*! DELETE /api/<apikey>/rules/<id>

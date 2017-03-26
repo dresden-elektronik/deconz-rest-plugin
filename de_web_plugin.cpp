@@ -87,6 +87,8 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     databaseTimer = new QTimer(this);
     databaseTimer->setSingleShot(true);
 
+    initEventQueue();
+
     connect(databaseTimer, SIGNAL(timeout()),
             this, SLOT(saveDatabaseTimerFired()));
 
@@ -2208,6 +2210,10 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                         // TODO check old sensors?
                     }
                 }
+
+                Event e(EResourceSensors, EStateButtonEvent,
+                          sensor->id(), sensor->state().buttonevent());
+                enqueueEvent(e);
 
                 updateSensorEtag(sensor);
                 return;
