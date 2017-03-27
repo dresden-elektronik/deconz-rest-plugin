@@ -5,9 +5,6 @@
 #include "deconz/dbg_trace.h"
 #include "websocket_server.h"
 
-#define MAX_ATTEMPS 50
-#define WS_PORT 20877
-
 /*! Constructor.
  */
 WebSocketServer::WebSocketServer(QObject *parent) :
@@ -15,22 +12,19 @@ WebSocketServer::WebSocketServer(QObject *parent) :
 {
     srv = new QWebSocketServer("deconz", QWebSocketServer::NonSecureMode, this);
 
-    quint16 p = WS_PORT;
+    quint16 p = 0;
+    quint16 ports[] = { 443, 8080, 8088, 20877, 0 }; // start with proxy frinedly ports first, use random port as fallback
 
-    while (!srv->listen(QHostAddress::AnyIPv4, p))
+    while (!srv->listen(QHostAddress::AnyIPv4, ports[p]))
     {
-        if (p == 0)
+        if (ports[p] == 0)
         {
-            DBG_Printf(DBG_ERROR, "giveup starting websocket server on port %u. error: %s\n", qPrintable(srv->errorString()));
+            DBG_Printf(DBG_ERROR, "giveup starting websocket server on port %u. error: %s\n", ports[p], qPrintable(srv->errorString()));
             break;
         }
 
-        DBG_Printf(DBG_ERROR, "failed to start websocket server on port %u. error: %s\n", qPrintable(srv->errorString()));
-
-        if (p < (WS_PORT  + MAX_ATTEMPS))
-        { p++; }
-        else
-        { p = 0; }
+        DBG_Printf(DBG_ERROR, "failed to start websocket server on port %u. error: %s\n", ports[p], qPrintable(srv->errorString()));
+        p++;
     }
 
     if (srv->isListening())
