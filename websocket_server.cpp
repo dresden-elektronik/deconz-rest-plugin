@@ -74,7 +74,7 @@ void WebSocketServer::broadcastTextMessage(const QString &msg)
         }
         else
         {
-            DBG_Printf(DBG_INFO, "Remove websocket %s:%u\n", sock->peerAddress().toString(), sock->peerPort());
+            DBG_Printf(DBG_INFO, "Remove websocket %s:%u\n", qPrintable(sock->peerAddress().toString()), sock->peerPort());
             sock->deleteLater();
             clients[i] = clients.back();
             clients.pop_back();
