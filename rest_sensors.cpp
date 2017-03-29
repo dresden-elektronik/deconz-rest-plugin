@@ -1525,6 +1525,10 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
         findSensorCandidates.push_back(sc);
         return;
     }
+    if (ind.profileId() == ZDP_PROFILE_ID && ind.clusterId() == ZDP_ACTIVE_ENDPOINTS_RSP_CLID)
+    {
+
+    }
     else if (ind.profileId() == ZLL_PROFILE_ID || ind.profileId() == HA_PROFILE_ID)
     {
         switch (ind.clusterId())

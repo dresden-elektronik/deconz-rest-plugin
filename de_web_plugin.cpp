@@ -417,10 +417,21 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
     }
     else if (ind.profileId() == ZDP_PROFILE_ID)
     {
+        deCONZ::ZclFrame zclFrame; // dummy
+
         switch (ind.clusterId())
         {
+        case ZDP_ACTIVE_ENDPOINTS_RSP_CLID:
+        {
+            handleIndicationFindSensors(ind, zclFrame);
+        }
+            break;
+
         case ZDP_DEVICE_ANNCE_CLID:
+        {
             handleDeviceAnnceIndication(ind);
+            handleIndicationFindSensors(ind, zclFrame);
+        }
             break;
 
         case ZDP_MGMT_BIND_RSP_CLID:
