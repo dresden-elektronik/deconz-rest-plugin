@@ -7021,6 +7021,123 @@ void DeRestPluginPrivate::fastProbePhilips(quint64 ext, quint16 nwk, quint8 macC
     }
 }
 
+/*! Speed up discovery of Busch-Jaeger devices.
+ */
+void DeRestPluginPrivate::fastProbeBuschJaeger(quint64 ext, quint16 nwk, quint8 macCapabilities)
+{
+    // known devices have endpoints 0x0A
+
+    // if (!(macCapabilities & deCONZ::MacDeviceIsFFD))
+    {
+        // active endpoints
+        {
+            deCONZ::ApsDataRequest apsReq;
+
+            // ZDP Header
+            apsReq.dstAddress().setExt(ext);
+            apsReq.dstAddress().setNwk(nwk);
+            apsReq.setDstAddressMode(deCONZ::ApsExtAddress);
+            apsReq.setDstEndpoint(ZDO_ENDPOINT);
+            apsReq.setSrcEndpoint(ZDO_ENDPOINT);
+            apsReq.setProfileId(ZDP_PROFILE_ID);
+            apsReq.setRadius(0);
+            apsReq.setClusterId(ZDP_ACTIVE_ENDPOINTS_CLID);
+            apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+            apsReq.setSendDelay(2000);
+
+            QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
+            stream.setByteOrder(QDataStream::LittleEndian);
+
+            stream << zclSeq++;
+
+            deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
+
+            if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+            {
+                queryTime = queryTime.addSecs(1);
+            }
+        }
+
+        // simple descriptor for endpoint 0x0A
+        {
+            deCONZ::ApsDataRequest apsReq;
+
+            // ZDP Header
+            apsReq.dstAddress().setExt(ext);
+            apsReq.dstAddress().setNwk(nwk);
+            apsReq.setDstAddressMode(deCONZ::ApsExtAddress);
+            apsReq.setDstEndpoint(ZDO_ENDPOINT);
+            apsReq.setSrcEndpoint(ZDO_ENDPOINT);
+            apsReq.setProfileId(ZDP_PROFILE_ID);
+            apsReq.setRadius(0);
+            apsReq.setClusterId(ZDP_SIMPLE_DESCRIPTOR_CLID);
+            apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+            apsReq.setSendDelay(2000);
+
+            QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
+            stream.setByteOrder(QDataStream::LittleEndian);
+
+            stream << zclSeq++;
+            stream << nwk;
+            stream << (quint8)0x0A;
+
+            deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
+
+            if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+            {
+                queryTime = queryTime.addSecs(1);
+            }
+        }
+
+        // basic cluster
+        {
+            deCONZ::ApsDataRequest apsReq;
+
+            // ZDP Header
+            apsReq.dstAddress().setExt(ext);
+            apsReq.dstAddress().setNwk(nwk);
+            apsReq.setDstAddressMode(deCONZ::ApsExtAddress);
+            apsReq.setDstEndpoint(0x0A);
+            apsReq.setSrcEndpoint(endpoint());
+            apsReq.setProfileId(HA_PROFILE_ID);
+            apsReq.setRadius(0);
+            apsReq.setClusterId(BASIC_CLUSTER_ID);
+            apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+            apsReq.setSendDelay(2000);
+
+            deCONZ::ZclFrame zclFrame;
+            zclFrame.setSequenceNumber(zclSeq++);
+            zclFrame.setCommandId(deCONZ::ZclReadAttributesId);
+            zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                                     deCONZ::ZclFCDirectionClientToServer |
+                                     deCONZ::ZclFCDisableDefaultResponse);
+
+            { // payload
+                QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
+                stream.setByteOrder(QDataStream::LittleEndian);
+
+                stream << (quint16)0x0005; // model id
+                stream << (quint16)0x0006; // date code
+                stream << (quint16)0x4000; // sw build id
+            }
+
+            { // ZCL frame
+                QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
+                stream.setByteOrder(QDataStream::LittleEndian);
+                zclFrame.writeToStream(stream);
+            }
+
+            deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
+
+            if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+            {
+                queryTime = queryTime.addSecs(1);
+            }
+        }
+    }
+}
+
+
 /*! Updates the onOff attribute in the local node cache.
  */
 void DeRestPluginPrivate::setAttributeOnOff(LightNode *lightNode)
