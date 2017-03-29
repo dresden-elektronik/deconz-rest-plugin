@@ -552,7 +552,7 @@ public:
     int getNewLights(const ApiRequest &req, ApiResponse &rsp);
     int getLightState(const ApiRequest &req, ApiResponse &rsp);
     int setLightState(const ApiRequest &req, ApiResponse &rsp);
-    int renameLight(const ApiRequest &req, ApiResponse &rsp);
+    int setLightAttributes(const ApiRequest &req, ApiResponse &rsp);
     int deleteLight(const ApiRequest &req, ApiResponse &rsp);
     int removeAllScenes(const ApiRequest &req, ApiResponse &rsp);
     int removeAllGroups(const ApiRequest &req, ApiResponse &rsp);
