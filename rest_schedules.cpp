@@ -55,8 +55,8 @@ int DeRestPluginPrivate::handleSchedulesApi(ApiRequest &req, ApiResponse &rsp)
     {
         return getScheduleAttributes(req, rsp);
     }
-    // PUT /api/<apikey>/schedules/<id>
-    else if ((req.path.size() == 4) && (req.hdr.method() == "PUT"))
+    // PUT, PATCH /api/<apikey>/schedules/<id>
+    else if ((req.path.size() == 4) && (req.hdr.method() == "PUT" || req.hdr.method() == "PATCH"))
     {
         return setScheduleAttributes(req, rsp);
     }
@@ -208,7 +208,7 @@ int DeRestPluginPrivate::getScheduleAttributes(const ApiRequest &req, ApiRespons
     return REQ_READY_SEND;
 }
 
-/*! PUT /api/<apikey>/schedules/<id>
+/*! PUT, PATCH /api/<apikey>/schedules/<id>
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */

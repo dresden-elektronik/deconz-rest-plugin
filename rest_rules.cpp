@@ -77,8 +77,8 @@ int DeRestPluginPrivate::handleRulesApi(const ApiRequest &req, ApiResponse &rsp)
     {
         return createRule(req, rsp);
     }
-    // PUT /api/<apikey>/rules/<id>
-    else if ((req.path.size() == 4) && (req.hdr.method() == "PUT") && (req.path[2] == "rules"))
+    // PUT, PATCH /api/<apikey>/rules/<id>
+    else if ((req.path.size() == 4) && (req.hdr.method() == "PUT" || req.hdr.method() == "PATCH") && (req.path[2] == "rules"))
     {
         return updateRule(req, rsp);
     }
@@ -572,7 +572,7 @@ int DeRestPluginPrivate::createRule(const ApiRequest &req, ApiResponse &rsp)
 }
 
 
-/*! PUT /api/<apikey>/rules/<id>
+/*! PUT, PATCH /api/<apikey>/rules/<id>
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */

@@ -55,8 +55,8 @@ int DeRestPluginPrivate::handleConfigurationApi(const ApiRequest &req, ApiRespon
     {
         return restoreWifiConfig(req, rsp);
     }
-    // PUT /api/<apikey>/config
-    else if ((req.path.size() == 3) && (req.hdr.method() == "PUT") && (req.path[2] == "config"))
+    // PUT, PATCH /api/<apikey>/config
+    else if ((req.path.size() == 3) && (req.hdr.method() == "PUT" || req.hdr.method() == "PATCH") && (req.path[2] == "config"))
     {
         return modifyConfig(req, rsp);
     }
@@ -598,7 +598,7 @@ int DeRestPluginPrivate::getConfig(const ApiRequest &req, ApiResponse &rsp)
     return REQ_READY_SEND;
 }
 
-/*! PUT /api/<apikey>/config
+/*! PUT, PATCH /api/<apikey>/config
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */

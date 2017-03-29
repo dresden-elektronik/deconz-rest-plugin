@@ -56,21 +56,15 @@ int DeRestPluginPrivate::handleLightsApi(ApiRequest &req, ApiResponse &rsp)
     {
         return getLightState(req, rsp);
     }
-    // PUT /api/<apikey>/lights/<id>/state
-    else if ((req.path.size() == 5) && (req.hdr.method() == "PUT") && (req.path[4] == "state"))
+    // PUT, PATCH /api/<apikey>/lights/<id>/state
+    else if ((req.path.size() == 5) && (req.hdr.method() == "PUT" || req.hdr.method() == "PATCH") && (req.path[4] == "state"))
     {
         return setLightState(req, rsp);
     }
-    // PUT /api/<apikey>/lights/<id> (rename)
-    else if ((req.path.size() == 4) && (req.hdr.method() == "PUT"))
+    // PUT, PATCH /api/<apikey>/lights/<id>
+    else if ((req.path.size() == 4) && (req.hdr.method() == "PUT" || req.hdr.method() == "PATCH"))
     {
-        return renameLight(req, rsp);
-    }
-    // PUT /api/<apikey>/lights/<id>/name (rename)
-    // same as above but this is that the hue app sends
-    else if ((req.path.size() == 5) && (req.hdr.method() == "PUT") && (req.path[4] == "name"))
-    {
-        return renameLight(req, rsp);
+        return setLightAttributes(req, rsp);
     }
     // GET /api/<apikey>/lights/<id>/connectivity
     if ((req.path.size() == 5) && (req.hdr.method() == "GET") && (req.path[4] == "connectivity"))
@@ -386,7 +380,7 @@ int DeRestPluginPrivate::getLightState(const ApiRequest &req, ApiResponse &rsp)
     return REQ_READY_SEND;
 }
 
-/*! PUT /api/<apikey>/lights/<id>/state
+/*! PUT, PATCH /api/<apikey>/lights/<id>/state
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
@@ -912,11 +906,11 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     return REQ_READY_SEND;
 }
 
-/*! PUT /api/<apikey>/lights/<id>
+/*! PUT, PATCH /api/<apikey>/lights/<id>
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
-int DeRestPluginPrivate::renameLight(const ApiRequest &req, ApiResponse &rsp)
+int DeRestPluginPrivate::setLightAttributes(const ApiRequest &req, ApiResponse &rsp)
 {
     bool ok;
     QVariant var = Json::parse(req.content, ok);

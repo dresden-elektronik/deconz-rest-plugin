@@ -39,8 +39,13 @@ int DeRestPluginPrivate::handleSensorsApi(ApiRequest &req, ApiResponse &rsp)
     {
         return getAllSensors(req, rsp);
     }
+    // GET /api/<apikey>/sensors/new
+    else if ((req.path.size() == 4) && (req.hdr.method() == "GET") && (req.path[3] == "new"))
+    {
+        return getNewSensors(req, rsp);
+    }
     // GET /api/<apikey>/sensors/<id>
-    else if ((req.path.size() == 4) && (req.hdr.method() == "GET") && (req.path[3] != "new") && (req.path[3] != "deleted"))
+    else if ((req.path.size() == 4) && (req.hdr.method() == "GET"))
     {
         return getSensor(req, rsp);
     }
@@ -60,8 +65,8 @@ int DeRestPluginPrivate::handleSensorsApi(ApiRequest &req, ApiResponse &rsp)
             return createSensor(req, rsp);
         }
     }
-    // PUT /api/<apikey>/sensors/<id>
-    else if ((req.path.size() == 4) && (req.hdr.method() == "PUT"))
+    // PUT, PATCH /api/<apikey>/sensors/<id>
+    else if ((req.path.size() == 4) && (req.hdr.method() == "PUT" || req.hdr.method() == "PATCH"))
     {
         return updateSensor(req, rsp);
     }
@@ -70,18 +75,13 @@ int DeRestPluginPrivate::handleSensorsApi(ApiRequest &req, ApiResponse &rsp)
     {
         return deleteSensor(req, rsp);
     }
-    // GET /api/<apikey>/sensors/new
-    else if ((req.path.size() == 4) && (req.hdr.method() == "GET") && (req.path[3] == "new"))
-    {
-        return getNewSensors(req, rsp);
-    }
-    // PUT /api/<apikey>/sensors/<id>/config
-    else if ((req.path.size() == 5) && (req.hdr.method() == "PUT") && (req.path[4] == "config"))
+    // PUT, PATCH /api/<apikey>/sensors/<id>/config
+    else if ((req.path.size() == 5) && (req.hdr.method() == "PUT" || req.hdr.method() == "PATCH") && (req.path[4] == "config"))
     {
         return changeSensorConfig(req, rsp);
     }
-    // PUT /api/<apikey>/sensors/<id>/state
-    else if ((req.path.size() == 5) && (req.hdr.method() == "PUT") && (req.path[4] == "state"))
+    // PUT, PATCH /api/<apikey>/sensors/<id>/state
+    else if ((req.path.size() == 5) && (req.hdr.method() == "PUT" || req.hdr.method() == "PATCH") && (req.path[4] == "state"))
     {
         return changeSensorState(req, rsp);
     }
@@ -485,7 +485,7 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
     return REQ_READY_SEND;
 }
 
-/*! PUT /api/<apikey>/sensors/<id>
+/*! PUT, PATCH /api/<apikey>/sensors/<id>
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
@@ -661,7 +661,7 @@ int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
     return REQ_READY_SEND;
 }
 
-/*! PUT /api/<apikey>/sensors/<id>/config
+/*! PUT, PATCH /api/<apikey>/sensors/<id>/config
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
@@ -896,7 +896,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     return REQ_READY_SEND;
 }
 
-/*! PUT /api/<apikey>/sensors/<id>/state
+/*! PUT, PATCH /api/<apikey>/sensors/<id>/state
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */

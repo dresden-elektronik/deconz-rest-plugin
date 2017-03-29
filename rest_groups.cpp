@@ -50,13 +50,13 @@ int DeRestPluginPrivate::handleGroupsApi(ApiRequest &req, ApiResponse &rsp)
     {
         return getGroupAttributes(req, rsp);
     }
-    // PUT /api/<apikey>/groups/<id>
-    else if ((req.path.size() == 4) && (req.hdr.method() == "PUT"))
+    // PUT, PATCH /api/<apikey>/groups/<id>
+    else if ((req.path.size() == 4) && (req.hdr.method() == "PUT" || req.hdr.method() == "PATCH"))
     {
         return setGroupAttributes(req, rsp);
     }
-    // PUT /api/<apikey>/groups/<id>/action
-    else if ((req.path.size() == 5) && (req.hdr.method() == "PUT") && (req.path[4] == "action"))
+    // PUT, PATCH /api/<apikey>/groups/<id>/action
+    else if ((req.path.size() == 5) && (req.hdr.method() == "PUT" || req.hdr.method() == "PATCH") && (req.path[4] == "action"))
     {
         return setGroupState(req, rsp);
     }
@@ -81,7 +81,7 @@ int DeRestPluginPrivate::handleGroupsApi(ApiRequest &req, ApiResponse &rsp)
         return getSceneAttributes(req, rsp);
     }
     // PUT /api/<apikey>/groups/<group_id>/scenes/<scene_id>
-    else if ((req.path.size() == 6) && (req.hdr.method() == "PUT")  && (req.path[4] == "scenes"))
+    else if ((req.path.size() == 6) && (req.hdr.method() == "PUT" || req.hdr.method() == "PATCH")  && (req.path[4] == "scenes"))
     {
         return setSceneAttributes(req, rsp);
     }
@@ -95,8 +95,8 @@ int DeRestPluginPrivate::handleGroupsApi(ApiRequest &req, ApiResponse &rsp)
     {
         return recallScene(req, rsp);
     }
-    // PUT /api/<apikey>/groups/<group_id>/scenes/<scene_id>/lights/<light_id>/state
-    else if ((req.path.size() == 9) && (req.hdr.method() == "PUT")  && (req.path[4] == "scenes") && (req.path[6] == "lights"))
+    // PUT, PATCH /api/<apikey>/groups/<group_id>/scenes/<scene_id>/lights/<light_id>/state
+    else if ((req.path.size() == 9) && (req.hdr.method() == "PUT" || req.hdr.method() == "PATCH")  && (req.path[4] == "scenes") && (req.path[6] == "lights"))
     {
         return modifyScene(req, rsp);
     }
@@ -463,7 +463,7 @@ int DeRestPluginPrivate::getGroupAttributes(const ApiRequest &req, ApiResponse &
     return REQ_READY_SEND;
 }
 
-/*! PUT /api/<apikey>/groups/<id>
+/*! PUT, PATCH /api/<apikey>/groups/<id>
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
@@ -728,7 +728,7 @@ int DeRestPluginPrivate::setGroupAttributes(const ApiRequest &req, ApiResponse &
     return REQ_READY_SEND;
 }
 
-/*! PUT /api/<apikey>/groups/<id>/action
+/*! PUT, PATCH /api/<apikey>/groups/<id>/action
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
@@ -1896,7 +1896,7 @@ int DeRestPluginPrivate::getSceneAttributes(const ApiRequest &req, ApiResponse &
 
 }
 
-/*! PUT /api/<apikey>/groups/<group_id>/scenes/<scene_id>
+/*! PUT, PATCH /api/<apikey>/groups/<group_id>/scenes/<scene_id>
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
@@ -2430,7 +2430,7 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
     return REQ_READY_SEND;
 }
 
-/*! PUT /api/<apikey>/groups/<group_id>/scenes/<scene_id>/lights/<light_id>/state
+/*! PUT, PATCH /api/<apikey>/groups/<group_id>/scenes/<scene_id>/lights/<light_id>/state
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
