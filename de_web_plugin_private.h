@@ -386,12 +386,14 @@ struct TaskItem
         colorY = 0;
         colorTemperature = 0;
         transitionTime = DEFAULT_TRANSITION_TIME;
+        sendTime = 0;
     }
 
     TaskType taskType;
     deCONZ::ApsDataRequest req;
     deCONZ::ZclFrame zclFrame;
     uint8_t zclSeq;
+    int sendTime; // copy of idleTotalCounter
     bool confirmed;
     bool onOff;
     bool colorLoop;

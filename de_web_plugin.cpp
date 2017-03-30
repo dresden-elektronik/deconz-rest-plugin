@@ -481,6 +481,13 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
     for (;i != end; ++i)
     {
         TaskItem &task = *i;
+        if (conf.dstAddressMode() == deCONZ::ApsNwkAddress &&
+            conf.dstAddress().hasNwk() && task.req.dstAddress().hasNwk() &&
+            conf.dstAddress().nwk() != task.req.dstAddress().nwk())
+        {
+            continue;
+        }
+
         if (task.req.id() == conf.id())
         {
             if (conf.status() != deCONZ::ApsSuccessStatus)
@@ -503,7 +510,7 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
                 }
             }
 
-            DBG_Printf(DBG_INFO_L2, "Erase task zclSequenceNumber: %u\n", task.zclFrame.sequenceNumber());
+            DBG_Printf(DBG_INFO_L2, "Erase task zclSequenceNumber: %u send time %d\n", task.zclFrame.sequenceNumber(), idleTotalCounter - task.sendTime);
             runningTasks.erase(i);
             processTasks();
 
@@ -5035,7 +5042,7 @@ bool DeRestPluginPrivate::addTask(const TaskItem &task)
                     (i->req.asdu().size() ==  task.req.asdu().size()))
 
                 {
-                    DBG_Printf(DBG_INFO, "Replace task in queue cluster 0x%04X with newer task of same type\n", task.req.clusterId());
+                    DBG_Printf(DBG_INFO, "Replace task in queue cluster 0x%04X with newer task of same type. %u runnig tasks\n", task.req.clusterId(), runningTasks.size());
                     *i = task;
                     return true;
                 }
@@ -5079,6 +5086,7 @@ void DeRestPluginPrivate::processTasks()
         return;
     }
 
+    QTime now = QTime::currentTime();
     std::list<TaskItem>::iterator i = tasks.begin();
     std::list<TaskItem>::iterator end = tasks.end();
 
@@ -5092,7 +5100,9 @@ void DeRestPluginPrivate::processTasks()
             return;
         }
 
-        // send only one request to a destination at a time
+        // send only few requests to a destination at a time
+        int onAir = 0;
+        const int maxOnAir = 2;
         std::list<TaskItem>::iterator j = runningTasks.begin();
         std::list<TaskItem>::iterator jend = runningTasks.end();
 
@@ -5101,8 +5111,15 @@ void DeRestPluginPrivate::processTasks()
         {
             if (i->req.dstAddress() == j->req.dstAddress())
             {
-                ok = false;
-                break;
+                onAir++;
+                int dt = idleTotalCounter - j->sendTime;
+                if (dt < 5 || onAir >= maxOnAir)
+                {
+                    DBG_Printf(DBG_INFO, "request %u send time %d, cluster 0x%04X, onAir %d\n", j->sendTime, j->req.clusterId(), onAir);
+                    DBG_Printf(DBG_INFO_L2, "delay sending request %u dt %d ms to %s\n", i->req.id(), dt, qPrintable(i->req.dstAddress().toStringExt()));
+                    ok = false;
+                    break;
+                }
             }
         }
 
@@ -5110,7 +5127,7 @@ void DeRestPluginPrivate::processTasks()
         {
             if (i->req.dstAddressMode() == deCONZ::ApsExtAddress)
             {
-                DBG_Printf(DBG_INFO_L2, "delay sending request %u to %s\n", i->req.id(), qPrintable(i->req.dstAddress().toStringExt()));
+                DBG_Printf(DBG_INFO_L2, "delay sending request %u cluster 0x%04X to %s\n", i->req.id(), i->req.clusterId(), qPrintable(i->req.dstAddress().toStringExt()));
             }
             else if (i->req.dstAddressMode() == deCONZ::ApsGroupAddress)
             {
@@ -5128,11 +5145,11 @@ void DeRestPluginPrivate::processTasks()
 
                 if (group)
                 {
-                    QTime now = QTime::currentTime();
                     int diff = group->sendTime.msecsTo(now);
 
                     if (!group->sendTime.isValid() || (diff <= 0) || (diff > gwGroupSendDelay))
                     {
+                        i->sendTime = idleTotalCounter;
                         if (apsCtrl->apsdeDataRequest(i->req) == deCONZ::Success)
                         {
                             group->sendTime = now;
@@ -5161,6 +5178,8 @@ void DeRestPluginPrivate::processTasks()
                 }
                 else
                 {
+
+                    i->sendTime = idleTotalCounter;
                     int ret = apsCtrl->apsdeDataRequest(i->req);
 
                     if (ret == deCONZ::Success)
