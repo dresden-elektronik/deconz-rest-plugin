@@ -1478,6 +1478,11 @@ void DeRestPluginPrivate::checkInstaModelId(Sensor *sensor)
  */
 void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
+    if (findSensorsState != FindSensorsActive)
+    {
+        return;
+    }
+
     if (ind.profileId() == ZDP_PROFILE_ID && ind.clusterId() == ZDP_DEVICE_ANNCE_CLID)
     {
         QDataStream stream(ind.asdu());
@@ -1493,13 +1498,13 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
         stream >> ext;
         stream >> macCapabilities;
 
-        const quint64 philipsMacPrefix = 0x0017880000000000ULL;
+//        const quint64 philipsMacPrefix = 0x0017880000000000ULL;
 
-        if ((ext & philipsMacPrefix) == philipsMacPrefix)
-        {
-            fastProbePhilips(ext, nwk, macCapabilities);
-            return;
-        }
+//        if ((ext & philipsMacPrefix) == philipsMacPrefix)
+//        {
+//            //fastProbePhilips(ext, nwk, macCapabilities);
+//            //return;
+//        }
 
         const quint64 bjeMacPrefix = 0xd85def0000000000ULL;
 
@@ -1512,6 +1517,13 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
         if (macCapabilities == 0 || (macCapabilities & deCONZ::MacDeviceIsFFD))
         {
             return;
+        }
+
+        fastProbeAddr.setExt(ext);
+        fastProbeAddr.setNwk(nwk);
+        if (!fastProbeTimer->isActive())
+        {
+            fastProbeTimer->start();
         }
 
         std::vector<SensorCandidate>::const_iterator i = findSensorCandidates.begin();
@@ -1532,9 +1544,23 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
         findSensorCandidates.push_back(sc);
         return;
     }
-    if (ind.profileId() == ZDP_PROFILE_ID && ind.clusterId() == ZDP_ACTIVE_ENDPOINTS_RSP_CLID)
+    else if (ind.profileId() == ZDP_PROFILE_ID)
     {
 
+        std::vector<SensorCandidate>::const_iterator i = findSensorCandidates.begin();
+        std::vector<SensorCandidate>::const_iterator end = findSensorCandidates.end();
+
+        for (; i != end; ++i)
+        {
+            if (i->address.ext() == fastProbeAddr.ext())
+            {
+                if (!fastProbeTimer->isActive())
+                {
+                    fastProbeTimer->start();
+                }
+            }
+        }
+        return;
     }
     else if (ind.profileId() == ZLL_PROFILE_ID || ind.profileId() == HA_PROFILE_ID)
     {

@@ -746,6 +746,7 @@ public Q_SLOTS:
     void startFindSensors();
     void findSensorsTimerFired();
     void checkInstaModelId(Sensor *sensor);
+    void delayedFastEnddeviceProbe();
 
     // events
     void initEventQueue();
@@ -880,7 +881,7 @@ public:
     void taskToLocalData(const TaskItem &task);
 
     void fastProbeBuschJaeger(quint64 ext, quint16 nwk, quint8 macCapabilities);
-    void fastProbePhilips(quint64 ext, quint16 nwk, quint8 macCapabilities);
+
 
     // Modify node attributes
     void setAttributeOnOff(LightNode *lightNode);
@@ -1179,6 +1180,8 @@ public:
     };
 
     FindSensorsState findSensorsState;
+    deCONZ::Address fastProbeAddr;
+    QTimer *fastProbeTimer;
     int findSensorsTimeout;
     QString lastSensorsScan;
     std::vector<SensorCandidate> findSensorCandidates;

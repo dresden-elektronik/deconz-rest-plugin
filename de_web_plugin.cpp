@@ -134,6 +134,11 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     sensorTypes.append("ZHALight");
     sensorTypes.append("ZHAPresence");
 
+    fastProbeTimer = new QTimer(this);
+    fastProbeTimer->setInterval(50);
+    fastProbeTimer->setSingleShot(true);
+    connect(fastProbeTimer, SIGNAL(timeout()), this, SLOT(delayedFastEnddeviceProbe()));
+
 
     apsCtrl = deCONZ::ApsController::instance();
     DBG_Assert(apsCtrl != 0);
@@ -421,6 +426,8 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
         switch (ind.clusterId())
         {
+        case ZDP_NODE_DESCRIPTOR_RSP_CLID:
+        case ZDP_SIMPLE_DESCRIPTOR_RSP_CLID:
         case ZDP_ACTIVE_ENDPOINTS_RSP_CLID:
         {
             handleIndicationFindSensors(ind, zclFrame);
@@ -2235,7 +2242,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
 {
     DBG_Assert(node != 0);
 
-    if (!node)
+    if (!node || node->nodeDescriptor().isNull())
     {
         return;
     }
@@ -6891,60 +6898,177 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
     }
 }
 
-/*! Speed up discovery of Philips end devices.
+/*! Speed up discovery of end devices.
  */
-void DeRestPluginPrivate::fastProbePhilips(quint64 ext, quint16 nwk, quint8 macCapabilities)
+void DeRestPluginPrivate::delayedFastEnddeviceProbe()
 {
-    Q_UNUSED(ext);
-    // known end-devices have endpoints 0x01 and 0x02
-    // Philips hue Motion Sensor
-    // Philips hue Dimmer Switch
-    if (!(macCapabilities & deCONZ::MacDeviceIsFFD))
+    const SensorCandidate *sc = 0;
     {
-        // simple descriptor for endpoint 0x01
+        std::vector<SensorCandidate>::const_iterator i = findSensorCandidates.begin();
+        std::vector<SensorCandidate>::const_iterator end = findSensorCandidates.end();
+
+        for (; i != end; ++i)
+        {
+            if (i->address.ext() == fastProbeAddr.ext())
+            {
+                sc = &*i;
+                break;
+            }
+        }
+    }
+
+    if (!sc)
+    {
+        return;
+    }
+
+    {
+        Sensor *sensor = getSensorNodeForAddress(sc->address);
+        const deCONZ::Node *node = sensor ? sensor->node() : 0;
+
+        if (!node)
+        {
+            int i = 0;
+            const deCONZ::Node *n;
+
+            while (apsCtrl->getNode(i, &n) == 0)
+            {
+                if (fastProbeAddr.ext() == n->address().ext())
+                {
+                    node = n;
+                    break;
+                }
+                i++;
+            }
+        }
+
+        if (!node)
+        {
+            return;
+        }
+
+        if (node->nodeDescriptor().isNull())
         {
             deCONZ::ApsDataRequest apsReq;
 
             // ZDP Header
-            apsReq.dstAddress().setExt(ext);
-            apsReq.setDstAddressMode(deCONZ::ApsExtAddress);
+            apsReq.dstAddress() = sc->address;
+            apsReq.setDstAddressMode(deCONZ::ApsNwkAddress);
             apsReq.setDstEndpoint(ZDO_ENDPOINT);
             apsReq.setSrcEndpoint(ZDO_ENDPOINT);
             apsReq.setProfileId(ZDP_PROFILE_ID);
             apsReq.setRadius(0);
-            apsReq.setClusterId(ZDP_SIMPLE_DESCRIPTOR_CLID);
-            apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
-            apsReq.setSendDelay(2000);
+            apsReq.setClusterId(ZDP_NODE_DESCRIPTOR_CLID);
+            //apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
 
             QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
             stream.setByteOrder(QDataStream::LittleEndian);
 
             stream << zclSeq++;
-            stream << nwk;
-            stream << (quint8)0x01;
+            stream << sc->address.nwk();
 
             deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
 
             if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
             {
-                queryTime = queryTime.addSecs(1);
+                queryTime = queryTime.addSecs(5);
             }
+            return;
         }
 
-        // model id
+        if (node->endpoints().empty())
         {
             deCONZ::ApsDataRequest apsReq;
 
             // ZDP Header
-            apsReq.dstAddress().setExt(ext);
-            apsReq.setDstAddressMode(deCONZ::ApsExtAddress);
-            apsReq.setDstEndpoint(0x01);
+            apsReq.dstAddress() = sc->address;
+            apsReq.setDstAddressMode(deCONZ::ApsNwkAddress);
+            apsReq.setDstEndpoint(ZDO_ENDPOINT);
+            apsReq.setSrcEndpoint(ZDO_ENDPOINT);
+            apsReq.setProfileId(ZDP_PROFILE_ID);
+            apsReq.setRadius(0);
+            apsReq.setClusterId(ZDP_ACTIVE_ENDPOINTS_CLID);
+            //apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+
+            QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
+            stream.setByteOrder(QDataStream::LittleEndian);
+
+            stream << zclSeq++;
+            stream << sc->address.nwk();
+
+            deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
+
+            if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+            {
+                queryTime = queryTime.addSecs(5);
+            }
+            return;
+        }
+
+        // simple descriptor for endpoint 0x01
+        if (node->simpleDescriptors().size() != (int)node->endpoints().size())
+        {
+            quint8 ep = 0;
+
+            for (size_t i = 0; i < node->endpoints().size(); i++)
+            {
+                ep = node->endpoints()[i]; // search
+
+                for (int j = 0; j < node->simpleDescriptors().size(); j++)
+                {
+                    if (node->simpleDescriptors()[j].endpoint() == ep)
+                    {
+                        ep = 0;
+                    }
+                }
+
+                if (ep) // fetch this
+                {
+                    deCONZ::ApsDataRequest apsReq;
+
+                    // ZDP Header
+                    apsReq.dstAddress() = sc->address;
+                    apsReq.setDstAddressMode(deCONZ::ApsNwkAddress);
+                    apsReq.setDstEndpoint(ZDO_ENDPOINT);
+                    apsReq.setSrcEndpoint(ZDO_ENDPOINT);
+                    apsReq.setProfileId(ZDP_PROFILE_ID);
+                    apsReq.setRadius(0);
+                    apsReq.setClusterId(ZDP_SIMPLE_DESCRIPTOR_CLID);
+                    //apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+
+                    QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
+                    stream.setByteOrder(QDataStream::LittleEndian);
+
+                    stream << zclSeq++;
+                    stream << sc->address.nwk();
+                    stream << ep;
+
+                    deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
+
+                    if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+                    {
+                        queryTime = queryTime.addSecs(1);
+                    }
+
+                    return;
+                }
+            }
+        }
+
+        // model id, sw build id
+        if (sensor && (sensor->modelId().isEmpty() || sensor->swVersion().isEmpty()))
+        {
+            deCONZ::ApsDataRequest apsReq;
+
+            // ZDP Header
+            apsReq.dstAddress() = sc->address;
+            apsReq.setDstAddressMode(deCONZ::ApsNwkAddress);
+            apsReq.setDstEndpoint(node->endpoints()[0]);
             apsReq.setSrcEndpoint(endpoint());
             apsReq.setProfileId(HA_PROFILE_ID);
             apsReq.setRadius(0);
             apsReq.setClusterId(BASIC_CLUSTER_ID);
-            apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
-            apsReq.setSendDelay(2000);
+            //apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
 
             deCONZ::ZclFrame zclFrame;
             zclFrame.setSequenceNumber(zclSeq++);
@@ -6957,8 +7081,8 @@ void DeRestPluginPrivate::fastProbePhilips(quint64 ext, quint16 nwk, quint8 macC
                 QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
                 stream.setByteOrder(QDataStream::LittleEndian);
 
-                quint16 attributeId = 0x0005; // model id
-                stream << attributeId;
+                stream << (quint16)0x0005; // model id
+                stream << (quint16)0x4000; // sw build id
             }
 
             { // ZCL frame
@@ -6973,9 +7097,11 @@ void DeRestPluginPrivate::fastProbePhilips(quint64 ext, quint16 nwk, quint8 macC
             {
                 queryTime = queryTime.addSecs(1);
             }
+            return;
         }
 
         // get group identifiers
+        #if 0
         {
             deCONZ::ApsDataRequest apsReq;
 
@@ -7018,6 +7144,7 @@ void DeRestPluginPrivate::fastProbePhilips(quint64 ext, quint16 nwk, quint8 macC
                 queryTime = queryTime.addSecs(1);
             }
         }
+        #endif
     }
 }
 
