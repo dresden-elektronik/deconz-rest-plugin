@@ -158,6 +158,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     sensorTypes.append("ZHASwitch");
     sensorTypes.append("ZHALight");
     sensorTypes.append("ZHAPresence");
+    sensorTypes.append("ZHATemperature");
 
     fastProbeTimer = new QTimer(this);
     fastProbeTimer->setInterval(500);
@@ -2314,6 +2315,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
         SensorFingerprint fpSwitch;
         SensorFingerprint fpLightSensor;
         SensorFingerprint fpPresenceSensor;
+        SensorFingerprint fpTemperatureSensor;
 
         {   // scan client clusters of endpoint
             QList<deCONZ::ZclCluster>::const_iterator ci = i->outClusters().constBegin();
@@ -2372,6 +2374,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
 
                         fpPresenceSensor.inClusters.push_back(ci->id());
                         fpLightSensor.inClusters.push_back(ci->id());
+                        fpTemperatureSensor.inClusters.push_back(ci->id());
                     }
                 }
                     break;
@@ -2399,6 +2402,12 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                 case ILLUMINANCE_LEVEL_SENSING_CLUSTER_ID:
                 {
                     fpLightSensor.inClusters.push_back(ci->id());
+                }
+                    break;
+
+                case TEMPERATURE_MEASUREMENT_CLUSTER_ID:
+                {
+                    fpTemperatureSensor.inClusters.push_back(ci->id());
                 }
                     break;
 
@@ -2473,6 +2482,24 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                 checkSensorNodeReachable(sensor);
                 Q_Q(DeRestPlugin);
                 q->startZclAttributeTimer(checkZclAttributesDelay);
+            }
+        }
+
+        // ZBTemperature
+        if (fpTemperatureSensor.hasInCluster(TEMPERATURE_MEASUREMENT_CLUSTER_ID))
+        {
+            fpTemperatureSensor.endpoint = i->endpoint();
+            fpTemperatureSensor.deviceId = i->deviceId();
+            fpTemperatureSensor.profileId = i->profileId();
+
+            sensor = getSensorNodeForFingerPrint(node->address().ext(), fpTemperatureSensor, "ZHATemperature");
+            if (!sensor)
+            {
+                addSensorNode(node, fpTemperatureSensor, "ZHATemperature", modelId);
+            }
+            else
+            {
+                checkSensorNodeReachable(sensor);
             }
         }
     }
@@ -2737,6 +2764,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             switch (event.clusterId())
             {
             case ILLUMINANCE_MEASUREMENT_CLUSTER_ID:
+            case TEMPERATURE_MEASUREMENT_CLUSTER_ID:
             case OCCUPANCY_SENSING_CLUSTER_ID:
             case POWER_CONFIGURATION_CLUSTER_ID:
             case BASIC_CLUSTER_ID:
@@ -2862,9 +2890,19 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 i->state().updateTimestamp();
                                 if (i->state().lux() != lux)
+                    else if (event.clusterId() == TEMPERATURE_MEASUREMENT_CLUSTER_ID)
+                    {
+                        for (;ia != enda; ++ia)
+                        {
+                            if (ia->id() == 0x0000) // measured illuminance (lux)
+                            {
+                                if (updateType != NodeValue::UpdateInvalid)
                                 {
-                                    i->state().setLux(lux);
+                                    i->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
                                 }
+
+                                int temp = ia->numericValue().s16;
+
                                 updateSensorEtag(&*i);
                             }
                         }
@@ -5484,6 +5522,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         case ONOFF_SWITCH_CONFIGURATION_CLUSTER_ID:
         case ILLUMINANCE_MEASUREMENT_CLUSTER_ID:
         case ILLUMINANCE_LEVEL_SENSING_CLUSTER_ID:
+        case TEMPERATURE_MEASUREMENT_CLUSTER_ID:
         case OCCUPANCY_SENSING_CLUSTER_ID:
         case BASIC_CLUSTER_ID:
             {
