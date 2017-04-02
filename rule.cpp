@@ -12,7 +12,7 @@
 
 /*! Constructor. */
 Rule::Rule() :
-    lastVerify(0),
+    lastBindingVerify(0),
     m_state(StateNormal),
     m_id("notSet"),
     m_name("notSet"),
@@ -386,7 +386,9 @@ RuleCondition::RuleCondition() :
 {
 }
 
-RuleCondition::RuleCondition(const QVariantMap &map)
+RuleCondition::RuleCondition(const QVariantMap &map) :
+    m_prefix(0),
+    m_suffix(0)
 {
     bool ok;
     m_address = map["address"].toString();
@@ -395,7 +397,8 @@ RuleCondition::RuleCondition(const QVariantMap &map)
 
     // cache id
     if (m_address.startsWith(QLatin1String("/sensors")) ||
-        m_address.startsWith(QLatin1String("/groups"))) // /sensors/id/state/buttonevent, ...
+        m_address.startsWith(QLatin1String("/groups")) ||
+        m_address.startsWith(QLatin1String("/lights"))) // /sensors/<id>/state/buttonevent, ...
     {
         QStringList addrList = m_address.split('/', QString::SkipEmptyParts);
         if (addrList.size() > 1)
@@ -404,10 +407,33 @@ RuleCondition::RuleCondition(const QVariantMap &map)
         }
     }
 
+    if (m_address.startsWith(QLatin1String("/sensors")))
+    {
+        m_prefix = RSensors;
+    }
+    else if (m_address.startsWith(QLatin1String("/config")))
+    {
+        m_prefix = RConfig;
+    }
+    else if (m_address.startsWith(QLatin1String("/groups")))
+    {
+        m_prefix = RGroups;
+    }
+    else if (m_address.startsWith(QLatin1String("/lights")))
+    {
+        m_prefix = RLights;
+    }
+
+    ResourceItemDescriptor rid;
+
+    m_suffix = getResourceItemDescriptor(m_address, rid) ? rid.suffix
+                                                         : RInvalidSuffix;
+
     if (m_operator == QLatin1String("eq")) { m_op = OpEqual; }
     else if (m_operator == QLatin1String("gt")) { m_op = OpGreaterThan; }
     else if (m_operator == QLatin1String("lt")) { m_op = OpLowerThan; }
     else if (m_operator == QLatin1String("dx")) { m_op = OpDx; }
+    else if (m_operator == QLatin1String("ddx")) { m_op = OpDdx; }
     else { m_op = OpUnknown; }
 
     // extract proper datatype
@@ -525,6 +551,16 @@ const QString RuleCondition::id() const
 int RuleCondition::numericValue() const
 {
     return m_num;
+}
+
+const char *RuleCondition::resource() const
+{
+    return m_prefix;
+}
+
+const char *RuleCondition::suffix() const
+{
+    return m_suffix;
 }
 
 /*! Returns true if two BindingTasks are equal.

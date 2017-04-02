@@ -16,6 +16,7 @@
 #include <vector>
 #include <QDateTime>
 #include <deconz.h>
+#include "resource.h"
 #include "bindings.h"
 #include "json.h"
 
@@ -122,7 +123,8 @@ public:
     static std::vector<RuleCondition> jsonToConditions(const QString &json);
 
     QString etag;
-    int lastVerify; // copy of idleTotalCounter at last verification
+    QDateTime lastVerify;
+    int lastBindingVerify; // copy of idleTotalCounter at last binding verification
 
 private:
     State m_state;
@@ -168,6 +170,7 @@ public:
         OpGreaterThan,
         OpLowerThan,
         OpDx,
+        OpDdx,
 
         OpUnknown
     };
@@ -183,10 +186,11 @@ public:
     void setValue(const QVariant &value);
     bool operator==(const RuleCondition &other) const;
 
-
     Operator op() const;
     const QString id() const;
     int numericValue() const;
+    const char *resource() const;
+    const char *suffix() const;
 
 private:
     QString m_address;
@@ -194,6 +198,8 @@ private:
     QVariant m_value;
 
     // internal calculated values for faster access
+    const char *m_prefix;
+    const char *m_suffix;
     QString m_id;
     Operator m_op;
     int m_num;

@@ -1242,7 +1242,7 @@ void DeRestPluginPrivate::bindingToRuleTimerFired()
 
     if (!foundRule)
     {
-        if (sensor && sensor->config().on())
+        if (sensor && sensor->item(RConfigOn)->toBool())
         {
             std::vector<RuleAction> actions;
             std::vector<RuleCondition> conditions;

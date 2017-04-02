@@ -17,37 +17,6 @@
 #include "json.h"
 
 #define MAX_RULES_COUNT 500
-#define RTYPE_NONE 0x01
-#define RTYPE_BOOL 0x02
-#define RTYPE_INT  0x04
-
-struct SensorResourceDescriptor {
-    const char *sensorType;
-    const char *resource;
-    const char *operators;
-    quint8 type;
-};
-
-static const SensorResourceDescriptor  resourceDescriptors[] = {
-    { "ZHAPresence",       "/state/presence",      "eq",       RTYPE_BOOL },
-    { "CLIPPresence",      "/state/presence",      "eq",       RTYPE_BOOL },
-    { "CLIPOpenClose",     "/state/open",          "eq",       RTYPE_BOOL },
-    { "ZHALight",          "/state/dark",          "eq",       RTYPE_BOOL },
-    { "ZHALight",          "/state/lux",           "eq gt lt", RTYPE_INT },
-    { "ZHALight",          "/state/lightlevel",    "eq gt lt", RTYPE_INT },
-    { "ZHASwitch",         "/state/buttonevent",   "eq gt lt", RTYPE_INT },
-    { "ZHATemperature",    "/state/temperature",   "eq gt lt", RTYPE_INT },
-    { "ZHAHumidity",       "/state/humidity",      "eq gt lt", RTYPE_INT },
-    { "CLIPSwitch",        "/state/buttonevent",   "eq gt lt", RTYPE_INT },
-    { "CLIPTemperature",   "/state/temperature",   "eq gt lt", RTYPE_INT },
-    { "CLIPHumidity",      "/state/humidity",      "eq gt lt", RTYPE_INT },
-    { "CLIPGenericFlag",   "/state/flag",          "eq",       RTYPE_BOOL },
-    { "CLIPGenericStatus", "/state/status",        "eq gt lt", RTYPE_INT },
-    { "0",                 "/state/lastupdated",   "dx",       RTYPE_NONE },
-    { "0",                 "/config/on",           "eq",       RTYPE_BOOL },
-    { "0",                 "/config/reachable",    "eq",       RTYPE_BOOL },
-    { 0,                   0,                      0,          0 }
-};
 
 /*! Rules REST API broker.
     \param req - request data
@@ -804,12 +773,8 @@ int DeRestPluginPrivate::updateRule(const ApiRequest &req, ApiResponse &rsp)
 
                     for (; ci != cend; ++ci)
                     {
-                        RuleCondition newCondition;
-                        newCondition.setAddress(ci->toMap()["address"].toString());
-                        newCondition.setOperator(ci->toMap()["operator"].toString());
-                        newCondition.setValue(ci->toMap()["value"].toString());
-                        conditions.push_back(newCondition);
-
+                        RuleCondition cond(ci->toMap());
+                        conditions.push_back(cond);
                     }
                     i->setConditions(conditions);
 
@@ -831,11 +796,7 @@ int DeRestPluginPrivate::updateRule(const ApiRequest &req, ApiResponse &rsp)
                 i->setStatus("enabled");
             }
             DBG_Printf(DBG_INFO, "force verify of rule %s: %s\n", qPrintable(i->id()), qPrintable(i->name()));
-            i->lastVerify = 0;
-            if (!verifyRulesTimer->isActive())
-            {
-                verifyRulesTimer->start(500);
-            }
+            i->lastBindingVerify = 0;
 
             if (changed)
             {
@@ -932,122 +893,19 @@ bool DeRestPluginPrivate::checkConditions(QVariantList conditionsList, ApiRespon
 
     for (; ci != cend; ++ci)
     {
-        QVariantMap condition = ci->toMap();
-        QString address = condition["address"].toString();
-        QString op = condition["operator"].toString();
+        RuleCondition cond(ci->toMap());
 
-        QStringList addrList = address.split('/', QString::SkipEmptyParts);
+        Resource *resource = (cond.op() != RuleCondition::OpUnknown) ? getResource(cond.resource(), cond.id()) : 0;
+        ResourceItem *item = resource ? resource->item(cond.suffix()) : 0;
 
-        Sensor *sensor = (addrList.size() > 3) ? getSensorNodeForId(addrList[1]) : 0;
-
-        if (!sensor || address.isEmpty() || op.isEmpty())
+        if (!resource || !item)
         {
-            rsp.list.append(errorToMap(ERR_CONDITION_ERROR, QString(address),
-                QString("Condition error")));
-            return false;
-        }
-
-        const SensorResourceDescriptor *rd = resourceDescriptors;
-
-        while (rd->sensorType)
-        {
-            if ((rd->sensorType[0] == '0' || // any
-                 rd->sensorType == sensor->type()) &&
-                address.contains(rd->resource) &&
-                strstr(rd->operators, qPrintable(op)))
-            {
-                break; // match
-            }
-            rd++;
-        }
-
-        if (!rd)
-        {
-            rsp.list.append(errorToMap(ERR_CONDITION_ERROR, QString(address),
-                QString("Condition error")));
-            return false;
-        }
-
-
-        bool ok = false;
-        if      (rd->type == RTYPE_INT && condition["value"].type() == QVariant::Double) { ok = true; }
-        else if (rd->type == RTYPE_BOOL && condition["value"].type() == QVariant::Bool) { ok = true; }
-        else if (rd->type == RTYPE_NONE && !condition.contains("value")) { ok = true; }
-
-        if (!ok)
-        {
-            rsp.list.append(errorToMap(ERR_CONDITION_ERROR, QString(address),
+            rsp.list.append(errorToMap(ERR_CONDITION_ERROR, QString(cond.address()),
                 QString("Condition error")));
             return false;
         }
     }
     return true;
-}
-
-/*! Trigger rules based on events.
-    \param event the event to process
- */
-void DeRestPluginPrivate::handleRuleEvent(const Event &event)
-{
-    std::vector<Rule>::iterator r = rules.begin();
-    std::vector<Rule>::iterator rend = rules.end();
-
-    for (; r != rend; ++r)
-    {
-        std::vector<RuleCondition>::const_iterator c = r->conditions().begin();
-        std::vector<RuleCondition>::const_iterator cend = r->conditions().end();
-
-        bool ok = !r->conditions().empty();
-
-        for (; ok && c != cend; ++c)
-        {
-            // check prefix (sensors, lights, ...)
-            if (!c->address().startsWith(event.resource()))
-            {
-                ok = false;
-                break;
-            }
-
-            // check suffix (state/buttonevent, ...)
-            if (!c->address().endsWith(event.what()))
-            {
-                ok = false;
-                break;
-            }
-
-            if (!event.id().isEmpty())
-            {
-                // check id
-                if (event.id() != c->id())
-                {
-                    ok = false;
-                    break;
-                }
-            }
-
-            if (c->op() == RuleCondition::OpEqual)
-            {
-                if (c->numericValue() != event.numericValue()) { ok = false; break; }
-            }
-            else if (c->op() == RuleCondition::OpGreaterThan)
-            {
-                if (c->numericValue() < event.numericValue()) { ok = false; break; }
-            }
-            else if (c->op() == RuleCondition::OpLowerThan)
-            {
-                if (c->numericValue() > event.numericValue()) { ok = false; break; }
-            }
-            else if (c->op() == RuleCondition::OpDx)
-            {
-                // TODO
-            }
-        }
-
-        if (ok)
-        {
-            triggerRule(*r);
-        }
-    }
 }
 
 /*! DELETE /api/<apikey>/rules/<id>
@@ -1152,36 +1010,31 @@ void DeRestPluginPrivate::queueCheckRuleBindings(const Rule &rule)
         for (; i != end; ++i)
         {
             // operator equal used to refer to srcEndpoint
-            if (i->ooperator() != QLatin1String("eq"))
+            if (i->op() != RuleCondition::OpEqual)
             {
                 continue;
             }
 
-            QStringList srcAddressLs = i->address().split('/', QString::SkipEmptyParts);
-
-            if (srcAddressLs.size() != 4) // /sensors/<id>/state/(buttonevent|illuminance)
+            if (i->resource() != RSensors)
             {
                 continue;
             }
 
-            if (srcAddressLs[0] != QLatin1String("sensors"))
+            if ((i->suffix() == RStateButtonEvent) ||
+                (i->suffix() == RStateLightLevel) || // TODO check webapp2 change illuminance --> lightlevel
+                (i->suffix() == RStatePresence))
             {
-                continue;
-            }
-
-            if (srcAddressLs[2] != QLatin1String("state"))
-            {
-                continue;
-            }
-
-            if ((srcAddressLs[3] == QLatin1String("buttonevent")) ||
-                (srcAddressLs[3] == QLatin1String("illuminance")) ||
-                (srcAddressLs[3] == QLatin1String("presence")))
-            {
-                sensorNode = getSensorNodeForId(srcAddressLs[1]);
+                sensorNode = getSensorNodeForId(i->id());
 
                 if (sensorNode && sensorNode->isAvailable() && sensorNode->node())
                 {
+
+                    if (!sensorNode->modelId().startsWith(QLatin1String("FLS-NB")))
+                    {
+                        // whitelist binding support
+                        return;
+                    }
+
                     bool ok = false;
                     quint16 ep = i->value().toUInt(&ok);
 
@@ -1225,7 +1078,7 @@ void DeRestPluginPrivate::queueCheckRuleBindings(const Rule &rule)
                     }
 
                     DBG_Printf(DBG_INFO, "skip verify rule %s for sensor %s (available = %u, node = %p, sensorNode = %p)\n",
-                               qPrintable(rule.name()), qPrintable(srcAddressLs[1]), avail, n, sensorNode);
+                               qPrintable(rule.name()), qPrintable(i->id()), avail, n, sensorNode);
                 }
             }
         }
@@ -1235,7 +1088,6 @@ void DeRestPluginPrivate::queueCheckRuleBindings(const Rule &rule)
     {
         return;
     }
-
 
     // found source addressing?
     if ((srcAddress == 0) || (srcEndpoint == 0))
@@ -1263,7 +1115,7 @@ void DeRestPluginPrivate::queueCheckRuleBindings(const Rule &rule)
             bnd.srcEndpoint = srcEndpoint;
             bool ok = false;
 
-            if (!sensorNode->config().on())
+            if (!sensorNode->toBool(RConfigOn))
             {
                 if (bindingTask.action == BindingTask::ActionBind)
                 {
@@ -1357,7 +1209,7 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
         return;
     }
 
-    if (!(rule.state() == Rule::StateNormal && rule.status() == QLatin1String("enabled")))
+    if (rule.state() != Rule::StateNormal || !rule.isEnabled())
     {
         return;
     }
@@ -1367,14 +1219,8 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
         return;
     }
 
-    if (rule.triggerPeriodic() == 0)
-    {
-        // trigger on event
-        return;
-    }
-
     if (rule.triggerPeriodic() > 0)
-    {
+    {   // TODO DateTime, to prevent 24h bug
         if (rule.lastTriggeredTime().isValid() &&
             rule.lastTriggeredTime().elapsed() < rule.triggerPeriodic())
         {
@@ -1383,86 +1229,50 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
         }
     }
 
-    std::vector<RuleCondition>::const_iterator ci = rule.conditions().begin();
+    bool ok = true;
+    std::vector<RuleCondition>::const_iterator c = rule.conditions().begin();
     std::vector<RuleCondition>::const_iterator cend = rule.conditions().end();
 
-    for (; ci != cend; ++ci)
+    for (; c != cend; ++c)
     {
-        if (!ci->address().startsWith(QLatin1String("/sensors")))
+        Resource *resource = getResource(c->resource(), c->id());
+        ResourceItem *item = resource ? resource->item(c->suffix()) : 0;
+
+        if (!resource || !item)
         {
-            return;
+            DBG_Printf(DBG_INFO, "resouce %s : %s id: %s not found --> disable rule\n", c->resource(), c->suffix(), qPrintable(c->id()));
+            rule.setStatus(QLatin1String("disabled"));
+            ok = false;
+            break;
         }
 
-        Sensor *sensor = getSensorNodeForId(ci->id());
+        if (!item->lastSet().isValid()) { ok = false; break; }
 
-        if (!sensor)
+        if (c->op() == RuleCondition::OpEqual)
         {
-            return;
+            if (c->numericValue() != item->toNumber()) { ok = false; break; }
         }
-
-        if (!sensor->isAvailable())
+        else if (c->op() == RuleCondition::OpGreaterThan)
         {
-            return;
+            if (c->numericValue() < item->toNumber()) { ok = false; break; }
         }
-
-        if (ci->address().endsWith(QLatin1String("buttonevent")))
+        else if (c->op() == RuleCondition::OpLowerThan)
         {
-            return; // TODO
+            if (c->numericValue() > item->toNumber()) { ok = false; break; }
         }
-        else if (ci->address().endsWith(QLatin1String("illuminance")))
+        else if (c->op() == RuleCondition::OpDx)
         {
-            { // check if value is fresh enough
-                NodeValue &val = sensor->getZclValue(ILLUMINANCE_MEASUREMENT_CLUSTER_ID, 0x0000);
-
-                if (!val.timestamp.isValid() ||
-                     val.timestamp.elapsed() > MAX_RULE_ILLUMINANCE_VALUE_AGE_MS)
-                {
-                    if (val.timestampLastReadRequest.isValid() &&
-                        val.timestampLastReadRequest.elapsed() < (MAX_RULE_ILLUMINANCE_VALUE_AGE_MS / 2))
-                    {
-                        return;
-                    }
-
-                    std::vector<quint16> attrs;
-                    attrs.push_back(0x0000); // measured value
-                    DBG_Printf(DBG_INFO, "force read illuminance value of 0x%016llX\n", sensor->address().ext());
-                    if (readAttributes(sensor, sensor->fingerPrint().endpoint, ILLUMINANCE_MEASUREMENT_CLUSTER_ID, attrs))
-                    {
-                        val.timestampLastReadRequest.start();
-                    }
-
-                    return;
-                }
-            }
-
-            uint cval = ci->numericValue();
-
-            if (ci->op() == RuleCondition::OpLowerThan)
-            {
-                if (sensor->state().lux() >= cval)
-                {
-                    return; // condition not met
-                }
-            }
-            else if (ci->op() == RuleCondition::OpGreaterThan)
-            {
-                if (sensor->state().lux() <= cval)
-                {
-                    return; // condition not met
-                }
-            }
-            else
-            {
-                return; // unsupported condition operator
-            }
-        }
-        else
-        {
-            return; // unsupported condition address
+            if (!rule.lastVerify.isValid() || item->lastSet() < rule.lastVerify)
+            { ok = false; break; }
         }
     }
 
-    triggerRule(rule);
+    rule.lastVerify = QDateTime::currentDateTime();
+
+    if (ok)
+    {
+        triggerRule(rule);
+    }
 }
 
 /*! Triggers actions of a rule.
@@ -1558,9 +1368,9 @@ void DeRestPluginPrivate::verifyRuleBindingsTimerFired()
     {
         if (rule.state() == Rule::StateNormal)
         {
-            if ((rule.lastVerify + Rule::MaxVerifyDelay) < idleTotalCounter)
+            if ((rule.lastBindingVerify + Rule::MaxVerifyDelay) < idleTotalCounter)
             {
-                rule.lastVerify = idleTotalCounter;
+                rule.lastBindingVerify = idleTotalCounter;
                 queueCheckRuleBindings(rule);
             }
         }

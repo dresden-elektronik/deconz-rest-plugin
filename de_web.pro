@@ -90,6 +90,7 @@ HEADERS  = bindings.h \
            json.h \
            light_node.h \
            sqlite3.h \
+           resource.h \
            rest_node_base.h \
            rule.h \
            scene.h \
@@ -133,6 +134,7 @@ SOURCES  = authentification.cpp \
            permitJoin.cpp \
            scene.cpp \
            sensor.cpp \
+           resource.cpp \
            reset_device.cpp \
            rest_userparameter.cpp \
            zcl_tasks.cpp \

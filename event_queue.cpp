@@ -19,8 +19,27 @@ void DeRestPluginPrivate::eventQueueTimerFired()
     DBG_Assert(!eventQueue.empty());
 
     Event &e = eventQueue.front();
-    handleRuleEvent(e);
-    webSocketServer->broadcastTextMessage(e.toJSON());
+
+    // push sensor state updates through websocket
+    if (e.resource() == RSensors &&
+        strncmp(e.what(), "state/", 6) == 0)
+    {
+        Sensor *sensor = getSensorNodeForId(e.id());
+        ResourceItem *item = sensor ? sensor->item(e.what()) : 0;
+        if (sensor && item)
+        {
+            QVariantMap map;
+            map["t"] = QLatin1String("event");
+            map["r"] = QLatin1String("sensors");
+            map["id"] = e.id();
+            QVariantMap state;
+            state[e.what() + 6] = item->toVariant();
+            map["state"] = state;
+
+            webSocketServer->broadcastTextMessage(Json::serialize(map));
+        }
+    }
+
     eventQueue.pop_front();
 
     if (!eventQueue.empty())

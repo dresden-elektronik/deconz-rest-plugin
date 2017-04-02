@@ -193,9 +193,6 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
     bool ok;
     QVariant var = Json::parse(req.content, ok);
     QVariantMap map = var.toMap();
-    QVariantMap state;
-    QVariantMap config;
-
     QString type = map["type"].toString();
     Sensor sensor;
 
@@ -245,7 +242,7 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    if ((type == "Daylight") || (type == "ZGPSwitch"))
+    if (!type.startsWith(QLatin1String("CLIP")))
     {
         rsp.list.append(errorToMap(ERR_NOT_ALLOWED_SENSOR_TYPE, QString("/sensors"), QString("Not allowed to create sensor type")));
         rsp.httpStatus = HttpStatusBadRequest;
@@ -283,8 +280,7 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
         //setState optional
         if (map.contains("state"))
         {
-            SensorState newState;
-            state = map["state"].toMap();
+            QVariantMap state = map["state"].toMap();
 
             //check invalid parameter
             QVariantMap::const_iterator pi = state.begin();
@@ -300,30 +296,25 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
                 }
             }
 
-            if (!state["buttonevent"].isNull())
+            if (state.contains("buttonevent"))
             {
-                if (type != "CLIPSwitch" && type != "ZGPSwitch")
+                if (type != "CLIPSwitch")
                 {
                     rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors"), QString("parameter, buttonevent, not available")));
                     rsp.httpStatus = HttpStatusBadRequest;
                     return REQ_READY_SEND;
                 }
-                if ((state["buttonevent"].type() != QVariant::Double))
+
+                ResourceItem *item = sensor.addItem(DataTypeInt32, RStateButtonEvent);
+
+                if (!item || !item->setValue(state["buttonevent"]))
                 {
                     rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter buttonevent").arg(state["buttonevent"].toString())));
                     rsp.httpStatus = HttpStatusBadRequest;
                     return REQ_READY_SEND;
-                }
-
-
-                double buttonevent = state["buttonevent"].toDouble(&ok);
-
-                if (ok && (buttonevent >= 0) && (buttonevent <= INT_MAX))
-                {
-                    newState.setButtonevent(buttonevent);
-                }
+                }                
             }
-            if (!state["flag"].isNull())
+            if (state.contains("flag"))
             {
                 if (type != "CLIPGenericFlag")
                 {
@@ -331,15 +322,17 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
                     rsp.httpStatus = HttpStatusBadRequest;
                     return REQ_READY_SEND;
                 }
-                if ((state["flag"].type() != QVariant::Bool))
+
+                ResourceItem *item = sensor.addItem(DataTypeBool, RStateFlag);
+
+                if (!item || !item->setValue(state["flag"]))
                 {
                     rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter flag").arg(state["flag"].toString())));
                     rsp.httpStatus = HttpStatusBadRequest;
                     return REQ_READY_SEND;
                 }
-                newState.setFlag(state["flag"].toString());
             }
-            if (!state["status"].isNull())
+            if (state.contains("status"))
             {
                 if (type != "CLIPGenericStatus")
                 {
@@ -347,15 +340,17 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
                     rsp.httpStatus = HttpStatusBadRequest;
                     return REQ_READY_SEND;
                 }
-                if ((state["status"].type() == QVariant::String) || (state["status"].type() == QVariant::Bool))
+
+                ResourceItem *item = sensor.addItem(DataTypeInt32, RStateStatus);
+
+                if (!item || !item->setValue(state["status"]))
                 {
                     rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter status").arg(state["status"].toString())));
                     rsp.httpStatus = HttpStatusBadRequest;
                     return REQ_READY_SEND;
                 }
-                newState.setStatus(state["status"].toString());
             }
-            if (!state["presence"].isNull())
+            if (state.contains("presence"))
             {
                 if (type != "CLIPPresence")
                 {
@@ -363,15 +358,17 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
                     rsp.httpStatus = HttpStatusBadRequest;
                     return REQ_READY_SEND;
                 }
-                if ((state["presence"].type() != QVariant::Bool))
+
+                ResourceItem *item = sensor.addItem(DataTypeBool, RStatePresence);
+
+                if (!item || !item->setValue(state["presence"]))
                 {
                     rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter presence").arg(state["presence"].toString())));
                     rsp.httpStatus = HttpStatusBadRequest;
                     return REQ_READY_SEND;
                 }
-                newState.setPresence(state["presence"].toBool());
             }
-            if (!state["open"].isNull())
+            if (state.contains("open"))
             {
                 if (type != "CLIPOpenClose")
                 {
@@ -379,15 +376,17 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
                     rsp.httpStatus = HttpStatusBadRequest;
                     return REQ_READY_SEND;
                 }
-                if ((state["open"].type() != QVariant::Bool))
+
+                ResourceItem *item = sensor.addItem(DataTypeBool, RStateOpen);
+
+                if (!item || !item->setValue(state["open"]))
                 {
                     rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter open").arg(state["open"].toString())));
                     rsp.httpStatus = HttpStatusBadRequest;
                     return REQ_READY_SEND;
                 }
-                newState.setOpen(state["open"].toString());
             }
-            if (!state["temperature"].isNull())
+            if (state.contains("temperature"))
             {
                 if (type != "CLIPTemperature")
                 {
@@ -395,15 +394,17 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
                     rsp.httpStatus = HttpStatusBadRequest;
                     return REQ_READY_SEND;
                 }
-                if ((state["temperature"].type() == QVariant::String) || (state["temperature"].type() == QVariant::Bool))
+
+                ResourceItem *item = sensor.addItem(DataTypeInt32, RStateTemperature);
+
+                if (!item || !item->setValue(state["temperature"]))
                 {
                     rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter temperature").arg(state["temperature"].toString())));
                     rsp.httpStatus = HttpStatusBadRequest;
                     return REQ_READY_SEND;
                 }
-                newState.setTemperature(state["temperature"].toString());
             }
-            if (!state["humidity"].isNull())
+            if (state.contains("humidity"))
             {
                 if (type != "CLIPHumidity")
                 {
@@ -411,23 +412,22 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
                     rsp.httpStatus = HttpStatusBadRequest;
                     return REQ_READY_SEND;
                 }
-                if ((state["humidity"].type() == QVariant::String) || (state["humidity"].type() == QVariant::Bool))
+
+                ResourceItem *item = sensor.addItem(DataTypeInt32, RStateHumidity);
+
+                if (!item || !item->setValue(state["humidity"]))
                 {
                     rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter humidity").arg(state["humidity"].toString())));
                     rsp.httpStatus = HttpStatusBadRequest;
                     return REQ_READY_SEND;
                 }
-                newState.setHumidity(state["humidity"].toString());
             }
-
-            sensor.setState(newState);
         }
 
         //setConfig optional
         if (map.contains("config"))
         {
-            SensorConfig newConfig;
-            config = map["config"].toMap();
+            QVariantMap config = map["config"].toMap();
 
             //check invalid parameter
             QVariantMap::const_iterator pi = config.begin();
@@ -443,34 +443,34 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
                 }
             }
 
-            if (!config["on"].isNull())
+            if (config.contains("on"))
             {
-                newConfig.setOn(config["on"].toBool());
+                ResourceItem *item = sensor.addItem(DataTypeBool, RConfigOn);
+                item->setValue(config["on"]);
             }
-            if (!config["reachable"].isNull())
+            if (config.contains("reachable"))
             {
-                newConfig.setReachable(config["reachable"].toBool());
+                ResourceItem *item = sensor.addItem(DataTypeBool, RConfigReachable);
+                item->setValue(config["reachable"]);
             }
-            if (!config["url"].isNull())
+            if (config.contains("url"))
             {
-                newConfig.setUrl(config["url"].toString());
+                ResourceItem *item = sensor.addItem(DataTypeString, RConfigUrl);
+                item->setValue(config["url"]);
             }
-            if (!config["battery"].isNull())
+            if (config.contains("battery"))
             {
-                int battery = config["battery"].toInt(&ok);
-                if (!ok || (battery < 0) || (battery > 100))
+                ResourceItem *item = sensor.addItem(DataTypeUInt8, RConfigBattery);
+
+                if (!item || !item->setValue(config["battery"]))
                 {
                     rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/config"), QString("invalid value, %1, for parameter battery").arg(config["battery"].toString())));
                     rsp.httpStatus = HttpStatusBadRequest;
                     return REQ_READY_SEND;
                 }
-                newConfig.setBattery(battery);
             }
-
-            sensor.setConfig(newConfig);
         }
-        updateEtag(sensor.etag);
-        updateEtag(gwConfigEtag);
+        updateSensorEtag(&sensor);
         sensor.setNeedSaveDatabase(true);
         sensors.push_back(sensor);
         queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
@@ -669,16 +669,14 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 {
     QString id = req.path[3];
     Sensor *sensor = getSensorNodeForId(id);
-    SensorConfig config;
     bool ok;
-    bool error = false;
     QVariant var = Json::parse(req.content, ok);
     QVariantMap map = var.toMap();
     QVariantMap rspItem;
     QVariantMap rspItemState;
 
-    QRegExp latitude("^\\d{3,3}\\.\\d{4,4}(W|E)$");
-    QRegExp longitude("^\\d{3,3}\\.\\d{4,4}(N|S)$");
+//    QRegExp latitude("^\\d{3,3}\\.\\d{4,4}(W|E)$");
+//    QRegExp longitude("^\\d{3,3}\\.\\d{4,4}(N|S)$");
 
     rsp.httpStatus = HttpStatusOk;
 
@@ -696,8 +694,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
         return REQ_READY_SEND;
     }
 
-    config = sensor->config();
-
     userActivity();
 
     //check invalid parameter
@@ -706,191 +702,56 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 
     for (; pi != pend; ++pi)
     {
-        if(!((pi.key() == "duration") || (pi.key() == "battery") || (pi.key() == "url") || (pi.key() == "on") || (pi.key() == "reachable") || (pi.key() == "long")
-            || (pi.key() == "lat") || (pi.key() == "sunriseoffset") || (pi.key() == "sunsetoffset")))
+        ResourceItemDescriptor rid;
+        if (getResourceItemDescriptor(QString("config/%1").arg(pi.key()), rid))
         {
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/config/%2").arg(pi.key()), QString("parameter, %1, not available").arg(pi.key())));
-            rsp.httpStatus = HttpStatusBadRequest;
-            return REQ_READY_SEND;
-        }
-    }
+            ResourceItem *item = sensor->item(rid.suffix);
+            if (!item)
+            {
+                break; // not found
+            }
 
-    //check if values are modifiable
-    if (map.contains("reachable"))
-    {
-        error = true;
-        rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/config").arg(id), QString("parameter, reachable, not modifiable")));
-    }
-    if (map.contains("daylight"))
-    {
-        error = true;
-        rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/config").arg(id), QString("parameter, daylight, not modifiable")));
-    }
-    if (map.contains("on"))
-    {
-        if(sensor->type() == "Daylight")
-        {
-            error = true;
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/config").arg(id), QString("parameter, on, not modifiable")));
+            QVariant val = map[pi.key()];
+            if (item->setValue(val))
+            {
+                rspItemState[QString("/sensors/%1/config/%2").arg(id).arg(pi.key())] = val;
+                rspItem["success"] = rspItemState;
+
+                Event e(RSensors, rid.suffix, id);
+                enqueueEvent(e);
+            }
+            else // invalid
+            {
+                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                              QString("invalid value, %1, for parameter %2").arg(val.toString()).arg(pi.key())));
+                rsp.httpStatus = HttpStatusBadRequest;
+                return REQ_READY_SEND;
+            }
         }
-    }
-    if (map.contains("url"))
-    {
-        if(sensor->type() == "ZGPSwitch")
-        {
-            error = true;
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/config").arg(id), QString("parameter, url, not modifiable")));
-        }
-    }
-    if (map.contains("battery"))
-    {
-        if(sensor->type() == "ZGPSwitch")
-        {
-            error = true;
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/config").arg(id), QString("parameter, battery, not modifiable")));
-        }
-    }
-    if (map.contains("long"))
-    {
-        if(sensor->type() != "Daylight")
-        {
-            error = true;
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/config").arg(id), QString("parameter, long not modifiable")));
-        }
-    }
-    if (map.contains("lat"))
-    {
-        if(sensor->type() != "Daylight")
-        {
-            error = true;
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/config").arg(id), QString("parameter, lat, not modifiable")));
-        }
-    }
-    if (map.contains("sunsetoffset"))
-    {
-        if(sensor->type() != "Daylight")
-        {
-            error = true;
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/config").arg(id), QString("parameter, sunsetoffset, not modifiable")));
-        }
-    }
-    if (map.contains("sunriseoffset"))
-    {
-        if(sensor->type() != "Daylight")
-        {
-            error = true;
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/config").arg(id), QString("parameter, sunriseoffset, not modifiable")));
-        }
-    }
-    if (error)
-    {
+
+        // not found
+        rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()), QString("parameter, %1, not available").arg(pi.key())));
         rsp.httpStatus = HttpStatusBadRequest;
         return REQ_READY_SEND;
     }
 
-    //update values
-    if (map.contains("on"))
-    {
-        rspItemState[QString("/sensors/%1/config/on").arg(id)] = map["on"].toString();
-        rspItem["success"] = rspItemState;
-        config.setOn(map["on"].toBool());
-    }
-    if (map.contains("url"))
-    {
-        rspItemState[QString("/sensors/%1/config/url").arg(id)] = map["url"].toString();
-        rspItem["success"] = rspItemState;
-        config.setUrl(map["url"].toString());
-    }
-    if (map.contains("battery"))
-    {
-        int battery = map["battery"].toInt(&ok);
 
-        if (!ok || (battery < 0) || (battery > 100))
-        {
-            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config").arg(id), QString("invalid value, %1, for parameter battery").arg(map["battery"].toString())));
-            rsp.httpStatus = HttpStatusBadRequest;
-            return REQ_READY_SEND;
-        }
-        rspItemState[QString("/sensors/%1/config/battery").arg(id)] = map["battery"];
-        rspItem["success"] = rspItemState;
-        config.setBattery(battery);
-    }
-    if (map.contains("long"))
-    {
-        if ((map["long"].type() != QVariant::String) && (!map["long"].toString().contains(longitude)))
-        {
-            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config").arg(id), QString("invalid value, %1, for parameter long").arg(map["long"].toString())));
-            rsp.httpStatus = HttpStatusBadRequest;
-            return REQ_READY_SEND;
-        }
-        rspItemState[QString("/sensors/%1/config/on").arg(id)] = map["long"].toString();
-        rspItem["success"] = rspItemState;
-        config.setLongitude(map["long"].toString());
-    }
-    if (map.contains("lat"))
-    {
-        if ((map["lat"].type() != QVariant::String) && (!map["lat"].toString().contains(latitude)))
-        {
-            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config").arg(id), QString("invalid value, %1, for parameter lat").arg(map["lat"].toString())));
-            rsp.httpStatus = HttpStatusBadRequest;
-            return REQ_READY_SEND;
-        }
-        rspItemState[QString("/sensors/%1/config/lat").arg(id)] = map["lat"].toString();
-        rspItem["success"] = rspItemState;
-        config.setLat(map["lat"].toString());
-    }
-    if (map.contains("sunriseoffset"))
-    {
-        if (((map["sunriseoffset"].toInt() < -120) || (map["sunriseoffset"].toInt() > 120)) || (map["sunriseoffset"].type() == QVariant::String) || (map["sunriseoffset"].type() == QVariant::Bool))
-        {
-            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config").arg(id), QString("invalid value, %1, for parameter sunriseoffset").arg(map["sunriseoffset"].toString())));
-            rsp.httpStatus = HttpStatusBadRequest;
-            return REQ_READY_SEND;
-        }
-        rspItemState[QString("/sensors/%1/config/sunriseoffset").arg(id)] = map["sunriseoffset"];
-        rspItem["success"] = rspItemState;
-        config.setSunriseoffset(map["sunriseoffset"].toString());
-    }
-    if (map.contains("sunsetoffset"))
-    {
-        if (((map["sunsetoffset"].toInt() < -120) || (map["sunsetoffset"].toInt() > 120)) || (map["sunsetoffset"].type() == QVariant::String) || (map["sunsetoffset"].type() == QVariant::Bool))
-        {
-            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config").arg(id), QString("invalid value, %1, for parameter sunsetoffset").arg(map["sunsetoffset"].toString())));
-            rsp.httpStatus = HttpStatusBadRequest;
-            return REQ_READY_SEND;
-        }
-        rspItemState[QString("/sensors/%1/config/sunsetoffset").arg(id)] = map["sunsetoffset"];
-        rspItem["success"] = rspItemState;
-        config.setSunsetoffset(map["sunsetoffset"].toString());
-    }
-    if (map.contains("duration"))
-    {
-        double duration = map["duration"].toDouble(&ok);
-        if (!ok || (map["duration"].type() != QVariant::Double) || (duration < 0) || (duration > 65535))
-        {
-            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config").arg(id), QString("invalid value, %1, for parameter duration").arg(map["duration"].toString())));
-            rsp.httpStatus = HttpStatusBadRequest;
-            return REQ_READY_SEND;
-        }
-        rspItemState[QString("/sensors/%1/config/duration").arg(id)] = map["duration"].toString();
-        rspItem["success"] = rspItemState;
+    // TODO handle this in event, this is relevant for FLS-NB.
 
-        if (config.duration() != duration)
-        {
-            config.setDuration(duration);
-            DBG_Printf(DBG_INFO, "Force read/write of occupaction delay for sensor %s\n", qPrintable(sensor->address().toStringExt()));
-            sensor->enableRead(WRITE_OCCUPANCY_CONFIG);
-            sensor->setNextReadTime(WRITE_OCCUPANCY_CONFIG, QTime::currentTime());
-            Q_Q(DeRestPlugin);
-            q->startZclAttributeTimer(0);
-        }
-    }
+//    if (config.duration() != duration)
+//    {
+//        config.setDuration(duration);
+//        DBG_Printf(DBG_INFO, "Force read/write of occupaction delay for sensor %s\n", qPrintable(sensor->address().toStringExt()));
+//        sensor->enableRead(WRITE_OCCUPANCY_CONFIG);
+//        sensor->setNextReadTime(WRITE_OCCUPANCY_CONFIG, QTime::currentTime());
+//        Q_Q(DeRestPlugin);
+//        q->startZclAttributeTimer(0);
+//    }
 
-    sensor->setConfig(config);
     sensor->setNeedSaveDatabase(true);
     rsp.list.append(rspItem);
-    updateEtag(sensor->etag);
-    updateEtag(gwConfigEtag);
+    updateSensorEtag(sensor);
+
     queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
 
     return REQ_READY_SEND;
@@ -904,9 +765,7 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
 {
     QString id = req.path[3];
     Sensor *sensor = getSensorNodeForId(id);
-    SensorState state;
     bool ok;
-    bool error = false;
     QVariant var = Json::parse(req.content, ok);
     QVariantMap map = var.toMap();
     QVariantMap rspItem;
@@ -928,7 +787,7 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
         return REQ_READY_SEND;
     }
 
-    state = sensor->state();
+    bool isClip = sensor->type().startsWith(QLatin1String("CLIP"));
 
     userActivity();
 
@@ -938,191 +797,42 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
 
     for (; pi != pend; ++pi)
     {
-        if(!((pi.key() == "lastupdated") || (pi.key() == "flag") || (pi.key() == "status") || (pi.key() == "presence")
-            || (pi.key() == "open") || (pi.key() == "buttonevent") || (pi.key() == "temperature") || (pi.key() == "humidity") || (pi.key() == "daylight")))
+        ResourceItemDescriptor rid;
+        if (isClip && getResourceItemDescriptor(QString("state/%1").arg(pi.key()), rid))
         {
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/config/%2").arg(pi.key()), QString("parameter, %1, not available").arg(pi.key())));
-            rsp.httpStatus = HttpStatusBadRequest;
-            return REQ_READY_SEND;
-        }
-    }
+            ResourceItem *item = sensor->item(rid.suffix);
+            if (!item)
+            {
+                break; // not found
+            }
 
-    //check if values are modifiable
-    if (map.contains("lastupdated"))
-    {
-        error = true;
-        rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/state/lastupdated").arg(id), QString("parameter, lastupdated, not modifiable")));
-    }
-    if (map.contains("flag"))
-    {
-        if(sensor->type() != "CLIPGenericFlag")
-        {
-            error = true;
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/state/flag"), QString("parameter, flag, not modifiable")));
+            QVariant val = map[pi.key()];
+            if (item->setValue(val))
+            {
+                rspItemState[QString("/sensors/%1/state/%2").arg(id).arg(pi.key())] = val;
+                rspItem["success"] = rspItemState;
+
+                Event e(RSensors, rid.suffix, id);
+                enqueueEvent(e);
+            }
+            else // invalid
+            {
+                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/state/%2").arg(id).arg(pi.key()),
+                                                              QString("invalid value, %1, for parameter %2").arg(val.toString()).arg(pi.key())));
+                rsp.httpStatus = HttpStatusBadRequest;
+                return REQ_READY_SEND;
+            }
         }
-    }
-    if (map.contains("status"))
-    {
-        if(sensor->type() != "CLIPGenericStatus")
-        {
-            error = true;
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/state/status"), QString("parameter, status, not modifiable")));
-        }
-    }
-    if (map.contains("presence"))
-    {
-        if(sensor->type() != "CLIPPresence")
-        {
-            error = true;
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/state/presence"), QString("parameter, presence, not modifiable")));
-        }
-    }
-    if (map.contains("open"))
-    {
-        if(sensor->type() != "CLIPOpenClose")
-        {
-            error = true;
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/state/open"), QString("parameter, open, not modifiable")));
-        }
-    }
-    if (map.contains("buttonevent"))
-    {
-        if((sensor->type() != "CLIPSwitch"))
-        {
-            error = true;
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/state/buttonevent"), QString("parameter, buttonevent, not modifiable")));
-        }
-    }
-    if (map.contains("temperature"))
-    {
-        if(sensor->type() != "CLIPTemperature")
-        {
-            error = true;
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/state/temperature"), QString("parameter, temperature, not modifiable")));
-        }
-    }
-    if (map.contains("humidity"))
-    {
-        if(sensor->type() != "CLIPHumidity")
-        {
-            error = true;
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/state/humidity"), QString("parameter, humidity, not modifiable")));
-        }
-    }
-    if (map.contains("daylight"))
-    {
-        error = true;
-        rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/state/lastupdated").arg(id), QString("parameter, daylight, not modifiable")));
-    }
-    if (error)
-    {
+
+        // not found
+        rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/state/%2").arg(id).arg(pi.key()), QString("parameter, %1, not available").arg(pi.key())));
         rsp.httpStatus = HttpStatusBadRequest;
         return REQ_READY_SEND;
     }
 
-    //update values
-    if (map.contains("flag"))
-    {
-        if ((map["flag"].type() != QVariant::Bool))
-        {
-            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/state").arg(id), QString("invalid value, %1, for parameter flag").arg(map["flag"].toString())));
-            rsp.httpStatus = HttpStatusBadRequest;
-            return REQ_READY_SEND;
-        }
-            rspItemState[QString("/sensors/%1/state/flag").arg(id)] = map["flag"];
-            rspItem["success"] = rspItemState;
-            state.setFlag(map["flag"].toString());
-    }
-    if (map.contains("status"))
-    {
-        if ((map["status"].type() == QVariant::String) || (map["status"].type() == QVariant::Bool))
-        {
-            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/state").arg(id), QString("invalid value, %1, for parameter status").arg(map["status"].toString())));
-            rsp.httpStatus = HttpStatusBadRequest;
-            return REQ_READY_SEND;
-        }
-            rspItemState[QString("/sensors/%1/state/status").arg(id)] = map["status"];
-            rspItem["success"] = rspItemState;
-            state.setStatus(map["status"].toString());
-    }
-    if (map.contains("presence"))
-    {
-        if ((map["presence"].type() != QVariant::Bool))
-        {
-            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/state").arg(id), QString("invalid value, %1, for parameter presence").arg(map["presence"].toString())));
-            rsp.httpStatus = HttpStatusBadRequest;
-            return REQ_READY_SEND;
-        }
-            rspItemState[QString("/sensors/%1/state/presence").arg(id)] = map["presence"];
-            rspItem["success"] = rspItemState;
-            state.setPresence(map["presence"].toBool());
-    }
-    if (map.contains("open"))
-    {
-        if ((map["open"].type() != QVariant::Bool))
-        {
-            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/state").arg(id), QString("invalid value, %1, for parameter open").arg(map["open"].toString())));
-            rsp.httpStatus = HttpStatusBadRequest;
-            return REQ_READY_SEND;
-        }
-            rspItemState[QString("/sensors/%1/state/open").arg(id)] = map["open"];
-            rspItem["success"] = rspItemState;
-            state.setOpen(map["open"].toString());
-    }
-    if (map.contains("buttonevent"))
-    {
-        if (map["buttonevent"].type() != QVariant::Double)
-        {
-            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/state").arg(id), QString("invalid value, %1, for parameter buttonevent").arg(map["buttonevent"].toString())));
-            rsp.httpStatus = HttpStatusBadRequest;
-            return REQ_READY_SEND;
-        }
-
-        double buttonevent = map["buttonevent"].toDouble(&ok);
-
-        if (ok && (buttonevent >= 0) && (buttonevent <= INT_MAX))
-        {
-            state.setButtonevent(buttonevent);
-            rspItemState[QString("/sensors/%1/state/buttonevent").arg(id)] = map["buttonevent"];
-            rspItem["success"] = rspItemState;
-        }
-        else
-        {
-            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/state").arg(id), QString("invalid value, %1, for parameter buttonevent").arg(map["buttonevent"].toString())));
-            rsp.httpStatus = HttpStatusBadRequest;
-            return REQ_READY_SEND;
-        }
-    }
-    if (map.contains("temperature"))
-    {
-        if ((map["temperature"].type() == QVariant::String) || (map["temperature"].type() == QVariant::Bool))
-        {
-            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/state").arg(id), QString("invalid value, %1, for parameter temperature").arg(map["temperature"].toString())));
-            rsp.httpStatus = HttpStatusBadRequest;
-            return REQ_READY_SEND;
-        }
-            rspItemState[QString("/sensors/%1/state/temperature").arg(id)] = map["temperature"];
-            rspItem["success"] = rspItemState;
-            state.setTemperature(map["temperature"].toString());
-    }
-    if (map.contains("humidity"))
-    {
-        if ((map["humidity"].type() == QVariant::String) || (map["humidity"].type() == QVariant::Bool))
-        {
-            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/state").arg(id), QString("invalid value, %1, for parameter humidity").arg(map["humidity"].toString())));
-            rsp.httpStatus = HttpStatusBadRequest;
-            return REQ_READY_SEND;
-        }
-            rspItemState[QString("/sensors/%1/state/humidity").arg(id)] = map["humidity"];
-            rspItem["success"] = rspItemState;
-            state.setHumidity(map["humidity"].toString());
-    }
-
-    sensor->setState(state);
     sensor->setNeedSaveDatabase(true);
     rsp.list.append(rspItem);
-    updateEtag(sensor->etag);
-    updateEtag(gwConfigEtag);
+    updateSensorEtag(sensor);
     queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
 
     return REQ_READY_SEND;
@@ -1273,99 +983,53 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map)
     QVariantMap state;
     QVariantMap config;
 
+    for (int i = 0; i < sensor->itemCount(); i++)
+    {
+        const ResourceItem *item = sensor->itemForIndex(i);
+        const ResourceItemDescriptor &rid = item->descriptor();
+
+        if (!item->lastSet().isValid())
+        {
+            continue;
+        }
+
+        if (strncmp(rid.suffix, "config/", 7) == 0)
+        {
+            const char *key = item->descriptor().suffix + 7;
+            config[key] = item->toVariant();
+        }
+    }
+
+    QDateTime lastUpdated;
+
+    for (int i = 0; i < sensor->itemCount(); i++)
+    {
+        const ResourceItem *item = sensor->itemForIndex(i);
+        const ResourceItemDescriptor &rid = item->descriptor();
+
+        if (!item->lastSet().isValid())
+        {
+            continue;
+        }
+
+        if (strncmp(rid.suffix, "state/", 6) == 0)
+        {
+            const char *key = item->descriptor().suffix + 6;
+            state[key] = item->toVariant();
+
+            if (item->lastSet().isValid() &&
+                (!lastUpdated.isValid() || lastUpdated < item->lastSet()))
+            {
+                lastUpdated = item->lastSet();
+            }
+        }
+    }
+
     //state
-    if (!sensor->state().lastupdated().isEmpty())
+    if (lastUpdated.isValid())
     {
-        state["lastupdated"] = sensor->state().lastupdated();
+        state["lastupdated"] = lastUpdated.toString("yyyy-MM-ddTHH:mm:ss");
     }
-    if (sensor->type().endsWith(QLatin1String("Light")))
-    {
-        state["lux"] = (double)sensor->state().lux();
-    }
-    else if (sensor->type().endsWith(QLatin1String("Presence")))
-    {
-        state["presence"] = sensor->state().presence();
-
-        if (sensor->config().duration() >= 0)
-        {
-            config["duration"] = sensor->config().duration();
-        }
-    }
-    else if (sensor->type().endsWith(QLatin1String("Temperature")))
-    {
-        if (!sensor->state().temperature().isEmpty())
-        {
-            state["temperature"] = sensor->state().temperature().toInt();
-        }
-    }
-    else if (sensor->type().endsWith(QLatin1String("Switch")))
-    {
-        if (sensor->state().buttonevent() >= 0)
-        {
-            state["buttonevent"] = (double)sensor->state().buttonevent();
-        }
-    }
-    else
-    {
-        if (!sensor->state().flag().isEmpty())
-        {
-            state["flag"] = (sensor->state().flag() == "true")?true:false;
-        }
-        if (!sensor->state().status().isEmpty())
-        {
-            state["status"] = sensor->state().status().toInt();
-        }
-        if (!sensor->state().open().isEmpty())
-        {
-            state["open"] = (sensor->state().open() == "true")?true:false;
-        }
-        if (!sensor->state().humidity().isEmpty())
-        {
-            state["humidity"] = sensor->state().humidity().toInt();
-        }
-        if (!sensor->state().daylight().isEmpty())
-        {
-            state["daylight"] = (sensor->state().daylight() == "true")?true:false;
-        }
-    }
-
-    //config
-    config["on"] = sensor->config().on();
-
-//config
-    config["on"] = sensor->config().on();
-
-    if (sensor->type() != QLatin1String("ZGPSwitch"))
-    {
-        config["reachable"] = sensor->config().reachable();
-    }
-
-    if (sensor->config().battery() <= 100) // valid value?
-    {
-        config["battery"] = (double)sensor->config().battery();
-    }
-
-    if (!sensor->config().url().isEmpty())
-    {
-        config["url"] = sensor->config().url();
-    }
-    if (!sensor->config().longitude().isEmpty())
-    {
-        config["long"] = sensor->config().longitude();
-    }
-    if (!sensor->config().lat().isEmpty())
-    {
-        config["lat"] = sensor->config().lat();
-    }
-    if (!sensor->config().sunriseoffset().isEmpty())
-    {
-        config["sunriseoffset"] = sensor->config().sunriseoffset().toInt();
-    }
-    if (!sensor->config().sunsetoffset().isEmpty())
-    {
-        config["sunsetoffset"] = sensor->config().sunsetoffset().toInt();
-    }
-
 
     //sensor
     map["name"] = sensor->name();
@@ -1478,10 +1142,10 @@ void DeRestPluginPrivate::checkInstaModelId(Sensor *sensor)
  */
 void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
-    if (findSensorsState != FindSensorsActive)
-    {
-        return;
-    }
+//    if (findSensorsState != FindSensorsActive)
+//    {
+//        return;
+//    }
 
     if (ind.profileId() == ZDP_PROFILE_ID && ind.clusterId() == ZDP_DEVICE_ANNCE_CLID)
     {
@@ -1523,7 +1187,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
         fastProbeAddr.setNwk(nwk);
         if (!fastProbeTimer->isActive())
         {
-            fastProbeTimer->start();
+            fastProbeTimer->start(1000);
         }
 
         std::vector<SensorCandidate>::const_iterator i = findSensorCandidates.begin();
@@ -1556,7 +1220,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
             {
                 if (!fastProbeTimer->isActive())
                 {
-                    fastProbeTimer->start();
+                    fastProbeTimer->start(100);
                 }
             }
         }
@@ -1792,15 +1456,20 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
             sensorNode.address() = sc->address;
             sensorNode.setType("ZHASwitch");
             sensorNode.fingerPrint() = fp;
-            sensorNode.setUniqueId(generateUniqueId(sensorNode.address().ext(), sensorNode.fingerPrint().endpoint));
+            sensorNode.setUniqueId(generateUniqueId(sensorNode.address().ext(), sensorNode.fingerPrint().endpoint, COMMISSIONING_CLUSTER_ID));
             sensorNode.setManufacturer(QLatin1String("dresden elektronik"));
 
-            SensorConfig sensorConfig;
-            sensorConfig.setReachable(true);
-            sensorNode.setConfig(sensorConfig);
+            ResourceItem *item;
+            item = sensorNode.addItem(DataTypeBool, RConfigOn);
+            item->setValue(true);
+
+            item = sensorNode.addItem(DataTypeBool, RConfigReachable);
+            item->setValue(true);
+
+            sensorNode.addItem(DataTypeInt32, RStateButtonEvent);
 
             sensorNode.setNeedSaveDatabase(true);
-            updateEtag(sensorNode.etag);
+            updateSensorEtag(&sensorNode);
 
             bool update = false;
 
@@ -1842,7 +1511,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
                     sensorNode.setName(QString("Lighting Switch %1").arg(sensorNode.id()));
                     sensorNode.setNeedSaveDatabase(true);
                     sensorNode.fingerPrint().endpoint = 0x02;
-                    sensorNode.setUniqueId(generateUniqueId(sensorNode.address().ext(), sensorNode.fingerPrint().endpoint));
+                    sensorNode.setUniqueId(generateUniqueId(sensorNode.address().ext(), sensorNode.fingerPrint().endpoint, COMMISSIONING_CLUSTER_ID));
                     sensors.push_back(sensorNode);
                     s2 = &sensors.back();
                     update = true;
@@ -1891,7 +1560,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
                 group.setAddress(group1);
                 group.addDeviceMembership(s1->id());
                 group.setName(QString("%1").arg(s1->name()));
-                updateEtag(group.etag);
+                updateGroupEtag(&group);
                 groups.push_back(group);
                 update = true;
             }
@@ -1916,7 +1585,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
 
                 if (g->addDeviceMembership(s1->id()))
                 {
-                    updateEtag(g->etag);
+                    updateGroupEtag(g);
                     update = true;
                 }
             }
@@ -1933,7 +1602,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
                 group.setAddress(group2);
                 group.addDeviceMembership(s2->id());
                 group.setName(QString("%1").arg(s2->name()));
-                updateEtag(group.etag);
+                updateGroupEtag(&group);
                 groups.push_back(group);
             }
             else if (g && s2)
@@ -1957,7 +1626,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
 
                 if (g->addDeviceMembership(s2->id()))
                 {
-                    updateEtag(g->etag);
+                    updateGroupEtag(g);
                     update = true;
                 }
             }

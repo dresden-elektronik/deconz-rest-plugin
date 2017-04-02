@@ -63,15 +63,16 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
         DBG_Printf(DBG_ZCL, "IAS Zone Status Change, status: 0x%04X, zoneId: %u, delay: %u\n", zoneStatus, zoneId, delay);
 
         Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
+        ResourceItem *item = sensor ? sensor->item(RStatePresence) : 0;
 
-        if (sensor)
+        if (sensor && item)
         {
             bool presence = zoneStatus & (STATUS_ALARM1 | STATUS_ALARM2);
-            sensor->state().setPresence(presence);
-            sensor->state().updateTimestamp();
+            item->setValue(presence);
+
             updateSensorEtag(sensor);
 
-            Event e(EResourceSensors, EStatePresence, sensor->id(), presence);
+            Event e(RSensors, RStatePresence, sensor->id());
             enqueueEvent(e);
         }
 

@@ -22,7 +22,9 @@
 #endif
 #include "sqlite3.h"
 #include <deconz.h>
+#include "resource.h"
 #include "event.h"
+#include "resource.h"
 #include "rest_node_base.h"
 #include "light_node.h"
 #include "group.h"
@@ -633,7 +635,6 @@ public:
 
     bool checkActions(QVariantList actionsList, ApiResponse &rsp);
     bool checkConditions(QVariantList conditionsList, ApiResponse &rsp);
-    void handleRuleEvent(const Event &event);
 
     // REST API common
     QVariantMap errorToMap(int id, const QString &ressource, const QString &description);
@@ -674,6 +675,7 @@ public:
     bool resetConfiguration(bool resetGW, bool deleteDB);
 
 public Q_SLOTS:
+    Resource *getResource(const char *resource, const QString &id = QString());
     void announceUpnp();
     void upnpReadyRead();
     void apsdeDataIndication(const deCONZ::ApsDataIndication &ind);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -13,6 +13,7 @@
 
 #include <QString>
 #include <deconz.h>
+#include "resource.h"
 #include "rest_node_base.h"
 #include "json.h"
 
@@ -32,85 +33,6 @@
 #define S_BUTTON_6   6000
 #define S_BUTTON_7   7000
 #define S_BUTTON_8   8000
-
-class SensorState
-{
-public:
-    SensorState();
-
-    const QString &lastupdated() const;
-    void setLastupdated(const QString &lastupdated);
-    void updateTimestamp();
-    const QString &flag() const;
-    void setFlag(const QString &flag);
-    const QString &status() const;
-    void setStatus(const QString &status);
-    bool presence() const;
-    void setPresence(bool presence);
-    const QString &open() const;
-    void setOpen(const QString &open);
-    int buttonevent() const;
-    void setButtonevent(int buttonevent);
-    const QString &temperature() const;
-    void setTemperature(const QString &temperature);
-    const QString &humidity() const;
-    void setHumidity(const QString &humidity);
-    const QString &daylight() const;
-    void setDaylight(const QString &daylight);
-    quint32 lux() const;
-    void setLux(quint32 lux);
-
-private:
-    QString m_lastupdated;
-    QString m_flag;//bool
-    QString m_status;//int
-    bool m_presence;//bool
-    QString m_open;//bool
-    int m_buttonevent;
-    QString m_temperature;//int
-    QString m_humidity;//int
-    QString m_daylight;//bool
-    quint32 m_lux;
-};
-
-
-// Sensor Config
-
-class SensorConfig
-{
-public:
-    SensorConfig();
-
-    bool on() const;
-    void setOn(bool on);
-    bool reachable() const;
-    void setReachable(bool reachable);
-    double duration() const;
-    void setDuration(double duration);
-    quint8 battery() const;
-    void setBattery(quint8 battery);
-    const QString &url() const;
-    void setUrl(const QString &url);
-    const QString &longitude() const;
-    void setLongitude(const QString &longitude);
-    const QString &lat() const;
-    void setLat(const QString &lat);
-    const QString &sunriseoffset() const;
-    void setSunriseoffset(const QString &sunriseoffset);
-    const QString &sunsetoffset() const;
-    void setSunsetoffset(const QString &sunsetoffset);
-
-private:
-    bool m_on;
-    bool m_reachable;
-    double  m_duration;
-    quint8 m_battery;
-    QString m_url;
-    QString m_long;
-    QString m_lat;
-    QString m_sunriseoffset;//int8
-    QString m_sunsetoffset; //int8
-};
 
 struct SensorFingerprint
 {
@@ -139,7 +61,8 @@ struct SensorFingerprint
 
     Represents a HA based Sensor.
  */
-class Sensor : public RestNodeBase
+class Sensor : public Resource,
+               public RestNodeBase
 {
 public:    
     enum SensorMode
@@ -181,11 +104,6 @@ public:
     void setManufacturer(const QString &manufacturer);
     const QString &swVersion() const;
     void setSwVersion(const QString &swversion);
-    SensorState &state();
-    const SensorState &state() const;
-    void setState(const SensorState &state);
-    const SensorConfig &config() const;
-    void setConfig(const SensorConfig &config);
     SensorMode mode() const;
     void setMode(SensorMode mode);
     uint8_t resetRetryCount() const;
@@ -193,11 +111,11 @@ public:
     uint8_t zdpResetSeq() const;
     void setZdpResetSeq(uint8_t zdpResetSeq);
 
-    static QString stateToString(const SensorState &state);
-    static QString configToString(const SensorConfig &config);
+    QString stateToString();
+    QString configToString();
 
-    static SensorState jsonToState(const QString &json);
-    static SensorConfig jsonToConfig(const QString &json);
+    void jsonToState(const QString &json);
+    void jsonToConfig(const QString &json);
     SensorFingerprint &fingerPrint();
     const SensorFingerprint &fingerPrint() const;
 
@@ -211,8 +129,6 @@ private:
     QString m_modelid;
     QString m_manufacturer;
     QString m_swversion;
-    SensorState m_state;
-    SensorConfig m_config;
     SensorFingerprint m_fingerPrint;
     SensorMode m_mode;
     uint8_t m_resetRetryCount;

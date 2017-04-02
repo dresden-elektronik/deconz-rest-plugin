@@ -1445,6 +1445,9 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
     Sensor sensor;
     DeRestPluginPrivate *d = static_cast<DeRestPluginPrivate*>(user);
 
+    int configCol = -1;
+    int stateCol = -1;
+
     for (int i = 0; i < ncols; i++)
     {
         if (colval[i] && (colval[i][0] != '\0'))
@@ -1491,13 +1494,11 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             else if (strcmp(colname[i], "state") == 0)
             {
-                sensor.setState(Sensor::jsonToState(val));
+                stateCol = i;
             }
             else if (strcmp(colname[i], "config") == 0)
             {
-                SensorConfig config = Sensor::jsonToConfig(val);
-                config.setReachable(false); // will be set later on
-                sensor.setConfig(config);
+                configCol = i;
             }
             else if (strcmp(colname[i], "fingerprint") == 0)
             {
@@ -1545,6 +1546,14 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             return 0;
         }
 
+        sensor.addItem(DataTypeBool, RConfigOn);
+        sensor.addItem(DataTypeBool, RConfigReachable);
+
+        if (sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
+        {
+            sensor.addItem(DataTypeUInt8, RConfigBattery);
+        }
+
         if (sensor.type().endsWith(QLatin1String("Switch")))
         {
             if (sensor.fingerPrint().hasInCluster(COMMISSIONING_CLUSTER_ID))
@@ -1555,6 +1564,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = ONOFF_CLUSTER_ID;
             }
+            sensor.addItem(DataTypeInt32, RStateButtonEvent);
         }
         else if (sensor.type().endsWith(QLatin1String("Light")))
         {
@@ -1562,6 +1572,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = ILLUMINANCE_MEASUREMENT_CLUSTER_ID;
             }
+            sensor.addItem(DataTypeUInt16, RStateLightLevel);
         }
         else if (sensor.type().endsWith(QLatin1String("Temperature")))
         {
@@ -1569,6 +1580,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = TEMPERATURE_MEASUREMENT_CLUSTER_ID;
             }
+            sensor.addItem(DataTypeInt32, RStateTemperature);
         }
         else if (sensor.type().endsWith(QLatin1String("Presence")))
         {
@@ -1580,6 +1592,19 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = IAS_ZONE_CLUSTER_ID;
             }
+            sensor.addItem(DataTypeBool, RStatePresence);
+        }
+
+        if (stateCol >= 0)
+        {
+            sensor.jsonToState(QLatin1String(colval[stateCol]));
+        }
+        // set later
+        sensor.item(RConfigReachable)->setValue(false);
+
+        if (configCol >= 0)
+        {
+            sensor.jsonToConfig(QLatin1String(colval[configCol]));
         }
 
         QString uid = d->generateUniqueId(extAddr, sensor.fingerPrint().endpoint, clusterId);
@@ -2575,8 +2600,8 @@ void DeRestPluginPrivate::saveDb()
                 continue;
             }
             */
-            QString stateJSON = Sensor::stateToString(i->state());
-            QString configJSON = Sensor::configToString(i->config());
+            QString stateJSON = i->stateToString();
+            QString configJSON = i->configToString();
             QString fingerPrintJSON = i->fingerPrint().toString();
             QString deletedState((i->deletedState() == Sensor::StateDeleted ? "deleted" : "normal"));
 
