@@ -1166,7 +1166,7 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
 
             sensorNode.address().setExt(ind.gpdSrcId());
             sensorNode.fingerPrint() = fp;
-            sensorNode.setUniqueId(generateUniqueId(sensorNode.address().ext(), sensorNode.fingerPrint().endpoint));
+            sensorNode.setUniqueId(generateUniqueId(sensorNode.address().ext(), sensorNode.fingerPrint().endpoint, GREEN_POWER_CLUSTER_ID));
 
             SensorConfig sensorConfig;
             sensorConfig.setReachable(true);
@@ -1356,7 +1356,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
             if (lightNode2->uniqueId().isEmpty() || lightNode2->uniqueId().startsWith("0x"))
             {
-                QString uid = generateUniqueId(lightNode2->address().ext(), lightNode2->haEndpoint().endpoint());
+                QString uid = generateUniqueId(lightNode2->address().ext(), lightNode2->haEndpoint().endpoint(), 0);
                 lightNode2->setUniqueId(uid);
                 lightNode2->setNeedSaveDatabase(true);
                 updateEtag(lightNode2->etag);
@@ -1455,7 +1455,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             lightNode.address() = node->address();
             lightNode.setManufacturerCode(node->nodeDescriptor().manufacturerCode());
 
-            QString uid = generateUniqueId(lightNode.address().ext(), lightNode.haEndpoint().endpoint());
+            QString uid = generateUniqueId(lightNode.address().ext(), lightNode.haEndpoint().endpoint(), 0);
             lightNode.setUniqueId(uid);
 
             openDb();
@@ -2438,12 +2438,51 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     sensorNode.address() = node->address();
     sensorNode.setType(type);
     sensorNode.fingerPrint() = fingerPrint;
-    QString uid = generateUniqueId(sensorNode.address().ext(), sensorNode.fingerPrint().endpoint);
-    sensorNode.setUniqueId(uid);
+    quint16 clusterId = 0;
 
     SensorConfig sensorConfig;
     sensorConfig.setReachable(true);
     sensorNode.setConfig(sensorConfig);
+
+    if (sensorNode.type().endsWith(QLatin1String("Switch")))
+    {
+        if (sensorNode.fingerPrint().hasInCluster(COMMISSIONING_CLUSTER_ID))
+        {
+            clusterId = COMMISSIONING_CLUSTER_ID;
+        }
+        else if (sensorNode.fingerPrint().hasOutCluster(ONOFF_CLUSTER_ID))
+        {
+            clusterId = ONOFF_CLUSTER_ID;
+        }
+    }
+    else if (sensorNode.type().endsWith(QLatin1String("Light")))
+    {
+        if (sensorNode.fingerPrint().hasInCluster(ILLUMINANCE_MEASUREMENT_CLUSTER_ID))
+        {
+            clusterId = ILLUMINANCE_MEASUREMENT_CLUSTER_ID;
+        }
+    }
+    else if (sensorNode.type().endsWith(QLatin1String("Temperature")))
+    {
+        if (sensorNode.fingerPrint().hasInCluster(TEMPERATURE_MEASUREMENT_CLUSTER_ID))
+        {
+            clusterId = TEMPERATURE_MEASUREMENT_CLUSTER_ID;
+        }
+    }
+    else if (sensorNode.type().endsWith(QLatin1String("Presence")))
+    {
+        if (sensorNode.fingerPrint().hasInCluster(OCCUPANCY_SENSING_CLUSTER_ID))
+        {
+            clusterId = OCCUPANCY_SENSING_CLUSTER_ID;
+        }
+        else if (sensorNode.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
+        {
+            clusterId = IAS_ZONE_CLUSTER_ID;
+        }
+    }
+
+    QString uid = generateUniqueId(sensorNode.address().ext(), sensorNode.fingerPrint().endpoint, clusterId);
+    sensorNode.setUniqueId(uid);
 
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_DDEL)
     {
@@ -8589,7 +8628,7 @@ uint8_t DeRestPluginPrivate::endpoint()
     return 0;
 }
 
-QString DeRestPluginPrivate::generateUniqueId(quint64 extAddress, quint8 endpoint)
+QString DeRestPluginPrivate::generateUniqueId(quint64 extAddress, quint8 endpoint, quint16 clusterId)
 {
     QString uid;
     union _a
@@ -8599,10 +8638,20 @@ QString DeRestPluginPrivate::generateUniqueId(quint64 extAddress, quint8 endpoin
     } a;
     a.mac = extAddress;
 
-    uid.sprintf("%02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X-%02X",
-                a.bytes[7], a.bytes[6], a.bytes[5], a.bytes[4],
-                a.bytes[3], a.bytes[2], a.bytes[1], a.bytes[0],
-                endpoint);
+    if (clusterId != 0)
+    {
+        uid.sprintf("%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x-%02x-%04x",
+                    a.bytes[7], a.bytes[6], a.bytes[5], a.bytes[4],
+                    a.bytes[3], a.bytes[2], a.bytes[1], a.bytes[0],
+                    endpoint, clusterId);
+    }
+    else
+    {
+        uid.sprintf("%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x-%02x",
+                    a.bytes[7], a.bytes[6], a.bytes[5], a.bytes[4],
+                    a.bytes[3], a.bytes[2], a.bytes[1], a.bytes[0],
+                    endpoint);
+    }
     return uid;
 }
 

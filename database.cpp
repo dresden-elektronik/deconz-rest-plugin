@@ -1636,20 +1636,74 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         }
     }
 
-    if (!sensor.id().isEmpty() && !sensor.name().isEmpty() && !sensor.uniqueId().isEmpty())
+    if (!sensor.id().isEmpty() && !sensor.name().isEmpty() && !sensor.type().isEmpty())
     {
         bool ok;
+        quint64 extAddr = 0;
+        quint16 clusterId = 0;
         DBG_Printf(DBG_INFO_L2, "DB found sensor %s %s\n", qPrintable(sensor.name()), qPrintable(sensor.id()));
 
         // convert from old format 0x0011223344556677 to 00:11:22:33:44:55:66:77-AB where AB is the endpoint
         if (sensor.uniqueId().startsWith(QLatin1String("0x")))
         {
-            quint64 extAddr = sensor.uniqueId().toULongLong(&ok, 16);
-            if (ok)
+            extAddr = sensor.uniqueId().toULongLong(&ok, 16);
+        }
+        else
+        {
+            QString mac = sensor.uniqueId(); // need copy
+            mac = mac.remove(':').split('-').first();
+            extAddr = mac.toULongLong(&ok, 16);
+        }
+
+        if (extAddr == 0)
+        {
+            return 0;
+        }
+
+        if (sensor.type().endsWith(QLatin1String("Switch")))
+        {
+            if (sensor.fingerPrint().hasInCluster(COMMISSIONING_CLUSTER_ID))
             {
-                sensor.setUniqueId(d->generateUniqueId(extAddr, sensor.fingerPrint().endpoint));
-                sensor.setNeedSaveDatabase(true);
+                clusterId = COMMISSIONING_CLUSTER_ID;
             }
+            else if (sensor.fingerPrint().hasOutCluster(ONOFF_CLUSTER_ID))
+            {
+                clusterId = ONOFF_CLUSTER_ID;
+            }
+        }
+        else if (sensor.type().endsWith(QLatin1String("Light")))
+        {
+            if (sensor.fingerPrint().hasInCluster(ILLUMINANCE_MEASUREMENT_CLUSTER_ID))
+            {
+                clusterId = ILLUMINANCE_MEASUREMENT_CLUSTER_ID;
+            }
+        }
+        else if (sensor.type().endsWith(QLatin1String("Temperature")))
+        {
+            if (sensor.fingerPrint().hasInCluster(TEMPERATURE_MEASUREMENT_CLUSTER_ID))
+            {
+                clusterId = TEMPERATURE_MEASUREMENT_CLUSTER_ID;
+            }
+        }
+        else if (sensor.type().endsWith(QLatin1String("Presence")))
+        {
+            if (sensor.fingerPrint().hasInCluster(OCCUPANCY_SENSING_CLUSTER_ID))
+            {
+                clusterId = OCCUPANCY_SENSING_CLUSTER_ID;
+            }
+            else if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
+            {
+                clusterId = IAS_ZONE_CLUSTER_ID;
+            }
+        }
+
+        QString uid = d->generateUniqueId(extAddr, sensor.fingerPrint().endpoint, clusterId);
+
+        if (uid != sensor.uniqueId())
+        {
+            // update to new format
+            sensor.setUniqueId(uid);
+            sensor.setNeedSaveDatabase(true);
         }
 
         // temp. workaround for default value of 'two groups' which is only supported by lighting switch
@@ -1662,9 +1716,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         }
 
         // check doubles, split uid into mac address and endpoint
-        QString mac = sensor.uniqueId(); // need copy
-        mac = mac.remove(':').split('-').first();
-        quint64 extAddr = mac.toULongLong(&ok, 16);
+
         if (ok)
         {
             Sensor *s = d->getSensorNodeForFingerPrint(extAddr, sensor.fingerPrint(), sensor.type());
@@ -1673,8 +1725,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 sensor.address().setExt(extAddr);
                 // append to cache if not already known
-                d->updateEtag(sensor.etag);
                 d->sensors.push_back(sensor);
+                d->updateSensorEtag(&d->sensors.back());
             }
         }
     }

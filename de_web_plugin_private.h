@@ -845,7 +845,7 @@ public:
     void pushClientForClose(QTcpSocket *sock, int closeTimeout);
 
     uint8_t endpoint();
-    QString generateUniqueId(quint64 extAddress, quint8 endpoint);
+    QString generateUniqueId(quint64 extAddress, quint8 endpoint, quint16 clusterId);
 
     // Task interface
     bool addTask(const TaskItem &task);
