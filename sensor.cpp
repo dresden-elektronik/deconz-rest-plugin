@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -243,6 +243,36 @@ bool SensorFingerprint::readFromJsonString(const QString &json)
         }
 
         return true;
+    }
+
+    return false;
+}
+
+/*! Returns true if server cluster is part of the finger print.
+ */
+bool SensorFingerprint::hasInCluster(quint16 clusterId) const
+{
+    for (size_t i = 0; i < inClusters.size(); i++)
+    {
+        if (inClusters[i] == clusterId)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/*! Returns true if server cluster is part of the finger print.
+ */
+bool SensorFingerprint::hasOutCluster(quint16 clusterId) const
+{
+    for (size_t i = 0; i < outClusters.size(); i++)
+    {
+        if (outClusters[i] == clusterId)
+        {
+            return true;
+        }
     }
 
     return false;

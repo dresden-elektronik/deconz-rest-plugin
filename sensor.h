@@ -126,6 +126,8 @@ struct SensorFingerprint
     QString toString() const;
     bool readFromJsonString(const QString &json);
     bool hasEndpoint() const { return endpoint != 0xFF; }
+    bool hasInCluster(quint16 clusterId) const;
+    bool hasOutCluster(quint16 clusterId) const;
     quint8 endpoint;
     quint16 profileId;
     quint16 deviceId;
