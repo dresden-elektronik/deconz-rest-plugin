@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -53,6 +53,30 @@ static int checkZclAttributesDelay = 750;
 static int ReadAttributesLongDelay = 5000;
 //static int ReadAttributesLongerDelay = 60000;
 static uint MaxGroupTasks = 4;
+
+struct SupportedDevice {
+    quint16 vendorId;
+    const char *modelId;
+};
+
+static const SupportedDevice supportedDevices[] = {
+    { VENDOR_BUSCH_JAEGER, "RB01" },
+    { VENDOR_BUSCH_JAEGER, "RM01" },
+    { VENDOR_CLIMAX, "LM_00.00.03.02TC" },
+    { VENDOR_CLIMAX, "IR_00.00.03.03TC" },
+    { VENDOR_DDEL, "Lighting Switch" },
+    { VENDOR_DDEL, "Scene Switch" },
+    { VENDOR_DDEL, "FLS-NB1" },
+    { VENDOR_DDEL, "FLS-NB2" },
+    { VENDOR_INSTA, "Remote" },
+    { VENDOR_INSTA, "HS_4f_GJ_1" },
+    { VENDOR_INSTA, "WS_4f_J_1" },
+    { VENDOR_INSTA, "WS_3f_G_1" },
+    { VENDOR_PHILIPS, "RWL020" },
+    { VENDOR_PHILIPS, "RWL021" },
+    { VENDOR_PHILIPS, "SML001" },
+    { 0, 0 }
+};
 
 ApiRequest::ApiRequest(const QHttpRequestHeader &h, const QStringList &p, QTcpSocket *s, const QString &c) :
     hdr(h), path(p), sock(s), content(c), version(ApiVersion_1)
@@ -2279,11 +2303,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
     }
 
     // check for new sensors
+    QString modelId;
     QList<deCONZ::SimpleDescriptor>::const_iterator i = node->simpleDescriptors().constBegin();
     QList<deCONZ::SimpleDescriptor>::const_iterator end = node->simpleDescriptors().constEnd();
 
     for (;i != end; ++i)
     {
+        bool supportedDevice = false;
         SensorFingerprint fpSwitch;
         SensorFingerprint fpLightSensor;
         SensorFingerprint fpPresenceSensor;
@@ -2318,6 +2344,21 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                 {
                 case BASIC_CLUSTER_ID:
                 {
+                    std::vector<deCONZ::ZclAttribute>::const_iterator i = ci->attributes().begin();
+                    std::vector<deCONZ::ZclAttribute>::const_iterator end = ci->attributes().end();
+
+                    if (modelId.isEmpty())
+                    {
+                        for (; i != end; ++i)
+                        {
+                            if (i->id() == 0x0005) // model id
+                            {
+                                modelId = i->toString().trimmed();
+                                break;
+                            }
+                        }
+                    }
+                    supportedDevice = isDeviceSupported(node, modelId);
                     fpSwitch.inClusters.push_back(ci->id());
                 }
                     break;
@@ -2352,6 +2393,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                     break;
                 }
             }
+        }
+
+        if (!supportedDevice)
+        {
+            return;
         }
 
         Sensor *sensor = 0;
@@ -2932,6 +2978,29 @@ void DeRestPluginPrivate::checkAllSensorsAvailable()
     {
         checkSensorNodeReachable(&(*i));
     }
+}
+
+/*! Returns true if the device is supported.
+ */
+bool DeRestPluginPrivate::isDeviceSupported(const deCONZ::Node *node, const QString &modelId)
+{
+    if (!node || modelId.isEmpty())
+    {
+        return false;
+    }
+
+    const SupportedDevice *s = supportedDevices;
+    while (s->modelId)
+    {
+        if (node->nodeDescriptor().manufacturerCode() == s->vendorId &&
+            modelId == QLatin1String(s->modelId))
+        {
+            return true;
+        }
+        s++;
+    }
+
+    return false;
 }
 
 /*! Returns the first Sensor for its given \p id or 0 if not found.

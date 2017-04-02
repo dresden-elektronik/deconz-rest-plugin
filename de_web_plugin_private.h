@@ -796,6 +796,7 @@ public:
     void checkSensorButtonEvent(Sensor *sensor, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
     void updateSensorNode(const deCONZ::NodeEvent &event);
     void checkAllSensorsAvailable();
+    bool isDeviceSupported(const deCONZ::Node *node, const QString &modelId);
     Sensor *getSensorNodeForAddressAndEndpoint(const deCONZ::Address &addr, quint8 ep);
     Sensor *getSensorNodeForAddress(quint64 extAddr);
     Sensor *getSensorNodeForAddress(const deCONZ::Address &addr);
