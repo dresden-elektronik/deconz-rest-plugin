@@ -2364,6 +2364,18 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                 }
                     break;
 
+                case POWER_CONFIGURATION_CLUSTER_ID:
+                {
+                    if (node->nodeDescriptor().manufacturerCode() == VENDOR_PHILIPS)
+                    {
+                        fpSwitch.inClusters.push_back(ci->id());
+
+                        fpPresenceSensor.inClusters.push_back(ci->id());
+                        fpLightSensor.inClusters.push_back(ci->id());
+                    }
+                }
+                    break;
+
                 case COMMISSIONING_CLUSTER_ID:
                 {
                     fpSwitch.inClusters.push_back(ci->id());
@@ -2726,6 +2738,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             {
             case ILLUMINANCE_MEASUREMENT_CLUSTER_ID:
             case OCCUPANCY_SENSING_CLUSTER_ID:
+            case POWER_CONFIGURATION_CLUSTER_ID:
             case BASIC_CLUSTER_ID:
                 break;
 
@@ -2738,15 +2751,16 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             continue;
         }
 
-        // filter endpoint
-        if (event.endpoint() != i->fingerPrint().endpoint)
-        {
-            continue;
-        }
-
 
         if (event.clusterId() != BASIC_CLUSTER_ID)
-        { // assume data must be in server cluster attribute
+        {
+            // filter endpoint
+            if (event.endpoint() != i->fingerPrint().endpoint)
+            {
+                continue;
+            }
+
+            // assume data must be in server cluster attribute
             bool found = false;
             std::vector<quint16>::const_iterator ci = i->fingerPrint().inClusters.begin();
             std::vector<quint16>::const_iterator cend = i->fingerPrint().inClusters.end();
@@ -2788,7 +2802,29 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                         updateType = NodeValue::UpdateByZclReport;
                     }
 
-                    if (event.clusterId() == ILLUMINANCE_MEASUREMENT_CLUSTER_ID)
+                    if (event.clusterId() == POWER_CONFIGURATION_CLUSTER_ID)
+                    {
+                        for (;ia != enda; ++ia)
+                        {
+                            if (ia->id() == 0x0021) // battery percentage remaining
+                            {
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                }
+
+
+                                int bat = ia->numericValue().u8 / 2;
+
+                                // Specifies the remaining battery life as a half integer percentage of the full battery capacity (e.g., 34.5%, 45%,
+                                // 68.5%, 90%) with a range between zero and 100%, with 0x00 = 0%, 0x64 = 50%, and 0xC8 = 100%. This is
+                                // particularly suited for devices with rechargeable batteries.
+
+                                updateSensorEtag(&*i);
+                            }
+                        }
+                    }
+                    else if (event.clusterId() == ILLUMINANCE_MEASUREMENT_CLUSTER_ID)
                     {
                         for (;ia != enda; ++ia)
                         {
@@ -5444,12 +5480,14 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         switch (event.clusterId())
         {
         // sensor node?
+        case POWER_CONFIGURATION_CLUSTER_ID:
         case ONOFF_SWITCH_CONFIGURATION_CLUSTER_ID:
         case ILLUMINANCE_MEASUREMENT_CLUSTER_ID:
         case ILLUMINANCE_LEVEL_SENSING_CLUSTER_ID:
         case OCCUPANCY_SENSING_CLUSTER_ID:
         case BASIC_CLUSTER_ID:
             {
+                addSensorNode(event.node());
                 updateSensorNode(event);
             }
             break;
