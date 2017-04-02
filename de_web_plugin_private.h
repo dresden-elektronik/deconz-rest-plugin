@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -117,6 +117,7 @@
 #define MAX_ENHANCED_HUE 65535
 
 #define BASIC_CLUSTER_ID 0x0000
+#define POWER_CONFIGURATION_CLUSTER_ID 0x0001
 #define IDENTIFY_CLUSTER_ID 0x0003
 #define GROUP_CLUSTER_ID 0x0004
 #define SCENE_CLUSTER_ID 0x0005
@@ -126,6 +127,7 @@
 #define COLOR_CLUSTER_ID 0x0300
 #define ILLUMINANCE_MEASUREMENT_CLUSTER_ID   0x0400
 #define ILLUMINANCE_LEVEL_SENSING_CLUSTER_ID 0x0401
+#define TEMPERATURE_MEASUREMENT_CLUSTER_ID   0x0402
 #define OCCUPANCY_SENSING_CLUSTER_ID         0x0406
 #define IAS_ZONE_CLUSTER_ID 0x0500
 #define OTAU_CLUSTER_ID  0x0019
@@ -170,6 +172,7 @@
 #define VENDOR_UBISYS   0x10F2
 #define VENDOR_BUSCH_JAEGER 0x112E
 #define VENDOR_BEGA 0x1105
+#define VENDOR_CLIMAX   0x0000
 
 #define ANNOUNCE_INTERVAL 10 // minutes default announce interval
 
@@ -697,6 +700,7 @@ public Q_SLOTS:
     void saveDatabaseTimerFired();
     void userActivity();
     bool sendBindRequest(BindingTask &bt);
+    bool sendConfigureReportingRequest(BindingTask &bt);
     void checkLightBindingsForAttributeReporting(LightNode *lightNode);
     void checkSensorBindingsForAttributeReporting(Sensor *sensor);
     void bindingTimerFired();
@@ -878,6 +882,7 @@ public:
     void handleMgmtLeaveRspIndication(const deCONZ::ApsDataIndication &ind);
     void handleDEClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZclAttributeReportIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void sendZclDefaultResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, quint8 status);
     void broadCastNodeUpdate(LightNode *webNode);
     void markForPushUpdate(LightNode *lightNode);
     void taskToLocalData(const TaskItem &task);

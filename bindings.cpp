@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -426,6 +426,10 @@ void DeRestPluginPrivate::handleBindAndUnbindRspIndication(const deCONZ::ApsData
             if (status == deCONZ::ZdpSuccess)
             {
                 DBG_Printf(DBG_INFO, "%s response success\n", what);
+                if (ind.clusterId() == ZDP_BIND_RSP_CLID)
+                {
+                    sendConfigureReportingRequest(*i);
+                }
             }
             else
             {
@@ -485,6 +489,114 @@ bool DeRestPluginPrivate::sendBindRequest(BindingTask &bt)
 
     if (apsCtrl && (apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success))
     {
+        return true;
+    }
+
+    return false;
+}
+
+/*! Sends a ZCL configure attribute reporting request.
+    \param bt a former binding task
+ */
+bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
+{
+    if (!bt.restNode)
+    {
+        return false;
+    }
+
+    quint8 direction = 0x00;
+    quint8 dataType;
+    quint16 attributeId;
+    quint16 minInterval;
+    quint16 maxInterval;
+    quint8 reportableChange8bit = 0;
+    quint16 reportableChange16bit = 0;
+
+    if (bt.binding.clusterId == OCCUPANCY_SENSING_CLUSTER_ID)
+    {
+        dataType = deCONZ::Zcl8BitBitMap;
+        attributeId = 0x0000; // occupancy
+        minInterval = 1;
+        maxInterval = 300;
+    }
+    else if (bt.binding.clusterId == ILLUMINANCE_MEASUREMENT_CLUSTER_ID)
+    {
+        dataType = deCONZ::Zcl16BitUint;
+        attributeId = 0x0000; // measured value
+        minInterval = 5;
+        maxInterval = 300;
+        reportableChange16bit = 2000;
+    }
+    else if (bt.binding.clusterId == TEMPERATURE_MEASUREMENT_CLUSTER_ID)
+    {
+        dataType = deCONZ::Zcl16BitInt;
+        attributeId = 0x0000; // measured value
+        minInterval = 10;
+        maxInterval = 300;
+        reportableChange16bit = 20;
+    }
+    else if (bt.binding.clusterId == POWER_CONFIGURATION_CLUSTER_ID)
+    {
+        dataType = deCONZ::Zcl8BitUint;
+        attributeId = 0x0021; // battery percentage remaining
+        minInterval = 300;
+        maxInterval = 300;
+        reportableChange8bit = 1;
+    }
+    else
+    {
+        return false;
+    }
+
+    deCONZ::ApsDataRequest apsReq;
+
+    // ZDP Header
+    apsReq.dstAddress() = bt.restNode->address();
+    apsReq.setDstAddressMode(deCONZ::ApsExtAddress);
+    apsReq.setDstEndpoint(bt.binding.srcEndpoint);
+    apsReq.setSrcEndpoint(endpoint());
+    apsReq.setProfileId(HA_PROFILE_ID);
+    apsReq.setRadius(0);
+    apsReq.setClusterId(bt.binding.clusterId);
+    apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+
+    deCONZ::ZclFrame zclFrame;
+    zclFrame.setSequenceNumber(zclSeq++);
+    zclFrame.setCommandId(deCONZ::ZclConfigureReportingId);
+    zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                             deCONZ::ZclFCDirectionClientToServer |
+                             deCONZ::ZclFCDisableDefaultResponse);
+
+    { // payload
+        QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        stream << direction;
+        stream << attributeId;
+        stream << dataType;
+        stream << minInterval;
+        stream << maxInterval;
+
+        if (reportableChange16bit)
+        {
+            stream << reportableChange16bit;
+        }
+        else if (reportableChange8bit)
+        {
+            stream << reportableChange8bit;
+        }
+    }
+
+    { // ZCL frame
+        QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        zclFrame.writeToStream(stream);
+    }
+
+    if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+    {
+        queryTime = queryTime.addSecs(1);
         return true;
     }
 
@@ -578,14 +690,23 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         return;
     }
 
-    if (sensor->node() && sensor->node()->isEndDevice())
+    bool endDeviceSupported = false;
+    // whitelist
+        // Climax
+    if (sensor->modelId() == QLatin1String("LM_00.00.03.02TC") ||
+        // Philips
+        sensor->modelId() == QLatin1String("SML001") ||
+        sensor->modelId() == QLatin1String("RWL020") ||
+        sensor->modelId() == QLatin1String("RWL021"))
     {
-        // whitelist
-        if (sensor->modelId() != QLatin1String("LM_00.00.03.02TC"))
-        {
-            DBG_Printf(DBG_INFO, "don't create binding for attribute reporting of end-device %s\n", qPrintable(sensor->name()));
-            return;
-        }
+        endDeviceSupported = true;
+        sensor->setMgmtBindSupported(false);
+    }
+
+    if (!endDeviceSupported && (!sensor->node() || sensor->node()->isEndDevice()))
+    {
+        DBG_Printf(DBG_INFO, "don't create binding for attribute reporting of end-device %s\n", qPrintable(sensor->name()));
+        return;
     }
 
     // prevent binding action if otau was busy recently
@@ -604,7 +725,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
     if (gwReportingEnabled)
     {
         if (sensor->modelId().startsWith(QLatin1String("FLS-NB")) ||
-            sensor->modelId() == QLatin1String("LM_00.00.03.02TC"))
+            endDeviceSupported)
         {
             action = BindingTask::ActionBind;
         }
@@ -622,11 +743,18 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         {
             val = sensor->getZclValue(*i, 0x0000); // measured value
         }
+        else if (*i == TEMPERATURE_MEASUREMENT_CLUSTER_ID)
+        {
+            val = sensor->getZclValue(*i, 0x0000); // measured value
+        }
         else if (*i == OCCUPANCY_SENSING_CLUSTER_ID)
         {
             val = sensor->getZclValue(*i, 0x0000); // occupied state
         }
-
+        else if (*i == POWER_CONFIGURATION_CLUSTER_ID)
+        {
+            val = sensor->getZclValue(*i, 0x0021); // battery percentage remaining
+        }
 
         if (val.timestampLastReport.isValid() &&
             val.timestampLastReport.secsTo(QTime::currentTime()) < (60 * 45)) // got update in timely manner
@@ -637,8 +765,10 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
 
         switch (*i)
         {
+        case POWER_CONFIGURATION_CLUSTER_ID:
         case OCCUPANCY_SENSING_CLUSTER_ID:
         case ILLUMINANCE_MEASUREMENT_CLUSTER_ID:
+        case TEMPERATURE_MEASUREMENT_CLUSTER_ID:
         {
             DBG_Printf(DBG_INFO, "create binding for attribute reporting of cluster 0x%04X\n", (*i));
 

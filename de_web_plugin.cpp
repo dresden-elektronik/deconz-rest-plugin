@@ -135,7 +135,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     sensorTypes.append("ZHAPresence");
 
     fastProbeTimer = new QTimer(this);
-    fastProbeTimer->setInterval(50);
+    fastProbeTimer->setInterval(500);
     fastProbeTimer->setSingleShot(true);
     connect(fastProbeTimer, SIGNAL(timeout()), this, SLOT(delayedFastEnddeviceProbe()));
 
@@ -399,6 +399,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             break;
         }
 
+        handleIndicationFindSensors(ind, zclFrame);
         if (ind.dstAddressMode() == deCONZ::ApsGroupAddress)
         {
             foundGroup(ind.dstAddress().group());
@@ -417,8 +418,6 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
         {
             handleZclAttributeReportIndication(ind, zclFrame);
         }
-
-        handleIndicationFindSensors(ind, zclFrame);
     }
     else if (ind.profileId() == ZDP_PROFILE_ID)
     {
@@ -4736,6 +4735,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
 {
     Q_UNUSED(zclFrame);
 
+    if (!(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
+    {
+        sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus);
+    }
+
     if (otauLastBusyTimeDelta() < (60 * 60))
     {
         if ((idleTotalCounter - otauUnbindIdleTotalCounter) > 5)
@@ -4763,6 +4767,45 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
                 queueBindingTask(bindingTask);
             }
         }
+    }
+}
+
+void DeRestPluginPrivate::sendZclDefaultResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, quint8 status)
+{
+   deCONZ::ApsDataRequest apsReq;
+
+    // ZDP Header
+    apsReq.dstAddress() = ind.srcAddress();
+    apsReq.setDstAddressMode(ind.srcAddressMode());
+    apsReq.setDstEndpoint(ind.srcEndpoint());
+    apsReq.setSrcEndpoint(ind.dstEndpoint());
+    apsReq.setProfileId(ind.profileId());
+    apsReq.setRadius(0);
+    apsReq.setClusterId(ind.clusterId());
+
+    deCONZ::ZclFrame outZclFrame;
+    outZclFrame.setSequenceNumber(zclFrame.sequenceNumber());
+    outZclFrame.setCommandId(deCONZ::ZclDefaultResponseId);
+    outZclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                             deCONZ::ZclFCDirectionClientToServer |
+                             deCONZ::ZclFCDisableDefaultResponse);
+
+    { // ZCL payload
+        QDataStream stream(&outZclFrame.payload(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        stream << zclFrame.commandId();
+        stream << status;
+    }
+
+    { // ZCL frame
+        QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        outZclFrame.writeToStream(stream);
+    }
+
+    if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+    {
+        queryTime = queryTime.addSecs(1);
     }
 }
 
@@ -6968,6 +7011,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
 
         if (node->nodeDescriptor().isNull())
         {
+            DBG_Printf(DBG_INFO, "[1] get node descriptor for 0x%016llx\n", sc->address.ext());
             deCONZ::ApsDataRequest apsReq;
 
             // ZDP Header
@@ -6997,6 +7041,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
 
         if (node->endpoints().empty())
         {
+            DBG_Printf(DBG_INFO, "[2] get active endpoints for 0x%016llx\n", sc->address.ext());
             deCONZ::ApsDataRequest apsReq;
 
             // ZDP Header
@@ -7043,6 +7088,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
 
                 if (ep) // fetch this
                 {
+                    DBG_Printf(DBG_INFO, "[3] get simple descriptor 0x%02X for 0x%016llx\n", ep, sc->address.ext());
                     deCONZ::ApsDataRequest apsReq;
 
                     // ZDP Header
@@ -7075,9 +7121,11 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
         }
 
         // model id, sw build id
-        if (sensor && (sensor->modelId().isEmpty() || sensor->swVersion().isEmpty()))
+        if (!sensor /*&& (sensor->modelId().isEmpty() || sensor->swVersion().isEmpty())*/)
         {
             deCONZ::ApsDataRequest apsReq;
+
+            DBG_Printf(DBG_INFO, "[4] get model id, sw build id for 0x%016llx\n", sc->address.ext());
 
             // ZDP Header
             apsReq.dstAddress() = sc->address;
@@ -7119,51 +7167,15 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
             return;
         }
 
-        // get group identifiers
-        #if 0
+        std::vector<Sensor>::iterator i = sensors.begin();
+        std::vector<Sensor>::iterator end = sensors.end();
+        for (; i != end; i++)
         {
-            deCONZ::ApsDataRequest apsReq;
-
-            // ZDP Header
-            apsReq.dstAddress().setExt(ext);
-            apsReq.setDstAddressMode(deCONZ::ApsExtAddress);
-            apsReq.setDstEndpoint(0x01);
-            apsReq.setSrcEndpoint(endpoint());
-            apsReq.setProfileId(HA_PROFILE_ID);
-            apsReq.setRadius(0);
-            apsReq.setClusterId(COMMISSIONING_CLUSTER_ID);
-            apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
-            apsReq.setSendDelay(2000);
-
-            deCONZ::ZclFrame zclFrame;
-            zclFrame.setSequenceNumber(zclSeq++);
-            zclFrame.setCommandId(0x41); // get group identifiers cmd
-            zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
-                                     deCONZ::ZclFCDirectionClientToServer |
-                                     deCONZ::ZclFCDisableDefaultResponse);
-
-            { // payload
-                QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
-                stream.setByteOrder(QDataStream::LittleEndian);
-
-                quint8 startIndex = 0;
-                stream << startIndex;
-            }
-
-            { // ZCL frame
-                QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
-                stream.setByteOrder(QDataStream::LittleEndian);
-                zclFrame.writeToStream(stream);
-            }
-
-            deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
-
-            if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+            if (i->address().ext() == sc->address.ext())
             {
-                queryTime = queryTime.addSecs(1);
+                checkSensorBindingsForAttributeReporting(&*i);
             }
         }
-        #endif
     }
 }
 
@@ -7171,6 +7183,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
  */
 void DeRestPluginPrivate::fastProbeBuschJaeger(quint64 ext, quint16 nwk, quint8 macCapabilities)
 {
+    Q_UNUSED(macCapabilities);
     // known devices have endpoints 0x0A
 
     // if (!(macCapabilities & deCONZ::MacDeviceIsFFD))
