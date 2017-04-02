@@ -2404,8 +2404,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
         Sensor *sensor = 0;
 
         // ZHASwitch
-        std::vector<quint16> c = fpSwitch.inClusters;
-        if ((std::find(c.begin(), c.end(), ONOFF_SWITCH_CONFIGURATION_CLUSTER_ID) != c.end()) || !fpSwitch.outClusters.empty()) // (!fpSwitch.inClusters.empty() || !fpSwitch.outClusters.empty())
+        if (fpSwitch.hasInCluster(ONOFF_SWITCH_CONFIGURATION_CLUSTER_ID) || !fpSwitch.outClusters.empty()) // (!fpSwitch.inClusters.empty() || !fpSwitch.outClusters.empty())
         {
             fpSwitch.endpoint = i->endpoint();
             fpSwitch.deviceId = i->deviceId();
@@ -2415,7 +2414,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
 
             if (!sensor)
             {
-                addSensorNode(node, fpSwitch, "ZHASwitch");
+                addSensorNode(node, fpSwitch, "ZHASwitch", modelId);
             }
             else
             {
@@ -2424,7 +2423,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
         }
 
         // ZHALight
-        if (!fpLightSensor.inClusters.empty() || !fpLightSensor.outClusters.empty())
+        if (fpLightSensor.hasInCluster(ILLUMINANCE_MEASUREMENT_CLUSTER_ID))
         {
             fpLightSensor.endpoint = i->endpoint();
             fpLightSensor.deviceId = i->deviceId();
@@ -2433,7 +2432,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
             sensor = getSensorNodeForFingerPrint(node->address().ext(), fpLightSensor, "ZHALight");
             if (!sensor)
             {
-                addSensorNode(node, fpLightSensor, "ZHALight");
+                addSensorNode(node, fpLightSensor, "ZHALight", modelId);
             }
             else
             {
@@ -2442,7 +2441,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
         }
 
         // ZHAPresence
-        if (!fpPresenceSensor.inClusters.empty() || !fpPresenceSensor.outClusters.empty())
+        if (fpPresenceSensor.hasInCluster(OCCUPANCY_SENSING_CLUSTER_ID) || fpPresenceSensor.hasInCluster(IAS_ZONE_CLUSTER_ID))
         {
             fpPresenceSensor.endpoint = i->endpoint();
             fpPresenceSensor.deviceId = i->deviceId();
@@ -2451,9 +2450,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
             sensor = getSensorNodeForFingerPrint(node->address().ext(), fpPresenceSensor, "ZHAPresence");
             if (!sensor)
             {
-                addSensorNode(node, fpPresenceSensor, "ZHAPresence");
+                addSensorNode(node, fpPresenceSensor, "ZHAPresence", modelId);
             }
-            else
+            else if (!node->isEndDevice())
             {
                 //sensor->setLastRead(idleTotalCounter);
                 sensor->enableRead(READ_OCCUPANCY_CONFIG);
@@ -2467,7 +2466,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
     }
 }
 
-void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFingerprint &fingerPrint, const QString &type)
+void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFingerprint &fingerPrint, const QString &type, const QString &modelId)
 {
     DBG_Assert(node != 0);
     if (!node)
@@ -2482,6 +2481,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     sensorNode.address() = node->address();
     sensorNode.setType(type);
     sensorNode.fingerPrint() = fingerPrint;
+    sensorNode.setModelId(modelId);
     quint16 clusterId = 0;
 
     SensorConfig sensorConfig;
@@ -2631,7 +2631,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         }
     }
 
-    DBG_Printf(DBG_INFO, "SensorNode %u: %s added\n", sensorNode.id().toUInt(), qPrintable(sensorNode.name()));
+    DBG_Printf(DBG_INFO, "SensorNode %s: %s added\n", qPrintable(sensorNode.id()), qPrintable(sensorNode.name()));
 
     sensorNode.setNeedSaveDatabase(true);
     sensors.push_back(sensorNode);
