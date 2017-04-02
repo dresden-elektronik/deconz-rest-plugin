@@ -68,6 +68,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_DDEL, "Scene Switch" },
     { VENDOR_DDEL, "FLS-NB1" },
     { VENDOR_DDEL, "FLS-NB2" },
+    { VENDOR_IKEA, "TRADFRI remote control" },
     { VENDOR_INSTA, "Remote" },
     { VENDOR_INSTA, "HS_4f_GJ_1" },
     { VENDOR_INSTA, "WS_4f_J_1" },
@@ -2550,6 +2551,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_BEGA)
     {
         sensorNode.setManufacturer("BEGA Gantenbrink-Leuchten KG");
+    }
+    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA)
+    {
+        sensorNode.setManufacturer("IKEA of Sweden");
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_INSTA)
     {
