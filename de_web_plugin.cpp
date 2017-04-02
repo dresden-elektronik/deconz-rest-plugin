@@ -1172,9 +1172,6 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             sensorConfig.setReachable(true);
             sensorNode.setConfig(sensorConfig);
 
-            openDb();
-            loadSensorNodeFromDb(&sensorNode);
-            closeDb();
 
             if (sensorNode.id().isEmpty())
             {
@@ -2513,9 +2510,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         sensorNode.setManufacturer("Insta");
         checkInstaModelId(&sensorNode);
     }
-    openDb();
-    loadSensorNodeFromDb(&sensorNode);
-    closeDb();
 
     if (sensorNode.id().isEmpty())
     {

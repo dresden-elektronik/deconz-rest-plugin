@@ -916,7 +916,6 @@ public:
     void loadAllScenesFromDb();
     void loadAllSchedulesFromDb();
     void loadLightNodeFromDb(LightNode *lightNode);
-    void loadSensorNodeFromDb(Sensor *sensorNode);
     void loadGroupFromDb(Group *group);
     void loadSceneFromDb(Scene *scene);
     void loadAllRulesFromDb();

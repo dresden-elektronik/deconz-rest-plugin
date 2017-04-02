@@ -24,7 +24,6 @@ static int sqliteLoadAuthCallback(void *user, int ncols, char **colval , char **
 static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteLoadUserparameterCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteLoadLightNodeCallback(void *user, int ncols, char **colval , char **colname);
-static int sqliteLoadSensorNodeCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteLoadAllGroupsCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteLoadGroupCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteLoadAllScenesCallback(void *user, int ncols, char **colval , char **colname);
@@ -1165,120 +1164,6 @@ void DeRestPluginPrivate::loadLightNodeFromDb(LightNode *lightNode)
                     DBG_Printf(DBG_INFO, "detected already used id %s, force generate new id\n", qPrintable(i->id()));
                     lightNode->setId("");
                     queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
-                }
-            }
-        }
-    }
-}
-
-/*! Sqlite callback to load data for a node (identified by its mac address).
- */
-static int sqliteLoadSensorNodeCallback(void *user, int ncols, char **colval , char **colname)
-{
-    DBG_Assert(user != 0);
-
-    if (!user || (ncols <= 0))
-    {
-        return 0;
-    }
-
-    Sensor *sensorNode = static_cast<Sensor*>(user);
-
-    for (int i = 0; i < ncols; i++)
-    {
-        if (colval[i] && (colval[i][0] != '\0'))
-        {
-            QString val = QString::fromUtf8(colval[i]);
-
-            if (strcmp(colname[i], "name") == 0)
-            {
-                sensorNode->setName(val);
-
-                if (sensorNode->node())
-                {
-                    sensorNode->node()->setUserDescriptor(sensorNode->name());
-                }
-            }
-            else if (strcmp(colname[i], "id") == 0)
-            {
-                sensorNode->setId(QString::fromUtf8(colval[i]));
-            }
-            else if (strcmp(colname[i], "modelid") == 0)
-            {
-                if (!val.isEmpty() && 0 != val.compare(QLatin1String("Unknown"), Qt::CaseInsensitive))
-                {
-                    sensorNode->setModelId(val.simplified());
-                    sensorNode->clearRead(READ_MODEL_ID);
-                }
-            }
-            else if (strcmp(colname[i], "manufacturername") == 0)
-            {
-                if (!val.isEmpty() && 0 != val.compare(QLatin1String("Unknown"), Qt::CaseInsensitive))
-                {
-                    sensorNode->setManufacturer(val.simplified());
-                    sensorNode->clearRead(READ_VENDOR_NAME);
-                }
-            }
-            else if (strcmp(colname[i], "swbuildid") == 0)
-            {
-                if (!val.isEmpty() && 0 != val.compare(QLatin1String("Unknown"), Qt::CaseInsensitive))
-                {
-                    sensorNode->setSwVersion(val.simplified());
-                    sensorNode->clearRead(READ_SWBUILD_ID);
-                }
-            }
-        }
-    }
-
-    return 0;
-}
-
-/*! Loads data (if available) for a SensorNode from the database.
- */
-void DeRestPluginPrivate::loadSensorNodeFromDb(Sensor *sensorNode)
-{
-    int rc;
-    char *errmsg = 0;
-
-    DBG_Assert(db != 0);
-    DBG_Assert(sensorNode != 0);
-
-    if (!db || !sensorNode)
-    {
-        return;
-    }
-
-    QString sql = QString("SELECT * FROM sensors WHERE uniqueid='%1' AND type='%2'").arg(sensorNode->address().toStringExt()).arg(sensorNode->type());
-
-    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
-    rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadSensorNodeCallback, sensorNode, &errmsg);
-
-    if (rc != SQLITE_OK)
-    {
-        if (errmsg)
-        {
-            DBG_Printf(DBG_ERROR_L2, "sqlite3_exec %s, error: %s\n", qPrintable(sql), errmsg);
-            sqlite3_free(errmsg);
-        }
-    }
-
-    // check for unique IDs
-    if (!sensorNode->id().isEmpty())
-    {
-        std::vector<Sensor>::iterator i = sensors.begin();
-        std::vector<Sensor>::iterator end = sensors.end();
-
-        for (; i != end; ++i)
-        {
-            if (&(*i) != sensorNode)
-            {
-                // id already set to another node
-                // empty it here so a new one will be generated
-                if (i->id() == sensorNode->id())
-                {
-                    DBG_Printf(DBG_INFO, "detected already used SensorNode id %s, force generate new id\n", qPrintable(i->id()));
-                    sensorNode->setId("");
-                    queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
                 }
             }
         }
