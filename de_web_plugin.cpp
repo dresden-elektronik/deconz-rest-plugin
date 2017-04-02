@@ -3917,12 +3917,12 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
 
     if (sensorNode->mustRead(READ_GROUP_IDENTIFIERS) && tNow > sensorNode->nextReadTime(READ_GROUP_IDENTIFIERS))
     {
-        if (sensorNode->modelId() != QLatin1String("RWL021") &&
+        if (!sensorNode->modelId().startsWith(QLatin1String("RWL02")) &&
             std::find(sensorNode->fingerPrint().inClusters.begin(),
                       sensorNode->fingerPrint().inClusters.end(), COMMISSIONING_CLUSTER_ID)
                    == sensorNode->fingerPrint().inClusters.end())
         {
-            // if the sensor is not a RWL021 && has no commissioning cluster
+            // if the sensor is not a RWL021/RWL020 && has no commissioning cluster
             // disable reading of group identifiers here
             sensorNode->clearRead(READ_GROUP_IDENTIFIERS);
         }
