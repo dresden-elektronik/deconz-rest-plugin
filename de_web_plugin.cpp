@@ -2180,6 +2180,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_PHILIPS)
     {
         sensorNode.setManufacturer("Philips");
+
+        if (modelId.startsWith(QLatin1String("RWL02")))
+        {
+            if (!sensorNode.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
+            {   // this cluster is on endpoint 2 and hence not detected
+                sensorNode.fingerPrint().inClusters.push_back(POWER_CONFIGURATION_CLUSTER_ID);
+            }
+        }
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_BEGA)
     {
