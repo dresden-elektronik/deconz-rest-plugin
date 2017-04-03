@@ -685,7 +685,12 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
 /*! Creates binding for attribute reporting to gateway node. */
 void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *sensor)
 {
-    if (!apsCtrl || !sensor || !sensor->address().hasExt())
+    if (!apsCtrl || !sensor || !sensor->address().hasExt() || !sensor->node())
+    {
+        return;
+    }
+
+    if (idleTotalCounter < (IDLE_READ_LIMIT + 120)) // wait for some input before fire bindings
     {
         return;
     }
@@ -703,7 +708,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->setMgmtBindSupported(false);
     }
 
-    if (!endDeviceSupported && (!sensor->node() || sensor->node()->isEndDevice()))
+    if (!endDeviceSupported && sensor->node()->isEndDevice())
     {
         DBG_Printf(DBG_INFO, "don't create binding for attribute reporting of end-device %s\n", qPrintable(sensor->name()));
         return;
@@ -763,6 +768,26 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             continue;
         }
 
+        quint8 srcEndpoint = sensor->fingerPrint().endpoint;
+
+        {  // some clusters might not be on fingerprint endpoint (power configuration), search in other simple descriptors
+            deCONZ::SimpleDescriptor *sd= sensor->node()->getSimpleDescriptor(srcEndpoint);
+            if (!sd || !sd->cluster(*i, deCONZ::ServerCluster))
+            {
+                for (int j = 0; j < sensor->node()->simpleDescriptors().size(); j++)
+                {
+                    sd = &sensor->node()->simpleDescriptors()[j];
+
+                    if (sd && sd->cluster(*i, deCONZ::ServerCluster))
+                    {
+                        srcEndpoint = sd->endpoint();
+                        break;
+                    }
+                }
+            }
+        }
+
+
         switch (*i)
         {
         case POWER_CONFIGURATION_CLUSTER_ID:
@@ -770,7 +795,8 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         case ILLUMINANCE_MEASUREMENT_CLUSTER_ID:
         case TEMPERATURE_MEASUREMENT_CLUSTER_ID:
         {
-            DBG_Printf(DBG_INFO, "create binding for attribute reporting of cluster 0x%04X\n", (*i));
+            DBG_Printf(DBG_INFO, "0x%016llX (%s) create binding for attribute reporting of cluster 0x%04X on endpoint 0x%02X\n",
+                       sensor->address().ext(), qPrintable(sensor->modelId()), (*i), srcEndpoint);
 
             BindingTask bindingTask;
 
@@ -789,7 +815,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             Binding &bnd = bindingTask.binding;
             bnd.srcAddress = sensor->address().ext();
             bnd.dstAddrMode = deCONZ::ApsExtAddress;
-            bnd.srcEndpoint = sensor->fingerPrint().endpoint;
+            bnd.srcEndpoint = srcEndpoint;
             bnd.clusterId = *i;
             bnd.dstAddress.ext = apsCtrl->getParameter(deCONZ::ParamMacAddress);
             bnd.dstEndpoint = endpoint();
