@@ -431,10 +431,18 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
         if (ind.dstAddressMode() == deCONZ::ApsGroupAddress)
         {
             foundGroup(ind.dstAddress().group());
+        }
 
+        if (ind.dstAddressMode() == deCONZ::ApsGroupAddress || ind.clusterId() == VENDOR_CLUSTER_ID)
+        {
             if (zclFrame.isClusterCommand())
             {
                 Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
+                if (!sensorNode && zclFrame.manufacturerCode() == VENDOR_PHILIPS)
+                {   // dimmer switch?
+                    sensorNode = getSensorNodeForAddress(ind.srcAddress());
+                }
+
                 if (sensorNode)
                 {
                     checkSensorButtonEvent(sensorNode, ind, zclFrame);
@@ -1793,6 +1801,18 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 if (zclFrame.payload().size() >= 1 && buttonMap->zclParam0 == zclFrame.payload().at(0)) // next, prev scene
                 {
                     ok = true;
+                }
+            }
+            else if (ind.clusterId() == VENDOR_CLUSTER_ID && zclFrame.manufacturerCode() == VENDOR_PHILIPS && zclFrame.commandId() == 0x00) // Philips dimmer switch non-standard
+            {
+                ok = false;
+                if (zclFrame.payload().size() >= 8)
+                {
+                    quint8 param = zclFrame.payload().at(0) << 4 /*button*/ | zclFrame.payload().at(4); // action
+                    if (buttonMap->zclParam0 == param)
+                    {
+                        ok = true;
+                    }
                 }
             }
             else if (ind.clusterId() == LEVEL_CLUSTER_ID &&
