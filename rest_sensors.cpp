@@ -586,9 +586,9 @@ int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
             if (sensor->name() != name)
             {
                 sensor->setName(name);
+                sensor->setNeedSaveDatabase(true);
                 queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
-                updateEtag(sensor->etag);
-                updateEtag(gwConfigEtag);
+                updateSensorEtag(sensor);
             }
             rspItemState[QString("/sensors/%1/name:").arg(id)] = name;
             rspItem["success"] = rspItemState;
@@ -611,6 +611,8 @@ int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
             {
                 sensor->setNeedSaveDatabase(true);
                 sensor->setMode(mode);
+                queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+                updateSensorEtag(sensor);
             }
 
            if (mode == Sensor::ModeTwoGroups)
