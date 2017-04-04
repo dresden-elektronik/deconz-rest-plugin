@@ -1240,7 +1240,9 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
 
         if (!resource || !item)
         {
-            DBG_Printf(DBG_INFO, "resouce %s : %s id: %s not found --> disable rule\n", c->resource(), c->suffix(), qPrintable(c->id()));
+            DBG_Printf(DBG_INFO, "resouce %s : %s id: %s (cond: %s) not found --> disable rule\n",
+                       c->resource(), c->suffix(),
+                       qPrintable(c->id()), qPrintable(c->address()));
             rule.setStatus(QLatin1String("disabled"));
             ok = false;
             break;
