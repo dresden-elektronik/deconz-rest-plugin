@@ -481,7 +481,8 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
             case DEV_ID_ONOFF_OUTPUT:             m_type = QLatin1String("On/Off output"); m_hasColor = false; break;
             case DEV_ID_HA_DIMMABLE_LIGHT:        m_type = QLatin1String("Dimmable light"); m_hasColor = false; break;
             case DEV_ID_HA_COLOR_DIMMABLE_LIGHT:  m_type = QLatin1String("Color dimmable light"); m_hasColor = true; break;
-            case DEV_ID_ZLL_ONOFF_LIGHT:             m_type = QLatin1String("On/Off light"); m_hasColor = false; break;
+            case DEV_ID_ZLL_ONOFF_LIGHT:          m_type = QLatin1String("On/Off light"); m_hasColor = false; break;
+            case DEV_ID_SMART_PLUG:               m_type = QLatin1String("Smart plug"); m_hasColor = false; break;
             //case DEV_ID_ZLL_DIMMABLE_LIGHT:          m_type = QLatin1String("Dimmable light"); m_hasColor = false; break; // clash with on/off light
             case DEV_ID_ZLL_COLOR_LIGHT:             m_type = QLatin1String("Color light"); m_hasColor = true; break;
             case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:    m_type = QLatin1String("Extended color light"); m_hasColor = true; break;

@@ -85,6 +85,7 @@
 #define DEV_ID_ONOFF_OUTPUT                 0x0002 // On/Off output
 #define DEV_ID_RANGE_EXTENDER               0x0008 // Range extender
 #define DEV_ID_MAINS_POWER_OUTLET           0x0009 // Mains power outlet
+#define DEV_ID_SMART_PLUG                   0x0051 // Smart plug
 // HA lighting devices
 #define DEV_ID_HA_ONOFF_LIGHT               0x0100 // On/Off light
 #define DEV_ID_HA_DIMMABLE_LIGHT            0x0101 // Dimmable light

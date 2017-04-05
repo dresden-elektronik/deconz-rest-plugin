@@ -994,6 +994,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 case DEV_ID_ONOFF_OUTPUT:
                 case DEV_ID_HA_DIMMABLE_LIGHT:
                 case DEV_ID_HA_COLOR_DIMMABLE_LIGHT:
+                case DEV_ID_SMART_PLUG:
 
                 case DEV_ID_ZLL_ONOFF_LIGHT:
                 case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:
