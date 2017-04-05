@@ -615,43 +615,12 @@ int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
                 updateSensorEtag(sensor);
             }
 
-           if (mode == Sensor::ModeTwoGroups)
-           {
-               std::vector<Sensor>::iterator s = sensors.begin();
-               std::vector<Sensor>::iterator send = sensors.end();
-
-               for (; s != send; ++s)
-               {
-                   if (s->uniqueId() == sensor->uniqueId() && s->id() != sensor->id() && s->deletedState() == Sensor::StateDeleted)
-                   {
-                       s->setDeletedState(Sensor::StateNormal);
-                       s->setNeedSaveDatabase(true);
-                       updateEtag(s->etag);
-
-                       std::vector<Group>::iterator g = groups.begin();
-                       std::vector<Group>::iterator gend = groups.end();
-
-                       for (; g != gend; ++g)
-                       {
-                           std::vector<QString> &v = g->m_deviceMemberships;
-
-                           if ((std::find(v.begin(), v.end(), s->id()) != v.end()) && (g->state() == Group::StateDeleted))
-                           {
-                               g->setState(Group::StateNormal);
-                               updateEtag(g->etag);
-                               break;
-                           }
-                       }
-
-                   }
-               }
-           }
-           rspItemState[QString("/sensors/%1/mode:").arg(id)] = (double)mode;
-           rspItem["success"] = rspItemState;
-           rsp.list.append(rspItem);
-           updateEtag(sensor->etag);
-           updateEtag(gwConfigEtag);
-           queSaveDb(DB_SENSORS | DB_GROUPS, DB_SHORT_SAVE_DELAY);
+            rspItemState[QString("/sensors/%1/mode:").arg(id)] = (double)mode;
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+            updateEtag(sensor->etag);
+            updateEtag(gwConfigEtag);
+            queSaveDb(DB_SENSORS | DB_GROUPS, DB_SHORT_SAVE_DELAY);
         }
         else
         {
@@ -954,6 +923,13 @@ int DeRestPluginPrivate::getNewSensors(const ApiRequest &req, ApiResponse &rsp)
 {
     Q_UNUSED(req);
 
+    if (!findSensorResult.isEmpty() &&
+        (findSensorsState == FindSensorsActive || findSensorsState == FindSensorsDone))
+    {
+
+        rsp.map = findSensorResult;
+    }
+
     if (findSensorsState == FindSensorsActive)
     {
         rsp.map["lastscan"] = QLatin1String("active");
@@ -1074,6 +1050,7 @@ void DeRestPluginPrivate::startFindSensors()
     if (findSensorsState == FindSensorsIdle || findSensorsState == FindSensorsDone)
     {
         findSensorCandidates.clear();
+        findSensorResult.clear();
         lastSensorsScan = QDateTime::currentDateTimeUtc().toString(QLatin1String("yyyy-MM-ddTHH:mm:ss"));
         QTimer::singleShot(1000, this, SLOT(findSensorsTimerFired()));
         findSensorsState = FindSensorsActive;
@@ -1475,7 +1452,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
 
             bool update = false;
 
-            if (!s1 && isSceneSwitch)
+            if (!s1 && isSceneSwitch && findSensorsState == FindSensorsActive)
             {
                 openDb();
                 sensorNode.setId(QString::number(getFreeSensorId()));
@@ -1487,24 +1464,28 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
                 sensors.push_back(sensorNode);
                 s1 = &sensors.back();
                 update = true;
+                Event e(RSensors, REventAdded, sensorNode.id());
+                enqueueEvent(e);
             }
             else if (isLightingSwitch)
             {
-                if (!s1)
+                if (!s1 && findSensorsState == FindSensorsActive)
                 {
                     openDb();
                     sensorNode.setId(QString::number(getFreeSensorId()));
                     closeDb();
                     sensorNode.setMode(Sensor::ModeTwoGroups);
-                    sensorNode.setModelId("Lighting Switch");
+                    sensorNode.setModelId(QLatin1String("Lighting Switch"));
                     sensorNode.setName(QString("Lighting Switch %1").arg(sensorNode.id()));
                     sensorNode.setNeedSaveDatabase(true);
                     sensors.push_back(sensorNode);
                     s1 = &sensors.back();
                     update = true;
+                    Event e(RSensors, REventAdded, sensorNode.id());
+                    enqueueEvent(e);
                 }
 
-                if (!s2)
+                if (!s2 && findSensorsState == FindSensorsActive)
                 {
                     openDb();
                     sensorNode.setId(QString::number(getFreeSensorId()));
@@ -1517,6 +1498,8 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
                     sensors.push_back(sensorNode);
                     s2 = &sensors.back();
                     update = true;
+                    Event e(RSensors, REventAdded, sensorNode.id());
+                    enqueueEvent(e);
                 }
             }
 

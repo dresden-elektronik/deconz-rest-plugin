@@ -808,6 +808,9 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
 
             sensorNode.setNeedSaveDatabase(true);
             sensors.push_back(sensorNode);
+
+            Event e(RSensors, REventAdded, sensorNode.id());
+            enqueueEvent(e);
             queSaveDb(DB_SENSORS , DB_SHORT_SAVE_DELAY);
         }
         else if (sensor && sensor->deletedState() == Sensor::StateDeleted)
@@ -817,8 +820,9 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
                 sensor->setDeletedState(Sensor::StateNormal);
                 sensor->setNeedSaveDatabase(true);
                 DBG_Printf(DBG_INFO, "SensorNode %u: %s reactivated\n", sensor->id().toUInt(), qPrintable(sensor->name()));
-                updateEtag(sensor->etag);
-                updateEtag(gwConfigEtag);
+                updateSensorEtag(sensor);
+                Event e(RSensors, REventAdded, sensor->id());
+                enqueueEvent(e);
                 queSaveDb(DB_SENSORS , DB_SHORT_SAVE_DELAY);
             }
         }
@@ -1689,7 +1693,7 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor)
             updated = true;
         }
 
-        if (sensor->deletedState() == Sensor::StateDeleted && gwPermitJoinDuration > 0)
+        if (sensor->deletedState() == Sensor::StateDeleted && findSensorsState == FindSensorsActive)
         {
             DBG_Printf(DBG_INFO, "Rediscovered deleted SensorNode %s set node %s\n", qPrintable(sensor->id()), qPrintable(sensor->address().toStringExt()));
             sensor->setDeletedState(Sensor::StateNormal);
@@ -1698,6 +1702,8 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor)
             queryTime = queryTime.addSecs(5);
             //sensor->setLastRead(READ_BINDING_TABLE, idleTotalCounter);
             updated = true;
+            Event e(RSensors, REventAdded, sensor->id());
+            enqueueEvent(e);
         }
     }
     else
@@ -2303,7 +2309,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
 
     if (findSensorsState == FindSensorsActive)
     {
-        // TODO id to list
+        Event e(RSensors, REventAdded, sensorNode.id());
+        enqueueEvent(e);
     }
 
     checkSensorBindingsForAttributeReporting(&sensors.back());
@@ -6289,63 +6296,6 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
 
         updateEtag(gwConfigEtag);
     }
-
-    Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
-
-    if (sensorNode && sensorNode->deletedState() == Sensor::StateDeleted && findSensorsState == FindSensorsActive)
-    {
-        // reactivate deleted switch and recover group
-        sensorNode->setDeletedState(Sensor::StateNormal);
-
-        std::vector<Group>::iterator g = groups.begin();
-        std::vector<Group>::iterator gend = groups.end();
-
-        for (; g != gend; ++g)
-        {
-            std::vector<QString> &v = g->m_deviceMemberships;
-
-            if ((std::find(v.begin(), v.end(), sensorNode->id()) != v.end()) && (g->state() == Group::StateDeleted))
-            {
-                g->setState(Group::StateNormal);
-                updateEtag(g->etag);
-                break;
-            }
-        }
-
-        sensorNode->setNeedSaveDatabase(true);
-        updateEtag(sensorNode->etag);
-
-        std::vector<Sensor>::iterator s = sensors.begin();
-        std::vector<Sensor>::iterator send = sensors.end();
-
-        for (; s != send; ++s)
-        {
-            if (s->uniqueId() == sensorNode->uniqueId() && s->id() != sensorNode->id())
-            {
-                s->setNeedSaveDatabase(true);
-                s->setDeletedState(Sensor::StateNormal);
-                updateEtag(s->etag);
-
-                std::vector<Group>::iterator g = groups.begin();
-                std::vector<Group>::iterator gend = groups.end();
-
-                for (; g != gend; ++g)
-                {
-                    std::vector<QString> &v = g->m_deviceMemberships;
-
-                    if ((std::find(v.begin(), v.end(), s->id()) != v.end()) && (g->state() == Group::StateDeleted))
-                    {
-                        g->setState(Group::StateNormal);
-                        updateEtag(g->etag);
-                        break;
-                    }
-                }
-            }
-        }
-
-        updateEtag(gwConfigEtag);
-        queSaveDb(DB_GROUPS | DB_SENSORS, DB_SHORT_SAVE_DELAY);
-    }
 }
 
 /*! Handle packets related to the ZCL Commissioning cluster.
@@ -7037,6 +6987,18 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
         {
             if (i->address().ext() == sc->address.ext())
             {
+                if (findSensorsState == FindSensorsActive)
+                {
+                    if (i->deletedState() == Sensor::StateDeleted)
+                    {
+                        // reanimate
+                        i->setDeletedState(Sensor::StateNormal);
+                        i->setNeedSaveDatabase(true);
+                        Event e(RSensors, REventAdded, i->id());
+                        enqueueEvent(e);
+                    }
+                }
+
                 checkSensorBindingsForAttributeReporting(&*i);
             }
         }

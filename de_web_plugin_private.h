@@ -1193,6 +1193,7 @@ public:
 
     FindSensorsState findSensorsState;
     deCONZ::Address fastProbeAddr;
+    QVariantMap findSensorResult;
     QTimer *fastProbeTimer;
     int findSensorsTimeout;
     QString lastSensorsScan;

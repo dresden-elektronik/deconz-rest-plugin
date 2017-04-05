@@ -29,6 +29,9 @@ extern const char *RLights;
 extern const char *RGroups;
 extern const char *RConfig;
 
+// resource events
+extern const char *REventAdded;
+
 // resouce suffixes: state/buttonevent, config/on, ...
 extern const char *RInvalidSuffix;
 extern const char *RStateButtonEvent;

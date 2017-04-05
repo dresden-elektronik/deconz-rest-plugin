@@ -18,6 +18,8 @@ const char *RLights = "/lights";
 const char *RGroups = "/groups";
 const char *RConfig = "/config";
 
+const char *REventAdded = "event/added";
+
 const char *RInvalidSuffix = "invalid/suffix";
 const char *RStateButtonEvent = "state/buttonevent";
 const char *RStatePresence = "state/presence";

@@ -30,11 +30,35 @@ void DeRestPluginPrivate::eventQueueTimerFired()
         {
             QVariantMap map;
             map["t"] = QLatin1String("event");
+            map["e"] = QLatin1String("changed");
             map["r"] = QLatin1String("sensors");
             map["id"] = e.id();
             QVariantMap state;
             state[e.what() + 6] = item->toVariant();
             map["state"] = state;
+
+            webSocketServer->broadcastTextMessage(Json::serialize(map));
+        }
+    }
+    else if (e.resource() == RSensors && e.what() == REventAdded)
+    {
+        Sensor *sensor = getSensorNodeForId(e.id());
+
+        if (sensor)
+        {
+            QVariantMap res;
+            res["name"] = sensor->name();
+            findSensorResult[sensor->id()] = res;
+
+            QVariantMap map;
+            map["t"] = QLatin1String("event");
+            map["e"] = QLatin1String("added");
+            map["r"] = QLatin1String("sensors");
+
+            QVariantMap smap;
+            sensorToMap(sensor, smap);
+            smap["id"] = sensor->id();
+            map["sensor"] = smap;
 
             webSocketServer->broadcastTextMessage(Json::serialize(map));
         }
