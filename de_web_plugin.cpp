@@ -2196,7 +2196,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_BUSCH_JAEGER)
     {
-        sensorNode.setManufacturer("Busch Jaeger");
+        sensorNode.setManufacturer("Busch-Jaeger");
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_PHILIPS)
     {
@@ -2216,7 +2216,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA)
     {
-        sensorNode.setManufacturer("IKEA of Sweden");
+        sensorNode.setManufacturer("IKEA");
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_INSTA)
     {
