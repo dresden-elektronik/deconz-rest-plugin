@@ -70,6 +70,14 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
             bool presence = zoneStatus & (STATUS_ALARM1 | STATUS_ALARM2);
             item->setValue(presence);
 
+            item = sensor->item(RConfigReachable);
+            if (item && !item->toBool())
+            {
+                item->setValue(true);
+                Event e(RSensors, RConfigReachable, sensor->id());
+                enqueueEvent(e);
+            }
+
             updateSensorEtag(sensor);
 
             Event e(RSensors, RStatePresence, sensor->id());
