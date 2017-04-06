@@ -1546,9 +1546,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             return 0;
         }
 
-        sensor.addItem(DataTypeBool, RConfigOn);
-        sensor.addItem(DataTypeBool, RConfigReachable);
-
         if (sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
         {
             sensor.addItem(DataTypeUInt8, RConfigBattery);

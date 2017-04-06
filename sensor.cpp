@@ -311,6 +311,9 @@ Sensor::Sensor() :
     m_resetRetryCount(0),
     m_buttonMap(0)
 {
+    // common sensor items
+    addItem(DataTypeBool, RConfigOn);
+    addItem(DataTypeBool, RConfigReachable);
 }
 
 /*! Returns the sensor deleted state.

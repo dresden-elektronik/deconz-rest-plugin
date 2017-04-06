@@ -1439,10 +1439,10 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
             sensorNode.setManufacturer(QLatin1String("dresden elektronik"));
 
             ResourceItem *item;
-            item = sensorNode.addItem(DataTypeBool, RConfigOn);
+            item = sensorNode.item(RConfigOn);
             item->setValue(true);
 
-            item = sensorNode.addItem(DataTypeBool, RConfigReachable);
+            item = sensorNode.item(RConfigReachable);
             item->setValue(true);
 
             sensorNode.addItem(DataTypeInt32, RStateButtonEvent);

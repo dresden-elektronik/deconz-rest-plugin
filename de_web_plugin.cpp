@@ -785,7 +785,7 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             sensorNode.setUniqueId(generateUniqueId(sensorNode.address().ext(), sensorNode.fingerPrint().endpoint, GREEN_POWER_CLUSTER_ID));
 
             ResourceItem *item;
-            item = sensorNode.addItem(DataTypeBool, RConfigOn);
+            item = sensorNode.item(RConfigOn);
             item->setValue(true);
 
             item = sensorNode.addItem(DataTypeInt32, RStateButtonEvent);
@@ -2133,10 +2133,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     quint16 clusterId = 0;
 
     ResourceItem *item;
-    item = sensorNode.addItem(DataTypeBool, RConfigOn);
+    item = sensorNode.item(RConfigOn);
     item->setValue(true);
 
-    item = sensorNode.addItem(DataTypeBool, RConfigReachable);
+    item = sensorNode.item(RConfigReachable);
     item->setValue(true);
 
     if (node->isEndDevice())
