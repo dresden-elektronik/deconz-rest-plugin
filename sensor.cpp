@@ -314,6 +314,7 @@ Sensor::Sensor() :
     // common sensor items
     addItem(DataTypeBool, RConfigOn);
     addItem(DataTypeBool, RConfigReachable);
+    addItem(DataTypeTime, RStateLastUpdated);
 }
 
 /*! Returns the sensor deleted state.
@@ -422,6 +423,15 @@ uint8_t Sensor::zdpResetSeq() const
 void Sensor::setZdpResetSeq(uint8_t zdpResetSeq)
 {
     m_zdpResetSeq = zdpResetSeq;
+}
+
+void Sensor::updateStateTimestamp()
+{
+    ResourceItem *i = item(RStateLastUpdated);
+    if (i)
+    {
+        i->setValue(QDateTime::currentDateTime());
+    }
 }
 
 

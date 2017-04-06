@@ -45,6 +45,7 @@ extern const char *RStateTemperature;
 extern const char *RStateHumidity;
 extern const char *RStateFlag;
 extern const char *RStateStatus;
+extern const char *RStateLastUpdated;
 
 extern const char *RConfigOn;
 extern const char *RConfigReachable;

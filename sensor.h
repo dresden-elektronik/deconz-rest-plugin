@@ -110,6 +110,7 @@ public:
     void setResetRetryCount(uint8_t resetRetryCount);
     uint8_t zdpResetSeq() const;
     void setZdpResetSeq(uint8_t zdpResetSeq);
+    void updateStateTimestamp();
 
     QString stateToString();
     QString configToString();

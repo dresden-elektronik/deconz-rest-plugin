@@ -976,37 +976,12 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map)
             const char *key = item->descriptor().suffix + 7;
             config[key] = item->toVariant();
         }
-    }
-
-    QDateTime lastUpdated;
-
-    for (int i = 0; i < sensor->itemCount(); i++)
-    {
-        const ResourceItem *item = sensor->itemForIndex(i);
-        const ResourceItemDescriptor &rid = item->descriptor();
-
-        if (!item->lastSet().isValid())
-        {
-            continue;
-        }
 
         if (strncmp(rid.suffix, "state/", 6) == 0)
         {
             const char *key = item->descriptor().suffix + 6;
             state[key] = item->toVariant();
-
-            if (item->lastSet().isValid() &&
-                (!lastUpdated.isValid() || lastUpdated < item->lastSet()))
-            {
-                lastUpdated = item->lastSet();
-            }
         }
-    }
-
-    //state
-    if (lastUpdated.isValid())
-    {
-        state["lastupdated"] = lastUpdated.toString("yyyy-MM-ddTHH:mm:ss");
     }
 
     //sensor
@@ -1446,6 +1421,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
             item->setValue(true);
 
             sensorNode.addItem(DataTypeInt32, RStateButtonEvent);
+            sensorNode.updateStateTimestamp();
 
             sensorNode.setNeedSaveDatabase(true);
             updateSensorEtag(&sensorNode);

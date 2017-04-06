@@ -32,6 +32,7 @@ const char *RStateHumidity = "state/humidity";
 const char *RStateFlag = "state/flag";
 const char *RStateStatus = "state/status";
 const char *RStateDaylight = "state/daylight";
+const char *RStateLastUpdated = "state/lastupdated";
 
 const char *RConfigOn = "config/on";
 const char *RConfigReachable = "config/reachable";
@@ -64,6 +65,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt32, RStateHumidity));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt32, RStateStatus));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateDaylight));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RStateLastUpdated));
 
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigOn));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigReachable));
@@ -105,6 +107,7 @@ ResourceItem::ResourceItem(const ResourceItemDescriptor &rid) :
     m_rid(rid)
 {
     if (m_rid.type == DataTypeString ||
+        m_rid.type == DataTypeTime ||
         m_rid.type == DataTypeTimePattern)
     {
         // alloc
@@ -121,6 +124,15 @@ const QString &ResourceItem::toString() const
         DBG_Assert(m_strIndex < rItemStrings.size());
         if (m_strIndex < rItemStrings.size())
         {
+            return rItemStrings[m_strIndex];
+        }
+    }
+    else if (m_rid.type == DataTypeTime)
+    {
+        DBG_Assert(m_strIndex < rItemStrings.size());
+        if (m_strIndex < rItemStrings.size())
+        {
+            rItemStrings[m_strIndex] = QDateTime::fromMSecsSinceEpoch(m_num).toString("yyyy-MM-ddTHH:mm:ss");
             return rItemStrings[m_strIndex];
         }
     }
@@ -144,7 +156,12 @@ bool ResourceItem::setValue(const QString &val)
     DBG_Assert(m_strIndex < rItemStrings.size());
     if (m_strIndex < rItemStrings.size())
     {
-        rItemStrings[m_strIndex] = val;
+        m_lastSet = QDateTime::currentDateTime();
+        if (rItemStrings[m_strIndex] != val)
+        {
+            rItemStrings[m_strIndex] = val;
+            m_lastChanged = m_lastSet;
+        }
         return true;
     }
 
@@ -175,6 +192,8 @@ bool ResourceItem::setValue(qint64 val)
 
 bool ResourceItem::setValue(const QVariant &val)
 {
+    QDateTime now = QDateTime::currentDateTime();
+
     if (m_rid.type == DataTypeString ||
         m_rid.type == DataTypeTimePattern)
     {
@@ -182,13 +201,23 @@ bool ResourceItem::setValue(const QVariant &val)
         DBG_Assert(m_strIndex < rItemStrings.size());
         if (m_strIndex < rItemStrings.size())
         {
-            rItemStrings[m_strIndex] = val.toString();
+            m_lastSet = now;
+            if (rItemStrings[m_strIndex] != val.toString())
+            {
+                rItemStrings[m_strIndex] = val.toString();
+                m_lastChanged = m_lastSet;
+            }
             return true;
         }
     }
     else if (m_rid.type == DataTypeBool)
     {
-        m_num = val.toBool();
+        m_lastSet = now;
+        if (m_num != val.toBool())
+        {
+            m_num = val.toBool();
+            m_lastChanged = m_lastSet;
+        }
         return true;
     }
     else if (m_rid.type == DataTypeTime)
@@ -199,9 +228,24 @@ bool ResourceItem::setValue(const QVariant &val)
 
             if (dt.isValid())
             {
-                m_num = dt.toMSecsSinceEpoch();
+                m_lastSet = now;
+                if (m_num != dt.toMSecsSinceEpoch())
+                {
+                    m_num = dt.toMSecsSinceEpoch();
+                    m_lastChanged = m_lastSet;
+                }
                 return true;
             }
+        }
+        else if (val.type() == QVariant::DateTime)
+        {
+            m_lastSet = now;
+            if (m_num != val.toDateTime().toMSecsSinceEpoch())
+            {
+                m_num = val.toDateTime().toMSecsSinceEpoch();
+                m_lastChanged = m_lastSet;
+            }
+            return true;
         }
     }
     else
@@ -211,15 +255,21 @@ bool ResourceItem::setValue(const QVariant &val)
         if (ok)
         {
             if (m_rid.validMin == 0 && m_rid.validMax == 0)
+            { /* no range check */ }
+            else if (n >= m_rid.validMin && n <= m_rid.validMax)
+            {   /* range check: ok*/ }
+            else {
+                return false;
+            }
+
+            m_lastSet = now;
+
+            if (m_num != n)
             {
                 m_num = n;
-                return true;
+                m_lastChanged = m_lastSet;
             }
-            else if (n >= m_rid.validMin && n <= m_rid.validMax)
-            {   // range check
-                m_num = n;
-                return true;
-            }
+            return true;
         }
     }
 
@@ -259,7 +309,7 @@ QVariant ResourceItem::toVariant() const
     }
     else if (m_rid.type == DataTypeTime)
     {
-        return QDateTime::fromMSecsSinceEpoch(m_num).toString("yyyy-MM-ddTHH:mm:ss");
+        return toString();
     }
     else
     {

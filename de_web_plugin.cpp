@@ -602,7 +602,8 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
     }
 
     updateSensorEtag(sensor);
-    item->setValue(ind.gpdCommandId()); // TODO create button map
+    sensor->updateStateTimestamp();
+    item->setValue(ind.gpdCommandId());
 
     Event e(RSensors, RStateButtonEvent, sensor->id());
     enqueueEvent(e);
@@ -783,6 +784,7 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             sensorNode.address().setExt(ind.gpdSrcId());
             sensorNode.fingerPrint() = fp;
             sensorNode.setUniqueId(generateUniqueId(sensorNode.address().ext(), sensorNode.fingerPrint().endpoint, GREEN_POWER_CLUSTER_ID));
+            sensorNode.setMode(Sensor::ModeNone);
 
             ResourceItem *item;
             item = sensorNode.item(RConfigOn);
@@ -1846,6 +1848,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     Event e(RSensors, RStateButtonEvent, sensor->id());
                     enqueueEvent(e);
                     updateSensorEtag(sensor);
+                    sensor->updateStateTimestamp();
                 }
 
                 if (ind.dstAddressMode() == deCONZ::ApsGroupAddress)
@@ -2511,6 +2514,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (item)
                                 {
                                     item->setValue(measuredValue);
+                                    i->updateStateTimestamp();
                                     Event e(RSensors, RStateLightLevel, i->id());
                                     enqueueEvent(e);
                                 }
@@ -2571,6 +2575,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (item)
                                 {
                                     item->setValue(temp);
+                                    i->updateStateTimestamp();
                                     Event e(RSensors, RStateTemperature, i->id());
                                     enqueueEvent(e);
                                 }
@@ -2595,6 +2600,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (item)
                                 {
                                     item->setValue(ia->numericValue().u8);
+                                    i->updateStateTimestamp();
                                     Event e(RSensors, RStatePresence, i->id());
                                     enqueueEvent(e);
                                 }
