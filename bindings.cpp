@@ -1056,6 +1056,11 @@ void DeRestPluginPrivate::bindingToRuleTimerFired()
 
     for (; i != end; ++i)
     {
+        if (!i->modelId().startsWith(QLatin1String("FLS-NB")))
+        {
+            continue;
+        }
+
         if (bnd.srcAddress == i->address().ext())
         {
             if (bnd.srcEndpoint == i->fingerPrint().endpoint)
