@@ -526,6 +526,11 @@ void Sensor::jsonToState(const QString &json)
         ResourceItem *item = itemForIndex(i);
         const ResourceItemDescriptor &rid = item->descriptor();
 
+        if (item->descriptor().suffix == RStateButtonEvent)
+        { // set only from live data
+            continue;
+        }
+
         if (strncmp(rid.suffix, "state/", 6) == 0)
         {
             const char *key = item->descriptor().suffix + 6;
@@ -555,6 +560,11 @@ void Sensor::jsonToConfig(const QString &json)
     {
         ResourceItem *item = itemForIndex(i);
         const ResourceItemDescriptor &rid = item->descriptor();
+
+        if (item->descriptor().suffix == RConfigReachable)
+        { // set only from live data
+            continue;
+        }
 
         if (strncmp(rid.suffix, "config/", 7) == 0)
         {
