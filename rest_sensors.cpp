@@ -1116,21 +1116,6 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
         stream >> ext;
         stream >> macCapabilities;
 
-//        const quint64 philipsMacPrefix = 0x0017880000000000ULL;
-
-//        if ((ext & philipsMacPrefix) == philipsMacPrefix)
-//        {
-//            //fastProbePhilips(ext, nwk, macCapabilities);
-//            //return;
-//        }
-
-        const quint64 bjeMacPrefix = 0xd85def0000000000ULL;
-
-        if ((ext & bjeMacPrefix) == bjeMacPrefix)
-        {
-            fastProbeBuschJaeger(ext, nwk, macCapabilities);
-        }
-
         // currently only end-devices are supported
         if (macCapabilities == 0 || (macCapabilities & deCONZ::MacDeviceIsFFD))
         {
