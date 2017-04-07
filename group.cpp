@@ -240,3 +240,13 @@ bool Group::addDeviceMembership(const QString &id)
 
     return false;
 }
+
+/*! Returns true if device with \p id controls the group. */
+bool Group::deviceIsMember(const QString &id) const
+{
+    if (std::find(m_deviceMemberships.begin(), m_deviceMemberships.end(), id) == m_deviceMemberships.end())
+    {
+        return false;
+    }
+    return true;
+}

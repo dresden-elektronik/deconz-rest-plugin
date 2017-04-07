@@ -1018,6 +1018,93 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map)
     return true;
 }
 
+void DeRestPluginPrivate::handleSensorEvent(const Event &e)
+{
+    DBG_Assert(e.resource() == RSensors);
+    DBG_Assert(e.what() != 0);
+
+    Sensor *sensor = getSensorNodeForId(e.id());
+
+    if (!sensor)
+    {
+        return;
+    }
+
+    // push sensor state updates through websocket
+    if (strncmp(e.what(), "state/", 6) == 0)
+    {
+        ResourceItem *item = sensor->item(e.what());
+        if (item)
+        {
+            QVariantMap map;
+            map["t"] = QLatin1String("event");
+            map["e"] = QLatin1String("changed");
+            map["r"] = QLatin1String("sensors");
+            map["id"] = e.id();
+            QVariantMap state;
+            state[e.what() + 6] = item->toVariant();
+            map["state"] = state;
+
+            webSocketServer->broadcastTextMessage(Json::serialize(map));
+        }
+    }
+    else if (e.what() == REventAdded)
+    {
+        checkSensorGroup(sensor);
+        checkSensorBindingsForAttributeReporting(sensor);
+        checkSensorBindingsForClientClusters(sensor);
+
+        QVariantMap res;
+        res["name"] = sensor->name();
+        findSensorResult[sensor->id()] = res;
+
+        QVariantMap map;
+        map["t"] = QLatin1String("event");
+        map["e"] = QLatin1String("added");
+        map["r"] = QLatin1String("sensors");
+
+        QVariantMap smap;
+        sensorToMap(sensor, smap);
+        smap["id"] = sensor->id();
+        map["sensor"] = smap;
+
+        webSocketServer->broadcastTextMessage(Json::serialize(map));
+    }
+    else if (e.what() == REventValidGroup)
+    {
+        checkOldSensorGroups(sensor);
+
+        ResourceItem *item = sensor->item(RConfigGroup);
+        Group *group = getGroupForId(item->toString());
+
+        if (group && group->state() != Group::StateNormal)
+        {
+            group->setState(Group::StateNormal);
+            updateGroupEtag(group);
+            queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
+            DBG_Printf(DBG_INFO, "reanimate group %s\n", qPrintable(group->name()));
+        }
+
+        if (group && group->addDeviceMembership(sensor->id()))
+        {
+            DBG_Printf(DBG_INFO, "Attached sensor %s to group %s\n", qPrintable(sensor->id()), qPrintable(group->name()));
+            queSaveDb(DB_GROUPS, DB_LONG_SAVE_DELAY);
+            updateGroupEtag(group);
+        }
+
+        if (!group) // create
+        {
+            Group g;
+            g.setAddress(item->toString().toUInt());
+            g.setName(sensor->name());
+            g.addDeviceMembership(sensor->id());
+            groups.push_back(g);
+            updateGroupEtag(&groups.back());
+            queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
+        }
+    }
+}
+
 /*! Starts the search for new sensors.
  */
 void DeRestPluginPrivate::startFindSensors()
@@ -1424,6 +1511,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
                 sensorNode.setNeedSaveDatabase(true);
                 sensors.push_back(sensorNode);
                 s1 = &sensors.back();
+                updateSensorEtag(s1);
                 update = true;
                 Event e(RSensors, REventAdded, sensorNode.id());
                 enqueueEvent(e);
@@ -1441,6 +1529,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
                     sensorNode.setNeedSaveDatabase(true);
                     sensors.push_back(sensorNode);
                     s1 = &sensors.back();
+                    updateSensorEtag(s1);
                     update = true;
                     Event e(RSensors, REventAdded, sensorNode.id());
                     enqueueEvent(e);
@@ -1458,6 +1547,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
                     sensorNode.setUniqueId(generateUniqueId(sensorNode.address().ext(), sensorNode.fingerPrint().endpoint, COMMISSIONING_CLUSTER_ID));
                     sensors.push_back(sensorNode);
                     s2 = &sensors.back();
+                    updateSensorEtag(s2);
                     update = true;
                     Event e(RSensors, REventAdded, sensorNode.id());
                     enqueueEvent(e);

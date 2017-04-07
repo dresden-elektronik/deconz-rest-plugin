@@ -31,6 +31,7 @@ extern const char *RConfig;
 
 // resource events
 extern const char *REventAdded;
+extern const char *REventValidGroup;
 
 // resouce suffixes: state/buttonevent, config/on, ...
 extern const char *RInvalidSuffix;
@@ -52,6 +53,7 @@ extern const char *RConfigReachable;
 extern const char *RConfigConfigured;
 extern const char *RConfigDuration;
 extern const char *RConfigBattery;
+extern const char *RConfigGroup;
 extern const char *RConfigUrl;
 extern const char *RConfigLat;
 extern const char *RConfigLong;

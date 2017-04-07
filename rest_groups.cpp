@@ -1447,6 +1447,25 @@ int DeRestPluginPrivate::deleteGroup(const ApiRequest &req, ApiResponse &rsp)
     return REQ_READY_SEND;
 }
 
+/*! Adds a new group with unique id. */
+Group *DeRestPluginPrivate::addGroup()
+{
+    for (quint16 id = 1 ; id < 5000; id++)
+    {
+        if (!getGroupForId(id))
+        {
+            Group group;
+            group.setAddress(id);
+            groups.push_back(group);
+            updateGroupEtag(&groups.back());
+            queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
+            return &groups.back();
+        }
+    }
+
+    return 0;
+}
+
 /*! Put all parameters in a map for later json serialization.
     \return true - on success
             false - on error

@@ -50,7 +50,7 @@ const char *HttpContentJPG         = "image/jpg";
 const char *HttpContentSVG         = "image/svg+xml";
 
 static int checkZclAttributesDelay = 750;
-static int ReadAttributesLongDelay = 5000;
+//static int ReadAttributesLongDelay = 5000;
 //static int ReadAttributesLongerDelay = 60000;
 static uint MaxGroupTasks = 4;
 
@@ -1761,12 +1761,15 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         {
             sensor->setMode(mode);
             updateSensorEtag(sensor);
+            sensor->setNeedSaveDatabase(true);
+            queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
 
             // set changed mode for sensor endpoints 1 and 2
             Sensor *other = getSensorNodeForAddressAndEndpoint(sensor->address(), (ind.srcEndpoint() == 2) ? 1 : 2);
             if (other)
             {
                 other->setMode(mode);
+                other->setNeedSaveDatabase(true);
                 updateSensorEtag(other);
             }
         }
@@ -1778,6 +1781,22 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             sensor->setMode(Sensor::ModeScenes);
             updateSensorEtag(sensor);
         }
+    }
+
+    if (ind.dstAddressMode() == deCONZ::ApsGroupAddress)
+    {
+        ResourceItem *item = sensor->addItem(DataTypeString, RConfigGroup);
+        QString gid = QString::number(ind.dstAddress().group());
+
+        if (item && item->toString() != gid)
+        {
+            item->setValue(gid);
+            sensor->setNeedSaveDatabase(true);
+            updateSensorEtag(sensor);
+        }
+
+        Event e(RSensors, REventValidGroup, sensor->id());
+        enqueueEvent(e);
     }
 
     while (buttonMap->mode != Sensor::ModeNone)
@@ -1843,20 +1862,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     updateSensorEtag(sensor);
                     sensor->updateStateTimestamp();
                 }
-
-                if (ind.dstAddressMode() == deCONZ::ApsGroupAddress)
-                {
-                    Group *group = getGroupForId(ind.dstAddress().group());
-
-                    if (group && group->addDeviceMembership(sensor->id()))
-                    {
-                        DBG_Printf(DBG_INFO, "Attached sensor %s to group %s\n", qPrintable(sensor->id()), qPrintable(group->name()));
-                        queSaveDb(DB_GROUPS, DB_LONG_SAVE_DELAY);
-                        updateGroupEtag(group);
-                        // TODO check old sensors?
-                    }
-                }
-
                 return;
             }
         }
@@ -2256,8 +2261,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         }
     }
 
-    QTime t = QTime::currentTime().addMSecs(ReadAttributesLongDelay);
-
     // force reading attributes
     if (node->isRouter())
     {
@@ -2311,7 +2314,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         enqueueEvent(e);
     }
 
-    checkSensorBindingsForAttributeReporting(&sensors.back());
     updateSensorEtag(&sensors.back());
 
     Q_Q(DeRestPlugin);
@@ -2474,7 +2476,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 }
 
                                 ResourceItem *item = i->item(RConfigBattery);
-
 
                                 // Specifies the remaining battery life as a half integer percentage of the full battery capacity (e.g., 34.5%, 45%,
                                 // 68.5%, 90%) with a range between zero and 100%, with 0x00 = 0%, 0x64 = 50%, and 0xC8 = 100%. This is
@@ -6322,8 +6323,6 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
             stream >> type;
             DBG_Printf(DBG_INFO, " - Id: %u, type: %u\n", groupId, type);
 
-            Group *group1 = getGroupForId(groupId);
-
             if (epIter < count && ep != ind.srcEndpoint())
             {
                 sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ep);
@@ -6339,9 +6338,7 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
             if (sensorNode && sensorNode->deletedState() != Sensor::StateDeleted)
             {
                 sensorNode->clearRead(READ_GROUP_IDENTIFIERS);
-
-                // delete older groups of this switch permanently
-                deleteOldGroupOfSwitch(sensorNode, groupId);
+                Group *group1 = getGroupForId(groupId);
 
                 if (group1)
                 {
@@ -6352,36 +6349,22 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
 
                     //not found
                     group1->addDeviceMembership(sensorNode->id());
-
                     queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
                     updateEtag(group1->etag);
                 }
-                else
-                {
-                    //create new switch group
-                    Group group;
-                    group.setAddress(groupId);
-                    group.m_deviceMemberships.push_back(sensorNode->id());
-                    group.colorX = 0;
-                    group.colorY = 0;
-                    group.setIsOn(false);
-                    group.level = 128;
-                    group.hue = 0;
-                    group.hueReal = 0.0f;
-                    group.sat = 128;
-                    group.setName(QString());
-                    if (group.name().isEmpty())
-                    {
-                        group.setName(QString("%1").arg(sensorNode->name()));
-                    }
 
-                    updateEtag(group.etag);
-                    groups.push_back(group);
-                    sensorNode->setMode(Sensor::ModeTwoGroups); // sensor was reset -> set mode to '2 groups'
+                ResourceItem *item = sensorNode->addItem(DataTypeString, RConfigGroup);
+                QString gid = QString::number(groupId);
+
+                if (item->toString() != gid)
+                {
+                    item->setValue(gid);
                     sensorNode->setNeedSaveDatabase(true);
                     queSaveDb(DB_GROUPS | DB_SENSORS, DB_SHORT_SAVE_DELAY);
                 }
-                updateEtag(gwConfigEtag);
+
+                Event e(RSensors, REventValidGroup, sensorNode->id());
+                enqueueEvent(e);
             }
         }
     }
@@ -6499,7 +6482,10 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
         {
             found++;
             DBG_Printf(DBG_INFO, "DeviceAnnce of SensorNode: %s\n", qPrintable(si->address().toStringExt()));
-            checkSensorNodeReachable(&(*si));
+            checkSensorNodeReachable(&*si);
+            checkSensorGroup(&*si);
+            checkSensorBindingsForAttributeReporting(&*si);
+            checkSensorBindingsForClientClusters(&*si);
         }
     }
 
@@ -6986,13 +6972,6 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
                         enqueueEvent(e);
                     }
                 }
-
-                checkSensorBindingsForAttributeReporting(&*i);
-            }
-        }
-    }
-}
-
             }
         }
     }

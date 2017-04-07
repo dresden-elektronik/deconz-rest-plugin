@@ -19,6 +19,7 @@ const char *RGroups = "/groups";
 const char *RConfig = "/config";
 
 const char *REventAdded = "event/added";
+const char *REventValidGroup = "event/validgroup";
 
 const char *RInvalidSuffix = "invalid/suffix";
 const char *RStateButtonEvent = "state/buttonevent";
@@ -39,6 +40,7 @@ const char *RConfigReachable = "config/reachable";
 const char *RConfigConfigured = "config/configured";
 const char *RConfigDuration = "config/duration";
 const char *RConfigBattery = "config/battery";
+const char *RConfigGroup = "config/group";
 const char *RConfigUrl = "config/url";
 const char *RConfigLat = "config/lat";
 const char *RConfigLong = "config/long";
@@ -71,6 +73,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigReachable));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigConfigured));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigBattery, 0, 100));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigGroup));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigUrl));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigLat));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigLong));

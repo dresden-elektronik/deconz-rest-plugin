@@ -578,6 +578,7 @@ public:
     int setGroupAttributes(const ApiRequest &req, ApiResponse &rsp);
     int setGroupState(const ApiRequest &req, ApiResponse &rsp);
     int deleteGroup(const ApiRequest &req, ApiResponse &rsp);
+    Group *addGroup();
 
     // REST API groups > scenes
     int createScene(const ApiRequest &req, ApiResponse &rsp);
@@ -623,6 +624,7 @@ public:
     int getGroupIdentifiers(const ApiRequest &req, ApiResponse &rsp);
     int recoverSensor(const ApiRequest &req, ApiResponse &rsp);
     bool sensorToMap(const Sensor *sensor, QVariantMap &map);
+    void handleSensorEvent(const Event &e);
 
     // REST API rules
     int handleRulesApi(const ApiRequest &req, ApiResponse &rsp);
@@ -708,6 +710,9 @@ public Q_SLOTS:
     bool sendConfigureReportingRequest(BindingTask &bt);
     void checkLightBindingsForAttributeReporting(LightNode *lightNode);
     void checkSensorBindingsForAttributeReporting(Sensor *sensor);
+    void checkSensorBindingsForClientClusters(Sensor *sensor);
+    void checkSensorGroup(Sensor *sensor);
+    void checkOldSensorGroups(Sensor *sensor);
     void bindingTimerFired();
     void bindingToRuleTimerFired();
     void bindingTableReaderTimerFired();

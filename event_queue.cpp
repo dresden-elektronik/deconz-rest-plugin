@@ -20,48 +20,9 @@ void DeRestPluginPrivate::eventQueueTimerFired()
 
     Event &e = eventQueue.front();
 
-    // push sensor state updates through websocket
-    if (e.resource() == RSensors &&
-        strncmp(e.what(), "state/", 6) == 0)
+    if (e.resource() == RSensors)
     {
-        Sensor *sensor = getSensorNodeForId(e.id());
-        ResourceItem *item = sensor ? sensor->item(e.what()) : 0;
-        if (sensor && item)
-        {
-            QVariantMap map;
-            map["t"] = QLatin1String("event");
-            map["e"] = QLatin1String("changed");
-            map["r"] = QLatin1String("sensors");
-            map["id"] = e.id();
-            QVariantMap state;
-            state[e.what() + 6] = item->toVariant();
-            map["state"] = state;
-
-            webSocketServer->broadcastTextMessage(Json::serialize(map));
-        }
-    }
-    else if (e.resource() == RSensors && e.what() == REventAdded)
-    {
-        Sensor *sensor = getSensorNodeForId(e.id());
-
-        if (sensor)
-        {
-            QVariantMap res;
-            res["name"] = sensor->name();
-            findSensorResult[sensor->id()] = res;
-
-            QVariantMap map;
-            map["t"] = QLatin1String("event");
-            map["e"] = QLatin1String("added");
-            map["r"] = QLatin1String("sensors");
-
-            QVariantMap smap;
-            sensorToMap(sensor, smap);
-            smap["id"] = sensor->id();
-            map["sensor"] = smap;
-
-            webSocketServer->broadcastTextMessage(Json::serialize(map));
-        }
+        handleSensorEvent(e);
     }
 
     eventQueue.pop_front();

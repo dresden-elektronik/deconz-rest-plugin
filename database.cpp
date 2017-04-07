@@ -1557,9 +1557,11 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = COMMISSIONING_CLUSTER_ID;
             }
-            else if (sensor.fingerPrint().hasOutCluster(ONOFF_CLUSTER_ID))
+
+            if (sensor.fingerPrint().hasOutCluster(ONOFF_CLUSTER_ID))
             {
-                clusterId = ONOFF_CLUSTER_ID;
+                clusterId = clusterId ? clusterId : ONOFF_CLUSTER_ID;
+                sensor.addItem(DataTypeString, RConfigGroup);
             }
             sensor.addItem(DataTypeInt32, RStateButtonEvent);
         }

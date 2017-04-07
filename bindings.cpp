@@ -859,6 +859,264 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
     }
 }
 
+/*! Creates binding for group control (switches, motion sensor, ...). */
+void DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
+{
+    if (!apsCtrl || !sensor || !sensor->address().hasExt())
+    {
+        return;
+    }
+
+    if (idleTotalCounter < (IDLE_READ_LIMIT + 60)) // wait for some input before fire bindings
+    {
+        return;
+    }
+
+
+    ResourceItem *item = sensor->item(RConfigGroup);
+
+    if (!item || !item->lastSet().isValid())
+    {
+        return;
+    }
+
+    std::vector<quint16> clusters;
+
+    // Philips Dimmer Switch
+    if (sensor->modelId() == QLatin1String("RWL020") ||
+        sensor->modelId() == QLatin1String("RWL021"))
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+    }
+    // Busch-Jaeger
+    else if (sensor->modelId() == QLatin1String("RB01") ||
+             sensor->modelId() == QLatin1String("RM01"))
+    {
+        quint8 firstEp = 0x0A;
+
+        // the model RM01 might have an relais or dimmer switch on endpoint 0x12
+        // in that case the endpoint 0x0A has no function
+        if (getLightNodeForAddress(sensor->address(), 0x12))
+        {
+            firstEp = 0x0B;
+        }
+
+        if (sensor->fingerPrint().endpoint == firstEp)
+        {
+            clusters.push_back(LEVEL_CLUSTER_ID);
+        }
+        else if (sensor->fingerPrint().endpoint > firstEp)
+        {
+            clusters.push_back(SCENE_CLUSTER_ID);
+        }
+    }
+    else
+    {
+        return;
+    }
+
+    // prevent binding action if otau was busy recently
+    if (otauLastBusyTimeDelta() < OTA_LOW_PRIORITY_TIME)
+    {
+        return;
+    }
+
+    Group *group = getGroupForId(item->toString());
+
+    if (!group)
+    {
+        return;
+    }
+
+    std::vector<quint16>::const_iterator i = clusters.begin();
+    std::vector<quint16>::const_iterator end = clusters.end();
+
+    for (; i != end; ++i)
+    {
+        DBG_Printf(DBG_INFO, "0x%016llX (%s) create binding for client cluster 0x%04X on endpoint 0x%02X\n",
+                   sensor->address().ext(), qPrintable(sensor->modelId()), (*i), sensor->fingerPrint().endpoint);
+
+        BindingTask bindingTask;
+
+        bindingTask.state = BindingTask::StateIdle;
+        bindingTask.action = BindingTask::ActionBind;
+        bindingTask.restNode = sensor;
+        Binding &bnd = bindingTask.binding;
+        bnd.srcAddress = sensor->address().ext();
+        bnd.dstAddrMode = deCONZ::ApsGroupAddress;
+        bnd.srcEndpoint = sensor->fingerPrint().endpoint;
+        bnd.clusterId = *i;
+        bnd.dstAddress.group = group->address();
+        bnd.dstEndpoint = endpoint();
+
+        if (bnd.dstEndpoint > 0) // valid gateway endpoint?
+        {
+            queueBindingTask(bindingTask);
+        }
+    }
+
+    if (!bindingTimer->isActive())
+    {
+        bindingTimer->start();
+    }
+}
+
+/*! Creates groups for \p sensor if needed. */
+void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
+{
+    if (!sensor)
+    {
+        return;
+    }
+
+    Group *group = 0;
+
+    {
+        std::vector<Group>::iterator i = groups.begin();
+        std::vector<Group>::iterator end = groups.end();
+
+        for (; i != end; ++i)
+        {
+            if (i->deviceIsMember(sensor->id()))
+            {
+                group = &*i;
+                break;
+            }
+        }
+    }
+
+    // Philips Dimmer Switch
+    if (sensor->modelId() == QLatin1String("RWL020") ||
+        sensor->modelId() == QLatin1String("RWL021"))
+    {
+        if (!group)
+        {
+            getGroupIdentifiers(sensor, 0x01, 0x00);
+            return;
+        }
+    }
+    else if (sensor->modelId() == QLatin1String("RB01") ||
+             sensor->modelId() == QLatin1String("RM01"))
+    {
+        // check if group is created for other endpoint
+        for (quint8 ep = 0x0A; !group && ep < 0x0F; ep++)
+        {
+            Sensor *s = getSensorNodeForAddressAndEndpoint(sensor->address(), ep);
+            if (s && s != sensor)
+            {
+                ResourceItem *item = s->item(RConfigGroup);
+                if (item && item->lastSet().isValid())
+                {
+                    group = getGroupForId(item->toString());
+
+                    // TODO if group == 0, handle
+                }
+            }
+        }
+    }
+    else
+    {
+        return;
+    }
+
+    ResourceItem *item = sensor->item(RConfigGroup);
+
+    if (!item)
+    {
+        item = sensor->addItem(DataTypeString, RConfigGroup);
+    }
+    else if (!group && item->lastSet().isValid())
+    {
+        group = getGroupForId(item->toString());
+    }
+
+    if (!group)
+    {
+        group = addGroup();
+        group->setName(sensor->name());
+    }
+
+    if (group->addDeviceMembership(sensor->id()))
+    {
+
+    }
+
+    if (item->toString() != group->id())
+    {
+        item->setValue(group->id());
+        sensor->setNeedSaveDatabase(true);
+        queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+        Event e(RSensors, RConfigGroup, sensor->id());
+        enqueueEvent(e);
+    }
+}
+
+/*! Checks if there are any orphan groups for \p sensor and removes them. */
+void DeRestPluginPrivate::checkOldSensorGroups(Sensor *sensor)
+{
+    if (!sensor)
+    {
+        return;
+    }
+
+    ResourceItem *item = sensor->item(RConfigGroup);
+
+    if (!item || !item->lastSet().isValid())
+    {
+        return;
+    }
+
+    const QString &gid = item->toString();
+
+    {
+        std::vector<Group>::iterator i = groups.begin();
+        std::vector<Group>::iterator end = groups.end();
+
+        for (; i != end; ++i)
+        {
+            if (gid == i->id()) // current group
+            {
+                if (i->state() != Group::StateNormal)
+                {
+                    DBG_Printf(DBG_INFO, "reanimate group %u for sensor %s\n", i->address(), qPrintable(sensor->name()));
+                    i->setState(Group::StateNormal);
+                    updateGroupEtag(&*i);
+                    queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
+                }
+            }
+            else if (i->deviceIsMember(sensor->id()))
+            {
+                if (i->state() == Group::StateNormal)
+                {
+                    DBG_Printf(DBG_INFO, "delete old group %u of sensor %s\n", i->address(), qPrintable(sensor->name()));
+                    i->setState(Group::StateDeleted);
+                    updateGroupEtag(&*i);
+                    queSaveDb(DB_GROUPS | DB_LIGHTS, DB_SHORT_SAVE_DELAY);
+
+                    // for each node which is part of this group send a remove group request (will be unicast)
+                    // note: nodes which are curently switched off will not be removed!
+                    std::vector<LightNode>::iterator j = nodes.begin();
+                    std::vector<LightNode>::iterator jend = nodes.end();
+
+                    for (; j != jend; ++j)
+                    {
+                        GroupInfo *groupInfo = getGroupInfo(&*j, i->address());
+
+                        if (groupInfo)
+                        {
+                            j->setNeedSaveDatabase(true);
+                            groupInfo->actions &= ~GroupInfo::ActionAddToGroup; // sanity
+                            groupInfo->actions |= GroupInfo::ActionRemoveFromGroup;
+                            groupInfo->state = GroupInfo::StateNotInGroup;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 /*! Process binding related tasks queue every one second. */
 void DeRestPluginPrivate::bindingTimerFired()
 {
