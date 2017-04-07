@@ -893,9 +893,6 @@ public:
     void markForPushUpdate(LightNode *lightNode);
     void taskToLocalData(const TaskItem &task);
 
-    void fastProbeBuschJaeger(quint64 ext, quint16 nwk, quint8 macCapabilities);
-
-
     // Modify node attributes
     void setAttributeOnOff(LightNode *lightNode);
     void setAttributeLevel(LightNode *lightNode);

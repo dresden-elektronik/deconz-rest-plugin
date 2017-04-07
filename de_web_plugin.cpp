@@ -528,21 +528,6 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
             if (conf.status() != deCONZ::ApsSuccessStatus)
             {
                 DBG_Printf(DBG_INFO, "error APSDE-DATA.confirm: 0x%02X on task\n", conf.status());
-
-                if (conf.status() == deCONZ::ApsNoAckStatus)
-                {
-                    if (task.taskType == TaskGetGroupIdentifiers)
-                    {
-                        Sensor *s = getSensorNodeForAddress(task.req.dstAddress());
-                        if (s && s->isAvailable())
-                        {
-                            s->setNextReadTime(READ_GROUP_IDENTIFIERS, queryTime);
-                            s->enableRead(READ_GROUP_IDENTIFIERS);
-                            s->setLastRead(READ_GROUP_IDENTIFIERS, idleTotalCounter);
-                            queryTime = queryTime.addSecs(5);
-                        }
-                    }
-                }
             }
 
             DBG_Printf(DBG_INFO_L2, "Erase task zclSequenceNumber: %u send time %d\n", task.zclFrame.sequenceNumber(), idleTotalCounter - task.sendTime);
@@ -1687,9 +1672,12 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor)
             // refresh all with new values
             DBG_Printf(DBG_INFO, "SensorNode id: %s (%s) available\n", qPrintable(sensor->id()), qPrintable(sensor->name()));
             sensor->setIsAvailable(true);
-            sensor->setNextReadTime(READ_BINDING_TABLE, queryTime);
-            sensor->enableRead(READ_BINDING_TABLE/* | READ_GROUP_IDENTIFIERS | READ_MODEL_ID | READ_SWBUILD_ID | READ_VENDOR_NAME*/);
-            queryTime = queryTime.addSecs(5);
+            if (sensor->node() && !sensor->node()->isEndDevice())
+            {
+                sensor->setNextReadTime(READ_BINDING_TABLE, queryTime);
+                sensor->enableRead(READ_BINDING_TABLE/* | READ_MODEL_ID | READ_SWBUILD_ID | READ_VENDOR_NAME*/);
+                queryTime = queryTime.addSecs(5);
+            }
             //sensor->setLastRead(READ_BINDING_TABLE, idleTotalCounter);
             checkSensorBindingsForAttributeReporting(sensor);
             updated = true;
@@ -1699,8 +1687,13 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor)
         {
             DBG_Printf(DBG_INFO, "Rediscovered deleted SensorNode %s set node %s\n", qPrintable(sensor->id()), qPrintable(sensor->address().toStringExt()));
             sensor->setDeletedState(Sensor::StateNormal);
-            sensor->setNextReadTime(READ_BINDING_TABLE, queryTime);
-            sensor->enableRead(READ_BINDING_TABLE | READ_GROUP_IDENTIFIERS | READ_MODEL_ID | READ_VENDOR_NAME);
+            sensor->enableRead(READ_MODEL_ID | READ_VENDOR_NAME);
+
+            if (sensor->node() && !sensor->node()->isEndDevice())
+            {
+                sensor->setNextReadTime(READ_BINDING_TABLE, queryTime);
+                sensor->enableRead(READ_BINDING_TABLE);
+            }
             queryTime = queryTime.addSecs(5);
             //sensor->setLastRead(READ_BINDING_TABLE, idleTotalCounter);
             updated = true;
@@ -2278,14 +2271,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.setNextReadTime(READ_OCCUPANCY_CONFIG, queryTime);
                 sensorNode.enableRead(READ_OCCUPANCY_CONFIG);
                 sensorNode.setLastRead(READ_OCCUPANCY_CONFIG, idleTotalCounter);
-                queryTime = queryTime.addSecs(1);
-            }
-            else if (*ci == COMMISSIONING_CLUSTER_ID)
-            {
-                DBG_Printf(DBG_INFO, "SensorNode %u: %s read group identifiers\n", sensorNode.id().toUInt(), qPrintable(sensorNode.name()));
-                sensorNode.setNextReadTime(READ_GROUP_IDENTIFIERS, t);
-                sensorNode.enableRead(READ_GROUP_IDENTIFIERS);
-                sensorNode.setLastRead(READ_GROUP_IDENTIFIERS, idleTotalCounter);
                 queryTime = queryTime.addSecs(1);
             }
             else if (*ci == BASIC_CLUSTER_ID)
@@ -3680,30 +3665,6 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, BASIC_CLUSTER_ID, attributes))
         {
             sensorNode->clearRead(READ_SWBUILD_ID);
-            processed++;
-        }
-    }
-
-    if (sensorNode->mustRead(READ_GROUP_IDENTIFIERS) && tNow > sensorNode->nextReadTime(READ_GROUP_IDENTIFIERS))
-    {
-        if (!sensorNode->modelId().startsWith(QLatin1String("RWL02")) &&
-            std::find(sensorNode->fingerPrint().inClusters.begin(),
-                      sensorNode->fingerPrint().inClusters.end(), COMMISSIONING_CLUSTER_ID)
-                   == sensorNode->fingerPrint().inClusters.end())
-        {
-            // if the sensor is not a RWL021/RWL020 && has no commissioning cluster
-            // disable reading of group identifiers here
-            sensorNode->clearRead(READ_GROUP_IDENTIFIERS);
-        }
-        else if (((sensorNode->address().ext() & 0x000b570000000000LLU) == 0x000b570000000000LLU) ||
-                 sensorNode->modelId() == QLatin1String("TRADFRI remote control"))
-        {
-            // IKEA remote not supported yet
-            sensorNode->clearRead(READ_GROUP_IDENTIFIERS);
-        }
-        else if (getGroupIdentifiers(sensorNode, sensorNode->fingerPrint().endpoint, 0))
-        {
-            sensorNode->clearRead(READ_GROUP_IDENTIFIERS);
             processed++;
         }
     }
@@ -7027,123 +6988,10 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
     }
 }
 
-/*! Speed up discovery of Busch-Jaeger devices.
- */
-void DeRestPluginPrivate::fastProbeBuschJaeger(quint64 ext, quint16 nwk, quint8 macCapabilities)
-{
-    Q_UNUSED(macCapabilities);
-    // known devices have endpoints 0x0A
-
-    // if (!(macCapabilities & deCONZ::MacDeviceIsFFD))
-    {
-        // active endpoints
-        {
-            deCONZ::ApsDataRequest apsReq;
-
-            // ZDP Header
-            apsReq.dstAddress().setExt(ext);
-            apsReq.dstAddress().setNwk(nwk);
-            apsReq.setDstAddressMode(deCONZ::ApsExtAddress);
-            apsReq.setDstEndpoint(ZDO_ENDPOINT);
-            apsReq.setSrcEndpoint(ZDO_ENDPOINT);
-            apsReq.setProfileId(ZDP_PROFILE_ID);
-            apsReq.setRadius(0);
-            apsReq.setClusterId(ZDP_ACTIVE_ENDPOINTS_CLID);
-            apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
-            apsReq.setSendDelay(2000);
-
-            QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
-            stream.setByteOrder(QDataStream::LittleEndian);
-
-            stream << zclSeq++;
-
-            deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
-
-            if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
-            {
-                queryTime = queryTime.addSecs(1);
-            }
-        }
-
-        // simple descriptor for endpoint 0x0A
-        {
-            deCONZ::ApsDataRequest apsReq;
-
-            // ZDP Header
-            apsReq.dstAddress().setExt(ext);
-            apsReq.dstAddress().setNwk(nwk);
-            apsReq.setDstAddressMode(deCONZ::ApsExtAddress);
-            apsReq.setDstEndpoint(ZDO_ENDPOINT);
-            apsReq.setSrcEndpoint(ZDO_ENDPOINT);
-            apsReq.setProfileId(ZDP_PROFILE_ID);
-            apsReq.setRadius(0);
-            apsReq.setClusterId(ZDP_SIMPLE_DESCRIPTOR_CLID);
-            apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
-            apsReq.setSendDelay(2000);
-
-            QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
-            stream.setByteOrder(QDataStream::LittleEndian);
-
-            stream << zclSeq++;
-            stream << nwk;
-            stream << (quint8)0x0A;
-
-            deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
-
-            if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
-            {
-                queryTime = queryTime.addSecs(1);
-            }
-        }
-
-        // basic cluster
-        {
-            deCONZ::ApsDataRequest apsReq;
-
-            // ZDP Header
-            apsReq.dstAddress().setExt(ext);
-            apsReq.dstAddress().setNwk(nwk);
-            apsReq.setDstAddressMode(deCONZ::ApsExtAddress);
-            apsReq.setDstEndpoint(0x0A);
-            apsReq.setSrcEndpoint(endpoint());
-            apsReq.setProfileId(HA_PROFILE_ID);
-            apsReq.setRadius(0);
-            apsReq.setClusterId(BASIC_CLUSTER_ID);
-            apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
-            apsReq.setSendDelay(2000);
-
-            deCONZ::ZclFrame zclFrame;
-            zclFrame.setSequenceNumber(zclSeq++);
-            zclFrame.setCommandId(deCONZ::ZclReadAttributesId);
-            zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
-                                     deCONZ::ZclFCDirectionClientToServer |
-                                     deCONZ::ZclFCDisableDefaultResponse);
-
-            { // payload
-                QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
-                stream.setByteOrder(QDataStream::LittleEndian);
-
-                stream << (quint16)0x0005; // model id
-                stream << (quint16)0x0006; // date code
-                stream << (quint16)0x4000; // sw build id
-            }
-
-            { // ZCL frame
-                QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
-                stream.setByteOrder(QDataStream::LittleEndian);
-                zclFrame.writeToStream(stream);
-            }
-
-            deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
-
-            if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
-            {
-                queryTime = queryTime.addSecs(1);
             }
         }
     }
 }
-
 
 /*! Updates the onOff attribute in the local node cache.
  */
