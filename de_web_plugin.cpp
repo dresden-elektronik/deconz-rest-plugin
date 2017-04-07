@@ -2217,6 +2217,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             {   // this cluster is on endpoint 2 and hence not detected
                 sensorNode.fingerPrint().inClusters.push_back(POWER_CONFIGURATION_CLUSTER_ID);
             }
+
+            if (!sensorNode.fingerPrint().hasInCluster(VENDOR_CLUSTER_ID)) // for realtime button feedback
+            {   // this cluster is on endpoint 2 and hence not detected
+                sensorNode.fingerPrint().inClusters.push_back(VENDOR_CLUSTER_ID);
+            }
         }
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_BEGA)
@@ -2417,7 +2422,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
         }
 
 
-        if (event.clusterId() != BASIC_CLUSTER_ID)
+        if (event.clusterId() != BASIC_CLUSTER_ID && event.clusterId() != POWER_CONFIGURATION_CLUSTER_ID)
         {
             // filter endpoint
             if (event.endpoint() != i->fingerPrint().endpoint)
@@ -2480,13 +2485,13 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 ResourceItem *item = i->item(RConfigBattery);
 
-                                int bat = ia->numericValue().u8 / 2;
 
                                 // Specifies the remaining battery life as a half integer percentage of the full battery capacity (e.g., 34.5%, 45%,
                                 // 68.5%, 90%) with a range between zero and 100%, with 0x00 = 0%, 0x64 = 50%, and 0xC8 = 100%. This is
                                 // particularly suited for devices with rechargeable batteries.
                                 if (item)
                                 {
+                                    int bat = ia->numericValue().u8 / 2;
                                     item->setValue(bat);
                                     Event e(RSensors, RConfigBattery, i->id());
                                     enqueueEvent(e);
@@ -6985,6 +6990,17 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
                 queryTime = queryTime.addSecs(1);
             }
             return;
+        }
+
+        if (sensor->modelId() == QLatin1String("RWL020") ||
+            sensor->modelId() == QLatin1String("RWL021"))
+        {
+            ResourceItem *item = sensor->item(RConfigGroup);
+            if (!item || !item->lastSet().isValid())
+            {
+                getGroupIdentifiers(sensor, 0x01, 0x00);
+                return;
+            }
         }
 
         std::vector<Sensor>::iterator i = sensors.begin();

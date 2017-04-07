@@ -85,13 +85,13 @@ static const Sensor::ButtonMap instaRemoteMap[] = {
 
 static const Sensor::ButtonMap philipsDimmerSwitchMap[] = {
 //    mode                          ep    cluster cmd   param button                                       name
-    { Sensor::ModeScenes,           0x01, 0x0006, 0x01, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+/*  { Sensor::ModeScenes,           0x01, 0x0006, 0x01, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
     { Sensor::ModeScenes,           0x01, 0x0006, 0x40, 0,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Off with effect" },
 
     { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "Step up" },
     { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "Dimm stop" }, // might be button 2 as well
     { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 1,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD,           "Step down" },
-
+*/
 //  vendor specific
     // top button
     { Sensor::ModeScenes,           0x02, 0xfc00, 0x00, 0x10,  S_BUTTON_1 + S_BUTTON_ACTION_INITIAL_PRESS,  "initial press" },

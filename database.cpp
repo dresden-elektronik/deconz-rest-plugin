@@ -1596,8 +1596,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         {
             sensor.jsonToState(QLatin1String(colval[stateCol]));
         }
-        // set later
-        sensor.item(RConfigReachable)->setValue(false);
 
         if (configCol >= 0)
         {
@@ -1619,6 +1617,19 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (sensor.modelId() != QLatin1String("Lighting Switch"))
             {
                 sensor.setMode(Sensor::ModeScenes);
+            }
+        }
+
+        if (sensor.modelId().startsWith(QLatin1String("RWL02"))) // hue dimmer switch
+        {
+            if (!sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
+            {
+                sensor.fingerPrint().inClusters.push_back(POWER_CONFIGURATION_CLUSTER_ID);
+            }
+
+            if (!sensor.fingerPrint().hasInCluster(VENDOR_CLUSTER_ID)) // for realtime button feedback
+            {
+                sensor.fingerPrint().inClusters.push_back(VENDOR_CLUSTER_ID);
             }
         }
 

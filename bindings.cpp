@@ -760,6 +760,17 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         {
             val = sensor->getZclValue(*i, 0x0021); // battery percentage remaining
         }
+        else if (*i == VENDOR_CLUSTER_ID)
+        {
+            if (sensor->modelId().startsWith(QLatin1String("RWL02")))
+            {
+                ResourceItem *item = sensor->item(RStateButtonEvent);
+                if (item && item->lastSet().isValid())
+                { // button binding seems to work
+                    continue;
+                }
+            }
+        }
 
         if (val.timestampLastReport.isValid() &&
             val.timestampLastReport.secsTo(QTime::currentTime()) < (60 * 45)) // got update in timely manner
@@ -794,6 +805,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         case OCCUPANCY_SENSING_CLUSTER_ID:
         case ILLUMINANCE_MEASUREMENT_CLUSTER_ID:
         case TEMPERATURE_MEASUREMENT_CLUSTER_ID:
+        case VENDOR_CLUSTER_ID:
         {
             DBG_Printf(DBG_INFO, "0x%016llX (%s) create binding for attribute reporting of cluster 0x%04X on endpoint 0x%02X\n",
                        sensor->address().ext(), qPrintable(sensor->modelId()), (*i), srcEndpoint);
