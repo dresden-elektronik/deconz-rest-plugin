@@ -68,6 +68,9 @@ public Q_SLOTS:
     bool startUpdateFirmware();
     const QString &getNodeName(quint64 extAddress) const;
 
+Q_SIGNALS:
+    void nodeUpdated(quint64 extAddress, QString key, QString value);
+
 private:
     QTimer *m_idleTimer;
     QTimer *m_readAttributesTimer;

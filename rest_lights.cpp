@@ -953,7 +953,8 @@ int DeRestPluginPrivate::setLightAttributes(const ApiRequest &req, ApiResponse &
             if (lightNode->name() != name)
             {
                 lightNode->setName(name);
-
+                Q_Q(DeRestPlugin);
+                q->nodeUpdated(lightNode->address().ext(), QLatin1String("name"), lightNode->name());
                 updateLightEtag(lightNode);
                 lightNode->setNeedSaveDatabase(true);
                 queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);

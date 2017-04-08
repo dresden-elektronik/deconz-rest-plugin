@@ -1054,6 +1054,20 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         checkSensorBindingsForAttributeReporting(sensor);
         checkSensorBindingsForClientClusters(sensor);
 
+        Q_Q(DeRestPlugin);
+
+        if (!sensor->name().isEmpty())
+        { q->nodeUpdated(sensor->address().ext(), QLatin1String("name"), sensor->name()); }
+
+        if (!sensor->modelId().isEmpty())
+        { q->nodeUpdated(sensor->address().ext(), QLatin1String("modelid"), sensor->modelId()); }
+
+        if (!sensor->manufacturer().isEmpty())
+        { q->nodeUpdated(sensor->address().ext(), QLatin1String("vendor"), sensor->manufacturer()); }
+
+        if (!sensor->swVersion().isEmpty())
+        { q->nodeUpdated(sensor->address().ext(), QLatin1String("version"), sensor->swVersion()); }
+
         QVariantMap res;
         res["name"] = sensor->name();
         findSensorResult[sensor->id()] = res;

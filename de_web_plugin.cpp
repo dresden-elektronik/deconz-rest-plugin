@@ -1060,6 +1060,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
         if (lightNode.haEndpoint().isValid())
         {
+            Q_Q(DeRestPlugin);
             lightNode.setNode(const_cast<deCONZ::Node*>(node));
             lightNode.address() = node->address();
             lightNode.setManufacturerCode(node->nodeDescriptor().manufacturerCode());
@@ -1082,6 +1083,18 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             {
                 lightNode.setName(QString("Light %1").arg(lightNode.id()));
             }
+
+            if (!lightNode.name().isEmpty())
+            { q->nodeUpdated(lightNode.address().ext(), QLatin1String("name"), lightNode.name()); }
+
+            if (!lightNode.swBuildId().isEmpty())
+            { q->nodeUpdated(lightNode.address().ext(), QLatin1String("version"), lightNode.swBuildId()); }
+
+            if (!lightNode.manufacturer().isEmpty())
+            { q->nodeUpdated(lightNode.address().ext(), QLatin1String("vendor"), lightNode.manufacturer()); }
+
+            if (!lightNode.modelId().isEmpty())
+            { q->nodeUpdated(lightNode.address().ext(), QLatin1String("modelid"), lightNode.modelId()); }
 
             // force reading attributes
             lightNode.enableRead(READ_VENDOR_NAME |
@@ -1110,7 +1123,6 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             nodes.push_back(lightNode);
             lightNode2 = &nodes.back();
 
-            Q_Q(DeRestPlugin);
             q->startZclAttributeTimer(checkZclAttributesDelay);
             updateEtag(lightNode2->etag);
 
@@ -1881,15 +1893,12 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
 {
     DBG_Assert(node != 0);
 
-    if (!node || node->nodeDescriptor().isNull())
+    if (!node)
     {
         return;
     }
 
-    if (findSensorsState != FindSensorsActive)
-    {
-        return;
-    }
+    Q_Q(DeRestPlugin);
 
     { // check existing sensors
         std::vector<Sensor>::iterator i = sensors.begin();
@@ -1903,6 +1912,18 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                 {
                     i->setNode(const_cast<deCONZ::Node*>(node));
                     DBG_Printf(DBG_INFO, "SensorNode %s set node %s\n", qPrintable(i->id()), qPrintable(node->address().toStringExt()));
+
+                    if (!i->name().isEmpty())
+                    { q->nodeUpdated(i->address().ext(), QLatin1String("name"), i->name()); }
+
+                    if (!i->modelId().isEmpty())
+                    { q->nodeUpdated(i->address().ext(), QLatin1String("modelid"), i->modelId()); }
+
+                    if (!i->manufacturer().isEmpty())
+                    { q->nodeUpdated(i->address().ext(), QLatin1String("vendor"), i->manufacturer()); }
+
+                    if (!i->swVersion().isEmpty())
+                    { q->nodeUpdated(i->address().ext(), QLatin1String("version"), i->swVersion()); }
                 }
 
                 // address changed?
@@ -1912,6 +1933,16 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                 }
             }
         }
+    }
+
+    if (node->nodeDescriptor().isNull())
+    {
+        return;
+    }
+
+    if (findSensorsState != FindSensorsActive)
+    {
+        return;
     }
 
     // check for new sensors
