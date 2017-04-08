@@ -211,7 +211,14 @@ bool DeRestPluginPrivate::ruleToMap(const Rule *rule, QVariantMap &map)
     map["actions"] = actions;
     map["conditions"] = conditions;
     map["created"] = rule->creationtime();
-    map["lasttriggered"] = rule->lastTriggered();
+    if (rule->lastTriggered().isValid())
+    {
+        map["lasttriggered"] = rule->lastTriggered().toString("yyyy-MM-ddTHH:mm:ss");
+    }
+    else
+    {
+        map["lasttriggered"] = QLatin1String("none");
+    }
     map["name"] = rule->name();
     map["owner"] = rule->owner();
     map["periodic"] = rule->triggerPeriodic();
@@ -297,7 +304,14 @@ int DeRestPluginPrivate::getRule(const ApiRequest &req, ApiResponse &rsp)
     }
 
     rsp.map["name"] = rule->name();
-    rsp.map["lasttriggered"] = rule->lastTriggered();
+    if (rule->lastTriggered().isValid())
+    {
+        rsp.map["lasttriggered"] = rule->lastTriggered().toString("yyyy-MM-ddTHH:mm:ss");
+    }
+    else
+    {
+        rsp.map["lasttriggered"] = QLatin1String("none");
+    }
     rsp.map["created"] = rule->creationtime();
     rsp.map["timestriggered"] = rule->timesTriggered();
     rsp.map["owner"] = rule->owner();
@@ -1219,10 +1233,12 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
         return;
     }
 
+    QDateTime now = QDateTime::currentDateTime();
+
     if (rule.triggerPeriodic() > 0)
-    {   // TODO DateTime, to prevent 24h bug
-        if (rule.lastTriggeredTime().isValid() &&
-            rule.lastTriggeredTime().elapsed() < rule.triggerPeriodic())
+    {
+        if (rule.lastTriggered().isValid() &&
+            rule.lastTriggered() < now.addMSecs(rule.triggerPeriodic()))
         {
             // not yet time
             return;
@@ -1267,9 +1283,22 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
             if (!rule.lastVerify.isValid() || item->lastSet() < rule.lastVerify)
             { ok = false; break; }
         }
+        else if (c->op() == RuleCondition::OpDdx)
+        {
+            QDateTime dt = item->lastChanged().addSecs(c->numericValue());
+            if (dt > now)
+            { ok = false; break; } // not time yet
+            else if (rule.lastTriggered().isValid() && rule.lastTriggered() > dt)
+            { ok = false; break; } // already handled
+        }
+        else
+        {
+            ok = false;
+            break;
+        }
     }
 
-    rule.lastVerify = QDateTime::currentDateTime();
+    rule.lastVerify = now;
 
     if (ok)
     {
@@ -1338,7 +1367,7 @@ void DeRestPluginPrivate::triggerRule(Rule &rule)
 
     if (triggered)
     {
-        rule.setLastTriggered(QDateTime::currentDateTimeUtc().toString("yyyy-MM-ddTHH:mm:ss"));
+        rule.m_lastTriggered = QDateTime::currentDateTime();
         rule.setTimesTriggered(rule.timesTriggered() + 1);
     }
 }

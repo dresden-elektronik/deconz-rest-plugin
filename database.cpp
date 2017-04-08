@@ -1348,10 +1348,6 @@ static int sqliteLoadAllRulesCallback(void *user, int ncols, char **colval , cha
             {
                 rule.etag = val;
             }
-            else if (strcmp(colname[i], "lasttriggered") == 0)
-            {
-                rule.setLastTriggered(val);
-            }
             else if (strcmp(colname[i], "owner") == 0)
             {
                 rule.setOwner(val);
@@ -2494,7 +2490,7 @@ void DeRestPluginPrivate::saveDb()
                     i->name() + QLatin1String("','") +
                     i->creationtime() + QLatin1String("','") +
                     i->etag + QLatin1String("','") +
-                    i->lastTriggered() + QLatin1String("','") +
+                    QLatin1String("none','") +
                     i->owner() + QLatin1String("','") +
                     i->status() + QLatin1String("','") +
                     QString::number(i->timesTriggered()) + QLatin1String("','") +

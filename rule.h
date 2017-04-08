@@ -97,9 +97,7 @@ public:
     void setId(const QString &id);
     const QString &name() const;
     void setName(const QString &name);
-    const QString &lastTriggered() const;
-    void setLastTriggered(const QString &lastTriggered);
-    const QTime &lastTriggeredTime() const;
+    const QDateTime &lastTriggered() const;
     const QString &creationtime() const;
     void setCreationtime(const QString &creationtime);
     const quint32 &timesTriggered() const;
@@ -124,14 +122,13 @@ public:
 
     QString etag;
     QDateTime lastVerify;
+    QDateTime m_lastTriggered;
     int lastBindingVerify; // copy of idleTotalCounter at last binding verification
 
 private:
     State m_state;
     QString m_id;
     QString m_name;
-    QTime m_lastTriggeredTime;
-    QString m_lastTriggered;
     QString m_creationtime;
     quint32 m_timesTriggered;
     int m_triggerPeriodic;

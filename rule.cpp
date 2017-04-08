@@ -16,7 +16,6 @@ Rule::Rule() :
     m_state(StateNormal),
     m_id("notSet"),
     m_name("notSet"),
-    m_lastTriggered("none"),
     m_creationtime("notSet"),
     m_timesTriggered(0),
     m_triggerPeriodic(0),
@@ -70,27 +69,11 @@ void Rule::setName(const QString &name)
     m_name = name;
 }
 
-/*! Returns the date the rule was last triggered.
- */
-const QString &Rule::lastTriggered() const
-{
-    return this->m_lastTriggered;
-}
-
-/*! Sets the date the rule was last triggered.
-    \param lastTriggered the date the rule was last triggered
- */
-void Rule::setLastTriggered(const QString &lastTriggered)
-{
-    m_lastTriggered = lastTriggered;
-    m_lastTriggeredTime.start();
-}
-
 /*! Returns the timestamp the rule was last triggered.
  */
-const QTime &Rule::lastTriggeredTime() const
+const QDateTime &Rule::lastTriggered() const
 {
-    return m_lastTriggeredTime;
+    return m_lastTriggered;
 }
 
 /*! Returns the date the rule was created.
@@ -441,13 +424,21 @@ RuleCondition::RuleCondition(const QVariantMap &map) :
     {
         QString str = m_value.toString();
 
-        if (str.at(0).isDigit())
+        if (m_op == OpDdx)
+        {
+            QTime t = QTime::fromString(str, "'PT'hh:mm:ss");
+            if (t.isValid())
+            {
+                m_value = t;
+            } else { m_op = OpUnknown; } // mark invalid
+        }
+        else if (str.at(0).isDigit())
         {
             int num = str.toUInt(&ok);
             if (ok)
             {
                 m_value = (double)num;
-            }
+            } else { m_op = OpUnknown; } // mark invalid
         } else if (str == QLatin1String("true") ||
                    str == QLatin1String("false"))
         {
@@ -460,10 +451,19 @@ RuleCondition::RuleCondition(const QVariantMap &map) :
         m_value.type() == QVariant::Int)
     {
         m_num = m_value.toInt(&ok);
-        if (!ok) { m_num = 0; }
-    } else if (m_value.type() == QVariant::Bool)
+        if (!ok) { m_num = 0; m_op = OpUnknown; }
+    }
+    else if (m_value.type() == QVariant::Bool)
     {
         m_num = m_value.toBool() ? 1 : 0;
+    }
+    else if (m_value.type() == QVariant::Time)
+    {
+        // cache time in seconds
+        QTime t = m_value.toTime();
+        m_num = t.hour() * 60 * 60;
+        m_num += t.minute() * 60;
+        m_num += t.second();
     }
     else { m_num = 0; }
 }
