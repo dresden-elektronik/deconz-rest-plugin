@@ -1410,6 +1410,9 @@ void DeRestPluginPrivate::triggerRule(Rule &rule)
     {
         rule.m_lastTriggered = QDateTime::currentDateTime();
         rule.setTimesTriggered(rule.timesTriggered() + 1);
+        updateEtag(rule.etag);
+        updateEtag(gwConfigEtag);
+        queSaveDb(DB_RULES, DB_HUGE_SAVE_DELAY);
     }
 }
 

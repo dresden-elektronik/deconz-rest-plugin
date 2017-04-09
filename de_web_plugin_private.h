@@ -227,6 +227,7 @@
 #define DB_USERPARAM   0x00000100
 #define DB_GATEWAYS    0x00000200
 
+#define DB_HUGE_SAVE_DELAY  (60 * 60 * 1000) // 60 minutes
 #define DB_LONG_SAVE_DELAY  (15 * 60 * 1000) // 15 minutes
 #define DB_SHORT_SAVE_DELAY (5 *  1 * 1000) // 5 seconds
 
