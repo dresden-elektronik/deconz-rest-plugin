@@ -685,7 +685,7 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
 /*! Creates binding for attribute reporting to gateway node. */
 void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *sensor)
 {
-    if (!apsCtrl || !sensor || !sensor->address().hasExt() || !sensor->node())
+    if (!apsCtrl || !sensor || !sensor->address().hasExt() || !sensor->node() || !sensor->toBool(RConfigReachable))
     {
         return;
     }
@@ -862,7 +862,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
 /*! Creates binding for group control (switches, motion sensor, ...). */
 void DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
 {
-    if (!apsCtrl || !sensor || !sensor->address().hasExt())
+    if (!apsCtrl || !sensor || !sensor->address().hasExt() || !sensor->toBool(RConfigReachable))
     {
         return;
     }

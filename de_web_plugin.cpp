@@ -445,6 +445,13 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
                 if (sensorNode)
                 {
+                    ResourceItem *item = sensorNode->item(RConfigReachable);
+                    if (item && !item->toBool())
+                    {
+                        item->setValue(true);
+                        Event e(RSensors, RConfigReachable, sensorNode->id());
+                        enqueueEvent(e);
+                    }
                     checkSensorButtonEvent(sensorNode, ind, zclFrame);
                 }
             }
@@ -1674,7 +1681,13 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor)
         }
     }
 
-    sensor->item(RConfigReachable)->setValue(reachable);
+    ResourceItem *item = sensor->item(RConfigReachable);
+    if (item && item->toBool() != reachable)
+    {
+        item->setValue(reachable);
+        Event e(RSensors, RConfigReachable, sensor->id());
+        enqueueEvent(e);
+    }
 
     if (reachable)
     {
@@ -6500,10 +6513,19 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
         {
             found++;
             DBG_Printf(DBG_INFO, "DeviceAnnce of SensorNode: %s\n", qPrintable(si->address().toStringExt()));
-            checkSensorNodeReachable(&*si);
+
+            ResourceItem *item = si->item(RConfigReachable);
+            if (item && !item->toBool())
+            {
+                item->setValue(true);
+                Event e(RSensors, RConfigReachable, si->id());
+                enqueueEvent(e);
+            }
+            si->setIsAvailable(true);
             checkSensorGroup(&*si);
             checkSensorBindingsForAttributeReporting(&*si);
             checkSensorBindingsForClientClusters(&*si);
+            updateSensorEtag(&*si);
         }
     }
 
