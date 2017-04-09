@@ -3423,25 +3423,41 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
 
     if (lightNode->mustRead(READ_VENDOR_NAME) && tNow > lightNode->nextReadTime(READ_VENDOR_NAME))
     {
-        std::vector<uint16_t> attributes;
-        attributes.push_back(0x0004); // Manufacturer name
-
-        if (readAttributes(lightNode, lightNode->haEndpoint().endpoint(), BASIC_CLUSTER_ID, attributes))
+        if (!lightNode->manufacturer().isEmpty())
         {
             lightNode->clearRead(READ_VENDOR_NAME);
             processed++;
+        }
+        else
+        {
+            std::vector<uint16_t> attributes;
+            attributes.push_back(0x0004); // Manufacturer name
+
+            if (readAttributes(lightNode, lightNode->haEndpoint().endpoint(), BASIC_CLUSTER_ID, attributes))
+            {
+                lightNode->clearRead(READ_VENDOR_NAME);
+                processed++;
+            }
         }
     }
 
     if ((processed < 2) && lightNode->mustRead(READ_MODEL_ID) && tNow > lightNode->nextReadTime(READ_MODEL_ID))
     {
-        std::vector<uint16_t> attributes;
-        attributes.push_back(0x0005); // Model identifier
-
-        if (readAttributes(lightNode, lightNode->haEndpoint().endpoint(), BASIC_CLUSTER_ID, attributes))
+        if (!lightNode->modelId().isEmpty())
         {
             lightNode->clearRead(READ_MODEL_ID);
             processed++;
+        }
+        else
+        {
+            std::vector<uint16_t> attributes;
+            attributes.push_back(0x0005); // Model identifier
+
+            if (readAttributes(lightNode, lightNode->haEndpoint().endpoint(), BASIC_CLUSTER_ID, attributes))
+            {
+                lightNode->clearRead(READ_MODEL_ID);
+                processed++;
+            }
         }
     }
 
