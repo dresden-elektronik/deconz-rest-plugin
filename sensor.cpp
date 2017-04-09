@@ -563,6 +563,7 @@ void Sensor::jsonToConfig(const QString &json)
 
         if (item->descriptor().suffix == RConfigReachable)
         { // set only from live data
+            item->setValue(false);
             continue;
         }
 
