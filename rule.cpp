@@ -374,7 +374,8 @@ RuleCondition::RuleCondition() :
 
 RuleCondition::RuleCondition(const QVariantMap &map) :
     m_prefix(0),
-    m_suffix(0)
+    m_suffix(0),
+    m_num(0)
 {
     bool ok;
     m_address = map["address"].toString();
@@ -420,6 +421,8 @@ RuleCondition::RuleCondition(const QVariantMap &map) :
     else if (m_operator == QLatin1String("lt")) { m_op = OpLowerThan; }
     else if (m_operator == QLatin1String("dx")) { m_op = OpDx; }
     else if (m_operator == QLatin1String("ddx")) { m_op = OpDdx; }
+    else if (m_operator == QLatin1String("in")) { m_op = OpIn; }
+    else if (m_operator == QLatin1String("not in")) { m_op = OpNotIn; }
     else { m_op = OpUnknown; }
 
     // extract proper datatype
@@ -430,9 +433,30 @@ RuleCondition::RuleCondition(const QVariantMap &map) :
         if (m_op == OpDdx)
         {
             QTime t = QTime::fromString(str, "'PT'hh:mm:ss");
-            if (t.isValid())
+            if (!t.isValid())
             {
-                m_value = t;
+                m_op = OpUnknown; // invalid
+                return;
+            }
+            m_time0 = t;
+            // cache duration in seconds
+            m_num = QTime(0,0,0).secsTo(t);
+        }
+        else if (m_op == OpIn || m_op == OpNotIn)
+        {
+            QStringList interval = str.split('/', QString::SkipEmptyParts);
+            if (interval.size() != 2)
+            {
+                m_op = OpUnknown; // invalid
+                return;
+            }
+
+            QTime t0 = QTime::fromString(interval[0], "'T'hh:mm:ss");
+            QTime t1 = QTime::fromString(interval[1], "'T'hh:mm:ss");
+            if (t0.isValid() && t1.isValid())
+            {
+                m_time0 = t0;
+                m_time1 = t1;
             } else { m_op = OpUnknown; } // mark invalid
         }
         else if (str.at(0).isDigit())
@@ -462,13 +486,7 @@ RuleCondition::RuleCondition(const QVariantMap &map) :
     }
     else if (m_value.type() == QVariant::Time)
     {
-        // cache time in seconds
-        QTime t = m_value.toTime();
-        m_num = t.hour() * 60 * 60;
-        m_num += t.minute() * 60;
-        m_num += t.second();
     }
-    else { m_num = 0; }
 }
 
 /*! Sets the condition address.
@@ -554,6 +572,27 @@ const QString RuleCondition::id() const
 int RuleCondition::numericValue() const
 {
     return m_num;
+}
+
+/*! Returns value as duration in seconds (for operators OpDdx, OpIn and OpNotIn).
+ */
+int RuleCondition::seconds() const
+{
+    return m_num;
+}
+
+/*! Returns start time (for operators OpIn and OpNotIn).
+ */
+const QTime &RuleCondition::time0() const
+{
+    return m_time0;
+}
+
+/*! Returns end time (for operators OpIn and OpNotIn).
+ */
+const QTime &RuleCondition::time1() const
+{
+    return m_time1;
 }
 
 const char *RuleCondition::resource() const

@@ -168,6 +168,8 @@ public:
         OpLowerThan,
         OpDx,
         OpDdx,
+        OpIn,
+        OpNotIn,
 
         OpUnknown
     };
@@ -186,6 +188,9 @@ public:
     Operator op() const;
     const QString id() const;
     int numericValue() const;
+    int seconds() const;
+    const QTime &time0() const;
+    const QTime &time1() const;
     const char *resource() const;
     const char *suffix() const;
 
@@ -200,6 +205,8 @@ private:
     QString m_id;
     Operator m_op;
     int m_num;
+    QTime m_time0;
+    QTime m_time1;
 
 };
 #endif // RULE_H

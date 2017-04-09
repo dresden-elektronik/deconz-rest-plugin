@@ -1292,11 +1292,45 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
         }
         else if (c->op() == RuleCondition::OpDdx)
         {
-            QDateTime dt = item->lastChanged().addSecs(c->numericValue());
+            QDateTime dt = item->lastChanged().addSecs(c->seconds());
             if (dt > now)
             { ok = false; break; } // not time yet
             else if (rule.lastTriggered().isValid() && rule.lastTriggered() > dt)
             { ok = false; break; } // already handled
+        }
+        else if (c->op() == RuleCondition::OpIn)
+        {
+            if (rule.lastTriggered().isValid() &&
+                rule.lastTriggered() >= item->lastChanged())
+            { ok = false; break; } // already handled
+
+            QTime t = now.time();
+
+            if (c->time0() < c->time1() && // 8:00 - 16:00
+                (t >= c->time0() && t <= c->time1()))
+            {  }
+            else if (c->time0() > c->time1() && // 20:00 - 4:00
+                (t >= c->time0() || t <= c->time1()))
+                // 20:00 - 0:00  ||  0:00 - 4:00
+            {  }
+            else { ok = false; break; }
+        }
+        else if (c->op() == RuleCondition::OpNotIn)
+        {
+            if (rule.lastTriggered().isValid() &&
+                rule.lastTriggered() >= item->lastChanged())
+            { ok = false; break; } // already handled
+
+            QTime t = now.time();
+
+            if (c->time0() < c->time1() && // 8:00 - 16:00
+                (t < c->time0() || t > c->time1()))
+            {  }
+            else if (c->time0() > c->time1() && // 20:00 - 4:00
+                (t < c->time0() && t > c->time1()))
+                // 0:00 - 20:00 ||  0:00 - 4:00
+            {  }
+            else { ok = false; break; }
         }
         else
         {
