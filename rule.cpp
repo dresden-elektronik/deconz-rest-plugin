@@ -225,7 +225,10 @@ QString Rule::conditionsToString(const std::vector<RuleCondition> &conditions)
         QVariantMap map;
         map["address"] = i->address();
         map["operator"] = i->ooperator();
-        map["value"] = i->value();
+        if (i->value().isValid())
+        {
+            map["value"] = i->value();
+        }
         ls.append(map);
     }
 

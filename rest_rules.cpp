@@ -123,7 +123,14 @@ int DeRestPluginPrivate::getAllRules(const ApiRequest &req, ApiResponse &rsp)
         }
 
         rule["name"] = i->name();
-        rule["lasttriggered"] = i->lastTriggered();
+        if (i->lastTriggered().isValid())
+        {
+            rule["lasttriggered"] = i->lastTriggered().toString("yyyy-MM-ddTHH:mm:ss");
+        }
+        else
+        {
+            rule["lasttriggered"] = QLatin1String("none");
+        }
         rule["created"] = i->creationtime();
         rule["timestriggered"] = i->timesTriggered();
         rule["owner"] = i->owner();
@@ -266,7 +273,7 @@ int DeRestPluginPrivate::getRule(const ApiRequest &req, ApiResponse &rsp)
         QVariantMap condition;
         condition["address"] = c->address();
         condition["operator"] = c->ooperator();
-        if (c->value() != "" )
+        if (c->value().isValid())
         {
             condition["value"] = c->value();
         }
