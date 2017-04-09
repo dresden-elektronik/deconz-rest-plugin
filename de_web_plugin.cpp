@@ -2763,19 +2763,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
     }
 }
 
-/*! Checks all sensors if they are available.
- */
-void DeRestPluginPrivate::checkAllSensorsAvailable()
-{
-    std::vector<Sensor>::iterator i = sensors.begin();
-    std::vector<Sensor>::iterator end = sensors.end();
-
-    for (; i != end; ++i)
-    {
-        checkSensorNodeReachable(&(*i));
-    }
-}
-
 /*! Returns true if the device is supported.
  */
 bool DeRestPluginPrivate::isDeviceSupported(const deCONZ::Node *node, const QString &modelId)
