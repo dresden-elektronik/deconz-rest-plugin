@@ -895,8 +895,6 @@ public:
     void handleDEClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZclAttributeReportIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendZclDefaultResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, quint8 status);
-    void broadCastNodeUpdate(LightNode *webNode);
-    void markForPushUpdate(LightNode *lightNode);
     void taskToLocalData(const TaskItem &task);
 
     // Modify node attributes

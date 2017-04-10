@@ -4090,7 +4090,6 @@ void DeRestPluginPrivate::foundGroupMembership(LightNode *lightNode, uint16_t gr
     queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
     lightNode->setNeedSaveDatabase(true);
     lightNode->groups().push_back(groupInfo);
-    markForPushUpdate(lightNode);
 }
 
 /*! Checks if the group is known in the global cache.
@@ -6561,18 +6560,6 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
 
         deCONZ::ZclFrame zclFrame; // dummy
         handleIndicationFindSensors(ind, zclFrame);
-    }
-}
-
-/*! Mark node so current state will be pushed to all clients.
- */
-void DeRestPluginPrivate::markForPushUpdate(LightNode *lightNode)
-{
-    std::list<LightNode*>::iterator i = std::find(broadCastUpdateNodes.begin(), broadCastUpdateNodes.end(), lightNode);
-
-    if (i == broadCastUpdateNodes.end())
-    {
-        broadCastUpdateNodes.push_back(lightNode);
     }
 }
 
