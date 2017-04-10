@@ -69,6 +69,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_DDEL, "FLS-NB1" },
     { VENDOR_DDEL, "FLS-NB2" },
     { VENDOR_IKEA, "TRADFRI remote control" },
+    { VENDOR_IKEA, "TRADFRI motion sensor" },
     { VENDOR_INSTA, "Remote" },
     { VENDOR_INSTA, "HS_4f_GJ_1" },
     { VENDOR_INSTA, "WS_4f_J_1" },
@@ -1885,6 +1886,16 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     updateSensorEtag(sensor);
                     sensor->updateStateTimestamp();
                 }
+
+                item = sensor->item(RStatePresence);
+                if (item)
+                {
+                    item->setValue(true);
+                    Event e(RSensors, RStatePresence, sensor->id());
+                    enqueueEvent(e);
+                    updateSensorEtag(sensor);
+                    sensor->updateStateTimestamp();
+                }
                 return;
             }
         }
@@ -1980,7 +1991,15 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                 case LEVEL_CLUSTER_ID:
                 case SCENE_CLUSTER_ID:
                 {
-                    fpSwitch.outClusters.push_back(ci->id());
+                    if (i->deviceId() == DEV_ID_ZLL_ONOFF_SENSOR &&
+                        node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA)
+                    {
+                        fpPresenceSensor.outClusters.push_back(ci->id());
+                    }
+                    else
+                    {
+                        fpSwitch.outClusters.push_back(ci->id());
+                    }
                 }
                     break;
 
@@ -2013,6 +2032,15 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                             }
                         }
                     }
+                    if (modelId.isEmpty())
+                    {
+                        Sensor *sensor = getSensorNodeForAddress(node->address()); // extract from others if possible
+                        if (sensor && !sensor->modelId().isEmpty())
+                        {
+                            modelId = sensor->modelId();
+                        }
+                    }
+
                     supportedDevice = isDeviceSupported(node, modelId);
                     fpSwitch.inClusters.push_back(ci->id());
                 }
@@ -2023,7 +2051,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                     if (node->nodeDescriptor().manufacturerCode() == VENDOR_PHILIPS)
                     {
                         fpSwitch.inClusters.push_back(ci->id());
-
                         fpPresenceSensor.inClusters.push_back(ci->id());
                         fpLightSensor.inClusters.push_back(ci->id());
                         fpTemperatureSensor.inClusters.push_back(ci->id());
@@ -2034,6 +2061,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                 case COMMISSIONING_CLUSTER_ID:
                 {
                     fpSwitch.inClusters.push_back(ci->id());
+                    fpPresenceSensor.inClusters.push_back(ci->id());
                 }
                     break;
 
@@ -2114,7 +2142,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
         }
 
         // ZHAPresence
-        if (fpPresenceSensor.hasInCluster(OCCUPANCY_SENSING_CLUSTER_ID) || fpPresenceSensor.hasInCluster(IAS_ZONE_CLUSTER_ID))
+        if (fpPresenceSensor.hasInCluster(OCCUPANCY_SENSING_CLUSTER_ID) ||
+            fpPresenceSensor.hasInCluster(IAS_ZONE_CLUSTER_ID) ||
+            fpPresenceSensor.hasOutCluster(ONOFF_CLUSTER_ID))
         {
             fpPresenceSensor.endpoint = i->endpoint();
             fpPresenceSensor.deviceId = i->deviceId();
@@ -2165,6 +2195,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         return;
     }
 
+
     Sensor sensorNode;
     sensorNode.setMode(Sensor::ModeScenes);
     sensorNode.setIsAvailable(true);
@@ -2174,6 +2205,18 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     sensorNode.fingerPrint() = fingerPrint;
     sensorNode.setModelId(modelId);
     quint16 clusterId = 0;
+
+    // simple check if existing device needs to be updated
+    Sensor *sensor2 = 0;
+    if (node->endpoints().size() == 1)
+    {
+        sensor2 = getSensorNodeForAddressAndEndpoint(node->address(), fingerPrint.endpoint);
+
+        if (sensor2)
+        {
+            sensorNode.setId(sensor2->id()); // preserve
+        }
+    }
 
     ResourceItem *item;
     item = sensorNode.item(RConfigOn);
@@ -2225,6 +2268,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = IAS_ZONE_CLUSTER_ID;
         }
+        else if (sensorNode.fingerPrint().hasOutCluster(ONOFF_CLUSTER_ID))
+        {
+            clusterId = ONOFF_CLUSTER_ID;
+        }
         sensorNode.addItem(DataTypeBool, RStatePresence);
     }
 
@@ -2275,7 +2322,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA)
     {
-        sensorNode.setManufacturer("IKEA");
+        sensorNode.setManufacturer("IKEA of Sweden");
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_INSTA)
     {
@@ -2283,7 +2330,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         checkInstaModelId(&sensorNode);
     }
 
-    if (sensorNode.id().isEmpty())
+    if (!sensor2 && sensorNode.id().isEmpty())
     {
         openDb();
         sensorNode.setId(QString::number(getFreeSensorId()));
@@ -2345,10 +2392,20 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         }
     }
 
-    DBG_Printf(DBG_INFO, "SensorNode %s: %s added\n", qPrintable(sensorNode.id()), qPrintable(sensorNode.name()));
 
     sensorNode.setNeedSaveDatabase(true);
-    sensors.push_back(sensorNode);
+
+    if (sensor2)
+    {
+        DBG_Printf(DBG_INFO, "[7] update existing sensor %s (%s)\n", qPrintable(sensor2->id()), qPrintable(modelId));
+        *sensor2 = sensorNode;
+    }
+    else
+    {
+        DBG_Printf(DBG_INFO, "SensorNode %s: %s added\n", qPrintable(sensorNode.id()), qPrintable(sensorNode.name()));
+        sensors.push_back(sensorNode);
+        updateSensorEtag(&sensors.back());
+    }
 
     if (findSensorsState == FindSensorsActive)
     {
@@ -2356,7 +2413,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         enqueueEvent(e);
     }
 
-    updateSensorEtag(&sensors.back());
 
     Q_Q(DeRestPlugin);
     q->startZclAttributeTimer(checkZclAttributesDelay);

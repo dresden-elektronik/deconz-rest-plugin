@@ -142,6 +142,15 @@ static const Sensor::ButtonMap ikeaRemoteMap[] = {
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
 };
 
+static const Sensor::ButtonMap ikeaMotionSensorMap[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+// presence event
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x42, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "On with timed off" },
+
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
+};
+
 static const Sensor::ButtonMap bjeSwitchMap[] = {
 //    mode                          ep    cluster cmd   param button                                       name
 //  1) row left button
@@ -611,6 +620,7 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         else if (m_manufacturer.startsWith(QLatin1String("IKEA")))
         {
             if      (m_modelid.contains(QLatin1String("remote"))) { m_buttonMap = ikeaRemoteMap; }
+            else if (m_modelid.contains(QLatin1String("motion"))) { m_buttonMap = ikeaMotionSensorMap; }
         }
     }
 
