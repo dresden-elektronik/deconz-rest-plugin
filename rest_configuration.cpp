@@ -761,7 +761,10 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
             changed = true;
         }
 
-        resendPermitJoinTimer->start(100);
+        if (seconds > 0)
+        {
+            startFindSensors();
+        }
 
         QVariantMap rspItem;
         QVariantMap rspItemState;
