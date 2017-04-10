@@ -841,6 +841,9 @@ int DeRestPluginPrivate::deleteSensor(const ApiRequest &req, ApiResponse &rsp)
     sensor->setDeletedState(Sensor::StateDeleted);
     sensor->setNeedSaveDatabase(true);
 
+    Event e(RSensors, REventDeleted, sensor->id());
+    enqueueEvent(e);
+
     bool hasReset = map.contains("reset");
 
     if (hasReset)
@@ -879,7 +882,7 @@ int DeRestPluginPrivate::deleteSensor(const ApiRequest &req, ApiResponse &rsp)
 
     queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
 
-    updateEtag(gwConfigEtag);
+    updateSensorEtag(sensor);
     rsp.httpStatus = HttpStatusOk;
 
     return REQ_READY_SEND;
@@ -1084,6 +1087,21 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
 
         webSocketServer->broadcastTextMessage(Json::serialize(map));
     }
+    else if (e.what() == REventDeleted)
+    {
+        deleteGroupsWithDeviceMembership(e.id());
+
+        QVariantMap map;
+        map["t"] = QLatin1String("event");
+        map["e"] = QLatin1String("deleted");
+        map["r"] = QLatin1String("sensors");
+
+        QVariantMap smap;
+        smap["id"] = e.id();
+        map["sensor"] = smap;
+
+        webSocketServer->broadcastTextMessage(Json::serialize(map));
+    }
     else if (e.what() == REventValidGroup)
     {
         checkOldSensorGroups(sensor);
@@ -1094,6 +1112,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         if (group && group->state() != Group::StateNormal)
         {
             group->setState(Group::StateNormal);
+            group->setName(sensor->modelId() + QLatin1String(" ") + sensor->id());
             updateGroupEtag(group);
             queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
             DBG_Printf(DBG_INFO, "reanimate group %s\n", qPrintable(group->name()));
@@ -1110,7 +1129,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         {
             Group g;
             g.setAddress(item->toString().toUInt());
-            g.setName(sensor->name());
+            g.setName(sensor->modelId() + QLatin1String(" ") + sensor->id());
             g.addDeviceMembership(sensor->id());
             groups.push_back(g);
             updateGroupEtag(&groups.back());

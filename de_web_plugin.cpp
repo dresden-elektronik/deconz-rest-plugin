@@ -428,11 +428,6 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
         handleIndicationFindSensors(ind, zclFrame);
 
-        if (ind.dstAddressMode() == deCONZ::ApsGroupAddress)
-        {
-            foundGroup(ind.dstAddress().group());
-        }
-
         if (ind.dstAddressMode() == deCONZ::ApsGroupAddress || ind.clusterId() == VENDOR_CLUSTER_ID)
         {
             if (zclFrame.isClusterCommand())
@@ -4071,15 +4066,14 @@ void DeRestPluginPrivate::foundGroupMembership(LightNode *lightNode, uint16_t gr
         }
     }
 
-    updateEtag(lightNode->etag);
-    updateEtag(gwConfigEtag);
+    updateLightEtag(lightNode);
 
     GroupInfo groupInfo;
     groupInfo.id = groupId;
 
     if (group)
     {
-        updateEtag(group->etag);
+        updateGroupEtag(group);
 
         if (group->state() != Group::StateNormal && group->m_deviceMemberships.size() == 0) // don't touch group of switch
         {

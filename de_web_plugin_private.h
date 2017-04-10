@@ -714,6 +714,7 @@ public Q_SLOTS:
     void checkSensorBindingsForClientClusters(Sensor *sensor);
     void checkSensorGroup(Sensor *sensor);
     void checkOldSensorGroups(Sensor *sensor);
+    void deleteGroupsWithDeviceMembership(const QString &id);
     void bindingTimerFired();
     void bindingToRuleTimerFired();
     void bindingTableReaderTimerFired();

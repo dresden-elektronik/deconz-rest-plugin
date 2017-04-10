@@ -1117,6 +1117,41 @@ void DeRestPluginPrivate::checkOldSensorGroups(Sensor *sensor)
     }
 }
 
+/*! Remove groups which are controlled by device \p id. */
+void DeRestPluginPrivate::deleteGroupsWithDeviceMembership(const QString &id)
+{
+    std::vector<Group>::iterator i = groups.begin();
+    std::vector<Group>::iterator end = groups.end();
+    for (; i != end; ++i)
+    {
+        if (i->deviceIsMember(id) && i->state() == Group::StateNormal)
+        {
+            i->setState(Group::StateDeleted);
+
+            updateGroupEtag(&*i);
+            queSaveDb(DB_GROUPS | DB_LIGHTS, DB_SHORT_SAVE_DELAY);
+
+            // for each node which is part of this group send a remove group request (will be unicast)
+            // note: nodes which are curently switched off will not be removed!
+            std::vector<LightNode>::iterator j = nodes.begin();
+            std::vector<LightNode>::iterator jend = nodes.end();
+
+            for (; j != jend; ++j)
+            {
+                GroupInfo *groupInfo = getGroupInfo(&*j, i->address());
+
+                if (groupInfo)
+                {
+                    j->setNeedSaveDatabase(true);
+                    groupInfo->actions &= ~GroupInfo::ActionAddToGroup; // sanity
+                    groupInfo->actions |= GroupInfo::ActionRemoveFromGroup;
+                    groupInfo->state = GroupInfo::StateNotInGroup;
+                }
+            }
+        }
+    }
+}
+
 /*! Process binding related tasks queue every one second. */
 void DeRestPluginPrivate::bindingTimerFired()
 {

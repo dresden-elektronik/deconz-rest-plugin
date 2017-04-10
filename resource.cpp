@@ -19,6 +19,7 @@ const char *RGroups = "/groups";
 const char *RConfig = "/config";
 
 const char *REventAdded = "event/added";
+const char *REventDeleted = "event/deleted";
 const char *REventValidGroup = "event/validgroup";
 
 const char *RInvalidSuffix = "invalid/suffix";
