@@ -105,8 +105,14 @@ void DeRestPluginPrivate::checkResetState()
 
     for (; si != si_end; ++si)
     {
-        if (si->isAvailable() && si->resetRetryCount() > 0)
+        if (si->isAvailable() && si->resetRetryCount() > 0 && si->node())
         {
+            if (si->node()->isEndDevice())
+            {
+                // not supported yet
+                continue;
+            }
+
             uint8_t retryCount = si->resetRetryCount();
             retryCount--;
             si->setResetRetryCount(retryCount);
