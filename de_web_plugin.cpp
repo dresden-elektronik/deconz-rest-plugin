@@ -2315,6 +2315,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.fingerPrint().inClusters.push_back(VENDOR_CLUSTER_ID);
             }
         }
+        else if (modelId == QLatin1String("SML001"))
+        {
+            if (type == QLatin1String("ZHASwitch"))
+            {
+                // not supported yet
+                return;
+            }
+        }
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_BEGA)
     {
