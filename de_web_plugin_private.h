@@ -1229,7 +1229,6 @@ public:
     std::vector<LightNode> nodes;
     std::vector<Rule> rules;
     std::vector<Sensor> sensors;
-    std::list<LightNode*> broadCastUpdateNodes;
     std::list<TaskItem> tasks;
     std::list<TaskItem> runningTasks;
     QTimer *verifyRulesTimer;

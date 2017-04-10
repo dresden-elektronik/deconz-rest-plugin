@@ -903,7 +903,7 @@ qint64 DeRestPluginPrivate::getUptime()
 void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 {
     DBG_Assert(node != 0);
-    if (!node)
+    if (!node || node->isEndDevice())
     {
         return;
     }
@@ -916,6 +916,17 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         LightNode lightNode;
         lightNode.setNode(0);
         lightNode.setIsAvailable(true);
+
+        bool hasServerOnOff = false;
+        bool hasServerLevel = false;
+        bool hasServerColor = false;
+
+        for (int c = 0; c < i->inClusters().size(); c++)
+        {
+            if      (i->inClusters()[c].id() == ONOFF_CLUSTER_ID) { hasServerOnOff = true; }
+            else if (i->inClusters()[c].id() == LEVEL_CLUSTER_ID) { hasServerLevel = true; }
+            else if (i->inClusters()[c].id() == COLOR_CLUSTER_ID) { hasServerColor = true; }
+        }
 
         // check if node already exist
         LightNode *lightNode2 = getLightNodeForAddress(node->address(), i->endpoint());
@@ -999,32 +1010,21 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT:
                 case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT:
                     {
-                        lightNode.setHaEndpoint(*i);
+                        if (hasServerOnOff)
+                        {
+                            lightNode.setHaEndpoint(*i);
+                        }
                     }
                     break;
 
                 case DEV_ID_ZLL_COLOR_CONTROLLER:
                     {
                         // FIXME special temporary filter to detect xxx 4 key switch
-                        if (i->endpoint() == 0x01)
+                        if (i->endpoint() == 0x01 && hasServerColor && hasServerLevel)
                         {
-                            int found = 0;
-
-                            for (int ci = 0; ci < i->inClusters().size(); ci++)
-                            {
-                                if (i->inClusters()[ci].id() == COLOR_CLUSTER_ID ||
-                                    i->inClusters()[ci].id() == LEVEL_CLUSTER_ID)
-                                {
-                                    found++;
-
-                                    if (found == 2)
-                                    {
-                                        lightNode.setHaEndpoint(*i);
-                                        lightNode.setIsOn(true);
-                                        break;
-                                    }
-                                }
-                            }
+                            lightNode.setHaEndpoint(*i);
+                            lightNode.setIsOn(true);
+                            break;
                         }
                     }
                     break;
@@ -1050,7 +1050,10 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:
                 //case DEV_ID_ZLL_ONOFF_SENSOR:
                     {
-                        lightNode.setHaEndpoint(*i);
+                        if (hasServerOnOff)
+                        {
+                            lightNode.setHaEndpoint(*i);
+                        }
                     }
                     break;
 
@@ -1126,7 +1129,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             lightNode2 = &nodes.back();
 
             q->startZclAttributeTimer(checkZclAttributesDelay);
-            updateEtag(lightNode2->etag);
+            updateLightEtag(lightNode2);
 
             queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
         }
