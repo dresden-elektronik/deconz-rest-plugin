@@ -765,6 +765,7 @@ public Q_SLOTS:
     void findSensorsTimerFired();
     void checkInstaModelId(Sensor *sensor);
     void delayedFastEnddeviceProbe();
+    void checkSensorStateTimerFired();
 
     // events
     void initEventQueue();
@@ -1224,6 +1225,7 @@ public:
     size_t sensorIter;
     size_t lightAttrIter;
     size_t sensorAttrIter;
+    size_t sensorCheckIter;
     QVector<QString> sensorTypes;
     std::vector<Group> groups;
     std::vector<LightNode> nodes;
@@ -1234,6 +1236,7 @@ public:
     QTimer *verifyRulesTimer;
     QTimer *taskTimer;
     QTimer *groupTaskTimer;
+    QTimer *checkSensorsTimer;
     uint8_t zclSeq;
     std::list<QTcpSocket*> eventListeners;
     QUdpSocket *udpSock;

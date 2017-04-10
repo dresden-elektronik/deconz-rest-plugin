@@ -297,6 +297,13 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
             this, SLOT(verifyRuleBindingsTimerFired()));
     verifyRulesTimer->start();
 
+    checkSensorsTimer = new QTimer(this);
+    checkSensorsTimer->setSingleShot(false);
+    checkSensorsTimer->setInterval(1000);
+    connect(checkSensorsTimer, SIGNAL(timeout()),
+            this, SLOT(checkSensorStateTimerFired()));
+    checkSensorsTimer->start();
+
     bindingTimer = new QTimer(this);
     bindingTimer->setSingleShot(true);
     bindingTimer->setInterval(1000);

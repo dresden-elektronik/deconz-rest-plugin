@@ -16,6 +16,10 @@
 #include "de_web_plugin_private.h"
 #include "json.h"
 
+// duration after which the state.presence is turned to 'false'
+// if the sensor doesn't trigger
+const int MaxOnTimeWithoutPresence = 60 * 6;
+
 /*! Sensors REST API broker.
     \param req - request data
     \param rsp - response data
@@ -1184,6 +1188,39 @@ void DeRestPluginPrivate::findSensorsTimerFired()
     if (findSensorsTimeout == 0)
     {
         findSensorsState = FindSensorsDone;
+    }
+}
+
+/*! Validate sensor states. */
+void DeRestPluginPrivate::checkSensorStateTimerFired()
+{
+    if (sensors.empty())
+    {
+        return;
+    }
+
+    if (sensorCheckIter >= sensors.size())
+    {
+        sensorCheckIter = 0;
+    }
+
+    Sensor *sensor = &sensors[sensorCheckIter];
+    sensorCheckIter++;
+
+    ResourceItem *item;
+    item = sensor->item(RStatePresence);
+    if (item && item->toBool())
+    {
+        QDateTime now = QDateTime::currentDateTime();
+        int dt = item->lastSet().secsTo(now);
+
+        if (!item->lastSet().isValid() || !(dt >= 0 && dt <= MaxOnTimeWithoutPresence))
+        {
+            DBG_Printf(DBG_INFO, "sensor %s (%s): disable presence after %d seconds\n", qPrintable(sensor->id()), qPrintable(sensor->modelId()), dt);
+            item->setValue(false);
+            Event e(RSensors, RStatePresence, sensor->id());
+            enqueueEvent(e);
+        }
     }
 }
 
