@@ -1249,13 +1249,14 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
             fastProbeTimer->start(1000);
         }
 
-        std::vector<SensorCandidate>::const_iterator i = findSensorCandidates.begin();
-        std::vector<SensorCandidate>::const_iterator end = findSensorCandidates.end();
+        std::vector<SensorCandidate>::iterator i = findSensorCandidates.begin();
+        std::vector<SensorCandidate>::iterator end = findSensorCandidates.end();
 
         for (; i != end; ++i)
         {
             if (i->address.ext() == ext || i->address.nwk() == nwk)
             {
+                i->address = fastProbeAddr; // nwk might have changed
                 return;
             }
         }

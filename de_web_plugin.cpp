@@ -6535,6 +6535,11 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
             checkSensorBindingsForAttributeReporting(&*si);
             checkSensorBindingsForClientClusters(&*si);
             updateSensorEtag(&*si);
+
+            if (findSensorsState == FindSensorsActive && si->node())
+            {
+                addSensorNode(si->node()); // check if somethings needs to be updated
+            }
         }
     }
 
