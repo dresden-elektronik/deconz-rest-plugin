@@ -240,6 +240,10 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     bool ok;
     QVariantMap whitelist;
     QVariantMap swupdate;
+    QVariantMap devicetypes;
+    QVariantMap portalstate;
+    QVariantMap internetservices;
+    QVariantMap backup;
     QDateTime datetime = QDateTime::currentDateTimeUtc();
     QDateTime localtime = QDateTime::currentDateTime();
 
@@ -287,6 +291,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         }
 
         map["mac"] = eth.hardwareAddress().toLower();
+        map["bridgeid"] = eth.hardwareAddress().remove(':').insert(6,"FFFE");
     }
 
     if (!ok)
@@ -364,10 +369,30 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     else
     {
         map["swversion"] = QString(GW_SW_VERSION).replace(QChar('.'), "");
+        devicetypes["bridge"] = false;
+        devicetypes["lights"] = QVariantList();
+        devicetypes["sensors"] = QVariantList();
+        swupdate["devicetypes"] = devicetypes;
         swupdate["updatestate"] = (double)0;
+        swupdate["checkforupdate"] = false;
         swupdate["url"] = "";
         swupdate["text"] = "";
         swupdate["notify"] = false;
+        map["portalconnection"] = "disconnected";
+        portalstate["signedon"]=false;
+        portalstate["incoming"]=false;
+        portalstate["outgoing"]=false;
+        portalstate["communication"]="disconnected";
+        map["portalstate"]=portalstate;
+        internetservices["remoteaccess"]="disconnected";
+	map["internetservices"]=internetservices;
+        backup["status"]="idle";
+        backup["errorcode"]=0;
+        map["backup"]=backup;
+        map["modelid"]="deCONZ";
+        map["factorynew"]=false;
+        map["replacesbridgeid"]=QVariant();
+        map["datastoreversion"]="60";
         map["swupdate"] = swupdate;
         // since api version 1.2.1
         map["apiversion"] = "1.0.0";
@@ -388,7 +413,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     map["dhcp"] = true; // dummy
     map["proxyaddress"] = gwProxyAddress;
     map["proxyport"] = (double)gwProxyPort;
-    map["utc"] = datetime.toString("yyyy-MM-ddTHH:mm:ss"); // ISO 8601
+    map["UTC"] = datetime.toString("yyyy-MM-ddTHH:mm:ss"); // ISO 8601
     map["localtime"] = localtime.toString("yyyy-MM-ddTHH:mm:ss"); // ISO 8601
     map["timezone"] = gwTimezone;
     map["networkopenduration"] = gwNetworkOpenDuration;
