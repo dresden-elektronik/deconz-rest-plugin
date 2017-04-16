@@ -387,24 +387,24 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         swupdate["url"] = "";
         swupdate["text"] = "";
         swupdate["notify"] = false;
-        map["portalconnection"] = "disconnected";
-        portalstate["signedon"]=false;
-        portalstate["incoming"]=false;
-        portalstate["outgoing"]=false;
-        portalstate["communication"]="disconnected";
-        map["portalstate"]=portalstate;
-        internetservices["remoteaccess"]="disconnected";
-	map["internetservices"]=internetservices;
-        backup["status"]="idle";
-        backup["errorcode"]=0;
-        map["backup"]=backup;
-        map["modelid"]="deCONZ";
-        map["factorynew"]=false;
-        map["replacesbridgeid"]=QVariant();
-        map["datastoreversion"]="60";
+        map["portalconnection"] = QLatin1String("disconnected");
+        portalstate["signedon"] = false;
+        portalstate["incoming"] = false;
+        portalstate["outgoing"] = false;
+        portalstate["communication"] = QLatin1String("disconnected");
+        map["portalstate"] = portalstate;
+        internetservices["remoteaccess"] = QLatin1String("disconnected");
+        map["internetservices"] = internetservices;
+        backup["status"] = QLatin1String("idle");
+        backup["errorcode"] = 0;
+        map["backup"] = backup;
+        map["modelid"] = QLatin1String("deCONZ");
+        map["factorynew"] = false;
+        map["replacesbridgeid"] = QVariant();
+        map["datastoreversion"] = QLatin1String("60");
         map["swupdate"] = swupdate;
         // since api version 1.2.1
-        map["apiversion"] = "1.0.0";
+        map["apiversion"] = QLatin1String("1.0.0");
         // since api version 1.3.0
     }
 
@@ -434,7 +434,6 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     map["wifichannel"] = gwWifiChannel;
     map["wifiip"] = gwWifiIp;
     map["wifiappw"] = gwWifiPw;
-    //map["rgbwdisplay"] = gwRgbwDisplay;
     map["linkbutton"] = gwLinkButton;
     map["portalservices"] = false;
     map["websocketport"] = (double)webSocketServer->port();
