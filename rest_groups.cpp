@@ -132,22 +132,7 @@ int DeRestPluginPrivate::getAllGroups(const ApiRequest &req, ApiResponse &rsp)
         if (i->address() != 0) // don't return special group 0
         {
             QVariantMap mnode;
-
-            mnode["name"] = i->name();
-            QString etag = i->etag;
-            etag.remove('"'); // no quotes allowed in string
-            mnode["etag"] = etag;
-            mnode["hidden"] = i->hidden;
-
-            QStringList deviceIds;
-            std::vector<QString>::const_iterator d = i->m_deviceMemberships.begin();
-            std::vector<QString>::const_iterator dend = i->m_deviceMemberships.end();
-
-            for ( ;d != dend; ++d)
-            {
-                deviceIds.append(*d);
-            }
-            mnode["devicemembership"] = deviceIds;
+            groupToMap(&(*i), mnode);
             rsp.map[i->id()] = mnode;
         }
     }
@@ -344,121 +329,7 @@ int DeRestPluginPrivate::getGroupAttributes(const ApiRequest &req, ApiResponse &
         }
     }
 
-    QVariantMap action;
-    QVariantList scenes;
-
-    action["on"] = group->isOn();
-    action["hue"] = (double)((uint16_t)(group->hueReal * 65535));
-    action["effect"] = group->isColorLoopActive() ? QLatin1String("colorloop") : QLatin1String("none");
-    action["bri"] = (double)group->level;
-    action["sat"] = (double)group->sat;
-    action["ct"] = (double)group->colorTemperature;
-    QVariantList xy;
-
-    // sanity for colorX
-    if (group->colorX > 65279)
-    {
-        group->colorX = 65279;
-    }
-    // sanity for colorY
-    if (group->colorY > 65279)
-    {
-        group->colorY = 65279;
-    }
-    double x = (double)group->colorX / 65279.0f; // normalize 0 .. 65279 to 0 .. 1
-    double y = (double)group->colorY / 65279.0f; // normalize 0 .. 65279 to 0 .. 1
-    xy.append(x);
-    xy.append(y);
-    action["xy"] = xy;
-
-    rsp.map["id"] = group->id();
-    rsp.map["name"] = group->name();
-    rsp.map["hidden"] = group->hidden;
-    QString etag = group->etag;
-    etag.remove('"'); // no quotes allowed in string
-    rsp.map["etag"] = etag;
-    rsp.map["action"] = action;
-
-    QStringList multis;
-    std::vector<QString>::const_iterator m = group->m_multiDeviceIds.begin();
-    std::vector<QString>::const_iterator mend = group->m_multiDeviceIds.end();
-
-    for ( ;m != mend; ++m)
-    {
-        multis.append(*m);
-    }
-
-    rsp.map["multideviceids"] = multis;
-
-    QStringList lightsequence;
-    std::vector<QString>::const_iterator l = group->m_lightsequence.begin();
-    std::vector<QString>::const_iterator lend = group->m_lightsequence.end();
-
-    for ( ;l != lend; ++l)
-    {
-        lightsequence.append(*l);
-    }
-
-    rsp.map["lightsequence"] = lightsequence;
-
-    QStringList deviceIds;
-    std::vector<QString>::const_iterator d = group->m_deviceMemberships.begin();
-    std::vector<QString>::const_iterator dend = group->m_deviceMemberships.end();
-
-    for ( ;d != dend; ++d)
-    {
-        deviceIds.append(*d);
-    }
-    rsp.map["devicemembership"] = deviceIds;
-
-    // append lights which are known members in this group
-    QVariantList lights;
-    std::vector<LightNode>::const_iterator i = nodes.begin();
-    std::vector<LightNode>::const_iterator end = nodes.end();
-
-    for (; i != end; ++i)
-    {
-        if (i->state() == LightNode::StateDeleted)
-        {
-            continue;
-        }
-
-        std::vector<GroupInfo>::const_iterator ii = i->groups().begin();
-        std::vector<GroupInfo>::const_iterator eend = i->groups().end();
-
-        for (; ii != eend; ++ii)
-        {
-            if (ii->id == group->address())
-            {
-                if (ii->state == GroupInfo::StateInGroup)
-                {
-                    lights.append(i->id());
-                }
-                break;
-            }
-        }
-    }
-
-    rsp.map["lights"] = lights;
-
-    std::vector<Scene>::const_iterator si = group->scenes.begin();
-    std::vector<Scene>::const_iterator send = group->scenes.end();
-
-    for ( ;si != send; ++si)
-    {
-        if (si->state != Scene::StateDeleted)
-        {
-            QVariantMap scene;
-            QString sid = QString::number(si->id);
-            scene["id"] = sid;
-            scene["name"] = si->name;
-
-            scenes.append(scene);
-        }
-    }
-
-    rsp.map["scenes"] = scenes;
-    rsp.map["state"] = group->state();
+    groupToMap(group,rsp.map);
 
     return REQ_READY_SEND;
 }
@@ -1478,13 +1349,16 @@ bool DeRestPluginPrivate::groupToMap(const Group *group, QVariantMap &map)
     }
 
     QVariantMap action;
-    action["hue"] = (double)((uint16_t)(group->hueReal * 65535));
+    QVariantList scenes;
+
     action["on"] = group->isOn();
-    action["effect"] = "none"; // TODO
+    action["hue"] = (double)((uint16_t)(group->hueReal * 65535));
+    action["effect"] = group->isColorLoopActive() ? QLatin1String("colorloop") : QLatin1String("none");
     action["bri"] = (double)group->level;
     action["sat"] = (double)group->sat;
     action["ct"] = (double)group->colorTemperature;
     QVariantList xy;
+
     uint16_t colorX = group->colorX;
     uint16_t colorY = group->colorY;
     // sanity for colorX
@@ -1503,12 +1377,46 @@ bool DeRestPluginPrivate::groupToMap(const Group *group, QVariantMap &map)
     xy.append(y);
     action["xy"] = xy;
     action["colormode"] = group->colormode; // TODO
-    map["action"] = action;
+
+    map["id"] = group->id();
     map["name"] = group->name();
     map["hidden"] = group->hidden;
     QString etag = group->etag;
     etag.remove('"'); // no quotes allowed in string
     map["etag"] = etag;
+    map["action"] = action;
+
+    QStringList multis;
+    std::vector<QString>::const_iterator m = group->m_multiDeviceIds.begin();
+    std::vector<QString>::const_iterator mend = group->m_multiDeviceIds.end();
+
+    for ( ;m != mend; ++m)
+    {
+        multis.append(*m);
+    }
+
+    map["multideviceids"] = multis;
+
+    QStringList lightsequence;
+    std::vector<QString>::const_iterator l = group->m_lightsequence.begin();
+    std::vector<QString>::const_iterator lend = group->m_lightsequence.end();
+
+    for ( ;l != lend; ++l)
+    {
+        lightsequence.append(*l);
+    }
+
+    map["lightsequence"] = lightsequence;
+
+    QStringList deviceIds;
+    std::vector<QString>::const_iterator d = group->m_deviceMemberships.begin();
+    std::vector<QString>::const_iterator dend = group->m_deviceMemberships.end();
+
+    for ( ;d != dend; ++d)
+    {
+        deviceIds.append(*d);
+    }
+    map["devicemembership"] = deviceIds;
 
     // append lights which are known members in this group
     QVariantList lights;
@@ -1540,29 +1448,6 @@ bool DeRestPluginPrivate::groupToMap(const Group *group, QVariantMap &map)
 
     map["lights"] = lights;
 
-    QStringList multis;
-    std::vector<QString>::const_iterator m = group->m_multiDeviceIds.begin();
-    std::vector<QString>::const_iterator mend = group->m_multiDeviceIds.end();
-
-    for ( ;m != mend; ++m)
-    {
-        multis.append(*m);
-    }
-
-    map["multideviceids"] = multis;
-
-    QStringList lightsequence;
-    std::vector<QString>::const_iterator l = group->m_lightsequence.begin();
-    std::vector<QString>::const_iterator lend = group->m_lightsequence.end();
-
-    for ( ;l != lend; ++l)
-    {
-        lightsequence.append(*l);
-    }
-
-    map["lightsequence"] = lightsequence;
-
-    QVariantList scenes;
     std::vector<Scene>::const_iterator si = group->scenes.begin();
     std::vector<Scene>::const_iterator send = group->scenes.end();
 
@@ -1581,16 +1466,7 @@ bool DeRestPluginPrivate::groupToMap(const Group *group, QVariantMap &map)
     }
 
     map["scenes"] = scenes;
-
-    QStringList deviceIds;
-    std::vector<QString>::const_iterator d = group->m_deviceMemberships.begin();
-    std::vector<QString>::const_iterator dend = group->m_deviceMemberships.end();
-
-    for ( ;d != dend; ++d)
-    {
-        deviceIds.append(*d);
-    }
-    map["devicemembership"] = deviceIds;
+    map["state"] = group->state();
 
     return true;
 }
