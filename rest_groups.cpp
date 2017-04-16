@@ -1385,6 +1385,7 @@ bool DeRestPluginPrivate::groupToMap(const Group *group, QVariantMap &map)
     etag.remove('"'); // no quotes allowed in string
     map["etag"] = etag;
     map["action"] = action;
+    map["type"] = "LightGroup"; // TODO
 
     QStringList multis;
     std::vector<QString>::const_iterator m = group->m_multiDeviceIds.begin();
