@@ -764,11 +764,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         {
             if (sensor->modelId().startsWith(QLatin1String("RWL02")))
             {
-                ResourceItem *item = sensor->item(RStateButtonEvent);
-                if (item && item->lastSet().isValid())
-                { // button binding seems to work
-                    continue;
-                }
+                val = sensor->getZclValue(*i, 0x0000); // button event
             }
         }
 

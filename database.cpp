@@ -1523,6 +1523,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         bool ok;
         quint64 extAddr = 0;
         quint16 clusterId = 0;
+        quint8 endpoint = sensor.fingerPrint().endpoint;
         DBG_Printf(DBG_INFO_L2, "DB found sensor %s %s\n", qPrintable(sensor.name()), qPrintable(sensor.id()));
 
         // convert from old format 0x0011223344556677 to 00:11:22:33:44:55:66:77-AB where AB is the endpoint
@@ -1542,13 +1543,15 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             return 0;
         }
 
-        if (sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
-        {
-            sensor.addItem(DataTypeUInt8, RConfigBattery);
-        }
-
         if (sensor.type().endsWith(QLatin1String("Switch")))
         {
+            if (sensor.modelId().startsWith(QLatin1String("SML001"))) // hue motion sensor
+            {
+                // not supported yet, created by older versions
+                // ignore for now
+                return 0;
+            }
+
             if (sensor.fingerPrint().hasInCluster(COMMISSIONING_CLUSTER_ID))
             {
                 clusterId = COMMISSIONING_CLUSTER_ID;
@@ -1590,6 +1593,37 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             sensor.addItem(DataTypeBool, RStatePresence);
         }
 
+        if (sensor.modelId().startsWith(QLatin1String("RWL02"))) // hue dimmer switch
+        {
+            clusterId = VENDOR_CLUSTER_ID;
+            endpoint = 2;
+
+            if (!sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
+            {
+                sensor.fingerPrint().inClusters.push_back(POWER_CONFIGURATION_CLUSTER_ID);
+                sensor.setNeedSaveDatabase(true);
+            }
+
+            if (!sensor.fingerPrint().hasInCluster(VENDOR_CLUSTER_ID)) // for realtime button feedback
+            {
+                sensor.fingerPrint().inClusters.push_back(VENDOR_CLUSTER_ID);
+                sensor.setNeedSaveDatabase(true);
+            }
+        }
+        else if (sensor.modelId().startsWith(QLatin1String("SML001"))) // hue motion sensor
+        {
+            if (!sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
+            {
+                sensor.fingerPrint().inClusters.push_back(POWER_CONFIGURATION_CLUSTER_ID);
+                sensor.setNeedSaveDatabase(true);
+            }
+        }
+
+        if (sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
+        {
+            sensor.addItem(DataTypeUInt8, RConfigBattery);
+        }
+
         if (stateCol >= 0)
         {
             sensor.jsonToState(QLatin1String(colval[stateCol]));
@@ -1600,7 +1634,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             sensor.jsonToConfig(QLatin1String(colval[configCol]));
         }
 
-        QString uid = d->generateUniqueId(extAddr, sensor.fingerPrint().endpoint, clusterId);
+        QString uid = d->generateUniqueId(extAddr, endpoint, clusterId);
 
         if (uid != sensor.uniqueId())
         {
@@ -1618,19 +1652,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
         }
 
-        if (sensor.modelId().startsWith(QLatin1String("RWL02"))) // hue dimmer switch
-        {
-            if (!sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
-            {
-                sensor.fingerPrint().inClusters.push_back(POWER_CONFIGURATION_CLUSTER_ID);
-            }
-
-            if (!sensor.fingerPrint().hasInCluster(VENDOR_CLUSTER_ID)) // for realtime button feedback
-            {
-                sensor.fingerPrint().inClusters.push_back(VENDOR_CLUSTER_ID);
-            }
-        }
-
         // check doubles, split uid into mac address and endpoint
 
         if (ok)
@@ -1643,6 +1664,11 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 // append to cache if not already known
                 d->sensors.push_back(sensor);
                 d->updateSensorEtag(&d->sensors.back());
+
+                if (sensor.needSaveDatabase())
+                {
+                    d->queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+                }
             }
         }
     }

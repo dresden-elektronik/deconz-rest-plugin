@@ -1860,10 +1860,12 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 ok = false;
                 if (zclFrame.payload().size() >= 8)
                 {
-                    quint8 param = zclFrame.payload().at(0) << 4 /*button*/ | zclFrame.payload().at(4); // action
-                    if (buttonMap->zclParam0 == param)
+                    deCONZ::NumericUnion val;
+                    val.u8 = zclFrame.payload().at(0) << 4 /*button*/ | zclFrame.payload().at(4); // action
+                    if (buttonMap->zclParam0 == val.u8)
                     {
                         ok = true;
+                        sensor->setZclValue(NodeValue::UpdateByZclReport, VENDOR_CLUSTER_ID, 0x0000, val);
                     }
                 }
             }
@@ -1907,6 +1909,41 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             }
         }
         buttonMap++;
+    }
+
+    // check if hue dimmer switch is configured
+    if (sensor->modelId().startsWith(QLatin1String("RWL02")))
+    {
+        bool ok = true;
+        // attribute reporting for power configuration cluster should fire every 5 minutes
+        if (idleTotalCounter > (IDLE_READ_LIMIT + 600))
+        {
+            ResourceItem *item = sensor->item(RConfigBattery);
+            if (item && item->lastSet().isValid() && item->toNumber() > 0) // seems to be ok
+            {
+                const NodeValue &val = sensor->getZclValue(POWER_CONFIGURATION_CLUSTER_ID, 0x0021);
+                if (!val.timestampLastReport.isValid())
+                {
+                    ok = false; // not received battery report
+                }
+            }
+            else
+            {
+                ok = false; // not received anything
+            }
+        }
+
+        // is vendor specific cluster bound yet?
+        ResourceItem *item = ok ? sensor->item(RStateButtonEvent) : 0;
+        if (!item || !item->lastSet().isValid() || item->toNumber() < 1000)
+        {
+            ok = false;
+        }
+
+        if (!ok)
+        {
+            checkSensorBindingsForAttributeReporting(sensor);
+        }
     }
 
     quint8 pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(0);
@@ -2596,7 +2633,13 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (item)
                                 {
                                     int bat = ia->numericValue().u8 / 2;
-                                    item->setValue(bat);
+
+                                    if (item->toNumber() != bat)
+                                    {
+                                        item->setValue(bat);
+                                        i->setNeedSaveDatabase(true);
+                                        queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
+                                    }
                                     Event e(RSensors, RConfigBattery, i->id());
                                     enqueueEvent(e);
                                 }
