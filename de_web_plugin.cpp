@@ -3530,7 +3530,11 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
         }
     }
 
-    if ((processed < 2) && lightNode->mustRead(READ_SWBUILD_ID) && tNow > lightNode->nextReadTime(READ_SWBUILD_ID))
+    if (lightNode->manufacturerCode() == VENDOR_UBISYS)
+    {
+        lightNode->clearRead(READ_SWBUILD_ID); // Ubisys devices have empty sw build id
+    }
+    else if ((processed < 2) && lightNode->mustRead(READ_SWBUILD_ID) && tNow > lightNode->nextReadTime(READ_SWBUILD_ID))
     {
         std::vector<uint16_t> attributes;
         attributes.push_back(0x4000); // Software build identifier
