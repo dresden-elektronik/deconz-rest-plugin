@@ -128,7 +128,7 @@ void DeRestPluginPrivate::upnpReadyRead()
             datagram.append("SERVER: FreeRTOS/7.4.2, UPnP/1.0, IpBridge/1.8.0\r\n");
             datagram.append("ST: urn:schemas-upnp-org:device:basic:1\r\n");
             datagram.append(QString("USN: uuid:%1::upnp:rootdevice\r\n").arg(gwUuid));
-            datagram.append(QString("GWID.phoscon.de:%4\r\n").arg(gwDeviceAddress.toStringExt()));
+            datagram.append(QString("GWID.phoscon.de:%1\r\n").arg(gwDeviceAddress.toStringExt()));
             datagram.append("\r\n");
 
             if (udpSockOut->writeDatagram(datagram.data(), datagram.size(), host, port) == -1)
