@@ -291,7 +291,16 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         }
 
         map["mac"] = eth.hardwareAddress().toLower();
-        map["bridgeid"] = eth.hardwareAddress().remove(':').insert(6,"FFFE");
+        if (gwDeviceAddress.hasExt())
+        {
+            QString bridgeId;
+            bridgeId.sprintf("%016llX", (quint64)gwDeviceAddress.ext());
+            map["bridgeid"] = bridgeId;
+        }
+        else
+        {
+            map["bridgeid"] = eth.hardwareAddress().remove(':').insert(6,"FFFE");
+        }
     }
 
     if (!ok)
