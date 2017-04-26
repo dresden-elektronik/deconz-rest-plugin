@@ -868,7 +868,6 @@ void DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         return;
     }
 
-
     ResourceItem *item = sensor->item(RConfigGroup);
 
     if (!item || !item->lastSet().isValid())
@@ -974,7 +973,8 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
 
         for (; i != end; ++i)
         {
-            if (i->deviceIsMember(sensor->id()))
+            if (i->state() == Group::StateNormal &&
+                i->deviceIsMember(sensor->id()))
             {
                 group = &*i;
                 break;
@@ -1004,9 +1004,19 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
                 ResourceItem *item = s->item(RConfigGroup);
                 if (item && item->lastSet().isValid())
                 {
-                    group = getGroupForId(item->toString());
+                    const QString &gid = item->toString();
 
-                    // TODO if group == 0, handle
+                    std::vector<Group>::iterator i = groups.begin();
+                    std::vector<Group>::iterator end = groups.end();
+
+                    for (; i != end; ++i)
+                    {
+                        if (i->state() == Group::StateNormal && i->id() == gid)
+                        {
+                            group = &*i;
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -1024,7 +1034,19 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
     }
     else if (!group && item->lastSet().isValid())
     {
-        group = getGroupForId(item->toString());
+        const QString &gid = item->toString();
+
+        std::vector<Group>::iterator i = groups.begin();
+        std::vector<Group>::iterator end = groups.end();
+
+        for (; i != end; ++i)
+        {
+            if (i->state() == Group::StateNormal && i->id() == gid)
+            {
+                group = &*i;
+                break;
+            }
+        }
     }
 
     if (!group)
