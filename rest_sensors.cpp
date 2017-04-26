@@ -1273,8 +1273,14 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
         stream >> ext;
         stream >> macCapabilities;
 
-        // currently only end-devices are supported
-        if (macCapabilities == 0 || (macCapabilities & deCONZ::MacDeviceIsFFD))
+        // filter supported devices
+        const quint64 bjeMacPrefix = 0xd85def0000000000ULL;
+
+        // Busch-Jaeger
+        if ((ext & bjeMacPrefix) == bjeMacPrefix)
+        {
+        }
+        else if (macCapabilities == 0 || (macCapabilities & deCONZ::MacDeviceIsFFD))
         {
             return;
         }
