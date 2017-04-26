@@ -5131,6 +5131,22 @@ void DeRestPluginPrivate::processTasks()
 
     if (runningTasks.size() > 4)
     {
+        std::list<TaskItem>::iterator j = runningTasks.begin();
+        std::list<TaskItem>::iterator jend = runningTasks.end();
+
+        for (; j != jend; ++j)
+        {
+            int dt = idleTotalCounter - j->sendTime;
+
+            if (dt > 120)
+            {
+                DBG_Printf(DBG_INFO, "drop request %u send time %d, cluster 0x%04X, after %d seconds\n", j->req.id(), j->sendTime, j->req.clusterId(), dt);
+                runningTasks.erase(j);
+                return;
+            }
+
+        }
+
         DBG_Printf(DBG_INFO, "%d running tasks, wait\n", runningTasks.size());
         return;
     }
@@ -5164,9 +5180,16 @@ void DeRestPluginPrivate::processTasks()
                 int dt = idleTotalCounter - j->sendTime;
                 if (dt < 5 || onAir >= maxOnAir)
                 {
-                    DBG_Printf(DBG_INFO, "request %u send time %d, cluster 0x%04X, onAir %d\n", i->req.id(), j->sendTime, j->req.clusterId(), onAir);
-                    DBG_Printf(DBG_INFO_L2, "delay sending request %u dt %d ms to %s\n", i->req.id(), dt, qPrintable(i->req.dstAddress().toStringExt()));
-                    ok = false;
+                    if (dt > 120)
+                    {
+                        DBG_Printf(DBG_INFO, "drop request %u send time %d, cluster 0x%04X, onAir %d after %d seconds\n", j->req.id(), j->sendTime, j->req.clusterId(), onAir, dt);
+                    }
+                    else
+                    {
+                        DBG_Printf(DBG_INFO, "request %u send time %d, cluster 0x%04X, onAir %d\n", i->req.id(), j->sendTime, j->req.clusterId(), onAir);
+                        DBG_Printf(DBG_INFO_L2, "delay sending request %u dt %d ms to %s\n", i->req.id(), dt, qPrintable(i->req.dstAddress().toStringExt()));
+                        ok = false;
+                    }
                     break;
                 }
             }
