@@ -171,6 +171,7 @@
 #define VENDOR_INNR     0x1166
 #define VENDOR_INSTA    0x117a
 #define VENDOR_IKEA     0x117c
+#define VENDOR_NYCE     0x10b9
 #define VENDOR_PHILIPS  0x100B
 #define VENDOR_OSRAM_STACK  0xBBAA
 #define VENDOR_OSRAM    0x110C

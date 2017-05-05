@@ -74,6 +74,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_INSTA, "HS_4f_GJ_1" },
     { VENDOR_INSTA, "WS_4f_J_1" },
     { VENDOR_INSTA, "WS_3f_G_1" },
+    { VENDOR_NYCE, "3011" }, // door/window sensor
     { VENDOR_PHILIPS, "RWL020" },
     { VENDOR_PHILIPS, "RWL021" },
     { VENDOR_PHILIPS, "SML001" },
@@ -2092,7 +2093,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
 
                 case POWER_CONFIGURATION_CLUSTER_ID:
                 {
-                    if (node->nodeDescriptor().manufacturerCode() == VENDOR_PHILIPS)
+                    if (node->nodeDescriptor().manufacturerCode() == VENDOR_PHILIPS ||
+                        node->nodeDescriptor().manufacturerCode() == VENDOR_NYCE)
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                         fpPresenceSensor.inClusters.push_back(ci->id());
@@ -5372,6 +5374,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         case ILLUMINANCE_LEVEL_SENSING_CLUSTER_ID:
         case TEMPERATURE_MEASUREMENT_CLUSTER_ID:
         case OCCUPANCY_SENSING_CLUSTER_ID:
+        case IAS_ZONE_CLUSTER_ID:
         case BASIC_CLUSTER_ID:
             {
                 addSensorNode(event.node());
