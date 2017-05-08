@@ -64,6 +64,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_BUSCH_JAEGER, "RM01" },
     { VENDOR_CLIMAX, "LM_00.00.03.02TC" },
     { VENDOR_CLIMAX, "IR_00.00.03.03TC" },
+    { VENDOR_CLIMAX, "DC_00.00.03.09TC" },
     { VENDOR_DDEL, "Lighting Switch" },
     { VENDOR_DDEL, "Scene Switch" },
     { VENDOR_DDEL, "FLS-NB1" },
