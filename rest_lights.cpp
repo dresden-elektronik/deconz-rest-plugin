@@ -237,6 +237,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
     map["type"] = lightNode->type();
     map["swversion"] = lightNode->swBuildId();
     map["manufacturer"] = lightNode->manufacturer();
+    /*
     QVariantMap pointsymbol;
     map["pointsymbol"] = pointsymbol; // dummy
     pointsymbol["1"] = QString("none");
@@ -247,6 +248,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
     pointsymbol["6"] = QString("none");
     pointsymbol["7"] = QString("none");
     pointsymbol["8"] = QString("none");
+    */
     QString etag = lightNode->etag;
     etag.remove('"'); // no quotes allowed in string
     map["etag"] = etag;
