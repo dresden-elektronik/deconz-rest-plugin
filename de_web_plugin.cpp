@@ -2321,7 +2321,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
 
     if (node->isEndDevice())
     {
-        sensorNode.addItem(DataTypeBool, RConfigBattery);
+        sensorNode.addItem(DataTypeUInt8, RConfigBattery);
     }
 
     if (sensorNode.type().endsWith(QLatin1String("Switch")))
