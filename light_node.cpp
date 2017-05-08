@@ -13,6 +13,7 @@
 /*! Constructor.
  */
 LightNode::LightNode() :
+    Resource(RLights),
    m_state(StateNormal),
    m_resetRetryCount(0),
    m_zdpResetSeq(0),
@@ -21,7 +22,6 @@ LightNode::LightNode() :
    m_manufacturerCode(0),
    m_otauClusterId(0), // unknown
    m_isOn(false),
-   m_hasColor(true),
    m_level(0),
    m_hue(0),
    m_ehue(0),
@@ -30,13 +30,16 @@ LightNode::LightNode() :
    m_colorX(0),
    m_colorY(0),
    m_colorTemperature(0),
-   m_colorMode("hs"),
    m_colorLoopActive(false),
    m_colorLoopSpeed(0),
    m_groupCount(0),
    m_sceneCapacity(16)
 
 {
+    // add common items
+    addItem(DataTypeBool, RStateOn);
+    addItem(DataTypeString, RStateAlert);
+    addItem(DataTypeBool, RStateReachable);
 }
 
 /*! Returns the LightNode state.
@@ -52,6 +55,13 @@ LightNode::State LightNode::state() const
 void LightNode::setState(State state)
 {
     m_state = state;
+}
+
+/*! Returns true if the light is reachable.
+ */
+bool LightNode::isAvailable() const
+{
+    return item(RStateReachable)->toBool();
 }
 
 /*! Returns the ZigBee Alliance manufacturer code.
@@ -201,7 +211,7 @@ bool LightNode::isOn() const
  */
 bool LightNode::hasColor() const
 {
-    return m_hasColor;
+    return item(RStateColorMode) != 0;
 }
 
 /*! Sets the on state of the light.
@@ -403,7 +413,9 @@ void LightNode::setColorTemperature(uint16_t colorTemperature)
  */
 const QString &LightNode::colorMode() const
 {
-    return m_colorMode;
+    const ResourceItem *i = item(RStateColorMode);
+    DBG_Assert(i != 0);
+    return i->toString();
 }
 
 /*! Sets the current colormode.
@@ -412,7 +424,12 @@ const QString &LightNode::colorMode() const
 void LightNode::setColorMode(const QString &colorMode)
 {
     DBG_Assert((colorMode == "hs") || (colorMode == "xy") || (colorMode == "ct"));
-    m_colorMode = colorMode;
+
+    ResourceItem *i = item(RStateColorMode);
+    if (i && i->toString() != colorMode)
+    {
+        i->setValue(colorMode);
+    }
 }
 
 /*! Sets the nodes color loop active state.
@@ -473,24 +490,70 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
         }
     }
 
-    // update device type string if not known already
+
+    // initial setup
     if (m_type.isEmpty())
     {
+        {
+            QList<deCONZ::ZclCluster>::const_iterator i = endpoint.inClusters().constBegin();
+            QList<deCONZ::ZclCluster>::const_iterator end = endpoint.inClusters().constEnd();
+
+            for (; i != end; ++i)
+            {
+
+                if (i->id() == LEVEL_CLUSTER_ID)
+                {
+                    addItem(DataTypeUInt8, RStateBri);
+                }
+                else if (i->id() == COLOR_CLUSTER_ID)
+                {
+                    ResourceItem *colorMode = addItem(DataTypeString, RStateColorMode);
+
+                    colorMode->setValue(QVariant("hs"));
+
+                    switch (haEndpoint().deviceId())
+                    {
+                    case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:
+                    case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT:
+                    case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT: // fall through
+                    {
+                        addItem(DataTypeUInt16, RStateCt);
+
+                        if (haEndpoint().deviceId() != DEV_ID_ZLL_EXTENDED_COLOR_LIGHT)
+                        {
+                            colorMode->setValue(QVariant("ct"));
+                        }
+                    }
+                    default:
+                        break;
+                    }
+
+                    if (colorMode->toString() != QLatin1String("ct"))
+                    {
+                        addItem(DataTypeUInt16, RStateHue);
+                        addItem(DataTypeUInt8, RStateSat);
+                        addItem(DataTypeUInt16, RStateX);
+                        addItem(DataTypeUInt16, RStateY);
+                    }
+                }
+            }
+        }
+
         if (haEndpoint().profileId() == HA_PROFILE_ID)
         {
             switch(haEndpoint().deviceId())
             {
-            case DEV_ID_HA_ONOFF_LIGHT:           m_type = QLatin1String("On/Off light"); m_hasColor = false; break;
-            case DEV_ID_ONOFF_OUTPUT:             m_type = QLatin1String("On/Off output"); m_hasColor = false; break;
-            case DEV_ID_HA_DIMMABLE_LIGHT:        m_type = QLatin1String("Dimmable light"); m_hasColor = false; break;
-            case DEV_ID_HA_COLOR_DIMMABLE_LIGHT:  m_type = QLatin1String("Color dimmable light"); m_hasColor = true; break;
-            case DEV_ID_ZLL_ONOFF_LIGHT:          m_type = QLatin1String("On/Off light"); m_hasColor = false; break;
-            case DEV_ID_SMART_PLUG:               m_type = QLatin1String("Smart plug"); m_hasColor = false; break;
-            //case DEV_ID_ZLL_DIMMABLE_LIGHT:          m_type = QLatin1String("Dimmable light"); m_hasColor = false; break; // clash with on/off light
-            case DEV_ID_ZLL_COLOR_LIGHT:             m_type = QLatin1String("Color light"); m_hasColor = true; break;
-            case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:    m_type = QLatin1String("Extended color light"); m_hasColor = true; break;
+            case DEV_ID_HA_ONOFF_LIGHT:           m_type = QLatin1String("On/Off light"); break;
+            case DEV_ID_ONOFF_OUTPUT:             m_type = QLatin1String("On/Off output"); break;
+            case DEV_ID_HA_DIMMABLE_LIGHT:        m_type = QLatin1String("Dimmable light"); break;
+            case DEV_ID_HA_COLOR_DIMMABLE_LIGHT:  m_type = QLatin1String("Color dimmable light"); break;
+            case DEV_ID_ZLL_ONOFF_LIGHT:          m_type = QLatin1String("On/Off light"); break;
+            case DEV_ID_SMART_PLUG:               m_type = QLatin1String("Smart plug"); break;
+            //case DEV_ID_ZLL_DIMMABLE_LIGHT:          m_type = QLatin1String("Dimmable light"); break; // clash with on/off light
+            case DEV_ID_ZLL_COLOR_LIGHT:             m_type = QLatin1String("Color light"); break;
+            case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:    m_type = QLatin1String("Extended color light"); break;
             case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT: // fall through
-            case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT: m_type = QLatin1String("Color temperature light"); m_hasColor = true; m_colorMode = QLatin1String("ct"); break;
+            case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT: m_type = QLatin1String("Color temperature light"); break;
             default:
                 break;
             }
@@ -500,13 +563,13 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
         {
             switch(haEndpoint().deviceId())
             {
-            case DEV_ID_ZLL_ONOFF_LIGHT:             m_type = QLatin1String("On/Off light"); m_hasColor = false; break;
-            case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:       m_type = QLatin1String("On/Off plug-in unit"); m_hasColor = false; break;
-            case DEV_ID_ZLL_DIMMABLE_LIGHT:          m_type = QLatin1String("Dimmable light"); m_hasColor = false; break;
-            case DEV_ID_ZLL_COLOR_LIGHT:             m_type = QLatin1String("Color light"); m_hasColor = true; break;
-            case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:    m_type = QLatin1String("Extended color light"); m_hasColor = true; break;
+            case DEV_ID_ZLL_ONOFF_LIGHT:             m_type = QLatin1String("On/Off light"); break;
+            case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:       m_type = QLatin1String("On/Off plug-in unit"); break;
+            case DEV_ID_ZLL_DIMMABLE_LIGHT:          m_type = QLatin1String("Dimmable light"); break;
+            case DEV_ID_ZLL_COLOR_LIGHT:             m_type = QLatin1String("Color light"); break;
+            case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:    m_type = QLatin1String("Extended color light"); break;
             case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT: // fall through
-            case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT: m_type = QLatin1String("Color temperature light"); m_hasColor = true; m_colorMode = QLatin1String("ct"); break;
+            case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT: m_type = QLatin1String("Color temperature light"); break;
             default:
                 break;
             }

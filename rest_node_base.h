@@ -54,8 +54,7 @@ public:
     void setNode(deCONZ::Node *node);
     deCONZ::Address &address();
     const deCONZ::Address &address() const;
-    bool isAvailable() const;
-    void setIsAvailable(bool available);
+    virtual bool isAvailable() const;
     bool needSaveDatabase() const;
     void setNeedSaveDatabase(bool needSave);
     const QString &id() const;

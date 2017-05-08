@@ -115,64 +115,10 @@ int DeRestPluginPrivate::getAllLights(const ApiRequest &req, ApiResponse &rsp)
         }
 
         QVariantMap mnode;
-        QVariantMap state;
-        state["on"] = i->isOn();
-        state["effect"] = "none";
-        state["alert"] = "none"; // TODO
-        state["bri"] = (double)i->level();
-        state["reachable"] = i->isAvailable();
-
-        if (i->hasColor())
+        if (lightToMap(req, &*i, mnode))
         {
-            state["hue"] = (double)i->enhancedHue();
-            state["sat"] = (double)i->saturation();
-            state["ct"] = (double)i->colorTemperature();
-            state["effect"] = (i->isColorLoopActive() ? "colorloop" : "none");
-            QVariantList xy;
-            uint16_t colorX = i->colorX();
-            uint16_t colorY = i->colorY();
-            // sanity for colorX
-            if (colorX > 65279)
-            {
-                colorX = 65279;
-            }
-            // sanity for colorY
-            if (colorY > 65279)
-            {
-                colorY = 65279;
-            }
-            double x = (double)colorX / 65279.0f; // normalize 0 .. 65279 to 0 .. 1
-            double y = (double)colorY / 65279.0f; // normalize 0 .. 65279 to 0 .. 1
-            xy.append(x);
-            xy.append(y);
-            state["xy"] = xy;
-            state["colormode"] = i->colorMode();
+            rsp.map[i->id()] = mnode;
         }
-
-        mnode["uniqueid"] = i->uniqueId();
-        mnode["type"] = i->type();
-        mnode["name"] = i->name();
-        mnode["modelid"] = i->modelId(); // real model id
-        //mnode["modelid"] = "LCT001"; // for Amazon Echo
-        mnode["hascolor"] = i->hasColor();
-        mnode["type"] = i->type();
-        mnode["swversion"] = i->swBuildId();
-        mnode["manufacturer"] = i->manufacturer();
-        QVariantMap pointsymbol;
-        mnode["pointsymbol"] = pointsymbol; // dummy
-        pointsymbol["1"] = QString("none");
-        pointsymbol["2"] = QString("none");
-        pointsymbol["3"] = QString("none");
-        pointsymbol["4"] = QString("none");
-        pointsymbol["5"] = QString("none");
-        pointsymbol["6"] = QString("none");
-        pointsymbol["7"] = QString("none");
-        pointsymbol["8"] = QString("none");
-        QString etag = i->etag;
-        etag.remove('"'); // no quotes allowed in string
-        mnode["etag"] = etag;
-        mnode["state"] = state;
-        rsp.map[i->id()] = mnode;
     }
 
     if (rsp.map.isEmpty())
@@ -239,21 +185,33 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
     }
 
     QVariantMap state;
-    state["on"] = lightNode->isOn();
-    state["effect"] = "none";
-    state["alert"] = "none"; // TODO
-    state["bri"] = (double)lightNode->level();
-    state["reachable"] = lightNode->isAvailable();
+    const ResourceItem *ix = 0;
+    const ResourceItem *iy = 0;
 
-    if (lightNode->hasColor())
+    for (int i = 0; i < lightNode->itemCount(); i++)
     {
-        state["hue"] = (double)lightNode->enhancedHue();
-        state["sat"] = (double)lightNode->saturation();
-        state["ct"] = (double)lightNode->colorTemperature();
+        const ResourceItem *item = lightNode->itemForIndex(i);
+        DBG_Assert(item != 0);
+
+        if      (item->descriptor().suffix == RStateOn) { state["on"] = item->toBool(); }
+        else if (item->descriptor().suffix == RStateBri) { state["bri"] = (double)item->toNumber(); }
+        else if (item->descriptor().suffix == RStateHue) { state["hue"] = (double)item->toNumber(); }
+        else if (item->descriptor().suffix == RStateSat) { state["sat"] = (double)item->toNumber(); }
+        else if (item->descriptor().suffix == RStateCt) { state["ct"] = (double)item->toNumber(); }
+        else if (item->descriptor().suffix == RStateColorMode) { state["colormode"] = item->toString(); }
+        else if (item->descriptor().suffix == RStateX) { ix = item; }
+        else if (item->descriptor().suffix == RStateY) { iy = item; }
+        else if (item->descriptor().suffix == RStateReachable) { state["reachable"] = item->toBool(); }
+    }
+
+    state["alert"] = "none"; // TODO
+
+    if (ix && iy)
+    {
         state["effect"] = (lightNode->isColorLoopActive() ? "colorloop" : "none");
         QVariantList xy;
-        uint16_t colorX = lightNode->colorX();
-        uint16_t colorY = lightNode->colorY();
+        uint16_t colorX = ix->toNumber();
+        uint16_t colorY = iy->toNumber();
         // sanity for colorX
         if (colorX > 65279)
         {
@@ -269,7 +227,6 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         xy.append(x);
         xy.append(y);
         state["xy"] = xy;
-        state["colormode"] = lightNode->colorMode();
     }
 
     map["uniqueid"] = lightNode->uniqueId();
@@ -1396,4 +1353,56 @@ int DeRestPluginPrivate::getConnectivity(const ApiRequest &req, ApiResponse &rsp
     rsp.map = connectivityMap;
 
     return REQ_READY_SEND;
+}
+
+void DeRestPluginPrivate::handleLightEvent(const Event &e)
+{
+    DBG_Assert(e.resource() == RLights);
+    DBG_Assert(e.what() != 0);
+
+    LightNode *lightNode = getLightNodeForId(e.id());
+
+    if (!lightNode)
+    {
+        return;
+    }
+
+    // push state updates through websocket
+    if (strncmp(e.what(), "state/", 6) == 0)
+    {
+        ResourceItem *item = lightNode->item(e.what());
+        if (item)
+        {
+            QVariantMap map;
+            map["t"] = QLatin1String("event");
+            map["e"] = QLatin1String("changed");
+            map["r"] = QLatin1String("lights");
+            map["id"] = e.id();
+            QVariantMap state;
+            state[e.what() + 6] = item->toVariant();
+            map["state"] = state;
+
+            webSocketServer->broadcastTextMessage(Json::serialize(map));
+        }
+    }
+    else if (e.what() == REventAdded)
+    {
+        QVariantMap map;
+        map["t"] = QLatin1String("event");
+        map["e"] = QLatin1String("added");
+        map["r"] = QLatin1String("lights");
+        map["id"] = e.id();
+
+        webSocketServer->broadcastTextMessage(Json::serialize(map));
+    }
+    else if (e.what() == REventDeleted)
+    {
+        QVariantMap map;
+        map["t"] = QLatin1String("event");
+        map["e"] = QLatin1String("deleted");
+        map["r"] = QLatin1String("lights");
+        map["id"] = e.id();
+
+        webSocketServer->broadcastTextMessage(Json::serialize(map));
+    }
 }

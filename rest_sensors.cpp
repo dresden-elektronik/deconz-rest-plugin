@@ -1554,7 +1554,6 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
             fp.outClusters.push_back(LEVEL_CLUSTER_ID);
             fp.outClusters.push_back(SCENE_CLUSTER_ID);
 
-            sensorNode.setIsAvailable(true);
             sensorNode.setNode(0);
             sensorNode.address() = sc->address;
             sensorNode.setType("ZHASwitch");

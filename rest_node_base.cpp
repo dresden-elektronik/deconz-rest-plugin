@@ -70,15 +70,7 @@ const deCONZ::Address &RestNodeBase::address() const
  */
 bool RestNodeBase::isAvailable() const
 {
-    return m_available;
-}
-
-/*! Sets the is available state of the node.
-    \param available the available state of the node
- */
-void RestNodeBase::setIsAvailable(bool available)
-{
-    m_available = available;
+    return false;
 }
 
 /*! Returns if the data needs to be saved to database.

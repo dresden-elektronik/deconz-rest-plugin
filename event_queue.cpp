@@ -24,6 +24,10 @@ void DeRestPluginPrivate::eventQueueTimerFired()
     {
         handleSensorEvent(e);
     }
+    else if (e.resource() == RLights)
+    {
+        handleLightEvent(e);
+    }
 
     eventQueue.pop_front();
 

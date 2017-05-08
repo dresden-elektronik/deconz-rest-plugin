@@ -244,7 +244,7 @@ void DeRestPluginPrivate::handleMgmtLeaveRspIndication(const deCONZ::ApsDataIndi
                     (ind.srcAddress().hasNwk() && i->address().nwk() == ind.srcAddress().nwk()))
                 {
                    i->setResetRetryCount(0);
-                   i->setIsAvailable(false);
+                   i->item(RStateReachable)->setValue(false);
                 }
             }
 
@@ -257,7 +257,7 @@ void DeRestPluginPrivate::handleMgmtLeaveRspIndication(const deCONZ::ApsDataIndi
                     (ind.srcAddress().hasNwk() && s->address().nwk() == ind.srcAddress().nwk()))
                 {
                    s->setResetRetryCount(0);
-                   s->setIsAvailable(false);
+                   s->item(RConfigReachable)->setValue(false);
                 }
             }
         }

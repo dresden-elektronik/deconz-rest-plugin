@@ -94,6 +94,7 @@ public:
 
     DeletedState deletedState() const;
     void setDeletedState(DeletedState deletedstate);
+    bool isAvailable() const;
     const QString &name() const;
     void setName(const QString &name);
     const QString &type() const;

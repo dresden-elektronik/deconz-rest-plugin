@@ -13,6 +13,7 @@
 
 #include <QString>
 #include <deconz.h>
+#include "resource.h"
 #include "rest_node_base.h"
 #include "group_info.h"
 
@@ -20,7 +21,8 @@
 
     Represents a HA or ZLL based light.
  */
-class LightNode : public RestNodeBase
+class LightNode : public Resource,
+                  public RestNodeBase
 {
 public:
     enum State
@@ -32,6 +34,7 @@ public:
     LightNode();
     State state() const;
     void setState(State state);
+    bool isAvailable() const;
     uint16_t manufacturerCode() const;
     void setManufacturerCode(uint16_t code);
     const QString &manufacturer() const;
@@ -98,7 +101,6 @@ private:
     uint16_t m_otauClusterId;
     std::vector<GroupInfo> m_groups;
     bool m_isOn;
-    bool m_hasColor;
     uint16_t m_level;
     uint8_t m_hue;
     uint16_t m_ehue;
@@ -107,7 +109,6 @@ private:
     uint16_t m_colorX;
     uint16_t m_colorY;
     uint16_t m_colorTemperature;
-    QString m_colorMode;
     bool m_colorLoopActive;
     uint8_t m_colorLoopSpeed;
     deCONZ::SimpleDescriptor m_haEndpoint;

@@ -36,8 +36,15 @@ extern const char *REventValidGroup;
 
 // resouce suffixes: state/buttonevent, config/on, ...
 extern const char *RInvalidSuffix;
+extern const char *RStateAlert;
 extern const char *RStateButtonEvent;
+extern const char *RStateBri;
+extern const char *RStateColorMode;
+extern const char *RStateCt;
+extern const char *RStateEffect;
+extern const char *RStateHue;
 extern const char *RStatePresence;
+extern const char *RStateOn;
 extern const char *RStateOpen;
 extern const char *RStateDark;
 extern const char *RStateDaylight;
@@ -46,8 +53,12 @@ extern const char *RStateLux;
 extern const char *RStateTemperature;
 extern const char *RStateHumidity;
 extern const char *RStateFlag;
+extern const char *RStateReachable;
+extern const char *RStateSat;
 extern const char *RStateStatus;
 extern const char *RStateLastUpdated;
+extern const char *RStateX;
+extern const char *RStateY;
 
 extern const char *RConfigOn;
 extern const char *RConfigReachable;

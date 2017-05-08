@@ -1623,7 +1623,7 @@ int DeRestPluginPrivate::createScene(const ApiRequest &req, ApiResponse &rsp)
             state.setOn(lightNode->isOn());
             state.setBri(qMin(lightNode->level(), (quint16)254));
 
-            if (lightNode->hasColor())
+            if (lightNode->item(RStateColorMode))
             {
                 if (lightNode->colorMode() == QLatin1String("xy") || lightNode->colorMode() == QLatin1String("hs"))
                 {
@@ -2212,8 +2212,6 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
     bool groupHueSatChanged = false;
     bool groupCtChanged = false;
     bool groupColorModeChanged = false;
-    uint countColorMode = 0;
-    uint countColorTempMode = 0;
 
     //turn on colorloop if scene was saved with colorloop (FLS don't save colorloop at device)
     ls = scene->lights().begin();
@@ -2243,58 +2241,90 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
                 changed = true;
             }
 
-            if (ls->on() != lightNode->isOn())
+            ResourceItem *item = lightNode->item(RStateOn);
+            if (item && item->toBool() != ls->on())
             {
-                lightNode->setIsOn(ls->on());
+                item->setValue(ls->on());
+                Event e(RLights, RStateOn, lightNode->id());
+                enqueueEvent(e);
                 changed = true;
                 groupOnChanged = true;
             }
 
-            if ((uint16_t)ls->bri() != lightNode->level())
+            item = lightNode->item(RStateBri);
+            if (ls->bri() != item->toNumber())
             {
-                lightNode->setLevel((uint16_t)ls->bri());
+                item->setValue(ls->bri());
+                Event e(RLights, RStateBri, lightNode->id());
+                enqueueEvent(e);
                 changed = true;
                 groupBriChanged = true;
             }
 
-            if (lightNode->hasColor())
+            item = lightNode->item(RStateColorMode);
+            if (item)
             {
+                if (ls->colorMode() != item->toString())
+                {
+                    item->setValue(ls->colorMode());
+                    Event e(RLights, RStateColorMode, lightNode->id());
+                    enqueueEvent(e);
+                    changed = true;
+                    groupColorModeChanged = true;
+                }
+
                 if (ls->colorMode() == QLatin1String("xy"))
                 {
-                    if (ls->x() != lightNode->colorX() || ls->y() != lightNode->colorY())
+                    item = lightNode->item(RStateX);
+                    if (item && ls->x() != item->toNumber())
                     {
-                        lightNode->setColorXY(ls->x(), ls->y());
+                        item->setValue(ls->x());
+                        Event e(RLights, RStateX, lightNode->id());
+                        enqueueEvent(e);
                         changed = true;
                     }
-                    countColorMode += 1;
+                    item = lightNode->item(RStateY);
+                    if (item && ls->y() != item->toNumber())
+                    {
+                        item->setValue(ls->y());
+                        Event e(RLights, RStateY, lightNode->id());
+                        enqueueEvent(e);
+                        changed = true;
+                    }
                 }
                 else if(ls->colorMode() == QLatin1String("ct"))
                 {
-                    if (ls->colorTemperature() != lightNode->colorTemperature())
+                    item = lightNode->item(RStateCt);
+                    if (item && ls->colorTemperature() != item->toNumber())
                     {
-                        lightNode->setColorTemperature(ls->colorTemperature());
+                        item->setValue(ls->colorTemperature());
+                        Event e(RLights, RStateCt, lightNode->id());
+                        enqueueEvent(e);
                         changed = true;
                         groupCtChanged = true;
                     }
-                    countColorTempMode += 1;
                 }
                 else if (ls->colorMode() == QLatin1String("hs"))
                 {
-                    if (ls->enhancedHue() != lightNode->enhancedHue() || ls->saturation() != lightNode->saturation())
+                    item = lightNode->item(RStateHue);
+                    if (item && ls->enhancedHue() != item->toNumber())
                     {
-                        lightNode->setEnhancedHue(ls->enhancedHue());
-                        lightNode->setSaturation(ls->saturation());
+                        item->setValue(ls->enhancedHue());
+                        Event e(RLights, RStateHue, lightNode->id());
+                        enqueueEvent(e);
                         changed = true;
                         groupHueSatChanged = true;
                     }
-                    countColorMode += 1;
-                }
 
-                if (ls->colorMode() != lightNode->colorMode())
-                {
-                    lightNode->setColorMode(ls->colorMode());
-                    changed = true;
-                    groupColorModeChanged = true;
+                    item = lightNode->item(RStateSat);
+                    if (item && ls->saturation() != item->toNumber())
+                    {
+                        item->setValue(ls->saturation());
+                        Event e(RLights, RStateSat, lightNode->id());
+                        enqueueEvent(e);
+                        changed = true;
+                        groupHueSatChanged = true;
+                    }
                 }
             }
 

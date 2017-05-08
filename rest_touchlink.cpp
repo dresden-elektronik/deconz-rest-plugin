@@ -675,7 +675,7 @@ void DeRestPluginPrivate::sendTouchlinkConfirm(deCONZ::TouchlinkStatus status)
                     if (i->address().ext() == touchlinkDevice.address.ext())
                     {
                         // TODO: remove the node from groups
-                        i->setIsAvailable(false);
+                        i->item(RStateReachable)->setValue(false);
                         updateEtag(i->etag);
                         updateEtag(gwConfigEtag);
                     }

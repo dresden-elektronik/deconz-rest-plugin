@@ -346,6 +346,13 @@ void Sensor::setDeletedState(DeletedState deletedstate)
     m_deletedstate = deletedstate;
 }
 
+/*! Returns true if the sensor is reachable.
+ */
+bool Sensor::isAvailable() const
+{
+    return item(RConfigReachable)->toBool();
+}
+
 /*! Returns the sensor name.
  */
 const QString &Sensor::name() const
