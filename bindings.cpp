@@ -698,7 +698,10 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
     bool endDeviceSupported = false;
     // whitelist
         // Climax
-    if (sensor->modelId() == QLatin1String("LM_00.00.03.02TC") ||
+    if (sensor->modelId().startsWith(QLatin1String("LM_")) ||
+        sensor->modelId().startsWith(QLatin1String("LMHT_")) ||
+        sensor->modelId().startsWith(QLatin1String("IR_")) ||
+        sensor->modelId().startsWith(QLatin1String("DC_")) ||
         // Philips
         sensor->modelId() == QLatin1String("SML001") ||
         sensor->modelId() == QLatin1String("RWL020") ||

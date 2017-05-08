@@ -62,9 +62,10 @@ struct SupportedDevice {
 static const SupportedDevice supportedDevices[] = {
     { VENDOR_BUSCH_JAEGER, "RB01" },
     { VENDOR_BUSCH_JAEGER, "RM01" },
-    { VENDOR_CLIMAX, "LM_00.00.03.02TC" },
-    { VENDOR_CLIMAX, "IR_00.00.03.03TC" },
-    { VENDOR_CLIMAX, "DC_00.00.03.09TC" },
+    { VENDOR_CLIMAX, "LM_" },
+    { VENDOR_CLIMAX, "LMHT_" },
+    { VENDOR_CLIMAX, "IR_" },
+    { VENDOR_CLIMAX, "DC_" },
     { VENDOR_DDEL, "Lighting Switch" },
     { VENDOR_DDEL, "Scene Switch" },
     { VENDOR_DDEL, "FLS-NB1" },
@@ -2950,10 +2951,12 @@ bool DeRestPluginPrivate::isDeviceSupported(const deCONZ::Node *node, const QStr
     const SupportedDevice *s = supportedDevices;
     while (s->modelId)
     {
-        if (node->nodeDescriptor().manufacturerCode() == s->vendorId &&
-            modelId == QLatin1String(s->modelId))
+        if (node->nodeDescriptor().manufacturerCode() == s->vendorId)
         {
-            return true;
+            if (modelId.startsWith(QLatin1String(s->modelId)))
+            {
+                return true;
+            }
         }
         s++;
     }
