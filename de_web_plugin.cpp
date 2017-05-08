@@ -6865,6 +6865,11 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
             }
         }
     }
+    else if (task.lightNode)
+    {
+        group = &dummyGroup; // never mind
+        pushNodes.push_back(task.lightNode);
+    }
     else if (task.req.dstAddress().hasExt())
     {
         group = &dummyGroup; // never mind
@@ -6963,24 +6968,42 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
         switch (task.taskType)
         {
         case TaskSendOnOffToggle:
-            updateEtag(lightNode->etag);
-            lightNode->setIsOn(task.onOff);
+        {
+            ResourceItem *item = lightNode->item(RStateOn);
+            if (item && item->toBool() != task.onOff)
+            {
+                updateLightEtag(lightNode);
+                item->setValue(task.onOff);
+                Event e(RLights, RStateOn, lightNode->id());
+                enqueueEvent(e);
+            }
             setAttributeOnOff(lightNode);
+        }
             break;
 
         case TaskSetLevel:
-            if (task.level > 0)
+        {
+            ResourceItem *item = lightNode->item(RStateOn);
+            if (item && item->toBool() != (task.level > 0))
             {
-                lightNode->setIsOn(true);
+                updateLightEtag(lightNode);
+                item->setValue(task.level > 0);
+                Event e(RLights, RStateOn, lightNode->id());
+                enqueueEvent(e);
             }
-            else
+
+            item = lightNode->item(RStateBri);
+            if (item && item->toNumber() != task.level)
             {
-                lightNode->setIsOn(false);
+                updateLightEtag(lightNode);
+                item->setValue(task.level);
+                Event e(RLights, RStateBri, lightNode->id());
+                enqueueEvent(e);
             }
-            updateEtag(lightNode->etag);
-            lightNode->setLevel(task.level);
+
             setAttributeLevel(lightNode);
             setAttributeOnOff(lightNode);
+        }
             break;
 
         case TaskStopLevel:
@@ -7296,6 +7319,13 @@ void DeRestPluginPrivate::setAttributeOnOff(LightNode *lightNode)
         return;
     }
 
+    ResourceItem *item = lightNode->item(RStateOn);
+
+    if (!item)
+    {
+        return;
+    }
+
     deCONZ::ZclCluster *cl = getInCluster(lightNode->node(), lightNode->haEndpoint().endpoint(), ONOFF_CLUSTER_ID);
 
     if (cl && cl->attributes().size() > 0)
@@ -7306,7 +7336,7 @@ void DeRestPluginPrivate::setAttributeOnOff(LightNode *lightNode)
 
         if (attr.id() == 0x0000)
         {
-            attr.setValue(lightNode->isOn());
+            attr.setValue(item->toBool());
         }
     }
 }
@@ -7322,6 +7352,13 @@ void DeRestPluginPrivate::setAttributeLevel(LightNode *lightNode)
         return;
     }
 
+    ResourceItem *item = lightNode->item(RStateBri);
+
+    if (!item)
+    {
+        return;
+    }
+
     deCONZ::ZclCluster *cl = getInCluster(lightNode->node(), lightNode->haEndpoint().endpoint(), LEVEL_CLUSTER_ID);
 
     if (cl && cl->attributes().size() > 0)
@@ -7329,7 +7366,7 @@ void DeRestPluginPrivate::setAttributeLevel(LightNode *lightNode)
         deCONZ::ZclAttribute &attr = cl->attributes()[0];
         if (attr.id() == 0x0000)
         {
-            attr.setValue((quint64)lightNode->level());
+            attr.setValue((quint64)item->toNumber());
         }
     }
 }
@@ -7345,6 +7382,13 @@ void DeRestPluginPrivate::setAttributeSaturation(LightNode *lightNode)
         return;
     }
 
+    ResourceItem *item = lightNode->item(RStateSat);
+
+    if (!item)
+    {
+        return;
+    }
+
     deCONZ::ZclCluster *cl = getInCluster(lightNode->node(), lightNode->haEndpoint().endpoint(), COLOR_CLUSTER_ID);
 
     if (cl)
@@ -7356,7 +7400,7 @@ void DeRestPluginPrivate::setAttributeSaturation(LightNode *lightNode)
         {
             if (i->id() == 0x0001) // Current saturation
             {
-                i->setValue((quint64)lightNode->saturation());
+                i->setValue((quint64)item->toNumber());
                 break;
             }
 
@@ -7375,6 +7419,14 @@ void DeRestPluginPrivate::setAttributeColorXy(LightNode *lightNode)
         return;
     }
 
+    ResourceItem *ix = lightNode->item(RStateX);
+    ResourceItem *iy = lightNode->item(RStateY);
+
+    if (!ix || !iy)
+    {
+        return;
+    }
+
     deCONZ::ZclCluster *cl = getInCluster(lightNode->node(), lightNode->haEndpoint().endpoint(), COLOR_CLUSTER_ID);
 
     if (cl)
@@ -7386,11 +7438,11 @@ void DeRestPluginPrivate::setAttributeColorXy(LightNode *lightNode)
         {
             if (i->id() == 0x0003) // Current color x
             {
-                i->setValue((quint64)lightNode->colorX());
+                i->setValue((quint64)ix->toNumber());
             }
             else if (i->id() == 0x0004) // Current color y
             {
-                i->setValue((quint64)lightNode->colorY());
+                i->setValue((quint64)iy->toNumber());
                 break;
             }
         }
@@ -7408,6 +7460,13 @@ void DeRestPluginPrivate::setAttributeColorTemperature(LightNode *lightNode)
         return;
     }
 
+    ResourceItem *item = lightNode->item(RStateCt);
+
+    if (!item)
+    {
+        return;
+    }
+
     deCONZ::ZclCluster *cl = getInCluster(lightNode->node(), lightNode->haEndpoint().endpoint(), COLOR_CLUSTER_ID);
 
     if (cl)
@@ -7419,7 +7478,7 @@ void DeRestPluginPrivate::setAttributeColorTemperature(LightNode *lightNode)
         {
             if (i->id() == 0x0007) // Current color temperature
             {
-                i->setValue((quint64)lightNode->colorTemperature());
+                i->setValue((quint64)item->toNumber());
                 break;
             }
         }
@@ -7509,6 +7568,13 @@ void DeRestPluginPrivate::setAttributeEnhancedHue(LightNode *lightNode)
         return;
     }
 
+    ResourceItem *item = lightNode->item(RStateHue);
+
+    if (!item)
+    {
+        return;
+    }
+
     deCONZ::ZclCluster *cl = getInCluster(lightNode->node(), lightNode->haEndpoint().endpoint(), COLOR_CLUSTER_ID);
 
     if (cl)
@@ -7520,7 +7586,7 @@ void DeRestPluginPrivate::setAttributeEnhancedHue(LightNode *lightNode)
         {
             if (i->id() == 0x4000) // Enhanced hue
             {
-                i->setValue((quint64)lightNode->enhancedHue());
+                i->setValue((quint64)item->toNumber());
                 break;
             }
 

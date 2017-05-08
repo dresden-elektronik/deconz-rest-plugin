@@ -468,7 +468,9 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             }
         }
 
-        if (!task.lightNode->isOn() && !map.contains("on"))
+        ResourceItem *ion = task.lightNode->item(RStateOn);
+
+        if (!ion || (!ion->toBool() && !hasOn))
         {
             rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1").arg(id), QString("parameter, /lights/%1/bri, is not modifiable. Device is set to off.").arg(id)));
         }
