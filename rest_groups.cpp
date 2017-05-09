@@ -1142,62 +1142,99 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
         {
             if (/*i->isAvailable() &&*/ i->state() != LightNode::StateDeleted && isLightNodeInGroup(&*i, group->address()))
             {
+                ResourceItem *item = i->item(RStateOn);
                 bool modified = false;
-                if (hasOn && on != i->isOn())
+                if (hasOn && item && on != item->toBool())
                 {
-                    i->setIsOn(on);
+                    item->setValue(on);
+                    Event e(RLights, RStateOn, i->id());
+                    enqueueEvent(e);
                     modified = true;
                 }
 
-                if (hasBri && bri != i->level())
+                item = i->item(RStateBri);
+                if (hasBri && item && bri != item->toNumber())
                 {
-                    i->setLevel(bri);
+                    item->setValue(bri);
+                    Event e(RLights, RStateBri, i->id());
+                    enqueueEvent(e);
                     modified = true;
                 }
 
-                if (i->hasColor())
+                item = i->item(RStateColorMode);
+                if (item)
                 {
                     if (hasXy && i->modelId() != QLatin1String("FLS-PP")) // don't use xy for old black FLS-PP
                     {
-                        if (i->colorMode() != QLatin1String("xy"))
+                        if (item->toString() != QLatin1String("xy"))
                         {
-                            i->setColorMode(QLatin1String("xy"));
+                            item->setValue(QVariant(QLatin1String("xy")));
+                            Event e(RLights, RStateColorMode, i->id());
+                            enqueueEvent(e);
                             modified = true;
                         }
 
                         quint16 colorX = x * 65279.0f; // current X in range 0 .. 65279
                         quint16 colorY = y * 65279.0f; // current Y in range 0 .. 65279
 
-                        if (i->colorX() != colorX || i->colorY() != colorY)
+                        item = i->item(RStateX);
+                        if (item && item->toNumber() != colorX)
                         {
-                            i->setColorXY(colorX, colorY);
-                            modified = true;
-                        }
-                    }
-                    else if (hasCt)
-                    {
-                        if (i->colorMode() != QLatin1String("ct"))
-                        {
-                            i->setColorMode(QLatin1String("ct"));
+                            item->setValue(colorX);
+                            Event e(RLights, RStateX, i->id());
+                            enqueueEvent(e);
                             modified = true;
                         }
 
-                        if (i->colorTemperature() != ct)
+                        item = i->item(RStateY);
+                        if (item && item->toNumber() != colorY)
                         {
-                            i->setColorTemperature(ct);
+                            item->setValue(colorY);
+                            Event e(RLights, RStateY, i->id());
+                            enqueueEvent(e);
+                            modified = true;
+                        }
+                    }
+                    else if (hasCt && i->item(RStateCt))
+                    {
+                        if (item->toString() != QLatin1String("ct"))
+                        {
+                            item->setValue(QVariant(QLatin1String("ct")));
+                            Event e(RLights, RStateColorMode, i->id());
+                            enqueueEvent(e);
+                            modified = true;
+                        }
+
+                        item = i->item(RStateCt);
+                        DBG_Assert(item != 0);
+
+                        if (item && item->toNumber() != ct)
+                        {
+                            item->setValue(ct);
+                            Event e(RLights, RStateCt, i->id());
+                            enqueueEvent(e);
                             modified = true;
                         }
                     }
                     else if (hasHue)
                     {
-                        if (i->colorMode() != QLatin1String("hs"))
+                        if (item->toString() != QLatin1String("hs"))
                         {
-                            i->setColorMode(QLatin1String("hs"));
+                            item->setValue(QVariant(QLatin1String("hs")));
+                            Event e(RLights, RStateColorMode, i->id());
+                            enqueueEvent(e);
                             modified = true;
                         }
 
-                        if (i->enhancedHue() != hue)
+                        item = i->item(RStateHue);
+
+                        if (item->toNumber() != hue)
                         {
+                            i->setEnhancedHue(hue);
+                            item->setValue(hue);
+                            Event e(RLights, RStateHue, i->id());
+                            enqueueEvent(e);
+
                             if (!hasXy && !hasSat)
                             {
                                 double r, g, b;
@@ -1210,21 +1247,37 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
                                 Rgb2xy(&x, &y, r, g, b);
 
                                 DBG_Printf(DBG_INFO, "x: %f, y: %f\n", x, y);
-                                i->setColorXY(x * 65279.0f, y * 65279.0f);
+                                item = i->item(RStateX);
+                                if (item)
+                                {
+                                    item->setValue(x * 65279.0f);
+                                }
+                                item = i->item(RStateY);
+                                if (item)
+                                {
+                                    item->setValue(y * 65279.0f);
+                                }
                             }
-                            i->setEnhancedHue(hue);
                         }
                     }
                     else if (hasSat)
                     {
-                        if (i->colorMode() != QLatin1String("hs"))
+                        if (item->toString() != QLatin1String("hs"))
                         {
-                            i->setColorMode(QLatin1String("hs"));
+                            item->setValue(QVariant(QLatin1String("hs")));
+                            Event e(RLights, RStateColorMode, i->id());
+                            enqueueEvent(e);
                             modified = true;
                         }
 
-                        if (i->saturation() != sat)
+                        item = i->item(RStateSat);
+
+                        if (item && item->toNumber() != sat)
                         {
+                            item->setValue(sat);
+                            Event e(RLights, RStateSat, i->id());
+                            enqueueEvent(e);
+
                             if (!hasXy)
                             {
                                 double r, g, b;
@@ -1237,10 +1290,18 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
                                 Rgb2xy(&x, &y, r, g, b);
 
                                 DBG_Printf(DBG_INFO, "x: %f, y: %f\n", x, y);
-                                i->setColorXY(x * 65279.0f, y * 65279.0f);
+                                item = i->item(RStateX);
+                                if (item)
+                                {
+                                    item->setValue(x * 65279.0f);
+                                }
+                                item = i->item(RStateY);
+                                if (item)
+                                {
+                                    item->setValue(y * 65279.0f);
+                                }
                             }
 
-                            i->setSaturation(sat);
                             modified = true;
                         }
                     }
