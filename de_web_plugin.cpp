@@ -66,6 +66,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_CLIMAX, "LMHT_" },
     { VENDOR_CLIMAX, "IR_" },
     { VENDOR_CLIMAX, "DC_" },
+    { VENDOR_CLIMAX, "OJB-IR715-Z" },
     { VENDOR_DDEL, "Lighting Switch" },
     { VENDOR_DDEL, "Scene Switch" },
     { VENDOR_DDEL, "FLS-NB1" },
