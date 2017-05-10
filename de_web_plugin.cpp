@@ -7229,7 +7229,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
             }
         }
 
-        // model id, sw build id
+        // manufacturer, model id, sw build id
         if (!sensor /*&& (sensor->modelId().isEmpty() || sensor->swVersion().isEmpty())*/)
         {
             deCONZ::ApsDataRequest apsReq;
@@ -7257,6 +7257,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
                 QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
                 stream.setByteOrder(QDataStream::LittleEndian);
 
+                stream << (quint16)0x0004; // manufacturer
                 stream << (quint16)0x0005; // model id
                 stream << (quint16)0x4000; // sw build id
             }
