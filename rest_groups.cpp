@@ -1767,6 +1767,8 @@ int DeRestPluginPrivate::getAllScenes(const ApiRequest &req, ApiResponse &rsp)
                 lights.append(l->lid());
             }
             scene["lights"] = lights;
+            scene["transitiontime"] = i->transitiontime();
+
             rsp.map[sceneId] = scene;
         }
     }
