@@ -248,6 +248,7 @@ int DeRestPluginPrivate::setScheduleAttributes(const ApiRequest &req, ApiRespons
                     rspItemState[QString("/schedules/%1/name").arg(id)] = map["name"];
                     rspItem["success"] = rspItemState;
                     rsp.list.append(rspItem);
+                    rsp.httpStatus = HttpStatusOk;
                 }
                 else
                 {
@@ -269,6 +270,7 @@ int DeRestPluginPrivate::setScheduleAttributes(const ApiRequest &req, ApiRespons
                     rspItemState[QString("/schedules/%1/description").arg(id)] = map["description"];
                     rspItem["success"] = rspItemState;
                     rsp.list.append(rspItem);
+                    rsp.httpStatus = HttpStatusOk;
                 }
                 else
                 {
@@ -290,6 +292,7 @@ int DeRestPluginPrivate::setScheduleAttributes(const ApiRequest &req, ApiRespons
                     rspItemState[QString("/schedules/%1/status").arg(id)] = map["status"];
                     rspItem["success"] = rspItemState;
                     rsp.list.append(rspItem);
+                    rsp.httpStatus = HttpStatusOk;
                 }
                 else
                 {
@@ -311,6 +314,7 @@ int DeRestPluginPrivate::setScheduleAttributes(const ApiRequest &req, ApiRespons
                     rspItemState[QString("/schedules/%1/command").arg(id)] = map["command"];
                     rspItem["success"] = rspItemState;
                     rsp.list.append(rspItem);
+                    rsp.httpStatus = HttpStatusOk;
                 }
                 else
                 {
@@ -331,6 +335,7 @@ int DeRestPluginPrivate::setScheduleAttributes(const ApiRequest &req, ApiRespons
                     rspItemState[QString("/schedules/%1/autodelete").arg(id)] = map["autodelete"];
                     rspItem["success"] = rspItemState;
                     rsp.list.append(rspItem);
+                    rsp.httpStatus = HttpStatusOk;
                 }
                 else
                 {
