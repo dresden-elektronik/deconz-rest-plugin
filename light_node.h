@@ -50,9 +50,7 @@ public:
     const std::vector<GroupInfo> &groups() const;
     uint16_t otauClusterId() const;
     void setOtauClusterId(uint16_t clusterId);
-    bool isOn() const;
     bool hasColor() const;
-    void setIsOn(bool on);
     uint16_t level() const;
     void setLevel(uint16_t level);
     uint8_t hue() const;

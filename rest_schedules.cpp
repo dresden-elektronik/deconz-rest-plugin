@@ -982,15 +982,19 @@ void DeRestPluginPrivate::scheduleTimerFired()
                 {
                     QString id = path[3];
                     bool stateOn = true;
-                    if (path[2] == "groups")
+                    if (path[2] == QLatin1String("groups"))
                     {
                         Group *group = getGroupForId(id);
                         stateOn = group->isOn();
                     }
-                    else if (path[2] == "lights")
+                    else if (path[2] == QLatin1String("lights"))
                     {
-                        LightNode *light = getLightNodeForId(id);
-                        stateOn = light->isOn();
+                        LightNode *lightNode = getLightNodeForId(id);
+                        ResourceItem *item = lightNode ? lightNode->item(RStateOn) : 0;
+                        if (item)
+                        {
+                            stateOn = item->toBool();
+                        }
                     }
                     if (!stateOn)
                     {

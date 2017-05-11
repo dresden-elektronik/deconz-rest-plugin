@@ -5915,12 +5915,56 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                             {
                                 if (li->lid() == lightNode->id())
                                 {
-                                    li->setOn(lightNode->isOn());
-                                    li->setBri((uint8_t)lightNode->level());
-                                    li->setX(lightNode->colorX());
-                                    li->setY(lightNode->colorY());
-                                    li->setColorloopActive(lightNode->isColorLoopActive());
-                                    li->setColorloopTime(lightNode->colorLoopSpeed());
+                                    ResourceItem *item = lightNode->item(RStateOn);
+                                    DBG_Assert(item != 0);
+                                    if (item)
+                                    {
+                                        li->setOn(item->toBool());
+                                    }
+                                    item = lightNode->item(RStateBri);
+                                    if (item)
+                                    {
+                                        li->setBri(item->toNumber());
+                                    }
+                                    item = lightNode->item(RStateColorMode);
+                                    if (item)
+                                    {
+                                        li->setColorMode(item->toString());
+                                        if (item->toString() == QLatin1String("xy") || item->toString() == QLatin1String("hs"))
+                                        {
+                                            item = lightNode->item(RStateX);
+                                            if (item)
+                                            {
+                                                li->setX(item->toNumber());
+                                            }
+                                            item = lightNode->item(RStateY);
+                                            if (item)
+                                            {
+                                                li->setY(item->toNumber());
+                                            }
+                                            item = lightNode->item(RStateHue);
+                                            if (item)
+                                            {
+                                                li->setEnhancedHue(item->toNumber());
+                                            }
+                                            item = lightNode->item(RStateSat);
+                                            if (item)
+                                            {
+                                                li->setSaturation(item->toNumber());
+                                            }
+                                        }
+                                        else if (item->toString() == QLatin1String("ct"))
+                                        {
+                                            item = lightNode->item(RStateCt);
+                                            DBG_Assert(item != 0);
+                                            if (item)
+                                            {
+                                                li->setColorTemperature(item->toNumber());
+                                            }
+                                        }
+                                        li->setColorloopActive(lightNode->isColorLoopActive());
+                                        li->setColorloopTime(lightNode->colorLoopSpeed());
+                                    }
                                     foundLightstate = true;
                                     break;
                                 }
@@ -5930,12 +5974,56 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                             {
                                 LightState state;
                                 state.setLightId(lightNode->id());
-                                state.setOn(lightNode->isOn());
-                                state.setBri((uint8_t)lightNode->level());
-                                state.setX(lightNode->colorX());
-                                state.setY(lightNode->colorY());
-                                state.setColorloopActive(lightNode->isColorLoopActive());
-                                state.setColorloopTime(lightNode->colorLoopSpeed());
+                                ResourceItem *item = lightNode->item(RStateOn);
+                                DBG_Assert(item != 0);
+                                if (item)
+                                {
+                                    state.setOn(item->toBool());
+                                }
+                                item = lightNode->item(RStateBri);
+                                if (item)
+                                {
+                                    state.setBri(item->toNumber());
+                                }
+                                item = lightNode->item(RStateColorMode);
+                                if (item)
+                                {
+                                    state.setColorMode(item->toString());
+                                    if (item->toString() == QLatin1String("xy") || item->toString() == QLatin1String("hs"))
+                                    {
+                                        item = lightNode->item(RStateX);
+                                        if (item)
+                                        {
+                                            state.setX(item->toNumber());
+                                        }
+                                        item = lightNode->item(RStateY);
+                                        if (item)
+                                        {
+                                            state.setY(item->toNumber());
+                                        }
+                                        item = lightNode->item(RStateHue);
+                                        if (item)
+                                        {
+                                            state.setEnhancedHue(item->toNumber());
+                                        }
+                                        item = lightNode->item(RStateSat);
+                                        if (item)
+                                        {
+                                            state.setSaturation(item->toNumber());
+                                        }
+                                    }
+                                    else if (item->toString() == QLatin1String("ct"))
+                                    {
+                                        item = lightNode->item(RStateCt);
+                                        DBG_Assert(item != 0);
+                                        if (item)
+                                        {
+                                            state.setColorTemperature(item->toNumber());
+                                        }
+                                    }
+                                    state.setColorloopActive(lightNode->isColorLoopActive());
+                                    state.setColorloopTime(lightNode->colorLoopSpeed());
+                                }
                                 scene->addLightState(state);
 
                                 // only change capacity and count when creating a new scene
@@ -6538,17 +6626,23 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
                 bool updated = false;
                 if (zclFrame.commandId() == 0x00 || zclFrame.commandId() == 0x40) // Off || Off with effect
                 {
-                    if (l->isOn())
+                    ResourceItem *item = l->item(RStateOn);
+                    if (item && item->toBool())
                     {
-                        l->setIsOn(false);
+                        item->setValue(false);
+                        Event e(RLights, RStateOn, l->id());
+                        enqueueEvent(e);
                         updated = true;
                     }
                 }
                 else if (zclFrame.commandId() == 0x01 || zclFrame.commandId() == 0x42) // On || On with timed off
                 {
-                    if (!l->isOn())
+                    ResourceItem *item = l->item(RStateOn);
+                    if (item && !item->toBool())
                     {
-                        l->setIsOn(true);
+                        item->setValue(true);
+                        Event e(RLights, RStateOn, l->id());
+                        enqueueEvent(e);
                         updated = true;
                     }
 
@@ -6570,7 +6664,7 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
 
                 if (updated)
                 {
-                    updateEtag(l->etag);
+                    updateLightEtag(&*l);
                 }
             }
         }
@@ -7014,40 +7108,141 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
             break;
 
         case TaskSetSat:
-            updateEtag(lightNode->etag);
-            lightNode->setSaturation(task.sat);
-            lightNode->setColorMode(QLatin1String("hs"));
+        {
+            ResourceItem *item = lightNode->item(RStateSat);
+            if (item && item->toNumber() != task.sat)
+            {
+                updateLightEtag(lightNode);
+                item->setValue(task.sat);
+                Event e(RLights, RStateSat, lightNode->id());
+                enqueueEvent(e);
+            }
+
+            item = item ? lightNode->item(RStateColorMode) : 0; // depend on sat
+            if (item && item->toString() != QLatin1String("hs"))
+            {
+                item->setValue(QVariant(QLatin1String("hs")));
+                Event e(RLights, RStateColorMode, lightNode->id());
+                enqueueEvent(e);
+            }
+
             setAttributeSaturation(lightNode);
+        }
             break;
 
         case TaskSetEnhancedHue:
-            updateEtag(lightNode->etag);
+        {
             lightNode->setEnhancedHue(task.enhancedHue);
-            lightNode->setColorMode(QLatin1String("hs"));
+
+            ResourceItem *item = lightNode->item(RStateHue);
+            if (item && item->toNumber() != task.enhancedHue)
+            {
+                updateLightEtag(lightNode);
+                item->setValue(task.enhancedHue);
+                Event e(RLights, RStateHue, lightNode->id());
+                enqueueEvent(e);
+            }
+
+            item = item ? lightNode->item(RStateColorMode) : 0; // depend on hue
+            if (item && item->toString() != QLatin1String("hs"))
+            {
+                item->setValue(QVariant(QLatin1String("hs")));
+                Event e(RLights, RStateColorMode, lightNode->id());
+                enqueueEvent(e);
+            }
+
             setAttributeEnhancedHue(lightNode);
+        }
             break;
 
         case TaskSetHueAndSaturation:
-            updateEtag(lightNode->etag);
-            lightNode->setSaturation(task.sat);
+        {
             lightNode->setEnhancedHue(task.enhancedHue);
-            lightNode->setColorMode(QLatin1String("hs"));
+
+            ResourceItem *item = lightNode->item(RStateHue);
+            if (item && item->toNumber() != task.enhancedHue)
+            {
+                updateLightEtag(lightNode);
+                item->setValue(task.enhancedHue);
+                Event e(RLights, RStateHue, lightNode->id());
+                enqueueEvent(e);
+            }
+
+            item = lightNode->item(RStateSat);
+            if (item && item->toNumber() != task.sat)
+            {
+                updateLightEtag(lightNode);
+                item->setValue(task.sat);
+                Event e(RLights, RStateSat, lightNode->id());
+                enqueueEvent(e);
+            }
+
+            item = item ? lightNode->item(RStateColorMode) : 0; // depend on hue,sat
+            if (item && item->toString() != QLatin1String("hs"))
+            {
+                item->setValue(QVariant(QLatin1String("hs")));
+                Event e(RLights, RStateColorMode, lightNode->id());
+                enqueueEvent(e);
+            }
+
             setAttributeSaturation(lightNode);
             setAttributeEnhancedHue(lightNode);
+        }
             break;
 
         case TaskSetXyColor:
-            updateEtag(lightNode->etag);
-            lightNode->setColorXY(task.colorX, task.colorY);
-            lightNode->setColorMode(QLatin1String("xy"));
+        {
+            ResourceItem *item = lightNode->item(RStateX);
+            if (item && item->toNumber() != task.colorX)
+            {
+                updateLightEtag(lightNode);
+                item->setValue(task.colorX);
+                Event e(RLights, RStateX, lightNode->id());
+                enqueueEvent(e);
+            }
+
+            item = lightNode->item(RStateY);
+            if (item && item->toNumber() != task.colorY)
+            {
+                updateLightEtag(lightNode);
+                item->setValue(task.colorY);
+                Event e(RLights, RStateY, lightNode->id());
+                enqueueEvent(e);
+            }
+
+            item = item ? lightNode->item(RStateColorMode) : 0; // depend on xy
+            if (item && item->toString() != QLatin1String("xy"))
+            {
+                item->setValue(QVariant(QLatin1String("xy")));
+                Event e(RLights, RStateColorMode, lightNode->id());
+                enqueueEvent(e);
+            }
+
             setAttributeColorXy(lightNode);
+        }
             break;
 
         case TaskSetColorTemperature:
-            updateEtag(lightNode->etag);
-            lightNode->setColorTemperature(task.colorTemperature);
-            lightNode->setColorMode(QLatin1String("ct"));
+        {
+            ResourceItem *item = lightNode->item(RStateCt);
+            if (item && item->toNumber() != task.colorTemperature)
+            {
+                updateLightEtag(lightNode);
+                item->setValue(task.colorTemperature);
+                Event e(RLights, RStateCt, lightNode->id());
+                enqueueEvent(e);
+            }
+
+            item = item ? lightNode->item(RStateColorMode) : 0; // depend on ct
+            if (item && item->toString() != QLatin1String("ct"))
+            {
+                item->setValue(QVariant(QLatin1String("ct")));
+                Event e(RLights, RStateColorMode, lightNode->id());
+                enqueueEvent(e);
+            }
+
             setAttributeColorTemperature(lightNode);
+        }
             break;
 
         case TaskSetColorLoop:

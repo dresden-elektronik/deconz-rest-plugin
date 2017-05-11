@@ -200,44 +200,11 @@ void LightNode::setOtauClusterId(uint16_t clusterId)
     m_otauClusterId = clusterId;
 }
 
-/*! Returns true if the light is on.
- */
-bool LightNode::isOn() const
-{
-    return m_isOn;
-}
-
 /*! Returns true if the light supports the color cluster.
  */
 bool LightNode::hasColor() const
 {
     return item(RStateColorMode) != 0;
-}
-
-/*! Sets the on state of the light.
-    \param on true if the light is on
- */
-void LightNode::setIsOn(bool on)
-{
-    m_isOn = on;
-
-    switch (m_haEndpoint.deviceId())
-    {
-    case DEV_ID_MAINS_POWER_OUTLET:
-    case DEV_ID_HA_ONOFF_LIGHT:
-        if (m_haEndpoint.profileId() == ZLL_PROFILE_ID)
-        {
-            // don't clash with DEV_ID_ZLL_DIMMABLE_LIGHT
-            break;
-        }
-    case DEV_ID_ZLL_ONOFF_LIGHT:
-    case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:
-        m_level = (m_isOn ? 255 : 0);
-        break;
-
-    default:
-        break;
-    }
 }
 
 /*! Returns the light dimm level (0..255).

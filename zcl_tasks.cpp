@@ -474,7 +474,15 @@ bool DeRestPluginPrivate::addTaskSetXyColorAsHueAndSaturation(TaskItem &task, do
 
     if (task.lightNode)
     {
-        Y = task.lightNode->level() / 255.0f;
+        ResourceItem *item = task.lightNode->item(RStateBri);
+        if (item)
+        {
+            Y = task.lightNode->level() / 255.0f;
+        }
+        else
+        {
+            Y = 1.0f;
+        }
     }
     else {
         Y = 1.0f;

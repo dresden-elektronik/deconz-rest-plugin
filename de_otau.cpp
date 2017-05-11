@@ -132,6 +132,8 @@ void DeRestPluginPrivate::otauDataIndication(const deCONZ::ApsDataIndication &in
 
         if (lightNode)
         {
+            ResourceItem *item = lightNode->item(RStateOn);
+            DBG_Assert(item != 0);
             std::vector<RecoverOnOff>::iterator i = recoverOnOff.begin();
             std::vector<RecoverOnOff>::iterator end = recoverOnOff.end();
             for (; i != end; ++i)
@@ -139,7 +141,7 @@ void DeRestPluginPrivate::otauDataIndication(const deCONZ::ApsDataIndication &in
                 if (i->address.hasNwk() && lightNode->address().hasNwk() &&
                     i->address.nwk() == lightNode->address().nwk())
                 {
-                    i->onOff = lightNode->isOn();
+                    i->onOff = item ? item->toBool() : false;
                     i->idleTotalCounterCopy = idleTotalCounter;
                     lightNode = 0; // release
                     break;
@@ -152,7 +154,7 @@ void DeRestPluginPrivate::otauDataIndication(const deCONZ::ApsDataIndication &in
                 // create new Entry
                 RecoverOnOff rc;
                 rc.address = lightNode->address();
-                rc.onOff = lightNode->isOn();
+                rc.onOff = item ? item->toBool() : false;
                 rc.idleTotalCounterCopy = idleTotalCounter;
                 recoverOnOff.push_back(rc);
             }
