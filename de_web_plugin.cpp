@@ -4314,6 +4314,10 @@ bool DeRestPluginPrivate::isLightNodeInGroup(LightNode *lightNode, uint16_t grou
 
     if (lightNode)
     {
+        if (groupId == 0)
+        {
+            return true; // global group
+        }
         std::vector<GroupInfo>::const_iterator i = lightNode->groups().begin();
         std::vector<GroupInfo>::const_iterator end = lightNode->groups().end();
 
