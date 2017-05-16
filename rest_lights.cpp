@@ -603,17 +603,35 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
             if (!hasXy && !hasSat)
             {
+                ResourceItem *item = task.lightNode->item(RStateSat);
                 double r, g, b;
                 double x, y;
                 double h = ((360.0f / 65535.0f) * hue);
-                double s = task.lightNode->saturation() / 255.0f;
+                double s = (item ? item->toNumber() : 0) / 255.0f;
                 double v = 1.0f;
 
                 Hsv2Rgb(&r, &g, &b, h, s, v);
                 Rgb2xy(&x, &y, r, g, b);
 
                 DBG_Printf(DBG_INFO, "x: %f, y: %f\n", x, y);
-                task.lightNode->setColorXY(x * 65279.0f, y * 65279.0f);
+                x *= 65279.0f;
+                y *= 65279.0f;
+
+                item = task.lightNode->item(RStateX);
+                if (item && item->toNumber() != (quint16)x)
+                {
+                    item->setValue((quint16)x);
+                    Event e(RLights, RStateX, task.lightNode->id());
+                    enqueueEvent(e);
+                }
+
+                item = task.lightNode->item(RStateY);
+                if (item && item->toNumber() != (quint16)y)
+                {
+                    item->setValue((quint16)y);
+                    Event e(RLights, RStateY, task.lightNode->id());
+                    enqueueEvent(e);
+                }
             }
 
             if (hasSat || // merge later to set hue and saturation
@@ -662,17 +680,34 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
             if (!hasXy && !hasHue)
             {
+                ResourceItem *item = task.lightNode->item(RStateHue);
                 double r, g, b;
                 double x, y;
-                double h = ((360.0f / 65535.0f) * task.lightNode->enhancedHue());
-                double s = sat / 254.0f;
+                double h = ((360.0f / 65535.0f) * (item ? item->toNumber() : 0));
+                double s = sat / 255.0f;
                 double v = 1.0f;
 
                 Hsv2Rgb(&r, &g, &b, h, s, v);
                 Rgb2xy(&x, &y, r, g, b);
 
-                DBG_Printf(DBG_INFO, "x: %f, y: %f\n", x, y);
-                task.lightNode->setColorXY(x * 65279.0f, y * 65279.0f);
+                x *= 65279.0f;
+                y *= 65279.0f;
+
+                item = task.lightNode->item(RStateX);
+                if (item && item->toNumber() != (quint16)x)
+                {
+                    item->setValue((quint16)x);
+                    Event e(RLights, RStateX, task.lightNode->id());
+                    enqueueEvent(e);
+                }
+
+                item = task.lightNode->item(RStateY);
+                if (item && item->toNumber() != (quint16)y)
+                {
+                    item->setValue((quint16)y);
+                    Event e(RLights, RStateY, task.lightNode->id());
+                    enqueueEvent(e);
+                }
             }
 
             if (hasXy || hasCt
