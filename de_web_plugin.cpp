@@ -6390,11 +6390,6 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
         // update Nodes and Groups state if Recall scene Command was send by a switch
         Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
 
-        if (sensorNode && sensorNode->deletedState() == Sensor::StateNormal)
-        {
-            checkSensorNodeReachable(sensorNode);
-        }
-
         DBG_Assert(zclFrame.payload().size() >= 3);
 
         QDataStream stream(zclFrame.payload());
@@ -6411,6 +6406,24 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
         bool colorloopDeactivated = false;
         Group *group = getGroupForId(groupId);
         Scene *scene = group ? group->getScene(sceneId) : 0;
+
+        if (sensorNode && sensorNode->deletedState() == Sensor::StateNormal)
+        {
+            checkSensorNodeReachable(sensorNode);
+
+            if (!scene && group && group->state() == Group::StateNormal)
+            {
+                Scene s;
+                s.groupAddress = groupId;
+                s.id = sceneId;
+                s.externalMaster = true;
+                s.name.sprintf("Scene %u", sceneId);
+                group->scenes.push_back(s);
+                updateGroupEtag(group);
+                queSaveDb(DB_SCENES, DB_SHORT_SAVE_DELAY);
+                DBG_Printf(DBG_INFO, "create scene %u from rx-command\n", sceneId);
+            }
+        }
 
         if (group && (group->state() == Group::StateNormal) && scene)
         {
