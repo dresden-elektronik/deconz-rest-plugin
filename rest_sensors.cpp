@@ -1050,6 +1050,13 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             map["id"] = e.id();
             QVariantMap state;
             state[e.what() + 6] = item->toVariant();
+
+            item = sensor->item(RStateLastUpdated);
+            if (item)
+            {
+                state["lastupdated"] = item->toVariant();
+            }
+
             map["state"] = state;
 
             webSocketServer->broadcastTextMessage(Json::serialize(map));
