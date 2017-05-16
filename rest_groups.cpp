@@ -2108,35 +2108,7 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
                         needModify = true;
                     }
 
-                    if (item->toString() == QLatin1String("xy"))
-                    {
-                        item = lightNode->item(RStateX);
-                        DBG_Assert(item != 0);
-                        if (item && item->toNumber() != ls->x())
-                        {
-                            ls->setX(item->toNumber());
-                            needModify = true;
-                        }
-
-                        item = lightNode->item(RStateY);
-                        DBG_Assert(item != 0);
-                        if (item && item->toNumber() != ls->y())
-                        {
-                            ls->setX(item->toNumber());
-                            needModify = true;
-                        }
-                    }
-                    else if (item->toString() == QLatin1String("ct"))
-                    {
-                        item = lightNode->item(RStateCt);
-                        DBG_Assert(item != 0);
-                        if (item && item->toNumber() != ls->colorTemperature())
-                        {
-                            ls->setColorTemperature(item->toNumber());
-                            needModify = true;
-                        }
-                    }
-                    else if (item->toString() == QLatin1String("hs"))
+                    if (item->toString() == QLatin1String("xy") || item->toString() == QLatin1String("hs"))
                     {
                         item = lightNode->item(RStateHue);
                         DBG_Assert(item != 0);
@@ -2166,7 +2138,18 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
                         DBG_Assert(item != 0);
                         if (item && item->toNumber() != ls->y())
                         {
-                            ls->setX(item->toNumber());
+                            ls->setY(item->toNumber());
+                            needModify = true;
+                        }
+                    }
+
+                    if (item->toString() == QLatin1String("ct"))
+                    {
+                        item = lightNode->item(RStateCt);
+                        DBG_Assert(item != 0);
+                        if (item && item->toNumber() != ls->colorTemperature())
+                        {
+                            ls->setColorTemperature(item->toNumber());
                             needModify = true;
                         }
                     }
@@ -2226,7 +2209,7 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
                 item = lightNode->item(RStateColorMode);
                 if (item)
                 {
-                    if (item->toString() == QLatin1String("xy"))
+                    if (item->toString() == QLatin1String("xy") || item->toString() == QLatin1String("hs"))
                     {
                         item = lightNode->item(RStateX);
                         DBG_Assert(item != 0);
@@ -2240,18 +2223,6 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
                         {
                             state.setY(item->toNumber());
                         }
-                    }
-                    else if (item->toString() == QLatin1String("ct"))
-                    {
-                        item = lightNode->item(RStateCt);
-                        DBG_Assert(item != 0);
-                        if (item)
-                        {
-                            state.setColorTemperature(item->toNumber());
-                        }
-                    }
-                    else if (item->toString() == QLatin1String("hs"))
-                    {
                         item = lightNode->item(RStateHue);
                         DBG_Assert(item != 0);
                         if (item)
@@ -2263,6 +2234,15 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
                         if (item)
                         {
                             state.setSaturation(item->toNumber());
+                        }
+                    }
+                    else if (item->toString() == QLatin1String("ct"))
+                    {
+                        item = lightNode->item(RStateCt);
+                        DBG_Assert(item != 0);
+                        if (item)
+                        {
+                            state.setColorTemperature(item->toNumber());
                         }
                     }
 
