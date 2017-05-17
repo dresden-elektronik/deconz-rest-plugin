@@ -15,13 +15,14 @@
 #include <QString>
 #include <QTime>
 #include <vector>
+#include "resource.h"
 #include "scene.h"
 
 /*! \class Group
 
     Represents the group state of lights.
  */
-class Group
+class Group : public Resource
 {
 public:
     enum State

@@ -581,6 +581,7 @@ public:
     int setGroupAttributes(const ApiRequest &req, ApiResponse &rsp);
     int setGroupState(const ApiRequest &req, ApiResponse &rsp);
     int deleteGroup(const ApiRequest &req, ApiResponse &rsp);
+    void handleGroupEvent(const Event &e);
     Group *addGroup();
 
     // REST API groups > scenes
@@ -837,7 +838,7 @@ public:
     bool readGroupMembership(LightNode *lightNode, const std::vector<uint16_t> &groups);
     void foundGroupMembership(LightNode *lightNode, uint16_t groupId);
     void foundGroup(uint16_t groupId);
-    bool isLightNodeInGroup(LightNode *lightNode, uint16_t groupId);
+    bool isLightNodeInGroup(const LightNode *lightNode, uint16_t groupId) const;
     void deleteLightFromScenes(QString lightId, uint16_t groupId);
 //    void readAllInGroup(Group *group);
     void setAttributeOnOffGroup(Group *group, uint8_t onOff);

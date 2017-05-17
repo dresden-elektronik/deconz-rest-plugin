@@ -33,10 +33,12 @@ extern const char *RConfig;
 extern const char *REventAdded;
 extern const char *REventDeleted;
 extern const char *REventValidGroup;
+extern const char *REventCheckGroupAnyOn;
 
 // resouce suffixes: state/buttonevent, config/on, ...
 extern const char *RInvalidSuffix;
 extern const char *RStateAlert;
+extern const char *RStateAnyOn;
 extern const char *RStateButtonEvent;
 extern const char *RStateBri;
 extern const char *RStateColorMode;

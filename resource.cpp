@@ -21,9 +21,11 @@ const char *RConfig = "/config";
 const char *REventAdded = "event/added";
 const char *REventDeleted = "event/deleted";
 const char *REventValidGroup = "event/validgroup";
+const char *REventCheckGroupAnyOn = "event/checkgroupanyon";
 
 const char *RInvalidSuffix = "invalid/suffix";
 const char *RStateAlert = "state/alert";
+const char *RStateAnyOn = "state/any_on";
 const char *RStateButtonEvent = "state/buttonevent";
 const char *RStateBri = "state/bri";
 const char *RStateColorMode = "state/colormode";
@@ -69,6 +71,7 @@ void initResourceDescriptors()
 
     // init resource lookup
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateAlert));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateAnyOn));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt32, RStateButtonEvent));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RStateBri));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateColorMode));

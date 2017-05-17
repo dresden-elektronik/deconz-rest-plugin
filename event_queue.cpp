@@ -28,6 +28,10 @@ void DeRestPluginPrivate::eventQueueTimerFired()
     {
         handleLightEvent(e);
     }
+    else if (e.resource() == RGroups)
+    {
+        handleGroupEvent(e);
+    }
 
     eventQueue.pop_front();
 

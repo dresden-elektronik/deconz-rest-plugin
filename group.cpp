@@ -14,6 +14,7 @@
 /*! Constructor.
  */
 Group::Group() :
+    Resource(RGroups),
     m_state(StateNormal),
     m_addr(0),
     m_id("0"),
@@ -30,6 +31,9 @@ Group::Group() :
    colorY = 0;
    colorTemperature = 0;
    colormode = QLatin1String("hs");
+
+   // add common items
+    addItem(DataTypeBool, RStateAnyOn);
 }
 
 /*! Returns the 16 bit group address.

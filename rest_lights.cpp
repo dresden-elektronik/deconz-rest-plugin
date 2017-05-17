@@ -1426,6 +1426,20 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
             map["state"] = state;
 
             webSocketServer->broadcastTextMessage(Json::serialize(map));
+
+            if (e.what() == RStateOn && !lightNode->groups().empty())
+            {
+                std::vector<GroupInfo>::const_iterator i = lightNode->groups().begin();
+                std::vector<GroupInfo>::const_iterator end = lightNode->groups().end();
+                for (; i != end; ++i)
+                {
+                    if (i->state == GroupInfo::StateInGroup)
+                    {
+                        Event e(RGroups, REventCheckGroupAnyOn, int(i->id));
+                        enqueueEvent(e);
+                    }
+                }
+            }
         }
     }
     else if (e.what() == REventAdded)

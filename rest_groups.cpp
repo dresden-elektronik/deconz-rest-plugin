@@ -1412,6 +1412,7 @@ bool DeRestPluginPrivate::groupToMap(const Group *group, QVariantMap &map)
     }
 
     QVariantMap action;
+    QVariantMap state;
     QVariantList scenes;
 
     action["on"] = group->isOn();
@@ -1441,6 +1442,13 @@ bool DeRestPluginPrivate::groupToMap(const Group *group, QVariantMap &map)
     action["xy"] = xy;
     action["colormode"] = group->colormode; // TODO
 
+    for (int i = 0; i < group->itemCount(); i++)
+    {
+        const ResourceItem *item = group->itemForIndex(i);
+        DBG_Assert(item != 0);
+        if (item->descriptor().suffix == RStateAnyOn) { state["any_on"] = item->toBool(); }
+    }
+
     map["id"] = group->id();
     map["name"] = group->name();
     map["hidden"] = group->hidden;
@@ -1448,6 +1456,7 @@ bool DeRestPluginPrivate::groupToMap(const Group *group, QVariantMap &map)
     etag.remove('"'); // no quotes allowed in string
     map["etag"] = etag;
     map["action"] = action;
+    map["state"] = state;
     map["type"] = "LightGroup"; // TODO
 
     QStringList multis;
@@ -1530,7 +1539,6 @@ bool DeRestPluginPrivate::groupToMap(const Group *group, QVariantMap &map)
     }
 
     map["scenes"] = scenes;
-    map["state"] = group->state();
 
     return true;
 }
@@ -2839,3 +2847,97 @@ int DeRestPluginPrivate::deleteScene(const ApiRequest &req, ApiResponse &rsp)
 
     return REQ_READY_SEND;
 }
+
+void DeRestPluginPrivate::handleGroupEvent(const Event &e)
+{
+    DBG_Assert(e.resource() == RGroups);
+    DBG_Assert(e.what() != 0);
+
+    Group *group = getGroupForId(e.num());
+
+    if (!group)
+    {
+        return;
+    }
+
+    if (e.what() == REventCheckGroupAnyOn)
+    {
+        int on = 0;
+        int count = 0;
+
+        std::vector<LightNode>::const_iterator i = nodes.begin();
+        std::vector<LightNode>::const_iterator end = nodes.end();
+
+        for (; i != end; ++i)
+        {
+            if (!isLightNodeInGroup(&*i, e.num()))
+            {
+                continue;
+            }
+
+            const ResourceItem *item = i->item(RStateOn);
+
+            if (i->isAvailable() && item)
+            {
+                count++;
+                if (item->toBool()) { on++; }
+            }
+
+            if (on)
+            {
+                break; // any
+            }
+        }
+
+        ResourceItem *item = group->item(RStateAnyOn);
+        DBG_Assert(item != 0);
+        if (item && item->toBool() != (on > 0))
+        {
+            item->setValue(on > 0);
+            updateGroupEtag(group);
+            Event e(RGroups, RStateAnyOn, group->address());
+            enqueueEvent(e);
+            return;
+        }
+    }
+
+    // push state updates through websocket
+    if (strncmp(e.what(), "state/", 6) == 0)
+    {
+        ResourceItem *item = group->item(e.what());
+        if (item)
+        {
+            QVariantMap map;
+            map["t"] = QLatin1String("event");
+            map["e"] = QLatin1String("changed");
+            map["r"] = QLatin1String("groups");
+            map["id"] = group->id();
+            QVariantMap state;
+            state[e.what() + 6] = item->toVariant();
+            map["state"] = state;
+
+            webSocketServer->broadcastTextMessage(Json::serialize(map));
+        }
+    }
+    else if (e.what() == REventAdded)
+    {
+        QVariantMap map;
+        map["t"] = QLatin1String("event");
+        map["e"] = QLatin1String("added");
+        map["r"] = QLatin1String("groups");
+        map["id"] = e.id();
+
+        webSocketServer->broadcastTextMessage(Json::serialize(map));
+    }
+    else if (e.what() == REventDeleted)
+    {
+        QVariantMap map;
+        map["t"] = QLatin1String("event");
+        map["e"] = QLatin1String("deleted");
+        map["r"] = QLatin1String("groups");
+        map["id"] = e.id();
+
+        webSocketServer->broadcastTextMessage(Json::serialize(map));
+    }
+}
+

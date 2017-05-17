@@ -4308,7 +4308,7 @@ void DeRestPluginPrivate::foundGroup(uint16_t groupId)
 
 /*! Returns true if the \p lightNode is member of the group with the \p groupId.
  */
-bool DeRestPluginPrivate::isLightNodeInGroup(LightNode *lightNode, uint16_t groupId)
+bool DeRestPluginPrivate::isLightNodeInGroup(const LightNode *lightNode, uint16_t groupId) const
 {
     DBG_Assert(lightNode != 0);
 
