@@ -6401,6 +6401,15 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
         stream >> groupId;
         stream >> sceneId;
 
+        // notify via event
+        QVariantMap map;
+        map["t"] = QLatin1String("event");
+        map["e"] = QLatin1String("scene-called");
+        map["r"] = QLatin1String("scenes");
+        map["gid"] = QString::number(groupId);
+        map["scid"] = QString::number(sceneId);
+        webSocketServer->broadcastTextMessage(Json::serialize(map));
+
         // check if scene exists
 
         bool colorloopDeactivated = false;
