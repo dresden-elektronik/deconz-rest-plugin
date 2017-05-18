@@ -1230,7 +1230,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
 
                         item = i->item(RStateHue);
 
-                        if (item->toNumber() != hue)
+                        if (item && item->toNumber() != hue)
                         {
                             i->setEnhancedHue(hue);
                             item->setValue(hue);
@@ -2150,8 +2150,7 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
                             needModify = true;
                         }
                     }
-
-                    if (item->toString() == QLatin1String("ct"))
+                    else if (item->toString() == QLatin1String("ct"))
                     {
                         item = lightNode->item(RStateCt);
                         DBG_Assert(item != 0);

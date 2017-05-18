@@ -1350,6 +1350,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray*prhs[])
 ******************************************************************************/
 void MiredColorTemperatureToXY(unsigned short int temperature, unsigned short int *x, unsigned short int *y)
 {
+  if (temperature == 0)
+      temperature = 153;
+
   unsigned long long localX, localY;
   unsigned short int temp = 1000000 / temperature;
 

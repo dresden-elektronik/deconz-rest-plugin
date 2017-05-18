@@ -380,9 +380,14 @@ void LightNode::setColorTemperature(uint16_t colorTemperature)
  */
 const QString &LightNode::colorMode() const
 {
+    static QString foo;
     const ResourceItem *i = item(RStateColorMode);
     DBG_Assert(i != 0);
-    return i->toString();
+    if (i)
+    {
+        return i->toString();
+    }
+    return foo;
 }
 
 /*! Sets the current colormode.
