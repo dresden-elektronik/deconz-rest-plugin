@@ -43,6 +43,8 @@ void DeRestPluginPrivate::initUpnpDiscovery()
     connect(timer, SIGNAL(timeout()),
             this, SLOT(announceUpnp()));
     timer->start(20 * 1000);
+
+    initDescriptionXml();
 }
 
 /*! Replaces description_in.xml template with dynamic content. */
@@ -80,11 +82,6 @@ void DeRestPluginPrivate::initDescriptionXml()
 /*! Sends SSDP broadcast for announcement. */
 void DeRestPluginPrivate::announceUpnp()
 {
-    if (gwBridgeId.isEmpty())
-    {
-      // Don't announce before bridgeid has been set.
-      return;
-    }
     quint16 port = 1900;
     QHostAddress host;
     QByteArray datagram = QString(QLatin1String(
@@ -124,11 +121,6 @@ void DeRestPluginPrivate::upnpReadyRead()
 
         if (datagram.startsWith("M-SEARCH *"))
         {
-            if (gwBridgeId.isEmpty())
-            {
-              // Don't respond before bridgeid has been set.
-              return;
-            }
             DBG_Printf(DBG_HTTP, "UPNP %s:%u\n%s\n", qPrintable(host.toString()), port, datagram.data());
             datagram.clear();
 
