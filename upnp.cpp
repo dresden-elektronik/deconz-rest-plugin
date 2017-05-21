@@ -77,10 +77,13 @@ void DeRestPluginPrivate::initUpnpDiscovery()
 /*! Sends SSDP broadcast for announcement. */
 void DeRestPluginPrivate::announceUpnp()
 {
+    if (gwBridgeId.isEmpty())
+    {
+      // Don't announce before bridgeid has been set.
+      return;
+    }
     quint16 port = 1900;
     QHostAddress host;
-    QString bridgeId;
-    bridgeId.sprintf("%016llX", (quint64)gwDeviceAddress.ext());
     QByteArray datagram = QString(QLatin1String(
     "NOTIFY * HTTP/1.1\r\n"
     "HOST: 239.255.255.250:1900\r\n"
@@ -95,7 +98,7 @@ void DeRestPluginPrivate::announceUpnp()
             .arg(gwConfig["ipaddress"].toString())
             .arg(gwConfig["port"].toDouble())
             .arg(gwConfig["uuid"].toString())
-            .arg(bridgeId).toLocal8Bit();
+            .arg(gwBridgeId).toLocal8Bit();
 
     host.setAddress(QLatin1String("239.255.255.250"));
 
@@ -112,14 +115,17 @@ void DeRestPluginPrivate::upnpReadyRead()
     {
         quint16 port;
         QHostAddress host;
-        QString bridgeId;
-        bridgeId.sprintf("%016llX", (quint64)gwDeviceAddress.ext());
         QByteArray datagram;
         datagram.resize(udpSock->pendingDatagramSize());
         udpSock->readDatagram(datagram.data(), datagram.size(), &host, &port);
 
         if (datagram.startsWith("M-SEARCH *"))
         {
+            if (gwBridgeId.isEmpty())
+            {
+              // Don't respond before bridgeid has been set.
+              return;
+            }
             DBG_Printf(DBG_HTTP, "UPNP %s:%u\n%s\n", qPrintable(host.toString()), port, datagram.data());
             datagram.clear();
 
@@ -132,7 +138,7 @@ void DeRestPluginPrivate::upnpReadyRead()
             datagram.append("SERVER: FreeRTOS/7.4.2, UPnP/1.0, IpBridge/1.8.0\r\n");
             datagram.append("ST: upnp:rootdevice\r\n");
             datagram.append(QString("USN: uuid:%1::upnp:rootdevice\r\n").arg(gwUuid));
-            datagram.append(QString("GWID.phoscon.de: %1\r\n").arg(bridgeId));
+            datagram.append(QString("GWID.phoscon.de: %1\r\n").arg(gwBridgeId));
             datagram.append("\r\n");
 
             if (udpSockOut->writeDatagram(datagram.data(), datagram.size(), host, port) == -1)

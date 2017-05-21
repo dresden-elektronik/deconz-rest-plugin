@@ -291,15 +291,10 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         }
 
         map["mac"] = eth.hardwareAddress().toLower();
-        if (gwDeviceAddress.hasExt())
+        if (!gwBridgeId.isEmpty())
         {
-            QString bridgeId;
-            bridgeId.sprintf("%016llX", (quint64)gwDeviceAddress.ext());
-            map["bridgeid"] = bridgeId;
-        }
-        else
-        {
-            map["bridgeid"] = eth.hardwareAddress().remove(':').insert(6,"FFFE");
+            // Only expose bridgeid after it's been set.
+            map["bridgeid"] = gwBridgeId;
         }
     }
 
@@ -959,7 +954,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 */
 #endif
 #endif
-        }       
+        }
         else if ((gwWifi == "not-running" && wifi == "running") ||
                  (gwWifi == "running" && wifi == "not-running"))
         {
