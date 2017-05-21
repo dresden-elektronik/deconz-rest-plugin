@@ -65,6 +65,7 @@ void DeRestPluginPrivate::initUpnpDiscovery()
                    line.replace(QString("{{IPADDRESS}}"), qPrintable(gwIpAddress));
                    line.replace(QString("{{UUID}}"), qPrintable(gwUuid));
                    line.replace(QString("{{GWNAME}}"), qPrintable(gwName));
+                   line.replace(Qstring("{{BRIDGEID}}"), qPrintable(gwBridgeId));
                    descriptionXml.append(line);
 
                    DBG_Printf(DBG_INFO_L2, "%s", line.constData());
