@@ -197,14 +197,10 @@ void DeRestPluginPrivate::internetDiscoveryTimerFired()
 {
     if (gwAnnounceInterval > 0)
     {
-        if (gwBridgeId.isEmpty())
-        {
-          // Don't announce before bridgeid has been set.
-          return;
-        }
+        const QString bridgeId = gwBridgeId.isEmpty() ? QLatin1String("0000000000000000") : gwBridgeId;
         QString str = QString("{ \"name\": \"%1\", \"mac\": \"%2\", \"internal_ip\":\"%3\", \"internal_port\":%4, \"interval\":%5, \"swversion\":\"%6\", \"fwversion\":\"%7\", \"nodecount\":%8, \"uptime\":%9, \"updatechannel\":\"%10\"")
                 .arg(gwName)
-                .arg(gwBridgeId)
+                .arg(bridgeId)
                 .arg(gwConfig["ipaddress"].toString())
                 .arg(gwConfig["port"].toDouble())
                 .arg(gwAnnounceInterval)
