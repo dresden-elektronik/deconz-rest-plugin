@@ -79,6 +79,8 @@ void DeRestPluginPrivate::announceUpnp()
 {
     quint16 port = 1900;
     QHostAddress host;
+    QString bridgeId;
+    bridgeId.sprintf("%016llX", (quint64)gwDeviceAddress.ext());
     QByteArray datagram = QString(QLatin1String(
     "NOTIFY * HTTP/1.1\r\n"
     "HOST: 239.255.255.250:1900\r\n"
@@ -88,12 +90,12 @@ void DeRestPluginPrivate::announceUpnp()
     "NTS: ssdp:alive\r\n"
     "NT: upnp:rootdevice\r\n"
     "USN: uuid:%3::upnp:rootdevice\r\n"
-    "GWID.phoscon.de:%4\r\n"
+    "GWID.phoscon.de: %4\r\n"
     "\r\n"))
             .arg(gwConfig["ipaddress"].toString())
             .arg(gwConfig["port"].toDouble())
             .arg(gwConfig["uuid"].toString())
-            .arg(gwDeviceAddress.toStringExt()).toLocal8Bit();
+            .arg(bridgeId).toLocal8Bit();
 
     host.setAddress(QLatin1String("239.255.255.250"));
 
@@ -110,6 +112,8 @@ void DeRestPluginPrivate::upnpReadyRead()
     {
         quint16 port;
         QHostAddress host;
+        QString bridgeId;
+        bridgeId.sprintf("%016llX", (quint64)gwDeviceAddress.ext());
         QByteArray datagram;
         datagram.resize(udpSock->pendingDatagramSize());
         udpSock->readDatagram(datagram.data(), datagram.size(), &host, &port);
@@ -126,9 +130,9 @@ void DeRestPluginPrivate::upnpReadyRead()
                             .arg(gwConfig["ipaddress"].toString())
                             .arg(gwConfig["port"].toDouble()).toLocal8Bit());
             datagram.append("SERVER: FreeRTOS/7.4.2, UPnP/1.0, IpBridge/1.8.0\r\n");
-            datagram.append("ST: urn:schemas-upnp-org:device:basic:1\r\n");
+            datagram.append("ST: upnp:rootdevice\r\n");
             datagram.append(QString("USN: uuid:%1::upnp:rootdevice\r\n").arg(gwUuid));
-            datagram.append(QString("GWID.phoscon.de:%1\r\n").arg(gwDeviceAddress.toStringExt()));
+            datagram.append(QString("GWID.phoscon.de: %1\r\n").arg(bridgeId));
             datagram.append("\r\n");
 
             if (udpSockOut->writeDatagram(datagram.data(), datagram.size(), host, port) == -1)
