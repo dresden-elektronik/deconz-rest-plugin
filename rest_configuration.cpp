@@ -308,12 +308,6 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         DBG_Printf(DBG_ERROR, "No valid ethernet interface found\n");
     }
 
-    if (!gwBridgeId.isEmpty())
-    {
-        // Only expose bridgeid after it's been set.
-        map["bridgeid"] = gwBridgeId;
-    }
-
     std::vector<ApiAuth>::const_iterator i = apiAuths.begin();
     std::vector<ApiAuth>::const_iterator end = apiAuths.end();
     for (; i != end; ++i)
@@ -407,6 +401,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         map["datastoreversion"] = QLatin1String("60");
         map["swupdate"] = swupdate;
         map["apiversion"] = QString(GW_API_VERSION);
+        map["bridgeid"] = gwBridgeId;
         map["starterkitid"] = QLatin1String("");
     }
 
@@ -495,12 +490,7 @@ void DeRestPluginPrivate::basicConfigToMap(QVariantMap &map)
         DBG_Printf(DBG_ERROR, "No valid ethernet interface found\n");
     }
 
-    if (!gwBridgeId.isEmpty())
-    {
-        // Only expose bridgeid after it's been set.
-        map["bridgeid"] = gwBridgeId;
-    }
-
+    map["bridgeid"] = gwBridgeId;
     map["swversion"] = QString(GW_SW_VERSION);
     map["modelid"] = QLatin1String("deCONZ");
     map["factorynew"] = false;

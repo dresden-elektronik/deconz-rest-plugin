@@ -205,6 +205,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     gwFirmwareNeedUpdate = false;
     gwFirmwareVersion = "0x00000000"; // query later
     gwFirmwareVersionUpdate = "";
+    gwBridgeId = "0000000000000000";
 
     {
         QHttpRequestHeader hdr;
@@ -7892,7 +7893,13 @@ void DeRestPlugin::idleTimerFired()
         d->gwDeviceAddress.setExt(d->apsCtrl->getParameter(deCONZ::ParamMacAddress));
         d->gwDeviceAddress.setNwk(d->apsCtrl->getParameter(deCONZ::ParamNwkAddress));
         d->gwBridgeId.sprintf("%016llX", (quint64)d->gwDeviceAddress.ext());
-        d->initDescriptionXml();
+        if (!d->gwConfig.contains("bridgeid") || d->gwConfig["bridgeid"] != d->gwBridgeId)
+        {
+          DBG_Printf(DBG_INFO, "Set bridgeid to %s\n", qPrintable(d->gwBridgeId));
+          d->gwConfig["bridgeid"] = d->gwBridgeId;
+          d->queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
+          d->initDescriptionXml();
+        }
     }
 
     if (!pluginActive())

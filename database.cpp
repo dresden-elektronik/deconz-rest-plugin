@@ -530,6 +530,14 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
             }
         }
     }
+    else if (strcmp(colval[0], "bridgeid") == 0)
+    {
+      if (!val.isEmpty())
+      {
+          d->gwConfig["bridgeid"] = val;
+          d->gwBridgeId = val;
+      }
+    }
     return 0;
 }
 
@@ -2126,6 +2134,7 @@ void DeRestPluginPrivate::saveDb()
         gwConfig["wifiname"] = gwWifiName;
         gwConfig["wifichannel"] = gwWifiChannel;
         gwConfig["wifiip"] = gwWifiIp;
+        gwConfig["bridgeid"] = gwBridgeId;
 
         QVariantMap::iterator i = gwConfig.begin();
         QVariantMap::iterator end = gwConfig.end();
