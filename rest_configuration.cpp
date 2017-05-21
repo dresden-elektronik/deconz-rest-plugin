@@ -34,11 +34,18 @@ int DeRestPluginPrivate::handleConfigurationApi(const ApiRequest &req, ApiRespon
     {
         return createUser(req, rsp);
     }
-
-    // GET /api/<apikey>
-    if ((req.path.size() == 2) && (req.hdr.method() == "GET"))
+    else if ((req.path.size() == 2) && (req.hdr.method() == "GET"))
     {
-        return getFullState(req, rsp);
+        // GET /api/config
+        if (req.path[1] == "config")
+        {
+          return getBasicConfig(req, rsp);
+        }
+        // GET /api/<apikey>
+        else
+        {
+          return getFullState(req, rsp);
+        }
     }
     // GET /api/<apikey>/config
     else if ((req.path.size() == 3) && (req.hdr.method() == "GET") && (req.path[2] == "config"))
@@ -291,11 +298,6 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         }
 
         map["mac"] = eth.hardwareAddress().toLower();
-        if (!gwBridgeId.isEmpty())
-        {
-            // Only expose bridgeid after it's been set.
-            map["bridgeid"] = gwBridgeId;
-        }
     }
 
     if (!ok)
@@ -304,6 +306,12 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         map["ipaddress"] = "127.0.0.1";
         map["netmask"] = "255.0.0.0";
         DBG_Printf(DBG_ERROR, "No valid ethernet interface found\n");
+    }
+
+    if (!gwBridgeId.isEmpty())
+    {
+        // Only expose bridgeid after it's been set.
+        map["bridgeid"] = gwBridgeId;
     }
 
     std::vector<ApiAuth>::const_iterator i = apiAuths.begin();
@@ -372,7 +380,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     }
     else
     {
-        map["swversion"] = QString(GW_SW_VERSION).replace(QChar('.'), "");
+        map["swversion"] = QString(GW_SW_VERSION);
         devicetypes["bridge"] = false;
         devicetypes["lights"] = QVariantList();
         devicetypes["sensors"] = QVariantList();
@@ -398,9 +406,8 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         map["replacesbridgeid"] = QVariant();
         map["datastoreversion"] = QLatin1String("60");
         map["swupdate"] = swupdate;
-        // since api version 1.2.1
-        map["apiversion"] = QLatin1String("1.0.0");
-        // since api version 1.3.0
+        map["apiversion"] = QString(GW_API_VERSION);
+        map["starterkitid"] = QLatin1String("");
     }
 
     map["name"] = gwName;
@@ -448,6 +455,60 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     {
         map["gateway"] = "192.168.178.1";
     }
+}
+
+/*! Puts all parameters in a map for later JSON serialization.
+ */
+void DeRestPluginPrivate::basicConfigToMap(QVariantMap &map)
+{
+    QNetworkInterface eth;
+
+    {
+        QList<QNetworkInterface> ifaces = QNetworkInterface::allInterfaces();
+        QList<QNetworkInterface>::Iterator i = ifaces.begin();
+        QList<QNetworkInterface>::Iterator end = ifaces.end();
+
+        // optimistic approach chose the first available ethernet interface
+        for (;i != end; ++i)
+        {
+            if ((i->flags() & QNetworkInterface::IsUp) &&
+                (i->flags() & QNetworkInterface::IsRunning) &&
+                !(i->flags() & QNetworkInterface::IsLoopBack))
+            {
+                QList<QNetworkAddressEntry> addresses = i->addressEntries();
+
+                if (!addresses.isEmpty())
+                {
+                    eth = *i;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (eth.isValid() && !eth.addressEntries().isEmpty())
+    {
+        map["mac"] = eth.hardwareAddress().toLower();
+    }
+    else
+    {
+        DBG_Printf(DBG_ERROR, "No valid ethernet interface found\n");
+    }
+
+    if (!gwBridgeId.isEmpty())
+    {
+        // Only expose bridgeid after it's been set.
+        map["bridgeid"] = gwBridgeId;
+    }
+
+    map["swversion"] = QString(GW_SW_VERSION);
+    map["modelid"] = QLatin1String("deCONZ");
+    map["factorynew"] = false;
+    map["replacesbridgeid"] = QVariant();
+    map["datastoreversion"] = QLatin1String("60");
+    map["apiversion"] = QString(GW_API_VERSION);
+    map["name"] = gwName;
+    map["starterkitid"] = QLatin1String("");
 }
 
 /*! GET /api/<apikey>
@@ -625,6 +686,34 @@ int DeRestPluginPrivate::getConfig(const ApiRequest &req, ApiResponse &rsp)
     rsp.etag = gwConfigEtag;
     return REQ_READY_SEND;
 }
+
+/*! GET /api/config
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::getBasicConfig(const ApiRequest &req, ApiResponse &rsp)
+{
+    rsp.hdrFields.append(qMakePair(QString(QLatin1String("Access-Control-Allow-Origin")), QString(QLatin1String("*"))));
+    checkRfConnectState();
+
+    // handle ETag
+    if (req.hdr.hasKey("If-None-Match"))
+    {
+        QString etag = req.hdr.value("If-None-Match");
+
+        if (gwConfigEtag == etag)
+        {
+            rsp.httpStatus = HttpStatusNotModified;
+            rsp.etag = etag;
+            return REQ_READY_SEND;
+        }
+    }
+    basicConfigToMap(rsp.map);
+    rsp.httpStatus = HttpStatusOk;
+    rsp.etag = gwConfigEtag;
+    return REQ_READY_SEND;
+}
+
 
 /*! PUT, PATCH /api/<apikey>/config
     \return REQ_READY_SEND

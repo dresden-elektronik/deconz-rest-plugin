@@ -535,6 +535,7 @@ public:
     int createUser(const ApiRequest &req, ApiResponse &rsp);
     int getFullState(const ApiRequest &req, ApiResponse &rsp);
     int getConfig(const ApiRequest &req, ApiResponse &rsp);
+    int getBasicConfig(const ApiRequest &req, ApiResponse &rsp);
     int modifyConfig(const ApiRequest &req, ApiResponse &rsp);
     int deleteUser(const ApiRequest &req, ApiResponse &rsp);
     int updateSoftware(const ApiRequest &req, ApiResponse &rsp);
@@ -548,6 +549,7 @@ public:
     int restoreWifiConfig(const ApiRequest &req, ApiResponse &rsp);
 
     void configToMap(const ApiRequest &req, QVariantMap &map);
+    void basicConfigToMap(QVariantMap &map);
 
     // REST API userparameter
     int handleUserparameterApi(const ApiRequest &req, ApiResponse &rsp);
