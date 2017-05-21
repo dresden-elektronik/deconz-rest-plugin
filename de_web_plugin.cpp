@@ -7892,6 +7892,7 @@ void DeRestPlugin::idleTimerFired()
         d->gwDeviceAddress.setExt(d->apsCtrl->getParameter(deCONZ::ParamMacAddress));
         d->gwDeviceAddress.setNwk(d->apsCtrl->getParameter(deCONZ::ParamNwkAddress));
         d->gwBridgeId.sprintf("%016llX", (quint64)d->gwDeviceAddress.ext());
+        d->initDescriptionXml();
     }
 
     if (!pluginActive())

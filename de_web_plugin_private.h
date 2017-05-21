@@ -652,6 +652,7 @@ public:
 
     // UPNP discovery
     void initUpnpDiscovery();
+    void initDescriptionXml();
     // Internet discovery
     void initInternetDicovery();
     bool setInternetDiscoveryInterval(int minutes);
