@@ -43,9 +43,11 @@ void DeRestPluginPrivate::initUpnpDiscovery()
     connect(timer, SIGNAL(timeout()),
             this, SLOT(announceUpnp()));
     timer->start(20 * 1000);
+}
 
-    // replace description_in.xml template with dynamic content
-
+/*! Replaces description_in.xml template with dynamic content. */
+void DeRestPluginPrivate::initDescriptionXml()
+{
     deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
     QString serverRoot = apsCtrl->getParameter(deCONZ::ParamHttpRoot);
 
