@@ -3290,7 +3290,7 @@ bool DeRestPluginPrivate::deleteOldGroupOfSwitch(Sensor *sensor, quint16 newGrou
                                                       sensor->id()))
         {
             DBG_Printf(DBG_INFO, "delete old switch group 0x%04X of sensor %s\n", i->address(), qPrintable(sensor->name()));
-            //found            
+            //found
             i->setState(Group::StateDeleted);
         }
     }
@@ -6056,7 +6056,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
         }
     }
     else if (zclFrame.commandId() == 0x02) // Remove scene response
-    {       
+    {
         if (zclFrame.payload().size() < 4)
         {
             DBG_Printf(DBG_INFO, "remove scene response payload size too small %d\n", zclFrame.payload().size());
@@ -6182,7 +6182,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
         }
     }
     else if (zclFrame.commandId() == 0x01) // View scene response
-    {       
+    {
         if (zclFrame.payload().size() < 4)
         {
             DBG_Printf(DBG_INFO, "view scene response payload size too small %d\n", zclFrame.payload().size());
@@ -7891,6 +7891,7 @@ void DeRestPlugin::idleTimerFired()
     {
         d->gwDeviceAddress.setExt(d->apsCtrl->getParameter(deCONZ::ParamMacAddress));
         d->gwDeviceAddress.setNwk(d->apsCtrl->getParameter(deCONZ::ParamNwkAddress));
+        d->gwBridgeId.sprintf("%016llX", (quint64)d->gwDeviceAddress.ext());
     }
 
     if (!pluginActive())
@@ -8965,7 +8966,7 @@ bool DeRestPluginPrivate::exportConfiguration()
                 file.close();
             }
 
-            //create .tar           
+            //create .tar
             if (!archProcess)
             {
                 archProcess = new QProcess(this);
@@ -9031,7 +9032,7 @@ bool DeRestPluginPrivate::exportConfiguration()
                 file2.remove();
             }
             return success;
-        }        
+        }
     }
     else
     {
@@ -9142,7 +9143,7 @@ bool DeRestPluginPrivate::importConfiguration()
                 }
                 apsCtrl->setParameter(deCONZ::ParamMacAddress, macAddress);
                 apsCtrl->setParameter(deCONZ::ParamStaticNwkAddress, staticNwkAddress);
-                apsCtrl->setParameter(deCONZ::ParamNwkAddress, nwkAddress);               
+                apsCtrl->setParameter(deCONZ::ParamNwkAddress, nwkAddress);
                 apsCtrl->setParameter(deCONZ::ParamApsAck, apsAck);
                 // channelMask
                 apsCtrl->setParameter(deCONZ::ParamCurrentChannel, curChannel);

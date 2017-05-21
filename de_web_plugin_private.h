@@ -1001,6 +1001,7 @@ public:
     bool groupDeviceMembershipChecked;
     QVariantMap gwUserParameter;
     deCONZ::Address gwDeviceAddress;
+    QString gwBridgeId;
 
     // firmware update
     enum FW_UpdateState {
