@@ -444,6 +444,7 @@ const deCONZ::SimpleDescriptor &LightNode::haEndpoint() const
  */
 void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
 {
+    bool isInitialized = m_haEndpoint.isValid();
     m_haEndpoint = endpoint;
 
     // check if std otau cluster present in endpoint
@@ -464,7 +465,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
 
 
     // initial setup
-    if (m_type.isEmpty())
+    if (!isInitialized)
     {
         {
             QList<deCONZ::ZclCluster>::const_iterator i = endpoint.inClusters().constBegin();
@@ -515,13 +516,18 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
         {
             switch(haEndpoint().deviceId())
             {
-            case DEV_ID_HA_ONOFF_LIGHT:           m_type = QLatin1String("On/Off light"); break;
+            //case DEV_ID_ZLL_DIMMABLE_LIGHT:   break; // clash with on/off light
+            case DEV_ID_HA_ONOFF_LIGHT:
+            {
+                if (!item(RStateBri)) { m_type = QLatin1String("On/Off light"); }
+                else                  { m_type = QLatin1String("Dimmable light"); }
+            }
+                break;
             case DEV_ID_ONOFF_OUTPUT:             m_type = QLatin1String("On/Off output"); break;
             case DEV_ID_HA_DIMMABLE_LIGHT:        m_type = QLatin1String("Dimmable light"); break;
             case DEV_ID_HA_COLOR_DIMMABLE_LIGHT:  m_type = QLatin1String("Color dimmable light"); break;
             case DEV_ID_ZLL_ONOFF_LIGHT:          m_type = QLatin1String("On/Off light"); break;
             case DEV_ID_SMART_PLUG:               m_type = QLatin1String("Smart plug"); break;
-            //case DEV_ID_ZLL_DIMMABLE_LIGHT:          m_type = QLatin1String("Dimmable light"); break; // clash with on/off light
             case DEV_ID_ZLL_COLOR_LIGHT:             m_type = QLatin1String("Color light"); break;
             case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:    m_type = QLatin1String("Extended color light"); break;
             case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT: // fall through
