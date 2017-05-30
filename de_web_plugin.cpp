@@ -67,6 +67,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_CLIMAX, "IR_" },
     { VENDOR_CLIMAX, "DC_" },
     { VENDOR_CLIMAX, "OJB-IR715-Z" },
+    { VENDOR_CLIMAX, "902010/21A" }, // Bitron: door/window sensor
     { VENDOR_DDEL, "Lighting Switch" },
     { VENDOR_DDEL, "Scene Switch" },
     { VENDOR_DDEL, "FLS-NB1" },
