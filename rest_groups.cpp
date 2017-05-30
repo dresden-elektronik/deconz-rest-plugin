@@ -1814,6 +1814,11 @@ int DeRestPluginPrivate::getAllScenes(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
+    if (rsp.map.isEmpty())
+    {
+        rsp.str = "{}"; // return empty object
+    }
+
     return REQ_READY_SEND;
 }
 
