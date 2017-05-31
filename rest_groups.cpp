@@ -517,6 +517,9 @@ int DeRestPluginPrivate::setGroupAttributes(const ApiRequest &req, ApiResponse &
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
 
+            Event e(RGroups, REventCheckGroupAnyOn, int(group->address()));
+            enqueueEvent(e);
+
             // for each node which are currently in the group but not in the list send a remove group command (unicast)
             // note: nodes which are currently switched off will not be removed from the group
             std::vector<LightNode>::iterator j = nodes.begin();
