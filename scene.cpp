@@ -221,6 +221,7 @@ std::vector<LightState> Scene::jsonToLights(const QString &json)
 LightState::LightState() :
     m_lid(""),
     m_on(false),
+    m_needRead(false),
     m_bri(0),
     m_x(0),
     m_y(0),
@@ -430,4 +431,12 @@ const uint16_t &LightState::transitionTime() const
 void LightState::setTransitionTime(uint16_t transitiontime)
 {
     m_transitiontime = transitiontime;
+}
+
+/*! Sets need read flag.
+    \param needRead - true if attribute should be queried by view scene command
+ */
+void LightState::setNeedRead(bool needRead)
+{
+    m_needRead = needRead;
 }

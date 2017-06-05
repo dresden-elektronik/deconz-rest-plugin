@@ -4123,6 +4123,7 @@ bool DeRestPluginPrivate::readSceneAttributes(LightNode *lightNode, uint16_t gro
     TaskItem task;
     task.taskType = TaskViewScene;
 
+    task.req.setSendDelay(3); // delay a bit to let store scene finish
 //    task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
     task.req.setDstEndpoint(lightNode->haEndpoint().endpoint());
     task.req.setDstAddressMode(deCONZ::ApsExtAddress);
@@ -4132,7 +4133,7 @@ bool DeRestPluginPrivate::readSceneAttributes(LightNode *lightNode, uint16_t gro
     task.req.setSrcEndpoint(getSrcEndpoint(lightNode, task.req));
 
     task.zclFrame.setSequenceNumber(zclSeq++);
-    task.zclFrame.setCommandId(0x01); // view scene
+    task.zclFrame.setCommandId(0x41); // Enhanced view scene
     task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
                              deCONZ::ZclFCDirectionClientToServer |
                              deCONZ::ZclFCDisableDefaultResponse);
@@ -4600,6 +4601,13 @@ bool DeRestPluginPrivate::storeScene(Group *group, uint8_t sceneId)
         return false;
     }
 
+    TaskItem task;
+    task.req.setDstAddressMode(deCONZ::ApsGroupAddress);
+    task.req.dstAddress().setGroup(group->address());
+    task.req.setDstEndpoint(0xff);
+    task.req.setSrcEndpoint(0x01);
+    addTaskStoreScene(task, group->address(), sceneId);
+
     std::vector<LightNode>::iterator i = nodes.begin();
     std::vector<LightNode>::iterator end = nodes.end();
     for (; i != end; ++i)
@@ -4625,7 +4633,7 @@ bool DeRestPluginPrivate::storeScene(Group *group, uint8_t sceneId)
                 }
             }
 
-            if (lightNode->manufacturerCode() == VENDOR_OSRAM ||
+            /*if (lightNode->manufacturerCode() == VENDOR_OSRAM ||
                 lightNode->manufacturerCode() == VENDOR_OSRAM_STACK)
             {
                 // quirks mode: need extra store scene command (color temperature issue)
@@ -4635,7 +4643,7 @@ bool DeRestPluginPrivate::storeScene(Group *group, uint8_t sceneId)
                 {
                     groupInfo->addScenes.push_back(sceneId);
                 }
-            }
+            }*/
         }
     }
 
@@ -5560,6 +5568,33 @@ void DeRestPluginPrivate::processGroupTasks()
             if (i->modifyScenesRetries < GroupInfo::MaxActionRetries)
             {
                 i->modifyScenesRetries++;
+
+                Scene *scene = getSceneForId(i->id, i->modifyScenes[0]);
+
+                if (scene)
+                {
+                    //const std::vector<LightState> &lights() const;
+                    std::vector<LightState>::const_iterator ls = scene->lights().begin();
+                    std::vector<LightState>::const_iterator lsend = scene->lights().end();
+
+                    for (; ls != lsend; ++ls)
+                    {
+                        if (!ls->needRead())
+                        {
+                            continue;
+                        }
+
+                        if (ls->lid() == task.lightNode->id())
+                        {
+                            if (readSceneAttributes(task.lightNode, i->id, scene->id))
+                            {
+                                return;
+                            }
+                        }
+                    }
+                }
+
+
                 if (addTaskAddScene(task, i->id, i->modifyScenes[0], task.lightNode->id()))
                 {
                     processTasks();
@@ -6183,7 +6218,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
             }
         }
     }
-    else if (zclFrame.commandId() == 0x01) // View scene response
+    else if (zclFrame.commandId() == 0x01 || zclFrame.commandId() == 0x41) // View scene response || Enhanced view scene response
     {
         if (zclFrame.payload().size() < 4)
         {
@@ -6234,10 +6269,13 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
             bool hasOnOff = false;
             bool hasBri = false;
             bool hasXY = false;
+            bool hasHueSat = false;
             quint8 onOff;
             quint8 bri;
             quint16 x;
             quint16 y;
+            quint16 ehue;
+            quint8 sat;
 
             DBG_Printf(DBG_INFO, "View scene rsp 0x%016llX group 0x%04X scene 0x%02X\n", lightNode->address().ext(), groupId, sceneId);
 
@@ -6276,6 +6314,18 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                     if (stream.status() != QDataStream::ReadPastEnd)
                     {
                         hasXY = true;
+                    }
+
+                    if (extLength >= 3)
+                    {
+                        stream >> ehue;
+                        stream >> sat;
+                        extLength -= 4;
+
+                        if (stream.status() != QDataStream::ReadPastEnd)
+                        {
+                            hasHueSat = true;
+                        }
                     }
                 }
 
@@ -6330,6 +6380,26 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                         needModify = true;
                     }
 
+                    if (hasHueSat && (lightState->enhancedHue() != ehue || lightState->saturation() != sat))
+                    {
+                        needModify = true;
+                    }
+
+                    if (lightState->needRead())
+                    {
+                        needModify = false;
+                        lightState->setNeedRead(false);
+
+                        if (hasOnOff)  { lightState->setOn(onOff); }
+                        if (hasBri)    { lightState->setBri(bri); }
+                        if (hasXY)     { lightState->setX(x); lightState->setY(y); }
+                        if (hasHueSat) { lightState->setEnhancedHue(ehue); lightState->setSaturation(sat); }
+                        lightState->tVerified.start();
+                        queSaveDb(DB_SCENES, DB_LONG_SAVE_DELAY);
+
+                        DBG_Printf(DBG_INFO, "done reading scene scid=%u for %s\n", scene->id, qPrintable(lightNode->name()));
+                    }
+
                     if (needModify)
                     {
                         if (!scene->externalMaster)
@@ -6341,6 +6411,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                             if (hasOnOff) { lightState->setOn(onOff); }
                             if (hasBri)   { lightState->setBri(bri); }
                             if (hasXY)    { lightState->setX(x); lightState->setY(y); }
+                            if (hasHueSat) { lightState->setEnhancedHue(ehue); lightState->setSaturation(sat); }
                             lightState->tVerified.start();
                             queSaveDb(DB_SCENES, DB_LONG_SAVE_DELAY);
                         }
@@ -6373,6 +6444,11 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                         {
                             newLightState.setColorMode(QLatin1String("xy"));
                         }
+                    }
+                    if (hasHueSat)
+                    {
+                        newLightState.setEnhancedHue(ehue);
+                        newLightState.setSaturation(sat);
                     }
                     scene->addLightState(newLightState);
                     queSaveDb(DB_SCENES, DB_LONG_SAVE_DELAY);

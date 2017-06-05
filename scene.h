@@ -94,12 +94,15 @@ public:
     void setColorMode(const QString &colorMode);
     const uint16_t &transitionTime() const;
     void setTransitionTime(uint16_t transitionTime);
+    bool needRead() const { return m_needRead; }
+    void setNeedRead(bool needRead);
 
     QTime tVerified;
 
 private:
     QString m_lid;
     bool m_on;
+    bool m_needRead;
     uint8_t m_bri;
     uint16_t m_x;
     uint16_t m_y;

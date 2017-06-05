@@ -2095,6 +2095,8 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
                     continue;
                 }
 
+                ls->setNeedRead(true);
+
                 bool needModify = false;
                 ResourceItem *item = lightNode->item(RStateOn);
                 DBG_Assert(item != 0);
@@ -2207,6 +2209,7 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
                 }
 
                 LightState state;
+                state.setNeedRead(true);
                 state.setLightId(lightNode->id());
                 state.setTransitionTime(10);
                 ResourceItem *item = lightNode->item(RStateOn);
@@ -2224,6 +2227,7 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
                 item = lightNode->item(RStateColorMode);
                 if (item)
                 {
+                    state.setColorMode(item->toString());
                     if (item->toString() == QLatin1String("xy") || item->toString() == QLatin1String("hs"))
                     {
                         item = lightNode->item(RStateX);
@@ -2263,7 +2267,6 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
 
                     state.setColorloopActive(lightNode->isColorLoopActive());
                     state.setColorloopTime(lightNode->colorLoopSpeed());
-                    state.setColorMode(lightNode->colorMode());
                 }
 
                 scene->addLightState(state);
