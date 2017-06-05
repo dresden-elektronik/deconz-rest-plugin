@@ -655,7 +655,6 @@ int DeRestPluginPrivate::getConfig(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    rsp.hdrFields.append(qMakePair(QString(QLatin1String("Access-Control-Allow-Origin")), QString(QLatin1String("*"))));
     checkRfConnectState();
 
     // handle ETag
@@ -683,7 +682,6 @@ int DeRestPluginPrivate::getConfig(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::getBasicConfig(const ApiRequest &req, ApiResponse &rsp)
 {
-    rsp.hdrFields.append(qMakePair(QString(QLatin1String("Access-Control-Allow-Origin")), QString(QLatin1String("*"))));
     checkRfConnectState();
 
     // handle ETag
