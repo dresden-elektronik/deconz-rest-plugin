@@ -5569,6 +5569,7 @@ void DeRestPluginPrivate::processGroupTasks()
             {
                 i->modifyScenesRetries++;
 
+                bool needRead = false;
                 Scene *scene = getSceneForId(i->id, i->modifyScenes[0]);
 
                 if (scene)
@@ -5586,6 +5587,7 @@ void DeRestPluginPrivate::processGroupTasks()
 
                         if (ls->lid() == task.lightNode->id())
                         {
+                            needRead = true;
                             if (readSceneAttributes(task.lightNode, i->id, scene->id))
                             {
                                 return;
@@ -5595,7 +5597,7 @@ void DeRestPluginPrivate::processGroupTasks()
                 }
 
 
-                if (addTaskAddScene(task, i->id, i->modifyScenes[0], task.lightNode->id()))
+                if (!needRead && addTaskAddScene(task, i->id, i->modifyScenes[0], task.lightNode->id()))
                 {
                     processTasks();
                     return;
