@@ -536,7 +536,8 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
             conf.dstAddress().hasNwk() && task.req.dstAddress().hasNwk() &&
             conf.dstAddress().nwk() != task.req.dstAddress().nwk())
         {
-            continue;
+            DBG_Printf(DBG_INFO, "warn APSDE-DATA.confirm: 0x%02X nwk mismatch\n", conf.id());
+            //continue;
         }
 
         if (task.req.id() == conf.id())
@@ -4122,6 +4123,7 @@ bool DeRestPluginPrivate::readSceneAttributes(LightNode *lightNode, uint16_t gro
 
     TaskItem task;
     task.taskType = TaskViewScene;
+    task.lightNode = lightNode;
 
     task.req.setSendDelay(3); // delay a bit to let store scene finish
 //    task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
@@ -5253,6 +5255,8 @@ void DeRestPluginPrivate::processTasks()
                     if (dt > 120)
                     {
                         DBG_Printf(DBG_INFO, "drop request %u send time %d, cluster 0x%04X, onAir %d after %d seconds\n", j->req.id(), j->sendTime, j->req.clusterId(), onAir, dt);
+                        runningTasks.erase(j);
+                        return;
                     }
                     else
                     {
