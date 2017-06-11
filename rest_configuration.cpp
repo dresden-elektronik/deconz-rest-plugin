@@ -1665,6 +1665,7 @@ int DeRestPluginPrivate::deleteUser(const ApiRequest &req, ApiResponse &rsp)
             QVariantMap rspItem;
             rspItem["success"] = QString("/config/whitelist/%1 deleted.").arg(username2);
             rsp.list.append(rspItem);
+            rsp.httpStatus = HttpStatusOk;
 
             return REQ_READY_SEND;
         }
