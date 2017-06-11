@@ -2075,10 +2075,6 @@ void DeRestPluginPrivate::saveDb()
                         sqlite3_free(errmsg);
                     }
                 }
-                else
-                {
-                    i = apiAuths.erase(i);
-                }
             }
             else if (i->state == ApiAuth::StateNormal)
             {
