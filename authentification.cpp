@@ -103,7 +103,7 @@ bool DeRestPluginPrivate::checkApikeyAuthentification(const ApiRequest &req, Api
 
     for (; i != end; ++i)
     {
-        if (apikey == i->apikey)
+        if (apikey == i->apikey && i->state == ApiAuth::StateNormal)
         {
             i->lastUseDate = QDateTime::currentDateTimeUtc();
 
