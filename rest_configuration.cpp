@@ -135,7 +135,7 @@ int DeRestPluginPrivate::createUser(const ApiRequest &req, ApiResponse &rsp)
             rsp.httpStatus = HttpStatusForbidden;
             // rsp.httpStatus = HttpStatusUnauthorized;
             //rsp.hdrFields.append(qMakePair(QString("WWW-Authenticate"), QString("Basic realm=\"Enter Password\"")));
-            rsp.list.append(errorToMap(ERR_LINK_BUTTON_NOT_PRESSED, "", "link button not pressed"));
+            rsp.list.append(errorToMap(ERR_LINK_BUTTON_NOT_PRESSED, "/", "link button not pressed"));
             return REQ_READY_SEND;
         }
     }
@@ -143,13 +143,13 @@ int DeRestPluginPrivate::createUser(const ApiRequest &req, ApiResponse &rsp)
     if (!ok || map.isEmpty())
     {
         rsp.httpStatus = HttpStatusBadRequest;
-        rsp.list.append(errorToMap(ERR_INVALID_JSON, "", "body contains invalid JSON"));
+        rsp.list.append(errorToMap(ERR_INVALID_JSON, QLatin1String("/"), QLatin1String("body contains invalid JSON")));
         return REQ_READY_SEND;
     }
 
     if (!map.contains("devicetype")) // required
     {
-        rsp.list.append(errorToMap(ERR_MISSING_PARAMETER, "", "missing parameters in body"));
+        rsp.list.append(errorToMap(ERR_MISSING_PARAMETER, QLatin1String("/"), QLatin1String("missing parameters in body")));
         rsp.httpStatus = HttpStatusBadRequest;
         return REQ_READY_SEND;
     }
@@ -161,7 +161,7 @@ int DeRestPluginPrivate::createUser(const ApiRequest &req, ApiResponse &rsp)
         if ((map["username"].type() != QVariant::String) ||
             (map["username"].toString().length() < 10))
         {
-            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/"), QString("invalid value, %1, for parameter, username").arg(map["username"].toString())));
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QLatin1String("/"), QString("invalid value, %1, for parameter, username").arg(map["username"].toString())));
             rsp.httpStatus = HttpStatusBadRequest;
             return REQ_READY_SEND;
         }
