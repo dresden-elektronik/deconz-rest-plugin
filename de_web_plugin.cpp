@@ -8647,7 +8647,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         stream << "Access-Control-Allow-Origin: *\r\n";
         stream << "Access-Control-Allow-Credentials: true\r\n";
         stream << "Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE\r\n";
-        stream << "Access-Control-Allow-Headers: Access-Control-Allow-Origin, Content-Type\r\n";
+        stream << "Access-Control-Allow-Headers: Authorization, Access-Control-Allow-Origin, Content-Type\r\n";
         stream << "Access-Control-Expose-Headers: Gateway-Name, Gateway-Uuid\r\n";
         stream << "Content-Type: text/html\r\n";
         stream << "Content-Length: 0\r\n";
