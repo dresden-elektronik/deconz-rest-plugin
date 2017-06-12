@@ -189,13 +189,13 @@ int DeRestPluginPrivate::createUser(const ApiRequest &req, ApiResponse &rsp)
 
         for (; i != end && !found ; ++i)
         {
-            if (auth.devicetype == i->devicetype)
+            if (auth.devicetype == i->devicetype && i->state == ApiAuth::StateNormal)
             {
                 if (i->createDate.secsTo(QDateTime::currentDateTimeUtc()) < 30)
                 {
                     auth = *i;
                     found = true;
-                    DBG_Printf(DBG_INFO, "reuse recently craeted auth username: %s, devicetype: %s\n", qPrintable(auth.apikey), qPrintable(auth.devicetype));
+                    DBG_Printf(DBG_INFO, "reuse recently created auth username: %s, devicetype: %s\n", qPrintable(auth.apikey), qPrintable(auth.devicetype));
                 }
             }
         }
