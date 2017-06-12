@@ -174,7 +174,7 @@ int DeRestPluginPrivate::createUser(const ApiRequest &req, ApiResponse &rsp)
 
         for (; i != end; ++i)
         {
-            if (auth.apikey == i->apikey)
+            if (auth.apikey == i->apikey && i->state == ApiAuth::StateNormal)
             {
                 found = true;
                 break;
