@@ -1628,6 +1628,33 @@ int DeRestPluginPrivate::createScene(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
+    scene.id = 1;
+
+    // id
+    if (map.contains("id")) // optional
+    {
+        uint sid = map["id"].toUInt(&ok);
+        if (ok && sid < 256)
+        {
+            scene.id = sid;
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/groups/%1/scenes/id").arg(id), QString("invalid value, %1, for parameter, /groups/%2/scenes/id").arg(map["id"].toString()).arg(id)));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+
+        Scene *s = getSceneForId(group->address(), sid);
+
+        if (s && s->state == Scene::StateNormal)
+        {
+            rsp.list.append(errorToMap(ERR_DUPLICATE_EXIST, QString("/groups/%1/scenes").arg(id), QString("resource, /groups/%1/scenes/%2, already exists").arg(id).arg(sid)));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+    }
+
     // search a unused id
     bool ommit = false;
 
@@ -1635,12 +1662,12 @@ int DeRestPluginPrivate::createScene(const ApiRequest &req, ApiResponse &rsp)
     {
         QString deviceId = group->m_deviceMemberships[0];
         Sensor *s = getSensorNodeForId(deviceId);
-        if (s && s->modelId() == "Lighting Switch")
+        if (s && s->modelId() == QLatin1String("Lighting Switch"))
         {
             ommit = true; // ommit scene 2 and 3 for Lighting Switch
         }
     }
-    scene.id = 1;
+
     do {
         ok = true; // will be false if a scene.id is already used
         std::vector<Scene>::iterator i = group->scenes.begin();
