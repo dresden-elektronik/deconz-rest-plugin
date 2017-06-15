@@ -6451,7 +6451,8 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                         newLightState.setY(y);
 
                         if (lightNode->modelId().startsWith(QLatin1String("FLS-H")) ||
-                            lightNode->modelId().startsWith(QLatin1String("FLS-CT")))
+                            lightNode->modelId().startsWith(QLatin1String("FLS-CT")) ||
+                            lightNode->modelId().startsWith(QLatin1String("Ribag Air O")))
                         {
                             newLightState.setColorMode(QLatin1String("ct"));
                             newLightState.setColorTemperature(x);
