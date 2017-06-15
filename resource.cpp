@@ -84,7 +84,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateDark));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateFlag));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateLightLevel));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateLux));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, RStateLux));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt32, RStateTemperature));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt32, RStateHumidity));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateReachable));

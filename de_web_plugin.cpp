@@ -2728,6 +2728,11 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 item = i->item(RStateLux);
 
+                                if (!item)
+                                {
+                                    item = i->addItem(DataTypeUInt32, RStateLux);
+                                }
+
                                 if (item)
                                 {
                                     quint32 lux = 0;
