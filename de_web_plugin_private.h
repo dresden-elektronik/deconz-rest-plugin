@@ -811,6 +811,7 @@ public:
     Rule *getRuleForName(const QString &name);
     void addSensorNode(const deCONZ::Node *node);
     void addSensorNode(const deCONZ::Node *node, const SensorFingerprint &fingerPrint, const QString &type, const QString &modelId);
+    void checkUpdatedFingerPrint(const deCONZ::Node *node, quint8 endpoint);
     void checkSensorNodeReachable(Sensor *sensor);
     void checkSensorButtonEvent(Sensor *sensor, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
     void updateSensorNode(const deCONZ::NodeEvent &event);

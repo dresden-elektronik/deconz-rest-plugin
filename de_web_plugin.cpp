@@ -2527,6 +2527,77 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     queSaveDb(DB_SENSORS , DB_SHORT_SAVE_DELAY);
 }
 
+/*! Updates  SensorNode fingerprint if needed.
+    \param node - holds up to date data
+    \param endpoint - related endpoint
+ */
+void DeRestPluginPrivate::checkUpdatedFingerPrint(const deCONZ::Node *node, quint8 endpoint)
+{
+    if (!node)
+    {
+        return;
+    }
+
+    deCONZ::SimpleDescriptor sd;
+    if (node->copySimpleDescriptor(endpoint, &sd) != 0)
+    {
+        return;
+    }
+
+    std::vector<Sensor>::iterator i = sensors.begin();
+    std::vector<Sensor>::iterator end = sensors.end();
+
+    for (; i != end; ++i)
+    {
+        if (i->address().ext() != node->address().ext())
+        {
+            continue;
+        }
+
+        // different endpoints for different versions of FLS-NB
+        if (i->fingerPrint().endpoint != endpoint &&
+            i->modelId().startsWith(QLatin1String("FLS-NB")))
+        {
+
+            bool update = false;
+            SensorFingerprint &fp = i->fingerPrint();
+            quint16 clusterId = 0;
+
+            for (size_t c = 0; !update && c < fp.inClusters.size(); c++)
+            {
+                if (sd.cluster(fp.inClusters[c], deCONZ::ServerCluster))
+                {
+                    clusterId = fp.inClusters[c];
+                    update = true;
+                    break;
+                }
+            }
+
+            for (size_t c = 0; !update && c < fp.outClusters.size(); c++)
+            {
+                if (sd.cluster(fp.outClusters[c], deCONZ::ClientCluster))
+                {
+                    clusterId = ONOFF_CLUSTER_ID;
+                    update = true;
+                    break;
+                }
+            }
+
+            if (!update)
+            {
+                continue;
+            }
+
+            DBG_Printf(DBG_INFO, "change 0x%016llX finger print ep: 0x%02X --> 0x%02X\n", i->address().ext(), fp.endpoint, endpoint);
+
+            fp.endpoint = endpoint;
+            i->setUniqueId(generateUniqueId(i->address().ext(), fp.endpoint, clusterId));
+            i->setNeedSaveDatabase(true);
+            queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
+        }
+    }
+}
+
 /*! Updates/adds a SensorNode from a Node.
     If the node does not exist it will be created
     otherwise the values will be checked for change
@@ -5419,6 +5490,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
     {
         addLightNode(event.node());
         addSensorNode(event.node());
+        checkUpdatedFingerPrint(event.node(), event.endpoint());
     }
         break;
 
