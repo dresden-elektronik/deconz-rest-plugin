@@ -678,9 +678,10 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     for (; pi != pend; ++pi)
     {
         ResourceItemDescriptor rid;
+        ResourceItem *item = 0;
         if (getResourceItemDescriptor(QString("config/%1").arg(pi.key()), rid))
         {
-            ResourceItem *item = sensor->item(rid.suffix);
+            item = sensor->item(rid.suffix);
             if (!item)
             {
                 break; // not found
@@ -704,10 +705,13 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
             }
         }
 
-        // not found
-        rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()), QString("parameter, %1, not available").arg(pi.key())));
-        rsp.httpStatus = HttpStatusBadRequest;
-        return REQ_READY_SEND;
+        if (!item)
+        {
+            // not found
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()), QString("parameter, %1, not available").arg(pi.key())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
     }
 
 
@@ -772,10 +776,11 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
 
     for (; pi != pend; ++pi)
     {
+        ResourceItem *item = 0;
         ResourceItemDescriptor rid;
         if (isClip && getResourceItemDescriptor(QString("state/%1").arg(pi.key()), rid))
         {
-            ResourceItem *item = sensor->item(rid.suffix);
+            item = sensor->item(rid.suffix);
             if (!item)
             {
                 break; // not found
@@ -799,10 +804,13 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
             }
         }
 
-        // not found
-        rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/state/%2").arg(id).arg(pi.key()), QString("parameter, %1, not available").arg(pi.key())));
-        rsp.httpStatus = HttpStatusBadRequest;
-        return REQ_READY_SEND;
+        if (!item)
+        {
+            // not found
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%1/state/%2").arg(id).arg(pi.key()), QString("parameter, %1, not available").arg(pi.key())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
     }
 
     sensor->setNeedSaveDatabase(true);
