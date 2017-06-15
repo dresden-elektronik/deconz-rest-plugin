@@ -2823,6 +2823,11 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 quint16 duration = ia->numericValue().u16;
                                 ResourceItem *item = i->item(RConfigDuration);
 
+                                if (!item)
+                                {
+                                    item = i->addItem(DataTypeUInt16, RConfigDuration);
+                                }
+
                                 if (item && item->toNumber() != duration)
                                 {
                                     Event e(RSensors, RConfigDuration, i->id());
