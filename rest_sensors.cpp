@@ -685,26 +685,24 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
         if (getResourceItemDescriptor(QString("config/%1").arg(pi.key()), rid))
         {
             item = sensor->item(rid.suffix);
-            if (!item)
+            if (item)
             {
-                break; // not found
-            }
+                QVariant val = map[pi.key()];
+                if (item->setValue(val))
+                {
+                    rspItemState[QString("/sensors/%1/config/%2").arg(id).arg(pi.key())] = val;
+                    rspItem["success"] = rspItemState;
 
-            QVariant val = map[pi.key()];
-            if (item->setValue(val))
-            {
-                rspItemState[QString("/sensors/%1/config/%2").arg(id).arg(pi.key())] = val;
-                rspItem["success"] = rspItemState;
-
-                Event e(RSensors, rid.suffix, id);
-                enqueueEvent(e);
-            }
-            else // invalid
-            {
-                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
-                                                              QString("invalid value, %1, for parameter %2").arg(val.toString()).arg(pi.key())));
-                rsp.httpStatus = HttpStatusBadRequest;
-                return REQ_READY_SEND;
+                    Event e(RSensors, rid.suffix, id);
+                    enqueueEvent(e);
+                }
+                else // invalid
+                {
+                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                               QString("invalid value, %1, for parameter %2").arg(val.toString()).arg(pi.key())));
+                    rsp.httpStatus = HttpStatusBadRequest;
+                    return REQ_READY_SEND;
+                }
             }
         }
 
@@ -784,26 +782,25 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
         if (isClip && getResourceItemDescriptor(QString("state/%1").arg(pi.key()), rid))
         {
             item = sensor->item(rid.suffix);
-            if (!item)
+            if (item)
             {
-                break; // not found
-            }
+                QVariant val = map[pi.key()];
+                if (item->setValue(val))
+                {
+                    rspItemState[QString("/sensors/%1/state/%2").arg(id).arg(pi.key())] = val;
+                    rspItem["success"] = rspItemState;
 
-            QVariant val = map[pi.key()];
-            if (item->setValue(val))
-            {
-                rspItemState[QString("/sensors/%1/state/%2").arg(id).arg(pi.key())] = val;
-                rspItem["success"] = rspItemState;
-
-                Event e(RSensors, rid.suffix, id);
-                enqueueEvent(e);
-            }
-            else // invalid
-            {
-                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/state/%2").arg(id).arg(pi.key()),
-                                                              QString("invalid value, %1, for parameter %2").arg(val.toString()).arg(pi.key())));
-                rsp.httpStatus = HttpStatusBadRequest;
-                return REQ_READY_SEND;
+                    Event e(RSensors, rid.suffix, id);
+                    enqueueEvent(e);
+                    sensor->updateStateTimestamp();
+                }
+                else // invalid
+                {
+                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/state/%2").arg(id).arg(pi.key()),
+                                               QString("invalid value, %1, for parameter %2").arg(val.toString()).arg(pi.key())));
+                    rsp.httpStatus = HttpStatusBadRequest;
+                    return REQ_READY_SEND;
+                }
             }
         }
 
