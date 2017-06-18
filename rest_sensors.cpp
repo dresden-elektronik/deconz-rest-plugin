@@ -428,6 +428,9 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
             }
         }
 
+        ResourceItem *item = sensor.item(RConfigOn);
+        item->setValue(true); // default
+
         //setConfig optional
         if (map.contains("config"))
         {
@@ -449,7 +452,7 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
 
             if (config.contains("on"))
             {
-                ResourceItem *item = sensor.addItem(DataTypeBool, RConfigOn);
+                item = sensor.item(RConfigOn);
                 item->setValue(config["on"]);
             }
             if (config.contains("reachable"))
