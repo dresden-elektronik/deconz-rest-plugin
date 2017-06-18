@@ -451,7 +451,7 @@ void Sensor::updateStateTimestamp()
     ResourceItem *i = item(RStateLastUpdated);
     if (i)
     {
-        i->setValue(QDateTime::currentDateTime());
+        i->setValue(QDateTime::currentDateTimeUtc());
     }
 }
 

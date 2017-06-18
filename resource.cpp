@@ -162,7 +162,17 @@ const QString &ResourceItem::toString() const
         DBG_Assert(m_strIndex < rItemStrings.size());
         if (m_strIndex < rItemStrings.size())
         {
-            rItemStrings[m_strIndex] = QDateTime::fromMSecsSinceEpoch(m_num).toString("yyyy-MM-ddTHH:mm:ss");
+            if (m_rid.suffix == RStateLastUpdated)
+            {
+                QDateTime dt;
+                dt.setOffsetFromUtc(0);
+                dt.setMSecsSinceEpoch(m_num);
+                rItemStrings[m_strIndex] = dt.toString("yyyy-MM-ddTHH:mm:ss");
+            }
+            else
+            {
+                rItemStrings[m_strIndex] = QDateTime::fromMSecsSinceEpoch(m_num).toString("yyyy-MM-ddTHH:mm:ss");
+            }
             return rItemStrings[m_strIndex];
         }
     }
