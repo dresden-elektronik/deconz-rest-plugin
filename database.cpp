@@ -1529,13 +1529,18 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
     if (!sensor.id().isEmpty() && !sensor.name().isEmpty() && !sensor.type().isEmpty())
     {
         bool ok;
+        bool isClip = sensor.type().startsWith(QLatin1String("CLIP"));
         quint64 extAddr = 0;
         quint16 clusterId = 0;
         quint8 endpoint = sensor.fingerPrint().endpoint;
         DBG_Printf(DBG_INFO_L2, "DB found sensor %s %s\n", qPrintable(sensor.name()), qPrintable(sensor.id()));
 
+        if (isClip)
+        {
+            ok = true;
+        }
         // convert from old format 0x0011223344556677 to 00:11:22:33:44:55:66:77-AB where AB is the endpoint
-        if (sensor.uniqueId().startsWith(QLatin1String("0x")))
+        else if (sensor.uniqueId().startsWith(QLatin1String("0x")))
         {
             extAddr = sensor.uniqueId().toULongLong(&ok, 16);
         }
@@ -1546,7 +1551,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             extAddr = mac.toULongLong(&ok, 16);
         }
 
-        if (extAddr == 0)
+        if (!isClip && extAddr == 0)
         {
             return 0;
         }
@@ -1579,6 +1584,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 clusterId = ILLUMINANCE_MEASUREMENT_CLUSTER_ID;
             }
             sensor.addItem(DataTypeUInt16, RStateLightLevel);
+            sensor.addItem(DataTypeUInt32, RStateLux);
         }
         else if (sensor.type().endsWith(QLatin1String("Temperature")))
         {
@@ -1587,6 +1593,14 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 clusterId = TEMPERATURE_MEASUREMENT_CLUSTER_ID;
             }
             sensor.addItem(DataTypeInt32, RStateTemperature);
+        }
+        else if (sensor.type().endsWith(QLatin1String("Humidity")))
+        {
+            /*if (sensor.fingerPrint().hasInCluster(TEMPERATURE_MEASUREMENT_CLUSTER_ID))
+            {
+                clusterId = TEMPERATURE_MEASUREMENT_CLUSTER_ID;
+            }*/ // TODO add cluster info
+            sensor.addItem(DataTypeInt32, RStateHumidity);
         }
         else if (sensor.type().endsWith(QLatin1String("Presence")))
         {
@@ -1599,6 +1613,18 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 clusterId = IAS_ZONE_CLUSTER_ID;
             }
             sensor.addItem(DataTypeBool, RStatePresence);
+        }
+        else if (sensor.type().endsWith(QLatin1String("Flag")))
+        {
+            sensor.addItem(DataTypeBool, RStateFlag);
+        }
+        else if (sensor.type().endsWith(QLatin1String("Status")))
+        {
+            sensor.addItem(DataTypeInt32, RStateStatus);
+        }
+        else if (sensor.type().endsWith(QLatin1String("OpenClose")))
+        {
+            sensor.addItem(DataTypeBool, RStateOpen);
         }
 
         if (sensor.modelId().startsWith(QLatin1String("RWL02"))) // hue dimmer switch
@@ -1642,13 +1668,16 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             sensor.jsonToConfig(QLatin1String(colval[configCol]));
         }
 
-        QString uid = d->generateUniqueId(extAddr, endpoint, clusterId);
-
-        if (uid != sensor.uniqueId())
+        if (extAddr != 0)
         {
-            // update to new format
-            sensor.setUniqueId(uid);
-            sensor.setNeedSaveDatabase(true);
+            QString uid = d->generateUniqueId(extAddr, endpoint, clusterId);
+
+            if (uid != sensor.uniqueId())
+            {
+                // update to new format
+                sensor.setUniqueId(uid);
+                sensor.setNeedSaveDatabase(true);
+            }
         }
 
         // temp. workaround for default value of 'two groups' which is only supported by lighting switch
@@ -1664,7 +1693,12 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
         if (ok)
         {
-            Sensor *s = d->getSensorNodeForFingerPrint(extAddr, sensor.fingerPrint(), sensor.type());
+            Sensor *s = 0;
+
+            if (!isClip)
+            {
+                s = d->getSensorNodeForFingerPrint(extAddr, sensor.fingerPrint(), sensor.type());
+            }
 
             if (!s)
             {
