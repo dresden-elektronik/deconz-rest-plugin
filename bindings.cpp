@@ -1002,7 +1002,7 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
         for (quint8 ep = 0x0A; !group && ep < 0x0F; ep++)
         {
             Sensor *s = getSensorNodeForAddressAndEndpoint(sensor->address(), ep);
-            if (s && s != sensor)
+            if (s && s->deletedState() == Sensor::StateNormal && s != sensor)
             {
                 ResourceItem *item = s->item(RConfigGroup);
                 if (item && item->lastSet().isValid())

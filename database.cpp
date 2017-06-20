@@ -1681,7 +1681,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         }
 
         // temp. workaround for default value of 'two groups' which is only supported by lighting switch
-        if (sensor.mode() != Sensor::ModeScenes)
+        if (sensor.mode() == Sensor::ModeTwoGroups)
         {
             if (sensor.modelId() != QLatin1String("Lighting Switch"))
             {

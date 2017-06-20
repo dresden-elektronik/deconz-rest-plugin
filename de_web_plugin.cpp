@@ -1764,6 +1764,7 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor)
             updated = true;
         }
 
+/*
         if (sensor->deletedState() == Sensor::StateDeleted && findSensorsState == FindSensorsActive)
         {
             DBG_Printf(DBG_INFO, "Rediscovered deleted SensorNode %s set node %s\n", qPrintable(sensor->id()), qPrintable(sensor->address().toStringExt()));
@@ -1781,6 +1782,7 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor)
             Event e(RSensors, REventAdded, sensor->id());
             enqueueEvent(e);
         }
+*/
     }
     else
     {
@@ -2135,7 +2137,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                     if (modelId.isEmpty())
                     {
                         Sensor *sensor = getSensorNodeForAddress(node->address()); // extract from others if possible
-                        if (sensor && !sensor->modelId().isEmpty())
+                        if (sensor && sensor->deletedState() == Sensor::StateNormal && !sensor->modelId().isEmpty())
                         {
                             modelId = sensor->modelId();
                         }
@@ -2214,7 +2216,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
 
             sensor = getSensorNodeForFingerPrint(node->address().ext(), fpSwitch, "ZHASwitch");
 
-            if (!sensor)
+            if (!sensor || sensor->deletedState() != Sensor::StateNormal)
             {
                 addSensorNode(node, fpSwitch, "ZHASwitch", modelId);
             }
@@ -2232,7 +2234,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
             fpLightSensor.profileId = i->profileId();
 
             sensor = getSensorNodeForFingerPrint(node->address().ext(), fpLightSensor, "ZHALight");
-            if (!sensor)
+            if (!sensor || sensor->deletedState() != Sensor::StateNormal)
             {
                 addSensorNode(node, fpLightSensor, "ZHALight", modelId);
             }
@@ -2252,7 +2254,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
             fpPresenceSensor.profileId = i->profileId();
 
             sensor = getSensorNodeForFingerPrint(node->address().ext(), fpPresenceSensor, "ZHAPresence");
-            if (!sensor)
+            if (!sensor || sensor->deletedState() != Sensor::StateNormal)
             {
                 addSensorNode(node, fpPresenceSensor, "ZHAPresence", modelId);
             }
@@ -2276,7 +2278,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
             fpTemperatureSensor.profileId = i->profileId();
 
             sensor = getSensorNodeForFingerPrint(node->address().ext(), fpTemperatureSensor, "ZHATemperature");
-            if (!sensor)
+            if (!sensor || sensor->deletedState() != Sensor::StateNormal)
             {
                 addSensorNode(node, fpTemperatureSensor, "ZHATemperature", modelId);
             }
@@ -2310,6 +2312,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     if (node->endpoints().size() == 1)
     {
         sensor2 = getSensorNodeForAddressAndEndpoint(node->address(), fingerPrint.endpoint);
+
+        if (sensor2 && sensor2->deletedState() != Sensor::StateNormal)
+        {
+            sensor2 = 0;
+        }
 
         if (sensor2)
         {
@@ -7617,6 +7624,11 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
             }
         }
 
+        if (sensor && sensor->deletedState() != Sensor::StateNormal)
+        {
+            sensor = 0; // force query
+        }
+
         // manufacturer, model id, sw build id
         if (!sensor /*&& (sensor->modelId().isEmpty() || sensor->swVersion().isEmpty())*/)
         {
@@ -7676,7 +7688,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
             }
         }
 
-        std::vector<Sensor>::iterator i = sensors.begin();
+        /*std::vector<Sensor>::iterator i = sensors.begin();
         std::vector<Sensor>::iterator end = sensors.end();
         for (; i != end; i++)
         {
@@ -7694,7 +7706,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
                     }
                 }
             }
-        }
+        }*/
     }
 }
 
