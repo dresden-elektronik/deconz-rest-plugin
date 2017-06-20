@@ -1863,9 +1863,14 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             }
         }
     }
+    // Busch-Jaeger
+    else if (sensor->modelId() == QLatin1String("RM01") || sensor->modelId() == QLatin1String("RB01"))
+    {
+        // setup during add sensor
+    }
     else if (ind.dstAddressMode() == deCONZ::ApsGroupAddress)
     {
-        if (sensor->mode() != Sensor::ModeScenes) // for now all other switches only support scene mode
+        if (sensor->mode() == Sensor::ModeTwoGroups) // only supported for DE Lighting Switch
         {
             sensor->setMode(Sensor::ModeScenes);
             updateSensorEtag(sensor);
@@ -2404,6 +2409,29 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_BUSCH_JAEGER)
     {
         sensorNode.setManufacturer("Busch-Jaeger");
+
+        if (node->endpoints().size() >= 4)
+        {
+            sensorNode.setMode(Sensor::ModeScenes);
+        }
+        else if (node->endpoints().size() >= 2)
+        {
+            deCONZ::SimpleDescriptor sd;
+
+            // has light endpoint?
+            if (node->copySimpleDescriptor(0x12, &sd) == 0)
+            {
+                sensorNode.setMode(Sensor::ModeDimmer);
+            }
+            else
+            {
+                sensorNode.setMode(Sensor::ModeScenes);
+            }
+        }
+        else
+        {
+            sensorNode.setMode(Sensor::ModeDimmer);
+        }
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_PHILIPS)
     {

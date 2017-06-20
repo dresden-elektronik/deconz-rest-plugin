@@ -70,7 +70,8 @@ public:
         ModeNone = 0,
         ModeScenes = 1,
         ModeTwoGroups = 2,
-        ModeColorTemperature = 3
+        ModeColorTemperature = 3,
+        ModeDimmer = 4
     };
 
     enum DeletedState
