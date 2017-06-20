@@ -1517,6 +1517,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 if (val == "deleted")
                 {
                     sensor.setDeletedState(Sensor::StateDeleted);
+                    return 0;
                 }
                 else
                 {
