@@ -1348,6 +1348,7 @@ int DeRestPluginPrivate::deleteGroup(const ApiRequest &req, ApiResponse &rsp)
     }
 
     group->setState(Group::StateDeleted);
+    group->m_deviceMemberships.clear();
 
     // remove any known scene
     group->scenes.clear();
@@ -1372,13 +1373,14 @@ int DeRestPluginPrivate::deleteGroup(const ApiRequest &req, ApiResponse &rsp)
 
         if (groupInfo)
         {
+            i->setNeedSaveDatabase(true);
             groupInfo->actions &= ~GroupInfo::ActionAddToGroup; // sanity
             groupInfo->actions |= GroupInfo::ActionRemoveFromGroup;
             groupInfo->state = GroupInfo::StateNotInGroup;
         }
     }
 
-    updateEtag(gwConfigEtag);
+    updateGroupEtag(group);
     rsp.httpStatus = HttpStatusOk;
 
     return REQ_READY_SEND;

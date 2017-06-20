@@ -52,6 +52,7 @@ public:
     void setLightsequenceFromString(const QString &deviceIds);
     Scene *getScene(quint8 sceneId);
     bool addDeviceMembership(const QString &id);
+    bool removeDeviceMembership(const QString &id);
     bool deviceIsMember(const QString &id) const;
 
     uint16_t colorX;

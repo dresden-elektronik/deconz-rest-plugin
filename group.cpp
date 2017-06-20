@@ -234,11 +234,27 @@ Scene *Group::getScene(quint8 sceneId)
     return 0;
 }
 
+/*! Returns true if device with \p id was added to the group. */
 bool Group::addDeviceMembership(const QString &id)
 {
     if (std::find(m_deviceMemberships.begin(), m_deviceMemberships.end(), id) == m_deviceMemberships.end())
     {
         m_deviceMemberships.push_back(id);
+        return true;
+    }
+
+    return false;
+}
+
+/*! Returns true if device with \p id was removed from the group. */
+bool Group::removeDeviceMembership(const QString &id)
+{
+    std::vector<QString>::iterator i = std::find(m_deviceMemberships.begin(), m_deviceMemberships.end(), id);
+
+    if (i != m_deviceMemberships.end())
+    {
+        *i = m_deviceMemberships.back();
+        m_deviceMemberships.pop_back();
         return true;
     }
 

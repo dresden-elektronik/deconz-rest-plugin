@@ -1148,6 +1148,7 @@ void DeRestPluginPrivate::deleteGroupsWithDeviceMembership(const QString &id)
         if (i->deviceIsMember(id) && i->state() == Group::StateNormal)
         {
             i->setState(Group::StateDeleted);
+            i->removeDeviceMembership(id);
 
             updateGroupEtag(&*i);
             queSaveDb(DB_GROUPS | DB_LIGHTS, DB_SHORT_SAVE_DELAY);
