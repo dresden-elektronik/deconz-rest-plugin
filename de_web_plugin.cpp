@@ -5376,7 +5376,7 @@ void DeRestPluginPrivate::processTasks()
                     }
                     else
                     {
-                        DBG_Printf(DBG_INFO, "request %u send time %d, cluster 0x%04X, onAir %d\n", i->req.id(), j->sendTime, j->req.clusterId(), onAir);
+                        DBG_Printf(DBG_INFO_L2, "request %u send time %d, cluster 0x%04X, onAir %d\n", i->req.id(), j->sendTime, j->req.clusterId(), onAir);
                         DBG_Printf(DBG_INFO_L2, "delay sending request %u dt %d ms to %s\n", i->req.id(), dt, qPrintable(i->req.dstAddress().toStringExt()));
                         ok = false;
                     }
