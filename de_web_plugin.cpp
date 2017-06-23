@@ -2086,6 +2086,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
         SensorFingerprint fpLightSensor;
         SensorFingerprint fpPresenceSensor;
         SensorFingerprint fpTemperatureSensor;
+        SensorFingerprint fpHumiditySensor;
 
         {   // scan client clusters of endpoint
             QList<deCONZ::ZclCluster>::const_iterator ci = i->outClusters().constBegin();
@@ -2199,6 +2200,12 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                 }
                     break;
 
+                case RELATIVE_HUMIDITY_CLUSTER_ID:
+                {
+                    fpHumiditySensor.inClusters.push_back(ci->id());
+                }
+                    break;
+
                 default:
                     break;
                 }
@@ -2275,7 +2282,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
             }
         }
 
-        // ZBTemperature
+        // ZHATemperature
         if (fpTemperatureSensor.hasInCluster(TEMPERATURE_MEASUREMENT_CLUSTER_ID))
         {
             fpTemperatureSensor.endpoint = i->endpoint();
@@ -2286,6 +2293,24 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
             if (!sensor || sensor->deletedState() != Sensor::StateNormal)
             {
                 addSensorNode(node, fpTemperatureSensor, "ZHATemperature", modelId);
+            }
+            else
+            {
+                checkSensorNodeReachable(sensor);
+            }
+        }
+
+        // ZHAHumidity
+        if (fpHumiditySensor.hasInCluster(RELATIVE_HUMIDITY_CLUSTER_ID))
+        {
+            fpHumiditySensor.endpoint = i->endpoint();
+            fpHumiditySensor.deviceId = i->deviceId();
+            fpHumiditySensor.profileId = i->profileId();
+
+            sensor = getSensorNodeForFingerPrint(node->address().ext(), fpHumiditySensor, "ZHAHumidity");
+            if (!sensor || sensor->deletedState() != Sensor::StateNormal)
+            {
+                addSensorNode(node, fpHumiditySensor, "ZHAHumidity", modelId);
             }
             else
             {
@@ -2316,11 +2341,20 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     Sensor *sensor2 = 0;
     if (node->endpoints().size() == 1)
     {
-        sensor2 = getSensorNodeForAddressAndEndpoint(node->address(), fingerPrint.endpoint);
+        quint8 ep = node->endpoints()[0];
+        std::vector<Sensor>::iterator i = sensors.begin();
+        std::vector<Sensor>::iterator end = sensors.end();
 
-        if (sensor2 && sensor2->deletedState() != Sensor::StateNormal)
+        for (; i != end; ++i)
         {
-            sensor2 = 0;
+            if (i->address().ext() == node->address().ext() &&
+                ep == i->fingerPrint().endpoint &&
+                i->deletedState() != Sensor::StateDeleted &&
+                i->type() == type)
+            {
+                sensor2 = &*i;
+                break;
+            }
         }
 
         if (sensor2)
@@ -2368,6 +2402,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             clusterId = TEMPERATURE_MEASUREMENT_CLUSTER_ID;
         }
         sensorNode.addItem(DataTypeInt32, RStateTemperature);
+    }
+    else if (sensorNode.type().endsWith(QLatin1String("Humidity")))
+    {
+        if (sensorNode.fingerPrint().hasInCluster(RELATIVE_HUMIDITY_CLUSTER_ID))
+        {
+            clusterId = RELATIVE_HUMIDITY_CLUSTER_ID;
+        }
+        sensorNode.addItem(DataTypeInt32, RStateHumidity);
     }
     else if (sensorNode.type().endsWith(QLatin1String("Presence")))
     {
@@ -2533,7 +2575,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             }
         }
     }
-
 
     sensorNode.setNeedSaveDatabase(true);
 
@@ -2710,6 +2751,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             {
             case ILLUMINANCE_MEASUREMENT_CLUSTER_ID:
             case TEMPERATURE_MEASUREMENT_CLUSTER_ID:
+            case RELATIVE_HUMIDITY_CLUSTER_ID:
             case OCCUPANCY_SENSING_CLUSTER_ID:
             case POWER_CONFIGURATION_CLUSTER_ID:
             case BASIC_CLUSTER_ID:
@@ -2895,6 +2937,32 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     item->setValue(temp);
                                     i->updateStateTimestamp();
                                     Event e(RSensors, RStateTemperature, i->id());
+                                    enqueueEvent(e);
+                                }
+
+                                updateSensorEtag(&*i);
+                            }
+                        }
+                    }
+                    else if (event.clusterId() == RELATIVE_HUMIDITY_CLUSTER_ID)
+                    {
+                        for (;ia != enda; ++ia)
+                        {
+                            if (ia->id() == 0x0000) // relative humidity
+                            {
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
+                                }
+
+                                int humidity = ia->numericValue().u16;
+                                ResourceItem *item = i->item(RStateHumidity);
+
+                                if (item)
+                                {
+                                    item->setValue(humidity);
+                                    i->updateStateTimestamp();
+                                    Event e(RSensors, RStateHumidity, i->id());
                                     enqueueEvent(e);
                                 }
 
@@ -5561,6 +5629,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         case ILLUMINANCE_MEASUREMENT_CLUSTER_ID:
         case ILLUMINANCE_LEVEL_SENSING_CLUSTER_ID:
         case TEMPERATURE_MEASUREMENT_CLUSTER_ID:
+        case RELATIVE_HUMIDITY_CLUSTER_ID:
         case OCCUPANCY_SENSING_CLUSTER_ID:
         case IAS_ZONE_CLUSTER_ID:
         case BASIC_CLUSTER_ID:

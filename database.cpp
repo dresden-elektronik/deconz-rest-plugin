@@ -1597,10 +1597,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         }
         else if (sensor.type().endsWith(QLatin1String("Humidity")))
         {
-            /*if (sensor.fingerPrint().hasInCluster(TEMPERATURE_MEASUREMENT_CLUSTER_ID))
+            if (sensor.fingerPrint().hasInCluster(RELATIVE_HUMIDITY_CLUSTER_ID))
             {
-                clusterId = TEMPERATURE_MEASUREMENT_CLUSTER_ID;
-            }*/ // TODO add cluster info
+                clusterId = RELATIVE_HUMIDITY_CLUSTER_ID;
+            }
             sensor.addItem(DataTypeInt32, RStateHumidity);
         }
         else if (sensor.type().endsWith(QLatin1String("Presence")))
