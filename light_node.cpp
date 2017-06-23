@@ -215,6 +215,7 @@ uint16_t LightNode::level() const
     {
     case DEV_ID_MAINS_POWER_OUTLET:
     case DEV_ID_HA_ONOFF_LIGHT:
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
         if (m_haEndpoint.profileId() == ZLL_PROFILE_ID)
         {
             // don't clash with DEV_ID_ZLL_DIMMABLE_LIGHT
