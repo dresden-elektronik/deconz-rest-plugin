@@ -1258,10 +1258,17 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
     item = sensor->item(RStatePresence);
     if (item && item->toBool())
     {
+        int max = MaxOnTimeWithoutPresence;
+        ResourceItem *dur = sensor->item(RConfigDuration);
+        if (dur && dur->toNumber() > 0)
+        {
+            max = dur->toNumber();
+        }
+
         QDateTime now = QDateTime::currentDateTime();
         int dt = item->lastSet().secsTo(now);
 
-        if (!item->lastSet().isValid() || !(dt >= 0 && dt <= MaxOnTimeWithoutPresence))
+        if (!item->lastSet().isValid() || !(dt >= 0 && dt <= max))
         {
             DBG_Printf(DBG_INFO, "sensor %s (%s): disable presence after %d seconds\n", qPrintable(sensor->id()), qPrintable(sensor->modelId()), dt);
             item->setValue(false);
