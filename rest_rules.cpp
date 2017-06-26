@@ -1370,7 +1370,7 @@ void DeRestPluginPrivate::triggerRule(Rule &rule)
 
         QStringList path = ai->address().split(QChar('/'), QString::SkipEmptyParts);
 
-        if (path.size() < 3) // groups, <id>, action
+        if (path.isEmpty()) // at least: /config, /groups, /lights, /sensors
             return;
 
         QHttpRequestHeader hdr(ai->method(), ai->address());
@@ -1394,6 +1394,22 @@ void DeRestPluginPrivate::triggerRule(Rule &rule)
         else if (path[2] == QLatin1String("lights"))
         {
             if (handleLightsApi(req, rsp) == REQ_NOT_HANDLED)
+            {
+                return;
+            }
+            triggered = true;
+        }
+        else if (path[2] == QLatin1String("sensors"))
+        {
+            if (handleSensorsApi(req, rsp) == REQ_NOT_HANDLED)
+            {
+                return;
+            }
+            triggered = true;
+        }
+        else if (path[2] == QLatin1String("config"))
+        {
+            if (handleConfigurationApi(req, rsp) == REQ_NOT_HANDLED)
             {
                 return;
             }
