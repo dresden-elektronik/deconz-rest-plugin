@@ -593,7 +593,9 @@ void Sensor::jsonToConfig(const QString &json)
         ResourceItem *item = itemForIndex(i);
         const ResourceItemDescriptor &rid = item->descriptor();
 
-        if (item->descriptor().suffix == RConfigReachable)
+        if (type().startsWith(QLatin1String("CLIP")))
+        {}
+        else if (item->descriptor().suffix == RConfigReachable)
         { // set only from live data
             item->setValue(false);
             continue;
