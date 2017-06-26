@@ -678,6 +678,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
         return REQ_READY_SEND;
     }
 
+    bool isClip = sensor->type().startsWith(QLatin1String("CLIP"));
+
     userActivity();
 
     //check invalid parameter
@@ -690,7 +692,15 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
         ResourceItem *item = 0;
         if (getResourceItemDescriptor(QString("config/%1").arg(pi.key()), rid))
         {
-            item = sensor->item(rid.suffix);
+            if (!isClip && rid.suffix == RConfigReachable)
+            {
+                // changing reachable of zigbee sensors is not allowed, trigger error
+            }
+            else
+            {
+                item = sensor->item(rid.suffix);
+            }
+
             if (item)
             {
                 QVariant val = map[pi.key()];
