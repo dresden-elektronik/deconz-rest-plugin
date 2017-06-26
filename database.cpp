@@ -1531,6 +1531,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
     {
         bool ok;
         bool isClip = sensor.type().startsWith(QLatin1String("CLIP"));
+        ResourceItem *item = 0;
         quint64 extAddr = 0;
         quint16 clusterId = 0;
         quint8 endpoint = sensor.fingerPrint().endpoint;
@@ -1576,7 +1577,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 clusterId = clusterId ? clusterId : ONOFF_CLUSTER_ID;
                 sensor.addItem(DataTypeString, RConfigGroup);
             }
-            sensor.addItem(DataTypeInt32, RStateButtonEvent);
+            item = sensor.addItem(DataTypeInt32, RStateButtonEvent);
+            item->setValue(0);
         }
         else if (sensor.type().endsWith(QLatin1String("Light")))
         {
@@ -1584,8 +1586,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = ILLUMINANCE_MEASUREMENT_CLUSTER_ID;
             }
-            sensor.addItem(DataTypeUInt16, RStateLightLevel);
-            sensor.addItem(DataTypeUInt32, RStateLux);
+            item = sensor.addItem(DataTypeUInt16, RStateLightLevel);
+            item->setValue(0);
+            item = sensor.addItem(DataTypeUInt32, RStateLux);
+            item->setValue(0);
         }
         else if (sensor.type().endsWith(QLatin1String("Temperature")))
         {
@@ -1593,7 +1597,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = TEMPERATURE_MEASUREMENT_CLUSTER_ID;
             }
-            sensor.addItem(DataTypeInt32, RStateTemperature);
+            item = sensor.addItem(DataTypeInt32, RStateTemperature);
+            item->setValue(0);
         }
         else if (sensor.type().endsWith(QLatin1String("Humidity")))
         {
@@ -1601,7 +1606,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = RELATIVE_HUMIDITY_CLUSTER_ID;
             }
-            sensor.addItem(DataTypeInt32, RStateHumidity);
+            item = sensor.addItem(DataTypeInt32, RStateHumidity);
+            item->setValue(0);
         }
         else if (sensor.type().endsWith(QLatin1String("Presence")))
         {
@@ -1613,19 +1619,25 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = IAS_ZONE_CLUSTER_ID;
             }
-            sensor.addItem(DataTypeBool, RStatePresence);
+            item = sensor.addItem(DataTypeBool, RStatePresence);
+            item->setValue(false);
+            item = sensor.addItem(DataTypeUInt16, RConfigDuration);
+            item->setValue(60);
         }
         else if (sensor.type().endsWith(QLatin1String("Flag")))
         {
-            sensor.addItem(DataTypeBool, RStateFlag);
+            item = sensor.addItem(DataTypeBool, RStateFlag);
+            item->setValue(false);
         }
         else if (sensor.type().endsWith(QLatin1String("Status")))
         {
-            sensor.addItem(DataTypeInt32, RStateStatus);
+            item = sensor.addItem(DataTypeInt32, RStateStatus);
+            item->setValue(0);
         }
         else if (sensor.type().endsWith(QLatin1String("OpenClose")))
         {
-            sensor.addItem(DataTypeBool, RStateOpen);
+            item = sensor.addItem(DataTypeBool, RStateOpen);
+            item->setValue(false);
         }
 
         if (sensor.modelId().startsWith(QLatin1String("RWL02"))) // hue dimmer switch
@@ -1656,7 +1668,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
         if (sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
         {
-            sensor.addItem(DataTypeUInt8, RConfigBattery);
+            item = sensor.addItem(DataTypeUInt8, RConfigBattery);
+            item->setValue(100);
         }
 
         if (stateCol >= 0)

@@ -282,13 +282,13 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
         sensor.setSwVersion(map["swversion"].toString());
         sensor.setType(type);
 
-        if      (type == QLatin1String("CLIPSwitch")) { sensor.addItem(DataTypeInt32, RStateButtonEvent); }
-        else if (type == QLatin1String("CLIPOpenClose")) { sensor.addItem(DataTypeBool, RStateOpen); }
-        else if (type == QLatin1String("CLIPGenericFlag")) { sensor.addItem(DataTypeBool, RStateFlag); }
-        else if (type == QLatin1String("CLIPGenericStatus")) { sensor.addItem(DataTypeInt32, RStateStatus); }
-        else if (type == QLatin1String("CLIPPresence")) { sensor.addItem(DataTypeBool, RStatePresence); }
-        else if (type == QLatin1String("CLIPTemperature")) { sensor.addItem(DataTypeInt32, RStateTemperature); }
-        else if (type == QLatin1String("CLIPHumidity")) { sensor.addItem(DataTypeInt32, RStateHumidity); }
+        if      (type == QLatin1String("CLIPSwitch")) { item = sensor.addItem(DataTypeInt32, RStateButtonEvent); item->setValue(0); }
+        else if (type == QLatin1String("CLIPOpenClose")) { item = sensor.addItem(DataTypeBool, RStateOpen); item->setValue(false); }
+        else if (type == QLatin1String("CLIPGenericFlag")) { item = sensor.addItem(DataTypeBool, RStateFlag); item->setValue(false); }
+        else if (type == QLatin1String("CLIPGenericStatus")) { item = sensor.addItem(DataTypeInt32, RStateStatus); item->setValue(0); }
+        else if (type == QLatin1String("CLIPPresence")) { item = sensor.addItem(DataTypeBool, RStatePresence); item->setValue(false); }
+        else if (type == QLatin1String("CLIPTemperature")) { item = sensor.addItem(DataTypeInt32, RStateTemperature); item->setValue(0); }
+        else if (type == QLatin1String("CLIPHumidity")) { item = sensor.addItem(DataTypeInt32, RStateHumidity); item->setValue(0); }
 
 
         //setState optional
