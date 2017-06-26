@@ -945,6 +945,12 @@ bool DeRestPluginPrivate::addTaskAddScene(TaskItem &task, uint16_t groupId, uint
                                     x = l->colorTemperature();
                                     y = 0;
                                 }
+                                else if (task.lightNode->modelId().startsWith(QLatin1String("Ribag Air O")))
+                                {
+                                    // quirks mode Ribag Air O stores color temperature in x
+                                    x = l->colorTemperature();
+                                    y = 0;
+                                }
                                 else
                                 {
                                     MiredColorTemperatureToXY(l->colorTemperature(), &x, &y);

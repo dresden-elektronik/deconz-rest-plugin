@@ -6584,7 +6584,18 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
 
                         if (hasOnOff)  { lightState->setOn(onOff); }
                         if (hasBri)    { lightState->setBri(bri); }
-                        if (hasXY)     { lightState->setX(x); lightState->setY(y); }
+                        if (hasXY)
+                        {
+                            if (lightNode->modelId().startsWith(QLatin1String("FLS-H")) ||
+                                lightNode->modelId().startsWith(QLatin1String("FLS-CT")) ||
+                                lightNode->modelId().startsWith(QLatin1String("Ribag Air O")))
+                            {
+                                lightState->setColorTemperature(x);
+                            }
+
+                            lightState->setX(x);
+                            lightState->setY(y);
+                        }
                         if (hasHueSat) { lightState->setEnhancedHue(ehue); lightState->setSaturation(sat); }
                         lightState->tVerified.start();
                         queSaveDb(DB_SCENES, DB_LONG_SAVE_DELAY);
