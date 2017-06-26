@@ -654,6 +654,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     QString id = req.path[3];
     Sensor *sensor = getSensorNodeForId(id);
     bool ok;
+    bool updated = false;
     QVariant var = Json::parse(req.content, ok);
     QVariantMap map = var.toMap();
     QVariantMap rspItem;
@@ -709,8 +710,12 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     rspItemState[QString("/sensors/%1/config/%2").arg(id).arg(pi.key())] = val;
                     rspItem["success"] = rspItemState;
 
-                    Event e(RSensors, rid.suffix, id);
-                    enqueueEvent(e);
+                    if (item->lastChanged() == item->lastSet())
+                    {
+                        Event e(RSensors, rid.suffix, id);
+                        enqueueEvent(e);
+                        updated = true;
+                    }
                 }
                 else // invalid
                 {
@@ -744,11 +749,14 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 //        q->startZclAttributeTimer(0);
 //    }
 
-    sensor->setNeedSaveDatabase(true);
     rsp.list.append(rspItem);
     updateSensorEtag(sensor);
 
-    queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+    if (updated)
+    {
+        sensor->setNeedSaveDatabase(true);
+        queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+    }
 
     return REQ_READY_SEND;
 }
@@ -762,6 +770,7 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
     QString id = req.path[3];
     Sensor *sensor = getSensorNodeForId(id);
     bool ok;
+    bool updated = false;
     QVariant var = Json::parse(req.content, ok);
     QVariantMap map = var.toMap();
     QVariantMap rspItem;
@@ -806,8 +815,12 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
                     rspItemState[QString("/sensors/%1/state/%2").arg(id).arg(pi.key())] = val;
                     rspItem["success"] = rspItemState;
 
-                    Event e(RSensors, rid.suffix, id);
-                    enqueueEvent(e);
+                    if (item->lastChanged() == item->lastSet())
+                    {
+                        updated = true;
+                        Event e(RSensors, rid.suffix, id);
+                        enqueueEvent(e);
+                    }
                     sensor->updateStateTimestamp();
                 }
                 else // invalid
@@ -829,10 +842,13 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
         }
     }
 
-    sensor->setNeedSaveDatabase(true);
     rsp.list.append(rspItem);
     updateSensorEtag(sensor);
-    queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+    if (updated)
+    {
+        sensor->setNeedSaveDatabase(true);
+        queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+    }
 
     return REQ_READY_SEND;
 }
