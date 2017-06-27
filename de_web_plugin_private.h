@@ -118,6 +118,7 @@
 
 #define DEFAULT_TRANSITION_TIME 4 // 400ms
 #define MAX_ENHANCED_HUE 65535
+#define MAX_ENHANCED_HUE_Z 65278 // max supportet ehue of all devices
 
 #define BASIC_CLUSTER_ID 0x0000
 #define POWER_CONFIGURATION_CLUSTER_ID 0x0001

@@ -816,7 +816,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
         hasHue = false;
         uint hue2 = map["hue"].toUInt(&ok);
 
-        if (ok && (map["hue"].type() == QVariant::Double) && (hue2 < (MAX_ENHANCED_HUE + 1)))
+        if (ok && (map["hue"].type() == QVariant::Double) && (hue2 <= MAX_ENHANCED_HUE))
         {
             hasHue = true;
             hue = hue2;
@@ -832,6 +832,10 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
                     task.hueReal = 1.0f;
                 }
                 task.hue = task.hueReal * 254.0f;
+                if (hue > MAX_ENHANCED_HUE_Z)
+                {
+                    hue = MAX_ENHANCED_HUE_Z;
+                }
                 task.enhancedHue = hue;
                 task.taskType = TaskSetEnhancedHue;
 

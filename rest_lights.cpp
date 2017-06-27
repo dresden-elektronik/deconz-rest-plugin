@@ -596,6 +596,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                     task.hueReal = 1.0f;
                 }
                 task.hue = task.hueReal * 254.0f;
+                if (hue > MAX_ENHANCED_HUE_Z)
+                {
+                    hue = MAX_ENHANCED_HUE_Z;
+                }
                 task.enhancedHue = hue;
                 task.taskType = TaskSetEnhancedHue;
                 taskToLocalData(task);
