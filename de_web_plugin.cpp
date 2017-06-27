@@ -6506,7 +6506,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                     stream >> y;
                     extLength -= 4;
 
-                    if (stream.status() != QDataStream::ReadPastEnd)
+                    if (x != 0 && y != 0 && stream.status() != QDataStream::ReadPastEnd)
                     {
                         hasXY = true;
                     }

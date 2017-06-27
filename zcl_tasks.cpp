@@ -909,7 +909,8 @@ bool DeRestPluginPrivate::addTaskAddScene(TaskItem &task, uint16_t groupId, uint
                         stream << (uint16_t)0x0008; // level cluster
                         stream << (uint8_t)0x01;
                         stream << l->bri();
-                        if (task.lightNode && task.lightNode->hasColor())
+                        if (task.lightNode && task.lightNode->hasColor() &&
+                            !task.lightNode->modelId().startsWith("FLS-PP3")) // color in add scene not supported well
                         {
                             stream << (uint16_t)0x0300; // color cluster
                             stream << (uint8_t)11;
