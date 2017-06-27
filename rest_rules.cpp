@@ -1273,6 +1273,19 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
 
         if (!item->lastSet().isValid()) { ok = false; break; }
 
+        if (resource->prefix() == RSensors)
+        {
+            if ((idleTotalCounter > (IDLE_READ_LIMIT + 20)) &&
+                item->lastSet() > now.addSecs(0 - (idleTotalCounter - IDLE_READ_LIMIT - 2)))
+            {
+            }
+            else
+            {
+                // ignore resource set after startup
+                return;
+            }
+        }
+
         if (c->op() == RuleCondition::OpEqual)
         {
             if (c->numericValue() != item->toNumber()) { ok = false; break; }
