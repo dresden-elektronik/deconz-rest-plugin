@@ -38,7 +38,6 @@ bool DeRestPluginPrivate::setPermitJoinDuration(uint8_t duration)
     if (gwPermitJoinDuration != duration)
     {
         gwPermitJoinDuration = duration;
-        queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
     }
 
     // force resend
@@ -88,7 +87,6 @@ void DeRestPluginPrivate::permitJoinTimerFired()
 
     if (gwPermitJoinDuration == 0 && permitJoinFlag)
     {
-        queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
         permitJoinFlag = false;
     }
 

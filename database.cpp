@@ -2089,7 +2089,7 @@ void DeRestPluginPrivate::saveDb()
     // a transaction which is extremly slow
     sqlite3_exec(db, "BEGIN", 0, 0, 0);
 
-    DBG_Printf(DBG_INFO, "save zll database\n");
+    DBG_Printf(DBG_INFO, "save zll database items 0x%08X\n", saveDatabaseItems);
 
     // dump authentification
     if (saveDatabaseItems & DB_AUTH)

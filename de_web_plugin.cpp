@@ -1100,6 +1100,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 openDb();
                 lightNode.setId(QString::number(getFreeLightId()));
                 closeDb();
+                lightNode.setNeedSaveDatabase(true);
             }
 
             if (lightNode.name().isEmpty())
@@ -1142,14 +1143,17 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             queryTime = queryTime.addSecs(1);
 
             DBG_Printf(DBG_INFO, "LightNode %u: %s added\n", lightNode.id().toUInt(), qPrintable(lightNode.name()));
-            lightNode.setNeedSaveDatabase(true);
+
             nodes.push_back(lightNode);
             lightNode2 = &nodes.back();
 
             q->startZclAttributeTimer(checkZclAttributesDelay);
             updateLightEtag(lightNode2);
 
-            queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
+            if (lightNode.needSaveDatabase())
+            {
+                queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
+            }
         }
     }
 }
@@ -1803,8 +1807,6 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor)
     if (updated)
     {
         updateSensorEtag(sensor);
-        sensor->setNeedSaveDatabase(true);
-        queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
     }
 }
 

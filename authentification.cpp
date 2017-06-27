@@ -121,7 +121,7 @@ bool DeRestPluginPrivate::checkApikeyAuthentification(const ApiRequest &req, Api
             if (!apiAuthSaveDatabaseTime.isValid() || apiAuthSaveDatabaseTime.elapsed() > (1000 * 60 * 30))
             {
                 apiAuthSaveDatabaseTime.start();
-                queSaveDb(DB_AUTH, DB_LONG_SAVE_DELAY);
+                queSaveDb(DB_AUTH, DB_HUGE_SAVE_DELAY);
             }
             return true;
         }
