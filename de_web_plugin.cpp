@@ -533,6 +533,7 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
     {
         TaskItem &task = *i;
         if (conf.dstAddressMode() == deCONZ::ApsNwkAddress &&
+            task.req.dstAddressMode() == deCONZ::ApsNwkAddress &&
             conf.dstAddress().hasNwk() && task.req.dstAddress().hasNwk() &&
             conf.dstAddress().nwk() != task.req.dstAddress().nwk())
         {
