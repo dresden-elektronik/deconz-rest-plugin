@@ -2452,7 +2452,7 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
             }
 
             item = lightNode->item(RStateBri);
-            if (ls->bri() != item->toNumber())
+            if (item && ls->bri() != item->toNumber())
             {
                 item->setValue(ls->bri());
                 Event e(RLights, RStateBri, lightNode->id());
