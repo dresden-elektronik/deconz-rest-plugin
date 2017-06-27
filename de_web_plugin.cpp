@@ -8394,6 +8394,11 @@ void DeRestPlugin::idleTimerFired()
                     continue;
                 }
 
+                if (sensorNode->type().startsWith(QLatin1String("CLIP")))
+                {
+                    continue;
+                }
+
                 if (processSensors)
                 {
                     break;
