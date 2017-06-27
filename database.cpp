@@ -11,6 +11,7 @@
 #include <QString>
 #include <QStringBuilder>
 #include <QElapsedTimer>
+#include <unistd.h>
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "deconz/dbg_trace.h"
@@ -2723,6 +2724,12 @@ void DeRestPluginPrivate::saveDb()
 
     sqlite3_exec(db, "COMMIT", 0, 0, 0);
     DBG_Printf(DBG_INFO, "database saved in %ld ms\n", measTimer.elapsed());
+
+#ifdef Q_OS_LINUX
+    measTimer.restart();
+    sync();
+    DBG_Printf(DBG_INFO, "sync() in %d ms\n", int(measTimer.elapsed()));
+#endif
 }
 
 /*! Closes the database.
