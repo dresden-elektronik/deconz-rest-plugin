@@ -127,8 +127,14 @@ int DeRestPluginPrivate::modifyUserParameter(const ApiRequest &req, ApiResponse 
     if (gwUserParameter.contains(key))
     {
         QVariantMap::iterator it = gwUserParameter.find(key);
-        gwUserParameter.erase(it);
-        gwUserParameter.insert(key, req.content);
+
+        if (*it != req.content)
+        {
+            gwUserParameter.erase(it);
+            gwUserParameter.insert(key, req.content);
+            queSaveDb(DB_USERPARAM, DB_SHORT_SAVE_DELAY);
+        }
+
         rspItemState["/config/userparameter"] = QString("updated %1").arg(key);
         rspItem["success"] = rspItemState;
         rsp.list.append(rspItem);
@@ -139,9 +145,9 @@ int DeRestPluginPrivate::modifyUserParameter(const ApiRequest &req, ApiResponse 
         rspItemState["/config/userparameter"] = QString("added new %1").arg(key);
         rspItem["success"] = rspItemState;
         rsp.list.append(rspItem);
+        queSaveDb(DB_USERPARAM, DB_SHORT_SAVE_DELAY);
     }
 
-    queSaveDb(DB_USERPARAM, DB_SHORT_SAVE_DELAY);
     return REQ_READY_SEND;
 }
 
@@ -205,7 +211,6 @@ int DeRestPluginPrivate::getUserParameter(const ApiRequest &req, ApiResponse &rs
     if (gwUserParameter.contains(key))
     {
         rsp.map[key] =  gwUserParameter.value(key);
-        queSaveDb(DB_USERPARAM, DB_SHORT_SAVE_DELAY);
     }
     else
     {
