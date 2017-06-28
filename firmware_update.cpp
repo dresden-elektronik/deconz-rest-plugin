@@ -212,6 +212,20 @@ void DeRestPluginPrivate::firmwareUpdateTimerFired()
             gwFirmwareNeedUpdate = false;
             updateEtag(gwConfigEtag);
         }
+
+        if (gwFirmwareVersion == QLatin1String("0x00000000"))
+        {
+            uint8_t devConnected = apsCtrl->getParameter(deCONZ::ParamDeviceConnected);
+            uint32_t fwVersion = apsCtrl->getParameter(deCONZ::ParamFirmwareVersion);
+
+            if (devConnected && fwVersion)
+            {
+                gwFirmwareVersion.sprintf("0x%08x", fwVersion);
+                gwConfig["fwversion"] = gwFirmwareVersion;
+                updateEtag(gwConfigEtag);
+            }
+        }
+
         fwUpdateState = FW_CheckDevices;
         fwUpdateTimer->start(0);
     }
@@ -285,9 +299,9 @@ void DeRestPluginPrivate::queryFirmwareVersion()
     }
 
     // does the update file exist?
+    QString fileName;
     if (fwUpdateFile.isEmpty())
     {
-        QString fileName;
         fileName.sprintf("deCONZ_Rpi_0x%08x.bin.GCF", GW_MIN_RPI_FW_VERSION);
 
         // search in different locations
@@ -319,7 +333,7 @@ void DeRestPluginPrivate::queryFirmwareVersion()
 
     if (fwUpdateFile.isEmpty())
     {
-        DBG_Printf(DBG_ERROR, "GW update firmware not found: %s\n", qPrintable(fwUpdateFile));
+        DBG_Printf(DBG_ERROR, "GW update firmware not found: %s\n", qPrintable(fileName));
         fwUpdateState = FW_Idle;
         fwUpdateTimer->start(FW_IDLE_TIMEOUT);
         return;
