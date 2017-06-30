@@ -62,6 +62,7 @@ struct SupportedDevice {
 static const SupportedDevice supportedDevices[] = {
     { VENDOR_BUSCH_JAEGER, "RB01" },
     { VENDOR_BUSCH_JAEGER, "RM01" },
+    { VENDOR_CENTRALITE, "Motion Sensor-A" },
     { VENDOR_CLIMAX, "LM_" },
     { VENDOR_CLIMAX, "LMHT_" },
     { VENDOR_CLIMAX, "IR_" },
@@ -2186,7 +2187,15 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                 case IAS_ZONE_CLUSTER_ID:
                 case OCCUPANCY_SENSING_CLUSTER_ID:
                 {
-                    fpPresenceSensor.inClusters.push_back(ci->id());
+                    if (node->nodeDescriptor().manufacturerCode() == VENDOR_CENTRALITE &&
+                        i->endpoint() == 0x02 && modelId == QLatin1String("Motion Sensor-A"))
+                    {
+                        // only use endpoint 0x01 of this sensor
+                    }
+                    else
+                    {
+                        fpPresenceSensor.inClusters.push_back(ci->id());
+                    }
                 }
                     break;
 
