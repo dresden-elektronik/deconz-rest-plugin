@@ -496,6 +496,8 @@ struct ApiResponse
 class TcpClient
 {
 public:
+    QHttpRequestHeader hdr;
+    QDateTime created;
     int closeTimeout; // close socket in n seconds
     QTcpSocket *sock;
 };
@@ -865,7 +867,7 @@ public:
 
     bool pushState(QString json, QTcpSocket *sock);
 
-    void pushClientForClose(QTcpSocket *sock, int closeTimeout);
+    void pushClientForClose(QTcpSocket *sock, int closeTimeout, const QHttpRequestHeader &hdr);
 
     uint8_t endpoint();
     QString generateUniqueId(quint64 extAddress, quint8 endpoint, quint16 clusterId);
@@ -1273,7 +1275,7 @@ public:
 
     // TCP connection watcher
     QTimer *openClientTimer;
-    std::list<TcpClient> openClients;
+    std::vector<TcpClient> openClients;
 
     WebSocketServer *webSocketServer;
 

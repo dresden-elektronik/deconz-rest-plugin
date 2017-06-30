@@ -5287,33 +5287,29 @@ void DeRestPluginPrivate::fixSceneTableWrite(LightNode *lightNode, quint16 offse
     \param sock the client socket
     \param closeTimeout timeout in seconds then the socket should be closed
  */
-void DeRestPluginPrivate::pushClientForClose(QTcpSocket *sock, int closeTimeout)
+void DeRestPluginPrivate::pushClientForClose(QTcpSocket *sock, int closeTimeout, const QHttpRequestHeader &hdr)
 {
-    std::list<TcpClient>::iterator i = openClients.begin();
-    std::list<TcpClient>::iterator end = openClients.begin();
+    std::vector<TcpClient>::iterator i = openClients.begin();
+    std::vector<TcpClient>::iterator end = openClients.end();
 
     for ( ;i != end; ++i)
     {
         if (i->sock == sock)
         {
-            i->closeTimeout = closeTimeout;
-            return;
-        }
-        // Other QtcpSocket but same peer
-        else if (i->sock->peerPort() == sock->peerPort())
-        {
-            if (i->sock->peerAddress() == sock->peerAddress())
+            // update
+            i->hdr = hdr;
+            if (i->closeTimeout < closeTimeout)
             {
-                i->sock->deleteLater();
-
-                i->sock = sock;
                 i->closeTimeout = closeTimeout;
-                return;
             }
+            //DBG_Printf(DBG_INFO, "refresh socket %s : %u %s\n", qPrintable(sock->peerAddress().toString()), sock->peerPort(), qPrintable(hdr.path()));
+            return;
         }
     }
 
     TcpClient client;
+    client.hdr = hdr;
+    client.created = QDateTime::currentDateTime();
     client.sock = sock;
     client.closeTimeout = closeTimeout;
 
@@ -8978,7 +8974,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         stream << "Content-Type: application/xml\r\n";
         stream << "Content-Length:" << QString::number(d->descriptionXml.size()) << "\r\n";
         stream << "Connection: close\r\n";
-        d->pushClientForClose(sock, 2);
+        d->pushClientForClose(sock, 2, hdr);
         stream << "\r\n";
         stream << d->descriptionXml.constData();
         stream.flush();
@@ -9019,13 +9015,13 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         if (hdr.value(QLatin1String("Connection")).toLower() == QLatin1String("keep-alive"))
         {
             keepAlive = true;
-            d->pushClientForClose(sock, 3);
+            d->pushClientForClose(sock, 60, hdr);
         }
     }
     if (!keepAlive)
     {
         stream << "Connection: close\r\n";
-        d->pushClientForClose(sock, 2);
+        d->pushClientForClose(sock, 2, hdr);
     }
 
     if (!rsp.hdrFields.empty())
@@ -9088,12 +9084,13 @@ void DeRestPluginPrivate::saveCurrentRuleInDbTimerFired()
  */
 void DeRestPluginPrivate::openClientTimerFired()
 {
-    std::list<TcpClient>::iterator i = openClients.begin();
-    std::list<TcpClient>::iterator end = openClients.end();
+    std::vector<TcpClient>::iterator i = openClients.begin();
+    std::vector<TcpClient>::iterator end = openClients.end();
 
     for ( ; i != end; ++i)
     {
         i->closeTimeout--;
+
         if (i->closeTimeout == 0)
         {
             i->closeTimeout = -1;
@@ -9118,6 +9115,13 @@ void DeRestPluginPrivate::openClientTimerFired()
                 return;
             }
         }
+        else if (i->closeTimeout < -120)
+        {
+            // cleanup here if not already deleted by socket destroyed slot
+            *i = openClients.back();
+            openClients.pop_back();
+            return;
+        }
     }
 }
 
@@ -9128,14 +9132,17 @@ void DeRestPluginPrivate::clientSocketDestroyed()
     QObject *obj = sender();
     QTcpSocket *sock = static_cast<QTcpSocket *>(obj);
 
-    std::list<TcpClient>::iterator i = openClients.begin();
-    std::list<TcpClient>::iterator end = openClients.end();
+    std::vector<TcpClient>::iterator i = openClients.begin();
+    std::vector<TcpClient>::iterator end = openClients.end();
 
     for ( ; i != end; ++i)
     {
         if (i->sock == sock)
         {
-            openClients.erase(i);
+            //int dt = i->created.secsTo(QDateTime::currentDateTime());
+            //DBG_Printf(DBG_INFO, "remove socket %s : %u after %d s, %s\n", qPrintable(sock->peerAddress().toString()), sock->peerPort(), dt, qPrintable(i->hdr.path()));
+            *i = openClients.back();
+            openClients.pop_back();
             return;
         }
     }
