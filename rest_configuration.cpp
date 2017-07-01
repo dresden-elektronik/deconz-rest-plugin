@@ -411,10 +411,12 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     {
         map["zigbeechannel"] = apsCtrl->getParameter(deCONZ::ParamCurrentChannel);
         map["panid"] = apsCtrl->getParameter(deCONZ::ParamPANID);
+        gwPort = apsCtrl->getParameter(deCONZ::ParamHttpPort); // cache
     }
     else
     {
         map["zigbeechannel"] = (double)gwZigbeeChannel;
+        gwPort = deCONZ::appArgumentNumeric("--http-port", 80); // cache
     }
     map["dhcp"] = true; // dummy
     map["proxyaddress"] = gwProxyAddress;
@@ -436,7 +438,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     map["websocketport"] = (double)webSocketServer->port();
 
     gwIpAddress = map["ipaddress"].toString(); // cache
-    gwPort = deCONZ::appArgumentNumeric("--http-port", 80); // cache
+
 
     QStringList ipv4 = gwIpAddress.split(".");
 
