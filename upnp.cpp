@@ -119,8 +119,29 @@ void DeRestPluginPrivate::upnpReadyRead()
         datagram.resize(udpSock->pendingDatagramSize());
         udpSock->readDatagram(datagram.data(), datagram.size(), &host, &port);
 
-        if (datagram.startsWith("M-SEARCH *"))
+        QTextStream stream(datagram);
+        QString searchTarget;
+        while (!stream.atEnd())
         {
+            QString line = stream.readLine();
+
+            if (!line.startsWith(QLatin1String("ST:")))
+            {
+                continue;
+            }
+
+            if (line.contains(QLatin1String("ssdp:all")) ||
+                line.contains(QLatin1String("device:basic")) ||
+                line.contains(QLatin1String("unpn:rootdevice")))
+            {
+                searchTarget = line;
+                break;
+            }
+        }
+
+        if (datagram.startsWith("M-SEARCH *") && !searchTarget.isEmpty())
+        {
+
             DBG_Printf(DBG_HTTP, "UPNP %s:%u\n%s\n", qPrintable(host.toString()), port, datagram.data());
             datagram.clear();
 
@@ -131,7 +152,8 @@ void DeRestPluginPrivate::upnpReadyRead()
                             .arg(gwConfig["ipaddress"].toString())
                             .arg(gwConfig["port"].toDouble()).toLocal8Bit());
             datagram.append("SERVER: FreeRTOS/7.4.2, UPnP/1.0, IpBridge/1.8.0\r\n");
-            datagram.append("ST: upnp:rootdevice\r\n");
+            datagram.append(searchTarget);
+            datagram.append(QLatin1String("\r\n"));
             datagram.append(QString("USN: uuid:%1::upnp:rootdevice\r\n").arg(gwUuid));
             datagram.append(QString("GWID.phoscon.de: %1\r\n").arg(gwBridgeId));
             datagram.append("\r\n");
