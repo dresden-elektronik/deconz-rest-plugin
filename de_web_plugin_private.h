@@ -169,6 +169,7 @@
 
 // manufacturer codes
 #define VENDOR_ATMEL    0x1014
+#define VENDOR_LUMI     0x1037
 #define VENDOR_DDEL     0x1135
 #define VENDOR_INNR     0x1166
 #define VENDOR_INSTA    0x117a

@@ -83,6 +83,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_PHILIPS, "RWL020" },
     { VENDOR_PHILIPS, "RWL021" },
     { VENDOR_PHILIPS, "SML001" },
+    { VENDOR_LUMI, "lumi.sensor_ht" },
+    { VENDOR_LUMI, "lumi.sens" },
     { 0, 0 }
 };
 
@@ -2103,7 +2105,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                 case LEVEL_CLUSTER_ID:
                 case SCENE_CLUSTER_ID:
                 {
-                    if (i->deviceId() == DEV_ID_ZLL_ONOFF_SENSOR &&
+                    if (node->nodeDescriptor().manufacturerCode() == VENDOR_LUMI)
+                    {
+                        // prevent creation of ZHASwitch, till supported
+                    }
+                    else if (i->deviceId() == DEV_ID_ZLL_ONOFF_SENSOR &&
                         node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA)
                     {
                         fpPresenceSensor.outClusters.push_back(ci->id());
@@ -2525,6 +2531,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         sensorNode.setManufacturer("Insta");
         checkInstaModelId(&sensorNode);
     }
+    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_LUMI)
+    {
+        sensorNode.setManufacturer("LUMI");
+    }
 
     if (!sensor2 && sensorNode.id().isEmpty())
     {
@@ -2642,6 +2652,11 @@ void DeRestPluginPrivate::checkUpdatedFingerPrint(const deCONZ::Node *node, quin
             continue;
         }
 
+        if (i->deletedState() != Sensor::StateNormal)
+        {
+            continue;
+        }
+
         // different endpoints for different versions of FLS-NB
         if (i->fingerPrint().endpoint != endpoint &&
             i->modelId().startsWith(QLatin1String("FLS-NB")))
@@ -2707,6 +2722,11 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
     for (; i != end; ++i)
     {
         if (i->address().ext() != event.node()->address().ext())
+        {
+            continue;
+        }
+
+        if (i->deletedState() != Sensor::StateNormal)
         {
             continue;
         }
