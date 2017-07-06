@@ -244,7 +244,7 @@ int DeRestPluginPrivate::createUser(const ApiRequest &req, ApiResponse &rsp)
  */
 void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
 {
-    bool ok;
+    bool ok = false;
     QVariantMap whitelist;
     QVariantMap swupdate;
     QVariantMap devicetypes;
@@ -254,50 +254,65 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     QDateTime datetime = QDateTime::currentDateTimeUtc();
     QDateTime localtime = QDateTime::currentDateTime();
 
-    QNetworkInterface eth;
-
     {
         QList<QNetworkInterface> ifaces = QNetworkInterface::allInterfaces();
         QList<QNetworkInterface>::Iterator i = ifaces.begin();
         QList<QNetworkInterface>::Iterator end = ifaces.end();
 
         // optimistic approach chose the first available ethernet interface
-        for (;i != end; ++i)
+        for (; !ok && i != end; ++i)
         {
+            if (i->name() == QLatin1String("tun0"))
+            {
+                continue;
+            }
+
             if ((i->flags() & QNetworkInterface::IsUp) &&
                 (i->flags() & QNetworkInterface::IsRunning) &&
                 !(i->flags() & QNetworkInterface::IsLoopBack))
             {
+                DBG_Printf(DBG_INFO, "%s (%s)\n", qPrintable(i->name()), qPrintable(i->humanReadableName()));
+
                 QList<QNetworkAddressEntry> addresses = i->addressEntries();
 
-                if (!addresses.isEmpty())
+                if (ok || addresses.isEmpty())
                 {
-                    eth = *i;
+                    continue;
+                }
+
+                QList<QNetworkAddressEntry>::Iterator a = addresses.begin();
+                QList<QNetworkAddressEntry>::Iterator aend = addresses.end();
+
+                for (; a != aend; ++a)
+                {
+                    if (a->ip().protocol() != QAbstractSocket::IPv4Protocol)
+                    {
+                        continue;
+                    }
+
+                    quint32 ipv4 = a->ip().toIPv4Address();
+                    if ((ipv4 & 0xff000000UL) == 0x7f000000UL)
+                    {
+                        // 127.x.x.x
+                        continue;
+                    }
+
+                    if ((ipv4 & 0xa0000000UL) != 0xa0000000UL &&
+                        (ipv4 & 0xb0000000UL) != 0xb0000000UL &&
+                        (ipv4 & 0xc0000000UL) != 0xc0000000UL)
+                    {
+                        // class A, B or C network
+                        continue;
+                    }
+
+                    map["ipaddress"] = a->ip().toString();
+                    map["netmask"] = a->netmask().toString();
+                    map["mac"] = i->hardwareAddress().toLower();
+                    ok = true;
                     break;
                 }
             }
         }
-    }
-
-    ok = false;
-    if (eth.isValid() && !eth.addressEntries().isEmpty())
-    {
-        QList<QNetworkAddressEntry> addresses = eth.addressEntries();
-        QList<QNetworkAddressEntry>::Iterator i = addresses.begin();
-        QList<QNetworkAddressEntry>::Iterator end = addresses.end();
-
-        for (; i != end; ++i)
-        {
-            if (i->ip().protocol() == QAbstractSocket::IPv4Protocol)
-            {
-                map["ipaddress"] = i->ip().toString();
-                map["netmask"] = i->netmask().toString();
-                ok = true;
-                break;
-            }
-        }
-
-        map["mac"] = eth.hardwareAddress().toLower();
     }
 
     if (!ok)
