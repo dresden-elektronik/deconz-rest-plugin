@@ -1234,6 +1234,7 @@ void DeRestPluginPrivate::findSensorsTimerFired()
 
     if (findSensorsTimeout == 0)
     {
+        fastProbeAddr = deCONZ::Address();
         findSensorsState = FindSensorsDone;
     }
 }
@@ -1389,6 +1390,8 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
         {
         case ONOFF_CLUSTER_ID:
         case SCENE_CLUSTER_ID:
+        case LEVEL_CLUSTER_ID:
+        case VENDOR_CLUSTER_ID:
             if ((zclFrame.frameControl() & deCONZ::ZclFCClusterCommand) == 0)
             {
                 return;
@@ -1493,6 +1496,15 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
         sc2.macCapabilities = macCapabilities;
         findSensorCandidates.push_back(sc2);
         sc = &findSensorCandidates.back();
+
+        if (!fastProbeAddr.hasExt() && findSensorsState == FindSensorsActive)
+        {
+            fastProbeAddr = indAddress;
+            if (!fastProbeTimer->isActive())
+            {
+                fastProbeTimer->start(1000);
+            }
+        }
     }
 
     if (!sc) // we need a valid candidate from device announce or cache
