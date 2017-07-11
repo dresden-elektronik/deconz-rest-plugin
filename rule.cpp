@@ -397,6 +397,10 @@ RuleCondition::RuleCondition(const QVariantMap &map) :
     if (m_address.startsWith(QLatin1String("/sensors")))
     {
         m_prefix = RSensors;
+        if (m_address.endsWith(QLatin1String("/illuminance")))
+        { // convert old to new style
+            m_address.replace(QLatin1String("/illuminance"), QLatin1String("/lux"));
+        }
     }
     else if (m_address.startsWith(QLatin1String("/config")))
     {
