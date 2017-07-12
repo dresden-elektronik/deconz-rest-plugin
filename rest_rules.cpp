@@ -1292,11 +1292,11 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
         }
         else if (c->op() == RuleCondition::OpGreaterThan)
         {
-            if (c->numericValue() < item->toNumber()) { ok = false; break; }
+            if (item->toNumber() <= c->numericValue()) { ok = false; break; }
         }
         else if (c->op() == RuleCondition::OpLowerThan)
         {
-            if (c->numericValue() > item->toNumber()) { ok = false; break; }
+            if (item->toNumber() >= c->numericValue()) { ok = false; break; }
         }
         else if (c->op() == RuleCondition::OpDx)
         {
