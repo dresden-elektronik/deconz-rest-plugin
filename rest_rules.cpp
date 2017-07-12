@@ -1245,7 +1245,7 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
     if (rule.triggerPeriodic() > 0)
     {
         if (rule.lastTriggered().isValid() &&
-            rule.lastTriggered() < now.addMSecs(rule.triggerPeriodic()))
+            rule.lastTriggered().addMSecs(rule.triggerPeriodic()) > now)
         {
             // not yet time
             return;
