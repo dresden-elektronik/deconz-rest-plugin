@@ -1874,6 +1874,14 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     {
         // setup during add sensor
     }
+    else if (sensor->modelId() == QLatin1String("TRADFRI remote control"))
+    {
+        if (sensor->mode() != Sensor::ModeColorTemperature) // only supported mode yet
+        {
+            sensor->setMode(Sensor::ModeColorTemperature);
+            updateSensorEtag(sensor);
+        }
+    }
     else if (ind.dstAddressMode() == deCONZ::ApsGroupAddress)
     {
         if (sensor->mode() == Sensor::ModeTwoGroups) // only supported for DE Lighting Switch
