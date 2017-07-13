@@ -98,6 +98,11 @@ bool DeRestPluginPrivate::checkApikeyAuthentification(const ApiRequest &req, Api
         return false;
     }
 
+    if (req.sock == 0) // allow internal requests, as they are issued by triggering rules
+    {
+        return true;
+    }
+
     std::vector<ApiAuth>::iterator i = apiAuths.begin();
     std::vector<ApiAuth>::iterator end = apiAuths.end();
 
