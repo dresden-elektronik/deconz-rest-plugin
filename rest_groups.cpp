@@ -666,6 +666,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     bool hasSat = map.contains("sat");
     bool hasXy = map.contains("xy");
     bool hasCt = map.contains("ct");
+    bool hasCtInc = map.contains("ct_inc");
     bool hasEffect = map.contains("effect");
     bool hasEffectColorLoop = false;
     bool hasAlert = map.contains("alert");
@@ -1007,6 +1008,45 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
         else
         {
             rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/groups/%1/action/xy").arg(id), QString("invalid value, %1, for parameter, xy").arg(map["xy"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+    }
+
+    // ct_inc
+    if (hasCtInc)
+    {
+
+        int ct_inc = map["ct_inc"].toInt(&ok);
+
+        if (hasCt)
+        {
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIEABLE, QString("/groups/%1").arg(id), QString("parameter, /lights/%1/ct_inc, is not modifiable. ct was specified.").arg(id)));
+        }
+        else if (ok && (map["ct_inc"].type() == QVariant::Double) && (ct_inc >= -65534 && ct_inc <= 65534))
+        {
+            task.inc = ct_inc;
+            task.taskType = TaskIncColorTemperature;
+
+            group->colormode = QLatin1String("ct");
+
+            if (addTaskIncColorTemperature(task, ct_inc)) // will only be evaluated if no ct is set
+            {
+                taskToLocalData(task);
+                QVariantMap rspItem;
+                QVariantMap rspItemState;
+                rspItemState[QString("/groups/%1/action/ct").arg(id)] = group->colorTemperature;
+                rspItem["success"] = rspItemState;
+                rsp.list.append(rspItem);
+            }
+            else
+            {
+                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+            }
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/groups/%1/action/ct_inc").arg(id), QString("invalid value, %1, for parameter, ct_inc").arg(map["ct_inc"].toString())));
             rsp.httpStatus = HttpStatusBadRequest;
             return REQ_READY_SEND;
         }

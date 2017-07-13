@@ -7350,41 +7350,55 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
         {
             group->setIsOn(false);
         }
-        updateEtag(group->etag);
+        updateGroupEtag(group);
         group->level = task.level;
         break;
 
     case TaskSetSat:
-        updateEtag(group->etag);
+        updateGroupEtag(group);
         group->sat = task.sat;
         break;
 
     case TaskSetEnhancedHue:
-        updateEtag(group->etag);
+        updateGroupEtag(group);
         group->hue = task.hue;
         group->hueReal = task.hueReal;
         break;
 
     case TaskSetHueAndSaturation:
-        updateEtag(group->etag);
+        updateGroupEtag(group);
         group->sat = task.sat;
         group->hue = task.hue;
         group->hueReal = task.hueReal;
         break;
 
     case TaskSetXyColor:
-        updateEtag(group->etag);
+        updateGroupEtag(group);
         group->colorX = task.colorX;
         group->colorY = task.colorY;
         break;
 
+    case TaskIncColorTemperature:
+    {
+        qint32 modCt = group->colorTemperature + task.inc;
+        // clip, TODO use phys. min. max. values from lights
+        if (modCt < 153) { modCt = 153; }
+        else if (modCt > 500) { modCt = 500; }
+        if (group->colorTemperature = modCt)
+        {
+            group->colorTemperature = modCt;
+            updateGroupEtag(group);
+        }
+    }
+        break;
+
     case TaskSetColorTemperature:
-        updateEtag(group->etag);
+        updateGroupEtag(group);
         group->colorTemperature = task.colorTemperature;
         break;
 
     case TaskSetColorLoop:
-        updateEtag(group->etag);
+        updateGroupEtag(group);
         group->setColorLoopActive(task.colorLoop);
         break;
 
@@ -7565,6 +7579,33 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
             {
                 updateLightEtag(lightNode);
                 item->setValue(task.colorTemperature);
+                Event e(RLights, RStateCt, lightNode->id());
+                enqueueEvent(e);
+            }
+
+            item = item ? lightNode->item(RStateColorMode) : 0; // depend on ct
+            if (item && item->toString() != QLatin1String("ct"))
+            {
+                item->setValue(QVariant(QLatin1String("ct")));
+                Event e(RLights, RStateColorMode, lightNode->id());
+                enqueueEvent(e);
+            }
+
+            setAttributeColorTemperature(lightNode);
+        }
+            break;
+
+        case TaskIncColorTemperature:
+        {
+            ResourceItem *item = lightNode->item(RStateCt);
+            qint32 modCt = item->toNumber() + task.inc;
+            // clip, TODO use phys. min. max. values from light
+            if (modCt < 153) { modCt = 153; }
+            else if (modCt > 500) { modCt = 500; }
+            if (item && item->toNumber() != modCt)
+            {
+                updateLightEtag(lightNode);
+                item->setValue(modCt);
                 Event e(RLights, RStateCt, lightNode->id());
                 enqueueEvent(e);
             }

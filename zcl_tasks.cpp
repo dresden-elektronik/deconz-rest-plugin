@@ -181,6 +181,54 @@ bool DeRestPluginPrivate::addTaskSetBrightness(TaskItem &task, uint8_t bri, bool
 }
 
 /*!
+ * Add a color temperature increase task to the queue
+ *
+ * \param task - the task item
+ * \param ct - step size -65534 ..65534
+ * \return true - on success
+ *         false - on error
+ */
+bool DeRestPluginPrivate::addTaskIncColorTemperature(TaskItem &task, int32_t ct)
+{
+    task.taskType = TaskIncColorTemperature;
+
+    task.inc = ct;
+    task.req.setClusterId(COLOR_CLUSTER_ID);
+    task.req.setProfileId(HA_PROFILE_ID);
+
+    task.zclFrame.payload().clear();
+    task.zclFrame.setSequenceNumber(zclSeq++);
+    task.zclFrame.setCommandId(0x4C); // Step color temperature
+
+    task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
+                             deCONZ::ZclFCDirectionClientToServer |
+                             deCONZ::ZclFCDisableDefaultResponse);
+
+    quint8 direction = ct > 0 ? 1 : 3; // up, down
+    quint16 stepSize = ct > 0 ? ct : -ct;
+
+    { // payload
+        QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        stream << direction;
+        stream << stepSize;
+        stream << task.transitionTime;
+        stream << (quint16)0; // min dummy
+        stream << (quint16)0; // max dummy
+    }
+
+    { // ZCL frame
+        task.req.asdu().clear(); // cleanup old request data if there is any
+        QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        task.zclFrame.writeToStream(stream);
+    }
+
+    return addTask(task);
+}
+
+/*!
  * Add a stop brightness task to the queue
  *
  * \param task - the task item

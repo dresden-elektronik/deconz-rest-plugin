@@ -364,6 +364,7 @@ enum TaskType
     TaskSetSat,
     TaskGetLevel,
     TaskSetLevel,
+    TaskIncColorTemperature,
     TaskStopLevel,
     TaskSendOnOffToggle,
     TaskMoveLevel,
@@ -421,6 +422,7 @@ struct TaskItem
     uint16_t colorY;
     uint16_t colorTemperature;
     uint16_t groupId;
+    qint32 inc; // bri_inc, hue_inc, sat_inc, ct_inc
     QString etag;
     uint16_t transitionTime;
     QTcpSocket *client;
@@ -878,6 +880,7 @@ public:
     bool addTaskMoveLevel(TaskItem &task, bool withOnOff, bool upDirection, quint8 rate);
     bool addTaskSetOnOff(TaskItem &task, quint8 cmd, quint16 ontime);
     bool addTaskSetBrightness(TaskItem &task, uint8_t bri, bool withOnOff);
+    bool addTaskIncColorTemperature(TaskItem &task, int32_t ct);
     bool addTaskStopBrightness(TaskItem &task);
     bool addTaskSetColorTemperature(TaskItem &task, uint16_t ct);
     bool addTaskSetEnhancedHue(TaskItem &task, uint16_t hue);
