@@ -3283,7 +3283,7 @@ Sensor *DeRestPluginPrivate::getSensorNodeForAddressAndEndpoint(const deCONZ::Ad
     {
         for (i = sensors.begin(); i != end; ++i)
         {
-            if (i->address().nwk() == addr.nwk() && ep == i->fingerPrint().endpoint)
+            if (i->address().nwk() == addr.nwk() && ep == i->fingerPrint().endpoint && i->deletedState() != Sensor::StateDeleted)
             {
                 return &(*i);
             }
@@ -7766,7 +7766,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
         }
 
         // manufacturer, model id, sw build id
-        if (!sensor /*&& (sensor->modelId().isEmpty() || sensor->swVersion().isEmpty())*/)
+        if (!sensor || sensor->modelId().isEmpty() || sensor->swVersion().isEmpty())
         {
             deCONZ::ApsDataRequest apsReq;
 
@@ -7793,9 +7793,9 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
                 QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
                 stream.setByteOrder(QDataStream::LittleEndian);
 
-                stream << (quint16)0x0004; // manufacturer
-                stream << (quint16)0x0005; // model id
-                stream << (quint16)0x4000; // sw build id
+                if (!sensor || sensor->manufacturer().isEmpty()) { stream << (quint16)0x0004; }// manufacturer
+                if (!sensor || sensor->modelId().isEmpty())      { stream << (quint16)0x0005; } // model id
+                if (!sensor || sensor->swVersion().isEmpty())    { stream << (quint16)0x4000; } // sw build id
             }
 
             { // ZCL frame

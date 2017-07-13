@@ -1512,7 +1512,8 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
         return;
     }
 
-    const quint64 deMacPrefix = 0x00212effff000000ULL;
+    const quint64 deMacPrefix =   0x00212effff000000ULL;
+    const quint64 ikeaMacPrefix = 0x000b57fff0000000ULL;
 
     // check for dresden elektronik devices
     if ((sc->address.ext() & deMacPrefix) == deMacPrefix)
@@ -1812,6 +1813,81 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
             if (update)
             {
                 queSaveDb(DB_GROUPS | DB_SENSORS, DB_SHORT_SAVE_DELAY);
+            }
+        }
+    }
+    else if ((sc->address.ext() & ikeaMacPrefix) == ikeaMacPrefix)
+    {
+        if (sc->macCapabilities & deCONZ::MacDeviceIsFFD) // end-devices only
+            return;
+
+        if (ind.profileId() != HA_PROFILE_ID)
+            return;
+
+        // filter for remote control toggle command (large button)
+        if (ind.srcEndpoint() == 0x01 && ind.clusterId() == ONOFF_CLUSTER_ID && zclFrame.commandId() == 0x02)
+        {
+            DBG_Printf(DBG_INFO, "ikea remote toggle button\n");
+
+            if (findSensorsState != FindSensorsActive)
+            {
+                return;
+            }
+
+            Sensor *s = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
+
+            if (!s)
+            {
+                Sensor sensorNode;
+                SensorFingerprint &fp = sensorNode.fingerPrint();
+                fp.endpoint = 0x01;
+                fp.deviceId = DEV_ID_ZLL_COLOR_SCENE_CONTROLLER;
+                fp.profileId = HA_PROFILE_ID;
+                fp.inClusters.push_back(BASIC_CLUSTER_ID);
+                fp.inClusters.push_back(COMMISSIONING_CLUSTER_ID);
+                fp.inClusters.push_back(POWER_CONFIGURATION_CLUSTER_ID);
+                fp.outClusters.push_back(ONOFF_CLUSTER_ID);
+                fp.outClusters.push_back(LEVEL_CLUSTER_ID);
+                fp.outClusters.push_back(SCENE_CLUSTER_ID);
+
+                sensorNode.setNode(0);
+                sensorNode.address() = sc->address;
+                sensorNode.setType("ZHASwitch");
+                sensorNode.fingerPrint() = fp;
+                sensorNode.setUniqueId(generateUniqueId(sensorNode.address().ext(), sensorNode.fingerPrint().endpoint, COMMISSIONING_CLUSTER_ID));
+                sensorNode.setManufacturer(QLatin1String("IKEA of Sweden"));
+                sensorNode.setModelId(QLatin1String("TRADFRI remote control"));
+                sensorNode.setMode(Sensor::ModeColorTemperature);
+                sensorNode.setNeedSaveDatabase(true);
+
+                ResourceItem *item;
+                item = sensorNode.item(RConfigOn);
+                item->setValue(true);
+
+                item = sensorNode.item(RConfigReachable);
+                item->setValue(true);
+
+                sensorNode.addItem(DataTypeInt32, RStateButtonEvent);
+                sensorNode.updateStateTimestamp();
+
+                sensorNode.setNeedSaveDatabase(true);
+                updateSensorEtag(&sensorNode);
+
+                openDb();
+                sensorNode.setId(QString::number(getFreeSensorId()));
+                closeDb();
+                sensorNode.setName(QString("Remote control %1").arg(sensorNode.id()));
+                sensors.push_back(sensorNode);
+                s = &sensors.back();
+                updateSensorEtag(s);
+                Event e(RSensors, REventAdded, sensorNode.id());
+                enqueueEvent(e);
+
+                fastProbeAddr = sc->address;
+                if (!fastProbeTimer->isActive())
+                {
+                    fastProbeTimer->start(100);
+                }
             }
         }
     }
