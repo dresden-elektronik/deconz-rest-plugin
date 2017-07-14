@@ -280,11 +280,8 @@ void DeRestPluginPrivate::internetDiscoveryExtractVersionInfo(QNetworkReply *rep
                 if (gwUpdateVersion != version)
                 {
                     DBG_Printf(DBG_INFO, "discovery found version %s for update channel %s\n", qPrintable(version), qPrintable(gwUpdateChannel));
-                    if (gwRunFromShellScript)
-                    {
-                        gwUpdateVersion = version;
-                        updateEtag(gwConfigEtag);
-                    }
+                    gwUpdateVersion = version;
+                    updateEtag(gwConfigEtag);
                 }
             }
             else
