@@ -463,17 +463,18 @@ RuleCondition::RuleCondition(const QVariantMap &map) :
                 m_time1 = t1;
             } else { m_op = OpUnknown; } // mark invalid
         }
-        else if (str.at(0).isDigit())
+        else if (str == QLatin1String("true") ||
+               str == QLatin1String("false"))
         {
-            int num = str.toUInt(&ok);
+            m_value = m_value.toBool();
+        }
+        else if (m_op == OpEqual || m_op == OpGreaterThan || m_op == OpLowerThan)
+        {
+            int num = str.toInt(&ok);
             if (ok)
             {
                 m_value = (double)num;
             } else { m_op = OpUnknown; } // mark invalid
-        } else if (str == QLatin1String("true") ||
-                   str == QLatin1String("false"))
-        {
-            m_value = m_value.toBool();
         }
     }
 
