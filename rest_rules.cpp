@@ -574,6 +574,15 @@ int DeRestPluginPrivate::updateRule(const ApiRequest &req, ApiResponse &rsp)
 
     QString id = req.path[3];
 
+    Rule *rule = getRuleForId(id);
+
+    if (!rule || (rule->state() == Rule::StateDeleted))
+    {
+        rsp.httpStatus = HttpStatusNotFound;
+        rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/rules/%1").arg(id), QString("resource, /rules/%1, not available").arg(id)));
+        return REQ_READY_SEND;
+    }
+
     QVariant var = Json::parse(req.content, ok);
     QVariantMap map = var.toMap();
     QVariantList conditionsList;
