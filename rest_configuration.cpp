@@ -271,7 +271,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
                 (i->flags() & QNetworkInterface::IsRunning) &&
                 !(i->flags() & QNetworkInterface::IsLoopBack))
             {
-                DBG_Printf(DBG_INFO, "%s (%s)\n", qPrintable(i->name()), qPrintable(i->humanReadableName()));
+                //DBG_Printf(DBG_INFO, "%s (%s)\n", qPrintable(i->name()), qPrintable(i->humanReadableName()));
 
                 QList<QNetworkAddressEntry> addresses = i->addressEntries();
 

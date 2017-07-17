@@ -246,12 +246,12 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
 
     if (btReader)
     {
-        DBG_Printf(DBG_INFO, "MgmtBind_rsp id: %d %s seq: %u, status 0x%02X \n", btReader->apsReq.id(),
+        DBG_Printf(DBG_ZDP, "MgmtBind_rsp id: %d %s seq: %u, status 0x%02X \n", btReader->apsReq.id(),
                    qPrintable(node->address().toStringExt()), seqNo, status);
     }
     else
     {
-        DBG_Printf(DBG_INFO, "MgmtBind_rsp (no BTR) %s seq: %u, status 0x%02X \n", qPrintable(node->address().toStringExt()), seqNo, status);
+        DBG_Printf(DBG_ZDP, "MgmtBind_rsp (no BTR) %s seq: %u, status 0x%02X \n", qPrintable(node->address().toStringExt()), seqNo, status);
     }
 
     if (status != deCONZ::ZdpSuccess)
@@ -261,7 +261,7 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
         {
             if (node->mgmtBindSupported())
             {
-                DBG_Printf(DBG_INFO, "MgmtBind_req/rsp %s not supported, deactivate \n", qPrintable(node->address().toStringExt()));
+                DBG_Printf(DBG_ZDP, "MgmtBind_req/rsp %s not supported, deactivate \n", qPrintable(node->address().toStringExt()));
                 node->setMgmtBindSupported(false);
             }
         }
@@ -295,7 +295,7 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
             }
             else
             {
-                DBG_Printf(DBG_INFO, "unexpected BTR state %d\n", (int)btReader->state);
+                DBG_Printf(DBG_ZDP, "unexpected BTR state %d\n", (int)btReader->state);
             }
         }
     }
@@ -316,11 +316,11 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
         {
             if (bnd.dstAddrMode == deCONZ::ApsExtAddress)
             {
-                DBG_Printf(DBG_INFO, "found binding 0x%04X, 0x%02X -> 0x%016llX : 0x%02X\n", bnd.clusterId, bnd.srcEndpoint, bnd.dstAddress.ext, bnd.dstEndpoint);
+                DBG_Printf(DBG_ZDP, "found binding 0x%04X, 0x%02X -> 0x%016llX : 0x%02X\n", bnd.clusterId, bnd.srcEndpoint, bnd.dstAddress.ext, bnd.dstEndpoint);
             }
             else if (bnd.dstAddrMode == deCONZ::ApsGroupAddress)
             {
-                DBG_Printf(DBG_INFO, "found binding 0x%04X, 0x%02X -> 0x%04X\n", bnd.clusterId, bnd.srcEndpoint, bnd.dstAddress.group);
+                DBG_Printf(DBG_ZDP, "found binding 0x%04X, 0x%02X -> 0x%04X\n", bnd.clusterId, bnd.srcEndpoint, bnd.dstAddress.group);
             }
             else
             {
@@ -329,12 +329,12 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
 
             if (std::find(bindingToRuleQueue.begin(), bindingToRuleQueue.end(), bnd) == bindingToRuleQueue.end())
             {
-                DBG_Printf(DBG_INFO, "add binding to check rule queue size: %d\n", static_cast<int>(bindingToRuleQueue.size()));
+                DBG_Printf(DBG_ZDP, "add binding to check rule queue size: %d\n", static_cast<int>(bindingToRuleQueue.size()));
                 bindingToRuleQueue.push_back(bnd);
             }
             else
             {
-                DBG_Printf(DBG_INFO, "binding already in binding to rule queue\n");
+                DBG_Printf(DBG_ZDP, "binding already in binding to rule queue\n");
             }
 
             std::list<BindingTask>::iterator i = bindingQueue.begin();
@@ -346,12 +346,12 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
                 {
                     if (i->action == BindingTask::ActionBind && i->state != BindingTask::StateFinished)
                     {
-                        DBG_Printf(DBG_INFO, "binding 0x%04X, 0x%02X already exists, drop task\n", bnd.clusterId, bnd.dstEndpoint);
+                        DBG_Printf(DBG_ZDP, "binding 0x%04X, 0x%02X already exists, drop task\n", bnd.clusterId, bnd.dstEndpoint);
                         i->state = BindingTask::StateFinished; // already existing
                     }
                     else if (i->action == BindingTask::ActionUnbind && i->state == BindingTask::StateCheck)
                     {
-                        DBG_Printf(DBG_INFO, "binding 0x%04X, 0x%02X exists, start unbind task\n", bnd.clusterId, bnd.dstEndpoint);
+                        DBG_Printf(DBG_ZDP, "binding 0x%04X, 0x%02X exists, start unbind task\n", bnd.clusterId, bnd.dstEndpoint);
                         i->state = BindingTask::StateIdle; // exists -> unbind
                     }
                     break;
@@ -360,7 +360,7 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
         }
         else // invalid
         {
-            DBG_Printf(DBG_INFO, "invalid binding entry");
+            DBG_Printf(DBG_ZDP, "invalid binding entry");
             break;
         }
 
@@ -381,13 +381,13 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
                 // if binding was not found, activate binding task
                 if (i->action == BindingTask::ActionBind)
                 {
-                    DBG_Printf(DBG_INFO, "binding 0x%04X, 0x%02X not found, start bind task\n", i->binding.clusterId, i->binding.dstEndpoint);
+                    DBG_Printf(DBG_ZDP, "binding 0x%04X, 0x%02X not found, start bind task\n", i->binding.clusterId, i->binding.dstEndpoint);
                     i->state = BindingTask::StateIdle;
                 }
                 else if (i->action == BindingTask::ActionUnbind)
                 {
                     // nothing to unbind
-                    DBG_Printf(DBG_INFO, "binding 0x%04X, 0x%02X not found, remove unbind task\n", i->binding.clusterId, i->binding.dstEndpoint);
+                    DBG_Printf(DBG_ZDP, "binding 0x%04X, 0x%02X not found, remove unbind task\n", i->binding.clusterId, i->binding.dstEndpoint);
                     i->state = BindingTask::StateFinished; // already existing
                 }
             }
@@ -650,7 +650,7 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         case ONOFF_CLUSTER_ID:
         case LEVEL_CLUSTER_ID:
         {
-            DBG_Printf(DBG_INFO, "create binding for attribute reporting of cluster 0x%04X\n", i->id());
+            DBG_Printf(DBG_INFO_L2, "create binding for attribute reporting of cluster 0x%04X\n", i->id());
 
             BindingTask bindingTask;
             bindingTask.state = BindingTask::StateCheck;
@@ -721,7 +721,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
 
     if (!endDeviceSupported && sensor->node()->isEndDevice())
     {
-        DBG_Printf(DBG_INFO, "don't create binding for attribute reporting of end-device %s\n", qPrintable(sensor->name()));
+        DBG_Printf(DBG_INFO_L2, "don't create binding for attribute reporting of end-device %s\n", qPrintable(sensor->name()));
         return;
     }
 
@@ -730,7 +730,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
     {
         if (sensor->modelId().startsWith(QLatin1String("FLS-")))
         {
-            DBG_Printf(DBG_INFO, "don't check binding for attribute reporting of %s (otau busy)\n", qPrintable(sensor->name()));
+            DBG_Printf(DBG_INFO_L2, "don't check binding for attribute reporting of %s (otau busy)\n", qPrintable(sensor->name()));
             return;
         }
     }
@@ -786,7 +786,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         if (val.timestampLastReport.isValid() &&
             val.timestampLastReport.secsTo(QTime::currentTime()) < (60 * 45)) // got update in timely manner
         {
-            DBG_Printf(DBG_INFO, "binding for attribute reporting of cluster 0x%04X seems to be active\n", (*i));
+            DBG_Printf(DBG_INFO_L2, "binding for attribute reporting of cluster 0x%04X seems to be active\n", (*i));
             continue;
         }
 
@@ -819,7 +819,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         case RELATIVE_HUMIDITY_CLUSTER_ID:
         case VENDOR_CLUSTER_ID:
         {
-            DBG_Printf(DBG_INFO, "0x%016llX (%s) create binding for attribute reporting of cluster 0x%04X on endpoint 0x%02X\n",
+            DBG_Printf(DBG_INFO_L2, "0x%016llX (%s) create binding for attribute reporting of cluster 0x%04X on endpoint 0x%02X\n",
                        sensor->address().ext(), qPrintable(sensor->modelId()), (*i), srcEndpoint);
 
             BindingTask bindingTask;
@@ -945,7 +945,7 @@ void DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
 
     for (; i != end; ++i)
     {
-        DBG_Printf(DBG_INFO, "0x%016llX (%s) create binding for client cluster 0x%04X on endpoint 0x%02X\n",
+        DBG_Printf(DBG_INFO_L2, "0x%016llX (%s) create binding for client cluster 0x%04X on endpoint 0x%02X\n",
                    sensor->address().ext(), qPrintable(sensor->modelId()), (*i), sensor->fingerPrint().endpoint);
 
         BindingTask bindingTask;
@@ -1219,7 +1219,7 @@ void DeRestPluginPrivate::bindingTimerFired()
             else
             {
                 // too harsh?
-                DBG_Printf(DBG_INFO, "failed to send bind/unbind request. drop\n");
+                DBG_Printf(DBG_INFO_L2, "failed to send bind/unbind request. drop\n");
                 i->state = BindingTask::StateFinished;
             }
         }
@@ -1233,19 +1233,19 @@ void DeRestPluginPrivate::bindingTimerFired()
                 {
                     if (i->restNode && !i->restNode->isAvailable())
                     {
-                        DBG_Printf(DBG_INFO, "giveup binding srcAddr: %llX (not available)\n", i->binding.srcAddress);
+                        DBG_Printf(DBG_INFO_L2, "giveup binding srcAddr: %llX (not available)\n", i->binding.srcAddress);
                         i->state = BindingTask::StateFinished;
                     }
                     else
                     {
-                        DBG_Printf(DBG_INFO, "binding/unbinding timeout srcAddr: %llX, retry\n", i->binding.srcAddress);
+                        DBG_Printf(DBG_INFO_L2, "binding/unbinding timeout srcAddr: %llX, retry\n", i->binding.srcAddress);
                         i->state = BindingTask::StateIdle;
                         i->timeout = BindingTask::Timeout;
                     }
                 }
                 else
                 {
-                    DBG_Printf(DBG_INFO, "giveup binding srcAddr: %llX\n", i->binding.srcAddress);
+                    DBG_Printf(DBG_INFO_L2, "giveup binding srcAddr: %llX\n", i->binding.srcAddress);
                     i->state = BindingTask::StateFinished;
                 }
             }
@@ -1285,7 +1285,7 @@ void DeRestPluginPrivate::bindingTimerFired()
                     }
                     i->timeout = BindingTask::Timeout;
 
-                    DBG_Printf(DBG_INFO, "%s check timeout, retries = %d (srcAddr: 0x%016llX cluster: 0x%04X)\n",
+                    DBG_Printf(DBG_INFO_L2, "%s check timeout, retries = %d (srcAddr: 0x%016llX cluster: 0x%04X)\n",
                                (i->action == BindingTask::ActionBind ? "bind" : "unbind"), i->retries, i->binding.srcAddress, i->binding.clusterId);
 
                     bindingQueue.push_back(*i);
@@ -1294,8 +1294,8 @@ void DeRestPluginPrivate::bindingTimerFired()
                 }
                 else
                 {
-                    DBG_Printf(DBG_INFO, "giveup binding\n");
-                    DBG_Printf(DBG_INFO, "giveup %s (srcAddr: 0x%016llX cluster: 0x%04X)\n",
+                    DBG_Printf(DBG_INFO_L2, "giveup binding\n");
+                    DBG_Printf(DBG_INFO_L2, "giveup %s (srcAddr: 0x%016llX cluster: 0x%04X)\n",
                                (i->action == BindingTask::ActionBind ? "bind" : "unbind"), i->binding.srcAddress, i->binding.clusterId);
                     i->state = BindingTask::StateFinished;
                 }

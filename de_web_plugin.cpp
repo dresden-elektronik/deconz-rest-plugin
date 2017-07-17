@@ -6505,7 +6505,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
             quint16 ehue;
             quint8 sat;
 
-            DBG_Printf(DBG_INFO, "View scene rsp 0x%016llX group 0x%04X scene 0x%02X\n", lightNode->address().ext(), groupId, sceneId);
+            DBG_Printf(DBG_INFO_L2, "View scene rsp 0x%016llX group 0x%04X scene 0x%02X\n", lightNode->address().ext(), groupId, sceneId);
 
             while (!stream.atEnd())
             {
@@ -6566,7 +6566,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                 }
             }
 
-            DBG_Printf(DBG_INFO, "\t t=%u, on=%u, bri=%u, x=%u, y=%u\n", transitionTime, onOff, bri, x, y);
+            DBG_Printf(DBG_INFO_L2, "\t t=%u, on=%u, bri=%u, x=%u, y=%u\n", transitionTime, onOff, bri, x, y);
 
             if (scene)
             {
@@ -6636,7 +6636,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                         lightState->tVerified.start();
                         queSaveDb(DB_SCENES, DB_LONG_SAVE_DELAY);
 
-                        DBG_Printf(DBG_INFO, "done reading scene scid=%u for %s\n", scene->id, qPrintable(lightNode->name()));
+                        DBG_Printf(DBG_INFO_L2, "done reading scene scid=%u for %s\n", scene->id, qPrintable(lightNode->name()));
                     }
 
                     if (needModify)
@@ -8426,7 +8426,7 @@ void DeRestPlugin::idleTimerFired()
 
                 if (processLights)
                 {
-                    DBG_Printf(DBG_INFO, "Force read attributes for node %s\n", qPrintable(lightNode->name()));
+                    DBG_Printf(DBG_INFO_L2, "Force read attributes for node %s\n", qPrintable(lightNode->name()));
                 }
 
                 // don't query low priority items when OTA is busy
@@ -8442,7 +8442,7 @@ void DeRestPlugin::idleTimerFired()
                             d->queryTime = d->queryTime.addSecs(tSpacing);
                         }
                         lightNode->setLastAttributeReportBind(d->idleTotalCounter);
-                        DBG_Printf(DBG_INFO, "Force binding of attribute reporting for node %s\n", qPrintable(lightNode->name()));
+                        DBG_Printf(DBG_INFO_L2, "Force binding of attribute reporting for node %s\n", qPrintable(lightNode->name()));
                         processLights = true;
                     }
                 }
@@ -8526,7 +8526,7 @@ void DeRestPlugin::idleTimerFired()
                         if (val.timestampLastReport.isValid() &&
                             val.timestampLastReport.secsTo(t) < (60 * 45)) // got update in timely manner
                         {
-                            DBG_Printf(DBG_INFO, "binding for attribute reporting SensorNode %s of cluster 0x%04X seems to be active\n", qPrintable(sensorNode->name()), *ci);
+                            DBG_Printf(DBG_INFO_L2, "binding for attribute reporting SensorNode %s of cluster 0x%04X seems to be active\n", qPrintable(sensorNode->name()), *ci);
                         }
                         else if (!sensorNode->mustRead(READ_BINDING_TABLE))
                         {
@@ -8555,7 +8555,7 @@ void DeRestPlugin::idleTimerFired()
                         }
                     }
 
-                    DBG_Printf(DBG_INFO, "Force read attributes for SensorNode %s\n", qPrintable(sensorNode->name()));
+                    DBG_Printf(DBG_INFO_L2, "Force read attributes for SensorNode %s\n", qPrintable(sensorNode->name()));
                     //break;
                 }
 
@@ -8568,7 +8568,7 @@ void DeRestPlugin::idleTimerFired()
                         sensorNode->setNextReadTime(READ_BINDING_TABLE, d->queryTime);
                         d->queryTime = d->queryTime.addSecs(tSpacing);
                     }
-                    DBG_Printf(DBG_INFO, "Force binding of attribute reporting for node %s\n", qPrintable(sensorNode->name()));
+                    DBG_Printf(DBG_INFO_L2, "Force binding of attribute reporting for node %s\n", qPrintable(sensorNode->name()));
                     processSensors = true;
                 }
             }
