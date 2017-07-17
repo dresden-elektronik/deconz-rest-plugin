@@ -699,144 +699,128 @@ int DeRestPluginPrivate::updateRule(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    std::vector<Rule>::iterator i = rules.begin();
-    std::vector<Rule>::iterator end = rules.end();
-
-    for (; i != end; ++i)
+    // first delete old binding if present then create new binding with updated rule
+    if (map.contains("actions") || map.contains("conditions"))
     {
-        if (i->state() != Rule::StateNormal)
+        rule->setStatus("disabled");
+        queueCheckRuleBindings(*rule);
+    }
+
+    //setName optional
+    if (!name.isEmpty())
+    {
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState[QString("/rules/%1/name").arg(id)] = name;
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+        if (rule->name() != name)
         {
-            continue;
+            changed = true;
+            rule->setName(name);
         }
+    }
 
-        if (i->id() == id)
+    //setStatus optional
+    if (map.contains("status"))
+    {
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState[QString("/rules/%1/status").arg(id)] = status;
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+        if (rule->status() != status)
         {
-            // first delete old binding if present then create new binding with updated rule
-            if (map.contains("actions") || map.contains("conditions"))
-            {
-                i->setStatus("disabled");
-                queueCheckRuleBindings(*i);
-            }
-
-            //setName optional
-            if (!name.isEmpty())
-            {
-                QVariantMap rspItem;
-                QVariantMap rspItemState;
-                rspItemState[QString("/rules/%1/name").arg(id)] = name;
-                rspItem["success"] = rspItemState;
-                rsp.list.append(rspItem);
-                if (i->name() != name)
-                {
-                    changed = true;
-                    i->setName(name);
-                }
-            }
-
-            //setStatus optional
-            if (map.contains("status"))
-            {
-                QVariantMap rspItem;
-                QVariantMap rspItemState;
-                rspItemState[QString("/rules/%1/status").arg(id)] = status;
-                rspItem["success"] = rspItemState;
-                rsp.list.append(rspItem);
-                if (i->status() != status)
-                {
-                    changed = true;
-                    i->setStatus(status);
-                }
-            }
-
-            // periodic optional
-            if (map.contains("periodic"))
-            {
-                if (i->triggerPeriodic() != periodic)
-                {
-                    changed = true;
-                    i->setTriggerPeriodic(periodic);
-                }
-            }
-
-            //setActions optional
-            if (map.contains("actions"))
-            {
-                changed = true;
-                if (checkActions(actionsList,rsp))
-                {
-                    std::vector<RuleAction> actions;
-                    QVariantList::const_iterator ai = actionsList.begin();
-                    QVariantList::const_iterator aend = actionsList.end();
-
-                    for (; ai != aend; ++ai)
-                    {
-                        RuleAction newAction;
-                        newAction.setAddress(ai->toMap()["address"].toString());
-                        newAction.setBody(Json::serialize(ai->toMap()["body"].toMap()));
-                        newAction.setMethod(ai->toMap()["method"].toString());
-                        actions.push_back(newAction);
-                    }
-                    i->setActions(actions);
-
-                    QVariantMap rspItem;
-                    QVariantMap rspItemState;
-                    rspItemState[QString("/rules/%1/actions").arg(id)] = actionsList;
-                    rspItem["success"] = rspItemState;
-                    rsp.list.append(rspItem);
-                }
-                else
-                {
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-            }
-
-            //setConditions optional
-            if (map.contains("conditions"))
-            {
-                changed = true;
-                if (checkConditions(conditionsList, rsp))
-                {
-                    std::vector<RuleCondition> conditions;
-                    QVariantList::const_iterator ci = conditionsList.begin();
-                    QVariantList::const_iterator cend = conditionsList.end();
-
-                    for (; ci != cend; ++ci)
-                    {
-                        RuleCondition cond(ci->toMap());
-                        conditions.push_back(cond);
-                    }
-                    i->setConditions(conditions);
-
-                    QVariantMap rspItem;
-                    QVariantMap rspItemState;
-                    rspItemState[QString("/rules/%1/conditions").arg(id)] = conditionsList;
-                    rspItem["success"] = rspItemState;
-                    rsp.list.append(rspItem);
-                }
-                else
-                {
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-            }
-
-            if (!map.contains("status"))
-            {
-                i->setStatus("enabled");
-            }
-            DBG_Printf(DBG_INFO, "force verify of rule %s: %s\n", qPrintable(i->id()), qPrintable(i->name()));
-            i->lastBindingVerify = 0;
-
-            if (changed)
-            {
-                updateEtag(i->etag);
-                updateEtag(gwConfigEtag);
-                queSaveDb(DB_RULES, DB_SHORT_SAVE_DELAY);
-            }
-
-            break;
+            changed = true;
+            rule->setStatus(status);
         }
+    }
+
+    // periodic optional
+    if (map.contains("periodic"))
+    {
+        if (rule->triggerPeriodic() != periodic)
+        {
+            changed = true;
+            rule->setTriggerPeriodic(periodic);
+        }
+    }
+
+    //setActions optional
+    if (map.contains("actions"))
+    {
+        changed = true;
+        if (checkActions(actionsList,rsp))
+        {
+            std::vector<RuleAction> actions;
+            QVariantList::const_iterator ai = actionsList.begin();
+            QVariantList::const_iterator aend = actionsList.end();
+
+            for (; ai != aend; ++ai)
+            {
+                RuleAction newAction;
+                newAction.setAddress(ai->toMap()["address"].toString());
+                newAction.setBody(Json::serialize(ai->toMap()["body"].toMap()));
+                newAction.setMethod(ai->toMap()["method"].toString());
+                actions.push_back(newAction);
+            }
+            rule->setActions(actions);
+
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/rules/%1/actions").arg(id)] = actionsList;
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+        }
+        else
+        {
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+    }
+
+    //setConditions optional
+    if (map.contains("conditions"))
+    {
+        changed = true;
+        if (checkConditions(conditionsList, rsp))
+        {
+            std::vector<RuleCondition> conditions;
+            QVariantList::const_iterator ci = conditionsList.begin();
+            QVariantList::const_iterator cend = conditionsList.end();
+
+            for (; ci != cend; ++ci)
+            {
+                RuleCondition cond(ci->toMap());
+                conditions.push_back(cond);
+            }
+            rule->setConditions(conditions);
+
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/rules/%1/conditions").arg(id)] = conditionsList;
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+        }
+        else
+        {
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+    }
+
+    if (!map.contains("status"))
+    {
+        rule->setStatus("enabled");
+    }
+    DBG_Printf(DBG_INFO, "force verify of rule %s: %s\n", qPrintable(rule->id()), qPrintable(rule->name()));
+    rule->lastBindingVerify = 0;
+
+    if (changed)
+    {
+        updateEtag(rule->etag);
+        updateEtag(gwConfigEtag);
+        queSaveDb(DB_RULES, DB_SHORT_SAVE_DELAY);
     }
 
     return REQ_READY_SEND;
@@ -1290,8 +1274,12 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
             }
             else
             {
-                // ignore resource set after startup
-                return;
+                Sensor *sensor = getSensorNodeForId(c->id());
+                if (sensor && !sensor->type().startsWith(QLatin1String("CLIP")))
+                {
+                    // ignore resource set after startup
+                    return;
+                }
             }
         }
 
