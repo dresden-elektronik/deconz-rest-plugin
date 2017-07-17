@@ -1989,7 +1989,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
 
                 a.setAddress(QString("/groups/%1/action").arg(ind.dstAddress().group()));
                 a.setMethod(QLatin1String("PUT"));
-                a.setBody("{\"ct_inc\": -90, \"transitiontime\":4}");
+                a.setBody("{\"ct_inc\": -32, \"transitiontime\":4}");
                 r.setActions({a});
 
                 rules.push_back(r);
@@ -2020,7 +2020,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
 
                 //a.setAddress(QString("/groups/%1/action").arg(ind.dstAddress().group()));
                 //a.setMethod(QLatin1String("PUT"));
-                a.setBody("{\"ct_inc\": 90, \"transitiontime\":4}");
+                a.setBody("{\"ct_inc\": 32, \"transitiontime\":4}");
                 r.setActions({a});
 
                 rules.push_back(r);
