@@ -1890,7 +1890,9 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
                 }
             }
         }
-        else if (ind.srcEndpoint() == 0x01 && ind.clusterId() == SCENE_CLUSTER_ID && zclFrame.commandId() == 0x09 && zclFrame.manufacturerCode() == VENDOR_IKEA)
+        //else if (ind.srcEndpoint() == 0x01 && ind.clusterId() == SCENE_CLUSTER_ID && zclFrame.commandId() == 0x09 && zclFrame.manufacturerCode() == VENDOR_IKEA)
+        else if (ind.srcEndpoint() == 0x01 && ind.clusterId() == SCENE_CLUSTER_ID  && zclFrame.manufacturerCode() == VENDOR_IKEA &&
+                 zclFrame.commandId() == 0x07 && zclFrame.payload().at(0) == 0x02)
         {
             DBG_Printf(DBG_INFO, "ikea remote setup button\n");
 
@@ -1911,6 +1913,11 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
             for (; ri != rend; ++ri)
             {
                 if (ri->state() != Rule::StateNormal)
+                {
+                    continue;
+                }
+
+                if (ri->status() != QLatin1String("enabled"))
                 {
                     continue;
                 }
@@ -1982,7 +1989,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
 
                 a.setAddress(QString("/groups/%1/action").arg(ind.dstAddress().group()));
                 a.setMethod(QLatin1String("PUT"));
-                a.setBody("{\"ct_inc\": -64, \"transitiontime\":6}");
+                a.setBody("{\"ct_inc\": -90, \"transitiontime\":4}");
                 r.setActions({a});
 
                 rules.push_back(r);
@@ -2013,7 +2020,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
 
                 //a.setAddress(QString("/groups/%1/action").arg(ind.dstAddress().group()));
                 //a.setMethod(QLatin1String("PUT"));
-                a.setBody("{\"ct_inc\": 64, \"transitiontime\":6}");
+                a.setBody("{\"ct_inc\": 90, \"transitiontime\":4}");
                 r.setActions({a});
 
                 rules.push_back(r);
