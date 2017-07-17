@@ -7392,7 +7392,7 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
         // clip, TODO use phys. min. max. values from lights
         if (modCt < 153) { modCt = 153; }
         else if (modCt > 500) { modCt = 500; }
-        if (group->colorTemperature = modCt)
+        if (group->colorTemperature == modCt)
         {
             group->colorTemperature = modCt;
             updateGroupEtag(group);
