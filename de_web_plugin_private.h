@@ -563,6 +563,7 @@ public:
 
     // REST API userparameter
     int handleUserparameterApi(const ApiRequest &req, ApiResponse &rsp);
+    int createUserParameter(const ApiRequest &req, ApiResponse &rsp);
     int addUserParameter(const ApiRequest &req, ApiResponse &rsp);
     int modifyUserParameter(const ApiRequest &req, ApiResponse &rsp);
     int getUserParameter(const ApiRequest &req, ApiResponse &rsp);

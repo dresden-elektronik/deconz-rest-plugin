@@ -27,32 +27,83 @@
  */
 int DeRestPluginPrivate::handleUserparameterApi(const ApiRequest &req, ApiResponse &rsp)
 {
+    if (req.path[2] != QLatin1String("userparameter"))
+    {
+        return REQ_NOT_HANDLED;
+    }
+
+    // POST /api/<apikey>/userparameter/
+    if ((req.path.size() == 3) && (req.hdr.method() == "POST"))
+    {
+        return createUserParameter(req, rsp);
+    }
     // POST /api/<apikey>/userparameter/<parameter>
-    if ((req.path.size() == 4) && (req.hdr.method() == "POST") && (req.path[2] == "userparameter"))
+    else if ((req.path.size() == 4) && (req.hdr.method() == "POST"))
     {
         return addUserParameter(req, rsp);
     }
     // PUT /api/<apikey>/userparameter/<parameter>
-    else if ((req.path.size() == 4) && (req.hdr.method() == "PUT") && (req.path[2] == "userparameter"))
+    else if ((req.path.size() == 4) && (req.hdr.method() == "PUT"))
     {
         return modifyUserParameter(req, rsp);
     }
     // GET /api/<apikey>/userparameter
-    else if ((req.path.size() == 3) && (req.hdr.method() == "GET") && (req.path[2] == "userparameter"))
+    else if ((req.path.size() == 3) && (req.hdr.method() == "GET"))
     {
         return getAllUserParameter(req, rsp);
     }
     // GET /api/<apikey>/userparameter/<parameter>
-    else if ((req.path.size() == 4) && (req.hdr.method() == "GET") && (req.path[2] == "userparameter"))
+    else if ((req.path.size() == 4) && (req.hdr.method() == "GET"))
     {
         return getUserParameter(req, rsp);
     }
     // DELETE /api/<apikey>/userparameter/<parameter>
-    else if ((req.path.size() == 4) && (req.hdr.method() == "DELETE") && (req.path[2] == "userparameter"))
+    else if ((req.path.size() == 4) && (req.hdr.method() == "DELETE"))
     {
         return deleteUserParameter(req, rsp);
     }
     return REQ_NOT_HANDLED;
+}
+
+/*! POST /api/<apikey>/userparameter
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::createUserParameter(const ApiRequest &req, ApiResponse &rsp)
+{
+    if(!checkApikeyAuthentification(req, rsp))
+    {
+        return REQ_READY_SEND;
+    }
+
+    if (req.content.isEmpty())
+    {
+        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/userparameter"), QString("invalid value for userparameter")));
+        rsp.httpStatus = HttpStatusBadRequest;
+        return REQ_READY_SEND;
+    }
+
+    rsp.httpStatus = HttpStatusOk;
+
+    // generate id
+    int i = 1;
+    while (gwUserParameter.contains(QString::number(i)))
+    {
+        i++;
+    }
+
+    QString id = QString::number(i);
+
+    QVariantMap rspItem;
+    QVariantMap rspItemState;
+
+    gwUserParameter.insert(id, req.content);
+    rspItemState["id"] = id;
+    rspItem["success"] = rspItemState;
+    rsp.list.append(rspItem);
+
+    queSaveDb(DB_USERPARAM, DB_SHORT_SAVE_DELAY);
+    return REQ_READY_SEND;
 }
 
 /*! POST /api/<apikey>/userparameter/<parameter>
@@ -167,13 +218,11 @@ int DeRestPluginPrivate::getAllUserParameter(const ApiRequest &req, ApiResponse 
     rsp.httpStatus = HttpStatusOk;
 
     QVariantMap::const_iterator k = gwUserParameter.begin();
-    QVariantMap::const_iterator k_end = gwUserParameter.end();
+    QVariantMap::const_iterator kend = gwUserParameter.end();
 
-    int i = 0;
-    for (; k != k_end; ++k)
+    for (; k != kend; ++k)
     {
-        rsp.map[QString("key %1").arg(i)] = k.key();
-        i++;
+        rsp.map[k.key()] = gwUserParameter.value(k.key());
     }
 
     if (rsp.map.isEmpty())
