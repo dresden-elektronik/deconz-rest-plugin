@@ -493,9 +493,6 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
         rsp.list.append(rspItem);
         rsp.httpStatus = HttpStatusOk;
         return REQ_READY_SEND;
-
-
-    return REQ_READY_SEND;
 }
 
 /*! PUT, PATCH /api/<apikey>/sensors/<id>
