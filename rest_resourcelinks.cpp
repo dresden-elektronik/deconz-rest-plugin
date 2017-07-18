@@ -74,13 +74,18 @@ int DeRestPluginPrivate::getAllResourcelinks(ApiRequest &req, ApiResponse &rsp)
     Q_UNUSED(req);
     for (const Resourcelinks &rl : resourcelinks)
     {
-        rsp.map[rl.id] = rl.data;
+        if (rl.state == Resourcelinks::StateNormal)
+        {
+            rsp.map[rl.id] = rl.data;
+        }
     }
 
     if (resourcelinks.empty())
     {
         rsp.str = "{}"; // empty
     }
+
+    rsp.httpStatus = HttpStatusOk;
 
     return REQ_READY_SEND;
 }
