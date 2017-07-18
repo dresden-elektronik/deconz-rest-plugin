@@ -31,6 +31,7 @@
 #include "group_info.h"
 #include "scene.h"
 #include "sensor.h"
+#include "resourcelinks.h"
 #include "rule.h"
 #include "bindings.h"
 #include <math.h>
@@ -221,16 +222,17 @@
 #define SCHEDULE_CHECK_PERIOD 1000
 
 // save database items
-#define DB_LIGHTS      0x00000001
-#define DB_GROUPS      0x00000002
-#define DB_AUTH        0x00000004
-#define DB_CONFIG      0x00000008
-#define DB_SCENES      0x00000010
-#define DB_SCHEDULES   0x00000020
-#define DB_RULES       0x00000040
-#define DB_SENSORS     0x00000080
-#define DB_USERPARAM   0x00000100
-#define DB_GATEWAYS    0x00000200
+#define DB_LIGHTS         0x00000001
+#define DB_GROUPS         0x00000002
+#define DB_AUTH           0x00000004
+#define DB_CONFIG         0x00000008
+#define DB_SCENES         0x00000010
+#define DB_SCHEDULES      0x00000020
+#define DB_RULES          0x00000040
+#define DB_SENSORS        0x00000080
+#define DB_USERPARAM      0x00000100
+#define DB_GATEWAYS       0x00000200
+#define DB_RESOURCELINKS  0x00000400
 
 #define DB_HUGE_SAVE_DELAY  (60 * 60 * 1000) // 60 minutes
 #define DB_LONG_SAVE_DELAY  (15 * 60 * 1000) // 15 minutes
@@ -640,6 +642,14 @@ public:
     bool sensorToMap(const Sensor *sensor, QVariantMap &map);
     void handleSensorEvent(const Event &e);
 
+    // REST API resourcelinks
+    int handleResourcelinksApi(ApiRequest &req, ApiResponse &rsp);
+    int getAllResourcelinks(ApiRequest &req, ApiResponse &rsp);
+    int getResourcelinks(ApiRequest &req, ApiResponse &rsp);
+    int createResourcelinks(ApiRequest &req, ApiResponse &rsp);
+    int updateResourcelinks(ApiRequest &req, ApiResponse &rsp);
+    int deleteResourcelinks(ApiRequest &req, ApiResponse &rsp);
+
     // REST API rules
     int handleRulesApi(const ApiRequest &req, ApiResponse &rsp);
     int getAllRules(const ApiRequest &req, ApiResponse &rsp);
@@ -937,6 +947,7 @@ public:
     void loadConfigFromDb();
     void loadUserparameterFromDb();
     void loadAllGroupsFromDb();
+    void loadAllResourcelinksFromDb();
     void loadAllScenesFromDb();
     void loadAllSchedulesFromDb();
     void loadLightNodeFromDb(LightNode *lightNode);
@@ -1226,6 +1237,9 @@ public:
         int idleTotalCounterCopy;
     };
     std::vector<RecoverOnOff> recoverOnOff;
+
+    // resourcelinks
+    std::vector<Resourcelinks> resourcelinks;
 
     // rules
 

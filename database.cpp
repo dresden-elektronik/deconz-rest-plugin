@@ -26,6 +26,7 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
 static int sqliteLoadUserparameterCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteLoadLightNodeCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteLoadAllGroupsCallback(void *user, int ncols, char **colval , char **colname);
+static int sqliteLoadAllResourcelinksCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteLoadGroupCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteLoadAllScenesCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteLoadSceneCallback(void *user, int ncols, char **colval , char **colname);
@@ -70,6 +71,7 @@ void DeRestPluginPrivate::initDb()
         "ALTER TABLE auth add column lastusedate TEXT",
         "ALTER TABLE auth add column useragent TEXT",
         "CREATE TABLE IF NOT EXISTS groups (gid TEXT PRIMARY KEY, name TEXT, state TEXT, mids TEXT, devicemembership TEXT, lightsequence TEXT, hidden TEXT)",
+        "CREATE TABLE IF NOT EXISTS resourcelinks (id TEXT PRIMARY KEY, json TEXT)",
         "CREATE TABLE IF NOT EXISTS rules (rid TEXT PRIMARY KEY, name TEXT, created TEXT, etag TEXT, lasttriggered TEXT, owner TEXT, status TEXT, timestriggered TEXT, actions TEXT, conditions TEXT, periodic TEXT)",
         "CREATE TABLE IF NOT EXISTS sensors (sid TEXT PRIMARY KEY, name TEXT, type TEXT, modelid TEXT, manufacturername TEXT, uniqueid TEXT, swversion TEXT, state TEXT, config TEXT, fingerprint TEXT, deletedState TEXT, mode TEXT)",
         "CREATE TABLE IF NOT EXISTS scenes (gsid TEXT PRIMARY KEY, gid TEXT, sid TEXT, name TEXT, transitiontime TEXT, lights TEXT)",
@@ -126,6 +128,7 @@ void DeRestPluginPrivate::clearDb()
         "DELETE FROM userparameter",
         "DELETE FROM nodes",
         "DELETE FROM groups",
+        "DELETE FROM resourcelinks",
         "DELETE FROM rules",
         "DELETE FROM sensors",
         "DELETE FROM scenes",
@@ -188,6 +191,7 @@ void DeRestPluginPrivate::readDb()
     loadConfigFromDb();
     loadUserparameterFromDb();
     loadAllGroupsFromDb();
+    loadAllResourcelinksFromDb();
     loadAllScenesFromDb();
     loadAllRulesFromDb();
     loadAllSchedulesFromDb();
@@ -747,6 +751,98 @@ void DeRestPluginPrivate::loadAllGroupsFromDb()
 
     DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
     rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadAllGroupsCallback, this, &errmsg);
+
+    if (rc != SQLITE_OK)
+    {
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR_L2, "sqlite3_exec %s, error: %s\n", qPrintable(sql), errmsg);
+            sqlite3_free(errmsg);
+        }
+    }
+}
+
+/*! Sqlite callback to load data for all resourcelinks.
+
+    Resourcelinks will only be added to cache if not already known.
+ */
+static int sqliteLoadAllResourcelinksCallback(void *user, int ncols, char **colval , char **colname)
+{
+    DBG_Assert(user != 0);
+
+    if (!user || (ncols <= 0))
+    {
+        return 0;
+    }
+
+    Resourcelinks rl;
+    DeRestPluginPrivate *d = static_cast<DeRestPluginPrivate*>(user);
+
+    for (int i = 0; i < ncols; i++)
+    {
+        if (colval[i] && (colval[i][0] != '\0'))
+        {
+            QString val = QString::fromUtf8(colval[i]);
+
+            DBG_Printf(DBG_INFO_L2, "Sqlite schedule: %s = %s\n", colname[i], qPrintable(val));
+
+
+            if (strcmp(colname[i], "id") == 0)
+            {
+                rl.id = val;
+
+                if (rl.id.isEmpty())
+                {
+                    DBG_Printf(DBG_INFO, "Error resourcelink in DB has no valid id: %s\n", colval[i]);
+                    return 0;
+                }
+            }
+            else if (strcmp(colname[i], "json") == 0)
+            {
+                bool ok;
+                rl.data = Json::parse(val, ok).toMap();
+
+                if (!ok)
+                {
+                    DBG_Printf(DBG_INFO, "Error resourcelink in DB has no valid json string: %s\n", colval[i]);
+                    return 0;
+                }
+            }
+        }
+    }
+
+    for (const Resourcelinks &r : d->resourcelinks)
+    {
+        if (r.id == rl.id)
+        {
+            // already exist in cache
+            return 0;
+        }
+    }
+
+    d->resourcelinks.push_back(rl);
+
+    return 0;
+}
+
+/*! Loads all resourcelinks from database.
+ */
+void DeRestPluginPrivate::loadAllResourcelinksFromDb()
+{
+    int rc;
+    char *errmsg = 0;
+
+    DBG_Assert(db != 0);
+
+    if (!db)
+    {
+        return;
+    }
+
+    QString sql = QString("SELECT * FROM resourcelinks");
+
+    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+    rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadAllResourcelinksCallback, this, &errmsg);
 
     if (rc != SQLITE_OK)
     {
@@ -2594,6 +2690,60 @@ void DeRestPluginPrivate::saveDb()
         }
 
         saveDatabaseItems &= ~DB_RULES;
+    }
+
+    // save/delete resourcelinks
+    if (saveDatabaseItems & DB_RESOURCELINKS)
+    {
+        for (Resourcelinks &rl : resourcelinks)
+        {
+            if (!rl.needSaveDatabase())
+            {
+                continue;
+            }
+
+            rl.setNeedSaveDatabase(false);
+
+            if (rl.state == Resourcelinks::StateNormal)
+            {
+                QString json = Json::serialize(rl.data);
+                QString sql = QString(QLatin1String("REPLACE INTO resourcelinks (id, json) VALUES ('%1', '%2')"))
+                        .arg(rl.id)
+                        .arg(json);
+
+                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+                errmsg = NULL;
+                rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
+
+                if (rc != SQLITE_OK)
+                {
+                    if (errmsg)
+                    {
+                        DBG_Printf(DBG_ERROR, "sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                        sqlite3_free(errmsg);
+                    }
+                }
+            }
+            else if (rl.state == Resourcelinks::StateDeleted)
+            {
+                QString sql = QString(QLatin1String("DELETE FROM resourcelinks WHERE id='%1'")).arg(rl.id);
+
+                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+                errmsg = NULL;
+                rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
+
+                if (rc != SQLITE_OK)
+                {
+                    if (errmsg)
+                    {
+                        DBG_Printf(DBG_ERROR, "sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                        sqlite3_free(errmsg);
+                    }
+                }
+            }
+        }
+
+        saveDatabaseItems &= ~DB_RESOURCELINKS;
     }
 
     // save/delete schedules

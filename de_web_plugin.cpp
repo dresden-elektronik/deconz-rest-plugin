@@ -8833,6 +8833,7 @@ bool DeRestPlugin::isHttpTarget(const QHttpRequestHeader &hdr)
                 (ls[2] == QLatin1String("schedules")) ||
                 (ls[2] == QLatin1String("sensors")) ||
                 (ls[2] == QLatin1String("touchlink")) ||
+                (ls[2] == QLatin1String("resourcelinks")) ||
                 (ls[2] == QLatin1String("rules")) ||
                 (ls[2] == QLatin1String("userparameter")) ||
                 (ls[2] == QLatin1String("gateways")) ||
@@ -9000,6 +9001,10 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         else if (path[2] == QLatin1String("sensors"))
         {
             ret = d->handleSensorsApi(req, rsp);
+        }
+        else if (path[2] == QLatin1String("resourcelinks"))
+        {
+            ret = d->handleResourcelinksApi(req, rsp);
         }
         else if (path[2] == QLatin1String("rules"))
         {
