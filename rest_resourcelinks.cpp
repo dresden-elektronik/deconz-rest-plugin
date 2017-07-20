@@ -313,7 +313,7 @@ int DeRestPluginPrivate::updateResourcelinks(ApiRequest &req, ApiResponse &rsp)
         rl->data[param] = map[param];
         QVariantMap rspItemState;
         QVariantMap rspItem;
-        rspItemState[QString("/resourcelinks/%1/%2").arg(id).arg(param)] = map[param].toString();
+        rspItemState[QString("/resourcelinks/%1/%2").arg(id).arg(param)] = map[param];
         rspItem["success"] = rspItemState;
         rsp.list.push_back(rspItem);
     }
