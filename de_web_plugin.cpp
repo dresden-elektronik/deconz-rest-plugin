@@ -2636,8 +2636,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
 /*! Updates  SensorNode fingerprint if needed.
     \param node - holds up to date data
     \param endpoint - related endpoint
+    \param sensorNOde - optional sensor filter, might be 0
  */
-void DeRestPluginPrivate::checkUpdatedFingerPrint(const deCONZ::Node *node, quint8 endpoint)
+void DeRestPluginPrivate::checkUpdatedFingerPrint(const deCONZ::Node *node, quint8 endpoint, Sensor *sensorNode)
 {
     if (!node)
     {
@@ -2655,6 +2656,11 @@ void DeRestPluginPrivate::checkUpdatedFingerPrint(const deCONZ::Node *node, quin
 
     for (; i != end; ++i)
     {
+        if (sensorNode && &*i != sensorNode)
+        {
+            continue;
+        }
+
         if (i->address().ext() != node->address().ext())
         {
             continue;
@@ -2701,10 +2707,12 @@ void DeRestPluginPrivate::checkUpdatedFingerPrint(const deCONZ::Node *node, quin
 
             DBG_Printf(DBG_INFO, "change 0x%016llX finger print ep: 0x%02X --> 0x%02X\n", i->address().ext(), fp.endpoint, endpoint);
 
-            fp.endpoint = endpoint;
+            fp.endpoint = sd.endpoint();
+            fp.profileId = sd.profileId();
+
             i->setUniqueId(generateUniqueId(i->address().ext(), fp.endpoint, clusterId));
             i->setNeedSaveDatabase(true);
-            queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
+            queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
         }
     }
 }
@@ -5629,7 +5637,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
     {
         addLightNode(event.node());
         addSensorNode(event.node());
-        checkUpdatedFingerPrint(event.node(), event.endpoint());
+        checkUpdatedFingerPrint(event.node(), event.endpoint(), 0);
     }
         break;
 
@@ -8462,6 +8470,19 @@ void DeRestPlugin::idleTimerFired()
             {
                 Sensor *sensorNode = &d->sensors[d->sensorIter];
                 d->sensorIter++;
+
+                if (sensorNode->node())
+                {
+                    sensorNode->fingerPrint().checkCounter++;
+                    if (sensorNode->fingerPrint().checkCounter > SENSOR_CHECK_COUNTER_INIT)
+                    {
+                        sensorNode->fingerPrint().checkCounter = 0;
+                        for (quint8 ep : sensorNode->node()->endpoints())
+                        {
+                            d->checkUpdatedFingerPrint(sensorNode->node(), ep, sensorNode);
+                        }
+                    }
+                }
 
                 if (!sensorNode->isAvailable())
                 {

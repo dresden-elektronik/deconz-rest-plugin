@@ -19,7 +19,7 @@
 
 // Sensor State
 #define INVALID_ENDPOINT 0xff
-
+#define SENSOR_CHECK_COUNTER_INIT 10
 #define S_BUTTON_ACTION_INITIAL_PRESS  0
 #define S_BUTTON_ACTION_HOLD           1
 #define S_BUTTON_ACTION_SHORT_RELEASED 2
@@ -36,7 +36,7 @@
 
 struct SensorFingerprint
 {
-    SensorFingerprint() : endpoint(INVALID_ENDPOINT), profileId(0xffff), deviceId(0xffff) {}
+    SensorFingerprint() : checkCounter(0), endpoint(INVALID_ENDPOINT), profileId(0xffff), deviceId(0xffff) {}
     bool operator==(const SensorFingerprint &rhs) const
     {
         return (endpoint == rhs.endpoint &&
@@ -50,6 +50,7 @@ struct SensorFingerprint
     bool hasEndpoint() const { return endpoint != 0xFF; }
     bool hasInCluster(quint16 clusterId) const;
     bool hasOutCluster(quint16 clusterId) const;
+    int checkCounter;
     quint8 endpoint;
     quint16 profileId;
     quint16 deviceId;
