@@ -1074,7 +1074,15 @@ static int sqliteLoadLightNodeCallback(void *user, int ncols, char **colval , ch
         {
             QString val = QString::fromUtf8(colval[i]);
 
-            if (strcmp(colname[i], "endpoint") == 0)
+            if (strcmp(colname[i], "mac") == 0)
+            {
+                if (val != lightNode->uniqueId())
+                {
+                    // force update and cleanup of light node db entry
+                    lightNode->setNeedSaveDatabase(true);
+                }
+            }
+            else if (strcmp(colname[i], "endpoint") == 0)
             {
                 bool ok;
                 uint endpoint = val.toUInt(&ok);
@@ -1248,8 +1256,13 @@ void DeRestPluginPrivate::loadLightNodeFromDb(LightNode *lightNode)
 
         if (!lightNode->id().isEmpty())
         {
-            queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
+            lightNode->setNeedSaveDatabase(true);
         }
+    }
+
+    if (lightNode->needSaveDatabase())
+    {
+        queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
     }
 
     // check for unique IDs
@@ -2480,6 +2493,21 @@ void DeRestPluginPrivate::saveDb()
 
 
             DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+            errmsg = NULL;
+            rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
+
+            if (rc != SQLITE_OK)
+            {
+                if (errmsg)
+                {
+                    DBG_Printf(DBG_ERROR, "sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                    sqlite3_free(errmsg);
+                }
+            }
+
+            // delete old LightNode with upper case unique id from db (if exist)
+            sql = QString("DELETE FROM nodes WHERE mac='%1'").arg(i->uniqueId().toUpper());
+
             errmsg = NULL;
             rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
