@@ -2710,6 +2710,7 @@ void DeRestPluginPrivate::checkUpdatedFingerPrint(const deCONZ::Node *node, quin
             fp.endpoint = sd.endpoint();
             fp.profileId = sd.profileId();
 
+            updateSensorEtag(&*i);
             i->setUniqueId(generateUniqueId(i->address().ext(), fp.endpoint, clusterId));
             i->setNeedSaveDatabase(true);
             queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
@@ -8471,6 +8472,16 @@ void DeRestPlugin::idleTimerFired()
                 Sensor *sensorNode = &d->sensors[d->sensorIter];
                 d->sensorIter++;
 
+                if (!sensorNode->node())
+                {
+                    deCONZ::Node *node = d->getNodeForAddress(sensorNode->address().ext());
+                    if (node)
+                    {
+                        sensorNode->setNode(node);
+                        sensorNode->fingerPrint().checkCounter = SENSOR_CHECK_COUNTER_INIT; // force check
+                    }
+                }
+
                 if (sensorNode->node())
                 {
                     sensorNode->fingerPrint().checkCounter++;
@@ -8481,6 +8492,7 @@ void DeRestPlugin::idleTimerFired()
                         {
                             d->checkUpdatedFingerPrint(sensorNode->node(), ep, sensorNode);
                         }
+                        d->checkSensorNodeReachable(sensorNode);
                     }
                 }
 
