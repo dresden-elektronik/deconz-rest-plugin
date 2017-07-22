@@ -40,6 +40,7 @@ const char *RStateLightLevel = "state/lightlevel";
 const char *RStateLux = "state/lux";
 const char *RStateTemperature = "state/temperature";
 const char *RStateHumidity = "state/humidity";
+const char *RStatePressure = "state/pressure";
 const char *RStateFlag = "state/flag";
 const char *RStateReachable = "state/reachable";
 const char *RStateSat = "state/sat";
@@ -87,6 +88,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, RStateLux));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt32, RStateTemperature));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt32, RStateHumidity));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt32, RStatePressure));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateReachable));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RStateSat));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt32, RStateStatus));

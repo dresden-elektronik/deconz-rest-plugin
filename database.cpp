@@ -1719,6 +1719,15 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeInt32, RStateHumidity);
             item->setValue(0);
         }
+        else if (sensor.type().endsWith(QLatin1String("Pressure")))
+        {
+            if (sensor.fingerPrint().hasInCluster(PRESSURE_MEASUREMENT_CLUSTER_ID))
+            {
+                clusterId = PRESSURE_MEASUREMENT_CLUSTER_ID;
+            }
+            item = sensor.addItem(DataTypeInt32, RStatePressure);
+            item->setValue(0);
+        }
         else if (sensor.type().endsWith(QLatin1String("Presence")))
         {
             if (sensor.fingerPrint().hasInCluster(OCCUPANCY_SENSING_CLUSTER_ID))

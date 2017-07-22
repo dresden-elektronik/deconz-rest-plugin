@@ -54,6 +54,7 @@ extern const char *RStateLightLevel;
 extern const char *RStateLux;
 extern const char *RStateTemperature;
 extern const char *RStateHumidity;
+extern const char *RStatePressure;
 extern const char *RStateFlag;
 extern const char *RStateReachable;
 extern const char *RStateSat;

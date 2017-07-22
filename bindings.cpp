@@ -544,6 +544,14 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         maxInterval = 300;
         reportableChange16bit = 20;
     }
+    else if (bt.binding.clusterId == PRESSURE_MEASUREMENT_CLUSTER_ID)
+    {
+        dataType = deCONZ::Zcl16BitUint;
+        attributeId = 0x0000; // measured value
+        minInterval = 10;
+        maxInterval = 300;
+        reportableChange16bit = 20;
+    }
     else if (bt.binding.clusterId == POWER_CONFIGURATION_CLUSTER_ID)
     {
         dataType = deCONZ::Zcl8BitUint;
@@ -767,6 +775,10 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         {
             val = sensor->getZclValue(*i, 0x0000); // measured value
         }
+        else if (*i == PRESSURE_MEASUREMENT_CLUSTER_ID)
+        {
+            val = sensor->getZclValue(*i, 0x0000); // measured value
+        }
         else if (*i == OCCUPANCY_SENSING_CLUSTER_ID)
         {
             val = sensor->getZclValue(*i, 0x0000); // occupied state
@@ -817,6 +829,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         case ILLUMINANCE_MEASUREMENT_CLUSTER_ID:
         case TEMPERATURE_MEASUREMENT_CLUSTER_ID:
         case RELATIVE_HUMIDITY_CLUSTER_ID:
+        case PRESSURE_MEASUREMENT_CLUSTER_ID:
         case VENDOR_CLUSTER_ID:
         {
             DBG_Printf(DBG_INFO_L2, "0x%016llX (%s) create binding for attribute reporting of cluster 0x%04X on endpoint 0x%02X\n",
