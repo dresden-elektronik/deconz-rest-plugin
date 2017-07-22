@@ -63,12 +63,12 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_BUSCH_JAEGER, "RB01" },
     { VENDOR_BUSCH_JAEGER, "RM01" },
     { VENDOR_CENTRALITE, "Motion Sensor-A" },
-    { VENDOR_CLIMAX, "LM_" },
-    { VENDOR_CLIMAX, "LMHT_" },
-    { VENDOR_CLIMAX, "IR_" },
-    { VENDOR_CLIMAX, "DC_" },
-    { VENDOR_CLIMAX, "OJB-IR715-Z" },
-    { VENDOR_CLIMAX, "902010/21A" }, // Bitron: door/window sensor
+    { VENDOR_NONE, "LM_" },
+    { VENDOR_NONE, "LMHT_" },
+    { VENDOR_NONE, "IR_" },
+    { VENDOR_NONE, "DC_" },
+    { VENDOR_NONE, "OJB-IR715-Z" },
+    { VENDOR_NONE, "902010/21A" }, // Bitron: door/window sensor
     { VENDOR_DDEL, "Lighting Switch" },
     { VENDOR_DDEL, "Scene Switch" },
     { VENDOR_DDEL, "FLS-NB1" },

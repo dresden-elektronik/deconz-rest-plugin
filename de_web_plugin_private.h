@@ -183,7 +183,7 @@
 #define VENDOR_UBISYS   0x10F2
 #define VENDOR_BUSCH_JAEGER 0x112E
 #define VENDOR_BEGA 0x1105
-#define VENDOR_CLIMAX   0x0000
+#define VENDOR_NONE   0x0000
 
 #define ANNOUNCE_INTERVAL 10 // minutes default announce interval
 
