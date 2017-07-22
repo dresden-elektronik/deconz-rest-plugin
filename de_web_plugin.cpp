@@ -85,6 +85,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_PHILIPS, "SML001" },
     { VENDOR_LUMI, "lumi.sensor_ht" },
     { VENDOR_LUMI, "lumi.sens" },
+    { VENDOR_LUMI, "lumi.weather" },
     { 0, 0 }
 };
 
@@ -2101,6 +2102,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
         SensorFingerprint fpPresenceSensor;
         SensorFingerprint fpTemperatureSensor;
         SensorFingerprint fpHumiditySensor;
+        SensorFingerprint fpPressureSensor;
 
         {   // scan client clusters of endpoint
             QList<deCONZ::ZclCluster>::const_iterator ci = i->outClusters().constBegin();
@@ -2232,6 +2234,12 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                 }
                     break;
 
+                case PRESSURE_MEASUREMENT_CLUSTER_ID:
+                {
+                    fpPressureSensor.inClusters.push_back(ci->id());
+                }
+                    break;
+
                 default:
                     break;
                 }
@@ -2343,6 +2351,23 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                 checkSensorNodeReachable(sensor);
             }
         }
+        // ZHAPressure
+        if (fpPressureSensor.hasInCluster(PRESSURE_MEASUREMENT_CLUSTER_ID))
+        {
+            fpPressureSensor.endpoint = i->endpoint();
+            fpPressureSensor.deviceId = i->deviceId();
+            fpPressureSensor.profileId = i->profileId();
+
+            sensor = getSensorNodeForFingerPrint(node->address().ext(), fpPressureSensor, "ZHAPressure");
+            if (!sensor || sensor->deletedState() != Sensor::StateNormal)
+            {
+                addSensorNode(node, fpPressureSensor, "ZHAPressure", modelId);
+            }
+            else
+            {
+                checkSensorNodeReachable(sensor);
+            }
+        }
     }
 }
 
@@ -2436,6 +2461,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             clusterId = RELATIVE_HUMIDITY_CLUSTER_ID;
         }
         sensorNode.addItem(DataTypeInt32, RStateHumidity);
+    }
+    else if (sensorNode.type().endsWith(QLatin1String("Pressure")))
+    {
+        if (sensorNode.fingerPrint().hasInCluster(PRESSURE_MEASUREMENT_CLUSTER_ID))
+        {
+            clusterId = PRESSURE_MEASUREMENT_CLUSTER_ID;
+        }
+        sensorNode.addItem(DataTypeInt32, RStatePressure);
     }
     else if (sensorNode.type().endsWith(QLatin1String("Presence")))
     {
@@ -2801,6 +2834,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             case ILLUMINANCE_MEASUREMENT_CLUSTER_ID:
             case TEMPERATURE_MEASUREMENT_CLUSTER_ID:
             case RELATIVE_HUMIDITY_CLUSTER_ID:
+            case PRESSURE_MEASUREMENT_CLUSTER_ID:
             case OCCUPANCY_SENSING_CLUSTER_ID:
             case POWER_CONFIGURATION_CLUSTER_ID:
             case BASIC_CLUSTER_ID:
@@ -3012,6 +3046,32 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     item->setValue(humidity);
                                     i->updateStateTimestamp();
                                     Event e(RSensors, RStateHumidity, i->id());
+                                    enqueueEvent(e);
+                                }
+
+                                updateSensorEtag(&*i);
+                            }
+                        }
+                    }
+                    else if (event.clusterId() == PRESSURE_MEASUREMENT_CLUSTER_ID)
+                    {
+                        for (;ia != enda; ++ia)
+                        {
+                            if (ia->id() == 0x0000) // pressure
+                            {
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
+                                }
+
+                                int pressure = ia->numericValue().u16;
+                                ResourceItem *item = i->item(RStatePressure);
+
+                                if (item)
+                                {
+                                    item->setValue(pressure);
+                                    i->updateStateTimestamp();
+                                    Event e(RSensors, RStatePressure, i->id());
                                     enqueueEvent(e);
                                 }
 
@@ -5675,6 +5735,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         case ILLUMINANCE_LEVEL_SENSING_CLUSTER_ID:
         case TEMPERATURE_MEASUREMENT_CLUSTER_ID:
         case RELATIVE_HUMIDITY_CLUSTER_ID:
+        case PRESSURE_MEASUREMENT_CLUSTER_ID:
         case OCCUPANCY_SENSING_CLUSTER_ID:
         case IAS_ZONE_CLUSTER_ID:
         case BASIC_CLUSTER_ID:
