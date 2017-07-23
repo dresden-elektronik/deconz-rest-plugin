@@ -286,7 +286,8 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
         else if (type == QLatin1String("CLIPOpenClose")) { item = sensor.addItem(DataTypeBool, RStateOpen); item->setValue(false); }
         else if (type == QLatin1String("CLIPGenericFlag")) { item = sensor.addItem(DataTypeBool, RStateFlag); item->setValue(false); }
         else if (type == QLatin1String("CLIPGenericStatus")) { item = sensor.addItem(DataTypeInt32, RStateStatus); item->setValue(0); }
-        else if (type == QLatin1String("CLIPPresence")) { item = sensor.addItem(DataTypeBool, RStatePresence); item->setValue(false); }
+        else if (type == QLatin1String("CLIPPresence")) { item = sensor.addItem(DataTypeBool, RStatePresence); item->setValue(false);
+                                                          item = sensor.addItem(DataTypeUInt16, RConfigDuration); item->setValue(60); }
         else if (type == QLatin1String("CLIPTemperature")) { item = sensor.addItem(DataTypeInt32, RStateTemperature); item->setValue(0); }
         else if (type == QLatin1String("CLIPHumidity")) { item = sensor.addItem(DataTypeInt32, RStateHumidity); item->setValue(0); }
         else if (type == QLatin1String("CLIPPressure")) { item = sensor.addItem(DataTypeInt32, RStatePressure); item->setValue(0); }
@@ -467,7 +468,7 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
 
             for (; pi != pend; ++pi)
             {
-                if(!((pi.key() == "on") || (pi.key() == "reachable") || (pi.key() == "url") || (pi.key() == "battery")))
+                if(!((pi.key() == "on") || (pi.key() == "reachable") || (pi.key() == "url") || (pi.key() == "battery") || (pi.key() == "duration")))
                 {
                     rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%2").arg(pi.key()), QString("parameter, %1, not available").arg(pi.key())));
                     rsp.httpStatus = HttpStatusBadRequest;
@@ -495,6 +496,17 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
                 item = sensor.addItem(DataTypeUInt8, RConfigBattery);
 
                 if (!item || !item->setValue(config["battery"]))
+                {
+                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/config"), QString("invalid value, %1, for parameter battery").arg(config["battery"].toString())));
+                    rsp.httpStatus = HttpStatusBadRequest;
+                    return REQ_READY_SEND;
+                }
+            }
+            if (config.contains("duration"))
+            {
+                item = sensor.item(RConfigDuration);
+
+                if (!item || !item->setValue(config["duration"]))
                 {
                     rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/config"), QString("invalid value, %1, for parameter battery").arg(config["battery"].toString())));
                     rsp.httpStatus = HttpStatusBadRequest;
