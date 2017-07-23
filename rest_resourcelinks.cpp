@@ -80,7 +80,7 @@ int DeRestPluginPrivate::getAllResourcelinks(ApiRequest &req, ApiResponse &rsp)
         }
     }
 
-    if (resourcelinks.empty())
+    if (rsp.map.keys().isEmpty())
     {
         rsp.str = "{}"; // empty
     }
