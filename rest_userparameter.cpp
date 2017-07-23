@@ -300,6 +300,7 @@ int DeRestPluginPrivate::deleteUserParameter(const ApiRequest &req, ApiResponse 
     if (gwUserParameter.contains(key))
     {
         gwUserParameter.remove(key);
+        gwUserParameterToDelete.push_back(key);
         rspItemState["/config/userparameter"] = QString("key %1 removed").arg(key);
         rspItem["success"] = rspItemState;
         rsp.list.append(rspItem);

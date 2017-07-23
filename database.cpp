@@ -2357,6 +2357,28 @@ void DeRestPluginPrivate::saveDb()
             }
         }
 
+        while (!gwUserParameterToDelete.empty())
+        {
+            QString key = gwUserParameterToDelete.back();
+
+            // delete parameter from db (if exist)
+            QString sql = QString(QLatin1String("DELETE FROM userparameter WHERE key='%1'")).arg(key);
+            gwUserParameterToDelete.pop_back();
+
+            DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+            errmsg = NULL;
+            rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
+
+            if (rc != SQLITE_OK)
+            {
+                if (errmsg)
+                {
+                    DBG_Printf(DBG_ERROR, "sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                    sqlite3_free(errmsg);
+                }
+            }
+        }
+
         saveDatabaseItems &= ~DB_USERPARAM;
     }
 
