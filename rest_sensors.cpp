@@ -1431,6 +1431,9 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
             }
             break; // ok
 
+        case IAS_ZONE_CLUSTER_ID:
+            break; // ok
+
         default:
             return;
         }
