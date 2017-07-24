@@ -68,9 +68,13 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
         if (sensor && item)
         {
             sensor->incrementRxCounter();
-            bool presence = zoneStatus & (STATUS_ALARM1 | STATUS_ALARM2);
+            bool presence = (zoneStatus & (STATUS_ALARM1 | STATUS_ALARM2)) ? true : false;
             item->setValue(presence);
             sensor->updateStateTimestamp();
+
+            deCONZ::NumericUnion num = {0};
+            num.u16 = zoneStatus;
+            sensor->setZclValue(NodeValue::UpdateByZclReport, IAS_ZONE_CLUSTER_ID, 0x0000, num);
 
             item = sensor->item(RConfigReachable);
             if (item && !item->toBool())

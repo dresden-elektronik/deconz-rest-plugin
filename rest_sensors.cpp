@@ -1287,12 +1287,29 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
     item = sensor->item(RStatePresence);
     if (item && item->toBool())
     {
+
+        // check if we can trust reports
+        for (quint16 clusterId : {OCCUPANCY_SENSING_CLUSTER_ID, IAS_ZONE_CLUSTER_ID})
+        {
+            NodeValue &v = sensor->getZclValue(clusterId, 0x0000);
+            if (v.timestamp.isValid() &&
+                v.timestamp.secsTo(QTime::currentTime()) <= 180) // got update in timely manner
+            {
+                if (v.value.u8 > 0)
+                {
+                    DBG_Printf(DBG_INFO, "sensor %s (%s): presence is on due report\n", qPrintable(sensor->id()), qPrintable(sensor->modelId()));
+                    return;
+                }
+            }
+        }
+
         int max = MaxOnTimeWithoutPresence;
         ResourceItem *dur = sensor->item(RConfigDuration);
         if (dur && dur->toNumber() > 0)
         {
             max = dur->toNumber();
         }
+
 
         QDateTime now = QDateTime::currentDateTime();
         int dt = item->lastSet().secsTo(now);
