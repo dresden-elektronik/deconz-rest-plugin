@@ -43,7 +43,7 @@ int DeRestPluginPrivate::handleUserparameterApi(const ApiRequest &req, ApiRespon
         return addUserParameter(req, rsp);
     }
     // PUT /api/<apikey>/userparameter/<parameter>
-    else if ((req.path.size() == 4) && (req.hdr.method() == "PUT"))
+    else if ((req.path.size() == 4) && (req.hdr.method() == "PUT" || req.hdr.method() == "PATCH"))
     {
         return modifyUserParameter(req, rsp);
     }
