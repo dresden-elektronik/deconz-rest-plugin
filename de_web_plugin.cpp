@@ -2262,7 +2262,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
 
             sensor = getSensorNodeForFingerPrint(node->address().ext(), fpSwitch, "ZHASwitch");
 
-            if (!sensor || sensor->deletedState() != Sensor::StateNormal)
+            if (modelId == QLatin1String("OJB-IR715-Z"))
+            {
+                // don't create ZHASwitch, IAS Presence only
+            }
+            else if (!sensor || sensor->deletedState() != Sensor::StateNormal)
             {
                 addSensorNode(node, fpSwitch, "ZHASwitch", modelId);
             }
