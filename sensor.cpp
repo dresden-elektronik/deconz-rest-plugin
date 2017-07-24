@@ -354,7 +354,8 @@ Sensor::Sensor() :
     m_deletedstate(Sensor::StateNormal),
     m_mode(ModeTwoGroups),
     m_resetRetryCount(0),
-    m_buttonMap(0)
+    m_buttonMap(0),
+    m_rxCounter(0)
 {
     // common sensor items
     addItem(DataTypeBool, RConfigOn);
@@ -483,7 +484,20 @@ void Sensor::updateStateTimestamp()
     if (i)
     {
         i->setValue(QDateTime::currentDateTimeUtc());
+        m_rxCounter++;
     }
+}
+
+/*! Increments the number of received commands during this session. */
+void Sensor::incrementRxCounter()
+{
+    m_rxCounter++;
+}
+
+/*! Returns number of received commands during this session. */
+int Sensor::rxCounter() const
+{
+    return m_rxCounter;
 }
 
 

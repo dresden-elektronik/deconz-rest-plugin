@@ -458,6 +458,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
                 if (sensorNode)
                 {
+                    sensorNode->incrementRxCounter();
                     ResourceItem *item = sensorNode->item(RConfigReachable);
                     if (item && !item->toBool())
                     {
@@ -1726,7 +1727,7 @@ Rule *DeRestPluginPrivate::getRuleForName(const QString &name)
  */
 void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor)
 {
-    if (!sensor)
+    if (!sensor || sensor->deletedState() != Sensor::StateNormal)
     {
         return;
     }
@@ -1771,27 +1772,12 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor)
             //sensor->setLastRead(READ_BINDING_TABLE, idleTotalCounter);
             checkSensorBindingsForAttributeReporting(sensor);
             updated = true;
-        }
 
-/*
-        if (sensor->deletedState() == Sensor::StateDeleted && findSensorsState == FindSensorsActive)
-        {
-            DBG_Printf(DBG_INFO, "Rediscovered deleted SensorNode %s set node %s\n", qPrintable(sensor->id()), qPrintable(sensor->address().toStringExt()));
-            sensor->setDeletedState(Sensor::StateNormal);
-            sensor->enableRead(READ_MODEL_ID | READ_VENDOR_NAME);
-
-            if (sensor->node() && !sensor->node()->isEndDevice())
+            if (sensor->rxCounter() == 0)
             {
-                sensor->setNextReadTime(READ_BINDING_TABLE, queryTime);
-                sensor->enableRead(READ_BINDING_TABLE);
+                reachable = false; // wait till received something from sensor
             }
-            queryTime = queryTime.addSecs(5);
-            //sensor->setLastRead(READ_BINDING_TABLE, idleTotalCounter);
-            updated = true;
-            Event e(RSensors, REventAdded, sensor->id());
-            enqueueEvent(e);
         }
-*/
     }
     else
     {
@@ -2789,6 +2775,12 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
         {
             i->setNode(const_cast<deCONZ::Node*>(event.node()));
             DBG_Printf(DBG_INFO, "Sensor %s set node %s\n", qPrintable(i->id()), qPrintable(event.node()->address().toStringExt()));
+        }
+
+        if (event.event() == deCONZ::NodeEvent::UpdatedClusterDataZclReport ||
+            event.event() == deCONZ::NodeEvent::UpdatedClusterDataZclRead)
+        {
+            i->incrementRxCounter();
         }
 
         checkSensorNodeReachable(&(*i));
