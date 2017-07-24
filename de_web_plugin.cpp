@@ -1938,7 +1938,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 ok = false;
                 if (zclFrame.payload().size() >= 8)
                 {
-                    deCONZ::NumericUnion val;
+                    deCONZ::NumericUnion val = {0};
                     val.u8 = zclFrame.payload().at(0) << 4 /*button*/ | zclFrame.payload().at(4); // action
                     if (buttonMap->zclParam0 == val.u8)
                     {
