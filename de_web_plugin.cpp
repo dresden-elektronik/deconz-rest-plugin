@@ -8570,6 +8570,31 @@ void DeRestPlugin::idleTimerFired()
                     }
                 }
 
+                if (sensorNode->modelId().startsWith(QLatin1String("FLS-NB"))) // sync names
+                {
+                    LightNode *lightNode = d->getLightNodeForAddress(sensorNode->address());
+
+                    bool updated = false;
+                    if (lightNode && sensorNode->name() != lightNode->name())
+                    {
+                        sensorNode->setName(lightNode->name());
+                        updated = true;
+                    }
+
+                    if (sensorNode->manufacturer() != QLatin1String("nimbus group"))
+                    {
+                        sensorNode->setManufacturer(QLatin1String("nimbus group"));
+                        updated = true;
+                    }
+
+                    if (updated)
+                    {
+                        sensorNode->setNeedSaveDatabase(true);
+                        d->updateSensorEtag(sensorNode);
+                        d->queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+                    }
+                }
+
                 if (sensorNode->node())
                 {
                     sensorNode->fingerPrint().checkCounter++;
