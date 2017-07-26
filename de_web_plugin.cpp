@@ -83,9 +83,9 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_PHILIPS, "RWL020" },
     { VENDOR_PHILIPS, "RWL021" },
     { VENDOR_PHILIPS, "SML001" },
-    { VENDOR_LUMI, "lumi.sensor_ht" },
-    { VENDOR_LUMI, "lumi.sens" },
-    { VENDOR_LUMI, "lumi.weather" },
+    { VENDOR_JENNIC, "lumi.sensor_ht" },
+    { VENDOR_JENNIC, "lumi.sens" },
+    { VENDOR_JENNIC, "lumi.weather" },
     { 0, 0 }
 };
 
@@ -2101,7 +2101,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                 case LEVEL_CLUSTER_ID:
                 case SCENE_CLUSTER_ID:
                 {
-                    if (node->nodeDescriptor().manufacturerCode() == VENDOR_LUMI)
+                    if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC)
                     {
                         // prevent creation of ZHASwitch, till supported
                     }
@@ -2562,7 +2562,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         sensorNode.setManufacturer("Insta");
         checkInstaModelId(&sensorNode);
     }
-    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_LUMI)
+    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC)
     {
         sensorNode.setManufacturer("LUMI");
     }

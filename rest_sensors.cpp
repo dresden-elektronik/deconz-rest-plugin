@@ -1562,6 +1562,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
 
     const quint64 deMacPrefix =   0x00212effff000000ULL;
     const quint64 ikeaMacPrefix = 0x000b57fff0000000ULL;
+    //const quint64 jennicMacPrefix = 0x00158d0000000000ULL;
 
     // check for dresden elektronik devices
     if ((sc->address.ext() & deMacPrefix) == deMacPrefix)
