@@ -6994,6 +6994,37 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
         group = getGroupForId(ind.dstAddress().group());
     }
 
+    if (zclFrame.commandId() == 0x42) // on with timed off
+    {
+        for (Sensor &s : sensors)
+        {
+            if ((s.address().hasExt() && s.address().ext() == ind.srcAddress().ext()) ||
+                (s.address().hasNwk() && s.address().nwk() == ind.srcAddress().nwk()))
+            {
+                if (!s.type().endsWith(QLatin1String("Presence")))
+                {
+                     continue;
+                }
+
+                s.incrementRxCounter();
+                ResourceItem *item = s.item(RStatePresence);
+                if (item)
+                {
+                    bool changed = item->toBool() == false;
+                    item->setValue(true);
+                    s.updateStateTimestamp();
+
+                    if (changed)
+                    {
+                        updateSensorEtag(&s);
+                        Event e(RSensors, RStatePresence, s.id());
+                        enqueueEvent(e);
+                    }
+                }
+            }
+        }
+    }
+
     // update Nodes and Groups state if On/Off Command was send by a sensor
     if (group &&
         group->state() != Group::StateDeleted &&
@@ -7023,7 +7054,7 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
                 group->setColorLoopActive(false);
             }
         }
-        updateEtag(group->etag);
+        updateGroupEtag(group);
 
         // check each light if colorloop needs to be disabled
         std::vector<LightNode>::iterator l = nodes.begin();
