@@ -886,7 +886,7 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
     if (updated)
     {
         sensor->setNeedSaveDatabase(true);
-        queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+        queSaveDb(DB_SENSORS, DB_HUGE_SAVE_DELAY);
     }
 
     return REQ_READY_SEND;
