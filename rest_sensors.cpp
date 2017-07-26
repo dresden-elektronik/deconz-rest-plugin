@@ -126,6 +126,17 @@ int DeRestPluginPrivate::getAllSensors(const ApiRequest &req, ApiResponse &rsp)
             continue;
         }
 
+        // ignore sensors without attached node
+        if (i->modelId().startsWith("FLS-NB") && !i->node())
+        {
+            continue;
+        }
+
+        if (i->modelId().isEmpty())
+        {
+            continue;
+        }
+
         QVariantMap map;
         sensorToMap(&*i, map);
         rsp.map[i->id()] = map;
