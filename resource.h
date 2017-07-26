@@ -137,11 +137,14 @@ public:
     int itemCount() const;
     ResourceItem *itemForIndex(size_t idx);
     const ResourceItem *itemForIndex(size_t idx) const;
+    void inRule(int ruleHandle);
+    const std::vector<int> rulesInvolved() const;
 
 private:
     Resource() {}
     const char *m_prefix;
     std::vector<ResourceItem> m_rItems;
+    std::vector<int> m_rulesInvolved; // the rules a resource is involved
 };
 
 void initResourceDescriptors();

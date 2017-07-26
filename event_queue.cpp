@@ -8,7 +8,7 @@ void DeRestPluginPrivate::initEventQueue()
 {
     eventTimer = new QTimer(this);
     eventTimer->setSingleShot(true);
-    eventTimer->setInterval(50);
+    eventTimer->setInterval(1);
     connect(eventTimer, SIGNAL(timeout()), this, SLOT(eventQueueTimerFired()));
 }
 

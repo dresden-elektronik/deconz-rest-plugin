@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -10,16 +10,19 @@
 
 #include "rule.h"
 
+static int _ruleHandle = 1;
+
 /*! Constructor. */
 Rule::Rule() :
     lastBindingVerify(0),
     m_state(StateNormal),
-    m_id("notSet"),
-    m_name("notSet"),
-    m_creationtime("notSet"),
+    //m_id(QLatin1String("none")),
+    m_handle(-1),
+    //m_name("notSet"),
+    //m_creationtime("notSet"),
     m_timesTriggered(0),
     m_triggerPeriodic(0),
-    m_owner("notSet"),
+    //m_owner("notSet"),
     m_status("enabled")
 {
 }
@@ -52,6 +55,7 @@ const QString &Rule::id() const
 void Rule::setId(const QString &id)
 {
     m_id = id;
+    m_handle = _ruleHandle++;
 }
 
 /*! Returns the rule name.
@@ -186,6 +190,13 @@ void Rule::setActions(const std::vector<RuleAction> &actions)
 bool Rule::isEnabled() const
 {
     return m_status == QLatin1String("enabled");
+}
+
+/*! Returns the unique rule handle (only valid for this session).
+ */
+int Rule::handle() const
+{
+    return m_handle;
 }
 
 /*! Transfers actions into JSONString.

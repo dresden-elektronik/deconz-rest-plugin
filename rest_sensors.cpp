@@ -1122,6 +1122,8 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         ResourceItem *item = sensor->item(e.what());
         if (item)
         {
+            checkRulesForResource(sensor);
+
             QVariantMap map;
             map["t"] = QLatin1String("event");
             map["e"] = QLatin1String("changed");

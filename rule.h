@@ -113,6 +113,7 @@ public:
     const std::vector<RuleAction> &actions() const;
     void setActions(const std::vector<RuleAction> &actions);
     bool isEnabled() const;
+    int handle() const;
 
     static QString actionsToString(const std::vector<RuleAction> &actions);
     static QString conditionsToString(const std::vector<RuleCondition> &conditions);
@@ -128,6 +129,7 @@ public:
 private:
     State m_state;
     QString m_id;
+    int m_handle;
     QString m_name;
     QString m_creationtime;
     quint32 m_timesTriggered;

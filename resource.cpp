@@ -475,3 +475,23 @@ const ResourceItem *Resource::itemForIndex(size_t idx) const
     }
     return 0;
 }
+
+/*! Marks the resource as involved in a rule. */
+void Resource::inRule(int ruleHandle)
+{
+    for (quint16 handle : m_rulesInvolved)
+    {
+        if (handle == ruleHandle)
+        {
+            return;
+        }
+    }
+
+    m_rulesInvolved.push_back(ruleHandle);
+}
+
+/*! Returns the rules handles in which the resource is involved. */
+const std::vector<int> Resource::rulesInvolved() const
+{
+    return m_rulesInvolved;
+}

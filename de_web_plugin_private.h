@@ -745,6 +745,8 @@ public Q_SLOTS:
     void bindingToRuleTimerFired();
     void bindingTableReaderTimerFired();
     void verifyRuleBindingsTimerFired();
+    void checkRulesForResource(const Resource *resource);
+    void fastRuleCheckTimerFired();
     void queueBindingTask(const BindingTask &bindingTask);
     void restartAppTimerFired();
 
@@ -1245,8 +1247,11 @@ public:
     std::vector<Resourcelinks> resourcelinks;
 
     // rules
-
+    std::vector<int> fastRuleCheck;
+    int fastRuleCheckCounter;
+    QTimer *fastRuleCheckTimer;
     QTimer *saveCurrentRuleInDbTimer;
+
     // general
     QTime queryTime;
     deCONZ::ApsController *apsCtrl;

@@ -17,6 +17,8 @@
 #include "json.h"
 
 #define MAX_RULES_COUNT 500
+#define FAST_RULE_CHECK_INTERVAL_MS 10
+#define NORMAL_RULE_CHECK_INTERVAL_MS 100
 
 /*! Rules REST API broker.
     \param req - request data
@@ -1264,6 +1266,8 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
             break;
         }
 
+        resource->inRule(rule.handle());
+
         if (!item->lastSet().isValid()) { ok = false; break; }
 
         if (resource->prefix() == RSensors)
@@ -1482,4 +1486,64 @@ void DeRestPluginPrivate::verifyRuleBindingsTimerFired()
     }
 
     verifyRuleIter++;
+
+    if (fastRuleCheckCounter > 0)
+    {
+        fastRuleCheckCounter--;
+        if (verifyRulesTimer->interval() != FAST_RULE_CHECK_INTERVAL_MS)
+        {
+            verifyRulesTimer->setInterval(FAST_RULE_CHECK_INTERVAL_MS);
+        }
+    }
+    else
+    {
+        if (verifyRulesTimer->interval() != NORMAL_RULE_CHECK_INTERVAL_MS)
+        {
+            verifyRulesTimer->setInterval(NORMAL_RULE_CHECK_INTERVAL_MS);
+        }
+    }
+}
+
+/*! Trigger fast checking of rules related to the resource. */
+void DeRestPluginPrivate::checkRulesForResource(const Resource *resource)
+{
+    for (int handle : resource->rulesInvolved())
+    {
+        fastRuleCheck.push_back(handle);
+    }
+
+    if (!fastRuleCheckTimer->isActive() && !fastRuleCheck.empty())
+    {
+        fastRuleCheckTimer->start();
+    }
+}
+
+/*! Checks one rule from the fast check queue per event loop cycle. */
+void DeRestPluginPrivate::fastRuleCheckTimerFired()
+{
+    for (int &handle : fastRuleCheck)
+    {
+        if (handle == 0)
+        {
+            continue;  // already checked
+        }
+
+        for (Rule &rule: rules)
+        {
+            if (rule.handle() == handle)
+            {
+                DBG_Printf(DBG_INFO, "fast rule check %d (%s)\n", rule.handle(), qPrintable(rule.name()));
+                triggerRuleIfNeeded(rule);
+                fastRuleCheckTimer->start(); // handle in next event loop cycle
+                fastRuleCheckCounter = 0;
+                handle = 0; // mark checked
+                return;
+            }
+        }
+        handle = 0; // mark checked (2)
+    }
+
+    // all done
+    fastRuleCheck.clear();
+    fastRuleCheckCounter = rules.size() * 3;
 }
