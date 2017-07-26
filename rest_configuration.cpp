@@ -410,7 +410,6 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         backup["status"] = QLatin1String("idle");
         backup["errorcode"] = 0;
         map["backup"] = backup;
-        map["modelid"] = QLatin1String("deCONZ");
         map["factorynew"] = false;
         map["replacesbridgeid"] = QVariant();
         map["datastoreversion"] = QLatin1String("60");
@@ -433,6 +432,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         map["zigbeechannel"] = (double)gwZigbeeChannel;
         gwPort = deCONZ::appArgumentNumeric("--http-port", 80); // cache
     }
+    map["modelid"] = QLatin1String("deCONZ");
     map["dhcp"] = true; // dummy
     map["proxyaddress"] = gwProxyAddress;
     map["proxyport"] = (double)gwProxyPort;
