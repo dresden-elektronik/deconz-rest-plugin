@@ -1057,6 +1057,12 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map)
             continue;
         }
 
+        if (rid.suffix == RConfigReachable &&
+            sensor->type().startsWith(QLatin1String("ZGP")))
+        {
+            continue; // don't provide reachable for green power devices
+        }
+
         if (strncmp(rid.suffix, "config/", 7) == 0)
         {
             const char *key = item->descriptor().suffix + 7;
@@ -1081,7 +1087,7 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map)
     {
         map["ep"] = sensor->fingerPrint().endpoint;
     }
-    if (!sensor->swVersion().isEmpty())
+    if (!sensor->swVersion().isEmpty() && !sensor->type().startsWith(QLatin1String("ZGP")))
     {
         map["swversion"] = sensor->swVersion();
     }
