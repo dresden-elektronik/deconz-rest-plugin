@@ -77,6 +77,16 @@ int DeRestPluginPrivate::handleConfigurationApi(const ApiRequest &req, ApiRespon
     {
         return updateSoftware(req, rsp);
     }
+    // POST /api/<apikey>/config/restart
+    else if ((req.path.size() == 4) && (req.hdr.method() == "POST") && (req.path[2] == "config") && (req.path[3] == "restart"))
+    {
+        return restartGateway(req, rsp);
+    }
+    // POST /api/<apikey>/config/shutdown
+    else if ((req.path.size() == 4) && (req.hdr.method() == "POST") && (req.path[2] == "config") && (req.path[3] == "shutdown"))
+    {
+        return shutDownGateway(req, rsp);
+    }
     // POST /api/<apikey>/config/updatefirmware
     else if ((req.path.size() == 4) && (req.hdr.method() == "POST") && (req.path[2] == "config") && (req.path[3] == "updatefirmware"))
     {
@@ -1721,6 +1731,60 @@ int DeRestPluginPrivate::updateSoftware(const ApiRequest &req, ApiResponse &rsp)
         QTimer::singleShot(5000, this, SLOT(updateSoftwareTimerFired()));
     }
 #endif // ARCH_ARM
+
+    return REQ_READY_SEND;
+}
+
+/*! POST /api/<apikey>/config/restart
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::restartGateway(const ApiRequest &req, ApiResponse &rsp)
+{
+    if(!checkApikeyAuthentification(req, rsp))
+    {
+        return REQ_READY_SEND;
+    }
+
+    rsp.httpStatus = HttpStatusOk;
+    QVariantMap rspItem;
+    QVariantMap rspItemState;
+    rspItemState["/config/restart"] = true;
+    rspItem["success"] = rspItemState;
+    rsp.list.append(rspItem);
+
+    QTimer *restartTimer = new QTimer(this);
+    restartTimer->setSingleShot(true);
+    connect(restartTimer, SIGNAL(timeout()),
+            this, SLOT(restartGatewayTimerFired()));
+    restartTimer->start(500);
+
+    return REQ_READY_SEND;
+}
+
+/*! POST /api/<apikey>/config/shutdown
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::shutDownGateway(const ApiRequest &req, ApiResponse &rsp)
+{
+    if(!checkApikeyAuthentification(req, rsp))
+    {
+        return REQ_READY_SEND;
+    }
+
+    rsp.httpStatus = HttpStatusOk;
+    QVariantMap rspItem;
+    QVariantMap rspItemState;
+    rspItemState["/config/shutdown"] = true;
+    rspItem["success"] = rspItemState;
+    rsp.list.append(rspItem);
+
+    QTimer *restartTimer = new QTimer(this);
+    restartTimer->setSingleShot(true);
+    connect(restartTimer, SIGNAL(timeout()),
+            this, SLOT(restartGatewayTimerFired()));
+    restartTimer->start(500);
 
     return REQ_READY_SEND;
 }

@@ -9853,6 +9853,16 @@ void DeRestPluginPrivate::restartAppTimerFired()
     genericDisconnectNetwork();
 }
 
+void DeRestPluginPrivate::restartGatewayTimerFired()
+{
+     qApp->exit(APP_RET_RESTART_SYS);
+}
+
+void DeRestPluginPrivate::shutDownGatewayTimerFired()
+{
+     qApp->exit(APP_RET_SHUTDOWN_SYS);
+}
+
 /*! Request to disconnect from network.
  */
 void DeRestPluginPrivate::genericDisconnectNetwork()

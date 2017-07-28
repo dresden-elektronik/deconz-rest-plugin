@@ -550,6 +550,8 @@ public:
     int modifyConfig(const ApiRequest &req, ApiResponse &rsp);
     int deleteUser(const ApiRequest &req, ApiResponse &rsp);
     int updateSoftware(const ApiRequest &req, ApiResponse &rsp);
+    int restartGateway(const ApiRequest &req, ApiResponse &rsp);
+    int shutDownGateway(const ApiRequest &req, ApiResponse &rsp);
     int updateFirmware(const ApiRequest &req, ApiResponse &rsp);
     int exportConfig(const ApiRequest &req, ApiResponse &rsp);
     int importConfig(const ApiRequest &req, ApiResponse &rsp);
@@ -749,6 +751,8 @@ public Q_SLOTS:
     void fastRuleCheckTimerFired();
     void queueBindingTask(const BindingTask &bindingTask);
     void restartAppTimerFired();
+    void restartGatewayTimerFired();
+    void shutDownGatewayTimerFired();
 
     // touchlink
     void touchlinkDisconnectNetwork();
