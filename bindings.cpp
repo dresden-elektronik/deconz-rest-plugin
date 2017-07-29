@@ -664,6 +664,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturer() == QLatin1String("OSRAM"))
         {
         }
+        else if (lightNode->manufacturerCode() == VENDOR_UBISYS)
+        {
+        }
         else
         {
             return;
