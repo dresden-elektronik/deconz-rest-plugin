@@ -560,6 +560,21 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         maxInterval = 300;
         reportableChange8bit = 1;
     }
+    else if (bt.binding.clusterId == ONOFF_CLUSTER_ID)
+    {
+        dataType = deCONZ::Zcl8BitUint;
+        attributeId = 0x0000; // on/off
+        minInterval = 5;
+        maxInterval = 180;
+    }
+    else if (bt.binding.clusterId == LEVEL_CLUSTER_ID)
+    {
+        dataType = deCONZ::Zcl8BitUint;
+        attributeId = 0x0000; // current level
+        minInterval = 5;
+        maxInterval = 180;
+        reportableChange8bit = 1;
+    }
     else
     {
         return false;
@@ -639,13 +654,24 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
 
     BindingTask::Action action = BindingTask::ActionUnbind;
 
-    // whitelist by Model ID
+    // whitelist
     if (gwReportingEnabled)
     {
+        action = BindingTask::ActionBind;
         if (lightNode->modelId().startsWith(QLatin1String("FLS-NB")))
         {
-            action = BindingTask::ActionBind;
         }
+        else if (lightNode->manufacturer() == QLatin1String("OSRAM"))
+        {
+        }
+        else
+        {
+            return;
+        }
+    }
+    else
+    {
+        return;
     }
 
     QList<deCONZ::ZclCluster>::const_iterator i = lightNode->haEndpoint().inClusters().begin();
