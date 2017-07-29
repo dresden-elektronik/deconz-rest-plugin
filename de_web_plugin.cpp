@@ -9834,6 +9834,10 @@ Resource *DeRestPluginPrivate::getResource(const char *resource, const QString &
     {
         return getSensorNodeForId(id);
     }
+    else if (resource == RGroups)
+    {
+        return getGroupForId(id);
+    }
     else if (resource == RConfig)
     {
         return 0; // TODO
