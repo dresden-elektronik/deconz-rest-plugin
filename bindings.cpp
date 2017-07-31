@@ -668,6 +668,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturerCode() == VENDOR_UBISYS)
         {
         }
+        else if (lightNode->manufacturerCode() == VENDOR_IKEA)
+        {
+        }
         else
         {
             return;
