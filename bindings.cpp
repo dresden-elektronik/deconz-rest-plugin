@@ -348,6 +348,7 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
                     {
                         DBG_Printf(DBG_ZDP, "binding 0x%04X, 0x%02X already exists, drop task\n", bnd.clusterId, bnd.dstEndpoint);
                         i->state = BindingTask::StateFinished; // already existing
+                        sendConfigureReportingRequest(*i); // (re?)configure
                     }
                     else if (i->action == BindingTask::ActionUnbind && i->state == BindingTask::StateCheck)
                     {
@@ -562,7 +563,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     }
     else if (bt.binding.clusterId == ONOFF_CLUSTER_ID)
     {
-        dataType = deCONZ::Zcl8BitUint;
+        dataType = deCONZ::ZclBoolean;
         attributeId = 0x0000; // on/off
         minInterval = 5;
         maxInterval = 180;
