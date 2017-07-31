@@ -1116,9 +1116,15 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 lightNode.setNeedSaveDatabase(true);
             }
 
-            if (lightNode.name().isEmpty())
+            const quint64 philipsMacPrefix = 0x0017880000000000ULL;
+
+            if ((node->address().ext() & philipsMacPrefix) == philipsMacPrefix)
             {
-                lightNode.setName(QString("Light %1").arg(lightNode.id()));
+                if (lightNode.manufacturer() != QLatin1String("Philips"))
+                { // correct vendor name, was atmel, de sometimes
+                    lightNode.setManufacturerName(QLatin1String("Philips"));
+                    lightNode.setNeedSaveDatabase(true);
+                }
             }
 
             if (!lightNode.name().isEmpty())
