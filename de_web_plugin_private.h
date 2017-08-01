@@ -500,6 +500,16 @@ struct ApiResponse
     QString str; // json string
 };
 
+/*! \class ApiConfig
+
+    Provide config to the resource system.
+ */
+class ApiConfig : public Resource
+{
+public:
+    ApiConfig();
+};
+
 class TcpClient
 {
 public:
@@ -1258,6 +1268,7 @@ public:
     QTimer *saveCurrentRuleInDbTimer;
 
     // general
+    ApiConfig config;
     QTime queryTime;
     deCONZ::ApsController *apsCtrl;
     uint groupTaskNodeIter; // Iterates through nodes array

@@ -21,6 +21,12 @@
 #include <stdlib.h>
 #include <QProcess>
 
+/*! Constructor. */
+ApiConfig::ApiConfig() :
+    Resource(RConfig)
+{
+}
+
 /*! Configuration REST API broker.
     \param req - request data
     \param rsp - response data

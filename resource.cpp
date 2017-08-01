@@ -58,6 +58,7 @@ const char *RConfigBattery = "config/battery";
 const char *RConfigGroup = "config/group";
 const char *RConfigUrl = "config/url";
 const char *RConfigLat = "config/lat";
+const char *RConfigLocalTime = "config/localtime";
 const char *RConfigLong = "config/long";
 const char *RConfigSunriseOffset = "config/sunriseoffset";
 const char *RConfigSunsetOffset = "config/sunsetoffset";
@@ -105,6 +106,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigGroup));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigUrl));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigLat));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RConfigLocalTime));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigLong));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt8, RConfigSunriseOffset, -120, 120));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt8, RConfigSunsetOffset, -120, 120));

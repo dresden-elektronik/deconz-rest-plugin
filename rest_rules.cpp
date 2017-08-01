@@ -1312,7 +1312,7 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
             else if (rule.lastTriggered().isValid() && rule.lastTriggered() > dt)
             { ok = false; break; } // already handled
         }
-        else if (c->op() == RuleCondition::OpIn)
+        else if (c->op() == RuleCondition::OpIn && c->suffix() == RConfigLocalTime)
         {
             if (rule.lastTriggered().isValid() &&
                 rule.lastTriggered() >= item->lastChanged())
@@ -1329,7 +1329,7 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
             {  }
             else { ok = false; break; }
         }
-        else if (c->op() == RuleCondition::OpNotIn)
+        else if (c->op() == RuleCondition::OpNotIn && c->suffix() == RConfigLocalTime)
         {
             if (rule.lastTriggered().isValid() &&
                 rule.lastTriggered() >= item->lastChanged())

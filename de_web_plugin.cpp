@@ -212,6 +212,8 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     gwFirmwareVersionUpdate = "";
     gwBridgeId = "0000000000000000";
 
+    config.addItem(DataTypeTime, RConfigLocalTime);
+
     {
         QHttpRequestHeader hdr;
         QStringList path;
@@ -8359,6 +8361,12 @@ void DeRestPlugin::idleTimerFired()
         d->idleLimit--;
     }
 
+    ResourceItem *localTime = d->config.item(RConfigLocalTime);
+    if (localTime)
+    {
+        localTime->setValue(QDateTime::currentDateTime());
+    }
+
     if (d->idleLastActivity < IDLE_USER_LIMIT)
     {
         return;
@@ -9849,7 +9857,7 @@ Resource *DeRestPluginPrivate::getResource(const char *resource, const QString &
     }
     else if (resource == RConfig)
     {
-        return 0; // TODO
+        return &config;
     }
 
     return 0;

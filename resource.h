@@ -71,6 +71,7 @@ extern const char *RConfigBattery;
 extern const char *RConfigGroup;
 extern const char *RConfigUrl;
 extern const char *RConfigLat;
+extern const char *RConfigLocalTime;
 extern const char *RConfigLong;
 extern const char *RConfigSunriseOffset;
 extern const char *RConfigSunsetOffset;
