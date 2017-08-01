@@ -86,6 +86,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "lumi.sensor_ht" },
     { VENDOR_JENNIC, "lumi.sens" },
     { VENDOR_JENNIC, "lumi.weather" },
+    { VENDOR_JENNIC, "lumi.sensor_magnet" },
     { 0, 0 }
 };
 
@@ -2199,6 +2200,15 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                 }
                     break;
 
+                case ONOFF_CLUSTER_ID:
+                {
+                    if (modelId.startsWith(QLatin1String("lumi.sensor_magnet")))
+                    {
+                        fpOpenCloseSensor.inClusters.push_back(ci->id());
+                    }
+                }
+                    break;
+
                 case ONOFF_SWITCH_CONFIGURATION_CLUSTER_ID:
                 {
                     fpSwitch.inClusters.push_back(ci->id());
@@ -2897,6 +2907,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             case OCCUPANCY_SENSING_CLUSTER_ID:
             case POWER_CONFIGURATION_CLUSTER_ID:
             case BASIC_CLUSTER_ID:
+            case ONOFF_CLUSTER_ID:
                 break;
 
             default:
@@ -3202,6 +3213,37 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         q->startZclAttributeTimer(checkZclAttributesDelay);
                                     }
                                 }
+                            }
+                        }
+                    }
+                    if (event.clusterId() == ONOFF_CLUSTER_ID)
+                    {
+                        for (;ia != enda; ++ia)
+                        {
+                            if (ia->id() == 0x0000) // onoff
+                            {
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                }
+
+                                ResourceItem *item = i->item(RStateOpen);
+
+                                if (item)
+                                {
+                                    bool open = ia->numericValue().u8 == 1;
+
+                                    if (item->toBool() != open)
+                                    {
+                                        item->setValue(open);
+                                        i->setNeedSaveDatabase(true);
+                                        queSaveDb(DB_SENSORS, DB_HUGE_SAVE_DELAY);
+                                    }
+                                    Event e(RSensors, item->descriptor().suffix, i->id());
+                                    enqueueEvent(e);
+                                }
+
+                                updateSensorEtag(&*i);
                             }
                         }
                     }
