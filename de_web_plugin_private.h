@@ -96,6 +96,8 @@
 #define DEV_ID_HA_LIGHT_SENSOR              0x0106 // Light sensor
 #define DEV_ID_HA_OCCUPANCY_SENSOR          0x0107 // Occupancy sensor
 
+//
+#define DEV_ID_IAS_ZONE                     0x0402 // IAS Zone
 // Smart Energy devices
 #define DEV_ID_SE_METERING_DEVICE           0x0501 // Smart Energy metering device
 

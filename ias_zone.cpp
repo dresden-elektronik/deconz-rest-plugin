@@ -48,6 +48,24 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
         return;
     }
 
+    if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReadAttributesResponseId)
+    {
+        // during setup the IAS Zone type will be read
+        // start to proceed discovery here
+        if (findSensorsState == FindSensorsActive)
+        {
+            if (!fastProbeTimer->isActive())
+            {
+                fastProbeTimer->start(5);
+            }
+        }
+    }
+
+    if (!zclFrame.isClusterCommand())
+    {
+        return;
+    }
+
     if (zclFrame.commandId() == CMD_STATUS_CHANGE_NOTIFICATION)
     {
         quint16 zoneStatus;

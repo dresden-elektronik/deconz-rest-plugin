@@ -2107,6 +2107,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
         SensorFingerprint fpTemperatureSensor;
         SensorFingerprint fpHumiditySensor;
         SensorFingerprint fpPressureSensor;
+        SensorFingerprint fpOpenCloseSensor;
 
         {   // scan client clusters of endpoint
             QList<deCONZ::ZclCluster>::const_iterator ci = i->outClusters().constBegin();
@@ -2211,6 +2212,23 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                         i->endpoint() == 0x02 && modelId == QLatin1String("Motion Sensor-A"))
                     {
                         // only use endpoint 0x01 of this sensor
+                    }
+                    else if (ci->id() == IAS_ZONE_CLUSTER_ID)
+                    {
+                        for (const deCONZ::ZclAttribute &attr : ci->attributes())
+                        {
+                            if (attr.id() == 0x0001) // IAS Zone type
+                            {
+                                if (attr.numericValue().u16 == 0x000d) // Motion sensor
+                                {
+                                    fpPresenceSensor.inClusters.push_back(ci->id());
+                                }
+                                else if (attr.numericValue().u16 == 0x0015) // Contact switch
+                                {
+                                    fpOpenCloseSensor.inClusters.push_back(ci->id());
+                                }
+                            }
+                        }
                     }
                     else
                     {
@@ -2321,6 +2339,21 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                 checkSensorNodeReachable(sensor);
                 Q_Q(DeRestPlugin);
                 q->startZclAttributeTimer(checkZclAttributesDelay);
+            }
+        }
+
+        // ZHAOpenClose
+        if (fpOpenCloseSensor.hasInCluster(IAS_ZONE_CLUSTER_ID) ||
+            fpOpenCloseSensor.hasInCluster(ONOFF_CLUSTER_ID))
+        {
+            fpOpenCloseSensor.endpoint = i->endpoint();
+            fpOpenCloseSensor.deviceId = i->deviceId();
+            fpOpenCloseSensor.profileId = i->profileId();
+
+            sensor = getSensorNodeForFingerPrint(node->address().ext(), fpOpenCloseSensor, "ZHAOpenClose");
+            if (!sensor || sensor->deletedState() != Sensor::StateNormal)
+            {
+                addSensorNode(node, fpOpenCloseSensor, "ZHAOpenClose", modelId);
             }
         }
 
@@ -2493,6 +2526,18 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             clusterId = ONOFF_CLUSTER_ID;
         }
         sensorNode.addItem(DataTypeBool, RStatePresence);
+    }
+    else if (sensorNode.type().endsWith(QLatin1String("OpenClose")))
+    {
+        if (sensorNode.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
+        {
+            clusterId = IAS_ZONE_CLUSTER_ID;
+        }
+        else if (sensorNode.fingerPrint().hasInCluster(ONOFF_CLUSTER_ID))
+        {
+            clusterId = ONOFF_CLUSTER_ID;
+        }
+        sensorNode.addItem(DataTypeBool, RStateOpen);
     }
 
     QString uid = generateUniqueId(sensorNode.address().ext(), sensorNode.fingerPrint().endpoint, clusterId);
@@ -7919,6 +7964,76 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
                         queryTime = queryTime.addSecs(1);
                     }
 
+                    return;
+                }
+            }
+        }
+
+        for (const deCONZ::SimpleDescriptor &sd : node->simpleDescriptors())
+        {
+            if (sd.deviceId() == DEV_ID_IAS_ZONE)
+            {
+                bool ok = false;
+
+                for (const deCONZ::ZclCluster &cl : sd.inClusters())
+                {
+                    if (cl.id() == IAS_ZONE_CLUSTER_ID)
+                    {
+                        for (const deCONZ::ZclAttribute &attr : cl.attributes())
+                        {
+                            if (attr.id() == 0x0001 && attr.numericValue().u64 != 0) // Zone type
+                            {
+                                // assume it was read
+                                ok = true;
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                }
+
+                if (!ok)
+                {
+                    deCONZ::ApsDataRequest apsReq;
+
+                    DBG_Printf(DBG_INFO, "[3.1] get IAS Zone type for 0x%016llx\n", sc->address.ext());
+
+                    // ZDP Header
+                    apsReq.dstAddress() = sc->address;
+                    apsReq.setDstAddressMode(deCONZ::ApsNwkAddress);
+                    apsReq.setDstEndpoint(sd.endpoint());
+                    apsReq.setSrcEndpoint(endpoint());
+                    apsReq.setProfileId(HA_PROFILE_ID);
+                    apsReq.setRadius(0);
+                    apsReq.setClusterId(IAS_ZONE_CLUSTER_ID);
+                    //apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+
+                    deCONZ::ZclFrame zclFrame;
+                    zclFrame.setSequenceNumber(zclSeq++);
+                    zclFrame.setCommandId(deCONZ::ZclReadAttributesId);
+                    zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                                             deCONZ::ZclFCDirectionClientToServer |
+                                             deCONZ::ZclFCDisableDefaultResponse);
+
+                    { // payload
+                        QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
+                        stream.setByteOrder(QDataStream::LittleEndian);
+
+                        stream << (quint16)0x0001; // IAS Zone type
+                    }
+
+                    { // ZCL frame
+                        QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
+                        stream.setByteOrder(QDataStream::LittleEndian);
+                        zclFrame.writeToStream(stream);
+                    }
+
+                    deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
+
+                    if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+                    {
+                        queryTime = queryTime.addSecs(1);
+                    }
                     return;
                 }
             }
