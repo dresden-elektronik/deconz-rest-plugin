@@ -81,30 +81,39 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
         DBG_Printf(DBG_ZCL, "IAS Zone Status Change, status: 0x%04X, zoneId: %u, delay: %u\n", zoneStatus, zoneId, delay);
 
         Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
-        ResourceItem *item = sensor ? sensor->item(RStatePresence) : 0;
+        if (!sensor)
+        {
+            return;
+        }
 
-        if (sensor && item)
+        ResourceItem *item = sensor->item(RStatePresence);
+        if (!item)
+        {
+            item = sensor->item(RStateOpen);
+        }
+
+        if (item)
         {
             sensor->incrementRxCounter();
-            bool presence = (zoneStatus & (STATUS_ALARM1 | STATUS_ALARM2)) ? true : false;
-            item->setValue(presence);
+            bool alarm = (zoneStatus & (STATUS_ALARM1 | STATUS_ALARM2)) ? true : false;
+            item->setValue(alarm);
             sensor->updateStateTimestamp();
 
             deCONZ::NumericUnion num = {0};
             num.u16 = zoneStatus;
             sensor->setZclValue(NodeValue::UpdateByZclReport, IAS_ZONE_CLUSTER_ID, 0x0000, num);
 
-            item = sensor->item(RConfigReachable);
-            if (item && !item->toBool())
+            ResourceItem *item2 = sensor->item(RConfigReachable);
+            if (item2 && !item2->toBool())
             {
-                item->setValue(true);
+                item2->setValue(true);
                 Event e(RSensors, RConfigReachable, sensor->id());
                 enqueueEvent(e);
             }
 
             updateSensorEtag(sensor);
 
-            Event e(RSensors, RStatePresence, sensor->id());
+            Event e(RSensors, item->descriptor().suffix, sensor->id());
             enqueueEvent(e);
         }
 
