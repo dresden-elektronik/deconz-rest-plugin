@@ -174,6 +174,7 @@
 #define VENDOR_JENNIC   0x1037
 #define VENDOR_DDEL     0x1135
 #define VENDOR_INNR     0x1166
+#define VENDOR_INNR2    0x1168
 #define VENDOR_INSTA    0x117a
 #define VENDOR_IKEA     0x117c
 #define VENDOR_NYCE     0x10b9

@@ -91,7 +91,11 @@ void LightNode::setManufacturerCode(uint16_t code)
         case VENDOR_DDEL:    m_manufacturer = QLatin1String("dresden elektronik"); break;
         case VENDOR_BEGA:    m_manufacturer = QLatin1String("BEGA"); break;
         case VENDOR_IKEA:    m_manufacturer = QLatin1String("IKEA"); break;
-        case VENDOR_INNR:    m_manufacturer = QLatin1String("Innr"); break;
+        case VENDOR_INNR:
+        case VENDOR_INNR2:
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
+                             m_manufacturer = QLatin1String("Innr");
+                             break;
         case VENDOR_INSTA:    m_manufacturer = QLatin1String("Insta"); break;
         case VENDOR_PHILIPS: m_manufacturer = QLatin1String("Philips"); break;
         case VENDOR_OSRAM_STACK: // fall through
