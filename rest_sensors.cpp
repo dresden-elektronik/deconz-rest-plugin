@@ -854,7 +854,8 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
                     rspItemState[QString("/sensors/%1/state/%2").arg(id).arg(pi.key())] = val;
                     rspItem["success"] = rspItemState;
 
-                    if (item->lastChanged() == item->lastSet())
+                    if (rid.suffix == RStateButtonEvent ||  // always fire events for buttons
+                        item->lastChanged() == item->lastSet())
                     {
                         updated = true;
                         Event e(RSensors, rid.suffix, id);
