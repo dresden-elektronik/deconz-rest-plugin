@@ -1977,6 +1977,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     enqueueEvent(e);
                     updateSensorEtag(sensor);
                     sensor->updateStateTimestamp();
+                    sensor->setNeedSaveDatabase(true);
                 }
 
                 item = sensor->item(RStatePresence);
@@ -1990,6 +1991,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     }
                     updateSensorEtag(sensor);
                     sensor->updateStateTimestamp();
+                    sensor->setNeedSaveDatabase(true);
                 }
                 return;
             }
@@ -2830,8 +2832,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
         return;
     }
 
-    bool updated = false;
-
     std::vector<Sensor>::iterator i = sensors.begin();
     std::vector<Sensor>::iterator end = sensors.end();
 
@@ -2997,7 +2997,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         item->setValue(bat);
                                         i->setNeedSaveDatabase(true);
-                                        queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
+                                        queSaveDb(DB_SENSORS, DB_HUGE_SAVE_DELAY);
+
                                         Event e(RSensors, RConfigBattery, i->id());
                                         enqueueEvent(e);
                                     }
@@ -3026,6 +3027,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     item->setValue(measuredValue);
                                     i->updateStateTimestamp();
+                                    i->setNeedSaveDatabase(true);
                                     Event e(RSensors, RStateLightLevel, i->id());
                                     enqueueEvent(e);
                                 }
@@ -3092,6 +3094,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     item->setValue(temp);
                                     i->updateStateTimestamp();
+                                    i->setNeedSaveDatabase(true);
                                     Event e(RSensors, RStateTemperature, i->id());
                                     enqueueEvent(e);
                                 }
@@ -3118,6 +3121,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     item->setValue(humidity);
                                     i->updateStateTimestamp();
+                                    i->setNeedSaveDatabase(true);
                                     Event e(RSensors, RStateHumidity, i->id());
                                     enqueueEvent(e);
                                 }
@@ -3144,6 +3148,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     item->setValue(pressure);
                                     i->updateStateTimestamp();
+                                    i->setNeedSaveDatabase(true);
                                     Event e(RSensors, RStatePressure, i->id());
                                     enqueueEvent(e);
                                 }
@@ -3169,6 +3174,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     item->setValue(ia->numericValue().u8);
                                     i->updateStateTimestamp();
+                                    i->setNeedSaveDatabase(true);
                                     Event e(RSensors, RStatePresence, i->id());
                                     enqueueEvent(e);
                                 }
@@ -3193,8 +3199,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         DBG_Printf(DBG_INFO, "got occupied to unoccupied delay %u\n", ia->numericValue().u16);
                                         item->setValue(duration);
+                                        i->setNeedSaveDatabase(true);
                                         updateSensorEtag(&*i);
-                                        updated = true;
                                     }
                                     else
                                     {
@@ -3272,7 +3278,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         checkInstaModelId(&*i);
                                         updateSensorEtag(&*i);
                                         queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
-                                        updated = true;
                                     }
 
                                     if (i->name() == QString("Switch %1").arg(i->id()))
@@ -3283,7 +3288,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                             i->setName(name);
                                             i->setNeedSaveDatabase(true);
                                             updateSensorEtag(&*i);
-                                            updated = true;
                                         }
                                     }
                                 }
@@ -3304,7 +3308,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->setManufacturer(str);
                                         i->setNeedSaveDatabase(true);
                                         queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
-                                        updated = true;
                                     }
                                 }
                             }
@@ -3323,7 +3326,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->setNeedSaveDatabase(true);
                                         queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
                                         updateSensorEtag(&*i);
-                                        updated = true;
                                     }
                                 }
                             }
@@ -3332,11 +3334,11 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                 }
             }
         }
-    }
 
-    if (updated)
-    {
-        queSaveDb(DB_SENSORS , DB_SHORT_SAVE_DELAY);
+        if (i->needSaveDatabase())
+        {
+            saveDatabaseItems |= DB_SENSORS;
+        }
     }
 }
 
@@ -9053,6 +9055,7 @@ void DeRestPlugin::appAboutToQuit()
 
     if (d)
     {
+        d->saveDatabaseItems |= (DB_SENSORS | DB_RULES | DB_LIGHTS);
         d->openDb();
         d->saveDb();
         d->closeDb();
