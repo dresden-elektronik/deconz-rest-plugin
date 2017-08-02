@@ -113,8 +113,11 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
 
             updateSensorEtag(sensor);
 
-            Event e(RSensors, item->descriptor().suffix, sensor->id());
-            enqueueEvent(e);
+            if (item->lastSet() == item->lastChanged())
+            {
+                Event e(RSensors, item->descriptor().suffix, sensor->id());
+                enqueueEvent(e);
+            }
         }
 
     }

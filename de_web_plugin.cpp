@@ -1983,8 +1983,11 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 if (item)
                 {
                     item->setValue(true);
-                    Event e(RSensors, RStatePresence, sensor->id());
-                    enqueueEvent(e);
+                    if (item->lastSet() == item->lastChanged())
+                    {
+                        Event e(RSensors, RStatePresence, sensor->id());
+                        enqueueEvent(e);
+                    }
                     updateSensorEtag(sensor);
                     sensor->updateStateTimestamp();
                 }
@@ -2995,9 +2998,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         item->setValue(bat);
                                         i->setNeedSaveDatabase(true);
                                         queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
+                                        Event e(RSensors, RConfigBattery, i->id());
+                                        enqueueEvent(e);
                                     }
-                                    Event e(RSensors, RConfigBattery, i->id());
-                                    enqueueEvent(e);
                                 }
 
                                 updateSensorEtag(&*i);
@@ -3232,10 +3235,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (item)
                                 {
                                     bool open = ia->numericValue().u8 == 1;
+                                    item->setValue(open);
 
-                                    if (item->toBool() != open)
+                                    if (item->lastSet() == item->lastChanged())
                                     {
-                                        item->setValue(open);
                                         Event e(RSensors, item->descriptor().suffix, i->id());
                                         enqueueEvent(e);
                                     }
