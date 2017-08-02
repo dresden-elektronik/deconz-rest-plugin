@@ -1755,6 +1755,14 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         }
         else if (sensor.type().endsWith(QLatin1String("OpenClose")))
         {
+            if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
+            {
+                clusterId = IAS_ZONE_CLUSTER_ID;
+            }
+            else if (sensor.fingerPrint().hasInCluster(ONOFF_CLUSTER_ID))
+            {
+                clusterId = ONOFF_CLUSTER_ID;
+            }
             item = sensor.addItem(DataTypeBool, RStateOpen);
             item->setValue(false);
         }
@@ -2173,7 +2181,6 @@ void DeRestPluginPrivate::saveDb()
     {
         return;
     }
-
 
     if (saveDatabaseItems == 0)
     {
