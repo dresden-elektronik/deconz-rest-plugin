@@ -98,6 +98,7 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
             bool alarm = (zoneStatus & (STATUS_ALARM1 | STATUS_ALARM2)) ? true : false;
             item->setValue(alarm);
             sensor->updateStateTimestamp();
+            sensor->setNeedSaveDatabase(true);
 
             deCONZ::NumericUnion num = {0};
             num.u16 = zoneStatus;
