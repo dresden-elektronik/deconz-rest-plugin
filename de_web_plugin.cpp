@@ -5831,6 +5831,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         {
         // sensor node?
         case POWER_CONFIGURATION_CLUSTER_ID:
+        case ONOFF_CLUSTER_ID:
         case ONOFF_SWITCH_CONFIGURATION_CLUSTER_ID:
         case ILLUMINANCE_MEASUREMENT_CLUSTER_ID:
         case ILLUMINANCE_LEVEL_SENSING_CLUSTER_ID:
