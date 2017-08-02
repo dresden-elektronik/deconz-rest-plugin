@@ -3236,11 +3236,11 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     if (item->toBool() != open)
                                     {
                                         item->setValue(open);
-                                        i->setNeedSaveDatabase(true);
-                                        queSaveDb(DB_SENSORS, DB_HUGE_SAVE_DELAY);
+                                        Event e(RSensors, item->descriptor().suffix, i->id());
+                                        enqueueEvent(e);
                                     }
-                                    Event e(RSensors, item->descriptor().suffix, i->id());
-                                    enqueueEvent(e);
+                                    i->setNeedSaveDatabase(true);
+                                    i->updateStateTimestamp();
                                 }
 
                                 updateSensorEtag(&*i);
