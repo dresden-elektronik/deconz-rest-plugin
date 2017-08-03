@@ -7814,6 +7814,10 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
         case TaskIncColorTemperature:
         {
             ResourceItem *item = lightNode->item(RStateCt);
+            if (!item)
+            {
+                break;
+            }
             qint32 modCt = item->toNumber() + task.inc;
             // clip, TODO use phys. min. max. values from light
             if (modCt < 153) { modCt = 153; }
