@@ -9205,6 +9205,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
     QHttpRequestHeader hdrmod(hdr);
 
     stream.setCodec(QTextCodec::codecForName("UTF-8"));
+    d->pushClientForClose(sock, 10, hdr);
 
     if (m_state == StateOff)
     {
@@ -9382,7 +9383,6 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         stream << "Content-Type: application/xml\r\n";
         stream << "Content-Length:" << QString::number(d->descriptionXml.size()) << "\r\n";
         stream << "Connection: close\r\n";
-        d->pushClientForClose(sock, 2, hdr);
         stream << "\r\n";
         stream << d->descriptionXml.constData();
         stream.flush();
@@ -9416,21 +9416,6 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
     stream << "Access-Control-Allow-Origin: *\r\n";
     stream << "Content-Type: " << rsp.contentType << "\r\n";
     stream << "Content-Length:" << QString::number(str.toUtf8().size()) << "\r\n";
-
-    bool keepAlive = false;
-    if (hdr.hasKey(QLatin1String("Connection")))
-    {
-        if (hdr.value(QLatin1String("Connection")).toLower() == QLatin1String("keep-alive"))
-        {
-            keepAlive = true;
-            d->pushClientForClose(sock, 60, hdr);
-        }
-    }
-    if (!keepAlive)
-    {
-        stream << "Connection: close\r\n";
-        d->pushClientForClose(sock, 2, hdr);
-    }
 
     if (!rsp.hdrFields.empty())
     {

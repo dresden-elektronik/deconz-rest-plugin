@@ -17,6 +17,8 @@
     static const char *pwsalt = "$1$8282jdkmskwiu29291"; // $1$ for MD5
 #endif
 
+#define AUTH_KEEP_ALIVE 60
+
 ApiAuth::ApiAuth() :
     needSaveDatabase(false),
     state(StateNormal)
@@ -119,6 +121,18 @@ bool DeRestPluginPrivate::checkApikeyAuthentification(const ApiRequest &req, Api
                 {
                     i->useragent = req.hdr.value("User-Agent");
                     DBG_Printf(DBG_HTTP, "set useragent '%s' for apikey '%s'\n", qPrintable(i->useragent), qPrintable(i->apikey));
+                }
+            }
+
+            if (req.sock)
+            {
+                for (TcpClient &cl : openClients)
+                {
+                    if (cl.sock == req.sock)
+                    {
+                        cl.closeTimeout = AUTH_KEEP_ALIVE;
+                        break;
+                    }
                 }
             }
 
