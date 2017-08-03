@@ -3225,7 +3225,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             }
                         }
                     }
-                    if (event.clusterId() == ONOFF_CLUSTER_ID)
+                    else if (event.clusterId() == ONOFF_CLUSTER_ID)
                     {
                         for (;ia != enda; ++ia)
                         {
