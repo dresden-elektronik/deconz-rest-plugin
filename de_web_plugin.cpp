@@ -54,40 +54,51 @@ static int checkZclAttributesDelay = 750;
 //static int ReadAttributesLongerDelay = 60000;
 static uint MaxGroupTasks = 4;
 
+const quint64 bjeMacPrefix        = 0xd85def0000000000ULL;
+const quint64 emberMacPrefix      = 0x000d6f0000000000ULL;
+const quint64 tiMacPrefix         = 0x00124b0000000000ULL;
+const quint64 deMacPrefix         = 0x00212effff000000ULL;
+const quint64 ikeaMacPrefix       = 0x000b57fff0000000ULL;
+const quint64 instaMacPrefix      = 0x000f171241000000ULL;
+const quint64 jennicMacPrefix     = 0x00158d0000000000ULL;
+const quint64 philipsMacPrefix    = 0x0017880000000000ULL;
+const quint64 osramMacPrefix      = 0x8418260000000000ULL;
+
 struct SupportedDevice {
     quint16 vendorId;
     const char *modelId;
+    quint64 mac;
 };
 
 static const SupportedDevice supportedDevices[] = {
-    { VENDOR_BUSCH_JAEGER, "RB01" },
-    { VENDOR_BUSCH_JAEGER, "RM01" },
-    { VENDOR_CENTRALITE, "Motion Sensor-A" },
-    { VENDOR_NONE, "LM_" },
-    { VENDOR_NONE, "LMHT_" },
-    { VENDOR_NONE, "IR_" },
-    { VENDOR_NONE, "DC_" },
-    { VENDOR_NONE, "OJB-IR715-Z" },
-    { VENDOR_NONE, "902010/21A" }, // Bitron: door/window sensor
-    { VENDOR_DDEL, "Lighting Switch" },
-    { VENDOR_DDEL, "Scene Switch" },
-    { VENDOR_DDEL, "FLS-NB1" },
-    { VENDOR_DDEL, "FLS-NB2" },
-    { VENDOR_IKEA, "TRADFRI remote control" },
-    { VENDOR_IKEA, "TRADFRI motion sensor" },
-    { VENDOR_INSTA, "Remote" },
-    { VENDOR_INSTA, "HS_4f_GJ_1" },
-    { VENDOR_INSTA, "WS_4f_J_1" },
-    { VENDOR_INSTA, "WS_3f_G_1" },
-    { VENDOR_NYCE, "3011" }, // door/window sensor
-    { VENDOR_PHILIPS, "RWL020" },
-    { VENDOR_PHILIPS, "RWL021" },
-    { VENDOR_PHILIPS, "SML001" },
-    { VENDOR_JENNIC, "lumi.sensor_ht" },
-    { VENDOR_JENNIC, "lumi.sens" },
-    { VENDOR_JENNIC, "lumi.weather" },
-    { VENDOR_JENNIC, "lumi.sensor_magnet" },
-    { 0, 0 }
+    { VENDOR_BUSCH_JAEGER, "RB01", bjeMacPrefix },
+    { VENDOR_BUSCH_JAEGER, "RM01", bjeMacPrefix },
+    { VENDOR_CENTRALITE, "Motion Sensor-A", emberMacPrefix },
+    { VENDOR_NONE, "LM_",  tiMacPrefix },
+    { VENDOR_NONE, "LMHT_", tiMacPrefix },
+    { VENDOR_NONE, "IR_", tiMacPrefix },
+    { VENDOR_NONE, "DC_", tiMacPrefix },
+    { VENDOR_NONE, "OJB-IR715-Z", tiMacPrefix },
+    { VENDOR_NONE, "902010/21A", tiMacPrefix }, // Bitron: door/window sensor
+    { VENDOR_DDEL, "Lighting Switch", deMacPrefix },
+    { VENDOR_DDEL, "Scene Switch", deMacPrefix },
+    { VENDOR_DDEL, "FLS-NB1", deMacPrefix },
+    { VENDOR_DDEL, "FLS-NB2", deMacPrefix },
+    { VENDOR_IKEA, "TRADFRI remote control", ikeaMacPrefix },
+    { VENDOR_IKEA, "TRADFRI motion sensor", ikeaMacPrefix },
+    { VENDOR_INSTA, "Remote", instaMacPrefix },
+    { VENDOR_INSTA, "HS_4f_GJ_1", instaMacPrefix },
+    { VENDOR_INSTA, "WS_4f_J_1", instaMacPrefix },
+    { VENDOR_INSTA, "WS_3f_G_1", instaMacPrefix },
+    { VENDOR_NYCE, "3011", emberMacPrefix }, // door/window sensor
+    { VENDOR_PHILIPS, "RWL020", philipsMacPrefix },
+    { VENDOR_PHILIPS, "RWL021", philipsMacPrefix },
+    { VENDOR_PHILIPS, "SML001", philipsMacPrefix },
+    { VENDOR_JENNIC, "lumi.sensor_ht", jennicMacPrefix },
+    { VENDOR_JENNIC, "lumi.sens", jennicMacPrefix },
+    { VENDOR_JENNIC, "lumi.weather", jennicMacPrefix },
+    { VENDOR_JENNIC, "lumi.sensor_magnet", jennicMacPrefix },
+    { 0, 0, 0 }
 };
 
 ApiRequest::ApiRequest(const QHttpRequestHeader &h, const QStringList &p, QTcpSocket *s, const QString &c) :
@@ -1119,8 +1130,6 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 lightNode.setNeedSaveDatabase(true);
             }
 
-            const quint64 philipsMacPrefix = 0x0017880000000000ULL;
-
             if ((node->address().ext() & philipsMacPrefix) == philipsMacPrefix)
             {
                 if (lightNode.manufacturer() != QLatin1String("Philips"))
@@ -2089,11 +2098,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
         }
     }
 
-    if (node->nodeDescriptor().isNull())
-    {
-        return;
-    }
-
     if (findSensorsState != FindSensorsActive)
     {
         return;
@@ -2135,7 +2139,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                     {
                         fpPresenceSensor.outClusters.push_back(ci->id());
                     }
-                    else
+                    else if (!node->nodeDescriptor().isNull())
                     {
                         fpSwitch.outClusters.push_back(ci->id());
                     }
@@ -2640,7 +2644,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         sensorNode.setManufacturer("Insta");
         checkInstaModelId(&sensorNode);
     }
-    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC)
+    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC && modelId.startsWith(QLatin1String("lumi")))
     {
         sensorNode.setManufacturer("LUMI");
     }
@@ -3354,7 +3358,8 @@ bool DeRestPluginPrivate::isDeviceSupported(const deCONZ::Node *node, const QStr
     const SupportedDevice *s = supportedDevices;
     while (s->modelId)
     {
-        if (node->nodeDescriptor().manufacturerCode() == s->vendorId)
+        if ((!node->nodeDescriptor().isNull() && node->nodeDescriptor().manufacturerCode() == s->vendorId) ||
+            ((node->address().ext() & s->mac) == s->mac))
         {
             if (modelId.startsWith(QLatin1String(s->modelId)))
             {

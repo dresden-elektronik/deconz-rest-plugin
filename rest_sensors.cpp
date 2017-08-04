@@ -1348,7 +1348,6 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
  */
 void DeRestPluginPrivate::checkInstaModelId(Sensor *sensor)
 {
-    const quint64 instaMacPrefix = 0x000f171241000000ULL;
     if (sensor && (sensor->address().ext() & instaMacPrefix) == instaMacPrefix)
     {
         if (!sensor->modelId().endsWith(QLatin1String("_1")))
@@ -1394,7 +1393,6 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
         stream >> macCapabilities;
 
         // filter supported devices
-        const quint64 bjeMacPrefix = 0xd85def0000000000ULL;
 
         // Busch-Jaeger
         if ((ext & bjeMacPrefix) == bjeMacPrefix)
@@ -1580,9 +1578,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
         return;
     }
 
-    const quint64 deMacPrefix =   0x00212effff000000ULL;
-    const quint64 ikeaMacPrefix = 0x000b57fff0000000ULL;
-    //const quint64 jennicMacPrefix = 0x00158d0000000000ULL;
+
 
     // check for dresden elektronik devices
     if ((sc->address.ext() & deMacPrefix) == deMacPrefix)

@@ -250,6 +250,17 @@
 #define RECONNECT_CHECK_DELAY  5000
 #define RECONNECT_NOW          100
 
+extern const quint64 bjeMacPrefix;
+extern const quint64 centraLiteMacPrefix;
+extern const quint64 tiMacPrefix;
+extern const quint64 deMacPrefix;
+extern const quint64 ikeaMacPrefix;
+extern const quint64 instaMacPrefix;
+extern const quint64 jennicMacPrefix;
+extern const quint64 philipsMacPrefix;
+extern const quint64 osramMacPrefix;
+extern const quint64 nyceMacPrefix;
+
 // HTTP status codes
 extern const char *HttpStatusOk;
 extern const char *HttpStatusAccepted;
