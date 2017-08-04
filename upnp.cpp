@@ -132,7 +132,7 @@ void DeRestPluginPrivate::upnpReadyRead()
 
             if (line.contains(QLatin1String("ssdp:all")) ||
                 line.contains(QLatin1String("device:basic")) ||
-                line.contains(QLatin1String("unpn:rootdevice")))
+                line.contains(QLatin1String("upnp:rootdevice")))
             {
                 searchTarget = line;
                 break;
