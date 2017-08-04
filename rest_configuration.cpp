@@ -313,11 +313,11 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
                         continue;
                     }
 
-                    if ((ipv4 & 0xa0000000UL) != 0xa0000000UL &&
-                        (ipv4 & 0xb0000000UL) != 0xb0000000UL &&
-                        (ipv4 & 0xc0000000UL) != 0xc0000000UL)
+                    if ((ipv4 & 0x80000000UL) != 0x00000000UL && // class A 0xxx xxxx
+                        (ipv4 & 0xc0000000UL) != 0x80000000UL && // class B 10xx xxxx
+                        (ipv4 & 0xe0000000UL) != 0xc0000000UL)   // class C 110x xxxx
                     {
-                        // class A, B or C network
+                        // unsupported network
                         continue;
                     }
 
