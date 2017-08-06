@@ -22,27 +22,18 @@ void DeRestPluginPrivate::initUpnpDiscovery()
 {
     DBG_Assert(udpSock == 0);
 
-    QHostAddress groupAddress("239.255.255.250");
     udpSock = new QUdpSocket(this);
     udpSockOut = new QUdpSocket(this);
-    if (!udpSock->bind(QHostAddress("0.0.0.0"), 1900, QUdpSocket::ShareAddress)) // SSDP
-    {
-        DBG_Printf(DBG_ERROR, "UPNP error %s\n", qPrintable(udpSock->errorString()));
-    }
-
-    if (!udpSock->joinMulticastGroup(groupAddress))
-    {
-        DBG_Printf(DBG_ERROR, "UPNP error %s\n", qPrintable(udpSock->errorString()));
-    }
+    joinedMulticastGroup = false;
 
     connect(udpSock, SIGNAL(readyRead()),
             this, SLOT(upnpReadyRead()));
 
-    QTimer *timer = new QTimer(this);
-    timer->setSingleShot(false);
-    connect(timer, SIGNAL(timeout()),
+    upnpTimer = new QTimer(this);
+    upnpTimer->setSingleShot(false);
+    connect(upnpTimer, SIGNAL(timeout()),
             this, SLOT(announceUpnp()));
-    timer->start(20 * 1000);
+    upnpTimer->start(1000); // setup phase fast interval
 
     initDescriptionXml();
 }
@@ -82,6 +73,32 @@ void DeRestPluginPrivate::initDescriptionXml()
 /*! Sends SSDP broadcast for announcement. */
 void DeRestPluginPrivate::announceUpnp()
 {
+    if (udpSock->state() != QAbstractSocket::BoundState)
+    {
+        joinedMulticastGroup = false;
+        DBG_Printf(DBG_ERROR, "UPNP socket not bound, state: %d\n", udpSock->state());
+        // retry
+        if (!udpSock->bind(QHostAddress("0.0.0.0"), 1900, QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint)) // SSDP
+        {
+            DBG_Printf(DBG_ERROR, "UPNP error %s\n", qPrintable(udpSock->errorString()));
+        }
+        return;
+    }
+
+    if (!joinedMulticastGroup)
+    {
+        QHostAddress groupAddress("239.255.255.250");
+        if (!udpSock->joinMulticastGroup(groupAddress))
+        {
+            DBG_Printf(DBG_ERROR, "UPNP error %s\n", qPrintable(udpSock->errorString()));
+            return;
+        }
+        joinedMulticastGroup = true;
+    }
+
+    if (upnpTimer->interval() != (20 * 1000))
+        upnpTimer->start(20 * 1000);
+
     quint16 port = 1900;
     QHostAddress host;
     QByteArray datagram = QString(QLatin1String(

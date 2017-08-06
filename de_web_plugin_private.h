@@ -1307,6 +1307,8 @@ public:
     QTimer *checkSensorsTimer;
     uint8_t zclSeq;
     std::list<QTcpSocket*> eventListeners;
+    bool joinedMulticastGroup;
+    QTimer *upnpTimer;
     QUdpSocket *udpSock;
     QUdpSocket *udpSockOut;
     uint8_t haEndpoint;
