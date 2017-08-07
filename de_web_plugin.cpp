@@ -98,6 +98,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "lumi.sens", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.weather", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_magnet", jennicMacPrefix },
+    { VENDOR_JENNIC, "lumi.sensor_switch", jennicMacPrefix },
     { 0, 0, 0 }
 };
 
@@ -2199,6 +2200,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                     {
                         fpOpenCloseSensor.inClusters.push_back(ci->id());
                     }
+                    else if (modelId.startsWith(QLatin1String("lumi.sensor_switch")))
+                    {
+                        fpSwitch.inClusters.push_back(ci->id());
+                    }
                 }
                     break;
 
@@ -2279,7 +2284,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
         Sensor *sensor = 0;
 
         // ZHASwitch
-        if (fpSwitch.hasInCluster(ONOFF_SWITCH_CONFIGURATION_CLUSTER_ID) || !fpSwitch.outClusters.empty()) // (!fpSwitch.inClusters.empty() || !fpSwitch.outClusters.empty())
+        if (fpSwitch.hasInCluster(ONOFF_SWITCH_CONFIGURATION_CLUSTER_ID) ||
+            fpSwitch.hasInCluster(ONOFF_CLUSTER_ID) ||
+            !fpSwitch.outClusters.empty())
         {
             fpSwitch.endpoint = i->endpoint();
             fpSwitch.deviceId = i->deviceId();
@@ -2476,7 +2483,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = COMMISSIONING_CLUSTER_ID;
         }
-        else if (sensorNode.fingerPrint().hasOutCluster(ONOFF_CLUSTER_ID))
+        else if (sensorNode.fingerPrint().hasInCluster(ONOFF_CLUSTER_ID) ||
+                 sensorNode.fingerPrint().hasOutCluster(ONOFF_CLUSTER_ID))
         {
             clusterId = ONOFF_CLUSTER_ID;
         }
@@ -3236,6 +3244,24 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         Event e(RSensors, item->descriptor().suffix, i->id());
                                         enqueueEvent(e);
                                     }
+                                    i->setNeedSaveDatabase(true);
+                                    i->updateStateTimestamp();
+                                }
+
+                                item = i->item(RStateButtonEvent);
+
+                                if (item &&
+                                    event.event() == deCONZ::NodeEvent::UpdatedClusterDataZclReport)
+                                {
+                                    // TODO better button handler
+                                    quint32 button;
+                                    if (ia->numericValue().u8 == 1) { button = S_BUTTON_1 + S_BUTTON_ACTION_INITIAL_PRESS; }
+                                    else                            { button = S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED; }
+
+                                    item->setValue(button);
+
+                                    Event e(RSensors, item->descriptor().suffix, i->id());
+                                    enqueueEvent(e);
                                     i->setNeedSaveDatabase(true);
                                     i->updateStateTimestamp();
                                 }
