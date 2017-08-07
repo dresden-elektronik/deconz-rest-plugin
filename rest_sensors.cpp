@@ -1463,6 +1463,34 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
             }
             break; // ok
 
+        case BASIC_CLUSTER_ID:
+            if (!zclFrame.isProfileWideCommand())
+            {
+                return;
+            }
+
+            if (zclFrame.commandId() != deCONZ::ZclReadAttributesResponseId)
+            {
+                return;
+            }
+            else if (fastProbeAddr.hasExt())
+            {
+                std::vector<SensorCandidate>::const_iterator i = findSensorCandidates.begin();
+                std::vector<SensorCandidate>::const_iterator end = findSensorCandidates.end();
+
+                for (; i != end; ++i)
+                {
+                    if (i->address.ext() == fastProbeAddr.ext())
+                    {
+                        if (!fastProbeTimer->isActive())
+                        {
+                            fastProbeTimer->start(5);
+                        }
+                    }
+                }
+            }
+            break; // ok
+
         case IAS_ZONE_CLUSTER_ID:
             break; // ok
 
@@ -1574,8 +1602,6 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
     {
         return;
     }
-
-
 
     // check for dresden elektronik devices
     if ((sc->address.ext() & deMacPrefix) == deMacPrefix)

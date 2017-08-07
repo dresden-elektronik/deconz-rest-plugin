@@ -3304,7 +3304,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     }
                                 }
                             }
-                            if (ia->id() == 0x0004) // Manufacturer Name
+                            else if (ia->id() == 0x0004) // Manufacturer Name
                             {
                                 if (i->mustRead(READ_VENDOR_NAME))
                                 {
@@ -3321,6 +3321,21 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->setNeedSaveDatabase(true);
                                         queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
                                     }
+                                }
+                            }
+                            else if (ia->id() == 0x0006) // Date code as fallback for sw build id
+                            {
+                                QString str = ia->toString().simplified();
+                                if (!i->swVersion().isEmpty())
+                                {
+                                    // check
+                                }
+                                else if (!str.isEmpty() && str != i->swVersion())
+                                {
+                                    i->setSwVersion(str);
+                                    i->setNeedSaveDatabase(true);
+                                    queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
+                                    updateSensorEtag(&*i);
                                 }
                             }
                             else if (ia->id() == 0x4000) // Software build identifier
@@ -8033,73 +8048,90 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
             }
         }
 
+        QString manufacturer;
+        QString modelId;
+        QString swBuildId;
+        QString dateCode;
+        quint16 iasZoneType = 0;
+
         for (const deCONZ::SimpleDescriptor &sd : node->simpleDescriptors())
         {
-            if (sd.deviceId() == DEV_ID_IAS_ZONE)
+            for (const deCONZ::ZclCluster &cl : sd.inClusters())
             {
-                bool ok = false;
-
-                for (const deCONZ::ZclCluster &cl : sd.inClusters())
+                for (const deCONZ::ZclAttribute &attr : cl.attributes())
                 {
-                    if (cl.id() == IAS_ZONE_CLUSTER_ID)
+                    if (cl.id() == BASIC_CLUSTER_ID)
                     {
-                        for (const deCONZ::ZclAttribute &attr : cl.attributes())
+                        if (attr.id() == 0x0004 && manufacturer.isEmpty())
                         {
-                            if (attr.id() == 0x0001 && attr.numericValue().u64 != 0) // Zone type
-                            {
-                                // assume it was read
-                                ok = true;
-                                break;
-                            }
+                            manufacturer = attr.toString();
                         }
-                        break;
+                        else if (attr.id() == 0x0005 && modelId.isEmpty())
+                        {
+                            modelId = attr.toString();
+                        }
+                        else if (attr.id() == 0x0006 && dateCode.isEmpty())
+                        {
+                            dateCode = attr.toString();
+                        }
+                        else if (attr.id() == 0x4000 && swBuildId.isEmpty())
+                        {
+                            swBuildId = attr.toString();
+                        }
                     }
-                }
-
-                if (!ok)
-                {
-                    deCONZ::ApsDataRequest apsReq;
-
-                    DBG_Printf(DBG_INFO, "[3.1] get IAS Zone type for 0x%016llx\n", sc->address.ext());
-
-                    // ZDP Header
-                    apsReq.dstAddress() = sc->address;
-                    apsReq.setDstAddressMode(deCONZ::ApsNwkAddress);
-                    apsReq.setDstEndpoint(sd.endpoint());
-                    apsReq.setSrcEndpoint(endpoint());
-                    apsReq.setProfileId(HA_PROFILE_ID);
-                    apsReq.setRadius(0);
-                    apsReq.setClusterId(IAS_ZONE_CLUSTER_ID);
-                    //apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
-
-                    deCONZ::ZclFrame zclFrame;
-                    zclFrame.setSequenceNumber(zclSeq++);
-                    zclFrame.setCommandId(deCONZ::ZclReadAttributesId);
-                    zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
-                                             deCONZ::ZclFCDirectionClientToServer |
-                                             deCONZ::ZclFCDisableDefaultResponse);
-
-                    { // payload
-                        QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
-                        stream.setByteOrder(QDataStream::LittleEndian);
-
-                        stream << (quint16)0x0001; // IAS Zone type
-                    }
-
-                    { // ZCL frame
-                        QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
-                        stream.setByteOrder(QDataStream::LittleEndian);
-                        zclFrame.writeToStream(stream);
-                    }
-
-                    deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
-
-                    if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+                    else if (cl.id() == IAS_ZONE_CLUSTER_ID)
                     {
-                        queryTime = queryTime.addSecs(1);
+                        if (attr.id() == 0x0001 && attr.numericValue().u64 != 0) // Zone type
+                        {
+                            iasZoneType = attr.numericValue().u64;
+                        }
                     }
-                    return;
                 }
+            }
+
+            if (sd.deviceId() == DEV_ID_IAS_ZONE && iasZoneType == 0)
+            {
+                deCONZ::ApsDataRequest apsReq;
+
+                DBG_Printf(DBG_INFO, "[3.1] get IAS Zone type for 0x%016llx\n", sc->address.ext());
+
+                // ZDP Header
+                apsReq.dstAddress() = sc->address;
+                apsReq.setDstAddressMode(deCONZ::ApsNwkAddress);
+                apsReq.setDstEndpoint(sd.endpoint());
+                apsReq.setSrcEndpoint(endpoint());
+                apsReq.setProfileId(HA_PROFILE_ID);
+                apsReq.setRadius(0);
+                apsReq.setClusterId(IAS_ZONE_CLUSTER_ID);
+                //apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+
+                deCONZ::ZclFrame zclFrame;
+                zclFrame.setSequenceNumber(zclSeq++);
+                zclFrame.setCommandId(deCONZ::ZclReadAttributesId);
+                zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                                         deCONZ::ZclFCDirectionClientToServer |
+                                         deCONZ::ZclFCDisableDefaultResponse);
+
+                { // payload
+                    QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
+                    stream.setByteOrder(QDataStream::LittleEndian);
+
+                    stream << (quint16)0x0001; // IAS Zone type
+                }
+
+                { // ZCL frame
+                    QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
+                    stream.setByteOrder(QDataStream::LittleEndian);
+                    zclFrame.writeToStream(stream);
+                }
+
+                deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
+
+                if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+                {
+                    queryTime = queryTime.addSecs(1);
+                }
+                return;
             }
         }
 
@@ -8109,7 +8141,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
         }
 
         // manufacturer, model id, sw build id
-        if (!sensor || sensor->modelId().isEmpty() || sensor->swVersion().isEmpty())
+        if (!sensor || modelId.isEmpty() || manufacturer.isEmpty() || swBuildId.isEmpty())
         {
             deCONZ::ApsDataRequest apsReq;
 
@@ -8136,9 +8168,19 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
                 QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
                 stream.setByteOrder(QDataStream::LittleEndian);
 
-                if (!sensor || sensor->manufacturer().isEmpty()) { stream << (quint16)0x0004; }// manufacturer
-                if (!sensor || sensor->modelId().isEmpty())      { stream << (quint16)0x0005; } // model id
-                if (!sensor || sensor->swVersion().isEmpty())    { stream << (quint16)0x4000; } // sw build id
+                if (manufacturer.isEmpty()) { stream << (quint16)0x0004; }// manufacturer
+                else if (modelId.isEmpty()) { stream << (quint16)0x0005; } // model id
+                else if (swBuildId.isEmpty() && dateCode.isEmpty())
+                {
+                    if ((sc->address.ext() & tiMacPrefix) == tiMacPrefix)
+                    {
+                        stream << (quint16)0x0006; // date code, sw build id isn't available
+                    }
+                    else
+                    {
+                        stream << (quint16)0x4000; // sw build id
+                    }
+                }
             }
 
             { // ZCL frame
@@ -8166,26 +8208,6 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
                 return;
             }
         }
-
-        /*std::vector<Sensor>::iterator i = sensors.begin();
-        std::vector<Sensor>::iterator end = sensors.end();
-        for (; i != end; i++)
-        {
-            if (i->address().ext() == sc->address.ext())
-            {
-                if (findSensorsState == FindSensorsActive)
-                {
-                    if (i->deletedState() == Sensor::StateDeleted)
-                    {
-                        // reanimate
-                        i->setDeletedState(Sensor::StateNormal);
-                        i->setNeedSaveDatabase(true);
-                        Event e(RSensors, REventAdded, i->id());
-                        enqueueEvent(e);
-                    }
-                }
-            }
-        }*/
     }
 }
 
