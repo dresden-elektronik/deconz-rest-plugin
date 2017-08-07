@@ -2651,14 +2651,12 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
 
     if (sensorNode.name().isEmpty())
     {
-        if (type.endsWith(QLatin1String("Switch")))
+        QString name = type;
+        if (name.startsWith("ZHA"))
         {
-            sensorNode.setName(QString("Switch %1").arg(sensorNode.id()));
+            name.remove(0, 3);
         }
-        else
-        {
-            sensorNode.setName(QString("%1 %2").arg(type).arg(sensorNode.id()));
-        }
+        sensorNode.setName(QString("%1 %2").arg(name).arg(sensorNode.id()));
     }
 
     // force reading attributes
