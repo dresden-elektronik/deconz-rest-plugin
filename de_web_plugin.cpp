@@ -168,26 +168,10 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     nodes.reserve(150);
     sensors.reserve(150);
 
-    // Supported sensor types
-    sensorTypes.append("CLIPSwitch");
-    sensorTypes.append("CLIPOpenClose");
-    sensorTypes.append("CLIPPresence");
-    sensorTypes.append("CLIPTemperature");
-    sensorTypes.append("CLIPGenericFlag");
-    sensorTypes.append("CLIPGenericStatus");
-    sensorTypes.append("CLIPHumidity");
-    sensorTypes.append("Daylight");
-    sensorTypes.append("ZGPSwitch");
-    sensorTypes.append("ZHASwitch");
-    sensorTypes.append("ZHALight");
-    sensorTypes.append("ZHAPresence");
-    sensorTypes.append("ZHATemperature");
-
     fastProbeTimer = new QTimer(this);
     fastProbeTimer->setInterval(500);
     fastProbeTimer->setSingleShot(true);
     connect(fastProbeTimer, SIGNAL(timeout()), this, SLOT(delayedFastEnddeviceProbe()));
-
 
     apsCtrl = deCONZ::ApsController::instance();
     DBG_Assert(apsCtrl != 0);

@@ -249,14 +249,6 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
-    //check valid sensortype
-    if (!sensorTypes.contains(type))
-    {
-        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors"), QString("invalid value, %1, for parameter, type").arg(type)));
-        rsp.httpStatus = HttpStatusBadRequest;
-        return REQ_READY_SEND;
-    }
-
     if (!type.startsWith(QLatin1String("CLIP")))
     {
         rsp.list.append(errorToMap(ERR_NOT_ALLOWED_SENSOR_TYPE, QString("/sensors"), QString("Not allowed to create sensor type")));
@@ -302,7 +294,12 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
         else if (type == QLatin1String("CLIPTemperature")) { item = sensor.addItem(DataTypeInt32, RStateTemperature); item->setValue(0); }
         else if (type == QLatin1String("CLIPHumidity")) { item = sensor.addItem(DataTypeInt32, RStateHumidity); item->setValue(0); }
         else if (type == QLatin1String("CLIPPressure")) { item = sensor.addItem(DataTypeInt32, RStatePressure); item->setValue(0); }
-
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors"), QString("invalid value, %1, for parameter, type").arg(type)));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
 
         //setState optional
         if (map.contains("state"))

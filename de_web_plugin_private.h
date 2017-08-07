@@ -1294,7 +1294,6 @@ public:
     size_t lightAttrIter;
     size_t sensorAttrIter;
     size_t sensorCheckIter;
-    QVector<QString> sensorTypes;
     std::vector<Group> groups;
     std::vector<LightNode> nodes;
     std::vector<Rule> rules;
