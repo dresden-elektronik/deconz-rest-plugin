@@ -4243,8 +4243,7 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         if (sensorNode->modelId().startsWith(QLatin1String("FLS-NB")) ||
             sensorNode->modelId().startsWith(QLatin1String("D1")) || sensorNode->modelId().startsWith(QLatin1String("S1")) ||
             sensorNode->modelId().startsWith(QLatin1String("S2")) || sensorNode->manufacturer().startsWith(QLatin1String("BEGA")) ||
-            sensorNode->modelId().startsWith(QLatin1String("C4")) ||
-            sensorNode->modelId().startsWith(QLatin1String("LM_00.00")))
+            sensorNode->modelId().startsWith(QLatin1String("C4")))
         {
             ok = true;
         }
