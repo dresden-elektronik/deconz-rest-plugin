@@ -1267,6 +1267,7 @@ public:
     public:
         deCONZ::Address address;
         bool onOff;
+        uint bri;
         int idleTotalCounterCopy;
     };
     std::vector<RecoverOnOff> recoverOnOff;

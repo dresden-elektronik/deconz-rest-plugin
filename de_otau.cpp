@@ -102,6 +102,7 @@ void DeRestPluginPrivate::otauDataIndication(const deCONZ::ApsDataIndication &in
                 version.sprintf("%08X", swVersion);
 
                 lightNode->setSwBuildId(version);
+                lightNode->setNeedSaveDatabase(true);
                 updateEtag(lightNode->etag);
 
                 // read real sw build id
@@ -132,8 +133,9 @@ void DeRestPluginPrivate::otauDataIndication(const deCONZ::ApsDataIndication &in
 
         if (lightNode)
         {
-            ResourceItem *item = lightNode->item(RStateOn);
-            DBG_Assert(item != 0);
+            ResourceItem *onOff = lightNode->item(RStateOn);
+            ResourceItem *bri = lightNode->item(RStateBri);
+            DBG_Assert(onOff != 0);
             std::vector<RecoverOnOff>::iterator i = recoverOnOff.begin();
             std::vector<RecoverOnOff>::iterator end = recoverOnOff.end();
             for (; i != end; ++i)
@@ -141,7 +143,10 @@ void DeRestPluginPrivate::otauDataIndication(const deCONZ::ApsDataIndication &in
                 if (i->address.hasNwk() && lightNode->address().hasNwk() &&
                     i->address.nwk() == lightNode->address().nwk())
                 {
-                    i->onOff = item ? item->toBool() : false;
+                    i->onOff = onOff ? onOff->toBool() : false;
+                    if (bri && bri->lastSet().isValid()) { i->bri = bri->toNumber(); }
+                    else                                 { i->bri = 0; }
+
                     i->idleTotalCounterCopy = idleTotalCounter;
                     lightNode = 0; // release
                     break;
@@ -154,7 +159,8 @@ void DeRestPluginPrivate::otauDataIndication(const deCONZ::ApsDataIndication &in
                 // create new Entry
                 RecoverOnOff rc;
                 rc.address = lightNode->address();
-                rc.onOff = item ? item->toBool() : false;
+                rc.onOff = onOff ? onOff->toBool() : false;
+                rc.bri = bri ? bri->toNumber() : 0;
                 rc.idleTotalCounterCopy = idleTotalCounter;
                 recoverOnOff.push_back(rc);
             }

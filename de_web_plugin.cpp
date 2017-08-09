@@ -7403,6 +7403,20 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
                         queryTime = queryTime.addSecs(5);
                         addTaskSetOnOff(task, ONOFF_COMMAND_OFF, 0);
                     }
+                    else if (rc->bri > 0 && rc->bri < 256)
+                    {
+                        DBG_Printf(DBG_INFO, "Turn on light 0x%016llX on again with former brightness after OTA\n", rc->address.ext());
+                        TaskItem task;
+                        task.lightNode = &*i;
+                        task.req.dstAddress().setNwk(nwk);
+                        task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+                        task.req.setDstEndpoint(task.lightNode->haEndpoint().endpoint());
+                        task.req.setSrcEndpoint(getSrcEndpoint(task.lightNode, task.req));
+                        task.req.setDstAddressMode(deCONZ::ApsNwkAddress);
+                        task.req.setSendDelay(1000);
+                        queryTime = queryTime.addSecs(5);
+                        addTaskSetBrightness(task, rc->bri, true);
+                    }
                     break;
                 }
             }
