@@ -3259,7 +3259,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     // TODO better button handler
                                     quint32 button;
-                                    if (ia->numericValue().u8 == 1) { button = S_BUTTON_1 + S_BUTTON_ACTION_INITIAL_PRESS; }
+                                    if (ia->numericValue().u8 == 0) { button = S_BUTTON_1 + S_BUTTON_ACTION_INITIAL_PRESS; }
                                     else                            { button = S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED; }
 
                                     item->setValue(button);
