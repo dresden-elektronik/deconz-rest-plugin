@@ -2169,7 +2169,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                         }
                     }
 
-                    supportedDevice = isDeviceSupported(node, modelId);
                     fpSwitch.inClusters.push_back(ci->id());
                 }
                     break;
@@ -2276,6 +2275,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
             }
         }
 
+        supportedDevice = isDeviceSupported(node, modelId);
         if (!supportedDevice)
         {
             return;
