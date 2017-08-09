@@ -2562,6 +2562,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             sensorNode.setMode(Sensor::ModeTwoGroups); // inital
         }
+        else if (modelId.startsWith(QLatin1String("FLS-NB")))
+        {
+            sensorNode.setManufacturer("nimbus group");;
+        }
     }
     else if ((node->nodeDescriptor().manufacturerCode() == VENDOR_OSRAM_STACK) || (node->nodeDescriptor().manufacturerCode() == VENDOR_OSRAM))
     {
@@ -2779,7 +2783,6 @@ void DeRestPluginPrivate::checkUpdatedFingerPrint(const deCONZ::Node *node, quin
             {
                 if (sd.cluster(fp.inClusters[c], deCONZ::ServerCluster))
                 {
-                    clusterId = fp.inClusters[c];
                     update = true;
                     break;
                 }
@@ -2789,7 +2792,6 @@ void DeRestPluginPrivate::checkUpdatedFingerPrint(const deCONZ::Node *node, quin
             {
                 if (sd.cluster(fp.outClusters[c], deCONZ::ClientCluster))
                 {
-                    clusterId = ONOFF_CLUSTER_ID;
                     update = true;
                     break;
                 }
@@ -2799,6 +2801,10 @@ void DeRestPluginPrivate::checkUpdatedFingerPrint(const deCONZ::Node *node, quin
             {
                 continue;
             }
+
+            if      (i->type().endsWith(QLatin1String("Switch")))   { clusterId = ONOFF_CLUSTER_ID; }
+            else if (i->type().endsWith(QLatin1String("Light")))    { clusterId = ILLUMINANCE_MEASUREMENT_CLUSTER_ID; }
+            else if (i->type().endsWith(QLatin1String("Presence"))) { clusterId = OCCUPANCY_SENSING_CLUSTER_ID; }
 
             DBG_Printf(DBG_INFO, "change 0x%016llX finger print ep: 0x%02X --> 0x%02X\n", i->address().ext(), fp.endpoint, endpoint);
 
@@ -8654,6 +8660,16 @@ void DeRestPlugin::idleTimerFired()
                 if (processLights)
                 {
                     break;
+                }
+
+                if (lightNode->node() &&
+                    lightNode->modelId().startsWith(QLatin1String("FLS-NB")))
+                {
+                    // temporary activate sensor search
+                    DeRestPluginPrivate::FindSensorsState fss = d->findSensorsState; // remember
+                    d->findSensorsState = DeRestPluginPrivate::FindSensorsActive;
+                    d->addSensorNode(lightNode->node());
+                    d->findSensorsState = fss;
                 }
 
                 const uint32_t items[]   = { READ_ON_OFF, READ_LEVEL, READ_COLOR, READ_GROUPS, READ_SCENES, 0 };
