@@ -1694,7 +1694,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeInt32, RStateButtonEvent);
             item->setValue(0);
         }
-        else if (sensor.type().endsWith(QLatin1String("Light")))
+        else if (sensor.type().endsWith(QLatin1String("Light")) || sensor.type().endsWith(QLatin1String("LightLevel")))
         {
             if (sensor.fingerPrint().hasInCluster(ILLUMINANCE_MEASUREMENT_CLUSTER_ID))
             {
@@ -1704,6 +1704,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item->setValue(0);
             item = sensor.addItem(DataTypeUInt32, RStateLux);
             item->setValue(0);
+            item = sensor.addItem(DataTypeBool, RStateDark);
+            item->setValue(true);
+            item = sensor.addItem(DataTypeBool, RStateDaylight);
+            item->setValue(false);
         }
         else if (sensor.type().endsWith(QLatin1String("Temperature")))
         {

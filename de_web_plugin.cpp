@@ -2503,7 +2503,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         }
         sensorNode.addItem(DataTypeInt32, RStateButtonEvent);
     }
-    else if (sensorNode.type().endsWith(QLatin1String("Light")))
+    else if (sensorNode.type().endsWith(QLatin1String("Light")) || sensorNode.type().endsWith(QLatin1String("LightLevel")))
     {
         if (sensorNode.fingerPrint().hasInCluster(ILLUMINANCE_MEASUREMENT_CLUSTER_ID))
         {
@@ -3045,6 +3045,36 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     enqueueEvent(e);
                                 }
 
+                                item = i->item(RStateDark);
+                                if (!item)
+                                {
+                                    item = i->addItem(DataTypeBool, RStateDark);
+                                }
+                                bool dark = measuredValue < 12000;    // TODO config
+                                if (item->setValue(dark))
+                                {
+                                    if (item->lastChanged() == item->lastSet())
+                                    {
+                                      Event e(RSensors, RStateDark, i->id());
+                                      enqueueEvent(e);
+                                    }
+                                }
+
+                                item = i->item(RStateDaylight);
+                                if (!item)
+                                {
+                                    item = i->addItem(DataTypeBool, RStateDaylight);
+                                }
+                                bool daylight = measuredValue > 16000;    // TODO config
+                                if (item->setValue(daylight))
+                                {
+                                    if (item->lastChanged() == item->lastSet())
+                                    {
+                                      Event e(RSensors, RStateDaylight, i->id());
+                                      enqueueEvent(e);
+                                    }
+                                }
+
                                 item = i->item(RStateLux);
 
                                 if (!item)
@@ -3069,11 +3099,12 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                         if (l >= 1)
                                         {
+                                            l += 0.5;   // round value
                                             lux = static_cast<quint32>(l);
                                         }
                                         else
                                         {
-                                            DBG_Printf(DBG_INFO, "invalid lux value %u", lux);
+                                            DBG_Printf(DBG_INFO, "invalid lux value %u\n", lux);
                                             lux = 0; // invalid value
                                         }
                                     }
