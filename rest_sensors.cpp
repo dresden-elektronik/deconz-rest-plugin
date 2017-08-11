@@ -12,6 +12,7 @@
 #include <QTextCodec>
 #include <QTcpSocket>
 #include <QVariantMap>
+#include <QtCore/qmath.h>
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "json.h"
@@ -202,7 +203,7 @@ int DeRestPluginPrivate::getSensor(const ApiRequest &req, ApiResponse &rsp)
             REQ_NOT_HANDLED
  */
 int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
-{   
+{
     rsp.httpStatus = HttpStatusOk;
 
     bool ok;
@@ -291,6 +292,10 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
         else if (type == QLatin1String("CLIPGenericStatus")) { item = sensor.addItem(DataTypeInt32, RStateStatus); item->setValue(0); }
         else if (type == QLatin1String("CLIPPresence")) { item = sensor.addItem(DataTypeBool, RStatePresence); item->setValue(false);
                                                           item = sensor.addItem(DataTypeUInt16, RConfigDuration); item->setValue(60); }
+        else if (type == QLatin1String("CLIPLightLevel")) { item = sensor.addItem(DataTypeUInt16, RStateLightLevel); item->setValue(0);
+                                                            item = sensor.addItem(DataTypeUInt32, RStateLux); item->setValue(0);
+                                                            item = sensor.addItem(DataTypeBool, RStateDark); item->setValue(true);
+                                                            item = sensor.addItem(DataTypeBool, RStateDaylight); item->setValue(false); }
         else if (type == QLatin1String("CLIPTemperature")) { item = sensor.addItem(DataTypeInt32, RStateTemperature); item->setValue(0); }
         else if (type == QLatin1String("CLIPHumidity")) { item = sensor.addItem(DataTypeInt32, RStateHumidity); item->setValue(0); }
         else if (type == QLatin1String("CLIPPressure")) { item = sensor.addItem(DataTypeInt32, RStatePressure); item->setValue(0); }
@@ -312,7 +317,7 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
 
             for (; pi != pend; ++pi)
             {
-                if(!((pi.key() == "buttonevent") || (pi.key() == "flag") || (pi.key() == "status") || (pi.key() == "presence")  || (pi.key() == "open")  || (pi.key() == "temperature")  || (pi.key() == "humidity")))
+                if(!((pi.key() == "buttonevent") || (pi.key() == "flag") || (pi.key() == "status") || (pi.key() == "presence")  || (pi.key() == "open")  || (pi.key() == "lightlevel") || (pi.key() == "temperature")  || (pi.key() == "humidity")))
                 {
                     rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%2").arg(pi.key()), QString("parameter, %1, not available").arg(pi.key())));
                     rsp.httpStatus = HttpStatusBadRequest;
@@ -335,7 +340,7 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
                     rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter buttonevent").arg(state["buttonevent"].toString())));
                     rsp.httpStatus = HttpStatusBadRequest;
                     return REQ_READY_SEND;
-                }                
+                }
             }
             if (state.contains("flag"))
             {
@@ -401,6 +406,23 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
                 if (!item->setValue(state["open"]))
                 {
                     rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter open").arg(state["open"].toString())));
+                    rsp.httpStatus = HttpStatusBadRequest;
+                    return REQ_READY_SEND;
+                }
+            }
+            if (state.contains("lightlevel"))
+            {
+                item = sensor.item(RStateLightLevel);
+                if (!item)
+                {
+                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors"), QString("parameter, lightlevel, not available")));
+                    rsp.httpStatus = HttpStatusBadRequest;
+                    return REQ_READY_SEND;
+                }
+
+                if (!item->setValue(state["lightlevel"]))
+                {
+                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter lightlevel").arg(state["lightlevel"].toString())));
                     rsp.httpStatus = HttpStatusBadRequest;
                     return REQ_READY_SEND;
                 }
@@ -842,7 +864,10 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
         ResourceItemDescriptor rid;
         if (isClip && getResourceItemDescriptor(QString("state/%1").arg(pi.key()), rid))
         {
-            item = sensor->item(rid.suffix);
+            if (rid.suffix != RStateLux && rid.suffix != RStateDark && rid.suffix != RStateDaylight)
+            {
+                item = sensor->item(rid.suffix);
+            }
             if (item)
             {
                 QVariant val = map[pi.key()];
@@ -859,6 +884,77 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
                         enqueueEvent(e);
                     }
                     sensor->updateStateTimestamp();
+
+                    if (rid.suffix == RStateLightLevel)
+                    {
+                        ResourceItem *item2 = 0;
+                        quint16 measuredValue = val.toUInt();
+
+                        item2 = sensor->item(RStateDark);
+                        if (!item2)
+                        {
+                            item2 = sensor->addItem(DataTypeBool, RStateDark);
+                        }
+                        bool dark = measuredValue < 12000;    // TODO config
+                        if (item2->setValue(dark))
+                        {
+                            if (item2->lastChanged() == item2->lastSet())
+                            {
+                              Event e(RSensors, RStateDark, id);
+                              enqueueEvent(e);
+                            }
+                        }
+
+                        item2 = sensor->item(RStateDaylight);
+                        if (!item2)
+                        {
+                            item2 = sensor->addItem(DataTypeBool, RStateDaylight);
+                        }
+                        bool daylight = measuredValue > 16000;    // TODO config
+                        if (item2->setValue(daylight))
+                        {
+                            if (item2->lastChanged() == item2->lastSet())
+                            {
+                              Event e(RSensors, RStateDaylight, id);
+                              enqueueEvent(e);
+                            }
+                        }
+
+                        item2 = sensor->item(RStateLux);
+                        if (!item2)
+                        {
+                            item2 = sensor->addItem(DataTypeUInt32, RStateLux);
+                        }
+                        quint32 lux = 0;
+                        if (measuredValue > 0 && measuredValue < 0xffff)
+                        {
+                            lux = measuredValue;
+                            // valid values are 1 - 0xfffe
+                            // 0, too low to measure
+                            // 0xffff invalid value
+
+                            // ZCL Attribute = 10.000 * log10(Illuminance (lx)) + 1
+                            // lux = 10^((ZCL Attribute - 1)/10.000)
+                            qreal exp = lux - 1;
+                            qreal l = qPow(10, exp / 10000.0f);
+
+                            if (l >= 1)
+                            {
+                                l += 0.5;   // round value
+                                lux = static_cast<quint32>(l);
+                            }
+                            else
+                            {
+                                DBG_Printf(DBG_INFO, "invalid lux value %u\n", lux);
+                                lux = 0; // invalid value
+                            }
+                        }
+                        else
+                        {
+                            lux = 0;
+                        }
+                        item2->setValue(lux);
+                    }
                 }
                 else // invalid
                 {
