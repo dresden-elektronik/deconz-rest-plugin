@@ -126,32 +126,36 @@ static const Sensor::ButtonMap ikeaRemoteMap[] = {
 // big button
     { Sensor::ModeColorTemperature, 0x01, 0x0006, 0x02, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Toggle" },
 // top button
-    { Sensor::ModeColorTemperature, 0x01, 0x0008, 0x05, 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD, "Move up (with on/off)" },
-    { Sensor::ModeColorTemperature, 0x01, 0x0008, 0x07, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    { Sensor::ModeColorTemperature, 0x01, 0x0008, 0x05, 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "Move up (with on/off)" },
+    { Sensor::ModeColorTemperature, 0x01, 0x0008, 0x07, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop_ (with on/off)" },
     { Sensor::ModeColorTemperature, 0x01, 0x0008, 0x06, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Step up (with on/off)" },
 // bottom button
     { Sensor::ModeColorTemperature, 0x01, 0x0008, 0x02, 1,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "Step down" },
-    { Sensor::ModeColorTemperature, 0x01, 0x0008, 0x01, 1,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD, "Move down" },
-    { Sensor::ModeColorTemperature, 0x01, 0x0008, 0x03, 0,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED, "Stop" },
+    { Sensor::ModeColorTemperature, 0x01, 0x0008, 0x01, 1,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD,           "Move down" },
+    { Sensor::ModeColorTemperature, 0x01, 0x0008, 0x03, 0,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop" },
 // left button (non-standard)
-    { Sensor::ModeColorTemperature, 0x01, 0x0005, 0x07, 1,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED,           "Step ct colder" },
+    { Sensor::ModeColorTemperature, 0x01, 0x0005, 0x07, 1,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Step ct colder" },
+    { Sensor::ModeColorTemperature, 0x01, 0x0005, 0x08, 1,    S_BUTTON_4 + S_BUTTON_ACTION_HOLD,           "Mode ct colder" },
+    { Sensor::ModeColorTemperature, 0x01, 0x0005, 0x09, 1,    S_BUTTON_4 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop ct colder" },
 // right button (non-standard)
-    { Sensor::ModeColorTemperature, 0x01, 0x0005, 0x07, 0,    S_BUTTON_5 + S_BUTTON_ACTION_SHORT_RELEASED,           "Step ct warmer" },
+    { Sensor::ModeColorTemperature, 0x01, 0x0005, 0x07, 0,    S_BUTTON_5 + S_BUTTON_ACTION_SHORT_RELEASED, "Step ct warmer" },
+    { Sensor::ModeColorTemperature, 0x01, 0x0005, 0x08, 0,    S_BUTTON_5 + S_BUTTON_ACTION_HOLD,           "Move ct warmer" },
+    { Sensor::ModeColorTemperature, 0x01, 0x0005, 0x09, 0,    S_BUTTON_5 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop ct warmer" },
 
 // big button
     { Sensor::ModeScenes,           0x01, 0x0006, 0x02, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Toggle" },
 // top button
-    { Sensor::ModeScenes,           0x01, 0x0008, 0x05, 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD, "Move up (with on/off)" },
-    { Sensor::ModeScenes,           0x01, 0x0008, 0x07, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x05, 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "Move up (with on/off)" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x07, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop_ (with on/off)" },
     { Sensor::ModeScenes,           0x01, 0x0008, 0x06, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Step up (with on/off)" },
 // bottom button
     { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 1,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "Step down" },
-    { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 1,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD, "Move down" },
-    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 0,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED, "Stop" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 1,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD,           "Move down" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 0,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop" },
 // left button (non-standard)
-    { Sensor::ModeScenes,           0x01, 0x0005, 0x07, 1,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED,           "Previous scene" },
+    { Sensor::ModeScenes,           0x01, 0x0005, 0x07, 1,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Previous scene" },
 // right button (non-standard)
-    { Sensor::ModeScenes,           0x01, 0x0005, 0x07, 0,    S_BUTTON_5 + S_BUTTON_ACTION_SHORT_RELEASED,           "Next scene" },
+    { Sensor::ModeScenes,           0x01, 0x0005, 0x07, 0,    S_BUTTON_5 + S_BUTTON_ACTION_SHORT_RELEASED, "Next scene" },
 
     // end
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }

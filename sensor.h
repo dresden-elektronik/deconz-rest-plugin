@@ -65,7 +65,7 @@ struct SensorFingerprint
 class Sensor : public Resource,
                public RestNodeBase
 {
-public:    
+public:
     enum SensorMode
     {
         ModeNone = 0,
@@ -127,6 +127,7 @@ public:
 
     QString etag;
     const ButtonMap *buttonMap();
+    uint8_t previousButton;
 
 private:
     DeletedState m_deletedstate;
