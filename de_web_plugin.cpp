@@ -1924,12 +1924,24 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     ok = true;
                 }
             }
-            else if (ind.clusterId() == SCENE_CLUSTER_ID && zclFrame.commandId() == 0x07) // IKEA non-standard scene
+            else if (ind.clusterId() == SCENE_CLUSTER_ID) // IKEA non-standard scene
             {
                 ok = false;
-                if (zclFrame.payload().size() >= 1 && buttonMap->zclParam0 == zclFrame.payload().at(0)) // next, prev scene
+                if (zclFrame.commandId() == 0x07 || // short release
+                    zclFrame.commandId() == 0x08)   // hold
                 {
-                    ok = true;
+                    if (zclFrame.payload().size() >= 1 && buttonMap->zclParam0 == zclFrame.payload().at(0)) // next, prev scene
+                    {
+                        sensor->previousButton = buttonMap->zclParam0;
+                        ok = true;
+                    }
+                } else if (zclFrame.commandId() == 0x09) // long release
+                {
+                    // zclFrame.payload().at(1) and zclFrame.payload().at(0) seem to hold the duration of the button hold
+                    if (zclFrame.payload().size() >= 1 && buttonMap->zclParam0 == sensor->previousButton)
+                    {
+                        ok = true;
+                    }
                 }
             }
             else if (ind.clusterId() == VENDOR_CLUSTER_ID && zclFrame.manufacturerCode() == VENDOR_PHILIPS && zclFrame.commandId() == 0x00) // Philips dimmer switch non-standard
@@ -3050,13 +3062,12 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         // 0xffff invalid value
 
                                         // ZCL Attribute = 10.000 * log10(Illuminance (lx)) + 1
-                                        // lux = 10^(ZCL Attribute/10.000) - 1
-                                        qreal exp = lux;
+                                        // lux = 10^((ZCL Attribute - 1)/10.000)
+                                        qreal exp = lux - 1;
                                         qreal l = qPow(10, exp / 10000.0f);
 
                                         if (l >= 1)
                                         {
-                                            l -= 1;
                                             lux = static_cast<quint32>(l);
                                         }
                                         else
