@@ -54,6 +54,7 @@ static int checkZclAttributesDelay = 750;
 //static int ReadAttributesLongerDelay = 60000;
 static uint MaxGroupTasks = 4;
 
+const quint64 macPrefixMask       = 0xffffff0000000000ULL;
 const quint64 bjeMacPrefix        = 0xd85def0000000000ULL;
 const quint64 emberMacPrefix      = 0x000d6f0000000000ULL;
 const quint64 tiMacPrefix         = 0x00124b0000000000ULL;
@@ -1115,7 +1116,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 lightNode.setNeedSaveDatabase(true);
             }
 
-            if ((node->address().ext() & philipsMacPrefix) == philipsMacPrefix)
+            if ((node->address().ext() & macPrefixMask) == philipsMacPrefix)
             {
                 if (lightNode.manufacturer() != QLatin1String("Philips"))
                 { // correct vendor name, was atmel, de sometimes
@@ -3399,7 +3400,7 @@ bool DeRestPluginPrivate::isDeviceSupported(const deCONZ::Node *node, const QStr
     while (s->modelId)
     {
         if ((!node->nodeDescriptor().isNull() && node->nodeDescriptor().manufacturerCode() == s->vendorId) ||
-            ((node->address().ext() & s->mac) == s->mac))
+            ((node->address().ext() & macPrefixMask) == s->mac))
         {
             if (modelId.startsWith(QLatin1String(s->modelId)))
             {
@@ -8203,7 +8204,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
                 else if (modelId.isEmpty()) { stream << (quint16)0x0005; } // model id
                 else if (swBuildId.isEmpty() && dateCode.isEmpty())
                 {
-                    if ((sc->address.ext() & tiMacPrefix) == tiMacPrefix)
+                    if ((sc->address.ext() & macPrefixMask) == tiMacPrefix)
                     {
                         stream << (quint16)0x0006; // date code, sw build id isn't available
                     }
