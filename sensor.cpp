@@ -365,6 +365,8 @@ Sensor::Sensor() :
     addItem(DataTypeBool, RConfigOn);
     addItem(DataTypeBool, RConfigReachable);
     addItem(DataTypeTime, RStateLastUpdated);
+
+    previousButton = 0xFF;
 }
 
 /*! Returns the sensor deleted state.
