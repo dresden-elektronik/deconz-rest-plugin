@@ -295,7 +295,9 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
         else if (type == QLatin1String("CLIPLightLevel")) { item = sensor.addItem(DataTypeUInt16, RStateLightLevel); item->setValue(0);
                                                             item = sensor.addItem(DataTypeUInt32, RStateLux); item->setValue(0);
                                                             item = sensor.addItem(DataTypeBool, RStateDark); item->setValue(true);
-                                                            item = sensor.addItem(DataTypeBool, RStateDaylight); item->setValue(false); }
+                                                            item = sensor.addItem(DataTypeBool, RStateDaylight); item->setValue(false);
+                                                            item = sensor.addItem(DataTypeUInt16, RConfigTholdDark); item->setValue(R_THOLDDARK_DEFAULT);
+                                                            item = sensor.addItem(DataTypeUInt16, RConfigTholdOffset); item->setValue(R_THOLDOFFSET_DEFAULT); }
         else if (type == QLatin1String("CLIPTemperature")) { item = sensor.addItem(DataTypeInt32, RStateTemperature); item->setValue(0); }
         else if (type == QLatin1String("CLIPHumidity")) { item = sensor.addItem(DataTypeInt32, RStateHumidity); item->setValue(0); }
         else if (type == QLatin1String("CLIPPressure")) { item = sensor.addItem(DataTypeInt32, RStatePressure); item->setValue(0); }
@@ -890,12 +892,26 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
                         ResourceItem *item2 = 0;
                         quint16 measuredValue = val.toUInt();
 
+                        quint16 tholddark = R_THOLDDARK_DEFAULT;
+                        quint16 tholdoffset = R_THOLDOFFSET_DEFAULT;
+                        item2 = sensor->item(RConfigTholdDark);
+                        if (item2)
+                        {
+                            tholddark = item2->toNumber();
+                        }
+                        item2 = sensor->item(RConfigTholdOffset);
+                        if (item2)
+                        {
+                            tholdoffset = item2->toNumber();
+                        }
+                        bool dark = measuredValue <= tholddark;
+                        bool daylight = measuredValue >= tholddark + tholdoffset;
+
                         item2 = sensor->item(RStateDark);
                         if (!item2)
                         {
                             item2 = sensor->addItem(DataTypeBool, RStateDark);
                         }
-                        bool dark = measuredValue < 12000;    // TODO config
                         if (item2->setValue(dark))
                         {
                             if (item2->lastChanged() == item2->lastSet())
@@ -910,7 +926,6 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
                         {
                             item2 = sensor->addItem(DataTypeBool, RStateDaylight);
                         }
-                        bool daylight = measuredValue > 16000;    // TODO config
                         if (item2->setValue(daylight))
                         {
                             if (item2->lastChanged() == item2->lastSet())

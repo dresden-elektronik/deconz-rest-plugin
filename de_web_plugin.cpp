@@ -3045,12 +3045,26 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     enqueueEvent(e);
                                 }
 
+                                quint16 tholddark = R_THOLDDARK_DEFAULT;
+                                quint16 tholdoffset = R_THOLDOFFSET_DEFAULT;
+                                item = i->item(RConfigTholdDark);
+                                if (item)
+                                {
+                                    tholddark = item->toNumber();
+                                }
+                                item = i->item(RConfigTholdOffset);
+                                if (item)
+                                {
+                                    tholdoffset = item->toNumber();
+                                }
+                                bool dark = measuredValue <= tholddark;
+                                bool daylight = measuredValue >= tholddark + tholdoffset;
+
                                 item = i->item(RStateDark);
                                 if (!item)
                                 {
                                     item = i->addItem(DataTypeBool, RStateDark);
                                 }
-                                bool dark = measuredValue < 12000;    // TODO config
                                 if (item->setValue(dark))
                                 {
                                     if (item->lastChanged() == item->lastSet())
@@ -3065,7 +3079,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     item = i->addItem(DataTypeBool, RStateDaylight);
                                 }
-                                bool daylight = measuredValue > 16000;    // TODO config
                                 if (item->setValue(daylight))
                                 {
                                     if (item->lastChanged() == item->lastSet())
