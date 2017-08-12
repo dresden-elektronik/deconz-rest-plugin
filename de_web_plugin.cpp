@@ -1941,6 +1941,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     // zclFrame.payload().at(1) and zclFrame.payload().at(0) seem to hold the duration of the button hold
                     if (zclFrame.payload().size() >= 1 && buttonMap->zclParam0 == sensor->previousButton)
                     {
+                        sensor->previousButton = 0xFF;
                         ok = true;
                     }
                 }
