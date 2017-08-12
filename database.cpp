@@ -1708,6 +1708,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item->setValue(true);
             item = sensor.addItem(DataTypeBool, RStateDaylight);
             item->setValue(false);
+            item = sensor.addItem(DataTypeUInt16, RConfigTholdDark);
+            item->setValue(R_THOLDDARK_DEFAULT);
+            item = sensor.addItem(DataTypeUInt16, RConfigTholdOffset);
+            item->setValue(R_THOLDOFFSET_DEFAULT);
         }
         else if (sensor.type().endsWith(QLatin1String("Temperature")))
         {

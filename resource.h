@@ -38,6 +38,7 @@ extern const char *REventCheckGroupAnyOn;
 // resouce suffixes: state/buttonevent, config/on, ...
 extern const char *RInvalidSuffix;
 extern const char *RStateAlert;
+extern const char *RStateAllOn;
 extern const char *RStateAnyOn;
 extern const char *RStateButtonEvent;
 extern const char *RStateBri;
@@ -65,6 +66,7 @@ extern const char *RStateY;
 
 extern const char *RConfigOn;
 extern const char *RConfigReachable;
+extern const char *RConfigAlert;
 extern const char *RConfigConfigured;
 extern const char *RConfigDuration;
 extern const char *RConfigBattery;
@@ -75,6 +77,11 @@ extern const char *RConfigLocalTime;
 extern const char *RConfigLong;
 extern const char *RConfigSunriseOffset;
 extern const char *RConfigSunsetOffset;
+extern const char *RConfigTholdDark;
+extern const char *RConfigTholdOffset;
+
+#define R_THOLDDARK_DEFAULT   12000
+#define R_THOLDOFFSET_DEFAULT 7000
 
 class  ResourceItemDescriptor
 {

@@ -928,7 +928,7 @@ void DeRestPluginPrivate::scheduleTimerFired()
                 continue;
             }
             else if (diff <= 0)
-            {             
+            {
                 i->lastTriggerDatetime = now;
                 DBG_Printf(DBG_INFO, "schedule %s: %s trigger\n", qPrintable(i->id), qPrintable(i->name));
 
@@ -1019,7 +1019,10 @@ void DeRestPluginPrivate::scheduleTimerFired()
                 {
                     if (handleGroupsApi(req, rsp) == REQ_NOT_HANDLED)
                     {
-                        DBG_Printf(DBG_INFO, "schedule was neigher light nor group request.\n");
+                        if (handleSensorsApi(req, rsp) == REQ_NOT_HANDLED)
+                        {
+                            DBG_Printf(DBG_INFO, "schedule was neigher light nor group nor sensor request.\n");
+                        }
                     }
                     else
                     {
