@@ -558,23 +558,42 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         dataType = deCONZ::Zcl8BitUint;
         attributeId = 0x0021; // battery percentage remaining
         minInterval = 300;
-        maxInterval = 300;
+        maxInterval = 60 * 45;
         reportableChange8bit = 1;
     }
     else if (bt.binding.clusterId == ONOFF_CLUSTER_ID)
     {
         dataType = deCONZ::ZclBoolean;
         attributeId = 0x0000; // on/off
-        minInterval = 5;
-        maxInterval = 180;
+
+        if ((bt.restNode->address().ext() & macPrefixMask) == deMacPrefix)
+        {
+            minInterval = 5;
+            maxInterval = 180;
+        }
+        else // default configuration
+        {
+            minInterval = 1;
+            maxInterval = 300;
+        }
     }
     else if (bt.binding.clusterId == LEVEL_CLUSTER_ID)
     {
         dataType = deCONZ::Zcl8BitUint;
         attributeId = 0x0000; // current level
-        minInterval = 5;
-        maxInterval = 180;
-        reportableChange8bit = 1;
+
+        if ((bt.restNode->address().ext() & macPrefixMask) == deMacPrefix)
+        {
+            minInterval = 5;
+            maxInterval = 180;
+            reportableChange8bit = 5;
+        }
+        else // default configuration
+        {
+            minInterval = 1;
+            maxInterval = 300;
+            reportableChange8bit = 1;
+        }
     }
     else
     {
