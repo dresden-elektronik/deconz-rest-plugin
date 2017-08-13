@@ -6699,7 +6699,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
             }
         }
     }
-    else if (zclFrame.commandId() == 0x00) // Add scene response
+    else if (zclFrame.commandId() == 0x00 || zclFrame.commandId() == 0x40) // Add scene response | Enhanced add scene response
     {
         if (zclFrame.payload().size() < 4)
         {

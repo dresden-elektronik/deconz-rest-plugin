@@ -933,7 +933,7 @@ bool DeRestPluginPrivate::addTaskAddScene(TaskItem &task, uint16_t groupId, uint
 
                     task.zclFrame.payload().clear();
                     task.zclFrame.setSequenceNumber(zclSeq++);
-                    task.zclFrame.setCommandId(0x00); // add scene
+
                     task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
                                              deCONZ::ZclFCDirectionClientToServer |
                                              deCONZ::ZclFCDisableDefaultResponse);
@@ -943,7 +943,18 @@ bool DeRestPluginPrivate::addTaskAddScene(TaskItem &task, uint16_t groupId, uint
                         stream.setByteOrder(QDataStream::LittleEndian);
 
                         uint8_t on = (l->on()) ? 0x01 : 0x00;
-                        uint16_t tt = floor(l->transitionTime() / 10); //deci-seconds -> seconds
+                        uint16_t tt;
+
+                        if (l->transitionTime() >= 10)
+                        {
+                            task.zclFrame.setCommandId(0x00); // add scene
+                            tt = floor(l->transitionTime() / 10); //deci-seconds -> seconds
+                        }
+                        else
+                        {
+                            task.zclFrame.setCommandId(0x40); // enhanced add scene
+                            tt = l->transitionTime();
+                        }
 
                         stream << groupId;
                         stream << sceneId;
