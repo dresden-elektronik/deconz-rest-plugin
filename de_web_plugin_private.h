@@ -948,6 +948,7 @@ public:
     void handleCommissioningClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     bool handleMgmtBindRspConfirm(const deCONZ::ApsDataConfirm &conf);
     void handleDeviceAnnceIndication(const deCONZ::ApsDataIndication &ind);
+    void handleNwkAddressReqIndication(const deCONZ::ApsDataIndication &ind);
     void handleMgmtBindRspIndication(const deCONZ::ApsDataIndication &ind);
     void handleBindAndUnbindRspIndication(const deCONZ::ApsDataIndication &ind);
     void handleMgmtLeaveRspIndication(const deCONZ::ApsDataIndication &ind);

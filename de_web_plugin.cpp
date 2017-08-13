@@ -504,6 +504,12 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
         }
             break;
 
+        case ZDP_NWK_ADDR_CLID:
+        {
+            handleNwkAddressReqIndication(ind);
+        }
+            break;
+
         case ZDP_MGMT_BIND_RSP_CLID:
             handleMgmtBindRspIndication(ind);
             break;
@@ -7582,6 +7588,64 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
 
         deCONZ::ZclFrame zclFrame; // dummy
         handleIndicationFindSensors(ind, zclFrame);
+    }
+}
+
+/*! Handle NWK address request indication.
+    \param ind a ZDP NwkAddress_req
+ */
+void DeRestPluginPrivate::handleNwkAddressReqIndication(const deCONZ::ApsDataIndication &ind)
+{
+    if (!apsCtrl)
+    {
+        return;
+    }
+
+    quint8 seq;
+    quint64 extAddr;
+    quint8 reqType;
+    quint8 startIndex;
+
+    {
+        QDataStream stream(ind.asdu());
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        stream >> seq;
+        stream >> extAddr;
+        stream >> reqType;
+        stream >> startIndex;
+    }
+
+    if (!apsCtrl || extAddr != apsCtrl->getParameter(deCONZ::ParamMacAddress))
+    {
+        return;
+    }
+
+    deCONZ::ApsDataRequest req;
+
+    req.setProfileId(ZDP_PROFILE_ID);
+    req.setSrcEndpoint(ZDO_ENDPOINT);
+    req.setDstEndpoint(ZDO_ENDPOINT);
+    req.setClusterId(ZDP_NWK_ADDR_RSP_CLID);
+    req.setDstAddressMode(deCONZ::ApsNwkAddress);
+    req.dstAddress() = ind.srcAddress();
+
+    QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
+    stream.setByteOrder(QDataStream::LittleEndian);
+
+    stream << seq;
+    stream << extAddr;
+    stream << (quint16)apsCtrl->getParameter(deCONZ::ParamNwkAddress);
+
+    if (reqType == 0x01) // extended request type
+    {
+        stream << (quint8)0; // num of assoc devices
+        stream << (quint8)0; // start index
+    }
+
+    if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
+    {
+
     }
 }
 
