@@ -3049,10 +3049,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         item->setValue(bat);
                                         i->setNeedSaveDatabase(true);
                                         queSaveDb(DB_SENSORS, DB_HUGE_SAVE_DELAY);
-
-                                        Event e(RSensors, RConfigBattery, i->id());
-                                        enqueueEvent(e);
                                     }
+
+                                    Event e(RSensors, RConfigBattery, i->id());
+                                    enqueueEvent(e);
                                 }
 
                                 updateSensorEtag(&*i);
