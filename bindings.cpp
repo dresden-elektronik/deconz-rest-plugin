@@ -565,16 +565,35 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     {
         dataType = deCONZ::ZclBoolean;
         attributeId = 0x0000; // on/off
-        minInterval = 5;
-        maxInterval = 180;
+
+        if ((bt.restNode->address().ext() & macPrefixMask) == deMacPrefix)
+        {
+            minInterval = 5;
+            maxInterval = 180;
+        }
+        else // default configuration
+        {
+            minInterval = 1;
+            maxInterval = 300;
+        }
     }
     else if (bt.binding.clusterId == LEVEL_CLUSTER_ID)
     {
         dataType = deCONZ::Zcl8BitUint;
         attributeId = 0x0000; // current level
-        minInterval = 5;
-        maxInterval = 180;
-        reportableChange8bit = 1;
+
+        if ((bt.restNode->address().ext() & macPrefixMask) == deMacPrefix)
+        {
+            minInterval = 5;
+            maxInterval = 180;
+            reportableChange8bit = 5;
+        }
+        else // default configuration
+        {
+            minInterval = 1;
+            maxInterval = 300;
+            reportableChange8bit = 1;
+        }
     }
     else
     {

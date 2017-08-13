@@ -251,6 +251,7 @@
 #define RECONNECT_CHECK_DELAY  5000
 #define RECONNECT_NOW          100
 
+extern const quint64 macPrefixMask;
 extern const quint64 bjeMacPrefix;
 extern const quint64 centraLiteMacPrefix;
 extern const quint64 tiMacPrefix;
