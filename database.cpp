@@ -1580,6 +1580,11 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             else if (strcmp(colname[i], "type") == 0)
             {
+                if (val == QLatin1String("ZHALight"))
+                {
+                    val = QLatin1String("ZHALightLevel");
+                    sensor.setNeedSaveDatabase(true);
+                }
                 sensor.setType(val);
             }
             else if (strcmp(colname[i], "modelid") == 0)
@@ -1694,7 +1699,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeInt32, RStateButtonEvent);
             item->setValue(0);
         }
-        else if (sensor.type().endsWith(QLatin1String("Light")) || sensor.type().endsWith(QLatin1String("LightLevel")))
+        else if (sensor.type().endsWith(QLatin1String("LightLevel")))
         {
             if (sensor.fingerPrint().hasInCluster(ILLUMINANCE_MEASUREMENT_CLUSTER_ID))
             {
