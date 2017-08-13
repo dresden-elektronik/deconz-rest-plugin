@@ -2349,17 +2349,17 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
             }
         }
 
-        // ZHALight
+        // ZHALightLevel
         if (fpLightSensor.hasInCluster(ILLUMINANCE_MEASUREMENT_CLUSTER_ID))
         {
             fpLightSensor.endpoint = i->endpoint();
             fpLightSensor.deviceId = i->deviceId();
             fpLightSensor.profileId = i->profileId();
 
-            sensor = getSensorNodeForFingerPrint(node->address().ext(), fpLightSensor, "ZHALight");
+            sensor = getSensorNodeForFingerPrint(node->address().ext(), fpLightSensor, "ZHALightLevel");
             if (!sensor || sensor->deletedState() != Sensor::StateNormal)
             {
-                addSensorNode(node, fpLightSensor, "ZHALight", modelId);
+                addSensorNode(node, fpLightSensor, "ZHALightLevel", modelId);
             }
             else
             {
@@ -2531,7 +2531,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         }
         sensorNode.addItem(DataTypeInt32, RStateButtonEvent);
     }
-    else if (sensorNode.type().endsWith(QLatin1String("Light")) || sensorNode.type().endsWith(QLatin1String("LightLevel")))
+    else if (sensorNode.type().endsWith(QLatin1String("LightLevel")))
     {
         if (sensorNode.fingerPrint().hasInCluster(ILLUMINANCE_MEASUREMENT_CLUSTER_ID))
         {
@@ -2843,9 +2843,9 @@ void DeRestPluginPrivate::checkUpdatedFingerPrint(const deCONZ::Node *node, quin
                 continue;
             }
 
-            if      (i->type().endsWith(QLatin1String("Switch")))   { clusterId = ONOFF_CLUSTER_ID; }
-            else if (i->type().endsWith(QLatin1String("Light")))    { clusterId = ILLUMINANCE_MEASUREMENT_CLUSTER_ID; }
-            else if (i->type().endsWith(QLatin1String("Presence"))) { clusterId = OCCUPANCY_SENSING_CLUSTER_ID; }
+            if      (i->type().endsWith(QLatin1String("Switch")))     { clusterId = ONOFF_CLUSTER_ID; }
+            else if (i->type().endsWith(QLatin1String("LightLevel"))) { clusterId = ILLUMINANCE_MEASUREMENT_CLUSTER_ID; }
+            else if (i->type().endsWith(QLatin1String("Presence")))   { clusterId = OCCUPANCY_SENSING_CLUSTER_ID; }
 
             DBG_Printf(DBG_INFO, "change 0x%016llX finger print ep: 0x%02X --> 0x%02X\n", i->address().ext(), fp.endpoint, endpoint);
 
@@ -3891,7 +3891,7 @@ void DeRestPluginPrivate::changeRuleStatusofGroup(QString groupId, bool enabled)
         }
 
         // disable or enable rule depending of group action
-        if (sensorType == "ZHALight" && !sensorModelId.startsWith("FLS-NB") && sensorModelId != "")
+        if (sensorType == "ZHALightLevel" && !sensorModelId.startsWith("FLS-NB") && sensorModelId != "")
         {
             std::vector<RuleAction>::const_iterator a = ri->actions().begin();
             std::vector<RuleAction>::const_iterator aend = ri->actions().end();

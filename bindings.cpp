@@ -1488,7 +1488,7 @@ void DeRestPluginPrivate::bindingToRuleTimerFired()
 
                 case ILLUMINANCE_MEASUREMENT_CLUSTER_ID:
                 {
-                    if (i->type() == "ZHALight")
+                    if (i->type() == "ZHALightLevel")
                     {
                         sensor = &(*i);
                     }
