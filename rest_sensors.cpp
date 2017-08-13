@@ -1258,6 +1258,26 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             webSocketServer->broadcastTextMessage(Json::serialize(map));
         }
     }
+    else if (strncmp(e.what(), "config/", 7) == 0)
+    {
+        ResourceItem *item = sensor->item(e.what());
+        if (item)
+        {
+            // checkRulesForResource(sensor);
+
+            QVariantMap map;
+            map["t"] = QLatin1String("event");
+            map["e"] = QLatin1String("changed");
+            map["r"] = QLatin1String("sensors");
+            map["id"] = e.id();
+            QVariantMap config;
+            config[e.what() + 7] = item->toVariant();
+
+            map["config"] = config;
+
+            webSocketServer->broadcastTextMessage(Json::serialize(map));
+        }
+    }
     else if (e.what() == REventAdded)
     {
         checkSensorGroup(sensor);
