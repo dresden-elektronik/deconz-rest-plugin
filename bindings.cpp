@@ -595,6 +595,14 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             reportableChange8bit = 1;
         }
     }
+    else if (bt.binding.clusterId == COLOR_CLUSTER_ID)
+    {
+        dataType = deCONZ::Zcl16BitUint;
+        attributeId = 0x0007; // color temperature
+        minInterval = 1;
+        maxInterval = 300;
+        reportableChange16bit = 1;
+    }
     else
     {
         return false;
@@ -709,6 +717,7 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         {
         case ONOFF_CLUSTER_ID:
         case LEVEL_CLUSTER_ID:
+        case COLOR_CLUSTER_ID:
         {
             DBG_Printf(DBG_INFO_L2, "create binding for attribute reporting of cluster 0x%04X\n", i->id());
 
@@ -988,6 +997,13 @@ void DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         {
             clusters.push_back(SCENE_CLUSTER_ID);
         }
+    }
+    // IKEA Trådfri remote
+    else if (sensor->modelId().startsWith(QLatin1String("TRADFRI")))
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+        clusters.push_back(SCENE_CLUSTER_ID);
     }
     else
     {
