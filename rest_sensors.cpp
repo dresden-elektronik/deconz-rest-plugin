@@ -1476,7 +1476,7 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
  */
 void DeRestPluginPrivate::checkInstaModelId(Sensor *sensor)
 {
-    if (sensor && (sensor->address().ext() & instaMacPrefix) == instaMacPrefix)
+    if (sensor && (sensor->address().ext() & macPrefixMask) == instaMacPrefix)
     {
         if (!sensor->modelId().endsWith(QLatin1String("_1")))
         {   // extract model identifier from mac address 6th byte
@@ -1523,7 +1523,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
         // filter supported devices
 
         // Busch-Jaeger
-        if ((ext & bjeMacPrefix) == bjeMacPrefix)
+        if ((ext & macPrefixMask) == bjeMacPrefix)
         {
         }
         else if (macCapabilities == 0 || (macCapabilities & deCONZ::MacDeviceIsFFD))
@@ -1735,7 +1735,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
     }
 
     // check for dresden elektronik devices
-    if ((sc->address.ext() & deMacPrefix) == deMacPrefix)
+    if ((sc->address.ext() & macPrefixMask) == deMacPrefix)
     {
         if (sc->macCapabilities & deCONZ::MacDeviceIsFFD) // end-devices only
             return;
@@ -2035,7 +2035,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
             }
         }
     }
-    else if ((sc->address.ext() & ikeaMacPrefix) == ikeaMacPrefix)
+    else if ((sc->address.ext() & macPrefixMask) == ikeaMacPrefix)
     {
         if (sc->macCapabilities & deCONZ::MacDeviceIsFFD) // end-devices only
             return;
@@ -2136,10 +2136,10 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
                     continue;
                 }
 
-                if (ri->status() != QLatin1String("enabled"))
-                {
-                    continue;
-                }
+                // if (ri->status() != QLatin1String("enabled"))
+                // {
+                //     continue;
+                // }
 
                 std::vector<RuleCondition>::const_iterator ci = ri->conditions().begin();
                 std::vector<RuleCondition>::const_iterator cend = ri->conditions().end();
