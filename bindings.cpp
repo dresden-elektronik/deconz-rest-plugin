@@ -754,7 +754,9 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Philips
         sensor->modelId() == QLatin1String("SML001") ||
         sensor->modelId() == QLatin1String("RWL020") ||
-        sensor->modelId() == QLatin1String("RWL021"))
+        sensor->modelId() == QLatin1String("RWL021") ||
+        // IKEA
+        sensor->modelId().startsWith(QLatin1String("TRADFRI")))
     {
         endDeviceSupported = true;
         sensor->setMgmtBindSupported(false);

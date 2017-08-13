@@ -504,6 +504,12 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
         }
             break;
 
+        case ZDP_NWK_ADDR_CLID:
+        {
+            handleNwkAddressReqIndication(ind);
+        }
+            break;
+
         case ZDP_MGMT_BIND_RSP_CLID:
             handleMgmtBindRspIndication(ind);
             break;
@@ -1824,6 +1830,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         return;
     }
 
+    bool checkReporting = false;
     const Sensor::ButtonMap *buttonMap = sensor->buttonMap();
     if (!buttonMap)
     {
@@ -1877,11 +1884,16 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     }
     else if (sensor->modelId() == QLatin1String("TRADFRI remote control"))
     {
+        checkReporting = true;
         if (sensor->mode() != Sensor::ModeColorTemperature) // only supported mode yet
         {
             sensor->setMode(Sensor::ModeColorTemperature);
             updateSensorEtag(sensor);
         }
+    }
+    else if (sensor->modelId() == QLatin1String("TRADFRI motion sensor"))
+    {
+        checkReporting = true;
     }
     else if (ind.dstAddressMode() == deCONZ::ApsGroupAddress)
     {
@@ -1908,6 +1920,19 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         enqueueEvent(e);
     }
 
+    if (checkReporting && sensor->node() &&
+        sensor->lastAttributeReportBind() < (idleTotalCounter - BUTTON_ATTR_REPORT_BIND_LIMIT))
+    {
+        checkSensorBindingsForAttributeReporting(sensor);
+        sensor->setLastAttributeReportBind(idleTotalCounter);
+        if (sensor->mustRead(READ_BINDING_TABLE))
+        {
+            sensor->setNextReadTime(READ_BINDING_TABLE, queryTime);
+            queryTime = queryTime.addSecs(1);
+        }
+        DBG_Printf(DBG_INFO_L2, "Force binding of attribute reporting for sensor %s\n", qPrintable(sensor->name()));
+    }
+
     while (buttonMap->mode != Sensor::ModeNone)
     {
         if (buttonMap->mode == sensor->mode() &&
@@ -1925,7 +1950,8 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     ok = true;
                 }
             }
-            else if (ind.clusterId() == SCENE_CLUSTER_ID) // IKEA non-standard scene
+            else if (ind.clusterId() == SCENE_CLUSTER_ID &&
+                     sensor->modelId().startsWith(QLatin1String("TRADFRI"))) // IKEA non-standard scene
             {
                 ok = false;
                 if (zclFrame.commandId() == 0x07 || // short release
@@ -2190,7 +2216,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                 case POWER_CONFIGURATION_CLUSTER_ID:
                 {
                     if (node->nodeDescriptor().manufacturerCode() == VENDOR_PHILIPS ||
-                        node->nodeDescriptor().manufacturerCode() == VENDOR_NYCE)
+                        node->nodeDescriptor().manufacturerCode() == VENDOR_NYCE ||
+                        node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA)
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                         fpPresenceSensor.inClusters.push_back(ci->id());
@@ -2991,6 +3018,11 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                     {
                         for (;ia != enda; ++ia)
                         {
+                            if (!ia->isAvailable())
+                            {
+                                continue;
+                            }
+
                             if (ia->id() == 0x0021) // battery percentage remaining
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
@@ -2999,6 +3031,11 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 }
 
                                 ResourceItem *item = i->item(RConfigBattery);
+
+                                if (!item && ia->numericValue().u8 > 0) // valid value: create resource item
+                                {
+                                    item = i->addItem(DataTypeUInt8, RConfigBattery);
+                                }
 
                                 // Specifies the remaining battery life as a half integer percentage of the full battery capacity (e.g., 34.5%, 45%,
                                 // 68.5%, 90%) with a range between zero and 100%, with 0x00 = 0%, 0x64 = 50%, and 0xC8 = 100%. This is
@@ -7582,6 +7619,64 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
 
         deCONZ::ZclFrame zclFrame; // dummy
         handleIndicationFindSensors(ind, zclFrame);
+    }
+}
+
+/*! Handle NWK address request indication.
+    \param ind a ZDP NwkAddress_req
+ */
+void DeRestPluginPrivate::handleNwkAddressReqIndication(const deCONZ::ApsDataIndication &ind)
+{
+    if (!apsCtrl)
+    {
+        return;
+    }
+
+    quint8 seq;
+    quint64 extAddr;
+    quint8 reqType;
+    quint8 startIndex;
+
+    {
+        QDataStream stream(ind.asdu());
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        stream >> seq;
+        stream >> extAddr;
+        stream >> reqType;
+        stream >> startIndex;
+    }
+
+    if (!apsCtrl || extAddr != apsCtrl->getParameter(deCONZ::ParamMacAddress))
+    {
+        return;
+    }
+
+    deCONZ::ApsDataRequest req;
+
+    req.setProfileId(ZDP_PROFILE_ID);
+    req.setSrcEndpoint(ZDO_ENDPOINT);
+    req.setDstEndpoint(ZDO_ENDPOINT);
+    req.setClusterId(ZDP_NWK_ADDR_RSP_CLID);
+    req.setDstAddressMode(deCONZ::ApsNwkAddress);
+    req.dstAddress() = ind.srcAddress();
+
+    QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
+    stream.setByteOrder(QDataStream::LittleEndian);
+
+    stream << seq;
+    stream << extAddr;
+    stream << (quint16)apsCtrl->getParameter(deCONZ::ParamNwkAddress);
+
+    if (reqType == 0x01) // extended request type
+    {
+        stream << (quint8)0; // num of assoc devices
+        stream << (quint8)0; // start index
+    }
+
+    if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
+    {
+
     }
 }
 

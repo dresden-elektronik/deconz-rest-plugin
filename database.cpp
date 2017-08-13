@@ -1805,6 +1805,13 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
         }
 
+        // support power configuration cluster for IKEA devices
+        if (sensor.modelId().startsWith(QLatin1String("TRADFRI")) &&
+            !sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
+        {
+            sensor.fingerPrint().inClusters.push_back(POWER_CONFIGURATION_CLUSTER_ID);
+        }
+
         if (sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
         {
             item = sensor.addItem(DataTypeUInt8, RConfigBattery);

@@ -69,6 +69,7 @@
 #define IDLE_READ_LIMIT 120
 #define IDLE_USER_LIMIT 20
 #define IDLE_ATTR_REPORT_BIND_LIMIT 240
+#define BUTTON_ATTR_REPORT_BIND_LIMIT 120
 
 #define MAX_UNLOCK_GATEWAY_TIME 600
 #define PERMIT_JOIN_SEND_INTERVAL (1000 * 160)
@@ -948,6 +949,7 @@ public:
     void handleCommissioningClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     bool handleMgmtBindRspConfirm(const deCONZ::ApsDataConfirm &conf);
     void handleDeviceAnnceIndication(const deCONZ::ApsDataIndication &ind);
+    void handleNwkAddressReqIndication(const deCONZ::ApsDataIndication &ind);
     void handleMgmtBindRspIndication(const deCONZ::ApsDataIndication &ind);
     void handleBindAndUnbindRspIndication(const deCONZ::ApsDataIndication &ind);
     void handleMgmtLeaveRspIndication(const deCONZ::ApsDataIndication &ind);
