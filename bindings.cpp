@@ -558,7 +558,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         dataType = deCONZ::Zcl8BitUint;
         attributeId = 0x0021; // battery percentage remaining
         minInterval = 300;
-        maxInterval = 300;
+        maxInterval = 60 * 45;
         reportableChange8bit = 1;
     }
     else if (bt.binding.clusterId == ONOFF_CLUSTER_ID)
