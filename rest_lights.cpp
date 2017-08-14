@@ -236,7 +236,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
     map["hascolor"] = lightNode->hasColor();
     map["type"] = lightNode->type();
     map["swversion"] = lightNode->swBuildId();
-    map["manufacturer"] = lightNode->manufacturer();
+    map["manufacturername"] = lightNode->manufacturer();
     /*
     QVariantMap pointsymbol;
     map["pointsymbol"] = pointsymbol; // dummy
