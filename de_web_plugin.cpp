@@ -10253,6 +10253,11 @@ void DeRestPluginPrivate::shutDownGatewayTimerFired()
      qApp->exit(APP_RET_SHUTDOWN_SYS);
 }
 
+void DeRestPluginPrivate::simpleRestartAppTimerFired()
+{
+     qApp->exit(APP_RET_RESTART_APP);
+}
+
 /*! Request to disconnect from network.
  */
 void DeRestPluginPrivate::genericDisconnectNetwork()
@@ -10349,7 +10354,6 @@ void DeRestPluginPrivate::reconnectNetwork()
     {
         DBG_Printf(DBG_INFO, "reconnect network done\n");
         //restart deCONZ on rpi to apply changes to MACAddress
-        //perhaps remove this function to another location in future
         #ifdef ARCH_ARM
         qApp->exit(APP_RET_RESTART_APP);
         #endif

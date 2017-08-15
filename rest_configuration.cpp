@@ -88,6 +88,11 @@ int DeRestPluginPrivate::handleConfigurationApi(const ApiRequest &req, ApiRespon
     {
         return restartGateway(req, rsp);
     }
+    // POST /api/<apikey>/config/restartapp
+    else if ((req.path.size() == 4) && (req.hdr.method() == "POST") && (req.path[2] == "config") && (req.path[3] == "restartapp"))
+    {
+        return restartApp(req, rsp);
+    }
     // POST /api/<apikey>/config/shutdown
     else if ((req.path.size() == 4) && (req.hdr.method() == "POST") && (req.path[2] == "config") && (req.path[3] == "shutdown"))
     {
@@ -1768,6 +1773,33 @@ int DeRestPluginPrivate::restartGateway(const ApiRequest &req, ApiResponse &rsp)
     return REQ_READY_SEND;
 }
 
+/*! POST /api/<apikey>/config/restartapp
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::restartApp(const ApiRequest &req, ApiResponse &rsp)
+{
+    if(!checkApikeyAuthentification(req, rsp))
+    {
+        return REQ_READY_SEND;
+    }
+
+    rsp.httpStatus = HttpStatusOk;
+    QVariantMap rspItem;
+    QVariantMap rspItemState;
+    rspItemState["/config/restartapp"] = true;
+    rspItem["success"] = rspItemState;
+    rsp.list.append(rspItem);
+
+    QTimer *restartTimer = new QTimer(this);
+    restartTimer->setSingleShot(true);
+    connect(restartTimer, SIGNAL(timeout()),
+            this, SLOT(simpleRestartAppTimerFired()));
+    restartTimer->start(500);
+
+    return REQ_READY_SEND;
+}
+
 /*! POST /api/<apikey>/config/shutdown
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
@@ -1786,11 +1818,11 @@ int DeRestPluginPrivate::shutDownGateway(const ApiRequest &req, ApiResponse &rsp
     rspItem["success"] = rspItemState;
     rsp.list.append(rspItem);
 
-    QTimer *restartTimer = new QTimer(this);
-    restartTimer->setSingleShot(true);
-    connect(restartTimer, SIGNAL(timeout()),
-            this, SLOT(restartGatewayTimerFired()));
-    restartTimer->start(500);
+    QTimer *shutdownTimer = new QTimer(this);
+    shutdownTimer->setSingleShot(true);
+    connect(shutdownTimer, SIGNAL(timeout()),
+            this, SLOT(shutDownGatewayTimerFired()));
+    shutdownTimer->start(500);
 
     return REQ_READY_SEND;
 }
