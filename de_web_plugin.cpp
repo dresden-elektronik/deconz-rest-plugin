@@ -2034,7 +2034,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     }
 
     // check if hue dimmer switch is configured
-    if (sensor->modelId().startsWith(QLatin1String("RWL02")))
+    if (sensor->modelId().startsWith(QLatin1String("RWL02")))    // Hue dimmer switch
     {
         bool ok = true;
         // attribute reporting for power configuration cluster should fire every 5 minutes
@@ -2647,7 +2647,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     {
         sensorNode.setManufacturer("Philips");
 
-        if (modelId.startsWith(QLatin1String("RWL02")))
+        item = sensorNode.addItem(DataTypeString, RConfigAlert);
+        item->setValue(R_ALERT_DEFAULT);
+
+        if (modelId.startsWith(QLatin1String("RWL02")))    // hue dimmer switch
         {
             if (!sensorNode.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
             {   // this cluster is on endpoint 2 and hence not detected
@@ -2666,6 +2669,17 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 // not supported yet
                 return;
             }
+            else if (type == QLatin1String("ZHAPresence"))
+            {
+                item = sensorNode.addItem(DataTypeUInt8, RConfigSensitivity);
+                item->setValue(0);
+                item = sensorNode.addItem(DataTypeUInt8, RConfigSensitivityMax);
+                item->setValue(0);
+            }
+            item = sensorNode.addItem(DataTypeBool, RConfigLedIndication);
+            item->setValue(false);
+            item = sensorNode.addItem(DataTypeBool, RConfigUsertest);
+            item->setValue(false);
         }
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_BEGA)
@@ -2675,6 +2689,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA)
     {
         sensorNode.setManufacturer("IKEA of Sweden");
+
+        item = sensorNode.addItem(DataTypeString, RConfigAlert);
+        item->setValue(R_ALERT_DEFAULT);
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_INSTA)
     {
@@ -8370,8 +8387,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
             return;
         }
 
-        if (sensor->modelId() == QLatin1String("RWL020") ||
-            sensor->modelId() == QLatin1String("RWL021"))
+        if (sensor->modelId().startsWith(QLatin1String("RWL02")))    // hue dimmer switch
         {
             ResourceItem *item = sensor->item(RConfigGroup);
             if (!item || !item->lastSet().isValid())
