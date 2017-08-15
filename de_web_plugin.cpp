@@ -3334,6 +3334,44 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     }
                                 }
                             }
+                            else if (ia->id() == 0x0030) // sensitivity
+                            {
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                }
+
+                                ResourceItem *item = i->item(RConfigSensitivity);
+
+                                if (item)
+                                {
+                                    item->setValue(ia->numericValue().u8);
+                                    i->updateStateTimestamp();
+                                    i->setNeedSaveDatabase(true);
+                                    Event e(RSensors, RConfigSensitivity, i->id());
+                                    enqueueEvent(e);
+                                }
+                                updateSensorEtag(&*i);
+                            }
+                            else if (ia->id() == 0x0031) // sensitivitymax
+                            {
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                }
+
+                                ResourceItem *item = i->item(RConfigSensitivityMax);
+
+                                if (item)
+                                {
+                                    item->setValue(ia->numericValue().u8);
+                                    i->updateStateTimestamp();
+                                    i->setNeedSaveDatabase(true);
+                                    Event e(RSensors, RConfigSensitivityMax, i->id());
+                                    enqueueEvent(e);
+                                }
+                                updateSensorEtag(&*i);
+                            }
                         }
                     }
                     else if (event.clusterId() == ONOFF_CLUSTER_ID)
@@ -4442,6 +4480,14 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
     {
         std::vector<uint16_t> attributes;
         attributes.push_back(0x0010); // occupied to unoccupied delay
+
+        // // This doesn't work as the Hue motion sensor doesn't support reading these attributes.
+        // // Need to setup attribute reporting instead.
+        // if (sensorNode->modelId() == "SML001") // Hue motion sensor
+        // {
+        //     attributes.push_back(0x0030); // sensitivity
+        //     attributes.push_back(0x0031); // sensitivitymax
+        // }
 
         if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, OCCUPANCY_SENSING_CLUSTER_ID, attributes))
         {
