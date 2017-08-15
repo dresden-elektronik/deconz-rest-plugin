@@ -165,6 +165,8 @@
 #define READ_BINDING_TABLE     (1 << 9)
 #define READ_OCCUPANCY_CONFIG  (1 << 10)
 #define READ_GROUP_IDENTIFIERS (1 << 12)
+#define READ_SENSITIVITY_CONFIG (1 << 13)
+#define READ_HUE_MOTION_CONFIG (1 << 14)
 
 #define READ_MODEL_ID_INTERVAL   (60 * 60) // s
 #define READ_SWBUILD_ID_INTERVAL (60 * 30) // s
@@ -890,8 +892,8 @@ public:
     bool processZclAttributes(Sensor *sensorNode);
     bool readBindingTable(RestNodeBase *node, quint8 startIndex);
     bool getGroupIdentifiers(RestNodeBase *node, quint8 endpoint, quint8 startIndex);
-    bool readAttributes(RestNodeBase *restNode, quint8 endpoint, uint16_t clusterId, const std::vector<uint16_t> &attributes);
-    bool writeAttribute(RestNodeBase *restNode, quint8 endpoint, uint16_t clusterId, const deCONZ::ZclAttribute &attribute);
+    bool readAttributes(RestNodeBase *restNode, quint8 endpoint, uint16_t clusterId, const std::vector<uint16_t> &attributes, uint16_t manufacturerCode = 0);
+    bool writeAttribute(RestNodeBase *restNode, quint8 endpoint, uint16_t clusterId, const deCONZ::ZclAttribute &attribute, uint16_t manufacturerCode = 0);
     bool readSceneAttributes(LightNode *lightNode, uint16_t groupId, uint8_t sceneId);
     bool readGroupMembership(LightNode *lightNode, const std::vector<uint16_t> &groups);
     void foundGroupMembership(LightNode *lightNode, uint16_t groupId);

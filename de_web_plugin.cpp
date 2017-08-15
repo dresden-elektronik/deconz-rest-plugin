@@ -2390,6 +2390,16 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                 checkSensorNodeReachable(sensor);
                 Q_Q(DeRestPlugin);
                 q->startZclAttributeTimer(checkZclAttributesDelay);
+
+                if (sensor->modelId() == QLatin1String("SML001")) // Hue motion sensor
+                {
+                    sensor->enableRead(READ_SENSITIVITY_CONFIG);
+                    sensor->setNextReadTime(READ_SENSITIVITY_CONFIG, queryTime);
+                    queryTime = queryTime.addSecs(5);
+                    checkSensorNodeReachable(sensor);
+                    Q_Q(DeRestPlugin);
+                    q->startZclAttributeTimer(checkZclAttributesDelay);
+                }
             }
         }
 
@@ -2740,6 +2750,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.enableRead(READ_OCCUPANCY_CONFIG);
                 sensorNode.setLastRead(READ_OCCUPANCY_CONFIG, idleTotalCounter);
                 queryTime = queryTime.addSecs(1);
+
+                if (modelId == QLatin1String("SML001"))   // Hue motion sensor
+                {
+                    sensorNode.setNextReadTime(READ_SENSITIVITY_CONFIG, queryTime);
+                    sensorNode.enableRead(READ_SENSITIVITY_CONFIG);
+                    sensorNode.setLastRead(READ_SENSITIVITY_CONFIG, idleTotalCounter);
+                    queryTime = queryTime.addSecs(1);
+                }
             }
             else if (*ci == BASIC_CLUSTER_ID)
             {
@@ -2757,6 +2775,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                     sensorNode.setNextReadTime(READ_VENDOR_NAME, queryTime);
                     sensorNode.setLastRead(READ_VENDOR_NAME, idleTotalCounter);
                     sensorNode.enableRead(READ_VENDOR_NAME);
+                    queryTime = queryTime.addSecs(1);
+                }
+
+                if (modelId == QLatin1String("SML001"))   // Hue motion sensor
+                {
+                    sensorNode.setNextReadTime(READ_HUE_MOTION_CONFIG, queryTime);
+                    sensorNode.enableRead(READ_HUE_MOTION_CONFIG);
+                    sensorNode.setLastRead(READ_HUE_MOTION_CONFIG, idleTotalCounter);
                     queryTime = queryTime.addSecs(1);
                 }
             }
@@ -3342,16 +3368,20 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 }
 
                                 ResourceItem *item = i->item(RConfigSensitivity);
+                                if (!item)
+                                {
+                                    item = i->addItem(DataTypeUInt8, RConfigSensitivity);
+                                }
 
-                                if (item)
+                                if (item && item->toNumber() != ia->numericValue().u8)
                                 {
                                     item->setValue(ia->numericValue().u8);
                                     i->updateStateTimestamp();
                                     i->setNeedSaveDatabase(true);
                                     Event e(RSensors, RConfigSensitivity, i->id());
                                     enqueueEvent(e);
+                                    updateSensorEtag(&*i);
                                 }
-                                updateSensorEtag(&*i);
                             }
                             else if (ia->id() == 0x0031) // sensitivitymax
                             {
@@ -3361,8 +3391,12 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 }
 
                                 ResourceItem *item = i->item(RConfigSensitivityMax);
+                                if (!item)
+                                {
+                                    item = i->addItem(DataTypeUInt8, RConfigSensitivityMax);
+                                }
 
-                                if (item)
+                                if (item && item->toNumber() != ia->numericValue().u8)
                                 {
                                     item->setValue(ia->numericValue().u8);
                                     i->updateStateTimestamp();
@@ -3510,6 +3544,50 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         updateSensorEtag(&*i);
                                     }
                                 }
+                            }
+                            else if (ia->id() == 0x0032)  // usertest
+                            {
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                }
+                                ResourceItem *item = i->item(RConfigUsertest);
+                                if (!item)
+                                {
+                                    item = i->addItem(DataTypeBool, RConfigUsertest);
+                                }
+                                if (item && item->toNumber() != ia->numericValue().u8)
+                                {
+                                    bool usertest = ia->numericValue().u8 == 1;
+                                    item->setValue(usertest);
+                                    i->updateStateTimestamp();
+                                    i->setNeedSaveDatabase(true);
+                                    Event e(RSensors, RConfigUsertest, i->id());
+                                    enqueueEvent(e);
+                                }
+                                updateSensorEtag(&*i);
+                            }
+                            else if (ia->id() == 0x0033)  // ledindication
+                            {
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                }
+                                ResourceItem *item = i->item(RConfigLedIndication);
+                                if (!item)
+                                {
+                                    item = i->addItem(DataTypeBool, RConfigLedIndication);
+                                }
+                                if (item && item->toNumber() != ia->numericValue().u8)
+                                {
+                                    bool ledindication = ia->numericValue().u8 == 1;
+                                    item->setValue(ledindication);
+                                    i->updateStateTimestamp();
+                                    i->setNeedSaveDatabase(true);
+                                    Event e(RSensors, RConfigLedIndication, i->id());
+                                    enqueueEvent(e);
+                                }
+                                updateSensorEtag(&*i);
                             }
                         }
                     }
@@ -4481,18 +4559,48 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         std::vector<uint16_t> attributes;
         attributes.push_back(0x0010); // occupied to unoccupied delay
 
-        // // This doesn't work as the Hue motion sensor doesn't support reading these attributes.
-        // // Need to setup attribute reporting instead.
-        // if (sensorNode->modelId() == "SML001") // Hue motion sensor
-        // {
-        //     attributes.push_back(0x0030); // sensitivity
-        //     attributes.push_back(0x0031); // sensitivitymax
-        // }
-
         if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, OCCUPANCY_SENSING_CLUSTER_ID, attributes))
         {
             sensorNode->clearRead(READ_OCCUPANCY_CONFIG);
             processed++;
+        }
+    }
+
+    if (sensorNode->mustRead(READ_SENSITIVITY_CONFIG) && tNow > sensorNode->nextReadTime(READ_SENSITIVITY_CONFIG))
+    {
+        if (sensorNode->modelId() == QLatin1String("SML001")) // Hue motion sensor
+        {
+            std::vector<uint16_t> attributes;
+            attributes.push_back(0x0030); // sensitivity
+            attributes.push_back(0x0031); // sensitivitymax
+            if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, OCCUPANCY_SENSING_CLUSTER_ID, attributes, VENDOR_PHILIPS))
+            {
+                sensorNode->clearRead(READ_SENSITIVITY_CONFIG);
+                processed++;
+            }
+        }
+        else
+        {
+            sensorNode->clearRead(READ_SENSITIVITY_CONFIG);
+        }
+    }
+
+    if (sensorNode->mustRead(READ_HUE_MOTION_CONFIG) && tNow > sensorNode->nextReadTime(READ_HUE_MOTION_CONFIG))
+    {
+        if (sensorNode->modelId() == QLatin1String("SML001")) // Hue motion sensor
+        {
+            std::vector<uint16_t> attributes;
+            attributes.push_back(0x0032); // usertest
+            attributes.push_back(0x0033); // ledindication
+            if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, BASIC_CLUSTER_ID, attributes, VENDOR_PHILIPS))
+            {
+                sensorNode->clearRead(READ_HUE_MOTION_CONFIG);
+                processed++;
+            }
+        }
+        else
+        {
+            sensorNode->clearRead(READ_HUE_MOTION_CONFIG);
         }
     }
 
@@ -4529,7 +4637,7 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
     \param attributes a list of attribute ids which shall be read
     \return true if the request is queued
  */
-bool DeRestPluginPrivate::readAttributes(RestNodeBase *restNode, quint8 endpoint, uint16_t clusterId, const std::vector<uint16_t> &attributes)
+bool DeRestPluginPrivate::readAttributes(RestNodeBase *restNode, quint8 endpoint, uint16_t clusterId, const std::vector<uint16_t> &attributes, uint16_t manufacturerCode)
 {
     DBG_Assert(restNode != 0);
     DBG_Assert(!attributes.empty());
@@ -4557,11 +4665,23 @@ bool DeRestPluginPrivate::readAttributes(RestNodeBase *restNode, quint8 endpoint
 
     task.zclFrame.setSequenceNumber(zclSeq++);
     task.zclFrame.setCommandId(deCONZ::ZclReadAttributesId);
-    task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
-                             deCONZ::ZclFCDirectionClientToServer |
-                             deCONZ::ZclFCDisableDefaultResponse);
 
-    DBG_Printf(DBG_INFO_L2, "read attributes of 0x%016llX cluster: 0x%04X: [ ", restNode->address().ext(), clusterId);
+    if (manufacturerCode)
+    {
+        task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                                      deCONZ::ZclFCManufacturerSpecific |
+                                      deCONZ::ZclFCDirectionClientToServer |
+                                      deCONZ::ZclFCDisableDefaultResponse);
+        task.zclFrame.setManufacturerCode(manufacturerCode);
+        DBG_Printf(DBG_INFO_L2, "read manufacturer specific attributes of 0x%016llX cluster: 0x%04X: [ ", restNode->address().ext(), clusterId);
+    }
+    else
+    {
+        task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                                      deCONZ::ZclFCDirectionClientToServer |
+                                      deCONZ::ZclFCDisableDefaultResponse);
+        DBG_Printf(DBG_INFO_L2, "read attributes of 0x%016llX cluster: 0x%04X: [ ", restNode->address().ext(), clusterId);
+    }
 
     { // payload
         QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
@@ -4647,7 +4767,7 @@ bool DeRestPluginPrivate::getGroupIdentifiers(RestNodeBase *node, quint8 endpoin
     \param attribute the attribute to write
     \return true if the request is queued
  */
-bool DeRestPluginPrivate::writeAttribute(RestNodeBase *restNode, quint8 endpoint, uint16_t clusterId, const deCONZ::ZclAttribute &attribute)
+bool DeRestPluginPrivate::writeAttribute(RestNodeBase *restNode, quint8 endpoint, uint16_t clusterId, const deCONZ::ZclAttribute &attribute, uint16_t manufacturerCode)
 {
     DBG_Assert(restNode != 0);
 
@@ -4672,6 +4792,22 @@ bool DeRestPluginPrivate::writeAttribute(RestNodeBase *restNode, quint8 endpoint
     task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
                              deCONZ::ZclFCDirectionClientToServer |
                              deCONZ::ZclFCDisableDefaultResponse);
+    if (manufacturerCode)
+    {
+        task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                                      deCONZ::ZclFCManufacturerSpecific |
+                                      deCONZ::ZclFCDirectionClientToServer |
+                                      deCONZ::ZclFCDisableDefaultResponse);
+        task.zclFrame.setManufacturerCode(manufacturerCode);
+        DBG_Printf(DBG_INFO_L2, "write manufacturer specific attribute of 0x%016llX cluster: 0x%04X: 0x%04X\n", restNode->address().ext(), clusterId, attribute.id());
+    }
+    else
+    {
+        task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                                      deCONZ::ZclFCDirectionClientToServer |
+                                      deCONZ::ZclFCDisableDefaultResponse);
+        DBG_Printf(DBG_INFO_L2, "write attribute of 0x%016llX cluster: 0x%04X: 0x%04X\n", restNode->address().ext(), clusterId, attribute.id());
+    }
 
     { // payload
         QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
@@ -9163,6 +9299,19 @@ void DeRestPlugin::idleTimerFired()
                                     sensorNode->enableRead(READ_OCCUPANCY_CONFIG);
                                     sensorNode->setLastRead(READ_OCCUPANCY_CONFIG, d->idleTotalCounter);
                                     sensorNode->setNextReadTime(READ_OCCUPANCY_CONFIG, d->queryTime);
+                                    d->queryTime = d->queryTime.addSecs(tSpacing);
+                                    processSensors = true;
+                                }
+                            }
+                            if (!sensorNode->mustRead(READ_SENSITIVITY_CONFIG))
+                            {
+                                val = sensorNode->getZclValue(*ci, 0x0030); // sensitivity
+
+                                if (!val.timestamp.isValid() || val.timestamp.secsTo(t) > 1800)
+                                {
+                                    sensorNode->enableRead(READ_SENSITIVITY_CONFIG);
+                                    sensorNode->setLastRead(READ_SENSITIVITY_CONFIG, d->idleTotalCounter);
+                                    sensorNode->setNextReadTime(READ_SENSITIVITY_CONFIG, d->queryTime);
                                     d->queryTime = d->queryTime.addSecs(tSpacing);
                                     processSensors = true;
                                 }

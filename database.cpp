@@ -1791,7 +1791,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item->setValue(false);
         }
 
-        if (sensor.modelId() == QLatin1String("SML001")) // hue dimmer switch
+        if (sensor.modelId().startsWith(QLatin1String("RWL02"))) // hue dimmer switch
         {
             clusterId = VENDOR_CLUSTER_ID;
             endpoint = 2;
