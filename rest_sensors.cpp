@@ -753,9 +753,13 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
         ResourceItem *item = 0;
         if (getResourceItemDescriptor(QString("config/%1").arg(pi.key()), rid))
         {
-            if (!isClip && rid.suffix == RConfigReachable)
+            if (!isClip && (rid.suffix == RConfigBattery || rid.suffix == RConfigReachable))
             {
-                // changing reachable of zigbee sensors is not allowed, trigger error
+                // changing batteryy or reachable of zigbee sensors is not allowed, trigger error
+            }
+            else if (rid.suffix == RConfigSensitivityMax)
+            {
+                // read-only, trigger error
             }
             else
             {
@@ -796,6 +800,12 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
         }
     }
 
+    // TODO: handle config.on:
+    //      if changed to false
+    //          set all state attributes to default value
+    //          suspend processing changes to state attributes
+    //      if changed to true
+    //          resume processing changes to state attributes
 
     // TODO handle this in event, this is relevant for FLS-NB.
 
@@ -859,6 +869,8 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
     //check invalid parameter
     QVariantMap::const_iterator pi = map.begin();
     QVariantMap::const_iterator pend = map.end();
+
+    // TODO: don't change state if config.on is false (but do check for valid values?)
 
     for (; pi != pend; ++pi)
     {

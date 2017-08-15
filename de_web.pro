@@ -57,13 +57,13 @@ GIT_COMMIT = $$system("git rev-list HEAD --max-count=1")
 
 # Version Major.Minor.Build
 # Important: don't change the format of this line since it's parsed by scripts!
-DEFINES += GW_SW_VERSION=\\\"2.04.64\\\"
+DEFINES += GW_SW_VERSION=\\\"2.04.65\\\"
 DEFINES += GW_API_VERSION=\\\"1.0.1\\\"
 DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\" \
 
 # Minimum version of the RaspBee firmware
 # which shall be used in order to support all features for this software release (case sensitive)
-DEFINES += GW_MIN_RPI_FW_VERSION=0x26120500
+DEFINES += GW_MIN_RPI_FW_VERSION=0x26130500
 
 # Minimum version of the deRFusb23E0X firmware
 # which shall be used in order to support all features for this software release
