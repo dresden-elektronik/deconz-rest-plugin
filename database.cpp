@@ -1675,7 +1675,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
         if (sensor.type().endsWith(QLatin1String("Switch")))
         {
-            if (sensor.modelId().startsWith(QLatin1String("SML001"))) // hue motion sensor
+            if (sensor.modelId() == QLatin1String("SML001")) // hue motion sensor
             {
                 // not supported yet, created by older versions
                 // ignore for now
@@ -1759,7 +1759,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item->setValue(false);
             item = sensor.addItem(DataTypeUInt16, RConfigDuration);
             item->setValue(60);
-            if (sensor.modelId().startsWith(QLatin1String("SML001"))) // hue motion sensor
+            if (sensor.modelId() == QLatin1String("SML001")) // hue motion sensor
             {
                 item = sensor.addItem(DataTypeUInt8, RConfigSensitivity);
                 item->setValue(0);
@@ -1791,7 +1791,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item->setValue(false);
         }
 
-        if (sensor.modelId().startsWith(QLatin1String("RWL02"))) // hue dimmer switch
+        if (sensor.modelId() == QLatin1String("SML001")) // hue dimmer switch
         {
             clusterId = VENDOR_CLUSTER_ID;
             endpoint = 2;
@@ -1810,7 +1810,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeString, RConfigAlert);
             item->setValue(R_ALERT_DEFAULT);
         }
-        else if (sensor.modelId().startsWith(QLatin1String("SML001"))) // hue motion sensor
+        else if (sensor.modelId() == QLatin1String("SML001")) // hue motion sensor
         {
             if (!sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
             {
