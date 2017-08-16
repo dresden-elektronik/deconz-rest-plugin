@@ -2171,6 +2171,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                     i->address() = node->address();
                 }
             }
+
+            checkSensorNodeReachable(&*i);
         }
     }
 
