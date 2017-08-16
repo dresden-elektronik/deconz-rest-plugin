@@ -2147,6 +2147,17 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
         {
             if (i->address().ext() == node->address().ext())
             {
+                // address changed?
+                if (i->address().nwk() != node->address().nwk())
+                {
+                    i->address() = node->address();
+                }
+
+                if (i->modelId().startsWith(QLatin1String("FLS-NB")))
+                {
+                    continue; // use name from light
+                }
+
                 if (i->node() != node)
                 {
                     i->setNode(const_cast<deCONZ::Node*>(node));
@@ -2163,12 +2174,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
 
                     if (!i->swVersion().isEmpty())
                     { q->nodeUpdated(i->address().ext(), QLatin1String("version"), i->swVersion()); }
-                }
-
-                // address changed?
-                if (i->address().nwk() != node->address().nwk())
-                {
-                    i->address() = node->address();
                 }
             }
 
