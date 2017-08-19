@@ -398,7 +398,6 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
     if ((ind.profileId() == HA_PROFILE_ID) || (ind.profileId() == ZLL_PROFILE_ID))
     {
-
         deCONZ::ZclFrame zclFrame;
 
         {
@@ -1401,6 +1400,13 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                 std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
                 for (;ia != enda; ++ia)
                 {
+                    if (std::find(event.attributeIds().begin(),
+                                  event.attributeIds().end(),
+                                  ia->id()) == event.attributeIds().end())
+                    {
+                        continue;
+                    }
+
                     if (ia->id() == 0x0000) // current hue
                     {
                         uint8_t hue = ia->numericValue().u8;
@@ -1573,6 +1579,13 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                 std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
                 for (;ia != enda; ++ia)
                 {
+                    if (std::find(event.attributeIds().begin(),
+                                  event.attributeIds().end(),
+                                  ia->id()) == event.attributeIds().end())
+                    {
+                        continue;
+                    }
+
                     if (ia->id() == 0x0004) // Manufacturer name
                     {
                         QString str = ia->toString();
@@ -3313,6 +3326,13 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                     {
                         for (;ia != enda; ++ia)
                         {
+                            if (std::find(event.attributeIds().begin(),
+                                          event.attributeIds().end(),
+                                          ia->id()) == event.attributeIds().end())
+                            {
+                                continue;
+                            }
+
                             if (ia->id() == 0x0000) // occupied state
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
