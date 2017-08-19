@@ -9,6 +9,7 @@
  */
 
 #include "sensor.h"
+#include "json.h"
 
 static const Sensor::ButtonMap deLightingSwitchMap[] = {
 //    mode                          ep    cluster cmd   param button                                       name

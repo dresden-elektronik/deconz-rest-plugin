@@ -15,7 +15,6 @@
 #include <deconz.h>
 #include "resource.h"
 #include "rest_node_base.h"
-#include "json.h"
 
 // Sensor State
 #define INVALID_ENDPOINT 0xff
