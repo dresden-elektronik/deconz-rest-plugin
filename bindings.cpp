@@ -819,6 +819,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
     }
 
     bool checkBindingTable = false;
+    QDateTime now = QDateTime::currentDateTime();
     std::vector<quint16>::const_iterator i = sensor->fingerPrint().inClusters.begin();
     std::vector<quint16>::const_iterator end = sensor->fingerPrint().inClusters.end();
 
@@ -859,10 +860,16 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         }
 
         if (val.timestampLastReport.isValid() &&
-            val.timestampLastReport.secsTo(QTime::currentTime()) < (60 * 45)) // got update in timely manner
+            val.timestampLastReport.secsTo(now) < (60 * 45)) // got update in timely manner
         {
             DBG_Printf(DBG_INFO_L2, "binding for attribute reporting of cluster 0x%04X seems to be active\n", (*i));
             continue;
+        }
+
+        if (sensor->node()->isEndDevice() && sensor->lastRx().secsTo(now) > 3)
+        {
+            DBG_Printf(DBG_INFO, "skip binding for attribute reporting of cluster 0x%04X (end-device might sleep)\n", (*i));
+            return;
         }
 
         quint8 srcEndpoint = sensor->fingerPrint().endpoint;

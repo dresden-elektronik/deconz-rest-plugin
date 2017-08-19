@@ -464,6 +464,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
                 if (sensorNode)
                 {
+                    sensorNode->rx();
                     sensorNode->incrementRxCounter();
                     ResourceItem *item = sensorNode->item(RConfigReachable);
                     if (item && !item->toBool())
@@ -1281,6 +1282,8 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
         DBG_Printf(DBG_INFO, "LightNode %s set node %s\n", qPrintable(lightNode->id()), qPrintable(event.node()->address().toStringExt()));
     }
 
+    lightNode->rx();
+
     ResourceItem *reachable = lightNode->item(RStateReachable);
     if (reachable->toBool())
     {
@@ -1846,7 +1849,7 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor)
         {
             // the node existed before
             // refresh all with new values
-            DBG_Printf(DBG_INFO, "SensorNode id: %s (%s) available\n", qPrintable(sensor->id()), qPrintable(sensor->name()));
+            DBG_Printf(DBG_INFO_L2, "SensorNode id: %s (%s) available\n", qPrintable(sensor->id()), qPrintable(sensor->name()));
             if (sensor->node() && !sensor->node()->isEndDevice())
             {
                 sensor->setNextReadTime(READ_BINDING_TABLE, queryTime);
@@ -1959,6 +1962,10 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     {
         checkReporting = true;
     }
+    else if (sensor->modelId().startsWith(QLatin1String("RWL02")))
+    {
+        checkReporting = true;
+    }
     else if (ind.dstAddressMode() == deCONZ::ApsGroupAddress)
     {
         if (sensor->mode() == Sensor::ModeTwoGroups) // only supported for DE Lighting Switch
@@ -1984,27 +1991,15 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         enqueueEvent(e);
     }
 
-    if (checkReporting && sensor->node() &&
-        sensor->lastAttributeReportBind() < (idleTotalCounter - BUTTON_ATTR_REPORT_BIND_LIMIT))
-    {
-        checkSensorBindingsForAttributeReporting(sensor);
-        sensor->setLastAttributeReportBind(idleTotalCounter);
-        if (sensor->mustRead(READ_BINDING_TABLE))
-        {
-            sensor->setNextReadTime(READ_BINDING_TABLE, queryTime);
-            queryTime = queryTime.addSecs(1);
-        }
-        DBG_Printf(DBG_INFO_L2, "Force binding of attribute reporting for sensor %s\n", qPrintable(sensor->name()));
-    }
-
-    while (buttonMap->mode != Sensor::ModeNone)
+    bool ok = false;
+    while (buttonMap->mode != Sensor::ModeNone && !ok)
     {
         if (buttonMap->mode == sensor->mode() &&
             buttonMap->endpoint == ind.srcEndpoint() &&
             buttonMap->clusterId == ind.clusterId() &&
             buttonMap->zclCommandId == zclFrame.commandId())
         {
-            bool ok = true;
+            ok = true;
 
             if (ind.clusterId() == SCENE_CLUSTER_ID && zclFrame.commandId() == 0x05) // recall scene
             {
@@ -2091,12 +2086,31 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     sensor->updateStateTimestamp();
                     sensor->setNeedSaveDatabase(true);
                 }
-                return;
+                break;
             }
         }
         buttonMap++;
     }
 
+    if (checkReporting && sensor->node() &&
+        sensor->lastAttributeReportBind() < (idleTotalCounter - BUTTON_ATTR_REPORT_BIND_LIMIT))
+    {
+        checkSensorBindingsForAttributeReporting(sensor);
+        sensor->setLastAttributeReportBind(idleTotalCounter);
+        if (sensor->mustRead(READ_BINDING_TABLE))
+        {
+            sensor->setNextReadTime(READ_BINDING_TABLE, queryTime);
+            queryTime = queryTime.addSecs(1);
+        }
+        DBG_Printf(DBG_INFO_L2, "Force binding of attribute reporting for sensor %s\n", qPrintable(sensor->name()));
+    }
+
+    if (ok)
+    {
+        return;
+    }
+
+#if 0
     // check if hue dimmer switch is configured
     if (sensor->modelId().startsWith(QLatin1String("RWL02")))
     {
@@ -2131,6 +2145,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             checkSensorBindingsForAttributeReporting(sensor);
         }
     }
+#endif
 
     quint8 pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(0);
     DBG_Printf(DBG_INFO, "no button handler for: %s cl: 0x%04X cmd: 0x%02X pl[0]: 0%02X\n",
@@ -2968,6 +2983,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
         if (event.event() == deCONZ::NodeEvent::UpdatedClusterDataZclReport ||
             event.event() == deCONZ::NodeEvent::UpdatedClusterDataZclRead)
         {
+            i->rx();
             i->incrementRxCounter();
         }
 
@@ -5417,9 +5433,38 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
 {
     Q_UNUSED(zclFrame);
 
+    bool checkReporting = false;
+    const quint64 macPrefix = ind.srcAddress().ext() & macPrefixMask;
+
     if (!(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
     {
+        checkReporting = true;
         sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus);
+    }
+    else if (macPrefix == philipsMacPrefix ||
+             macPrefix == tiMacPrefix ||
+             macPrefix == ikeaMacPrefix)
+    {
+        // these sensors tend to mac data poll after report
+        checkReporting = true;
+    }
+
+    if (checkReporting)
+    {
+        for (Sensor &sensor : sensors)
+        {
+            if (ind.srcAddress().ext() != sensor.address().ext())
+            {
+                continue;
+            }
+
+            if (sensor.node() &&
+                sensor.lastAttributeReportBind() < (idleTotalCounter - BUTTON_ATTR_REPORT_BIND_LIMIT))
+            {
+                sensor.setLastAttributeReportBind(idleTotalCounter);
+                checkSensorBindingsForAttributeReporting(&sensor);
+            }
+        }
     }
 
     if (otauLastBusyTimeDelta() < (60 * 60))
@@ -7553,6 +7598,7 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
         deCONZ::Node *node = i->node();
         if (node && (i->address().ext() == ext))
         {
+            i->rx();
             std::vector<RecoverOnOff>::iterator rc = recoverOnOff.begin();
             std::vector<RecoverOnOff>::iterator rcend = recoverOnOff.end();
             for (; rc != rcend; ++rc)
@@ -7653,6 +7699,7 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
     {
         if ((si->address().ext() == ext) || (si->address().nwk() == nwk))
         {
+            si->rx();
             found++;
             DBG_Printf(DBG_INFO, "DeviceAnnce of SensorNode: %s\n", qPrintable(si->address().toStringExt()));
 
@@ -8880,6 +8927,7 @@ void DeRestPlugin::idleTimerFired()
             }
         }
 
+        QDateTime now = QDateTime::currentDateTime();
         d->queryTime = t;
 
         DBG_Printf(DBG_INFO_L2, "Idle timer triggered\n");
@@ -8951,7 +8999,7 @@ void DeRestPlugin::idleTimerFired()
                             if (val.updateType == NodeValue::UpdateByZclRead ||
                                 val.updateType == NodeValue::UpdateByZclReport)
                             {
-                                if (val.timestamp.isValid() && val.timestamp.elapsed() < (tRead[i] * 1000))
+                                if (val.timestamp.isValid() && val.timestamp.secsTo(now) < tRead[i])
                                 {
                                     // fresh enough
                                     continue;
@@ -9155,7 +9203,7 @@ void DeRestPlugin::idleTimerFired()
                         }
 
                         if (val.timestampLastReport.isValid() &&
-                            val.timestampLastReport.secsTo(t) < (60 * 45)) // got update in timely manner
+                            val.timestampLastReport.secsTo(now) < (60 * 45)) // got update in timely manner
                         {
                             DBG_Printf(DBG_INFO_L2, "binding for attribute reporting SensorNode %s of cluster 0x%04X seems to be active\n", qPrintable(sensorNode->name()), *ci);
                         }
@@ -9174,7 +9222,7 @@ void DeRestPlugin::idleTimerFired()
                             {
                                 val = sensorNode->getZclValue(*ci, 0x0010); // PIR occupied to unoccupied delay
 
-                                if (!val.timestamp.isValid() || val.timestamp.secsTo(t) > 1800)
+                                if (!val.timestamp.isValid() || val.timestamp.secsTo(now) > 1800)
                                 {
                                     sensorNode->enableRead(READ_OCCUPANCY_CONFIG);
                                     sensorNode->setLastRead(READ_OCCUPANCY_CONFIG, d->idleTotalCounter);

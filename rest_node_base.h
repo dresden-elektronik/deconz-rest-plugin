@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -11,7 +11,7 @@
 #ifndef REST_NODE_BASE_H
 #define REST_NODE_BASE_H
 
-#include <QTime>
+#include <QDateTime>
 #include <deconz.h>
 
 /*! \class NodeValue
@@ -31,9 +31,9 @@ public:
         value.u64 = 0;
     }
 
-    QTime timestamp;
-    QTime timestampLastReport;
-    QTime timestampLastReadRequest;
+    QDateTime timestamp;
+    QDateTime timestampLastReport;
+    QDateTime timestampLastReadRequest;
     UpdateType updateType;
     quint16 clusterId;
     quint16 attributeId;
@@ -75,6 +75,8 @@ public:
     void setZclValue(NodeValue::UpdateType updateType, quint16 clusterId, quint16 attributeId, const deCONZ::NumericUnion &value);
     const NodeValue &getZclValue(quint16 clusterId, quint16 attributeId) const;
     NodeValue &getZclValue(quint16 clusterId, quint16 attributeId);
+    const QDateTime &lastRx() const;
+    void rx();
 
 private:
     deCONZ::Node *m_node;
@@ -89,6 +91,7 @@ private:
     std::vector<int> m_lastRead; // copy of idleTotalCounter
     int m_lastAttributeReportBind; // copy of idleTotalCounter
     std::vector<QTime> m_nextReadTime;
+    QDateTime m_lastRx;
 
     NodeValue m_invalidValue;
     std::vector<NodeValue> m_values;

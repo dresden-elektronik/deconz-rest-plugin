@@ -357,21 +357,22 @@ void DeRestPluginPrivate::otauTimerFired()
         return;
     }
 
+    QDateTime now = QDateTime::currentDateTime();
     NodeValue &val = lightNode->getZclValue(OTAU_CLUSTER_ID, OTAU_SWVERSION_ID);
 
     if (val.updateType == NodeValue::UpdateByZclRead)
     {
-        if (val.timestamp.isValid() && val.timestamp.elapsed() < OTAU_NOTIFY_INTERVAL)
+        if (val.timestamp.isValid() && val.timestamp.secsTo(now) < OTAU_NOTIFY_INTERVAL)
         {
             return;
         }
 
-        if (val.timestampLastReadRequest.isValid() && val.timestampLastReadRequest.elapsed() < OTAU_NOTIFY_INTERVAL)
+        if (val.timestampLastReadRequest.isValid() && val.timestampLastReadRequest.secsTo(now) < OTAU_NOTIFY_INTERVAL)
         {
             return;
         }
 
-        val.timestampLastReadRequest.start();
+        val.timestampLastReadRequest = now;
     }
 
     otauSendStdNotify(lightNode);

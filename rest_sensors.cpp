@@ -1435,13 +1435,13 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
     item = sensor->item(RStatePresence);
     if (item && item->toBool())
     {
-
+        QDateTime now = QDateTime::currentDateTime();
         // check if we can trust reports
         for (quint16 clusterId : {OCCUPANCY_SENSING_CLUSTER_ID, IAS_ZONE_CLUSTER_ID})
         {
             NodeValue &v = sensor->getZclValue(clusterId, 0x0000);
             if (v.timestamp.isValid() &&
-                v.timestamp.secsTo(QTime::currentTime()) <= 180) // got update in timely manner
+                v.timestamp.secsTo(now) <= 180) // got update in timely manner
             {
                 if (v.value.u8 > 0)
                 {
@@ -1458,8 +1458,6 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
             max = dur->toNumber();
         }
 
-
-        QDateTime now = QDateTime::currentDateTime();
         int dt = item->lastSet().secsTo(now);
 
         if (!item->lastSet().isValid() || !(dt >= 0 && dt <= max))

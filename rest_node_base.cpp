@@ -256,6 +256,7 @@ void RestNodeBase::setMgmtBindSupported(bool supported)
  */
 void RestNodeBase::setZclValue(NodeValue::UpdateType updateType, quint16 clusterId, quint16 attributeId, const deCONZ::NumericUnion &value)
 {
+    QDateTime now = QDateTime::currentDateTime();
     std::vector<NodeValue>::iterator i = m_values.begin();
     std::vector<NodeValue>::iterator end = m_values.end();
 
@@ -266,22 +267,23 @@ void RestNodeBase::setZclValue(NodeValue::UpdateType updateType, quint16 cluster
         {
             i->updateType = updateType;
             i->value = value;
-            int dt = i->timestamp.restart();
+            int dt = i->timestamp.secsTo(now);
+            i->timestamp = now;
 
             if (updateType == NodeValue::UpdateByZclReport)
             {
-                i->timestampLastReport.start();
+                i->timestampLastReport = now;
             }
-            DBG_Printf(DBG_INFO, "update ZCL value 0x%04X/0x%04X for 0x%016llX after %d ms\n", clusterId, attributeId, address().ext(), dt);
+            DBG_Printf(DBG_INFO, "update ZCL value 0x%04X/0x%04X for 0x%016llX after %d s\n", clusterId, attributeId, address().ext(), dt);
             return;
         }
     }
 
     NodeValue val;
-    val.timestamp.start();
+    val.timestamp = now;
     if (updateType == NodeValue::UpdateByZclReport)
     {
-        val.timestampLastReport.start();
+        val.timestampLastReport = now;
     }
     val.clusterId = clusterId;
     val.attributeId = attributeId;
@@ -337,4 +339,16 @@ NodeValue &RestNodeBase::getZclValue(quint16 clusterId, quint16 attributeId)
     }
 
     return m_invalidValue;
+}
+
+/*! Returns timestamp of last rx. */
+const QDateTime &RestNodeBase::lastRx() const
+{
+    return m_lastRx;
+}
+
+/*! Mark received command. */
+void RestNodeBase::rx()
+{
+    m_lastRx = QDateTime::currentDateTime();
 }
