@@ -608,6 +608,22 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         return false;
     }
 
+    // fake first report timestamp to mark succesful binding
+    // and prevent further bind requests before reports arrive
+    NodeValue &val = bt.restNode->getZclValue(bt.binding.clusterId, attributeId);
+    if (val.clusterId == bt.binding.clusterId)
+    {
+        // value exists
+        val.timestampLastReport = QDateTime::currentDateTime();
+    }
+    else
+    {
+        // values doesn't exist, create
+        deCONZ::NumericUnion dummy;
+        dummy.u64 = 0;
+        bt.restNode->setZclValue(NodeValue::UpdateByZclReport, bt.binding.clusterId, attributeId, dummy);
+    }
+
     deCONZ::ApsDataRequest apsReq;
 
     // ZDP Header
