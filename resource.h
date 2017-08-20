@@ -37,51 +37,58 @@ extern const char *REventCheckGroupAnyOn;
 
 // resouce suffixes: state/buttonevent, config/on, ...
 extern const char *RInvalidSuffix;
+
 extern const char *RStateAlert;
 extern const char *RStateAllOn;
 extern const char *RStateAnyOn;
-extern const char *RStateButtonEvent;
 extern const char *RStateBri;
+extern const char *RStateButtonEvent;
 extern const char *RStateColorMode;
 extern const char *RStateCt;
-extern const char *RStateEffect;
-extern const char *RStateHue;
-extern const char *RStatePresence;
-extern const char *RStateOn;
-extern const char *RStateOpen;
 extern const char *RStateDark;
 extern const char *RStateDaylight;
+extern const char *RStateEffect;
+extern const char *RStateFlag;
+extern const char *RStateHue;
+extern const char *RStateHumidity;
+extern const char *RStateLastUpdated;
 extern const char *RStateLightLevel;
 extern const char *RStateLux;
-extern const char *RStateTemperature;
-extern const char *RStateHumidity;
+extern const char *RStateOn;
+extern const char *RStateOpen;
+extern const char *RStatePresence;
 extern const char *RStatePressure;
-extern const char *RStateFlag;
 extern const char *RStateReachable;
 extern const char *RStateSat;
 extern const char *RStateStatus;
-extern const char *RStateLastUpdated;
+extern const char *RStateTemperature;
 extern const char *RStateX;
 extern const char *RStateY;
 
-extern const char *RConfigOn;
-extern const char *RConfigReachable;
 extern const char *RConfigAlert;
+extern const char *RConfigBattery;
 extern const char *RConfigConfigured;
 extern const char *RConfigDuration;
-extern const char *RConfigBattery;
 extern const char *RConfigGroup;
-extern const char *RConfigUrl;
 extern const char *RConfigLat;
+extern const char *RConfigLedIndication;
 extern const char *RConfigLocalTime;
 extern const char *RConfigLong;
+extern const char *RConfigOn;
+extern const char *RConfigReachable;
+extern const char *RConfigSensitivity;
+extern const char *RConfigSensitivityMax;
 extern const char *RConfigSunriseOffset;
 extern const char *RConfigSunsetOffset;
 extern const char *RConfigTholdDark;
 extern const char *RConfigTholdOffset;
+extern const char *RConfigUrl;
+extern const char *RConfigUsertest;
 
-#define R_THOLDDARK_DEFAULT   12000
-#define R_THOLDOFFSET_DEFAULT 7000
+#define R_ALERT_DEFAULT             QVariant(QLatin1String("none"))
+#define R_SENSITIVITY_MAX_DEFAULT   2
+#define R_THOLDDARK_DEFAULT         12000
+#define R_THOLDOFFSET_DEFAULT       7000
 
 class  ResourceItemDescriptor
 {

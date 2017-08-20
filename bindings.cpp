@@ -797,8 +797,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("DC_")) ||
         // Philips
         sensor->modelId() == QLatin1String("SML001") ||
-        sensor->modelId() == QLatin1String("RWL020") ||
-        sensor->modelId() == QLatin1String("RWL021") ||
+        sensor->modelId().startsWith(QLatin1String("RWL02")) ||
         // IKEA
         sensor->modelId().startsWith(QLatin1String("TRADFRI")))
     {
@@ -869,7 +868,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         }
         else if (*i == VENDOR_CLUSTER_ID)
         {
-            if (sensor->modelId().startsWith(QLatin1String("RWL02")))
+            if (sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
             {
                 val = sensor->getZclValue(*i, 0x0000); // button event
             }
@@ -992,9 +991,7 @@ void DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
 
     std::vector<quint16> clusters;
 
-    // Philips Dimmer Switch
-    if (sensor->modelId() == QLatin1String("RWL020") ||
-        sensor->modelId() == QLatin1String("RWL021"))
+    if (sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);
@@ -1104,9 +1101,7 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
         }
     }
 
-    // Philips Dimmer Switch
-    if (sensor->modelId() == QLatin1String("RWL020") ||
-        sensor->modelId() == QLatin1String("RWL021"))
+    if (sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
     {
         if (!group)
         {

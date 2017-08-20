@@ -1675,7 +1675,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
         if (sensor.type().endsWith(QLatin1String("Switch")))
         {
-            if (sensor.modelId().startsWith(QLatin1String("SML001"))) // hue motion sensor
+            if (sensor.modelId() == QLatin1String("SML001")) // Hue motion sensor
             {
                 // not supported yet, created by older versions
                 // ignore for now
@@ -1707,7 +1707,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             item = sensor.addItem(DataTypeUInt16, RStateLightLevel);
             item->setValue(0);
-            item = sensor.addItem(DataTypeUInt32, RStateLux);
+            item = sensor.addItem(DataTypeUInt16, RStateLux);
             item->setValue(0);
             item = sensor.addItem(DataTypeBool, RStateDark);
             item->setValue(true);
@@ -1733,7 +1733,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = RELATIVE_HUMIDITY_CLUSTER_ID;
             }
-            item = sensor.addItem(DataTypeInt32, RStateHumidity);
+            item = sensor.addItem(DataTypeUInt16, RStateHumidity);
             item->setValue(0);
         }
         else if (sensor.type().endsWith(QLatin1String("Pressure")))
@@ -1742,7 +1742,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = PRESSURE_MEASUREMENT_CLUSTER_ID;
             }
-            item = sensor.addItem(DataTypeInt32, RStatePressure);
+            item = sensor.addItem(DataTypeInt16, RStatePressure);
             item->setValue(0);
         }
         else if (sensor.type().endsWith(QLatin1String("Presence")))
@@ -1759,6 +1759,14 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item->setValue(false);
             item = sensor.addItem(DataTypeUInt16, RConfigDuration);
             item->setValue(60);
+            if (sensor.modelId() == QLatin1String("SML001")) // Hue motion sensor
+            {
+                item->setValue(0);
+                item = sensor.addItem(DataTypeUInt8, RConfigSensitivity);
+                item->setValue(0);
+                item = sensor.addItem(DataTypeUInt8, RConfigSensitivityMax);
+                item->setValue(R_SENSITIVITY_MAX_DEFAULT);
+            }
         }
         else if (sensor.type().endsWith(QLatin1String("Flag")))
         {
@@ -1784,7 +1792,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item->setValue(false);
         }
 
-        if (sensor.modelId().startsWith(QLatin1String("RWL02"))) // hue dimmer switch
+        if (sensor.modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
         {
             clusterId = VENDOR_CLUSTER_ID;
             endpoint = 2;
@@ -1800,21 +1808,32 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 sensor.fingerPrint().inClusters.push_back(VENDOR_CLUSTER_ID);
                 sensor.setNeedSaveDatabase(true);
             }
+            item = sensor.addItem(DataTypeString, RConfigAlert);
+            item->setValue(R_ALERT_DEFAULT);
         }
-        else if (sensor.modelId().startsWith(QLatin1String("SML001"))) // hue motion sensor
+        else if (sensor.modelId() == QLatin1String("SML001")) // Hue motion sensor
         {
             if (!sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
             {
                 sensor.fingerPrint().inClusters.push_back(POWER_CONFIGURATION_CLUSTER_ID);
                 sensor.setNeedSaveDatabase(true);
             }
-        }
-
-        // support power configuration cluster for IKEA devices
-        if (sensor.modelId().startsWith(QLatin1String("TRADFRI")) &&
-            !sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
+            item = sensor.addItem(DataTypeBool, RConfigLedIndication);
+            item->setValue(false);
+            item = sensor.addItem(DataTypeBool, RConfigUsertest);
+            item->setValue(false);
+            item = sensor.addItem(DataTypeString, RConfigAlert);
+            item->setValue(R_ALERT_DEFAULT);
+        } else if (sensor.modelId().startsWith(QLatin1String("TRADFRI")))
         {
-            sensor.fingerPrint().inClusters.push_back(POWER_CONFIGURATION_CLUSTER_ID);
+            // support power configuration cluster for IKEA devices
+            if (!sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
+            {
+                sensor.fingerPrint().inClusters.push_back(POWER_CONFIGURATION_CLUSTER_ID);
+            }
+
+            item = sensor.addItem(DataTypeString, RConfigAlert);
+            item->setValue(R_ALERT_DEFAULT);
         }
 
         if (sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
