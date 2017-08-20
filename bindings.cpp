@@ -501,7 +501,20 @@ bool DeRestPluginPrivate::sendBindRequest(BindingTask &bt)
  */
 bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 {
-    if (!bt.restNode)
+    if (!bt.restNode || !bt.restNode->node())
+    {
+        return false;
+    }
+
+    deCONZ::SimpleDescriptor *sd = bt.restNode->node()->getSimpleDescriptor(bt.binding.srcEndpoint);
+    if (!sd)
+    {
+        return false;
+    }
+
+    // check if bound cluster is server cluster
+    deCONZ:: ZclCluster *cl = sd->cluster(bt.binding.clusterId, deCONZ::ServerCluster);
+    if (!cl)
     {
         return false;
     }
