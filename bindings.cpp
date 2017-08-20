@@ -783,7 +783,8 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         return;
     }
 
-    if (idleTotalCounter < (IDLE_READ_LIMIT + 120)) // wait for some input before fire bindings
+    if (findSensorsState != FindSensorsActive &&
+        idleTotalCounter < (IDLE_READ_LIMIT + 120)) // wait for some input before fire bindings
     {
         return;
     }
@@ -989,10 +990,12 @@ void DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         return;
     }
 
+    quint8 srcEndpoint = sensor->fingerPrint().endpoint;
     std::vector<quint16> clusters;
 
     if (sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
     {
+        srcEndpoint = 1;
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);
     }
@@ -1059,7 +1062,7 @@ void DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         Binding &bnd = bindingTask.binding;
         bnd.srcAddress = sensor->address().ext();
         bnd.dstAddrMode = deCONZ::ApsGroupAddress;
-        bnd.srcEndpoint = sensor->fingerPrint().endpoint;
+        bnd.srcEndpoint = srcEndpoint;
         bnd.clusterId = *i;
         bnd.dstAddress.group = group->address();
         bnd.dstEndpoint = endpoint();

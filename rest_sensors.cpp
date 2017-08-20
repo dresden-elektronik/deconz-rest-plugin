@@ -1338,6 +1338,12 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         checkOldSensorGroups(sensor);
 
         ResourceItem *item = sensor->item(RConfigGroup);
+        DBG_Assert(item != 0);
+        if (!item)
+        {
+            return;
+        }
+
         Group *group = getGroupForId(item->toString());
 
         if (group && group->state() != Group::StateNormal)
@@ -1366,6 +1372,8 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             updateGroupEtag(&groups.back());
             queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
         }
+
+         checkSensorBindingsForClientClusters(sensor);
     }
 }
 

@@ -2425,6 +2425,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
             fpSwitch.deviceId = i->deviceId();
             fpSwitch.profileId = i->profileId();
 
+            if (modelId.startsWith(QLatin1String("RWL02")))
+            {
+                fpSwitch.endpoint = 2;
+            }
+
             sensor = getSensorNodeForFingerPrint(node->address().ext(), fpSwitch, "ZHASwitch");
 
             if (modelId == QLatin1String("OJB-IR715-Z"))
@@ -2684,9 +2689,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         sensorNode.addItem(DataTypeBool, RStateOpen);
     }
 
-    QString uid = generateUniqueId(sensorNode.address().ext(), sensorNode.fingerPrint().endpoint, clusterId);
-    sensorNode.setUniqueId(uid);
-
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_DDEL)
     {
         sensorNode.setManufacturer("dresden elektronik");
@@ -2737,13 +2739,16 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_PHILIPS)
     {
-        sensorNode.setManufacturer("Philips");
+        sensorNode.setManufacturer(QLatin1String("Philips"));
 
         item = sensorNode.addItem(DataTypeString, RConfigAlert);
         item->setValue(R_ALERT_DEFAULT);
 
         if (modelId.startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
         {
+            sensorNode.fingerPrint().endpoint = 2;
+            clusterId = VENDOR_CLUSTER_ID;
+
             if (!sensorNode.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
             {   // this cluster is on endpoint 2 and hence not detected
                 sensorNode.fingerPrint().inClusters.push_back(POWER_CONFIGURATION_CLUSTER_ID);
@@ -2794,6 +2799,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     {
         sensorNode.setManufacturer("LUMI");
     }
+
+    QString uid = generateUniqueId(sensorNode.address().ext(), sensorNode.fingerPrint().endpoint, clusterId);
+    sensorNode.setUniqueId(uid);
 
     if (!sensor2 && sensorNode.id().isEmpty())
     {
@@ -2866,15 +2874,24 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     {
         DBG_Printf(DBG_INFO, "SensorNode %s: %s added\n", qPrintable(sensorNode.id()), qPrintable(sensorNode.name()));
         sensors.push_back(sensorNode);
-        updateSensorEtag(&sensors.back());
+        sensor2 = &sensors.back();
+        updateSensorEtag(sensor2);
     }
 
     if (findSensorsState == FindSensorsActive)
     {
         Event e(RSensors, REventAdded, sensorNode.id());
         enqueueEvent(e);
+
+        // check missing queries
+        if (!fastProbeTimer->isActive())
+        {
+            fastProbeTimer->start(100);
+        }
     }
 
+    sensor2->rx();
+    checkSensorBindingsForAttributeReporting(sensor2);
 
     Q_Q(DeRestPlugin);
     q->startZclAttributeTimer(checkZclAttributesDelay);
@@ -7513,9 +7530,33 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
     Q_UNUSED(task);
 
     uint8_t ep = ind.srcEndpoint();
-    Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ep);
-    //int endpointCount = getNumberOfEndpoints(ind.srcAddress().ext());
+    Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
     int epIter = 0;
+
+    if (!sensorNode)
+    {
+        for (Sensor &s : sensors)
+        {
+            if (s.deletedState() != Sensor::StateNormal)
+            {
+                continue;
+            }
+
+            if ((ind.srcAddress().hasExt() && ind.srcAddress().ext() == s.address().ext()) ||
+                (ind.srcAddress().hasNwk() && ind.srcAddress().nwk() == s.address().nwk()))
+            {
+                if (s.modelId().startsWith(QLatin1String("RWL02")))
+                {
+                    sensorNode = &s;
+                }
+            }
+
+            if (sensorNode)
+            {
+                break;
+            }
+        }
+    }
 
     if (!sensorNode)
     {
@@ -7544,11 +7585,17 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
 
         DBG_Printf(DBG_INFO, "Get group identifiers response of sensor %s. Count: %u\n", qPrintable(sensorNode->address().toStringExt()), count);
 
-        while (!stream.atEnd())
+        while (!stream.atEnd() && epIter < count)
         {
             stream >> groupId;
             stream >> type;
-            DBG_Printf(DBG_INFO, " - Id: %u, type: %u\n", groupId, type);
+
+            if (stream.status() == QDataStream::ReadPastEnd)
+            {
+                break;
+            }
+
+            DBG_Printf(DBG_INFO, "\tgroup: 0x%04X, type: %u\n", groupId, type);
 
             if (epIter < count && ep != ind.srcEndpoint())
             {
@@ -7562,7 +7609,7 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
             // assumption: different groups from consecutive endpoints
             ep++;
 
-            if (sensorNode && sensorNode->deletedState() != Sensor::StateDeleted)
+            if (sensorNode && sensorNode->deletedState() == Sensor::StateNormal)
             {
                 sensorNode->clearRead(READ_GROUP_IDENTIFIERS);
                 Group *group1 = getGroupForId(groupId);
@@ -7577,7 +7624,7 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
                     //not found
                     group1->addDeviceMembership(sensorNode->id());
                     queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
-                    updateEtag(group1->etag);
+                    updateGroupEtag(group1);
                 }
 
                 ResourceItem *item = sensorNode->addItem(DataTypeString, RConfigGroup);
@@ -7585,6 +7632,7 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
 
                 if (item->toString() != gid)
                 {
+                    DBG_Printf(DBG_INFO, "\tupdate group item: 0x%04X\n", groupId);
                     item->setValue(gid);
                     sensorNode->setNeedSaveDatabase(true);
                     queSaveDb(DB_GROUPS | DB_SENSORS, DB_SHORT_SAVE_DELAY);
@@ -7725,6 +7773,11 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
 
     for (; si != send; ++si)
     {
+        if (si->deletedState() != Sensor::StateNormal)
+        {
+            continue;
+        }
+
         if ((si->address().ext() == ext) || (si->address().nwk() == nwk))
         {
             si->rx();
