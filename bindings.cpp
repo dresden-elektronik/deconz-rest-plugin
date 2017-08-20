@@ -973,13 +973,21 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
 /*! Creates binding for group control (switches, motion sensor, ...). */
 void DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
 {
-    if (!apsCtrl || !sensor || !sensor->address().hasExt() || !sensor->toBool(RConfigReachable))
+    if (!apsCtrl || !sensor || !sensor->node() || !sensor->address().hasExt() || !sensor->toBool(RConfigReachable))
     {
         return;
     }
 
-    if (idleTotalCounter < (IDLE_READ_LIMIT + 60)) // wait for some input before fire bindings
+    if (findSensorsState != FindSensorsActive &&
+        idleTotalCounter < (IDLE_READ_LIMIT + 60)) // wait for some input before fire bindings
     {
+        return;
+    }
+
+    QDateTime now = QDateTime::currentDateTime();
+    if (sensor->node()->isEndDevice() && sensor->lastRx().secsTo(now) > 10)
+    {
+        DBG_Printf(DBG_INFO, "skip check bindings for client clusters (end-device might sleep)\n");
         return;
     }
 
