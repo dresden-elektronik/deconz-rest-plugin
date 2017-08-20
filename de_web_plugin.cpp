@@ -92,9 +92,9 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_INSTA, "WS_4f_J_1", instaMacPrefix },
     { VENDOR_INSTA, "WS_3f_G_1", instaMacPrefix },
     { VENDOR_NYCE, "3011", emberMacPrefix }, // door/window sensor
-    { VENDOR_PHILIPS, "RWL020", philipsMacPrefix },
-    { VENDOR_PHILIPS, "RWL021", philipsMacPrefix },
-    { VENDOR_PHILIPS, "SML001", philipsMacPrefix },
+    { VENDOR_PHILIPS, "RWL020", philipsMacPrefix }, // Hue dimmer switch
+    { VENDOR_PHILIPS, "RWL021", philipsMacPrefix }, // Hue dimmer switch
+    { VENDOR_PHILIPS, "SML001", philipsMacPrefix }, // Hue motion sensor
     { VENDOR_JENNIC, "lumi.sensor_ht", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sens", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.weather", jennicMacPrefix },
@@ -1962,7 +1962,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     {
         checkReporting = true;
     }
-    else if (sensor->modelId().startsWith(QLatin1String("RWL02")))
+    else if (sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
     {
         checkReporting = true;
     }
@@ -2112,7 +2112,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
 #if 0
     // check if hue dimmer switch is configured
-    if (sensor->modelId().startsWith(QLatin1String("RWL02")))
+    if (sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
     {
         bool ok = true;
         // attribute reporting for power configuration cluster should fire every 5 minutes
@@ -2639,7 +2639,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = RELATIVE_HUMIDITY_CLUSTER_ID;
         }
-        sensorNode.addItem(DataTypeInt32, RStateHumidity);
+        sensorNode.addItem(DataTypeUInt16, RStateHumidity);
     }
     else if (sensorNode.type().endsWith(QLatin1String("Pressure")))
     {
@@ -2647,7 +2647,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = PRESSURE_MEASUREMENT_CLUSTER_ID;
         }
-        sensorNode.addItem(DataTypeInt32, RStatePressure);
+        sensorNode.addItem(DataTypeInt16, RStatePressure);
     }
     else if (sensorNode.type().endsWith(QLatin1String("Presence")))
     {
@@ -2733,7 +2733,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     {
         sensorNode.setManufacturer("Philips");
 
-        if (modelId.startsWith(QLatin1String("RWL02")))
+        item = sensorNode.addItem(DataTypeString, RConfigAlert);
+        item->setValue(R_ALERT_DEFAULT);
+
+        if (modelId.startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
         {
             if (!sensorNode.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
             {   // this cluster is on endpoint 2 and hence not detected
@@ -2745,13 +2748,24 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.fingerPrint().inClusters.push_back(VENDOR_CLUSTER_ID);
             }
         }
-        else if (modelId == QLatin1String("SML001"))
+        else if (modelId == QLatin1String("SML001")) // Hue motion sensor
         {
             if (type == QLatin1String("ZHASwitch"))
             {
                 // not supported yet
                 return;
             }
+            else if (type == QLatin1String("ZHAPresence"))
+            {
+                item = sensorNode.addItem(DataTypeUInt8, RConfigSensitivity);
+                item->setValue(0);
+                item = sensorNode.addItem(DataTypeUInt8, RConfigSensitivityMax);
+                item->setValue(R_SENSITIVITY_MAX_DEFAULT);
+            }
+            item = sensorNode.addItem(DataTypeBool, RConfigLedIndication);
+            item->setValue(false);
+            item = sensorNode.addItem(DataTypeBool, RConfigUsertest);
+            item->setValue(false);
         }
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_BEGA)
@@ -2761,6 +2775,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA)
     {
         sensorNode.setManufacturer("IKEA of Sweden");
+
+        item = sensorNode.addItem(DataTypeString, RConfigAlert);
+        item->setValue(R_ALERT_DEFAULT);
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_INSTA)
     {
@@ -3131,6 +3148,11 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     int bat = ia->numericValue().u8 / 2;
 
+                                    if (i->modelId().startsWith("TRADFRI"))
+                                    {
+                                        bat = ia->numericValue().u8;
+                                    }
+
                                     if (item->toNumber() != bat)
                                     {
                                         item->setValue(bat);
@@ -3217,7 +3239,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 if (!item)
                                 {
-                                    item = i->addItem(DataTypeUInt32, RStateLux);
+                                    item = i->addItem(DataTypeUInt16, RStateLux);
                                 }
 
                                 if (item)
@@ -3268,7 +3290,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
                                 }
 
-                                int temp = ia->numericValue().s16;
+                                int temp = ia->numericValue().s32;
                                 ResourceItem *item = i->item(RStateTemperature);
 
                                 if (item)
@@ -3322,7 +3344,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
                                 }
 
-                                int pressure = ia->numericValue().u16;
+                                qint16 pressure = ia->numericValue().s16;
                                 ResourceItem *item = i->item(RStatePressure);
 
                                 if (item)
@@ -8495,8 +8517,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
             return;
         }
 
-        if (sensor->modelId() == QLatin1String("RWL020") ||
-            sensor->modelId() == QLatin1String("RWL021"))
+        if (sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
         {
             ResourceItem *item = sensor->item(RConfigGroup);
             if (!item || !item->lastSet().isValid())

@@ -293,14 +293,14 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
         else if (type == QLatin1String("CLIPPresence")) { item = sensor.addItem(DataTypeBool, RStatePresence); item->setValue(false);
                                                           item = sensor.addItem(DataTypeUInt16, RConfigDuration); item->setValue(60); }
         else if (type == QLatin1String("CLIPLightLevel")) { item = sensor.addItem(DataTypeUInt16, RStateLightLevel); item->setValue(0);
-                                                            item = sensor.addItem(DataTypeUInt32, RStateLux); item->setValue(0);
+                                                            item = sensor.addItem(DataTypeUInt16, RStateLux); item->setValue(0);
                                                             item = sensor.addItem(DataTypeBool, RStateDark); item->setValue(true);
                                                             item = sensor.addItem(DataTypeBool, RStateDaylight); item->setValue(false);
                                                             item = sensor.addItem(DataTypeUInt16, RConfigTholdDark); item->setValue(R_THOLDDARK_DEFAULT);
                                                             item = sensor.addItem(DataTypeUInt16, RConfigTholdOffset); item->setValue(R_THOLDOFFSET_DEFAULT); }
         else if (type == QLatin1String("CLIPTemperature")) { item = sensor.addItem(DataTypeInt32, RStateTemperature); item->setValue(0); }
-        else if (type == QLatin1String("CLIPHumidity")) { item = sensor.addItem(DataTypeInt32, RStateHumidity); item->setValue(0); }
-        else if (type == QLatin1String("CLIPPressure")) { item = sensor.addItem(DataTypeInt32, RStatePressure); item->setValue(0); }
+        else if (type == QLatin1String("CLIPHumidity")) { item = sensor.addItem(DataTypeUInt16, RStateHumidity); item->setValue(0); }
+        else if (type == QLatin1String("CLIPPressure")) { item = sensor.addItem(DataTypeInt16, RStatePressure); item->setValue(0); }
         else
         {
             rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors"), QString("invalid value, %1, for parameter, type").arg(type)));
@@ -753,9 +753,13 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
         ResourceItem *item = 0;
         if (getResourceItemDescriptor(QString("config/%1").arg(pi.key()), rid))
         {
-            if (!isClip && rid.suffix == RConfigReachable)
+            if (!isClip && (rid.suffix == RConfigBattery || rid.suffix == RConfigReachable))
             {
-                // changing reachable of zigbee sensors is not allowed, trigger error
+                // changing battery or reachable of zigbee sensors is not allowed, trigger error
+            }
+            else if (rid.suffix == RConfigSensitivityMax)
+            {
+                // sensitivitymax is read-only
             }
             else
             {
@@ -938,9 +942,9 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
                         item2 = sensor->item(RStateLux);
                         if (!item2)
                         {
-                            item2 = sensor->addItem(DataTypeUInt32, RStateLux);
+                            item2 = sensor->addItem(DataTypeUInt16, RStateLux);
                         }
-                        quint32 lux = 0;
+                        quint16 lux = 0;
                         if (measuredValue > 0 && measuredValue < 0xffff)
                         {
                             lux = measuredValue;
@@ -956,7 +960,7 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
                             if (l >= 1)
                             {
                                 l += 0.5;   // round value
-                                lux = static_cast<quint32>(l);
+                                lux = static_cast<quint16>(l);
                             }
                             else
                             {
