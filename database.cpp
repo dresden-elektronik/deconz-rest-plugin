@@ -1808,8 +1808,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 sensor.fingerPrint().inClusters.push_back(VENDOR_CLUSTER_ID);
                 sensor.setNeedSaveDatabase(true);
             }
-            item = sensor.addItem(DataTypeString, RConfigAlert);
-            item->setValue(R_ALERT_DEFAULT);
         }
         else if (sensor.modelId() == QLatin1String("SML001")) // Hue motion sensor
         {

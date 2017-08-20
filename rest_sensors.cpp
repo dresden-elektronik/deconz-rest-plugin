@@ -711,6 +711,7 @@ int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &rsp)
 {
+    TaskItem task;
     QString id = req.path[3];
     Sensor *sensor = getSensorNodeForId(id);
     bool ok;
@@ -743,6 +744,13 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 
     userActivity();
 
+    // set destination parameters
+    task.req.dstAddress() = sensor->address();
+    task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+    task.req.setDstEndpoint(sensor->fingerPrint().endpoint);
+    task.req.setSrcEndpoint(getSrcEndpoint(sensor, task.req));
+    task.req.setDstAddressMode(deCONZ::ApsExtAddress);
+
     //check invalid parameter
     QVariantMap::const_iterator pi = map.begin();
     QVariantMap::const_iterator pend = map.end();
@@ -769,7 +777,49 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
             if (item)
             {
                 QVariant val = map[pi.key()];
-                if (item->setValue(val))
+
+                if (rid.suffix == RConfigAlert)
+                {
+                    if (val == "none")
+                    {
+                        task.identifyTime = 0;
+                    }
+                    else if (val == "select")
+                    {
+                        task.identifyTime = 2;    // Hue lights don't react to 1.
+                    }
+                    else if (val == "lselect")
+                    {
+                        task.identifyTime = 15;   // Default for Philips Hue bridge
+                    }
+                    else
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/alert").arg(id), QString("invalid value, %1, for parameter, alert").arg(val.toString())));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
+                    }
+
+                    task.taskType = TaskIdentify;
+                    taskToLocalData(task);
+
+                    if (addTaskIdentify(task, task.identifyTime))
+                    {
+                        if (item->setValue(val))
+                        {
+                            rspItemState[QString("/sensors/%1/config/alert").arg(id)] = map["alert"];
+                            rspItem["success"] = rspItemState;
+                            if (item->lastChanged() == item->lastSet())
+                            {
+                                updated = true;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/sensors/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+                    }
+                }
+                else if (item->setValue(val))
                 {
                     rspItemState[QString("/sensors/%1/config/%2").arg(id).arg(pi.key())] = val;
                     rspItem["success"] = rspItemState;
@@ -821,6 +871,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
         sensor->setNeedSaveDatabase(true);
         queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
     }
+
+    processTasks();
 
     return REQ_READY_SEND;
 }

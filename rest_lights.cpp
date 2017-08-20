@@ -916,11 +916,11 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
         else if (alert == "select")
         {
-            task.identifyTime = 1;
+            task.identifyTime = 2;    // Hue lights don't react to 1.
         }
         else if (alert == "lselect")
         {
-            task.identifyTime = 30;
+            task.identifyTime = 15;   // Default for Philips Hue bridge
         }
         else
         {
