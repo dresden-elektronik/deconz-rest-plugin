@@ -1770,10 +1770,16 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor)
 
     bool updated = false;
     bool reachable = false;
+    QDateTime now = QDateTime::currentDateTime();
 
     if (!sensor->fingerPrint().hasEndpoint())
     {
         reachable = true; // assumption for GP device
+    }
+    if (sensor->node() && sensor->node()->isEndDevice() &&
+        sensor->lastRx().secsTo(now) < (60 * 60 * 24)) // if end device was active in last 24 hours
+    {
+        reachable = true;
     }
     else if (sensor->node() && !sensor->node()->isZombie())
     {
