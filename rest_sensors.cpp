@@ -1371,9 +1371,8 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             groups.push_back(g);
             updateGroupEtag(&groups.back());
             queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
+            checkSensorBindingsForClientClusters(sensor);
         }
-
-         checkSensorBindingsForClientClusters(sensor);
     }
 }
 
