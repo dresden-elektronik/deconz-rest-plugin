@@ -80,7 +80,29 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
 
         DBG_Printf(DBG_ZCL, "IAS Zone Status Change, status: 0x%04X, zoneId: %u, delay: %u\n", zoneStatus, zoneId, delay);
 
-        Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
+        Sensor *sensor = 0;
+
+        for (Sensor &s : sensors)
+        {
+            if (s.deletedState() != Sensor::StateNormal)
+            {
+                continue;
+            }
+
+            if (s.type() != QLatin1String("ZHAPresence") &&
+                s.type() != QLatin1String("ZHAOpenClose"))
+            {
+                continue;
+            }
+
+            if ((ind.srcAddress().hasExt() && s.address().ext() == ind.srcAddress().ext()) ||
+                (ind.srcAddress().hasNwk() && s.address().nwk() == ind.srcAddress().nwk()))
+            {
+                sensor = &s;
+                break;
+            }
+        }
+
         if (!sensor)
         {
             return;
