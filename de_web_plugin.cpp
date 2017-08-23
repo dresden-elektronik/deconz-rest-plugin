@@ -58,9 +58,9 @@ const quint64 macPrefixMask       = 0xffffff0000000000ULL;
 const quint64 bjeMacPrefix        = 0xd85def0000000000ULL;
 const quint64 emberMacPrefix      = 0x000d6f0000000000ULL;
 const quint64 tiMacPrefix         = 0x00124b0000000000ULL;
-const quint64 deMacPrefix         = 0x00212effff000000ULL;
-const quint64 ikeaMacPrefix       = 0x000b57fff0000000ULL;
-const quint64 instaMacPrefix      = 0x000f171241000000ULL;
+const quint64 deMacPrefix         = 0x00212e0000000000ULL;
+const quint64 ikeaMacPrefix       = 0x000b570000000000ULL;
+const quint64 instaMacPrefix      = 0x000f170000000000ULL;
 const quint64 jennicMacPrefix     = 0x00158d0000000000ULL;
 const quint64 philipsMacPrefix    = 0x0017880000000000ULL;
 const quint64 osramMacPrefix      = 0x8418260000000000ULL;
@@ -2179,6 +2179,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
 
         for (; i != end; ++i)
         {
+            checkSensorNodeReachable(&*i);
+
             if (i->address().ext() == node->address().ext())
             {
                 // address changed?
@@ -2210,8 +2212,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                     { q->nodeUpdated(i->address().ext(), QLatin1String("version"), i->swVersion()); }
                 }
             }
-
-            checkSensorNodeReachable(&*i);
         }
     }
 
@@ -2227,7 +2227,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
 
     for (;i != end; ++i)
     {
-        bool supportedDevice = false;
         SensorFingerprint fpSwitch;
         SensorFingerprint fpLightSensor;
         SensorFingerprint fpPresenceSensor;
@@ -2290,14 +2289,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                                 modelId = i->toString().trimmed();
                                 break;
                             }
-                        }
-                    }
-                    if (modelId.isEmpty())
-                    {
-                        Sensor *sensor = getSensorNodeForAddress(node->address()); // extract from others if possible
-                        if (sensor && sensor->deletedState() == Sensor::StateNormal && !sensor->modelId().isEmpty())
-                        {
-                            modelId = sensor->modelId();
                         }
                     }
 
@@ -2408,8 +2399,24 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
             }
         }
 
-        supportedDevice = isDeviceSupported(node, modelId);
-        if (!supportedDevice)
+        if (modelId.isEmpty())
+        {
+            Sensor *sensor = getSensorNodeForAddress(node->address()); // extract from other sensors if possible
+            if (sensor && sensor->deletedState() == Sensor::StateNormal && !sensor->modelId().isEmpty())
+            {
+                modelId = sensor->modelId();
+            }
+            else
+            { // extract from light if possible
+                LightNode *lightNode = getLightNodeForAddress(node->address());
+                if (lightNode && !lightNode->modelId().isEmpty())
+                {
+                    modelId = lightNode->modelId();
+                }
+            }
+        }
+
+        if (!isDeviceSupported(node, modelId))
         {
             return;
         }
@@ -2540,6 +2547,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                 checkSensorNodeReachable(sensor);
             }
         }
+
         // ZHAPressure
         if (fpPressureSensor.hasInCluster(PRESSURE_MEASUREMENT_CLUSTER_ID))
         {
