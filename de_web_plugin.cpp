@@ -4610,9 +4610,10 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
     \param endpoint the destination endpoint
     \param clusterId the cluster id related to the attributes
     \param attributes a list of attribute ids which shall be read
+    \param manufacturerCode (optional) manufacturerCode for manufacturer-specific attribute
     \return true if the request is queued
  */
-bool DeRestPluginPrivate::readAttributes(RestNodeBase *restNode, quint8 endpoint, uint16_t clusterId, const std::vector<uint16_t> &attributes)
+bool DeRestPluginPrivate::readAttributes(RestNodeBase *restNode, quint8 endpoint, uint16_t clusterId, const std::vector<uint16_t> &attributes, uint16_t manufacturerCode)
 {
     DBG_Assert(restNode != 0);
     DBG_Assert(!attributes.empty());
@@ -4640,11 +4641,24 @@ bool DeRestPluginPrivate::readAttributes(RestNodeBase *restNode, quint8 endpoint
 
     task.zclFrame.setSequenceNumber(zclSeq++);
     task.zclFrame.setCommandId(deCONZ::ZclReadAttributesId);
-    task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
-                             deCONZ::ZclFCDirectionClientToServer |
-                             deCONZ::ZclFCDisableDefaultResponse);
 
-    DBG_Printf(DBG_INFO_L2, "read attributes of 0x%016llX cluster: 0x%04X: [ ", restNode->address().ext(), clusterId);
+    if (manufacturerCode)
+    {
+        task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                                      deCONZ::ZclFCManufacturerSpecific |
+                                      deCONZ::ZclFCDirectionClientToServer |
+                                      deCONZ::ZclFCDisableDefaultResponse);
+        task.zclFrame.setManufacturerCode(manufacturerCode);
+        DBG_Printf(DBG_INFO_L2, "read manufacturer specific attributes of 0x%016llX cluster: 0x%04X: [ ", restNode->address().ext(), clusterId);
+    }
+    else
+    {
+        task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                                      deCONZ::ZclFCDirectionClientToServer |
+                                      deCONZ::ZclFCDisableDefaultResponse);
+
+        DBG_Printf(DBG_INFO_L2, "read attributes of 0x%016llX cluster: 0x%04X: [ ", restNode->address().ext(), clusterId);
+    }
 
     { // payload
         QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
@@ -4653,17 +4667,10 @@ bool DeRestPluginPrivate::readAttributes(RestNodeBase *restNode, quint8 endpoint
         for (uint i = 0; i < attributes.size(); i++)
         {
             stream << attributes[i];
-            if (DBG_IsEnabled(DBG_INFO_L2))
-            {
-                DBG_Printf(DBG_INFO_L2, "0x%04X ", attributes[i]);
-            }
+            DBG_Printf(DBG_INFO_L2, "0x%04X ", attributes[i]);
         }
     }
-
-    if (DBG_IsEnabled(DBG_INFO_L2))
-    {
-        DBG_Printf(DBG_INFO_L2, "]\n");
-    }
+    DBG_Printf(DBG_INFO_L2, "]\n");
 
     { // ZCL frame
         QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
@@ -4728,9 +4735,10 @@ bool DeRestPluginPrivate::getGroupIdentifiers(RestNodeBase *node, quint8 endpoin
     \param endpoint the destination endpoint
     \param clusterId the cluster id related to the attributes
     \param attribute the attribute to write
+    \param manufacturerCode (optional) manufacturerCode for manufacturer-specific attribute
     \return true if the request is queued
  */
-bool DeRestPluginPrivate::writeAttribute(RestNodeBase *restNode, quint8 endpoint, uint16_t clusterId, const deCONZ::ZclAttribute &attribute)
+bool DeRestPluginPrivate::writeAttribute(RestNodeBase *restNode, quint8 endpoint, uint16_t clusterId, const deCONZ::ZclAttribute &attribute, uint16_t manufacturerCode)
 {
     DBG_Assert(restNode != 0);
 
@@ -4752,9 +4760,24 @@ bool DeRestPluginPrivate::writeAttribute(RestNodeBase *restNode, quint8 endpoint
 
     task.zclFrame.setSequenceNumber(zclSeq++);
     task.zclFrame.setCommandId(deCONZ::ZclWriteAttributesId);
-    task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
-                             deCONZ::ZclFCDirectionClientToServer |
-                             deCONZ::ZclFCDisableDefaultResponse);
+
+    if (manufacturerCode)
+    {
+        task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                                      deCONZ::ZclFCManufacturerSpecific |
+                                      deCONZ::ZclFCDirectionClientToServer |
+                                      deCONZ::ZclFCDisableDefaultResponse);
+        task.zclFrame.setManufacturerCode(manufacturerCode);
+        DBG_Printf(DBG_INFO_L2, "write manufacturer specific attribute of 0x%016llX cluster: 0x%04X: 0x%04X\n", restNode->address().ext(), clusterId, attribute.id());
+    }
+    else
+    {
+        task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                                      deCONZ::ZclFCDirectionClientToServer |
+                                      deCONZ::ZclFCDisableDefaultResponse);
+
+        DBG_Printf(DBG_INFO_L2, "write attribute of 0x%016llX cluster: 0x%04X: 0x%04X\n", restNode->address().ext(), clusterId, attribute.id());
+    }
 
     { // payload
         QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);

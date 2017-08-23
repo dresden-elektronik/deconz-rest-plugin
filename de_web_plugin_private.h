@@ -890,8 +890,8 @@ public:
     bool processZclAttributes(Sensor *sensorNode);
     bool readBindingTable(RestNodeBase *node, quint8 startIndex);
     bool getGroupIdentifiers(RestNodeBase *node, quint8 endpoint, quint8 startIndex);
-    bool readAttributes(RestNodeBase *restNode, quint8 endpoint, uint16_t clusterId, const std::vector<uint16_t> &attributes);
-    bool writeAttribute(RestNodeBase *restNode, quint8 endpoint, uint16_t clusterId, const deCONZ::ZclAttribute &attribute);
+    bool readAttributes(RestNodeBase *restNode, quint8 endpoint, uint16_t clusterId, const std::vector<uint16_t> &attributes, uint16_t manufacturerCode = 0);
+    bool writeAttribute(RestNodeBase *restNode, quint8 endpoint, uint16_t clusterId, const deCONZ::ZclAttribute &attribute, uint16_t manufacturerCode = 0);
     bool readSceneAttributes(LightNode *lightNode, uint16_t groupId, uint8_t sceneId);
     bool readGroupMembership(LightNode *lightNode, const std::vector<uint16_t> &groups);
     void foundGroupMembership(LightNode *lightNode, uint16_t groupId);
