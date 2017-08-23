@@ -8549,7 +8549,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
         }
 
         // manufacturer, model id, sw build id
-        if (!sensor || modelId.isEmpty() || manufacturer.isEmpty() || swBuildId.isEmpty())
+        if (!sensor || modelId.isEmpty() || manufacturer.isEmpty() || (swBuildId.isEmpty() && dateCode.isEmpty()))
         {
             deCONZ::ApsDataRequest apsReq;
 
