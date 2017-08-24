@@ -64,6 +64,7 @@ const quint64 instaMacPrefix      = 0x000f170000000000ULL;
 const quint64 jennicMacPrefix     = 0x00158d0000000000ULL;
 const quint64 philipsMacPrefix    = 0x0017880000000000ULL;
 const quint64 osramMacPrefix      = 0x8418260000000000ULL;
+const quint64 ubisysMacPrefix     = 0x001fee0000000000ULL;
 
 struct SupportedDevice {
     quint16 vendorId;
@@ -96,10 +97,11 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_PHILIPS, "RWL021", philipsMacPrefix }, // Hue dimmer switch
     { VENDOR_PHILIPS, "SML001", philipsMacPrefix }, // Hue motion sensor
     { VENDOR_JENNIC, "lumi.sensor_ht", jennicMacPrefix },
-    { VENDOR_JENNIC, "lumi.sens", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.weather", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_magnet", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_switch", jennicMacPrefix },
+    { VENDOR_JENNIC, "lumi.sensor_cube", jennicMacPrefix },
+    { VENDOR_UBISYS, "D1", ubisysMacPrefix },
     { 0, 0, 0 }
 };
 
@@ -2393,6 +2395,18 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                 }
                     break;
 
+                case ANALOG_INPUT_CLUSTER_ID:
+                {
+                    fpSwitch.inClusters.push_back(ci->id());
+                }
+                    break;
+
+                case MULTISTATE_INPUT_CLUSTER_ID:
+                {
+                    fpSwitch.inClusters.push_back(ci->id());
+                }
+                    break;
+
                 default:
                     break;
                 }
@@ -2426,6 +2440,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
         // ZHASwitch
         if (fpSwitch.hasInCluster(ONOFF_SWITCH_CONFIGURATION_CLUSTER_ID) ||
             fpSwitch.hasInCluster(ONOFF_CLUSTER_ID) ||
+            fpSwitch.hasInCluster(ANALOG_INPUT_CLUSTER_ID) ||
+            fpSwitch.hasInCluster(MULTISTATE_INPUT_CLUSTER_ID) ||
             !fpSwitch.outClusters.empty())
         {
             fpSwitch.endpoint = i->endpoint();
@@ -2633,6 +2649,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                  sensorNode.fingerPrint().hasOutCluster(ONOFF_CLUSTER_ID))
         {
             clusterId = ONOFF_CLUSTER_ID;
+        }
+        else if (sensorNode.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))
+        {
+            clusterId = ANALOG_INPUT_CLUSTER_ID;
+        }
+        else if (sensorNode.fingerPrint().hasInCluster(MULTISTATE_INPUT_CLUSTER_ID))
+        {
+            clusterId = MULTISTATE_INPUT_CLUSTER_ID;
         }
         sensorNode.addItem(DataTypeInt32, RStateButtonEvent);
     }
@@ -3086,6 +3110,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             case POWER_CONFIGURATION_CLUSTER_ID:
             case BASIC_CLUSTER_ID:
             case ONOFF_CLUSTER_ID:
+            case ANALOG_INPUT_CLUSTER_ID:
+            case MULTISTATE_INPUT_CLUSTER_ID:
                 break;
 
             default:
@@ -3601,6 +3627,60 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         updateSensorEtag(&*i);
                                     }
                                 }
+                            }
+                        }
+                    }
+                    else if (event.clusterId() == ANALOG_INPUT_CLUSTER_ID)
+                    {
+                        for (;ia != enda; ++ia)
+                        {
+                            if (ia->id() == 0x0055) // measured value
+                            {
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                }
+
+                                qint32 buttonevent = ia->numericValue().real * 100;
+                                ResourceItem *item = i->item(RStateButtonEvent);
+
+                                if (item)
+                                {
+                                    item->setValue(buttonevent);
+                                    i->updateStateTimestamp();
+                                    i->setNeedSaveDatabase(true);
+                                    Event e(RSensors, RStateButtonEvent, i->id());
+                                    enqueueEvent(e);
+                                }
+
+                                updateSensorEtag(&*i);
+                            }
+                        }
+                    }
+                    else if (event.clusterId() == MULTISTATE_INPUT_CLUSTER_ID)
+                    {
+                        for (;ia != enda; ++ia)
+                        {
+                            if (ia->id() == 0x0055) // measured value
+                            {
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                }
+
+                                qint32 buttonevent = ia->numericValue().u16;
+                                ResourceItem *item = i->item(RStateButtonEvent);
+
+                                if (item)
+                                {
+                                    item->setValue(buttonevent);
+                                    i->updateStateTimestamp();
+                                    i->setNeedSaveDatabase(true);
+                                    Event e(RSensors, RStateButtonEvent, i->id());
+                                    enqueueEvent(e);
+                                }
+
+                                updateSensorEtag(&*i);
                             }
                         }
                     }
@@ -6176,6 +6256,8 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         case OCCUPANCY_SENSING_CLUSTER_ID:
         case IAS_ZONE_CLUSTER_ID:
         case BASIC_CLUSTER_ID:
+        case ANALOG_INPUT_CLUSTER_ID:
+        case MULTISTATE_INPUT_CLUSTER_ID:
             {
                 addSensorNode(event.node());
                 updateSensorNode(event);
@@ -8613,7 +8695,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
 
         if (sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
         {
-            // Say the magic word
+            // Stop the Hue dimmer from touchlinking when holding the On button.
             deCONZ::ZclAttribute attr(0x0031, deCONZ::Zcl16BitBitMap, "mode", deCONZ::ZclReadWrite, false);
             attr.setBitmap((quint64) 0x000b);
             writeAttribute(sensor, sensor->fingerPrint().endpoint, BASIC_CLUSTER_ID, attr, VENDOR_PHILIPS);
