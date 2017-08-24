@@ -1049,6 +1049,11 @@ void DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         clusters.push_back(LEVEL_CLUSTER_ID);
         clusters.push_back(SCENE_CLUSTER_ID);
     }
+    else if (sensor->modelId().startsWith(QLatin1String("D1")))
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+    }
     else
     {
         return;
