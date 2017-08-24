@@ -6113,6 +6113,11 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
 
     case deCONZ::NodeEvent::NodeAdded:
     {
+        QTime now = QTime::currentTime();
+        if (queryTime.secsTo(now) < 20)
+        {
+            queryTime = now.addSecs(20);
+        }
         addLightNode(event.node());
         addSensorNode(event.node());
     }
@@ -8549,7 +8554,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
         }
 
         // manufacturer, model id, sw build id
-        if (!sensor || modelId.isEmpty() || manufacturer.isEmpty() || swBuildId.isEmpty())
+        if (!sensor || modelId.isEmpty() || manufacturer.isEmpty() || (swBuildId.isEmpty() && dateCode.isEmpty()))
         {
             deCONZ::ApsDataRequest apsReq;
 
