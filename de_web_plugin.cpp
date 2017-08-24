@@ -8613,6 +8613,11 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
 
         if (sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
         {
+            // Say the magic word
+            deCONZ::ZclAttribute attr(0x0031, deCONZ::Zcl16BitBitMap, "mode", deCONZ::ZclReadWrite, false);
+            attr.setBitmap((quint64) 0x000b);
+            writeAttribute(sensor, sensor->fingerPrint().endpoint, BASIC_CLUSTER_ID, attr, VENDOR_PHILIPS);
+
             ResourceItem *item = sensor->item(RConfigGroup);
             if (!item || !item->lastSet().isValid())
             {
