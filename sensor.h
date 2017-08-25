@@ -126,7 +126,7 @@ public:
 
     QString etag;
     const ButtonMap *buttonMap();
-    uint8_t previousButton;
+    uint8_t previousDirection;
 
 private:
     DeletedState m_deletedstate;

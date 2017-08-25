@@ -2026,15 +2026,14 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 {
                     if (zclFrame.payload().size() >= 1 && buttonMap->zclParam0 == zclFrame.payload().at(0)) // next, prev scene
                     {
-                        sensor->previousButton = buttonMap->zclParam0;
+                        sensor->previousDirection = buttonMap->zclParam0;
                         ok = true;
                     }
                 } else if (zclFrame.commandId() == 0x09) // long release
                 {
-                    // zclFrame.payload().at(1) and zclFrame.payload().at(0) seem to hold the duration of the button hold
-                    if (zclFrame.payload().size() >= 1 && buttonMap->zclParam0 == sensor->previousButton)
+                    if (buttonMap->zclParam0 == sensor->previousDirection)
                     {
-                        sensor->previousButton = 0xFF;
+                        sensor->previousDirection = 0xFF;
                         ok = true;
                     }
                 }
@@ -2062,6 +2061,17 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 ok = false;
                 if (zclFrame.payload().size() >= 1 && buttonMap->zclParam0 == zclFrame.payload().at(0)) // direction
                 {
+                    sensor->previousDirection = zclFrame.payload().at(0);
+                    ok = true;
+                }
+            } else if (ind.clusterId() == LEVEL_CLUSTER_ID &&
+                       (zclFrame.commandId() == 0x03 ||  // stop
+                        zclFrame.commandId() == 0x07) )  // stop (with on/off)
+            {
+                ok = false;
+                if (buttonMap->zclParam0 == sensor->previousDirection) // direction of previous move/step
+                {
+                    sensor->previousDirection = 0xFF;
                     ok = true;
                 }
             }

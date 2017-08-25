@@ -16,20 +16,23 @@ static const Sensor::ButtonMap deLightingSwitchMap[] = {
     { Sensor::ModeTwoGroups,        0x01, 0x0006, 0x01, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
     { Sensor::ModeTwoGroups,        0x01, 0x0006, 0x00, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
     { Sensor::ModeTwoGroups,        0x01, 0x0008, 0x05, 0,    S_BUTTON_1 + S_BUTTON_ACTION_HOLD,           "Dimm up" },
+    { Sensor::ModeTwoGroups,        0x01, 0x0008, 0x03, 0,    S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED,  "Dimm stop" },
     { Sensor::ModeTwoGroups,        0x01, 0x0008, 0x01, 1,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "Dimm down" },
-    { Sensor::ModeTwoGroups,        0x01, 0x0008, 0x03, 0,    S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED,  "Dimm stop" }, // might be button 2 as well
+    { Sensor::ModeTwoGroups,        0x01, 0x0008, 0x03, 1,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "Dimm stop" },
 
     { Sensor::ModeTwoGroups,        0x02, 0x0006, 0x01, 0,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
     { Sensor::ModeTwoGroups,        0x02, 0x0006, 0x00, 0,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
     { Sensor::ModeTwoGroups,        0x02, 0x0008, 0x01, 1,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD,           "Dimm up" },
+    { Sensor::ModeTwoGroups,        0x02, 0x0008, 0x03, 1,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED,  "Dimm stop" },
     { Sensor::ModeTwoGroups,        0x02, 0x0008, 0x01, 0,    S_BUTTON_4 + S_BUTTON_ACTION_HOLD,           "Dimm down" },
-    { Sensor::ModeTwoGroups,        0x02, 0x0008, 0x03, 0,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED,  "Dimm stop" }, // might be button 4 as well
+    { Sensor::ModeTwoGroups,        0x02, 0x0008, 0x03, 0,    S_BUTTON_4 + S_BUTTON_ACTION_LONG_RELEASED,  "Dimm stop" },
 
     { Sensor::ModeScenes,           0x01, 0x0006, 0x01, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
     { Sensor::ModeScenes,           0x01, 0x0006, 0x00, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
     { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 1,    S_BUTTON_1 + S_BUTTON_ACTION_HOLD,           "Dimm up" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 1,    S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED,  "Dimm stop" },
     { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "Dimm down" },
-    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 0,    S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED,  "Dimm stop" }, // might be button 2 as well
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "Dimm stop" },
 
     { Sensor::ModeScenes,           0x01, 0x0005, 0x05, 1,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "Recall scene 1" },
     { Sensor::ModeScenes,           0x01, 0x0005, 0x05, 2,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Recall scene 2" },
@@ -37,8 +40,9 @@ static const Sensor::ButtonMap deLightingSwitchMap[] = {
     { Sensor::ModeColorTemperature, 0x01, 0x0006, 0x01, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
     { Sensor::ModeColorTemperature, 0x01, 0x0006, 0x00, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
     { Sensor::ModeColorTemperature, 0x01, 0x0008, 0x01, 1,    S_BUTTON_1 + S_BUTTON_ACTION_HOLD,           "Dimm up" },
+    { Sensor::ModeColorTemperature, 0x01, 0x0008, 0x03, 1,    S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED,  "Dimm stop" },
     { Sensor::ModeColorTemperature, 0x01, 0x0008, 0x01, 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "Dimm down" },
-    { Sensor::ModeColorTemperature, 0x01, 0x0008, 0x03, 0,    S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED,  "Dimm stop" }, // might be button 2 as well
+    { Sensor::ModeColorTemperature, 0x01, 0x0008, 0x03, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "Dimm stop" },
 
     // TODO CT commands
     { Sensor::ModeColorTemperature, 0x01, 0x0300, 0x05, 1,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "Recall scene 1" },
@@ -53,8 +57,9 @@ static const Sensor::ButtonMap deSceneSwitchMap[] = {
     { Sensor::ModeScenes,           0x01, 0x0006, 0x01, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
     { Sensor::ModeScenes,           0x01, 0x0006, 0x00, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
     { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 1,    S_BUTTON_1 + S_BUTTON_ACTION_HOLD,           "Dimm up" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 1,    S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED,  "Dimm stop" },
     { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "Dimm down" },
-    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 0,    S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED,  "Dimm stop" }, // might be button 2 as well
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "Dimm stop" },
 
     { Sensor::ModeScenes,           0x01, 0x0005, 0x05, 1,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "Recall scene 1" },
     { Sensor::ModeScenes,           0x01, 0x0005, 0x05, 2,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Recall scene 2" },
@@ -70,8 +75,9 @@ static const Sensor::ButtonMap instaRemoteMap[] = {
     { Sensor::ModeScenes,           0x01, 0x0006, 0x40, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Off with effect" },
     { Sensor::ModeScenes,           0x01, 0x0006, 0x01, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
     { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 1,    S_BUTTON_1 + S_BUTTON_ACTION_HOLD,           "Dimm up" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 1,    S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED,  "Dimm stop" },
     { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "Dimm down" },
-    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 0,    S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED,  "Dimm stop" }, // might be button 2 as well
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "Dimm stop" },
 
     { Sensor::ModeScenes,           0x01, 0x0005, 0x05, 0,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "Recall scene 0" },
     { Sensor::ModeScenes,           0x01, 0x0005, 0x05, 1,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Recall scene 1" },
@@ -124,40 +130,24 @@ static const Sensor::ButtonMap philipsDimmerSwitchMap[] = {
 
 static const Sensor::ButtonMap ikeaRemoteMap[] = {
 //    mode                          ep    cluster cmd   param button                                       name
-// big button
+    // big button
     { Sensor::ModeColorTemperature, 0x01, 0x0006, 0x02, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Toggle" },
-// top button
+    // top button
+    { Sensor::ModeColorTemperature, 0x01, 0x0008, 0x06, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Step up (with on/off)" },
     { Sensor::ModeColorTemperature, 0x01, 0x0008, 0x05, 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "Move up (with on/off)" },
     { Sensor::ModeColorTemperature, 0x01, 0x0008, 0x07, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop_ (with on/off)" },
-    { Sensor::ModeColorTemperature, 0x01, 0x0008, 0x06, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Step up (with on/off)" },
-// bottom button
+    // bottom button
     { Sensor::ModeColorTemperature, 0x01, 0x0008, 0x02, 1,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "Step down" },
     { Sensor::ModeColorTemperature, 0x01, 0x0008, 0x01, 1,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD,           "Move down" },
-    { Sensor::ModeColorTemperature, 0x01, 0x0008, 0x03, 0,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop" },
-// left button (non-standard)
+    { Sensor::ModeColorTemperature, 0x01, 0x0008, 0x03, 1,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop" },
+    // left button (non-standard)
     { Sensor::ModeColorTemperature, 0x01, 0x0005, 0x07, 1,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Step ct colder" },
     { Sensor::ModeColorTemperature, 0x01, 0x0005, 0x08, 1,    S_BUTTON_4 + S_BUTTON_ACTION_HOLD,           "Mode ct colder" },
     { Sensor::ModeColorTemperature, 0x01, 0x0005, 0x09, 1,    S_BUTTON_4 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop ct colder" },
-// right button (non-standard)
+    // right button (non-standard)
     { Sensor::ModeColorTemperature, 0x01, 0x0005, 0x07, 0,    S_BUTTON_5 + S_BUTTON_ACTION_SHORT_RELEASED, "Step ct warmer" },
     { Sensor::ModeColorTemperature, 0x01, 0x0005, 0x08, 0,    S_BUTTON_5 + S_BUTTON_ACTION_HOLD,           "Move ct warmer" },
     { Sensor::ModeColorTemperature, 0x01, 0x0005, 0x09, 0,    S_BUTTON_5 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop ct warmer" },
-
-// big button
-    { Sensor::ModeScenes,           0x01, 0x0006, 0x02, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Toggle" },
-// top button
-    { Sensor::ModeScenes,           0x01, 0x0008, 0x05, 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "Move up (with on/off)" },
-    { Sensor::ModeScenes,           0x01, 0x0008, 0x07, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop_ (with on/off)" },
-    { Sensor::ModeScenes,           0x01, 0x0008, 0x06, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Step up (with on/off)" },
-// bottom button
-    { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 1,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "Step down" },
-    { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 1,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD,           "Move down" },
-    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 0,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop" },
-// left button (non-standard)
-    { Sensor::ModeScenes,           0x01, 0x0005, 0x07, 1,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Previous scene" },
-// right button (non-standard)
-    { Sensor::ModeScenes,           0x01, 0x0005, 0x07, 0,    S_BUTTON_5 + S_BUTTON_ACTION_SHORT_RELEASED, "Next scene" },
-
     // end
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
 };
@@ -221,17 +211,18 @@ static const Sensor::ButtonMap bjeSwitchMap[] = {
 
 static const Sensor::ButtonMap ubisysD1Map[] = {
 //    mode                          ep    cluster cmd   param button                                       name
-// First button
+    // First button
     { Sensor::ModeScenes,           0x02, 0x0006, 0x02, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Toggle" },
-    { Sensor::ModeScenes,           0x02, 0x0008, 0x05, 0,    S_BUTTON_1 + S_BUTTON_ACTION_HOLD, "Move up (with on/off)" },
-    { Sensor::ModeScenes,           0x02, 0x0008, 0x05, 1,    S_BUTTON_1 + S_BUTTON_ACTION_HOLD, "Move down (with on/off)" },
-    { Sensor::ModeScenes,           0x02, 0x0008, 0x07, 0,    S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
-
-// Second button
-    { Sensor::ModeScenes,           0x03, 0x0006, 0x02, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Toggle" },
+    { Sensor::ModeScenes,           0x02, 0x0008, 0x05, 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD, "Move up (with on/off)" },
+    { Sensor::ModeScenes,           0x02, 0x0008, 0x07, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    { Sensor::ModeScenes,           0x02, 0x0008, 0x05, 1,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD, "Move down (with on/off)" },
+    { Sensor::ModeScenes,           0x02, 0x0008, 0x07, 1,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // Second button
+    { Sensor::ModeScenes,           0x03, 0x0006, 0x02, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Toggle" },
     { Sensor::ModeScenes,           0x03, 0x0008, 0x05, 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD, "Move up (with on/off)" },
-    { Sensor::ModeScenes,           0x03, 0x0008, 0x05, 1,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD, "Move down (with on/off)" },
     { Sensor::ModeScenes,           0x03, 0x0008, 0x07, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    { Sensor::ModeScenes,           0x03, 0x0008, 0x05, 1,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD, "Move down (with on/off)" },
+    { Sensor::ModeScenes,           0x03, 0x0008, 0x07, 1,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
     // end
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
 };
@@ -384,7 +375,7 @@ Sensor::Sensor() :
     addItem(DataTypeBool, RConfigReachable);
     addItem(DataTypeTime, RStateLastUpdated);
 
-    previousButton = 0xFF;
+    previousDirection = 0xFF;
 }
 
 /*! Returns the sensor deleted state.
