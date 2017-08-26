@@ -3679,10 +3679,22 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
                                 }
 
-                                qint32 buttonevent = ia->numericValue().u16;
+                                qint32 buttonevent = -1;
                                 ResourceItem *item = i->item(RStateButtonEvent);
 
-                                if (item)
+                                // Map Xiaomi Mi smart cube raw values to buttonevent values
+                                static const int sideMap[] = {1, 3, 5, 6, 4, 2};
+                                int rawValue = ia->numericValue().u16;
+                                int side = sideMap[rawValue & 0x0007];
+                                int previousSide = sideMap[(rawValue & 0x0038) >> 3];
+                                if (rawValue == 0x0002) { buttonevent = 7000; }                            // wakeup
+                                else if (rawValue == 0x0000) { buttonevent = 7007; }                       // shake
+                                else if (rawValue & 0x0040)  { buttonevent = side * 1000 + previousSide; } // flip 90°
+                                else if (rawValue & 0x0080)  { buttonevent = side * 1000 + 7 - side; }     // flip 180°
+                                else if (rawValue & 0x0100)  { buttonevent = side * 1000; }                // push
+                                else if (rawValue & 0x0200)  { buttonevent = side * 1000 + side; }         // double tap
+
+                                if (item && buttonevent != -1)
                                 {
                                     item->setValue(buttonevent);
                                     i->updateStateTimestamp();
