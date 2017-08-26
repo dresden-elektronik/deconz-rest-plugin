@@ -7993,6 +7993,7 @@ void DeRestPluginPrivate::handleNwkAddressReqIndication(const deCONZ::ApsDataInd
     req.setDstEndpoint(ZDO_ENDPOINT);
     req.setClusterId(ZDP_NWK_ADDR_RSP_CLID);
     req.setDstAddressMode(deCONZ::ApsNwkAddress);
+    req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
     req.dstAddress() = ind.srcAddress();
 
     QDataStream stream(&req.asdu(), QIODevice::WriteOnly);

@@ -460,6 +460,7 @@ bool DeRestPluginPrivate::sendBindRequest(BindingTask &bt)
 
     // set destination addressing
     apsReq.setDstAddressMode(deCONZ::ApsExtAddress);
+    apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
     apsReq.dstAddress().setExt(bnd.srcAddress);
     apsReq.setDstEndpoint(ZDO_ENDPOINT);
     apsReq.setSrcEndpoint(ZDO_ENDPOINT);
