@@ -99,6 +99,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "lumi.sensor_ht", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.weather", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_magnet", jennicMacPrefix },
+    { VENDOR_JENNIC, "lumi.sensor_motion", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_switch", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_cube", jennicMacPrefix },
     { VENDOR_UBISYS, "D1", ubisysMacPrefix },
@@ -6155,7 +6156,9 @@ void DeRestPluginPrivate::processTasks()
                     }
                     else
                     {
-                        DBG_Printf(DBG_INFO, "enqueue APS request failed with error %d\n", ret);
+                        DBG_Printf(DBG_INFO, "enqueue APS request failed with error %d, drop\n", ret);
+                        tasks.erase(i);
+                        return;
                     }
                 }
             }
@@ -7992,6 +7995,7 @@ void DeRestPluginPrivate::handleNwkAddressReqIndication(const deCONZ::ApsDataInd
     req.setDstEndpoint(ZDO_ENDPOINT);
     req.setClusterId(ZDP_NWK_ADDR_RSP_CLID);
     req.setDstAddressMode(deCONZ::ApsNwkAddress);
+    req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
     req.dstAddress() = ind.srcAddress();
 
     QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
