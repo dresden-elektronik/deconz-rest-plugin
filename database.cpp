@@ -1696,6 +1696,14 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = clusterId ? clusterId : ONOFF_CLUSTER_ID;
             }
+            else if (sensor.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))
+            {
+                clusterId = clusterId ? clusterId : ANALOG_INPUT_CLUSTER_ID;
+            }
+            else if (sensor.fingerPrint().hasInCluster(MULTISTATE_INPUT_CLUSTER_ID))
+            {
+                clusterId = clusterId ? clusterId : MULTISTATE_INPUT_CLUSTER_ID;
+            }
             item = sensor.addItem(DataTypeInt32, RStateButtonEvent);
             item->setValue(0);
         }
@@ -1754,6 +1762,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             else if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
             {
                 clusterId = IAS_ZONE_CLUSTER_ID;
+            }
+            else if (sensor.fingerPrint().hasInCluster(COMMISSIONING_CLUSTER_ID))
+            {
+                clusterId = COMMISSIONING_CLUSTER_ID;
             }
             item = sensor.addItem(DataTypeBool, RStatePresence);
             item->setValue(false);
