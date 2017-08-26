@@ -6156,7 +6156,9 @@ void DeRestPluginPrivate::processTasks()
                     }
                     else
                     {
-                        DBG_Printf(DBG_INFO, "enqueue APS request failed with error %d\n", ret);
+                        DBG_Printf(DBG_INFO, "enqueue APS request failed with error %d, drop\n", ret);
+                        tasks.erase(i);
+                        return;
                     }
                 }
             }
