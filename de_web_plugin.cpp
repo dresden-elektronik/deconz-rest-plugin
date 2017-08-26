@@ -4670,15 +4670,23 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         }
     }
 
+
     if (sensorNode->mustRead(READ_OCCUPANCY_CONFIG) && tNow > sensorNode->nextReadTime(READ_OCCUPANCY_CONFIG))
     {
-        std::vector<uint16_t> attributes;
-        attributes.push_back(0x0010); // occupied to unoccupied delay
-
-        if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, OCCUPANCY_SENSING_CLUSTER_ID, attributes))
+        if (sensorNode->modelId().startsWith(QLatin1String("lumi.sensor_motion")))
         {
             sensorNode->clearRead(READ_OCCUPANCY_CONFIG);
-            processed++;
+        }
+        else
+        {
+            std::vector<uint16_t> attributes;
+            attributes.push_back(0x0010); // occupied to unoccupied delay
+
+            if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, OCCUPANCY_SENSING_CLUSTER_ID, attributes))
+            {
+                sensorNode->clearRead(READ_OCCUPANCY_CONFIG);
+                processed++;
+            }
         }
     }
 
