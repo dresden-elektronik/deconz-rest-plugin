@@ -84,5 +84,25 @@ public:
     deCONZ::ApsDataRequest apsReq; //!< The APS request to match APS confirm.id
 };
 
-#endif // BINDINGS_H
+class ConfigureReportingRequest
+{
+public:
+    ConfigureReportingRequest() :
+        direction(0x00),
+        reportableChange8bit(0),
+        reportableChange16bit(0),
+        manufacturerCode(0)
+    {
+    }
 
+    quint8 direction;
+    quint8 dataType;
+    quint16 attributeId;
+    quint16 minInterval;
+    quint16 maxInterval;
+    quint8 reportableChange8bit;
+    quint16 reportableChange16bit;
+    quint16 manufacturerCode;
+};
+
+#endif // BINDINGS_H

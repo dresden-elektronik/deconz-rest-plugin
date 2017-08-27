@@ -499,6 +499,94 @@ bool DeRestPluginPrivate::sendBindRequest(BindingTask &bt)
 
 /*! Sends a ZCL configure attribute reporting request.
     \param bt a former binding task
+    \param rq a configure reporting request
+ */
+bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt, ConfigureReportingRequest &rq)
+{
+    // fake first report timestamp to mark succesful binding
+    // and prevent further bind requests before reports arrive
+    NodeValue &val = bt.restNode->getZclValue(bt.binding.clusterId, rq.attributeId);
+    if (val.clusterId == bt.binding.clusterId)
+    {
+        // value exists
+        val.timestampLastReport = QDateTime::currentDateTime();
+    }
+    else
+    {
+        // values doesn't exist, create
+        deCONZ::NumericUnion dummy;
+        dummy.u64 = 0;
+        bt.restNode->setZclValue(NodeValue::UpdateByZclReport, bt.binding.clusterId, rq.attributeId, dummy);
+    }
+
+    deCONZ::ApsDataRequest apsReq;
+
+    // ZDP Header
+    apsReq.dstAddress() = bt.restNode->address();
+    apsReq.setDstAddressMode(deCONZ::ApsExtAddress);
+    apsReq.setDstEndpoint(bt.binding.srcEndpoint);
+    apsReq.setSrcEndpoint(endpoint());
+    apsReq.setProfileId(HA_PROFILE_ID);
+    apsReq.setRadius(0);
+    apsReq.setClusterId(bt.binding.clusterId);
+    apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+
+    deCONZ::ZclFrame zclFrame;
+    zclFrame.setSequenceNumber(zclSeq++);
+    zclFrame.setCommandId(deCONZ::ZclConfigureReportingId);
+
+    if (rq.manufacturerCode)
+    {
+        zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                                 deCONZ::ZclFCManufacturerSpecific |
+                                 deCONZ::ZclFCDirectionClientToServer |
+                                 deCONZ::ZclFCDisableDefaultResponse);
+        zclFrame.setManufacturerCode(rq.manufacturerCode);
+    }
+    else
+    {
+        zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                                 deCONZ::ZclFCDirectionClientToServer |
+                                 deCONZ::ZclFCDisableDefaultResponse);
+    }
+
+    { // payload
+        QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        stream << rq.direction;
+        stream << rq.attributeId;
+        stream << rq.dataType;
+        stream << rq.minInterval;
+        stream << rq.maxInterval;
+
+        if (rq.reportableChange16bit)
+        {
+            stream << rq.reportableChange16bit;
+        }
+        else if (rq.reportableChange8bit)
+        {
+            stream << rq.reportableChange8bit;
+        }
+    }
+
+    { // ZCL frame
+        QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        zclFrame.writeToStream(stream);
+    }
+
+    if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+    {
+        queryTime = queryTime.addSecs(1);
+        return true;
+    }
+
+    return false;
+}
+
+/*! Sends a ZCL configure attribute reporting request.
+    \param bt a former binding task
  */
 bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 {
@@ -520,175 +608,136 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         return false;
     }
 
-    quint8 direction = 0x00;
-    quint8 dataType;
-    quint16 attributeId;
-    quint16 minInterval;
-    quint16 maxInterval;
-    quint8 reportableChange8bit = 0;
-    quint16 reportableChange16bit = 0;
+    ConfigureReportingRequest rq = ConfigureReportingRequest();
 
     if (bt.binding.clusterId == OCCUPANCY_SENSING_CLUSTER_ID)
     {
-        dataType = deCONZ::Zcl8BitBitMap;
-        attributeId = 0x0000; // occupancy
-        minInterval = 1;
-        maxInterval = 300;
+        rq.dataType = deCONZ::Zcl8BitBitMap;
+        rq.attributeId = 0x0000; // occupancy
+        rq.minInterval = 1;      // value used by Hue bridge
+        rq.maxInterval = 300;    // value used by Hue bridge
+        if (sendConfigureReportingRequest(bt, rq))
+        {
+            rq = ConfigureReportingRequest();
+            rq.dataType = deCONZ::ZclBoolean;
+            rq.attributeId = 0x0032; // sensitivity
+            rq.minInterval = 5;      // value used by Hue bridge
+            rq.maxInterval = 7200;   // value used by Hue bridge
+            rq.manufacturerCode = VENDOR_PHILIPS;
+            return sendConfigureReportingRequest(bt, rq);
+        }
+        return false;
     }
     else if (bt.binding.clusterId == ILLUMINANCE_MEASUREMENT_CLUSTER_ID)
     {
-        dataType = deCONZ::Zcl16BitUint;
-        attributeId = 0x0000; // measured value
-        minInterval = 5;
-        maxInterval = 300;
-        reportableChange16bit = 2000;
+        rq.dataType = deCONZ::Zcl16BitUint;
+        rq.attributeId = 0x0000;         // measured value
+        rq.minInterval = 5;              // value used by Hue bridge
+        rq.maxInterval = 300;            // value used by Hue bridge
+        rq.reportableChange16bit = 2000; // value used by Hue bridge
+        return sendConfigureReportingRequest(bt, rq);
     }
     else if (bt.binding.clusterId == TEMPERATURE_MEASUREMENT_CLUSTER_ID)
     {
-        dataType = deCONZ::Zcl16BitInt;
-        attributeId = 0x0000; // measured value
-        minInterval = 10;
-        maxInterval = 300;
-        reportableChange16bit = 20;
+        rq.dataType = deCONZ::Zcl16BitInt;
+        rq.attributeId = 0x0000;       // measured value
+        rq.minInterval = 10;           // value used by Hue bridge
+        rq.maxInterval = 300;          // value used by Hue bridge
+        rq.reportableChange16bit = 20; // value used by Hue bridge
+        return sendConfigureReportingRequest(bt, rq);
     }
     else if (bt.binding.clusterId == RELATIVE_HUMIDITY_CLUSTER_ID)
     {
-        dataType = deCONZ::Zcl16BitUint;
-        attributeId = 0x0000; // measured value
-        minInterval = 10;
-        maxInterval = 300;
-        reportableChange16bit = 20;
+        rq.dataType = deCONZ::Zcl16BitUint;
+        rq.attributeId = 0x0000; // measured value
+        rq.minInterval = 10;
+        rq.maxInterval = 300;
+        rq.reportableChange16bit = 20;
+        return sendConfigureReportingRequest(bt, rq);
     }
     else if (bt.binding.clusterId == PRESSURE_MEASUREMENT_CLUSTER_ID)
     {
-        dataType = deCONZ::Zcl16BitUint;
-        attributeId = 0x0000; // measured value
-        minInterval = 10;
-        maxInterval = 300;
-        reportableChange16bit = 20;
+        rq.dataType = deCONZ::Zcl16BitUint;
+        rq.attributeId = 0x0000; // measured value
+        rq.minInterval = 10;
+        rq.maxInterval = 300;
+        rq.reportableChange16bit = 20;
+        return sendConfigureReportingRequest(bt, rq);
     }
     else if (bt.binding.clusterId == POWER_CONFIGURATION_CLUSTER_ID)
     {
-        dataType = deCONZ::Zcl8BitUint;
-        attributeId = 0x0021; // battery percentage remaining
-        minInterval = 300;
-        maxInterval = 60 * 45;
-        reportableChange8bit = 1;
+        rq.dataType = deCONZ::Zcl8BitUint;
+        rq.attributeId = 0x0021;   // battery percentage remaining
+        rq.minInterval = 7200;     // value used by Hue bridge
+        rq.maxInterval = 7200;     // value used by Hue bridge
+        // rq.reportableChange8bit = 1; // not set by Hue bridge
+        return sendConfigureReportingRequest(bt, rq);
     }
     else if (bt.binding.clusterId == ONOFF_CLUSTER_ID)
     {
-        dataType = deCONZ::ZclBoolean;
-        attributeId = 0x0000; // on/off
+        rq.dataType = deCONZ::ZclBoolean;
+        rq.attributeId = 0x0000; // on/off
 
         if ((bt.restNode->address().ext() & macPrefixMask) == deMacPrefix)
         {
-            minInterval = 5;
-            maxInterval = 180;
+            rq.minInterval = 5;
+            rq.maxInterval = 180;
         }
         else // default configuration
         {
-            minInterval = 1;
-            maxInterval = 300;
+            rq.minInterval = 1;
+            rq.maxInterval = 300;
         }
+        return sendConfigureReportingRequest(bt, rq);
     }
     else if (bt.binding.clusterId == LEVEL_CLUSTER_ID)
     {
-        dataType = deCONZ::Zcl8BitUint;
-        attributeId = 0x0000; // current level
+        rq.dataType = deCONZ::Zcl8BitUint;
+        rq.attributeId = 0x0000; // current level
 
         if ((bt.restNode->address().ext() & macPrefixMask) == deMacPrefix)
         {
-            minInterval = 5;
-            maxInterval = 180;
-            reportableChange8bit = 5;
+            rq.minInterval = 5;
+            rq.maxInterval = 180;
+            rq.reportableChange8bit = 5;
         }
         else // default configuration
         {
-            minInterval = 1;
-            maxInterval = 300;
-            reportableChange8bit = 1;
+            rq.minInterval = 1;
+            rq.maxInterval = 300;
+            rq.reportableChange8bit = 1;
         }
+        return sendConfigureReportingRequest(bt, rq);
     }
     else if (bt.binding.clusterId == COLOR_CLUSTER_ID)
     {
-        dataType = deCONZ::Zcl16BitUint;
-        attributeId = 0x0007; // color temperature
-        minInterval = 1;
-        maxInterval = 300;
-        reportableChange16bit = 1;
+        rq.dataType = deCONZ::Zcl16BitUint;
+        rq.attributeId = 0x0007; // color temperature
+        rq.minInterval = 1;
+        rq.maxInterval = 300;
+        rq.reportableChange16bit = 1;
+        return sendConfigureReportingRequest(bt, rq);
     }
-    else
+    else if (bt.binding.clusterId == BASIC_CLUSTER_ID)
     {
+        rq.dataType = deCONZ::ZclBoolean;
+        rq.attributeId = 0x0032; // usertest
+        rq.minInterval = 5;      // value used by Hue bridge
+        rq.maxInterval = 7200;   // value used by Hue bridge
+        rq.manufacturerCode = VENDOR_PHILIPS;
+
+        if (sendConfigureReportingRequest(bt, rq))
+        {
+            rq = ConfigureReportingRequest();
+            rq.dataType = deCONZ::ZclBoolean;
+            rq.attributeId = 0x0033; // ledindication
+            rq.minInterval = 5;      // value used by Hue bridge
+            rq.maxInterval = 7200;   // value used by Hue bridge
+            rq.manufacturerCode = VENDOR_PHILIPS;
+            return sendConfigureReportingRequest(bt, rq);
+        }
         return false;
     }
-
-    // fake first report timestamp to mark succesful binding
-    // and prevent further bind requests before reports arrive
-    NodeValue &val = bt.restNode->getZclValue(bt.binding.clusterId, attributeId);
-    if (val.clusterId == bt.binding.clusterId)
-    {
-        // value exists
-        val.timestampLastReport = QDateTime::currentDateTime();
-    }
-    else
-    {
-        // values doesn't exist, create
-        deCONZ::NumericUnion dummy;
-        dummy.u64 = 0;
-        bt.restNode->setZclValue(NodeValue::UpdateByZclReport, bt.binding.clusterId, attributeId, dummy);
-    }
-
-    deCONZ::ApsDataRequest apsReq;
-
-    // ZDP Header
-    apsReq.dstAddress() = bt.restNode->address();
-    apsReq.setDstAddressMode(deCONZ::ApsExtAddress);
-    apsReq.setDstEndpoint(bt.binding.srcEndpoint);
-    apsReq.setSrcEndpoint(endpoint());
-    apsReq.setProfileId(HA_PROFILE_ID);
-    apsReq.setRadius(0);
-    apsReq.setClusterId(bt.binding.clusterId);
-    apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
-
-    deCONZ::ZclFrame zclFrame;
-    zclFrame.setSequenceNumber(zclSeq++);
-    zclFrame.setCommandId(deCONZ::ZclConfigureReportingId);
-    zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
-                             deCONZ::ZclFCDirectionClientToServer |
-                             deCONZ::ZclFCDisableDefaultResponse);
-
-    { // payload
-        QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
-        stream.setByteOrder(QDataStream::LittleEndian);
-
-        stream << direction;
-        stream << attributeId;
-        stream << dataType;
-        stream << minInterval;
-        stream << maxInterval;
-
-        if (reportableChange16bit)
-        {
-            stream << reportableChange16bit;
-        }
-        else if (reportableChange8bit)
-        {
-            stream << reportableChange8bit;
-        }
-    }
-
-    { // ZCL frame
-        QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
-        stream.setByteOrder(QDataStream::LittleEndian);
-        zclFrame.writeToStream(stream);
-    }
-
-    if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
-    {
-        queryTime = queryTime.addSecs(1);
-        return true;
-    }
-
     return false;
 }
 
@@ -876,6 +925,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         else if (*i == OCCUPANCY_SENSING_CLUSTER_ID)
         {
             val = sensor->getZclValue(*i, 0x0000); // occupied state
+            // val = sensor->getZclValue(*i, 0x0030); // sensitivity
         }
         else if (*i == POWER_CONFIGURATION_CLUSTER_ID)
         {
@@ -886,6 +936,18 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             if (sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
             {
                 val = sensor->getZclValue(*i, 0x0000); // button event
+            }
+        }
+        else if (*i == BASIC_CLUSTER_ID)
+        {
+            if (sensor->modelId() == QLatin1String("SML001")) // Hue motion sensor
+            {
+                val = sensor->getZclValue(*i, 0x0032); // usertest
+                // val = sensor->getZclValue(*i, 0x0033); // ledindication
+            }
+            else
+            {
+                continue;
             }
         }
 
@@ -931,6 +993,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         case RELATIVE_HUMIDITY_CLUSTER_ID:
         case PRESSURE_MEASUREMENT_CLUSTER_ID:
         case VENDOR_CLUSTER_ID:
+        case BASIC_CLUSTER_ID:
         {
             DBG_Printf(DBG_INFO_L2, "0x%016llX (%s) create binding for attribute reporting of cluster 0x%04X on endpoint 0x%02X\n",
                        sensor->address().ext(), qPrintable(sensor->modelId()), (*i), srcEndpoint);

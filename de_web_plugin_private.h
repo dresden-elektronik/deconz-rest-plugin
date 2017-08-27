@@ -765,6 +765,7 @@ public Q_SLOTS:
     void saveDatabaseTimerFired();
     void userActivity();
     bool sendBindRequest(BindingTask &bt);
+    bool sendConfigureReportingRequest(BindingTask &bt, ConfigureReportingRequest &rq);
     bool sendConfigureReportingRequest(BindingTask &bt);
     void checkLightBindingsForAttributeReporting(LightNode *lightNode);
     void checkSensorBindingsForAttributeReporting(Sensor *sensor);
