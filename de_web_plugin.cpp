@@ -2030,7 +2030,8 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                         sensor->previousDirection = buttonMap->zclParam0;
                         ok = true;
                     }
-                } else if (zclFrame.commandId() == 0x09) // long release
+                }
+                else if (zclFrame.commandId() == 0x09) // long release
                 {
                     if (buttonMap->zclParam0 == sensor->previousDirection)
                     {
@@ -2065,7 +2066,8 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     sensor->previousDirection = zclFrame.payload().at(0);
                     ok = true;
                 }
-            } else if (ind.clusterId() == LEVEL_CLUSTER_ID &&
+            }
+            else if (ind.clusterId() == LEVEL_CLUSTER_ID &&
                        (zclFrame.commandId() == 0x03 ||  // stop
                         zclFrame.commandId() == 0x07) )  // stop (with on/off)
             {
@@ -3500,6 +3502,48 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     }
                                 }
                             }
+                            else if (ia->id() == 0x0030) // sensitivity
+                            {
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                }
+
+                                quint8 sensitivity = ia->numericValue().u8;
+                                ResourceItem *item = i->item(RConfigSensitivity);
+
+                                if (item && item->toNumber() != sensitivity)
+                                {
+                                    item->setValue(sensitivity);
+                                    i->updateStateTimestamp();
+                                    i->setNeedSaveDatabase(true);
+                                    Event e(RSensors, RConfigSensitivity, i->id());
+                                    enqueueEvent(e);
+                                }
+
+                                updateSensorEtag(&*i);
+                            }
+                            else if (ia->id() == 0x0031) // sensitivitymax
+                            {
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                }
+
+                                quint8 sensitivitymax = ia->numericValue().u8;
+                                ResourceItem *item = i->item(RConfigSensitivityMax);
+
+                                if (item && item->toNumber() != sensitivitymax)
+                                {
+                                    item->setValue(sensitivitymax);
+                                    i->updateStateTimestamp();
+                                    i->setNeedSaveDatabase(true);
+                                    Event e(RSensors, RConfigSensitivityMax, i->id());
+                                    enqueueEvent(e);
+                                }
+
+                                updateSensorEtag(&*i);
+                            }
                         }
                     }
                     else if (event.clusterId() == ONOFF_CLUSTER_ID)
@@ -3638,6 +3682,48 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         updateSensorEtag(&*i);
                                     }
                                 }
+                            }
+                            else if (ia->id() == 0x0032) // usertest
+                            {
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                }
+
+                                bool usertest = ia->numericValue().u8 == 1;
+                                ResourceItem *item = i->item(RConfigUsertest);
+
+                                if (item && item->toNumber() != usertest)
+                                {
+                                    item->setValue(usertest);
+                                    i->updateStateTimestamp();
+                                    i->setNeedSaveDatabase(true);
+                                    Event e(RSensors, RConfigUsertest, i->id());
+                                    enqueueEvent(e);
+                                }
+
+                                updateSensorEtag(&*i);
+                            }
+                            else if (ia->id() == 0x0033) // ledindication
+                            {
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                }
+
+                                bool ledindication = ia->numericValue().u8 == 1;
+                                ResourceItem *item = i->item(RConfigLedIndication);
+
+                                if (item && item->toNumber() != ledindication)
+                                {
+                                    item->setValue(ledindication);
+                                    i->updateStateTimestamp();
+                                    i->setNeedSaveDatabase(true);
+                                    Event e(RSensors, RConfigLedIndication, i->id());
+                                    enqueueEvent(e);
+                                }
+
+                                updateSensorEtag(&*i);
                             }
                         }
                     }
@@ -8732,13 +8818,34 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
             // Stop the Hue dimmer from touchlinking when holding the On button.
             deCONZ::ZclAttribute attr(0x0031, deCONZ::Zcl16BitBitMap, "mode", deCONZ::ZclReadWrite, false);
             attr.setBitmap((quint64) 0x000b);
-            writeAttribute(sensor, sensor->fingerPrint().endpoint, BASIC_CLUSTER_ID, attr, VENDOR_PHILIPS);
+            if (writeAttribute(sensor, sensor->fingerPrint().endpoint, BASIC_CLUSTER_ID, attr, VENDOR_PHILIPS))
+            {
+                queryTime = queryTime.addSecs(1);
+            }
 
             ResourceItem *item = sensor->item(RConfigGroup);
             if (!item || !item->lastSet().isValid())
             {
                 getGroupIdentifiers(sensor, 0x01, 0x00);
                 return;
+            }
+        }
+        else if (sensor->modelId() == "SML001") // Hue motion sensor
+        {
+            std::vector<uint16_t> attributes;
+            attributes.push_back(0x0030); // sensitivity
+            attributes.push_back(0x0031); // sensitivitymax
+            if (readAttributes(sensor, sensor->fingerPrint().endpoint, OCCUPANCY_SENSING_CLUSTER_ID, attributes, VENDOR_PHILIPS))
+            {
+                queryTime = queryTime.addSecs(1);
+            };
+
+            attributes = {};
+            attributes.push_back(0x0032); // usertest
+            attributes.push_back(0x0033); // ledindication
+            if (readAttributes(sensor, sensor->fingerPrint().endpoint, BASIC_CLUSTER_ID, attributes, VENDOR_PHILIPS))
+            {
+                queryTime = queryTime.addSecs(1);
             }
         }
     }
