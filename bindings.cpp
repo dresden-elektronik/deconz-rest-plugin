@@ -560,11 +560,11 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt, Configu
         stream << rq.minInterval;
         stream << rq.maxInterval;
 
-        if (rq.reportableChange16bit)
+        if (rq.reportableChange16bit != 0xFFFF)
         {
             stream << rq.reportableChange16bit;
         }
-        else if (rq.reportableChange8bit)
+        else if (rq.reportableChange8bit != 0xFF)
         {
             stream << rq.reportableChange8bit;
         }
@@ -621,7 +621,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         if (sendConfigureReportingRequest(bt, rq))
         {
             rq = ConfigureReportingRequest();
-            rq.dataType = deCONZ::ZclBoolean;
+            rq.dataType = deCONZ::Zcl8BitUint;
             rq.attributeId = 0x0030; // sensitivity
             rq.minInterval = 5;      // value used by Hue bridge
             rq.maxInterval = 7200;   // value used by Hue bridge
@@ -674,13 +674,15 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.attributeId = 0x0021;   // battery percentage remaining
         if (sensor && sensor->modelId() == QLatin1String("SML001")) // Hue motion sensor
         {
-            rq.minInterval = 7200;     // value used by Hue bridge
-            rq.maxInterval = 7200;     // value used by Hue bridge
+            rq.minInterval = 7200;        // value used by Hue bridge
+            rq.maxInterval = 7200;        // value used by Hue bridge
+            rq.reportableChange8bit = 0;  // value used by Hue bridge
         }
         else if (sensor && sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
         {
-            rq.minInterval = 300;     // value used by Hue bridge
-            rq.maxInterval = 300;     // value used by Hue bridge
+            rq.minInterval = 300;         // value used by Hue bridge
+            rq.maxInterval = 300;         // value used by Hue bridge
+            rq.reportableChange8bit = 0;  // value used by Hue bridge
         }
         else
         {

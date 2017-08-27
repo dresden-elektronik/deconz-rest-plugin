@@ -89,8 +89,8 @@ class ConfigureReportingRequest
 public:
     ConfigureReportingRequest() :
         direction(0x00),
-        reportableChange8bit(0),
-        reportableChange16bit(0),
+        reportableChange8bit(0xFF),
+        reportableChange16bit(0xFFFF),
         manufacturerCode(0)
     {
     }
