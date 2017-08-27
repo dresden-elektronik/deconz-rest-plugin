@@ -576,6 +576,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt, Configu
         zclFrame.writeToStream(stream);
     }
 
+    DBG_Printf(DBG_INFO_L2, "configure reporting for 0x%016llX, attribute 0x%04X/0x%04X\n", bt.restNode->address().ext(), bt.binding.clusterId, rq.attributeId);
+
     if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
     {
         queryTime = queryTime.addSecs(1);
@@ -620,7 +622,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         {
             rq = ConfigureReportingRequest();
             rq.dataType = deCONZ::ZclBoolean;
-            rq.attributeId = 0x0032; // sensitivity
+            rq.attributeId = 0x0030; // sensitivity
             rq.minInterval = 5;      // value used by Hue bridge
             rq.maxInterval = 7200;   // value used by Hue bridge
             rq.manufacturerCode = VENDOR_PHILIPS;
@@ -666,11 +668,26 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     }
     else if (bt.binding.clusterId == POWER_CONFIGURATION_CLUSTER_ID)
     {
+        Sensor *sensor = static_cast<Sensor *>(bt.restNode);
+
         rq.dataType = deCONZ::Zcl8BitUint;
         rq.attributeId = 0x0021;   // battery percentage remaining
-        rq.minInterval = 7200;     // value used by Hue bridge
-        rq.maxInterval = 7200;     // value used by Hue bridge
-        // rq.reportableChange8bit = 1; // not set by Hue bridge
+        if (sensor && sensor->modelId() == QLatin1String("SML001")) // Hue motion sensor
+        {
+            rq.minInterval = 7200;     // value used by Hue bridge
+            rq.maxInterval = 7200;     // value used by Hue bridge
+        }
+        else if (sensor && sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
+        {
+            rq.minInterval = 300;     // value used by Hue bridge
+            rq.maxInterval = 300;     // value used by Hue bridge
+        }
+        else
+        {
+            rq.minInterval = 300;
+            rq.maxInterval = 60 * 45;
+            rq.reportableChange8bit = 1;
+        }
         return sendConfigureReportingRequest(bt, rq);
     }
     else if (bt.binding.clusterId == ONOFF_CLUSTER_ID)
