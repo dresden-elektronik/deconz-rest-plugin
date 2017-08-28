@@ -1248,6 +1248,7 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
     }
 
     bool ok = true;
+    bool anyChanged = false;
     std::vector<RuleCondition>::const_iterator c = rule.conditions().begin();
     std::vector<RuleCondition>::const_iterator cend = rule.conditions().end();
 
@@ -1258,7 +1259,7 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
 
         if (!resource || !item)
         {
-            DBG_Printf(DBG_INFO, "resouce %s : %s id: %s (cond: %s) not found --> disable rule\n",
+            DBG_Printf(DBG_INFO, "resource %s : %s id: %s (cond: %s) not found --> disable rule\n",
                        c->resource(), c->suffix(),
                        qPrintable(c->id()), qPrintable(c->address()));
             rule.setStatus(QLatin1String("disabled"));
@@ -1301,7 +1302,9 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
         }
         else if (c->op() == RuleCondition::OpDx)
         {
-            if (!rule.lastVerify.isValid() || item->lastSet() < rule.lastVerify)
+            if (!rule.lastVerify.isValid() ||
+                (rule.lastTriggered().isValid() && item->lastSet() < rule.lastTriggered()) ||
+                (item->lastSet() != item->lastChanged()))
             { ok = false; break; }
         }
         else if (c->op() == RuleCondition::OpDdx)
@@ -1319,14 +1322,26 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
             { ok = false; break; } // already handled
 
             QTime t = now.time();
+            QTime rt;
+
+            if (rule.lastTriggered().isValid())
+            {
+                rt = rule.lastTriggered().time();
+            }
 
             if (c->time0() < c->time1() && // 8:00 - 16:00
                 (t >= c->time0() && t <= c->time1()))
-            {  }
+            {
+                if (rt.isValid() && rt >= c->time0() && rt <= c->time1())
+                { ok = false; break; } // already handled
+            }
             else if (c->time0() > c->time1() && // 20:00 - 4:00
                 (t >= c->time0() || t <= c->time1()))
                 // 20:00 - 0:00  ||  0:00 - 4:00
-            {  }
+            {
+                if (rt.isValid() && (rt >= c->time0() || rt <= c->time1()))
+                { ok = false; break; } // already handled
+            }
             else { ok = false; break; }
         }
         else if (c->op() == RuleCondition::OpNotIn && c->suffix() == RConfigLocalTime)
@@ -1351,11 +1366,18 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
             ok = false;
             break;
         }
+
+        if (!anyChanged &&
+            rule.lastVerify < item->lastSet() &&
+            item->lastSet() == item->lastChanged())
+        {
+            anyChanged = true;
+        }
     }
 
     rule.lastVerify = now;
 
-    if (ok)
+    if (ok && anyChanged)
     {
         triggerRule(rule);
     }
