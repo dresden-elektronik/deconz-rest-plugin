@@ -620,13 +620,18 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.maxInterval = 300;    // value used by Hue bridge
         if (sendConfigureReportingRequest(bt, rq))
         {
-            rq = ConfigureReportingRequest();
-            rq.dataType = deCONZ::Zcl8BitUint;
-            rq.attributeId = 0x0030; // sensitivity
-            rq.minInterval = 5;      // value used by Hue bridge
-            rq.maxInterval = 7200;   // value used by Hue bridge
-            rq.manufacturerCode = VENDOR_PHILIPS;
-            return sendConfigureReportingRequest(bt, rq);
+            Sensor *sensor = static_cast<Sensor *>(bt.restNode);
+            if (sensor && sensor->modelId() == QLatin1String("SML001")) // Hue motion sensor
+            {
+                rq = ConfigureReportingRequest();
+                rq.dataType = deCONZ::Zcl8BitUint;
+                rq.attributeId = 0x0030; // sensitivity
+                rq.minInterval = 5;      // value used by Hue bridge
+                rq.maxInterval = 7200;   // value used by Hue bridge
+                rq.manufacturerCode = VENDOR_PHILIPS;
+                return sendConfigureReportingRequest(bt, rq);
+            }
+            return true;
         }
         return false;
     }
@@ -737,7 +742,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.reportableChange16bit = 1;
         return sendConfigureReportingRequest(bt, rq);
     }
-    else if (bt.binding.clusterId == BASIC_CLUSTER_ID)
+    else if (bt.binding.clusterId == BASIC_CLUSTER_ID &&
+            (bt.restNode->address().ext() & macPrefixMask) == philipsMacPrefix)
     {
         rq.dataType = deCONZ::ZclBoolean;
         rq.attributeId = 0x0032; // usertest
