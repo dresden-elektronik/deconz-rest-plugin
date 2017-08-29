@@ -1193,18 +1193,18 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
             {
                 ResourceItem *item = i->item(RStateOn);
                 bool modified = false;
-                if (hasOn && item && on != item->toBool())
+                if (hasOn && item && group->isOn() != item->toBool())
                 {
-                    item->setValue(on);
+                    item->setValue(group->isOn());
                     Event e(RLights, RStateOn, i->id());
                     enqueueEvent(e);
                     modified = true;
                 }
 
                 item = i->item(RStateBri);
-                if (hasBri && item && bri != item->toNumber())
+                if (hasBri && item && group->level != item->toNumber())
                 {
-                    item->setValue(bri);
+                    item->setValue(group->level);
                     Event e(RLights, RStateBri, i->id());
                     enqueueEvent(e);
                     modified = true;
@@ -1277,10 +1277,10 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
 
                         item = i->item(RStateHue);
 
-                        if (item && item->toNumber() != hue)
+                        if (item && item->toNumber() != group->hue)
                         {
-                            i->setEnhancedHue(hue);
-                            item->setValue(hue);
+                            i->setEnhancedHue(group->hue);
+                            item->setValue(group->hue);
                             Event e(RLights, RStateHue, i->id());
                             enqueueEvent(e);
 
@@ -1321,9 +1321,9 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
 
                         item = i->item(RStateSat);
 
-                        if (item && item->toNumber() != sat)
+                        if (item && item->toNumber() != group->sat)
                         {
-                            item->setValue(sat);
+                            item->setValue(group->sat);
                             Event e(RLights, RStateSat, i->id());
                             enqueueEvent(e);
 
