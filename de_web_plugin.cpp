@@ -6824,17 +6824,14 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                 lightNode->setSceneCapacity(capacity);
                 groupInfo->setSceneCount(count);
 
-                QVector<quint8> responseScenes;
+                std::vector<quint8> scenes;
                 for (uint i = 0; i < count; i++)
                 {
                     if (!stream.atEnd())
                     {
                         uint8_t sceneId;
                         stream >> sceneId;
-                        responseScenes.push_back(sceneId);
-
-                        DBG_Printf(DBG_INFO, "0x%016X found scene 0x%02X for group 0x%04X\n", ind.srcAddress().ext(), sceneId, groupId);
-
+                        scenes.push_back(sceneId);
                         foundScene(lightNode, group, sceneId);
                     }
                 }
@@ -6849,30 +6846,35 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                         continue;
                     }
 
-                    if (!responseScenes.contains(i->id))
+                    if (std::find(scenes.begin(), scenes.end(), i->id) != scenes.end())
                     {
-                        std::vector<LightState>::iterator st = i->lights().begin();
-                        std::vector<LightState>::iterator stend = i->lights().end();
+                        continue; // exists
+                    }
 
-                        for (; st != stend; ++st)
+                    std::vector<LightState>::iterator st = i->lights().begin();
+                    std::vector<LightState>::iterator stend = i->lights().end();
+
+                    for (; st != stend; ++st)
+                    {
+                        if (st->lid() == lightNode->id())
                         {
-                            if (st->lid() == lightNode->id())
+                            DBG_Printf(DBG_INFO, "0x%016llX restore scene 0x%02X in group 0x%04X\n", lightNode->address().ext(), i->id, groupId);
+
+                            std::vector<uint8_t> &v = groupInfo->modifyScenes;
+
+                            if (std::find(v.begin(), v.end(), i->id) == v.end())
                             {
-                                DBG_Printf(DBG_INFO, "0x%016llX restore scene 0x%02X in group 0x%04X\n", lightNode->address().ext(), i->id, groupId);
-
-                                std::vector<uint8_t> &v = groupInfo->modifyScenes;
-
-                                if (std::find(v.begin(), v.end(), i->id) == v.end())
-                                {
-                                    DBG_Printf(DBG_INFO, "0x%016llX start modify scene, groupId 0x%04X, scene 0x%02X\n", lightNode->address().ext(), groupInfo->id, i->id);
-                                    groupInfo->modifyScenes.push_back(i->id);
-                                }
+                                DBG_Printf(DBG_INFO, "0x%016llX start modify scene, groupId 0x%04X, scene 0x%02X\n", lightNode->address().ext(), groupInfo->id, i->id);
+                                groupInfo->modifyScenes.push_back(i->id);
                             }
                         }
                     }
                 }
 
-                lightNode->enableRead(READ_SCENE_DETAILS);
+                if (count > 0)
+                {
+                    lightNode->enableRead(READ_SCENE_DETAILS);
+                }
 
                 Q_Q(DeRestPlugin);
                 q->startZclAttributeTimer(checkZclAttributesDelay);
