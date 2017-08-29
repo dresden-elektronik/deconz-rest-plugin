@@ -2149,6 +2149,13 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
         scene->externalMaster = false;
     }
 
+    if (!storeScene(group, scene->id))
+    {
+        rsp.httpStatus = HttpStatusServiceUnavailable;
+        rsp.list.append(errorToMap(ERR_BRIDGE_BUSY, QString("/groups/%1/scenes/%2").arg(gid).arg(sid), QString("gateway busy")));
+        return REQ_READY_SEND;
+    }
+
     // search for lights that have their scenes capacity reached or need to be updated
     std::vector<LightNode>::iterator ni = nodes.begin();
     std::vector<LightNode>::iterator nend = nodes.end();
@@ -2169,6 +2176,7 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
                 }
 
                 ls->setNeedRead(true);
+                lightNode->clearRead(READ_SCENE_DETAILS | READ_SCENES);
 
                 bool needModify = false;
                 ResourceItem *item = lightNode->item(RStateOn);
@@ -2346,13 +2354,6 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
                 queSaveDb(DB_SCENES, DB_LONG_SAVE_DELAY);
             }
         }
-    }
-
-    if (!storeScene(group, scene->id))
-    {
-        rsp.httpStatus = HttpStatusServiceUnavailable;
-        rsp.list.append(errorToMap(ERR_BRIDGE_BUSY, QString("/groups/%1/scenes/%2").arg(gid).arg(sid), QString("gateway busy")));
-        return REQ_READY_SEND;
     }
 
     updateGroupEtag(group);

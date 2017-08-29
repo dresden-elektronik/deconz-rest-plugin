@@ -5500,7 +5500,11 @@ bool DeRestPluginPrivate::storeScene(Group *group, uint8_t sceneId)
     task.req.dstAddress().setGroup(group->address());
     task.req.setDstEndpoint(0xff);
     task.req.setSrcEndpoint(0x01);
-    addTaskStoreScene(task, group->address(), sceneId);
+
+    if (!addTaskStoreScene(task, group->address(), sceneId))
+    {
+        return false;
+    }
 
     std::vector<LightNode>::iterator i = nodes.begin();
     std::vector<LightNode>::iterator end = nodes.end();
@@ -6194,7 +6198,7 @@ void DeRestPluginPrivate::processTasks()
             }
             else if (i->req.dstAddressMode() == deCONZ::ApsGroupAddress)
             {
-                DBG_Printf(DBG_INFO, "delay sending request %u to group 0x%04X\n", i->req.id(), i->req.dstAddress().group());
+                DBG_Printf(DBG_INFO, "delay sending request %u - type: %d to group 0x%04X\n", i->req.id(), i->taskType, i->req.dstAddress().group());
             }
         }
         else
@@ -6484,8 +6488,8 @@ void DeRestPluginPrivate::processGroupTasks()
             if (addTaskStoreScene(task, i->id, i->addScenes[0]))
             {
                 processTasks();
-                return;
             }
+            return;
         }
 
         if (!i->removeScenes.empty())
@@ -6493,6 +6497,15 @@ void DeRestPluginPrivate::processGroupTasks()
             if (addTaskRemoveScene(task, i->id, i->removeScenes[0]))
             {
                 processTasks();
+            }
+            return;
+        }
+
+        for (const TaskItem &task : tasks)
+        {
+            if (task.taskType == TaskAddScene || task.taskType == TaskStoreScene)
+            {
+                // wait till tasks are processed
                 return;
             }
         }
