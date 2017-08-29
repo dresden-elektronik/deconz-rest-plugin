@@ -6241,6 +6241,12 @@ void DeRestPluginPrivate::processTasks()
                         DBG_Printf(DBG_INFO, "delayed group sending\n");
                     }
                 }
+                else
+                {
+                    DBG_Printf(DBG_INFO, "drop request to unknown group\n");
+                    tasks.erase(i);
+                    return;
+                }
             }
             // unicast/broadcast tasks
             else
