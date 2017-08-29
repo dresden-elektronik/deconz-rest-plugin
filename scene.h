@@ -48,6 +48,7 @@ public:
     void setLights(const std::vector<LightState> &lights);
     void addLightState(const LightState &light);
     bool deleteLight(const QString &lid);
+    LightState *getLightState(const QString &lid);
 
     static QString lightsToString(const std::vector<LightState> &lights);
     static std::vector<LightState> jsonToLights(const QString &json);
