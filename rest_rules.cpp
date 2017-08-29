@@ -1093,7 +1093,7 @@ void DeRestPluginPrivate::queueCheckRuleBindings(const Rule &rule)
                         n = sensorNode->node();
                     }
 
-                    DBG_Printf(DBG_INFO, "skip verify rule %s for sensor %s (available = %u, node = %p, sensorNode = %p)\n",
+                    DBG_Printf(DBG_INFO_L2, "skip verify rule %s for sensor %s (available = %u, node = %p, sensorNode = %p)\n",
                                qPrintable(rule.name()), qPrintable(i->id()), avail, n, sensorNode);
                 }
             }

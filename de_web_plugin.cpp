@@ -3597,7 +3597,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                     }
                     else if (event.clusterId() == BASIC_CLUSTER_ID)
                     {
-                        DBG_Printf(DBG_INFO, "Update Sensor 0x%016llX Basic Cluster\n", event.node()->address().ext());
+                        DBG_Printf(DBG_INFO_L2, "Update Sensor 0x%016llX Basic Cluster\n", event.node()->address().ext());
                         for (;ia != enda; ++ia)
                         {
                             if (ia->id() == 0x0005) // Model identifier
