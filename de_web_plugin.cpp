@@ -569,7 +569,11 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
                 DBG_Printf(DBG_INFO, "error APSDE-DATA.confirm: 0x%02X on task\n", conf.status());
             }
 
-            DBG_Printf(DBG_INFO_L2, "Erase task zclSequenceNumber: %u send time %d\n", task.zclFrame.sequenceNumber(), idleTotalCounter - task.sendTime);
+            if (DBG_IsEnabled(DBG_INFO_L2))
+            {
+                DBG_Printf(DBG_INFO_L2, "Erase task req-id: %u, type: %d zcl seqno: %u send time %d, profileId: 0x%04X, clusterId: 0x%04X\n",
+                       task.req.id(), task.taskType, task.zclFrame.sequenceNumber(), idleTotalCounter - task.sendTime, task.req.profileId(), task.req.clusterId());
+            }
             runningTasks.erase(i);
             processTasks();
 
@@ -5440,6 +5444,8 @@ void DeRestPluginPrivate::foundScene(LightNode *lightNode, Group *group, uint8_t
             return; // already known
         }
     }
+
+    DBG_Printf(DBG_INFO, "0x%016llX found scene 0x%02X for group 0x%04X\n", lightNode->address().ext(), sceneId, group->address());
 
     Scene scene;
     scene.groupAddress = group->address();
