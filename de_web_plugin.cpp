@@ -5458,7 +5458,7 @@ void DeRestPluginPrivate::foundScene(LightNode *lightNode, Group *group, uint8_t
         scene.name.sprintf("Scene %u", sceneId);
     }
     group->scenes.push_back(scene);
-    updateEtag(group->etag);
+    updateGroupEtag(group);
     updateEtag(gwConfigEtag);
     queSaveDb(DB_SCENES, DB_SHORT_SAVE_DELAY);
 }
@@ -6516,6 +6516,15 @@ void DeRestPluginPrivate::processGroupTasks()
         }
 
         for (const TaskItem &task : tasks)
+        {
+            if (task.taskType == TaskAddScene || task.taskType == TaskStoreScene)
+            {
+                // wait till tasks are processed
+                return;
+            }
+        }
+
+        for (const TaskItem &task : runningTasks)
         {
             if (task.taskType == TaskAddScene || task.taskType == TaskStoreScene)
             {
