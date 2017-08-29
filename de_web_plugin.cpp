@@ -582,11 +582,11 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
         return;
     }
 
-    if (channelChangeApsRequestId == conf.id())
+    if (channelChangeApsRequestId == conf.id() && channelChangeState == CC_WaitConfirm)
     {
         channelChangeSendConfirm(conf.status() == deCONZ::ApsSuccessStatus);
     }
-    if (resetDeviceApsRequestId == conf.id())
+    else if (resetDeviceApsRequestId == conf.id() && resetDeviceState == ResetWaitConfirm)
     {
         resetDeviceSendConfirm(conf.status() == deCONZ::ApsSuccessStatus);
     }

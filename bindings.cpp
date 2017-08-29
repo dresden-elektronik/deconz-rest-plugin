@@ -159,6 +159,11 @@ bool DeRestPluginPrivate::readBindingTable(RestNodeBase *node, quint8 startIndex
  */
 bool DeRestPluginPrivate::handleMgmtBindRspConfirm(const deCONZ::ApsDataConfirm &conf)
 {
+    if (conf.srcEndpoint() != ZDO_ENDPOINT || conf.dstEndpoint() != ZDO_ENDPOINT)
+    {
+        return false;
+    }
+
     std::vector<BindingTableReader>::iterator i = bindingTableReaders.begin();
     std::vector<BindingTableReader>::iterator end = bindingTableReaders.end();
 
