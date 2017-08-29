@@ -897,6 +897,7 @@ bool DeRestPluginPrivate::addTaskStoreScene(TaskItem &task, uint16_t groupId, ui
         task.zclFrame.writeToStream(stream);
     }
 
+    DBG_Printf(DBG_INFO, "add store scene task, aps-req-id: %u\n", task.req.id());
     return addTask(task);
 }
 

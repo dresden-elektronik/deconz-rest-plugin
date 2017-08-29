@@ -6097,6 +6097,8 @@ bool DeRestPluginPrivate::addTask(const TaskItem &task)
         return true;
     }
 
+    DBG_Printf(DBG_INFO, "failed to add task type: %d, too many tasks\n", task.taskType);
+
     return false;
 }
 
