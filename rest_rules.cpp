@@ -1093,7 +1093,7 @@ void DeRestPluginPrivate::queueCheckRuleBindings(const Rule &rule)
                         n = sensorNode->node();
                     }
 
-                    DBG_Printf(DBG_INFO, "skip verify rule %s for sensor %s (available = %u, node = %p, sensorNode = %p)\n",
+                    DBG_Printf(DBG_INFO_L2, "skip verify rule %s for sensor %s (available = %u, node = %p, sensorNode = %p)\n",
                                qPrintable(rule.name()), qPrintable(i->id()), avail, n, sensorNode);
                 }
             }
@@ -1247,7 +1247,8 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
         }
     }
 
-    bool ok = true;
+    int ok = 1;
+    int okAnyChanged = 0; // will be added to ok if anything changed
     bool anyChanged = false;
     std::vector<RuleCondition>::const_iterator c = rule.conditions().begin();
     std::vector<RuleCondition>::const_iterator cend = rule.conditions().end();
@@ -1263,7 +1264,7 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
                        c->resource(), c->suffix(),
                        qPrintable(c->id()), qPrintable(c->address()));
             rule.setStatus(QLatin1String("disabled"));
-            ok = false;
+            ok = 0;
             break;
         }
 
@@ -1305,21 +1306,21 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
             if (!rule.lastVerify.isValid() ||
                 (rule.lastTriggered().isValid() && item->lastSet() < rule.lastTriggered()) ||
                 (item->lastSet() != item->lastChanged()))
-            { ok = false; break; }
+            { ok = 0; break; }
         }
         else if (c->op() == RuleCondition::OpDdx)
         {
             QDateTime dt = item->lastChanged().addSecs(c->seconds());
             if (dt > now)
-            { ok = false; break; } // not time yet
+            { ok = 0; break; } // not time yet
             else if (rule.lastTriggered().isValid() && rule.lastTriggered() > dt)
-            { ok = false; break; } // already handled
+            { ok = 0; break; } // already handled
         }
         else if (c->op() == RuleCondition::OpIn && c->suffix() == RConfigLocalTime)
         {
             if (rule.lastTriggered().isValid() &&
                 rule.lastTriggered() >= item->lastChanged())
-            { ok = false; break; } // already handled
+            { ok = 0; break; } // already handled
 
             QTime t = now.time();
             QTime rt;
@@ -1333,22 +1334,30 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
                 (t >= c->time0() && t <= c->time1()))
             {
                 if (rt.isValid() && rt >= c->time0() && rt <= c->time1())
-                { ok = false; break; } // already handled
+                {
+                    ok = 0;
+                    okAnyChanged++;
+                } // already handled
+                continue;
             }
             else if (c->time0() > c->time1() && // 20:00 - 4:00
                 (t >= c->time0() || t <= c->time1()))
                 // 20:00 - 0:00  ||  0:00 - 4:00
             {
                 if (rt.isValid() && (rt >= c->time0() || rt <= c->time1()))
-                { ok = false; break; } // already handled
+                {
+                    ok = 0;
+                    okAnyChanged++;
+                } // already handled
+                continue;
             }
-            else { ok = false; break; }
+            else { ok = 0; break; }
         }
         else if (c->op() == RuleCondition::OpNotIn && c->suffix() == RConfigLocalTime)
         {
             if (rule.lastTriggered().isValid() &&
                 rule.lastTriggered() >= item->lastChanged())
-            { ok = false; break; } // already handled
+            { ok = 0; break; } // already handled
 
             QTime t = now.time();
 
@@ -1359,16 +1368,16 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
                 (t < c->time0() && t > c->time1()))
                 // 0:00 - 20:00 ||  0:00 - 4:00
             {  }
-            else { ok = false; break; }
+            else { ok = 0; break; }
         }
         else
         {
-            ok = false;
+            ok = 0;
             break;
         }
 
         if (!anyChanged &&
-            rule.lastVerify < item->lastSet() &&
+            (!rule.lastTriggered().isValid() || rule.lastTriggered() < item->lastSet()) &&
             item->lastSet() == item->lastChanged())
         {
             anyChanged = true;
@@ -1376,8 +1385,12 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
     }
 
     rule.lastVerify = now;
+    if (anyChanged && okAnyChanged > 0)
+    {
+        ok += okAnyChanged;
+    }
 
-    if (ok && anyChanged)
+    if (ok == 1 && anyChanged)
     {
         triggerRule(rule);
     }

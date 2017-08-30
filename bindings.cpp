@@ -159,6 +159,11 @@ bool DeRestPluginPrivate::readBindingTable(RestNodeBase *node, quint8 startIndex
  */
 bool DeRestPluginPrivate::handleMgmtBindRspConfirm(const deCONZ::ApsDataConfirm &conf)
 {
+    if (conf.srcEndpoint() != ZDO_ENDPOINT || conf.dstEndpoint() != ZDO_ENDPOINT)
+    {
+        return false;
+    }
+
     std::vector<BindingTableReader>::iterator i = bindingTableReaders.begin();
     std::vector<BindingTableReader>::iterator end = bindingTableReaders.end();
 
@@ -509,6 +514,15 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt, Configu
     if (val.clusterId == bt.binding.clusterId)
     {
         // value exists
+        QDateTime now = QDateTime::currentDateTime();
+        if (val.timestampLastReport.isValid() &&
+            val.timestampLastReport.secsTo(now) < qMin((rq.maxInterval * 3), 1800))
+        {
+            DBG_Printf(DBG_INFO, "skip configure report for cluster: 0x%04X attr: 0x%04X of node 0x%016llX\n",
+                       bt.binding.clusterId, rq.attributeId, bt.restNode->address().ext());
+            return false;
+        }
+
         val.timestampLastReport = QDateTime::currentDateTime();
     }
     else

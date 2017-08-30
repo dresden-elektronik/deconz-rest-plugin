@@ -569,7 +569,11 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
                 DBG_Printf(DBG_INFO, "error APSDE-DATA.confirm: 0x%02X on task\n", conf.status());
             }
 
-            DBG_Printf(DBG_INFO_L2, "Erase task zclSequenceNumber: %u send time %d\n", task.zclFrame.sequenceNumber(), idleTotalCounter - task.sendTime);
+            if (DBG_IsEnabled(DBG_INFO_L2))
+            {
+                DBG_Printf(DBG_INFO_L2, "Erase task req-id: %u, type: %d zcl seqno: %u send time %d, profileId: 0x%04X, clusterId: 0x%04X\n",
+                       task.req.id(), task.taskType, task.zclFrame.sequenceNumber(), idleTotalCounter - task.sendTime, task.req.profileId(), task.req.clusterId());
+            }
             runningTasks.erase(i);
             processTasks();
 
@@ -582,11 +586,11 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
         return;
     }
 
-    if (channelChangeApsRequestId == conf.id())
+    if (channelChangeApsRequestId == conf.id() && channelChangeState == CC_WaitConfirm)
     {
         channelChangeSendConfirm(conf.status() == deCONZ::ApsSuccessStatus);
     }
-    if (resetDeviceApsRequestId == conf.id())
+    else if (resetDeviceApsRequestId == conf.id() && resetDeviceState == ResetWaitConfirm)
     {
         resetDeviceSendConfirm(conf.status() == deCONZ::ApsSuccessStatus);
     }
@@ -3597,7 +3601,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                     }
                     else if (event.clusterId() == BASIC_CLUSTER_ID)
                     {
-                        DBG_Printf(DBG_INFO, "Update Sensor 0x%016llX Basic Cluster\n", event.node()->address().ext());
+                        DBG_Printf(DBG_INFO_L2, "Update Sensor 0x%016llX Basic Cluster\n", event.node()->address().ext());
                         for (;ia != enda; ++ia)
                         {
                             if (ia->id() == 0x0005) // Model identifier
@@ -5441,6 +5445,8 @@ void DeRestPluginPrivate::foundScene(LightNode *lightNode, Group *group, uint8_t
         }
     }
 
+    DBG_Printf(DBG_INFO, "0x%016llX found scene 0x%02X for group 0x%04X\n", lightNode->address().ext(), sceneId, group->address());
+
     Scene scene;
     scene.groupAddress = group->address();
     scene.id = sceneId;
@@ -5452,7 +5458,7 @@ void DeRestPluginPrivate::foundScene(LightNode *lightNode, Group *group, uint8_t
         scene.name.sprintf("Scene %u", sceneId);
     }
     group->scenes.push_back(scene);
-    updateEtag(group->etag);
+    updateGroupEtag(group);
     updateEtag(gwConfigEtag);
     queSaveDb(DB_SCENES, DB_SHORT_SAVE_DELAY);
 }
@@ -5500,7 +5506,11 @@ bool DeRestPluginPrivate::storeScene(Group *group, uint8_t sceneId)
     task.req.dstAddress().setGroup(group->address());
     task.req.setDstEndpoint(0xff);
     task.req.setSrcEndpoint(0x01);
-    addTaskStoreScene(task, group->address(), sceneId);
+
+    if (!addTaskStoreScene(task, group->address(), sceneId))
+    {
+        return false;
+    }
 
     std::vector<LightNode>::iterator i = nodes.begin();
     std::vector<LightNode>::iterator end = nodes.end();
@@ -6093,6 +6103,8 @@ bool DeRestPluginPrivate::addTask(const TaskItem &task)
         return true;
     }
 
+    DBG_Printf(DBG_INFO, "failed to add task type: %d, too many tasks\n", task.taskType);
+
     return false;
 }
 
@@ -6194,7 +6206,7 @@ void DeRestPluginPrivate::processTasks()
             }
             else if (i->req.dstAddressMode() == deCONZ::ApsGroupAddress)
             {
-                DBG_Printf(DBG_INFO, "delay sending request %u to group 0x%04X\n", i->req.id(), i->req.dstAddress().group());
+                DBG_Printf(DBG_INFO, "delay sending request %u - type: %d to group 0x%04X\n", i->req.id(), i->taskType, i->req.dstAddress().group());
             }
         }
         else
@@ -6228,6 +6240,12 @@ void DeRestPluginPrivate::processTasks()
                     {
                         DBG_Printf(DBG_INFO, "delayed group sending\n");
                     }
+                }
+                else
+                {
+                    DBG_Printf(DBG_INFO, "drop request to unknown group\n");
+                    tasks.erase(i);
+                    return;
                 }
             }
             // unicast/broadcast tasks
@@ -6484,8 +6502,8 @@ void DeRestPluginPrivate::processGroupTasks()
             if (addTaskStoreScene(task, i->id, i->addScenes[0]))
             {
                 processTasks();
-                return;
             }
+            return;
         }
 
         if (!i->removeScenes.empty())
@@ -6493,6 +6511,24 @@ void DeRestPluginPrivate::processGroupTasks()
             if (addTaskRemoveScene(task, i->id, i->removeScenes[0]))
             {
                 processTasks();
+            }
+            return;
+        }
+
+        for (const TaskItem &task : tasks)
+        {
+            if (task.taskType == TaskAddScene || task.taskType == TaskStoreScene)
+            {
+                // wait till tasks are processed
+                return;
+            }
+        }
+
+        for (const TaskItem &task : runningTasks)
+        {
+            if (task.taskType == TaskAddScene || task.taskType == TaskStoreScene)
+            {
+                // wait till tasks are processed
                 return;
             }
         }
@@ -6788,17 +6824,14 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                 lightNode->setSceneCapacity(capacity);
                 groupInfo->setSceneCount(count);
 
-                QVector<quint8> responseScenes;
+                std::vector<quint8> scenes;
                 for (uint i = 0; i < count; i++)
                 {
                     if (!stream.atEnd())
                     {
                         uint8_t sceneId;
                         stream >> sceneId;
-                        responseScenes.push_back(sceneId);
-
-                        DBG_Printf(DBG_INFO, "0x%016X found scene 0x%02X for group 0x%04X\n", ind.srcAddress().ext(), sceneId, groupId);
-
+                        scenes.push_back(sceneId);
                         foundScene(lightNode, group, sceneId);
                     }
                 }
@@ -6813,30 +6846,35 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                         continue;
                     }
 
-                    if (!responseScenes.contains(i->id))
+                    if (std::find(scenes.begin(), scenes.end(), i->id) != scenes.end())
                     {
-                        std::vector<LightState>::iterator st = i->lights().begin();
-                        std::vector<LightState>::iterator stend = i->lights().end();
+                        continue; // exists
+                    }
 
-                        for (; st != stend; ++st)
+                    std::vector<LightState>::iterator st = i->lights().begin();
+                    std::vector<LightState>::iterator stend = i->lights().end();
+
+                    for (; st != stend; ++st)
+                    {
+                        if (st->lid() == lightNode->id())
                         {
-                            if (st->lid() == lightNode->id())
+                            DBG_Printf(DBG_INFO, "0x%016llX restore scene 0x%02X in group 0x%04X\n", lightNode->address().ext(), i->id, groupId);
+
+                            std::vector<uint8_t> &v = groupInfo->modifyScenes;
+
+                            if (std::find(v.begin(), v.end(), i->id) == v.end())
                             {
-                                DBG_Printf(DBG_INFO, "0x%016llX restore scene 0x%02X in group 0x%04X\n", lightNode->address().ext(), i->id, groupId);
-
-                                std::vector<uint8_t> &v = groupInfo->modifyScenes;
-
-                                if (std::find(v.begin(), v.end(), i->id) == v.end())
-                                {
-                                    DBG_Printf(DBG_INFO, "0x%016llX start modify scene, groupId 0x%04X, scene 0x%02X\n", lightNode->address().ext(), groupInfo->id, i->id);
-                                    groupInfo->modifyScenes.push_back(i->id);
-                                }
+                                DBG_Printf(DBG_INFO, "0x%016llX start modify scene, groupId 0x%04X, scene 0x%02X\n", lightNode->address().ext(), groupInfo->id, i->id);
+                                groupInfo->modifyScenes.push_back(i->id);
                             }
                         }
                     }
                 }
 
-                lightNode->enableRead(READ_SCENE_DETAILS);
+                if (count > 0)
+                {
+                    lightNode->enableRead(READ_SCENE_DETAILS);
+                }
 
                 Q_Q(DeRestPlugin);
                 q->startZclAttributeTimer(checkZclAttributesDelay);

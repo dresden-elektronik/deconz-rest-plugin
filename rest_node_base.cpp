@@ -274,7 +274,7 @@ void RestNodeBase::setZclValue(NodeValue::UpdateType updateType, quint16 cluster
             {
                 i->timestampLastReport = now;
             }
-            DBG_Printf(DBG_INFO, "update ZCL value 0x%04X/0x%04X for 0x%016llX after %d s\n", clusterId, attributeId, address().ext(), dt);
+            DBG_Printf(DBG_INFO_L2, "update ZCL value 0x%04X/0x%04X for 0x%016llX after %d s\n", clusterId, attributeId, address().ext(), dt);
             return;
         }
     }
@@ -290,7 +290,7 @@ void RestNodeBase::setZclValue(NodeValue::UpdateType updateType, quint16 cluster
     val.updateType = updateType;
     val.value = value;
 
-    DBG_Printf(DBG_INFO, "added ZCL value 0x%04X/0x%04X for 0x%016llX\n", clusterId, attributeId, address().ext());
+    DBG_Printf(DBG_INFO_L2, "added ZCL value 0x%04X/0x%04X for 0x%016llX\n", clusterId, attributeId, address().ext());
 
     m_values.push_back(val);
 }

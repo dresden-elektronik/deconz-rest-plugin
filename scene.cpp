@@ -92,6 +92,25 @@ bool Scene::deleteLight(const QString &lid)
     return false;
 }
 
+/*! Returns light satte for given light id of the scene if present.
+    \param lid the lightId
+    \return the light state or 0 if not found
+ */
+LightState *Scene::getLightState(const QString &lid)
+{
+    std::vector<LightState>::iterator i = m_lights.begin();
+    std::vector<LightState>::iterator end = m_lights.end();
+
+    for (; i != end; ++i)
+    {
+        if (i->lid() == lid)
+        {
+           return &*i;
+        }
+    }
+    return 0;
+}
+
 /*! Transfers lights of the scene into JSONString.
     \param lights vector<LightState>
  */
