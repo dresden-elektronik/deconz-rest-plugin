@@ -1218,7 +1218,9 @@ void DeRestPluginPrivate::nodeZombieStateChanged(const deCONZ::Node *node)
                     DBG_Printf(DBG_INFO, "LightNode %s set node %s\n", qPrintable(i->id()), qPrintable(node->address().toStringExt()));
                 }
 
-                if (i->isAvailable() != available)
+                ResourceItem *item = i->item(RStateReachable);
+                DBG_Assert(item != 0);
+                if (item && (item->toBool() != available || !item->lastSet().isValid()))
                 {
                     if (available && node->endpoints().end() == std::find(node->endpoints().begin(),
                                                                           node->endpoints().end(),
@@ -1227,7 +1229,6 @@ void DeRestPluginPrivate::nodeZombieStateChanged(const deCONZ::Node *node)
                         available = false;
                     }
 
-                    ResourceItem *item = i->item(RStateReachable);
                     if (item && item->toBool() != available)
                     {
                         item->setValue(available);
@@ -6321,8 +6322,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
             if (i->address().ext() == event.node()->address().ext())
             {
                 DBG_Printf(DBG_INFO, "LightNode removed %s\n", qPrintable(event.node()->address().toStringExt()));
-                i->item(RStateReachable)->setValue(false);
-                updateLightEtag(&*i);
+                nodeZombieStateChanged(event.node());
             }
         }
     }
