@@ -277,7 +277,7 @@ int DeRestPluginPrivate::getRule(const ApiRequest &req, ApiResponse &rsp)
         condition["operator"] = c->ooperator();
         if (c->value().isValid())
         {
-            condition["value"] = c->value();
+            condition["value"] = c->value().toString();
         }
         conditions.append(condition);
     }
