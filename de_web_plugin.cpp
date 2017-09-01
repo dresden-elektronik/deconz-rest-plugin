@@ -8545,7 +8545,7 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
  */
 void DeRestPluginPrivate::delayedFastEnddeviceProbe()
 {
-    if (getUptime() < WARMUP_TIME_S)
+    if (getUptime() < WARMUP_TIME)
     {
         return;
     }
@@ -9770,7 +9770,7 @@ void DeRestPlugin::checkZclAttributeTimerFired()
         LightNode *lightNode = &d->nodes[d->lightAttrIter];
         d->lightAttrIter++;
 
-        if (d->getUptime() < WARMUP_TIME_S)
+        if (d->getUptime() < WARMUP_TIME)
         {
             // warmup phase
         }
