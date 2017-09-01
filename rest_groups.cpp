@@ -700,7 +700,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
             on = map["on"].toBool();
             group->setIsOn(on);
             quint16 ontime = 0;
-            quint8 command = on ? ONOFF_COMMAND_ON : ONOFF_COMMAND_OFF;         
+            quint8 command = on ? ONOFF_COMMAND_ON : ONOFF_COMMAND_OFF;
             if (on)
             {
                 if (hasOnTime && map["ontime"].type() == QVariant::Double)
@@ -766,7 +766,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
 
     // brightness
     if (hasBri)
-    { 
+    {
         hasBri = false;
         bri = map["bri"].toUInt(&ok);
 
@@ -1095,11 +1095,11 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
         }
         else if (alert == "select")
         {
-            task.identifyTime = 1;
+            task.identifyTime = 2;    // Hue lights don't react to 1.
         }
         else if (alert == "lselect")
         {
-            task.identifyTime = 30;
+            task.identifyTime = 15;   // Default for Philips Hue bridge
         }
         else
         {
@@ -3022,4 +3022,3 @@ void DeRestPluginPrivate::handleGroupEvent(const Event &e)
         webSocketServer->broadcastTextMessage(Json::serialize(map));
     }
 }
-
