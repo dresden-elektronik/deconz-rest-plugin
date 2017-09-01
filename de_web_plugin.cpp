@@ -1218,7 +1218,9 @@ void DeRestPluginPrivate::nodeZombieStateChanged(const deCONZ::Node *node)
                     DBG_Printf(DBG_INFO, "LightNode %s set node %s\n", qPrintable(i->id()), qPrintable(node->address().toStringExt()));
                 }
 
-                if (i->isAvailable() != available)
+                ResourceItem *item = i->item(RStateReachable);
+                DBG_Assert(item != 0);
+                if (item && (item->toBool() != available || !item->lastSet().isValid()))
                 {
                     if (available && node->endpoints().end() == std::find(node->endpoints().begin(),
                                                                           node->endpoints().end(),
@@ -1227,7 +1229,6 @@ void DeRestPluginPrivate::nodeZombieStateChanged(const deCONZ::Node *node)
                         available = false;
                     }
 
-                    ResourceItem *item = i->item(RStateReachable);
                     if (item && item->toBool() != available)
                     {
                         item->setValue(available);
@@ -6321,8 +6322,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
             if (i->address().ext() == event.node()->address().ext())
             {
                 DBG_Printf(DBG_INFO, "LightNode removed %s\n", qPrintable(event.node()->address().toStringExt()));
-                i->item(RStateReachable)->setValue(false);
-                updateLightEtag(&*i);
+                nodeZombieStateChanged(event.node());
             }
         }
     }
@@ -8545,6 +8545,11 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
  */
 void DeRestPluginPrivate::delayedFastEnddeviceProbe()
 {
+    if (getUptime() < WARMUP_TIME_S)
+    {
+        return;
+    }
+
     const SensorCandidate *sc = 0;
     {
         std::vector<SensorCandidate>::const_iterator i = findSensorCandidates.begin();
@@ -8868,20 +8873,42 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
                 return;
             }
         }
-        else if (sensor->modelId() == "SML001") // Hue motion sensor
+        else if (sensor->modelId() == QLatin1String("SML001")) // Hue motion sensor
         {
             std::vector<uint16_t> attributes;
-            attributes.push_back(0x0030); // sensitivity
-            attributes.push_back(0x0031); // sensitivitymax
-            if (readAttributes(sensor, sensor->fingerPrint().endpoint, OCCUPANCY_SENSING_CLUSTER_ID, attributes, VENDOR_PHILIPS))
+            const NodeValue &sensitivity = sensor->getZclValue(OCCUPANCY_SENSING_CLUSTER_ID, 0x0030);
+            if (!sensitivity.timestamp.isValid())
+            {
+                attributes.push_back(0x0030); // sensitivity
+            }
+
+            const NodeValue &sensitivitymax = sensor->getZclValue(OCCUPANCY_SENSING_CLUSTER_ID, 0x0031);
+            if (!sensitivitymax.timestamp.isValid())
+            {
+                attributes.push_back(0x0031); // sensitivitymax
+            }
+
+            if (!attributes.empty() &&
+                 readAttributes(sensor, sensor->fingerPrint().endpoint, OCCUPANCY_SENSING_CLUSTER_ID, attributes, VENDOR_PHILIPS))
             {
                 queryTime = queryTime.addSecs(1);
-            };
+            }
 
             attributes = {};
-            attributes.push_back(0x0032); // usertest
-            attributes.push_back(0x0033); // ledindication
-            if (readAttributes(sensor, sensor->fingerPrint().endpoint, BASIC_CLUSTER_ID, attributes, VENDOR_PHILIPS))
+            const NodeValue &usertest = sensor->getZclValue(BASIC_CLUSTER_ID, 0x0032);
+            if (!usertest.timestamp.isValid())
+            {
+                attributes.push_back(0x0032); // usertest
+            }
+
+            const NodeValue &ledindication = sensor->getZclValue(BASIC_CLUSTER_ID, 0x0033);
+            if (!ledindication.timestamp.isValid())
+            {
+                attributes.push_back(0x0033); // ledindication
+            }
+
+            if (!attributes.empty() &&
+                readAttributes(sensor, sensor->fingerPrint().endpoint, BASIC_CLUSTER_ID, attributes, VENDOR_PHILIPS))
             {
                 queryTime = queryTime.addSecs(1);
             }
@@ -9743,7 +9770,11 @@ void DeRestPlugin::checkZclAttributeTimerFired()
         LightNode *lightNode = &d->nodes[d->lightAttrIter];
         d->lightAttrIter++;
 
-        if (d->processZclAttributes(lightNode))
+        if (d->getUptime() < WARMUP_TIME_S)
+        {
+            // warmup phase
+        }
+        else if (d->processZclAttributes(lightNode))
         {
             // read next later
             startZclAttributeTimer(checkZclAttributesDelay);
