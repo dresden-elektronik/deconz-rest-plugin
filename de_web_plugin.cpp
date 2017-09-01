@@ -8545,6 +8545,11 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
  */
 void DeRestPluginPrivate::delayedFastEnddeviceProbe()
 {
+    if (getUptime() < WARMUP_TIME_S)
+    {
+        return;
+    }
+
     const SensorCandidate *sc = 0;
     {
         std::vector<SensorCandidate>::const_iterator i = findSensorCandidates.begin();
@@ -9765,7 +9770,11 @@ void DeRestPlugin::checkZclAttributeTimerFired()
         LightNode *lightNode = &d->nodes[d->lightAttrIter];
         d->lightAttrIter++;
 
-        if (d->processZclAttributes(lightNode))
+        if (d->getUptime() < WARMUP_TIME_S)
+        {
+            // warmup phase
+        }
+        else if (d->processZclAttributes(lightNode))
         {
             // read next later
             startZclAttributeTimer(checkZclAttributesDelay);
