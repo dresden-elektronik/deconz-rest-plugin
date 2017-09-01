@@ -287,7 +287,7 @@ bool ResourceItem::setValue(const QVariant &val)
     {
         if (val.type() == QVariant::String)
         {
-            QDateTime dt = QDateTime::fromString(val.toString(), "yyyy-MM-ddTHH:mm:ss");
+            QDateTime dt = QDateTime::fromString(val.toString(), QLatin1String("yyyy-MM-ddTHH:mm:ss"));
 
             if (dt.isValid())
             {
@@ -352,6 +352,12 @@ const QDateTime &ResourceItem::lastSet() const
 const QDateTime &ResourceItem::lastChanged() const
 {
     return m_lastChanged;
+}
+
+void ResourceItem::setTimeStamps(const QDateTime &t)
+{
+    m_lastSet = t;
+    m_lastChanged = t;
 }
 
 QVariant ResourceItem::toVariant() const

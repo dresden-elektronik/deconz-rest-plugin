@@ -126,6 +126,7 @@ public:
     const ResourceItemDescriptor &descriptor() const;
     const QDateTime &lastSet() const;
     const QDateTime &lastChanged() const;
+    void setTimeStamps(const QDateTime &t);
 
 private:
     ResourceItem() :

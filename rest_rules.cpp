@@ -127,7 +127,7 @@ int DeRestPluginPrivate::getAllRules(const ApiRequest &req, ApiResponse &rsp)
         rule["name"] = i->name();
         if (i->lastTriggered().isValid())
         {
-            rule["lasttriggered"] = i->lastTriggered().toString("yyyy-MM-ddTHH:mm:ss");
+            rule["lasttriggered"] = i->lastTriggered().toString(QLatin1String("yyyy-MM-ddTHH:mm:ss"));
         }
         else
         {
@@ -222,7 +222,7 @@ bool DeRestPluginPrivate::ruleToMap(const Rule *rule, QVariantMap &map)
     map["created"] = rule->creationtime();
     if (rule->lastTriggered().isValid())
     {
-        map["lasttriggered"] = rule->lastTriggered().toString("yyyy-MM-ddTHH:mm:ss");
+        map["lasttriggered"] = rule->lastTriggered().toString(QLatin1String("yyyy-MM-ddTHH:mm:ss"));
     }
     else
     {
