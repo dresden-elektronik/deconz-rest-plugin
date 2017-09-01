@@ -177,9 +177,9 @@ bool DeRestPluginPrivate::ruleToMap(const Rule *rule, QVariantMap &map)
         QVariantMap condition;
         condition["address"] = c->address();
         condition["operator"] = c->ooperator();
-        if (c->value() != "" )
+        if (c->value().isValid())
         {
-            condition["value"] = c->value();
+            condition["value"] = c->value().toString();
         }
         conditions.append(condition);
     }
