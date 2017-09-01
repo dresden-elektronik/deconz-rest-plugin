@@ -8868,20 +8868,42 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
                 return;
             }
         }
-        else if (sensor->modelId() == "SML001") // Hue motion sensor
+        else if (sensor->modelId() == QLatin1String("SML001")) // Hue motion sensor
         {
             std::vector<uint16_t> attributes;
-            attributes.push_back(0x0030); // sensitivity
-            attributes.push_back(0x0031); // sensitivitymax
-            if (readAttributes(sensor, sensor->fingerPrint().endpoint, OCCUPANCY_SENSING_CLUSTER_ID, attributes, VENDOR_PHILIPS))
+            const NodeValue &sensitivity = sensor->getZclValue(OCCUPANCY_SENSING_CLUSTER_ID, 0x0030);
+            if (!sensitivity.timestamp.isValid())
+            {
+                attributes.push_back(0x0030); // sensitivity
+            }
+
+            const NodeValue &sensitivitymax = sensor->getZclValue(OCCUPANCY_SENSING_CLUSTER_ID, 0x0031);
+            if (!sensitivitymax.timestamp.isValid())
+            {
+                attributes.push_back(0x0031); // sensitivitymax
+            }
+
+            if (!attributes.empty() &&
+                 readAttributes(sensor, sensor->fingerPrint().endpoint, OCCUPANCY_SENSING_CLUSTER_ID, attributes, VENDOR_PHILIPS))
             {
                 queryTime = queryTime.addSecs(1);
-            };
+            }
 
             attributes = {};
-            attributes.push_back(0x0032); // usertest
-            attributes.push_back(0x0033); // ledindication
-            if (readAttributes(sensor, sensor->fingerPrint().endpoint, BASIC_CLUSTER_ID, attributes, VENDOR_PHILIPS))
+            const NodeValue &usertest = sensor->getZclValue(BASIC_CLUSTER_ID, 0x0032);
+            if (!usertest.timestamp.isValid())
+            {
+                attributes.push_back(0x0032); // usertest
+            }
+
+            const NodeValue &ledindication = sensor->getZclValue(BASIC_CLUSTER_ID, 0x0033);
+            if (!ledindication.timestamp.isValid())
+            {
+                attributes.push_back(0x0033); // ledindication
+            }
+
+            if (!attributes.empty() &&
+                readAttributes(sensor, sensor->fingerPrint().endpoint, BASIC_CLUSTER_ID, attributes, VENDOR_PHILIPS))
             {
                 queryTime = queryTime.addSecs(1);
             }
