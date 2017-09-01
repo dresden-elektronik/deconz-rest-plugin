@@ -8545,7 +8545,7 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
  */
 void DeRestPluginPrivate::delayedFastEnddeviceProbe()
 {
-    if (getUptime() < WARMUP_TIME_S)
+    if (getUptime() < WARMUP_TIME)
     {
         return;
     }
@@ -8856,7 +8856,11 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
             return;
         }
 
-        if (sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
+        if (findSensorsState != FindSensorsActive)
+        {
+            // do nothing
+        }
+        else if (sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
         {
             // Stop the Hue dimmer from touchlinking when holding the On button.
             deCONZ::ZclAttribute attr(0x0031, deCONZ::Zcl16BitBitMap, "mode", deCONZ::ZclReadWrite, false);
@@ -9770,7 +9774,7 @@ void DeRestPlugin::checkZclAttributeTimerFired()
         LightNode *lightNode = &d->nodes[d->lightAttrIter];
         d->lightAttrIter++;
 
-        if (d->getUptime() < WARMUP_TIME_S)
+        if (d->getUptime() < WARMUP_TIME)
         {
             // warmup phase
         }

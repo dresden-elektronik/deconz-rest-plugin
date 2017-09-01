@@ -602,6 +602,17 @@ void Sensor::jsonToState(const QString &json)
 
     QVariantMap map = var.toMap();
 
+    // use old time stamp before deCONZ was started
+    QDateTime dt = QDateTime::currentDateTime().addSecs(-120);
+    if (map.contains("lastupdated"))
+    {
+        QDateTime lu = QDateTime::fromString(map["lastupdated"].toString(), QLatin1String("yyyy-MM-ddTHH:mm:ss"));
+        if (lu < dt)
+        {
+            dt = lu;
+        }
+    }
+
     for (int i = 0; i < itemCount(); i++)
     {
         ResourceItem *item = itemForIndex(i);
@@ -614,6 +625,7 @@ void Sensor::jsonToState(const QString &json)
             if (map.contains(QLatin1String(key)))
             {
                 item->setValue(map[key]);
+                item->setTimeStamps(dt);
             }
         }
     }
