@@ -1333,7 +1333,9 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
                 return false;
             }
 
-            if (item->lastSet() != item->lastChanged())
+            if (eItem->descriptor().suffix == RStateLastUpdated)
+            {}
+            else if (e.num() == e.numPrevious())
             {
                 return false;
             }
