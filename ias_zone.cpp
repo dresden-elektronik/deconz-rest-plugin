@@ -130,7 +130,7 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
             if (item2 && !item2->toBool())
             {
                 item2->setValue(true);
-                Event e(RSensors, RConfigReachable, sensor->id());
+                Event e(RSensors, RConfigReachable, sensor->id(), item2);
                 enqueueEvent(e);
             }
 
@@ -138,8 +138,9 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
 
             if (item->lastSet() == item->lastChanged())
             {
-                Event e(RSensors, item->descriptor().suffix, sensor->id());
+                Event e(RSensors, item->descriptor().suffix, sensor->id(), item);
                 enqueueEvent(e);
+                enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
             }
         }
 

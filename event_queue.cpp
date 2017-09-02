@@ -33,6 +33,8 @@ void DeRestPluginPrivate::eventQueueTimerFired()
         handleGroupEvent(e);
     }
 
+    handleRuleEvent(e);
+
     eventQueue.pop_front();
 
     if (!eventQueue.empty())

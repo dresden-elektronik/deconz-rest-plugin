@@ -118,6 +118,7 @@ public:
     ResourceItem(const ResourceItemDescriptor &rid);
     const QString &toString() const;
     qint64 toNumber() const;
+    qint64 toNumberPrevious() const;
     bool toBool() const;
     QVariant toVariant() const;
     bool setValue(const QString &val);
@@ -127,16 +128,20 @@ public:
     const QDateTime &lastSet() const;
     const QDateTime &lastChanged() const;
     void setTimeStamps(const QDateTime &t);
+    void inRule(int ruleHandle);
+    const std::vector<int> rulesInvolved() const;
 
 private:
     ResourceItem() :
         m_num(-1), m_strIndex(0) {}
 
     qint64 m_num;
+    qint64 m_numPrev;
     size_t m_strIndex;
     ResourceItemDescriptor m_rid;
     QDateTime m_lastSet;
     QDateTime m_lastChanged;
+    std::vector<int> m_rulesInvolved; // the rules a resource item is trigger
 };
 
 class Resource
@@ -153,14 +158,11 @@ public:
     int itemCount() const;
     ResourceItem *itemForIndex(size_t idx);
     const ResourceItem *itemForIndex(size_t idx) const;
-    void inRule(int ruleHandle);
-    const std::vector<int> rulesInvolved() const;
 
 private:
     Resource() {}
     const char *m_prefix;
     std::vector<ResourceItem> m_rItems;
-    std::vector<int> m_rulesInvolved; // the rules a resource is involved
 };
 
 void initResourceDescriptors();

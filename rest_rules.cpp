@@ -543,6 +543,7 @@ int DeRestPluginPrivate::createRule(const ApiRequest &req, ApiResponse &rsp)
                 {
                     rules.push_back(rule);
                     queueCheckRuleBindings(rule);
+                    indexRulesTriggers();
                 }
             }
             queSaveDb(DB_RULES, DB_SHORT_SAVE_DELAY);
@@ -803,6 +804,7 @@ int DeRestPluginPrivate::updateRule(const ApiRequest &req, ApiResponse &rsp)
             rspItemState[QString("/rules/%1/conditions").arg(id)] = conditionsList;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
+            indexRulesTriggers();
         }
         else
         {
@@ -815,7 +817,7 @@ int DeRestPluginPrivate::updateRule(const ApiRequest &req, ApiResponse &rsp)
     {
         rule->setStatus("enabled");
     }
-    DBG_Printf(DBG_INFO, "force verify of rule %s: %s\n", qPrintable(rule->id()), qPrintable(rule->name()));
+    DBG_Printf(DBG_INFO_L2, "force verify of rule %s: %s\n", qPrintable(rule->id()), qPrintable(rule->name()));
     rule->lastBindingVerify = 0;
 
     if (changed)
@@ -1215,24 +1217,28 @@ void DeRestPluginPrivate::queueCheckRuleBindings(const Rule &rule)
     }
 }
 
-/*! Triggers actions of a rule if needed.
+/*! Evaluates rule.
     \param rule - the rule to check
+    \param e - the trigger event
+    \param eResource - the event resource
+    \param eItem - the event resource item
+    \return true if rule can be triggered
  */
-void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
+bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eResource, ResourceItem *eItem)
 {
-    if (!apsCtrl || (apsCtrl->networkState() != deCONZ::InNetwork))
+    if (!apsCtrl || !eItem || !eResource || (apsCtrl->networkState() != deCONZ::InNetwork))
     {
-        return;
+        return false;
     }
 
     if (rule.state() != Rule::StateNormal || !rule.isEnabled())
     {
-        return;
+        return false;
     }
 
     if (rule.triggerPeriodic() < 0)
     {
-        return;
+        return false;
     }
 
     QDateTime now = QDateTime::currentDateTime();
@@ -1243,13 +1249,10 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
             rule.lastTriggered().addMSecs(rule.triggerPeriodic()) > now)
         {
             // not yet time
-            return;
+            return false;
         }
     }
 
-    int ok = 1;
-    int okAnyChanged = 0; // will be added to ok if anything changed
-    bool anyChanged = false;
     std::vector<RuleCondition>::const_iterator c = rule.conditions().begin();
     std::vector<RuleCondition>::const_iterator cend = rule.conditions().end();
 
@@ -1260,18 +1263,15 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
 
         if (!resource || !item)
         {
-            DBG_Printf(DBG_INFO, "resource %s : %s id: %s (cond: %s) not found --> disable rule\n",
+            DBG_Printf(DBG_INFO, "resource %s : %s id: %s (cond: %s) not found\n",
                        c->resource(), c->suffix(),
                        qPrintable(c->id()), qPrintable(c->address()));
-            rule.setStatus(QLatin1String("disabled"));
-            ok = 0;
-            break;
+            return false;
         }
 
-        resource->inRule(rule.handle());
+        if (!item->lastSet().isValid()) { return false; }
 
-        if (!item->lastSet().isValid()) { ok = false; break; }
-
+        /*
         if (resource->prefix() == RSensors)
         {
             if ((idleTotalCounter > (IDLE_READ_LIMIT + 20)) &&
@@ -1284,44 +1284,85 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
                 if (sensor && !sensor->type().startsWith(QLatin1String("CLIP")))
                 {
                     // ignore resource set after startup
-                    return;
+                    return false;
                 }
             }
         }
+        */
 
         if (c->op() == RuleCondition::OpEqual)
         {
-            if (c->numericValue() != item->toNumber()) { ok = false; break; }
+            if (c->numericValue() != item->toNumber())
+            {
+                return false;
+            }
+
+            if (item == eItem && e.num() == e.numPrevious())
+            {
+                return false; // item was not changed
+            }
         }
         else if (c->op() == RuleCondition::OpGreaterThan)
         {
-            if (item->toNumber() <= c->numericValue()) { ok = false; break; }
+            if (item->toNumber() <= c->numericValue())
+            {
+                return false;
+            }
+
+            if (item == eItem && e.numPrevious() >= e.num())
+            {
+                return false; // must become >=
+            }
         }
         else if (c->op() == RuleCondition::OpLowerThan)
         {
-            if (item->toNumber() >= c->numericValue()) { ok = false; break; }
+            if (item->toNumber() >= c->numericValue())
+            {
+                return false;
+            }
+
+            if (item == eItem && e.numPrevious() <= e.num())
+            {
+                return false; // must become <=
+            }
         }
         else if (c->op() == RuleCondition::OpDx)
         {
-            if (!rule.lastVerify.isValid() ||
-                (rule.lastTriggered().isValid() && item->lastSet() < rule.lastTriggered()) ||
-                (item->lastSet() != item->lastChanged()))
-            { ok = 0; break; }
+            if (item != eItem)
+            {
+                return false;
+            }
+
+            if (item->lastSet() != item->lastChanged())
+            {
+                return false;
+            }
         }
         else if (c->op() == RuleCondition::OpDdx)
         {
+            if (eItem->descriptor().suffix != RConfigLocalTime)
+            {
+                return false;
+            }
+
+            if (!item->lastChanged().isValid())
+            {
+                return false;
+            }
+
             QDateTime dt = item->lastChanged().addSecs(c->seconds());
+            if (rule.lastTriggered().isValid() && rule.lastTriggered() > dt)
+            {
+                return false; // already handled
+            }
+
             if (dt > now)
-            { ok = 0; break; } // not time yet
-            else if (rule.lastTriggered().isValid() && rule.lastTriggered() > dt)
-            { ok = 0; break; } // already handled
+            {
+                return false; // not time yet
+            }
         }
         else if (c->op() == RuleCondition::OpIn && c->suffix() == RConfigLocalTime)
         {
-            if (rule.lastTriggered().isValid() &&
-                rule.lastTriggered() >= item->lastChanged())
-            { ok = 0; break; } // already handled
-
             QTime t = now.time();
             QTime rt;
 
@@ -1335,10 +1376,11 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
             {
                 if (rt.isValid() && rt >= c->time0() && rt <= c->time1())
                 {
-                    ok = 0;
-                    okAnyChanged++;
-                } // already handled
-                continue;
+                    if (eItem->descriptor().suffix == RConfigLocalTime)
+                    {
+                        return false;  // already handled
+                    }
+                }
             }
             else if (c->time0() > c->time1() && // 20:00 - 4:00
                 (t >= c->time0() || t <= c->time1()))
@@ -1346,15 +1388,21 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
             {
                 if (rt.isValid() && (rt >= c->time0() || rt <= c->time1()))
                 {
-                    ok = 0;
-                    okAnyChanged++;
+                    if (eItem->descriptor().suffix == RConfigLocalTime)
+                    {
+                        return false;  // already handled
+                    }
                 } // already handled
-                continue;
             }
-            else { ok = 0; break; }
+            else
+            {
+                return false;
+            }
         }
         else if (c->op() == RuleCondition::OpNotIn && c->suffix() == RConfigLocalTime)
         {
+            return false; // TODO
+            /*
             if (rule.lastTriggered().isValid() &&
                 rule.lastTriggered() >= item->lastChanged())
             { ok = 0; break; } // already handled
@@ -1369,30 +1417,87 @@ void DeRestPluginPrivate::triggerRuleIfNeeded(Rule &rule)
                 // 0:00 - 20:00 ||  0:00 - 4:00
             {  }
             else { ok = 0; break; }
+            */
         }
         else
         {
-            ok = 0;
-            break;
+            return false;
         }
+    }
 
-        if (!anyChanged &&
-            (!rule.lastTriggered().isValid() || rule.lastTriggered() < item->lastSet()) &&
-            item->lastSet() == item->lastChanged())
+    return true;
+}
+
+/*! Index rules related resource item triggers.
+    \param rule - the rule to index
+ */
+void DeRestPluginPrivate::indexRuleTriggers(Rule &rule)
+{
+    ResourceItem *itemDx = 0;
+    ResourceItem *itemDdx = 0;
+    std::vector<ResourceItem*> items;
+
+    for (const RuleCondition &c : rule.conditions())
+    {
+        Resource *resource = getResource(c.resource(), c.id());
+        ResourceItem *item = resource ? resource->item(c.suffix()) : 0;
+
+        if (!resource || !item)
         {
-            anyChanged = true;
+            continue;
+//            DBG_Printf(DBG_INFO, "resource %s : %s id: %s (cond: %s) not found --> disable rule\n",
+//                       c->resource(), c->suffix(),
+//                       qPrintable(c->id()), qPrintable(c->address()));
+        }
+
+        if (!c.id().isEmpty())
+        {
+            DBG_Printf(DBG_INFO, "\t%s/%s/%s op: %s\n", c.resource(), qPrintable(c.id()), c.suffix(), qPrintable(c.ooperator()));
+        }
+        else
+        {
+            DBG_Printf(DBG_INFO, "\t%s : %s op: %s\n", c.resource(), c.suffix(), qPrintable(c.ooperator()));
+        }
+
+        if (c.op() == RuleCondition::OpDx)
+        {
+            DBG_Assert(itemDx == 0);
+            DBG_Assert(itemDdx == 0);
+            itemDx = item;
+        }
+        else if (c.op() == RuleCondition::OpDdx)
+        {
+            DBG_Assert(itemDx == 0);
+            DBG_Assert(itemDdx == 0);
+            itemDdx = item;
+        }
+        else if (c.op() == RuleCondition::OpStable) { }
+        else if (c.op() == RuleCondition::OpNotStable) { }
+        else
+        {
+            items.push_back(item);
         }
     }
 
-    rule.lastVerify = now;
-    if (anyChanged && okAnyChanged > 0)
+    if (itemDx)
     {
-        ok += okAnyChanged;
+        items.clear();
+        items.push_back(itemDx);
+    }
+    else if (itemDdx)
+    {
+        Resource *resource = getResource(RConfig);
+        itemDdx = resource->item(RConfigLocalTime);
+        DBG_Assert(resource != 0);
+        DBG_Assert(itemDdx != 0);
+        items.clear();
+        items.push_back(itemDdx);
     }
 
-    if (ok == 1 && anyChanged)
+    for (ResourceItem *item : items)
     {
-        triggerRule(rule);
+        item->inRule(rule.handle());
+        DBG_Printf(DBG_INFO, "\t%s (trigger)\n", item->descriptor().suffix);
     }
 }
 
@@ -1502,7 +1607,7 @@ void DeRestPluginPrivate::verifyRuleBindingsTimerFired()
 
     Rule &rule = rules[verifyRuleIter];
 
-    triggerRuleIfNeeded(rule);
+    //triggerRuleIfNeeded(rule);
 
     if (bindingQueue.size() < 16)
     {
@@ -1521,30 +1626,19 @@ void DeRestPluginPrivate::verifyRuleBindingsTimerFired()
     }
 
     verifyRuleIter++;
-
-    if (fastRuleCheckCounter > 0)
+    if (verifyRulesTimer->interval() != NORMAL_RULE_CHECK_INTERVAL_MS)
     {
-        fastRuleCheckCounter--;
-        if (verifyRulesTimer->interval() != FAST_RULE_CHECK_INTERVAL_MS)
-        {
-            verifyRulesTimer->setInterval(FAST_RULE_CHECK_INTERVAL_MS);
-        }
-    }
-    else
-    {
-        if (verifyRulesTimer->interval() != NORMAL_RULE_CHECK_INTERVAL_MS)
-        {
-            verifyRulesTimer->setInterval(NORMAL_RULE_CHECK_INTERVAL_MS);
-        }
+        verifyRulesTimer->setInterval(NORMAL_RULE_CHECK_INTERVAL_MS);
     }
 }
 
 /*! Trigger fast checking of rules related to the resource. */
-void DeRestPluginPrivate::checkRulesForResource(const Resource *resource)
+void DeRestPluginPrivate::indexRulesTriggers()
 {
-    for (int handle : resource->rulesInvolved())
+    fastRuleCheck.clear();
+    for (const Rule &rule : rules)
     {
-        fastRuleCheck.push_back(handle);
+        fastRuleCheck.push_back(rule.handle());
     }
 
     if (!fastRuleCheckTimer->isActive() && !fastRuleCheck.empty())
@@ -1567,10 +1661,9 @@ void DeRestPluginPrivate::fastRuleCheckTimerFired()
         {
             if (rule.handle() == handle)
             {
-                DBG_Printf(DBG_INFO, "fast rule check %d (%s)\n", rule.handle(), qPrintable(rule.name()));
-                triggerRuleIfNeeded(rule);
+                DBG_Printf(DBG_INFO, "index resource items for rules, handle: %d (%s)\n", rule.handle(), qPrintable(rule.name()));
+                indexRuleTriggers(rule);
                 fastRuleCheckTimer->start(); // handle in next event loop cycle
-                fastRuleCheckCounter = 0;
                 handle = 0; // mark checked
                 return;
             }
@@ -1580,5 +1673,55 @@ void DeRestPluginPrivate::fastRuleCheckTimerFired()
 
     // all done
     fastRuleCheck.clear();
-    fastRuleCheckCounter = rules.size() * 3;
+}
+
+/*! Triggers rules based on events. */
+void DeRestPluginPrivate::handleRuleEvent(const Event &e)
+{
+    Resource *resource = getResource(e.resource(), e.id());
+    ResourceItem *item = resource ? resource->item(e.what()) : 0;
+
+    if (!resource || !item || item->rulesInvolved().empty())
+    {
+        return;
+    }
+
+    if (!e.id().isEmpty())
+    {
+        DBG_Printf(DBG_INFO, "rule event: %s/%s %s num (%d -> %d)\n", e.resource(), qPrintable(e.id()), e.what(), e.numPrevious(), e.num());
+    }
+
+    QElapsedTimer t;
+    t.start();
+    std::vector<size_t> rulesToTrigger;
+    for (int handle : item->rulesInvolved())
+    {
+        for (size_t i = 0; i < rules.size(); i++)
+        {
+            if (rules[i].handle() != handle)
+            {
+                continue;
+            }
+
+            if (evaluateRule(rules[i], e, resource, item))
+            {
+                rulesToTrigger.push_back(i);
+            }
+        }
+    }
+
+    for (size_t i : rulesToTrigger)
+    {
+        DBG_Assert(i < rules.size());
+        if (i < rules.size())
+        {
+            triggerRule(rules[i]);
+        }
+    }
+
+    int dt = t.elapsed();
+    if  (dt > 0)
+    {
+        DBG_Printf(DBG_INFO, "trigger rule events took %d ms\n", dt);
+    }
 }

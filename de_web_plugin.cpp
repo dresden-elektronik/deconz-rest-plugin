@@ -310,7 +310,6 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
             this, SLOT(verifyRuleBindingsTimerFired()));
     verifyRulesTimer->start();
 
-    fastRuleCheckCounter = 0;
     fastRuleCheckTimer = new QTimer(this);
     fastRuleCheckTimer->setInterval(5);
     fastRuleCheckTimer->setSingleShot(true);
@@ -353,11 +352,6 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
             this, SLOT(openClientTimerFired()));
     openClientTimer->start(1000);
 
-    saveCurrentRuleInDbTimer = new QTimer(this);
-    saveCurrentRuleInDbTimer->setSingleShot(true);
-    connect(saveCurrentRuleInDbTimer, SIGNAL(timeout()),
-            this, SLOT(saveCurrentRuleInDbTimerFired()));
-
     resendPermitJoinTimer = new QTimer(this);
     resendPermitJoinTimer->setSingleShot(true);
     connect(resendPermitJoinTimer, SIGNAL(timeout()),
@@ -373,6 +367,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     initResetDeviceApi();
     initFirmwareUpdate();
     //restoreWifiState();
+    indexRulesTriggers();
 }
 
 /*! Deconstructor for pimpl.
@@ -473,7 +468,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                     if (item && !item->toBool())
                     {
                         item->setValue(true);
-                        Event e(RSensors, RConfigReachable, sensorNode->id());
+                        Event e(RSensors, RConfigReachable, sensorNode->id(), item);
                         enqueueEvent(e);
                     }
                     checkSensorButtonEvent(sensorNode, ind, zclFrame);
@@ -633,8 +628,9 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
     sensor->updateStateTimestamp();
     item->setValue(ind.gpdCommandId());
 
-    Event e(RSensors, RStateButtonEvent, sensor->id());
+    Event e(RSensors, RStateButtonEvent, sensor->id(), item);
     enqueueEvent(e);
+    enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
 }
 
 /*! Returns the number of tasks for a specific address.
@@ -989,7 +985,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 // refresh all with new values
                 DBG_Printf(DBG_INFO, "LightNode %u: %s updated\n", lightNode2->id().toUInt(), qPrintable(lightNode2->name()));
                 reachable->setValue(true);
-                Event e(RLights, RStateReachable, lightNode2->id());
+                Event e(RLights, RStateReachable, lightNode2->id(), reachable);
                 enqueueEvent(e);
 
                 lightNode2->enableRead(READ_VENDOR_NAME |
@@ -1233,7 +1229,7 @@ void DeRestPluginPrivate::nodeZombieStateChanged(const deCONZ::Node *node)
                     {
                         item->setValue(available);
                         updateLightEtag(&*i);
-                        Event e(RLights, RStateReachable, i->id());
+                        Event e(RLights, RStateReachable, i->id(), item);
                         enqueueEvent(e);
                     }
                 }
@@ -1298,7 +1294,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
         if ((event.node()->state() == deCONZ::FailureState) || event.node()->isZombie())
         {
             reachable->setValue(false);
-            Event e(RLights, RStateReachable, lightNode->id());
+            Event e(RLights, RStateReachable, lightNode->id(), reachable);
             enqueueEvent(e);
             updated = true;
         }
@@ -1308,7 +1304,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
         if (event.node()->state() != deCONZ::FailureState)
         {
             reachable->setValue(true);
-            Event e(RLights, RStateReachable, lightNode->id());
+            Event e(RLights, RStateReachable, lightNode->id(), reachable);
             enqueueEvent(e);
             updated = true;
         }
@@ -1433,7 +1429,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             if (item && item->toNumber() != lightNode->enhancedHue())
                             {
                                 item->setValue(lightNode->enhancedHue());
-                                Event e(RLights, RStateHue, lightNode->id());
+                                Event e(RLights, RStateHue, lightNode->id(), item);
                                 enqueueEvent(e);
                             }
 
@@ -1447,7 +1443,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         if (item && item->toNumber() != sat)
                         {
                             item->setValue(sat);
-                            Event e(RLights, RStateSat, lightNode->id());
+                            Event e(RLights, RStateSat, lightNode->id(), item);
                             enqueueEvent(e);
                             updated = true;
                         }
@@ -1463,7 +1459,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         if (item && item->toNumber() != colorX)
                         {
                             item->setValue(colorX);
-                            Event e(RLights, RStateX, lightNode->id());
+                            Event e(RLights, RStateX, lightNode->id(), item);
                             enqueueEvent(e);
                             updated = true;
                         }
@@ -1478,7 +1474,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         if (item && item->toNumber() != colorY)
                         {
                             item->setValue(colorY);
-                            Event e(RLights, RStateY, lightNode->id());
+                            Event e(RLights, RStateY, lightNode->id(), item);
                             enqueueEvent(e);
                             updated = true;
                         }
@@ -1491,7 +1487,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         if (item && item->toNumber() != ct)
                         {
                             item->setValue(ct);
-                            Event e(RLights, RStateCt, lightNode->id());
+                            Event e(RLights, RStateCt, lightNode->id(), item);
                             enqueueEvent(e);
                             updated = true;
                         }
@@ -1550,7 +1546,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             DBG_Printf(DBG_INFO, "level %u --> %u\n", (uint)item->toNumber(), level);
                             lightNode->clearRead(READ_LEVEL);
                             item->setValue(level);
-                            Event e(RLights, RStateBri, lightNode->id());
+                            Event e(RLights, RStateBri, lightNode->id(), item);
                             enqueueEvent(e);
                             updated = true;
                         }
@@ -1574,7 +1570,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         {
                             lightNode->clearRead(READ_ON_OFF);
                             item->setValue(on);
-                            Event e(RLights, RStateOn, lightNode->id());
+                            Event e(RLights, RStateOn, lightNode->id(), item);
                             enqueueEvent(e);
                             updated = true;
                         }
@@ -1892,7 +1888,7 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor)
     if (item && item->toBool() != reachable)
     {
         item->setValue(reachable);
-        Event e(RSensors, RConfigReachable, sensor->id());
+        Event e(RSensors, RConfigReachable, sensor->id(), item);
         enqueueEvent(e);
     }
 
@@ -2092,11 +2088,12 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 {
                     item->setValue(buttonMap->button);
 
-                    Event e(RSensors, RStateButtonEvent, sensor->id());
+                    Event e(RSensors, RStateButtonEvent, sensor->id(), item);
                     enqueueEvent(e);
                     updateSensorEtag(sensor);
                     sensor->updateStateTimestamp();
                     sensor->setNeedSaveDatabase(true);
+                    enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
                 }
 
                 item = sensor->item(RStatePresence);
@@ -2105,12 +2102,13 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     item->setValue(true);
                     if (item->lastSet() == item->lastChanged())
                     {
-                        Event e(RSensors, RStatePresence, sensor->id());
+                        Event e(RSensors, RStatePresence, sensor->id(), item);
                         enqueueEvent(e);
                     }
                     updateSensorEtag(sensor);
                     sensor->updateStateTimestamp();
                     sensor->setNeedSaveDatabase(true);
+                    enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
                 }
                 break;
             }
@@ -3107,7 +3105,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                 if (item)
                 {
                     item->setValue(battery);
-                    Event e(RSensors, RConfigBattery, i->id());
+                    Event e(RSensors, RConfigBattery, i->id(), item);
                     enqueueEvent(e);
                 }
                 updateSensorEtag(&*i);
@@ -3234,7 +3232,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         queSaveDb(DB_SENSORS, DB_HUGE_SAVE_DELAY);
                                     }
 
-                                    Event e(RSensors, RConfigBattery, i->id());
+                                    Event e(RSensors, RConfigBattery, i->id(), item);
                                     enqueueEvent(e);
                                 }
 
@@ -3262,8 +3260,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     item->setValue(measuredValue);
                                     i->updateStateTimestamp();
                                     i->setNeedSaveDatabase(true);
-                                    Event e(RSensors, RStateLightLevel, i->id());
+                                    Event e(RSensors, RStateLightLevel, i->id(), item);
                                     enqueueEvent(e);
+                                    enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
                                 }
 
                                 quint16 tholddark = R_THOLDDARK_DEFAULT;
@@ -3290,8 +3289,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     if (item->lastChanged() == item->lastSet())
                                     {
-                                      Event e(RSensors, RStateDark, i->id());
-                                      enqueueEvent(e);
+                                        Event e(RSensors, RStateDark, i->id(), item);
+                                        enqueueEvent(e);
+                                        enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
                                     }
                                 }
 
@@ -3304,8 +3304,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     if (item->lastChanged() == item->lastSet())
                                     {
-                                      Event e(RSensors, RStateDaylight, i->id());
-                                      enqueueEvent(e);
+                                        Event e(RSensors, RStateDaylight, i->id(), item);
+                                        enqueueEvent(e);
+                                        enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
                                     }
                                 }
 
@@ -3372,8 +3373,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     item->setValue(temp);
                                     i->updateStateTimestamp();
                                     i->setNeedSaveDatabase(true);
-                                    Event e(RSensors, RStateTemperature, i->id());
+                                    Event e(RSensors, RStateTemperature, i->id(), item);
                                     enqueueEvent(e);
+                                    enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
                                 }
 
                                 updateSensorEtag(&*i);
@@ -3399,8 +3401,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     item->setValue(humidity);
                                     i->updateStateTimestamp();
                                     i->setNeedSaveDatabase(true);
-                                    Event e(RSensors, RStateHumidity, i->id());
+                                    Event e(RSensors, RStateHumidity, i->id(), item);
                                     enqueueEvent(e);
+                                    enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
                                 }
 
                                 updateSensorEtag(&*i);
@@ -3426,8 +3429,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     item->setValue(pressure);
                                     i->updateStateTimestamp();
                                     i->setNeedSaveDatabase(true);
-                                    Event e(RSensors, RStatePressure, i->id());
+                                    Event e(RSensors, RStatePressure, i->id(), item);
                                     enqueueEvent(e);
+                                    enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
                                 }
 
                                 updateSensorEtag(&*i);
@@ -3459,8 +3463,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     item->setValue(ia->numericValue().u8);
                                     i->updateStateTimestamp();
                                     i->setNeedSaveDatabase(true);
-                                    Event e(RSensors, RStatePresence, i->id());
+                                    Event e(RSensors, RStatePresence, i->id(), item);
                                     enqueueEvent(e);
+                                    enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
                                 }
                                 updateSensorEtag(&*i);
                             }
@@ -3476,7 +3481,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 if (item && item->toNumber() != duration)
                                 {
-                                    Event e(RSensors, RConfigDuration, i->id());
+                                    Event e(RSensors, RConfigDuration, i->id(), item);
                                     enqueueEvent(e);
 
                                     if (item->toNumber() <= 0)
@@ -3522,7 +3527,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     item->setValue(sensitivity);
                                     i->updateStateTimestamp();
                                     i->setNeedSaveDatabase(true);
-                                    Event e(RSensors, RConfigSensitivity, i->id());
+                                    Event e(RSensors, RConfigSensitivity, i->id(), item);
                                     enqueueEvent(e);
                                 }
 
@@ -3543,7 +3548,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     item->setValue(sensitivitymax);
                                     i->updateStateTimestamp();
                                     i->setNeedSaveDatabase(true);
-                                    Event e(RSensors, RConfigSensitivityMax, i->id());
+                                    Event e(RSensors, RConfigSensitivityMax, i->id(), item);
                                     enqueueEvent(e);
                                 }
 
@@ -3571,11 +3576,12 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                     if (item->lastSet() == item->lastChanged())
                                     {
-                                        Event e(RSensors, item->descriptor().suffix, i->id());
+                                        Event e(RSensors, item->descriptor().suffix, i->id(), item);
                                         enqueueEvent(e);
                                     }
                                     i->setNeedSaveDatabase(true);
                                     i->updateStateTimestamp();
+                                    enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
                                 }
 
                                 item = i->item(RStateButtonEvent);
@@ -3590,10 +3596,11 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                     item->setValue(button);
 
-                                    Event e(RSensors, item->descriptor().suffix, i->id());
+                                    Event e(RSensors, item->descriptor().suffix, i->id(), item);
                                     enqueueEvent(e);
                                     i->setNeedSaveDatabase(true);
                                     i->updateStateTimestamp();
+                                    enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
                                 }
 
                                 updateSensorEtag(&*i);
@@ -3703,7 +3710,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     item->setValue(usertest);
                                     i->updateStateTimestamp();
                                     i->setNeedSaveDatabase(true);
-                                    Event e(RSensors, RConfigUsertest, i->id());
+                                    Event e(RSensors, RConfigUsertest, i->id(), item);
                                     enqueueEvent(e);
                                 }
 
@@ -3724,7 +3731,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     item->setValue(ledindication);
                                     i->updateStateTimestamp();
                                     i->setNeedSaveDatabase(true);
-                                    Event e(RSensors, RConfigLedIndication, i->id());
+                                    Event e(RSensors, RConfigLedIndication, i->id(), item);
                                     enqueueEvent(e);
                                 }
 
@@ -3751,8 +3758,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     item->setValue(buttonevent);
                                     i->updateStateTimestamp();
                                     i->setNeedSaveDatabase(true);
-                                    Event e(RSensors, RStateButtonEvent, i->id());
+                                    Event e(RSensors, RStateButtonEvent, i->id(), item);
                                     enqueueEvent(e);
+                                    enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
                                 }
 
                                 updateSensorEtag(&*i);
@@ -3790,8 +3798,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     item->setValue(buttonevent);
                                     i->updateStateTimestamp();
                                     i->setNeedSaveDatabase(true);
-                                    Event e(RSensors, RStateButtonEvent, i->id());
+                                    Event e(RSensors, RStateButtonEvent, i->id(), item);
                                     enqueueEvent(e);
+                                    enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
                                 }
 
                                 updateSensorEtag(&*i);
@@ -5348,7 +5357,7 @@ void DeRestPluginPrivate::setAttributeOnOffGroup(Group *group, uint8_t onOff)
             if (item->toBool() != on)
             {
                 item->setValue(on);
-                Event e(RLights, RStateOn, lightNode->id());
+                Event e(RLights, RStateOn, lightNode->id(), item);
                 enqueueEvent(e);
                 updateLightEtag(lightNode);
             }
@@ -7551,7 +7560,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                     if (item && item->toBool() != ls->on())
                     {
                         item->setValue(ls->on());
-                        Event e(RLights, RStateOn, lightNode->id());
+                        Event e(RLights, RStateOn, lightNode->id(), item);
                         enqueueEvent(e);
                         changed = true;
                     }
@@ -7560,7 +7569,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                     if (item && ls->bri() != item->toNumber())
                     {
                         item->setValue(ls->bri());
-                        Event e(RLights, RStateBri, lightNode->id());
+                        Event e(RLights, RStateBri, lightNode->id(), item);
                         enqueueEvent(e);
                         changed = true;
                     }
@@ -7582,7 +7591,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                             if (item && ls->x() != item->toNumber())
                             {
                                 item->setValue(ls->x());
-                                Event e(RLights, RStateX, lightNode->id());
+                                Event e(RLights, RStateX, lightNode->id(), item);
                                 enqueueEvent(e);
                                 changed = true;
                             }
@@ -7590,7 +7599,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                             if (item && ls->y() != item->toNumber())
                             {
                                 item->setValue(ls->y());
-                                Event e(RLights, RStateY, lightNode->id());
+                                Event e(RLights, RStateY, lightNode->id(), item);
                                 enqueueEvent(e);
                                 changed = true;
                             }
@@ -7601,7 +7610,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                             if (item && ls->colorTemperature() != item->toNumber())
                             {
                                 item->setValue(ls->colorTemperature());
-                                Event e(RLights, RStateCt, lightNode->id());
+                                Event e(RLights, RStateCt, lightNode->id(), item);
                                 enqueueEvent(e);
                                 changed = true;
                             }
@@ -7612,7 +7621,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                             if (item && ls->enhancedHue() != item->toNumber())
                             {
                                 item->setValue(ls->enhancedHue());
-                                Event e(RLights, RStateHue, lightNode->id());
+                                Event e(RLights, RStateHue, lightNode->id(), item);
                                 enqueueEvent(e);
                                 changed = true;
                             }
@@ -7621,7 +7630,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                             if (item && ls->saturation() != item->toNumber())
                             {
                                 item->setValue(ls->saturation());
-                                Event e(RLights, RStateSat, lightNode->id());
+                                Event e(RLights, RStateSat, lightNode->id(), item);
                                 enqueueEvent(e);
                                 changed = true;
                             }
@@ -7697,8 +7706,9 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
                     if (changed)
                     {
                         updateSensorEtag(&s);
-                        Event e(RSensors, RStatePresence, s.id());
+                        Event e(RSensors, RStatePresence, s.id(), item);
                         enqueueEvent(e);
+                        enqueueEvent(Event(RSensors, RStateLastUpdated, s.id()));
                     }
                 }
             }
@@ -7751,7 +7761,7 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
                     if (item && item->toBool())
                     {
                         item->setValue(false);
-                        Event e(RLights, RStateOn, l->id());
+                        Event e(RLights, RStateOn, l->id(), item);
                         enqueueEvent(e);
                         updated = true;
                     }
@@ -7762,7 +7772,7 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
                     if (item && !item->toBool())
                     {
                         item->setValue(true);
-                        Event e(RLights, RStateOn, l->id());
+                        Event e(RLights, RStateOn, l->id(), item);
                         enqueueEvent(e);
                         updated = true;
                     }
@@ -8001,7 +8011,7 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
             if (reachable && !reachable->toBool())
             {
                 reachable->setValue(true);
-                Event e(RLights, RStateReachable, i->id());
+                Event e(RLights, RStateReachable, i->id(), reachable);
                 enqueueEvent(e);
 
                 // TODO only when permit join is active
@@ -8062,7 +8072,7 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
             if (item && !item->toBool())
             {
                 item->setValue(true);
-                Event e(RSensors, RConfigReachable, si->id());
+                Event e(RSensors, RConfigReachable, si->id(), item);
                 enqueueEvent(e);
             }
             checkSensorGroup(&*si);
@@ -8315,7 +8325,7 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
             {
                 updateLightEtag(lightNode);
                 item->setValue(task.onOff);
-                Event e(RLights, RStateOn, lightNode->id());
+                Event e(RLights, RStateOn, lightNode->id(), item);
                 enqueueEvent(e);
             }
             setAttributeOnOff(lightNode);
@@ -8329,7 +8339,7 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
             {
                 updateLightEtag(lightNode);
                 item->setValue(task.level > 0);
-                Event e(RLights, RStateOn, lightNode->id());
+                Event e(RLights, RStateOn, lightNode->id(), item);
                 enqueueEvent(e);
             }
 
@@ -8338,7 +8348,7 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
             {
                 updateLightEtag(lightNode);
                 item->setValue(task.level);
-                Event e(RLights, RStateBri, lightNode->id());
+                Event e(RLights, RStateBri, lightNode->id(), item);
                 enqueueEvent(e);
             }
 
@@ -8360,7 +8370,7 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
             {
                 updateLightEtag(lightNode);
                 item->setValue(task.sat);
-                Event e(RLights, RStateSat, lightNode->id());
+                Event e(RLights, RStateSat, lightNode->id(), item);
                 enqueueEvent(e);
             }
 
@@ -8385,7 +8395,7 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
             {
                 updateLightEtag(lightNode);
                 item->setValue(task.enhancedHue);
-                Event e(RLights, RStateHue, lightNode->id());
+                Event e(RLights, RStateHue, lightNode->id(), item);
                 enqueueEvent(e);
             }
 
@@ -8410,7 +8420,7 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
             {
                 updateLightEtag(lightNode);
                 item->setValue(task.enhancedHue);
-                Event e(RLights, RStateHue, lightNode->id());
+                Event e(RLights, RStateHue, lightNode->id(), item);
                 enqueueEvent(e);
             }
 
@@ -8419,7 +8429,7 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
             {
                 updateLightEtag(lightNode);
                 item->setValue(task.sat);
-                Event e(RLights, RStateSat, lightNode->id());
+                Event e(RLights, RStateSat, lightNode->id(), item);
                 enqueueEvent(e);
             }
 
@@ -8443,7 +8453,7 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
             {
                 updateLightEtag(lightNode);
                 item->setValue(task.colorX);
-                Event e(RLights, RStateX, lightNode->id());
+                Event e(RLights, RStateX, lightNode->id(), item);
                 enqueueEvent(e);
             }
 
@@ -8452,7 +8462,7 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
             {
                 updateLightEtag(lightNode);
                 item->setValue(task.colorY);
-                Event e(RLights, RStateY, lightNode->id());
+                Event e(RLights, RStateY, lightNode->id(), item);
                 enqueueEvent(e);
             }
 
@@ -8475,7 +8485,7 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
             {
                 updateLightEtag(lightNode);
                 item->setValue(task.colorTemperature);
-                Event e(RLights, RStateCt, lightNode->id());
+                Event e(RLights, RStateCt, lightNode->id(), item);
                 enqueueEvent(e);
             }
 
@@ -8506,7 +8516,7 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
             {
                 updateLightEtag(lightNode);
                 item->setValue(modCt);
-                Event e(RLights, RStateCt, lightNode->id());
+                Event e(RLights, RStateCt, lightNode->id(), item);
                 enqueueEvent(e);
             }
 
@@ -9275,6 +9285,7 @@ void DeRestPlugin::idleTimerFired()
     if (localTime)
     {
         localTime->setValue(QDateTime::currentDateTime());
+        d->enqueueEvent(Event(RConfig, RConfigLocalTime, 0));
     }
 
     if (d->idleLastActivity < IDLE_USER_LIMIT)
@@ -10227,14 +10238,6 @@ bool DeRestPlugin::pluginActive() const
     return true;
 }
 
-/*! save Rule State (timesTriggered, lastTriggered) in DB only if
- *  no Button was pressed for 3 seconds.
- */
-void DeRestPluginPrivate::saveCurrentRuleInDbTimerFired()
-{
-    queSaveDb(DB_RULES , DB_SHORT_SAVE_DELAY);
-}
-
 /*! Checks if some tcp connections could be closed.
  */
 void DeRestPluginPrivate::openClientTimerFired()
@@ -10762,7 +10765,7 @@ Resource *DeRestPluginPrivate::getResource(const char *resource, const QString &
     {
         return getSensorNodeForId(id);
     }
-    else if (resource == RGroups)
+    else if (resource == RGroups && !id.isEmpty())
     {
         return getGroupForId(id);
     }

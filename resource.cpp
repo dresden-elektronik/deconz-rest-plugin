@@ -156,6 +156,7 @@ bool getResourceItemDescriptor(const QString &str, ResourceItemDescriptor &descr
 
 ResourceItem::ResourceItem(const ResourceItemDescriptor &rid) :
     m_num(0),
+    m_numPrev(0),
     m_strIndex(0),
     m_rid(rid)
 {
@@ -209,6 +210,11 @@ qint64 ResourceItem::toNumber() const
     return m_num;
 }
 
+qint64 ResourceItem::toNumberPrevious() const
+{
+    return m_numPrev;
+}
+
 bool ResourceItem::toBool() const
 {
     return m_num != 0;
@@ -243,6 +249,7 @@ bool ResourceItem::setValue(qint64 val)
     }
 
     m_lastSet = QDateTime::currentDateTime();
+    m_numPrev = m_num;
 
     if (m_num != val)
     {
@@ -276,6 +283,8 @@ bool ResourceItem::setValue(const QVariant &val)
     else if (m_rid.type == DataTypeBool)
     {
         m_lastSet = now;
+        m_numPrev = m_num;
+
         if (m_num != val.toBool())
         {
             m_num = val.toBool();
@@ -292,6 +301,8 @@ bool ResourceItem::setValue(const QVariant &val)
             if (dt.isValid())
             {
                 m_lastSet = now;
+                m_numPrev = m_num;
+
                 if (m_num != dt.toMSecsSinceEpoch())
                 {
                     m_num = dt.toMSecsSinceEpoch();
@@ -303,6 +314,8 @@ bool ResourceItem::setValue(const QVariant &val)
         else if (val.type() == QVariant::DateTime)
         {
             m_lastSet = now;
+            m_numPrev = m_num;
+
             if (m_num != val.toDateTime().toMSecsSinceEpoch())
             {
                 m_num = val.toDateTime().toMSecsSinceEpoch();
@@ -326,6 +339,7 @@ bool ResourceItem::setValue(const QVariant &val)
             }
 
             m_lastSet = now;
+            m_numPrev = m_num;
 
             if (m_num != n)
             {
@@ -386,6 +400,26 @@ QVariant ResourceItem::toVariant() const
     }
 
     return QVariant();
+}
+
+/*! Marks the resource item as involved in a rule. */
+void ResourceItem::inRule(int ruleHandle)
+{
+    for (quint16 handle : m_rulesInvolved)
+    {
+        if (handle == ruleHandle)
+        {
+            return;
+        }
+    }
+
+    m_rulesInvolved.push_back(ruleHandle);
+}
+
+/*! Returns the rules handles in which the resource item is involved. */
+const std::vector<int> ResourceItem::rulesInvolved() const
+{
+    return m_rulesInvolved;
 }
 
 Resource::Resource(const char *prefix) :
@@ -501,24 +535,4 @@ const ResourceItem *Resource::itemForIndex(size_t idx) const
         return &m_rItems[idx];
     }
     return 0;
-}
-
-/*! Marks the resource as involved in a rule. */
-void Resource::inRule(int ruleHandle)
-{
-    for (quint16 handle : m_rulesInvolved)
-    {
-        if (handle == ruleHandle)
-        {
-            return;
-        }
-    }
-
-    m_rulesInvolved.push_back(ruleHandle);
-}
-
-/*! Returns the rules handles in which the resource is involved. */
-const std::vector<int> Resource::rulesInvolved() const
-{
-    return m_rulesInvolved;
 }

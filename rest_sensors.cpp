@@ -826,7 +826,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 
                     if (item->lastChanged() == item->lastSet())
                     {
-                        Event e(RSensors, rid.suffix, id);
+                        Event e(RSensors, rid.suffix, id, item);
                         enqueueEvent(e);
                         updated = true;
                     }
@@ -938,10 +938,11 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
                         item->lastChanged() == item->lastSet())
                     {
                         updated = true;
-                        Event e(RSensors, rid.suffix, id);
+                        Event e(RSensors, rid.suffix, id, item);
                         enqueueEvent(e);
                     }
                     sensor->updateStateTimestamp();
+                    enqueueEvent(Event(RSensors, RStateLastUpdated, id));
 
                     if (rid.suffix == RStateLightLevel)
                     {
@@ -972,8 +973,9 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
                         {
                             if (item2->lastChanged() == item2->lastSet())
                             {
-                              Event e(RSensors, RStateDark, id);
-                              enqueueEvent(e);
+                                Event e(RSensors, RStateDark, id, item);
+                                enqueueEvent(e);
+                                enqueueEvent(Event(RSensors, RStateLastUpdated, id));
                             }
                         }
 
@@ -986,8 +988,9 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
                         {
                             if (item2->lastChanged() == item2->lastSet())
                             {
-                              Event e(RSensors, RStateDaylight, id);
-                              enqueueEvent(e);
+                                Event e(RSensors, RStateDaylight, id, item);
+                                enqueueEvent(e);
+                                enqueueEvent(Event(RSensors, RStateLastUpdated, id));
                             }
                         }
 
@@ -1293,8 +1296,6 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         ResourceItem *item = sensor->item(e.what());
         if (item)
         {
-            checkRulesForResource(sensor);
-
             QVariantMap map;
             map["t"] = QLatin1String("event");
             map["e"] = QLatin1String("changed");
@@ -1319,8 +1320,6 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         ResourceItem *item = sensor->item(e.what());
         if (item)
         {
-            // checkRulesForResource(sensor);
-
             QVariantMap map;
             map["t"] = QLatin1String("event");
             map["e"] = QLatin1String("changed");
@@ -1527,7 +1526,7 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
         {
             DBG_Printf(DBG_INFO, "sensor %s (%s): disable presence after %d seconds\n", qPrintable(sensor->id()), qPrintable(sensor->modelId()), dt);
             item->setValue(false);
-            Event e(RSensors, RStatePresence, sensor->id());
+            Event e(RSensors, RStatePresence, sensor->id(), item);
             enqueueEvent(e);
         }
     }

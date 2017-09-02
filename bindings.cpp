@@ -1314,7 +1314,7 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
         item->setValue(group->id());
         sensor->setNeedSaveDatabase(true);
         queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
-        Event e(RSensors, RConfigGroup, sensor->id());
+        Event e(RSensors, RConfigGroup, sensor->id(), item);
         enqueueEvent(e);
     }
 }

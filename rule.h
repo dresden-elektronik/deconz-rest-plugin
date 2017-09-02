@@ -172,6 +172,8 @@ public:
         OpDdx,
         OpIn,
         OpNotIn,
+        OpStable,
+        OpNotStable,
 
         OpUnknown
     };
