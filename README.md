@@ -50,7 +50,9 @@ Packages for Qt4 and Raspbian Wheezy are available but not described here.
 
 3. Compile the plugin
 
-        qmake && make -j3
+        qmake && make -j2
+
+**Note** On Raspberry Pi 1 use `qmake && make`
 
 4. Replace original plugin
 
