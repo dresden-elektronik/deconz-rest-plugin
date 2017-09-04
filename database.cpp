@@ -1852,7 +1852,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item->setValue(100);
         }
 
-        if (stateCol >= 0)
+        if (stateCol >= 0 && !isClip)
         {
             sensor.jsonToState(QLatin1String(colval[stateCol]));
         }

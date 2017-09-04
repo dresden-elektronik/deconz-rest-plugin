@@ -39,11 +39,6 @@ public:
         StateIdle
     };
 
-    enum Event
-    {
-        TaskAdded
-    };
-
     explicit DeRestPlugin(QObject *parent = 0);
     ~DeRestPlugin();
     // node interface

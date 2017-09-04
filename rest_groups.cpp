@@ -1196,7 +1196,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
                 if (hasOn && item && group->isOn() != item->toBool())
                 {
                     item->setValue(group->isOn());
-                    Event e(RLights, RStateOn, i->id());
+                    Event e(RLights, RStateOn, i->id(), item);
                     enqueueEvent(e);
                     modified = true;
                 }
@@ -1205,7 +1205,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
                 if (hasBri && item && group->level != item->toNumber())
                 {
                     item->setValue(group->level);
-                    Event e(RLights, RStateBri, i->id());
+                    Event e(RLights, RStateBri, i->id(), item);
                     enqueueEvent(e);
                     modified = true;
                 }
@@ -1230,7 +1230,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
                         if (item && item->toNumber() != colorX)
                         {
                             item->setValue(colorX);
-                            Event e(RLights, RStateX, i->id());
+                            Event e(RLights, RStateX, i->id(), item);
                             enqueueEvent(e);
                             modified = true;
                         }
@@ -1239,7 +1239,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
                         if (item && item->toNumber() != colorY)
                         {
                             item->setValue(colorY);
-                            Event e(RLights, RStateY, i->id());
+                            Event e(RLights, RStateY, i->id(), item);
                             enqueueEvent(e);
                             modified = true;
                         }
@@ -1260,7 +1260,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
                         if (item && item->toNumber() != ct)
                         {
                             item->setValue(ct);
-                            Event e(RLights, RStateCt, i->id());
+                            Event e(RLights, RStateCt, i->id(), item);
                             enqueueEvent(e);
                             modified = true;
                         }
@@ -1281,7 +1281,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
                         {
                             i->setEnhancedHue(group->hue);
                             item->setValue(group->hue);
-                            Event e(RLights, RStateHue, i->id());
+                            Event e(RLights, RStateHue, i->id(), item);
                             enqueueEvent(e);
 
                             if (!hasXy && !hasSat)
@@ -1324,7 +1324,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
                         if (item && item->toNumber() != group->sat)
                         {
                             item->setValue(group->sat);
-                            Event e(RLights, RStateSat, i->id());
+                            Event e(RLights, RStateSat, i->id(), item);
                             enqueueEvent(e);
 
                             if (!hasXy)
@@ -2488,7 +2488,7 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
             if (item && item->toBool() != ls->on())
             {
                 item->setValue(ls->on());
-                Event e(RLights, RStateOn, lightNode->id());
+                Event e(RLights, RStateOn, lightNode->id(), item);
                 enqueueEvent(e);
                 changed = true;
                 groupOnChanged = true;
@@ -2498,7 +2498,7 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
             if (item && ls->bri() != item->toNumber())
             {
                 item->setValue(ls->bri());
-                Event e(RLights, RStateBri, lightNode->id());
+                Event e(RLights, RStateBri, lightNode->id(), item);
                 enqueueEvent(e);
                 changed = true;
                 groupBriChanged = true;
@@ -2522,7 +2522,7 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
                     if (item && ls->x() != item->toNumber())
                     {
                         item->setValue(ls->x());
-                        Event e(RLights, RStateX, lightNode->id());
+                        Event e(RLights, RStateX, lightNode->id(), item);
                         enqueueEvent(e);
                         changed = true;
                     }
@@ -2530,7 +2530,7 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
                     if (item && ls->y() != item->toNumber())
                     {
                         item->setValue(ls->y());
-                        Event e(RLights, RStateY, lightNode->id());
+                        Event e(RLights, RStateY, lightNode->id(), item);
                         enqueueEvent(e);
                         changed = true;
                     }
@@ -2541,7 +2541,7 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
                     if (item && ls->colorTemperature() != item->toNumber())
                     {
                         item->setValue(ls->colorTemperature());
-                        Event e(RLights, RStateCt, lightNode->id());
+                        Event e(RLights, RStateCt, lightNode->id(), item);
                         enqueueEvent(e);
                         changed = true;
                         groupCtChanged = true;
@@ -2553,7 +2553,7 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
                     if (item && ls->enhancedHue() != item->toNumber())
                     {
                         item->setValue(ls->enhancedHue());
-                        Event e(RLights, RStateHue, lightNode->id());
+                        Event e(RLights, RStateHue, lightNode->id(), item);
                         enqueueEvent(e);
                         changed = true;
                         groupHueSatChanged = true;
@@ -2563,7 +2563,7 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
                     if (item && ls->saturation() != item->toNumber())
                     {
                         item->setValue(ls->saturation());
-                        Event e(RLights, RStateSat, lightNode->id());
+                        Event e(RLights, RStateSat, lightNode->id(), item);
                         enqueueEvent(e);
                         changed = true;
                         groupHueSatChanged = true;

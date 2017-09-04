@@ -692,7 +692,8 @@ public:
     int updateRule(const ApiRequest &req, ApiResponse &rsp);
     int deleteRule(const ApiRequest &req, ApiResponse &rsp);
     void queueCheckRuleBindings(const Rule &rule);
-    void triggerRuleIfNeeded(Rule &rule);
+    bool evaluateRule(Rule &rule, const Event &e, Resource *eResource, ResourceItem *eItem);
+    void indexRuleTriggers(Rule &rule);
     void triggerRule(Rule &rule);
     bool ruleToMap(const Rule *rule, QVariantMap &map);
 
@@ -760,7 +761,6 @@ public Q_SLOTS:
     void otauTimerFired();
     void updateSoftwareTimerFired();
     void lockGatewayTimerFired();
-    void saveCurrentRuleInDbTimerFired();
     void openClientTimerFired();
     void clientSocketDestroyed();
     void saveDatabaseTimerFired();
@@ -778,8 +778,9 @@ public Q_SLOTS:
     void bindingToRuleTimerFired();
     void bindingTableReaderTimerFired();
     void verifyRuleBindingsTimerFired();
-    void checkRulesForResource(const Resource *resource);
+    void indexRulesTriggers();
     void fastRuleCheckTimerFired();
+    void handleRuleEvent(const Event &e);
     void queueBindingTask(const BindingTask &bindingTask);
     void restartAppTimerFired();
     void restartGatewayTimerFired();
@@ -1286,9 +1287,7 @@ public:
 
     // rules
     std::vector<int> fastRuleCheck;
-    int fastRuleCheckCounter;
     QTimer *fastRuleCheckTimer;
-    QTimer *saveCurrentRuleInDbTimer;
 
     // general
     ApiConfig config;

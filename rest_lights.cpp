@@ -626,7 +626,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 if (item && item->toNumber() != (quint16)x)
                 {
                     item->setValue((quint16)x);
-                    Event e(RLights, RStateX, task.lightNode->id());
+                    Event e(RLights, RStateX, task.lightNode->id(), item);
                     enqueueEvent(e);
                 }
 
@@ -634,7 +634,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 if (item && item->toNumber() != (quint16)y)
                 {
                     item->setValue((quint16)y);
-                    Event e(RLights, RStateY, task.lightNode->id());
+                    Event e(RLights, RStateY, task.lightNode->id(), item);
                     enqueueEvent(e);
                 }
             }
@@ -702,7 +702,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 if (item && item->toNumber() != (quint16)x)
                 {
                     item->setValue((quint16)x);
-                    Event e(RLights, RStateX, task.lightNode->id());
+                    Event e(RLights, RStateX, task.lightNode->id(), item);
                     enqueueEvent(e);
                 }
 
@@ -710,7 +710,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 if (item && item->toNumber() != (quint16)y)
                 {
                     item->setValue((quint16)y);
-                    Event e(RLights, RStateY, task.lightNode->id());
+                    Event e(RLights, RStateY, task.lightNode->id(), item);
                     enqueueEvent(e);
                 }
             }
