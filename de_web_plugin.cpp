@@ -1134,20 +1134,25 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 }
             }
 
-            if (lightNode.name().isEmpty())
-                lightNode.setName(QString("Light %1").arg(lightNode.id()));
+            if (lightNode.modelId() == QLatin1String("FLS-PP3 White"))
+            { } // only push data from FLS-PP3 color endpoint
+            else
+            {
+                if (lightNode.name().isEmpty())
+                    lightNode.setName(QString("Light %1").arg(lightNode.id()));
 
-            if (!lightNode.name().isEmpty())
-            { q->nodeUpdated(lightNode.address().ext(), QLatin1String("name"), lightNode.name()); }
+                if (!lightNode.name().isEmpty())
+                { q->nodeUpdated(lightNode.address().ext(), QLatin1String("name"), lightNode.name()); }
 
-            if (!lightNode.swBuildId().isEmpty())
-            { q->nodeUpdated(lightNode.address().ext(), QLatin1String("version"), lightNode.swBuildId()); }
+                if (!lightNode.swBuildId().isEmpty())
+                { q->nodeUpdated(lightNode.address().ext(), QLatin1String("version"), lightNode.swBuildId()); }
 
-            if (!lightNode.manufacturer().isEmpty())
-            { q->nodeUpdated(lightNode.address().ext(), QLatin1String("vendor"), lightNode.manufacturer()); }
+                if (!lightNode.manufacturer().isEmpty())
+                { q->nodeUpdated(lightNode.address().ext(), QLatin1String("vendor"), lightNode.manufacturer()); }
 
-            if (!lightNode.modelId().isEmpty())
-            { q->nodeUpdated(lightNode.address().ext(), QLatin1String("modelid"), lightNode.modelId()); }
+                if (!lightNode.modelId().isEmpty())
+                { q->nodeUpdated(lightNode.address().ext(), QLatin1String("modelid"), lightNode.modelId()); }
+            }
 
             // force reading attributes
             lightNode.enableRead(READ_VENDOR_NAME |
@@ -2207,27 +2212,12 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                     i->address() = node->address();
                 }
 
-                if (i->modelId().startsWith(QLatin1String("FLS-NB")))
-                {
-                    continue; // use name from light
-                }
-
                 if (i->node() != node)
                 {
                     i->setNode(const_cast<deCONZ::Node*>(node));
                     DBG_Printf(DBG_INFO, "SensorNode %s set node %s\n", qPrintable(i->id()), qPrintable(node->address().toStringExt()));
 
-                    if (!i->name().isEmpty())
-                    { q->nodeUpdated(i->address().ext(), QLatin1String("name"), i->name()); }
-
-                    if (!i->modelId().isEmpty())
-                    { q->nodeUpdated(i->address().ext(), QLatin1String("modelid"), i->modelId()); }
-
-                    if (!i->manufacturer().isEmpty())
-                    { q->nodeUpdated(i->address().ext(), QLatin1String("vendor"), i->manufacturer()); }
-
-                    if (!i->swVersion().isEmpty())
-                    { q->nodeUpdated(i->address().ext(), QLatin1String("version"), i->swVersion()); }
+                    pushSensorInfoToCore(&*i);
                 }
             }
         }
@@ -3628,6 +3618,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->setNeedSaveDatabase(true);
                                         checkInstaModelId(&*i);
                                         updateSensorEtag(&*i);
+                                        pushSensorInfoToCore(&*i);
                                         queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
                                     }
 
@@ -3658,6 +3649,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         updateSensorEtag(&*i);
                                         i->setManufacturer(str);
                                         i->setNeedSaveDatabase(true);
+                                        pushSensorInfoToCore(&*i);
                                         queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
                                     }
                                 }
@@ -3673,6 +3665,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     i->setSwVersion(str);
                                     i->setNeedSaveDatabase(true);
+                                    pushSensorInfoToCore(&*i);
                                     queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
                                     updateSensorEtag(&*i);
                                 }
@@ -3690,6 +3683,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         i->setSwVersion(str);
                                         i->setNeedSaveDatabase(true);
+                                        pushSensorInfoToCore(&*i);
                                         queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
                                         updateSensorEtag(&*i);
                                     }
@@ -10800,7 +10794,44 @@ void DeRestPluginPrivate::shutDownGatewayTimerFired()
 
 void DeRestPluginPrivate::simpleRestartAppTimerFired()
 {
-     qApp->exit(APP_RET_RESTART_APP);
+    qApp->exit(APP_RET_RESTART_APP);
+}
+
+/*! Set sensor node attributes to deCONZ core (nodes and node list).
+ */
+void DeRestPluginPrivate::pushSensorInfoToCore(Sensor *sensor)
+{
+    DBG_Assert(sensor != 0);
+    if (!sensor)
+    {
+        return;
+    }
+
+    Q_Q(DeRestPlugin);
+
+    if (sensor->modelId().startsWith(QLatin1String("FLS-NB")))
+    { } // use name from light
+    else if (sensor->modelId() == QLatin1String("SML001") && sensor->type() != QLatin1String("ZHAPresence"))
+    { } // use name from ZHAPresence sensor only
+    else if (!sensor->name().isEmpty())
+    {
+        q->nodeUpdated(sensor->address().ext(), QLatin1String("name"), sensor->name());
+    }
+
+    if (!sensor->modelId().isEmpty())
+    {
+        q->nodeUpdated(sensor->address().ext(), QLatin1String("modelid"), sensor->modelId());
+    }
+
+    if (!sensor->manufacturer().isEmpty())
+    {
+        q->nodeUpdated(sensor->address().ext(), QLatin1String("vendor"), sensor->manufacturer());
+    }
+
+    if (!sensor->swVersion().isEmpty())
+    {
+        q->nodeUpdated(sensor->address().ext(), QLatin1String("version"), sensor->swVersion());
+    }
 }
 
 /*! Request to disconnect from network.

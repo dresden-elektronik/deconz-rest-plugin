@@ -1401,10 +1401,10 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
                 return false;
             }
         }
+        /*
         else if (c->op() == RuleCondition::OpNotIn && c->suffix() == RConfigLocalTime)
         {
             return false; // TODO
-            /*
             if (rule.lastTriggered().isValid() &&
                 rule.lastTriggered() >= item->lastChanged())
             { ok = 0; break; } // already handled
@@ -1419,10 +1419,11 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
                 // 0:00 - 20:00 ||  0:00 - 4:00
             {  }
             else { ok = 0; break; }
-            */
         }
+            */
         else
         {
+            DBG_Printf(DBG_ERROR, "error: rule (%s) operator %s not supported\n", qPrintable(rule.id()), qPrintable(c->ooperator()));
             return false;
         }
     }
