@@ -10811,6 +10811,8 @@ void DeRestPluginPrivate::pushSensorInfoToCore(Sensor *sensor)
 
     if (sensor->modelId().startsWith(QLatin1String("FLS-NB")))
     { } // use name from light
+    else if (sensor->modelId().startsWith(QLatin1String("D1")))
+    { } // use name from light
     else if (sensor->modelId() == QLatin1String("SML001") && sensor->type() != QLatin1String("ZHAPresence"))
     { } // use name from ZHAPresence sensor only
     else if (!sensor->name().isEmpty())
