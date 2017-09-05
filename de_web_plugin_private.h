@@ -326,6 +326,7 @@ struct Schedule
         type(TypeInvalid),
         state(StateNormal),
         status("enabled"),
+        activation("start"),
         autodelete(true),
         weekBitmap(0),
         recurring(0),
@@ -352,6 +353,8 @@ struct Schedule
     QString starttime;
     /*! status of schedule (enabled or disabled). */
     QString status;
+    /*! should activation of schedule start or end at given time (if a fading time is given) (start or end). */
+    QString activation;
     /*! If set to true, the schedule will be removed automatically if expired, if set to false it will be disabled. */
     bool autodelete;
     /*! Same as time but as qt object. */

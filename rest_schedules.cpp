@@ -96,6 +96,7 @@ int DeRestPluginPrivate::getAllSchedules(const ApiRequest &req, ApiResponse &rsp
                 mnode["starttime"] = i->starttime;
             }
             mnode["status"] = i->status;
+            mnode["activation"] = i->activation;
             mnode["autodelete"] = i->autodelete;
             QString etag = i->etag;
             etag.remove('"'); // no quotes allowed in string
@@ -193,6 +194,7 @@ int DeRestPluginPrivate::getScheduleAttributes(const ApiRequest &req, ApiRespons
                 rsp.map["starttime"] = i->starttime;
             }
             rsp.map["status"] = i->status;
+            rsp.map["activation"] = i->activation;
             rsp.map["autodelete"] = i->autodelete;
             QString etag = i->etag;
             etag.remove('"'); // no quotes allowed in string
@@ -297,6 +299,28 @@ int DeRestPluginPrivate::setScheduleAttributes(const ApiRequest &req, ApiRespons
                 else
                 {
                     rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules/%1").arg(id), QString("invalid value, %1, for parameter status").arg(map["status"].toString())));
+                }
+            }
+
+            if (map.contains("activation") && (map["activation"].type() == QVariant::String))
+            {
+                QString activation = map["activation"].toString();
+
+                if ((activation == "start") || (activation == "end"))
+                {
+                    i->activation = activation;
+                    i->jsonMap["activation"] = map["activation"];
+
+                    QVariantMap rspItem;
+                    QVariantMap rspItemState;
+                    rspItemState[QString("/schedules/%1/activation").arg(id)] = map["activation"];
+                    rspItem["success"] = rspItemState;
+                    rsp.list.append(rspItem);
+                    rsp.httpStatus = HttpStatusOk;
+                }
+                else
+                {
+                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules/%1").arg(id), QString("invalid value, %1, for parameter activation").arg(map["activation"].toString())));
                 }
             }
 
@@ -631,6 +655,12 @@ bool DeRestPluginPrivate::jsonToSchedule(const QString &jsonString, Schedule &sc
     {
         schedule.status = map["status"].toString();
     }// else status enabled is used
+
+    // activation
+    if (map.contains("activation") && (map["activation"].type() == QVariant::String) && ((map["activation"].toString() == "start") || (map["activation"].toString() == "end")))
+    {
+        schedule.activation = map["activation"].toString();
+    }// else activation start is used
 
     // autodelete
     if (map.contains("autodelete") && (map["autodelete"].type() == QVariant::Bool))
