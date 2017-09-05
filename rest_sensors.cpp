@@ -663,6 +663,10 @@ int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
                 queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
                 updateSensorEtag(sensor);
             }
+            if (!sensor->type().startsWith(QLatin1String("CLIP")))
+            {
+                pushSensorInfoToCore(sensor);
+            }
             rspItemState[QString("/sensors/%1/name:").arg(id)] = name;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
@@ -1340,18 +1344,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         checkSensorBindingsForClientClusters(sensor);
 
         Q_Q(DeRestPlugin);
-
-        if (!sensor->name().isEmpty())
-        { q->nodeUpdated(sensor->address().ext(), QLatin1String("name"), sensor->name()); }
-
-        if (!sensor->modelId().isEmpty())
-        { q->nodeUpdated(sensor->address().ext(), QLatin1String("modelid"), sensor->modelId()); }
-
-        if (!sensor->manufacturer().isEmpty())
-        { q->nodeUpdated(sensor->address().ext(), QLatin1String("vendor"), sensor->manufacturer()); }
-
-        if (!sensor->swVersion().isEmpty())
-        { q->nodeUpdated(sensor->address().ext(), QLatin1String("version"), sensor->swVersion()); }
+        pushSensorInfoToCore(sensor);
 
         QVariantMap res;
         res["name"] = sensor->name();
