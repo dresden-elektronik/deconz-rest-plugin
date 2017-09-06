@@ -720,6 +720,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     Sensor *sensor = getSensorNodeForId(id);
     bool ok;
     bool updated = false;
+    bool tholdupdated = false;
     QVariant var = Json::parse(req.content, ok);
     QVariantMap map = var.toMap();
     QVariantMap rspItem;
@@ -833,6 +834,11 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         Event e(RSensors, rid.suffix, id, item);
                         enqueueEvent(e);
                         updated = true;
+
+                        if (rid.suffix == RConfigTholdDark || rid.suffix == RConfigTholdOffset)
+                        {
+                            tholdupdated = true;
+                        }
                     }
                 }
                 else // invalid
@@ -854,6 +860,57 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
         }
     }
 
+    if (tholdupdated)
+    {
+        ResourceItem *item = sensor->item(RStateLightLevel);
+        if (item)
+        {
+            quint16 lightlevel = item->toNumber();
+
+            item = sensor->item(RConfigTholdDark);
+            if (item)
+            {
+                quint16 tholddark = item->toNumber();
+
+                item = sensor->item(RConfigTholdOffset);
+                if (item)
+                {
+                    quint16 tholdoffset = item->toNumber();
+
+                    bool dark = lightlevel <= tholddark;
+                    bool daylight = lightlevel >= tholddark + tholdoffset;
+
+                    item = sensor->item(RStateDark);
+                    if (!item)
+                    {
+                        item = sensor->addItem(DataTypeBool, RStateDark);
+                    }
+                    if (item->setValue(dark))
+                    {
+                        if (item->lastChanged() == item->lastSet())
+                        {
+                            Event e(RSensors, RStateDark, sensor->id(), item);
+                            enqueueEvent(e);
+                        }
+                    }
+
+                    item = sensor->item(RStateDaylight);
+                    if (!item)
+                    {
+                        item = sensor->addItem(DataTypeBool, RStateDaylight);
+                    }
+                    if (item->setValue(daylight))
+                    {
+                        if (item->lastChanged() == item->lastSet())
+                        {
+                            Event e(RSensors, RStateDaylight, sensor->id(), item);
+                            enqueueEvent(e);
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     // TODO handle this in event, this is relevant for FLS-NB.
 
