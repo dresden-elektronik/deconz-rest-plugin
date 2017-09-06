@@ -1034,9 +1034,8 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
                         {
                             if (item2->lastChanged() == item2->lastSet())
                             {
-                                Event e(RSensors, RStateDark, id, item);
+                                Event e(RSensors, RStateDark, id, item2);
                                 enqueueEvent(e);
-                                enqueueEvent(Event(RSensors, RStateLastUpdated, id));
                             }
                         }
 
@@ -1049,9 +1048,8 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
                         {
                             if (item2->lastChanged() == item2->lastSet())
                             {
-                                Event e(RSensors, RStateDaylight, id, item);
+                                Event e(RSensors, RStateDaylight, id, item2);
                                 enqueueEvent(e);
-                                enqueueEvent(Event(RSensors, RStateLastUpdated, id));
                             }
                         }
 
@@ -1089,6 +1087,11 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
                             lux = 0;
                         }
                         item2->setValue(lux);
+                        if (item2->lastChanged() == item2->lastSet())
+                        {
+                            Event e(RSensors, RStateLux, id, item2);
+                            enqueueEvent(e);
+                        }
                     }
                 }
                 else // invalid
