@@ -3281,7 +3281,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         Event e(RSensors, RStateDark, i->id(), item);
                                         enqueueEvent(e);
-                                        enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
                                     }
                                 }
 
@@ -3296,7 +3295,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         Event e(RSensors, RStateDaylight, i->id(), item);
                                         enqueueEvent(e);
-                                        enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
                                     }
                                 }
 
@@ -3338,6 +3336,11 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         lux = 0;
                                     }
                                     item->setValue(lux);
+                                    if (item->lastChanged() == item->lastSet())
+                                    {
+                                        Event e(RSensors, RStateLux, i->id(), item);
+                                        enqueueEvent(e);
+                                    }
                                 }
 
                                 updateSensorEtag(&*i);
