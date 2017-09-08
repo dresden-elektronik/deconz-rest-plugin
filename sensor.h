@@ -127,6 +127,7 @@ public:
     QString etag;
     const ButtonMap *buttonMap();
     uint8_t previousDirection;
+    QDateTime lastStatePush;
 
 private:
     DeletedState m_deletedstate;
