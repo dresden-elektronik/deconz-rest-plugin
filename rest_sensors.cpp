@@ -1353,6 +1353,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
     {
         return;
     }
+    QDateTime now = QDateTime::currentDateTime();
 
     // push sensor state updates through websocket
     if (strncmp(e.what(), "state/", 6) == 0)
@@ -1360,23 +1361,42 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         ResourceItem *item = sensor->item(e.what());
         if (item)
         {
+            if (sensor->lastStatePush.isValid() &&
+            item->lastSet() < sensor->lastStatePush)
+            {
+                DBG_Printf(DBG_INFO, "discard sensor state push for %s (already pushed)\n", e.what());
+                return; // already pushed
+            }
+
             QVariantMap map;
             map["t"] = QLatin1String("event");
             map["e"] = QLatin1String("changed");
             map["r"] = QLatin1String("sensors");
             map["id"] = e.id();
             QVariantMap state;
-            state[e.what() + 6] = item->toVariant();
 
-            item = sensor->item(RStateLastUpdated);
-            if (item)
+            for (int i = 0; i < sensor->itemCount(); i++)
             {
-                state["lastupdated"] = item->toVariant();
+                item = sensor->itemForIndex(i);
+                const ResourceItemDescriptor &rid = item->descriptor();
+
+                if (strncmp(rid.suffix, "state/", 6) == 0)
+                {
+                    const char *key = item->descriptor().suffix + 6;
+
+                    if (item->lastSet().isValid())
+                    {
+                        state[key] = item->toVariant();
+                    }
+                }
             }
 
-            map["state"] = state;
-
-            webSocketServer->broadcastTextMessage(Json::serialize(map));
+            if (!state.isEmpty())
+            {
+                map["state"] = state;
+                webSocketServer->broadcastTextMessage(Json::serialize(map));
+                sensor->lastStatePush = now;
+            }
         }
     }
     else if (strncmp(e.what(), "config/", 7) == 0)
