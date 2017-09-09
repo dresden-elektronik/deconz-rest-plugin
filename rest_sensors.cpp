@@ -1404,17 +1404,42 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         ResourceItem *item = sensor->item(e.what());
         if (item)
         {
+            if (sensor->lastConfigPush.isValid() &&
+            item->lastSet() < sensor->lastConfigPush)
+            {
+                DBG_Printf(DBG_INFO, "discard sensor config push for %s (already pushed)\n", e.what());
+                return; // already pushed
+            }
+
             QVariantMap map;
             map["t"] = QLatin1String("event");
             map["e"] = QLatin1String("changed");
             map["r"] = QLatin1String("sensors");
             map["id"] = e.id();
             QVariantMap config;
-            config[e.what() + 7] = item->toVariant();
 
-            map["config"] = config;
+            for (int i = 0; i < sensor->itemCount(); i++)
+            {
+                item = sensor->itemForIndex(i);
+                const ResourceItemDescriptor &rid = item->descriptor();
 
-            webSocketServer->broadcastTextMessage(Json::serialize(map));
+                if (strncmp(rid.suffix, "config/", 7) == 0)
+                {
+                    const char *key = item->descriptor().suffix + 7;
+
+                    if (item->lastSet().isValid())
+                    {
+                        config[key] = item->toVariant();
+                    }
+                }
+            }
+
+            if (!config.isEmpty())
+            {
+                map["config"] = config;
+                webSocketServer->broadcastTextMessage(Json::serialize(map));
+                sensor->lastConfigPush = now;
+            }
         }
     }
     else if (e.what() == REventAdded)
