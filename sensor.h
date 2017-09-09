@@ -128,6 +128,7 @@ public:
     const ButtonMap *buttonMap();
     uint8_t previousDirection;
     QDateTime lastStatePush;
+    QDateTime lastConfigPush;
 
 private:
     DeletedState m_deletedstate;
