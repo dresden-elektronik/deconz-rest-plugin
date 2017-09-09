@@ -719,7 +719,7 @@ bool DeRestPluginPrivate::addTaskIdentify(TaskItem &task, uint16_t identifyTime)
 
     task.zclFrame.payload().clear();
     task.zclFrame.setSequenceNumber(zclSeq++);
-    task.zclFrame.setCommandId(0x00); // Add to group
+    task.zclFrame.setCommandId(0x00); // Identify
     task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
                              deCONZ::ZclFCDirectionClientToServer |
                              deCONZ::ZclFCDisableDefaultResponse);
@@ -729,6 +729,46 @@ bool DeRestPluginPrivate::addTaskIdentify(TaskItem &task, uint16_t identifyTime)
         stream.setByteOrder(QDataStream::LittleEndian);
 
         stream << task.identifyTime;
+    }
+
+    { // ZCL frame
+        task.req.asdu().clear(); // cleanup old request data if there is any
+        QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        task.zclFrame.writeToStream(stream);
+    }
+
+    return addTask(task);
+}
+
+/*! Add a trigger effect task to the queue.
+
+   \param task - the task item
+   \param effectIdentifier - the effect
+   \return true - on success
+           false - on error
+ */
+bool DeRestPluginPrivate::addTaskTriggerEffect(TaskItem &task, uint8_t effectIdentifier)
+{
+    task.taskType = TaskTriggerEffect;
+    task.effectIdentifier = effectIdentifier;
+
+    task.req.setClusterId(IDENTIFY_CLUSTER_ID);
+    task.req.setProfileId(HA_PROFILE_ID);
+
+    task.zclFrame.payload().clear();
+    task.zclFrame.setSequenceNumber(zclSeq++);
+    task.zclFrame.setCommandId(0x40); // Trigger Effect
+    task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
+                             deCONZ::ZclFCDirectionClientToServer |
+                             deCONZ::ZclFCDisableDefaultResponse);
+
+    { // payload
+        QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        stream << task.effectIdentifier;
+        stream << 0x00; // default effectVariant
     }
 
     { // ZCL frame

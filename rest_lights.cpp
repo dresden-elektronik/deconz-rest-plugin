@@ -399,6 +399,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     bool hasEffect = map.contains("effect");
     bool hasEffectColorLoop = false;
     bool hasAlert = map.contains("alert");
+
     {
         ResourceItem *item = task.lightNode->item(RStateOn);
         DBG_Assert(item != 0);
@@ -912,15 +913,48 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
         if (alert == "none")
         {
+            task.taskType = TaskIdentify;
             task.identifyTime = 0;
         }
         else if (alert == "select")
         {
+            task.taskType = TaskIdentify;
             task.identifyTime = 2;    // Hue lights don't react to 1.
         }
         else if (alert == "lselect")
         {
+            task.taskType = TaskIdentify;
             task.identifyTime = 15;   // Default for Philips Hue bridge
+        }
+        else if (alert == "blink")
+        {
+            task.taskType = TaskTriggerEffect;
+            task.effectIdentifier = 0x00;
+        }
+        else if (alert == "breathe")
+        {
+            task.taskType = TaskTriggerEffect;
+            task.effectIdentifier = 0x01;
+        }
+        else if (alert == "okay")
+        {
+            task.taskType = TaskTriggerEffect;
+            task.effectIdentifier = 0x02;
+        }
+        else if (alert == "channelchange")
+        {
+            task.taskType = TaskTriggerEffect;
+            task.effectIdentifier = 0x0b;
+        }
+        else if (alert == "finish")
+        {
+            task.taskType = TaskTriggerEffect;
+            task.effectIdentifier = 0xfe;
+        }
+        else if (alert == "stop")
+        {
+            task.taskType = TaskTriggerEffect;
+            task.effectIdentifier = 0xff;
         }
         else
         {
@@ -929,10 +963,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             return REQ_READY_SEND;
         }
 
-        task.taskType = TaskIdentify;
         taskToLocalData(task);
 
-        if (addTaskIdentify(task, task.identifyTime))
+        if ((task.taskType == TaskIdentify && addTaskIdentify(task, task.identifyTime)) ||
+            (task.taskType == TaskTriggerEffect && addTaskTriggerEffect(task, task.effectIdentifier)))
         {
             QVariantMap rspItem;
             QVariantMap rspItemState;

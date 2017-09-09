@@ -409,7 +409,8 @@ enum TaskType
     TaskRemoveAllScenes = 29,
     TaskAddToGroup = 30,
     TaskRemoveFromGroup = 31,
-    TaskViewGroup = 32
+    TaskViewGroup = 32,
+    TaskTriggerEffect = 33
 };
 
 struct TaskItem
@@ -439,6 +440,7 @@ struct TaskItem
     bool colorLoop;
     qreal hueReal;
     uint16_t identifyTime;
+    uint8_t effectIdentifier;
     uint8_t hue;
     uint8_t sat;
     uint8_t level;
@@ -945,6 +947,7 @@ public:
     bool addTaskSetXyColor(TaskItem &task, double x, double y);
     bool addTaskSetColorLoop(TaskItem &task, bool colorLoopActive, uint8_t speed);
     bool addTaskIdentify(TaskItem &task, uint16_t identifyTime);
+    bool addTaskTriggerEffect(TaskItem &task, uint8_t effectIdentifier);
     bool addTaskAddToGroup(TaskItem &task, uint16_t groupId);
     bool addTaskViewGroup(TaskItem &task, uint16_t groupId);
     bool addTaskRemoveFromGroup(TaskItem &task, uint16_t groupId);
