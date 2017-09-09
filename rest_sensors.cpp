@@ -1370,6 +1370,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                 {
                     const char *key = item->descriptor().suffix + 6;
 
+                    // if (item->lastSet().isValid() && item->lastChanged().isValid() && item->lastChanged() >= sensor->lastStatePush)
                     if (item->lastSet().isValid())
                     {
                         state[key] = item->toVariant();
@@ -1413,6 +1414,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                 {
                     const char *key = item->descriptor().suffix + 7;
 
+                    // if (item->lastSet().isValid() && item->lastChanged().isValid() && item->lastChanged() >= sensor->lastConfigPush)
                     if (item->lastSet().isValid())
                     {
                         config[key] = item->toVariant();

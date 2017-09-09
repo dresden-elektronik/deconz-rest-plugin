@@ -1719,6 +1719,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item->setValue(0);
             item = sensor.addItem(DataTypeBool, RStateDark);
             item->setValue(true);
+            item->setTimeStamps(QDateTime::currentDateTime().addSecs(-120));
             item = sensor.addItem(DataTypeBool, RStateDaylight);
             item->setValue(false);
             item = sensor.addItem(DataTypeUInt16, RConfigTholdDark);

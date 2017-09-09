@@ -370,6 +370,10 @@ Sensor::Sensor() :
     m_buttonMap(0),
     m_rxCounter(0)
 {
+    QDateTime now = QDateTime::currentDateTime();
+    lastStatePush = now;
+    lastConfigPush = now;
+
     // common sensor items
     addItem(DataTypeBool, RConfigOn);
     addItem(DataTypeBool, RConfigReachable);
@@ -643,6 +647,7 @@ void Sensor::jsonToConfig(const QString &json)
         return;
     }
     QVariantMap map = var.toMap();
+    QDateTime dt = QDateTime::currentDateTime().addSecs(-120);
 
     for (int i = 0; i < itemCount(); i++)
     {
@@ -664,6 +669,7 @@ void Sensor::jsonToConfig(const QString &json)
             if (map.contains(QLatin1String(key)))
             {
                 item->setValue(map[key]);
+                item->setTimeStamps(dt);
             }
         }
     }
