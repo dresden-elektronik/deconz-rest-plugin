@@ -293,7 +293,7 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
         else if (type == QLatin1String("CLIPPresence")) { item = sensor.addItem(DataTypeBool, RStatePresence); item->setValue(false);
                                                           item = sensor.addItem(DataTypeUInt16, RConfigDuration); item->setValue(60); }
         else if (type == QLatin1String("CLIPLightLevel")) { item = sensor.addItem(DataTypeUInt16, RStateLightLevel); item->setValue(0);
-                                                            item = sensor.addItem(DataTypeUInt16, RStateLux); item->setValue(0);
+                                                            item = sensor.addItem(DataTypeUInt32, RStateLux); item->setValue(0);
                                                             item = sensor.addItem(DataTypeBool, RStateDark); item->setValue(true);
                                                             item = sensor.addItem(DataTypeBool, RStateDaylight); item->setValue(false);
                                                             item = sensor.addItem(DataTypeUInt16, RConfigTholdDark); item->setValue(R_THOLDDARK_DEFAULT);
@@ -1056,35 +1056,21 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
                         item2 = sensor->item(RStateLux);
                         if (!item2)
                         {
-                            item2 = sensor->addItem(DataTypeUInt16, RStateLux);
+                            item2 = sensor->addItem(DataTypeUInt32, RStateLux);
                         }
-                        quint16 lux = 0;
+                        quint32 lux = 0;
                         if (measuredValue > 0 && measuredValue < 0xffff)
                         {
-                            lux = measuredValue;
                             // valid values are 1 - 0xfffe
                             // 0, too low to measure
                             // 0xffff invalid value
 
                             // ZCL Attribute = 10.000 * log10(Illuminance (lx)) + 1
                             // lux = 10^((ZCL Attribute - 1)/10.000)
-                            qreal exp = lux - 1;
+                            qreal exp = measuredValue - 1;
                             qreal l = qPow(10, exp / 10000.0f);
-
-                            if (l >= 1)
-                            {
-                                l += 0.5;   // round value
-                                lux = static_cast<quint16>(l);
-                            }
-                            else
-                            {
-                                DBG_Printf(DBG_INFO, "invalid lux value %u\n", lux);
-                                lux = 0; // invalid value
-                            }
-                        }
-                        else
-                        {
-                            lux = 0;
+                            l += 0.5;   // round value
+                            lux = static_cast<quint32>(l);
                         }
                         item2->setValue(lux);
                         if (item2->lastChanged() == item2->lastSet())

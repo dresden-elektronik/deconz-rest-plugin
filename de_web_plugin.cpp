@@ -3302,7 +3302,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 if (!item)
                                 {
-                                    item = i->addItem(DataTypeUInt16, RStateLux);
+                                    item = i->addItem(DataTypeUInt32, RStateLux);
                                 }
 
                                 if (item)
@@ -3310,30 +3310,16 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     quint32 lux = 0;
                                     if (measuredValue > 0 && measuredValue < 0xffff)
                                     {
-                                        lux = measuredValue;
                                         // valid values are 1 - 0xfffe
                                         // 0, too low to measure
                                         // 0xffff invalid value
 
                                         // ZCL Attribute = 10.000 * log10(Illuminance (lx)) + 1
                                         // lux = 10^((ZCL Attribute - 1)/10.000)
-                                        qreal exp = lux - 1;
+                                        qreal exp = measuredValue - 1;
                                         qreal l = qPow(10, exp / 10000.0f);
-
-                                        if (l >= 1)
-                                        {
-                                            l += 0.5;   // round value
-                                            lux = static_cast<quint32>(l);
-                                        }
-                                        else
-                                        {
-                                            DBG_Printf(DBG_INFO, "invalid lux value %u\n", lux);
-                                            lux = 0; // invalid value
-                                        }
-                                    }
-                                    else
-                                    {
-                                        lux = 0;
+                                        l += 0.5;   // round value
+                                        lux = static_cast<quint32>(l);
                                     }
                                     item->setValue(lux);
                                     if (item->lastChanged() == item->lastSet())

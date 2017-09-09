@@ -1715,7 +1715,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             item = sensor.addItem(DataTypeUInt16, RStateLightLevel);
             item->setValue(0);
-            item = sensor.addItem(DataTypeUInt16, RStateLux);
+            item = sensor.addItem(DataTypeUInt32, RStateLux);
             item->setValue(0);
             item = sensor.addItem(DataTypeBool, RStateDark);
             item->setValue(true);
