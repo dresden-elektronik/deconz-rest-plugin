@@ -3484,7 +3484,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 }
                                 updateSensorEtag(&*i);
                             }
-                            else if (i->modelId() != QLatin1String("SML001") && ia->id() == 0x0010) // occupied to unoccupied delay
+                            else if (i->modelId().startsWith(QLatin1String("FLS-NB")) && ia->id() == 0x0010) // occupied to unoccupied delay
                             {
                                 quint16 duration = ia->numericValue().u16;
                                 ResourceItem *item = i->item(RConfigDuration);
