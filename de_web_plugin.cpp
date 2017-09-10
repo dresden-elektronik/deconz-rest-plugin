@@ -2320,6 +2320,12 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                     }
 
                     fpSwitch.inClusters.push_back(ci->id());
+                    if (node->nodeDescriptor().manufacturerCode() == VENDOR_PHILIPS)
+                    {
+                        fpPresenceSensor.inClusters.push_back(ci->id());
+                        fpLightSensor.inClusters.push_back(ci->id());
+                        fpTemperatureSensor.inClusters.push_back(ci->id());
+                    }
                 }
                     break;
 
