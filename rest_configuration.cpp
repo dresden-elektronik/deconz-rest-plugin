@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2013-2017 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -9,6 +9,8 @@
  */
 
 #include <QApplication>
+#include <QCryptographicHash>
+#include <QMessageAuthenticationCode>
 #include <QDesktopServices>
 #include <QFile>
 #include <QString>
@@ -46,6 +48,11 @@ int DeRestPluginPrivate::handleConfigurationApi(const ApiRequest &req, ApiRespon
         if (req.path[1] == "config")
         {
           return getBasicConfig(req, rsp);
+        }
+        // GET /api/challenge
+        else if (req.path[1] == "challenge")
+        {
+          return getChallenge(req, rsp);
         }
         // GET /api/<apikey>
         else
@@ -151,12 +158,8 @@ int DeRestPluginPrivate::createUser(const ApiRequest &req, ApiResponse &rsp)
 
     if (!gwLinkButton)
     {
-        if (!allowedToCreateApikey(req))
+        if (!allowedToCreateApikey(req, rsp, map))
         {
-            rsp.httpStatus = HttpStatusForbidden;
-            // rsp.httpStatus = HttpStatusUnauthorized;
-            //rsp.hdrFields.append(qMakePair(QString("WWW-Authenticate"), QString("Basic realm=\"Enter Password\"")));
-            rsp.list.append(errorToMap(ERR_LINK_BUTTON_NOT_PRESSED, "/", "link button not pressed"));
             return REQ_READY_SEND;
         }
     }
@@ -740,6 +743,38 @@ int DeRestPluginPrivate::getBasicConfig(const ApiRequest &req, ApiResponse &rsp)
     return REQ_READY_SEND;
 }
 
+/*! GET /api/challenge
+    Creates a new authentification challenge which should be used as HMAC-Sha256(challenge, install code).
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::getChallenge(const ApiRequest &req, ApiResponse &rsp)
+{
+    Q_UNUSED(req);
+    QDateTime now = QDateTime::currentDateTime();
+
+    if (!apsCtrl || (gwLastChallenge.isValid() && gwLastChallenge.secsTo(now) < 5))
+    {
+        rsp.httpStatus = HttpStatusServiceUnavailable;
+        rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/api/challenge"), QString("too many requests, try again later")));
+        return REQ_READY_SEND;
+    }
+
+    qsrand(time(0));
+    QByteArray challange;
+
+    for (int i = 0; i < 64; i++)
+    {
+        challange.append(QString::number(qrand()));
+    }
+
+    gwLastChallenge = now;
+    gwChallenge = QCryptographicHash::hash(challange, QCryptographicHash::Sha256).toHex();
+    rsp.map["challenge"] = gwChallenge;
+    rsp.httpStatus = HttpStatusOk;
+
+    return REQ_READY_SEND;
+}
 
 /*! PUT, PATCH /api/<apikey>/config
     \return REQ_READY_SEND

@@ -566,7 +566,7 @@ public:
 
     // REST API authentification
     void initAuthentification();
-    bool allowedToCreateApikey(const ApiRequest &req);
+    bool allowedToCreateApikey(const ApiRequest &req, ApiResponse &rsp, QVariantMap &map);
     bool checkApikeyAuthentification(const ApiRequest &req, ApiResponse &rsp);
     QString encryptString(const QString &str);
 
@@ -585,6 +585,7 @@ public:
     int getFullState(const ApiRequest &req, ApiResponse &rsp);
     int getConfig(const ApiRequest &req, ApiResponse &rsp);
     int getBasicConfig(const ApiRequest &req, ApiResponse &rsp);
+    int getChallenge(const ApiRequest &req, ApiResponse &rsp);
     int modifyConfig(const ApiRequest &req, ApiResponse &rsp);
     int deleteUser(const ApiRequest &req, ApiResponse &rsp);
     int updateSoftware(const ApiRequest &req, ApiResponse &rsp);
@@ -1073,6 +1074,8 @@ public:
     QString gwLightsEtag;
     QString gwGroupsEtag;
     QString gwConfigEtag;
+    QByteArray gwChallenge;
+    QDateTime gwLastChallenge;
     bool gwRunFromShellScript;
     bool gwDeleteUnknownRules;
     bool groupDeviceMembershipChecked;

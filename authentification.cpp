@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2013-2017 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -8,6 +8,8 @@
  *
  */
 
+#include <QCryptographicHash>
+#include <QMessageAuthenticationCode>
 #include "de_web_plugin_private.h"
 #ifdef Q_OS_UNIX
   #include <unistd.h>
@@ -63,10 +65,10 @@ void DeRestPluginPrivate::initAuthentification()
 
 }
 
-/*! Use HTTP basic authentification to check if the request
+/*! Use HTTP basic authentification or HMAC token to check if the request
     has valid credentials to create API key.
  */
-bool DeRestPluginPrivate::allowedToCreateApikey(const ApiRequest &req)
+bool DeRestPluginPrivate::allowedToCreateApikey(const ApiRequest &req, ApiResponse &rsp, QVariantMap &map)
 {
     if (req.hdr.hasKey("Authorization"))
     {
@@ -84,6 +86,35 @@ bool DeRestPluginPrivate::allowedToCreateApikey(const ApiRequest &req)
         }
     }
 
+    if (apsCtrl && map.contains(QLatin1String("hmac-sha256")))
+    {
+        QDateTime now = QDateTime::currentDateTime();
+        QByteArray remoteHmac = map["hmac-sha256"].toByteArray();
+        QByteArray sec0 = apsCtrl->getParameter(deCONZ::ParamSecurityMaterial0);
+        QByteArray installCode = sec0.mid(0, 16);
+
+        if (!gwLastChallenge.isValid() || gwLastChallenge.secsTo(now) > (60 * 10))
+        {
+            rsp.list.append(errorToMap(ERR_UNAUTHORIZED_USER, QString("/api/challenge"), QString("no active challange")));
+            rsp.httpStatus = HttpStatusForbidden;
+            return false;
+        }
+
+        QByteArray hmac = QMessageAuthenticationCode::hash(gwChallenge, installCode, QCryptographicHash::Sha256).toHex();
+
+        if (remoteHmac == hmac)
+        {
+            return true;
+        }
+
+        DBG_Printf(DBG_INFO, "expected challenge response: %s\n", qPrintable(hmac));
+        rsp.list.append(errorToMap(ERR_UNAUTHORIZED_USER, QString("/api/challenge"), QString("invalid challange response")));
+        rsp.httpStatus = HttpStatusForbidden;
+        return false;
+    }
+
+    rsp.httpStatus = HttpStatusForbidden;
+    rsp.list.append(errorToMap(ERR_LINK_BUTTON_NOT_PRESSED, "/", "link button not pressed"));
     return false;
 }
 
