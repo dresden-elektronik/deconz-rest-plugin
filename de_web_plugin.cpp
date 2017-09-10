@@ -3478,7 +3478,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 }
                                 updateSensorEtag(&*i);
                             }
-                            else if (ia->id() == 0x0010) // occupied to unoccupied delay
+                            else if (i->modelId() != QLatin1String("SML001") && ia->id() == 0x0010) // occupied to unoccupied delay
                             {
                                 quint16 duration = ia->numericValue().u16;
                                 ResourceItem *item = i->item(RConfigDuration);
@@ -3488,7 +3488,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     item = i->addItem(DataTypeUInt16, RConfigDuration);
                                 }
 
-                                if (i->modelId() != QLatin1String("SML001") && item && item->toNumber() != duration)
+                                if (item && item->toNumber() != duration)
                                 {
                                     Event e(RSensors, RConfigDuration, i->id(), item);
                                     enqueueEvent(e);
@@ -3520,6 +3520,27 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         q->startZclAttributeTimer(checkZclAttributesDelay);
                                     }
                                 }
+                            }
+                            else if (ia->id() == 0x0010) // occupied to unoccupied delay
+                            {
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                }
+
+                                quint16 duration = ia->numericValue().u16;
+                                ResourceItem *item = i->item(RConfigDuration);
+
+                                if (item && item->toNumber() != duration)
+                                {
+                                    item->setValue(duration);
+                                    i->updateStateTimestamp();
+                                    i->setNeedSaveDatabase(true);
+                                    Event e(RSensors, RConfigDuration, i->id(), item);
+                                    enqueueEvent(e);
+                                }
+
+                                updateSensorEtag(&*i);
                             }
                             else if (ia->id() == 0x0030) // sensitivity
                             {
