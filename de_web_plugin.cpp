@@ -152,10 +152,11 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
             this, SLOT(foundGateway(quint32,quint16,QString,QString)));
     gwScanner->startScan();
 
+    QString dataPath = deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation);
     db = 0;
     saveDatabaseItems = 0;
     saveDatabaseIdleTotalCounter = 0;
-    sqliteDatabaseName = deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation) + QLatin1String("/zll.db");
+    sqliteDatabaseName = dataPath + QLatin1String("/zll.db");
 
     idleLimit = 0;
     idleTotalCounter = IDLE_READ_LIMIT;
@@ -212,6 +213,15 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     gwFirmwareVersion = "0x00000000"; // query later
     gwFirmwareVersionUpdate = "";
     gwBridgeId = "0000000000000000";
+
+    // offical dresden elektronik sd-card image?
+    {
+        QFile f(dataPath + QLatin1String("/gw-version"));
+        if (f.exists() && f.open(QFile::ReadOnly))
+        {
+            gwSdImageVersion = f.readAll().trimmed();
+        }
+    }
 
     config.addItem(DataTypeTime, RConfigLocalTime);
 

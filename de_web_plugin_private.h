@@ -1080,6 +1080,7 @@ public:
     std::vector<QString> gwUserParameterToDelete;
     deCONZ::Address gwDeviceAddress;
     QString gwBridgeId;
+    QString gwSdImageVersion;
 
     // firmware update
     enum FW_UpdateState {
