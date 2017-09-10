@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2013-2017 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -151,6 +151,24 @@ static const Sensor::ButtonMap ikeaRemoteMap[] = {
     // end
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
 };
+
+static const Sensor::ButtonMap ikeaDimmerMap[] = {
+//    mode                ep    cluster cmd   param button                                       name
+    // down movement
+    { Sensor::ModeDimmer, 0x01, 0x0008, 0x04, 0,    S_BUTTON_1 + S_BUTTON_ACTION_INITIAL_PRESS, "Move to level 0 (with on/off)" },
+    { Sensor::ModeDimmer, 0x01, 0x0008, 0x01, 1,    S_BUTTON_1 + S_BUTTON_ACTION_HOLD,          "Move down" },
+    { Sensor::ModeDimmer, 0x01, 0x0008, 0x07, 1,    S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ down (with on/off)" },
+
+    // up movement
+    { Sensor::ModeDimmer, 0x01, 0x0008, 0x04, 255,  S_BUTTON_2 + S_BUTTON_ACTION_INITIAL_PRESS, "Move to level 255 (with on/off)" },
+    { Sensor::ModeDimmer, 0x01, 0x0008, 0x05, 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,          "Move up (with on/off)" },
+
+    { Sensor::ModeDimmer, 0x01, 0x0008, 0x07, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop_ up (with on/off)" },
+
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
+};
+
 
 static const Sensor::ButtonMap ikeaMotionSensorMap[] = {
 //    mode                          ep    cluster cmd   param button                                       name
@@ -713,6 +731,7 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         {
             if      (m_modelid.contains(QLatin1String("remote"))) { m_buttonMap = ikeaRemoteMap; }
             else if (m_modelid.contains(QLatin1String("motion"))) { m_buttonMap = ikeaMotionSensorMap; }
+            else if (m_modelid.contains(QLatin1String("dimmer"))) { m_buttonMap = ikeaDimmerMap; }
         }
         else if (m_manufacturer == QLatin1String("ubisys"))
         {

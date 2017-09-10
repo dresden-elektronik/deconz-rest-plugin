@@ -88,6 +88,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_DDEL, "FLS-NB2", deMacPrefix },
     { VENDOR_IKEA, "TRADFRI remote control", ikeaMacPrefix },
     { VENDOR_IKEA, "TRADFRI motion sensor", ikeaMacPrefix },
+    { VENDOR_IKEA, "TRADFRI wireless dimmer", ikeaMacPrefix },
     { VENDOR_INSTA, "Remote", instaMacPrefix },
     { VENDOR_INSTA, "HS_4f_GJ_1", instaMacPrefix },
     { VENDOR_INSTA, "WS_4f_J_1", instaMacPrefix },
@@ -460,7 +461,8 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
         handleIndicationFindSensors(ind, zclFrame);
 
-        if (ind.dstAddressMode() == deCONZ::ApsGroupAddress || ind.clusterId() == VENDOR_CLUSTER_ID)
+        if (ind.dstAddressMode() == deCONZ::ApsGroupAddress || ind.clusterId() == VENDOR_CLUSTER_ID ||
+            !(zclFrame.frameControl() & deCONZ::ZclFCDirectionServerToClient))
         {
             if (zclFrame.isClusterCommand())
             {
@@ -1983,6 +1985,13 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             updateSensorEtag(sensor);
         }
     }
+    else if (sensor->modelId() == QLatin1String("TRADFRI wireless dimmer"))
+    {
+        if (sensor->mode() != Sensor::ModeDimmer)
+        {
+            sensor->setMode(Sensor::ModeDimmer);
+        }
+    }
     else if (sensor->modelId() == QLatin1String("TRADFRI motion sensor"))
     {
         checkReporting = true;
@@ -2836,8 +2845,17 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     {
         sensorNode.setManufacturer("IKEA of Sweden");
 
-        item = sensorNode.addItem(DataTypeString, RConfigAlert);
-        item->setValue(R_ALERT_DEFAULT);
+        if (modelId == QLatin1String("TRADFRI wireless dimmer"))
+        {
+            sensorNode.setMode(Sensor::ModeDimmer);
+        }
+        else
+        {
+            item = sensorNode.addItem(DataTypeString, RConfigAlert);
+            item->setValue(R_ALERT_DEFAULT);
+        }
+
+        sensorNode.setName(QString("%1 %2").arg(modelId).arg(sensorNode.id()));
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_INSTA)
     {
@@ -7985,17 +8003,26 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
                 sensorNode->clearRead(READ_GROUP_IDENTIFIERS);
                 Group *group1 = getGroupForId(groupId);
 
+                if (!group1)
+                {
+                    foundGroup(groupId);
+                    group1 = getGroupForId(groupId);
+
+                    if (group1)
+                    {
+                        group1->setName(QString("%1 %2").arg(sensorNode->modelId()).arg(groups.size()));
+                    }
+                }
+
                 if (group1)
                 {
-                    if (group1->state() == Group::StateDeleted)
+                    //not found?
+                    if (group1->addDeviceMembership(sensorNode->id()) || group1->state() == Group::StateDeleted)
                     {
                         group1->setState(Group::StateNormal);
+                        queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
+                        updateGroupEtag(group1);
                     }
-
-                    //not found
-                    group1->addDeviceMembership(sensorNode->id());
-                    queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
-                    updateGroupEtag(group1);
                 }
 
                 ResourceItem *item = sensorNode->addItem(DataTypeString, RConfigGroup);
@@ -8898,6 +8925,12 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
         // manufacturer, model id, sw build id
         if (!sensor || modelId.isEmpty() || manufacturer.isEmpty() || (swBuildId.isEmpty() && dateCode.isEmpty()))
         {
+
+            if (!modelId.isEmpty() && !isDeviceSupported(node, modelId))
+            {
+                return;
+            }
+
             deCONZ::ApsDataRequest apsReq;
 
             DBG_Printf(DBG_INFO, "[4] get model id, sw build id for 0x%016llx\n", sc->address.ext());
@@ -9012,6 +9045,41 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
                 readAttributes(sensor, sensor->fingerPrint().endpoint, BASIC_CLUSTER_ID, attributes, VENDOR_PHILIPS))
             {
                 queryTime = queryTime.addSecs(1);
+            }
+        }
+        else if (sensor->modelId() == QLatin1String("TRADFRI wireless dimmer")) // IKEA dimmer
+        {
+            ResourceItem *item = sensor->item(RConfigGroup);
+
+            if (!item || !item->lastSet().isValid())
+            {
+                if (getGroupIdentifiers(sensor, sensor->fingerPrint().endpoint, 0))
+                {
+                    queryTime = queryTime.addSecs(1);
+                }
+            }
+
+            item = sensor->item(RStateButtonEvent);
+
+            if (!item || !item->lastSet().isValid())
+            {
+                BindingTask bindingTask;
+
+                bindingTask.state = BindingTask::StateIdle;
+                bindingTask.action = BindingTask::ActionBind;
+                bindingTask.restNode = sensor;
+                Binding &bnd = bindingTask.binding;
+                bnd.srcAddress = sensor->address().ext();
+                bnd.dstAddrMode = deCONZ::ApsExtAddress;
+                bnd.srcEndpoint = sensor->fingerPrint().endpoint;
+                bnd.clusterId = LEVEL_CLUSTER_ID;
+                bnd.dstAddress.ext = apsCtrl->getParameter(deCONZ::ParamMacAddress);
+                bnd.dstEndpoint = endpoint();
+
+                if (bnd.dstEndpoint > 0) // valid gateway endpoint?
+                {
+                    queueBindingTask(bindingTask);
+                }
             }
         }
     }

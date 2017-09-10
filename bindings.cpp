@@ -1145,8 +1145,13 @@ void DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
             clusters.push_back(SCENE_CLUSTER_ID);
         }
     }
+    // IKEA Trådfri dimmer
+    else if (sensor->modelId() == QLatin1String("TRADFRI wireless dimmer"))
+    {
+        clusters.push_back(LEVEL_CLUSTER_ID);
+    }
     // IKEA Trådfri remote
-    else if (sensor->modelId().startsWith(QLatin1String("TRADFRI")))
+    else if (sensor->modelId().startsWith(QLatin1String("TRADFRI remote")))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);
