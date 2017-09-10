@@ -1824,6 +1824,11 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         }
         else if (sensor.modelId() == QLatin1String("SML001")) // Hue motion sensor
         {
+            if (!sensor.fingerPrint().hasInCluster(BASIC_CLUSTER_ID))
+            {
+                sensor.fingerPrint().inClusters.push_back(BASIC_CLUSTER_ID);
+                sensor.setNeedSaveDatabase(true);
+            }
             if (!sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
             {
                 sensor.fingerPrint().inClusters.push_back(POWER_CONFIGURATION_CLUSTER_ID);
