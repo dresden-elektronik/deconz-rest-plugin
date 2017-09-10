@@ -9986,12 +9986,6 @@ QDialog *DeRestPlugin::createDialog()
     if (!m_w)
     {
         m_w = new DeRestWidget(0);
-
-        connect(m_w, SIGNAL(refreshAllClicked()),
-                this, SLOT(refreshAll()));
-
-        connect(m_w, SIGNAL(changeChannelClicked(quint8)),
-                d, SLOT(changeChannel(quint8)));
     }
 
     return m_w;

@@ -6,50 +6,112 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>349</width>
+    <width>490</width>
     <height>220</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>DeLight Color</string>
+   <string>DE REST API</string>
   </property>
   <property name="sizeGripEnabled">
    <bool>true</bool>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
     <widget class="QLabel" name="label">
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
      <property name="text">
       <string>IP Addresses</string>
      </property>
     </widget>
    </item>
-   <item row="2" column="0">
+   <item>
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>Click on the link to open the WebApp in your browser.</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QLabel" name="ipAddressesLabel">
      <property name="text">
       <string>127.0.0.1</string>
      </property>
-    </widget>
-   </item>
-   <item row="3" column="0">
-    <widget class="QSpinBox" name="channelSpinBox">
-     <property name="minimum">
-      <number>11</number>
-     </property>
-     <property name="maximum">
-      <number>25</number>
+     <property name="margin">
+      <number>16</number>
      </property>
     </widget>
    </item>
-   <item row="3" column="1">
-    <widget class="QPushButton" name="changeChannelButton">
-     <property name="text">
-      <string>Change channel</string>
-     </property>
-    </widget>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0,0,0">
+     <item>
+      <widget class="QLabel" name="label_4">
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Install Code</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_3">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Minimum</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QLabel" name="labelInstallCode">
+       <property name="text">
+        <string>not available</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
    </item>
-   <item row="5" column="0" colspan="2">
+   <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QCheckBox" name="pluginActiveCheckBox">
+       <property name="text">
+        <string>Plugin Active</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
      <item>
       <spacer name="horizontalSpacer_2">
        <property name="orientation">
@@ -64,13 +126,6 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="refreshAllButton">
-       <property name="text">
-        <string>Refresh All</string>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QPushButton" name="closeButton">
        <property name="text">
         <string>Close</string>
@@ -78,23 +133,6 @@
       </widget>
      </item>
     </layout>
-   </item>
-   <item row="4" column="0">
-    <widget class="QCheckBox" name="pluginActiveCheckBox">
-     <property name="text">
-      <string>Plugin Active</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0">
-    <widget class="QLabel" name="label_2">
-     <property name="text">
-      <string>Click on the link to open the WebApp in your browser.</string>
-     </property>
-    </widget>
    </item>
   </layout>
  </widget>

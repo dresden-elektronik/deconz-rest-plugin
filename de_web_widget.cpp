@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2013-2017 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -8,6 +8,7 @@
  *
  */
 
+#include <QLabel>
 #include <QNetworkInterface>
 #include "de_web_plugin.h"
 #include "de_web_widget.h"
@@ -19,19 +20,10 @@ DeRestWidget::DeRestWidget(QWidget *parent) :
     ui(new Ui::DeWebWidget)
 {
     ui->setupUi(this);
-    setWindowTitle(tr("DE Web App"));
+    setWindowTitle(tr("DE REST API"));
     deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
 
     quint16 httpPort = apsCtrl ? deCONZ::ApsController::instance()->getParameter(deCONZ::ParamHttpPort) : 0;
-
-    connect(ui->refreshAllButton, SIGNAL(clicked()),
-            this, SIGNAL(refreshAllClicked()));
-
-    connect(ui->changeChannelButton, SIGNAL(clicked()),
-            this, SLOT(onChangeChannelClicked()));
-
-    ui->changeChannelButton->hide();
-    ui->channelSpinBox->hide();
 
     ui->ipAddressesLabel->setTextFormat(Qt::RichText);
     ui->ipAddressesLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
@@ -100,8 +92,30 @@ bool DeRestWidget::pluginActive() const
     return false;
 }
 
-/*! Forward user input. */
-void DeRestWidget::onChangeChannelClicked()
+void DeRestWidget::showEvent(QShowEvent *)
 {
-    emit changeChannelClicked((quint8)ui->channelSpinBox->value());
+    deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
+
+    if (!apsCtrl)
+    {
+        return;
+    }
+
+    QByteArray sec0 = apsCtrl->getParameter(deCONZ::ParamSecurityMaterial0);
+
+    if (!sec0.isEmpty())
+    {
+        QByteArray installCode;
+        for (int i = 0; i < 4; i++)
+        {
+            installCode += sec0.mid(i * 4, 4);
+            if (i < 3) { installCode += ' '; }
+        }
+        ui->labelInstallCode->setText(installCode);
+    }
+    else
+    {
+        ui->labelInstallCode->setText(tr("not available"));
+    }
+
 }

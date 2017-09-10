@@ -28,14 +28,8 @@ public:
 
 public Q_SLOTS:
 
-Q_SIGNALS:
-    void refreshAllClicked();
-    void changeChannelClicked(quint8 channel);
-    
-private Q_SLOTS:
-    void onChangeChannelClicked();
-
 private:
+    void showEvent(QShowEvent *);
     Ui::DeWebWidget *ui;
 };
 
