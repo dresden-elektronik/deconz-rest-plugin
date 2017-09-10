@@ -174,6 +174,10 @@
 
 // write flags
 #define WRITE_OCCUPANCY_CONFIG  (1 << 11)
+#define WRITE_DURATION          (1 << 13)
+#define WRITE_LEDINDICATION     (1 << 14)
+#define WRITE_SENSITIVITY       (1 << 15)
+#define WRITE_USERTEST          (1 << 16)
 
 // manufacturer codes
 #define VENDOR_ATMEL    0x1014

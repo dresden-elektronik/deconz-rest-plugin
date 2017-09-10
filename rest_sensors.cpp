@@ -720,7 +720,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     Sensor *sensor = getSensorNodeForId(id);
     bool ok;
     bool updated = false;
-    bool tholdupdated = false;
+    bool tholdUpdated = false;
+    uint8_t pendingMask = 0;
     QVariant var = Json::parse(req.content, ok);
     QVariantMap map = var.toMap();
     QVariantMap rspItem;
@@ -770,9 +771,9 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
             {
                 // changing battery or reachable of zigbee sensors is not allowed, trigger error
             }
-            else if (rid.suffix == RConfigSensitivityMax)
+            else if (rid.suffix == RConfigPending || rid.suffix == RConfigSensitivityMax)
             {
-                // sensitivitymax is read-only
+                // pending and sensitivitymax are read-only
             }
             else
             {
@@ -837,7 +838,27 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 
                         if (rid.suffix == RConfigTholdDark || rid.suffix == RConfigTholdOffset)
                         {
-                            tholdupdated = true;
+                            tholdUpdated = true;
+                        }
+                        else if (rid.suffix == RConfigDuration)
+                        {
+                            pendingMask |= R_PENDING_DURATION;
+                            sensor->enableRead(WRITE_DURATION);
+                        }
+                        else if (rid.suffix == RConfigLedIndication)
+                        {
+                            pendingMask |= R_PENDING_LEDINDICATION;
+                            sensor->enableRead(WRITE_LEDINDICATION);
+                        }
+                        else if (rid.suffix == RConfigSensitivity)
+                        {
+                            pendingMask |= R_PENDING_SENSITIVITY;
+                            sensor->enableRead(WRITE_SENSITIVITY);
+                        }
+                        else if (rid.suffix == RConfigUsertest)
+                        {
+                            pendingMask |= R_PENDING_USERTEST;
+                            sensor->enableRead(WRITE_USERTEST);
                         }
                     }
                 }
@@ -860,7 +881,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
         }
     }
 
-    if (tholdupdated)
+    if (tholdUpdated)
     {
         ResourceItem *item = sensor->item(RStateLightLevel);
         if (item)
@@ -910,6 +931,17 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
             }
         }
+    }
+
+    if (pendingMask)
+    {
+      ResourceItem *item = sensor->item(RConfigPending);
+      if (item)
+      {
+          uint8_t mask = item->toNumber();
+          mask |= pendingMask;
+          item->setValue(mask);
+      }
     }
 
     // TODO handle this in event, this is relevant for FLS-NB.
@@ -1284,7 +1316,33 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map)
         if (strncmp(rid.suffix, "config/", 7) == 0)
         {
             const char *key = item->descriptor().suffix + 7;
-            config[key] = item->toVariant();
+            if (rid.suffix == RConfigPending)
+            {
+                QVariantList pending;
+                uint8_t value = item->toNumber();
+
+                if (value & R_PENDING_DURATION)
+                {
+                    pending.append("duration");
+                }
+                if (value & R_PENDING_LEDINDICATION)
+                {
+                    pending.append("ledindication");
+                }
+                if (value & R_PENDING_SENSITIVITY)
+                {
+                    pending.append("sensitivity");
+                }
+                if (value & R_PENDING_USERTEST)
+                {
+                    pending.append("usertest");
+                }
+                config[key] = pending;
+            }
+            else
+            {
+                config[key] = item->toVariant();
+            }
         }
 
         if (strncmp(rid.suffix, "state/", 6) == 0)
@@ -1414,6 +1472,10 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                 {
                     const char *key = item->descriptor().suffix + 7;
 
+                    if (rid.suffix == RConfigPending)
+                    {
+                        continue;
+                    }
                     // if (item->lastSet().isValid() && item->lastChanged().isValid() && item->lastChanged() >= sensor->lastConfigPush)
                     if (item->lastSet().isValid())
                     {

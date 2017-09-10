@@ -2808,12 +2808,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 item = sensorNode.addItem(DataTypeUInt8, RConfigSensitivityMax);
                 item->setValue(R_SENSITIVITY_MAX_DEFAULT);
             }
-            item = sensorNode.addItem(DataTypeBool, RConfigLedIndication);
-            item->setValue(false);
-            item = sensorNode.addItem(DataTypeBool, RConfigUsertest);
-            item->setValue(false);
             item = sensorNode.addItem(DataTypeString, RConfigAlert);
             item->setValue(R_ALERT_DEFAULT);
+            item = sensorNode.addItem(DataTypeBool, RConfigLedIndication);
+            item->setValue(false);
+            item = sensorNode.addItem(DataTypeUInt8, RConfigPending);
+            item->setValue(0);
+            item = sensorNode.addItem(DataTypeBool, RConfigUsertest);
+            item->setValue(false);
         }
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_BEGA)
@@ -3458,7 +3460,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     item = i->addItem(DataTypeUInt16, RConfigDuration);
                                 }
 
-                                if (item && item->toNumber() != duration)
+                                if (i->modelId() != QLatin1String("SML001") && item && item->toNumber() != duration)
                                 {
                                     Event e(RSensors, RConfigDuration, i->id(), item);
                                     enqueueEvent(e);
@@ -4794,6 +4796,98 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         {
             sensorNode->clearRead(WRITE_OCCUPANCY_CONFIG);
         }
+    }
+
+    if (sensorNode->mustRead(WRITE_DURATION) && tNow > sensorNode->nextReadTime(WRITE_DURATION))
+    {
+        ResourceItem *item = sensorNode->item(RConfigDuration);
+
+        if (item)
+        {
+            quint64 duration = item->toNumber();
+            // occupied to unoccupied delay
+            deCONZ::ZclAttribute attr(0x0010, deCONZ::Zcl16BitUint, "occ", deCONZ::ZclReadWrite, true);
+            attr.setValue(duration);
+
+            if (writeAttribute(sensorNode, sensorNode->fingerPrint().endpoint, OCCUPANCY_SENSING_CLUSTER_ID, attr))
+            {
+                ResourceItem *item = sensorNode->item(RConfigPending);
+                uint8_t mask = item->toNumber();
+                mask &= ~R_PENDING_DURATION;
+                item->setValue(mask);
+                processed++;
+            }
+        }
+        sensorNode->clearRead(WRITE_DURATION);
+    }
+
+    if (sensorNode->mustRead(WRITE_LEDINDICATION) && tNow > sensorNode->nextReadTime(WRITE_LEDINDICATION))
+    {
+        ResourceItem *item = sensorNode->item(RConfigLedIndication);
+
+        if (item)
+        {
+            bool ledindication = (item->toNumber() != 0);
+            // ledindication
+            deCONZ::ZclAttribute attr(0x0033, deCONZ::ZclBoolean, "ledindication", deCONZ::ZclReadWrite, true);
+            attr.setValue(ledindication);
+
+            if (writeAttribute(sensorNode, sensorNode->fingerPrint().endpoint, BASIC_CLUSTER_ID, attr, VENDOR_PHILIPS))
+            {
+                ResourceItem *item = sensorNode->item(RConfigPending);
+                uint8_t mask = item->toNumber();
+                mask &= ~R_PENDING_LEDINDICATION;
+                item->setValue(mask);
+                processed++;
+            }
+        }
+        sensorNode->clearRead(WRITE_LEDINDICATION);
+    }
+
+    if (sensorNode->mustRead(WRITE_SENSITIVITY) && tNow > sensorNode->nextReadTime(WRITE_SENSITIVITY))
+    {
+        ResourceItem *item = sensorNode->item(RConfigSensitivity);
+
+        if (item)
+        {
+            bool sensitivity = item->toNumber();
+            // sensitivity
+            deCONZ::ZclAttribute attr(0x0030, deCONZ::Zcl8BitUint, "sensitivity", deCONZ::ZclReadWrite, true);
+            attr.setValue(sensitivity);
+
+            if (writeAttribute(sensorNode, sensorNode->fingerPrint().endpoint, OCCUPANCY_SENSING_CLUSTER_ID, attr, VENDOR_PHILIPS))
+            {
+                ResourceItem *item = sensorNode->item(RConfigPending);
+                uint8_t mask = item->toNumber();
+                mask &= ~R_PENDING_SENSITIVITY;
+                item->setValue(mask);
+                processed++;
+            }
+        }
+        sensorNode->clearRead(WRITE_SENSITIVITY);
+    }
+
+    if (sensorNode->mustRead(WRITE_USERTEST) && tNow > sensorNode->nextReadTime(WRITE_USERTEST))
+    {
+        ResourceItem *item = sensorNode->item(RConfigUsertest);
+
+        if (item)
+        {
+            bool usertest = (item->toNumber() != 0);
+            // usertest
+            deCONZ::ZclAttribute attr(0x0032, deCONZ::ZclBoolean, "usertest", deCONZ::ZclReadWrite, true);
+            attr.setValue(usertest);
+
+            if (writeAttribute(sensorNode, sensorNode->fingerPrint().endpoint, BASIC_CLUSTER_ID, attr, VENDOR_PHILIPS))
+            {
+                ResourceItem *item = sensorNode->item(RConfigPending);
+                uint8_t mask = item->toNumber();
+                mask &= ~R_PENDING_USERTEST;
+                item->setValue(mask);
+                processed++;
+            }
+        }
+        sensorNode->clearRead(WRITE_USERTEST);
     }
 
     return (processed > 0);

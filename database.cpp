@@ -1829,12 +1829,14 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 sensor.fingerPrint().inClusters.push_back(POWER_CONFIGURATION_CLUSTER_ID);
                 sensor.setNeedSaveDatabase(true);
             }
-            item = sensor.addItem(DataTypeBool, RConfigLedIndication);
-            item->setValue(false);
-            item = sensor.addItem(DataTypeBool, RConfigUsertest);
-            item->setValue(false);
             item = sensor.addItem(DataTypeString, RConfigAlert);
             item->setValue(R_ALERT_DEFAULT);
+            item = sensor.addItem(DataTypeBool, RConfigLedIndication);
+            item->setValue(false);
+            item = sensor.addItem(DataTypeUInt8, RConfigPending);
+            item->setValue(0);
+            item = sensor.addItem(DataTypeBool, RConfigUsertest);
+            item->setValue(false);
         } else if (sensor.modelId().startsWith(QLatin1String("TRADFRI")))
         {
             // support power configuration cluster for IKEA devices

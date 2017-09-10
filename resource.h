@@ -75,6 +75,7 @@ extern const char *RConfigLedIndication;
 extern const char *RConfigLocalTime;
 extern const char *RConfigLong;
 extern const char *RConfigOn;
+extern const char *RConfigPending;
 extern const char *RConfigReachable;
 extern const char *RConfigSensitivity;
 extern const char *RConfigSensitivityMax;
@@ -89,6 +90,11 @@ extern const char *RConfigUsertest;
 #define R_SENSITIVITY_MAX_DEFAULT   2
 #define R_THOLDDARK_DEFAULT         12000
 #define R_THOLDOFFSET_DEFAULT       7000
+
+#define R_PENDING_DURATION          (1 << 0)
+#define R_PENDING_LEDINDICATION     (1 << 1)
+#define R_PENDING_SENSITIVITY       (1 << 2)
+#define R_PENDING_USERTEST          (1 << 3)
 
 class  ResourceItemDescriptor
 {
