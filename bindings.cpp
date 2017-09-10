@@ -963,8 +963,14 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         }
         else if (*i == OCCUPANCY_SENSING_CLUSTER_ID)
         {
-            val = sensor->getZclValue(*i, 0x0000); // occupied state
-            // val = sensor->getZclValue(*i, 0x0030); // sensitivity
+            if (sensor->modelId() == QLatin1String("SML001")) // Hue motion sensor
+            {
+                val = sensor->getZclValue(*i, 0x0030); // sensitivity
+            }
+            else
+            {
+                val = sensor->getZclValue(*i, 0x0000); // occupied state
+            }
         }
         else if (*i == POWER_CONFIGURATION_CLUSTER_ID)
         {
