@@ -21,6 +21,7 @@
 #include "de_web_plugin_private.h"
 #include "json.h"
 #include <stdlib.h>
+#include <time.h>
 #include <QProcess>
 
 /*! Constructor. */
