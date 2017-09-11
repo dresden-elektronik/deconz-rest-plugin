@@ -65,6 +65,7 @@ const quint64 jennicMacPrefix     = 0x00158d0000000000ULL;
 const quint64 philipsMacPrefix    = 0x0017880000000000ULL;
 const quint64 osramMacPrefix      = 0x8418260000000000ULL;
 const quint64 ubisysMacPrefix     = 0x001fee0000000000ULL;
+const quint64 netvoxMacPrefix     = 0x00137a0000000000ULL;
 
 struct SupportedDevice {
     quint16 vendorId;
@@ -104,6 +105,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "lumi.sensor_switch", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_cube", jennicMacPrefix },
     { VENDOR_UBISYS, "D1", ubisysMacPrefix },
+    { VENDOR_NONE, "Z716A", netvoxMacPrefix },
     { 0, 0, 0 }
 };
 
