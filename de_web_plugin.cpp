@@ -4857,6 +4857,7 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
     {
         ResourceItem *item = sensorNode->item(RConfigDuration);
 
+        DBG_Printf(DBG_INFO_L2, "handle pending duration for 0x%016llX\n", sensorNode->address().ext());
         if (item)
         {
             quint64 duration = item->toNumber();
@@ -4870,16 +4871,21 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
                 uint8_t mask = item->toNumber();
                 mask &= ~R_PENDING_DURATION;
                 item->setValue(mask);
+                sensorNode->clearRead(WRITE_DURATION);
                 processed++;
             }
         }
-        sensorNode->clearRead(WRITE_DURATION);
+        else
+        {
+            sensorNode->clearRead(WRITE_DURATION);
+        }
     }
 
     if (sensorNode->mustRead(WRITE_LEDINDICATION) && tNow > sensorNode->nextReadTime(WRITE_LEDINDICATION))
     {
         ResourceItem *item = sensorNode->item(RConfigLedIndication);
 
+        DBG_Printf(DBG_INFO_L2, "handle pending ledindication for 0x%016llX\n", sensorNode->address().ext());
         if (item)
         {
             bool ledindication = (item->toNumber() != 0);
@@ -4893,16 +4899,21 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
                 uint8_t mask = item->toNumber();
                 mask &= ~R_PENDING_LEDINDICATION;
                 item->setValue(mask);
+                sensorNode->clearRead(WRITE_LEDINDICATION);
                 processed++;
             }
         }
-        sensorNode->clearRead(WRITE_LEDINDICATION);
+        else
+        {
+            sensorNode->clearRead(WRITE_LEDINDICATION);
+        }
     }
 
     if (sensorNode->mustRead(WRITE_SENSITIVITY) && tNow > sensorNode->nextReadTime(WRITE_SENSITIVITY))
     {
         ResourceItem *item = sensorNode->item(RConfigSensitivity);
 
+        DBG_Printf(DBG_INFO_L2, "handle pending sensitivity for 0x%016llX\n", sensorNode->address().ext());
         if (item)
         {
             bool sensitivity = item->toNumber();
@@ -4916,16 +4927,21 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
                 uint8_t mask = item->toNumber();
                 mask &= ~R_PENDING_SENSITIVITY;
                 item->setValue(mask);
+                sensorNode->clearRead(WRITE_SENSITIVITY);
                 processed++;
             }
         }
-        sensorNode->clearRead(WRITE_SENSITIVITY);
+        else
+        {
+            sensorNode->clearRead(WRITE_SENSITIVITY);
+        }
     }
 
     if (sensorNode->mustRead(WRITE_USERTEST) && tNow > sensorNode->nextReadTime(WRITE_USERTEST))
     {
         ResourceItem *item = sensorNode->item(RConfigUsertest);
 
+        DBG_Printf(DBG_INFO_L2, "handle pending usertest for 0x%016llX\n", sensorNode->address().ext());
         if (item)
         {
             bool usertest = (item->toNumber() != 0);
@@ -4939,10 +4955,14 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
                 uint8_t mask = item->toNumber();
                 mask &= ~R_PENDING_USERTEST;
                 item->setValue(mask);
+                sensorNode->clearRead(WRITE_USERTEST);
                 processed++;
             }
         }
-        sensorNode->clearRead(WRITE_USERTEST);
+        else
+        {
+            sensorNode->clearRead(WRITE_USERTEST);
+        }
     }
 
     return (processed > 0);

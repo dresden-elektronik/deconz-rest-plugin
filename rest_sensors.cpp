@@ -844,21 +844,25 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         {
                             pendingMask |= R_PENDING_DURATION;
                             sensor->enableRead(WRITE_DURATION);
+                            sensor->setNextReadTime(WRITE_DURATION, QTime::currentTime());
                         }
                         else if (rid.suffix == RConfigLedIndication)
                         {
                             pendingMask |= R_PENDING_LEDINDICATION;
                             sensor->enableRead(WRITE_LEDINDICATION);
+                            sensor->setNextReadTime(WRITE_LEDINDICATION, QTime::currentTime());
                         }
                         else if (rid.suffix == RConfigSensitivity)
                         {
                             pendingMask |= R_PENDING_SENSITIVITY;
                             sensor->enableRead(WRITE_SENSITIVITY);
+                            sensor->setNextReadTime(WRITE_SENSITIVITY, QTime::currentTime());
                         }
                         else if (rid.suffix == RConfigUsertest)
                         {
                             pendingMask |= R_PENDING_USERTEST;
                             sensor->enableRead(WRITE_USERTEST);
+                            sensor->setNextReadTime(WRITE_USERTEST, QTime::currentTime());
                         }
                     }
                 }
