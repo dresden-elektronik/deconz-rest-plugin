@@ -680,7 +680,7 @@ void Sensor::jsonToConfig(const QString &json)
             continue;
         }
 
-        if (strncmp(rid.suffix, "config/", 7) == 0)
+        if (strncmp(rid.suffix, "config/", 7) == 0 && rid.suffix != RConfigPending)
         {
             const char *key = item->descriptor().suffix + 7;
 
