@@ -2215,8 +2215,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
         return;
     }
 
-    Q_Q(DeRestPlugin);
-
     { // check existing sensors
         std::vector<Sensor>::iterator i = sensors.begin();
         std::vector<Sensor>::iterator end = sensors.end();
