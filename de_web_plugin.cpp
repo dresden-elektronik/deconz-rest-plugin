@@ -3540,7 +3540,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (item && item->toNumber() != duration)
                                 {
                                     item->setValue(duration);
-                                    i->updateStateTimestamp();
                                     i->setNeedSaveDatabase(true);
                                     Event e(RSensors, RConfigDuration, i->id(), item);
                                     enqueueEvent(e);
@@ -3561,7 +3560,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (item && item->toNumber() != sensitivity)
                                 {
                                     item->setValue(sensitivity);
-                                    i->updateStateTimestamp();
                                     i->setNeedSaveDatabase(true);
                                     Event e(RSensors, RConfigSensitivity, i->id(), item);
                                     enqueueEvent(e);
@@ -3582,7 +3580,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (item && item->toNumber() != sensitivitymax)
                                 {
                                     item->setValue(sensitivitymax);
-                                    i->updateStateTimestamp();
                                     i->setNeedSaveDatabase(true);
                                     Event e(RSensors, RConfigSensitivityMax, i->id(), item);
                                     enqueueEvent(e);
@@ -3748,7 +3745,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (item && item->toNumber() != usertest)
                                 {
                                     item->setValue(usertest);
-                                    i->updateStateTimestamp();
                                     i->setNeedSaveDatabase(true);
                                     Event e(RSensors, RConfigUsertest, i->id(), item);
                                     enqueueEvent(e);
@@ -3769,7 +3765,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (item && item->toNumber() != ledindication)
                                 {
                                     item->setValue(ledindication);
-                                    i->updateStateTimestamp();
                                     i->setNeedSaveDatabase(true);
                                     Event e(RSensors, RConfigLedIndication, i->id(), item);
                                     enqueueEvent(e);
