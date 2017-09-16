@@ -1432,8 +1432,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                 {
                     const char *key = item->descriptor().suffix + 6;
 
-                    // if (item->lastSet().isValid() && item->lastChanged().isValid() && item->lastChanged() >= sensor->lastStatePush)
-                    if (item->lastSet().isValid())
+                    if (item->lastSet().isValid() && (gwWebSocketNotifyAll || (item->lastChanged().isValid() && item->lastChanged() >= sensor->lastStatePush)))
                     {
                         state[key] = item->toVariant();
                     }
@@ -1480,8 +1479,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                     {
                         continue;
                     }
-                    // if (item->lastSet().isValid() && item->lastChanged().isValid() && item->lastChanged() >= sensor->lastConfigPush)
-                    if (item->lastSet().isValid())
+                    if (item->lastSet().isValid() && (gwWebSocketNotifyAll || (item->lastChanged().isValid() && item->lastChanged() >= sensor->lastStatePush)))
                     {
                         config[key] = item->toVariant();
                     }

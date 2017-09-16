@@ -476,6 +476,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     map["linkbutton"] = gwLinkButton;
     map["portalservices"] = false;
     map["websocketport"] = (double)webSocketServer->port();
+    map["websocketnotifyall"] = gwWebSocketNotifyAll;
 
     gwIpAddress = map["ipaddress"].toString(); // cache
 
@@ -1673,6 +1674,23 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         QVariantMap rspItem;
         QVariantMap rspItemState;
         rspItemState["/config/timeformat"] = timeFormat;
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+    }
+
+    if (map.contains("websocketnotifyall")) // optional
+    {
+        bool notifyAll = map["websocketnotifyall"].toBool();
+
+        if (gwWebSocketNotifyAll != notifyAll)
+        {
+            gwWebSocketNotifyAll = notifyAll;
+            changed = true;
+            queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
+        }
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState["/config/websocketnotifyall"] = notifyAll;
         rspItem["success"] = rspItemState;
         rsp.list.append(rspItem);
     }

@@ -543,6 +543,15 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
           d->gwBridgeId = val;
       }
     }
+    else if (strcmp(colval[0], "websocketnotifyall") == 0)
+    {
+      if (!val.isEmpty())
+      {
+          bool notifyAll = val == "true";
+          d->gwConfig["websocketnotifyall"] = notifyAll;
+          d->gwWebSocketNotifyAll = notifyAll;
+      }
+    }
     return 0;
 }
 
@@ -2366,6 +2375,7 @@ void DeRestPluginPrivate::saveDb()
         gwConfig["wifichannel"] = gwWifiChannel;
         gwConfig["wifiip"] = gwWifiIp;
         gwConfig["bridgeid"] = gwBridgeId;
+        gwConfig["websocketnotifyall"] = gwWebSocketNotifyAll;
 
         QVariantMap::iterator i = gwConfig.begin();
         QVariantMap::iterator end = gwConfig.end();

@@ -172,6 +172,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     supportColorModeXyForGroups = false;
     groupDeviceMembershipChecked = false;
     gwLinkButton = false;
+    gwWebSocketNotifyAll = true;
 
     // preallocate memory to get consistent pointers
     nodes.reserve(150);
