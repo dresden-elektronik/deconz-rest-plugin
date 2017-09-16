@@ -1040,6 +1040,7 @@ public:
 
     // configuration
     bool gwLinkButton;
+    bool gwWebSocketNotifyAll;  // include all attributes in websocket notification
     bool gwRfConnectedExpected;  // the state which should be hold
     bool gwRfConnected;  // to detect changes
     int gwAnnounceInterval; // used by internet discovery [minutes]
