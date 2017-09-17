@@ -639,9 +639,10 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             {
                 rq = ConfigureReportingRequest();
                 rq.dataType = deCONZ::Zcl8BitUint;
-                rq.attributeId = 0x0030; // sensitivity
-                rq.minInterval = 5;      // value used by Hue bridge
-                rq.maxInterval = 7200;   // value used by Hue bridge
+                rq.attributeId = 0x0030;      // sensitivity
+                rq.minInterval = 5;           // value used by Hue bridge
+                rq.maxInterval = 7200;        // value used by Hue bridge
+                rq.reportableChange8bit = 1;  // value used by Hue bridge
                 rq.manufacturerCode = VENDOR_PHILIPS;
                 return sendConfigureReportingRequest(bt, rq);
             }
