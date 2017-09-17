@@ -4912,7 +4912,7 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         DBG_Printf(DBG_INFO_L2, "handle pending sensitivity for 0x%016llX\n", sensorNode->address().ext());
         if (item)
         {
-            bool sensitivity = item->toNumber();
+            quint64 sensitivity = item->toNumber();
             // sensitivity
             deCONZ::ZclAttribute attr(0x0030, deCONZ::Zcl8BitUint, "sensitivity", deCONZ::ZclReadWrite, true);
             attr.setValue(sensitivity);
