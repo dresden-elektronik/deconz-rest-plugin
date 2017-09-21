@@ -482,10 +482,10 @@ int DeRestPluginPrivate::createRule(const ApiRequest &req, ApiResponse &rsp)
 
                 for (; ai != aend; ++ai)
                 {
-                    QVariantMap bodymap = (ai->toMap()["body"]).toMap();
+                    QString bodymap = (ai->toMap()["body"]).toString();
                     RuleAction newAction;
                     newAction.setAddress(ai->toMap()["address"].toString());
-                    newAction.setBody(Json::serialize(bodymap));
+                    newAction.setBody(bodymap);
                     newAction.setMethod(ai->toMap()["method"].toString());
                     actions.push_back(newAction);
                 }
