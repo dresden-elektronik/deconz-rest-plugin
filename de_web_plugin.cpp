@@ -7868,7 +7868,7 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
                     {
                         item = s.addItem(DataTypeBool, RStateDark);
                     }
-                    if (item && item->toBool() != dark)
+                    if (item)
                     {
                         item->setValue(dark);
                         Event e(RSensors, RStateDark, s.id(), item);
