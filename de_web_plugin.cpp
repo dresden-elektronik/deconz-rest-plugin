@@ -844,6 +844,8 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
                 sensorNode.setName(QString("Hue Tap %2").arg(sensorNode.id()));
             }
 
+            checkSensorGroup(&sensorNode);
+
             DBG_Printf(DBG_INFO, "SensorNode %u: %s added\n", sensorNode.id().toUInt(), qPrintable(sensorNode.name()));
             updateSensorEtag(&sensorNode);
 
@@ -859,9 +861,11 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             if (findSensorsState == FindSensorsActive)
             {
                 sensor->setDeletedState(Sensor::StateNormal);
+                checkSensorGroup(sensor);
                 sensor->setNeedSaveDatabase(true);
                 DBG_Printf(DBG_INFO, "SensorNode %u: %s reactivated\n", sensor->id().toUInt(), qPrintable(sensor->name()));
                 updateSensorEtag(sensor);
+
                 Event e(RSensors, REventAdded, sensor->id());
                 enqueueEvent(e);
                 queSaveDb(DB_SENSORS , DB_SHORT_SAVE_DELAY);
