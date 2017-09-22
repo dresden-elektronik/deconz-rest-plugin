@@ -3256,13 +3256,12 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         bat = ia->numericValue().u8;
                                     }
 
+                                    item->setValue(bat);
                                     if (item->toNumber() != bat)
                                     {
-                                        item->setValue(bat);
                                         i->setNeedSaveDatabase(true);
                                         queSaveDb(DB_SENSORS, DB_HUGE_SAVE_DELAY);
                                     }
-
                                     Event e(RSensors, RConfigBattery, i->id(), item);
                                     enqueueEvent(e);
                                 }
