@@ -291,7 +291,7 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
         else if (type == QLatin1String("CLIPGenericFlag")) { item = sensor.addItem(DataTypeBool, RStateFlag); item->setValue(false); }
         else if (type == QLatin1String("CLIPGenericStatus")) { item = sensor.addItem(DataTypeInt32, RStateStatus); item->setValue(0); }
         else if (type == QLatin1String("CLIPPresence")) { item = sensor.addItem(DataTypeBool, RStatePresence); item->setValue(false);
-                                                          item = sensor.addItem(DataTypeUInt16, RConfigDuration); item->setValue(60); }
+                                                          item = sensor.addItem(DataTypeUInt16, RConfigDuration); item->setValue(0); }
         else if (type == QLatin1String("CLIPLightLevel")) { item = sensor.addItem(DataTypeUInt16, RStateLightLevel); item->setValue(0);
                                                             item = sensor.addItem(DataTypeUInt32, RStateLux); item->setValue(0);
                                                             item = sensor.addItem(DataTypeBool, RStateDark); item->setValue(true);
@@ -833,18 +833,18 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 {
                     rspItemState[QString("/sensors/%1/config/%2").arg(id).arg(pi.key())] = val;
                     rspItem["success"] = rspItemState;
+                    Event e(RSensors, rid.suffix, id, item);
+                    enqueueEvent(e);
 
                     if (item->lastChanged() == item->lastSet())
                     {
-                        Event e(RSensors, rid.suffix, id, item);
-                        enqueueEvent(e);
                         updated = true;
 
                         if (rid.suffix == RConfigTholdDark || rid.suffix == RConfigTholdOffset)
                         {
                             tholdUpdated = true;
                         }
-                        else if (rid.suffix == RConfigDuration)
+                        else if (rid.suffix == RConfigDuration && sensor->modelId() == QLatin1String("SML001")) // Hue motion sensor
                         {
                             pendingMask |= R_PENDING_DURATION;
                             sensor->enableRead(WRITE_DURATION);
@@ -1117,6 +1117,14 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
                         {
                             Event e(RSensors, RStateLux, id, item2);
                             enqueueEvent(e);
+                        }
+                    }
+                    else if (rid.suffix == RStatePresence)
+                    {
+                        ResourceItem *item2 = sensor->item(RConfigDuration);
+                        if (item2 && item2->toNumber() > 0)
+                        {
+                            sensor->durationDue = QDateTime::currentDateTime().addSecs(item2->toNumber()).addMSecs(-500);
                         }
                     }
                 }
@@ -1634,56 +1642,24 @@ void DeRestPluginPrivate::findSensorsTimerFired()
 /*! Validate sensor states. */
 void DeRestPluginPrivate::checkSensorStateTimerFired()
 {
-    if (sensors.empty())
-    {
-        return;
-    }
+    QDateTime now = QDateTime::currentDateTime();
+    size_t i;
 
-    if (sensorCheckIter >= sensors.size())
-    {
-        sensorCheckIter = 0;
-    }
-
-    Sensor *sensor = &sensors[sensorCheckIter];
-    sensorCheckIter++;
-
-    ResourceItem *item;
-    item = sensor->item(RStatePresence);
-    if (item && item->toBool())
-    {
-        QDateTime now = QDateTime::currentDateTime();
-        // check if we can trust reports
-        for (quint16 clusterId : {OCCUPANCY_SENSING_CLUSTER_ID, IAS_ZONE_CLUSTER_ID})
+    for (i = 0; i < sensors.size(); i++) {
+        Sensor *sensor = &sensors[i];
+        if (sensor->durationDue.isValid() && sensor->durationDue <= now)
         {
-            NodeValue &v = sensor->getZclValue(clusterId, 0x0000);
-            if (v.timestamp.isValid() &&
-                v.timestamp.secsTo(now) <= 180) // got update in timely manner
+            ResourceItem *item = sensor->item(RStatePresence);
+            if (item && item->toBool())
             {
-                if (v.value.u8 > 0)
-                {
-                    DBG_Printf(DBG_INFO, "sensor %s (%s): presence is on due report\n", qPrintable(sensor->id()), qPrintable(sensor->modelId()));
-                    return;
-                }
+                DBG_Printf(DBG_INFO, "sensor %s (%s): disable presence\n", qPrintable(sensor->id()), qPrintable(sensor->modelId()));
+                item->setValue(false);
+                sensor->updateStateTimestamp();
+                Event e(RSensors, RStatePresence, sensor->id(), item);
+                enqueueEvent(e);
+                enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
             }
-        }
-
-        int max = MaxOnTimeWithoutPresence;
-        ResourceItem *dur = sensor->item(RConfigDuration);
-        if (dur && dur->toNumber() > 0)
-        {
-            max = dur->toNumber();
-        }
-
-        int dt = item->lastSet().secsTo(now);
-
-        if (!item->lastSet().isValid() || !(dt >= 0 && dt <= max))
-        {
-            DBG_Printf(DBG_INFO, "sensor %s (%s): disable presence after %d seconds\n", qPrintable(sensor->id()), qPrintable(sensor->modelId()), dt);
-            item->setValue(false);
-            sensor->updateStateTimestamp();
-            Event e(RSensors, RStatePresence, sensor->id(), item);
-            enqueueEvent(e);
-            enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
+            sensor->durationDue = QDateTime();
         }
     }
 }

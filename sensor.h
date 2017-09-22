@@ -129,6 +129,7 @@ public:
     uint8_t previousDirection;
     QDateTime lastStatePush;
     QDateTime lastConfigPush;
+    QDateTime durationDue;
 
 private:
     DeletedState m_deletedstate;

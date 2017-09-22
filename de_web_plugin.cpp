@@ -2131,15 +2131,18 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 if (item)
                 {
                     item->setValue(true);
-                    if (item->lastSet() == item->lastChanged())
-                    {
-                        Event e(RSensors, RStatePresence, sensor->id(), item);
-                        enqueueEvent(e);
-                    }
+                    Event e(RSensors, RStatePresence, sensor->id(), item);
+                    enqueueEvent(e);
                     updateSensorEtag(sensor);
                     sensor->updateStateTimestamp();
                     sensor->setNeedSaveDatabase(true);
                     enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
+
+                    ResourceItem *item2 = sensor->item(RConfigDuration);
+                    if (item2 && item2->toNumber() > 0)
+                    {
+                        sensor->durationDue = QDateTime::currentDateTime().addSecs(item2->toNumber());
+                    }
                 }
                 break;
             }
@@ -7886,6 +7889,11 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
                     Event e(RSensors, RStatePresence, s.id(), item);
                     enqueueEvent(e);
                     enqueueEvent(Event(RSensors, RStateLastUpdated, s.id()));
+                }
+                item = s.item(RConfigDuration);
+                if (item && item->toNumber() > 0)
+                {
+                    s.durationDue = QDateTime::currentDateTime().addSecs(item->toNumber());
                 }
             }
         }

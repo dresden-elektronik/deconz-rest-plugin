@@ -1780,7 +1780,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeBool, RStatePresence);
             item->setValue(false);
             item = sensor.addItem(DataTypeUInt16, RConfigDuration);
-            item->setValue(60);
+            item->setValue(0);
             if (sensor.modelId() == QLatin1String("SML001")) // Hue motion sensor
             {
                 item->setValue(0);

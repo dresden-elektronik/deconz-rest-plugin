@@ -391,6 +391,7 @@ Sensor::Sensor() :
     QDateTime now = QDateTime::currentDateTime();
     lastStatePush = now;
     lastConfigPush = now;
+    durationDue = QDateTime();
 
     // common sensor items
     addItem(DataTypeBool, RConfigOn);
