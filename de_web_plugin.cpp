@@ -3256,12 +3256,12 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         bat = ia->numericValue().u8;
                                     }
 
-                                    item->setValue(bat);
                                     if (item->toNumber() != bat)
                                     {
                                         i->setNeedSaveDatabase(true);
                                         queSaveDb(DB_SENSORS, DB_HUGE_SAVE_DELAY);
                                     }
+                                    item->setValue(bat);
                                     Event e(RSensors, RConfigBattery, i->id(), item);
                                     enqueueEvent(e);
                                 }
@@ -7827,6 +7827,7 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
         return;
     }
 
+    bool dark = true;
     Group *group = 0;
 
     if (ind.dstAddressMode() == deCONZ::ApsGroupAddress)
@@ -7845,29 +7846,53 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
                 {
                      continue;
                 }
+                ResourceItem *item;
+
+                if (s.modelId() == QLatin1String("TRADFRI motion sensor") && zclFrame.payload().size() >= 3)
+                {
+                    // Set ikea motion sensor config.duration and state.dark from the ZigBee command parameters
+                    dark = zclFrame.payload().at(0) == 0x00;
+                    quint16 timeOn = (zclFrame.payload().at(2) << 8) + zclFrame.payload().at(1);
+                    qint64 duration = (timeOn + 5) / 10;
+
+                    item = s.item(RConfigDuration);
+                    if (item && item->toNumber() != duration)
+                    {
+                        item->setValue((quint64) duration);
+                        Event e(RSensors, RConfigDuration, s.id(), item);
+                        enqueueEvent(e);
+                    }
+
+                    item = s.item(RStateDark);
+                    if (!item)
+                    {
+                        item = s.addItem(DataTypeBool, RStateDark);
+                    }
+                    if (item && item->toBool() != dark)
+                    {
+                        item->setValue(dark);
+                        Event e(RSensors, RStateDark, s.id(), item);
+                        enqueueEvent(e);
+                    }
+                }
 
                 s.incrementRxCounter();
-                ResourceItem *item = s.item(RStatePresence);
+                item = s.item(RStatePresence);
                 if (item)
                 {
-                    bool changed = item->toBool() == false;
                     item->setValue(true);
                     s.updateStateTimestamp();
-
-                    if (changed)
-                    {
-                        updateSensorEtag(&s);
-                        Event e(RSensors, RStatePresence, s.id(), item);
-                        enqueueEvent(e);
-                        enqueueEvent(Event(RSensors, RStateLastUpdated, s.id()));
-                    }
+                    updateSensorEtag(&s);
+                    Event e(RSensors, RStatePresence, s.id(), item);
+                    enqueueEvent(e);
+                    enqueueEvent(Event(RSensors, RStateLastUpdated, s.id()));
                 }
             }
         }
     }
 
     // update Nodes and Groups state if On/Off Command was send by a sensor
-    if (group &&
+    if (dark && group &&
         group->state() != Group::StateDeleted &&
         group->state() != Group::StateDeleteFromDB)
     {

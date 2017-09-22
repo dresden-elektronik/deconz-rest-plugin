@@ -775,6 +775,10 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
             {
                 // pending and sensitivitymax are read-only
             }
+            else if (rid.suffix == RConfigDuration && sensor->modelId() == QLatin1String("TRADFRI motion sensor"))
+            {
+                // duration is read-only for ikea motion sensor
+            }
             else
             {
                 item = sensor->item(rid.suffix);
@@ -1676,8 +1680,10 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
         {
             DBG_Printf(DBG_INFO, "sensor %s (%s): disable presence after %d seconds\n", qPrintable(sensor->id()), qPrintable(sensor->modelId()), dt);
             item->setValue(false);
+            sensor->updateStateTimestamp();
             Event e(RSensors, RStatePresence, sensor->id(), item);
             enqueueEvent(e);
+            enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
         }
     }
 }
