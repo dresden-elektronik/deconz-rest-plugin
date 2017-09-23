@@ -3488,8 +3488,19 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     Event e(RSensors, RStatePresence, i->id(), item);
                                     enqueueEvent(e);
                                     enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
+
+                                    // prepare to automatically set presence to false
+                                    if (item->toBool())
+                                    {
+                                        ResourceItem *item2 = i->item(RConfigDuration);
+                                        if (item2 && item2->toNumber() > 0)
+                                        {
+                                            i->durationDue = item->lastSet().addSecs(item2->toNumber());
+                                        }
+                                    }
                                 }
                                 updateSensorEtag(&*i);
+
                             }
                             else if (i->modelId().startsWith(QLatin1String("FLS-NB")) && ia->id() == 0x0010) // occupied to unoccupied delay
                             {

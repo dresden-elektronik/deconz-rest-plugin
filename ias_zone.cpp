@@ -140,7 +140,16 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
             {
                 Event e(RSensors, item->descriptor().suffix, sensor->id(), item);
                 enqueueEvent(e);
-                enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
+            }
+            enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
+
+            if (alarm && item->descriptor().suffix == RStatePresence)
+            {   // prepare to automatically set presence to false
+                item2 = sensor->item(RConfigDuration);
+                if (item2 && item2->toNumber() > 0)
+                {
+                    sensor->durationDue = item->lastSet().addSecs(item2->toNumber());
+                }
             }
         }
 
