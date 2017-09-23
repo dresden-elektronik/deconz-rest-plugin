@@ -1415,6 +1415,13 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
     }
     QDateTime now = QDateTime::currentDateTime();
 
+    // speedup sensor state check
+    if (e.what() == RStatePresence &&
+        sensor && sensor->durationDue.isValid())
+    {
+        sensorCheckFast = CHECK_SENSOR_FAST_ROUNDS;
+    }
+
     // push sensor state updates through websocket
     if (strncmp(e.what(), "state/", 6) == 0)
     {
@@ -1642,25 +1649,58 @@ void DeRestPluginPrivate::findSensorsTimerFired()
 /*! Validate sensor states. */
 void DeRestPluginPrivate::checkSensorStateTimerFired()
 {
-    QDateTime now = QDateTime::currentDateTime();
-    size_t i;
+    if (sensors.empty())
+    {
+        return;
+    }
 
-    for (i = 0; i < sensors.size(); i++) {
-        Sensor *sensor = &sensors[i];
-        if (sensor->durationDue.isValid() && sensor->durationDue <= now)
+    if (sensorCheckIter >= sensors.size())
+    {
+        sensorCheckIter = 0;
+        sensorCheckFast = (sensorCheckFast > 0) ? sensorCheckFast - 1 : 0;
+    }
+
+    for (int i = 0; i < CHECK_SENSORS_MAX; i++)
+    {
+        if (sensorCheckIter >= sensors.size())
         {
-            ResourceItem *item = sensor->item(RStatePresence);
-            if (item && item->toBool())
-            {
-                DBG_Printf(DBG_INFO, "sensor %s (%s): disable presence\n", qPrintable(sensor->id()), qPrintable(sensor->modelId()));
-                item->setValue(false);
-                sensor->updateStateTimestamp();
-                Event e(RSensors, RStatePresence, sensor->id(), item);
-                enqueueEvent(e);
-                enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
-            }
-            sensor->durationDue = QDateTime();
+            break;
         }
+
+        Sensor *sensor = &sensors[sensorCheckIter];
+        sensorCheckIter++;
+
+        // automatically set presence to false, if not triggered in config.duration
+        if (sensor->durationDue.isValid())
+        {
+            QDateTime now = QDateTime::currentDateTime();
+            if (sensor->durationDue <= now)
+            {
+                ResourceItem *item = sensor->item(RStatePresence);
+                if (item && item->toBool())
+                {
+                    DBG_Printf(DBG_INFO, "sensor %s (%s): disable presence\n", qPrintable(sensor->id()), qPrintable(sensor->modelId()));
+                    item->setValue(false);
+                    sensor->updateStateTimestamp();
+                    Event e(RSensors, RStatePresence, sensor->id(), item);
+                    enqueueEvent(e);
+                    enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
+                }
+                sensor->durationDue = QDateTime();
+            }
+            else
+            {
+                sensorCheckFast = CHECK_SENSOR_FAST_ROUNDS;
+            }
+        }
+    }
+
+    // adjust check speed if needed
+    int interval = (sensorCheckFast > 0) ? CHECK_SENSOR_FAST_INTERVAL
+                                         : CHECK_SENSOR_INTERVAL;
+    if (interval != checkSensorsTimer->interval())
+    {
+        checkSensorsTimer->setInterval(interval);
     }
 }
 

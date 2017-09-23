@@ -77,6 +77,10 @@
 #define EXT_PROCESS_TIMEOUT 10000
 #define SET_ENDPOINTCONFIG_DURATION (1000 * 16) // time deCONZ needs to update Endpoints
 #define OTA_LOW_PRIORITY_TIME (60 * 2)
+#define CHECK_SENSOR_FAST_ROUNDS 3
+#define CHECK_SENSOR_FAST_INTERVAL 100
+#define CHECK_SENSOR_INTERVAL      1000
+#define CHECK_SENSORS_MAX          10
 
 #define DE_OTAU_ENDPOINT             0x50
 #define DE_PROFILE_ID              0xDE00
@@ -1318,6 +1322,8 @@ public:
     size_t sensorIter;
     size_t lightAttrIter;
     size_t sensorAttrIter;
+    size_t sensorCheckIter;
+    int sensorCheckFast;
     std::vector<Group> groups;
     std::vector<LightNode> nodes;
     std::vector<Rule> rules;

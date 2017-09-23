@@ -332,10 +332,11 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
 
     checkSensorsTimer = new QTimer(this);
     checkSensorsTimer->setSingleShot(false);
-    checkSensorsTimer->setInterval(1000);
+    checkSensorsTimer->setInterval(CHECK_SENSOR_INTERVAL);
     connect(checkSensorsTimer, SIGNAL(timeout()),
             this, SLOT(checkSensorStateTimerFired()));
     checkSensorsTimer->start();
+    sensorCheckFast = 0;
 
     bindingTimer = new QTimer(this);
     bindingTimer->setSingleShot(true);
