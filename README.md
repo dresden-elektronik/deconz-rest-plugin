@@ -17,26 +17,26 @@ Usage
 Currently the compilation of the plugin is only supported for Raspbian Jessie distribution.
 Packages for Qt4 and Raspbian Wheezy are available but not described here.
 
-##### Install Qt5 development libraries and tools
-
-    sudo apt install qt5-default libqt5sql5 libqt5websockets5-dev libqt5serialport5-dev wiringpi
-
 ##### Install deCONZ and development package
 1. Download deCONZ package
 
-        wget http://www.dresden-elektronik.de/rpi/deconz/beta/deconz-2.04.70-qt5.deb
+        wget http://www.dresden-elektronik.de/rpi/deconz/beta/deconz-2.04.78-qt5.deb
 
 2. Install deCONZ package
 
-        sudo dpkg -i deconz-2.04.70-qt5.deb
+        sudo dpkg -i deconz-2.04.78-qt5.deb
 
-3. Download deCONZ development package
+3. Install missing dependencies
 
-        wget http://www.dresden-elektronik.de/rpi/deconz-dev/deconz-dev-2.04.70.deb
+        sudo apt install -f
 
-4. Install deCONZ development package
+4. Download deCONZ development package
 
-        sudo dpkg -i deconz-dev-2.04.70.deb
+        wget http://www.dresden-elektronik.de/rpi/deconz-dev/deconz-dev-2.04.78.deb
+
+5. Install deCONZ development package
+
+        sudo dpkg -i deconz-dev-2.04.78.deb
 
 ##### Get and compile the plugin
 1. Checkout the repository
@@ -46,7 +46,7 @@ Packages for Qt4 and Raspbian Wheezy are available but not described here.
 2. Checkout related version tag
 
         cd deconz-rest-plugin
-        git checkout -b mybranch V2_04_70
+        git checkout -b mybranch V2_04_78
 
 3. Compile the plugin
 
