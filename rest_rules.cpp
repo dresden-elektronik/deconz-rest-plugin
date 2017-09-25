@@ -542,9 +542,9 @@ int DeRestPluginPrivate::createRule(const ApiRequest &req, ApiResponse &rsp)
                 if (!found)
                 {
                     rules.push_back(rule);
-                    queueCheckRuleBindings(rule);
-                    indexRulesTriggers();
+                    queueCheckRuleBindings(rule);                   
                 }
+                indexRulesTriggers();
             }
             queSaveDb(DB_RULES, DB_SHORT_SAVE_DELAY);
 
