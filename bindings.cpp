@@ -1254,8 +1254,7 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
         }
     }
     else if (sensor->modelId() == QLatin1String("RB01") ||
-             sensor->modelId() == QLatin1String("RM01") ||
-             sensor->modelId() == QLatin1String("ZGPSWITCH"))
+             sensor->modelId() == QLatin1String("RM01"))
     {
         // check if group is created for other endpoint
         for (quint8 ep = 0x0A; !group && ep < 0x0F; ep++)
@@ -1282,6 +1281,10 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
                 }
             }
         }
+    }
+    else if (sensor->modelId() == QLatin1String("ZGPSWITCH"))
+    {
+        // go on
     }
     else
     {
