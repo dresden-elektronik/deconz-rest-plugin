@@ -20,11 +20,11 @@ Packages for Qt4 and Raspbian Wheezy are available but not described here.
 ##### Install deCONZ and development package
 1. Download deCONZ package
 
-        wget http://www.dresden-elektronik.de/rpi/deconz/beta/deconz-2.04.78-qt5.deb
+        wget http://www.dresden-elektronik.de/rpi/deconz/beta/deconz-2.04.79-qt5.deb
 
 2. Install deCONZ package
 
-        sudo dpkg -i deconz-2.04.78-qt5.deb
+        sudo dpkg -i deconz-2.04.79-qt5.deb
 
 3. Install missing dependencies
 
@@ -32,11 +32,11 @@ Packages for Qt4 and Raspbian Wheezy are available but not described here.
 
 4. Download deCONZ development package
 
-        wget http://www.dresden-elektronik.de/rpi/deconz-dev/deconz-dev-2.04.78.deb
+        wget http://www.dresden-elektronik.de/rpi/deconz-dev/deconz-dev-2.04.79.deb
 
 5. Install deCONZ development package
 
-        sudo dpkg -i deconz-dev-2.04.78.deb
+        sudo dpkg -i deconz-dev-2.04.79.deb
 
 ##### Get and compile the plugin
 1. Checkout the repository
@@ -46,7 +46,7 @@ Packages for Qt4 and Raspbian Wheezy are available but not described here.
 2. Checkout related version tag
 
         cd deconz-rest-plugin
-        git checkout -b mybranch V2_04_78
+        git checkout -b mybranch V2_04_79
 
 3. Compile the plugin
 
