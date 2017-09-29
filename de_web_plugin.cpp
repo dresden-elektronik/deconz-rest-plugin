@@ -9051,7 +9051,8 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
                 else if (modelId.isEmpty()) { stream << (quint16)0x0005; } // model id
                 else if (swBuildId.isEmpty() && dateCode.isEmpty())
                 {
-                    if ((sc->address.ext() & macPrefixMask) == tiMacPrefix)
+                    if ((sc->address.ext() & macPrefixMask) == tiMacPrefix ||
+                        modelId == QLatin1String("Motion Sensor-A")) // OSRAM motion sensor
                     {
                         stream << (quint16)0x0006; // date code, sw build id isn't available
                     }
