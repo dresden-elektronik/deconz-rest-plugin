@@ -91,7 +91,8 @@ int DeRestPluginPrivate::getAllSchedules(const ApiRequest &req, ApiResponse &rsp
             mnode["description"] = i->description;
             mnode["command"] = i->jsonMap["command"];
             mnode["time"] = i->time;
-            if (i->localtime != NULL) {
+            if (!i->localtime.isEmpty())
+            {
                 mnode["localtime"] = i->localtime;
             }
             if (i->type == Schedule::TypeTimer)
@@ -192,7 +193,7 @@ int DeRestPluginPrivate::getScheduleAttributes(const ApiRequest &req, ApiRespons
             rsp.map["description"] = i->description;
             rsp.map["command"] = i->jsonMap["command"];
             rsp.map["time"] = i->time;
-            if (i->localtime != NULL)
+            if (!i->localtime.isEmpty())
             {
                 rsp.map["localtime"] = i->localtime;
             }
