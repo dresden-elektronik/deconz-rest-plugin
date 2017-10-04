@@ -55,6 +55,9 @@ const char *RStateY = "state/y";
 
 const char *RConfigAlert = "config/alert";
 const char *RConfigBattery = "config/battery";
+const char *RConfigColorCapabilities = "config/colorcapabilities";
+const char *RConfigCtMin = "config/ctmin";
+const char *RConfigCtMax = "config/ctmax";
 const char *RConfigConfigured = "config/configured";
 const char *RConfigDuration = "config/duration";
 const char *RConfigGroup = "config/group";
@@ -113,6 +116,9 @@ void initResourceDescriptors()
 
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigAlert));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigBattery, 0, 100));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigColorCapabilities));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigCtMin));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigCtMax));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigConfigured));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigDuration));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigGroup));

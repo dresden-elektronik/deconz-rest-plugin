@@ -1509,6 +1509,12 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         uint16_t ct = ia->numericValue().u16;
                         ResourceItem *item = lightNode->item(RStateCt);
 
+                        if (!item)
+                        {
+                            item = lightNode->addItem(DataTypeUInt16, RStateCt);
+                            DBG_Assert(item != 0);
+                        }
+
                         if (item && item->toNumber() != ct)
                         {
                             item->setValue(ct);
@@ -1551,6 +1557,45 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         if (lightNode->colorLoopSpeed() != clTime)
                         {
                             lightNode->setColorLoopSpeed(clTime);
+                            updated = true;
+                        }
+                    }
+                    else if (ia->id() == 0x400a) // color capabilities
+                    {
+                        quint16 cap = ia->numericValue().u16;
+                        ResourceItem *item = lightNode->addItem(DataTypeUInt16, RConfigColorCapabilities);
+                        DBG_Assert(item != 0);
+                        if (item && item->toNumber() != cap)
+                        {
+                            item->setValue(cap);
+                            Event e(RLights, RConfigColorCapabilities, lightNode->id(), item);
+                            enqueueEvent(e);
+                            updated = true;
+                        }
+                    }
+                    else if (ia->id() == 0x400b) // color temperature min
+                    {
+                        quint16 cap = ia->numericValue().u16;
+                        ResourceItem *item = lightNode->addItem(DataTypeUInt16, RConfigCtMin);
+                        DBG_Assert(item != 0);
+                        if (item && item->toNumber() != cap)
+                        {
+                            item->setValue(cap);
+                            Event e(RLights, RConfigCtMin, lightNode->id(), item);
+                            enqueueEvent(e);
+                            updated = true;
+                        }
+                    }
+                    else if (ia->id() == 0x400c) // color temperature max
+                    {
+                        quint16 cap = ia->numericValue().u16;
+                        ResourceItem *item = lightNode->addItem(DataTypeUInt16, RConfigCtMax);
+                        DBG_Assert(item != 0);
+                        if (item && item->toNumber() != cap)
+                        {
+                            item->setValue(cap);
+                            Event e(RLights, RConfigCtMax, lightNode->id(), item);
+                            enqueueEvent(e);
                             updated = true;
                         }
                     }

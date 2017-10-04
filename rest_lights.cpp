@@ -202,6 +202,9 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (item->descriptor().suffix == RStateX) { ix = item; }
         else if (item->descriptor().suffix == RStateY) { iy = item; }
         else if (item->descriptor().suffix == RStateReachable) { state["reachable"] = item->toBool(); }
+        else if (item->descriptor().suffix == RConfigCtMin) { map["ctmin"] = item->toNumber(); }
+        else if (item->descriptor().suffix == RConfigCtMax) { map["ctmax"] = item->toNumber(); }
+
     }
 
     state["alert"] = "none"; // TODO
