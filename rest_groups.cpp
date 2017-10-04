@@ -2517,6 +2517,7 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
                 changed = true;
             }
 
+#if 0 // TODO let pollManger handle updates
             ResourceItem *item = lightNode->item(RStateOn);
             if (item && item->toBool() != ls->on())
             {
@@ -2603,7 +2604,7 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
                     }
                 }
             }
-
+#endif
             if (changed)
             {
                 updateLightEtag(lightNode);

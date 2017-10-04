@@ -30,6 +30,7 @@ public:
     {
         value.u64 = 0;
     }
+    bool isValid() const { return updateType != UpdateInvalid; }
 
     QDateTime timestamp;
     QDateTime timestampLastReport;

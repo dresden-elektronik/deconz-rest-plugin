@@ -31,6 +31,7 @@
 #include "de_web_widget.h"
 #include "gateway_scanner.h"
 #include "json.h"
+#include "poll_manager.h"
 
 const char *HttpStatusOk           = "200 OK"; // OK
 const char *HttpStatusAccepted     = "202 Accepted"; // Accepted but not complete
@@ -139,6 +140,8 @@ QString ApiRequest::apikey() const
 DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     QObject(parent)
 {
+    pollManager = new PollManager(this);
+
     databaseTimer = new QTimer(this);
     databaseTimer->setSingleShot(true);
 
@@ -524,6 +527,12 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
         }
             break;
 
+        case ZDP_MGMT_LQI_RSP_CLID:
+        {
+            handleMgmtLqiRspIndication(ind);
+        }
+            break;
+
         case ZDP_MGMT_BIND_RSP_CLID:
             handleMgmtBindRspIndication(ind);
             break;
@@ -558,6 +567,8 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
  */
 void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
 {
+    pollManager->apsdeDataConfirm(conf);
+
     std::list<TaskItem>::iterator i = runningTasks.begin();
     std::list<TaskItem>::iterator end = runningTasks.end();
 
@@ -1461,6 +1472,19 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             updated = true;
                         }
                     }
+                    else if (ia->id() == 0x4000) // enhanced current hue
+                    {
+                        quint16 hue = ia->numericValue().u16;
+                        ResourceItem *item = lightNode->item(RStateHue);
+
+                        if (item && item->toNumber() != hue)
+                        {
+                            item->setValue(hue);
+                            Event e(RLights, RStateHue, lightNode->id(), item);
+                            enqueueEvent(e);
+                            updated = true;
+                        }
+                    }
                     else if (ia->id() == 0x0001) // current saturation
                     {
                         uint8_t sat = ia->numericValue().u8;
@@ -1523,12 +1547,12 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             updated = true;
                         }
                     }
-                    else if (ia->id() == 0x0008) // color mode
+                    else if (ia->id() == 0x0008 || ia->id() == 0x4001) // color mode | enhanced color mode
                     {
                         uint8_t cm = ia->numericValue().u8;
 
-                        const char *modes[3] = {"hs", "xy", "ct"};
-                        if (cm < 3)
+                        const char *modes[4] = {"hs", "xy", "ct", "hs"};
+                        if (cm < 4)
                         {
                             ResourceItem *item = lightNode->item(RStateColorMode);
                             if (item && item->toString() != modes[cm])
@@ -4484,9 +4508,9 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
     }
 
     int processed = 0;
-    bool readColor = false;
-    bool readLevel = false;
-    bool readOnOff = false;
+    //bool readColor = false;
+    //bool readLevel = false;
+    //bool readOnOff = false;
 
     if (lightNode->haEndpoint().profileId() == ZLL_PROFILE_ID)
     {
@@ -4496,18 +4520,18 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
         case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:
         case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT:
         case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT:
-            readColor = true;
+            //readColor = true;
             //fall through
 
         case DEV_ID_ZLL_DIMMABLE_LIGHT:
         case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:
-            readLevel = true;
+            //readLevel = true;
             //fall through
 
         case DEV_ID_ZLL_ONOFF_LIGHT:
         case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:
         case DEV_ID_ZLL_ONOFF_SENSOR:
-            readOnOff = true;
+            //readOnOff = true;
             break;
 
         default:
@@ -4522,13 +4546,13 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
         case DEV_ID_ZLL_COLOR_LIGHT:
         case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:
         case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT:
-            readColor = true;
+            //readColor = true;
             //fall through
 
         case DEV_ID_HA_DIMMABLE_LIGHT:
         //case DEV_ID_ZLL_DIMMABLE_LIGHT: // same as DEV_ID_HA_ONOFF_LIGHT
         case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:
-            readLevel = true;
+            //readLevel = true;
             //fall through
 
         case DEV_ID_MAINS_POWER_OUTLET:
@@ -4536,7 +4560,7 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
         case DEV_ID_ZLL_ONOFF_LIGHT:
         case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:
         case DEV_ID_ZLL_ONOFF_SENSOR:
-            readOnOff = true;
+            //readOnOff = true;
             break;
 
         default:
@@ -4621,48 +4645,48 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
         }
     }
 
-    if ((processed < 2) && readOnOff && lightNode->mustRead(READ_ON_OFF) && tNow > lightNode->nextReadTime(READ_ON_OFF))
-    {
-        std::vector<uint16_t> attributes;
-        attributes.push_back(0x0000); // OnOff
+//    if ((processed < 2) && readOnOff && lightNode->mustRead(READ_ON_OFF) && tNow > lightNode->nextReadTime(READ_ON_OFF))
+//    {
+//        std::vector<uint16_t> attributes;
+//        attributes.push_back(0x0000); // OnOff
 
-        if (readAttributes(lightNode, lightNode->haEndpoint().endpoint(), ONOFF_CLUSTER_ID, attributes))
-        {
-            lightNode->clearRead(READ_ON_OFF);
-            processed++;
-        }
-    }
+//        if (readAttributes(lightNode, lightNode->haEndpoint().endpoint(), ONOFF_CLUSTER_ID, attributes))
+//        {
+//            lightNode->clearRead(READ_ON_OFF);
+//            processed++;
+//        }
+//    }
 
-    if ((processed < 2) && readLevel && lightNode->mustRead(READ_LEVEL) && tNow > lightNode->nextReadTime(READ_LEVEL))
-    {
-        std::vector<uint16_t> attributes;
-        attributes.push_back(0x0000); // Level
+//    if ((processed < 2) && readLevel && lightNode->mustRead(READ_LEVEL) && tNow > lightNode->nextReadTime(READ_LEVEL))
+//    {
+//        std::vector<uint16_t> attributes;
+//        attributes.push_back(0x0000); // Level
 
-        if (readAttributes(lightNode, lightNode->haEndpoint().endpoint(), LEVEL_CLUSTER_ID, attributes))
-        {
-            lightNode->clearRead(READ_LEVEL);
-            processed++;
-        }
-    }
+//        if (readAttributes(lightNode, lightNode->haEndpoint().endpoint(), LEVEL_CLUSTER_ID, attributes))
+//        {
+//            lightNode->clearRead(READ_LEVEL);
+//            processed++;
+//        }
+//    }
 
-    if ((processed < 2) && readColor && lightNode->mustRead(READ_COLOR) && lightNode->hasColor() && tNow > lightNode->nextReadTime(READ_COLOR))
-    {
-        std::vector<uint16_t> attributes;
-        attributes.push_back(0x0000); // Current hue
-        attributes.push_back(0x0001); // Current saturation
-        attributes.push_back(0x0003); // Current x
-        attributes.push_back(0x0004); // Current y
-        attributes.push_back(0x0007); // Color temperature
-        attributes.push_back(0x0008); // Color mode
-        attributes.push_back(0x4000); // Enhanced hue
-        attributes.push_back(0x4002); // Color loop active
+//    if ((processed < 2) && readColor && lightNode->mustRead(READ_COLOR) && lightNode->hasColor() && tNow > lightNode->nextReadTime(READ_COLOR))
+//    {
+//        std::vector<uint16_t> attributes;
+//        attributes.push_back(0x0000); // Current hue
+//        attributes.push_back(0x0001); // Current saturation
+//        attributes.push_back(0x0003); // Current x
+//        attributes.push_back(0x0004); // Current y
+//        attributes.push_back(0x0007); // Color temperature
+//        attributes.push_back(0x0008); // Color mode
+//        attributes.push_back(0x4000); // Enhanced hue
+//        attributes.push_back(0x4002); // Color loop active
 
-        if (readAttributes(lightNode, lightNode->haEndpoint().endpoint(), COLOR_CLUSTER_ID, attributes))
-        {
-            lightNode->clearRead(READ_COLOR);
-            processed++;
-        }
-    }
+//        if (readAttributes(lightNode, lightNode->haEndpoint().endpoint(), COLOR_CLUSTER_ID, attributes))
+//        {
+//            lightNode->clearRead(READ_COLOR);
+//            processed++;
+//        }
+//    }
 
     if ((processed < 2) && lightNode->mustRead(READ_GROUPS) && tNow > lightNode->nextReadTime(READ_GROUPS))
     {
@@ -5045,7 +5069,7 @@ bool DeRestPluginPrivate::readAttributes(RestNodeBase *restNode, quint8 endpoint
         return false;
     }
 
-    if (taskCountForAddress(restNode->address()) > 0)
+    if (taskCountForAddress(restNode->address()) >= MAX_TASKS_PER_NODE)
     {
         return false;
     }
@@ -7723,11 +7747,14 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
             std::vector<LightState>::const_iterator ls = scene->lights().begin();
             std::vector<LightState>::const_iterator lsend = scene->lights().end();
 
+            pollManager->delay(1500);
             for (; ls != lsend; ++ls)
             {
                 LightNode *lightNode = getLightNodeForId(ls->lid());
                 if (lightNode && lightNode->isAvailable() && lightNode->state() == LightNode::StateNormal)
                 {
+                    pollManager->poll(lightNode);
+
                     bool changed = false;
                     if (lightNode->hasColor())
                     {
@@ -7767,6 +7794,8 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                         }
                     }
 
+                    // TODO let updates be handled to pollManager?
+#if 0
                     ResourceItem *item = lightNode->item(RStateOn);
                     if (item && item->toBool() != ls->on())
                     {
@@ -7847,7 +7876,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                             }
                         }
                     }
-
+#endif
                     if (changed)
                     {
                         updateLightEtag(lightNode);
@@ -8359,6 +8388,44 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
 
         deCONZ::ZclFrame zclFrame; // dummy
         handleIndicationFindSensors(ind, zclFrame);
+    }
+}
+
+/*! Handle mgmt lqi response.
+    \param ind a ZDP MgmtLqi_rsp
+ */
+void DeRestPluginPrivate::handleMgmtLqiRspIndication(const deCONZ::ApsDataIndication &ind)
+{
+    quint8 zdpSeq;
+    quint8 zdpStatus;
+    quint8 neighEntries;
+    quint8 startIndex;
+    quint8 listCount;
+
+    QDataStream stream(ind.asdu());
+    stream.setByteOrder(QDataStream::LittleEndian);
+
+    stream >> zdpSeq;
+    stream >> zdpStatus;
+    stream >> neighEntries;
+    stream >> startIndex;
+    stream >> listCount;
+
+    if (stream.status() == QDataStream::ReadPastEnd)
+    {
+        return;
+    }
+
+    if ((startIndex + listCount) >= neighEntries || listCount == 0)
+    {
+        // finish
+        for (LightNode &l : nodes)
+        {
+            if (l.address().ext() == ind.srcAddress().ext())
+            {
+                pollManager->poll(&l);
+            }
+        }
     }
 }
 
@@ -9679,10 +9746,8 @@ void DeRestPlugin::idleTimerFired()
                     d->findSensorsState = fss;
                 }
 
-                const uint32_t items[]   = { READ_ON_OFF, READ_LEVEL, READ_COLOR, READ_GROUPS, READ_SCENES, 0 };
-                const int tRead[]        = {         120,        120,        240,         600,         600, 0 };
-                const quint16 clusters[] = {      0x0006,     0x0008,     0x0300,      0xffff,      0xffff, 0 };
-                const quint16 attrs[]    = {      0x0000,     0x0000,     0x0003,           0,           0, 0 };
+                const uint32_t items[]   = { READ_GROUPS, READ_SCENES, 0 };
+                const int tRead[]        = {         600,         600, 0 };
 
                 for (size_t i = 0; items[i] != 0; i++)
                 {
@@ -9702,26 +9767,6 @@ void DeRestPlugin::idleTimerFired()
 
                     if (lightNode->lastRead(items[i]) < (d->idleTotalCounter - tRead[i]))
                     {
-                        if (clusters[i] == COLOR_CLUSTER_ID && !lightNode->hasColor())
-                        {
-                            continue;
-                        }
-
-                        if (clusters[i] != 0xffff)
-                        {
-                            const NodeValue &val = lightNode->getZclValue(clusters[i], attrs[i]);
-
-                            if (val.updateType == NodeValue::UpdateByZclRead ||
-                                val.updateType == NodeValue::UpdateByZclReport)
-                            {
-                                if (val.timestamp.isValid() && val.timestamp.secsTo(now) < tRead[i])
-                                {
-                                    // fresh enough
-                                    continue;
-                                }
-                            }
-                        }
-
                         lightNode->setNextReadTime(items[i], d->queryTime);
                         lightNode->setLastRead(items[i], d->idleTotalCounter);
                         lightNode->enableRead(items[i]);
@@ -11050,6 +11095,10 @@ Resource *DeRestPluginPrivate::getResource(const char *resource, const QString &
     if (resource == RSensors)
     {
         return getSensorNodeForId(id);
+    }
+    else if (resource == RLights)
+    {
+        return getLightNodeForId(id);
     }
     else if (resource == RGroups && !id.isEmpty())
     {

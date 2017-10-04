@@ -91,6 +91,7 @@ HEADERS  = bindings.h \
            group_info.h \
            json.h \
            light_node.h \
+           poll_manager.h \
            sqlite3.h \
            resource.h \
            resourcelinks.h \
@@ -122,6 +123,7 @@ SOURCES  = authentification.cpp \
            ias_zone.cpp \
            json.cpp \
            light_node.cpp \
+           poll_manager.cpp \
            sqlite3.c \
            resource.cpp \
            resourcelinks.cpp \
