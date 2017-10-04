@@ -357,6 +357,8 @@ struct Schedule
     QString command;
     /*! Time is given in ISO 8601:2004 format: YYYY-MM-DDTHH:mm:ss. (Required) */
     QString time;
+    /*! Localtime is given in ISO 8601:2004 format: YYYY-MM-DDTHH:mm:ss. (Optional) */
+    QString localtime;
     /*! UTC time that the timer was started. Only provided for timers. */
     QString starttime;
     /*! status of schedule (enabled or disabled). */

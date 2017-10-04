@@ -91,6 +91,9 @@ int DeRestPluginPrivate::getAllSchedules(const ApiRequest &req, ApiResponse &rsp
             mnode["description"] = i->description;
             mnode["command"] = i->jsonMap["command"];
             mnode["time"] = i->time;
+            if (i->localtime != NULL) {
+                mnode["localtime"] = i->localtime;
+            }
             if (i->type == Schedule::TypeTimer)
             {
                 mnode["starttime"] = i->starttime;
@@ -189,6 +192,10 @@ int DeRestPluginPrivate::getScheduleAttributes(const ApiRequest &req, ApiRespons
             rsp.map["description"] = i->description;
             rsp.map["command"] = i->jsonMap["command"];
             rsp.map["time"] = i->time;
+            if (i->localtime != NULL)
+            {
+                rsp.map["localtime"] = i->localtime;
+            }
             if (i->type == Schedule::TypeTimer)
             {
                 rsp.map["starttime"] = i->starttime;
@@ -518,6 +525,161 @@ int DeRestPluginPrivate::setScheduleAttributes(const ApiRequest &req, ApiRespons
                     rsp.httpStatus = HttpStatusOk;
             }
 
+            // localtime
+            if (map.contains("localtime") && (map["localtime"].type() == QVariant::String))
+            {
+                if (!map.contains("time"))
+                {
+                    QString time = map["localtime"].toString();
+
+                    { // cutoff random part, A[hh]:[mm]:[ss], because this is not supported yet
+                        QStringList ls = time.split("A");
+
+                        if (ls.size() == 2)
+                        {
+                            DBG_Printf(DBG_INFO, "cut off random part %s\n", qPrintable(ls[1]));
+                            time = ls.first();
+                        }
+                    }
+
+                    // Timer with random element
+                    // PT[hh]:[mm]:[ss]A[hh]:[mm]:[ss]
+                    if (time.startsWith("PT") && time.contains("A"))
+                    {
+            //            schedule.type = Schedule::TypeTimer;
+                    }
+                    // Recurring timer with random element
+                    // R[nn]/PT[hh]:[mm]:[ss]A[hh]:[mm]:[ss]
+                    else if (time.startsWith("R") && time.contains("PT") && time.contains("A"))
+                    {
+            //            schedule.type = Schedule::TypeTimer;
+                    }
+                    // Recurring timer
+                    // R[nn]/PT[hh]:[mm]:[ss]
+                    else if (time.startsWith("R") && time.contains("PT"))
+                    {
+                        QRegExp rx("R([0-9]{0,2})/PT(\\d\\d):(\\d\\d):(\\d\\d)");
+
+                        if (rx.exactMatch(time))
+                        {
+                            i->timeout = rx.cap(2).toInt() * 60 * 60 + // h
+                                               rx.cap(3).toInt() * 60 +   // m
+                                               rx.cap(4).toInt(); // s
+                            i->currentTimeout = i->timeout;
+                            QDateTime now = QDateTime::currentDateTimeUtc();
+                            i->starttime = now.toString("yyyy-MM-ddThh:mm:ss");
+
+                            QString R = rx.cap(1);
+                            if (!R.isEmpty())
+                            {
+                                i->recurring = R.toUInt();
+                            }
+                            else
+                            {
+                                i->recurring = 0; // runs forever
+                            }
+
+                            if (i->timeout > 0)
+                            {
+                                i->type = Schedule::TypeTimer;
+                            }
+                        }
+                        else
+                        {
+                            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules"), QString("invalid value, %1, for parameter localtime").arg(map["localtime"].toString())));
+                            rsp.httpStatus = HttpStatusBadRequest;
+                            return REQ_READY_SEND;
+                        }
+                    }
+                    // Timer expiring at given time
+                    // PT[hh]:[mm]:[ss]
+                    else if (time.startsWith("PT"))
+                    {
+                        QRegExp rx("PT(\\d\\d):(\\d\\d):(\\d\\d)");
+
+                        if (rx.exactMatch(time))
+                        {
+                            i->timeout = rx.cap(1).toInt() * 60 * 60 + // h
+                                               rx.cap(2).toInt() * 60 +   // m
+                                               rx.cap(3).toInt(); // s
+                            i->currentTimeout = i->timeout;
+                            i->recurring = 1;
+                            QDateTime now = QDateTime::currentDateTimeUtc();
+                            i->starttime = now.toString("yyyy-MM-ddThh:mm:ss");
+
+                            if (i->timeout > 0)
+                            {
+                                i->type = Schedule::TypeTimer;
+                            }
+                        }
+                        else
+                        {
+                            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules"), QString("invalid value, %1, for parameter localtime").arg(map["localtime"].toString())));
+                            rsp.httpStatus = HttpStatusBadRequest;
+                            return REQ_READY_SEND;
+                        }
+                    }
+                    // Every weekday given by bbb at given left side time, randomized by right side time.
+                    // Right side time has to be smaller than 12 hours
+                    // W[bbb]/T[hh]:[mm]:[ss]A[hh]:[mm]:[ss]
+                    else if (time.startsWith("W") && time.contains("T") && time.contains("A"))
+                    {
+            //            schedule.type = Schedule::TypeRecurringTime;
+                    }
+                    // Every day of the week  given by bbb at given time
+                    // W[bbb]/T[hh]:[mm]:[ss]
+                    else if (time.startsWith("W") && time.contains("T"))
+                    {
+                        QRegExp rx("W([0-9]{1,3})/T(\\d\\d):(\\d\\d):(\\d\\d)");
+
+                        if (rx.exactMatch(time))
+                        {
+                            i->type = Schedule::TypeRecurringTime;
+                            i->weekBitmap = rx.cap(1).toUInt();
+                            //dummy date needed when recurring alarm timout fired
+                            i->datetime = QDateTime();
+                            i->datetime.setTime(QTime(rx.cap(2).toUInt(),   // h
+                                                            rx.cap(3).toUInt(),   // m
+                                                            rx.cap(4).toUInt())); // s
+                            i->datetime.setTimeSpec(Qt::UTC);
+                        }
+                        else
+                        {
+                            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules"), QString("invalid value, %1, for parameter localtime").arg(map["localtime"].toString())));
+                            rsp.httpStatus = HttpStatusBadRequest;
+                            return REQ_READY_SEND;
+                        }
+                    }
+                    // Absolute time
+                    else
+                    {
+                        QDateTime checkTime = QDateTime::fromString(time, Qt::ISODate);
+                        checkTime.setTimeSpec(Qt::UTC);
+
+                        if (checkTime.isValid())
+                        {
+                            i->datetime = checkTime;
+                            i->type = Schedule::TypeAbsoluteTime;
+                        }
+                        else
+                        {
+                            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules"), QString("invalid value, %1, for parameter localtime").arg(map["localtime"].toString())));
+                            rsp.httpStatus = HttpStatusBadRequest;
+                            return REQ_READY_SEND;
+                        }
+                    }
+                }
+                i->localtime = map["localtime"].toString();
+                i->jsonMap["localtime"] = map["localtime"];
+
+                QVariantMap rspItem;
+                QVariantMap rspItemState;
+                rspItemState[QString("/schedules/%1/localtime").arg(id)] = map["localtime"];
+                rspItem["success"] = rspItemState;
+                rsp.list.append(rspItem);
+                rsp.httpStatus = HttpStatusOk;
+            }
+
             updateEtag(i->etag);
 
             i->jsonMap["etag"] = i->etag.remove('"'); // no quotes allowed in string;
@@ -669,7 +831,7 @@ bool DeRestPluginPrivate::jsonToSchedule(const QString &jsonString, Schedule &sc
     }// else autodelete true is used
 
     // time
-    DBG_Assert(map.contains("time"));
+    DBG_Assert(map.contains("time") || map.contains("localtime"));
     if (map.contains("time") && (map["time"].type() == QVariant::String))
     {
         schedule.time = map["time"].toString();
@@ -795,16 +957,147 @@ bool DeRestPluginPrivate::jsonToSchedule(const QString &jsonString, Schedule &sc
             return false;
         }
     }
-    else
+
+    // localtime
+    if (map.contains("localtime") && (map["localtime"].type() == QVariant::String))
+    {
+        schedule.localtime = map["localtime"].toString();
+
+        if (!map.contains("time"))
+        {
+            QString time = schedule.localtime;
+
+            { // cutoff random part, A[hh]:[mm]:[ss], because this is not supported yet
+                QStringList ls = schedule.time.split("A");
+
+                if (ls.size() == 2)
+                {
+                    DBG_Printf(DBG_INFO, "cut off random part %s\n", qPrintable(ls[1]));
+                    time = ls.first();
+                }
+            }
+
+            // Timer with random element
+            // PT[hh]:[mm]:[ss]A[hh]:[mm]:[ss]
+            if (time.startsWith("PT") && time.contains("A"))
+            {
+    //            schedule.type = Schedule::TypeTimer;
+            }
+            // Recurring timer with random element
+            // R[nn]/PT[hh]:[mm]:[ss]A[hh]:[mm]:[ss]
+            else if (time.startsWith("R") && time.contains("PT") && time.contains("A"))
+            {
+    //            schedule.type = Schedule::TypeTimer;
+            }
+            // Recurring timer
+            // R[nn]/PT[hh]:[mm]:[ss]
+            else if (time.startsWith("R") && time.contains("PT"))
+            {
+                QRegExp rx("R([0-9]{0,2})/PT(\\d\\d):(\\d\\d):(\\d\\d)");
+
+                if (rx.exactMatch(time))
+                {
+                    schedule.timeout = rx.cap(2).toInt() * 60 * 60 + // h
+                                       rx.cap(3).toInt() * 60 +   // m
+                                       rx.cap(4).toInt(); // s
+                    schedule.currentTimeout = schedule.timeout;
+                    QDateTime now = QDateTime::currentDateTimeUtc();
+                    schedule.starttime = now.toString("yyyy-MM-ddThh:mm:ss");
+
+                    QString R = rx.cap(1);
+                    if (!R.isEmpty())
+                    {
+                        schedule.recurring = R.toUInt();
+                    }
+                    else
+                    {
+                        schedule.recurring = 0; // runs forever
+                    }
+
+                    if (schedule.timeout > 0)
+                    {
+                        schedule.type = Schedule::TypeTimer;
+                    }
+                }
+            }
+            // Timer expiring at given time
+            // PT[hh]:[mm]:[ss]
+            else if (time.startsWith("PT"))
+            {
+                QRegExp rx("PT(\\d\\d):(\\d\\d):(\\d\\d)");
+
+                if (rx.exactMatch(time))
+                {
+                    schedule.timeout = rx.cap(1).toInt() * 60 * 60 + // h
+                                       rx.cap(2).toInt() * 60 +   // m
+                                       rx.cap(3).toInt(); // s
+                    schedule.currentTimeout = schedule.timeout;
+                    schedule.recurring = 1;
+                    QDateTime now = QDateTime::currentDateTimeUtc();
+                    schedule.starttime = now.toString("yyyy-MM-ddThh:mm:ss");
+
+                    if (schedule.timeout > 0)
+                    {
+                        schedule.type = Schedule::TypeTimer;
+                    }
+                }
+            }
+            // Every weekday given by bbb at given left side time, randomized by right side time.
+            // Right side time has to be smaller than 12 hours
+            // W[bbb]/T[hh]:[mm]:[ss]A[hh]:[mm]:[ss]
+            else if (time.startsWith("W") && time.contains("T") && time.contains("A"))
+            {
+    //            schedule.type = Schedule::TypeRecurringTime;
+            }
+            // Every day of the week  given by bbb at given time
+            // W[bbb]/T[hh]:[mm]:[ss]
+            else if (time.startsWith("W") && time.contains("T"))
+            {
+                QRegExp rx("W([0-9]{1,3})/T(\\d\\d):(\\d\\d):(\\d\\d)");
+
+                if (rx.exactMatch(time))
+                {
+                    schedule.type = Schedule::TypeRecurringTime;
+                    schedule.weekBitmap = rx.cap(1).toUInt();
+                    schedule.datetime.setTime(QTime(rx.cap(2).toUInt(),   // h
+                                                    rx.cap(3).toUInt(),   // m
+                                                    rx.cap(4).toUInt())); // s
+                    schedule.datetime.setTimeSpec(Qt::UTC);
+                }
+            }
+            // Absolute time
+            else
+            {
+                schedule.datetime = QDateTime::fromString(time, Qt::ISODate);
+                schedule.datetime.setTimeSpec(Qt::UTC);
+
+                if (schedule.datetime.isValid())
+                {
+                    schedule.type = Schedule::TypeAbsoluteTime;
+                }
+            }
+
+            if (schedule.type == Schedule::TypeInvalid)
+            {
+                if (rsp)
+                {
+                    rsp->list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules"), QString("invalid value, %1, for parameter localtime").arg(map["localtime"].toString())));
+                    rsp->httpStatus = HttpStatusBadRequest;
+                }
+                return false;
+            }
+        }
+    }
+
+    if (!map.contains("time") && !map.contains("localtime"))
     {
         if (rsp)
         {
-            rsp->list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules"), QString("invalid value, %1, for parameter time").arg(map["time"].toString())));
+            rsp->list.append(errorToMap(ERR_MISSING_PARAMETER, QString("/schedules"), QString("missing parameter time or localtime")));
             rsp->httpStatus = HttpStatusBadRequest;
         }
         return false;
     }
-
     updateEtag(schedule.etag);
     map["etag"] = schedule.etag.remove('"'); // no quotes allowed in string;;
 
