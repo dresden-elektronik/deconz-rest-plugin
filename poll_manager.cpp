@@ -164,7 +164,22 @@ void PollManager::pollTimerFired()
 
     item = r->item(RStateOn);
     bool isOn = item ? item->toBool() : false;
-    const char *suffix = pitem.items.front();
+    const char *&suffix = pitem.items[0];
+
+    for (size_t i = 0; pitem.items[0] == 0 && i < pitem.items.size(); i++)
+    {
+        if (pitem.items[i] != 0)
+        {
+            pitem.items[0] = pitem.items[i]; // move to front
+            pitem.items[i] = 0; // clear
+            break;
+        }
+    }
+
+    if (!suffix)
+    {
+        pitem.items.clear(); // all done
+    }
 
     if (suffix == RStateOn)
     {
@@ -224,7 +239,26 @@ void PollManager::pollTimerFired()
         }
     }
 
-    if (!attributes.empty() && clusterId &&
+    size_t fresh = 0;
+    QDateTime now = QDateTime::currentDateTime();
+    for (quint16 attrId : attributes)
+    {
+        NodeValue &val = restNode->getZclValue(clusterId, attrId);
+
+        if (val.timestampLastReport.isValid() && val.timestampLastReport.secsTo(now) < 240)
+        {
+            fresh++;
+        }
+    }
+
+
+    if (clusterId && fresh > 0 && fresh == attributes.size())
+    {
+        DBG_Printf(DBG_INFO, "Poll APS request to 0x%016llX cluster: 0x%04X dropped, values are fresh enough\n", pitem.address.ext(), clusterId);
+        suffix = 0; // clear
+        timer->start(100);
+    }
+    else if (!attributes.empty() && clusterId &&
         plugin->readAttributes(restNode, pitem.endpoint, clusterId, attributes))
     {
         pollState = StateWait;
@@ -233,15 +267,14 @@ void PollManager::pollTimerFired()
         apsReqId = plugin->tasks.back().req.id();
         dstAddr = pitem.address;
         timer->start(20 * 1000); // wait for confirm
-        pitem.items.front() = pitem.items.back();
-        pitem.items.pop_back();
+        suffix = 0; // clear
         DBG_Printf(DBG_INFO, "Poll APS request to 0x%016llX cluster: 0x%04X\n", dstAddr.ext(), clusterId);
     }
     else
     {
         if (clusterId)
         {
-            DBG_Printf(DBG_INFO, "Poll APS request to 0x%016llX cluster: 0x%04X dropped\n", dstAddr.ext(), clusterId);
+            DBG_Printf(DBG_INFO, "Poll APS request to 0x%016llX cluster: 0x%04X dropped\n", pitem.address.ext(), clusterId);
         }
         timer->start(1000);
         items.front() = items.back();
