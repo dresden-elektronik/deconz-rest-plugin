@@ -466,6 +466,7 @@ struct TaskItem
     uint16_t colorY;
     uint16_t colorTemperature;
     uint16_t groupId;
+    uint8_t sceneId;
     qint32 inc; // bri_inc, hue_inc, sat_inc, ct_inc
     QString etag;
     uint16_t transitionTime;
@@ -973,6 +974,7 @@ public:
     bool addTaskViewGroup(TaskItem &task, uint16_t groupId);
     bool addTaskRemoveFromGroup(TaskItem &task, uint16_t groupId);
     bool addTaskStoreScene(TaskItem &task, uint16_t groupId, uint8_t sceneId);
+    bool addTaskAddEmptyScene(TaskItem &task, quint16 groupId, quint8 sceneId, quint16 transitionTime);
     bool addTaskAddScene(TaskItem &task, uint16_t groupId, uint8_t sceneId, const QString &lightId);
     bool addTaskRemoveScene(TaskItem &task, uint16_t groupId, uint8_t sceneId);
     void handleGroupClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);

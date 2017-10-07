@@ -5753,17 +5753,41 @@ bool DeRestPluginPrivate::storeScene(Group *group, uint8_t sceneId)
         return false;
     }
 
-    TaskItem task;
-    task.req.setDstAddressMode(deCONZ::ApsGroupAddress);
-    task.req.dstAddress().setGroup(group->address());
-    task.req.setDstEndpoint(0xff);
-    task.req.setSrcEndpoint(0x01);
-
-    if (!addTaskStoreScene(task, group->address(), sceneId))
+    Scene *scene = group->getScene(sceneId);
+    if (!scene)
     {
         return false;
     }
 
+    {
+        TaskItem task;
+        task.ordered = true;
+        task.req.setDstAddressMode(deCONZ::ApsGroupAddress);
+        task.req.dstAddress().setGroup(group->address());
+        task.req.setDstEndpoint(0xff);
+        task.req.setSrcEndpoint(0x01);
+
+        // add or replace empty scene, needed to set transition time
+        if (!addTaskAddEmptyScene(task, group->address(), scene->id, scene->transitiontime()))
+        {
+            return false;
+        }
+    }
+
+    {
+        TaskItem task;
+        task.ordered = true;
+        task.req.setDstAddressMode(deCONZ::ApsGroupAddress);
+        task.req.dstAddress().setGroup(group->address());
+        task.req.setDstEndpoint(0xff);
+        task.req.setSrcEndpoint(0x01);
+
+        if (!addTaskStoreScene(task, group->address(), scene->id))
+        {
+            return false;
+        }
+    }
+#if 0
     std::vector<LightNode>::iterator i = nodes.begin();
     std::vector<LightNode>::iterator end = nodes.end();
     for (; i != end; ++i)
@@ -5802,6 +5826,7 @@ bool DeRestPluginPrivate::storeScene(Group *group, uint8_t sceneId)
             }*/
         }
     }
+#endif
 
     return true;
 }
