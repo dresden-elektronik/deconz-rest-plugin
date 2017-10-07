@@ -5076,6 +5076,11 @@ bool DeRestPluginPrivate::readAttributes(RestNodeBase *restNode, quint8 endpoint
         return false;
     }
 
+    if (tasks.size() > MAX_BACKGROUND_TASKS)
+    {
+        return false;
+    }
+
     TaskItem task;
     task.taskType = TaskReadAttributes;
 
@@ -6405,12 +6410,15 @@ void DeRestPluginPrivate::processTasks()
 
     for (; i != end; ++i)
     {
-        // drop dead unicasts
-        if (i->lightNode && !i->lightNode->isAvailable())
+        if (i->lightNode)
         {
-            DBG_Printf(DBG_INFO, "drop request to zombie\n");
-            tasks.erase(i);
-            return;
+            // drop dead unicasts
+            if (!i->lightNode->isAvailable() || !i->lightNode->lastRx().isValid())
+            {
+                DBG_Printf(DBG_INFO, "drop request to zombie (rx = %u)\n", (uint)i->lightNode->lastRx().isValid());
+                tasks.erase(i);
+                return;
+            }
         }
 
         // send only few requests to a destination at a time
@@ -9739,7 +9747,7 @@ void DeRestPlugin::idleTimerFired()
                 LightNode *lightNode = &d->nodes[d->lightIter];
                 d->lightIter++;
 
-                if (!lightNode->isAvailable())
+                if (!lightNode->isAvailable() || !lightNode->lastRx().isValid())
                 {
                     continue;
                 }
@@ -10124,6 +10132,12 @@ void DeRestPlugin::checkZclAttributeTimerFired()
     }
 
     stopZclAttributeTimer();
+
+    if (d->tasks.size() > MAX_BACKGROUND_TASKS)
+    {
+        startZclAttributeTimer(1000);
+        return;
+    }
 
     if (d->lightAttrIter >= d->nodes.size())
     {
