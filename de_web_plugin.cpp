@@ -8286,6 +8286,14 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
         if (node && (i->address().ext() == ext))
         {
             i->rx();
+
+            // clear to speedup polling
+            for (NodeValue &val : i->zclValues())
+            {
+                val.timestamp = QDateTime();
+                val.timestampLastReport = QDateTime();
+            }
+
             std::vector<RecoverOnOff>::iterator rc = recoverOnOff.begin();
             std::vector<RecoverOnOff>::iterator rcend = recoverOnOff.end();
             for (; rc != rcend; ++rc)
@@ -8357,9 +8365,6 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
 
             i->enableRead(READ_MODEL_ID |
                           READ_SWBUILD_ID |
-                          READ_COLOR |
-                          READ_LEVEL |
-                          READ_ON_OFF |
                           READ_GROUPS |
                           READ_SCENES);
 

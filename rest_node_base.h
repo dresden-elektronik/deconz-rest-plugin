@@ -76,6 +76,7 @@ public:
     void setZclValue(NodeValue::UpdateType updateType, quint16 clusterId, quint16 attributeId, const deCONZ::NumericUnion &value);
     const NodeValue &getZclValue(quint16 clusterId, quint16 attributeId) const;
     NodeValue &getZclValue(quint16 clusterId, quint16 attributeId);
+    std::vector<NodeValue> &zclValues();
     const std::vector<NodeValue> &zclValues() const;
     const QDateTime &lastRx() const;
     void rx();
