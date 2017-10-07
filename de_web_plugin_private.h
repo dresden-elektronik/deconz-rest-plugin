@@ -429,6 +429,7 @@ struct TaskItem
 {
     TaskItem()
     {
+        taskId = _taskCounter++;
         autoMode = false;
         onOff = false;
         client = 0;
@@ -440,12 +441,15 @@ struct TaskItem
         colorTemperature = 0;
         transitionTime = DEFAULT_TRANSITION_TIME;
         sendTime = 0;
+        ordered = true;
     }
 
     TaskType taskType;
+    int taskId;
     deCONZ::ApsDataRequest req;
     deCONZ::ZclFrame zclFrame;
     uint8_t zclSeq;
+    bool ordered; // won't be send until al prior taskIds are send
     int sendTime; // copy of idleTotalCounter
     bool confirmed;
     bool onOff;
@@ -470,6 +474,9 @@ struct TaskItem
     deCONZ::Node *node;
     LightNode *lightNode;
     deCONZ::ZclCluster *cluster;
+
+private:
+    static int _taskCounter;
 };
 
 /*! \class ApiAuth

@@ -110,6 +110,8 @@ static const SupportedDevice supportedDevices[] = {
     { 0, 0, 0 }
 };
 
+int TaskItem::_taskCounter = 1; // static rolling taskcounter
+
 ApiRequest::ApiRequest(const QHttpRequestHeader &h, const QStringList &p, QTcpSocket *s, const QString &c) :
     hdr(h), path(p), sock(s), content(c), version(ApiVersion_1)
 {
@@ -6418,8 +6420,19 @@ void DeRestPluginPrivate::processTasks()
         std::list<TaskItem>::iterator jend = runningTasks.end();
 
         bool ok = true;
-        for (; j != jend; ++j)
+        if (i->ordered && std::distance(tasks.begin(), i) > 0) // previous not processed yet
         {
+            ok = false;
+        }
+
+        for (; ok && j != jend; ++j)
+        {
+            if (i->ordered && i->taskId == (j->taskId + 1)) // previous running
+            {
+                ok = false;
+                break;
+            }
+
             if (i->req.dstAddress() == j->req.dstAddress())
             {
                 onAir++;
