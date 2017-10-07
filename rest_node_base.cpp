@@ -341,6 +341,13 @@ NodeValue &RestNodeBase::getZclValue(quint16 clusterId, quint16 attributeId)
     return m_invalidValue;
 }
 
+/*! Returns ZCL attribute values.
+ */
+const std::vector<NodeValue> &RestNodeBase::zclValues() const
+{
+    return m_values;
+}
+
 /*! Returns timestamp of last rx. */
 const QDateTime &RestNodeBase::lastRx() const
 {

@@ -1452,6 +1452,8 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         continue;
                     }
 
+                    lightNode->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+
                     if (ia->id() == 0x0000) // current hue
                     {
                         uint8_t hue = ia->numericValue().u8;
@@ -9863,6 +9865,10 @@ void DeRestPlugin::idleTimerFired()
                 if (processLights)
                 {
                     DBG_Printf(DBG_INFO_L2, "Force read attributes for node %s\n", qPrintable(lightNode->name()));
+                }
+                else
+                {
+                    d->pollManager->poll(lightNode);
                 }
 
                 // don't query low priority items when OTA is busy
