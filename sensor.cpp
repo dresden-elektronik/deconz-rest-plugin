@@ -154,17 +154,18 @@ static const Sensor::ButtonMap ikeaRemoteMap[] = {
 
 static const Sensor::ButtonMap ikeaDimmerMap[] = {
 //    mode                ep    cluster cmd   param button                                       name
-    // down movement
-    { Sensor::ModeDimmer, 0x01, 0x0008, 0x04, 0,    S_BUTTON_1 + S_BUTTON_ACTION_INITIAL_PRESS, "Move to level 0 (with on/off)" },
-    { Sensor::ModeDimmer, 0x01, 0x0008, 0x01, 1,    S_BUTTON_1 + S_BUTTON_ACTION_HOLD,          "Move down" },
-    { Sensor::ModeDimmer, 0x01, 0x0008, 0x07, 1,    S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ down (with on/off)" },
-
-    // up movement
-    { Sensor::ModeDimmer, 0x01, 0x0008, 0x04, 255,  S_BUTTON_2 + S_BUTTON_ACTION_INITIAL_PRESS, "Move to level 255 (with on/off)" },
-    { Sensor::ModeDimmer, 0x01, 0x0008, 0x05, 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,          "Move up (with on/off)" },
-
-    { Sensor::ModeDimmer, 0x01, 0x0008, 0x07, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop_ up (with on/off)" },
-
+    // on
+    { Sensor::ModeDimmer, 0x01, 0x0008, 0x04, 255,  S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Move to level 255 (with on/off)" },
+    // dim up
+    { Sensor::ModeDimmer, 0x01, 0x0008, 0x05, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Move up (with on/off)" },
+    // { Sensor::ModeDimmer, 0x01, 0x0008, 0x05, 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "Move up (with on/off)" },
+    // { Sensor::ModeDimmer, 0x01, 0x0008, 0x07, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop_ up (with on/off)" },
+    // dim down
+    { Sensor::ModeDimmer, 0x01, 0x0008, 0x01, 1,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "Move down" },
+    // { Sensor::ModeDimmer, 0x01, 0x0008, 0x01, 1,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD,           "Move down" },
+    // { Sensor::ModeDimmer, 0x01, 0x0008, 0x07, 1,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop_ down (with on/off)" },
+    // off
+    { Sensor::ModeDimmer, 0x01, 0x0008, 0x04, 0,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Move to level 0 (with on/off)" },
     // end
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
 };
