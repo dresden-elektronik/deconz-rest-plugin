@@ -288,7 +288,6 @@ void PollManager::pollTimerFired()
         }
     }
 
-
     if (clusterId && fresh > 0 && fresh == attributes.size())
     {
         DBG_Printf(DBG_INFO, "Poll APS request to 0x%016llX cluster: 0x%04X dropped, values are fresh enough\n", pitem.address.ext(), clusterId);
@@ -318,7 +317,7 @@ void PollManager::pollTimerFired()
         {
             DBG_Printf(DBG_INFO, "Poll APS request to 0x%016llX cluster: 0x%04X dropped\n", pitem.address.ext(), clusterId);
         }
-        timer->start(1000);
+        timer->start(100);
         items.front() = items.back();
         items.pop_back();
     }
