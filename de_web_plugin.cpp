@@ -2159,8 +2159,9 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             else if (ind.clusterId() == LEVEL_CLUSTER_ID &&
                      (zclFrame.commandId() == 0x01 ||  // move
                       zclFrame.commandId() == 0x02 ||  // step
+                      zclFrame.commandId() == 0x04 ||  // move to level (with on/off)
                       zclFrame.commandId() == 0x05 ||  // move (with on/off)
-                      zclFrame.commandId() == 0x06))  // step (with on/off)
+                      zclFrame.commandId() == 0x06))   // step (with on/off)
             {
                 ok = false;
                 if (zclFrame.payload().size() >= 1 && buttonMap->zclParam0 == zclFrame.payload().at(0)) // direction
