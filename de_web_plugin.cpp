@@ -110,6 +110,8 @@ static const SupportedDevice supportedDevices[] = {
     { 0, 0, 0 }
 };
 
+int TaskItem::_taskCounter = 1; // static rolling taskcounter
+
 ApiRequest::ApiRequest(const QHttpRequestHeader &h, const QStringList &p, QTcpSocket *s, const QString &c) :
     hdr(h), path(p), sock(s), content(c), version(ApiVersion_1)
 {
@@ -1449,6 +1451,8 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                     {
                         continue;
                     }
+
+                    lightNode->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
 
                     if (ia->id() == 0x0000) // current hue
                     {
@@ -5075,6 +5079,11 @@ bool DeRestPluginPrivate::readAttributes(RestNodeBase *restNode, quint8 endpoint
         return false;
     }
 
+    if (tasks.size() > MAX_BACKGROUND_TASKS)
+    {
+        return false;
+    }
+
     TaskItem task;
     task.taskType = TaskReadAttributes;
 
@@ -5747,17 +5756,41 @@ bool DeRestPluginPrivate::storeScene(Group *group, uint8_t sceneId)
         return false;
     }
 
-    TaskItem task;
-    task.req.setDstAddressMode(deCONZ::ApsGroupAddress);
-    task.req.dstAddress().setGroup(group->address());
-    task.req.setDstEndpoint(0xff);
-    task.req.setSrcEndpoint(0x01);
-
-    if (!addTaskStoreScene(task, group->address(), sceneId))
+    Scene *scene = group->getScene(sceneId);
+    if (!scene)
     {
         return false;
     }
 
+    {
+        TaskItem task;
+        task.ordered = true;
+        task.req.setDstAddressMode(deCONZ::ApsGroupAddress);
+        task.req.dstAddress().setGroup(group->address());
+        task.req.setDstEndpoint(0xff);
+        task.req.setSrcEndpoint(0x01);
+
+        // add or replace empty scene, needed to set transition time
+        if (!addTaskAddEmptyScene(task, group->address(), scene->id, scene->transitiontime()))
+        {
+            return false;
+        }
+    }
+
+    {
+        TaskItem task;
+        task.ordered = true;
+        task.req.setDstAddressMode(deCONZ::ApsGroupAddress);
+        task.req.dstAddress().setGroup(group->address());
+        task.req.setDstEndpoint(0xff);
+        task.req.setSrcEndpoint(0x01);
+
+        if (!addTaskStoreScene(task, group->address(), scene->id))
+        {
+            return false;
+        }
+    }
+#if 0
     std::vector<LightNode>::iterator i = nodes.begin();
     std::vector<LightNode>::iterator end = nodes.end();
     for (; i != end; ++i)
@@ -5796,6 +5829,7 @@ bool DeRestPluginPrivate::storeScene(Group *group, uint8_t sceneId)
             }*/
         }
     }
+#endif
 
     return true;
 }
@@ -6404,12 +6438,15 @@ void DeRestPluginPrivate::processTasks()
 
     for (; i != end; ++i)
     {
-        // drop dead unicasts
-        if (i->lightNode && !i->lightNode->isAvailable())
+        if (i->lightNode)
         {
-            DBG_Printf(DBG_INFO, "drop request to zombie\n");
-            tasks.erase(i);
-            return;
+            // drop dead unicasts
+            if (!i->lightNode->isAvailable() || !i->lightNode->lastRx().isValid())
+            {
+                DBG_Printf(DBG_INFO, "drop request to zombie (rx = %u)\n", (uint)i->lightNode->lastRx().isValid());
+                tasks.erase(i);
+                return;
+            }
         }
 
         // send only few requests to a destination at a time
@@ -6419,8 +6456,19 @@ void DeRestPluginPrivate::processTasks()
         std::list<TaskItem>::iterator jend = runningTasks.end();
 
         bool ok = true;
-        for (; j != jend; ++j)
+        if (i->ordered && std::distance(tasks.begin(), i) > 0) // previous not processed yet
         {
+            ok = false;
+        }
+
+        for (; ok && j != jend; ++j)
+        {
+            if (i->ordered && i->taskId == (j->taskId + 1)) // previous running
+            {
+                ok = false;
+                break;
+            }
+
             if (i->req.dstAddress() == j->req.dstAddress())
             {
                 onAir++;
@@ -8239,6 +8287,14 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
         if (node && (i->address().ext() == ext))
         {
             i->rx();
+
+            // clear to speedup polling
+            for (NodeValue &val : i->zclValues())
+            {
+                val.timestamp = QDateTime();
+                val.timestampLastReport = QDateTime();
+            }
+
             std::vector<RecoverOnOff>::iterator rc = recoverOnOff.begin();
             std::vector<RecoverOnOff>::iterator rcend = recoverOnOff.end();
             for (; rc != rcend; ++rc)
@@ -8310,9 +8366,6 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
 
             i->enableRead(READ_MODEL_ID |
                           READ_SWBUILD_ID |
-                          READ_COLOR |
-                          READ_LEVEL |
-                          READ_ON_OFF |
                           READ_GROUPS |
                           READ_SCENES);
 
@@ -9727,7 +9780,7 @@ void DeRestPlugin::idleTimerFired()
                 LightNode *lightNode = &d->nodes[d->lightIter];
                 d->lightIter++;
 
-                if (!lightNode->isAvailable())
+                if (!lightNode->isAvailable() || !lightNode->lastRx().isValid())
                 {
                     continue;
                 }
@@ -9818,6 +9871,10 @@ void DeRestPlugin::idleTimerFired()
                 if (processLights)
                 {
                     DBG_Printf(DBG_INFO_L2, "Force read attributes for node %s\n", qPrintable(lightNode->name()));
+                }
+                else
+                {
+                    d->pollManager->poll(lightNode);
                 }
 
                 // don't query low priority items when OTA is busy
@@ -10112,6 +10169,12 @@ void DeRestPlugin::checkZclAttributeTimerFired()
     }
 
     stopZclAttributeTimer();
+
+    if (d->tasks.size() > MAX_BACKGROUND_TASKS)
+    {
+        startZclAttributeTimer(1000);
+        return;
+    }
 
     if (d->lightAttrIter >= d->nodes.size())
     {

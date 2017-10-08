@@ -144,9 +144,11 @@ void PollManager::pollTimerFired()
     Resource *r = plugin->getResource(pitem.prefix, pitem.id);
     ResourceItem *item = r ? r->item(RStateReachable) : 0;
     RestNodeBase *restNode = 0;
+    const LightNode *lightNode = 0;
     if (r && r->prefix() == RLights)
     {
         restNode = plugin->getLightNodeForId(pitem.id);
+        lightNode = static_cast<LightNode*>(restNode);
     }
 
     if (!r || pitem.items.empty() ||
@@ -188,53 +190,88 @@ void PollManager::pollTimerFired()
     }
     else if (suffix == RStateBri && isOn)
     {
-        clusterId = LEVEL_CLUSTER_ID;
-        attributes.push_back(0x0000); // current level
+        NodeValue &val = restNode->getZclValue(LEVEL_CLUSTER_ID, 0x0000);
+
+        if (isOn || !val.timestamp.isValid())
+        {
+            clusterId = LEVEL_CLUSTER_ID;
+            attributes.push_back(0x0000); // current level
+        }
     }
-    else if (suffix == RStateColorMode)
+    else if (suffix == RStateColorMode && lightNode)
     {
         clusterId = COLOR_CLUSTER_ID;
         item = r->item(RConfigColorCapabilities);
+
         if (!item)
         {
+            attributes.push_back(0x0008); // color mode
+            attributes.push_back(0x4001); // enhanced color mode
             attributes.push_back(0x400a); // color capabilities
             attributes.push_back(0x400b); // color temperature min
             attributes.push_back(0x400c); // color temperature max
         }
-        else if (isOn)
+        else
         {
             quint16 cap = item->toNumber();
+            std::vector<quint16> toCheck;
             if (cap & 0x0002) // enhanced hue supported
             {
-                attributes.push_back(0x4001); // enhanced color mode
-                attributes.push_back(0x4000); // enhanced hue
-                attributes.push_back(0x0001); // saturation
+                toCheck.push_back(0x4001); // enhanced color mode
+                toCheck.push_back(0x4000); // enhanced hue
+                toCheck.push_back(0x0001); // saturation
             }
             else if (cap & 0x0001)
             {
-                attributes.push_back(0x0000); // hue
-                attributes.push_back(0x0001); // saturation
-                attributes.push_back(0x0008); // color mode
+                toCheck.push_back(0x0000); // hue
+                toCheck.push_back(0x0001); // saturation
+                toCheck.push_back(0x0008); // color mode
             }
             else
             {
-                attributes.push_back(0x0008); // color mode
+                toCheck.push_back(0x0008); // color mode
             }
 
             if (cap & 0x0004)
             {
-                attributes.push_back(0x4002); // Color loop active
+                toCheck.push_back(0x4002); // Color loop active
             }
 
             if (cap & 0x0008)
             {
-                attributes.push_back(0x0003); // currentX
-                attributes.push_back(0x0004); // currentY
+                toCheck.push_back(0x0003); // currentX
+                toCheck.push_back(0x0004); // currentY
             }
 
             if (cap & 0x0010)
             {
-                attributes.push_back(0x0007); // color temperature
+                toCheck.push_back(0x0007); // color temperature
+            }
+
+            for (const deCONZ::ZclCluster &cl : lightNode->haEndpoint().inClusters())
+            {
+                if (cl.id() != COLOR_CLUSTER_ID)
+                {
+                    continue;
+                }
+
+                for (const deCONZ::ZclAttribute &attr : cl.attributes())
+                {
+                    for (quint16 attrId : toCheck)
+                    {
+                        // discard attributes which are not be available
+                        if (attrId == attr.id() && attr.isAvailable())
+                        {
+                            NodeValue &val = restNode->getZclValue(clusterId, attrId);
+                            if (isOn || !val.timestamp.isValid())
+                            {
+                                attributes.push_back(attrId);
+                            }
+                        }
+                    }
+                }
+
+                break;
             }
         }
     }
@@ -269,6 +306,11 @@ void PollManager::pollTimerFired()
         timer->start(20 * 1000); // wait for confirm
         suffix = 0; // clear
         DBG_Printf(DBG_INFO, "Poll APS request to 0x%016llX cluster: 0x%04X\n", dstAddr.ext(), clusterId);
+    }
+    else if (suffix)
+    {
+        suffix = 0; // clear
+        timer->start(100);
     }
     else
     {

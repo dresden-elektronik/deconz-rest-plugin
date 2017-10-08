@@ -949,8 +949,71 @@ bool DeRestPluginPrivate::addTaskStoreScene(TaskItem &task, uint16_t groupId, ui
    \return true - on success
            false - on error
  */
+bool DeRestPluginPrivate::addTaskAddEmptyScene(TaskItem &task, quint16 groupId, quint8 sceneId, quint16 transitionTime)
+{
+    task.taskType = TaskAddScene;
+    task.groupId = groupId;
+    task.sceneId = sceneId;
+    task.transitionTime = transitionTime;
+    task.req.setClusterId(SCENE_CLUSTER_ID);
+    task.req.setProfileId(HA_PROFILE_ID);
+
+    task.zclFrame.payload().clear();
+    task.zclFrame.setSequenceNumber(zclSeq++);
+
+    task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
+                                  deCONZ::ZclFCDirectionClientToServer |
+                                  deCONZ::ZclFCDisableDefaultResponse);
+
+    { // payload
+        QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        if (transitionTime >= 10)
+        {
+            task.zclFrame.setCommandId(0x00); // add scene
+            transitionTime = floor(transitionTime / 10); //deci-seconds -> seconds
+        }
+        else
+        {
+            task.zclFrame.setCommandId(0x40); // enhanced add scene
+        }
+
+        stream << groupId;
+        stream << sceneId;
+        stream << transitionTime;
+
+        stream << (uint8_t)0x00; // length of name
+        //stream << i->name;     // name not supported
+    }
+
+    { // ZCL frame
+        task.req.asdu().clear(); // cleanup old request data if there is any
+        QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        task.zclFrame.writeToStream(stream);
+    }
+
+    queryTime = queryTime.addSecs(2);
+    return addTask(task);
+}
+
+/*! Adds a add scene task to the queue.
+
+   \param task - the task item
+   \param groupId - the group to which the scene belongs
+   \param sceneId - the scene which shall be added
+   \return true - on success
+           false - on error
+ */
 bool DeRestPluginPrivate::addTaskAddScene(TaskItem &task, uint16_t groupId, uint8_t sceneId, const QString &lightId)
 {
+    DBG_Assert(task.lightNode != 0);
+    if (!task.lightNode)
+    {
+        return false;
+    }
+
     Group *group = getGroupForId(groupId);
 
     std::vector<Scene>::iterator i = group->scenes.begin();
@@ -965,134 +1028,144 @@ bool DeRestPluginPrivate::addTaskAddScene(TaskItem &task, uint16_t groupId, uint
 
             for ( ;l != lend; ++l)
             {
-                if (l->lid() == lightId)
+                if (l->lid() != lightId)
                 {
-                    task.taskType = TaskAddScene;
+                    continue;
+                }
 
-                    task.req.setClusterId(SCENE_CLUSTER_ID);
-                    task.req.setProfileId(HA_PROFILE_ID);
+                task.taskType = TaskAddScene;
 
-                    task.zclFrame.payload().clear();
-                    task.zclFrame.setSequenceNumber(zclSeq++);
+                task.req.setClusterId(SCENE_CLUSTER_ID);
+                task.req.setProfileId(HA_PROFILE_ID);
 
-                    task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
-                                             deCONZ::ZclFCDirectionClientToServer |
-                                             deCONZ::ZclFCDisableDefaultResponse);
+                task.zclFrame.payload().clear();
+                task.zclFrame.setSequenceNumber(zclSeq++);
 
-                    { // payload
-                        QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
-                        stream.setByteOrder(QDataStream::LittleEndian);
+                task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
+                                              deCONZ::ZclFCDirectionClientToServer |
+                                              deCONZ::ZclFCDisableDefaultResponse);
 
-                        uint8_t on = (l->on()) ? 0x01 : 0x00;
-                        uint16_t tt;
+                { // payload
+                    QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
+                    stream.setByteOrder(QDataStream::LittleEndian);
 
-                        if (l->transitionTime() >= 10)
+                    uint8_t on = (l->on()) ? 0x01 : 0x00;
+                    uint16_t tt;
+
+                    if (l->transitionTime() >= 10)
+                    {
+                        task.zclFrame.setCommandId(0x00); // add scene
+                        tt = floor(l->transitionTime() / 10); //deci-seconds -> seconds
+                    }
+                    else
+                    {
+                        task.zclFrame.setCommandId(0x40); // enhanced add scene
+                        tt = l->transitionTime();
+                    }
+
+                    stream << groupId;
+                    stream << sceneId;
+                    stream << tt;
+
+                    stream << (uint8_t)0x00; // length of name
+                    //stream << i->name;     // name not supported
+                    stream << (uint16_t)0x0006; // on/off cluster
+                    stream << (uint8_t)0x01;
+                    stream << on;
+                    stream << (uint16_t)0x0008; // level cluster
+                    stream << (uint8_t)0x01;
+                    stream << l->bri();
+
+                    ResourceItem *item = task.lightNode->item(RStateColorMode);
+                    if (item &&
+                            !task.lightNode->modelId().startsWith(QLatin1String("FLS-PP3"))) // color in add scene not supported well
+                    {
+                        stream << (uint16_t)0x0300; // color cluster
+                        stream << (uint8_t)11;
+                        if (l->colorMode() == QLatin1String("xy"))
                         {
-                            task.zclFrame.setCommandId(0x00); // add scene
-                            tt = floor(l->transitionTime() / 10); //deci-seconds -> seconds
-                        }
-                        else
-                        {
-                            task.zclFrame.setCommandId(0x40); // enhanced add scene
-                            tt = l->transitionTime();
-                        }
+                            stream << l->x();
+                            stream << l->y();
+                            stream << l->enhancedHue();
+                            stream << l->saturation();
+#if 0
+                            stream << l->x();
+                            stream << l->y();
 
-                        stream << groupId;
-                        stream << sceneId;
-                        stream << tt;
-
-                        stream << (uint8_t)0x00; // length of name
-                        //stream << i->name;     // name not supported
-                        stream << (uint16_t)0x0006; // on/off cluster
-                        stream << (uint8_t)0x01;
-                        stream << on;
-                        stream << (uint16_t)0x0008; // level cluster
-                        stream << (uint8_t)0x01;
-                        stream << l->bri();
-                        if (task.lightNode && task.lightNode->hasColor() &&
-                            !task.lightNode->modelId().startsWith("FLS-PP3")) // color in add scene not supported well
-                        {
-                            stream << (uint16_t)0x0300; // color cluster
-                            stream << (uint8_t)11;
-                            if (l->colorMode() == QLatin1String("xy"))
-                            {
-                                stream << l->x();
-                                stream << l->y();
-
-                                if (task.lightNode->manufacturerCode() == VENDOR_OSRAM ||
+                            if (task.lightNode->manufacturerCode() == VENDOR_OSRAM ||
                                     task.lightNode->manufacturerCode() == VENDOR_OSRAM_STACK)
-                                {
-                                    stream << l->enhancedHue();
-                                    stream << l->saturation();
-                                }
-                                else
-                                {
-                                    stream << (quint16)0; //enhanced hue
-                                    stream << (quint8)0; // saturation
-                                }
-                            }
-                            else if (l->colorMode() == QLatin1String("ct"))
                             {
-                                quint16 x,y;
-                                if (task.lightNode->modelId().startsWith(QLatin1String("FLS-H")))
-                                {
-                                    // quirks mode FLS-H stores color temperature in x
-                                    x = l->colorTemperature();
-                                    y = 0;
-                                }
-                                else if (task.lightNode->modelId().startsWith(QLatin1String("FLS-CT")))
-                                {
-                                    // quirks mode FLS-CT stores color temperature in x
-                                    x = l->colorTemperature();
-                                    y = 0;
-                                }
-                                else if (task.lightNode->modelId().startsWith(QLatin1String("Ribag Air O")))
-                                {
-                                    // quirks mode Ribag Air O stores color temperature in x
-                                    x = l->colorTemperature();
-                                    y = 0;
-                                }
-                                else
-                                {
-                                    MiredColorTemperatureToXY(l->colorTemperature(), &x, &y);
-                                }
-
-                                // view scene command will be used to verify x, y values
-                                if (l->x() != x || l->y() != y)
-                                {
-                                    l->setX(x);
-                                    l->setY(y);
-                                }
-
-                                stream << x;
-                                stream << y;
-                                stream << (quint16)0; //enhanced hue
-                                stream << (quint8)0; // saturation
-                            }
-                            else if (l->colorMode() == QLatin1String("hs"))
-                            {
-                                stream << l->x();
-                                stream << l->y();
                                 stream << l->enhancedHue();
                                 stream << l->saturation();
                             }
-                            stream << (quint8)l->colorloopActive();
-                            stream << (quint8)l->colorloopDirection();
-                            stream << (quint16)l->colorloopTime();
+                            else
+                            {
+                                stream << (quint16)0; //enhanced hue
+                                stream << (quint8)0; // saturation
+                            }
+#endif
                         }
+                        else if (l->colorMode() == QLatin1String("ct"))
+                        {
+                            quint16 x,y;
+                            if (task.lightNode->modelId().startsWith(QLatin1String("FLS-H")))
+                            {
+                                // quirks mode FLS-H stores color temperature in x
+                                x = l->colorTemperature();
+                                y = 0;
+                            }
+                            else if (task.lightNode->modelId().startsWith(QLatin1String("FLS-CT")))
+                            {
+                                // quirks mode FLS-CT stores color temperature in x
+                                x = l->colorTemperature();
+                                y = 0;
+                            }
+                            else if (task.lightNode->modelId().startsWith(QLatin1String("Ribag Air O")))
+                            {
+                                // quirks mode Ribag Air O stores color temperature in x
+                                x = l->colorTemperature();
+                                y = 0;
+                            }
+                            else
+                            {
+                                MiredColorTemperatureToXY(l->colorTemperature(), &x, &y);
+                            }
+
+                            // view scene command will be used to verify x, y values
+                            if (l->x() != x || l->y() != y)
+                            {
+                                l->setX(x);
+                                l->setY(y);
+                            }
+
+                            stream << x;
+                            stream << y;
+                            stream << (quint16)0; //enhanced hue
+                            stream << (quint8)0; // saturation
+                        }
+                        else if (l->colorMode() == QLatin1String("hs"))
+                        {
+                            stream << l->x();
+                            stream << l->y();
+                            stream << l->enhancedHue();
+                            stream << l->saturation();
+                        }
+                        stream << (quint8)l->colorloopActive();
+                        stream << (quint8)l->colorloopDirection();
+                        stream << (quint16)l->colorloopTime();
                     }
-
-                    { // ZCL frame
-                        task.req.asdu().clear(); // cleanup old request data if there is any
-                        QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
-                        stream.setByteOrder(QDataStream::LittleEndian);
-                        task.zclFrame.writeToStream(stream);
-                    }
-
-                    queryTime = queryTime.addSecs(2);
-
-                    return addTask(task);
                 }
+
+                { // ZCL frame
+                    task.req.asdu().clear(); // cleanup old request data if there is any
+                    QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
+                    stream.setByteOrder(QDataStream::LittleEndian);
+                    task.zclFrame.writeToStream(stream);
+                }
+
+                queryTime = queryTime.addSecs(2);
+
+                return addTask(task);
             }
             return false;
         }

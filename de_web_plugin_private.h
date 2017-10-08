@@ -206,6 +206,7 @@
 #define MAX_GROUP_SEND_DELAY 5000 // ms between to requests to the same group
 #define GROUP_SEND_DELAY 500 // default ms between to requests to the same group
 #define MAX_TASKS_PER_NODE 2
+#define MAX_BACKGROUND_TASKS 5
 
 #define MAX_SENSORS 1000
 #define MAX_RULE_ILLUMINANCE_VALUE_AGE_MS (1000 * 60 * 20) // 20 minutes
@@ -429,6 +430,7 @@ struct TaskItem
 {
     TaskItem()
     {
+        taskId = _taskCounter++;
         autoMode = false;
         onOff = false;
         client = 0;
@@ -440,12 +442,15 @@ struct TaskItem
         colorTemperature = 0;
         transitionTime = DEFAULT_TRANSITION_TIME;
         sendTime = 0;
+        ordered = true;
     }
 
     TaskType taskType;
+    int taskId;
     deCONZ::ApsDataRequest req;
     deCONZ::ZclFrame zclFrame;
     uint8_t zclSeq;
+    bool ordered; // won't be send until al prior taskIds are send
     int sendTime; // copy of idleTotalCounter
     bool confirmed;
     bool onOff;
@@ -461,6 +466,7 @@ struct TaskItem
     uint16_t colorY;
     uint16_t colorTemperature;
     uint16_t groupId;
+    uint8_t sceneId;
     qint32 inc; // bri_inc, hue_inc, sat_inc, ct_inc
     QString etag;
     uint16_t transitionTime;
@@ -470,6 +476,9 @@ struct TaskItem
     deCONZ::Node *node;
     LightNode *lightNode;
     deCONZ::ZclCluster *cluster;
+
+private:
+    static int _taskCounter;
 };
 
 /*! \class ApiAuth
@@ -784,7 +793,7 @@ public Q_SLOTS:
     void saveDatabaseTimerFired();
     void userActivity();
     bool sendBindRequest(BindingTask &bt);
-    bool sendConfigureReportingRequest(BindingTask &bt, ConfigureReportingRequest &rq);
+    bool sendConfigureReportingRequest(BindingTask &bt, const std::vector<ConfigureReportingRequest> &requests);
     bool sendConfigureReportingRequest(BindingTask &bt);
     void checkLightBindingsForAttributeReporting(LightNode *lightNode);
     void checkSensorBindingsForAttributeReporting(Sensor *sensor);
@@ -965,6 +974,7 @@ public:
     bool addTaskViewGroup(TaskItem &task, uint16_t groupId);
     bool addTaskRemoveFromGroup(TaskItem &task, uint16_t groupId);
     bool addTaskStoreScene(TaskItem &task, uint16_t groupId, uint8_t sceneId);
+    bool addTaskAddEmptyScene(TaskItem &task, quint16 groupId, quint8 sceneId, quint16 transitionTime);
     bool addTaskAddScene(TaskItem &task, uint16_t groupId, uint8_t sceneId, const QString &lightId);
     bool addTaskRemoveScene(TaskItem &task, uint16_t groupId, uint8_t sceneId);
     void handleGroupClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
