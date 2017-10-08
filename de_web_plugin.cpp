@@ -1641,7 +1641,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         ResourceItem *item = lightNode->item(RStateBri);
                         if (item && item->toNumber() != level)
                         {
-                            DBG_Printf(DBG_INFO, "level %u --> %u\n", (uint)item->toNumber(), level);
+                            DBG_Printf(DBG_INFO, "0x%016llX level %u --> %u\n", lightNode->address().ext(), (uint)item->toNumber(), level);
                             lightNode->clearRead(READ_LEVEL);
                             item->setValue(level);
                             Event e(RLights, RStateBri, lightNode->id(), item);
@@ -1666,7 +1666,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         ResourceItem *item = lightNode->item(RStateOn);
                         if (item && item->toBool() != on)
                         {
-                            lightNode->clearRead(READ_ON_OFF);
+                            DBG_Printf(DBG_INFO, "0x%016llX onOff %u --> %u\n", lightNode->address().ext(), (uint)item->toNumber(), on);
                             item->setValue(on);
                             Event e(RLights, RStateOn, lightNode->id(), item);
                             enqueueEvent(e);
