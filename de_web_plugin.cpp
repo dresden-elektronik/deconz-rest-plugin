@@ -592,6 +592,22 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
             {
                 DBG_Printf(DBG_INFO, "error APSDE-DATA.confirm: 0x%02X on task\n", conf.status());
             }
+            else if (task.req.dstAddressMode() == deCONZ::ApsGroupAddress &&
+                     (task.req.clusterId() == ONOFF_CLUSTER_ID ||
+                      task.req.clusterId() == LEVEL_CLUSTER_ID ||
+                      task.req.clusterId() == COLOR_CLUSTER_ID))
+            {
+                quint16 groupId = task.req.dstAddress().group();
+
+                for (LightNode &l : nodes)
+                {
+                    if (isLightNodeInGroup(&l, groupId))
+                    {
+                        DBG_Printf(DBG_INFO, "0x%016llX force poll\n", l.address().ext());
+                        pollManager->poll(&l);
+                    }
+                }
+            }
 
             if (DBG_IsEnabled(DBG_INFO_L2))
             {
