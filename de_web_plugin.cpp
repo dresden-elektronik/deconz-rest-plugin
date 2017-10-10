@@ -9800,9 +9800,18 @@ void DeRestPlugin::idleTimerFired()
                 LightNode *lightNode = &d->nodes[d->lightIter];
                 d->lightIter++;
 
-                if (!lightNode->isAvailable() || !lightNode->lastRx().isValid())
+                if (!lightNode->isAvailable() || !lightNode->lastRx().isValid() || !lightNode->node())
                 {
                     continue;
+                }
+
+                if (lightNode->node()->isZombie())
+                {   // handle here if not detected earlier TODO merge
+                    d->nodeZombieStateChanged(lightNode->node());
+                    if (!lightNode->isAvailable())
+                    {
+                        continue;
+                    }
                 }
 
                 if (processLights)
