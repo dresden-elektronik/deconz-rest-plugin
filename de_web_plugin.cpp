@@ -9786,7 +9786,7 @@ void DeRestPlugin::idleTimerFired()
                 }
 
                 const uint32_t items[]   = { READ_GROUPS, READ_SCENES, 0 };
-                const int tRead[]        = {         600,         600, 0 };
+                const int tRead[]        = {        1800,        3600, 0 };
 
                 for (size_t i = 0; items[i] != 0; i++)
                 {
