@@ -9814,6 +9814,13 @@ void DeRestPlugin::idleTimerFired()
                     }
                 }
 
+                if (lightNode->lastRx().secsTo(now) > (5 * 60))
+                {
+                    // let poll manager detect if node is available
+                    d->pollManager->poll(lightNode);
+                    continue;
+                }
+
                 if (processLights)
                 {
                     break;
