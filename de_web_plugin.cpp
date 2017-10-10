@@ -4671,6 +4671,8 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
         }
     }
 
+#if 0 // TODO add this to poll manager
+      // this is very problematic and causes queues to fill up extremely
     if ((processed < 2) && lightNode->mustRead(READ_SCENES) && !lightNode->groups().empty()&& tNow > lightNode->nextReadTime(READ_SCENES))
     {
         std::vector<GroupInfo>::iterator i = lightNode->groups().begin();
@@ -4758,6 +4760,7 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
         }
 
     }
+#endif
 
     return (processed > 0);
 }
