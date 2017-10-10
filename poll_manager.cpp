@@ -153,6 +153,7 @@ void PollManager::pollTimerFired()
 
     if (!r || pitem.items.empty() ||
         !restNode ||
+        !restNode->lastRx().isValid() ||
         !item || !item->toBool()) // not reachable
     {
         items.front() = items.back();
