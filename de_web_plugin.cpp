@@ -4529,9 +4529,6 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
     }
 
     int processed = 0;
-    //bool readColor = false;
-    //bool readLevel = false;
-    //bool readOnOff = false;
 
     if (lightNode->haEndpoint().profileId() == ZLL_PROFILE_ID)
     {
@@ -4541,12 +4538,10 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
         case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:
         case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT:
         case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT:
-            //readColor = true;
             //fall through
 
         case DEV_ID_ZLL_DIMMABLE_LIGHT:
         case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:
-            //readLevel = true;
             //fall through
 
         case DEV_ID_ZLL_ONOFF_LIGHT:
@@ -4567,13 +4562,11 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
         case DEV_ID_ZLL_COLOR_LIGHT:
         case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:
         case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT:
-            //readColor = true;
             //fall through
 
         case DEV_ID_HA_DIMMABLE_LIGHT:
         //case DEV_ID_ZLL_DIMMABLE_LIGHT: // same as DEV_ID_HA_ONOFF_LIGHT
         case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:
-            //readLevel = true;
             //fall through
 
         case DEV_ID_MAINS_POWER_OUTLET:
@@ -4581,7 +4574,6 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
         case DEV_ID_ZLL_ONOFF_LIGHT:
         case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:
         case DEV_ID_ZLL_ONOFF_SENSOR:
-            //readOnOff = true;
             break;
 
         default:
@@ -4665,49 +4657,6 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
             processed++;
         }
     }
-
-//    if ((processed < 2) && readOnOff && lightNode->mustRead(READ_ON_OFF) && tNow > lightNode->nextReadTime(READ_ON_OFF))
-//    {
-//        std::vector<uint16_t> attributes;
-//        attributes.push_back(0x0000); // OnOff
-
-//        if (readAttributes(lightNode, lightNode->haEndpoint().endpoint(), ONOFF_CLUSTER_ID, attributes))
-//        {
-//            lightNode->clearRead(READ_ON_OFF);
-//            processed++;
-//        }
-//    }
-
-//    if ((processed < 2) && readLevel && lightNode->mustRead(READ_LEVEL) && tNow > lightNode->nextReadTime(READ_LEVEL))
-//    {
-//        std::vector<uint16_t> attributes;
-//        attributes.push_back(0x0000); // Level
-
-//        if (readAttributes(lightNode, lightNode->haEndpoint().endpoint(), LEVEL_CLUSTER_ID, attributes))
-//        {
-//            lightNode->clearRead(READ_LEVEL);
-//            processed++;
-//        }
-//    }
-
-//    if ((processed < 2) && readColor && lightNode->mustRead(READ_COLOR) && lightNode->hasColor() && tNow > lightNode->nextReadTime(READ_COLOR))
-//    {
-//        std::vector<uint16_t> attributes;
-//        attributes.push_back(0x0000); // Current hue
-//        attributes.push_back(0x0001); // Current saturation
-//        attributes.push_back(0x0003); // Current x
-//        attributes.push_back(0x0004); // Current y
-//        attributes.push_back(0x0007); // Color temperature
-//        attributes.push_back(0x0008); // Color mode
-//        attributes.push_back(0x4000); // Enhanced hue
-//        attributes.push_back(0x4002); // Color loop active
-
-//        if (readAttributes(lightNode, lightNode->haEndpoint().endpoint(), COLOR_CLUSTER_ID, attributes))
-//        {
-//            lightNode->clearRead(READ_COLOR);
-//            processed++;
-//        }
-//    }
 
     if ((processed < 2) && lightNode->mustRead(READ_GROUPS) && tNow > lightNode->nextReadTime(READ_GROUPS))
     {
