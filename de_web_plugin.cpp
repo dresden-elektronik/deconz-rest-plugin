@@ -5054,10 +5054,20 @@ bool DeRestPluginPrivate::readAttributes(RestNodeBase *restNode, quint8 endpoint
     DBG_Assert(restNode != 0);
     DBG_Assert(!attributes.empty());
 
-    if (!restNode || attributes.empty() || !restNode->isAvailable())
+    if (!restNode || !restNode->node() || attributes.empty() || !restNode->isAvailable())
     {
         return false;
     }
+
+    if (restNode->node()->isEndDevice())
+    {
+        QDateTime now = QDateTime::currentDateTime();
+        if (!restNode->lastRx().isValid() || (restNode->lastRx().secsTo(now) > 3))
+        {
+            return false;
+        }
+    }
+
 
     if (taskCountForAddress(restNode->address()) >= MAX_TASKS_PER_NODE)
     {
