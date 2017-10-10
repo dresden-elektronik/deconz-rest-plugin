@@ -391,6 +391,7 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
             d->gwConfig["rgbwdisplay"] = val;
         }
     }
+#if 0
     else if (strcmp(colval[0], "groupdelay") == 0)
     {
         if (!val.isEmpty())
@@ -403,6 +404,7 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
             }
         }
     }
+#endif
     else if (strcmp(colval[0], "zigbeechannel") == 0)
     {
         if (!val.isEmpty())

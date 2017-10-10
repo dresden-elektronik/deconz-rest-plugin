@@ -204,7 +204,7 @@
 #define ANNOUNCE_INTERVAL 10 // minutes default announce interval
 
 #define MAX_GROUP_SEND_DELAY 5000 // ms between to requests to the same group
-#define GROUP_SEND_DELAY 500 // default ms between to requests to the same group
+#define GROUP_SEND_DELAY 50 // default ms between to requests to the same group
 #define MAX_TASKS_PER_NODE 2
 #define MAX_BACKGROUND_TASKS 5
 
