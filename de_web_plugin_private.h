@@ -442,7 +442,7 @@ struct TaskItem
         colorTemperature = 0;
         transitionTime = DEFAULT_TRANSITION_TIME;
         sendTime = 0;
-        ordered = true;
+        ordered = false;
     }
 
     TaskType taskType;
