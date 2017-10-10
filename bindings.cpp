@@ -120,6 +120,16 @@ bool DeRestPluginPrivate::readBindingTable(RestNodeBase *node, quint8 startIndex
         return false;
     }
 
+    // whitelist
+    if ((node->address().ext() & macPrefixMask) == deMacPrefix)
+    {
+    }
+    else
+    {
+        node->clearRead(READ_BINDING_TABLE);
+        return false;
+    }
+
     std::vector<BindingTableReader>::iterator i = bindingTableReaders.begin();
     std::vector<BindingTableReader>::iterator end = bindingTableReaders.end();
 
