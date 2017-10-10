@@ -6419,7 +6419,7 @@ void DeRestPluginPrivate::processTasks()
         return;
     }
 
-    if (runningTasks.size() > 4)
+    if (runningTasks.size() >= MAX_BACKGROUND_TASKS)
     {
         std::list<TaskItem>::iterator j = runningTasks.begin();
         std::list<TaskItem>::iterator jend = runningTasks.end();
@@ -6460,7 +6460,7 @@ void DeRestPluginPrivate::processTasks()
 
         // send only few requests to a destination at a time
         int onAir = 0;
-        const int maxOnAir = i->req.dstAddressMode() == deCONZ::ApsGroupAddress ? 4 : 2;
+        const int maxOnAir = i->req.dstAddressMode() == deCONZ::ApsGroupAddress ? 6 : 2;
         std::list<TaskItem>::iterator j = runningTasks.begin();
         std::list<TaskItem>::iterator jend = runningTasks.end();
 
@@ -6478,7 +6478,18 @@ void DeRestPluginPrivate::processTasks()
                 break;
             }
 
-            if (i->req.dstAddress() == j->req.dstAddress())
+            if (i->req.dstAddressMode() == deCONZ::ApsGroupAddress &&
+                j->req.dstAddressMode() == deCONZ::ApsGroupAddress)
+            {
+                onAir++;
+
+                if (onAir >= maxOnAir)
+                {
+                    ok = false;
+                    break;
+                }
+            }
+            else if (i->req.dstAddress() == j->req.dstAddress())
             {
                 onAir++;
                 int dt = idleTotalCounter - j->sendTime;
