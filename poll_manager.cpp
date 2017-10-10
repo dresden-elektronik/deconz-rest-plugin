@@ -282,7 +282,7 @@ void PollManager::pollTimerFired()
     {
         NodeValue &val = restNode->getZclValue(clusterId, attrId);
 
-        if (val.timestampLastReport.isValid() && val.timestampLastReport.secsTo(now) < 240)
+        if (val.timestampLastReport.isValid() && val.timestampLastReport.secsTo(now) < 360)
         {
             fresh++;
         }
