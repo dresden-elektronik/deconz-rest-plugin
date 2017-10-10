@@ -605,7 +605,21 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
 
             for (LightNode &l : nodes)
             {
-                if (isLightNodeInGroup(&l, groupId))
+                if (!l.isAvailable() ||
+                    !l.lastRx().isValid() ||
+                    l.manufacturerCode() == VENDOR_IKEA ||
+                    l.manufacturerCode() == VENDOR_OSRAM ||
+                    l.manufacturerCode() == VENDOR_OSRAM_STACK ||
+                    l.manufacturer().startsWith(QLatin1String("IKEA")) ||
+                    l.manufacturer().startsWith(QLatin1String("OSRAM")))
+                {
+                    continue;
+                }
+
+                // fast poll lights which don't support or have enabled ZCL reporting
+                const NodeValue &val = l.getZclValue(ONOFF_CLUSTER_ID, 0x0000);
+                if (!val.timestampLastReport.isValid() &&
+                    isLightNodeInGroup(&l, groupId))
                 {
                     DBG_Printf(DBG_INFO, "\t0x%016llX force poll\n", l.address().ext());
                     pollManager->poll(&l);
