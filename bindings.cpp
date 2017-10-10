@@ -909,9 +909,15 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
                 }
             }
 
-
             BindingTask bt;
-            bt.state = BindingTask::StateCheck;
+            if ((lightNode->address().ext() & macPrefixMask) == deMacPrefix)
+            {
+                bt.state = BindingTask::StateCheck;
+            }
+            else
+            {
+                bt.state = BindingTask::StateIdle;
+            }
             bt.action = action;
             bt.restNode = lightNode;
             Binding &bnd = bt.binding;
@@ -949,11 +955,14 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         return;
     }
 
-    lightNode->enableRead(READ_BINDING_TABLE);
-    lightNode->setNextReadTime(READ_BINDING_TABLE, queryTime);
-    queryTime = queryTime.addSecs(5);
-    Q_Q(DeRestPlugin);
-    q->startZclAttributeTimer(1000);
+    if ((lightNode->address().ext() & macPrefixMask) == deMacPrefix)
+    {
+        lightNode->enableRead(READ_BINDING_TABLE);
+        lightNode->setNextReadTime(READ_BINDING_TABLE, queryTime);
+        queryTime = queryTime.addSecs(5);
+        Q_Q(DeRestPlugin);
+        q->startZclAttributeTimer(1000);
+    }
 
     if (!bindingTimer->isActive())
     {
