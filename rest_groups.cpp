@@ -604,13 +604,24 @@ int DeRestPluginPrivate::setGroupAttributes(const ApiRequest &req, ApiResponse &
     return REQ_READY_SEND;
 }
 
+/*! Helper to generate a new task with new task and req id based on a reference */
+static void copyTaskReq(TaskItem &a, TaskItem &b)
+{
+    b.req.dstAddress() = a.req.dstAddress();
+    b.req.setDstAddressMode(a.req.dstAddressMode());
+    b.req.setSrcEndpoint(a.req.srcEndpoint());
+    b.req.setDstEndpoint(a.req.dstEndpoint());
+    b.req.setRadius(a.req.radius());
+    b.transitionTime = a.transitionTime;
+}
+
 /*! PUT, PATCH /api/<apikey>/groups/<id>/action
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
 int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
 {
-    TaskItem task;
+    TaskItem taskRef;
     QString id = req.path[3];
     Group *group = getGroupForId(id);
 
@@ -636,17 +647,17 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     if (id == "0")
     {
         // use a broadcast
-        task.req.dstAddress().setNwk(deCONZ::BroadcastRouters);
-        task.req.dstAddress().setGroup(0); // taskToLocal() needs this
-        task.req.setDstAddressMode(deCONZ::ApsNwkAddress);
+        taskRef.req.dstAddress().setNwk(deCONZ::BroadcastRouters);
+        taskRef.req.dstAddress().setGroup(0); // taskToLocal() needs this
+        taskRef.req.setDstAddressMode(deCONZ::ApsNwkAddress);
     }
     else
     {
-        task.req.dstAddress().setGroup(group->address());
-        task.req.setDstAddressMode(deCONZ::ApsGroupAddress);
+        taskRef.req.dstAddress().setGroup(group->address());
+        taskRef.req.setDstAddressMode(deCONZ::ApsGroupAddress);
     }
-    task.req.setDstEndpoint(0xFF); // broadcast endpoint
-    task.req.setSrcEndpoint(getSrcEndpoint(0, task.req));
+    taskRef.req.setDstEndpoint(0xFF); // broadcast endpoint
+    taskRef.req.setSrcEndpoint(getSrcEndpoint(0, taskRef.req));
 
     bool ok;
     QVariant var = Json::parse(req.content, ok);
@@ -686,7 +697,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
 
         if (ok && tt < 0xFFFFUL)
         {
-            task.transitionTime = tt;
+            taskRef.transitionTime = tt;
         }
     }
 
@@ -716,6 +727,8 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
 
             if (group->isColorLoopActive())
             {
+                TaskItem task;
+                copyTaskReq(taskRef, task);
                 addTaskSetColorLoop(task, false, 15);
                 group->setColorLoopActive(false); // deactivate colorloop if active
             }
@@ -742,6 +755,8 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
                 }
             }
 
+            TaskItem task;
+            copyTaskReq(taskRef, task);
             if (hasBri ||
                 addTaskSetOnOff(task, command, ontime)) // onOff task only if no bri is given
             {
@@ -772,6 +787,8 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
 
         if ((map["bri"].type() == QVariant::String) && map["bri"].toString() == "stop")
         {
+            TaskItem task;
+            copyTaskReq(taskRef, task);
             if (addTaskStopBrightness(task))
             {
                 QVariantMap rspItem;
@@ -790,6 +807,8 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
         {
             hasBri = true;
             group->level = bri;
+            TaskItem task;
+            copyTaskReq(taskRef, task);
             if (addTaskSetBrightness(task, bri, hasOn))
             {
                 QVariantMap rspItem;
@@ -819,6 +838,8 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
 
         if (ok && (map["hue"].type() == QVariant::Double) && (hue2 <= MAX_ENHANCED_HUE))
         {
+            TaskItem task;
+            copyTaskReq(taskRef, task);
             hasHue = true;
             hue = hue2;
             { // TODO: this is needed if saturation is set and addTaskSetEnhancedHue() will not be called
@@ -898,6 +919,8 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
                 sat2 = 254; // max valid value for level attribute
             }
 
+            TaskItem task;
+            copyTaskReq(taskRef, task);
             sat = sat2;
             task.sat = sat;
             task.taskType = TaskSetSat;
@@ -960,6 +983,8 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
 
             hue = f * 254.0f;
 
+            TaskItem task;
+            copyTaskReq(taskRef, task);
             DBG_Printf(DBG_INFO, "hue: %u, sat: %u\n", hue, sat);
             if (!addTaskSetHueAndSaturation(task, hue, sat))
             {
@@ -982,6 +1007,8 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
         {
             x = ls[0].toDouble();
             y = ls[1].toDouble();
+            TaskItem task;
+            copyTaskReq(taskRef, task);
 
             if ((x < 0.0f) || (x > 1.0f) || (y < 0.0f) || (y > 1.0f))
             {
@@ -1025,6 +1052,8 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
         }
         else if (ok && (map["ct_inc"].type() == QVariant::Double) && (ct_inc >= -65534 && ct_inc <= 65534))
         {
+            TaskItem task;
+            copyTaskReq(taskRef, task);
             task.inc = ct_inc;
             task.taskType = TaskIncColorTemperature;
 
@@ -1060,6 +1089,8 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
 
         if (ok && (map["ct"].type() == QVariant::Double))
         {
+            TaskItem task;
+            copyTaskReq(taskRef, task);
             group->colorTemperature = ct;
             group->colormode = QLatin1String("ct");
             if (addTaskSetColorTemperature(task, ct))
@@ -1087,6 +1118,8 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     // alert
     if (hasAlert)
     {
+        TaskItem task;
+        copyTaskReq(taskRef, task);
         QString alert = map["alert"].toString();
 
         if (alert == "none")
@@ -1194,6 +1227,8 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
                 }
             }
 
+            TaskItem task;
+            copyTaskReq(taskRef, task);
             if (addTaskSetColorLoop(task, hasEffectColorLoop, speed))
             {
                 QVariantMap rspItem;
