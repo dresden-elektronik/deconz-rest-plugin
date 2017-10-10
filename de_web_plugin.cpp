@@ -6014,6 +6014,8 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
     bool checkReporting = false;
     const quint64 macPrefix = ind.srcAddress().ext() & macPrefixMask;
 
+    DBG_Printf(DBG_INFO, "ZCL attribute report 0x%016llX for cluster 0x%04X\n", ind.srcAddress().ext(), ind.clusterId());
+
     if (!(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
     {
         checkReporting = true;
@@ -6357,6 +6359,18 @@ bool DeRestPluginPrivate::addTask(const TaskItem &task)
         return false;
     }
 
+    if (DBG_IsEnabled(DBG_INFO))
+    {
+        if (task.req.dstAddress().hasExt())
+        {
+            DBG_Printf(DBG_INFO, "add task %d type %d to 0x%016llX cluster 0x%04X req.id %u\n", task.taskId, task.taskType, task.req.dstAddress().ext(), task.req.clusterId(), task.req.id());
+        }
+        else if (task.req.dstAddress().hasGroup())
+        {
+            DBG_Printf(DBG_INFO, "add task %d type %d to group 0x%04X cluster 0x%04X req.id %u\n", task.taskId, task.taskType, task.req.dstAddress().group(), task.req.clusterId(), task.req.id());
+        }
+    }
+
     const uint MaxTasks = 20;
 
     std::list<TaskItem>::iterator i = tasks.begin();
@@ -6386,7 +6400,7 @@ bool DeRestPluginPrivate::addTask(const TaskItem &task)
                     (i->req.asdu().size() ==  task.req.asdu().size()))
 
                 {
-                    DBG_Printf(DBG_INFO, "Replace task in queue cluster 0x%04X with newer task of same type. %u runnig tasks\n", task.req.clusterId(), runningTasks.size());
+                    DBG_Printf(DBG_INFO, "Replace task %d type %d in queue cluster 0x%04X with newer task of same type. %u runnig tasks\n", task.taskId, task.taskType, task.req.clusterId(), runningTasks.size());
                     *i = task;
                     return true;
                 }
@@ -6399,7 +6413,7 @@ bool DeRestPluginPrivate::addTask(const TaskItem &task)
         return true;
     }
 
-    DBG_Printf(DBG_INFO, "failed to add task type: %d, too many tasks\n", task.taskType);
+    DBG_Printf(DBG_INFO, "failed to add task %d type: %d, too many tasks\n", task.taskId, task.taskType);
 
     return false;
 }
@@ -6499,8 +6513,8 @@ void DeRestPluginPrivate::processTasks()
                     }
                     else
                     {
-                        DBG_Printf(DBG_INFO_L2, "request %u send time %d, cluster 0x%04X, onAir %d\n", i->req.id(), j->sendTime, j->req.clusterId(), onAir);
-                        DBG_Printf(DBG_INFO_L2, "delay sending request %u dt %d ms to %s\n", i->req.id(), dt, qPrintable(i->req.dstAddress().toStringExt()));
+                        //DBG_Printf(DBG_INFO, "request %u send time %d, cluster 0x%04X, onAir %d\n", i->req.id(), j->sendTime, j->req.clusterId(), onAir);
+                        DBG_Printf(DBG_INFO, "delay sending request %u dt %d ms to %s\n", i->req.id(), dt, qPrintable(i->req.dstAddress().toStringExt()));
                         ok = false;
                     }
                     break;
@@ -6707,7 +6721,6 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
             {
                 addSensorNode(event.node());
                 updateSensorNode(event);
-
             }
             break;
 
