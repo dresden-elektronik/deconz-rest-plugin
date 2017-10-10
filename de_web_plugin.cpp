@@ -577,6 +577,12 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
     for (;i != end; ++i)
     {
         TaskItem &task = *i;
+
+        if (task.req.id() != conf.id())
+        {
+            continue;
+        }
+
         if (conf.dstAddressMode() == deCONZ::ApsNwkAddress &&
             task.req.dstAddressMode() == deCONZ::ApsNwkAddress &&
             conf.dstAddress().hasNwk() && task.req.dstAddress().hasNwk() &&
@@ -586,39 +592,36 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
             //continue;
         }
 
-        if (task.req.id() == conf.id())
+        if (conf.status() != deCONZ::ApsSuccessStatus)
         {
-            if (conf.status() != deCONZ::ApsSuccessStatus)
-            {
-                DBG_Printf(DBG_INFO, "error APSDE-DATA.confirm: 0x%02X on task\n", conf.status());
-            }
-            else if (task.req.dstAddressMode() == deCONZ::ApsGroupAddress &&
-                     (task.req.clusterId() == ONOFF_CLUSTER_ID ||
-                      task.req.clusterId() == LEVEL_CLUSTER_ID ||
-                      task.req.clusterId() == COLOR_CLUSTER_ID))
-            {
-                quint16 groupId = task.req.dstAddress().group();
+            DBG_Printf(DBG_INFO, "error APSDE-DATA.confirm: 0x%02X on task\n", conf.status());
+        }
+        else if (task.req.dstAddressMode() == deCONZ::ApsGroupAddress &&
+                 (task.req.clusterId() == ONOFF_CLUSTER_ID ||
+                  task.req.clusterId() == LEVEL_CLUSTER_ID ||
+                  task.req.clusterId() == COLOR_CLUSTER_ID))
+        {
+            quint16 groupId = task.req.dstAddress().group();
 
-                for (LightNode &l : nodes)
+            for (LightNode &l : nodes)
+            {
+                if (isLightNodeInGroup(&l, groupId))
                 {
-                    if (isLightNodeInGroup(&l, groupId))
-                    {
-                        DBG_Printf(DBG_INFO, "0x%016llX force poll\n", l.address().ext());
-                        pollManager->poll(&l);
-                    }
+                    DBG_Printf(DBG_INFO, "\t0x%016llX force poll\n", l.address().ext());
+                    pollManager->poll(&l);
                 }
             }
-
-            if (DBG_IsEnabled(DBG_INFO_L2))
-            {
-                DBG_Printf(DBG_INFO_L2, "Erase task req-id: %u, type: %d zcl seqno: %u send time %d, profileId: 0x%04X, clusterId: 0x%04X\n",
-                       task.req.id(), task.taskType, task.zclFrame.sequenceNumber(), idleTotalCounter - task.sendTime, task.req.profileId(), task.req.clusterId());
-            }
-            runningTasks.erase(i);
-            processTasks();
-
-            return;
         }
+
+        if (DBG_IsEnabled(DBG_INFO))
+        {
+            DBG_Printf(DBG_INFO, "Erase task req-id: %u, type: %d zcl seqno: %u send time %d, profileId: 0x%04X, clusterId: 0x%04X\n",
+                       task.req.id(), task.taskType, task.zclFrame.sequenceNumber(), idleTotalCounter - task.sendTime, task.req.profileId(), task.req.clusterId());
+        }
+        runningTasks.erase(i);
+        processTasks();
+
+        return;
     }
 
     if (handleMgmtBindRspConfirm(conf))
@@ -4516,7 +4519,7 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
 //        return false;
 //    }
 
-    if (!lightNode->isAvailable())
+    if (!lightNode->isAvailable() || !lightNode->lastRx().isValid())
     {
         return false;
     }
@@ -5044,7 +5047,7 @@ bool DeRestPluginPrivate::readAttributes(RestNodeBase *restNode, quint8 endpoint
         return false;
     }
 
-    if (tasks.size() > MAX_BACKGROUND_TASKS)
+    if ((runningTasks.size() + tasks.size()) > MAX_BACKGROUND_TASKS)
     {
         return false;
     }
@@ -6430,7 +6433,7 @@ void DeRestPluginPrivate::processTasks()
 
         // send only few requests to a destination at a time
         int onAir = 0;
-        const int maxOnAir = 2;
+        const int maxOnAir = i->req.dstAddressMode() == deCONZ::ApsGroupAddress ? 4 : 2;
         std::list<TaskItem>::iterator j = runningTasks.begin();
         std::list<TaskItem>::iterator jend = runningTasks.end();
 
@@ -8455,6 +8458,7 @@ void DeRestPluginPrivate::handleMgmtLqiRspIndication(const deCONZ::ApsDataIndica
         {
             if (l.address().ext() == ind.srcAddress().ext())
             {
+                l.rx();
                 pollManager->poll(&l);
             }
         }
