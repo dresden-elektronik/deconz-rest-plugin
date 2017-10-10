@@ -116,7 +116,7 @@ void PollManager::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
 
     }
 
-    DBG_Printf(DBG_INFO, "Poll APS confirm %u status: 0x%02X\n", conf.id(), conf.status());
+    DBG_Printf(DBG_INFO_L2, "Poll APS confirm %u status: 0x%02X\n", conf.id(), conf.status());
 
     pollState = StateIdle;
     timer->stop();
@@ -305,7 +305,7 @@ void PollManager::pollTimerFired()
         dstAddr = pitem.address;
         timer->start(20 * 1000); // wait for confirm
         suffix = 0; // clear
-        DBG_Printf(DBG_INFO, "Poll APS request %u to 0x%016llX cluster: 0x%04X\n", apsReqId, dstAddr.ext(), clusterId);
+        DBG_Printf(DBG_INFO_L2, "Poll APS request %u to 0x%016llX cluster: 0x%04X\n", apsReqId, dstAddr.ext(), clusterId);
     }
     else if (suffix)
     {
