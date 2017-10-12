@@ -1163,11 +1163,6 @@ static int sqliteLoadLightNodeCallback(void *user, int ncols, char **colval , ch
     if (!name.isEmpty())
     {
         lightNode->setName(name);
-
-        if (lightNode->node())
-        {
-            lightNode->node()->setUserDescriptor(lightNode->name());
-        }
     }
 
     QStringList::const_iterator gi = groupIds.begin();
