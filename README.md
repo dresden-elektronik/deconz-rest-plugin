@@ -68,8 +68,10 @@ Software requirements
     
     () Interfacting Options > Serial
     
-        * Would you like a login shell accessible over serial? **No**
-        * Would you like the serial port hardware to be enabled? **Yes**
+        * Would you like a login shell accessible over serial?
+          > No
+        * Would you like the serial port hardware to be enabled?
+          > Yes
 
 After changing the settings reboot the Raspberry Pi.
 
