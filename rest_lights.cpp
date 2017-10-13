@@ -342,21 +342,35 @@ int DeRestPluginPrivate::getLightState(const ApiRequest &req, ApiResponse &rsp)
     return REQ_READY_SEND;
 }
 
+/*! Helper to generate a new task with new task and req id based on a reference */
+static void copyTaskReq(TaskItem &a, TaskItem &b)
+{
+    b.req.dstAddress() = a.req.dstAddress();
+    b.req.setDstAddressMode(a.req.dstAddressMode());
+    b.req.setSrcEndpoint(a.req.srcEndpoint());
+    b.req.setDstEndpoint(a.req.dstEndpoint());
+    b.req.setRadius(a.req.radius());
+    b.req.setTxOptions(a.req.txOptions());
+    b.req.setSendDelay(a.req.sendDelay());
+    b.transitionTime = a.transitionTime;
+    b.lightNode = a.lightNode;
+}
+
 /*! PUT, PATCH /api/<apikey>/lights/<id>/state
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
 int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 {
-    TaskItem task;
+    TaskItem taskRef;
     QString id = req.path[3];
-    task.lightNode = getLightNodeForId(id);
+    taskRef.lightNode = getLightNodeForId(id);
     uint hue = UINT_MAX;
     uint sat = UINT_MAX;
 
     userActivity();
 
-    if (!task.lightNode || task.lightNode->state() == LightNode::StateDeleted)
+    if (!taskRef.lightNode || taskRef.lightNode->state() == LightNode::StateDeleted)
     {
         rsp.httpStatus = HttpStatusNotFound;
         rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("resource, /lights/%1, not available").arg(id)));
@@ -365,7 +379,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
     rsp.httpStatus = HttpStatusOk;
 
-    if (!task.lightNode->isAvailable())
+    if (!taskRef.lightNode->isAvailable() || !taskRef.lightNode->lastRx().isValid())
     {
         rsp.httpStatus = HttpStatusOk;
         rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("resource, /lights/%1, not available").arg(id)));
@@ -373,11 +387,11 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     }
 
     // set destination parameters
-    task.req.dstAddress() = task.lightNode->address();
-    task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
-    task.req.setDstEndpoint(task.lightNode->haEndpoint().endpoint());
-    task.req.setSrcEndpoint(getSrcEndpoint(task.lightNode, task.req));
-    task.req.setDstAddressMode(deCONZ::ApsExtAddress);
+    taskRef.req.dstAddress() = taskRef.lightNode->address();
+    taskRef.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+    taskRef.req.setDstEndpoint(taskRef.lightNode->haEndpoint().endpoint());
+    taskRef.req.setSrcEndpoint(getSrcEndpoint(taskRef.lightNode, taskRef.req));
+    taskRef.req.setDstAddressMode(deCONZ::ApsExtAddress);
 
     bool ok;
     QVariant var = Json::parse(req.content, ok);
@@ -404,12 +418,12 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     bool hasAlert = map.contains("alert");
 
     {
-        ResourceItem *item = task.lightNode->item(RStateOn);
+        ResourceItem *item = taskRef.lightNode->item(RStateOn);
         DBG_Assert(item != 0);
         isOn = item ? item->toBool() : false;
     }
 
-    if (task.lightNode->manufacturerCode() == VENDOR_ATMEL)
+    if (taskRef.lightNode->manufacturerCode() == VENDOR_ATMEL)
     {
         hasXy = false;
     }
@@ -421,7 +435,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
         if (ok && tt < 0xFFFFUL)
         {
-            task.transitionTime = tt;
+            taskRef.transitionTime = tt;
         }
     }
 
@@ -432,12 +446,16 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         {
             isOn = map["on"].toBool();
 
-            if (!isOn && task.lightNode->isColorLoopActive())
+            if (!isOn && taskRef.lightNode->isColorLoopActive())
             {
+                TaskItem task;
+                copyTaskReq(taskRef, task);
                 addTaskSetColorLoop(task, false, 15);
-                task.lightNode->setColorLoopActive(false); // deactivate colorloop if active
+                taskRef.lightNode->setColorLoopActive(false); // deactivate colorloop if active
             }
 
+            TaskItem task;
+            copyTaskReq(taskRef, task);
             if (hasBri ||
                 // map.contains("transitiontime") || // FIXME: use bri if transitionTime is given
                 addTaskSetOnOff(task, isOn ? ONOFF_COMMAND_ON : ONOFF_COMMAND_OFF, 0)) // onOff task only if no bri or transitionTime is given
@@ -485,6 +503,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
         else if ((map["bri"].type() == QVariant::String) && map["bri"].toString() == "stop")
         {
+            TaskItem task;
+            copyTaskReq(taskRef, task);
             if (addTaskStopBrightness(task))
             {
                 QVariantMap rspItem;
@@ -501,6 +521,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
         else if (ok && (map["bri"].type() == QVariant::Double) && (bri < 256))
         {
+            TaskItem task;
+            copyTaskReq(taskRef, task);
             if (addTaskSetBrightness(task, bri, hasOn))
             {
                 QVariantMap rspItem;
@@ -545,7 +567,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                     if (ok && (map["colorloopspeed"].type() == QVariant::Double) && (speed < 256) && (speed > 0))
                     {
                         // ok
-                        task.lightNode->setColorLoopSpeed(speed);
+                        taskRef.lightNode->setColorLoopSpeed(speed);
                     }
                     else
                     {
@@ -554,6 +576,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 }
             }
 
+            TaskItem task;
+            copyTaskReq(taskRef, task);
             if (addTaskSetColorLoop(task, hasEffectColorLoop, speed))
             {
                 QVariantMap rspItem;
@@ -588,7 +612,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         else if (ok && (map["hue"].type() == QVariant::Double) && (hue2 <= MAX_ENHANCED_HUE))
         {
             hue = hue2;
-
+            TaskItem task;
+            copyTaskReq(taskRef, task);
             { // TODO: this is needed if saturation is set and addTaskSetEnhancedHue() will not be called
                 task.hueReal = (double)hue / (360.0f * 182.04444f);
 
@@ -682,6 +707,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 sat2 = 254; // max valid value for level attribute
             }
 
+            TaskItem task;
+            copyTaskReq(taskRef, task);
             sat = sat2;
             task.sat = sat;
             task.taskType = TaskSetSat;
@@ -745,7 +772,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     // ct_inc
     if (hasCtInc)
     {
-        ResourceItem *item = task.lightNode->item(RStateCt);
+        ResourceItem *item = taskRef.lightNode->item(RStateCt);
 
         int ct_inc = map["ct_inc"].toInt(&ok);
 
@@ -763,6 +790,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
         else if (ok && (map["ct_inc"].type() == QVariant::Double) && (ct_inc >= -65534 && ct_inc <= 65534))
         {
+            TaskItem task;
+            copyTaskReq(taskRef, task);
             task.inc = ct_inc;
             task.taskType = TaskIncColorTemperature;
 
@@ -820,6 +849,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             Hsv2Rgb(&r, &g, &b, h, s, v);
             Rgb2xy(&x, &y, r, g, b);
 
+            TaskItem task;
+            copyTaskReq(taskRef, task);
             DBG_Printf(DBG_INFO, "x: %f, y: %f\n", x, y);
             task.lightNode->setColorXY(x * 65279.0f, y * 65279.0f);
 
@@ -847,6 +878,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         {
             double x = ls[0].toDouble();
             double y = ls[1].toDouble();
+            TaskItem task;
+            copyTaskReq(taskRef, task);
 
             if ((x < 0.0f) || (x > 1.0f) || (y < 0.0f) || (y > 1.0f))
             {
@@ -886,6 +919,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
         else if (ok && (map["ct"].type() == QVariant::Double))
         {
+            TaskItem task;
+            copyTaskReq(taskRef, task);
             if (hasXy || hasEffectColorLoop ||
                 addTaskSetColorTemperature(task, ct)) // will only be evaluated if no xy and color loop is set
             {
@@ -912,6 +947,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     // alert
     if (hasAlert)
     {
+        TaskItem task;
+        copyTaskReq(taskRef, task);
         QString alert = map["alert"].toString();
 
         if (alert == "none")
@@ -983,10 +1020,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
-    if (task.lightNode)
+    if (taskRef.lightNode)
     {
-        updateLightEtag(task.lightNode);
-        rsp.etag = task.lightNode->etag;
+        updateLightEtag(taskRef.lightNode);
+        rsp.etag = taskRef.lightNode->etag;
     }
 
     processTasks();

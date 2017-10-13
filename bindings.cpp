@@ -120,6 +120,16 @@ bool DeRestPluginPrivate::readBindingTable(RestNodeBase *node, quint8 startIndex
         return false;
     }
 
+    // whitelist
+    if ((node->address().ext() & macPrefixMask) == deMacPrefix)
+    {
+    }
+    else
+    {
+        node->clearRead(READ_BINDING_TABLE);
+        return false;
+    }
+
     std::vector<BindingTableReader>::iterator i = bindingTableReaders.begin();
     std::vector<BindingTableReader>::iterator end = bindingTableReaders.end();
 
@@ -909,9 +919,15 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
                 }
             }
 
-
             BindingTask bt;
-            bt.state = BindingTask::StateCheck;
+            if ((lightNode->address().ext() & macPrefixMask) == deMacPrefix)
+            {
+                bt.state = BindingTask::StateCheck;
+            }
+            else
+            {
+                bt.state = BindingTask::StateIdle;
+            }
             bt.action = action;
             bt.restNode = lightNode;
             Binding &bnd = bt.binding;
@@ -949,11 +965,14 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         return;
     }
 
-    lightNode->enableRead(READ_BINDING_TABLE);
-    lightNode->setNextReadTime(READ_BINDING_TABLE, queryTime);
-    queryTime = queryTime.addSecs(5);
-    Q_Q(DeRestPlugin);
-    q->startZclAttributeTimer(1000);
+    if ((lightNode->address().ext() & macPrefixMask) == deMacPrefix)
+    {
+        lightNode->enableRead(READ_BINDING_TABLE);
+        lightNode->setNextReadTime(READ_BINDING_TABLE, queryTime);
+        queryTime = queryTime.addSecs(5);
+        Q_Q(DeRestPlugin);
+        q->startZclAttributeTimer(1000);
+    }
 
     if (!bindingTimer->isActive())
     {

@@ -73,7 +73,7 @@
 #define WARMUP_TIME 120
 
 #define MAX_UNLOCK_GATEWAY_TIME 600
-#define PERMIT_JOIN_SEND_INTERVAL (1000 * 160)
+#define PERMIT_JOIN_SEND_INTERVAL (1000 * 1800)
 #define EXT_PROCESS_TIMEOUT 10000
 #define SET_ENDPOINTCONFIG_DURATION (1000 * 16) // time deCONZ needs to update Endpoints
 #define OTA_LOW_PRIORITY_TIME (60 * 2)
@@ -174,7 +174,7 @@
 #define READ_GROUP_IDENTIFIERS (1 << 12)
 
 #define READ_MODEL_ID_INTERVAL   (60 * 60) // s
-#define READ_SWBUILD_ID_INTERVAL (60 * 30) // s
+#define READ_SWBUILD_ID_INTERVAL (60 * 60) // s
 
 // write flags
 #define WRITE_OCCUPANCY_CONFIG  (1 << 11)
@@ -204,7 +204,7 @@
 #define ANNOUNCE_INTERVAL 10 // minutes default announce interval
 
 #define MAX_GROUP_SEND_DELAY 5000 // ms between to requests to the same group
-#define GROUP_SEND_DELAY 500 // default ms between to requests to the same group
+#define GROUP_SEND_DELAY 50 // default ms between to requests to the same group
 #define MAX_TASKS_PER_NODE 2
 #define MAX_BACKGROUND_TASKS 5
 
@@ -442,7 +442,7 @@ struct TaskItem
         colorTemperature = 0;
         transitionTime = DEFAULT_TRANSITION_TIME;
         sendTime = 0;
-        ordered = true;
+        ordered = false;
     }
 
     TaskType taskType;

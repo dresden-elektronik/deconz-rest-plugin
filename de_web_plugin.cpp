@@ -577,6 +577,12 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
     for (;i != end; ++i)
     {
         TaskItem &task = *i;
+
+        if (task.req.id() != conf.id())
+        {
+            continue;
+        }
+
         if (conf.dstAddressMode() == deCONZ::ApsNwkAddress &&
             task.req.dstAddressMode() == deCONZ::ApsNwkAddress &&
             conf.dstAddress().hasNwk() && task.req.dstAddress().hasNwk() &&
@@ -586,39 +592,50 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
             //continue;
         }
 
-        if (task.req.id() == conf.id())
+        if (conf.status() != deCONZ::ApsSuccessStatus)
         {
-            if (conf.status() != deCONZ::ApsSuccessStatus)
-            {
-                DBG_Printf(DBG_INFO, "error APSDE-DATA.confirm: 0x%02X on task\n", conf.status());
-            }
-            else if (task.req.dstAddressMode() == deCONZ::ApsGroupAddress &&
-                     (task.req.clusterId() == ONOFF_CLUSTER_ID ||
-                      task.req.clusterId() == LEVEL_CLUSTER_ID ||
-                      task.req.clusterId() == COLOR_CLUSTER_ID))
-            {
-                quint16 groupId = task.req.dstAddress().group();
+            DBG_Printf(DBG_INFO, "error APSDE-DATA.confirm: 0x%02X on task\n", conf.status());
+        }
+        else if (task.req.dstAddressMode() == deCONZ::ApsGroupAddress &&
+                 (task.req.clusterId() == ONOFF_CLUSTER_ID ||
+                  task.req.clusterId() == LEVEL_CLUSTER_ID ||
+                  task.req.clusterId() == COLOR_CLUSTER_ID))
+        {
+            quint16 groupId = task.req.dstAddress().group();
 
-                for (LightNode &l : nodes)
+            for (LightNode &l : nodes)
+            {
+                if (!l.isAvailable() ||
+                    !l.lastRx().isValid() ||
+                    l.manufacturerCode() == VENDOR_IKEA ||
+                    l.manufacturerCode() == VENDOR_OSRAM ||
+                    l.manufacturerCode() == VENDOR_OSRAM_STACK ||
+                    l.manufacturer().startsWith(QLatin1String("IKEA")) ||
+                    l.manufacturer().startsWith(QLatin1String("OSRAM")))
                 {
-                    if (isLightNodeInGroup(&l, groupId))
-                    {
-                        DBG_Printf(DBG_INFO, "0x%016llX force poll\n", l.address().ext());
-                        pollManager->poll(&l);
-                    }
+                    continue;
+                }
+
+                // fast poll lights which don't support or have enabled ZCL reporting
+                const NodeValue &val = l.getZclValue(ONOFF_CLUSTER_ID, 0x0000);
+                if (!val.timestampLastReport.isValid() &&
+                    isLightNodeInGroup(&l, groupId))
+                {
+                    DBG_Printf(DBG_INFO, "\t0x%016llX force poll\n", l.address().ext());
+                    pollManager->poll(&l);
                 }
             }
-
-            if (DBG_IsEnabled(DBG_INFO_L2))
-            {
-                DBG_Printf(DBG_INFO_L2, "Erase task req-id: %u, type: %d zcl seqno: %u send time %d, profileId: 0x%04X, clusterId: 0x%04X\n",
-                       task.req.id(), task.taskType, task.zclFrame.sequenceNumber(), idleTotalCounter - task.sendTime, task.req.profileId(), task.req.clusterId());
-            }
-            runningTasks.erase(i);
-            processTasks();
-
-            return;
         }
+
+        if (DBG_IsEnabled(DBG_INFO))
+        {
+            DBG_Printf(DBG_INFO, "Erase task req-id: %u, type: %d zcl seqno: %u send time %d, profileId: 0x%04X, clusterId: 0x%04X\n",
+                       task.req.id(), task.taskType, task.zclFrame.sequenceNumber(), idleTotalCounter - task.sendTime, task.req.profileId(), task.req.clusterId());
+        }
+        runningTasks.erase(i);
+        processTasks();
+
+        return;
     }
 
     if (handleMgmtBindRspConfirm(conf))
@@ -4516,7 +4533,7 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
 //        return false;
 //    }
 
-    if (!lightNode->isAvailable())
+    if (!lightNode->isAvailable() || !lightNode->lastRx().isValid())
     {
         return false;
     }
@@ -4529,9 +4546,6 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
     }
 
     int processed = 0;
-    //bool readColor = false;
-    //bool readLevel = false;
-    //bool readOnOff = false;
 
     if (lightNode->haEndpoint().profileId() == ZLL_PROFILE_ID)
     {
@@ -4541,12 +4555,10 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
         case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:
         case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT:
         case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT:
-            //readColor = true;
             //fall through
 
         case DEV_ID_ZLL_DIMMABLE_LIGHT:
         case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:
-            //readLevel = true;
             //fall through
 
         case DEV_ID_ZLL_ONOFF_LIGHT:
@@ -4567,13 +4579,11 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
         case DEV_ID_ZLL_COLOR_LIGHT:
         case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:
         case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT:
-            //readColor = true;
             //fall through
 
         case DEV_ID_HA_DIMMABLE_LIGHT:
         //case DEV_ID_ZLL_DIMMABLE_LIGHT: // same as DEV_ID_HA_ONOFF_LIGHT
         case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:
-            //readLevel = true;
             //fall through
 
         case DEV_ID_MAINS_POWER_OUTLET:
@@ -4581,7 +4591,6 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
         case DEV_ID_ZLL_ONOFF_LIGHT:
         case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:
         case DEV_ID_ZLL_ONOFF_SENSOR:
-            //readOnOff = true;
             break;
 
         default:
@@ -4666,49 +4675,6 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
         }
     }
 
-//    if ((processed < 2) && readOnOff && lightNode->mustRead(READ_ON_OFF) && tNow > lightNode->nextReadTime(READ_ON_OFF))
-//    {
-//        std::vector<uint16_t> attributes;
-//        attributes.push_back(0x0000); // OnOff
-
-//        if (readAttributes(lightNode, lightNode->haEndpoint().endpoint(), ONOFF_CLUSTER_ID, attributes))
-//        {
-//            lightNode->clearRead(READ_ON_OFF);
-//            processed++;
-//        }
-//    }
-
-//    if ((processed < 2) && readLevel && lightNode->mustRead(READ_LEVEL) && tNow > lightNode->nextReadTime(READ_LEVEL))
-//    {
-//        std::vector<uint16_t> attributes;
-//        attributes.push_back(0x0000); // Level
-
-//        if (readAttributes(lightNode, lightNode->haEndpoint().endpoint(), LEVEL_CLUSTER_ID, attributes))
-//        {
-//            lightNode->clearRead(READ_LEVEL);
-//            processed++;
-//        }
-//    }
-
-//    if ((processed < 2) && readColor && lightNode->mustRead(READ_COLOR) && lightNode->hasColor() && tNow > lightNode->nextReadTime(READ_COLOR))
-//    {
-//        std::vector<uint16_t> attributes;
-//        attributes.push_back(0x0000); // Current hue
-//        attributes.push_back(0x0001); // Current saturation
-//        attributes.push_back(0x0003); // Current x
-//        attributes.push_back(0x0004); // Current y
-//        attributes.push_back(0x0007); // Color temperature
-//        attributes.push_back(0x0008); // Color mode
-//        attributes.push_back(0x4000); // Enhanced hue
-//        attributes.push_back(0x4002); // Color loop active
-
-//        if (readAttributes(lightNode, lightNode->haEndpoint().endpoint(), COLOR_CLUSTER_ID, attributes))
-//        {
-//            lightNode->clearRead(READ_COLOR);
-//            processed++;
-//        }
-//    }
-
     if ((processed < 2) && lightNode->mustRead(READ_GROUPS) && tNow > lightNode->nextReadTime(READ_GROUPS))
     {
         std::vector<uint16_t> groups; // empty meaning read all groups
@@ -4719,6 +4685,8 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
         }
     }
 
+#if 0 // TODO add this to poll manager
+      // this is very problematic and causes queues to fill up extremely
     if ((processed < 2) && lightNode->mustRead(READ_SCENES) && !lightNode->groups().empty()&& tNow > lightNode->nextReadTime(READ_SCENES))
     {
         std::vector<GroupInfo>::iterator i = lightNode->groups().begin();
@@ -4806,6 +4774,7 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
         }
 
     }
+#endif
 
     return (processed > 0);
 }
@@ -5085,17 +5054,27 @@ bool DeRestPluginPrivate::readAttributes(RestNodeBase *restNode, quint8 endpoint
     DBG_Assert(restNode != 0);
     DBG_Assert(!attributes.empty());
 
-    if (!restNode || attributes.empty() || !restNode->isAvailable())
+    if (!restNode || !restNode->node() || attributes.empty() || !restNode->isAvailable())
     {
         return false;
     }
+
+    if (restNode->node()->isEndDevice())
+    {
+        QDateTime now = QDateTime::currentDateTime();
+        if (!restNode->lastRx().isValid() || (restNode->lastRx().secsTo(now) > 3))
+        {
+            return false;
+        }
+    }
+
 
     if (taskCountForAddress(restNode->address()) >= MAX_TASKS_PER_NODE)
     {
         return false;
     }
 
-    if (tasks.size() > MAX_BACKGROUND_TASKS)
+    if ((runningTasks.size() + tasks.size()) > MAX_BACKGROUND_TASKS)
     {
         return false;
     }
@@ -6014,6 +5993,8 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
     bool checkReporting = false;
     const quint64 macPrefix = ind.srcAddress().ext() & macPrefixMask;
 
+    DBG_Printf(DBG_INFO, "ZCL attribute report 0x%016llX for cluster 0x%04X\n", ind.srcAddress().ext(), ind.clusterId());
+
     if (!(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
     {
         checkReporting = true;
@@ -6357,6 +6338,18 @@ bool DeRestPluginPrivate::addTask(const TaskItem &task)
         return false;
     }
 
+    if (DBG_IsEnabled(DBG_INFO))
+    {
+        if (task.req.dstAddress().hasExt())
+        {
+            DBG_Printf(DBG_INFO, "add task %d type %d to 0x%016llX cluster 0x%04X req.id %u\n", task.taskId, task.taskType, task.req.dstAddress().ext(), task.req.clusterId(), task.req.id());
+        }
+        else if (task.req.dstAddress().hasGroup())
+        {
+            DBG_Printf(DBG_INFO, "add task %d type %d to group 0x%04X cluster 0x%04X req.id %u\n", task.taskId, task.taskType, task.req.dstAddress().group(), task.req.clusterId(), task.req.id());
+        }
+    }
+
     const uint MaxTasks = 20;
 
     std::list<TaskItem>::iterator i = tasks.begin();
@@ -6386,7 +6379,7 @@ bool DeRestPluginPrivate::addTask(const TaskItem &task)
                     (i->req.asdu().size() ==  task.req.asdu().size()))
 
                 {
-                    DBG_Printf(DBG_INFO, "Replace task in queue cluster 0x%04X with newer task of same type. %u runnig tasks\n", task.req.clusterId(), runningTasks.size());
+                    DBG_Printf(DBG_INFO, "Replace task %d type %d in queue cluster 0x%04X with newer task of same type. %u runnig tasks\n", task.taskId, task.taskType, task.req.clusterId(), runningTasks.size());
                     *i = task;
                     return true;
                 }
@@ -6399,7 +6392,7 @@ bool DeRestPluginPrivate::addTask(const TaskItem &task)
         return true;
     }
 
-    DBG_Printf(DBG_INFO, "failed to add task type: %d, too many tasks\n", task.taskType);
+    DBG_Printf(DBG_INFO, "failed to add task %d type: %d, too many tasks\n", task.taskId, task.taskType);
 
     return false;
 }
@@ -6426,7 +6419,7 @@ void DeRestPluginPrivate::processTasks()
         return;
     }
 
-    if (runningTasks.size() > 4)
+    if (runningTasks.size() >= MAX_BACKGROUND_TASKS)
     {
         std::list<TaskItem>::iterator j = runningTasks.begin();
         std::list<TaskItem>::iterator jend = runningTasks.end();
@@ -6467,7 +6460,7 @@ void DeRestPluginPrivate::processTasks()
 
         // send only few requests to a destination at a time
         int onAir = 0;
-        const int maxOnAir = 2;
+        const int maxOnAir = i->req.dstAddressMode() == deCONZ::ApsGroupAddress ? 6 : 2;
         std::list<TaskItem>::iterator j = runningTasks.begin();
         std::list<TaskItem>::iterator jend = runningTasks.end();
 
@@ -6485,7 +6478,18 @@ void DeRestPluginPrivate::processTasks()
                 break;
             }
 
-            if (i->req.dstAddress() == j->req.dstAddress())
+            if (i->req.dstAddressMode() == deCONZ::ApsGroupAddress &&
+                j->req.dstAddressMode() == deCONZ::ApsGroupAddress)
+            {
+                onAir++;
+
+                if (onAir >= maxOnAir)
+                {
+                    ok = false;
+                    break;
+                }
+            }
+            else if (i->req.dstAddress() == j->req.dstAddress())
             {
                 onAir++;
                 int dt = idleTotalCounter - j->sendTime;
@@ -6499,8 +6503,8 @@ void DeRestPluginPrivate::processTasks()
                     }
                     else
                     {
-                        DBG_Printf(DBG_INFO_L2, "request %u send time %d, cluster 0x%04X, onAir %d\n", i->req.id(), j->sendTime, j->req.clusterId(), onAir);
-                        DBG_Printf(DBG_INFO_L2, "delay sending request %u dt %d ms to %s\n", i->req.id(), dt, qPrintable(i->req.dstAddress().toStringExt()));
+                        //DBG_Printf(DBG_INFO, "request %u send time %d, cluster 0x%04X, onAir %d\n", i->req.id(), j->sendTime, j->req.clusterId(), onAir);
+                        DBG_Printf(DBG_INFO, "delay sending request %u dt %d ms to %s\n", i->req.id(), dt, qPrintable(i->req.dstAddress().toStringExt()));
                         ok = false;
                     }
                     break;
@@ -6707,7 +6711,6 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
             {
                 addSensorNode(event.node());
                 updateSensorNode(event);
-
             }
             break;
 
@@ -8493,6 +8496,7 @@ void DeRestPluginPrivate::handleMgmtLqiRspIndication(const deCONZ::ApsDataIndica
         {
             if (l.address().ext() == ind.srcAddress().ext())
             {
+                l.rx();
                 pollManager->poll(&l);
             }
         }
@@ -9796,8 +9800,24 @@ void DeRestPlugin::idleTimerFired()
                 LightNode *lightNode = &d->nodes[d->lightIter];
                 d->lightIter++;
 
-                if (!lightNode->isAvailable() || !lightNode->lastRx().isValid())
+                if (!lightNode->isAvailable() || !lightNode->lastRx().isValid() || !lightNode->node())
                 {
+                    continue;
+                }
+
+                if (lightNode->node()->isZombie())
+                {   // handle here if not detected earlier TODO merge
+                    d->nodeZombieStateChanged(lightNode->node());
+                    if (!lightNode->isAvailable())
+                    {
+                        continue;
+                    }
+                }
+
+                if (lightNode->lastRx().secsTo(now) > (5 * 60))
+                {
+                    // let poll manager detect if node is available
+                    d->pollManager->poll(lightNode);
                     continue;
                 }
 
@@ -9817,7 +9837,7 @@ void DeRestPlugin::idleTimerFired()
                 }
 
                 const uint32_t items[]   = { READ_GROUPS, READ_SCENES, 0 };
-                const int tRead[]        = {         600,         600, 0 };
+                const int tRead[]        = {        1800,        3600, 0 };
 
                 for (size_t i = 0; items[i] != 0; i++)
                 {

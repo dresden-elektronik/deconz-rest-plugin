@@ -60,7 +60,21 @@ Packages for Qt4 and Raspbian Wheezy are available but not described here.
 
 Software requirements
 ---------------------
-* Raspbian Jessie and Qt5
+* Raspbian Jessie or Stretch and Qt5
+
+**Important** The serial port must be configured as follows to allow communication with the RaspBee.
+
+    $ sudo raspi-config
+    
+    () Interfacting Options > Serial
+    
+        * Would you like a login shell accessible over serial?
+          > No
+        * Would you like the serial port hardware to be enabled?
+          > Yes
+
+After changing the settings reboot the Raspberry Pi.
+
 
 Hardware requirements
 ---------------------
