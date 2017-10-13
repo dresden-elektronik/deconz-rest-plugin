@@ -111,6 +111,7 @@ void DeRestPluginPrivate::announceUpnp()
     "NT: upnp:rootdevice\r\n"
     "USN: uuid:%3::upnp:rootdevice\r\n"
     "GWID.phoscon.de: %4\r\n"
+    "hue-bridgeid: %4\r\n"
     "\r\n"))
             .arg(gwConfig["ipaddress"].toString())
             .arg(gwConfig["port"].toDouble())
@@ -173,6 +174,7 @@ void DeRestPluginPrivate::upnpReadyRead()
             datagram.append(QLatin1String("\r\n"));
             datagram.append(QString("USN: uuid:%1::upnp:rootdevice\r\n").arg(gwUuid));
             datagram.append(QString("GWID.phoscon.de: %1\r\n").arg(gwBridgeId));
+            datagram.append(QString("hue-bridgeid: %1\r\n").arg(gwBridgeId));
             datagram.append("\r\n");
 
             if (udpSockOut->writeDatagram(datagram.data(), datagram.size(), host, port) == -1)
