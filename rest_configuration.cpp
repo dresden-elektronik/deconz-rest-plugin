@@ -701,7 +701,7 @@ int DeRestPluginPrivate::getConfig(const ApiRequest &req, ApiResponse &rsp)
 {
     if(!checkApikeyAuthentification(req, rsp))
     {
-        return REQ_READY_SEND;
+        return getBasicConfig(req, rsp);
     }
 
     checkRfConnectState();
