@@ -414,7 +414,10 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     }
     else
     {
-        map["swversion"] = QString(GW_SW_VERSION);
+        QStringList versions = QString(GW_SW_VERSION).split('.');
+        QString swversion;
+        swversion.sprintf("%d.%d.%d", versions[0].toInt(), versions[1].toInt(), versions[2].toInt());
+        map["swversion"] = swversion;
         devicetypes["bridge"] = false;
         devicetypes["lights"] = QVariantList();
         devicetypes["sensors"] = QVariantList();
@@ -534,7 +537,10 @@ void DeRestPluginPrivate::basicConfigToMap(QVariantMap &map)
     }
 
     map["bridgeid"] = gwBridgeId;
-    map["swversion"] = QString(GW_SW_VERSION);
+    QStringList versions = QString(GW_SW_VERSION).split('.');
+    QString swversion;
+    swversion.sprintf("%d.%d.%d", versions[0].toInt(), versions[1].toInt(), versions[2].toInt());
+    map["swversion"] = swversion;
     map["modelid"] = QLatin1String("deCONZ");
     map["factorynew"] = false;
     map["replacesbridgeid"] = QVariant();
