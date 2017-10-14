@@ -1752,6 +1752,8 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
         stream >> ext;
         stream >> macCapabilities;
 
+        DBG_Printf(DBG_INFO, "device announce 0x%016llX (0x%04X) mac capabilities 0x%02X\n", ext, nwk, macCapabilities);
+
         // filter supported devices
 
         // Busch-Jaeger
@@ -1763,6 +1765,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
             return;
         }
 
+        DBG_Printf(DBG_INFO, "set fast probe address to 0x%016llX (0x%04X)\n", ext, nwk);
         fastProbeAddr.setExt(ext);
         fastProbeAddr.setNwk(nwk);
         if (!fastProbeTimer->isActive())

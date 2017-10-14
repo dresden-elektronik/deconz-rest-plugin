@@ -6545,7 +6545,7 @@ void DeRestPluginPrivate::processTasks()
                     else
                     {
                         //DBG_Printf(DBG_INFO, "request %u send time %d, cluster 0x%04X, onAir %d\n", i->req.id(), j->sendTime, j->req.clusterId(), onAir);
-                        DBG_Printf(DBG_INFO, "delay sending request %u dt %d ms to %s\n", i->req.id(), dt, qPrintable(i->req.dstAddress().toStringExt()));
+                        DBG_Printf(DBG_INFO, "delay sending request %u dt %d ms to 0x%016llX, cluster 0x%04X\n", i->req.id(), dt, i->req.dstAddress().ext(), i->req.clusterId());
                         ok = false;
                     }
                     break;
@@ -8987,7 +8987,7 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
  */
 void DeRestPluginPrivate::delayedFastEnddeviceProbe()
 {
-    if (getUptime() < WARMUP_TIME)
+    if (getUptime() < WARMUP_TIME && findSensorsState != FindSensorsActive)
     {
         return;
     }
@@ -9015,6 +9015,12 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
     {
         Sensor *sensor = getSensorNodeForAddress(sc->address);
         const deCONZ::Node *node = sensor ? sensor->node() : 0;
+
+        if (sensor && sensor->deletedState() != Sensor::StateNormal)
+        {
+            DBG_Printf(DBG_INFO, "don't use deleted sensor 0x%016llX as candidate\n", sc->address.ext());
+            sensor = 0;
+        }
 
         if (!node)
         {
@@ -9154,6 +9160,13 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
         QString dateCode;
         quint16 iasZoneType = 0;
 
+        if (sensor)
+        {
+            manufacturer = sensor->manufacturer();
+            modelId = sensor->modelId();
+            swBuildId = sensor->swVersion();
+        }
+
         for (const deCONZ::SimpleDescriptor &sd : node->simpleDescriptors())
         {
             for (const deCONZ::ZclCluster &cl : sd.inClusters())
@@ -9250,8 +9263,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
             }
 
             deCONZ::ApsDataRequest apsReq;
-
-            DBG_Printf(DBG_INFO, "[4] get model id, sw build id for 0x%016llx\n", sc->address.ext());
+            std::vector<quint16> attributes;
 
             // ZDP Header
             apsReq.dstAddress() = sc->address;
@@ -9270,42 +9282,55 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
                                      deCONZ::ZclFCDirectionClientToServer |
                                      deCONZ::ZclFCDisableDefaultResponse);
 
-            { // payload
-                QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
-                stream.setByteOrder(QDataStream::LittleEndian);
-
-                if (manufacturer.isEmpty()) { stream << (quint16)0x0004; }// manufacturer
-                else if (modelId.isEmpty()) { stream << (quint16)0x0005; } // model id
-                else if (swBuildId.isEmpty() && dateCode.isEmpty())
+            if (manufacturer.isEmpty()) { attributes.push_back(0x0004); }// manufacturer
+            else if (modelId.isEmpty()) { attributes.push_back(0x0005); } // model id
+            else if (swBuildId.isEmpty() && dateCode.isEmpty())
+            {
+                if ((sc->address.ext() & macPrefixMask) == tiMacPrefix ||
+                    modelId == QLatin1String("Motion Sensor-A")) // OSRAM motion sensor
                 {
-                    if ((sc->address.ext() & macPrefixMask) == tiMacPrefix ||
-                        modelId == QLatin1String("Motion Sensor-A")) // OSRAM motion sensor
-                    {
-                        stream << (quint16)0x0006; // date code, sw build id isn't available
-                    }
-                    else
-                    {
-                        stream << (quint16)0x4000; // sw build id
-                    }
+                    attributes.push_back(0x0006); // date code, sw build id isn't available
+                }
+                else
+                {
+                    attributes.push_back(0x4000); // sw build id
                 }
             }
 
-            { // ZCL frame
-                QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
-                stream.setByteOrder(QDataStream::LittleEndian);
-                zclFrame.writeToStream(stream);
-            }
-
-            deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
-
-            if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+            if (!attributes.empty())
             {
-                queryTime = queryTime.addSecs(1);
+                // payload
+                QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
+                stream.setByteOrder(QDataStream::LittleEndian);
+
+                for (quint16 attrId : attributes)
+                {
+                    stream << attrId;
+                    DBG_Printf(DBG_INFO, "[4] get basic cluster attr 0x%04X for 0x%016llx\n", attrId, sc->address.ext());
+                }
+
+                { // ZCL frame
+                    QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
+                    stream.setByteOrder(QDataStream::LittleEndian);
+                    zclFrame.writeToStream(stream);
+                }
+
+                deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
+
+                if (!zclFrame.payload().isEmpty() &&
+                        apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+                {
+                    queryTime = queryTime.addSecs(1);
+                }
+            }
+            else
+            {
+                DBG_Printf(DBG_INFO, "[4] TODO unhandled, no attributes to fetch for 0x%016llX\n", sc->address.ext());
             }
             return;
         }
 
-        if (findSensorsState != FindSensorsActive)
+        if (!sensor || findSensorsState != FindSensorsActive)
         {
             // do nothing
         }
