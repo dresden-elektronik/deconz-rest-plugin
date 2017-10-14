@@ -5123,6 +5123,26 @@ bool DeRestPluginPrivate::readAttributes(RestNodeBase *restNode, quint8 endpoint
     }
     DBG_Printf(DBG_INFO_L2, "]\n");
 
+    // check duplicates
+    for (const TaskItem &t0 : tasks)
+    {
+        if (t0.taskType != task.taskType ||
+            t0.req.dstAddress() != task.req.dstAddress() ||
+            t0.req.clusterId() != task.req.clusterId() ||
+            t0.req.dstEndpoint() != task.req.dstEndpoint() ||
+            t0.zclFrame.commandId() != task.zclFrame.commandId() ||
+            t0.zclFrame.manufacturerCode() != task.zclFrame.manufacturerCode())
+        {
+            continue;
+        }
+
+        if (t0.zclFrame.payload() == task.zclFrame.payload())
+        {
+            DBG_Printf(DBG_INFO, "discard read attributes of 0x%016llX cluster: 0x%04X (already in queue)\n", restNode->address().ext(), clusterId);
+            return false;
+        }
+    }
+
     { // ZCL frame
         QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
         stream.setByteOrder(QDataStream::LittleEndian);
@@ -5242,6 +5262,27 @@ bool DeRestPluginPrivate::writeAttribute(RestNodeBase *restNode, quint8 endpoint
             return false;
         }
     }
+
+    // check duplicates
+    for (const TaskItem &t0 : tasks)
+    {
+        if (t0.taskType != task.taskType ||
+            t0.req.dstAddress() != task.req.dstAddress() ||
+            t0.req.clusterId() != task.req.clusterId() ||
+            t0.req.dstEndpoint() != task.req.dstEndpoint() ||
+            t0.zclFrame.commandId() != task.zclFrame.commandId() ||
+            t0.zclFrame.manufacturerCode() != task.zclFrame.manufacturerCode())
+        {
+            continue;
+        }
+
+        if (t0.zclFrame.payload() == task.zclFrame.payload())
+        {
+            DBG_Printf(DBG_INFO, "discard write attribute of 0x%016llX cluster: 0x%04X: 0x%04X (already in queue)\n", restNode->address().ext(), clusterId, attribute.id());
+            return false;
+        }
+    }
+
 
     { // ZCL frame
         QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
