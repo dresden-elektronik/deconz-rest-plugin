@@ -482,10 +482,9 @@ int DeRestPluginPrivate::createRule(const ApiRequest &req, ApiResponse &rsp)
 
                 for (; ai != aend; ++ai)
                 {
-                    QString bodymap = (ai->toMap()["body"]).toString();
                     RuleAction newAction;
                     newAction.setAddress(ai->toMap()["address"].toString());
-                    newAction.setBody(bodymap);
+                    newAction.setBody(Json::serialize(ai->toMap()["body"].toMap()));
                     newAction.setMethod(ai->toMap()["method"].toString());
                     actions.push_back(newAction);
                 }
@@ -542,7 +541,7 @@ int DeRestPluginPrivate::createRule(const ApiRequest &req, ApiResponse &rsp)
                 if (!found)
                 {
                     rules.push_back(rule);
-                    queueCheckRuleBindings(rule);                   
+                    queueCheckRuleBindings(rule);
                 }
                 indexRulesTriggers();
             }
