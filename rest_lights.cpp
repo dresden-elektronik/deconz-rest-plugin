@@ -1568,7 +1568,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
 
             webSocketServer->broadcastTextMessage(Json::serialize(map));
 
-            if (e.what() == RStateOn && !lightNode->groups().empty())
+            if ((e.what() == RStateOn || e.what() == RStateReachable) && !lightNode->groups().empty())
             {
                 std::vector<GroupInfo>::const_iterator i = lightNode->groups().begin();
                 std::vector<GroupInfo>::const_iterator end = lightNode->groups().end();
