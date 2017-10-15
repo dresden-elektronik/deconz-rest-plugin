@@ -2589,7 +2589,7 @@ void DeRestPluginPrivate::saveDb()
             QString sql = QString(QLatin1String("REPLACE INTO nodes (id, state, mac, name, groups, endpoint, modelid, manufacturername, swbuildid) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7', '%8', '%9')"))
                     .arg(i->id())
                     .arg(lightState)
-                    .arg(i->uniqueId())
+                    .arg(i->uniqueId().toLower())
                     .arg(i->name())
                     .arg(groupIds.join(","))
                     .arg(i->haEndpoint().endpoint())
@@ -2611,8 +2611,23 @@ void DeRestPluginPrivate::saveDb()
                 }
             }
 
-            // delete old LightNode with upper case unique id from db (if exist)
-            sql = QString("DELETE FROM nodes WHERE mac='%1'").arg(i->uniqueId().toUpper());
+            // prevent deletion of nodes with numeric only mac address
+            bool deleteUpperCase = false;
+            for (int c = 0; c < i->uniqueId().size(); c++)
+            {
+                char ch = i->uniqueId().at(c).toLatin1();
+                if (ch != '-' && ch != ':' && isalpha(ch))
+                {
+                    deleteUpperCase = true;
+                    break;
+                }
+            }
+
+            if (deleteUpperCase)
+            {
+                // delete old LightNode with upper case unique id from db (if exist)
+                sql = QString("DELETE FROM nodes WHERE mac='%1'").arg(i->uniqueId().toUpper());
+            }
 
             errmsg = NULL;
             rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
