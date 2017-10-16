@@ -492,12 +492,14 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                     switch (haEndpoint().deviceId())
                     {
                     case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:
+                    case DEV_ID_Z30_EXTENDED_COLOR_LIGHT:
                     case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT:
                     case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT: // fall through
                     {
                         addItem(DataTypeUInt16, RStateCt);
 
-                        if (haEndpoint().deviceId() != DEV_ID_ZLL_EXTENDED_COLOR_LIGHT)
+                        if (haEndpoint().deviceId() != DEV_ID_ZLL_EXTENDED_COLOR_LIGHT &&
+                            haEndpoint().deviceId() != DEV_ID_Z30_EXTENDED_COLOR_LIGHT)
                         {
                             colorMode->setValue(QVariant("ct"));
                         }
@@ -534,8 +536,9 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
             case DEV_ID_ZLL_ONOFF_LIGHT:          m_type = QLatin1String("On/Off light"); break;
             case DEV_ID_SMART_PLUG:               m_type = QLatin1String("Smart plug"); break;
             case DEV_ID_ZLL_COLOR_LIGHT:             m_type = QLatin1String("Color light"); break;
+            case DEV_ID_Z30_EXTENDED_COLOR_LIGHT:    m_type = QLatin1String("Extended color light"); break;
             case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:    m_type = QLatin1String("Extended color light"); break;
-            case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT: // fall through
+            case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT: m_type = QLatin1String("Color temperature light"); break;
             case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT: m_type = QLatin1String("Color temperature light"); break;
             default:
                 break;
@@ -551,7 +554,8 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
             case DEV_ID_ZLL_DIMMABLE_LIGHT:          m_type = QLatin1String("Dimmable light"); break;
             case DEV_ID_ZLL_COLOR_LIGHT:             m_type = QLatin1String("Color light"); break;
             case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:    m_type = QLatin1String("Extended color light"); break;
-            case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT: // fall through
+            case DEV_ID_Z30_EXTENDED_COLOR_LIGHT:    m_type = QLatin1String("Extended color light"); break;
+            case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT: m_type = QLatin1String("Color temperature light"); break;
             case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT: m_type = QLatin1String("Color temperature light"); break;
             default:
                 break;

@@ -117,6 +117,7 @@
 #define DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT  0x0220 // Color temperature light
 // ZigBee 3.0 lighting devices
 #define DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT  0x010c // Color temperature light
+#define DEV_ID_Z30_EXTENDED_COLOR_LIGHT     0x010d // Extended color light
 // ZLL controller devices
 #define DEV_ID_ZLL_COLOR_CONTROLLER         0x0800 // Color controller
 #define DEV_ID_ZLL_COLOR_SCENE_CONTROLLER   0x0810 // Color scene controller
@@ -199,6 +200,7 @@
 #define VENDOR_UBISYS   0x10F2
 #define VENDOR_BUSCH_JAEGER 0x112E
 #define VENDOR_BEGA 0x1105
+#define VENDOR_PAULMANN 0x119d
 #define VENDOR_NONE   0x0000
 
 #define ANNOUNCE_INTERVAL 10 // minutes default announce interval
