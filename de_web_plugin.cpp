@@ -2225,6 +2225,41 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     ok = true;
                 }
             }
+            else if (ind.clusterId() == COLOR_CLUSTER_ID &&
+                     (zclFrame.commandId() == 0x4b && zclFrame.payload().size() >= 7) )  // move to color temperature
+            {
+                ok = false;
+                // u8 move mode
+                // u16 rate
+                // u16 ctmin = 0
+                // u16 ctmax = 0
+                quint8 moveMode = zclFrame.payload().at(0);
+                quint16 param = moveMode;
+
+                if (moveMode == 0x01 || moveMode == 0x03)
+                {
+                    sensor->previousDirection = moveMode;
+                }
+                else if (moveMode == 0x00)
+                {
+                    param = sensor->previousDirection;
+                    param <<= 4;
+                }
+
+                // byte-2 most likely 0, but include anyway
+                param |= (quint16)zclFrame.payload().at(2) & 0xff;
+                param <<= 8;
+                param |= (quint16)zclFrame.payload().at(1) & 0xff;
+
+                if (buttonMap->zclParam0 == param)
+                {
+                    if (moveMode == 0x00)
+                    {
+                        sensor->previousDirection = 0xFF;
+                    }
+                    ok = true;
+                }
+            }
 
             if (ok)
             {
