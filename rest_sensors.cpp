@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2013-2017 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -2478,6 +2478,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
                 r.setActions({a});
 
                 rules.push_back(r);
+                indexRulesTriggers();
 
                 queSaveDb(DB_RULES, DB_SHORT_SAVE_DELAY);
             }
