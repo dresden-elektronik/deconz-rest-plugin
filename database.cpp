@@ -2187,6 +2187,7 @@ static int sqliteLoadAllGatewaysCallback(void *user, int ncols, char **colval , 
 int DeRestPluginPrivate::getFreeSensorId()
 {
     int rc;
+    bool ok;
     char *errmsg = 0;
 
     DBG_Assert(db != 0);
@@ -2204,6 +2205,22 @@ int DeRestPluginPrivate::getFreeSensorId()
         for (;i != end; ++i)
         {
             sensorIds.push_back(i->id().toUInt());
+        }
+    }
+
+    // add all ids references in rules
+    for (const Rule &r : rules)
+    {
+        for (const RuleCondition &c : r.conditions())
+        {
+            if (c.address().startsWith(QLatin1String("/sensors/")))
+            {
+                uint id = c.id().toUInt(&ok);
+                if (ok && std::find(sensorIds.begin(), sensorIds.end(), id) == sensorIds.end())
+                {
+                    sensorIds.push_back(id);
+                }
+            }
         }
     }
 
