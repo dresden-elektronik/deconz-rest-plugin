@@ -135,6 +135,7 @@ static const Sensor::ButtonMap ikeaRemoteMap[] = {
 //    mode                          ep    cluster cmd   param button                                       name
     // big button
     { Sensor::ModeColorTemperature, 0x01, 0x0006, 0x02, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Toggle" },
+    { Sensor::ModeColorTemperature, 0x01, 0x0005, 0x07, 2,    S_BUTTON_1 + S_BUTTON_ACTION_HOLD,           "Setup 10s" },
     // top button
     { Sensor::ModeColorTemperature, 0x01, 0x0008, 0x06, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Step up (with on/off)" },
     { Sensor::ModeColorTemperature, 0x01, 0x0008, 0x05, 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "Move up (with on/off)" },
