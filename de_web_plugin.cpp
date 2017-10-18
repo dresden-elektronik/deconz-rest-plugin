@@ -629,9 +629,9 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
             }
         }
 
-        if (DBG_IsEnabled(DBG_INFO))
+        if (DBG_IsEnabled(DBG_INFO_L2))
         {
-            DBG_Printf(DBG_INFO, "Erase task req-id: %u, type: %d zcl seqno: %u send time %d, profileId: 0x%04X, clusterId: 0x%04X\n",
+            DBG_Printf(DBG_INFO_L2, "Erase task req-id: %u, type: %d zcl seqno: %u send time %d, profileId: 0x%04X, clusterId: 0x%04X\n",
                        task.req.id(), task.taskType, task.zclFrame.sequenceNumber(), idleTotalCounter - task.sendTime, task.req.profileId(), task.req.clusterId());
         }
         runningTasks.erase(i);
@@ -6437,11 +6437,11 @@ bool DeRestPluginPrivate::addTask(const TaskItem &task)
     {
         if (task.req.dstAddress().hasExt())
         {
-            DBG_Printf(DBG_INFO, "add task %d type %d to 0x%016llX cluster 0x%04X req.id %u\n", task.taskId, task.taskType, task.req.dstAddress().ext(), task.req.clusterId(), task.req.id());
+            DBG_Printf(DBG_INFO_L2, "add task %d type %d to 0x%016llX cluster 0x%04X req.id %u\n", task.taskId, task.taskType, task.req.dstAddress().ext(), task.req.clusterId(), task.req.id());
         }
         else if (task.req.dstAddress().hasGroup())
         {
-            DBG_Printf(DBG_INFO, "add task %d type %d to group 0x%04X cluster 0x%04X req.id %u\n", task.taskId, task.taskType, task.req.dstAddress().group(), task.req.clusterId(), task.req.id());
+            DBG_Printf(DBG_INFO_L2, "add task %d type %d to group 0x%04X cluster 0x%04X req.id %u\n", task.taskId, task.taskType, task.req.dstAddress().group(), task.req.clusterId(), task.req.id());
         }
     }
 
