@@ -2387,6 +2387,15 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                 if (i->address().nwk() != node->address().nwk())
                 {
                     i->address() = node->address();
+
+                    if (findSensorsState == FindSensorsActive &&
+                        i->deletedState() == Sensor::StateNormal)
+                    {
+                        // mostly due resetting the device
+                        updateSensorEtag(&*i);
+                        Event e(RSensors, REventAdded, i->id());
+                        enqueueEvent(e);
+                    }
                 }
 
                 if (i->node() != node)
