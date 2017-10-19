@@ -30,6 +30,62 @@ ApiConfig::ApiConfig() :
 {
 }
 
+/*! Intit the configuration. */
+void DeRestPluginPrivate::initConfig()
+{
+    QString dataPath = deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation);
+
+    // default configuration
+    gwRunFromShellScript = false;
+    gwDeleteUnknownRules = (deCONZ::appArgumentNumeric("--delete-unknown-rules", 1) == 1) ? true : false;
+    gwRfConnected = false; // will be detected later
+    gwRfConnectedExpected = (deCONZ::appArgumentNumeric("--auto-connect", 1) == 1) ? true : false;
+    gwPermitJoinDuration = 0;
+    gwPermitJoinResend = 0;
+    gwNetworkOpenDuration = 60;
+    gwWifi = "not-configured";
+    gwWifiType = "accesspoint";
+    gwWifiName = "Not set";
+    gwWifiChannel = "1";
+    gwWifiIp = QLatin1String("192.168.8.1");
+    gwWifiPw = "";
+    gwRgbwDisplay = "1";
+    gwTimezone = QString::fromStdString(getTimezone());
+    gwTimeFormat = "12h";
+    gwZigbeeChannel = 0;
+    gwName = GW_DEFAULT_NAME;
+    gwUpdateVersion = GW_SW_VERSION; // will be replaced by discovery handler
+    gwUpdateChannel = "stable";
+    gwReportingEnabled = (deCONZ::appArgumentNumeric("--reporting", 1) == 1) ? true : false;
+    gwFirmwareNeedUpdate = false;
+    gwFirmwareVersion = "0x00000000"; // query later
+    gwFirmwareVersionUpdate = "";
+    gwBridgeId = "0000000000000000";
+
+    // offical dresden elektronik sd-card image?
+    {
+        QFile f(dataPath + QLatin1String("/gw-version"));
+        if (f.exists() && f.open(QFile::ReadOnly))
+        {
+            gwSdImageVersion = f.readAll().trimmed();
+        }
+    }
+
+    config.addItem(DataTypeTime, RConfigLocalTime);
+
+    {
+        QHttpRequestHeader hdr;
+        QStringList path;
+        QString content;
+        ApiRequest dummyReq(hdr, path, 0, content);
+        dummyReq.version = ApiVersion_1_DDEL;
+        configToMap(dummyReq, gwConfig);
+    }
+
+    gwProxyPort = 0;
+    gwProxyAddress = "none";
+}
+
 /*! Configuration REST API broker.
     \param req - request data
     \param rsp - response data

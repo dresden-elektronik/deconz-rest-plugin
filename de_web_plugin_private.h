@@ -599,6 +599,7 @@ public:
     void gatewayToMap(const ApiRequest &req, const Gateway *gw, QVariantMap &map);
 
     // REST API configuration
+    void initConfig();
     int handleConfigurationApi(const ApiRequest &req, ApiResponse &rsp);
     int createUser(const ApiRequest &req, ApiResponse &rsp);
     int getFullState(const ApiRequest &req, ApiResponse &rsp);
