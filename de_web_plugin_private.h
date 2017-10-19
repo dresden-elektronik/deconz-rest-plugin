@@ -781,6 +781,7 @@ public Q_SLOTS:
     void processTasks();
     void processGroupTasks();
     void nodeEvent(const deCONZ::NodeEvent &event);
+    void initWiFi();
     void internetDiscoveryTimerFired();
     void internetDiscoveryFinishedRequest(QNetworkReply *reply);
     void internetDiscoveryExtractVersionInfo(QNetworkReply *reply);

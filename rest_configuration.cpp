@@ -86,6 +86,48 @@ void DeRestPluginPrivate::initConfig()
     gwProxyAddress = "none";
 }
 
+/*! Init WiFi parameters if necessary. */
+void DeRestPluginPrivate::initWiFi()
+{
+    // only configure for official image
+    if (gwSdImageVersion.isEmpty())
+    {
+        return;
+    }
+
+    if (gwBridgeId.isEmpty())
+    {
+        QTimer::singleShot(5000, this, SLOT(initWiFi()));
+        return;
+    }
+
+    if (gwWifi == QLatin1String("configured"))
+    {
+        return;
+    }
+
+    QByteArray sec0 = apsCtrl->getParameter(deCONZ::ParamSecurityMaterial0);
+    if (sec0.isEmpty())
+    {
+        QTimer::singleShot(10000, this, SLOT(initWiFi()));
+        return;
+    }
+
+    gwWifi = QLatin1String("configured");
+
+    if (gwWifiName.isEmpty() || gwWifiName == QLatin1String("Not set"))
+    {
+        gwWifiName = QString("Phoscon-Gateway-%1").arg(gwBridgeId.right(4));
+    }
+
+    if (gwWifiPw.isEmpty() || gwWifiPw.length() < 8)
+    {
+        gwWifiPw = sec0.mid(16, 16).toUpper();
+    }
+
+    queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
+}
+
 /*! Configuration REST API broker.
     \param req - request data
     \param rsp - response data
@@ -467,6 +509,13 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         map["system"] = "linux-gw";
 #endif
 #endif
+        map["wifi"] = gwWifi;
+        map["wifitype"] = gwWifiType;
+        map["wifiname"] = gwWifiName;
+        map["wifichannel"] = gwWifiChannel;
+        map["wifiip"] = gwWifiIp;
+//        map["wifiappw"] = gwWifiPw;
+        map["wifiappw"] = QLatin1String(""); // TODO add secured transfer via PKI
     }
     else
     {
@@ -526,12 +575,6 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     map["networkopenduration"] = gwNetworkOpenDuration;
     map["timeformat"] = gwTimeFormat;
     map["whitelist"] = whitelist;
-    map["wifi"] = gwWifi;
-    map["wifitype"] = gwWifiType;
-    map["wifiname"] = gwWifiName;
-    map["wifichannel"] = gwWifiChannel;
-    map["wifiip"] = gwWifiIp;
-    map["wifiappw"] = gwWifiPw;
     map["linkbutton"] = gwLinkButton;
     map["portalservices"] = false;
     map["websocketport"] = (double)webSocketServer->port();
@@ -2356,7 +2399,8 @@ int DeRestPluginPrivate::getWifiState(const ApiRequest &req, ApiResponse &rsp)
     rsp.map["wifiname"] = gwWifiName;
     rsp.map["wifichannel"] = gwWifiChannel;
     rsp.map["wifiip"] = gwWifiIp;
-    rsp.map["wifiappw"] = gwWifiPw;
+    // rsp.map["wifiappw"] = gwWifiPw;
+    rsp.map["wifiappw"] = QLatin1String("");
 
     rsp.httpStatus = HttpStatusOk;
 
@@ -2371,10 +2415,12 @@ int DeRestPluginPrivate::restoreWifiConfig(const ApiRequest &req, ApiResponse &r
 {
     Q_UNUSED(req);
 
+#if 0
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
     std::string command = "sudo bash /usr/bin/deCONZ-startstop-wifi.sh accesspoint restore" ;
     system(command.c_str());
+#endif
 #endif
 #endif
 
@@ -2391,6 +2437,7 @@ int DeRestPluginPrivate::restoreWifiConfig(const ApiRequest &req, ApiResponse &r
  */
 void DeRestPluginPrivate::checkWifiState()
 {
+#if 0
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
     char const* cmd = "sudo bash /usr/bin/deCONZ-check-wifi.sh";
@@ -2519,7 +2566,7 @@ void DeRestPluginPrivate::checkWifiState()
     }
 #endif
 #endif
-
+#endif
     return;
 }
 
@@ -2530,9 +2577,11 @@ void DeRestPluginPrivate::checkWifiState()
 int DeRestPluginPrivate::scanWifiNetworks(const ApiRequest &req, ApiResponse &rsp)
 {
     Q_UNUSED(req);
+    Q_UNUSED(rsp);
 
-    QVariantMap cell;
     QVariantMap cells;
+#if 0
+    QVariantMap cell;
 
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
@@ -2647,7 +2696,7 @@ int DeRestPluginPrivate::scanWifiNetworks(const ApiRequest &req, ApiResponse &rs
     }
 #endif
 #endif
-
+#endif
     rsp.map["cells"] = cells;
     rsp.httpStatus = HttpStatusOk;
     return REQ_READY_SEND;

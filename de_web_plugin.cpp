@@ -343,6 +343,8 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     initFirmwareUpdate();
     //restoreWifiState();
     indexRulesTriggers();
+
+    QTimer::singleShot(3000, this, SLOT(initWiFi()));
 }
 
 /*! Deconstructor for pimpl.
