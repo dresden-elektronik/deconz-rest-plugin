@@ -1265,6 +1265,12 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
             DBG_Printf(DBG_INFO, "resource %s : %s id: %s (cond: %s) not found\n",
                        c->resource(), c->suffix(),
                        qPrintable(c->id()), qPrintable(c->address()));
+
+            if (!resource)
+            {
+                DBG_Printf(DBG_INFO, "\tdisable rule %s: %s\n", qPrintable(rule.id()), qPrintable(rule.name()));
+                rule.setStatus(QLatin1String("disabled"));
+            }
             return false;
         }
 
