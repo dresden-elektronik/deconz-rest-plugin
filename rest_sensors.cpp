@@ -262,22 +262,9 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
         QVariantMap rspItemState;
 
         // create a new sensor id
-        sensor.setId("1");
-
-        do {
-            ok = true;
-            std::vector<Sensor>::const_iterator i = sensors.begin();
-            std::vector<Sensor>::const_iterator end = sensors.end();
-
-            for (; i != end; ++i)
-            {
-                if (i->id() == sensor.id())
-                {
-                    sensor.setId(QString::number(i->id().toInt() + 1));
-                    ok = false;
-                }
-            }
-        } while (!ok);
+        openDb();
+        sensor.setId(QString::number(getFreeSensorId()));
+        closeDb();
 
         sensor.setName(map["name"].toString());
         sensor.setManufacturer(map["manufacturername"].toString());
