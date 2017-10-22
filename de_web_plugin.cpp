@@ -480,6 +480,12 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
         }
             break;
 
+        case ZDP_IEEE_ADDR_CLID:
+        {
+            handleIeeeAddressReqIndication(ind);
+        }
+            break;
+
         case ZDP_NWK_ADDR_CLID:
         {
             handleNwkAddressReqIndication(ind);
@@ -8550,6 +8556,76 @@ void DeRestPluginPrivate::handleMgmtLqiRspIndication(const deCONZ::ApsDataIndica
                 pollManager->poll(&l);
             }
         }
+    }
+}
+
+/*! Handle IEEE address request indication.
+    \param ind a ZDP IeeeAddress_req
+ */
+void DeRestPluginPrivate::handleIeeeAddressReqIndication(const deCONZ::ApsDataIndication &ind)
+{
+    if (!apsCtrl)
+    {
+        return;
+    }
+
+    quint8 seq;
+    quint64 extAddr;
+    quint16 nwkAddr;
+    quint8 reqType;
+    quint8 startIndex;
+
+    {
+        QDataStream stream(ind.asdu());
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        stream >> seq;
+        stream >> nwkAddr;
+        stream >> reqType;
+        stream >> startIndex;
+    }
+
+    if (nwkAddr != apsCtrl->getParameter(deCONZ::ParamNwkAddress))
+    {
+        return;
+    }
+
+    deCONZ::ApsDataRequest req;
+
+    req.setProfileId(ZDP_PROFILE_ID);
+    req.setSrcEndpoint(ZDO_ENDPOINT);
+    req.setDstEndpoint(ZDO_ENDPOINT);
+    req.setClusterId(ZDP_IEEE_ADDR_RSP_CLID);
+    req.setDstAddressMode(deCONZ::ApsNwkAddress);
+    req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+    req.dstAddress() = ind.srcAddress();
+
+    QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
+    stream.setByteOrder(QDataStream::LittleEndian);
+
+    extAddr = apsCtrl->getParameter(deCONZ::ParamMacAddress);
+    // trick OTA client of busch jaeger switch to think this is a bj dongle
+    if ((ind.srcAddress().ext() & macPrefixMask) == bjeMacPrefix)
+    {
+        extAddr &= ~macPrefixMask;
+        extAddr |= bjeMacPrefix;
+    }
+
+    quint8 status = ZDP_SUCCESS;
+    stream << seq;
+    stream << status;
+    stream << extAddr;
+    stream << nwkAddr;
+
+    if (reqType == 0x01) // extended request type
+    {
+        stream << (quint8)0; // num of assoc devices
+        stream << (quint8)0; // start index
+    }
+
+    if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
+    {
+
     }
 }
 
