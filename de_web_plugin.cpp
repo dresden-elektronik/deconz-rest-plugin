@@ -115,13 +115,24 @@ static const SupportedDevice supportedDevices[] = {
 int TaskItem::_taskCounter = 1; // static rolling taskcounter
 
 ApiRequest::ApiRequest(const QHttpRequestHeader &h, const QStringList &p, QTcpSocket *s, const QString &c) :
-    hdr(h), path(p), sock(s), content(c), version(ApiVersion_1)
+    hdr(h), path(p), sock(s), content(c), version(ApiVersion_1), strict(false)
 {
     if (hdr.hasKey("Accept"))
     {
         if (hdr.value("Accept").contains("vnd.ddel.v1"))
         {
             version = ApiVersion_1_DDEL;
+        }
+    }
+
+    // some client may not be prepared for some responses
+    if (hdr.hasKey(QLatin1String("User-Agent")))
+    {
+        QString ua = hdr.value(QLatin1String("User-Agent"));
+        if (ua.startsWith(QLatin1String("Echo")) ||
+            ua.startsWith(QLatin1String("iConnect")))
+        {
+            strict = true;
         }
     }
 }
@@ -10769,6 +10780,12 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
     {
         rsp.contentType = HttpContentJson;
         str = rsp.str;
+    }
+
+    // some client may not be prepared for http return codes other than 200 OK
+    if (rsp.httpStatus != HttpStatusOk && req.strict)
+    {
+        rsp.httpStatus = HttpStatusOk;
     }
 
     stream << "HTTP/1.1 " << rsp.httpStatus << "\r\n";

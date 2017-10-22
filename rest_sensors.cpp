@@ -139,7 +139,7 @@ int DeRestPluginPrivate::getAllSensors(const ApiRequest &req, ApiResponse &rsp)
         }
 
         QVariantMap map;
-        sensorToMap(&*i, map);
+        sensorToMap(&*i, map, req.strict);
         rsp.map[i->id()] = map;
     }
 
@@ -191,7 +191,7 @@ int DeRestPluginPrivate::getSensor(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
-    sensorToMap(sensor, rsp.map);
+    sensorToMap(sensor, rsp.map, req.strict);
     rsp.httpStatus = HttpStatusOk;
     rsp.etag = sensor->etag;
 
@@ -1303,7 +1303,7 @@ int DeRestPluginPrivate::getNewSensors(const ApiRequest &req, ApiResponse &rsp)
     \return true - on success
             false - on error
  */
-bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map)
+bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, bool strictMode)
 {
     if (!sensor)
     {
@@ -1370,7 +1370,22 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map)
 
     //sensor
     map["name"] = sensor->name();
-    map["type"] = sensor->type();
+
+    if (strictMode)
+    {
+        if (sensor->manufacturer().startsWith(QLatin1String("Philips")) &&
+            sensor->type().startsWith(QLatin1String("ZHA")))
+        {
+            QString type = sensor->type();
+            type.replace(QLatin1String("ZHA"), QLatin1String("ZLL"));
+            map["type"] = type;
+        }
+    }
+    else
+    {
+        map["type"] = sensor->type();
+    }
+
     if (!sensor->modelId().isEmpty())
     {
         map["modelid"] = sensor->modelId();
@@ -1532,7 +1547,8 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         map["r"] = QLatin1String("sensors");
 
         QVariantMap smap;
-        sensorToMap(sensor, smap);
+        bool strictMode = false;
+        sensorToMap(sensor, smap, strictMode);
         smap["id"] = sensor->id();
         map["sensor"] = smap;
 

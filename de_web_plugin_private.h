@@ -529,6 +529,7 @@ public:
     QTcpSocket *sock;
     QString content;
     ApiVersion version;
+    bool strict;
 };
 
 /*! \class ApiResponse
@@ -703,7 +704,7 @@ public:
     int createSensor(const ApiRequest &req, ApiResponse &rsp);
     int getGroupIdentifiers(const ApiRequest &req, ApiResponse &rsp);
     int recoverSensor(const ApiRequest &req, ApiResponse &rsp);
-    bool sensorToMap(const Sensor *sensor, QVariantMap &map);
+    bool sensorToMap(const Sensor *sensor, QVariantMap &map, bool strictMode);
     void handleSensorEvent(const Event &e);
 
     // REST API resourcelinks

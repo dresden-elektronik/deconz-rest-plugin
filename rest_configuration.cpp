@@ -519,10 +519,21 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     }
     else
     {
-        QStringList versions = QString(GW_SW_VERSION).split('.');
-        QString swversion;
-        swversion.sprintf("%d.%d.%d", versions[0].toInt(), versions[1].toInt(), versions[2].toInt());
-        map["swversion"] = swversion;
+        if (req.strict)
+        {
+            map["swversion"] = QLatin1String("01038802");
+            map["apiversion"] = QLatin1String("1.20.0");
+            map["bridgeid"] = QLatin1String("BSB002");
+        }
+        else
+        {
+            QStringList versions = QString(GW_SW_VERSION).split('.');
+            QString swversion;
+            swversion.sprintf("%d.%d.%d", versions[0].toInt(), versions[1].toInt(), versions[2].toInt());
+            map["swversion"] = swversion;
+            map["apiversion"] = QString(GW_API_VERSION);
+            map["bridgeid"] = gwBridgeId;
+        }
         devicetypes["bridge"] = false;
         devicetypes["lights"] = QVariantList();
         devicetypes["sensors"] = QVariantList();
@@ -547,8 +558,6 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         map["replacesbridgeid"] = QVariant();
         map["datastoreversion"] = QLatin1String("60");
         map["swupdate"] = swupdate;
-        map["apiversion"] = QString(GW_API_VERSION);
-        map["bridgeid"] = gwBridgeId;
         map["starterkitid"] = QLatin1String("");
     }
 
@@ -753,7 +762,7 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
                 continue;
             }
             QVariantMap map;
-            if (sensorToMap(&(*i), map))
+            if (sensorToMap(&(*i), map, req.strict))
             {
                 sensorsMap[i->id()] = map;
             }
