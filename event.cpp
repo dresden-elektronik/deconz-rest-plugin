@@ -46,5 +46,9 @@ Event::Event(const char *resource, const char *what, int num) :
     m_num(num),
     m_numPrev(0)
 {
+    if (resource == RGroups)
+    {
+        m_id = QString::number(num);
+    }
 }
 
