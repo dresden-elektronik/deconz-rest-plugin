@@ -1276,24 +1276,17 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
 
         if (!item->lastSet().isValid()) { return false; }
 
-        /*
+
         if (resource->prefix() == RSensors)
         {
-            if ((idleTotalCounter > (IDLE_READ_LIMIT + 20)) &&
-                item->lastSet() > now.addSecs(0 - (idleTotalCounter - IDLE_READ_LIMIT - 2)))
+            // don't trigger rule if sensor is disabled
+            ResourceItem *item2 = resource->item(RConfigOn);
+            if (item2 && !item2->toBool())
             {
-            }
-            else
-            {
-                Sensor *sensor = getSensorNodeForId(c->id());
-                if (sensor && !sensor->type().startsWith(QLatin1String("CLIP")))
-                {
-                    // ignore resource set after startup
-                    return false;
-                }
+                return false;
             }
         }
-        */
+
 
         if (c->op() == RuleCondition::OpEqual)
         {
