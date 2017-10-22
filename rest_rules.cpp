@@ -1262,8 +1262,8 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
 
         if (!resource || !item)
         {
-            DBG_Printf(DBG_INFO, "resource %s : %s id: %s (cond: %s) not found\n",
-                       c->resource(), c->suffix(),
+            DBG_Printf(DBG_INFO, "rule: %s, resource %s : %s id: %s (cond: %s) not found\n",
+                       qPrintable(rule.id()), c->resource(), c->suffix(),
                        qPrintable(c->id()), qPrintable(c->address()));
 
             if (!resource)
