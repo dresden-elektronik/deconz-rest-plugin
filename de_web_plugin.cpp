@@ -8640,6 +8640,7 @@ void DeRestPluginPrivate::handleNwkAddressReqIndication(const deCONZ::ApsDataInd
     }
 
     quint8 seq;
+    quint16 nwkAddr;
     quint64 extAddr;
     quint8 reqType;
     quint8 startIndex;
@@ -8654,7 +8655,7 @@ void DeRestPluginPrivate::handleNwkAddressReqIndication(const deCONZ::ApsDataInd
         stream >> startIndex;
     }
 
-    if (!apsCtrl || extAddr != apsCtrl->getParameter(deCONZ::ParamMacAddress))
+    if (extAddr != apsCtrl->getParameter(deCONZ::ParamMacAddress))
     {
         return;
     }
@@ -8672,9 +8673,12 @@ void DeRestPluginPrivate::handleNwkAddressReqIndication(const deCONZ::ApsDataInd
     QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
     stream.setByteOrder(QDataStream::LittleEndian);
 
+    nwkAddr = apsCtrl->getParameter(deCONZ::ParamNwkAddress);
+    quint8 status = ZDP_SUCCESS;
     stream << seq;
+    stream << status;
     stream << extAddr;
-    stream << (quint16)apsCtrl->getParameter(deCONZ::ParamNwkAddress);
+    stream << nwkAddr;
 
     if (reqType == 0x01) // extended request type
     {
