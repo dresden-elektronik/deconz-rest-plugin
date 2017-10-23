@@ -576,28 +576,58 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
                   task.req.clusterId() == COLOR_CLUSTER_ID))
         {
             quint16 groupId = task.req.dstAddress().group();
+            quint16 attrId = 0x0000;
+            if (task.req.clusterId() == COLOR_CLUSTER_ID)
+            {
+                attrId = 0x0003; // currentX
+            }
+
+            QDateTime now = QDateTime::currentDateTime();
 
             for (LightNode &l : nodes)
             {
                 if (!l.isAvailable() ||
-                    !l.lastRx().isValid() ||
+                    !l.lastRx().isValid() /*||
                     l.manufacturerCode() == VENDOR_IKEA ||
                     l.manufacturerCode() == VENDOR_OSRAM ||
                     l.manufacturerCode() == VENDOR_OSRAM_STACK ||
                     l.manufacturer().startsWith(QLatin1String("IKEA")) ||
-                    l.manufacturer().startsWith(QLatin1String("OSRAM")))
+                    l.manufacturer().startsWith(QLatin1String("OSRAM"))*/)
                 {
                     continue;
                 }
 
-                // fast poll lights which don't support or have enabled ZCL reporting
-                const NodeValue &val = l.getZclValue(ONOFF_CLUSTER_ID, 0x0000);
-                if (!val.timestampLastReport.isValid() &&
+
+                // fast poll lights which don't support or have active ZCL reporting
+                const NodeValue &val = l.getZclValue(ONOFF_CLUSTER_ID, attrId);
+                if ((!val.timestampLastReport.isValid() || val.timestampLastReport.secsTo(now) > (60 * 5)) &&
                     isLightNodeInGroup(&l, groupId))
                 {
                     DBG_Printf(DBG_INFO, "\t0x%016llX force poll\n", l.address().ext());
                     pollManager->poll(&l);
                 }
+            }
+        }
+        else if (task.lightNode)
+        {
+            switch (task.taskType)
+            {
+            case TaskSendOnOffToggle:
+            case TaskSetLevel:
+            case TaskSetXyColor:
+            case TaskSetEnhancedHue:
+            case TaskSetSat:
+            case TaskSetColorTemperature:
+            case TaskSetHue:
+            case TaskSetHueAndSaturation:
+            case TaskIncColorTemperature:
+                {
+                    DBG_Printf(DBG_INFO, "\t0x%016llX force poll (2)\n", task.lightNode->address().ext());
+                    pollManager->poll(task.lightNode);
+                }
+                break;
+            default:
+                break;
             }
         }
 
