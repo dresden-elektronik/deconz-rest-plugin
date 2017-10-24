@@ -72,6 +72,22 @@ void DeRestPluginPrivate::initConfig()
         }
     }
 
+#ifdef Q_OS_LINUX
+#ifdef ARCH_ARM
+    {
+        QFile f("/sys/block/mmcblk0/device/cid");
+        if (f.exists() && f.open(QFile::ReadOnly))
+        {
+            QByteArray cid = f.readAll().left(32);
+            // wipe serial number
+            for (int i = 18; i < (18 + 8); i++)
+            { cid[i] = 'f'; }
+            DBG_Printf(DBG_INFO, "sd-card cid: %s\n", qPrintable(cid));
+        }
+    }
+#endif
+#endif
+
     config.addItem(DataTypeTime, RConfigLocalTime);
 
     {
