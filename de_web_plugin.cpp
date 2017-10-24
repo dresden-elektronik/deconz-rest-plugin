@@ -8110,6 +8110,10 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
                     qint64 duration = (timeOn + 5) / 10;
 
                     item = s.item(RConfigDuration);
+                    if (!item)
+                    {
+                        item = s.addItem(DataTypeUInt16, RConfigDuration);
+                    }
                     if (item && item->toNumber() != duration)
                     {
                         item->setValue((quint64) duration);
