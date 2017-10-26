@@ -521,6 +521,7 @@ int DeRestPluginPrivate::createRule(const ApiRequest &req, ApiResponse &rsp)
             updateEtag(rule.etag);
             updateEtag(gwConfigEtag);
 
+            DBG_Printf(DBG_INFO, "create rule %s: %s\n", qPrintable(rule.id()), qPrintable(rule.name()));
             rules.push_back(rule);
             queueCheckRuleBindings(rule);
             indexRulesTriggers();
@@ -563,6 +564,8 @@ int DeRestPluginPrivate::updateRule(const ApiRequest &req, ApiResponse &rsp)
         rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/rules/%1").arg(id), QString("resource, /rules/%1, not available").arg(id)));
         return REQ_READY_SEND;
     }
+
+    DBG_Printf(DBG_INFO, "update rule %s: %s\n", qPrintable(id), qPrintable(rule->name()));
 
     QVariant var = Json::parse(req.content, ok);
     QVariantMap map = var.toMap();
@@ -925,6 +928,8 @@ int DeRestPluginPrivate::deleteRule(const ApiRequest &req, ApiResponse &rsp)
     rule->setState(Rule::StateDeleted);
     rule->setStatus("disabled");
     queueCheckRuleBindings(*rule);
+
+    DBG_Printf(DBG_INFO, "delete rule %s: %s\n", qPrintable(id), qPrintable(rule->name()));
 
     QVariantMap rspItem;
     QVariantMap rspItemState;
