@@ -387,6 +387,9 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     bool ok = false;
     QVariantMap whitelist;
     QVariantMap swupdate;
+    QVariantMap swupdate2;
+    QVariantMap autoinstall;
+    QVariantMap bridge;
     QVariantMap devicetypes;
     QVariantMap portalstate;
     QVariantMap internetservices;
@@ -577,6 +580,19 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         map["swupdate"] = swupdate;
         map["starterkitid"] = QLatin1String("");
     }
+
+    bridge["state"] = gwSwUpdateState;
+    bridge["lastinstall"] = "";
+    swupdate2["bridge"] = bridge;
+    swupdate2["checkforupdate"] = false;
+    swupdate2["state"] = gwSwUpdateState;
+    swupdate2["install"] = false;
+    autoinstall["updatetime"] = "";
+    autoinstall["on"] = false;
+    swupdate2["autoinstall"] = autoinstall;
+    swupdate2["lastchange"] = "";
+    swupdate2["lastinstall"] = "";
+    map["swupdate2"] = swupdate2;
 
     map["name"] = gwName;
     map["uuid"] = gwUuid;
@@ -1915,7 +1931,7 @@ int DeRestPluginPrivate::updateSoftware(const ApiRequest &req, ApiResponse &rsp)
     QVariantMap rspItemState;
     gwSwUpdateState = swUpdateState.installing;
     rspItemState["/config/update"] = gwUpdateVersion;
-    rspItemState["/config/swupdatestate"] = gwSwUpdateState;
+    rspItemState["/config/swupdate2/state"] = gwSwUpdateState;
     rspItem["success"] = rspItemState;
     rsp.list.append(rspItem);
 
