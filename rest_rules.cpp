@@ -521,30 +521,9 @@ int DeRestPluginPrivate::createRule(const ApiRequest &req, ApiResponse &rsp)
             updateEtag(rule.etag);
             updateEtag(gwConfigEtag);
 
-            {
-                bool found = false;
-                std::vector<Rule>::iterator ri = rules.begin();
-                std::vector<Rule>::iterator rend = rules.end();
-                for (; ri != rend; ++ri)
-                {
-                    if (ri->actions() == rule.actions() &&
-                        ri->conditions() == rule.conditions())
-                    {
-                        DBG_Printf(DBG_INFO, "replace existing rule with newly created one\n");
-                        found = true;
-                        *ri = rule;
-                        queueCheckRuleBindings(*ri);
-                        break;
-                    }
-                }
-
-                if (!found)
-                {
-                    rules.push_back(rule);
-                    queueCheckRuleBindings(rule);
-                }
-                indexRulesTriggers();
-            }
+            rules.push_back(rule);
+            queueCheckRuleBindings(rule);
+            indexRulesTriggers();
             queSaveDb(DB_RULES, DB_SHORT_SAVE_DELAY);
 
             rspItemState["id"] = rule.id();
