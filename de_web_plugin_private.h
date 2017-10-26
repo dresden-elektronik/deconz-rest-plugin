@@ -1063,10 +1063,10 @@ public:
     QString gwAdminPasswordHash;
 
     struct SwUpdateState {
-     QString STATE_NO_UPDATE;
-     QString STATE_READY_TO_INSTALL;
-     QString STATE_INSTALLING;
-    } swUpdateState = {"noupdate","readytoisntall","installing"};
+     QString noUpdate;
+     QString readyToInstall;
+     QString installing;
+    } swUpdateState = {"noupdate","readytoinstall","installing"};
 
     // configuration
     bool gwLinkButton;

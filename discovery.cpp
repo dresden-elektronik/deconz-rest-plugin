@@ -281,7 +281,7 @@ void DeRestPluginPrivate::internetDiscoveryExtractVersionInfo(QNetworkReply *rep
                 {
                     DBG_Printf(DBG_INFO, "discovery found version %s for update channel %s\n", qPrintable(version), qPrintable(gwUpdateChannel));
                     gwUpdateVersion = version;
-                    gwSwUpdateState = swUpdateState.STATE_READY_TO_INSTALL;
+                    gwSwUpdateState = swUpdateState.readyToInstall;
                     updateEtag(gwConfigEtag);
                 }
             }
