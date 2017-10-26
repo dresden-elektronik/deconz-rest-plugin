@@ -2389,6 +2389,7 @@ void DeRestPluginPrivate::saveDb()
         gwConfig["gwusername"] = gwAdminUserName;
         gwConfig["gwpassword"] = gwAdminPasswordHash;
         gwConfig["updatechannel"] = gwUpdateChannel;
+        gwConfig["swupdatestate"] = gwSwUpdateState;
         gwConfig["uuid"] = gwUuid;
         gwConfig["otauactive"] = isOtauActive();
         gwConfig["wifi"] = gwWifi;

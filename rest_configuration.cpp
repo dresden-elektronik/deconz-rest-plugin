@@ -55,6 +55,7 @@ void DeRestPluginPrivate::initConfig()
     gwZigbeeChannel = 0;
     gwName = GW_DEFAULT_NAME;
     gwUpdateVersion = GW_SW_VERSION; // will be replaced by discovery handler
+    gwSwUpdateState =  swUpdateState.STATE_NO_UPDATE;
     gwUpdateChannel = "stable";
     gwReportingEnabled = (deCONZ::appArgumentNumeric("--reporting", 1) == 1) ? true : false;
     gwFirmwareNeedUpdate = false;
@@ -1896,7 +1897,9 @@ int DeRestPluginPrivate::updateSoftware(const ApiRequest &req, ApiResponse &rsp)
     rsp.httpStatus = HttpStatusOk;
     QVariantMap rspItem;
     QVariantMap rspItemState;
+    gwSwUpdateState = swUpdateState.STATE_INSTALLING;
     rspItemState["/config/update"] = gwUpdateVersion;
+    rspItemState["/config/swupdatestate"] = gwSwUpdateState;
     rspItem["success"] = rspItemState;
     rsp.list.append(rspItem);
 

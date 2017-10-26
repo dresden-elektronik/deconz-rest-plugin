@@ -1062,6 +1062,11 @@ public:
     QString gwAdminUserName;
     QString gwAdminPasswordHash;
 
+    struct SwUpdateState {
+     QString STATE_NO_UPDATE;
+     QString STATE_READY_TO_INSTALL;
+     QString STATE_INSTALLING;
+    } swUpdateState = {"noupdate","readytoisntall","installing"};
 
     // configuration
     bool gwLinkButton;
@@ -1088,6 +1093,7 @@ public:
     QString gwName;
     QString gwUuid;
     QString gwUpdateVersion;
+    QString gwSwUpdateState;
     QString gwRgbwDisplay;
     QString gwFirmwareVersion;
     QString gwFirmwareVersionUpdate; // for local update of the firmware if it doesn't fit the GW_MIN_<platform>_FW_VERSION
