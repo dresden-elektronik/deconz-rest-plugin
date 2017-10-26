@@ -1066,7 +1066,7 @@ public:
      QString noUpdate;
      QString readyToInstall;
      QString installing;
-    } swUpdateState = {"noupdate","readytoinstall","installing"};
+    } swUpdateState = {"noupdates","allreadytoinstall","installing"};
 
     // configuration
     bool gwLinkButton;
