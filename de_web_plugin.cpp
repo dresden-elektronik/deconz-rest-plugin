@@ -8121,7 +8121,8 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
 
         for (; l != lend; ++l)
         {
-            if (isLightNodeInGroup(&*l, group->address()))
+            if ((zclFrame.frameControl() & deCONZ::ZclFCClusterCommand) &&
+                 isLightNodeInGroup(&*l, group->address()))
             {
                 bool updated = false;
                 if (zclFrame.commandId() == 0x00 || zclFrame.commandId() == 0x40) // Off || Off with effect
