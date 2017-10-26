@@ -950,8 +950,6 @@ public:
     void fixSceneTableReadResponse(LightNode *lightNode, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void fixSceneTableWrite(LightNode *lightNode, quint16 offset);
 
-    void changeRuleStatusofGroup(QString groupId, bool enabled);
-
     bool pushState(QString json, QTcpSocket *sock);
 
     void pushClientForClose(QTcpSocket *sock, int closeTimeout, const QHttpRequestHeader &hdr);
