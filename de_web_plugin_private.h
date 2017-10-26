@@ -1065,8 +1065,9 @@ public:
     struct SwUpdateState {
      QString noUpdate;
      QString readyToInstall;
+     QString transferring;
      QString installing;
-    } swUpdateState = {"noupdates","allreadytoinstall","installing"};
+    } swUpdateState = {"noupdates","allreadytoinstall","transferring","installing"};
 
     // configuration
     bool gwLinkButton;

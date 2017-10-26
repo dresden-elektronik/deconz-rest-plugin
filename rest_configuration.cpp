@@ -1929,7 +1929,7 @@ int DeRestPluginPrivate::updateSoftware(const ApiRequest &req, ApiResponse &rsp)
     rsp.httpStatus = HttpStatusOk;
     QVariantMap rspItem;
     QVariantMap rspItemState;
-    gwSwUpdateState = swUpdateState.installing;
+    gwSwUpdateState = swUpdateState.transferring;
     rspItemState["/config/update"] = gwUpdateVersion;
     rspItemState["/config/swupdate2/state"] = gwSwUpdateState;
     rspItem["success"] = rspItemState;
