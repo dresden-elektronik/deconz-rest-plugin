@@ -11381,7 +11381,14 @@ void DeRestPluginPrivate::shutDownGatewayTimerFired()
 
 void DeRestPluginPrivate::simpleRestartAppTimerFired()
 {
+
+#ifdef ARCH_ARM
+    QProcess restartProcess;
+    QString cmd = "systemctl restart deconz";
+    restartProcess.start(cmd);
+#else
     qApp->exit(APP_RET_RESTART_APP);
+#endif
 }
 
 /*! Set sensor node attributes to deCONZ core (nodes and node list).
@@ -11520,7 +11527,10 @@ void DeRestPluginPrivate::reconnectNetwork()
         DBG_Printf(DBG_INFO, "reconnect network done\n");
         //restart deCONZ on rpi to apply changes to MACAddress
         #ifdef ARCH_ARM
-        qApp->exit(APP_RET_RESTART_APP);
+        // qApp->exit(APP_RET_RESTART_APP);
+        QProcess restartProcess;
+        QString cmd = "systemctl restart deconz";
+        restartProcess.start(cmd);
         #endif
         return;
     }
