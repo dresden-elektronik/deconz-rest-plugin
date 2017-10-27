@@ -791,7 +791,6 @@ public Q_SLOTS:
     void permitJoinTimerFired();
     void resendPermitJoinTimerFired();
     void otauTimerFired();
-    void updateSoftwareTimerFired();
     void lockGatewayTimerFired();
     void openClientTimerFired();
     void clientSocketDestroyed();

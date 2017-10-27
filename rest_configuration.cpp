@@ -1931,7 +1931,9 @@ int DeRestPluginPrivate::updateSoftware(const ApiRequest &req, ApiResponse &rsp)
     QVariantMap rspItemState;
     gwSwUpdateState = swUpdateState.transferring;
     rspItemState["/config/update"] = gwUpdateVersion;
+#ifdef ARCH_ARM
     rspItemState["/config/swupdate2/state"] = gwSwUpdateState;
+#endif
     rspItem["success"] = rspItemState;
     rsp.list.append(rspItem);
 
@@ -1942,7 +1944,6 @@ int DeRestPluginPrivate::updateSoftware(const ApiRequest &req, ApiResponse &rsp)
         openDb();
         saveDb();
         closeDb();
-        QTimer::singleShot(5000, this, SLOT(updateSoftwareTimerFired()));
     }
 #endif // ARCH_ARM
 
@@ -2328,34 +2329,6 @@ int DeRestPluginPrivate::deletePassword(const ApiRequest &req, ApiResponse &rsp)
 
     rsp.httpStatus = HttpStatusOk;
     return REQ_READY_SEND;
-}
-
-/*! Delayed trigger to update the software.
- */
-void DeRestPluginPrivate::updateSoftwareTimerFired()
-{
-    DBG_Printf(DBG_INFO, "Update software to %s\n", qPrintable(gwUpdateVersion));
-    int appRet = APP_RET_RESTART_APP;
-
-    if (gwUpdateChannel == "stable")
-    {
-        appRet = APP_RET_UPDATE;
-    }
-    else if (gwUpdateChannel == "alpha")
-    {
-        appRet = APP_RET_UPDATE_ALPHA;
-    }
-    else if (gwUpdateChannel == "beta")
-    {
-        appRet = APP_RET_UPDATE_BETA;
-    }
-    else
-    {
-        DBG_Printf(DBG_ERROR, "can't trigger update for unknown updatechannel: %s\n", qPrintable(gwUpdateChannel));
-        return;
-    }
-
-    qApp->exit(appRet);
 }
 
 /*! Locks the gateway.
