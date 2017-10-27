@@ -1968,11 +1968,17 @@ int DeRestPluginPrivate::restartGateway(const ApiRequest &req, ApiResponse &rsp)
     rspItem["success"] = rspItemState;
     rsp.list.append(rspItem);
 
-    QTimer *restartTimer = new QTimer(this);
-    restartTimer->setSingleShot(true);
-    connect(restartTimer, SIGNAL(timeout()),
-            this, SLOT(restartGatewayTimerFired()));
-    restartTimer->start(500);
+#ifdef ARCH_ARM
+        openDb();
+        saveDb();
+        closeDb();
+
+        QTimer *restartTimer = new QTimer(this);
+        restartTimer->setSingleShot(true);
+        connect(restartTimer, SIGNAL(timeout()),
+                this, SLOT(restartGatewayTimerFired()));
+        restartTimer->start(500);
+#endif // ARCH_ARM
 
     return REQ_READY_SEND;
 }
@@ -2022,11 +2028,17 @@ int DeRestPluginPrivate::shutDownGateway(const ApiRequest &req, ApiResponse &rsp
     rspItem["success"] = rspItemState;
     rsp.list.append(rspItem);
 
-    QTimer *shutdownTimer = new QTimer(this);
-    shutdownTimer->setSingleShot(true);
-    connect(shutdownTimer, SIGNAL(timeout()),
-            this, SLOT(shutDownGatewayTimerFired()));
-    shutdownTimer->start(500);
+#ifdef ARCH_ARM
+        openDb();
+        saveDb();
+        closeDb();
+
+        QTimer *shutdownTimer = new QTimer(this);
+        shutdownTimer->setSingleShot(true);
+        connect(shutdownTimer, SIGNAL(timeout()),
+                this, SLOT(shutDownGatewayTimerFired()));
+        shutdownTimer->start(500);
+#endif // ARCH_ARM
 
     return REQ_READY_SEND;
 }
