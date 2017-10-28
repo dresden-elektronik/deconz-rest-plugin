@@ -8679,6 +8679,11 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
     Group dummyGroup;
     std::vector<LightNode*> pushNodes;
 
+    if (task.req.clusterId() == 0xffff)
+    {
+        return;
+    }
+
     if (task.req.dstAddress().hasGroup() || task.req.dstAddress().isNwkBroadcast())
     {
         group = getGroupForId(task.req.dstAddress().group());
