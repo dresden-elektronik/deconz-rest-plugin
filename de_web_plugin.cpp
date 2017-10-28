@@ -569,6 +569,8 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
             //continue;
         }
 
+        QDateTime now = QDateTime::currentDateTime();
+
         if (conf.status() != deCONZ::ApsSuccessStatus)
         {
             DBG_Printf(DBG_INFO, "error APSDE-DATA.confirm: 0x%02X on task\n", conf.status());
@@ -584,8 +586,6 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
             {
                 attrId = 0x0003; // currentX
             }
-
-            QDateTime now = QDateTime::currentDateTime();
 
             for (LightNode &l : nodes)
             {
@@ -607,7 +607,7 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
                     isLightNodeInGroup(&l, groupId))
                 {
                     DBG_Printf(DBG_INFO, "\t0x%016llX force poll\n", l.address().ext());
-                    pollManager->poll(&l);
+                    pollManager->poll(&l, now.addSecs(3));
                 }
             }
         }
@@ -626,7 +626,7 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
             case TaskIncColorTemperature:
                 {
                     DBG_Printf(DBG_INFO, "\t0x%016llX force poll (2)\n", task.lightNode->address().ext());
-                    pollManager->poll(task.lightNode);
+                    pollManager->poll(task.lightNode, now.addSecs(3));
                 }
                 break;
             default:
@@ -7801,6 +7801,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
         Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
 
         DBG_Assert(zclFrame.payload().size() >= 3);
+        QDateTime now = QDateTime::currentDateTime();
 
         QDataStream stream(zclFrame.payload());
         stream.setByteOrder(QDataStream::LittleEndian);
@@ -7855,7 +7856,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                 LightNode *lightNode = getLightNodeForId(ls->lid());
                 if (lightNode && lightNode->isAvailable() && lightNode->state() == LightNode::StateNormal)
                 {
-                    pollManager->poll(lightNode);
+                    pollManager->poll(lightNode, now.addSecs(3));
 
                     bool changed = false;
                     if (lightNode->hasColor())

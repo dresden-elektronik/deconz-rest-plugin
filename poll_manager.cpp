@@ -26,7 +26,7 @@ PollManager::PollManager(QObject *parent) :
 /*! Queues polling of the node.
     \param restNode - the node to poll
  */
-void PollManager::poll(RestNodeBase *restNode)
+void PollManager::poll(RestNodeBase *restNode, const QDateTime &tStart)
 {
     Resource *r = dynamic_cast<Resource*>(restNode);
     DBG_Assert(r != 0);
@@ -51,6 +51,7 @@ void PollManager::poll(RestNodeBase *restNode)
     pitem.id = restNode->id();
     pitem.prefix = r->prefix();
     pitem.address = restNode->address();
+    pitem.tStart = tStart;
 
     for (int i = 0; i < r->itemCount(); i++)
     {
@@ -70,6 +71,10 @@ void PollManager::poll(RestNodeBase *restNode)
         if (i.prefix == r->prefix() && i.id == restNode->id())
         {
             i.items = pitem.items; // update
+            if (tStart.isValid())
+            {
+                i.tStart = tStart;
+            }
             return;
         }
     }
@@ -140,6 +145,7 @@ void PollManager::pollTimerFired()
         return;
     }
 
+    QDateTime now = QDateTime::currentDateTime();
     PollItem &pitem = items.front();
     Resource *r = plugin->getResource(pitem.prefix, pitem.id);
     ResourceItem *item = r ? r->item(RStateReachable) : 0;
@@ -149,6 +155,18 @@ void PollManager::pollTimerFired()
     {
         restNode = plugin->getLightNodeForId(pitem.id);
         lightNode = static_cast<LightNode*>(restNode);
+    }
+
+    if (pitem.tStart.isValid() && pitem.tStart > now)
+    {
+        if (items.size() > 1)
+        {
+            PollItem tmp = pitem;
+            items.front() = items.back();
+            items.back() = tmp;
+        }
+        timer->start(1);
+        return;
     }
 
     if (!r || pitem.items.empty() ||
@@ -278,7 +296,6 @@ void PollManager::pollTimerFired()
     }
 
     size_t fresh = 0;
-    QDateTime now = QDateTime::currentDateTime();
     for (quint16 attrId : attributes)
     {
         NodeValue &val = restNode->getZclValue(clusterId, attrId);

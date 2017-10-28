@@ -12,6 +12,7 @@
 #define POLL_MANAGER_H
 
 #include <QObject>
+#include <QDateTime>
 #include <vector>
 #include <deconz.h>
 
@@ -30,6 +31,7 @@ public:
     QString id;
     const char *prefix;
     std::vector<const char*> items;
+    QDateTime tStart;
     // APS
     quint8 endpoint;
     deCONZ::Address address;
@@ -48,7 +50,7 @@ public:
         StateWait
     };
     explicit PollManager(QObject *parent = 0);
-    void poll(RestNodeBase *restNode);
+    void poll(RestNodeBase *restNode, const QDateTime &tStart = QDateTime());
     void delay(int ms);
 
 signals:
