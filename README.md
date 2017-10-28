@@ -17,26 +17,30 @@ Usage
 Currently the compilation of the plugin is only supported for Raspbian Jessie distribution.
 Packages for Qt4 and Raspbian Wheezy are available but not described here.
 
-##### Install deCONZ and development package
+##### Install deCONZ
 1. Download deCONZ package
 
-        wget http://www.dresden-elektronik.de/rpi/deconz/beta/deconz-2.04.82-qt5.deb
+        wget http://www.dresden-elektronik.de/rpi/deconz/beta/deconz-2.04.84-qt5.deb
 
 2. Install deCONZ package
 
-        sudo dpkg -i deconz-2.04.82-qt5.deb
+        sudo dpkg -i deconz-2.04.84-qt5.deb
 
 3. Install missing dependencies
 
         sudo apt install -f
 
-4. Download deCONZ development package
+##### Install deCONZ development package
 
-        wget http://www.dresden-elektronik.de/rpi/deconz-dev/deconz-dev-2.04.82.deb
+The development package is only needed if you wan't to modify the plugin or try the latest commits from master.
 
-5. Install deCONZ development package
+1. Download deCONZ development package
 
-        sudo dpkg -i deconz-dev-2.04.82.deb
+        wget http://www.dresden-elektronik.de/rpi/deconz-dev/deconz-dev-2.04.84.deb
+
+2. Install deCONZ development package
+
+        sudo dpkg -i deconz-dev-2.04.84.deb
 
 ##### Get and compile the plugin
 1. Checkout the repository
@@ -46,7 +50,7 @@ Packages for Qt4 and Raspbian Wheezy are available but not described here.
 2. Checkout related version tag
 
         cd deconz-rest-plugin
-        git checkout -b mybranch V2_04_82
+        git checkout -b mybranch V2_04_84
 
 3. Compile the plugin
 
@@ -58,9 +62,30 @@ Packages for Qt4 and Raspbian Wheezy are available but not described here.
 
         sudo cp ../libde_rest_plugin.so /usr/share/deCONZ/plugins
 
+Headless support
+----------------
+
+The beta version contains a systemd script, which allows deCONZ to run without a X11 server.
+
+**Note** The service does not yet support deCONZ updates via WebApp, therefore these must be installed manually. A further systemd script will handle updates in future versions.
+
+1. Enable the service at boot time
+
+```bash
+$ sudo systemctl enable deconz
+```
+
+2. Disable X11 deCONZ autostart script
+
+The dresden elektronik Raspbian sd-card image contains a autostart script for X11 which should be removed.
+
+```bash
+$ rm -f /home/pi/.config/autostart/deCONZ.desktop
+```
+
 Software requirements
 ---------------------
-* Raspbian Jessie or Stretch and Qt5
+* Raspbian Jessie or Stretch with Qt5
 
 **Important** The serial port must be configured as follows to allow communication with the RaspBee.
 
