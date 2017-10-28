@@ -33,8 +33,8 @@
 #include "json.h"
 #include "poll_manager.h"
 #ifdef ARCH_ARM
-#include <unistd.h>
-#include <sys/reboot.h>
+  #include <unistd.h>
+  #include <sys/reboot.h>
 #endif
 const char *HttpStatusOk           = "200 OK"; // OK
 const char *HttpStatusAccepted     = "202 Accepted"; // Accepted but not complete
@@ -11373,7 +11373,7 @@ void DeRestPluginPrivate::restartGatewayTimerFired()
 {
      //qApp->exit(APP_RET_RESTART_SYS);
 #ifdef ARCH_ARM
-    reboot(LINUX_REBOOT_CMD_RESTART);
+    reboot(RB_AUTOBOOT);
 #endif
 }
 
@@ -11381,7 +11381,7 @@ void DeRestPluginPrivate::shutDownGatewayTimerFired()
 {
      // qApp->exit(APP_RET_SHUTDOWN_SYS);
 #ifdef ARCH_ARM
-    reboot(LINUX_REBOOT_CMD_POWER_OFF);
+    reboot(RB_POWER_OFF);
 #endif
 }
 
