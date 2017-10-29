@@ -38,6 +38,12 @@ extern const char *REventCheckGroupAnyOn;
 // resouce suffixes: state/buttonevent, config/on, ...
 extern const char *RInvalidSuffix;
 
+extern const char *RAttrName;
+extern const char *RAttrModelId;
+extern const char *RAttrType;
+extern const char *RAttrClass;
+extern const char *RAttrUniqueId;
+
 extern const char *RStateAlert;
 extern const char *RStateAllOn;
 extern const char *RStateAnyOn;

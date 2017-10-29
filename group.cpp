@@ -32,8 +32,13 @@ Group::Group() :
    colorTemperature = 0;
    colormode = QLatin1String("hs");
 
-   // add common items
+    // add common items
+    addItem(DataTypeString, RAttrName);
     addItem(DataTypeBool, RStateAnyOn);
+    ResourceItem * rtype = addItem(DataTypeString, RAttrType);
+    rtype->setValue(QString(QLatin1String("LightGroup")));
+    ResourceItem * rclass = addItem(DataTypeString, RAttrClass);
+    rclass->setValue(QString(QLatin1String("Other")));
 }
 
 /*! Returns the 16 bit group address.
@@ -62,7 +67,7 @@ const QString &Group::id() const
  */
 const QString &Group::name() const
 {
-    return m_name;
+    return item(RAttrName)->toString();
 }
 
 /*! Sets the group name.
@@ -70,7 +75,8 @@ const QString &Group::name() const
  */
 void Group::setName(const QString &name)
 {
-    m_name = name;
+    ResourceItem *it = item(RAttrName);
+    it->setValue(name);
 }
 
 /*! Returns the group state.

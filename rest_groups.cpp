@@ -155,6 +155,8 @@ int DeRestPluginPrivate::createGroup(const ApiRequest &req, ApiResponse &rsp)
     rsp.httpStatus = HttpStatusOk;
 
     bool ok;
+    Group group;
+    QString type;
     QVariant var = Json::parse(req.content, ok);
     QVariantMap map = var.toMap();
 
@@ -169,15 +171,78 @@ int DeRestPluginPrivate::createGroup(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
+    // type
+    if (map.contains("type"))
+    {
+        ok = false;
+        type = map["type"].toString();
+        if (map["type"].type() == QVariant::String)
+        {
+            for (const char *t : { "LightGroup", "Luminaire", "Lightsource", "Room" })
+            {
+                if (type == QLatin1String(t))
+                {
+                    ok = true;
+                    break;
+                }
+            }
+        }
+
+        if (!ok)
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/groups"), QString("invalid value, %1, for parameter, type").arg(type)));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+
+        ResourceItem *item = group.item(RAttrType);
+        DBG_Assert(item != 0);
+        item->setValue(type);
+    }
+
+    // class
+    if (map.contains("class"))
+    {
+        ok = false;
+        QString gclass = map["class"].toString();
+        if (map["class"].type() == QVariant::String && type == QLatin1String("Room"))
+        {
+            for (const char *c : { "Living room", "Kitchen", "Dining", "Bedroom", "Kids bedroom",
+                                   "Bathroom", "Nursery", "Recreation", "Office", "Gym", "Hallway",
+                                   "Toilet", "Front door", "Garage", "Terrace", "Garden", "Driveway",
+                                   "Carport", "Other" })
+            {
+                if (gclass == QLatin1String(c))
+                {
+                    ok = true;
+                    break;
+                }
+            }
+        }
+
+        if (!ok)
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/groups"), QString("invalid value, %1, for parameter, class").arg(gclass)));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+
+        ResourceItem *item = group.item(RAttrClass);
+        DBG_Assert(item != 0);
+        item->setValue(gclass);
+    }
+
     // name
     if (map.contains("name"))
     {
         QString name = map["name"].toString();
 
-        if (map["name"].type() == QVariant::String)
+        if (map["name"].type() == QVariant::String && !name.isEmpty())
         {
             QVariantMap rspItem;
             QVariantMap rspItemState;
+
+#if 0 // this is check under application control
             Group *group1 = getGroupForName(name);
 
             // already exist? .. do nothing
@@ -199,12 +264,10 @@ int DeRestPluginPrivate::createGroup(const ApiRequest &req, ApiResponse &rsp)
                     DBG_Printf(DBG_INFO, "create group with same name as prior deleted group. but use different id\n");
                 }
             }
-
             // does not exist, create group
-            Group group;
+#endif
 
             // create a new group id
-            quint16 gidLastTry = 0;
             group.setAddress(1);
 
             do {
@@ -216,15 +279,6 @@ int DeRestPluginPrivate::createGroup(const ApiRequest &req, ApiResponse &rsp)
                 {
                     if (i->address() == group.address())
                     {
-                        if (i->state() == Group::StateDeleted)
-                        {
-                            if (gidLastTry == 0) // mark gid so it could be reused
-                            {
-                                gidLastTry = group.address();
-                            }
-
-                        }
-
                         group.setAddress(i->address() + 1);
                         ok = false;
                         break;
@@ -237,36 +291,17 @@ int DeRestPluginPrivate::createGroup(const ApiRequest &req, ApiResponse &rsp)
                 }
             } while (!ok);
 
-            if (ok && group.address() > 0)
-            {
-                // ok, nothing todo here
-            }
-            // reuse deleted groupId?
-            else if (!ok && gidLastTry > 0)
-            {
-                // remove from list
-                std::vector<Group>::iterator i = groups.begin();
-                std::vector<Group>::iterator end = groups.end();
-
-                for (; i != end; ++i)
-                {
-                    if (i->address() == gidLastTry)
-                    {
-                        groups.erase(i); // ok, replace
-                        break;
-                    }
-                }
-
-                group.setAddress(gidLastTry);
-            }
-            else
+            if (!ok)
             {
                 rsp.list.append(errorToMap(ERR_BRIDGE_GROUP_TABLE_FULL, QString("/groups"), QString("group could not be created. Group table is full.")));
                 rsp.httpStatus = HttpStatusBadRequest;
                 return REQ_READY_SEND;
             }
 
-            group.setName(name);
+            ResourceItem *item = group.item(RAttrName);
+            DBG_Assert(item != 0);
+            item->setValue(name);
+
             group.colorX = 0;
             group.colorY = 0;
             group.setIsOn(false);
@@ -363,6 +398,39 @@ int DeRestPluginPrivate::setGroupAttributes(const ApiRequest &req, ApiResponse &
         rsp.httpStatus = HttpStatusNotFound;
         rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/groups/%1").arg(id), QString("resource, /groups/%1, not available").arg(id)));
         return REQ_READY_SEND;
+    }
+
+    // class
+    if (map.contains("class"))
+    {
+        ok = false;
+        QString gclass = map["class"].toString();
+        if (map["class"].type() == QVariant::String &&
+            group->item(RAttrType)->toString() == QLatin1String("Room"))
+        {
+            for (const char *c : { "Living room", "Kitchen", "Dining", "Bedroom", "Kids bedroom",
+                                   "Bathroom", "Nursery", "Recreation", "Office", "Gym", "Hallway",
+                                   "Toilet", "Front door", "Garage", "Terrace", "Garden", "Driveway",
+                                   "Carport", "Other" })
+            {
+                if (gclass == QLatin1String(c))
+                {
+                    ok = true;
+                    break;
+                }
+            }
+        }
+
+        if (!ok)
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/groups"), QString("invalid value, %1, for parameter, class").arg(gclass)));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+
+        ResourceItem *item = group->item(RAttrClass);
+        DBG_Assert(item != 0);
+        item->setValue(gclass);
     }
 
     // name
@@ -1564,17 +1632,19 @@ bool DeRestPluginPrivate::groupToMap(const Group *group, QVariantMap &map)
         const ResourceItem *item = group->itemForIndex(i);
         DBG_Assert(item != 0);
         if (item->descriptor().suffix == RStateAnyOn) { state["any_on"] = item->toBool(); }
+        else if (item->descriptor().suffix == RAttrName) { map["name"] = item->toString(); }
+        else if (item->descriptor().suffix == RAttrType) { map["type"] = item->toString(); }
+        //else if (item->descriptor().suffix == RAttrModelId) { map["modelid"] = item->toString(); }; // not supported yet
+        else if (item->descriptor().suffix == RAttrClass) { map["class"] = item->toString(); }
     }
 
     map["id"] = group->id();
-    map["name"] = group->name();
     map["hidden"] = group->hidden;
     QString etag = group->etag;
     etag.remove('"'); // no quotes allowed in string
     map["etag"] = etag;
     map["action"] = action;
     map["state"] = state;
-    map["type"] = "LightGroup"; // TODO
 
     QStringList multis;
     std::vector<QString>::const_iterator m = group->m_multiDeviceIds.begin();

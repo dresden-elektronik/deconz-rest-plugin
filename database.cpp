@@ -85,6 +85,8 @@ void DeRestPluginPrivate::initDb()
         "ALTER TABLE groups add column devicemembership TEXT",
         "ALTER TABLE groups add column lightsequence TEXT",
         "ALTER TABLE groups add column hidden TEXT",
+        "ALTER TABLE groups add column type TEXT",
+        "ALTER TABLE groups add column class TEXT",
         "ALTER TABLE scenes add column transitiontime TEXT",
         "ALTER TABLE scenes add column lights TEXT",
         "ALTER TABLE rules add column periodic TEXT",
@@ -711,7 +713,7 @@ static int sqliteLoadAllGroupsCallback(void *user, int ncols, char **colval , ch
             }
             else if (strcmp(colname[i], "state") == 0)
             {
-                if (val == "deleted")
+                if (val == QLatin1String("deleted"))
                 {
                     group.setState(Group::StateDeleted);
                 }
@@ -730,8 +732,24 @@ static int sqliteLoadAllGroupsCallback(void *user, int ncols, char **colval , ch
             }
             else if (strcmp(colname[i], "hidden") == 0)
             {
-                bool hidden = (val == "true") ? true : false;
+                bool hidden = (val == QLatin1String("true")) ? true : false;
                 group.hidden = hidden;
+            }
+            else if (strcmp(colname[i], "type") == 0)
+            {
+                ResourceItem *item = group.item(RAttrType);
+                if (item && !val.isEmpty())
+                {
+                    item->setValue(val);
+                }
+            }
+            else if (strcmp(colname[i], "class") == 0)
+            {
+                ResourceItem *item = group.item(RAttrClass);
+                if (item && !val.isEmpty())
+                {
+                    item->setValue(val);
+                }
             }
         }
     }
@@ -2722,17 +2740,21 @@ void DeRestPluginPrivate::saveDb()
                 continue;
             }
 
-            QString grpState((i->state() == Group::StateDeleted ? "deleted" : "normal"));
-            QString hidden((i->hidden == true ? "true" : "false"));
+            QString grpState((i->state() == Group::StateDeleted ? QLatin1String("deleted") : QLatin1String("normal")));
+            QString hidden((i->hidden == true ? QLatin1String("true") : QLatin1String("false")));
+            const QString &gtype = i->item(RAttrType)->toString();
+            const QString &gclass = i->item(RAttrClass)->toString();
 
-            QString sql = QString(QLatin1String("REPLACE INTO groups (gid, name, state, mids, devicemembership, lightsequence, hidden) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7')"))
+            QString sql = QString(QLatin1String("REPLACE INTO groups (gid, name, state, mids, devicemembership, lightsequence, hidden, type, class) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7', '%8', '%9')"))
                     .arg(gid)
                     .arg(i->name())
                     .arg(grpState)
                     .arg(i->midsToString())
                     .arg(i->dmToString())
                     .arg(i->lightsequenceToString())
-                    .arg(hidden);
+                    .arg(hidden)
+                    .arg(gtype)
+                    .arg(gclass);
 
             DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
             errmsg = NULL;
@@ -2747,7 +2769,7 @@ void DeRestPluginPrivate::saveDb()
                 }
             }
 
-            if (i->state() != Group::StateDeleted && i->state() != Group::StateDeleteFromDB)
+            if (i->state() == Group::StateNormal)
             {
                 std::vector<Scene>::const_iterator si = i->scenes.begin();
                 std::vector<Scene>::const_iterator send = i->scenes.end();

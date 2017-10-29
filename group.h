@@ -75,7 +75,6 @@ private:
     State m_state;
     uint16_t m_addr;
     QString m_id;
-    QString m_name;
     bool m_on;
     bool m_colorLoopActive;
 };

@@ -25,6 +25,12 @@ const char *REventCheckGroupAnyOn = "event/checkgroupanyon";
 
 const char *RInvalidSuffix = "invalid/suffix";
 
+const char *RAttrName = "attr/name";
+const char *RAttrModelId = "attr/modelid";
+const char *RAttrType = "attr/type";
+const char *RAttrClass = "attr/class";
+const char *RAttrUniqueId = "attr/uniqueid";
+
 const char *RStateAlert = "state/alert";
 const char *RStateAllOn = "state/all_on";
 const char *RStateAnyOn = "state/any_on";
@@ -87,6 +93,12 @@ void initResourceDescriptors()
     rItemStrings.emplace_back(QString()); // invalid string on index 0
 
     // init resource lookup
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrName));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrModelId));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrType));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrClass));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrUniqueId));
+
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateAlert));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateAllOn));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateAnyOn));
