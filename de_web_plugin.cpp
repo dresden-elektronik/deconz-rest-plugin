@@ -1115,9 +1115,11 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
                 case DEV_ID_ZLL_ONOFF_LIGHT:
                 case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:
+                case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:
                 case DEV_ID_ZLL_ONOFF_SENSOR:
     //            case DEV_ID_ZLL_DIMMABLE_LIGHT: // same as DEV_ID_HA_ONOFF_LIGHT
                 case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:
+                case DEV_ID_Z30_DIMMABLE_PLUGIN_UNIT:
                 case DEV_ID_ZLL_COLOR_LIGHT:
                 case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:
                 case DEV_ID_Z30_EXTENDED_COLOR_LIGHT:
@@ -1161,8 +1163,10 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT:
                 case DEV_ID_ZLL_DIMMABLE_LIGHT:
                 case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:
+                case DEV_ID_Z30_DIMMABLE_PLUGIN_UNIT:
                 case DEV_ID_ZLL_ONOFF_LIGHT:
                 case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:
+                case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:
                 //case DEV_ID_ZLL_ONOFF_SENSOR:
                     {
                         if (hasServerOnOff)
@@ -1425,10 +1429,12 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
             case DEV_ID_HA_DIMMABLE_LIGHT:
             //case DEV_ID_ZLL_DIMMABLE_LIGHT: // same as DEV_ID_HA_ONOFF_LIGHT
             case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:
+            case DEV_ID_Z30_DIMMABLE_PLUGIN_UNIT:
             case DEV_ID_HA_ONOFF_LIGHT:
             case DEV_ID_ONOFF_OUTPUT:
             case DEV_ID_ZLL_ONOFF_LIGHT:
             case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:
+            case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:
             case DEV_ID_ZLL_ONOFF_SENSOR:
                 break;
 
@@ -1447,8 +1453,10 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
             case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT:
             case DEV_ID_ZLL_DIMMABLE_LIGHT:
             case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:
+            case DEV_ID_Z30_DIMMABLE_PLUGIN_UNIT:
             case DEV_ID_ZLL_ONOFF_LIGHT:
             case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:
+            case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:
             case DEV_ID_ZLL_ONOFF_SENSOR:
                 break;
 
@@ -4550,10 +4558,12 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
 
         case DEV_ID_ZLL_DIMMABLE_LIGHT:
         case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:
+        case DEV_ID_Z30_DIMMABLE_PLUGIN_UNIT:
             //fall through
 
         case DEV_ID_ZLL_ONOFF_LIGHT:
         case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:
+        case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:
         case DEV_ID_ZLL_ONOFF_SENSOR:
             //readOnOff = true;
             break;
@@ -4577,12 +4587,14 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
         case DEV_ID_HA_DIMMABLE_LIGHT:
         //case DEV_ID_ZLL_DIMMABLE_LIGHT: // same as DEV_ID_HA_ONOFF_LIGHT
         case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:
+        case DEV_ID_Z30_DIMMABLE_PLUGIN_UNIT:
             //fall through
 
         case DEV_ID_MAINS_POWER_OUTLET:
         case DEV_ID_HA_ONOFF_LIGHT:
         case DEV_ID_ZLL_ONOFF_LIGHT:
         case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:
+        case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:
         case DEV_ID_ZLL_ONOFF_SENSOR:
             break;
 

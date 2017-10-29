@@ -227,12 +227,18 @@ uint16_t LightNode::level() const
         }
     case DEV_ID_ZLL_ONOFF_LIGHT:
     case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:
-        return (m_isOn ? 255 : 0);
+    case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:
+    {
+        const ResourceItem *it = item(RStateOn);
+        return (it && it->toBool() ? 254 : 0);
+    }
 
     default:
         break;
     }
-    return m_level;
+
+    const ResourceItem *it = item(RStateBri);
+    return it ? it->toNumber() : 0;
 }
 
 /*! Sets the light dimm level.
@@ -531,6 +537,10 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
             }
                 break;
             case DEV_ID_ONOFF_OUTPUT:             m_type = QLatin1String("On/Off output"); break;
+            case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:    m_type = QLatin1String("On/Off plug-in unit"); break;
+            case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:    m_type = QLatin1String("On/Off plug-in unit"); break;
+            case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT: m_type = QLatin1String("Dimmable plug-in unit"); break;
+            case DEV_ID_Z30_DIMMABLE_PLUGIN_UNIT: m_type = QLatin1String("Dimmable plug-in unit"); break;
             case DEV_ID_HA_DIMMABLE_LIGHT:        m_type = QLatin1String("Dimmable light"); break;
             case DEV_ID_HA_COLOR_DIMMABLE_LIGHT:  m_type = QLatin1String("Color dimmable light"); break;
             case DEV_ID_ZLL_ONOFF_LIGHT:          m_type = QLatin1String("On/Off light"); break;
@@ -551,6 +561,9 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
             {
             case DEV_ID_ZLL_ONOFF_LIGHT:             m_type = QLatin1String("On/Off light"); break;
             case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:       m_type = QLatin1String("On/Off plug-in unit"); break;
+            case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:       m_type = QLatin1String("On/Off plug-in unit"); break;
+            case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:    m_type = QLatin1String("Dimmable plug-in unit"); break;
+            case DEV_ID_Z30_DIMMABLE_PLUGIN_UNIT:    m_type = QLatin1String("Dimmable plug-in unit"); break;
             case DEV_ID_ZLL_DIMMABLE_LIGHT:          m_type = QLatin1String("Dimmable light"); break;
             case DEV_ID_ZLL_COLOR_LIGHT:             m_type = QLatin1String("Color light"); break;
             case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:    m_type = QLatin1String("Extended color light"); break;

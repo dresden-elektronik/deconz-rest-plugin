@@ -116,6 +116,8 @@
 #define DEV_ID_ZLL_EXTENDED_COLOR_LIGHT     0x0210 // Extended color light
 #define DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT  0x0220 // Color temperature light
 // ZigBee 3.0 lighting devices
+#define DEV_ID_Z30_ONOFF_PLUGIN_UNIT        0x010a // On/Off plugin unit
+#define DEV_ID_Z30_DIMMABLE_PLUGIN_UNIT     0x010b // Dimmable plugin unit
 #define DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT  0x010c // Color temperature light
 #define DEV_ID_Z30_EXTENDED_COLOR_LIGHT     0x010d // Extended color light
 // ZLL controller devices
