@@ -1929,23 +1929,17 @@ int DeRestPluginPrivate::updateSoftware(const ApiRequest &req, ApiResponse &rsp)
     rsp.httpStatus = HttpStatusOk;
     QVariantMap rspItem;
     QVariantMap rspItemState;
-    gwSwUpdateState = swUpdateState.transferring;
+    if (gwSwUpdateState != swUpdateState.transferring)
+    {
+        gwSwUpdateState = swUpdateState.transferring;
+    }
+    queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
     rspItemState["/config/update"] = gwUpdateVersion;
 #ifdef ARCH_ARM
     rspItemState["/config/swupdate2/state"] = gwSwUpdateState;
 #endif
     rspItem["success"] = rspItemState;
     rsp.list.append(rspItem);
-
-    // only supported on Raspberry Pi
-#ifdef ARCH_ARM
-    if (gwUpdateVersion != GW_SW_VERSION)
-    {
-        openDb();
-        saveDb();
-        closeDb();
-    }
-#endif // ARCH_ARM
 
     return REQ_READY_SEND;
 }
