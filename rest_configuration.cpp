@@ -62,6 +62,7 @@ void DeRestPluginPrivate::initConfig()
     gwFirmwareVersion = "0x00000000"; // query later
     gwFirmwareVersionUpdate = "";
     gwBridgeId = "0000000000000000";
+    gwConfig["websocketport"] = 443;
 
     // offical dresden elektronik sd-card image?
     {
@@ -619,7 +620,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     map["whitelist"] = whitelist;
     map["linkbutton"] = gwLinkButton;
     map["portalservices"] = false;
-    map["websocketport"] = (double)webSocketServer->port();
+    map["websocketport"] = (double)gwConfig["websocketport"].toUInt();
     map["websocketnotifyall"] = gwWebSocketNotifyAll;
 
     gwIpAddress = map["ipaddress"].toString(); // cache

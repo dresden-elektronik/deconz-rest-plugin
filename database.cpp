@@ -555,6 +555,14 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
           d->gwBridgeId = val;
       }
     }
+    else if (strcmp(colval[0], "websocketport") == 0)
+    {
+        quint16 port = val.toUInt(&ok);
+        if (!val.isEmpty() && ok)
+        {
+            d->gwConfig["websocketport"] = port;
+        }
+    }
     else if (strcmp(colval[0], "websocketnotifyall") == 0)
     {
       if (!val.isEmpty())

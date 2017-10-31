@@ -1,3 +1,13 @@
+/*
+ * Copyright (c) 2017 dresden elektronik ingenieurtechnik gmbh.
+ * All rights reserved.
+ *
+ * The software in this package is published under the terms of the BSD
+ * style license a copy of which has been included with this distribution in
+ * the LICENSE.txt file.
+ *
+ */
+
 #ifdef USE_WEBSOCKETS
 #include <QWebSocket>
 #include <QWebSocketServer>
@@ -7,13 +17,17 @@
 
 /*! Constructor.
  */
-WebSocketServer::WebSocketServer(QObject *parent) :
+WebSocketServer::WebSocketServer(QObject *parent, quint16 port) :
     QObject(parent)
 {
     srv = new QWebSocketServer("deconz", QWebSocketServer::NonSecureMode, this);
 
     quint16 p = 0;
-    quint16 ports[] = { 443, 8080, 8088, 20877, 0 }; // start with proxy frinedly ports first, use random port as fallback
+    quint16 ports[] = { 443, 443, 8080, 8088, 20877, 0 }; // start with proxy frinedly ports first, use random port as fallback
+    if (port > 0)
+    {
+        ports[0] = port;
+    }
 
     while (!srv->listen(QHostAddress::AnyIPv4, ports[p]))
     {

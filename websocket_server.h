@@ -15,7 +15,7 @@ class WebSocketServer : public QObject
 {
     Q_OBJECT
 public:
-    explicit WebSocketServer(QObject *parent = 0);
+    explicit WebSocketServer(QObject *parent, quint16 port);
     quint16 port() const;
 
 signals:

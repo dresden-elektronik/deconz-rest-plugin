@@ -169,7 +169,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     connect(databaseTimer, SIGNAL(timeout()),
             this, SLOT(saveDatabaseTimerFired()));
 
-    webSocketServer = new WebSocketServer(this);
+    webSocketServer = 0;
 
     gwScanner = new GatewayScanner(this);
     connect(gwScanner, SIGNAL(foundGateway(quint32,quint16,QString,QString)),
@@ -345,6 +345,10 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     resendPermitJoinTimer->setSingleShot(true);
     connect(resendPermitJoinTimer, SIGNAL(timeout()),
             this, SLOT(resendPermitJoinTimerFired()));
+
+    quint16 wsPort = deCONZ::appArgumentNumeric(QLatin1String("--ws-port"), gwConfig["websocketport"].toUInt());
+    webSocketServer = new WebSocketServer(this, wsPort);
+    gwConfig["websocketport"] = webSocketServer->port();
 
     initAuthentification();
     initInternetDicovery();
