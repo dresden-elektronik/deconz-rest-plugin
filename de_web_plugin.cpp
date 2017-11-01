@@ -2489,18 +2489,21 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                 {
                 case BASIC_CLUSTER_ID:
                 {
-                    std::vector<deCONZ::ZclAttribute>::const_iterator i = ci->attributes().begin();
-                    std::vector<deCONZ::ZclAttribute>::const_iterator end = ci->attributes().end();
-
                     if (modelId.isEmpty() || manufacturer.isEmpty())
                     {
-                        if (i->id() == 0x0004) // model id
+                        std::vector<deCONZ::ZclAttribute>::const_iterator i = ci->attributes().begin();
+                        std::vector<deCONZ::ZclAttribute>::const_iterator end = ci->attributes().end();
+
+                        for (; i != end; ++i)
                         {
-                            manufacturer = i->toString().trimmed();
-                        }
-                        else if (i->id() == 0x0005) // model id
-                        {
-                            modelId = i->toString().trimmed();
+                            if (i->id() == 0x0004) // model id
+                            {
+                                manufacturer = i->toString().trimmed();
+                            }
+                            else if (i->id() == 0x0005) // model id
+                            {
+                                modelId = i->toString().trimmed();
+                            }
                         }
                     }
 
