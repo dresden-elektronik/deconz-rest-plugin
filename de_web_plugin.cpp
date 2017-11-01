@@ -2433,6 +2433,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
 
     // check for new sensors
     QString modelId;
+    QString manufacturer;
     QList<deCONZ::SimpleDescriptor>::const_iterator i = node->simpleDescriptors().constBegin();
     QList<deCONZ::SimpleDescriptor>::const_iterator end = node->simpleDescriptors().constEnd();
 
@@ -2491,15 +2492,15 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                     std::vector<deCONZ::ZclAttribute>::const_iterator i = ci->attributes().begin();
                     std::vector<deCONZ::ZclAttribute>::const_iterator end = ci->attributes().end();
 
-                    if (modelId.isEmpty())
+                    if (modelId.isEmpty() || manufacturer.isEmpty())
                     {
-                        for (; i != end; ++i)
+                        if (i->id() == 0x0004) // model id
                         {
-                            if (i->id() == 0x0005) // model id
-                            {
-                                modelId = i->toString().trimmed();
-                                break;
-                            }
+                            manufacturer = i->toString().trimmed();
+                        }
+                        else if (i->id() == 0x0005) // model id
+                        {
+                            modelId = i->toString().trimmed();
                         }
                     }
 
@@ -2676,7 +2677,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
             }
             else if (!sensor || sensor->deletedState() != Sensor::StateNormal)
             {
-                addSensorNode(node, fpSwitch, "ZHASwitch", modelId);
+                addSensorNode(node, fpSwitch, "ZHASwitch", modelId, manufacturer);
             }
             else
             {
@@ -2694,7 +2695,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
             sensor = getSensorNodeForFingerPrint(node->address().ext(), fpLightSensor, "ZHALightLevel");
             if (!sensor || sensor->deletedState() != Sensor::StateNormal)
             {
-                addSensorNode(node, fpLightSensor, "ZHALightLevel", modelId);
+                addSensorNode(node, fpLightSensor, "ZHALightLevel", modelId, manufacturer);
             }
             else
             {
@@ -2714,7 +2715,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
             sensor = getSensorNodeForFingerPrint(node->address().ext(), fpPresenceSensor, "ZHAPresence");
             if (!sensor || sensor->deletedState() != Sensor::StateNormal)
             {
-                addSensorNode(node, fpPresenceSensor, "ZHAPresence", modelId);
+                addSensorNode(node, fpPresenceSensor, "ZHAPresence", modelId, manufacturer);
             }
             else if (!node->isEndDevice())
             {
@@ -2739,7 +2740,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
             sensor = getSensorNodeForFingerPrint(node->address().ext(), fpOpenCloseSensor, "ZHAOpenClose");
             if (!sensor || sensor->deletedState() != Sensor::StateNormal)
             {
-                addSensorNode(node, fpOpenCloseSensor, "ZHAOpenClose", modelId);
+                addSensorNode(node, fpOpenCloseSensor, "ZHAOpenClose", modelId, manufacturer);
             }
         }
 
@@ -2753,7 +2754,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
             sensor = getSensorNodeForFingerPrint(node->address().ext(), fpTemperatureSensor, "ZHATemperature");
             if (!sensor || sensor->deletedState() != Sensor::StateNormal)
             {
-                addSensorNode(node, fpTemperatureSensor, "ZHATemperature", modelId);
+                addSensorNode(node, fpTemperatureSensor, "ZHATemperature", modelId, manufacturer);
             }
             else
             {
@@ -2771,7 +2772,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
             sensor = getSensorNodeForFingerPrint(node->address().ext(), fpHumiditySensor, "ZHAHumidity");
             if (!sensor || sensor->deletedState() != Sensor::StateNormal)
             {
-                addSensorNode(node, fpHumiditySensor, "ZHAHumidity", modelId);
+                addSensorNode(node, fpHumiditySensor, "ZHAHumidity", modelId, manufacturer);
             }
             else
             {
@@ -2789,7 +2790,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
             sensor = getSensorNodeForFingerPrint(node->address().ext(), fpPressureSensor, "ZHAPressure");
             if (!sensor || sensor->deletedState() != Sensor::StateNormal)
             {
-                addSensorNode(node, fpPressureSensor, "ZHAPressure", modelId);
+                addSensorNode(node, fpPressureSensor, "ZHAPressure", modelId, manufacturer);
             }
             else
             {
@@ -2799,7 +2800,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
     }
 }
 
-void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFingerprint &fingerPrint, const QString &type, const QString &modelId)
+void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFingerprint &fingerPrint, const QString &type, const QString &modelId, const QString &manufacturer)
 {
     DBG_Assert(node != 0);
     if (!node)
@@ -3055,6 +3056,16 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC && modelId.startsWith(QLatin1String("lumi")))
     {
         sensorNode.setManufacturer("LUMI");
+    }
+
+    if (sensorNode.manufacturer().isEmpty() && !manufacturer.isEmpty())
+    {
+        sensorNode.setManufacturer(manufacturer);
+    }
+
+    if (sensorNode.manufacturer().isEmpty())
+    {
+        return; // required
     }
 
     QString uid = generateUniqueId(sensorNode.address().ext(), sensorNode.fingerPrint().endpoint, clusterId);
