@@ -9424,6 +9424,10 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
                     queryTime = queryTime.addSecs(1);
                 }
             }
+            else if (!sensor)
+            {
+                addSensorNode(node);
+            }
             else
             {
                 DBG_Printf(DBG_INFO, "[4] TODO unhandled, no attributes to fetch for 0x%016llX\n", sc->address.ext());
