@@ -110,6 +110,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "lumi.sensor_motion", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_switch", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_cube", jennicMacPrefix },
+    { VENDOR_JENNIC, "lumi.sensor_86sw2", jennicMacPrefix },
     { VENDOR_UBISYS, "D1", ubisysMacPrefix },
     { VENDOR_NONE, "Z716A", netvoxMacPrefix },
     { 0, 0, 0 }
@@ -2544,6 +2545,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                     {
                         fpOpenCloseSensor.inClusters.push_back(ci->id());
                     }
+                    else if (modelId == QLatin1String("lumi.sensor_86sw2"))
+                    {
+                        if (i->endpoint() == 0x01) // create sensor only for first endpoint
+                        {
+                            fpSwitch.inClusters.push_back(ci->id());
+                        }
+                    }
                     else if (modelId.startsWith(QLatin1String("lumi.sensor_switch")))
                     {
                         fpSwitch.inClusters.push_back(ci->id());
@@ -3369,7 +3377,20 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             // filter endpoint
             if (event.endpoint() != i->fingerPrint().endpoint)
             {
-                continue;
+                if ((event.node()->address().ext() & macPrefixMask) == jennicMacPrefix)
+                {
+                    if (i->modelId() == QLatin1String("lumi.sensor_86sw2"))
+                    { // 3 endpoints: 1 sensor
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+                else
+                {
+                    continue;
+                }
             }
 
             // assume data must be in server cluster attribute
@@ -3832,8 +3853,16 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     // TODO better button handler
                                     quint32 button;
-                                    if (ia->numericValue().u8 == 0) { button = S_BUTTON_1 + S_BUTTON_ACTION_INITIAL_PRESS; }
-                                    else                            { button = S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED; }
+
+                                    if (i->modelId() == QLatin1String("lumi.sensor_86sw2"))
+                                    {
+                                        button = (S_BUTTON_1 * event.endpoint()) + S_BUTTON_ACTION_SHORT_RELEASED;
+                                    }
+                                    else
+                                    {
+                                        if (ia->numericValue().u8 == 0) { button = S_BUTTON_1 + S_BUTTON_ACTION_INITIAL_PRESS; }
+                                        else                            { button = S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED; }
+                                    }
 
                                     item->setValue(button);
 
@@ -9364,6 +9393,11 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
             if (!modelId.isEmpty() && !isDeviceSupported(node, modelId))
             {
                 return;
+            }
+
+            if (modelId.startsWith(QLatin1String("lumi.")))
+            {
+                return; // Xiaomi devices won't respond to ZCL read
             }
 
             deCONZ::ApsDataRequest apsReq;
