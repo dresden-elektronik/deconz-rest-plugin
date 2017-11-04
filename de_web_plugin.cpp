@@ -110,6 +110,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "lumi.sensor_motion", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_switch", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_cube", jennicMacPrefix },
+    { VENDOR_JENNIC, "lumi.sensor_86sw1", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_86sw2", jennicMacPrefix },
     { VENDOR_UBISYS, "D1", ubisysMacPrefix },
     { VENDOR_NONE, "Z716A", netvoxMacPrefix },
@@ -2530,7 +2531,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                     {
                         fpOpenCloseSensor.inClusters.push_back(ci->id());
                     }
-                    else if (modelId == QLatin1String("lumi.sensor_86sw2"))
+                    else if (modelId == QLatin1String("lumi.sensor_86sw1") ||
+                             modelId == QLatin1String("lumi.sensor_86sw2"))
                     {
                         if (i->endpoint() == 0x01) // create sensor only for first endpoint
                         {
@@ -3364,7 +3366,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             {
                 if ((event.node()->address().ext() & macPrefixMask) == jennicMacPrefix)
                 {
-                    if (i->modelId() == QLatin1String("lumi.sensor_86sw2"))
+                    if (i->modelId() == QLatin1String("lumi.sensor_86sw1") ||
+                        i->modelId() == QLatin1String("lumi.sensor_86sw2"))
                     { // 3 endpoints: 1 sensor
                     }
                     else
@@ -3839,7 +3842,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     // TODO better button handler
                                     quint32 button;
 
-                                    if (i->modelId() == QLatin1String("lumi.sensor_86sw2"))
+                                    if (i->modelId() == QLatin1String("lumi.sensor_86sw1") ||
+                                        i->modelId() == QLatin1String("lumi.sensor_86sw2"))
                                     {
                                         button = (S_BUTTON_1 * event.endpoint()) + S_BUTTON_ACTION_SHORT_RELEASED;
                                     }
