@@ -3,6 +3,10 @@
 
 #include <QObject>
 #include <vector>
+#ifdef USE_WEBSOCKETS
+#include <QWebSocket>
+#include <QWebSocketServer>
+#endif // USE_WEBSOCKETS
 
 class QWebSocket;
 class QWebSocketServer;
@@ -25,6 +29,8 @@ public slots:
 
 private slots:
     void onNewConnection();
+    void onSocketDisconnected();
+    void onSocketError(QAbstractSocket::SocketError err);
 
 private:
     QWebSocketServer *srv;
