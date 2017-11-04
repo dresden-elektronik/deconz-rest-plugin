@@ -2401,21 +2401,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
 
             if (i->address().ext() == node->address().ext())
             {
-                // address changed?
-                if (i->address().nwk() != node->address().nwk())
-                {
-                    i->address() = node->address();
-
-                    if (findSensorsState == FindSensorsActive &&
-                        i->deletedState() == Sensor::StateNormal)
-                    {
-                        // mostly due resetting the device
-                        updateSensorEtag(&*i);
-                        Event e(RSensors, REventAdded, i->id());
-                        enqueueEvent(e);
-                    }
-                }
-
                 if (i->node() != node)
                 {
                     i->setNode(const_cast<deCONZ::Node*>(node));
@@ -8509,11 +8494,11 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
             continue;
         }
 
-        if ((si->address().ext() == ext) || (si->address().nwk() == nwk))
+        if (si->address().ext() == ext)
         {
             si->rx();
             found++;
-            DBG_Printf(DBG_INFO, "DeviceAnnce of SensorNode: %s\n", qPrintable(si->address().toStringExt()));
+            DBG_Printf(DBG_INFO, "DeviceAnnce of SensorNode: 0x%016llX [1]\n", si->address().ext());
 
             ResourceItem *item = si->item(RConfigReachable);
             if (item && !item->toBool())
@@ -8529,6 +8514,22 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
 
             if (findSensorsState == FindSensorsActive && si->node())
             {
+                // address changed?
+                if (si->address().nwk() != nwk)
+                {
+                    DBG_Printf(DBG_INFO, "\tnwk address changed 0x%04X -> 0x%04X [2]\n", si->address().nwk(), nwk);
+                    // indicator that the device was resettet
+                    si->address().setNwk(nwk);
+
+                    if (findSensorsState == FindSensorsActive &&
+                        si->deletedState() == Sensor::StateNormal)
+                    {
+                        updateSensorEtag(&*si);
+                        Event e(RSensors, REventAdded, si->id());
+                        enqueueEvent(e);
+                    }
+                }
+
                 addSensorNode(si->node()); // check if somethings needs to be updated
             }
         }
