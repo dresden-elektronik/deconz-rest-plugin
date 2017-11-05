@@ -608,6 +608,12 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         map["zigbeechannel"] = (double)gwZigbeeChannel;
         gwPort = deCONZ::appArgumentNumeric("--http-port", 80); // cache
     }
+
+    if (!gwDeviceName.isEmpty())
+    {
+        map["devicename"] = gwDeviceName;
+    }
+
     map["modelid"] = QLatin1String("deCONZ");
     map["dhcp"] = true; // dummy
     map["proxyaddress"] = gwProxyAddress;

@@ -1116,6 +1116,7 @@ public:
     deCONZ::Address gwDeviceAddress;
     QString gwBridgeId;
     QString gwSdImageVersion;
+    QString gwDeviceName;
 
     // firmware update
     enum FW_UpdateState {
