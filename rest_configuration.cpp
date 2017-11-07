@@ -1728,10 +1728,10 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
             gwTimezone = timezone;
             queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
             changed = true;
-#ifdef ARCH_ARM
-            int rc = 0;
 
-            rc = setenv("TZ", ":" + timezone.toStdString(), 1);
+#ifdef ARCH_ARM
+            timezone.prepend(':');
+            int rc = setenv("TZ", qPrintable(timezone), 1);
             tzset();
 
             if (rc != 0)
