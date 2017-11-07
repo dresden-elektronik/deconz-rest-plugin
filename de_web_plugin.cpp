@@ -32,10 +32,7 @@
 #include "gateway_scanner.h"
 #include "json.h"
 #include "poll_manager.h"
-#ifdef ARCH_ARM
-  #include <unistd.h>
-  #include <sys/reboot.h>
-#endif
+
 const char *HttpStatusOk           = "200 OK"; // OK
 const char *HttpStatusAccepted     = "202 Accepted"; // Accepted but not complete
 const char *HttpStatusNotModified  = "304 Not Modified"; // For ETag / If-None-Match

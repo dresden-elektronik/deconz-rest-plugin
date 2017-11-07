@@ -23,6 +23,12 @@
 #include <stdlib.h>
 #include <time.h>
 #include <QProcess>
+#ifdef ARCH_ARM
+  #include <env.h>
+  #include <unistd.h>
+  #include <sys/reboot.h>
+  #include <sys/time.h>
+#endif
 
 /*! Constructor. */
 ApiConfig::ApiConfig() :
@@ -1726,11 +1732,14 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
             //set timezone under gnu linux
-            command = "echo '" + timezone.toStdString() + "' | sudo tee /etc/timezone";
-            system(command.c_str());
+            //command = "echo '" + timezone.toStdString() + "' | sudo tee /etc/timezone";
+            //system(command.c_str());
 
-            command = "sudo dpkg-reconfigure -f noninteractive tzdata";
-            system(command.c_str());
+            //command = "sudo dpkg-reconfigure -f noninteractive tzdata";
+            //system(command.c_str());
+
+            setenv("TZ", timezone.toStdString(), 1);
+            tzset();
 #endif
 #endif
         }
@@ -1781,21 +1790,28 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
             DBG_Printf(DBG_INFO, "command set time: %s\n", qPrintable(QString::fromStdString(command)));
         #endif
-*/
+*/         
+
 #ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
-            QString date = map["utc"].toString().mid(0, 10);
-            QString time = map["utc"].toString().mid(11, 8);
+         std::string date = map["utc"].toString().toStdString();
 
-            command = "sudo date -s " + date.toStdString();
-            system(command.c_str());
+         time_t mytime = time(0);
+         struct tm* tm_ptr = localtime(&mytime);
 
-            DBG_Printf(DBG_INFO, "command set date: %s\n", qPrintable(QString::fromStdString(command)));
+         if (tm_ptr)
+         {
+             tm_ptr->tm_year = atoi(date.substr(0,4).c_str());
+             tm_ptr->tm_mon  = atoi(date.substr(5,2).c_str()) - 1;
+             tm_ptr->tm_mday = atoi(date.substr(8,2).c_str());
+             tm_ptr->tm_hour  = atoi(date.substr(11,2).c_str());
+             tm_ptr->tm_min  = atoi(date.substr(14,2).c_str());
+             tm_ptr->tm_sec  = atoi(date.substr(17,2).c_str());
 
-            command = "sudo date -s " + time.toStdString();
-            system(command.c_str());
-
-            DBG_Printf(DBG_INFO, "command set time: %s\n", qPrintable(QString::fromStdString(command)));
+             DBG_Printf(DBG_INFO, "%d-%d-%dT%d:%d:%d\n", tm_ptr->tm_year,tm_ptr->tm_mon,tm_ptr->tm_mday,tm_ptr->tm_hour,tm_ptr->tm_min,tm_ptr->tm_sec);
+             const struct timeval tv = {mktime(tm_ptr), 0};
+             settimeofday(&tv, 0);
+         }
 #endif
 #endif
         QVariantMap rspItem;
