@@ -24,7 +24,6 @@
 #include <time.h>
 #include <QProcess>
 #ifdef ARCH_ARM
-  #include <env.h>
   #include <unistd.h>
   #include <sys/reboot.h>
   #include <sys/time.h>
