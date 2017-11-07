@@ -25,6 +25,10 @@
 #include <QFile>
 #include <QProcess>
 #include <queue>
+#ifdef ARCH_ARM
+  #include <unistd.h>
+  #include <sys/reboot.h>
+#endif
 #include "colorspace.h"
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
