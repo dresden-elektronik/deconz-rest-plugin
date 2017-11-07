@@ -1730,17 +1730,17 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
             queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
             changed = true;
 #ifdef ARCH_ARM
-#ifdef Q_OS_LINUX
-            //set timezone under gnu linux
-            //command = "echo '" + timezone.toStdString() + "' | sudo tee /etc/timezone";
-            //system(command.c_str());
+            int rc = 0;
 
-            //command = "sudo dpkg-reconfigure -f noninteractive tzdata";
-            //system(command.c_str());
-
-            setenv("TZ", timezone.toStdString(), 1);
+            rc = setenv("TZ", ":" + timezone.toStdString(), 1);
             tzset();
-#endif
+
+            if (rc != 0)
+            {
+                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/config/timezone"), QString("Error setting timezone")));
+                rsp.httpStatus = HttpStatusServiceUnavailable;
+                return REQ_READY_SEND;
+            }
 #endif
         }
 
@@ -1793,32 +1793,39 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 */         
 
 #ifdef ARCH_ARM
-#ifdef Q_OS_LINUX
-         std::string date = map["utc"].toString().toStdString();
+        int ret = 0;
+        std::string date = map["utc"].toString().toStdString();
 
-         time_t mytime = time(0);
-         struct tm* tm_ptr = localtime(&mytime);
+        time_t mytime = time(0);
+        struct tm* tm_ptr = localtime(&mytime);
 
-         if (tm_ptr)
-         {
-             tm_ptr->tm_year = atoi(date.substr(0,4).c_str());
-             tm_ptr->tm_mon  = atoi(date.substr(5,2).c_str()) - 1;
-             tm_ptr->tm_mday = atoi(date.substr(8,2).c_str());
-             tm_ptr->tm_hour  = atoi(date.substr(11,2).c_str());
-             tm_ptr->tm_min  = atoi(date.substr(14,2).c_str());
-             tm_ptr->tm_sec  = atoi(date.substr(17,2).c_str());
+        if (tm_ptr)
+        {
+            tm_ptr->tm_year = atoi(date.substr(0,4).c_str());
+            tm_ptr->tm_mon  = atoi(date.substr(5,2).c_str()) - 1;
+            tm_ptr->tm_mday = atoi(date.substr(8,2).c_str());
+            tm_ptr->tm_hour  = atoi(date.substr(11,2).c_str());
+            tm_ptr->tm_min  = atoi(date.substr(14,2).c_str());
+            tm_ptr->tm_sec  = atoi(date.substr(17,2).c_str());
 
-             DBG_Printf(DBG_INFO, "%d-%d-%dT%d:%d:%d\n", tm_ptr->tm_year,tm_ptr->tm_mon,tm_ptr->tm_mday,tm_ptr->tm_hour,tm_ptr->tm_min,tm_ptr->tm_sec);
-             const struct timeval tv = {mktime(tm_ptr), 0};
-             settimeofday(&tv, 0);
-         }
-#endif
+            DBG_Printf(DBG_INFO, "%d-%d-%dT%d:%d:%d\n", tm_ptr->tm_year,tm_ptr->tm_mon,tm_ptr->tm_mday,tm_ptr->tm_hour,tm_ptr->tm_min,tm_ptr->tm_sec);
+            const struct timeval tv = {mktime(tm_ptr), 0};
+            ret = settimeofday(&tv, 0);
+        }
+
+        if (ret != 0)
+        {
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/config/utc"), QString("Error setting date and time")));
+            rsp.httpStatus = HttpStatusServiceUnavailable;
+            return REQ_READY_SEND;
+        }
 #endif
         QVariantMap rspItem;
         QVariantMap rspItemState;
         rspItemState["/config/utc"] = map["utc"];
         rspItem["success"] = rspItemState;
         rsp.list.append(rspItem);
+
     }
 
     if (map.contains("timeformat")) // optional
