@@ -701,6 +701,10 @@ void DeRestPluginPrivate::basicConfigToMap(QVariantMap &map)
     map["apiversion"] = QString(GW_API_VERSION);
     map["name"] = gwName;
     map["starterkitid"] = QLatin1String("");
+    if (!gwDeviceName.isEmpty())
+    {
+        map["devicename"] = gwDeviceName;
+    }
 }
 
 /*! GET /api/<apikey>
