@@ -1734,7 +1734,6 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
             changed = true;
 
 #ifdef ARCH_ARM
-            timezone.prepend(':');
             int rc = setenv("TZ", qPrintable(timezone), 1);
             tzset();
 
@@ -1764,7 +1763,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         else
         {
             QDateTime utc = QDateTime::fromString(map["utc"].toString(),"yyyy-MM-ddTHH:mm:ss");
-            if (!utc.isValid())
+            if (!utc.isValid() || map["utc"].toString().length() != 19)
             {
                 error = true;
             }
@@ -1775,25 +1774,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
             rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/utc"), QString("invalid value, %1, for parameter, utc").arg(map["utc"].toString())));
             rsp.httpStatus = HttpStatusBadRequest;
             return REQ_READY_SEND;
-        }
-/*      // not implementet yet
-        #ifdef WIN32
-            QString year = map["utc"].toString().mid(0, 4);
-            QString month = map["utc"].toString().mid(5, 2);
-            QString day = map["utc"].toString().mid(8, 2);
-            QString time = map["utc"].toString().mid(11, 8);
-
-            std::string command = "date " + day.toStdString() + "-" + month.toStdString() + "-" + year.toStdString();
-            system(command.c_str());
-
-            DBG_Printf(DBG_INFO, "command set date: %s\n", qPrintable(QString::fromStdString(command)));
-
-            command = "time " + time.toStdString();
-            system(command.c_str());
-
-            DBG_Printf(DBG_INFO, "command set time: %s\n", qPrintable(QString::fromStdString(command)));
-        #endif
-*/         
+        }         
 
 #ifdef ARCH_ARM
         int ret = 0;
@@ -1804,16 +1785,15 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
         if (tm_ptr)
         {
-            tm_ptr->tm_year = atoi(date.substr(0,4).c_str());
+            tm_ptr->tm_year = atoi(date.substr(0,4).c_str()) - 1900;
             tm_ptr->tm_mon  = atoi(date.substr(5,2).c_str()) - 1;
             tm_ptr->tm_mday = atoi(date.substr(8,2).c_str());
             tm_ptr->tm_hour  = atoi(date.substr(11,2).c_str());
             tm_ptr->tm_min  = atoi(date.substr(14,2).c_str());
             tm_ptr->tm_sec  = atoi(date.substr(17,2).c_str());
 
-            DBG_Printf(DBG_INFO, "%d-%d-%dT%d:%d:%d\n", tm_ptr->tm_year,tm_ptr->tm_mon,tm_ptr->tm_mday,tm_ptr->tm_hour,tm_ptr->tm_min,tm_ptr->tm_sec);
             const struct timeval tv = {mktime(tm_ptr), 0};
-            ret = settimeofday(&tv, 0);
+            ret = settimeofday(&tv, NULL);
         }
 
         if (ret != 0)
