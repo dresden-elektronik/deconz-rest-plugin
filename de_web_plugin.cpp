@@ -239,6 +239,8 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     readDb();
     closeDb();
 
+    initTimezone();
+
     checkConsistency();
 
     if (!gwUserParameter.contains("groupssequenceleft"))

@@ -55,7 +55,6 @@ void DeRestPluginPrivate::initConfig()
     gwWifiIp = QLatin1String("192.168.8.1");
     gwWifiPw = "";
     gwRgbwDisplay = "1";
-    gwTimezone = QString::fromStdString(getTimezone());
     gwTimeFormat = "12h";
     gwZigbeeChannel = 0;
     gwName = GW_DEFAULT_NAME;
@@ -107,6 +106,39 @@ void DeRestPluginPrivate::initConfig()
 
     gwProxyPort = 0;
     gwProxyAddress = "none";
+}
+
+/*! Init timezone. */
+void DeRestPluginPrivate::initTimezone()
+{    
+#ifdef Q_OS_LINUX
+#ifdef ARCH_ARM
+    if (gwTimezone.isEmpty())
+    {
+        // set timezone in system and save it in db
+        gwTimezone = QLatin1String("Etc/GMT");
+
+        if (getenv("TZ") == NULL)
+        {
+            setenv("TZ", qPrintable(gwTimezone), 1);
+        }
+        else
+        {
+            gwTimezone = getenv("TZ");
+        }
+        queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
+    }
+    else
+    {
+        // set system timezone from db
+        if (getenv("TZ") != gwTimezone)
+        {
+            setenv("TZ", qPrintable(gwTimezone), 1);
+        }
+    }
+    tzset();
+#endif
+#endif
 }
 
 /*! Init WiFi parameters if necessary. */
@@ -2399,29 +2431,6 @@ void DeRestPluginPrivate::checkRfConnectState()
             queSaveDb(DB_CONFIG, DB_LONG_SAVE_DELAY);
         }
     }
-}
-
-/*! get current Timezone from gnu linux as IANA code.
- */
-std::string DeRestPluginPrivate::getTimezone()
-{
-
-#ifdef ARCH_ARM
-#ifdef Q_OS_LINUX
-    char const* cmd = "cat /etc/timezone";
-    FILE* pipe = popen(cmd, "r");
-    if (!pipe) return "error";
-    char buffer[128];
-    std::string result = "";
-    while(!feof(pipe)) {
-        if(fgets(buffer, 128, pipe) != NULL)
-            result += buffer;
-    }
-    pclose(pipe);
-    return result;
-#endif
-#endif
-    return "none";
 }
 
 /*! GET /api/config/wifi
