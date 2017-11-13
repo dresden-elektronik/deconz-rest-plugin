@@ -2368,8 +2368,21 @@ int DeRestPluginPrivate::changePassword(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::deletePassword(const ApiRequest &req, ApiResponse &rsp)
 {
+    // reset only allowed for certain referers
+    bool ok = true;
+    QString referer = req.hdr.value(QLatin1String("Referer"));
+    if (referer.isEmpty() || !referer.contains(QLatin1String("login.html")))
+    {
+        ok = false;
+    }
+
     // reset only allowed within first 10 minutes after startup
-    if (getUptime() > 600)
+    if (ok && getUptime() > 600)
+    {
+        ok = false;
+    }
+
+    if (!ok)
     {
         rsp.httpStatus = HttpStatusForbidden;
         rsp.list.append(errorToMap(ERR_UNAUTHORIZED_USER, req.path.join("/"), "unauthorized user"));
