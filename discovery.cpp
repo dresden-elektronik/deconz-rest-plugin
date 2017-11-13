@@ -322,7 +322,8 @@ void DeRestPluginPrivate::internetDiscoveryExtractVersionInfo(QNetworkReply *rep
             {
                 DBG_Printf(DBG_INFO, "\t = %s, diff %d\n", qPrintable(dt.toString()), diff);
                 // lazy adjustment of process time
-                time_t t = dt.toSecsSinceEpoch();
+                //time_t t = dt.toSecsSinceEpoch(); // Qt 5.8
+                time_t t = dt.toTime_t();
                 struct tm tbrokenDown;
                 if (localtime_r(&t, &tbrokenDown))
                 {
