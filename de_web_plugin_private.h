@@ -887,6 +887,10 @@ public Q_SLOTS:
     void checkWifiState();
     int scanWifiNetworks(const ApiRequest &req, ApiResponse &rsp);
 
+    // time manager
+    void timeManagerTimerFired();
+    void ntpqFinished();
+
     // gateways
     void foundGateway(quint32 ip, quint16 port, const QString &uuid, const QString &name);
 
@@ -1120,6 +1124,15 @@ public:
     QString gwBridgeId;
     QString gwSdImageVersion;
     QString gwDeviceName;
+
+    // time manager
+    enum TimeManagerState {
+        TM_Init,
+        TM_WaitNtpq,
+        TM_NtpRunning
+    };
+    TimeManagerState timeManagerState;
+    QProcess *ntpqProcess;
 
     // firmware update
     enum FW_UpdateState {

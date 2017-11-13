@@ -106,6 +106,10 @@ void DeRestPluginPrivate::initConfig()
 
     gwProxyPort = 0;
     gwProxyAddress = "none";
+
+    timeManagerState = TM_Init;
+    ntpqProcess = 0;
+    QTimer::singleShot(2000, this, SLOT(timeManagerTimerFired()));
 }
 
 /*! Init timezone. */
@@ -649,6 +653,11 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     if (!gwDeviceName.isEmpty())
     {
         map["devicename"] = gwDeviceName;
+    }
+
+    if (gwConfig.contains(QLatin1String("ntp")))
+    {
+        map["ntp"] = gwConfig["ntp"];
     }
 
     map["modelid"] = QLatin1String("deCONZ");
@@ -2803,4 +2812,58 @@ void DeRestPluginPrivate::resendPermitJoinTimerFired()
         return;
     }
     resendPermitJoinTimer->start(1000);
+}
+
+/*! Manager to asure gateway has proper time.
+ */
+void DeRestPluginPrivate::timeManagerTimerFired()
+{
+    if (timeManagerState == TM_Init)
+    {
+        DBG_Assert(ntpqProcess == 0);
+        timeManagerState = TM_WaitNtpq;
+        ntpqProcess = new QProcess(this);
+        connect(ntpqProcess, SIGNAL(finished(int)), this, SLOT(ntpqFinished()));
+        QStringList args;
+        args << "-c" << "rv";
+        ntpqProcess->start(QLatin1String("ntpq"), args);
+    }
+}
+
+/*! Manager to asure gateway has proper time.
+ */
+void DeRestPluginPrivate::ntpqFinished()
+{
+    DBG_Assert(ntpqProcess != 0);
+    DBG_Assert(timeManagerState == TM_WaitNtpq);
+    if (timeManagerState == TM_WaitNtpq && ntpqProcess)
+    {
+        QByteArray data = ntpqProcess->readAll();
+        DBG_Printf(DBG_INFO, "NTP exit %d, %s\n", ntpqProcess->exitCode(), qPrintable(data));
+
+        QString ntpState;
+
+        if (ntpqProcess->exitCode() != 0 ||
+            data.contains("sync_unspec")) // ntp not yet synchronized
+        {
+            ntpState = QLatin1String("unsynced");
+            timeManagerState = TM_Init;
+            QTimer::singleShot(10000, this, SLOT(timeManagerTimerFired()));
+        }
+        else // synced somehow sync_*
+        {
+            timeManagerState = TM_NtpRunning;
+            ntpState = QLatin1String("synced");
+            QTimer::singleShot(30 * 60 * 1000, this, SLOT(timeManagerTimerFired()));
+        }
+
+        if (gwConfig["ntp"] != ntpState)
+        {
+            gwConfig["ntp"] = ntpState;
+            updateEtag(gwConfigEtag);
+        }
+
+        ntpqProcess->deleteLater();
+        ntpqProcess = 0;
+    }
 }
