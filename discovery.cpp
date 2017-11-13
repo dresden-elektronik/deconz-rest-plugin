@@ -18,6 +18,7 @@
 #include "json.h"
 #ifdef Q_OS_LINUX
 #include <unistd.h>
+#include <sys/time.h>
 #endif
 
 /*! Inits the internet discovery manager.
@@ -275,6 +276,66 @@ void DeRestPluginPrivate::internetDiscoveryExtractVersionInfo(QNetworkReply *rep
     if (!ok || map.isEmpty())
     {
         DBG_Printf(DBG_ERROR, "discovery couldn't extract version info from reply\n");
+    }
+
+    if (reply->hasRawHeader("date") || reply->hasRawHeader("Date"))
+    {
+        // if NTP is not working (UDP blocked, proxies, etc)
+        // try to extract time from discover server http header if local time is too off
+        QString date = reply->rawHeader("date");
+        if (date.isEmpty())
+        {
+            reply->rawHeader("Date");
+        }
+        DBG_Printf(DBG_INFO, "discovery server date: %s\n", qPrintable(date));
+
+        QStringList ls = date.split(' ');
+        if (ls.size() == 6) // RFC 1123: ddd, dd MMM yyyy HH:mm:ss GTM
+        {
+            int day = ls[1].toInt();
+            int month = 0;
+            int year = ls[3].toInt();
+
+            const char *months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+            for (int i = 0; i < 12; i++)
+            {
+                if (ls[2].startsWith(months[i]))
+                {
+                    month = i + 1;
+                    break;
+                }
+            }
+            QDateTime dt;
+            dt.setTimeSpec(Qt::UTC);
+            dt.setDate(QDate(year, month, day));
+            dt.setTime(QTime::fromString(ls[4]));
+
+            QDateTime now = QDateTime::currentDateTimeUtc();
+            int diff = qAbs(now.secsTo(dt));
+
+            if (diff < 60)
+            {
+                DBG_Printf(DBG_INFO, "\t local time seems to be ok\n");
+            }
+            else if (getUptime() > 600 &&
+                     gwConfig["ntp"].toString() != QLatin1String("synced"))
+            {
+                DBG_Printf(DBG_INFO, "\t = %s, diff %d\n", qPrintable(dt.toString()), diff);
+                // lazy adjustment of process time
+                time_t t = dt.toSecsSinceEpoch();
+                struct tm tbrokenDown;
+                if (localtime_r(&t, &tbrokenDown))
+                {
+                    struct timeval tv;
+                    tv.tv_sec = mktime(&tbrokenDown);
+                    tv.tv_usec = 0;
+                    if (settimeofday(&tv, NULL) < 0)
+                    {
+                        DBG_Printf(DBG_ERROR, "settimeofday(): errno %d\n", errno);
+                    }
+                }
+            }
+        }
     }
 
     if (map.contains("versions") && (map["versions"].type() == QVariant::Map))
