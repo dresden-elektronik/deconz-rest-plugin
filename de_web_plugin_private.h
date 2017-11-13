@@ -790,6 +790,7 @@ public Q_SLOTS:
     void internetDiscoveryFinishedRequest(QNetworkReply *reply);
     void internetDiscoveryExtractVersionInfo(QNetworkReply *reply);
     void inetProxyHostLookupDone(const QHostInfo &host);
+    void inetProxyCheckHttpVia(const QString &via);
     void scheduleTimerFired();
     void permitJoinTimerFired();
     void resendPermitJoinTimerFired();
@@ -1076,6 +1077,7 @@ public:
     bool gwRfConnected;  // to detect changes
     int gwAnnounceInterval; // used by internet discovery [minutes]
     QString gwAnnounceUrl;
+    int gwAnnounceVital; // 0 not tried, > 0 success attemps, < 0 failed attemps
     uint8_t gwPermitJoinDuration; // global permit join state (last set)
     int gwPermitJoinResend; // permit join of values > 255
     uint16_t gwNetworkOpenDuration; // user setting how long network remains open

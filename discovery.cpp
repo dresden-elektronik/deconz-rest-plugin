@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2017 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -36,6 +36,7 @@ void DeRestPluginPrivate::initInternetDicovery()
         gwAnnounceInterval = 15;
     }
 
+    gwAnnounceVital = 0;
     inetDiscoveryTimer = new QTimer(this);
     inetDiscoveryTimer->setSingleShot(false);
 
@@ -236,6 +237,11 @@ void DeRestPluginPrivate::internetDiscoveryFinishedRequest(QNetworkReply *reply)
 
     if (reply->error() == QNetworkReply::NoError)
     {
+        if (gwAnnounceVital < 0)
+        {
+            gwAnnounceVital = 0;
+        }
+        gwAnnounceVital++;
         DBG_Printf(DBG_INFO, "Announced to internet\n");
 #ifdef ARCH_ARM
         // currently this is only supported for the RaspBee Gateway
@@ -245,6 +251,11 @@ void DeRestPluginPrivate::internetDiscoveryFinishedRequest(QNetworkReply *reply)
     else
     {
         DBG_Printf(DBG_INFO, "discovery network reply error: %s\n", qPrintable(reply->errorString()));
+        if (gwAnnounceVital > 0)
+        {
+            gwAnnounceVital = 0;
+        }
+        gwAnnounceVital--;
     }
 
     reply->deleteLater();
@@ -324,6 +335,79 @@ void DeRestPluginPrivate::inetProxyHostLookupDone(const QHostInfo &host)
             gwProxyAddress = address.toString();
             updateEtag(gwConfigEtag);
             return;
+        }
+    }
+}
+
+/*! Check if a received via field contains a usable proxy.
+
+    \param via holds the proxy host info received by http request header
+ */
+void DeRestPluginPrivate::inetProxyCheckHttpVia(const QString &via)
+{
+    if (via.isEmpty())
+    {
+        return;
+    }
+
+    if (gwProxyPort != 0)
+    {
+        return; // already configured?
+    }
+
+    // https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.45
+    // 1.1 proxy.some-domain.com:3128 (squid/2.7.STABLE9)
+    DBG_Printf(DBG_INFO, "Test proxy: \t%s\n", qPrintable(via));
+
+    for (QString &entry : via.split(',')) // there might be multiple proxied in the chain
+    {
+        QStringList ls = entry.split(' ');
+        if (ls.size() < 2)
+        {
+            continue;
+        }
+
+        if (!ls[0].contains(QLatin1String("1.1")))
+        {
+            continue;
+        }
+
+        QStringList recvBy = ls[1].split(':');
+        if (ls.size() < 1) // at least host must be specified
+        {
+            continue;
+        }
+
+        quint16 port = 8080;
+        if (recvBy.size() == 2) // optional
+        {
+            port = recvBy[1].toUInt();
+        }
+
+        DBG_Printf(DBG_INFO, "\t --> %s:%u\n", qPrintable(recvBy[0]), port);
+
+        if (gwProxyPort != 0)
+        {
+            continue;
+        }
+
+        if (gwAnnounceVital >= 0)
+        {
+            continue;
+        }
+
+        gwProxyAddress = recvBy[0];
+        gwProxyPort = port;
+
+        QNetworkProxy proxy(QNetworkProxy::HttpProxy, gwProxyAddress, gwProxyPort);
+        inetDiscoveryManager->setProxy(proxy);
+        QHostInfo::lookupHost(proxy.hostName(),
+                              this, SLOT(inetProxyHostLookupDone(QHostInfo)));
+        updateEtag(gwConfigEtag);
+
+        if (gwAnnounceInterval > 0)
+        {
+            QTimer::singleShot(5000, this, SLOT(internetDiscoveryTimerFired()));
         }
     }
 }

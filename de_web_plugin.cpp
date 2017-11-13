@@ -10665,6 +10665,15 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         DBG_Printf(DBG_HTTP, "Text Data: \t%s\n", qPrintable(content));
     }
 
+    // we might be behind a proxy, do simple check
+    if (d->gwAnnounceVital < 0 && d->gwProxyPort == 0)
+    {
+        if (hdr.hasKey(QLatin1String("Via")))
+        {
+            d->inetProxyCheckHttpVia(hdr.value(QLatin1String("Via")));
+        }
+    }
+
     connect(sock, SIGNAL(destroyed()),
             d, SLOT(clientSocketDestroyed()));
 
