@@ -1148,6 +1148,7 @@ static int sqliteLoadLightNodeCallback(void *user, int ncols, char **colval , ch
                 if (!val.isEmpty() && 0 != val.compare(QLatin1String("Unknown"), Qt::CaseInsensitive))
                 {
                     lightNode->setModelId(val);
+                    lightNode->item(RAttrModelId)->setValue(val);
                     lightNode->clearRead(READ_MODEL_ID);
                 }
             }

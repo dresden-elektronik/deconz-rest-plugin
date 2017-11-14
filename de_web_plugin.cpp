@@ -1766,10 +1766,12 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                     }
                     else if (ia->id() == 0x0005) // Model identifier
                     {
-                        QString str = ia->toString();
-                        if (!str.isEmpty() && str != lightNode->modelId())
+                        QString str = ia->toString().trimmed();
+                        ResourceItem *item = lightNode->item(RAttrModelId);
+                        if (item && !str.isEmpty() && str != item->toString())
                         {
                             lightNode->setModelId(str);
+                            item->setValue(str);
                             lightNode->setNeedSaveDatabase(true);
                             queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
                             updated = true;
@@ -10088,6 +10090,7 @@ void DeRestPlugin::idleTimerFired()
                     if (sensor && sensor->modelId().startsWith(QLatin1String("FLS-NB")))
                     {
                         // extract model id from sensor node
+                        lightNode->item(RAttrModelId)->setValue(sensor->modelId());
                         lightNode->setModelId(sensor->modelId());
                         lightNode->setLastRead(READ_MODEL_ID, d->idleTotalCounter);
                     }

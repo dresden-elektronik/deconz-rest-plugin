@@ -60,7 +60,8 @@ void PollManager::poll(RestNodeBase *restNode, const QDateTime &tStart)
 
         if (suffix == RStateOn ||
             suffix == RStateBri ||
-            suffix == RStateColorMode)
+            suffix == RStateColorMode ||
+            suffix == RAttrModelId)
         {
             pitem.items.push_back(suffix);
         }
@@ -292,6 +293,16 @@ void PollManager::pollTimerFired()
 
                 break;
             }
+        }
+    }
+    else if (suffix == RAttrModelId)
+    {
+        item = r->item(RAttrModelId);
+        if (item && (item->toString().isEmpty() || item->toString() == QLatin1String("unknown")))
+        {
+            clusterId = BASIC_CLUSTER_ID;
+            attributes.push_back(0x0004); // manufacturer
+            attributes.push_back(0x0005); // model id
         }
     }
 

@@ -40,6 +40,7 @@ LightNode::LightNode() :
     addItem(DataTypeBool, RStateOn);
     addItem(DataTypeString, RStateAlert);
     addItem(DataTypeBool, RStateReachable);
+    addItem(DataTypeString, RAttrModelId);
 }
 
 /*! Returns the LightNode state.
