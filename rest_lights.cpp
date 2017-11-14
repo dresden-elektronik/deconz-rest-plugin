@@ -240,11 +240,26 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
     }
 
     map["uniqueid"] = lightNode->uniqueId();
-    map["type"] = lightNode->type();
     map["name"] = lightNode->name();
     map["modelid"] = lightNode->modelId(); // real model id
-    map["hascolor"] = lightNode->hasColor();
+    if (!auth.strict)
+    {
+        map["hascolor"] = lightNode->hasColor();
+    }
+
     map["type"] = lightNode->type();
+
+    // Amazon Echo quirks mode
+    if (auth.strict && auth.devicetype.startsWith(QLatin1String("Echo")))
+    {
+        // OSRAM plug
+        if (lightNode->type() == QLatin1String("On/Off plug-in unit"))
+        {
+            map["type"] = QLatin1String("Dimmable light");
+            state["bri"] = (double)254;
+        }
+    }
+
     map["swversion"] = lightNode->swBuildId();
     map["manufacturername"] = lightNode->manufacturer();
     /*
