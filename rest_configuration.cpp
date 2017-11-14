@@ -2839,7 +2839,7 @@ void DeRestPluginPrivate::ntpqFinished()
     if (timeManagerState == TM_WaitNtpq && ntpqProcess)
     {
         QByteArray data = ntpqProcess->readAll();
-        DBG_Printf(DBG_INFO, "NTP exit %d, %s\n", ntpqProcess->exitCode(), qPrintable(data));
+        //DBG_Printf(DBG_INFO, "NTP exit %d, %s\n", ntpqProcess->exitCode(), qPrintable(data));
 
         QString ntpState;
 
@@ -2848,7 +2848,7 @@ void DeRestPluginPrivate::ntpqFinished()
         {
             ntpState = QLatin1String("unsynced");
             timeManagerState = TM_Init;
-            QTimer::singleShot(10000, this, SLOT(timeManagerTimerFired()));
+            QTimer::singleShot(60000, this, SLOT(timeManagerTimerFired()));
         }
         else // synced somehow sync_*
         {
