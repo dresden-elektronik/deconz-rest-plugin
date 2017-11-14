@@ -499,7 +499,9 @@ public:
     };
 
     ApiAuth();
+    void setDeviceType(const QString &devtype);
 
+    bool strict;
     bool needSaveDatabase;
     State state;
     QString apikey; // also called username (10..32 chars)
@@ -1063,6 +1065,7 @@ public:
 
     // authentification
     QTime apiAuthSaveDatabaseTime;
+    size_t apiAuthCurrent;
     std::vector<ApiAuth> apiAuths;
     QString gwAdminUserName;
     QString gwAdminPasswordHash;

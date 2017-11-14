@@ -22,10 +22,23 @@
 #define AUTH_KEEP_ALIVE 60
 
 ApiAuth::ApiAuth() :
+    strict(false),
     needSaveDatabase(false),
     state(StateNormal)
 {
 
+}
+
+/*! Set and process device type.
+ */
+void ApiAuth::setDeviceType(const QString &devtype)
+{
+    if (devtype.startsWith(QLatin1String("Echo")) ||
+        devtype.startsWith(QLatin1String("iConnectHue")))
+    {
+        strict = true;
+    }
+    devicetype = devtype;
 }
 
 /*! Init authentification and security.
@@ -125,6 +138,7 @@ bool DeRestPluginPrivate::allowedToCreateApikey(const ApiRequest &req, ApiRespon
 bool DeRestPluginPrivate::checkApikeyAuthentification(const ApiRequest &req, ApiResponse &rsp)
 {
     QString apikey = req.apikey();
+    apiAuthCurrent = apiAuths.size();
 
     if (apikey.isEmpty())
     {
@@ -139,10 +153,11 @@ bool DeRestPluginPrivate::checkApikeyAuthentification(const ApiRequest &req, Api
     std::vector<ApiAuth>::iterator i = apiAuths.begin();
     std::vector<ApiAuth>::iterator end = apiAuths.end();
 
-    for (; i != end; ++i)
+    for (size_t pos = 0; i != end; ++i, pos++)
     {
         if (apikey == i->apikey && i->state == ApiAuth::StateNormal)
         {
+            apiAuthCurrent = pos;
             i->lastUseDate = QDateTime::currentDateTimeUtc();
 
             // fill in useragent string if not already exist

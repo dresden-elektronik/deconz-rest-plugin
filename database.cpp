@@ -219,7 +219,7 @@ static int sqliteLoadAuthCallback(void *user, int ncols, char **colval , char **
     ApiAuth auth;
 
     auth.apikey = colval[0];
-    auth.devicetype = colval[1];
+    auth.setDeviceType(colval[1]);
 
     if (colval[4])
     {

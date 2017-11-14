@@ -184,6 +184,13 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         return false;
     }
 
+    if (apiAuthCurrent >= apiAuths.size())
+    {
+        return false;
+    }
+
+    const ApiAuth &auth = apiAuths[apiAuthCurrent];
+
     QVariantMap state;
     const ResourceItem *ix = 0;
     const ResourceItem *iy = 0;

@@ -336,7 +336,7 @@ int DeRestPluginPrivate::createUser(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    auth.devicetype = map["devicetype"].toString();
+    auth.setDeviceType(map["devicetype"].toString());
 
     if (map.contains("username")) // optional (note username = apikey)
     {

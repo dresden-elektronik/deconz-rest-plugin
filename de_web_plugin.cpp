@@ -135,8 +135,7 @@ ApiRequest::ApiRequest(const QHttpRequestHeader &h, const QStringList &p, QTcpSo
     if (hdr.hasKey(QLatin1String("User-Agent")))
     {
         QString ua = hdr.value(QLatin1String("User-Agent"));
-        if (ua.startsWith(QLatin1String("Echo")) ||
-            ua.startsWith(QLatin1String("iConnect")))
+        if (ua.startsWith(QLatin1String("iConnect")))
         {
             strict = true;
         }
@@ -152,7 +151,7 @@ QString ApiRequest::apikey() const
         return path.at(1);
     }
 
-    return QString("");
+    return QLatin1String("");
 }
 
 /*! Constructor for pimpl.
