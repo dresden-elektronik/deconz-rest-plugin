@@ -321,6 +321,7 @@ void DeRestPluginPrivate::internetDiscoveryExtractVersionInfo(QNetworkReply *rep
                      gwConfig["ntp"].toString() != QLatin1String("synced"))
             {
                 DBG_Printf(DBG_INFO, "\t = %s, diff %d\n", qPrintable(dt.toString()), diff);
+#ifdef ARCH_ARM
                 // lazy adjustment of process time
                 //time_t t = dt.toSecsSinceEpoch(); // Qt 5.8
                 time_t t = dt.toTime_t();
@@ -335,6 +336,7 @@ void DeRestPluginPrivate::internetDiscoveryExtractVersionInfo(QNetworkReply *rep
                         DBG_Printf(DBG_ERROR, "settimeofday(): errno %d\n", errno);
                     }
                 }
+#endif // ARCH_ARM
             }
         }
     }
