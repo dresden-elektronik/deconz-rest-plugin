@@ -461,6 +461,12 @@ void DeRestPluginPrivate::inetProxyCheckHttpVia(const QString &via)
         gwProxyAddress = recvBy[0];
         gwProxyPort = port;
 
+        if (gwProxyAddress.contains('.'))
+        {
+            recvBy = gwProxyAddress.split('.');
+            gwProxyAddress = recvBy[0]; // strip domain // todo might be too restrictive
+        }
+
         QNetworkProxy proxy(QNetworkProxy::HttpProxy, gwProxyAddress, gwProxyPort);
         inetDiscoveryManager->setProxy(proxy);
         QHostInfo::lookupHost(proxy.hostName(),
