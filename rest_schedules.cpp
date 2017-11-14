@@ -411,10 +411,10 @@ int DeRestPluginPrivate::setScheduleAttributes(const ApiRequest &req, ApiRespons
                     if (rx.exactMatch(time))
                     {
                         i->timeout = rx.cap(2).toInt() * 60 * 60 + // h
-                                           rx.cap(3).toInt() * 60 +   // m
-                                           rx.cap(4).toInt(); // s
+                                     rx.cap(3).toInt() * 60 +   // m
+                                     rx.cap(4).toInt(); // s
                         i->currentTimeout = i->timeout;
-                        QDateTime now = QDateTime::currentDateTimeUtc();
+                        QDateTime now = QDateTime::currentDateTime();
                         i->starttime = now.toString("yyyy-MM-ddThh:mm:ss");
 
                         QString R = rx.cap(1);
@@ -448,11 +448,11 @@ int DeRestPluginPrivate::setScheduleAttributes(const ApiRequest &req, ApiRespons
                     if (rx.exactMatch(time))
                     {
                         i->timeout = rx.cap(1).toInt() * 60 * 60 + // h
-                                           rx.cap(2).toInt() * 60 +   // m
-                                           rx.cap(3).toInt(); // s
+                                     rx.cap(2).toInt() * 60 +   // m
+                                     rx.cap(3).toInt(); // s
                         i->currentTimeout = i->timeout;
                         i->recurring = 1;
-                        QDateTime now = QDateTime::currentDateTimeUtc();
+                        QDateTime now = QDateTime::currentDateTime();
                         i->starttime = now.toString("yyyy-MM-ddThh:mm:ss");
 
                         if (i->timeout > 0)
@@ -485,10 +485,14 @@ int DeRestPluginPrivate::setScheduleAttributes(const ApiRequest &req, ApiRespons
                         i->type = Schedule::TypeRecurringTime;
                         i->weekBitmap = rx.cap(1).toUInt();
                         //dummy date needed when recurring alarm timout fired
-                        i->datetime = QDateTime();
+                        i->datetime = QDateTime::currentDateTimeUtc();
                         i->datetime.setTime(QTime(rx.cap(2).toUInt(),   // h
-                                                        rx.cap(3).toUInt(),   // m
-                                                        rx.cap(4).toUInt())); // s
+                                                  rx.cap(3).toUInt(),   // m
+                                                  rx.cap(4).toUInt())); // s
+                        i->datetime.setTimeSpec(Qt::UTC);
+
+                        // conversion to localtime
+                        i->datetime = i->datetime.toLocalTime();
                     }
                     else
                     {
@@ -502,6 +506,9 @@ int DeRestPluginPrivate::setScheduleAttributes(const ApiRequest &req, ApiRespons
                 {
                     QDateTime checkTime = QDateTime::fromString(time, Qt::ISODate);
                     checkTime.setTimeSpec(Qt::UTC);
+
+                    // conversion to localtime
+                    checkTime = checkTime.toLocalTime();
 
                     if (checkTime.isValid())
                     {
@@ -564,10 +571,10 @@ int DeRestPluginPrivate::setScheduleAttributes(const ApiRequest &req, ApiRespons
                         if (rx.exactMatch(time))
                         {
                             i->timeout = rx.cap(2).toInt() * 60 * 60 + // h
-                                               rx.cap(3).toInt() * 60 +   // m
-                                               rx.cap(4).toInt(); // s
+                                         rx.cap(3).toInt() * 60 +   // m
+                                         rx.cap(4).toInt(); // s
                             i->currentTimeout = i->timeout;
-                            QDateTime now = QDateTime::currentDateTimeUtc();
+                            QDateTime now = QDateTime::currentDateTime();
                             i->starttime = now.toString("yyyy-MM-ddThh:mm:ss");
 
                             QString R = rx.cap(1);
@@ -601,11 +608,11 @@ int DeRestPluginPrivate::setScheduleAttributes(const ApiRequest &req, ApiRespons
                         if (rx.exactMatch(time))
                         {
                             i->timeout = rx.cap(1).toInt() * 60 * 60 + // h
-                                               rx.cap(2).toInt() * 60 +   // m
-                                               rx.cap(3).toInt(); // s
+                                         rx.cap(2).toInt() * 60 +   // m
+                                         rx.cap(3).toInt(); // s
                             i->currentTimeout = i->timeout;
                             i->recurring = 1;
-                            QDateTime now = QDateTime::currentDateTimeUtc();
+                            QDateTime now = QDateTime::currentDateTime();
                             i->starttime = now.toString("yyyy-MM-ddThh:mm:ss");
 
                             if (i->timeout > 0)
@@ -638,11 +645,11 @@ int DeRestPluginPrivate::setScheduleAttributes(const ApiRequest &req, ApiRespons
                             i->type = Schedule::TypeRecurringTime;
                             i->weekBitmap = rx.cap(1).toUInt();
                             //dummy date needed when recurring alarm timout fired
-                            i->datetime = QDateTime();
+                            i->datetime = QDateTime::currentDateTime();
                             i->datetime.setTime(QTime(rx.cap(2).toUInt(),   // h
-                                                            rx.cap(3).toUInt(),   // m
-                                                            rx.cap(4).toUInt())); // s
-                            i->datetime.setTimeSpec(Qt::UTC);
+                                                      rx.cap(3).toUInt(),   // m
+                                                      rx.cap(4).toUInt())); // s
+                            i->datetime.setTimeSpec(Qt::LocalTime);
                         }
                         else
                         {
@@ -655,7 +662,7 @@ int DeRestPluginPrivate::setScheduleAttributes(const ApiRequest &req, ApiRespons
                     else
                     {
                         QDateTime checkTime = QDateTime::fromString(time, Qt::ISODate);
-                        checkTime.setTimeSpec(Qt::UTC);
+                        checkTime.setTimeSpec(Qt::LocalTime);
 
                         if (checkTime.isValid())
                         {
@@ -873,7 +880,7 @@ bool DeRestPluginPrivate::jsonToSchedule(const QString &jsonString, Schedule &sc
                                    rx.cap(3).toInt() * 60 +   // m
                                    rx.cap(4).toInt(); // s
                 schedule.currentTimeout = schedule.timeout;
-                QDateTime now = QDateTime::currentDateTimeUtc();
+                QDateTime now = QDateTime::currentDateTime();
                 schedule.starttime = now.toString("yyyy-MM-ddThh:mm:ss");
 
                 QString R = rx.cap(1);
@@ -905,7 +912,7 @@ bool DeRestPluginPrivate::jsonToSchedule(const QString &jsonString, Schedule &sc
                                    rx.cap(3).toInt(); // s
                 schedule.currentTimeout = schedule.timeout;
                 schedule.recurring = 1;
-                QDateTime now = QDateTime::currentDateTimeUtc();
+                QDateTime now = QDateTime::currentDateTime();
                 schedule.starttime = now.toString("yyyy-MM-ddThh:mm:ss");
 
                 if (schedule.timeout > 0)
@@ -934,6 +941,10 @@ bool DeRestPluginPrivate::jsonToSchedule(const QString &jsonString, Schedule &sc
                 schedule.datetime.setTime(QTime(rx.cap(2).toUInt(),   // h
                                                 rx.cap(3).toUInt(),   // m
                                                 rx.cap(4).toUInt())); // s
+                schedule.datetime.setTimeSpec(Qt::UTC);
+
+                // conversion to localtime
+                schedule.datetime = schedule.datetime.toLocalTime();
             }
         }
         // Absolute time
@@ -941,6 +952,9 @@ bool DeRestPluginPrivate::jsonToSchedule(const QString &jsonString, Schedule &sc
         {
             schedule.datetime = QDateTime::fromString(time, Qt::ISODate);
             schedule.datetime.setTimeSpec(Qt::UTC);
+
+            // conversion to localtime
+            schedule.datetime = schedule.datetime.toLocalTime();
 
             if (schedule.datetime.isValid())
             {
@@ -1002,7 +1016,7 @@ bool DeRestPluginPrivate::jsonToSchedule(const QString &jsonString, Schedule &sc
                                        rx.cap(3).toInt() * 60 +   // m
                                        rx.cap(4).toInt(); // s
                     schedule.currentTimeout = schedule.timeout;
-                    QDateTime now = QDateTime::currentDateTimeUtc();
+                    QDateTime now = QDateTime::currentDateTime();
                     schedule.starttime = now.toString("yyyy-MM-ddThh:mm:ss");
 
                     QString R = rx.cap(1);
@@ -1034,7 +1048,7 @@ bool DeRestPluginPrivate::jsonToSchedule(const QString &jsonString, Schedule &sc
                                        rx.cap(3).toInt(); // s
                     schedule.currentTimeout = schedule.timeout;
                     schedule.recurring = 1;
-                    QDateTime now = QDateTime::currentDateTimeUtc();
+                    QDateTime now = QDateTime::currentDateTime();
                     schedule.starttime = now.toString("yyyy-MM-ddThh:mm:ss");
 
                     if (schedule.timeout > 0)
@@ -1063,14 +1077,14 @@ bool DeRestPluginPrivate::jsonToSchedule(const QString &jsonString, Schedule &sc
                     schedule.datetime.setTime(QTime(rx.cap(2).toUInt(),   // h
                                                     rx.cap(3).toUInt(),   // m
                                                     rx.cap(4).toUInt())); // s
-                    schedule.datetime.setTimeSpec(Qt::UTC);
+                    schedule.datetime.setTimeSpec(Qt::LocalTime);
                 }
             }
             // Absolute time
             else
             {
                 schedule.datetime = QDateTime::fromString(time, Qt::ISODate);
-                schedule.datetime.setTimeSpec(Qt::UTC);
+                schedule.datetime.setTimeSpec(Qt::LocalTime);
 
                 if (schedule.datetime.isValid())
                 {
@@ -1120,7 +1134,7 @@ void DeRestPluginPrivate::scheduleTimerFired()
     std::vector<Schedule>::iterator i = schedules.begin();
     std::vector<Schedule>::iterator end = schedules.end();
 
-    QDateTime now = QDateTime::currentDateTimeUtc();
+    QDateTime now = QDateTime::currentDateTime();
 
     for (; i != end; ++i)
     {
