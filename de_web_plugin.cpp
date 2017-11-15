@@ -11411,6 +11411,24 @@ bool DeRestPluginPrivate::resetConfiguration(bool resetGW, bool deleteDB)
         }
         if (deleteDB)
         {
+            QString path = deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation);
+            QString filename = path + "/zll.db";
+
+            QFile file(filename);
+            if (file.exists())
+            {
+                QDateTime now = QDateTime::currentDateTime();
+                QString newFilename = path + "zll_" + now.toString(Qt::ISODate) + ".bak";
+                bool ret = QFile::copy(filename, newFilename);
+                if (ret)
+                {
+                 DBG_Printf(DBG_INFO, "db backup success\n");
+                }
+                else
+                {
+                 DBG_Printf(DBG_INFO, "db backup failed\n");
+                }
+            }
             openDb();
             clearDb();
             closeDb();
