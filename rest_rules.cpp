@@ -1519,7 +1519,8 @@ void DeRestPluginPrivate::triggerRule(Rule &rule)
         path.prepend(QLatin1String("api")); // api
 
         ApiRequest req(hdr, path, NULL, ai->body());
-        ApiResponse rsp; // dummy
+        ApiResponse rsp;
+        rsp.httpStatus = HttpStatusServiceUnavailable;
 
         // todo, dispatch request function
         if (path[2] == QLatin1String("groups"))
@@ -1557,6 +1558,12 @@ void DeRestPluginPrivate::triggerRule(Rule &rule)
         else
         {
             DBG_Printf(DBG_INFO, "unsupported rule action address %s\n", qPrintable(ai->address()));
+            return;
+        }
+
+        if (rsp.httpStatus != HttpStatusOk)
+        {
+            DBG_Printf(DBG_INFO, "trigger rule %s - %s failed with status %s\n", qPrintable(rule.id()), qPrintable(rule.name()), rsp.httpStatus);
             return;
         }
     }
