@@ -301,7 +301,7 @@ void PollManager::pollTimerFired()
         if (item && (item->toString().isEmpty() || item->toString() == QLatin1String("unknown")))
         {
             clusterId = BASIC_CLUSTER_ID;
-            attributes.push_back(0x0004); // manufacturer
+            //attributes.push_back(0x0004); // manufacturer
             attributes.push_back(0x0005); // model id
         }
     }
