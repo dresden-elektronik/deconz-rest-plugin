@@ -232,6 +232,17 @@ static const Sensor::ButtonMap bjeSwitchMap[] = {
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
 };
 
+static const Sensor::ButtonMap xiaomiSwitchAq2Map[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    // First button
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x0a, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Normal press" },
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x0a, 2,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Double press" },
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x0a, 3,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "Triple press" },
+
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
+};
+
 static const Sensor::ButtonMap ubisysD1Map[] = {
 //    mode                          ep    cluster cmd   param button                                       name
     // First button
@@ -742,6 +753,10 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         else if (m_manufacturer == QLatin1String("ubisys"))
         {
             m_buttonMap = ubisysD1Map;
+        }
+        else if (m_manufacturer == QLatin1String("LUMI"))
+        {
+            if      (m_modelid.startsWith(QLatin1String("lumi.sensor_switch.aq2")))  { m_buttonMap = xiaomiSwitchAq2Map; }
         }
     }
 

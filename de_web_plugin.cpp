@@ -450,29 +450,27 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
         handleIndicationFindSensors(ind, zclFrame);
 
         if (ind.dstAddressMode() == deCONZ::ApsGroupAddress || ind.clusterId() == VENDOR_CLUSTER_ID ||
-            !(zclFrame.frameControl() & deCONZ::ZclFCDirectionServerToClient))
+            !(zclFrame.frameControl() & deCONZ::ZclFCDirectionServerToClient) ||
+            (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReportAttributesId))
         {
-            if (zclFrame.isClusterCommand())
-            {
-                Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
-                if (!sensorNode && zclFrame.manufacturerCode() == VENDOR_PHILIPS)
-                {   // dimmer switch?
-                    sensorNode = getSensorNodeForAddress(ind.srcAddress());
-                }
+            Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
+            if (!sensorNode && zclFrame.manufacturerCode() == VENDOR_PHILIPS)
+            {   // dimmer switch?
+                sensorNode = getSensorNodeForAddress(ind.srcAddress());
+            }
 
-                if (sensorNode)
+            if (sensorNode)
+            {
+                sensorNode->rx();
+                sensorNode->incrementRxCounter();
+                ResourceItem *item = sensorNode->item(RConfigReachable);
+                if (item && !item->toBool())
                 {
-                    sensorNode->rx();
-                    sensorNode->incrementRxCounter();
-                    ResourceItem *item = sensorNode->item(RConfigReachable);
-                    if (item && !item->toBool())
-                    {
-                        item->setValue(true);
-                        Event e(RSensors, RConfigReachable, sensorNode->id(), item);
-                        enqueueEvent(e);
-                    }
-                    checkSensorButtonEvent(sensorNode, ind, zclFrame);
+                    item->setValue(true);
+                    Event e(RSensors, RConfigReachable, sensorNode->id(), item);
+                    enqueueEvent(e);
                 }
+                checkSensorButtonEvent(sensorNode, ind, zclFrame);
             }
         }
 
@@ -2179,7 +2177,38 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         {
             ok = true;
 
-            if (ind.clusterId() == SCENE_CLUSTER_ID && zclFrame.commandId() == 0x05) // recall scene
+            if (zclFrame.isProfileWideCommand() &&
+                zclFrame.commandId() == deCONZ::ZclReportAttributesId &&
+                zclFrame.payload().size() >= 4)
+            {
+                QDataStream stream(zclFrame.payload());
+                stream.setByteOrder(QDataStream::LittleEndian);
+                quint16 attrId;
+                quint8 dataType;
+                stream >> attrId;
+                stream >> dataType;
+
+                // Xiamoi
+                if (ind.clusterId() == ONOFF_CLUSTER_ID && sensor->manufacturer() == QLatin1String("LUMI"))
+                {
+                    ok = false;
+                    // payload: u16 attrId, u8 datatype, u8 data
+                    if (attrId == 0x0000 && dataType == 0x10 && // onoff attribute
+                        buttonMap->zclParam0 == zclFrame.payload().at(3))
+                    {
+                        ok = true;
+                    }
+                    else if (attrId == 0x8000 && dataType == 0x20 && // custom attribute for multi press
+                        buttonMap->zclParam0 == zclFrame.payload().at(3))
+                    {
+                        ok = true;
+                    }
+                }
+            }
+            else if (zclFrame.isProfileWideCommand())
+            {
+            }
+            else if (ind.clusterId() == SCENE_CLUSTER_ID && zclFrame.commandId() == 0x05) // recall scene
             {
                 ok = false; // payload: groupId, sceneId
                 if (zclFrame.payload().size() >= 3 && buttonMap->zclParam0 == zclFrame.payload().at(2))
@@ -3840,7 +3869,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 item = i->item(RStateButtonEvent);
 
-                                if (item &&
+                                if (item && !i->buttonMap() &&
                                     event.event() == deCONZ::NodeEvent::UpdatedClusterDataZclReport)
                                 {
                                     // TODO better button handler
@@ -9429,7 +9458,12 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
                                      deCONZ::ZclFCDirectionClientToServer |
                                      deCONZ::ZclFCDisableDefaultResponse);
 
-            if (manufacturer.isEmpty()) { attributes.push_back(0x0004); }// manufacturer
+            if ((sc->address.ext() & macPrefixMask) == jennicMacPrefix)
+            {
+                // don't read these (Xiaomi, Trust, ...)
+                // response is empty or no response at all
+            }
+            else if (manufacturer.isEmpty()) { attributes.push_back(0x0004); }// manufacturer
             else if (modelId.isEmpty()) { attributes.push_back(0x0005); } // model id
             else if (swBuildId.isEmpty() && dateCode.isEmpty())
             {
