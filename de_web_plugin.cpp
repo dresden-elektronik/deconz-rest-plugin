@@ -2697,10 +2697,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
 
             if (modelId.startsWith(QLatin1String("RWL02")))
             {
+                sensor = getSensorNodeForAddress(node->address().ext()); // former created with with endpoint 1
                 fpSwitch.endpoint = 2;
             }
 
-            sensor = getSensorNodeForFingerPrint(node->address().ext(), fpSwitch, "ZHASwitch");
+            if (!sensor)
+            {
+                sensor = getSensorNodeForFingerPrint(node->address().ext(), fpSwitch, "ZHASwitch");
+            }
 
             if (modelId == QLatin1String("OJB-IR715-Z"))
             {
