@@ -664,8 +664,8 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     map["dhcp"] = true; // dummy
     map["proxyaddress"] = gwProxyAddress;
     map["proxyport"] = (double)gwProxyPort;
-    map["UTC"] = datetime.toString("yyyy-MM-ddTHH:mm:ss"); // ISO 8601
-    map["localtime"] = localtime.toString("yyyy-MM-ddTHH:mm:ss"); // ISO 8601
+    map["UTC"] = datetime.toString(QLatin1String("yyyy-MM-ddTHH:mm:ss")); // ISO 8601
+    map["localtime"] = localtime.toString(QLatin1String("yyyy-MM-ddTHH:mm:ss")); // ISO 8601
     map["timezone"] = gwTimezone;
     map["networkopenduration"] = gwNetworkOpenDuration;
     map["timeformat"] = gwTimeFormat;

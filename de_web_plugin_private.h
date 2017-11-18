@@ -340,8 +340,8 @@ struct Schedule
     Schedule() :
         type(TypeInvalid),
         state(StateNormal),
-        status("enabled"),
-        activation("start"),
+        status(QLatin1String("enabled")),
+        activation(QLatin1String("start")),
         autodelete(true),
         weekBitmap(0),
         recurring(0),
@@ -386,6 +386,7 @@ struct Schedule
     quint8 weekBitmap;
     /*! R[nn], the recurring part, 0 means forever. */
     uint recurring;
+    QDateTime endtime; /*! Localtime of timeout: for timers only. */
     /*! Timeout in seconds. */
     int timeout;
     /*! Current timeout counting down to ::timeout. */

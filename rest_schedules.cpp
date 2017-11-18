@@ -99,6 +99,10 @@ int DeRestPluginPrivate::getAllSchedules(const ApiRequest &req, ApiResponse &rsp
             {
                 mnode["starttime"] = i->starttime;
             }
+            if (i->jsonMap.contains("created"))
+            {
+                mnode["created"] = i->jsonMap["created"];
+            }
             mnode["status"] = i->status;
             mnode["activation"] = i->activation;
             mnode["autodelete"] = i->autodelete;
@@ -201,6 +205,10 @@ int DeRestPluginPrivate::getScheduleAttributes(const ApiRequest &req, ApiRespons
             {
                 rsp.map["starttime"] = i->starttime;
             }
+            if (i->jsonMap.contains("created"))
+            {
+                rsp.map["created"] = i->jsonMap["created"];
+            }
             rsp.map["status"] = i->status;
             rsp.map["activation"] = i->activation;
             rsp.map["autodelete"] = i->autodelete;
@@ -231,472 +239,417 @@ int DeRestPluginPrivate::setScheduleAttributes(const ApiRequest &req, ApiRespons
 
     for (; i != end; ++i)
     {
-        if ((i->id == id) && (i->state == Schedule::StateNormal))
+
+        if (i->state != Schedule::StateNormal || i->id != id)
         {
-            bool ok;
-            QVariant var = Json::parse(req.content, ok);
-            QVariantMap map = var.toMap();
+            continue;
+        }
 
-            if (!ok || map.isEmpty())
+        bool ok;
+        QVariant var = Json::parse(req.content, ok);
+        QVariantMap map = var.toMap();
+
+        if (!ok || map.isEmpty())
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_JSON, QString("/schedules/%1").arg(id), QString("body contains invalid JSON")));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return false;
+        }
+
+        if (map.contains("name") && (map["name"].type() == QVariant::String))
+        {
+            QString name = map["name"].toString();
+
+            if (name.size() > 0 && name.size() <= 32)
             {
-                rsp.list.append(errorToMap(ERR_INVALID_JSON, QString("/schedules/%1").arg(id), QString("body contains invalid JSON")));
-                rsp.httpStatus = HttpStatusBadRequest;
-                return false;
-            }
-
-            if (map.contains("name") && (map["name"].type() == QVariant::String))
-            {
-                QString name = map["name"].toString();
-
-                if (name.size() > 0 && name.size() <= 32)
-                {
-                    i->name = name;
-                    i->jsonMap["name"] = map["name"];
-
-                    QVariantMap rspItem;
-                    QVariantMap rspItemState;
-                    rspItemState[QString("/schedules/%1/name").arg(id)] = map["name"];
-                    rspItem["success"] = rspItemState;
-                    rsp.list.append(rspItem);
-                    rsp.httpStatus = HttpStatusOk;
-                }
-                else
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules/%1").arg(id), QString("invalid value, %1, for parameter name").arg(map["name"].toString())));
-                }
-            }
-
-            if (map.contains("description") && (map["description"].type() == QVariant::String))
-            {
-                QString description = map["description"].toString();
-
-                if (description.size() > 0 && description.size() <= 32)
-                {
-                    i->description = description;
-                    i->jsonMap["description"] = map["description"];
-
-                    QVariantMap rspItem;
-                    QVariantMap rspItemState;
-                    rspItemState[QString("/schedules/%1/description").arg(id)] = map["description"];
-                    rspItem["success"] = rspItemState;
-                    rsp.list.append(rspItem);
-                    rsp.httpStatus = HttpStatusOk;
-                }
-                else
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules/%1").arg(id), QString("invalid value, %1, for parameter description").arg(map["description"].toString())));
-                }
-            }
-
-            if (map.contains("status") && (map["status"].type() == QVariant::String))
-            {
-                QString status = map["status"].toString();
-
-                if ((status == "enabled") || (status == "disabled"))
-                {
-                    i->status = status;
-                    i->jsonMap["status"] = map["status"];
-
-                    QVariantMap rspItem;
-                    QVariantMap rspItemState;
-                    rspItemState[QString("/schedules/%1/status").arg(id)] = map["status"];
-                    rspItem["success"] = rspItemState;
-                    rsp.list.append(rspItem);
-                    rsp.httpStatus = HttpStatusOk;
-                }
-                else
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules/%1").arg(id), QString("invalid value, %1, for parameter status").arg(map["status"].toString())));
-                }
-            }
-
-            if (map.contains("activation") && (map["activation"].type() == QVariant::String))
-            {
-                QString activation = map["activation"].toString();
-
-                if ((activation == "start") || (activation == "end"))
-                {
-                    i->activation = activation;
-                    i->jsonMap["activation"] = map["activation"];
-
-                    QVariantMap rspItem;
-                    QVariantMap rspItemState;
-                    rspItemState[QString("/schedules/%1/activation").arg(id)] = map["activation"];
-                    rspItem["success"] = rspItemState;
-                    rsp.list.append(rspItem);
-                    rsp.httpStatus = HttpStatusOk;
-                }
-                else
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules/%1").arg(id), QString("invalid value, %1, for parameter activation").arg(map["activation"].toString())));
-                }
-            }
-
-            if (map.contains("command") && (map["command"].type() == QVariant::Map))
-            {
-                QVariantMap cmd = map["command"].toMap();
-
-                if (!cmd.isEmpty() && cmd.contains("address") && cmd.contains("method") && cmd.contains("body"))
-                {
-                    i->command = deCONZ::jsonStringFromMap(cmd);
-                    i->jsonMap["command"] = map["command"];
-
-                    QVariantMap rspItem;
-                    QVariantMap rspItemState;
-                    rspItemState[QString("/schedules/%1/command").arg(id)] = map["command"];
-                    rspItem["success"] = rspItemState;
-                    rsp.list.append(rspItem);
-                    rsp.httpStatus = HttpStatusOk;
-                }
-                else
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules/%1").arg(id), QString("invalid value, %1, for parameter command").arg(map["command"].toString())));
-                }
-            }
-
-            if (map.contains("autodelete"))
-            {
-                if (map["autodelete"].type() == QVariant::Bool)
-                {
-                    bool autodelete = map["autodelete"].toBool();
-                    i->autodelete = autodelete;
-                    i->jsonMap["autodelete"] = map["autodelete"];
-
-                    QVariantMap rspItem;
-                    QVariantMap rspItemState;
-                    rspItemState[QString("/schedules/%1/autodelete").arg(id)] = map["autodelete"];
-                    rspItem["success"] = rspItemState;
-                    rsp.list.append(rspItem);
-                    rsp.httpStatus = HttpStatusOk;
-                }
-                else
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules/%1").arg(id), QString("invalid value, %1, for parameter autodelete").arg(map["autodelete"].toString())));
-                }
-            }
-
-            // time
-            if (map.contains("time") && (map["time"].type() == QVariant::String))
-            {
-                QString time = map["time"].toString();
-
-                { // cutoff random part, A[hh]:[mm]:[ss], because this is not supported yet
-                    QStringList ls = time.split("A");
-
-                    if (ls.size() == 2)
-                    {
-                        DBG_Printf(DBG_INFO, "cut off random part %s\n", qPrintable(ls[1]));
-                        time = ls.first();
-                    }
-                }
-
-                // Timer with random element
-                // PT[hh]:[mm]:[ss]A[hh]:[mm]:[ss]
-                if (time.startsWith("PT") && time.contains("A"))
-                {
-        //            schedule.type = Schedule::TypeTimer;
-                }
-                // Recurring timer with random element
-                // R[nn]/PT[hh]:[mm]:[ss]A[hh]:[mm]:[ss]
-                else if (time.startsWith("R") && time.contains("PT") && time.contains("A"))
-                {
-        //            schedule.type = Schedule::TypeTimer;
-                }
-                // Recurring timer
-                // R[nn]/PT[hh]:[mm]:[ss]
-                else if (time.startsWith("R") && time.contains("PT"))
-                {
-                    QRegExp rx("R([0-9]{0,2})/PT(\\d\\d):(\\d\\d):(\\d\\d)");
-
-                    if (rx.exactMatch(time))
-                    {
-                        i->timeout = rx.cap(2).toInt() * 60 * 60 + // h
-                                     rx.cap(3).toInt() * 60 +   // m
-                                     rx.cap(4).toInt(); // s
-                        i->currentTimeout = i->timeout;
-                        QDateTime now = QDateTime::currentDateTime();
-                        i->starttime = now.toString("yyyy-MM-ddThh:mm:ss");
-
-                        QString R = rx.cap(1);
-                        if (!R.isEmpty())
-                        {
-                            i->recurring = R.toUInt();
-                        }
-                        else
-                        {
-                            i->recurring = 0; // runs forever
-                        }
-
-                        if (i->timeout > 0)
-                        {
-                            i->type = Schedule::TypeTimer;
-                        }
-                    }
-                    else
-                    {
-                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules"), QString("invalid value, %1, for parameter time").arg(map["time"].toString())));
-                        rsp.httpStatus = HttpStatusBadRequest;
-                        return REQ_READY_SEND;
-                    }
-                }
-                // Timer expiring at given time
-                // PT[hh]:[mm]:[ss]
-                else if (time.startsWith("PT"))
-                {
-                    QRegExp rx("PT(\\d\\d):(\\d\\d):(\\d\\d)");
-
-                    if (rx.exactMatch(time))
-                    {
-                        i->timeout = rx.cap(1).toInt() * 60 * 60 + // h
-                                     rx.cap(2).toInt() * 60 +   // m
-                                     rx.cap(3).toInt(); // s
-                        i->currentTimeout = i->timeout;
-                        i->recurring = 1;
-                        QDateTime now = QDateTime::currentDateTime();
-                        i->starttime = now.toString("yyyy-MM-ddThh:mm:ss");
-
-                        if (i->timeout > 0)
-                        {
-                            i->type = Schedule::TypeTimer;
-                        }
-                    }
-                    else
-                    {
-                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules"), QString("invalid value, %1, for parameter time").arg(map["time"].toString())));
-                        rsp.httpStatus = HttpStatusBadRequest;
-                        return REQ_READY_SEND;
-                    }
-                }
-                // Every weekday given by bbb at given left side time, randomized by right side time.
-                // Right side time has to be smaller than 12 hours
-                // W[bbb]/T[hh]:[mm]:[ss]A[hh]:[mm]:[ss]
-                else if (time.startsWith("W") && time.contains("T") && time.contains("A"))
-                {
-        //            schedule.type = Schedule::TypeRecurringTime;
-                }
-                // Every day of the week  given by bbb at given time
-                // W[bbb]/T[hh]:[mm]:[ss]
-                else if (time.startsWith("W") && time.contains("T"))
-                {
-                    QRegExp rx("W([0-9]{1,3})/T(\\d\\d):(\\d\\d):(\\d\\d)");
-
-                    if (rx.exactMatch(time))
-                    {
-                        i->type = Schedule::TypeRecurringTime;
-                        i->weekBitmap = rx.cap(1).toUInt();
-                        //dummy date needed when recurring alarm timout fired
-                        i->datetime = QDateTime::currentDateTimeUtc();
-                        i->datetime.setTime(QTime(rx.cap(2).toUInt(),   // h
-                                                  rx.cap(3).toUInt(),   // m
-                                                  rx.cap(4).toUInt())); // s
-                        i->datetime.setTimeSpec(Qt::UTC);
-
-                        // conversion to localtime
-                        i->datetime = i->datetime.toLocalTime();
-                    }
-                    else
-                    {
-                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules"), QString("invalid value, %1, for parameter time").arg(map["time"].toString())));
-                        rsp.httpStatus = HttpStatusBadRequest;
-                        return REQ_READY_SEND;
-                    }
-                }
-                // Absolute time
-                else
-                {
-                    QDateTime checkTime = QDateTime::fromString(time, Qt::ISODate);
-                    checkTime.setTimeSpec(Qt::UTC);
-
-                    // conversion to localtime
-                    checkTime = checkTime.toLocalTime();
-
-                    if (checkTime.isValid())
-                    {
-                        i->datetime = checkTime;
-                        i->type = Schedule::TypeAbsoluteTime;
-                    }
-                    else
-                    {
-                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules"), QString("invalid value, %1, for parameter time").arg(map["time"].toString())));
-                        rsp.httpStatus = HttpStatusBadRequest;
-                        return REQ_READY_SEND;
-                    }
-                }
-                    i->time = time;
-                    i->jsonMap["time"] = map["time"];
-
-                    QVariantMap rspItem;
-                    QVariantMap rspItemState;
-                    rspItemState[QString("/schedules/%1/time").arg(id)] = map["time"];
-                    rspItem["success"] = rspItemState;
-                    rsp.list.append(rspItem);
-                    rsp.httpStatus = HttpStatusOk;
-            }
-
-            // localtime
-            if (map.contains("localtime") && (map["localtime"].type() == QVariant::String))
-            {
-                if (!map.contains("time"))
-                {
-                    QString time = map["localtime"].toString();
-
-                    { // cutoff random part, A[hh]:[mm]:[ss], because this is not supported yet
-                        QStringList ls = time.split("A");
-
-                        if (ls.size() == 2)
-                        {
-                            DBG_Printf(DBG_INFO, "cut off random part %s\n", qPrintable(ls[1]));
-                            time = ls.first();
-                        }
-                    }
-
-                    // Timer with random element
-                    // PT[hh]:[mm]:[ss]A[hh]:[mm]:[ss]
-                    if (time.startsWith("PT") && time.contains("A"))
-                    {
-            //            schedule.type = Schedule::TypeTimer;
-                    }
-                    // Recurring timer with random element
-                    // R[nn]/PT[hh]:[mm]:[ss]A[hh]:[mm]:[ss]
-                    else if (time.startsWith("R") && time.contains("PT") && time.contains("A"))
-                    {
-            //            schedule.type = Schedule::TypeTimer;
-                    }
-                    // Recurring timer
-                    // R[nn]/PT[hh]:[mm]:[ss]
-                    else if (time.startsWith("R") && time.contains("PT"))
-                    {
-                        QRegExp rx("R([0-9]{0,2})/PT(\\d\\d):(\\d\\d):(\\d\\d)");
-
-                        if (rx.exactMatch(time))
-                        {
-                            i->timeout = rx.cap(2).toInt() * 60 * 60 + // h
-                                         rx.cap(3).toInt() * 60 +   // m
-                                         rx.cap(4).toInt(); // s
-                            i->currentTimeout = i->timeout;
-                            QDateTime now = QDateTime::currentDateTime();
-                            i->starttime = now.toString("yyyy-MM-ddThh:mm:ss");
-
-                            QString R = rx.cap(1);
-                            if (!R.isEmpty())
-                            {
-                                i->recurring = R.toUInt();
-                            }
-                            else
-                            {
-                                i->recurring = 0; // runs forever
-                            }
-
-                            if (i->timeout > 0)
-                            {
-                                i->type = Schedule::TypeTimer;
-                            }
-                        }
-                        else
-                        {
-                            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules"), QString("invalid value, %1, for parameter localtime").arg(map["localtime"].toString())));
-                            rsp.httpStatus = HttpStatusBadRequest;
-                            return REQ_READY_SEND;
-                        }
-                    }
-                    // Timer expiring at given time
-                    // PT[hh]:[mm]:[ss]
-                    else if (time.startsWith("PT"))
-                    {
-                        QRegExp rx("PT(\\d\\d):(\\d\\d):(\\d\\d)");
-
-                        if (rx.exactMatch(time))
-                        {
-                            i->timeout = rx.cap(1).toInt() * 60 * 60 + // h
-                                         rx.cap(2).toInt() * 60 +   // m
-                                         rx.cap(3).toInt(); // s
-                            i->currentTimeout = i->timeout;
-                            i->recurring = 1;
-                            QDateTime now = QDateTime::currentDateTime();
-                            i->starttime = now.toString("yyyy-MM-ddThh:mm:ss");
-
-                            if (i->timeout > 0)
-                            {
-                                i->type = Schedule::TypeTimer;
-                            }
-                        }
-                        else
-                        {
-                            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules"), QString("invalid value, %1, for parameter localtime").arg(map["localtime"].toString())));
-                            rsp.httpStatus = HttpStatusBadRequest;
-                            return REQ_READY_SEND;
-                        }
-                    }
-                    // Every weekday given by bbb at given left side time, randomized by right side time.
-                    // Right side time has to be smaller than 12 hours
-                    // W[bbb]/T[hh]:[mm]:[ss]A[hh]:[mm]:[ss]
-                    else if (time.startsWith("W") && time.contains("T") && time.contains("A"))
-                    {
-            //            schedule.type = Schedule::TypeRecurringTime;
-                    }
-                    // Every day of the week  given by bbb at given time
-                    // W[bbb]/T[hh]:[mm]:[ss]
-                    else if (time.startsWith("W") && time.contains("T"))
-                    {
-                        QRegExp rx("W([0-9]{1,3})/T(\\d\\d):(\\d\\d):(\\d\\d)");
-
-                        if (rx.exactMatch(time))
-                        {
-                            i->type = Schedule::TypeRecurringTime;
-                            i->weekBitmap = rx.cap(1).toUInt();
-                            //dummy date needed when recurring alarm timout fired
-                            i->datetime = QDateTime::currentDateTime();
-                            i->datetime.setTime(QTime(rx.cap(2).toUInt(),   // h
-                                                      rx.cap(3).toUInt(),   // m
-                                                      rx.cap(4).toUInt())); // s
-                            i->datetime.setTimeSpec(Qt::LocalTime);
-                        }
-                        else
-                        {
-                            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules"), QString("invalid value, %1, for parameter localtime").arg(map["localtime"].toString())));
-                            rsp.httpStatus = HttpStatusBadRequest;
-                            return REQ_READY_SEND;
-                        }
-                    }
-                    // Absolute time
-                    else
-                    {
-                        QDateTime checkTime = QDateTime::fromString(time, Qt::ISODate);
-                        checkTime.setTimeSpec(Qt::LocalTime);
-
-                        if (checkTime.isValid())
-                        {
-                            i->datetime = checkTime;
-                            i->type = Schedule::TypeAbsoluteTime;
-                        }
-                        else
-                        {
-                            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules"), QString("invalid value, %1, for parameter localtime").arg(map["localtime"].toString())));
-                            rsp.httpStatus = HttpStatusBadRequest;
-                            return REQ_READY_SEND;
-                        }
-                    }
-                }
-                i->localtime = map["localtime"].toString();
-                i->jsonMap["localtime"] = map["localtime"];
+                i->name = name;
+                i->jsonMap["name"] = map["name"];
 
                 QVariantMap rspItem;
                 QVariantMap rspItemState;
-                rspItemState[QString("/schedules/%1/localtime").arg(id)] = map["localtime"];
+                rspItemState[QString("/schedules/%1/name").arg(id)] = map["name"];
                 rspItem["success"] = rspItemState;
                 rsp.list.append(rspItem);
                 rsp.httpStatus = HttpStatusOk;
             }
-
-            updateEtag(i->etag);
-
-            i->jsonMap["etag"] = i->etag.remove('"'); // no quotes allowed in string;
-            i->jsonString = deCONZ::jsonStringFromMap(i->jsonMap);
-            queSaveDb(DB_SCHEDULES, DB_SHORT_SAVE_DELAY);
-
-            return REQ_READY_SEND;
+            else
+            {
+                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules/%1").arg(id), QString("invalid value, %1, for parameter name").arg(map["name"].toString())));
+            }
         }
+
+        if (map.contains("description") && (map["description"].type() == QVariant::String))
+        {
+            QString description = map["description"].toString();
+
+            if (description.size() > 0 && description.size() <= 32)
+            {
+                i->description = description;
+                i->jsonMap["description"] = map["description"];
+
+                QVariantMap rspItem;
+                QVariantMap rspItemState;
+                rspItemState[QString("/schedules/%1/description").arg(id)] = map["description"];
+                rspItem["success"] = rspItemState;
+                rsp.list.append(rspItem);
+                rsp.httpStatus = HttpStatusOk;
+            }
+            else
+            {
+                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules/%1").arg(id), QString("invalid value, %1, for parameter description").arg(map["description"].toString())));
+            }
+        }
+
+        if (map.contains("status") && (map["status"].type() == QVariant::String))
+        {
+            QString status = map["status"].toString();
+
+            if ((status == "enabled") || (status == "disabled"))
+            {
+                i->status = status;
+                i->jsonMap["status"] = map["status"];
+
+                if (i->status == QLatin1String("disabled"))
+                {
+                    i->endtime = QDateTime();
+                }
+
+                QVariantMap rspItem;
+                QVariantMap rspItemState;
+                rspItemState[QString("/schedules/%1/status").arg(id)] = map["status"];
+                rspItem["success"] = rspItemState;
+                rsp.list.append(rspItem);
+                rsp.httpStatus = HttpStatusOk;
+            }
+            else
+            {
+                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules/%1").arg(id), QString("invalid value, %1, for parameter status").arg(map["status"].toString())));
+            }
+        }
+
+        if (map.contains("activation") && (map["activation"].type() == QVariant::String))
+        {
+            QString activation = map["activation"].toString();
+
+            if ((activation == "start") || (activation == "end"))
+            {
+                i->activation = activation;
+                i->jsonMap["activation"] = map["activation"];
+
+                QVariantMap rspItem;
+                QVariantMap rspItemState;
+                rspItemState[QString("/schedules/%1/activation").arg(id)] = map["activation"];
+                rspItem["success"] = rspItemState;
+                rsp.list.append(rspItem);
+                rsp.httpStatus = HttpStatusOk;
+            }
+            else
+            {
+                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules/%1").arg(id), QString("invalid value, %1, for parameter activation").arg(map["activation"].toString())));
+            }
+        }
+
+        if (map.contains("command") && (map["command"].type() == QVariant::Map))
+        {
+            QVariantMap cmd = map["command"].toMap();
+
+            if (!cmd.isEmpty() && cmd.contains("address") && cmd.contains("method") && cmd.contains("body"))
+            {
+                i->command = deCONZ::jsonStringFromMap(cmd);
+                i->jsonMap["command"] = map["command"];
+
+                QVariantMap rspItem;
+                QVariantMap rspItemState;
+                rspItemState[QString("/schedules/%1/command").arg(id)] = map["command"];
+                rspItem["success"] = rspItemState;
+                rsp.list.append(rspItem);
+                rsp.httpStatus = HttpStatusOk;
+            }
+            else
+            {
+                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules/%1").arg(id), QString("invalid value, %1, for parameter command").arg(map["command"].toString())));
+            }
+        }
+
+        if (map.contains("autodelete"))
+        {
+            if (map["autodelete"].type() == QVariant::Bool)
+            {
+                bool autodelete = map["autodelete"].toBool();
+                i->autodelete = autodelete;
+                i->jsonMap["autodelete"] = map["autodelete"];
+
+                QVariantMap rspItem;
+                QVariantMap rspItemState;
+                rspItemState[QString("/schedules/%1/autodelete").arg(id)] = map["autodelete"];
+                rspItem["success"] = rspItemState;
+                rsp.list.append(rspItem);
+                rsp.httpStatus = HttpStatusOk;
+            }
+            else
+            {
+                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules/%1").arg(id), QString("invalid value, %1, for parameter autodelete").arg(map["autodelete"].toString())));
+            }
+        }
+
+        // time
+        QString time;
+        Qt::TimeSpec timeSpec = Qt::UTC;
+
+        // time (deprecated)
+        if (map.contains("time") && (map["time"].type() == QVariant::String))
+        {
+            time = map["time"].toString();
+            timeSpec = Qt::UTC;
+        }
+
+        // localtime (overwrites UTC)
+        if (map.contains("localtime") && (map["localtime"].type() == QVariant::String))
+        {
+            time = map["localtime"].toString();
+            timeSpec = Qt::LocalTime;
+        }
+
+        if (!time.isEmpty())
+        {
+            { // cutoff random part, A[hh]:[mm]:[ss], because this is not supported yet
+                QStringList ls = time.split("A");
+
+                if (ls.size() == 2)
+                {
+                    DBG_Printf(DBG_INFO, "cut off random part %s\n", qPrintable(ls[1]));
+                    time = ls.first();
+                }
+            }
+
+            // Timer with random element
+            // PT[hh]:[mm]:[ss]A[hh]:[mm]:[ss]
+            if (time.startsWith("PT") && time.contains("A"))
+            {
+                //            schedule.type = Schedule::TypeTimer;
+            }
+            // Recurring timer with random element
+            // R[nn]/PT[hh]:[mm]:[ss]A[hh]:[mm]:[ss]
+            else if (time.startsWith("R") && time.contains("PT") && time.contains("A"))
+            {
+                //            schedule.type = Schedule::TypeTimer;
+            }
+            // Recurring timer
+            // R[nn]/PT[hh]:[mm]:[ss]
+            else if (time.startsWith("R") && time.contains("PT"))
+            {
+                QRegExp rx("R([0-9]{0,2})/PT(\\d\\d):(\\d\\d):(\\d\\d)");
+
+                if (rx.exactMatch(time))
+                {
+                    // offset always from current localtime?
+                    i->timeout = rx.cap(2).toInt() * 60 * 60 + // h
+                            rx.cap(3).toInt() * 60 +   // m
+                            rx.cap(4).toInt(); // s
+                    i->currentTimeout = i->timeout;
+                    QDateTime now = QDateTime::currentDateTimeUtc();
+                    i->starttime = now.toString("yyyy-MM-ddThh:mm:ss");
+                    if (i->status == QLatin1String("enabled"))
+                    {
+                        if (timeSpec == Qt::UTC)
+                        {
+                            i->endtime = QDateTime::currentDateTimeUtc().addSecs(i->timeout);
+                            int toffset = QDateTime::currentDateTime().offsetFromUtc();
+                            i->endtime = i->endtime.addSecs(toffset);
+                            i->endtime.setOffsetFromUtc(toffset);
+                            i->endtime.setTimeSpec(Qt::LocalTime);
+                        }
+                        else if (timeSpec == Qt::LocalTime)
+                        {
+                            i->endtime = QDateTime::currentDateTime().addSecs(i->timeout);
+                        }
+                    }
+
+                    QString R = rx.cap(1);
+                    if (!R.isEmpty())
+                    {
+                        i->recurring = R.toUInt();
+                    }
+                    else
+                    {
+                        i->recurring = 0; // runs forever
+                    }
+
+                    if (i->timeout > 0)
+                    {
+                        i->type = Schedule::TypeTimer;
+                    }
+                }
+                else
+                {
+                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules"), QString("invalid value, %1, for parameter time").arg(map["time"].toString())));
+                    rsp.httpStatus = HttpStatusBadRequest;
+                    return REQ_READY_SEND;
+                }
+            }
+            // Timer expiring after given time
+            // PT[hh]:[mm]:[ss]
+            else if (time.startsWith("PT"))
+            {
+                QRegExp rx("PT(\\d\\d):(\\d\\d):(\\d\\d)");
+
+                if (rx.exactMatch(time))
+                {
+                    // offset always from current localtime?
+                    i->timeout = rx.cap(1).toInt() * 60 * 60 + // h
+                                 rx.cap(2).toInt() * 60 +   // m
+                                 rx.cap(3).toInt(); // s
+                    i->currentTimeout = i->timeout;
+                    i->recurring = 1;
+                    QDateTime now = QDateTime::currentDateTimeUtc();
+                    i->starttime = now.toString("yyyy-MM-ddThh:mm:ss");
+                    if (i->status == QLatin1String("enabled"))
+                    {
+                        if (timeSpec == Qt::UTC)
+                        {
+                            i->endtime = QDateTime::currentDateTimeUtc().addSecs(i->timeout);
+                            int toffset = QDateTime::currentDateTime().offsetFromUtc();
+                            i->endtime = i->endtime.addSecs(toffset);
+                            i->endtime.setOffsetFromUtc(toffset);
+                            i->endtime.setTimeSpec(Qt::LocalTime);
+                        }
+                        else if (timeSpec == Qt::LocalTime)
+                        {
+                            i->endtime = QDateTime::currentDateTime().addSecs(i->timeout);
+                        }
+                    }
+
+                    if (i->timeout > 0)
+                    {
+                        i->type = Schedule::TypeTimer;
+                    }
+                }
+                else
+                {
+                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules"), QString("invalid value, %1, for parameter time").arg(map["time"].toString())));
+                    rsp.httpStatus = HttpStatusBadRequest;
+                    return REQ_READY_SEND;
+                }
+            }
+            // Every weekday given by bbb at given left side time, randomized by right side time.
+            // Right side time has to be smaller than 12 hours
+            // W[bbb]/T[hh]:[mm]:[ss]A[hh]:[mm]:[ss]
+            else if (time.startsWith("W") && time.contains("T") && time.contains("A"))
+            {
+                //            schedule.type = Schedule::TypeRecurringTime;
+            }
+            // Every day of the week  given by bbb at given time
+            // W[bbb]/T[hh]:[mm]:[ss]
+            else if (time.startsWith("W") && time.contains("T"))
+            {
+                QRegExp rx("W([0-9]{1,3})/T(\\d\\d):(\\d\\d):(\\d\\d)");
+
+                if (rx.exactMatch(time))
+                {
+                    i->type = Schedule::TypeRecurringTime;
+                    i->weekBitmap = rx.cap(1).toUInt();
+                    //dummy date needed when recurring alarm timout fired
+                    if (timeSpec == Qt::UTC)
+                    {
+                        i->datetime = QDateTime::currentDateTimeUtc();
+                    }
+                    else
+                    {
+                        i->datetime = QDateTime::currentDateTime();
+                    }
+                    i->datetime.setTime(QTime(rx.cap(2).toUInt(),   // h
+                                              rx.cap(3).toUInt(),   // m
+                                              rx.cap(4).toUInt())); // s
+
+                    // conversion to localtime
+                    if (timeSpec == Qt::UTC)
+                    {
+                        int toffset = QDateTime::currentDateTime().offsetFromUtc();
+                        i->datetime = i->datetime.addSecs(toffset);
+                        i->datetime.setOffsetFromUtc(toffset);
+                        i->datetime.setTimeSpec(Qt::LocalTime);
+                    }
+                }
+                else
+                {
+                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules"), QString("invalid value, %1, for parameter time").arg(map["time"].toString())));
+                    rsp.httpStatus = HttpStatusBadRequest;
+                    return REQ_READY_SEND;
+                }
+            }
+            // Absolute time
+            else
+            {
+                QDateTime checkTime = QDateTime::fromString(time, Qt::ISODate);
+                checkTime.setTimeSpec(timeSpec);
+
+                // conversion to localtime
+                if (checkTime.isValid() && timeSpec == Qt::UTC)
+                {
+                    int toffset = QDateTime::currentDateTime().offsetFromUtc();
+                    checkTime = checkTime.addSecs(toffset);
+                    checkTime.setOffsetFromUtc(toffset);
+                    checkTime.setTimeSpec(Qt::LocalTime);
+                }
+
+                if (checkTime.isValid())
+                {
+                    i->datetime = checkTime;
+                    i->endtime = checkTime;
+                    if (!map.contains(QLatin1String("time")))
+                    {
+                        i->time = checkTime.toUTC().toString(QLatin1String("yyyy-MM-ddTHH:mm:ss"));
+                    }
+                    if (!map.contains(QLatin1String("localtime")))
+                    {
+                        i->localtime = checkTime.toString(QLatin1String("yyyy-MM-ddTHH:mm:ss"));
+                    }
+                    i->type = Schedule::TypeAbsoluteTime;
+                }
+                else
+                {
+                    if (map.contains(QLatin1String("localtime")))
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules"), QString("invalid value, %1, for parameter localtime").arg(map["localtime"].toString())));
+                    }
+                    else
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules"), QString("invalid value, %1, for parameter time").arg(map["time"].toString())));
+                    }
+                    rsp.httpStatus = HttpStatusBadRequest;
+                    return REQ_READY_SEND;
+                }
+            }
+
+            if (map.contains(QLatin1String("localtime")))
+            {
+                i->localtime = map["localtime"].toString();
+                i->jsonMap["localtime"] = i->localtime;
+            }
+
+            if (map.contains(QLatin1String("time")))
+            {
+                i->time = map["time"].toString();
+                i->jsonMap["time"] = i->time;
+            }
+
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/schedules/%1/time").arg(id)] = map["time"];
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+            rsp.httpStatus = HttpStatusOk;
+        }
+
+        updateEtag(i->etag);
+
+        i->jsonMap["etag"] = i->etag.remove('"'); // no quotes allowed in string;
+        i->jsonString = Json::serialize(i->jsonMap);
+        queSaveDb(DB_SCHEDULES, DB_SHORT_SAVE_DELAY);
+
+        return REQ_READY_SEND;
     }
+
 
     rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/schedules/%1").arg(id), QString("resource, /schedules/%1, not available").arg(id)));
     rsp.httpStatus = HttpStatusNotFound;
@@ -824,6 +777,10 @@ bool DeRestPluginPrivate::jsonToSchedule(const QString &jsonString, Schedule &sc
     if (map.contains("status") && (map["status"].type() == QVariant::String) && ((map["status"].toString() == "enabled") || (map["status"].toString() == "disabled")))
     {
         schedule.status = map["status"].toString();
+        if (schedule.status == QLatin1String("disabled"))
+        {
+            schedule.endtime = QDateTime();
+        }
     }// else status enabled is used
 
     // activation
@@ -839,15 +796,40 @@ bool DeRestPluginPrivate::jsonToSchedule(const QString &jsonString, Schedule &sc
     }// else autodelete true is used
 
     // time
-    DBG_Assert(map.contains("time") || map.contains("localtime"));
+    QString time;
+    Qt::TimeSpec timeSpec = Qt::UTC;
+
+    // time (deprecated)
     if (map.contains("time") && (map["time"].type() == QVariant::String))
     {
         schedule.time = map["time"].toString();
+        time = schedule.time;
+        timeSpec = Qt::UTC;
+    }
 
-        QString time = schedule.time;
+    // localtime (overwrites UTC)
+    if (map.contains("localtime") && (map["localtime"].type() == QVariant::String))
+    {
+        schedule.localtime = map["localtime"].toString();
+        time = schedule.localtime;
+        timeSpec = Qt::LocalTime;
+    }
 
+    if (time.isEmpty())
+    {
+        DBG_Assert(map.contains("time") || map.contains("localtime"));
+        if (rsp)
+        {
+            rsp->list.append(errorToMap(ERR_MISSING_PARAMETER, QString("/schedules"), QString("missing parameter time or localtime")));
+            rsp->httpStatus = HttpStatusBadRequest;
+        }
+        return false;
+    }
+    else
+    {
+        //schedule.time = map["time"].toString();
         { // cutoff random part, A[hh]:[mm]:[ss], because this is not supported yet
-            QStringList ls = schedule.time.split("A");
+            QStringList ls = time.split("A");
 
             if (ls.size() == 2)
             {
@@ -876,12 +858,28 @@ bool DeRestPluginPrivate::jsonToSchedule(const QString &jsonString, Schedule &sc
 
             if (rx.exactMatch(time))
             {
+                // offset always from current localtime?
                 schedule.timeout = rx.cap(2).toInt() * 60 * 60 + // h
                                    rx.cap(3).toInt() * 60 +   // m
                                    rx.cap(4).toInt(); // s
                 schedule.currentTimeout = schedule.timeout;
-                QDateTime now = QDateTime::currentDateTime();
-                schedule.starttime = now.toString("yyyy-MM-ddThh:mm:ss");
+                QDateTime now = QDateTime::currentDateTimeUtc();
+                schedule.starttime = now.toString(QLatin1String("yyyy-MM-ddThh:mm:ss"));
+                if (schedule.status == QLatin1String("enabled"))
+                {
+                    if (timeSpec == Qt::UTC)
+                    {
+                        schedule.endtime = QDateTime::currentDateTimeUtc().addSecs(schedule.timeout);
+                        int toffset = QDateTime::currentDateTime().offsetFromUtc();
+                        schedule.endtime = schedule.endtime.addSecs(toffset);
+                        schedule.endtime.setOffsetFromUtc(toffset);
+                        schedule.endtime.setTimeSpec(Qt::LocalTime);
+                    }
+                    else if (timeSpec == Qt::LocalTime)
+                    {
+                        schedule.endtime = QDateTime::currentDateTime().addSecs(schedule.timeout);
+                    }
+                }
 
                 QString R = rx.cap(1);
                 if (!R.isEmpty())
@@ -907,13 +905,29 @@ bool DeRestPluginPrivate::jsonToSchedule(const QString &jsonString, Schedule &sc
 
             if (rx.exactMatch(time))
             {
+                // offset always from current localtime?
                 schedule.timeout = rx.cap(1).toInt() * 60 * 60 + // h
                                    rx.cap(2).toInt() * 60 +   // m
                                    rx.cap(3).toInt(); // s
                 schedule.currentTimeout = schedule.timeout;
                 schedule.recurring = 1;
-                QDateTime now = QDateTime::currentDateTime();
+                QDateTime now = QDateTime::currentDateTimeUtc();
                 schedule.starttime = now.toString("yyyy-MM-ddThh:mm:ss");
+                if (schedule.status == QLatin1String("enabled"))
+                {
+                    if (timeSpec == Qt::UTC)
+                    {
+                        schedule.endtime = QDateTime::currentDateTimeUtc().addSecs(schedule.timeout);
+                        int toffset = QDateTime::currentDateTime().offsetFromUtc();
+                        schedule.endtime = schedule.endtime.addSecs(toffset);
+                        schedule.endtime.setOffsetFromUtc(toffset);
+                        schedule.endtime.setTimeSpec(Qt::LocalTime);
+                    }
+                    else if (timeSpec == Qt::LocalTime)
+                    {
+                        schedule.endtime = QDateTime::currentDateTime().addSecs(schedule.timeout);
+                    }
+                }
 
                 if (schedule.timeout > 0)
                 {
@@ -938,26 +952,58 @@ bool DeRestPluginPrivate::jsonToSchedule(const QString &jsonString, Schedule &sc
             {
                 schedule.type = Schedule::TypeRecurringTime;
                 schedule.weekBitmap = rx.cap(1).toUInt();
+
+                if (timeSpec == Qt::UTC)
+                {
+                    schedule.datetime = QDateTime::currentDateTimeUtc();
+                }
+                else
+                {
+                    schedule.datetime = QDateTime::currentDateTime();
+                }
                 schedule.datetime.setTime(QTime(rx.cap(2).toUInt(),   // h
                                                 rx.cap(3).toUInt(),   // m
                                                 rx.cap(4).toUInt())); // s
-                schedule.datetime.setTimeSpec(Qt::UTC);
 
                 // conversion to localtime
-                schedule.datetime = schedule.datetime.toLocalTime();
+                if (timeSpec == Qt::UTC)
+                {
+                    int toffset = QDateTime::currentDateTime().offsetFromUtc();
+                    schedule.datetime = schedule.datetime.addSecs(toffset);
+                    schedule.datetime.setOffsetFromUtc(toffset);
+                    schedule.datetime.setTimeSpec(Qt::LocalTime);
+                }
             }
         }
         // Absolute time
         else
         {
             schedule.datetime = QDateTime::fromString(time, Qt::ISODate);
-            schedule.datetime.setTimeSpec(Qt::UTC);
+            schedule.datetime.setTimeSpec(timeSpec);
 
             // conversion to localtime
-            schedule.datetime = schedule.datetime.toLocalTime();
+            if (timeSpec == Qt::UTC)
+            {
+                int toffset = QDateTime::currentDateTime().offsetFromUtc();
+                schedule.datetime = schedule.datetime.addSecs(toffset);
+                schedule.datetime.setOffsetFromUtc(toffset);
+                schedule.datetime.setTimeSpec(Qt::LocalTime);
+            }
 
+            if (schedule.time.isEmpty())
+            {
+                schedule.time = schedule.datetime.toUTC().toString(QLatin1String("yyyy-MM-ddTHH:mm:ss"));
+            }
+
+            if (schedule.localtime.isEmpty())
+            {
+                schedule.localtime = schedule.datetime.toString(QLatin1String("yyyy-MM-ddTHH:mm:ss"));
+            }
+
+            schedule.endtime = QDateTime();
             if (schedule.datetime.isValid())
             {
+                schedule.endtime = schedule.datetime;
                 schedule.type = Schedule::TypeAbsoluteTime;
             }
         }
@@ -973,150 +1019,14 @@ bool DeRestPluginPrivate::jsonToSchedule(const QString &jsonString, Schedule &sc
         }
     }
 
-    // localtime
-    if (map.contains("localtime") && (map["localtime"].type() == QVariant::String))
-    {
-        schedule.localtime = map["localtime"].toString();
-
-        if (!map.contains("time"))
-        {
-            QString time = schedule.localtime;
-
-            { // cutoff random part, A[hh]:[mm]:[ss], because this is not supported yet
-                QStringList ls = schedule.time.split("A");
-
-                if (ls.size() == 2)
-                {
-                    DBG_Printf(DBG_INFO, "cut off random part %s\n", qPrintable(ls[1]));
-                    time = ls.first();
-                }
-            }
-
-            // Timer with random element
-            // PT[hh]:[mm]:[ss]A[hh]:[mm]:[ss]
-            if (time.startsWith("PT") && time.contains("A"))
-            {
-    //            schedule.type = Schedule::TypeTimer;
-            }
-            // Recurring timer with random element
-            // R[nn]/PT[hh]:[mm]:[ss]A[hh]:[mm]:[ss]
-            else if (time.startsWith("R") && time.contains("PT") && time.contains("A"))
-            {
-    //            schedule.type = Schedule::TypeTimer;
-            }
-            // Recurring timer
-            // R[nn]/PT[hh]:[mm]:[ss]
-            else if (time.startsWith("R") && time.contains("PT"))
-            {
-                QRegExp rx("R([0-9]{0,2})/PT(\\d\\d):(\\d\\d):(\\d\\d)");
-
-                if (rx.exactMatch(time))
-                {
-                    schedule.timeout = rx.cap(2).toInt() * 60 * 60 + // h
-                                       rx.cap(3).toInt() * 60 +   // m
-                                       rx.cap(4).toInt(); // s
-                    schedule.currentTimeout = schedule.timeout;
-                    QDateTime now = QDateTime::currentDateTime();
-                    schedule.starttime = now.toString("yyyy-MM-ddThh:mm:ss");
-
-                    QString R = rx.cap(1);
-                    if (!R.isEmpty())
-                    {
-                        schedule.recurring = R.toUInt();
-                    }
-                    else
-                    {
-                        schedule.recurring = 0; // runs forever
-                    }
-
-                    if (schedule.timeout > 0)
-                    {
-                        schedule.type = Schedule::TypeTimer;
-                    }
-                }
-            }
-            // Timer expiring at given time
-            // PT[hh]:[mm]:[ss]
-            else if (time.startsWith("PT"))
-            {
-                QRegExp rx("PT(\\d\\d):(\\d\\d):(\\d\\d)");
-
-                if (rx.exactMatch(time))
-                {
-                    schedule.timeout = rx.cap(1).toInt() * 60 * 60 + // h
-                                       rx.cap(2).toInt() * 60 +   // m
-                                       rx.cap(3).toInt(); // s
-                    schedule.currentTimeout = schedule.timeout;
-                    schedule.recurring = 1;
-                    QDateTime now = QDateTime::currentDateTime();
-                    schedule.starttime = now.toString("yyyy-MM-ddThh:mm:ss");
-
-                    if (schedule.timeout > 0)
-                    {
-                        schedule.type = Schedule::TypeTimer;
-                    }
-                }
-            }
-            // Every weekday given by bbb at given left side time, randomized by right side time.
-            // Right side time has to be smaller than 12 hours
-            // W[bbb]/T[hh]:[mm]:[ss]A[hh]:[mm]:[ss]
-            else if (time.startsWith("W") && time.contains("T") && time.contains("A"))
-            {
-    //            schedule.type = Schedule::TypeRecurringTime;
-            }
-            // Every day of the week  given by bbb at given time
-            // W[bbb]/T[hh]:[mm]:[ss]
-            else if (time.startsWith("W") && time.contains("T"))
-            {
-                QRegExp rx("W([0-9]{1,3})/T(\\d\\d):(\\d\\d):(\\d\\d)");
-
-                if (rx.exactMatch(time))
-                {
-                    schedule.type = Schedule::TypeRecurringTime;
-                    schedule.weekBitmap = rx.cap(1).toUInt();
-                    schedule.datetime.setTime(QTime(rx.cap(2).toUInt(),   // h
-                                                    rx.cap(3).toUInt(),   // m
-                                                    rx.cap(4).toUInt())); // s
-                    schedule.datetime.setTimeSpec(Qt::LocalTime);
-                }
-            }
-            // Absolute time
-            else
-            {
-                schedule.datetime = QDateTime::fromString(time, Qt::ISODate);
-                schedule.datetime.setTimeSpec(Qt::LocalTime);
-
-                if (schedule.datetime.isValid())
-                {
-                    schedule.type = Schedule::TypeAbsoluteTime;
-                }
-            }
-
-            if (schedule.type == Schedule::TypeInvalid)
-            {
-                if (rsp)
-                {
-                    rsp->list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules"), QString("invalid value, %1, for parameter localtime").arg(map["localtime"].toString())));
-                    rsp->httpStatus = HttpStatusBadRequest;
-                }
-                return false;
-            }
-        }
-    }
-
-    if (!map.contains("time") && !map.contains("localtime"))
-    {
-        if (rsp)
-        {
-            rsp->list.append(errorToMap(ERR_MISSING_PARAMETER, QString("/schedules"), QString("missing parameter time or localtime")));
-            rsp->httpStatus = HttpStatusBadRequest;
-        }
-        return false;
-    }
     updateEtag(schedule.etag);
-    map["etag"] = schedule.etag.remove('"'); // no quotes allowed in string;;
+    map["etag"] = schedule.etag.remove('"'); // no quotes allowed in string
 
-    schedule.jsonString = jsonString;
+    if (rsp)
+    {
+        map["created"] = QDateTime::currentDateTimeUtc().toString(QLatin1String("yyyy-MM-ddTHH:mm:ss"));
+    }
+    schedule.jsonString = Json::serialize(map);
     schedule.jsonMap = map;
 
     return true;
@@ -1138,238 +1048,229 @@ void DeRestPluginPrivate::scheduleTimerFired()
 
     for (; i != end; ++i)
     {
-        if (i->state == Schedule::StateNormal && i->status == "enabled")
+        if (i->state != Schedule::StateNormal ||
+            i->status != QLatin1String("enabled"))
         {
-            qint64 diff = 0;
+            continue;
+        }
 
-            if (i->type == Schedule::TypeAbsoluteTime)
+        qint64 diff = 0;
+
+        if (i->type == Schedule::TypeAbsoluteTime)
+        {
+            if (i->endtime.isValid())
             {
-                diff = now.secsTo((i->datetime));
+                diff = now.secsTo(i->datetime);
             }
-            else if (i->type == Schedule::TypeTimer)
+        }
+        else if (i->type == Schedule::TypeTimer)
+        {
+            if (i->endtime.isValid() && i->endtime > now)
             {
-                if (i->currentTimeout > 0)
+                DBG_Printf(DBG_INFO, "schedule %s timeout in %d s\n", qPrintable(i->id), now.secsTo(i->endtime));
+                continue;
+            }
+            else if (i->endtime.isValid())
+            {
+                diff = now.secsTo(i->endtime);
+                if (i->recurring != 1)
                 {
-                    DBG_Printf(DBG_INFO, "schedule %s timeout in %ds\n", qPrintable(i->id), i->currentTimeout);
-                    i->currentTimeout--;
-                    continue;
-                }
-                else if (i->currentTimeout <= 0)
-                {
-                    i->currentTimeout = i->timeout;
-                }
-
-                if (i->recurring == 1)
-                {
-                    // last trigger
-                    if (i->autodelete)
-                    {
-                        DBG_Printf(DBG_INFO, "schedule %s deleted\n",qPrintable(i->name));
-                        i->state = Schedule::StateDeleted;
-                    }
-                    else
-                    {
-                        DBG_Printf(DBG_INFO, "schedule %s disabled\n",qPrintable(i->name));
-                        i->status = "disabled";
-                        i->jsonMap["status"] = "disabled";
-                        i->jsonString = deCONZ::jsonStringFromMap(i->jsonMap);
-                    }
-                    queSaveDb(DB_SCHEDULES, DB_SHORT_SAVE_DELAY);
-                }
-                else if (i->recurring > 0)
-                {
-                    i->recurring--;
+                    i->endtime = now.addSecs(i->timeout);
                 }
             }
-            else if (i->type == Schedule::TypeRecurringTime)
+
+            if (i->recurring == 1)
             {
-                int day = now.date().dayOfWeek(); // Mon-Sun: 1-7
-
-                QString dayBitmap;
-
-                switch (day)
+                // last trigger
+                if (i->autodelete)
                 {
-                case 1:
-                   dayBitmap = "01000000";
-                   break;
-                case 2:
-                   dayBitmap = "00100000";
-                   break;
-                case 3:
-                   dayBitmap = "00010000";
-                   break;
-                case 4:
-                   dayBitmap = "00001000";
-                   break;
-                case 5:
-                   dayBitmap = "00000100";
-                   break;
-                case 6:
-                   dayBitmap = "00000010";
-                   break;
-                case 7:
-                   dayBitmap = "00000001";
-                   break;
-                }
-
-                // active for today?
-                QString weekBitmap = QString::number(i->weekBitmap,2);
-                while (weekBitmap.length() < 8)
-                {
-                    weekBitmap = '0' + weekBitmap;
-                }
-
-                //if (i->weekBitmap & (1 << (day - 1))) // does not work e.g.: day=5 (Fr) & wb=4 (Fr)
-                if (weekBitmap[day] == dayBitmap[day])
-                {
-                    //DBG_Printf(DBG_INFO, "actual day\n");
-
-                    if (i->lastTriggerDatetime.date() == now.date())
-                    {
-                        //recurring alarm should trigger again on same day if updated with future time
-                        if (i->datetime.time() <= now.time())
-                        {
-                            // already fired today
-                            continue;
-                        }
-                    }
-
-                    diff = now.time().secsTo(i->datetime.time());
-
-                    if (diff > 0)
-                    {
-                        DBG_Printf(DBG_INFO, "schedule %s diff %lld, %s\n", qPrintable(i->id), diff, qPrintable(i->datetime.toString()));
-                        continue;
-                    }
+                    DBG_Printf(DBG_INFO, "schedule %s deleted\n", qPrintable(i->name));
+                    i->state = Schedule::StateDeleted;
                 }
                 else
                 {
+                    DBG_Printf(DBG_INFO, "schedule %s disabled\n", qPrintable(i->name));
+                    i->status = QLatin1String("disabled");
+                    i->jsonMap["status"] = i->status;
+                    i->jsonString = Json::serialize(i->jsonMap);
+                }
+                queSaveDb(DB_SCHEDULES, DB_SHORT_SAVE_DELAY);
+            }
+            else if (i->recurring > 0)
+            {
+                i->recurring--;
+            }
+        }
+        else if (i->type == Schedule::TypeRecurringTime)
+        {
+            // bbb = 0MTWTFSS – So only Tuesdays is 00100000 = 32
+            quint8 day = now.date().dayOfWeek(); // Mon-Sun: 1-7
+            quint8 bit = (1 << (7 - day));
+
+            if (i->weekBitmap & bit)
+            {
+                //DBG_Printf(DBG_INFO, "actual day\n");
+
+                if (i->lastTriggerDatetime.date() .isValid() &&
+                    i->lastTriggerDatetime.date() == now.date())
+                {
+                    //recurring alarm should trigger again on same day if updated with future time
+                    if (i->datetime.time() <= now.time())
+                    {
+                        // already fired today
+                        continue;
+                    }
+                }
+
+                diff = now.time().secsTo(i->datetime.time());
+
+                if (diff > 0)
+                {
+                    DBG_Printf(DBG_INFO, "schedule %s diff %lld, %s\n", qPrintable(i->id), diff, qPrintable(i->datetime.toString()));
                     continue;
                 }
             }
             else
             {
-                // not supported yet
-                i->state = Schedule::StateDeleted;
-                queSaveDb(DB_SCHEDULES, DB_SHORT_SAVE_DELAY);
                 continue;
             }
+        }
+        else
+        {
+            // not supported yet
+            i->state = Schedule::StateDeleted;
+            queSaveDb(DB_SCHEDULES, DB_SHORT_SAVE_DELAY);
+            continue;
+        }
 
-            if (diff <= -5 && i->type != Schedule::TypeRecurringTime)
+        if (diff <= -5 && i->type != Schedule::TypeRecurringTime)
+        {
+            i->status = QLatin1String("disabled");
+            i->jsonMap["status"] = i->status;
+            i->jsonString = deCONZ::jsonStringFromMap(i->jsonMap);
+            if (i->autodelete)
             {
                 DBG_Printf(DBG_INFO, "schedule %s: %s deleted (too old)\n", qPrintable(i->id), qPrintable(i->name));
                 i->state = Schedule::StateDeleted;
-                queSaveDb(DB_SCHEDULES, DB_SHORT_SAVE_DELAY);
-            }
-            if (diff <= -5 && i->type == Schedule::TypeRecurringTime) //do nothing and trigger allarm next week
-            {
-                continue;
-            }
-            else if (diff <= 0)
-            {
-                i->lastTriggerDatetime = now;
-                DBG_Printf(DBG_INFO, "schedule %s: %s trigger\n", qPrintable(i->id), qPrintable(i->name));
-
-                if (i->type == Schedule::TypeAbsoluteTime)
-                {
-                    if (i->autodelete)
-                    {
-                        i->state = Schedule::StateDeleted;
-                        DBG_Printf(DBG_INFO, "schedule %s removed\n", qPrintable(i->id));
-                    }
-                    else
-                    {
-                        i->status = "disabled";
-                        i->jsonMap["status"] = "disabled";
-                        i->jsonString = deCONZ::jsonStringFromMap(i->jsonMap);
-                    }
-                    queSaveDb(DB_SCHEDULES, DB_SHORT_SAVE_DELAY);
-                }
-
-                QVariantMap cmd = i->jsonMap["command"].toMap();
-
-                // check if fields are given
-                if (cmd.isEmpty() || !cmd.contains("address") || !cmd.contains("method") || !cmd.contains("body"))
-                {
-                    DBG_Printf(DBG_INFO, "schedule %s ignored, invalid command %s\n",  qPrintable(i->id), qPrintable(i->command));
-                    return;
-                }
-                QString method = cmd["method"].toString();
-                QString address = cmd["address"].toString();
-                QString content = deCONZ::jsonStringFromMap(cmd["body"].toMap());
-
-                // check if fields contain data
-                if (method.isEmpty() || address.isEmpty() || content.isEmpty())
-                {
-                    i->state = Schedule::StateDeleted;
-                    queSaveDb(DB_SCHEDULES, DB_SHORT_SAVE_DELAY);
-                    DBG_Printf(DBG_INFO, "schedule %s ignored and removed, invalid command %s\n", qPrintable(i->id), qPrintable(i->command));
-                    return;
-                }
-
-                QHttpRequestHeader hdr(method, address);
-                QStringList path = hdr.path().split('/', QString::SkipEmptyParts);
-
-                ApiRequest req(hdr, path, NULL, content);
-                ApiResponse rsp; // dummy
-
-                DBG_Printf(DBG_INFO, "schedule %s body: %s\n",  qPrintable(i->id), qPrintable(content));
-
-                // fading not visible when turning lights on and light level was already bright
-                if (content.indexOf("on\":true") != -1 && content.indexOf("transitiontime\":0") == -1)
-                {
-                    QString id = path[3];
-                    bool stateOn = true;
-                    if (path[2] == QLatin1String("groups"))
-                    {
-                        Group *group = getGroupForId(id);
-                        stateOn = group->isOn();
-                    }
-                    else if (path[2] == QLatin1String("lights"))
-                    {
-                        LightNode *lightNode = getLightNodeForId(id);
-                        ResourceItem *item = lightNode ? lightNode->item(RStateOn) : 0;
-                        if (item)
-                        {
-                            stateOn = item->toBool();
-                        }
-                    }
-                    if (!stateOn)
-                    {
-                        // activate lights with low brightness then activate schedule with fading
-                        // only if lights were off
-                        QVariantMap body;
-                        body["on"] = true;
-                        body["bri"] = (double)2;
-                        body["transitiontime"] = (double)0;
-                        QString content2 = deCONZ::jsonStringFromMap(body);
-
-                        ApiRequest req2(hdr, path, NULL, content2);
-                        ApiResponse rsp2; // dummy
-
-                        if (handleLightsApi(req2, rsp2) == REQ_NOT_HANDLED)
-                        {
-                            handleGroupsApi(req2, rsp2);
-                        }
-                    }
-                }
-                if (handleLightsApi(req, rsp) == REQ_NOT_HANDLED)
-                {
-                    if (handleGroupsApi(req, rsp) == REQ_NOT_HANDLED)
-                    {
-                        if (handleSensorsApi(req, rsp) == REQ_NOT_HANDLED)
-                        {
-                            DBG_Printf(DBG_INFO, "schedule was neigher light nor group nor sensor request.\n");
-                        }
-                    }
-                }
-
-                return;
             }
             else
             {
-                DBG_Printf(DBG_INFO, "schedule %s diff %lld, %s\n", qPrintable(i->id), diff, qPrintable(i->datetime.toString()));
+                DBG_Printf(DBG_INFO, "schedule %s: %s disabled (too old)\n", qPrintable(i->id), qPrintable(i->name));
             }
+            queSaveDb(DB_SCHEDULES, DB_SHORT_SAVE_DELAY);
+            continue;
+        }
+
+        if (diff <= -5 && i->type == Schedule::TypeRecurringTime) //do nothing and trigger alarm next week
+        {
+            continue;
+        }
+        else if (diff <= 0)
+        {
+            i->lastTriggerDatetime = now;
+            DBG_Printf(DBG_INFO, "schedule %s: %s trigger\n", qPrintable(i->id), qPrintable(i->name));
+
+            if (i->type == Schedule::TypeAbsoluteTime)
+            {
+                if (i->autodelete)
+                {
+                    i->state = Schedule::StateDeleted;
+                    DBG_Printf(DBG_INFO, "schedule %s removed\n", qPrintable(i->id));
+                }
+                else
+                {
+                    i->status = QLatin1String("disabled");
+                    i->jsonMap["status"] = i->status;
+                    i->jsonString = deCONZ::jsonStringFromMap(i->jsonMap);
+                }
+                queSaveDb(DB_SCHEDULES, DB_SHORT_SAVE_DELAY);
+            }
+
+            QVariantMap cmd = i->jsonMap["command"].toMap();
+
+            // check if fields are given
+            if (cmd.isEmpty() || !cmd.contains("address") || !cmd.contains("method") || !cmd.contains("body"))
+            {
+                DBG_Printf(DBG_INFO, "schedule %s ignored, invalid command %s\n",  qPrintable(i->id), qPrintable(i->command));
+                return;
+            }
+            QString method = cmd["method"].toString();
+            QString address = cmd["address"].toString();
+            QString content = deCONZ::jsonStringFromMap(cmd["body"].toMap());
+
+            // check if fields contain data
+            if (method.isEmpty() || address.isEmpty() || content.isEmpty())
+            {
+                i->state = Schedule::StateDeleted;
+                queSaveDb(DB_SCHEDULES, DB_SHORT_SAVE_DELAY);
+                DBG_Printf(DBG_INFO, "schedule %s ignored and removed, invalid command %s\n", qPrintable(i->id), qPrintable(i->command));
+                return;
+            }
+
+            QHttpRequestHeader hdr(method, address);
+            QStringList path = hdr.path().split('/', QString::SkipEmptyParts);
+
+            ApiRequest req(hdr, path, NULL, content);
+            ApiResponse rsp; // dummy
+
+            DBG_Printf(DBG_INFO, "schedule %s body: %s\n",  qPrintable(i->id), qPrintable(content));
+
+#if 0 // TODO don't do magic: following function should be achived by a second schedule running prior to this one
+            // fading not visible when turning lights on and light level was already bright
+            if (content.indexOf("on\":true") != -1 && content.indexOf("transitiontime\":0") == -1)
+            {
+                QString id = path[3];
+                bool stateOn = true;
+                if (path[2] == QLatin1String("groups"))
+                {
+                    Group *group = getGroupForId(id);
+                    stateOn = group->isOn();
+                }
+                else if (path[2] == QLatin1String("lights"))
+                {
+                    LightNode *lightNode = getLightNodeForId(id);
+                    ResourceItem *item = lightNode ? lightNode->item(RStateOn) : 0;
+                    if (item)
+                    {
+                        stateOn = item->toBool();
+                    }
+                }
+                if (!stateOn)
+                {
+                    // activate lights with low brightness then activate schedule with fading
+                    // only if lights were off
+                    QVariantMap body;
+                    body["on"] = true;
+                    body["bri"] = (double)2;
+                    body["transitiontime"] = (double)0;
+                    QString content2 = deCONZ::jsonStringFromMap(body);
+
+                    ApiRequest req2(hdr, path, NULL, content2);
+                    ApiResponse rsp2; // dummy
+
+                    if (handleLightsApi(req2, rsp2) == REQ_NOT_HANDLED)
+                    {
+                        handleGroupsApi(req2, rsp2);
+                    }
+                }
+            }
+#endif
+            if (handleLightsApi(req, rsp) == REQ_NOT_HANDLED)
+            {
+                if (handleGroupsApi(req, rsp) == REQ_NOT_HANDLED)
+                {
+                    if (handleSensorsApi(req, rsp) == REQ_NOT_HANDLED)
+                    {
+                        DBG_Printf(DBG_INFO, "schedule was neither light nor group nor sensor request.\n");
+                    }
+                }
+            }
+
+            return;
+        }
+        else
+        {
+            DBG_Printf(DBG_INFO, "schedule %s diff %lld, %s\n", qPrintable(i->id), diff, qPrintable(i->datetime.toString()));
         }
     }
 }
