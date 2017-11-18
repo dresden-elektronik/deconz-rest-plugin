@@ -104,6 +104,19 @@ int DeRestPluginPrivate::getAllLights(const ApiRequest &req, ApiResponse &rsp)
     Q_UNUSED(req);
     rsp.httpStatus = HttpStatusOk;
 
+    // handle ETag
+    if (req.hdr.hasKey("If-None-Match"))
+    {
+        QString etag = req.hdr.value("If-None-Match");
+
+        if (gwLightsEtag == etag)
+        {
+            rsp.httpStatus = HttpStatusNotModified;
+            rsp.etag = etag;
+            return REQ_READY_SEND;
+        }
+    }
+
     std::vector<LightNode>::const_iterator i = nodes.begin();
     std::vector<LightNode>::const_iterator end = nodes.end();
 
@@ -125,6 +138,8 @@ int DeRestPluginPrivate::getAllLights(const ApiRequest &req, ApiResponse &rsp)
     {
         rsp.str = "{}"; // return empty object
     }
+
+    rsp.etag = gwLightsEtag;
 
     return REQ_READY_SEND;
 }
