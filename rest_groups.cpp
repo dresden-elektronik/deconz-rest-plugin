@@ -118,6 +118,19 @@ int DeRestPluginPrivate::getAllGroups(const ApiRequest &req, ApiResponse &rsp)
     Q_UNUSED(req);
     rsp.httpStatus = HttpStatusOk;
 
+    // handle ETag
+    if (req.hdr.hasKey("If-None-Match"))
+    {
+        QString etag = req.hdr.value("If-None-Match");
+
+        if (gwGroupsEtag == etag)
+        {
+            rsp.httpStatus = HttpStatusNotModified;
+            rsp.etag = etag;
+            return REQ_READY_SEND;
+        }
+    }
+
     std::vector<Group>::const_iterator i = groups.begin();
     std::vector<Group>::const_iterator end = groups.end();
 
@@ -141,6 +154,8 @@ int DeRestPluginPrivate::getAllGroups(const ApiRequest &req, ApiResponse &rsp)
     {
         rsp.str = "{}"; // return empty object
     }
+
+    rsp.etag = gwGroupsEtag;
 
     return REQ_READY_SEND;
 }
