@@ -123,6 +123,7 @@ void WebSocketServer::broadcastTextMessage(const QString &msg)
 
         //DBG_Printf(DBG_INFO, "Websocket %s:%u send message: %s\n", qPrintable(sock->peerAddress().toString()), sock->peerPort(), qPrintable(msg));
         sock->sendTextMessage(msg);
+        sock->flush();
     }
 }
 #else // no websockets
