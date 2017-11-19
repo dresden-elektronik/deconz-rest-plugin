@@ -22,6 +22,16 @@ void DeRestPluginPrivate::initUpnpDiscovery()
 {
     DBG_Assert(udpSock == 0);
 
+    initDescriptionXml();
+
+    if (deCONZ::appArgumentNumeric("--upnp", 1) == 0)
+    {
+        udpSock = 0;
+        udpSockOut = 0;
+        joinedMulticastGroup = false;
+        return;
+    }
+
     udpSock = new QUdpSocket(this);
     udpSockOut = new QUdpSocket(this);
     joinedMulticastGroup = false;
@@ -34,8 +44,6 @@ void DeRestPluginPrivate::initUpnpDiscovery()
     connect(upnpTimer, SIGNAL(timeout()),
             this, SLOT(announceUpnp()));
     upnpTimer->start(1000); // setup phase fast interval
-
-    initDescriptionXml();
 }
 
 /*! Replaces description_in.xml template with dynamic content. */
