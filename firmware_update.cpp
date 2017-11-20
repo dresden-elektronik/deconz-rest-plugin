@@ -218,11 +218,6 @@ void DeRestPluginPrivate::firmwareUpdateTimerFired()
             uint8_t devConnected = apsCtrl->getParameter(deCONZ::ParamDeviceConnected);
             uint32_t fwVersion = apsCtrl->getParameter(deCONZ::ParamFirmwareVersion);
 
-            if (devConnected && gwDeviceName.isEmpty())
-            {
-                gwDeviceName = apsCtrl->getParameter(deCONZ::ParamDeviceName);
-            }
-
             if (devConnected && fwVersion)
             {
                 gwFirmwareVersion.sprintf("0x%08x", fwVersion);

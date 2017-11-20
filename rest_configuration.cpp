@@ -650,6 +650,11 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         gwPort = deCONZ::appArgumentNumeric("--http-port", 80); // cache
     }
 
+    if (gwDeviceName.isEmpty())
+    {
+        gwDeviceName = apsCtrl->getParameter(deCONZ::ParamDeviceName);
+    }
+
     if (!gwDeviceName.isEmpty())
     {
         map["devicename"] = gwDeviceName;
@@ -742,6 +747,12 @@ void DeRestPluginPrivate::basicConfigToMap(QVariantMap &map)
     map["apiversion"] = QString(GW_API_VERSION);
     map["name"] = gwName;
     map["starterkitid"] = QLatin1String("");
+
+    if (gwDeviceName.isEmpty())
+    {
+        gwDeviceName = apsCtrl->getParameter(deCONZ::ParamDeviceName);
+    }
+
     if (!gwDeviceName.isEmpty())
     {
         map["devicename"] = gwDeviceName;
