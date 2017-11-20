@@ -407,7 +407,7 @@ void DeRestPluginPrivate::gatewayToMap(const ApiRequest &req, const Gateway *gw,
     }
 }
 
-void DeRestPluginPrivate::foundGateway(quint32 ip, quint16 port, const QString &uuid, const QString &name)
+void DeRestPluginPrivate::foundGateway(const QHostAddress &host, quint16 port, const QString &uuid, const QString &name)
 {
     if (uuid.isEmpty())
     {
@@ -421,9 +421,9 @@ void DeRestPluginPrivate::foundGateway(quint32 ip, quint16 port, const QString &
 
         if (gw && gw->uuid() == uuid)
         {
-            if (gw->address().toIPv4Address() != ip || gw->port() != port)
+            if (gw->address().toIPv4Address() != host.toIPv4Address() || gw->port() != port)
             {
-                gw->setAddress(QHostAddress(ip));
+                gw->setAddress(host);
                 gw->setPort(port);
 
             }
@@ -446,13 +446,14 @@ void DeRestPluginPrivate::foundGateway(quint32 ip, quint16 port, const QString &
     QString gwApikey = gwUuid.left(10);
 
     Gateway *gw = new Gateway(this);
-    gw->setAddress(QHostAddress(ip));
+    gw->setAddress(host);
     gw->setPort(port);
     gw->setUuid(uuid);
     gw->setName(name);
     gw->setApiKey(gwApikey);
     DBG_Printf(DBG_INFO, "found gateway %s:%u\n", qPrintable(gw->address().toString()), port);
     gateways.push_back(gw);
+    updateEtag(gwConfigEtag);
 }
 
 

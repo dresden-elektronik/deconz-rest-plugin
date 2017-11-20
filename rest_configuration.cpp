@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <QProcess>
+#include "gateway.h"
 #ifdef ARCH_ARM
   #include <unistd.h>
   #include <sys/reboot.h>
@@ -955,6 +956,35 @@ int DeRestPluginPrivate::getBasicConfig(const ApiRequest &req, ApiResponse &rsp)
         }
     }
     basicConfigToMap(rsp.map);
+
+    // add more details if this was requested from discover page
+    // this should speedup multi-gateway discovery
+    if (!gateways.empty())
+    {
+        // restrict info TODO more limited "Origin"
+        QString referer = req.hdr.value(QLatin1String("Referer"));
+        if (referer.contains(QLatin1String("js/scanner-worker.js")))
+        {
+            QVariantList ls;
+            for (const Gateway *gw : gateways)
+            {
+                DBG_Assert(gw != 0);
+                if (gw)
+                {
+                    QVariantMap g;
+                    g["host"] = gw->address().toString();
+                    g["port"] = gw->port();
+                    ls.push_back(g);
+                }
+            }
+
+            if (!ls.empty())
+            {
+                rsp.map["gateways"] = ls;
+            }
+        }
+    }
+
     rsp.httpStatus = HttpStatusOk;
     rsp.etag = gwConfigEtag;
     return REQ_READY_SEND;

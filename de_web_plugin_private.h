@@ -895,7 +895,7 @@ public Q_SLOTS:
     void ntpqFinished();
 
     // gateways
-    void foundGateway(quint32 ip, quint16 port, const QString &uuid, const QString &name);
+    void foundGateway(const QHostAddress &host, quint16 port, const QString &uuid, const QString &name);
 
 public:
     void checkRfConnectState();

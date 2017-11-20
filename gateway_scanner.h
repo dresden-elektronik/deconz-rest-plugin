@@ -14,9 +14,10 @@ public:
     explicit GatewayScanner(QObject *parent = 0);
     ~GatewayScanner();
     bool isRunning() const;
+    void queryGateway(const QString &url);
 
 Q_SIGNALS:
-    void foundGateway(quint32 ip, quint16 port, const QString &uuid, const QString &name);
+    void foundGateway(const QHostAddress &host, quint16 port, const QString &uuid, const QString &name);
 
 public Q_SLOTS:
     void startScan();

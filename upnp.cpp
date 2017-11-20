@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2017 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -16,6 +16,7 @@
 #include <QVariantMap>
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
+#include "gateway_scanner.h"
 
 /*! Inits the UPnP discorvery. */
 void DeRestPluginPrivate::initUpnpDiscovery()
@@ -147,25 +148,48 @@ void DeRestPluginPrivate::upnpReadyRead()
 
         QTextStream stream(datagram);
         QString searchTarget;
+        QString location;
+
+        if (DBG_IsEnabled(DBG_HTTP))
+        {
+            DBG_Printf(DBG_HTTP, "%s\n", qPrintable(datagram));
+        }
+
         while (!stream.atEnd())
         {
             QString line = stream.readLine();
 
-            if (!line.startsWith(QLatin1String("ST:")))
+            if (!searchTarget.isEmpty())
             {
-                continue;
+                break;
             }
 
-            if (line.contains(QLatin1String("ssdp:all")) ||
-                line.contains(QLatin1String("device:basic")) ||
-                line.contains(QLatin1String("upnp:rootdevice")))
+            if (line.startsWith(QLatin1String("LOCATION:")))
+            {
+                location = line;
+            }
+            else if (line.startsWith(QLatin1String("GWID.phoscon.de")))
             {
                 searchTarget = line;
-                break;
+            }
+            else if (line.startsWith(QLatin1String("hue-bridgeid")))
+            {
+                searchTarget = line;
+            }
+            else if (line.startsWith(QLatin1String("ST:")))
+            {
+                if (line.contains(QLatin1String("ssdp:all")) ||
+                    line.contains(QLatin1String("device:basic")) ||
+                    line.contains(QLatin1String("upnp:rootdevice")))
+                {
+                    searchTarget = line;
+                }
             }
         }
 
-        if (datagram.startsWith("M-SEARCH *") && !searchTarget.isEmpty())
+        if (searchTarget.isEmpty())
+        {}
+        else if (datagram.startsWith("M-SEARCH *"))
         {
 
             DBG_Printf(DBG_HTTP, "UPNP %s:%u\n%s\n", qPrintable(host.toString()), port, datagram.data());
@@ -189,6 +213,39 @@ void DeRestPluginPrivate::upnpReadyRead()
             {
                 DBG_Printf(DBG_ERROR, "UDP send error %s\n", qPrintable(udpSockOut->errorString()));
             }
+        }
+        else if (datagram.startsWith("NOTIFY *") && !location.isEmpty())
+        {
+            // phoscon gateway or hue bridge
+            QStringList ls = searchTarget.split(' ');
+            if (ls.size() != 2)
+            {
+                continue;
+            }
+
+            if (ls[1] == gwBridgeId)
+            {
+                continue; // self
+            }
+
+            ls = location.split(' ');
+            if (ls.size() != 2 || !ls[1].startsWith(QLatin1String("http://")))
+            {
+                continue;
+            }
+
+            // http://192.168.14.103:80/description.xml
+            location = ls[1];
+            //location.remove(QLatin1String("http://"));
+            int idx = location.indexOf('/');
+            if (idx == -1)
+            {
+                continue;
+            }
+            location = location.left(idx);
+            location += QLatin1String("/api/config");
+
+            gwScanner->queryGateway(location);
         }
     }
 }

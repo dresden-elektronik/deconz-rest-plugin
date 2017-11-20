@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2017 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -15,7 +15,8 @@
 #include <QNetworkReply>
 #include <vector>
 #include "gateway_scanner.h"
-#include "deconz/dbg_trace.h"
+#include "deconz.h"
+#include "json.h"
 
 enum ScanState
 {
@@ -39,6 +40,7 @@ public:
     void startScanTimer(int msec, ScanEvent action);
     void stopTimer();
     void queryNextIp();
+    void processReply();
 
     GatewayScanner *q;
     ScanState state;
@@ -86,6 +88,18 @@ bool GatewayScanner::isRunning() const
     return (d->state != StateInit);
 }
 
+void GatewayScanner::queryGateway(const QString &url)
+{
+    Q_D(GatewayScanner);
+
+    if (!isRunning() && d->reply == 0)
+    {
+        d->reply = d->manager->get(QNetworkRequest(url));
+        QObject::connect(d->reply, SIGNAL(error(QNetworkReply::NetworkError)),
+                d->manager->parent(), SLOT(onError(QNetworkReply::NetworkError)));
+    }
+}
+
 void GatewayScanner::startScan()
 {
     Q_D(GatewayScanner);
@@ -105,10 +119,70 @@ void GatewayScanner::scanTimerFired()
 void GatewayScanner::requestFinished(QNetworkReply *reply)
 {
     Q_D(GatewayScanner);
+
     if (reply == d->reply)
+    {
+        d->processReply();
+    }
+
+    if (isRunning())
     {
         d->handleEvent(EventGotReply);
     }
+}
+
+void GatewayScannerPrivate::processReply()
+{
+    if (!reply)
+    {
+        return;
+    }
+
+    QNetworkReply *r = reply;
+    reply = 0;
+    r->deleteLater();
+
+    int code = r->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+
+    if (code != 200) // not authorized or ok
+    {
+        return;
+    }
+
+    bool ok;
+    QVariant var = Json::parse(r->readAll(), ok);
+    if (!ok)
+    {
+        return;
+    }
+
+    QVariantMap map = var.toMap();
+    if (map.isEmpty())
+    {
+        return;
+    }
+
+    if (!map.contains(QLatin1String("bridgeid")) ||
+        !map.contains(QLatin1String("modelid")) ||
+        !map.contains(QLatin1String("name")))
+    {
+        return;
+    }
+
+    QString name = map["name"].toString();
+    //QString modelid = map["modelid"].toString();
+    QString bridgeid = map["bridgeid"].toString();
+
+    QUrl url = r->url();
+
+    QHostAddress host(url.host());
+    if (host.isNull() || name.isEmpty() || bridgeid.isEmpty())
+    {
+        return;
+    }
+
+    //DBG_Printf(DBG_INFO, "GW: %s %s, %s, %s\n", qPrintable(url.host()), qPrintable(name), qPrintable(modelid), qPrintable(bridgeid));
+    q->foundGateway(host, url.port(80), bridgeid, name);
 }
 
 void GatewayScanner::onError(QNetworkReply::NetworkError code)
@@ -184,9 +258,16 @@ void GatewayScannerPrivate::handleEvent(ScanEvent event)
 {
     if (state == StateInit)
     {
-        initScanner();
-        state = StateIdle;
-        startScanTimer(10, ActionProcess);
+        if (event == ActionProcess)
+        {
+            initScanner();
+            state = StateIdle;
+            startScanTimer(10, ActionProcess);
+        }
+        else
+        {
+            Q_ASSERT(0);
+        }
     }
     else if (state == StateIdle)
     {
@@ -211,58 +292,6 @@ void GatewayScannerPrivate::handleEvent(ScanEvent event)
         }
         else if (event == EventGotReply)
         {
-            QNetworkReply *r = reply;
-            if (reply)
-            {
-                reply = 0;
-                int code = r->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-
-                if (code == 200) // not authorized or ok
-                {
-                    QNetworkRequest req = r->request();
-                    DBG_Printf(DBG_INFO, "reply code %d from %s\n", code, qPrintable(req.url().toString()));
-
-                    QString name;
-                    bool isGateway = false;
-                    char buf[256];
-                    qint64 n = 0;
-                    while ((n = r->readLine(buf, sizeof(buf))) > 0)
-                    {
-                        if (n < 10 || (size_t)n >= sizeof(buf))
-                            continue;
-
-                        buf[n] = '\0';
-
-                        if (!isGateway)
-                        {
-                            if (strstr(buf, ">dresden elektronik<"))
-                            {
-                                isGateway = true;
-                            }
-                        }
-                        else if (strstr(buf, "<gatewayName>"))
-                        {
-                            const char *start = strchr(buf, '>') + 1;
-                            const char *end = strstr(start, "</gatewayName>");
-                            if (!end ||  start == end)
-                                continue;
-                            buf[end - buf] = '\0';
-                            name = start;
-                        }
-                        else if (strstr(buf, "<UDN>uuid:"))
-                        {
-                            const char *start = strchr(buf, ':') + 1;
-                            const char *end = strstr(start, "</UDN>");
-                            if (!end || start == end)
-                                continue;
-                            buf[end - buf] = '\0';
-                            q->foundGateway(scanIp, scanPort, start, name);
-                            break;
-                        }
-                    }
-                }
-                r->deleteLater();
-            }
             host++;
             startScanTimer(1, ActionProcess);
         }
@@ -314,7 +343,7 @@ void GatewayScannerPrivate::queryNextIp()
     }
 
     QString url;
-    url.sprintf("http://%u.%u.%u.%u:%u/description.xml",
+    url.sprintf("http://%u.%u.%u.%u:%u/api/config",
                 ((scanIp >> 24) & 0xff),
                 ((scanIp >> 16) & 0xff),
                 ((scanIp >> 8) & 0xff),
