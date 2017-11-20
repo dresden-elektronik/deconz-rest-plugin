@@ -1735,6 +1735,7 @@ bool DeRestPluginPrivate::groupToMap(const Group *group, QVariantMap &map)
             scene["id"] = sid;
             scene["name"] = si->name;
             scene["transitiontime"] = si->transitiontime();
+            scene["lightcount"] = (double)si->lights().size();
 
             scenes.append(scene);
         }
