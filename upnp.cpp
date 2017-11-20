@@ -235,16 +235,9 @@ void DeRestPluginPrivate::upnpReadyRead()
             }
 
             // http://192.168.14.103:80/description.xml
-            location = ls[1];
-            //location.remove(QLatin1String("http://"));
-            int idx = location.indexOf('/');
-            if (idx == -1)
-            {
-                continue;
-            }
-            location = location.left(idx);
-            location += QLatin1String("/api/config");
 
+            QUrl url(ls[1]);
+            location = QString("http://%1:%2/api/config").arg(url.host()).arg(url.port(80));
             gwScanner->queryGateway(location);
         }
     }
