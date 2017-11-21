@@ -133,9 +133,6 @@ public:
 
 private:
     DeletedState m_deletedstate;
-    QString m_name;
-    QString m_type;
-    QString m_modelid;
     QString m_manufacturer;
     QString m_swversion;
     SensorFingerprint m_fingerPrint;

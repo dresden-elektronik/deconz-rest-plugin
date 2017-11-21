@@ -1115,9 +1115,13 @@ int DeRestPluginPrivate::setLightAttributes(const ApiRequest &req, ApiResponse &
             if (lightNode->name() != name)
             {
                 lightNode->setName(name);
+
                 updateLightEtag(lightNode);
                 lightNode->setNeedSaveDatabase(true);
                 queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
+
+                Event e(RLights, RAttrName, lightNode->id(), lightNode->item(RAttrName));
+                enqueueEvent(e);
             }
 
             Q_Q(DeRestPlugin);
@@ -1619,6 +1623,20 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                 }
             }
         }
+    }
+    else if (e.what() == RAttrName)
+    {
+        QVariantMap map;
+        map["t"] = QLatin1String("event");
+        map["e"] = QLatin1String("changed");
+        map["r"] = QLatin1String("lights");
+        map["id"] = e.id();
+
+        if (e.what() == RAttrName) // new attributes might be added in future
+        {
+            map["name"] = lightNode->name();
+        }
+        webSocketServer->broadcastTextMessage(Json::serialize(map));
     }
     else if (e.what() == REventAdded)
     {

@@ -410,6 +410,9 @@ Sensor::Sensor() :
     durationDue = QDateTime();
 
     // common sensor items
+    addItem(DataTypeString, RAttrName);
+    addItem(DataTypeString, RAttrModelId);
+    addItem(DataTypeString, RAttrType);
     addItem(DataTypeBool, RConfigOn);
     addItem(DataTypeBool, RConfigReachable);
     addItem(DataTypeTime, RStateLastUpdated);
@@ -443,7 +446,7 @@ bool Sensor::isAvailable() const
  */
 const QString &Sensor::name() const
 {
-   return m_name;
+   return item(RAttrName)->toString();
 }
 
 /*! Sets the sensor name.
@@ -451,7 +454,7 @@ const QString &Sensor::name() const
  */
 void Sensor::setName(const QString &name)
 {
-    m_name = name;
+    item(RAttrName)->setValue(name);
 }
 
 /*! Returns the sensor mode.
@@ -476,7 +479,7 @@ void Sensor::setMode(SensorMode mode)
  */
 const QString &Sensor::type() const
 {
-    return m_type;
+    return item(RAttrType)->toString();
 }
 
 /*! Sets the sensor type.
@@ -484,14 +487,14 @@ const QString &Sensor::type() const
  */
 void Sensor::setType(const QString &type)
 {
-    m_type = type;
+    item(RAttrType)->setValue(type);
 }
 
 /*! Returns the sensor modelId.
  */
 const QString &Sensor::modelId() const
 {
-    return m_modelid;
+    return item(RAttrModelId)->toString();
 }
 
 /*! Sets the sensor modelId.
@@ -499,7 +502,7 @@ const QString &Sensor::modelId() const
  */
 void Sensor::setModelId(const QString &mid)
 {
-    m_modelid = mid.trimmed();
+    item(RAttrModelId)->setValue(mid.trimmed());
 }
 
 /*! Returns the resetRetryCount.
@@ -726,19 +729,20 @@ const Sensor::ButtonMap *Sensor::buttonMap()
 {
     if (!m_buttonMap)
     {
+        const QString &modelid = item(RAttrModelId)->toString();
         if (m_manufacturer == QLatin1String("dresden elektronik"))
         {
-            if      (m_modelid == QLatin1String("Lighting Switch")) { m_buttonMap = deLightingSwitchMap; }
-            else if (m_modelid == QLatin1String("Scene Switch"))    { m_buttonMap = deSceneSwitchMap; }
+            if      (modelid == QLatin1String("Lighting Switch")) { m_buttonMap = deLightingSwitchMap; }
+            else if (modelid == QLatin1String("Scene Switch"))    { m_buttonMap = deSceneSwitchMap; }
         }
         else if (m_manufacturer == QLatin1String("Insta"))
         {
-            if      (m_modelid.endsWith(QLatin1String("_1")))       { m_buttonMap = instaRemoteMap; }
-            if      (m_modelid.contains(QLatin1String("Remote")))   { m_buttonMap = instaRemoteMap; }
+            if      (modelid.endsWith(QLatin1String("_1")))       { m_buttonMap = instaRemoteMap; }
+            if      (modelid.contains(QLatin1String("Remote")))   { m_buttonMap = instaRemoteMap; }
         }
         else if (m_manufacturer == QLatin1String("Philips"))
         {
-            if      (m_modelid.startsWith(QLatin1String("RWL02")))  { m_buttonMap = philipsDimmerSwitchMap; }
+            if      (modelid.startsWith(QLatin1String("RWL02")))  { m_buttonMap = philipsDimmerSwitchMap; }
         }
         else if (m_manufacturer == QLatin1String("Busch-Jaeger"))
         {
@@ -746,9 +750,9 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         }
         else if (m_manufacturer.startsWith(QLatin1String("IKEA")))
         {
-            if      (m_modelid.contains(QLatin1String("remote"))) { m_buttonMap = ikeaRemoteMap; }
-            else if (m_modelid.contains(QLatin1String("motion"))) { m_buttonMap = ikeaMotionSensorMap; }
-            else if (m_modelid.contains(QLatin1String("dimmer"))) { m_buttonMap = ikeaDimmerMap; }
+            if      (modelid.contains(QLatin1String("remote"))) { m_buttonMap = ikeaRemoteMap; }
+            else if (modelid.contains(QLatin1String("motion"))) { m_buttonMap = ikeaMotionSensorMap; }
+            else if (modelid.contains(QLatin1String("dimmer"))) { m_buttonMap = ikeaDimmerMap; }
         }
         else if (m_manufacturer == QLatin1String("ubisys"))
         {
@@ -756,7 +760,7 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         }
         else if (m_manufacturer == QLatin1String("LUMI"))
         {
-            if      (m_modelid.startsWith(QLatin1String("lumi.sensor_switch.aq2")))  { m_buttonMap = xiaomiSwitchAq2Map; }
+            if      (modelid.startsWith(QLatin1String("lumi.sensor_switch.aq2")))  { m_buttonMap = xiaomiSwitchAq2Map; }
         }
     }
 

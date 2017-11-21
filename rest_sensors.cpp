@@ -649,6 +649,9 @@ int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
                 sensor->setNeedSaveDatabase(true);
                 queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
                 updateSensorEtag(sensor);
+
+                Event e(RSensors, RAttrName, sensor->id(), sensor->item(RAttrName));
+                enqueueEvent(e);
             }
             if (!sensor->type().startsWith(QLatin1String("CLIP")))
             {
@@ -1554,6 +1557,20 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         smap["id"] = e.id();
         map["sensor"] = smap;
 
+        webSocketServer->broadcastTextMessage(Json::serialize(map));
+    }
+    else if (e.what() == RAttrName)
+    {
+        QVariantMap map;
+        map["t"] = QLatin1String("event");
+        map["e"] = QLatin1String("changed");
+        map["r"] = QLatin1String("sensors");
+        map["id"] = e.id();
+
+        if (e.what() == RAttrName) // new attributes might be added in future
+        {
+            map["name"] = sensor->name();
+        }
         webSocketServer->broadcastTextMessage(Json::serialize(map));
     }
     else if (e.what() == REventValidGroup)

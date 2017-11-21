@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2017 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -40,7 +40,9 @@ LightNode::LightNode() :
     addItem(DataTypeBool, RStateOn);
     addItem(DataTypeString, RStateAlert);
     addItem(DataTypeBool, RStateReachable);
+    addItem(DataTypeString, RAttrName);
     addItem(DataTypeString, RAttrModelId);
+    addItem(DataTypeString, RAttrType);
 }
 
 /*! Returns the LightNode state.
@@ -128,7 +130,7 @@ void LightNode::setManufacturerName(const QString &name)
  */
 const QString &LightNode::modelId() const
 {
-    return m_modelId;
+    return item(RAttrModelId)->toString();
 }
 
 /*! Sets the model identifier.
@@ -136,7 +138,7 @@ const QString &LightNode::modelId() const
  */
 void LightNode::setModelId(const QString &modelId)
 {
-    m_modelId = modelId.trimmed();
+    item(RAttrModelId)->setValue(modelId.trimmed());
 }
 
 /*! Returns the software build identifier.
@@ -158,7 +160,7 @@ void LightNode::setSwBuildId(const QString &swBuildId)
  */
 const QString &LightNode::name() const
 {
-    return m_name;
+    return item(RAttrName)->toString();
 }
 
 /*! Sets the name of the light node.
@@ -166,14 +168,14 @@ const QString &LightNode::name() const
  */
 void LightNode::setName(const QString &name)
 {
-    m_name = name;
+    item(RAttrName)->setValue(name);
 }
 
 /*! Returns the device type as string for example: 'Extended color light'.
  */
 const QString &LightNode::type() const
 {
-    return m_type;
+    return item(RAttrType)->toString();
 }
 
 /*! Returns the modifiable list of groups in which the light is a member.
@@ -477,6 +479,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
 
 
     // initial setup
+    QString ltype;
     if (!isInitialized)
     {
         {
@@ -533,24 +536,24 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
             //case DEV_ID_ZLL_DIMMABLE_LIGHT:   break; // clash with on/off light
             case DEV_ID_HA_ONOFF_LIGHT:
             {
-                if (!item(RStateBri)) { m_type = QLatin1String("On/Off light"); }
-                else                  { m_type = QLatin1String("Dimmable light"); }
+                if (!item(RStateBri)) { ltype = QLatin1String("On/Off light"); }
+                else                  { ltype = QLatin1String("Dimmable light"); }
             }
                 break;
-            case DEV_ID_ONOFF_OUTPUT:             m_type = QLatin1String("On/Off output"); break;
-            case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:    m_type = QLatin1String("On/Off plug-in unit"); break;
-            case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:    m_type = QLatin1String("On/Off plug-in unit"); break;
-            case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT: m_type = QLatin1String("Dimmable plug-in unit"); break;
-            case DEV_ID_Z30_DIMMABLE_PLUGIN_UNIT: m_type = QLatin1String("Dimmable plug-in unit"); break;
-            case DEV_ID_HA_DIMMABLE_LIGHT:        m_type = QLatin1String("Dimmable light"); break;
-            case DEV_ID_HA_COLOR_DIMMABLE_LIGHT:  m_type = QLatin1String("Color dimmable light"); break;
-            case DEV_ID_ZLL_ONOFF_LIGHT:          m_type = QLatin1String("On/Off light"); break;
-            case DEV_ID_SMART_PLUG:               m_type = QLatin1String("Smart plug"); break;
-            case DEV_ID_ZLL_COLOR_LIGHT:             m_type = QLatin1String("Color light"); break;
-            case DEV_ID_Z30_EXTENDED_COLOR_LIGHT:    m_type = QLatin1String("Extended color light"); break;
-            case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:    m_type = QLatin1String("Extended color light"); break;
-            case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT: m_type = QLatin1String("Color temperature light"); break;
-            case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT: m_type = QLatin1String("Color temperature light"); break;
+            case DEV_ID_ONOFF_OUTPUT:             ltype = QLatin1String("On/Off output"); break;
+            case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:    ltype = QLatin1String("On/Off plug-in unit"); break;
+            case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:    ltype = QLatin1String("On/Off plug-in unit"); break;
+            case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT: ltype = QLatin1String("Dimmable plug-in unit"); break;
+            case DEV_ID_Z30_DIMMABLE_PLUGIN_UNIT: ltype = QLatin1String("Dimmable plug-in unit"); break;
+            case DEV_ID_HA_DIMMABLE_LIGHT:        ltype = QLatin1String("Dimmable light"); break;
+            case DEV_ID_HA_COLOR_DIMMABLE_LIGHT:  ltype = QLatin1String("Color dimmable light"); break;
+            case DEV_ID_ZLL_ONOFF_LIGHT:          ltype = QLatin1String("On/Off light"); break;
+            case DEV_ID_SMART_PLUG:               ltype = QLatin1String("Smart plug"); break;
+            case DEV_ID_ZLL_COLOR_LIGHT:             ltype = QLatin1String("Color light"); break;
+            case DEV_ID_Z30_EXTENDED_COLOR_LIGHT:    ltype = QLatin1String("Extended color light"); break;
+            case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:    ltype = QLatin1String("Extended color light"); break;
+            case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT: ltype = QLatin1String("Color temperature light"); break;
+            case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT: ltype = QLatin1String("Color temperature light"); break;
             default:
                 break;
             }
@@ -560,27 +563,28 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
         {
             switch(haEndpoint().deviceId())
             {
-            case DEV_ID_ZLL_ONOFF_LIGHT:             m_type = QLatin1String("On/Off light"); break;
-            case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:       m_type = QLatin1String("On/Off plug-in unit"); break;
-            case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:       m_type = QLatin1String("On/Off plug-in unit"); break;
-            case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:    m_type = QLatin1String("Dimmable plug-in unit"); break;
-            case DEV_ID_Z30_DIMMABLE_PLUGIN_UNIT:    m_type = QLatin1String("Dimmable plug-in unit"); break;
-            case DEV_ID_ZLL_DIMMABLE_LIGHT:          m_type = QLatin1String("Dimmable light"); break;
-            case DEV_ID_ZLL_COLOR_LIGHT:             m_type = QLatin1String("Color light"); break;
-            case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:    m_type = QLatin1String("Extended color light"); break;
-            case DEV_ID_Z30_EXTENDED_COLOR_LIGHT:    m_type = QLatin1String("Extended color light"); break;
-            case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT: m_type = QLatin1String("Color temperature light"); break;
-            case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT: m_type = QLatin1String("Color temperature light"); break;
+            case DEV_ID_ZLL_ONOFF_LIGHT:             ltype = QLatin1String("On/Off light"); break;
+            case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:       ltype = QLatin1String("On/Off plug-in unit"); break;
+            case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:       ltype = QLatin1String("On/Off plug-in unit"); break;
+            case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:    ltype = QLatin1String("Dimmable plug-in unit"); break;
+            case DEV_ID_Z30_DIMMABLE_PLUGIN_UNIT:    ltype = QLatin1String("Dimmable plug-in unit"); break;
+            case DEV_ID_ZLL_DIMMABLE_LIGHT:          ltype = QLatin1String("Dimmable light"); break;
+            case DEV_ID_ZLL_COLOR_LIGHT:             ltype = QLatin1String("Color light"); break;
+            case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:    ltype = QLatin1String("Extended color light"); break;
+            case DEV_ID_Z30_EXTENDED_COLOR_LIGHT:    ltype = QLatin1String("Extended color light"); break;
+            case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT: ltype = QLatin1String("Color temperature light"); break;
+            case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT: ltype = QLatin1String("Color temperature light"); break;
             default:
                 break;
             }
         }
     }
 
-    if (m_type.isEmpty())
+    if (ltype.isEmpty())
     {
-        m_type = QLatin1String("Unknown");
+        ltype = QLatin1String("Unknown");
     }
+    item(RAttrType)->setValue(ltype);
 }
 
 /*! Returns the group capacity.

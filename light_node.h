@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2017 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -90,11 +90,8 @@ private:
     uint8_t m_resetRetryCount;
     uint8_t m_zdpResetSeq;
     uint8_t m_groupCapacity;
-    QString m_name;
-    QString m_type;
     QString m_manufacturer;
     uint16_t m_manufacturerCode;
-    QString m_modelId;
     QString m_swBuildId;
     uint16_t m_otauClusterId;
     std::vector<GroupInfo> m_groups;
