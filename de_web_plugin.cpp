@@ -3527,6 +3527,15 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 quint16 measuredValue = ia->numericValue().u16; // ZigBee uses a 16-bit value
 
+                                if (i->modelId().startsWith(QLatin1String("lumi.sensor_motion")))
+                                {
+                                    // measured value is given as lux: transform
+                                    // ZCL Attribute = 10.000 * log10(Illuminance (lx)) + 1
+                                    double ll = 10000 * std::log10(measuredValue) + 1;
+                                    if (ll > 0xfffe) { measuredValue = 0xfffe; }
+                                    else             { measuredValue = ll; }
+                                }
+
                                 if (item)
                                 {
                                     item->setValue(measuredValue);
@@ -3590,7 +3599,11 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (item)
                                 {
                                     quint32 lux = 0;
-                                    if (measuredValue > 0 && measuredValue < 0xffff)
+                                    if (i->modelId().startsWith(QLatin1String("lumi.sensor_motion")))
+                                    {   // measured values is actually given in lux
+                                        lux = ia->numericValue().u16;
+                                    }
+                                    else if (measuredValue > 0 && measuredValue < 0xffff)
                                     {
                                         // valid values are 1 - 0xfffe
                                         // 0, too low to measure
