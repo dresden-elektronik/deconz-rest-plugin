@@ -1911,6 +1911,14 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             sensor.jsonToConfig(QLatin1String(colval[configCol]));
         }
 
+        // provide default if values are not set or invalid
+        // presence should be reasonable
+        item = sensor.item(RConfigDuration);
+        if (item && item->toNumber() <= 0)
+        {
+            item->setValue(60);
+        }
+
         if (extAddr != 0)
         {
             QString uid = d->generateUniqueId(extAddr, endpoint, clusterId);

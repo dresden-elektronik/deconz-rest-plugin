@@ -25,6 +25,7 @@
 #include <QFile>
 #include <QProcess>
 #include <queue>
+#include <cmath>
 #ifdef ARCH_ARM
   #include <unistd.h>
   #include <sys/reboot.h>
@@ -2958,6 +2959,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             clusterId = ONOFF_CLUSTER_ID;
         }
         sensorNode.addItem(DataTypeBool, RStatePresence);
+        item = sensorNode.addItem(DataTypeUInt16, RConfigDuration);
+        item->setValue(60); // default 60 seconds
     }
     else if (sensorNode.type().endsWith(QLatin1String("OpenClose")))
     {
