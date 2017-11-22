@@ -8,11 +8,9 @@ DEFINES += DECONZ_DLLSPEC=Q_DECL_IMPORT
 
 unix:contains(QMAKE_HOST.arch, armv6l) {
     DEFINES += ARCH_ARM ARCH_ARMV6
-    INCLUDEPATH += /usr/include
 }
 unix:contains(QMAKE_HOST.arch, armv7l) {
     DEFINES += ARCH_ARM ARCH_ARMV7
-    INCLUDEPATH += /usr/include
 }
 
 QMAKE_CXXFLAGS += -Wno-attributes \
