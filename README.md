@@ -7,17 +7,16 @@ As hardware the [RaspBee](https://www.dresden-elektronik.de/raspbee?L=1&ref=gh) 
 
 To learn more about the REST API itself please visit the [REST API Documentation](http://dresden-elektronik.github.io/deconz-rest-doc/) page.
 
-License
-=======
-The plugin is available as open source and licensed under the BSD (3-Clause) license.
+Installation
+============
 
-Usage
-=====
+##### Supported platforms
+* Raspbian Jessie
+* Raspbian Stretch
 
-Currently the compilation of the plugin is only supported for Raspbian Jessie distribution.
-Packages for Qt4 and Raspbian Wheezy are available but not described here.
+Raspbian Wheezy and Qt4 is no longer maintained.
 
-##### Install deCONZ
+### Install deCONZ
 1. Download deCONZ package
 
         wget http://www.dresden-elektronik.de/rpi/deconz/beta/deconz-2.04.90-qt5.deb
@@ -33,9 +32,9 @@ Packages for Qt4 and Raspbian Wheezy are available but not described here.
         sudo apt update
         sudo apt install -f
 
-##### Install deCONZ development package
+##### Install deCONZ development package (optional)
 
-The development package is only needed if you wan't to modify the plugin or try the latest commits from master.
+The development package is only needed if you wan't to modify the plugin or try the latest commits from master branch.
 
 1. Download deCONZ development package
 
@@ -93,7 +92,7 @@ $ rm -f /home/pi/.config/autostart/deCONZ.desktop
 
 Software requirements
 ---------------------
-* Raspbian Jessie or Stretch with Qt5
+* Raspbian Jessie or Raspbian Stretch with Qt5
 
 **Important** The serial port must be configured as follows to allow communication with the RaspBee.
 
@@ -123,3 +122,8 @@ The following libraries are used by the plugin:
 * [SQLite](http://www.sqlite.org)
 * [qt-json](https://github.com/lawand/droper/tree/master/qt-json)
 * [colorspace](http://www.getreuer.info/home/colorspace)
+
+License
+=======
+The plugin is available as open source and licensed under the BSD (3-Clause) license.
+
