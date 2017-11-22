@@ -26,8 +26,11 @@ Packages for Qt4 and Raspbian Wheezy are available but not described here.
 
         sudo dpkg -i deconz-2.04.90-qt5.deb
 
+**Important** this step might print some errors *that's ok* and will be fixed in the next step.
+
 3. Install missing dependencies
 
+        sudo apt update
         sudo apt install -f
 
 ##### Install deCONZ development package
@@ -41,6 +44,11 @@ The development package is only needed if you wan't to modify the plugin or try 
 2. Install deCONZ development package
 
         sudo dpkg -i deconz-dev-2.04.90.deb
+
+3. Install missing dependencies
+
+        sudo apt update
+        sudo apt install -f
 
 ##### Get and compile the plugin
 1. Checkout the repository
