@@ -68,6 +68,7 @@ void DeRestPluginPrivate::initConfig()
     gwFirmwareVersionUpdate = "";
     gwBridgeId = "0000000000000000";
     gwConfig["websocketport"] = 443;
+    fwUpdateState = FW_Idle;
 
     // offical dresden elektronik sd-card image?
     {
