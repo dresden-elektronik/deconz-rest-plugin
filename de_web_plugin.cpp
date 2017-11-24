@@ -1059,6 +1059,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             lightNode2->setManufacturerCode(node->nodeDescriptor().manufacturerCode());
             ResourceItem *reachable = lightNode2->item(RStateReachable);
 
+            DBG_Assert(reachable != 0);
             if (!reachable->toBool())
             {
                 // the node existed before
@@ -1078,9 +1079,9 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                                        READ_SCENES |
                                        READ_BINDING_TABLE);
 
-                for (uint32_t i = 0; i < 32; i++)
+                for (uint32_t j = 0; j < 32; j++)
                 {
-                    uint32_t item = 1 << i;
+                    uint32_t item = 1 << j;
                     if (lightNode.mustRead(item))
                     {
                         lightNode.setNextReadTime(item, queryTime);
@@ -1095,7 +1096,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 updateEtag(lightNode2->etag);
             }
 
-            if (lightNode2->uniqueId().isEmpty() || lightNode2->uniqueId().startsWith("0x"))
+            if (lightNode2->uniqueId().isEmpty() || lightNode2->uniqueId().startsWith(QLatin1String("0x")))
             {
                 QString uid = generateUniqueId(lightNode2->address().ext(), lightNode2->haEndpoint().endpoint(), 0);
                 lightNode2->setUniqueId(uid);
@@ -1250,9 +1251,9 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                                  READ_GROUPS |
                                  READ_SCENES |
                                  READ_BINDING_TABLE);
-            for (uint32_t i = 0; i < 32; i++)
+            for (uint32_t j = 0; j < 32; j++)
             {
-                uint32_t item = 1 << i;
+                uint32_t item = 1 << j;
                 if (lightNode.mustRead(item))
                 {
                     lightNode.setNextReadTime(item, queryTime);
