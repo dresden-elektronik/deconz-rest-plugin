@@ -174,19 +174,62 @@ bool getResourceItemDescriptor(const QString &str, ResourceItemDescriptor &descr
     return false;
 }
 
+ResourceItem::ResourceItem(const ResourceItem &other)
+{
+    *this = other;
+    if (m_str)
+    {
+        m_str = new QString;
+        *m_str = other.toString();
+    }
+}
+
+ResourceItem::~ResourceItem()
+{
+    DBG_Printf(DBG_INFO, "~ResourceItem() %s -- str %p\n", m_rid.suffix, m_str);
+    if (m_str)
+    {
+        delete m_str;
+        m_str = 0;
+    }
+}
+
+ResourceItem &ResourceItem::operator=(const ResourceItem &other)
+{
+    // self assignment?
+    if (this == &other)
+    {
+        return *this;
+    }
+
+    m_num = other.m_num;
+    m_numPrev = other.m_numPrev;
+    m_rid = other.m_rid;
+    m_lastSet = other.lastSet();
+    m_lastChanged = other.lastChanged();
+    m_str = 0;
+
+    if (other.m_str)
+    {
+        m_str = new QString;
+        *m_str = other.toString();
+    }
+
+    return *this;
+}
+
+
 ResourceItem::ResourceItem(const ResourceItemDescriptor &rid) :
     m_num(0),
     m_numPrev(0),
-    m_strIndex(0),
+    m_str(0),
     m_rid(rid)
 {
     if (m_rid.type == DataTypeString ||
         m_rid.type == DataTypeTime ||
         m_rid.type == DataTypeTimePattern)
     {
-        // alloc
-        m_strIndex = rItemStrings.size();
-        rItemStrings.emplace_back(QString());
+        m_str = new QString;
     }
 }
 
@@ -195,29 +238,27 @@ const QString &ResourceItem::toString() const
     if (m_rid.type == DataTypeString ||
         m_rid.type == DataTypeTimePattern)
     {
-        DBG_Assert(m_strIndex < rItemStrings.size());
-        if (m_strIndex < rItemStrings.size())
+        if (m_str)
         {
-            return rItemStrings[m_strIndex];
+            return *m_str;
         }
     }
     else if (m_rid.type == DataTypeTime)
     {
-        DBG_Assert(m_strIndex < rItemStrings.size());
-        if (m_strIndex < rItemStrings.size())
+        if (m_str)
         {
             if (m_rid.suffix == RStateLastUpdated)
             {
                 QDateTime dt;
                 dt.setOffsetFromUtc(0);
                 dt.setMSecsSinceEpoch(m_num);
-                rItemStrings[m_strIndex] = dt.toString("yyyy-MM-ddTHH:mm:ss");
+                *m_str = dt.toString("yyyy-MM-ddTHH:mm:ss");
             }
             else
             {
-                rItemStrings[m_strIndex] = QDateTime::fromMSecsSinceEpoch(m_num).toString("yyyy-MM-ddTHH:mm:ss");
+                *m_str = QDateTime::fromMSecsSinceEpoch(m_num).toString("yyyy-MM-ddTHH:mm:ss");
             }
-            return rItemStrings[m_strIndex];
+            return *m_str;
         }
     }
 
@@ -242,13 +283,12 @@ bool ResourceItem::toBool() const
 
 bool ResourceItem::setValue(const QString &val)
 {
-    DBG_Assert(m_strIndex < rItemStrings.size());
-    if (m_strIndex < rItemStrings.size())
+    if (m_str)
     {
         m_lastSet = QDateTime::currentDateTime();
-        if (rItemStrings[m_strIndex] != val)
+        if (*m_str != val)
         {
-            rItemStrings[m_strIndex] = val;
+            *m_str = val;
             m_lastChanged = m_lastSet;
         }
         return true;
@@ -288,13 +328,12 @@ bool ResourceItem::setValue(const QVariant &val)
         m_rid.type == DataTypeTimePattern)
     {
         // TODO validate time pattern
-        DBG_Assert(m_strIndex < rItemStrings.size());
-        if (m_strIndex < rItemStrings.size())
+        if (m_str)
         {
             m_lastSet = now;
-            if (rItemStrings[m_strIndex] != val.toString())
+            if (*m_str != val.toString())
             {
-                rItemStrings[m_strIndex] = val.toString();
+                *m_str = val.toString();
                 m_lastChanged = m_lastSet;
             }
             return true;
@@ -399,10 +438,9 @@ QVariant ResourceItem::toVariant() const
     if (m_rid.type == DataTypeString ||
         m_rid.type == DataTypeTimePattern)
     {
-        DBG_Assert(m_strIndex < rItemStrings.size());
-        if (m_strIndex < rItemStrings.size())
+        if (m_str)
         {
-            return rItemStrings[m_strIndex];
+            return *m_str;
         }
         return QString();
     }
