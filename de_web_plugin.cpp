@@ -234,6 +234,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     findSensorsState = FindSensorsIdle;
     findSensorsTimeout = 0;
 
+    ttlDataBaseConnection = 0;
     openDb();
     initDb();
     readDb();
@@ -10538,6 +10539,7 @@ void DeRestPlugin::appAboutToQuit()
 
     if (d)
     {
+        d->ttlDataBaseConnection = 0;
         d->saveDatabaseItems |= (DB_SENSORS | DB_RULES | DB_LIGHTS);
         d->openDb();
         d->saveDb();
