@@ -130,7 +130,10 @@ public:
 class ResourceItem
 {
 public:
+    ResourceItem(const ResourceItem &other);
     ResourceItem(const ResourceItemDescriptor &rid);
+    ResourceItem &operator=(const ResourceItem &other);
+    ~ResourceItem();
     const QString &toString() const;
     qint64 toNumber() const;
     qint64 toNumberPrevious() const;
@@ -148,11 +151,11 @@ public:
 
 private:
     ResourceItem() :
-        m_num(-1), m_strIndex(0) {}
+        m_num(-1), m_str(0) {}
 
     qint64 m_num;
     qint64 m_numPrev;
-    size_t m_strIndex;
+    QString *m_str;
     ResourceItemDescriptor m_rid;
     QDateTime m_lastSet;
     QDateTime m_lastChanged;

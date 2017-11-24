@@ -159,16 +159,15 @@ void DeRestPluginPrivate::clearDb()
  */
 void DeRestPluginPrivate::openDb()
 {
-    DBG_Assert(db == 0);
+    //DBG_Assert(db == 0);
 
     if (db)
     {
+        ttlDataBaseConnection = idleTotalCounter + DB_CONNECTION_TTL;
         return;
     }
 
-    int rc;
-    db = 0;
-    rc = sqlite3_open(qPrintable(sqliteDatabaseName), &db);
+    int rc = sqlite3_open(qPrintable(sqliteDatabaseName), &db);
 
     if (rc != SQLITE_OK) {
         // failed
@@ -176,6 +175,8 @@ void DeRestPluginPrivate::openDb()
         db = 0;
         return;
     }
+
+    ttlDataBaseConnection = idleTotalCounter + DB_CONNECTION_TTL;
 }
 
 /*! Reads all data sets from sqlite database.
@@ -3104,10 +3105,21 @@ void DeRestPluginPrivate::closeDb()
 {
     if (db)
     {
-        if (sqlite3_close(db) == SQLITE_OK)
+        if (ttlDataBaseConnection > idleTotalCounter)
+        {
+            DBG_Printf(DBG_INFO, "don't close database yet, keep open for %d seconds\n", (ttlDataBaseConnection - idleTotalCounter));
+            return;
+        }
+
+        int ret = sqlite3_close(db);
+        if (ret == SQLITE_OK)
         {
             db = 0;
+            return;
         }
+
+        DBG_Printf(DBG_INFO, "sqlite3_close() failed %d\n", ret);
+
     }
 
     DBG_Assert(db == 0);

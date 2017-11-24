@@ -260,6 +260,8 @@
 #define DB_LONG_SAVE_DELAY  (15 * 60 * 1000) // 15 minutes
 #define DB_SHORT_SAVE_DELAY (5 *  1 * 1000) // 5 seconds
 
+#define DB_CONNECTION_TTL (60 * 15) // 15 minutes
+
 // internet discovery
 
 // network reconnect
@@ -1052,6 +1054,7 @@ public:
     void checkConsistency();
 
     sqlite3 *db;
+    int ttlDataBaseConnection; // when idleTotalCounter becomes greater the DB will be closed
     int saveDatabaseItems;
     int saveDatabaseIdleTotalCounter;
     QString sqliteDatabaseName;
