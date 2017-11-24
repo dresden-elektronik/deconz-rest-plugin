@@ -186,7 +186,7 @@ ResourceItem::ResourceItem(const ResourceItem &other)
 
 ResourceItem::~ResourceItem()
 {
-    DBG_Printf(DBG_INFO, "~ResourceItem() %s -- str %p\n", m_rid.suffix, m_str);
+    DBG_Printf(DBG_INFO_L2, "~ResourceItem() %s -- str %p\n", m_rid.suffix, m_str);
     if (m_str)
     {
         delete m_str;
