@@ -94,11 +94,8 @@ void LightNode::setManufacturerCode(uint16_t code)
         case VENDOR_DDEL:    m_manufacturer = QLatin1String("dresden elektronik"); break;
         case VENDOR_BEGA:    m_manufacturer = QLatin1String("BEGA"); break;
         case VENDOR_IKEA:    m_manufacturer = QLatin1String("IKEA of Sweden"); break;
-        case VENDOR_INNR:
-        case VENDOR_INNR2:
-#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
-                             m_manufacturer = QLatin1String("innr");
-                             break;
+        case VENDOR_INNR:    m_manufacturer = QLatin1String("innr"); break;
+        case VENDOR_INNR2:   m_manufacturer = QLatin1String("innr"); break;
         case VENDOR_INSTA:    m_manufacturer = QLatin1String("Insta"); break;
         case VENDOR_PHILIPS: m_manufacturer = QLatin1String("Philips"); break;
         case VENDOR_OSRAM_STACK: // fall through
@@ -222,7 +219,7 @@ uint16_t LightNode::level() const
     {
     case DEV_ID_MAINS_POWER_OUTLET:
     case DEV_ID_HA_ONOFF_LIGHT:
-#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
+//#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
         if (m_haEndpoint.profileId() == ZLL_PROFILE_ID)
         {
             // don't clash with DEV_ID_ZLL_DIMMABLE_LIGHT
