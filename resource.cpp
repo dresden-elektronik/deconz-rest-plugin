@@ -207,6 +207,7 @@ ResourceItem &ResourceItem::operator=(const ResourceItem &other)
     m_rid = other.m_rid;
     m_lastSet = other.lastSet();
     m_lastChanged = other.lastChanged();
+    m_rulesInvolved = other.rulesInvolved();
     m_str = 0;
 
     if (other.m_str)
