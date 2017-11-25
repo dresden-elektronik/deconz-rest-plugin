@@ -476,9 +476,10 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
 
 
     // initial setup
-    QString ltype;
     if (!isInitialized)
     {
+        QString ltype = QLatin1String("Unknown");
+        
         {
             QList<deCONZ::ZclCluster>::const_iterator i = endpoint.inClusters().constBegin();
             QList<deCONZ::ZclCluster>::const_iterator end = endpoint.inClusters().constEnd();
@@ -575,13 +576,9 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 break;
             }
         }
-    }
 
-    if (ltype.isEmpty())
-    {
-        ltype = QLatin1String("Unknown");
+        item(RAttrType)->setValue(ltype);
     }
-    item(RAttrType)->setValue(ltype);
 }
 
 /*! Returns the group capacity.
@@ -658,4 +655,3 @@ void LightNode::setSceneCapacity(uint8_t sceneCapacity)
 {
     m_sceneCapacity = sceneCapacity;
 }
-
