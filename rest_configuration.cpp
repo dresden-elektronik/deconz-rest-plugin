@@ -204,13 +204,18 @@ void DeRestPluginPrivate::initWiFi()
         return;
     }
 
-    if (gwBridgeId.isEmpty())
+    if (gwBridgeId.isEmpty() || gwBridgeId.endsWith(QLatin1String("0000")))
     {
         QTimer::singleShot(5000, this, SLOT(initWiFi()));
         return;
     }
 
-    if (gwWifi == QLatin1String("configured"))
+    if (gwWifiName == QLatin1String("Phoscon-Gateway-0000"))
+    {
+        // proceed to correct these
+        gwWifiName.clear();
+    }
+    else if (gwWifi == QLatin1String("configured"))
     {
         return;
     }
