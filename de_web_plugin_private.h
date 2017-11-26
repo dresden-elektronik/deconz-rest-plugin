@@ -1123,6 +1123,7 @@ public:
     QByteArray gwChallenge;
     QDateTime gwLastChallenge;
     bool gwRunFromShellScript;
+    QString gwRunMode;
     bool gwDeleteUnknownRules;
     bool groupDeviceMembershipChecked;
     QVariantMap gwUserParameter;

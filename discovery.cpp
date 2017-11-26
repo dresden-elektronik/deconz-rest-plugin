@@ -69,29 +69,6 @@ void DeRestPluginPrivate::initInternetDicovery()
         QTimer::singleShot(5000, this, SLOT(internetDiscoveryTimerFired()));
     }
 
-#ifdef Q_OS_LINUX
-    // check if we run from shell script
-    QFile pproc(QString("/proc/%1/cmdline").arg(getppid()));
-
-    if (pproc.exists() && pproc.open(QIODevice::ReadOnly))
-    {
-
-        QByteArray name = pproc.readAll();
-
-        if (name.endsWith(".sh"))
-        {
-            DBG_Printf(DBG_INFO, "runs in shell script %s\n", qPrintable(name));
-            gwRunFromShellScript = true;
-        }
-        else
-        {
-            gwRunFromShellScript = false;
-            DBG_Printf(DBG_INFO, "parent process %s\n", qPrintable(name));
-        }
-    }
-#else
-    gwRunFromShellScript = false;
-#endif
     {
         QFile f("/etc/os-release");
         if (f.exists() && f.open(QFile::ReadOnly))
@@ -197,30 +174,40 @@ bool DeRestPluginPrivate::setInternetDiscoveryInterval(int minutes)
  */
 void DeRestPluginPrivate::internetDiscoveryTimerFired()
 {
-    if (gwAnnounceInterval > 0)
+    if (gwAnnounceInterval <= 0)
     {
-        QString str = QString("{ \"name\": \"%1\", \"mac\": \"%2\", \"internal_ip\":\"%3\", \"internal_port\":%4, \"interval\":%5, \"swversion\":\"%6\", \"fwversion\":\"%7\", \"nodecount\":%8, \"uptime\":%9, \"updatechannel\":\"%10\"")
-                .arg(gwName)
-                .arg(gwBridgeId)
-                .arg(gwConfig["ipaddress"].toString())
-                .arg(gwConfig["port"].toDouble())
-                .arg(gwAnnounceInterval)
-                .arg(gwConfig["swversion"].toString())
-                .arg(gwConfig["fwversion"].toString())
-                .arg(nodes.size())
-                .arg(getUptime())
-                .arg(gwUpdateChannel);
-
-        str.append(QString(",\"os\": \"%1\"").arg(osPrettyName));
-        if (!piRevision.isEmpty())
-        {
-            str.append(QString(",\"pirev\": \"%1\"").arg(piRevision));
-        }
-        str.append(QChar('}'));
-
-        QByteArray data(qPrintable(str));
-        inetDiscoveryManager->put(QNetworkRequest(QUrl(gwAnnounceUrl)), data);
+        return;
     }
+
+    int i = 0;
+    const deCONZ::Node *node;
+    deCONZ::ApsController *ctrl = deCONZ::ApsController::instance();
+
+    while (ctrl && ctrl->getNode(i, &node) == 0)
+    {
+      i++;
+    }
+
+    QVariantMap map;
+    map["name"] = gwName;
+    map["mac"] = gwBridgeId;
+    map["internal_ip"] = gwConfig["ipaddress"].toString();
+    map["internal_port"] = gwConfig["port"].toDouble();
+    map["interval"] = gwAnnounceInterval;
+    map["swversion"] = gwConfig["swversion"].toString();
+    map["fwversion"] = gwConfig["fwversion"].toString();
+    map["nodecount"] = (double)i;
+    map["uptime"] = (double)getUptime();
+    map["updatechannel"] = gwUpdateChannel;
+    map["os"] = osPrettyName;
+    map["runmode"] = gwRunMode;
+    if (!piRevision.isEmpty())
+    {
+        map["pirev"] = piRevision;
+    }
+
+    QByteArray data = Json::serialize(map);
+    inetDiscoveryManager->put(QNetworkRequest(QUrl(gwAnnounceUrl)), data);
 }
 
 /*! Callback for finished HTTP requests.
