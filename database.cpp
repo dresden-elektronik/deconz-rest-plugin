@@ -1930,9 +1930,9 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         }
 
         // provide default if values are not set or invalid
-        // presence should be reasonable
+        // presence should be reasonable for physical sensors
         item = sensor.item(RConfigDuration);
-        if (item && item->toNumber() <= 0)
+        if (!isClip && item && item->toNumber() <= 0)
         {
             item->setValue(60);
         }
