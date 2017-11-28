@@ -8155,11 +8155,17 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
                     {
                         item = s.addItem(DataTypeUInt16, RConfigDuration);
                     }
-                    if (item && item->toNumber() != duration)
+                    qint64 curDuration = item ? item->toNumber() : 0;
+
+                    if (item && curDuration != duration)
                     {
-                        item->setValue((quint64) duration);
-                        Event e(RSensors, RConfigDuration, s.id(), item);
-                        enqueueEvent(e);
+                        if (curDuration <= 0 || (curDuration >= 60 && curDuration <= 600))
+                        {
+                            // values 0, 60 — 600 can be overwritten by hardware settings
+                            item->setValue((quint64) duration);
+                            Event e(RSensors, RConfigDuration, s.id(), item);
+                            enqueueEvent(e);
+                        }
                     }
 
                     item = s.item(RStateDark);

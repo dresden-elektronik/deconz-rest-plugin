@@ -765,10 +765,11 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
             {
                 // pending and sensitivitymax are read-only
             }
-            else if (rid.suffix == RConfigDuration && sensor->modelId() == QLatin1String("TRADFRI motion sensor"))
-            {
-                // duration is read-only for ikea motion sensor
-            }
+            //else if (rid.suffix == RConfigDuration && sensor->modelId() == QLatin1String("TRADFRI motion sensor"))
+            //{
+                // duration can be written for ikea motion sensor
+                // values 0, 60 — 600 will be replaced by hardware settings TODO error message
+            //}
             else
             {
                 item = sensor->item(rid.suffix);
