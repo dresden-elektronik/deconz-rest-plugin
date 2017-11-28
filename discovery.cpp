@@ -377,13 +377,14 @@ void DeRestPluginPrivate::inetProxyHostLookupDone(const QHostInfo &host)
 
     foreach (const QHostAddress &address, host.addresses())
     {
-
         QString addr = address.toString();
         if (address.protocol() == QAbstractSocket::IPv4Protocol &&
             !addr.isEmpty() && gwProxyAddress != address.toString())
         {
             DBG_Printf(DBG_INFO, "Found proxy IP address: %s\n", qPrintable(address.toString()));
             gwProxyAddress = address.toString();
+            DBG_Assert(gwProxyPort != 0);
+            queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
             updateEtag(gwConfigEtag);
             return;
         }
