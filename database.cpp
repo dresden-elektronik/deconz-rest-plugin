@@ -1792,7 +1792,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = TEMPERATURE_MEASUREMENT_CLUSTER_ID;
             }
-            item = sensor.addItem(DataTypeInt32, RStateTemperature);
+            item = sensor.addItem(DataTypeInt16, RStateTemperature);
             item->setValue(0);
         }
         else if (sensor.type().endsWith(QLatin1String("Humidity")))
