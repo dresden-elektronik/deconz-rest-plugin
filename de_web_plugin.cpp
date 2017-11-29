@@ -2514,18 +2514,18 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                 {
                     if (modelId.isEmpty() || manufacturer.isEmpty())
                     {
-                        std::vector<deCONZ::ZclAttribute>::const_iterator i = ci->attributes().begin();
-                        std::vector<deCONZ::ZclAttribute>::const_iterator end = ci->attributes().end();
+                        std::vector<deCONZ::ZclAttribute>::const_iterator j = ci->attributes().begin();
+                        std::vector<deCONZ::ZclAttribute>::const_iterator jend = ci->attributes().end();
 
-                        for (; i != end; ++i)
+                        for (; j != jend; ++j)
                         {
-                            if (i->id() == 0x0004) // manufacturer id
+                            if (manufacturer.isEmpty() && j->id() == 0x0004) // manufacturer id
                             {
-                                manufacturer = i->toString().trimmed();
+                                manufacturer = j->toString().trimmed();
                             }
-                            else if (i->id() == 0x0005) // model id
+                            else if (modelId.isEmpty() && j->id() == 0x0005) // model id
                             {
-                                modelId = i->toString().trimmed();
+                                modelId = j->toString().trimmed();
                             }
                         }
                     }
@@ -2682,7 +2682,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
 
         if (!isDeviceSupported(node, modelId))
         {
-            return;
+            continue;
         }
 
         Sensor *sensor = 0;
@@ -9191,10 +9191,10 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
         return;
     }
 
-    const SensorCandidate *sc = 0;
+    SensorCandidate *sc = 0;
     {
-        std::vector<SensorCandidate>::const_iterator i = findSensorCandidates.begin();
-        std::vector<SensorCandidate>::const_iterator end = findSensorCandidates.end();
+        std::vector<SensorCandidate>::iterator i = findSensorCandidates.begin();
+        std::vector<SensorCandidate>::iterator end = findSensorCandidates.end();
 
         for (; i != end; ++i)
         {
@@ -9272,7 +9272,12 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
             return;
         }
 
-        if (node->endpoints().empty())
+        if (sc->indClusterId == ZDP_ACTIVE_ENDPOINTS_RSP_CLID)
+        {
+            sc->endpoints = node->endpoints();
+        }
+
+        if (sc->endpoints.empty())
         {
             DBG_Printf(DBG_INFO, "[2] get active endpoints for 0x%016llx\n", sc->address.ext());
             deCONZ::ApsDataRequest apsReq;
