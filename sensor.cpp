@@ -760,7 +760,7 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         }
         else if (m_manufacturer == QLatin1String("LUMI"))
         {
-            if      (modelid.startsWith(QLatin1String("lumi.sensor_switch.aq2")))  { m_buttonMap = xiaomiSwitchAq2Map; }
+            if      (modelid.startsWith(QLatin1String("lumi.sensor_switch")))  { m_buttonMap = xiaomiSwitchAq2Map; }
         }
     }
 
