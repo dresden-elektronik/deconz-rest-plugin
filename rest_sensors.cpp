@@ -765,10 +765,11 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
             {
                 // pending and sensitivitymax are read-only
             }
-            else if (rid.suffix == RConfigDuration && sensor->modelId() == QLatin1String("TRADFRI motion sensor"))
-            {
-                // duration is read-only for ikea motion sensor
-            }
+            //else if (rid.suffix == RConfigDuration && sensor->modelId() == QLatin1String("TRADFRI motion sensor"))
+            //{
+                // duration can be written for ikea motion sensor
+                // values 0, 60 — 600 will be replaced by hardware settings TODO error message
+            //}
             else
             {
                 item = sensor->item(rid.suffix);
@@ -1806,6 +1807,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
         }
 
         SensorCandidate sc;
+        sc.indClusterId = ind.clusterId();
         sc.address.setExt(ext);
         sc.address.setNwk(nwk);
         sc.macCapabilities = macCapabilities;
@@ -1815,13 +1817,15 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
     else if (ind.profileId() == ZDP_PROFILE_ID)
     {
 
-        std::vector<SensorCandidate>::const_iterator i = findSensorCandidates.begin();
-        std::vector<SensorCandidate>::const_iterator end = findSensorCandidates.end();
+        std::vector<SensorCandidate>::iterator i = findSensorCandidates.begin();
+        std::vector<SensorCandidate>::iterator end = findSensorCandidates.end();
 
         for (; i != end; ++i)
         {
             if (i->address.ext() == fastProbeAddr.ext())
             {
+                i->indClusterId = ind.clusterId();
+
                 if (!fastProbeTimer->isActive())
                 {
                     fastProbeTimer->start(100);

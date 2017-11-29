@@ -1123,6 +1123,7 @@ public:
     QByteArray gwChallenge;
     QDateTime gwLastChallenge;
     bool gwRunFromShellScript;
+    QString gwRunMode;
     bool gwDeleteUnknownRules;
     bool groupDeviceMembershipChecked;
     QVariantMap gwUserParameter;
@@ -1328,12 +1329,15 @@ public:
     {
     public:
         SensorCandidate() :
-            macCapabilities(0)
+            macCapabilities(0),
+            indClusterId(0)
         {
 
         }
         deCONZ::Address address;
         quint8 macCapabilities;
+        quint16 indClusterId;
+        std::vector<quint8> endpoints;
         std::vector<SensorCommand> rxCommands;
     };
 

@@ -17,6 +17,7 @@
 #include <QTcpSocket>
 #include <QVariantMap>
 #include <QNetworkInterface>
+#include <QProcessEnvironment>
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "json.h"
@@ -24,11 +25,13 @@
 #include <time.h>
 #include <QProcess>
 #include "gateway.h"
-#ifdef ARCH_ARM
+#ifdef Q_OS_LINUX
   #include <unistd.h>
+#ifdef ARCH_ARM
   #include <sys/reboot.h>
   #include <sys/time.h>
 #endif
+#endif // Q_OS_LINUX
 
 /*! Constructor. */
 ApiConfig::ApiConfig() :
@@ -69,6 +72,51 @@ void DeRestPluginPrivate::initConfig()
     gwBridgeId = "0000000000000000";
     gwConfig["websocketport"] = 443;
     fwUpdateState = FW_Idle;
+
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+
+    if (env.contains(QLatin1String("INVOCATION_ID")))
+    {
+        // deCONZ is startet from a systemd unit
+        //   -- deconz.service or deconz-gui.service
+        if (env.contains(QLatin1String("DISPLAY")))
+        {
+            gwRunMode = QLatin1String("systemd/gui");
+        }
+        else
+        {
+            gwRunMode = QLatin1String("systemd/headless");
+        }
+    }
+    else
+    {
+        gwRunMode = QLatin1String("normal");
+
+#ifdef Q_OS_LINUX
+        // check if we run from shell script
+        QFile pproc(QString("/proc/%1/cmdline").arg(getppid()));
+
+        if (pproc.exists() && pproc.open(QIODevice::ReadOnly))
+        {
+            QByteArray name = pproc.readAll();
+            if (name.endsWith(".sh"))
+            {
+                DBG_Printf(DBG_INFO, "runs in shell script %s\n", qPrintable(name));
+                gwRunFromShellScript = true;
+                gwRunMode = QLatin1String("shellscript");
+            }
+            else
+            {
+                gwRunFromShellScript = false;
+                DBG_Printf(DBG_INFO, "parent process %s\n", qPrintable(name));
+            }
+        }
+#else
+        gwRunFromShellScript = false;
+#endif
+    }
+
+    DBG_Printf(DBG_INFO, "gw run mode: %s\n", qPrintable(gwRunMode));
 
     // offical dresden elektronik sd-card image?
     {
@@ -156,13 +204,18 @@ void DeRestPluginPrivate::initWiFi()
         return;
     }
 
-    if (gwBridgeId.isEmpty())
+    if (gwBridgeId.isEmpty() || gwBridgeId.endsWith(QLatin1String("0000")))
     {
         QTimer::singleShot(5000, this, SLOT(initWiFi()));
         return;
     }
 
-    if (gwWifi == QLatin1String("configured"))
+    if (gwWifiName == QLatin1String("Phoscon-Gateway-0000"))
+    {
+        // proceed to correct these
+        gwWifiName.clear();
+    }
+    else if (gwWifi == QLatin1String("configured"))
     {
         return;
     }

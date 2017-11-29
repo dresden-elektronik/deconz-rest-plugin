@@ -573,6 +573,23 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
           d->gwWebSocketNotifyAll = notifyAll;
       }
     }
+    else if (strcmp(colval[0], "proxyaddress") == 0)
+    {
+      if (!val.isEmpty())
+      {
+          d->gwConfig["proxyaddress"] = val;
+          d->gwProxyAddress = val;
+      }
+    }
+    else if (strcmp(colval[0], "proxyport") == 0)
+    {
+        quint16 port = val.toUInt(&ok);
+        if (!val.isEmpty() && ok)
+        {
+            d->gwConfig["proxyport"] = port;
+            d->gwProxyPort = port;
+        }
+    }
     return 0;
 }
 
@@ -1913,9 +1930,9 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         }
 
         // provide default if values are not set or invalid
-        // presence should be reasonable
+        // presence should be reasonable for physical sensors
         item = sensor.item(RConfigDuration);
-        if (item && item->toNumber() <= 0)
+        if (!isClip && item && item->toNumber() <= 0)
         {
             item->setValue(60);
         }
@@ -2436,6 +2453,8 @@ void DeRestPluginPrivate::saveDb()
         gwConfig["wifiip"] = gwWifiIp;
         gwConfig["bridgeid"] = gwBridgeId;
         gwConfig["websocketnotifyall"] = gwWebSocketNotifyAll;
+        gwConfig["proxyaddress"] = gwProxyAddress;
+        gwConfig["proxyport"] = gwProxyPort;
 
         QVariantMap::iterator i = gwConfig.begin();
         QVariantMap::iterator end = gwConfig.end();
