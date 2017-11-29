@@ -2191,7 +2191,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 stream >> attrId;
                 stream >> dataType;
 
-                // Xiamoi
+                // Xiaomi
                 if (ind.clusterId() == ONOFF_CLUSTER_ID && sensor->manufacturer() == QLatin1String("LUMI"))
                 {
                     ok = false;
@@ -2519,7 +2519,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
 
                         for (; i != end; ++i)
                         {
-                            if (i->id() == 0x0004) // model id
+                            if (i->id() == 0x0004) // manufacturer id
                             {
                                 manufacturer = i->toString().trimmed();
                             }
@@ -3093,7 +3093,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         sensorNode.setManufacturer("Insta");
         checkInstaModelId(&sensorNode);
     }
-    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC && modelId.startsWith(QLatin1String("lumi")))
+    else if (modelId.startsWith(QLatin1String("lumi")))
     {
         sensorNode.setManufacturer("LUMI");
     }
