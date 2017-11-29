@@ -2928,7 +2928,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = TEMPERATURE_MEASUREMENT_CLUSTER_ID;
         }
-        sensorNode.addItem(DataTypeInt32, RStateTemperature);
+        sensorNode.addItem(DataTypeInt16, RStateTemperature);
     }
     else if (sensorNode.type().endsWith(QLatin1String("Humidity")))
     {
@@ -3634,14 +3634,14 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                     {
                         for (;ia != enda; ++ia)
                         {
-                            if (ia->id() == 0x0000) // measured illuminance (lux)
+                            if (ia->id() == 0x0000) // temperature (0.01 °C)
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
                                     i->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
                                 }
 
-                                int temp = ia->numericValue().s32;
+                                int temp = ia->numericValue().s16;
                                 ResourceItem *item = i->item(RStateTemperature);
 
                                 if (item)
