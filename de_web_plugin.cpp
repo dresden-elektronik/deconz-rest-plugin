@@ -11531,6 +11531,21 @@ Resource *DeRestPluginPrivate::getResource(const char *resource, const QString &
     return 0;
 }
 
+void DeRestPluginPrivate::pollSwUpdateStateTimerFired()
+{
+    if (gwSwUpdateState != swUpdateState.transferring &&
+        gwSwUpdateState != swUpdateState.installing)
+    {
+        pollSwUpdateStateTimer->stop();
+    }
+    else
+    {
+        openDb();
+        loadSwUpdateStateFromDb();
+        closeDb();
+    }
+}
+
 void DeRestPluginPrivate::restartAppTimerFired()
 {
     reconnectTimer = new QTimer(this);

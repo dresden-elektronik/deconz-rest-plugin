@@ -160,6 +160,11 @@ void DeRestPluginPrivate::initConfig()
     timeManagerState = TM_Init;
     ntpqProcess = 0;
     QTimer::singleShot(2000, this, SLOT(timeManagerTimerFired()));
+
+    pollSwUpdateStateTimer = new QTimer(this);
+    pollSwUpdateStateTimer->setSingleShot(false);
+    connect(pollSwUpdateStateTimer, SIGNAL(timeout()),
+            this, SLOT(pollSwUpdateStateTimerFired()));
 }
 
 /*! Init timezone. */
@@ -2081,8 +2086,10 @@ int DeRestPluginPrivate::updateSoftware(const ApiRequest &req, ApiResponse &rsp)
     if (gwSwUpdateState != swUpdateState.transferring)
     {
         gwSwUpdateState = swUpdateState.transferring;
+        queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
+        pollSwUpdateStateTimer->start(5000);
     }
-    queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
+
     rspItemState["/config/update"] = gwUpdateVersion;
 #ifdef ARCH_ARM
     rspItemState["/config/swupdate2/state"] = gwSwUpdateState;

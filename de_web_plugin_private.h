@@ -823,6 +823,7 @@ public Q_SLOTS:
     void handleRuleEvent(const Event &e);
     void queueBindingTask(const BindingTask &bindingTask);
     void restartAppTimerFired();
+    void pollSwUpdateStateTimerFired();
     void restartGatewayTimerFired();
     void shutDownGatewayTimerFired();
     void simpleRestartAppTimerFired();
@@ -1042,6 +1043,7 @@ public:
     void loadLightNodeFromDb(LightNode *lightNode);
     void loadGroupFromDb(Group *group);
     void loadSceneFromDb(Scene *scene);
+    void loadSwUpdateStateFromDb();
     void loadAllRulesFromDb();
     void loadAllSensorsFromDb();
     void loadAllGatewaysFromDb();
@@ -1153,6 +1155,7 @@ public:
         FW_UpdateWaitFinished
     };
     QTimer *fwUpdateTimer;
+    QTimer *pollSwUpdateStateTimer;
     int fwUpdateIdleTimeout;
     bool fwUpdateStartedByUser;
     FW_UpdateState fwUpdateState;
