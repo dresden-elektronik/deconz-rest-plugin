@@ -687,24 +687,8 @@ void DeRestPluginPrivate::loadSwUpdateStateFromDb()
         return;
     }
 
-    QString configTable = "config"; // default config table version 1
-
-    // check if config table version 2
     {
-        QString sql = QString("SELECT key FROM config2");
-
-        DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
-        errmsg = NULL;
-        rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
-
-        if (rc == SQLITE_OK)
-        {
-            configTable = "config2";
-        }
-    }
-
-    {
-        QString sql = QString("SELECT * FROM %1 WHERE key='swupdatestate'").arg(configTable);
+        QString sql = QLatin1String("SELECT * FROM config2 WHERE key='swupdatestate'");
 
         DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
         rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadConfigCallback, this, &errmsg);
