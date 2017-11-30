@@ -590,6 +590,14 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
             d->gwProxyPort = port;
         }
     }
+    else if (strcmp(colval[0], "swupdatestate") == 0)
+    {
+        if (!val.isEmpty() && ok)
+        {
+            d->gwConfig["swupdatestate"] = val;
+            d->gwSwUpdateState = val;
+        }
+    }
     return 0;
 }
 
@@ -618,7 +626,7 @@ static int sqliteLoadUserparameterCallback(void *user, int ncols, char **colval 
     return 0;
 }
 
-/*! Loads all groups from database
+/*! Loads all config from database
  */
 void DeRestPluginPrivate::loadConfigFromDb()
 {
@@ -650,6 +658,53 @@ void DeRestPluginPrivate::loadConfigFromDb()
 
     {
         QString sql = QString("SELECT key,value FROM %1").arg(configTable);
+
+        DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+        rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadConfigCallback, this, &errmsg);
+
+        if (rc != SQLITE_OK)
+        {
+            if (errmsg)
+            {
+                DBG_Printf(DBG_ERROR, "sqlite3_exec %s, error: %s\n", qPrintable(sql), errmsg);
+                sqlite3_free(errmsg);
+            }
+        }
+    }
+}
+
+/*! Loads all config from database
+ */
+void DeRestPluginPrivate::loadSwUpdateStateFromDb()
+{
+    int rc;
+    char *errmsg = 0;
+
+    DBG_Assert(db != 0);
+
+    if (!db)
+    {
+        return;
+    }
+
+    QString configTable = "config"; // default config table version 1
+
+    // check if config table version 2
+    {
+        QString sql = QString("SELECT key FROM config2");
+
+        DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+        errmsg = NULL;
+        rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
+
+        if (rc == SQLITE_OK)
+        {
+            configTable = "config2";
+        }
+    }
+
+    {
+        QString sql = QString("SELECT * FROM %1 WHERE key='swupdatestate'").arg(configTable);
 
         DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
         rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadConfigCallback, this, &errmsg);
