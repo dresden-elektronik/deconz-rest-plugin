@@ -72,6 +72,7 @@ const quint64 philipsMacPrefix    = 0x0017880000000000ULL;
 const quint64 osramMacPrefix      = 0x8418260000000000ULL;
 const quint64 ubisysMacPrefix     = 0x001fee0000000000ULL;
 const quint64 netvoxMacPrefix     = 0x00137a0000000000ULL;
+const quint64 heimanMacPrefix     = 0x0050430000000000ULL;
 
 struct SupportedDevice {
     quint16 vendorId;
@@ -117,6 +118,9 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "lumi.ctrl_neural2", jennicMacPrefix },
     { VENDOR_UBISYS, "D1", ubisysMacPrefix },
     { VENDOR_NONE, "Z716A", netvoxMacPrefix },
+    { VENDOR_OSRAM_STACK, "DOOR_TPV13", heimanMacPrefix }, // Door/window sensor
+    { VENDOR_OSRAM_STACK, "CO_V16", heimanMacPrefix }, // CO sensor
+    { VENDOR_OSRAM_STACK, "SMOK_V16", heimanMacPrefix }, // Fire sensor
     { 0, 0, 0 }
 };
 
@@ -2611,6 +2615,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                                 else if (attr.numericValue().u16 == 0x0015) // Contact switch
                                 {
                                     fpOpenCloseSensor.inClusters.push_back(ci->id());
+                                }
+                                else if (attr.numericValue().u16 == 0x0028 || // Fire sensor
+                                         attr.numericValue().u16 == 0x002b) // Gas sensor
+                                {
+                                    fpPresenceSensor.inClusters.push_back(ci->id());
                                 }
                             }
                         }
