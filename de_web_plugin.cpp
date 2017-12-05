@@ -11429,6 +11429,7 @@ bool DeRestPluginPrivate::resetConfiguration(bool resetGW, bool deleteDB)
             uint16_t nwkAddress = 0x0000;
             //uint32_t channelMask = 33554432; // 25
             uint8_t curChannel = 11;
+            gwZigbeeChannel = 11;
             uint8_t securityMode = 3;
             // TODO: original macAddress
             quint64 macAddress = apsCtrl->getParameter(deCONZ::ParamMacAddress);
@@ -11458,6 +11459,7 @@ bool DeRestPluginPrivate::resetConfiguration(bool resetGW, bool deleteDB)
             apsCtrl->setParameter(deCONZ::ParamNetworkKey, nwkKey);
             apsCtrl->setParameter(deCONZ::ParamTrustCenterLinkKey, tcLinkKey);
             apsCtrl->setParameter(deCONZ::ParamNetworkUpdateId, nwkUpdateId);
+            apsCtrl->setParameter(deCONZ::ParamOtauActive, 1);
 
             //reset Endpoint config
             QVariantMap epData;
