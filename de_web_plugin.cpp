@@ -11129,6 +11129,7 @@ bool DeRestPluginPrivate::exportConfiguration()
         uint8_t staticNwkAddress = apsCtrl->getParameter(deCONZ::ParamStaticNwkAddress);
         // uint32_t channelMask = apsCtrl->getParameter(deCONZ::ParamChannelMask);
         uint8_t curChannel = apsCtrl->getParameter(deCONZ::ParamCurrentChannel);
+        uint8_t otauActive = apsCtrl->getParameter(deCONZ::ParamOtauActive);
         uint8_t securityMode = apsCtrl->getParameter(deCONZ::ParamSecurityMode);
         quint64 tcAddress = apsCtrl->getParameter(deCONZ::ParamTrustCenterAddress);
         QByteArray networkKey = apsCtrl->getParameter(deCONZ::ParamNetworkKey);
@@ -11148,6 +11149,7 @@ bool DeRestPluginPrivate::exportConfiguration()
         map["apsAck"] = (apsAck == 0) ? false : true;
         //map["channelMask"] = channelMask;
         map["curChannel"] = curChannel;
+        map["otauactive"] = otauActive;
         map["securityMode"] = securityMode;
         map["tcAddress"] = QString("0x%1").arg(QString::number(tcAddress,16));
         map["networkKey"] = networkKey.toHex();
@@ -11335,6 +11337,11 @@ bool DeRestPluginPrivate::importConfiguration()
                 uint8_t apsAck = (map["apsAck"].toBool() == true) ? 1 : 0;
                 //map["channelMask"] = channelMask;
                 uint8_t curChannel = map["curChannel"].toUInt();
+                if (map.contains("otauactive"))
+                {
+                    uint8_t otauActive = map["otauactive"].toUInt();
+                    apsCtrl->setParameter(deCONZ::ParamOtauActive, otauActive);
+                }
                 uint8_t securityMode = map["securityMode"].toUInt();
                 quint64 tcAddress =  QString(map["tcAddress"].toString()).toULongLong(&ok,16);
                 QByteArray nwkKey = QByteArray::fromHex(map["networkKey"].toByteArray());
