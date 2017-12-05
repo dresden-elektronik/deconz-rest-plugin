@@ -11500,6 +11500,10 @@ bool DeRestPluginPrivate::resetConfiguration(bool resetGW, bool deleteDB)
                  DBG_Printf(DBG_INFO, "db backup failed\n");
                 }
             }
+            nodes.clear();
+            groups.clear();
+            sensors.clear();
+            schedules.clear();
             openDb();
             clearDb();
             closeDb();
