@@ -126,6 +126,7 @@ void DeRestPluginPrivate::clearDb()
     // clear tables
 
     const char *sql[] = {
+        "DELETE FROM auth",
         "DELETE FROM config2",
         "DELETE FROM userparameter",
         "DELETE FROM nodes",

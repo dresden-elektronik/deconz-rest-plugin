@@ -11509,10 +11509,14 @@ bool DeRestPluginPrivate::resetConfiguration(bool resetGW, bool deleteDB)
                  DBG_Printf(DBG_INFO, "db backup failed\n");
                 }
             }
+
             nodes.clear();
             groups.clear();
             sensors.clear();
             schedules.clear();
+            apiAuths.clear();
+            apiAuthCurrent = 0;
+
             openDb();
             clearDb();
             closeDb();
