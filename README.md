@@ -7,6 +7,11 @@ As hardware the [RaspBee](https://www.dresden-elektronik.de/raspbee?L=1&ref=gh) 
 
 To learn more about the REST API itself please visit the [REST API Documentation](http://dresden-elektronik.github.io/deconz-rest-doc/) page.
 
+### Phoscon App Beta
+The *Phoscon App* is the successor of the current WebApp (Wireless Light Control), it's browser based too and in open beta state, for more information check out:
+
+https://github.com/dresden-elektronik/phoscon-app-beta
+
 Installation
 ============
 
