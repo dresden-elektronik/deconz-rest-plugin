@@ -365,8 +365,16 @@ void GatewayPrivate::handleEventStateOffline(GW_Event event)
         pings = 0;
 
         QString url;
-        url.sprintf("http://%s:%u/api/%s/config",
-                    qPrintable(address.toString()), port, qPrintable(apikey));
+        if (!apikey.isEmpty())
+        {
+            url.sprintf("http://%s:%u/api/%s/config",
+                        qPrintable(address.toString()), port, qPrintable(apikey));
+
+        }
+        else
+        {
+            url.sprintf("http://%s:%u/api/config", qPrintable(address.toString()), port);
+        }
 
         reply = manager->get(QNetworkRequest(url));
         QObject::connect(reply, SIGNAL(error(QNetworkReply::NetworkError)),
@@ -388,6 +396,11 @@ void GatewayPrivate::handleEventStateOffline(GW_Event event)
             if (code == 403)
             {
                 state = Gateway::StateNotAuthorized;
+                if (!apikey.isEmpty())
+                {
+                    apikey.clear();
+                    needSaveDatabase = true;
+                }
                 startTimer(5000, ActionProcess);
             }
             else if (code == 200)
