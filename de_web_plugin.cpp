@@ -972,7 +972,7 @@ QVariantMap DeRestPluginPrivate::errorToMap(int id, const QString &ressource, co
     error["description"] = description;
     map["error"] = error;
 
-    DBG_Printf(DBG_INFO, "API error %d, %s, %s\n", id, qPrintable(ressource), qPrintable(description));
+    DBG_Printf(DBG_INFO_L2, "API error %d, %s, %s\n", id, qPrintable(ressource), qPrintable(description));
 
     return map;
 }

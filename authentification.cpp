@@ -211,6 +211,11 @@ bool DeRestPluginPrivate::checkApikeyAuthentification(const ApiRequest &req, Api
     rsp.httpStatus = HttpStatusForbidden;
     rsp.list.append(errorToMap(ERR_UNAUTHORIZED_USER, req.path.join("/"), "unauthorized user"));
 
+    if (req.sock)
+    {
+        DBG_Printf(DBG_INFO, "\thost: %s\n", qPrintable(req.sock->peerAddress().toString()));
+    }
+
     return false;
 }
 
