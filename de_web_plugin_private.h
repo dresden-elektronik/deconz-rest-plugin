@@ -907,6 +907,7 @@ public:
     void updateEtag(QString &etag);
     qint64 getUptime();
     void addLightNode(const deCONZ::Node *node);
+    void updatedLightNodeEndpoint(const deCONZ::Node *node);
     void nodeZombieStateChanged(const deCONZ::Node *node);
     LightNode *updateLightNode(const deCONZ::NodeEvent &event);
     LightNode *getLightNodeForAddress(const deCONZ::Address &addr, quint8 endpoint = 0);

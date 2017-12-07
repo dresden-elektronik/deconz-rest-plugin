@@ -1106,6 +1106,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 updateEtag(lightNode2->etag);
             }
 
+            pollManager->poll(lightNode2);
             continue;
         }
 
@@ -1269,6 +1270,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
             nodes.push_back(lightNode);
             lightNode2 = &nodes.back();
+            pollManager->poll(lightNode2);
 
             q->startZclAttributeTimer(checkZclAttributesDelay);
             updateLightEtag(lightNode2);
@@ -1276,6 +1278,38 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             if (lightNode.needSaveDatabase())
             {
                 queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
+            }
+        }
+    }
+}
+
+/*! Force polling if the node has updated simple descriptors in setup phase.
+    \param node - the base for the LightNode
+ */
+void DeRestPluginPrivate::updatedLightNodeEndpoint(const deCONZ::Node *node)
+{
+    if (!node)
+    {
+        return;
+    }
+
+    for (LightNode &lightNode : nodes)
+    {
+        if (lightNode.address().ext() != node->address().ext())
+        {
+            continue;
+        }
+        lightNode.rx();
+        pollManager->poll(&lightNode);
+
+        if (lightNode.modelId().isEmpty() && lightNode.haEndpoint().isValid())
+        {
+            std::vector<uint16_t> attributes;
+            attributes.push_back(0x0005); // Model identifier
+
+            if (readAttributes(&lightNode, lightNode.haEndpoint().endpoint(), BASIC_CLUSTER_ID, attributes))
+            {
+                lightNode.clearRead(READ_MODEL_ID);
             }
         }
     }
@@ -6804,6 +6838,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
     case deCONZ::NodeEvent::UpdatedSimpleDescriptor:
     {
         addLightNode(event.node());
+        updatedLightNodeEndpoint(event.node());
         addSensorNode(event.node());
         checkUpdatedFingerPrint(event.node(), event.endpoint(), 0);
     }
@@ -8532,10 +8567,11 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
 
             // force reading attributes
 
-            i->enableRead(READ_MODEL_ID |
-                          READ_SWBUILD_ID |
+            i->enableRead(READ_SWBUILD_ID |
                           READ_GROUPS |
                           READ_SCENES);
+
+            pollManager->poll(&*i);
 
             for (uint32_t ii = 0; ii < 32; ii++)
             {
