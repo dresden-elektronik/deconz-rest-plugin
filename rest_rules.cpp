@@ -1711,9 +1711,9 @@ void DeRestPluginPrivate::handleRuleEvent(const Event &e)
         }
     }
 
-    int dt = t.elapsed();
-    if  (dt > 0)
-    {
-        DBG_Printf(DBG_INFO, "trigger rule events took %d ms\n", dt);
-    }
+    //int dt = t.elapsed();
+    //if  (dt > 0)
+    //{
+        //DBG_Printf(DBG_INFO_L2, "trigger rule events took %d ms\n", dt);
+    //}
 }

@@ -1126,7 +1126,7 @@ void DeRestPluginPrivate::scheduleTimerFired()
 
                 if (diff > 0)
                 {
-                    DBG_Printf(DBG_INFO, "schedule %s diff %lld, %s\n", qPrintable(i->id), diff, qPrintable(i->datetime.toString()));
+                    DBG_Printf(DBG_INFO_L2, "schedule %s diff %lld, %s\n", qPrintable(i->id), diff, qPrintable(i->datetime.toString()));
                     continue;
                 }
             }
