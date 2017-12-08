@@ -1289,19 +1289,25 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 /*! Force polling if the node has updated simple descriptors in setup phase.
     \param node - the base for the LightNode
  */
-void DeRestPluginPrivate::updatedLightNodeEndpoint(const deCONZ::Node *node)
+void DeRestPluginPrivate::updatedLightNodeEndpoint(const deCONZ::NodeEvent &event)
 {
-    if (!node)
+    if (!event.node())
     {
         return;
     }
 
     for (LightNode &lightNode : nodes)
     {
-        if (lightNode.address().ext() != node->address().ext())
+        if (lightNode.address().ext() != event.node()->address().ext())
         {
             continue;
         }
+
+        if (event.clusterId() != ZDP_SIMPLE_DESCRIPTOR_RSP_CLID)
+        {
+            continue;
+        }
+
         lightNode.rx();
         pollManager->poll(&lightNode);
 
@@ -5494,7 +5500,7 @@ bool DeRestPluginPrivate::readGroupMembership(LightNode *lightNode, const std::v
 {
     DBG_Assert(lightNode != 0);
 
-    if (!lightNode || !lightNode->isAvailable())
+    if (!lightNode || !lightNode->isAvailable() || !lightNode->lastRx().isValid())
     {
         return false;
     }
@@ -6856,7 +6862,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
     case deCONZ::NodeEvent::UpdatedSimpleDescriptor:
     {
         addLightNode(event.node());
-        updatedLightNodeEndpoint(event.node());
+        updatedLightNodeEndpoint(event);
         addSensorNode(event.node());
         checkUpdatedFingerPrint(event.node(), event.endpoint(), 0);
     }
