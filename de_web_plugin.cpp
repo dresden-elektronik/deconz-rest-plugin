@@ -3116,6 +3116,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             item->setValue(0);
             item = sensorNode.addItem(DataTypeBool, RConfigUsertest);
             item->setValue(false);
+            item = sensorNode.item(RConfigDuration); // same as max reporting interval / TODO write 60s?
+            item->setValue(300);
         }
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_BEGA)
@@ -3860,7 +3862,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 quint16 duration = ia->numericValue().u16;
                                 ResourceItem *item = i->item(RConfigDuration);
 
-                                if (item && item->toNumber() != duration)
+                                if (item && item->toNumber() != duration && duration > 0)
                                 {
                                     item->setValue(duration);
                                     i->setNeedSaveDatabase(true);
