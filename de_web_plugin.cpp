@@ -10078,13 +10078,16 @@ void DeRestPlugin::idleTimerFired()
     {
         d->gwDeviceAddress.setExt(d->apsCtrl->getParameter(deCONZ::ParamMacAddress));
         d->gwDeviceAddress.setNwk(d->apsCtrl->getParameter(deCONZ::ParamNwkAddress));
-        d->gwBridgeId.sprintf("%016llX", (quint64)d->gwDeviceAddress.ext());
-        if (!d->gwConfig.contains("bridgeid") || d->gwConfig["bridgeid"] != d->gwBridgeId)
+        if (d->gwDeviceAddress.hasExt())
         {
-          DBG_Printf(DBG_INFO, "Set bridgeid to %s\n", qPrintable(d->gwBridgeId));
-          d->gwConfig["bridgeid"] = d->gwBridgeId;
-          d->queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
-          d->initDescriptionXml();
+            d->gwBridgeId.sprintf("%016llX", (quint64)d->gwDeviceAddress.ext());
+            if (!d->gwConfig.contains("bridgeid") || d->gwConfig["bridgeid"] != d->gwBridgeId)
+            {
+                DBG_Printf(DBG_INFO, "Set bridgeid to %s\n", qPrintable(d->gwBridgeId));
+                d->gwConfig["bridgeid"] = d->gwBridgeId;
+                d->queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
+                d->initDescriptionXml();
+            }
         }
     }
 
