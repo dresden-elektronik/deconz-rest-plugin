@@ -962,12 +962,12 @@ void DeRestPluginPrivate::queueBindingTask(const BindingTask &bindingTask)
 
     if (i == bindingQueue.end())
     {
-        DBG_Printf(DBG_INFO_L2, "queue binding task for 0x%016llu, cluster 0x%04X\n", bindingTask.binding.srcAddress, bindingTask.binding.clusterId);
+        DBG_Printf(DBG_INFO_L2, "queue binding task for 0x%016llX, cluster 0x%04X\n", bindingTask.binding.srcAddress, bindingTask.binding.clusterId);
         bindingQueue.push_back(bindingTask);
     }
     else
     {
-        DBG_Printf(DBG_INFO, "discard double entry in binding queue\n");
+        DBG_Printf(DBG_INFO, "discard double entry in binding queue for for 0x%016llX, cluster 0x%04X\n", bindingTask.binding.srcAddress, bindingTask.binding.clusterId);
     }
 }
 
