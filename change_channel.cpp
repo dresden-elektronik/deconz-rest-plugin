@@ -28,6 +28,11 @@ void DeRestPluginPrivate::initChangeChannelApi()
     channelchangeTimer->setSingleShot(true);
     connect(channelchangeTimer, SIGNAL(timeout()),
             this, SLOT(channelchangeTimerFired()));
+
+    QTimer *wdTimer = new QTimer(this);
+    wdTimer->setSingleShot(false);
+    connect(wdTimer, SIGNAL(timeout()), this, SLOT(channelWatchdogTimerFired()));
+    wdTimer->start(10000);
 }
 
 
@@ -67,6 +72,11 @@ bool DeRestPluginPrivate::verifyChannel(quint8 channel)
 
     DBG_Assert(apsCtrl != 0);
     if (!apsCtrl)
+    {
+        return false;
+    }
+
+    if (!isInNetwork())
     {
         return false;
     }
@@ -118,9 +128,9 @@ void DeRestPluginPrivate::changeChannel(quint8 channel)
             deCONZ::ApsDataRequest req;
 
             req.setTxOptions(0);
-            req.setDstEndpoint(0);
+            req.setDstEndpoint(ZDO_ENDPOINT);
             req.setDstAddressMode(deCONZ::ApsNwkAddress);
-            req.dstAddress().setNwk(0xFFFF);
+            req.dstAddress().setNwk(deCONZ::BroadcastRouters);
             req.setProfileId(ZDP_PROFILE_ID);
             req.setClusterId(ZDP_MGMT_NWK_UPDATE_REQ_CLID);
             req.setSrcEndpoint(ZDO_ENDPOINT);
@@ -335,6 +345,60 @@ void DeRestPluginPrivate::channelChangeReconnectNetwork()
         channelChangeState = CC_Idle;
         DBG_Printf(DBG_INFO_L2, "ChannelChangeState: CC_Idle\n");
         DBG_Printf(DBG_INFO, "reconnect network failed\n");
+    }
+}
+
+/*! Checks if network is on the channel it's suppoesed to be.
+ */
+void DeRestPluginPrivate::channelWatchdogTimerFired()
+{
+    if (!apsCtrl || channelChangeState != CC_Idle)
+    {
+        return;
+    }
+
+    if (!isInNetwork())
+    {
+        return;
+    }
+
+    quint8 channel = apsCtrl->getParameter(deCONZ::ParamCurrentChannel);
+    quint32 channelMask = apsCtrl->getParameter(deCONZ::ParamChannelMask);
+
+    if (gwZigbeeChannel == 0)
+    {
+        if (channel >= 11 && channel <= 26)
+        {
+            gwZigbeeChannel = channel;
+            queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
+        }
+    }
+
+    if (channel < 11 || channel > 26)
+    {
+        DBG_Printf(DBG_INFO, "invalid current channel %u (TODO)\n", channel);
+        return;
+    }
+
+    if (channelMask && (channelMask & (1 << channel)) == 0)
+    {
+        DBG_Printf(DBG_INFO, "channel %u does not match channel mask 0x%08X (TODO)\n", channel, channelMask);
+    }
+
+    if (gwZigbeeChannel == 0)
+    {
+        return;
+    }
+    else if (gwZigbeeChannel < 11 || gwZigbeeChannel > 26)
+    {
+        DBG_Assert(0); // should never happen
+        return;
+    }
+
+    if (channel != gwZigbeeChannel)
+    {
+        DBG_Printf(DBG_INFO, "channel is %u but should be %u, start channel change\n", channel, gwZigbeeChannel);
+        startChannelChange(gwZigbeeChannel);
     }
 }
 

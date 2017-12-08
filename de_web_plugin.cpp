@@ -654,13 +654,7 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
         }
         runningTasks.erase(i);
         processTasks();
-
-        return;
-    }
-
-    if (handleMgmtBindRspConfirm(conf))
-    {
-        return;
+        break;
     }
 
     if (channelChangeApsRequestId == conf.id() && channelChangeState == CC_WaitConfirm)
@@ -670,6 +664,11 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
     else if (resetDeviceApsRequestId == conf.id() && resetDeviceState == ResetWaitConfirm)
     {
         resetDeviceSendConfirm(conf.status() == deCONZ::ApsSuccessStatus);
+    }
+
+    if (handleMgmtBindRspConfirm(conf))
+    {
+        return;
     }
 }
 
@@ -6522,6 +6521,11 @@ bool DeRestPluginPrivate::addTask(const TaskItem &task)
         return false;
     }
 
+    if (channelChangeState != CC_Idle)
+    {
+        return false;
+    }
+
     if (DBG_IsEnabled(DBG_INFO))
     {
         if (task.req.dstAddress().hasExt())
@@ -6600,6 +6604,11 @@ void DeRestPluginPrivate::processTasks()
         DBG_Printf(DBG_INFO, "Not in network cleanup %d tasks\n", (runningTasks.size() + tasks.size()));
         runningTasks.clear();
         tasks.clear();
+        return;
+    }
+
+    if (channelChangeState != CC_Idle)
+    {
         return;
     }
 
@@ -10079,6 +10088,11 @@ void DeRestPlugin::idleTimerFired()
     }
 
     if (!d->isInNetwork())
+    {
+        return;
+    }
+
+    if (d->channelChangeState != DeRestPluginPrivate::CC_Idle)
     {
         return;
     }

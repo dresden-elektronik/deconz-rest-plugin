@@ -854,6 +854,7 @@ public Q_SLOTS:
     void checkChannelChangeNetworkDisconnected();
     void channelChangeStartReconnectNetwork(int delay);
     void channelChangeReconnectNetwork();
+    void channelWatchdogTimerFired();
 
     // generic reconnect network
     void reconnectTimerFired();
