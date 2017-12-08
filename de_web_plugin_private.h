@@ -1003,6 +1003,7 @@ public:
     void sendIasZoneEnrollResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleIndicationFindSensors(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleCommissioningClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleZdpIndication(const deCONZ::ApsDataIndication &ind);
     bool handleMgmtBindRspConfirm(const deCONZ::ApsDataConfirm &conf);
     void handleDeviceAnnceIndication(const deCONZ::ApsDataIndication &ind);
     void handleIeeeAddressReqIndication(const deCONZ::ApsDataIndication &ind);

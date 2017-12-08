@@ -541,6 +541,8 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
         default:
             break;
         }
+
+        handleZdpIndication(ind);
     }
     else if (ind.profileId() == DE_PROFILE_ID)
     {
@@ -619,7 +621,7 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
                 if ((!val.timestampLastReport.isValid() || val.timestampLastReport.secsTo(now) > (60 * 5)) &&
                     isLightNodeInGroup(&l, groupId))
                 {
-                    DBG_Printf(DBG_INFO, "\t0x%016llX force poll\n", l.address().ext());
+                    DBG_Printf(DBG_INFO_L2, "\t0x%016llX force poll\n", l.address().ext());
                     pollManager->poll(&l, now.addSecs(3));
                 }
             }
@@ -1308,19 +1310,13 @@ void DeRestPluginPrivate::updatedLightNodeEndpoint(const deCONZ::NodeEvent &even
             continue;
         }
 
+        if (event.endpoint() != lightNode.haEndpoint().endpoint())
+        {
+            continue;
+        }
+
         lightNode.rx();
         pollManager->poll(&lightNode);
-
-        if (lightNode.modelId().isEmpty() && lightNode.haEndpoint().isValid())
-        {
-            std::vector<uint16_t> attributes;
-            attributes.push_back(0x0005); // Model identifier
-
-            if (readAttributes(&lightNode, lightNode.haEndpoint().endpoint(), BASIC_CLUSTER_ID, attributes))
-            {
-                lightNode.clearRead(READ_MODEL_ID);
-            }
-        }
     }
 }
 
@@ -8481,6 +8477,38 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
 
                 Event e(RSensors, REventValidGroup, sensorNode->id());
                 enqueueEvent(e);
+            }
+        }
+    }
+}
+
+/*! Handle the case that a node send a ZDP command.
+    \param ind a ZDP command
+ */
+void DeRestPluginPrivate::handleZdpIndication(const deCONZ::ApsDataIndication &ind)
+{
+    for (LightNode &lightNode: nodes)
+    {
+        if (ind.srcAddress().hasExt() && ind.srcAddress().ext() != lightNode.address().ext())
+        {
+            continue;
+        }
+
+        if (ind.srcAddress().hasNwk() && ind.srcAddress().nwk() != lightNode.address().nwk())
+        {
+            continue;
+        }
+
+        lightNode.rx();
+
+        if (lightNode.modelId().isEmpty() && lightNode.haEndpoint().isValid())
+        {
+            std::vector<uint16_t> attributes;
+            attributes.push_back(0x0005); // Model identifier
+
+            if (readAttributes(&lightNode, lightNode.haEndpoint().endpoint(), BASIC_CLUSTER_ID, attributes))
+            {
+                lightNode.clearRead(READ_MODEL_ID);
             }
         }
     }
