@@ -506,8 +506,8 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                     {
                         addItem(DataTypeUInt16, RStateCt);
 
-                        if (haEndpoint().deviceId() != DEV_ID_ZLL_EXTENDED_COLOR_LIGHT &&
-                            haEndpoint().deviceId() != DEV_ID_Z30_EXTENDED_COLOR_LIGHT)
+                        if (haEndpoint().deviceId() == DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT ||
+                            haEndpoint().deviceId() == DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT)
                         {
                             colorMode->setValue(QVariant("ct"));
                         }
@@ -516,12 +516,21 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                         break;
                     }
 
-                    if (colorMode->toString() != QLatin1String("ct"))
+                    switch (haEndpoint().deviceId())
                     {
-                        addItem(DataTypeUInt16, RStateHue);
-                        addItem(DataTypeUInt8, RStateSat);
-                        addItem(DataTypeUInt16, RStateX);
-                        addItem(DataTypeUInt16, RStateY);
+                    case DEV_ID_ZLL_COLOR_LIGHT:
+                    case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:
+                    case DEV_ID_HA_COLOR_DIMMABLE_LIGHT:
+                    case DEV_ID_Z30_EXTENDED_COLOR_LIGHT: // fall through
+                        {
+                            addItem(DataTypeUInt16, RStateX);
+                            addItem(DataTypeUInt16, RStateY);
+                            addItem(DataTypeUInt16, RStateHue);
+                            addItem(DataTypeUInt8, RStateSat);
+                        }
+                        break;
+                    default:
+                        break;
                     }
                 }
             }
