@@ -3103,6 +3103,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 item->setValue(0);
                 item = sensorNode.addItem(DataTypeUInt8, RConfigSensitivityMax);
                 item->setValue(R_SENSITIVITY_MAX_DEFAULT);
+                item = sensorNode.item(RConfigDuration); // same as max reporting interval / TODO write 60s?
+                item->setValue(300);
             }
             item = sensorNode.addItem(DataTypeString, RConfigAlert);
             item->setValue(R_ALERT_DEFAULT);
@@ -3112,8 +3114,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             item->setValue(0);
             item = sensorNode.addItem(DataTypeBool, RConfigUsertest);
             item->setValue(false);
-            item = sensorNode.item(RConfigDuration); // same as max reporting interval / TODO write 60s?
-            item->setValue(300);
         }
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_BEGA)
