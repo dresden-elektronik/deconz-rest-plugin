@@ -11283,7 +11283,10 @@ bool DeRestPluginPrivate::exportConfiguration()
             {
                 archProcess = new QProcess(this);
             }
-            //TODO: Win: provide 7zip or other
+
+            ttlDataBaseConnection = 0;
+            closeDb();
+
             //TODO: OS X
 #ifdef Q_OS_WIN
             QString appPath = qApp->applicationDirPath();
