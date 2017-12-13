@@ -29,6 +29,7 @@
 #ifdef ARCH_ARM
   #include <unistd.h>
   #include <sys/reboot.h>
+  #include <errno.h>
 #endif
 #include "colorspace.h"
 #include "de_web_plugin.h"
@@ -11683,7 +11684,10 @@ void DeRestPluginPrivate::restartGatewayTimerFired()
 {
      //qApp->exit(APP_RET_RESTART_SYS);
 #ifdef ARCH_ARM
-    reboot(RB_AUTOBOOT);
+    if (reboot(RB_AUTOBOOT) == -1)
+    {
+        DBG_Printf(DBG_INFO, "Reboot failed with errno: %s\n", strerror(errno));
+    }
 #endif
 }
 
@@ -11691,7 +11695,10 @@ void DeRestPluginPrivate::shutDownGatewayTimerFired()
 {
      // qApp->exit(APP_RET_SHUTDOWN_SYS);
 #ifdef ARCH_ARM
-    reboot(RB_POWER_OFF);
+    if (reboot(RB_POWER_OFF) == -1)
+    {
+        DBG_Printf(DBG_INFO, "Shutdown failed with errno: %s\n", strerror(errno));
+    }
 #endif
 }
 
