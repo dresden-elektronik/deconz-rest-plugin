@@ -11409,8 +11409,7 @@ bool DeRestPluginPrivate::importConfiguration()
         args.append("e");
         args.append("-y");
         args.append(path + "/deCONZ.tar");
-        args.append("-o");
-        args.append(path);
+        args.append("-o" + path);
         zipProcess->start(cmd, args);
 #endif
 #ifdef Q_OS_LINUX
