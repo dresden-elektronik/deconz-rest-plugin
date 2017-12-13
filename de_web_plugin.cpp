@@ -11384,8 +11384,7 @@ bool DeRestPluginPrivate::importConfiguration()
         args.append("e");
         args.append("-y");
         args.append(path + "/deCONZ.tar.gz");
-        args.append("-o");
-        args.append(path);
+        args.append("-o" + path);
         archProcess->start(cmd, args);
 #endif
 #ifdef Q_OS_LINUX
@@ -11395,6 +11394,9 @@ bool DeRestPluginPrivate::importConfiguration()
         DBG_Printf(DBG_INFO, "%s\n", qPrintable(archProcess->readAllStandardOutput()));
         archProcess->deleteLater();
         archProcess = 0;
+
+        ttlDataBaseConnection = 0;
+        closeDb();
 
         //unpack .tar
         if (!zipProcess)
