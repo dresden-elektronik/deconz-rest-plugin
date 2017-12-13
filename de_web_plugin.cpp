@@ -10912,6 +10912,10 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         stream << "HTTP/1.1 200 OK\r\n";
         stream << "Content-type: text/html\r\n";
         stream << "Content-Length: 0\r\n";
+        stream << "Access-Control-Max-Age: 0\r\n";
+        stream << "Access-Control-Allow-Origin: *\r\n";
+        stream << "Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE\r\n";
+        stream << "Access-Control-Allow-Headers: Authorization, Access-Control-Allow-Origin, Content-Type\r\n";
         stream << "\r\n";
         stream.flush();
         return 0;
