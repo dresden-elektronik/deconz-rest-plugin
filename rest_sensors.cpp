@@ -1540,6 +1540,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         QVariantMap smap;
         bool strictMode = false;
         sensorToMap(sensor, smap, strictMode);
+        map["id"] = sensor->id();
         smap["id"] = sensor->id();
         map["sensor"] = smap;
 
@@ -1555,6 +1556,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         map["r"] = QLatin1String("sensors");
 
         QVariantMap smap;
+        map["id"] = e.id();
         smap["id"] = e.id();
         map["sensor"] = smap;
 
