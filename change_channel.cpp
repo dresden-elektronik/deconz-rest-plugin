@@ -49,6 +49,7 @@ bool DeRestPluginPrivate::startChannelChange(quint8 channel)
 
     ccRetries = 0;
     gwZigbeeChannel = channel;
+    queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
 
     if (channelChangeState != CC_Idle)
     {

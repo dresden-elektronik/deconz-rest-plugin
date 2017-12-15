@@ -29,6 +29,7 @@
 #ifdef ARCH_ARM
   #include <unistd.h>
   #include <sys/reboot.h>
+  #include <errno.h>
 #endif
 #include "colorspace.h"
 #include "de_web_plugin.h"
@@ -10911,6 +10912,10 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         stream << "HTTP/1.1 200 OK\r\n";
         stream << "Content-type: text/html\r\n";
         stream << "Content-Length: 0\r\n";
+        stream << "Access-Control-Max-Age: 0\r\n";
+        stream << "Access-Control-Allow-Origin: *\r\n";
+        stream << "Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE\r\n";
+        stream << "Access-Control-Allow-Headers: Authorization, Access-Control-Allow-Origin, Content-Type\r\n";
         stream << "\r\n";
         stream.flush();
         return 0;
@@ -11283,7 +11288,10 @@ bool DeRestPluginPrivate::exportConfiguration()
             {
                 archProcess = new QProcess(this);
             }
-            //TODO: Win: provide 7zip or other
+
+            ttlDataBaseConnection = 0;
+            closeDb();
+
             //TODO: OS X
 #ifdef Q_OS_WIN
             QString appPath = qApp->applicationDirPath();
@@ -11376,8 +11384,7 @@ bool DeRestPluginPrivate::importConfiguration()
         args.append("e");
         args.append("-y");
         args.append(path + "/deCONZ.tar.gz");
-        args.append("-o");
-        args.append(path);
+        args.append("-o" + path);
         archProcess->start(cmd, args);
 #endif
 #ifdef Q_OS_LINUX
@@ -11387,6 +11394,9 @@ bool DeRestPluginPrivate::importConfiguration()
         DBG_Printf(DBG_INFO, "%s\n", qPrintable(archProcess->readAllStandardOutput()));
         archProcess->deleteLater();
         archProcess = 0;
+
+        ttlDataBaseConnection = 0;
+        closeDb();
 
         //unpack .tar
         if (!zipProcess)
@@ -11399,8 +11409,7 @@ bool DeRestPluginPrivate::importConfiguration()
         args.append("e");
         args.append("-y");
         args.append(path + "/deCONZ.tar");
-        args.append("-o");
-        args.append(path);
+        args.append("-o" + path);
         zipProcess->start(cmd, args);
 #endif
 #ifdef Q_OS_LINUX
@@ -11680,7 +11689,10 @@ void DeRestPluginPrivate::restartGatewayTimerFired()
 {
      //qApp->exit(APP_RET_RESTART_SYS);
 #ifdef ARCH_ARM
-    reboot(RB_AUTOBOOT);
+    if (reboot(RB_AUTOBOOT) == -1)
+    {
+        DBG_Printf(DBG_INFO, "Reboot failed with errno: %s\n", strerror(errno));
+    }
 #endif
 }
 
@@ -11688,7 +11700,10 @@ void DeRestPluginPrivate::shutDownGatewayTimerFired()
 {
      // qApp->exit(APP_RET_SHUTDOWN_SYS);
 #ifdef ARCH_ARM
-    reboot(RB_POWER_OFF);
+    if (reboot(RB_POWER_OFF) == -1)
+    {
+        DBG_Printf(DBG_INFO, "Shutdown failed with errno: %s\n", strerror(errno));
+    }
 #endif
 }
 
