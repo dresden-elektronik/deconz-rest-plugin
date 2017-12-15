@@ -169,7 +169,7 @@ void DeRestPluginPrivate::initConfig()
 
 /*! Init timezone. */
 void DeRestPluginPrivate::initTimezone()
-{    
+{
 #ifdef Q_OS_LINUX
 #ifdef ARCH_ARM
     if (gwTimezone.isEmpty())
@@ -850,6 +850,7 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
     QVariantMap configMap;
     QVariantMap schedulesMap;
     QVariantMap sensorsMap;
+    QVariantMap resourcelinksMap;
     QVariantMap rulesMap;
 
     // lights
@@ -930,6 +931,21 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
+    // resourcelinks
+    {
+        std::vector<Resourcelinks>::const_iterator i = resourcelinks.begin();
+        std::vector<Resourcelinks>::const_iterator end = resourcelinks.end();
+
+        for (; i != end; ++i)
+        {
+            if (i->state != Resourcelinks::StateNormal)
+            {
+                continue;
+            }
+            resourcelinksMap[i->id] = i->data;
+        }
+    }
+
     // rules
     {
         std::vector<Rule>::const_iterator i = rules.begin();
@@ -956,6 +972,7 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
     rsp.map["config"] = configMap;
     rsp.map["schedules"] = schedulesMap;
     rsp.map["sensors"] = sensorsMap;
+    rsp.map["resourcelinks"] = resourcelinksMap;
     rsp.map["rules"] = rulesMap;
     rsp.etag = gwConfigEtag;
     rsp.httpStatus = HttpStatusOk;
@@ -1915,7 +1932,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
             rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/utc"), QString("invalid value, %1, for parameter, utc").arg(map["utc"].toString())));
             rsp.httpStatus = HttpStatusBadRequest;
             return REQ_READY_SEND;
-        }         
+        }
 
 #ifdef ARCH_ARM
         int ret = 0;
