@@ -1541,6 +1541,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         bool strictMode = false;
         sensorToMap(sensor, smap, strictMode);
         map["id"] = sensor->id();
+        smap["id"] = sensor->id();
         map["sensor"] = smap;
 
         webSocketServer->broadcastTextMessage(Json::serialize(map));
@@ -1556,6 +1557,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
 
         QVariantMap smap;
         map["id"] = e.id();
+        smap["id"] = e.id();
         map["sensor"] = smap;
 
         webSocketServer->broadcastTextMessage(Json::serialize(map));
