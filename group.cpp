@@ -34,6 +34,7 @@ Group::Group() :
 
     // add common items
     addItem(DataTypeString, RAttrName);
+    addItem(DataTypeBool, RStateAllOn);
     addItem(DataTypeBool, RStateAnyOn);
     ResourceItem * rtype = addItem(DataTypeString, RAttrType);
     rtype->setValue(QString(QLatin1String("LightGroup")));

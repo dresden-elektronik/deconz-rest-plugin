@@ -1646,7 +1646,8 @@ bool DeRestPluginPrivate::groupToMap(const Group *group, QVariantMap &map)
     {
         const ResourceItem *item = group->itemForIndex(i);
         DBG_Assert(item != 0);
-        if (item->descriptor().suffix == RStateAnyOn) { state["any_on"] = item->toBool(); }
+        if (item->descriptor().suffix == RStateAllOn) { state["all_on"] = item->toBool(); }
+        else if (item->descriptor().suffix == RStateAnyOn) { state["any_on"] = item->toBool(); }
         else if (item->descriptor().suffix == RAttrName) { map["name"] = item->toString(); }
         else if (item->descriptor().suffix == RAttrType) { map["type"] = item->toString(); }
         //else if (item->descriptor().suffix == RAttrModelId) { map["modelid"] = item->toString(); }; // not supported yet
@@ -3119,14 +3120,23 @@ void DeRestPluginPrivate::handleGroupEvent(const Event &e)
                 count++;
                 if (item->toBool()) { on++; }
             }
-
-            if (on)
-            {
-                break; // any
-            }
+            //
+            // if (on)
+            // {
+            //     break; // any
+            // }
         }
 
-        ResourceItem *item = group->item(RStateAnyOn);
+        ResourceItem *item = group->item(RStateAllOn);
+        DBG_Assert(item != 0);
+        if (item && item->toBool() != (on == count))
+        {
+            item->setValue(on == count);
+            updateGroupEtag(group);
+            Event e(RGroups, RStateAllOn, group->address());
+            enqueueEvent(e);
+        }
+        item = group->item(RStateAnyOn);
         DBG_Assert(item != 0);
         if (item && item->toBool() != (on > 0))
         {
@@ -3134,8 +3144,8 @@ void DeRestPluginPrivate::handleGroupEvent(const Event &e)
             updateGroupEtag(group);
             Event e(RGroups, RStateAnyOn, group->address());
             enqueueEvent(e);
-            return;
         }
+        return;
     }
 
     // push state updates through websocket
