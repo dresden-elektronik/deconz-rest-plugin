@@ -402,7 +402,7 @@ void DeRestPluginPrivate::inetProxyCheckHttpVia(const QString &via)
         return;
     }
 
-    if (gwProxyPort != 0)
+    if (gwProxyPort != 0 && !gwProxyAddress.isEmpty() && gwProxyAddress != QLatin1String("none"))
     {
         return; // already configured?
     }
