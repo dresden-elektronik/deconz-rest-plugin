@@ -14,6 +14,8 @@
 #define ONOFF_COMMAND_OFF_WITH_EFFECT  0x040
 #define ONOFF_COMMAND_ON_WITH_TIMED_OFF  0x42
 
+#define PHILIPS_MAC_PREFIX QLatin1String("001788")
+
 enum GW_Event
 {
     ActionProcess,
@@ -533,8 +535,19 @@ void GatewayPrivate::handleEventStateConnected(GW_Event event)
 
             if (cmd.clusterId == 0x0005 && cmd.commandId == 0x05) // recall scene
             {
-                url.sprintf("http://%s:%u/api/%s/groups/%u/scenes/%u/recall",
-                            qPrintable(address.toString()), port, qPrintable(apikey), cmd.groupId, cmd.param.sceneId);
+                if (uuid.startsWith(PHILIPS_MAC_PREFIX))  // cascade gateway is Hue bridge
+                {
+                    url.sprintf("http://%s:%u/api/%s/groups/%u/action",
+                              qPrintable(address.toString()), port, qPrintable(apikey), cmd.groupId);
+                    QString scene;
+                    scene.sprintf("g%us%u", cmd.groupId, cmd.param.sceneId);
+                    map[QLatin1String("scene")] = scene;
+                }
+                else
+                {
+                    url.sprintf("http://%s:%u/api/%s/groups/%u/scenes/%u/recall",
+                                qPrintable(address.toString()), port, qPrintable(apikey), cmd.groupId, cmd.param.sceneId);
+                }
             }
             else if (cmd.clusterId == 0x0006)
             {
