@@ -13,6 +13,10 @@
 #define ONOFF_COMMAND_TOGGLE  0x02
 #define ONOFF_COMMAND_OFF_WITH_EFFECT  0x040
 #define ONOFF_COMMAND_ON_WITH_TIMED_OFF  0x42
+#define LEVEL_COMMAND_MOVE_TO_LEVEL 0x00
+#define LEVEL_COMMAND_STEP 0x02
+#define LEVEL_COMMAND_STOP 0x03
+
 
 #define PHILIPS_MAC_PREFIX QLatin1String("001788")
 
@@ -35,6 +39,7 @@ public:
         quint8 sceneId;
         quint8 level;
     } param;
+    quint8 mode;
     quint16 transitionTime;
 };
 
@@ -280,9 +285,22 @@ void Gateway::handleGroupCommand(const deCONZ::ApsDataIndication &ind, deCONZ::Z
             else if (ind.clusterId() == 0x0006) // onoff
             {
             }
-//            else if (ind.clusterId() == 0x0008) // level
-//            {
-//            }
+            else if (ind.clusterId() == 0x0008) // level
+            {
+                if (zclFrame.commandId() == LEVEL_COMMAND_MOVE_TO_LEVEL)
+                {
+                    // payload U8 level, U16 transition time
+                    cmd.param.level = zclFrame.payload().at(0);
+                    // cmd.transitionTime = zclFrame.payload().at(1);
+                }
+                else if (zclFrame.commandId() == LEVEL_COMMAND_STEP)
+                {
+                    // payload U8 mode, U8 step size, U16 transitionTime
+                    cmd.mode = zclFrame.payload().at(0);
+                    cmd.param.level = zclFrame.payload().at(1);
+                    // cmd.transitionTime = zclFrame.payload().at(2);
+                }
+            }
             else
             {
                 continue;
@@ -562,6 +580,32 @@ void GatewayPrivate::handleEventStateConnected(GW_Event event)
                     url.sprintf("http://%s:%u/api/%s/groups/%u/action",
                                 qPrintable(address.toString()), port, qPrintable(apikey), cmd.groupId);
                     map[QLatin1String("on")] = false;
+                }
+            }
+            else if (cmd.clusterId == 0x0008)
+            {
+                if (cmd.commandId == LEVEL_COMMAND_MOVE_TO_LEVEL)
+                {
+                      url.sprintf("http://%s:%u/api/%s/groups/%u/action",
+                                  qPrintable(address.toString()), port, qPrintable(apikey), cmd.groupId);
+                      double level = cmd.param.level;
+                      map[QLatin1String("bri")] = level;
+                      // map[QLatin1String("transitiontime")] = cmd.transitionTime;
+                }
+                else if (cmd.commandId == LEVEL_COMMAND_STEP)
+                {
+                      url.sprintf("http://%s:%u/api/%s/groups/%u/action",
+                                  qPrintable(address.toString()), port, qPrintable(apikey), cmd.groupId);
+                      double level = cmd.param.level * (cmd.mode ? -1 : 1);
+                      map[QLatin1String("bri_inc")] = level;
+                      // map[QLatin1String("transitiontime")] = cmd.transitionTime;
+                }
+                else if (cmd.commandId == LEVEL_COMMAND_STOP)
+                {
+                      url.sprintf("http://%s:%u/api/%s/groups/%u/action",
+                                  qPrintable(address.toString()), port, qPrintable(apikey), cmd.groupId);
+                      map[QLatin1String("bri_inc")] = 0.0;
+                      // map[QLatin1String("transitiontime")] = cmd.transitionTime;
                 }
             }
 
