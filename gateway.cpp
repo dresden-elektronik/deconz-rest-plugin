@@ -11,6 +11,7 @@
 #define ONOFF_COMMAND_OFF     0x00
 #define ONOFF_COMMAND_ON      0x01
 #define ONOFF_COMMAND_TOGGLE  0x02
+#define ONOFF_COMMAND_OFF_WITH_EFFECT  0x040
 #define ONOFF_COMMAND_ON_WITH_TIMED_OFF  0x42
 
 enum GW_Event
@@ -537,11 +538,18 @@ void GatewayPrivate::handleEventStateConnected(GW_Event event)
             }
             else if (cmd.clusterId == 0x0006)
             {
-                url.sprintf("http://%s:%u/api/%s/groups/%u/action",
-                            qPrintable(address.toString()), port, qPrintable(apikey), cmd.groupId);
-
-                if (cmd.commandId == ONOFF_COMMAND_ON) { map[QLatin1String("on")] = true; }
-                if (cmd.commandId == ONOFF_COMMAND_OFF) { map[QLatin1String("on")] = false; }
+                if (cmd.commandId == ONOFF_COMMAND_ON)
+                {
+                    url.sprintf("http://%s:%u/api/%s/groups/%u/action",
+                                qPrintable(address.toString()), port, qPrintable(apikey), cmd.groupId);
+                    map[QLatin1String("on")] = true;
+                }
+                else if (cmd.commandId == ONOFF_COMMAND_OFF || cmd.commandId == ONOFF_COMMAND_OFF_WITH_EFFECT)
+                {
+                    url.sprintf("http://%s:%u/api/%s/groups/%u/action",
+                                qPrintable(address.toString()), port, qPrintable(apikey), cmd.groupId);
+                    map[QLatin1String("on")] = false;
+                }
             }
 
             commands.pop_back();
