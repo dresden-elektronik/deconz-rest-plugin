@@ -5,6 +5,7 @@
 #include <QTime>
 #include <deconz.h>
 #include "gateway.h"
+#include "group.h"
 #include "json.h"
 
 
@@ -62,6 +63,7 @@ public:
     void checkConfigResponse(const QByteArray &data);
     void checkGroupsResponse(const QByteArray &data);
 
+    DeRestPluginPrivate *parent;
     Gateway::State state;
     bool pairingEnabled;
     bool needSaveDatabase;
@@ -81,11 +83,12 @@ public:
     std::vector<Command> commands;
 };
 
-Gateway::Gateway(QObject *parent) :
+Gateway::Gateway(DeRestPluginPrivate *parent) :
     QObject(parent),
     d_ptr(new GatewayPrivate)
 {
     Q_D(Gateway);
+    d->parent = parent;
     d->pings = 0;
     d->state = Gateway::StateOffline;
     d->pairingEnabled = false;
@@ -298,7 +301,7 @@ void Gateway::handleGroupCommand(const deCONZ::ApsDataIndication &ind, deCONZ::Z
                         break;
                     case SCENE_COMMAND_IKEA_MOVE_CT:
                         cmd.mode = zclFrame.payload().at(0);
-                        cmd.transitionTime = 2540.0 / 83; // observed value for DimUp/Down
+                        cmd.transitionTime = 2540.0 / 83; // value for DimUp/Down
                         break;
                     case SCENE_COMMAND_IKEA_STEP_CT:
                         // payload U8 mode
@@ -325,8 +328,20 @@ void Gateway::handleGroupCommand(const deCONZ::ApsDataIndication &ind, deCONZ::Z
                         break;
                     case ONOFF_COMMAND_TOGGLE:
                         // IKEA Trådfri Remote On/Off
-                        // cmd.param.level = getGroupForId(cg.local).isOn() ? 0x00 : 0x01;
-                        break;
+                        {
+                            ::Group *group;
+                            QVariantMap map;
+                            QVariantMap state;
+
+                            group = d->parent->getGroupForId(cg.local);
+                            if (group && d->parent->groupToMap(group , map))
+                            {
+                                state = map["state"].toMap();
+                                cmd.param.level = state["all_on"].toBool() ? 0x00 : 0x01;
+                                break;
+                            }
+                        }
+                        continue;
                     case ONOFF_COMMAND_OFF_WITH_EFFECT:
                         // Hue dimmer switch Off
                         cmd.transitionTime = 4;
@@ -686,8 +701,8 @@ void GatewayPrivate::handleEventStateConnected(GW_Event event)
                         map[QLatin1String("on")] = true;
                         break;
                     case ONOFF_COMMAND_TOGGLE:
-                        // ok = true;
-                        // map[QLatin1String("on")] = cmd.param.level == 0x00;
+                        ok = true;
+                        map[QLatin1String("on")] = cmd.param.level == 0x01;
                         break;
                     default:
                         break;

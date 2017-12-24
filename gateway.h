@@ -4,6 +4,8 @@
 #include <QObject>
 #include <QHostAddress>
 #include <QNetworkReply>
+#include "de_web_plugin.h"
+#include "de_web_plugin_private.h"
 
 namespace deCONZ {
     class ApsDataIndication;
@@ -37,7 +39,7 @@ public:
         StateConnected
     };
 
-    explicit Gateway(QObject *parent = 0);
+    explicit Gateway(DeRestPluginPrivate *parent = 0);
     ~Gateway();
 
     const QString &name() const;
