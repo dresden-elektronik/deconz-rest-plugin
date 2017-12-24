@@ -9,24 +9,6 @@
 #include "json.h"
 
 
-#define ONOFF_COMMAND_OFF     0x00
-#define ONOFF_COMMAND_ON      0x01
-#define ONOFF_COMMAND_TOGGLE  0x02
-#define ONOFF_COMMAND_OFF_WITH_EFFECT  0x040
-#define ONOFF_COMMAND_ON_WITH_TIMED_OFF  0x42
-#define LEVEL_COMMAND_MOVE_TO_LEVEL 0x00
-#define LEVEL_COMMAND_MOVE 0x01
-#define LEVEL_COMMAND_STEP 0x02
-#define LEVEL_COMMAND_STOP 0x03
-#define LEVEL_COMMAND_MOVE_TO_LEVEL_WITH_ON_OFF 0x04
-#define LEVEL_COMMAND_MOVE_WITH_ON_OFF 0x05
-#define LEVEL_COMMAND_STEP_WITH_ON_OFF 0x06
-#define LEVEL_COMMAND_STOP_WITH_ON_OFF 0x07
-#define SCENE_COMMAND_RECALL_SCENE 0x05
-#define SCENE_COMMAND_IKEA_STEP_CT 0x07
-#define SCENE_COMMAND_IKEA_MOVE_CT 0x08
-#define SCENE_COMMAND_IKEA_STOP_CT 0x09
-
 #define PHILIPS_MAC_PREFIX QLatin1String("001788")
 
 enum GW_Event
@@ -287,7 +269,7 @@ void Gateway::handleGroupCommand(const deCONZ::ApsDataIndication &ind, deCONZ::Z
             cmd.transitionTime = 0;
 
             // filter
-            if (ind.clusterId() == 0x0005) // scene
+            if (ind.clusterId() == SCENE_CLUSTER_ID)
             {
                 switch(zclFrame.commandId())
                 {
@@ -315,7 +297,7 @@ void Gateway::handleGroupCommand(const deCONZ::ApsDataIndication &ind, deCONZ::Z
                         continue;
                 }
             }
-            else if (ind.clusterId() == 0x0006) // onoff
+            else if (ind.clusterId() == ONOFF_CLUSTER_ID) // onoff
             {
                 switch(zclFrame.commandId())
                 {
@@ -353,7 +335,7 @@ void Gateway::handleGroupCommand(const deCONZ::ApsDataIndication &ind, deCONZ::Z
                         continue;
                 }
             }
-            else if (ind.clusterId() == 0x0008) // level
+            else if (ind.clusterId() == LEVEL_CLUSTER_ID)
             {
                 switch (zclFrame.commandId())
                 {
@@ -647,7 +629,7 @@ void GatewayPrivate::handleEventStateConnected(GW_Event event)
             QVariantMap map;
             const Command &cmd = commands.back();
 
-            if (cmd.clusterId == 0x0005) // scene
+            if (cmd.clusterId == SCENE_CLUSTER_ID)
             {
                 switch (cmd.commandId) {
                     case SCENE_COMMAND_RECALL_SCENE:
@@ -683,7 +665,7 @@ void GatewayPrivate::handleEventStateConnected(GW_Event event)
                         break;
                 }
             }
-            else if (cmd.clusterId == 0x0006) // onoff
+            else if (cmd.clusterId == ONOFF_CLUSTER_ID) // onoff
             {
                 switch (cmd.commandId) {
                     case ONOFF_COMMAND_OFF_WITH_EFFECT:
@@ -708,7 +690,7 @@ void GatewayPrivate::handleEventStateConnected(GW_Event event)
                         break;
                 }
             }
-            else if (cmd.clusterId == 0x0008) // level
+            else if (cmd.clusterId == LEVEL_CLUSTER_ID)
             {
                 switch (cmd.commandId)
                 {
