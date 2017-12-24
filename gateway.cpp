@@ -14,9 +14,17 @@
 #define ONOFF_COMMAND_OFF_WITH_EFFECT  0x040
 #define ONOFF_COMMAND_ON_WITH_TIMED_OFF  0x42
 #define LEVEL_COMMAND_MOVE_TO_LEVEL 0x00
+#define LEVEL_COMMAND_MOVE 0x01
 #define LEVEL_COMMAND_STEP 0x02
 #define LEVEL_COMMAND_STOP 0x03
-
+#define LEVEL_COMMAND_MOVE_TO_LEVEL_WITH_ON_OFF 0x04
+#define LEVEL_COMMAND_MOVE_WITH_ON_OFF 0x05
+#define LEVEL_COMMAND_STEP_WITH_ON_OFF 0x06
+#define LEVEL_COMMAND_STOP_WITH_ON_OFF 0x07
+#define SCENE_COMMAND_RECALL_SCENE 0x05
+#define SCENE_COMMAND_IKEA_STEP_CT 0x07
+#define SCENE_COMMAND_IKEA_MOVE_CT 0x08
+#define SCENE_COMMAND_IKEA_STOP_CT 0x09
 
 #define PHILIPS_MAC_PREFIX QLatin1String("001788")
 
@@ -273,32 +281,104 @@ void Gateway::handleGroupCommand(const deCONZ::ApsDataIndication &ind, deCONZ::Z
         {
             Command cmd;
 
-            // filter
-            if (ind.clusterId() == 0x0005 && zclFrame.commandId() == 0x05) // recall scene
-            {
-                if (zclFrame.payload().size() < 3) // sanity
-                    continue;
+            cmd.transitionTime = 0;
 
-                // payload U16 group, U8 scene
-                cmd.param.sceneId = zclFrame.payload().at(2);
+            // filter
+            if (ind.clusterId() == 0x0005) // scene
+            {
+                switch(zclFrame.commandId())
+                {
+                    case SCENE_COMMAND_RECALL_SCENE:
+                        if (zclFrame.payload().size() < 3) // sanity
+                        {
+                            continue;
+                        }
+                        // payload U16 group, U8 scene
+                        cmd.param.sceneId = zclFrame.payload().at(2);
+                        break;
+                    case SCENE_COMMAND_IKEA_MOVE_CT:
+                        cmd.mode = zclFrame.payload().at(0);
+                        cmd.transitionTime = 2540.0 / 83; // observed value for DimUp/Down
+                        break;
+                    case SCENE_COMMAND_IKEA_STEP_CT:
+                        // payload U8 mode
+                        cmd.mode = zclFrame.payload().at(0);
+                        cmd.param.level = 43;    // value for DimUp/Down
+                        cmd.transitionTime = 5;  // value for DimUp/Down
+                        break;
+                    case SCENE_COMMAND_IKEA_STOP_CT:
+                        break;
+                    default:
+                        continue;
+                }
             }
             else if (ind.clusterId() == 0x0006) // onoff
             {
+                switch(zclFrame.commandId())
+                {
+                    case ONOFF_COMMAND_OFF:
+                        // Set on: false trough REST API
+                        break;
+                    case ONOFF_COMMAND_ON:
+                        // Set on: true trough REST API
+                        // Hue dimmer switch On
+                        break;
+                    case ONOFF_COMMAND_TOGGLE:
+                        // IKEA Trådfri Remote On/Off
+                        // cmd.param.level = getGroupForId(cg.local).isOn() ? 0x00 : 0x01;
+                        break;
+                    case ONOFF_COMMAND_OFF_WITH_EFFECT:
+                        // Hue dimmer switch Off
+                        cmd.transitionTime = 4;
+                        break;
+                    case ONOFF_COMMAND_ON_WITH_TIMED_OFF:
+                        // IKEA Trådfri motion sensor
+                        break;
+                    default:
+                        continue;
+                }
             }
             else if (ind.clusterId() == 0x0008) // level
             {
-                if (zclFrame.commandId() == LEVEL_COMMAND_MOVE_TO_LEVEL)
+                switch (zclFrame.commandId())
                 {
-                    // payload U8 level, U16 transition time
-                    cmd.param.level = zclFrame.payload().at(0);
-                    // cmd.transitionTime = zclFrame.payload().at(1);
-                }
-                else if (zclFrame.commandId() == LEVEL_COMMAND_STEP)
-                {
-                    // payload U8 mode, U8 step size, U16 transitionTime
-                    cmd.mode = zclFrame.payload().at(0);
-                    cmd.param.level = zclFrame.payload().at(1);
-                    // cmd.transitionTime = zclFrame.payload().at(2);
+                    case LEVEL_COMMAND_MOVE_TO_LEVEL:
+                        // Set bri through REST API
+                        // payload U8 level, U16 transition time
+                        cmd.param.level = zclFrame.payload().at(0);
+                        cmd.transitionTime = zclFrame.payload().at(1);
+                        break;
+                    case LEVEL_COMMAND_MOVE_WITH_ON_OFF:
+                        // IKEA Trådfri remote DimUp Hold
+                        // fall through
+                    case LEVEL_COMMAND_MOVE:
+                        // IKEA Trådfri remote DimDown Hold
+                        // payload U8 mode, U8 rate
+                        cmd.mode = zclFrame.payload().at(0);
+                        cmd.param.level = zclFrame.payload().at(1);
+                        // DBG_Printf(DBG_INFO_L2, "GW level %u\n", cmd.param.level);
+                        cmd.transitionTime = 2540.0 / cmd.param.level;
+                        break;
+                    case LEVEL_COMMAND_STEP_WITH_ON_OFF:
+                        // IKEA Trådfri remote DimUp Short Release
+                        // fall through
+                    case LEVEL_COMMAND_STEP:
+                        // Hue dimmer switch DimUp, DimDown Press, Hold
+                        // IKEA Trådfri remote DimDown Short Release
+                        // payload U8 mode, U8 step size, U16 transitionTime
+                        cmd.mode = zclFrame.payload().at(0);
+                        cmd.param.level = zclFrame.payload().at(1);
+                        cmd.transitionTime = zclFrame.payload().at(2);
+                        break;
+                    case LEVEL_COMMAND_STOP_WITH_ON_OFF:
+                        // IKEA Trådfri remote DimUp Long Release
+                        // fall through
+                    case LEVEL_COMMAND_STOP:
+                        // Hue dimmer switch DimUp, DimDown Long Release
+                        // IKEA Trådfri remote DimDown Long Release
+                        break;
+                    default:
+                        continue;
                 }
             }
             else
@@ -309,7 +389,6 @@ void Gateway::handleGroupCommand(const deCONZ::ApsDataIndication &ind, deCONZ::Z
             cmd.clusterId = ind.clusterId();
             cmd.groupId = cg.remote;
             cmd.commandId = zclFrame.commandId();
-            cmd.transitionTime = 0;
             d->commands.push_back(cmd);
             d->handleEvent(EventCommandAdded);
 
@@ -547,80 +626,147 @@ void GatewayPrivate::handleEventStateConnected(GW_Event event)
         }
         else
         {
+            bool ok = false;
+            double level;
             QString url;
             QVariantMap map;
             const Command &cmd = commands.back();
 
-            if (cmd.clusterId == 0x0005 && cmd.commandId == 0x05) // recall scene
+            if (cmd.clusterId == 0x0005) // scene
             {
-                if (uuid.startsWith(PHILIPS_MAC_PREFIX))  // cascade gateway is Hue bridge
-                {
-                    url.sprintf("http://%s:%u/api/%s/groups/%u/action",
-                              qPrintable(address.toString()), port, qPrintable(apikey), cmd.groupId);
-                    QString scene;
-                    scene.sprintf("g%us%u", cmd.groupId, cmd.param.sceneId);
-                    map[QLatin1String("scene")] = scene;
-                }
-                else
-                {
-                    url.sprintf("http://%s:%u/api/%s/groups/%u/scenes/%u/recall",
-                                qPrintable(address.toString()), port, qPrintable(apikey), cmd.groupId, cmd.param.sceneId);
+                switch (cmd.commandId) {
+                    case SCENE_COMMAND_RECALL_SCENE:
+                        ok = true;
+                        if (uuid.startsWith(PHILIPS_MAC_PREFIX))  // cascade gateway is Hue bridge
+                        {
+                            QString scene;
+                            scene.sprintf("g%us%u", cmd.groupId, cmd.param.sceneId);
+                            map[QLatin1String("scene")] = scene;
+                        }
+                        else
+                        {
+                            url.sprintf("http://%s:%u/api/%s/groups/%u/scenes/%u/recall",
+                                        qPrintable(address.toString()), port, qPrintable(apikey), cmd.groupId, cmd.param.sceneId);
+                        }
+                        break;
+                    case SCENE_COMMAND_IKEA_STEP_CT:
+                        ok = true;
+                        level = cmd.param.level * (cmd.mode == 0x00 ? 1 : -1);
+                        map[QLatin1String("ct_inc")] = level;
+                        break;
+                    case SCENE_COMMAND_IKEA_MOVE_CT:
+                        ok = true;
+                        level = cmd.mode == 0x00 ? 254 : -254;
+                        map[QLatin1String("ct_inc")] = level;
+                        break;
+                    case SCENE_COMMAND_IKEA_STOP_CT:
+                        ok = true;
+                        level = 0;
+                        map[QLatin1String("ct_inc")] = level;
+                        break;
+                    default:
+                        break;
                 }
             }
-            else if (cmd.clusterId == 0x0006)
+            else if (cmd.clusterId == 0x0006) // onoff
             {
-                if (cmd.commandId == ONOFF_COMMAND_ON)
-                {
-                    url.sprintf("http://%s:%u/api/%s/groups/%u/action",
-                                qPrintable(address.toString()), port, qPrintable(apikey), cmd.groupId);
-                    map[QLatin1String("on")] = true;
-                }
-                else if (cmd.commandId == ONOFF_COMMAND_OFF || cmd.commandId == ONOFF_COMMAND_OFF_WITH_EFFECT)
-                {
-                    url.sprintf("http://%s:%u/api/%s/groups/%u/action",
-                                qPrintable(address.toString()), port, qPrintable(apikey), cmd.groupId);
-                    map[QLatin1String("on")] = false;
+                switch (cmd.commandId) {
+                    case ONOFF_COMMAND_OFF_WITH_EFFECT:
+                        // Hue dimmer switch Off
+                        // fall through
+                    case ONOFF_COMMAND_OFF:
+                        // Set on: false through REST API
+                        ok = true;
+                        map[QLatin1String("on")] = false;
+                        break;
+                    case ONOFF_COMMAND_ON:
+                        // Set on: true through REST API
+                        // Hue dimmer switch On
+                        ok = true;
+                        map[QLatin1String("on")] = true;
+                        break;
+                    case ONOFF_COMMAND_TOGGLE:
+                        // ok = true;
+                        // map[QLatin1String("on")] = cmd.param.level == 0x00;
+                        break;
+                    default:
+                        break;
                 }
             }
-            else if (cmd.clusterId == 0x0008)
+            else if (cmd.clusterId == 0x0008) // level
             {
-                if (cmd.commandId == LEVEL_COMMAND_MOVE_TO_LEVEL)
+                switch (cmd.commandId)
                 {
-                      url.sprintf("http://%s:%u/api/%s/groups/%u/action",
-                                  qPrintable(address.toString()), port, qPrintable(apikey), cmd.groupId);
-                      double level = cmd.param.level;
-                      map[QLatin1String("bri")] = level;
-                      // map[QLatin1String("transitiontime")] = cmd.transitionTime;
-                }
-                else if (cmd.commandId == LEVEL_COMMAND_STEP)
-                {
-                      url.sprintf("http://%s:%u/api/%s/groups/%u/action",
-                                  qPrintable(address.toString()), port, qPrintable(apikey), cmd.groupId);
-                      double level = cmd.param.level * (cmd.mode ? -1 : 1);
-                      map[QLatin1String("bri_inc")] = level;
-                      // map[QLatin1String("transitiontime")] = cmd.transitionTime;
-                }
-                else if (cmd.commandId == LEVEL_COMMAND_STOP)
-                {
-                      url.sprintf("http://%s:%u/api/%s/groups/%u/action",
-                                  qPrintable(address.toString()), port, qPrintable(apikey), cmd.groupId);
-                      map[QLatin1String("bri_inc")] = 0.0;
-                      // map[QLatin1String("transitiontime")] = cmd.transitionTime;
+                      case LEVEL_COMMAND_MOVE_TO_LEVEL:
+                          // Set bri through REST API
+                          ok = true;
+                          level = cmd.param.level;
+                          map[QLatin1String("bri")] = level;
+                          break;
+                      case LEVEL_COMMAND_MOVE_WITH_ON_OFF:
+                          if (cmd.mode == 0x00)
+                          {
+                              map[QLatin1String("on")] = true;
+                          }
+                          // fall through
+                      case LEVEL_COMMAND_MOVE:
+                          // IKEA Trådfri remote DimDown Hold
+                          ok = true;
+                          level = cmd.mode == 0x00 ? 254 : -254;
+                          map[QLatin1String("bri_inc")] = level;
+                          break;
+                      case LEVEL_COMMAND_STEP_WITH_ON_OFF:
+                          // IKEA Trådfri remote DimUp Short Release
+                          if (cmd.mode == 0x00)
+                          {
+                              map[QLatin1String("on")] = true;
+                          }
+                          // fall through
+                      case LEVEL_COMMAND_STEP:
+                          // Hue dimmer switch DimUp, DimDown Short Release, Hold
+                          // IKEA Trådfri remote DimDown Short Release
+                          ok = true;
+                          level = cmd.param.level * (cmd.mode == 0x00 ? 1 : -1);
+                          map[QLatin1String("bri_inc")] = level;
+                          break;
+                      case LEVEL_COMMAND_STOP_WITH_ON_OFF:
+                          // IKEA Trådfri remote DimUp Long Release
+                          // fall through
+                      case LEVEL_COMMAND_STOP:
+                          // Philips Hue dimmer DimUp, DimDown Long Release
+                          // IKEA Trådfri remote DimDown Long Release
+                          ok = true;
+                          level = 0;
+                          map[QLatin1String("bri_inc")] = level;
+                          break;
+                      default:
+                          break;
                 }
             }
 
             commands.pop_back();
 
-            if (url.isEmpty())
+            if (!ok)
             {
                 startTimer(50, EventTimeout);
                 return;
             }
 
+            if (url.isEmpty())
+            {
+                url.sprintf("http://%s:%u/api/%s/groups/%u/action",
+                            qPrintable(address.toString()), port, qPrintable(apikey), cmd.groupId);
+            }
+
             QString json;
             if (!map.isEmpty())
             {
+                if (cmd.transitionTime != 0)
+                {
+                    map[QLatin1String("transitiontime")] = (double) cmd.transitionTime;
+                }
                 json = deCONZ::jsonStringFromMap(map);
+                DBG_Printf(DBG_INFO_L2, "GW body %s\n", qPrintable(json));
             }
             else
             {
