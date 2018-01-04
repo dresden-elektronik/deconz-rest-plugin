@@ -2694,13 +2694,17 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
 
                 case ANALOG_INPUT_CLUSTER_ID:
                 {
-                    fpSwitch.inClusters.push_back(ci->id());
+                    if (modelId == QLatin1String("lumi.sensor_cube")) {
+                        fpSwitch.inClusters.push_back(ci->id());
+                    }
                 }
                     break;
 
                 case MULTISTATE_INPUT_CLUSTER_ID:
                 {
-                    fpSwitch.inClusters.push_back(ci->id());
+                    if (modelId == QLatin1String("lumi.sensor_cube")) {
+                        fpSwitch.inClusters.push_back(ci->id());
+                    }
                 }
                     break;
 
