@@ -235,10 +235,11 @@ static const Sensor::ButtonMap bjeSwitchMap[] = {
 static const Sensor::ButtonMap xiaomiSwitchAq2Map[] = {
 //    mode                          ep    cluster cmd   param button                                       name
     // First button
-    { Sensor::ModeScenes,           0x01, 0x0006, 0x0a, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Normal press" },
-    { Sensor::ModeScenes,           0x01, 0x0006, 0x0a, 2,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Double press" },
-    { Sensor::ModeScenes,           0x01, 0x0006, 0x0a, 3,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "Triple press" },
-    { Sensor::ModeScenes,           0x01, 0x0006, 0x0a, 4,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Quad press" },
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x0a, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Normal release" },
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x0a, 1,    S_BUTTON_1 + S_BUTTON_ACTION_INITIAL_PRESS, "Normal press" },
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x0a, 2,    S_BUTTON_1 + S_BUTTON_ACTION_DOUBLE_PRESS, "Double press" },
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x0a, 3,    S_BUTTON_1 + S_BUTTON_ACTION_TREBLE_PRESS, "Triple press" },
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x0a, 4,    S_BUTTON_1 + S_BUTTON_ACTION_QUADRUPLE_PRESS, "Quad press" },
 
     // end
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
