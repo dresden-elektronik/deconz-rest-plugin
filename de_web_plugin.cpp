@@ -2533,6 +2533,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                     {
                         fpPresenceSensor.outClusters.push_back(ci->id());
                     }
+                    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_UBISYS &&
+                             modelId.startsWith(QLatin1String("C4")) && i->endpoint() > 0x04)
+                    {
+                        // Don't create ZHASwitch for the C4's Window Covering Controller endpoints 0x05 and 0x06.
+                    }
                     else if (!node->nodeDescriptor().isNull())
                     {
                         fpSwitch.outClusters.push_back(ci->id());
