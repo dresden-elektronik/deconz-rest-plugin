@@ -119,6 +119,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "lumi.ctrl_neutral1", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.ctrl_neutral2", jennicMacPrefix },
     { VENDOR_UBISYS, "D1", ubisysMacPrefix },
+    { VENDOR_UBISYS, "C4", ubisysMacPrefix },
     { VENDOR_NONE, "Z716A", netvoxMacPrefix },
     { VENDOR_OSRAM_STACK, "DOOR_TPV13", heimanMacPrefix }, // Door/window sensor
     { VENDOR_OSRAM_STACK, "CO_V16", heimanMacPrefix }, // CO sensor
