@@ -232,11 +232,23 @@ static const Sensor::ButtonMap bjeSwitchMap[] = {
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
 };
 
+static const Sensor::ButtonMap xiaomiSwitchMap[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    // First button
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x0a, 0,    S_BUTTON_1 + S_BUTTON_ACTION_INITIAL_PRESS, "Normal press" },
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x0a, 1,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Normal release" },
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x0a, 2,    S_BUTTON_1 + S_BUTTON_ACTION_DOUBLE_PRESS, "Double press" },
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x0a, 3,    S_BUTTON_1 + S_BUTTON_ACTION_TREBLE_PRESS, "Triple press" },
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x0a, 4,    S_BUTTON_1 + S_BUTTON_ACTION_QUADRUPLE_PRESS, "Quad press" },
+
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
+};
+
 static const Sensor::ButtonMap xiaomiSwitchAq2Map[] = {
 //    mode                          ep    cluster cmd   param button                                       name
     // First button
-    { Sensor::ModeScenes,           0x01, 0x0006, 0x0a, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Normal release" },
-    { Sensor::ModeScenes,           0x01, 0x0006, 0x0a, 1,    S_BUTTON_1 + S_BUTTON_ACTION_INITIAL_PRESS, "Normal press" },
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x0a, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Normal press" },
     { Sensor::ModeScenes,           0x01, 0x0006, 0x0a, 2,    S_BUTTON_1 + S_BUTTON_ACTION_DOUBLE_PRESS, "Double press" },
     { Sensor::ModeScenes,           0x01, 0x0006, 0x0a, 3,    S_BUTTON_1 + S_BUTTON_ACTION_TREBLE_PRESS, "Triple press" },
     { Sensor::ModeScenes,           0x01, 0x0006, 0x0a, 4,    S_BUTTON_1 + S_BUTTON_ACTION_QUADRUPLE_PRESS, "Quad press" },
@@ -794,7 +806,8 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         }
         else if (m_manufacturer == QLatin1String("LUMI"))
         {
-            if      (modelid.startsWith(QLatin1String("lumi.sensor_switch")))  { m_buttonMap = xiaomiSwitchAq2Map; }
+            if      (modelid == QLatin1String("lumi.sensor_switch"))      { m_buttonMap = xiaomiSwitchMap; }
+            else if (modelid == QLatin1String("lumi.sensor_switch.aq2"))  { m_buttonMap = xiaomiSwitchAq2Map; }
         }
     }
 
