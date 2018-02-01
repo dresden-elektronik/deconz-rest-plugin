@@ -118,6 +118,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "lumi.sensor_86sw2", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.ctrl_neutral1", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.ctrl_neutral2", jennicMacPrefix },
+    { VENDOR_JENNIC, "lumi.sensor_wleak.aq1", jennicMacPrefix },
     { VENDOR_UBISYS, "D1", ubisysMacPrefix },
     { VENDOR_UBISYS, "C4", ubisysMacPrefix },
     { VENDOR_NONE, "Z716A", netvoxMacPrefix },
@@ -2584,6 +2585,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                         fpPresenceSensor.inClusters.push_back(ci->id());
                         fpLightSensor.inClusters.push_back(ci->id());
                         fpTemperatureSensor.inClusters.push_back(ci->id());
+                    }
+                    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC &&
+                             modelId == QLatin1String("lumi.sensor_wleak.aq1"))
+                    {
+                        fpPresenceSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
                     }
                 }
                     break;
