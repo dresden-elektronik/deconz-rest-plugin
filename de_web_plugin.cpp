@@ -592,7 +592,7 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
 
         if (conf.status() != deCONZ::ApsSuccessStatus)
         {
-            DBG_Printf(DBG_INFO, "error APSDE-DATA.confirm: 0x%02X on task\n", conf.status());
+            DBG_Printf(DBG_INFO, "0x%016llX error APSDE-DATA.confirm: 0x%02X on task\n", task.req.dstAddress().ext(), conf.status());
         }
         else if (task.req.dstAddressMode() == deCONZ::ApsGroupAddress &&
                  (task.req.clusterId() == ONOFF_CLUSTER_ID ||
