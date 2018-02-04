@@ -489,6 +489,10 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
         {
             handleZclAttributeReportIndication(ind, zclFrame);
         }
+        else if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclConfigureReportingResponseId)
+        {
+            handleZclConfigureReportingResponseIndication(ind, zclFrame);
+        }
     }
     else if (ind.profileId() == ZDP_PROFILE_ID)
     {
@@ -6276,6 +6280,7 @@ void DeRestPluginPrivate::sendZclDefaultResponse(const deCONZ::ApsDataIndication
     apsReq.setProfileId(ind.profileId());
     apsReq.setRadius(0);
     apsReq.setClusterId(ind.clusterId());
+    //apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
 
     deCONZ::ZclFrame outZclFrame;
     outZclFrame.setSequenceNumber(zclFrame.sequenceNumber());

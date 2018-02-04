@@ -95,6 +95,7 @@ public:
     {
     }
 
+    quint8 zclSeqNum;
     quint8 direction;
     quint8 dataType;
     quint16 attributeId;

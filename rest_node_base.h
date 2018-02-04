@@ -26,7 +26,9 @@ public:
     NodeValue() :
         updateType(UpdateInvalid),
         clusterId(0),
-        attributeId(0)
+        attributeId(0),
+        minInterval(0),
+        maxInterval(0)
     {
         value.u64 = 0;
     }
@@ -35,9 +37,13 @@ public:
     QDateTime timestamp;
     QDateTime timestampLastReport;
     QDateTime timestampLastReadRequest;
+    QDateTime timestampLastConfigured;
     UpdateType updateType;
     quint16 clusterId;
     quint16 attributeId;
+    quint16 minInterval;
+    quint16 maxInterval;
+    quint8 zclSeqNum; // sequence number for configure reporting
     deCONZ::NumericUnion value;
 };
 
