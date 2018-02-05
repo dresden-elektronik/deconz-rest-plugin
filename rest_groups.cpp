@@ -764,6 +764,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     bool hasEffect = map.contains("effect");
     bool hasEffectColorLoop = false;
     bool hasAlert = map.contains("alert");
+    bool hasToggle = map.contains("toggle");
 
     bool on = false;
     uint bri = 0;
@@ -781,6 +782,25 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
         if (ok && tt < 0xFFFFUL)
         {
             taskRef.transitionTime = tt;
+        }
+    }
+
+    // toggle
+    if (hasToggle)
+    {
+        if (map["toggle"].type() == QVariant::Bool)
+        {
+            if (map["toggle"] == true)
+            {
+                map["on"] = group->item(RStateAnyOn)->toBool() ? false : true;
+                hasOn = true;
+            }
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/groups/%1/action/toggle").arg(id), QString("invalid value, %1, for parameter, toggle").arg(map["toggle"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
         }
     }
 
