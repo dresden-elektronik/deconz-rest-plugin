@@ -122,9 +122,15 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_UBISYS, "D1", ubisysMacPrefix },
     { VENDOR_UBISYS, "C4", ubisysMacPrefix },
     { VENDOR_NONE, "Z716A", netvoxMacPrefix },
-    { VENDOR_OSRAM_STACK, "DOOR_TPV13", heimanMacPrefix }, // Door/window sensor
-    { VENDOR_OSRAM_STACK, "CO_V16", heimanMacPrefix }, // CO sensor
-    { VENDOR_OSRAM_STACK, "SMOK_V16", heimanMacPrefix }, // Fire sensor
+    { VENDOR_OSRAM_STACK, "CO_V16", heimanMacPrefix }, // Heiman CO sensor
+    { VENDOR_OSRAM_STACK, "DOOR_TPV13", heimanMacPrefix }, // Heiman coor/window sensor
+    { VENDOR_OSRAM_STACK, "PIR_TPV11", heimanMacPrefix }, // Heiman motion sensor
+    { VENDOR_OSRAM_STACK, "GAS_V15", heimanMacPrefix }, // Heiman gas sensor
+    { VENDOR_OSRAM_STACK, "TH-H_V15", heimanMacPrefix }, // Heiman temperature/humidity sensor
+    { VENDOR_OSRAM_STACK, "TH-T_V15", heimanMacPrefix }, // Heiman temperature/humidity sensor
+    { VENDOR_OSRAM_STACK, "SMOK_V16", heimanMacPrefix }, // Heiman fire sensor
+    { VENDOR_OSRAM_STACK, "WATER_TPV11", heimanMacPrefix }, // Heiman water sensor
+    { VENDOR_120B, "WarningDevice", emberMacPrefix }, // Heiman siren
     { 0, 0, 0 }
 };
 
@@ -2593,6 +2599,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC &&
                              modelId == QLatin1String("lumi.sensor_wleak.aq1"))
                     {
+                        // TODO: change to fpStatusSensor/fpAlarmSensor
                         fpPresenceSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
                     }
                 }
@@ -2600,15 +2607,19 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
 
                 case POWER_CONFIGURATION_CLUSTER_ID:
                 {
-                    if (node->nodeDescriptor().manufacturerCode() == VENDOR_PHILIPS ||
-                        node->nodeDescriptor().manufacturerCode() == VENDOR_NYCE ||
-                        node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA)
-                    {
+                    // @manup: is it safe to skip these tests?
+                    // if (node->nodeDescriptor().manufacturerCode() == VENDOR_PHILIPS ||
+                    //     node->nodeDescriptor().manufacturerCode() == VENDOR_NYCE ||
+                    //     node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA)
+                    // {
                         fpSwitch.inClusters.push_back(ci->id());
-                        fpPresenceSensor.inClusters.push_back(ci->id());
                         fpLightSensor.inClusters.push_back(ci->id());
+                        fpPresenceSensor.inClusters.push_back(ci->id());
                         fpTemperatureSensor.inClusters.push_back(ci->id());
-                    }
+                        fpHumiditySensor.inClusters.push_back(ci->id());
+                        fpPressureSensor.inClusters.push_back(ci->id());
+                        fpOpenCloseSensor.inClusters.push_back(ci->id());
+                    // }
                 }
                     break;
 
@@ -2649,34 +2660,45 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
                     break;
 
                 case IAS_ZONE_CLUSTER_ID:
+                {
+                    for (const deCONZ::ZclAttribute &attr : ci->attributes())
+                    {
+                        if (attr.id() == 0x0001) // IAS Zone type
+                        {
+                            switch (attr.numericValue().u16) {
+                                case 0x000d: // Motion sensor
+                                    fpPresenceSensor.inClusters.push_back(ci->id());
+                                    break;
+                                case 0x0015: // Contact switch
+                                    fpOpenCloseSensor.inClusters.push_back(ci->id());
+                                    break;
+                                case 0x0028: // Fire sensor
+                                case 0x002a: // Water sensor
+                                case 0x002b: // CO sensor
+                                    // TODO: change to fpStatusSensor/fpAlarmSensor
+                                    fpPresenceSensor.inClusters.push_back(ci->id());
+                                    break;
+                                case 0x0225: // Warning device
+                                    // TODO: change to fpStatusSensor/fpAlarmSensor
+                                    fpPresenceSensor.inClusters.push_back(IAS_WD_CLUSTER_ID);
+                                    break;
+                                default:
+                                    // TODO: change to fpStatusSensor/fpAlarmSensor
+                                    // fpPresenceSensor.inClusters.push_back(ci->id());
+                                    break;
+                            }
+                        }
+                    }
+                }
+                    break;
+
                 case OCCUPANCY_SENSING_CLUSTER_ID:
                 {
+                    // @manup: Does this sensor indeed have an OCCUPANCY_SENSING_CLUSTER_ID custer?
                     if (node->nodeDescriptor().manufacturerCode() == VENDOR_CENTRALITE &&
                         i->endpoint() == 0x02 && modelId == QLatin1String("Motion Sensor-A"))
                     {
                         // only use endpoint 0x01 of this sensor
-                    }
-                    else if (ci->id() == IAS_ZONE_CLUSTER_ID)
-                    {
-                        for (const deCONZ::ZclAttribute &attr : ci->attributes())
-                        {
-                            if (attr.id() == 0x0001) // IAS Zone type
-                            {
-                                if (attr.numericValue().u16 == 0x000d) // Motion sensor
-                                {
-                                    fpPresenceSensor.inClusters.push_back(ci->id());
-                                }
-                                else if (attr.numericValue().u16 == 0x0015) // Contact switch
-                                {
-                                    fpOpenCloseSensor.inClusters.push_back(ci->id());
-                                }
-                                else if (attr.numericValue().u16 == 0x0028 || // Fire sensor
-                                         attr.numericValue().u16 == 0x002b) // Gas sensor
-                                {
-                                    fpPresenceSensor.inClusters.push_back(ci->id());
-                                }
-                            }
-                        }
                     }
                     else
                     {
@@ -2813,6 +2835,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
         // ZHAPresence
         if (fpPresenceSensor.hasInCluster(OCCUPANCY_SENSING_CLUSTER_ID) ||
             fpPresenceSensor.hasInCluster(IAS_ZONE_CLUSTER_ID) ||
+            fpPresenceSensor.hasInCluster(IAS_WD_CLUSTER_ID) ||
             fpPresenceSensor.hasOutCluster(ONOFF_CLUSTER_ID))
         {
             fpPresenceSensor.endpoint = i->endpoint();
@@ -2824,15 +2847,20 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
             {
                 addSensorNode(node, fpPresenceSensor, "ZHAPresence", modelId, manufacturer);
             }
-            else if (!node->isEndDevice())
+            else
             {
-                //sensor->setLastRead(idleTotalCounter);
-                sensor->enableRead(READ_OCCUPANCY_CONFIG);
-                sensor->setNextReadTime(READ_OCCUPANCY_CONFIG, queryTime);
-                queryTime = queryTime.addSecs(5);
                 checkSensorNodeReachable(sensor);
-                Q_Q(DeRestPlugin);
-                q->startZclAttributeTimer(checkZclAttributesDelay);
+
+                if (!node->isEndDevice())
+                {
+                    // @manup: shouldn't we do this only for OCCUPANCY_SENSING sensors?
+                    //sensor->setLastRead(idleTotalCounter);
+                    sensor->enableRead(READ_OCCUPANCY_CONFIG);
+                    sensor->setNextReadTime(READ_OCCUPANCY_CONFIG, queryTime);
+                    queryTime = queryTime.addSecs(5);
+                    Q_Q(DeRestPlugin);
+                    q->startZclAttributeTimer(checkZclAttributesDelay);
+                }
             }
         }
 
@@ -2848,6 +2876,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
             if (!sensor || sensor->deletedState() != Sensor::StateNormal)
             {
                 addSensorNode(node, fpOpenCloseSensor, "ZHAOpenClose", modelId, manufacturer);
+            }
+            else
+            {
+                checkSensorNodeReachable(sensor);
             }
         }
 
@@ -2957,7 +2989,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     item = sensorNode.item(RConfigReachable);
     item->setValue(true);
 
-    if (node->isEndDevice())
+    // @manup, will this work?
+    // if (node->isEndDevice())
+    if (sensorNode.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
     {
         sensorNode.addItem(DataTypeUInt8, RConfigBattery);
     }
@@ -3021,6 +3055,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = OCCUPANCY_SENSING_CLUSTER_ID;
         }
+        else if (sensorNode.fingerPrint().hasInCluster(IAS_WD_CLUSTER_ID))
+        {
+            clusterId = IAS_WD_CLUSTER_ID;
+        }
         else if (sensorNode.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
         {
             clusterId = IAS_ZONE_CLUSTER_ID;
@@ -3029,9 +3067,16 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = ONOFF_CLUSTER_ID;
         }
-        sensorNode.addItem(DataTypeBool, RStatePresence);
-        item = sensorNode.addItem(DataTypeUInt16, RConfigDuration);
-        item->setValue(60); // default 60 seconds
+        if (clusterId != IAS_WD_CLUSTER_ID)
+        {
+            sensorNode.addItem(DataTypeBool, RStatePresence);
+            item = sensorNode.addItem(DataTypeUInt16, RConfigDuration);
+            item->setValue(60); // default 60 seconds
+        }
+        else
+        {
+            sensorNode.addItem(DataTypeString, RStateAlert);
+        }
     }
     else if (sensorNode.type().endsWith(QLatin1String("OpenClose")))
     {
@@ -3061,6 +3106,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     }
     else if ((node->nodeDescriptor().manufacturerCode() == VENDOR_OSRAM_STACK) || (node->nodeDescriptor().manufacturerCode() == VENDOR_OSRAM))
     {
+        // TODO: Heiman sensors also use VENDOR_OSRAM_STACK
         sensorNode.setManufacturer("OSRAM");
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_UBISYS)
@@ -3167,6 +3213,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else if (modelId.startsWith(QLatin1String("lumi")))
     {
         sensorNode.setManufacturer("LUMI");
+    }
+    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_1002 ||
+             node->nodeDescriptor().manufacturerCode() == VENDOR_120B)
+    {
+        sensorNode.setManufacturer("Heiman");
     }
 
     if (sensorNode.manufacturer().isEmpty() && !manufacturer.isEmpty())

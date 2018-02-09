@@ -132,30 +132,33 @@
 #define MAX_ENHANCED_HUE 65535
 #define MAX_ENHANCED_HUE_Z 65278 // max supportet ehue of all devices
 
-#define BASIC_CLUSTER_ID 0x0000
-#define POWER_CONFIGURATION_CLUSTER_ID 0x0001
-#define IDENTIFY_CLUSTER_ID 0x0003
-#define GROUP_CLUSTER_ID 0x0004
-#define SCENE_CLUSTER_ID 0x0005
-#define ONOFF_CLUSTER_ID 0x0006
+#define BASIC_CLUSTER_ID                      0x0000
+#define POWER_CONFIGURATION_CLUSTER_ID        0x0001
+#define IDENTIFY_CLUSTER_ID                   0x0003
+#define GROUP_CLUSTER_ID                      0x0004
+#define SCENE_CLUSTER_ID                      0x0005
+#define ONOFF_CLUSTER_ID                      0x0006
 #define ONOFF_SWITCH_CONFIGURATION_CLUSTER_ID 0x0007
-#define LEVEL_CLUSTER_ID 0x0008
-#define ANALOG_INPUT_CLUSTER_ID 0x000C
-#define MULTISTATE_INPUT_CLUSTER_ID 0x0012
-#define COLOR_CLUSTER_ID 0x0300
-#define ILLUMINANCE_MEASUREMENT_CLUSTER_ID   0x0400
-#define ILLUMINANCE_LEVEL_SENSING_CLUSTER_ID 0x0401
-#define TEMPERATURE_MEASUREMENT_CLUSTER_ID   0x0402
-#define PRESSURE_MEASUREMENT_CLUSTER_ID      0x0403
-#define RELATIVE_HUMIDITY_CLUSTER_ID         0x0405
-#define OCCUPANCY_SENSING_CLUSTER_ID         0x0406
-#define IAS_ZONE_CLUSTER_ID 0x0500
-#define OTAU_CLUSTER_ID  0x0019
-#define DE_CLUSTER_ID    0xFC00
-#define VENDOR_CLUSTER_ID 0xFC00
-#define GREEN_POWER_CLUSTER_ID 0x0021
+#define LEVEL_CLUSTER_ID                      0x0008
+#define ANALOG_INPUT_CLUSTER_ID               0x000C
+#define MULTISTATE_INPUT_CLUSTER_ID           0x0012
+#define OTAU_CLUSTER_ID                       0x0019
+#define GREEN_POWER_CLUSTER_ID                0x0021
+#define COLOR_CLUSTER_ID                      0x0300
+#define ILLUMINANCE_MEASUREMENT_CLUSTER_ID    0x0400
+#define ILLUMINANCE_LEVEL_SENSING_CLUSTER_ID  0x0401
+#define TEMPERATURE_MEASUREMENT_CLUSTER_ID    0x0402
+#define PRESSURE_MEASUREMENT_CLUSTER_ID       0x0403
+#define RELATIVE_HUMIDITY_CLUSTER_ID          0x0405
+#define OCCUPANCY_SENSING_CLUSTER_ID          0x0406
+#define IAS_ZONE_CLUSTER_ID                   0x0500
+#define IAS_WD_CLUSTER_ID                     0x0502
+#define ELECTRICAL_MEASUREMENT_CLUSTER_ID     0x0B04
+#define COMMISSIONING_CLUSTER_ID              0x1000
+#define DE_CLUSTER_ID                         0xFC00
+#define VENDOR_CLUSTER_ID                     0xFC00
+
 #define GREEN_POWER_ENDPOINT 0xf2
-#define COMMISSIONING_CLUSTER_ID  0x1000
 
 #define ONOFF_COMMAND_OFF     0x00
 #define ONOFF_COMMAND_ON      0x01
@@ -200,23 +203,25 @@
 #define WRITE_USERTEST          (1 << 16)
 
 // manufacturer codes
-#define VENDOR_ATMEL    0x1014
-#define VENDOR_JENNIC   0x1037
-#define VENDOR_DDEL     0x1135
-#define VENDOR_INNR     0x1166
-#define VENDOR_INNR2    0x1168
-#define VENDOR_INSTA    0x117a
-#define VENDOR_IKEA     0x117c
-#define VENDOR_NYCE     0x10b9
-#define VENDOR_PHILIPS  0x100B
-#define VENDOR_OSRAM_STACK  0xBBAA
-#define VENDOR_OSRAM    0x110C
-#define VENDOR_CENTRALITE   0x104e
-#define VENDOR_UBISYS   0x10F2
+#define VENDOR_NONE         0x0000
+#define VENDOR_ATMEL        0x1014
+#define VENDOR_JENNIC       0x1037
+#define VENDOR_DDEL         0x1135
+#define VENDOR_INNR         0x1166
+#define VENDOR_INNR2        0x1168
+#define VENDOR_INSTA        0x117A
+#define VENDOR_IKEA         0x117C
+#define VENDOR_1002         0x1002     // @manup, where can I lookup manufacturer code?
+#define VENDOR_PHILIPS      0x100B
+#define VENDOR_CENTRALITE   0x104E
+#define VENDOR_NYCE         0x10B9
+#define VENDOR_UBISYS       0x10F2
+#define VENDOR_BEGA         0x1105
+#define VENDOR_OSRAM        0x110C
 #define VENDOR_BUSCH_JAEGER 0x112E
-#define VENDOR_BEGA 0x1105
-#define VENDOR_PAULMANN 0x119d
-#define VENDOR_NONE   0x0000
+#define VENDOR_PAULMANN     0x119D
+#define VENDOR_120B         0x120B     // @manup, where can I lookup manufacturer code?
+#define VENDOR_OSRAM_STACK  0xBBAA
 
 #define ANNOUNCE_INTERVAL 10 // minutes default announce interval
 
