@@ -285,7 +285,8 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
                                                             item = sensor.addItem(DataTypeBool, RStateDaylight); item->setValue(false);
                                                             item = sensor.addItem(DataTypeUInt16, RConfigTholdDark); item->setValue(R_THOLDDARK_DEFAULT);
                                                             item = sensor.addItem(DataTypeUInt16, RConfigTholdOffset); item->setValue(R_THOLDOFFSET_DEFAULT); }
-        else if (type == QLatin1String("CLIPTemperature")) { item = sensor.addItem(DataTypeInt16, RStateTemperature); item->setValue(0); }
+        else if (type == QLatin1String("CLIPTemperature")) { item = sensor.addItem(DataTypeInt16, RStateTemperature); item->setValue(0);
+                                                             item = sensor.addItem(DataTypeInt16, RConfigOffset); item->setValue(0); }
         else if (type == QLatin1String("CLIPHumidity")) { item = sensor.addItem(DataTypeUInt16, RStateHumidity); item->setValue(0); }
         else if (type == QLatin1String("CLIPPressure")) { item = sensor.addItem(DataTypeInt16, RStatePressure); item->setValue(0); }
         else
@@ -487,7 +488,7 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
 
             for (; pi != pend; ++pi)
             {
-                if(!((pi.key() == "on") || (pi.key() == "reachable") || (pi.key() == "url") || (pi.key() == "battery") || (pi.key() == "duration")))
+                if(!((pi.key() == "offset") || (pi.key() == "on") || (pi.key() == "reachable") || (pi.key() == "url") || (pi.key() == "battery") || (pi.key() == "duration")))
                 {
                     rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%2").arg(pi.key()), QString("parameter, %1, not available").arg(pi.key())));
                     rsp.httpStatus = HttpStatusBadRequest;
@@ -495,6 +496,17 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
                 }
             }
 
+            if (config.contains("offset"))
+            {
+                item = sensor.addItem(DataTypeInt16, RConfigOffset);
+
+                if (!item || !item->setValue(config["offset"]))
+                {
+                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/config"), QString("invalid value, %1, for parameter RConfigOffset").arg(config["offset"].toString())));
+                    rsp.httpStatus = HttpStatusBadRequest;
+                    return REQ_READY_SEND;
+                }
+            }
             if (config.contains("on"))
             {
                 item = sensor.item(RConfigOn);
@@ -710,6 +722,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     Sensor *sensor = getSensorNodeForId(id);
     bool ok;
     bool updated = false;
+    bool offsetUpdated = false;
+    qint16 offset = 0;
     bool tholdUpdated = false;
     uint8_t pendingMask = 0;
     QVariant var = Json::parse(req.content, ok);
@@ -779,6 +793,10 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
             {
                 QVariant val = map[pi.key()];
 
+                if (rid.suffix == RConfigOffset)
+                {
+                    offset -= item->toNumber();
+                }
                 if (rid.suffix == RConfigAlert)
                 {
                     if (val == "none")
@@ -834,6 +852,11 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         if (rid.suffix == RConfigTholdDark || rid.suffix == RConfigTholdOffset)
                         {
                             tholdUpdated = true;
+                        }
+                        else if (rid.suffix == RConfigOffset)
+                        {
+                            offsetUpdated = true;
+                            offset += item->toNumber();
                         }
                         else if (rid.suffix == RConfigDuration && sensor->modelId() == QLatin1String("SML001")) // Hue motion sensor
                         {
@@ -928,6 +951,20 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                     }
                 }
+            }
+        }
+    }
+
+    if (offsetUpdated)
+    {
+        ResourceItem *item = sensor->item(RStateTemperature);
+        if (item)
+        {
+            qint16 temp = item->toNumber();
+            temp += offset;
+            if (item->setValue(temp)) {
+                Event e(RSensors, RStateTemperature, sensor->id(), item);
+                enqueueEvent(e);
             }
         }
     }
