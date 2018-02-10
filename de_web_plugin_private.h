@@ -211,7 +211,7 @@
 #define VENDOR_INNR2        0x1168
 #define VENDOR_INSTA        0x117A
 #define VENDOR_IKEA         0x117C
-#define VENDOR_1002         0x1002     // @manup, where can I lookup manufacturer code?
+#define VENDOR_EMBER        0x1002
 #define VENDOR_PHILIPS      0x100B
 #define VENDOR_CENTRALITE   0x104E
 #define VENDOR_NYCE         0x10B9
@@ -220,7 +220,7 @@
 #define VENDOR_OSRAM        0x110C
 #define VENDOR_BUSCH_JAEGER 0x112E
 #define VENDOR_PAULMANN     0x119D
-#define VENDOR_120B         0x120B     // @manup, where can I lookup manufacturer code?
+#define VENDOR_120B         0x120B     // TODO: who is this?
 #define VENDOR_OSRAM_STACK  0xBBAA
 
 #define ANNOUNCE_INTERVAL 10 // minutes default announce interval

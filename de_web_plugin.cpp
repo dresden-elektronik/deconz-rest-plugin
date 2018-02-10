@@ -2989,8 +2989,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     item = sensorNode.item(RConfigReachable);
     item->setValue(true);
 
-    // @manup, will this work?
-    // if (node->isEndDevice())
     if (sensorNode.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
     {
         sensorNode.addItem(DataTypeUInt8, RConfigBattery);
@@ -3227,7 +3225,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     {
         sensorNode.setManufacturer("LUMI");
     }
-    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_1002 ||
+    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER ||
              node->nodeDescriptor().manufacturerCode() == VENDOR_120B)
     {
         sensorNode.setManufacturer("Heiman");
