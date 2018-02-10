@@ -855,6 +855,15 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
         return sendConfigureReportingRequest(bt, {rq});
     }
+    else if (bt.binding.clusterId == ELECTRICAL_MEASUREMENT_CLUSTER_ID)
+    {
+        rq.dataType = deCONZ::Zcl16BitInt;
+        rq.attributeId = 0x050B; // Active power
+        rq.minInterval = 10;
+        rq.maxInterval = 300;
+        rq.reportableChange16bit = 1;
+        return sendConfigureReportingRequest(bt, {rq});
+    }
     else if (bt.binding.clusterId == LEVEL_CLUSTER_ID)
     {
         rq.dataType = deCONZ::Zcl8BitUint;
@@ -1031,6 +1040,7 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         switch (i->id())
         {
         case ONOFF_CLUSTER_ID:
+        case ELECTRICAL_MEASUREMENT_CLUSTER_ID:
         case LEVEL_CLUSTER_ID:
         case COLOR_CLUSTER_ID:
         {
@@ -1293,6 +1303,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         case TEMPERATURE_MEASUREMENT_CLUSTER_ID:
         case RELATIVE_HUMIDITY_CLUSTER_ID:
         case PRESSURE_MEASUREMENT_CLUSTER_ID:
+        case ELECTRICAL_MEASUREMENT_CLUSTER_ID:
         case VENDOR_CLUSTER_ID:
         case BASIC_CLUSTER_ID:
         {

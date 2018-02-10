@@ -1483,6 +1483,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
             switch(i->deviceId())
             {
             case DEV_ID_MAINS_POWER_OUTLET:
+            case DEV_ID_SMART_PLUG:
             case DEV_ID_HA_COLOR_DIMMABLE_LIGHT:
             case DEV_ID_ZLL_COLOR_LIGHT:
             case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:
@@ -1789,6 +1790,37 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             updated = true;
                         }
                         lightNode->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
+                        break;
+                    }
+                    break;
+                }
+            }
+            else if (ic->id() == ELECTRICAL_MEASUREMENT_CLUSTER_ID && (event.clusterId() == ELECTRICAL_MEASUREMENT_CLUSTER_ID))
+            {
+                std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
+                std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
+                for (;ia != enda; ++ia)
+                {
+                    // @manup, when reading the Electrical Measurement attributes from the GUI, I get here,
+                    // but only attribute 0x0000 seems available.  Attribute 0x050B is defined in general.xml
+                    // and the value is updated in the GUI.  Is there another magic place where I need to
+                    // specify that we're interested in 0x050B?
+                    DBG_Printf(DBG_INFO, ">>>> 0x%04X/0x%04X: 0x%016llX\n", ic->id(), ia->id(), lightNode->address().ext());
+                    if (ia->id() == 0x050B) // Active power
+                    {
+                        DBG_Printf(DBG_INFO, ">>>> 0x0B04/0x050B: 0x%016llX\n", lightNode->address().ext());
+
+                        qint16 power = ia->numericValue().s16;
+                        ResourceItem *item = lightNode->item(RStatePower);
+                        if (item && item->toNumber() != power)
+                        {
+                            DBG_Printf(DBG_INFO, "0x%016llX power %d --> %d\n", lightNode->address().ext(), item->toNumber(), power);
+                            item->setValue(power);
+                            Event e(RLights, RStatePower, lightNode->id(), item);
+                            enqueueEvent(e);
+                            updated = true;
+                        }
+                        lightNode->setZclValue(updateType, event.clusterId(), 0x050B, ia->numericValue());
                         break;
                     }
                     break;
@@ -4819,6 +4851,7 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
             //fall through
 
         case DEV_ID_MAINS_POWER_OUTLET:
+        case DEV_ID_SMART_PLUG:
         case DEV_ID_HA_ONOFF_LIGHT:
         case DEV_ID_ZLL_ONOFF_LIGHT:
         case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:
@@ -7012,6 +7045,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         case BASIC_CLUSTER_ID:
         case IDENTIFY_CLUSTER_ID:
         case ONOFF_CLUSTER_ID:
+        case ELECTRICAL_MEASUREMENT_CLUSTER_ID:
         case LEVEL_CLUSTER_ID:
         case GROUP_CLUSTER_ID:
         case SCENE_CLUSTER_ID:

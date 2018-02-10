@@ -102,6 +102,7 @@ void LightNode::setManufacturerCode(uint16_t code)
         case VENDOR_OSRAM:   m_manufacturer = QLatin1String("OSRAM"); break;
         case VENDOR_UBISYS:  m_manufacturer = QLatin1String("ubisys"); break;
         case VENDOR_BUSCH_JAEGER:  m_manufacturer = QLatin1String("Busch-Jaeger"); break;
+        case VENDOR_EMBER:  m_manufacturer = QLatin1String("Heiman"); break;
         default:
             m_manufacturer = QLatin1String("Unknown");
             break;
@@ -479,7 +480,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
     if (!isInitialized)
     {
         QString ltype = QLatin1String("Unknown");
-        
+
         {
             QList<deCONZ::ZclCluster>::const_iterator i = endpoint.inClusters().constBegin();
             QList<deCONZ::ZclCluster>::const_iterator end = endpoint.inClusters().constEnd();
@@ -490,6 +491,10 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 if (i->id() == LEVEL_CLUSTER_ID)
                 {
                     addItem(DataTypeUInt8, RStateBri);
+                }
+                else if (i->id() == ELECTRICAL_MEASUREMENT_CLUSTER_ID)
+                {
+                    addItem(DataTypeInt16, RStatePower);
                 }
                 else if (i->id() == COLOR_CLUSTER_ID)
                 {
