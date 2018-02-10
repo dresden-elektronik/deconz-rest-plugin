@@ -1041,7 +1041,7 @@ qint64 DeRestPluginPrivate::getUptime()
 void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 {
     DBG_Assert(node != 0);
-    if (!node || node->isEndDevice())
+    if (!node || !node->nodeDescriptor().receiverOnWhenIdle())
     {
         return;
     }
@@ -1996,7 +1996,7 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor)
     {
         reachable = true; // assumption for GP device
     }
-    if (sensor->node() && sensor->node()->isEndDevice() &&
+    if (sensor->node() && !sensor->node()->nodeDescriptor().receiverOnWhenIdle() &&
         sensor->lastRx().secsTo(now) < (60 * 60 * 24)) // if end device was active in last 24 hours
     {
         reachable = true;
@@ -2076,7 +2076,7 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor)
             // the node existed before
             // refresh all with new values
             DBG_Printf(DBG_INFO_L2, "SensorNode id: %s (%s) available\n", qPrintable(sensor->id()), qPrintable(sensor->name()));
-            if (sensor->node() && !sensor->node()->isEndDevice())
+            if (sensor->node() && sensor->node()->nodeDescriptor().receiverOnWhenIdle())
             {
                 sensor->setNextReadTime(READ_BINDING_TABLE, queryTime);
                 sensor->enableRead(READ_BINDING_TABLE/* | READ_MODEL_ID | READ_SWBUILD_ID | READ_VENDOR_NAME*/);
@@ -2851,7 +2851,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
             {
                 checkSensorNodeReachable(sensor);
 
-                if (!node->isEndDevice())
+                if (node->nodeDescriptor().receiverOnWhenIdle())
                 {
                     // @manup: shouldn't we do this only for OCCUPANCY_SENSING sensors?
                     //sensor->setLastRead(idleTotalCounter);
@@ -5294,7 +5294,7 @@ bool DeRestPluginPrivate::readAttributes(RestNodeBase *restNode, quint8 endpoint
         return false;
     }
 
-    if (restNode->node()->isEndDevice())
+    if (!restNode->node()->nodeDescriptor().receiverOnWhenIdle())
     {
         QDateTime now = QDateTime::currentDateTime();
         if (!restNode->lastRx().isValid() || (restNode->lastRx().secsTo(now) > 3))
@@ -6278,7 +6278,8 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
     }
     else if (macPrefix == philipsMacPrefix ||
              macPrefix == tiMacPrefix ||
-             macPrefix == ikeaMacPrefix)
+             macPrefix == ikeaMacPrefix ||
+             macPrefix == heimanMacPrefix)
     {
         // these sensors tend to mac data poll after report
         checkReporting = true;

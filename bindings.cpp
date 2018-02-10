@@ -150,7 +150,7 @@ bool DeRestPluginPrivate::readBindingTable(RestNodeBase *node, quint8 startIndex
     BindingTableReader btReader;
     btReader.state = BindingTableReader::StateIdle;
     btReader.index = startIndex;
-    btReader.isEndDevice = node->node()->isEndDevice();
+    btReader.isEndDevice = !node->node()->nodeDescriptor().receiverOnWhenIdle();
     btReader.apsReq.dstAddress() = node->address();
 
     bindingTableReaders.push_back(btReader);
@@ -1151,7 +1151,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->setMgmtBindSupported(false);
     }
 
-    if (!endDeviceSupported && sensor->node()->isEndDevice())
+    if (!endDeviceSupported && !sensor->node()->nodeDescriptor().receiverOnWhenIdle())
     {
         DBG_Printf(DBG_INFO_L2, "don't create binding for attribute reporting of end-device %s\n", qPrintable(sensor->name()));
         return;
@@ -1259,7 +1259,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             continue;
         }
 
-        if (sensor->node()->isEndDevice() && sensor->lastRx().secsTo(now) > 3)
+        if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() && sensor->lastRx().secsTo(now) > 3)
         {
             DBG_Printf(DBG_INFO, "skip binding for attribute reporting of cluster 0x%04X (end-device might sleep)\n", (*i));
             return;
@@ -1363,7 +1363,7 @@ void DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     }
 
     QDateTime now = QDateTime::currentDateTime();
-    if (sensor->node()->isEndDevice() && sensor->lastRx().secsTo(now) > 10)
+    if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() && sensor->lastRx().secsTo(now) > 10)
     {
         DBG_Printf(DBG_INFO, "skip check bindings for client clusters (end-device might sleep)\n");
         return;

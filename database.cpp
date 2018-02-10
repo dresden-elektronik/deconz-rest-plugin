@@ -1963,7 +1963,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item->setValue(100);
         }
 
-        if (stateCol >= 0 && !isClip)
+        // @manup: What was the reason not to restore state for CLIP sensors?
+        if (stateCol >= 0 &&
+            sensor.type() != QLatin1String("CLIPGenericFlag") &&
+            sensor.type() != QLatin1String("CLIPGenericStatus"))
         {
             sensor.jsonToState(QLatin1String(colval[stateCol]));
         }

@@ -107,7 +107,7 @@ void DeRestPluginPrivate::checkResetState()
     {
         if (si->isAvailable() && si->resetRetryCount() > 0 && si->node())
         {
-            if (si->node()->isEndDevice())
+            if (!si->node()->nodeDescriptor().receiverOnWhenIdle())
             {
                 // not supported yet
                 continue;
@@ -233,7 +233,7 @@ void DeRestPluginPrivate::handleMgmtLeaveRspIndication(const deCONZ::ApsDataIndi
         DBG_Printf(DBG_INFO, "MgmtLeave_rsp %s seq: %u, status 0x%02X \n", qPrintable(node->address().toStringExt()), seqNo, status);
 
         if (status == deCONZ::ZdpSuccess || status == deCONZ::ZdpNotSupported)
-        {            
+        {
             // set retryCount and isAvailable for all endpoints of that device
             std::vector<LightNode>::iterator i;
             std::vector<LightNode>::iterator end = nodes.end();
