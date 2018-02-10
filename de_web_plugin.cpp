@@ -3106,8 +3106,21 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     }
     else if ((node->nodeDescriptor().manufacturerCode() == VENDOR_OSRAM_STACK) || (node->nodeDescriptor().manufacturerCode() == VENDOR_OSRAM))
     {
-        // TODO: Heiman sensors also use VENDOR_OSRAM_STACK
-        sensorNode.setManufacturer("OSRAM");
+        if (modelId == QLatin1String("CO_V16") ||
+            modelId == QLatin1String("DOOR_TPV13") ||
+            modelId == QLatin1String("PIR_TPV11") ||
+            modelId == QLatin1String("GAS_V15") ||
+            modelId == QLatin1String("TH-H_V15") ||
+            modelId == QLatin1String("TH-T_V15") ||
+            modelId == QLatin1String("SMOK_V16") ||
+            modelId == QLatin1String("WATER_TPV11"))
+        {
+            sensorNode.setManufacturer("Heiman");
+        }
+        else
+        {
+            sensorNode.setManufacturer("OSRAM");
+        }
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_UBISYS)
     {

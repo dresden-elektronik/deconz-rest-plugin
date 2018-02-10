@@ -1859,6 +1859,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = OCCUPANCY_SENSING_CLUSTER_ID;
             }
+            else if (sensor.fingerPrint().hasInCluster(IAS_WD_CLUSTER_ID))
+            {
+                clusterId = IAS_WD_CLUSTER_ID;
+            }
             else if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
             {
                 clusterId = IAS_ZONE_CLUSTER_ID;
@@ -1870,7 +1874,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeBool, RStatePresence);
             item->setValue(false);
             item = sensor.addItem(DataTypeUInt16, RConfigDuration);
-            item->setValue(0);
+            item->setValue(60); // presence should be reasonable for physical sensors
             if (sensor.modelId() == QLatin1String("SML001")) // Hue motion sensor
             {
                 item->setValue(0);
@@ -1969,13 +1973,14 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             sensor.jsonToConfig(QLatin1String(colval[configCol]));
         }
 
+        // No - this overrides the duration value restored from the database.
         // provide default if values are not set or invalid
         // presence should be reasonable for physical sensors
-        item = sensor.item(RConfigDuration);
-        if (!isClip && item && item->toNumber() <= 0)
-        {
-            item->setValue(60);
-        }
+        // item = sensor.item(RConfigDuration);
+        // if (!isClip && item && item->toNumber() <= 0)
+        // {
+        //     item->setValue(60);
+        // }
 
         if (extAddr != 0)
         {

@@ -777,10 +777,10 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     else if (bt.binding.clusterId == RELATIVE_HUMIDITY_CLUSTER_ID)
     {
         rq.dataType = deCONZ::Zcl16BitUint;
-        rq.attributeId = 0x0000; // measured value
+        rq.attributeId = 0x0000;       // measured value
         rq.minInterval = 10;
         rq.maxInterval = 300;
-        rq.reportableChange16bit = 20;
+        rq.reportableChange16bit = 100; // resolution: 1%
         return sendConfigureReportingRequest(bt, {rq});
     }
     else if (bt.binding.clusterId == PRESSURE_MEASUREMENT_CLUSTER_ID)
@@ -1136,7 +1136,16 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("SML001") ||
         sensor->modelId().startsWith(QLatin1String("RWL02")) ||
         // IKEA
-        sensor->modelId().startsWith(QLatin1String("TRADFRI")))
+        sensor->modelId().startsWith(QLatin1String("TRADFRI")) ||
+        // Heiman
+        sensor->modelId() == QLatin1String("CO_V16") ||
+        sensor->modelId() == QLatin1String("DOOR_TPV13") ||
+        sensor->modelId() == QLatin1String("PIR_TPV11") ||
+        sensor->modelId() == QLatin1String("GAS_V15") ||
+        sensor->modelId() == QLatin1String("TH-H_V15") ||
+        sensor->modelId() == QLatin1String("TH-T_V15") ||
+        sensor->modelId() == QLatin1String("SMOK_V16") ||
+        sensor->modelId() == QLatin1String("WATER_TPV11"))
     {
         endDeviceSupported = true;
         sensor->setMgmtBindSupported(false);
