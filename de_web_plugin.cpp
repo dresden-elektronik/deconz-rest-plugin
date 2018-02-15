@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2018 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -10378,28 +10378,6 @@ void DeRestPlugin::idleTimerFired()
                         d->queryTime = d->queryTime.addSecs(tSpacing);
                         processLights = true;
                     }
-                }
-
-                if (lightNode->modelId().isEmpty())
-                {
-                    Sensor *sensor = d->getSensorNodeForAddress(lightNode->address());
-
-                    if (sensor && sensor->modelId().startsWith(QLatin1String("FLS-NB")))
-                    {
-                        // extract model id from sensor node
-                        lightNode->item(RAttrModelId)->setValue(sensor->modelId());
-                        lightNode->setModelId(sensor->modelId());
-                        lightNode->setLastRead(READ_MODEL_ID, d->idleTotalCounter);
-                    }
-                }
-
-                if (!lightNode->mustRead(READ_MODEL_ID) && (lightNode->modelId().isEmpty() || lightNode->lastRead(READ_MODEL_ID) < d->idleTotalCounter - READ_MODEL_ID_INTERVAL))
-                {
-                    lightNode->setLastRead(READ_MODEL_ID, d->idleTotalCounter);
-                    lightNode->enableRead(READ_MODEL_ID);
-                    lightNode->setNextReadTime(READ_MODEL_ID, d->queryTime);
-                    d->queryTime = d->queryTime.addSecs(tSpacing);
-                    processLights = true;
                 }
 
                 if (!lightNode->mustRead(READ_SWBUILD_ID) && (lightNode->swBuildId().isEmpty() || lightNode->lastRead(READ_SWBUILD_ID) < d->idleTotalCounter - READ_SWBUILD_ID_INTERVAL))
