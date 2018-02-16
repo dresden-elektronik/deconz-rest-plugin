@@ -74,6 +74,7 @@ const quint64 osramMacPrefix      = 0x8418260000000000ULL;
 const quint64 ubisysMacPrefix     = 0x001fee0000000000ULL;
 const quint64 netvoxMacPrefix     = 0x00137a0000000000ULL;
 const quint64 heimanMacPrefix     = 0x0050430000000000ULL;
+const quint64 lutronMacPrefix     = 0xffff000000000000ULL;
 
 struct SupportedDevice {
     quint16 vendorId;
@@ -131,6 +132,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_OSRAM_STACK, "SMOK_V16", heimanMacPrefix }, // Heiman fire sensor
     { VENDOR_OSRAM_STACK, "WATER_TPV11", heimanMacPrefix }, // Heiman water sensor
     { VENDOR_120B, "WarningDevice", emberMacPrefix }, // Heiman siren
+    { VENDOR_LUTRON, "LZL4BWHL01", lutronMacPrefix }, // Lutron LZL-4B-WH-L01 Connected Bulb Remote
     { 0, 0, 0 }
 };
 
@@ -3262,6 +3264,15 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
              node->nodeDescriptor().manufacturerCode() == VENDOR_120B)
     {
         sensorNode.setManufacturer("Heiman");
+    }
+    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_LUTRON)
+    {
+        sensorNode.setManufacturer("Lutron");
+
+        if (modelId.startsWith(QLatin1String("LZL4BWHL")))
+        {
+            sensorNode.setMode(Sensor::ModeDimmer);
+        }
     }
 
     if (sensorNode.manufacturer().isEmpty() && !manufacturer.isEmpty())
