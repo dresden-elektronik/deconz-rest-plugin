@@ -124,7 +124,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_UBISYS, "C4", ubisysMacPrefix },
     { VENDOR_NONE, "Z716A", netvoxMacPrefix },
     { VENDOR_OSRAM_STACK, "CO_V16", heimanMacPrefix }, // Heiman CO sensor
-    { VENDOR_OSRAM_STACK, "DOOR_TPV13", heimanMacPrefix }, // Heiman coor/window sensor
+    { VENDOR_OSRAM_STACK, "DOOR_TPV13", heimanMacPrefix }, // Heiman door/window sensor
     { VENDOR_OSRAM_STACK, "PIR_TPV11", heimanMacPrefix }, // Heiman motion sensor
     { VENDOR_OSRAM_STACK, "GAS_V15", heimanMacPrefix }, // Heiman gas sensor
     { VENDOR_OSRAM_STACK, "TH-H_V15", heimanMacPrefix }, // Heiman temperature/humidity sensor
@@ -2558,13 +2558,17 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
     for (;i != end; ++i)
     {
-        SensorFingerprint fpSwitch;
-        SensorFingerprint fpLightSensor;
-        SensorFingerprint fpPresenceSensor;
-        SensorFingerprint fpTemperatureSensor;
+        SensorFingerprint fpAlarmSensor;
+        SensorFingerprint fpCarbonMonoxideSensor;
+        SensorFingerprint fpFireSensor;
         SensorFingerprint fpHumiditySensor;
-        SensorFingerprint fpPressureSensor;
+        SensorFingerprint fpLightSensor;
         SensorFingerprint fpOpenCloseSensor;
+        SensorFingerprint fpPresenceSensor;
+        SensorFingerprint fpPressureSensor;
+        SensorFingerprint fpSwitch;
+        SensorFingerprint fpTemperatureSensor;
+        SensorFingerprint fpWaterSensor;
 
         {   // scan client clusters of endpoint
             QList<deCONZ::ZclCluster>::const_iterator ci = i->outClusters().constBegin();
@@ -2641,8 +2645,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC &&
                              modelId == QLatin1String("lumi.sensor_wleak.aq1"))
                     {
-                        // TODO: change to fpStatusSensor/fpAlarmSensor
-                        fpPresenceSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
+                        fpWaterSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
                     }
                 }
                     break;
@@ -2654,13 +2657,17 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     //     node->nodeDescriptor().manufacturerCode() == VENDOR_NYCE ||
                     //     node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA)
                     // {
-                        fpSwitch.inClusters.push_back(ci->id());
-                        fpLightSensor.inClusters.push_back(ci->id());
-                        fpPresenceSensor.inClusters.push_back(ci->id());
-                        fpTemperatureSensor.inClusters.push_back(ci->id());
+                        fpAlarmSensor.inClusters.push_back(ci->id());
+                        fpCarbonMonoxideSensor.inClusters.push_back(ci->id());
+                        fpFireSensor.inClusters.push_back(ci->id());
                         fpHumiditySensor.inClusters.push_back(ci->id());
-                        fpPressureSensor.inClusters.push_back(ci->id());
+                        fpLightSensor.inClusters.push_back(ci->id());
                         fpOpenCloseSensor.inClusters.push_back(ci->id());
+                        fpPresenceSensor.inClusters.push_back(ci->id());
+                        fpPressureSensor.inClusters.push_back(ci->id());
+                        fpSwitch.inClusters.push_back(ci->id());
+                        fpTemperatureSensor.inClusters.push_back(ci->id());
+                        fpWaterSensor.inClusters.push_back(ci->id());
                     // }
                 }
                     break;
@@ -2708,25 +2715,31 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         if (attr.id() == 0x0001) // IAS Zone type
                         {
                             switch (attr.numericValue().u16) {
-                                case 0x000d: // Motion sensor
+                                case IAS_ZONE_TYPE_MOTION_SENSOR:
                                     fpPresenceSensor.inClusters.push_back(ci->id());
                                     break;
-                                case 0x0015: // Contact switch
+                                case IAS_ZONE_TYPE_CONTACT_SWITCH:
                                     fpOpenCloseSensor.inClusters.push_back(ci->id());
                                     break;
-                                case 0x0028: // Fire sensor
-                                case 0x002a: // Water sensor
-                                case 0x002b: // CO sensor
-                                    // TODO: change to fpStatusSensor/fpAlarmSensor
-                                    fpPresenceSensor.inClusters.push_back(ci->id());
+                                case IAS_ZONE_TYPE_STANDARD_CIE:
+                                    fpAlarmSensor.inClusters.push_back(ci->id());
                                     break;
-                                case 0x0225: // Warning device
-                                    // TODO: change to fpStatusSensor/fpAlarmSensor
-                                    fpPresenceSensor.inClusters.push_back(IAS_WD_CLUSTER_ID);
+                                case IAS_ZONE_TYPE_CARBON_MONOXIDE_SENSOR:
+                                    fpCarbonMonoxideSensor.inClusters.push_back(ci->id());
+                                    break;
+                                case IAS_ZONE_TYPE_FIRE_SENSOR:
+                                    fpFireSensor.inClusters.push_back(ci->id());
+                                    break;
+                                case IAS_ZONE_TYPE_WATER_SENSOR:
+                                    fpWaterSensor.inClusters.push_back(ci->id());
+                                    break;
+                                case IAS_ZONE_TYPE_WARNING_DEVICE:
+                                    // TODO
+                                    // fpAlarmSensor.inClusters.push_back(IAS_WD_CLUSTER_ID);
                                     break;
                                 default:
-                                    // TODO: change to fpStatusSensor/fpAlarmSensor
-                                    // fpPresenceSensor.inClusters.push_back(ci->id());
+                                    // Don't do anything - most likely IAS Zone type hasn't been read yet.
+                                    // fpAlarmSensor.inClusters.push_back(ci->id());
                                     break;
                             }
                         }
@@ -2978,6 +2991,78 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 checkSensorNodeReachable(sensor);
             }
         }
+
+        // ZHAAlarm
+        if (fpAlarmSensor.hasInCluster(IAS_ZONE_CLUSTER_ID))
+        {
+            fpAlarmSensor.endpoint = i->endpoint();
+            fpAlarmSensor.deviceId = i->deviceId();
+            fpAlarmSensor.profileId = i->profileId();
+
+            sensor = getSensorNodeForFingerPrint(node->address().ext(), fpAlarmSensor, "ZHAAlarm");
+            if (!sensor || sensor->deletedState() != Sensor::StateNormal)
+            {
+                addSensorNode(node, fpAlarmSensor, "ZHAAlarm", modelId, manufacturer);
+            }
+            else
+            {
+                checkSensorNodeReachable(sensor);
+            }
+        }
+
+        // ZHACarbonMonoxide
+        if (fpCarbonMonoxideSensor.hasInCluster(IAS_ZONE_CLUSTER_ID))
+        {
+            fpCarbonMonoxideSensor.endpoint = i->endpoint();
+            fpCarbonMonoxideSensor.deviceId = i->deviceId();
+            fpCarbonMonoxideSensor.profileId = i->profileId();
+
+            sensor = getSensorNodeForFingerPrint(node->address().ext(), fpCarbonMonoxideSensor, "ZHACarbonMonoxide");
+            if (!sensor || sensor->deletedState() != Sensor::StateNormal)
+            {
+                addSensorNode(node, fpCarbonMonoxideSensor, "ZHACarbonMonoxide", modelId, manufacturer);
+            }
+            else
+            {
+                checkSensorNodeReachable(sensor);
+            }
+        }
+
+        // ZHAFire
+        if (fpFireSensor.hasInCluster(IAS_ZONE_CLUSTER_ID))
+        {
+            fpFireSensor.endpoint = i->endpoint();
+            fpFireSensor.deviceId = i->deviceId();
+            fpFireSensor.profileId = i->profileId();
+
+            sensor = getSensorNodeForFingerPrint(node->address().ext(), fpFireSensor, "ZHAFire");
+            if (!sensor || sensor->deletedState() != Sensor::StateNormal)
+            {
+                addSensorNode(node, fpFireSensor, "ZHAFire", modelId, manufacturer);
+            }
+            else
+            {
+                checkSensorNodeReachable(sensor);
+            }
+        }
+
+        // ZHAWater
+        if (fpWaterSensor.hasInCluster(IAS_ZONE_CLUSTER_ID))
+        {
+            fpWaterSensor.endpoint = i->endpoint();
+            fpWaterSensor.deviceId = i->deviceId();
+            fpWaterSensor.profileId = i->profileId();
+
+            sensor = getSensorNodeForFingerPrint(node->address().ext(), fpWaterSensor, "ZHAWater");
+            if (!sensor || sensor->deletedState() != Sensor::StateNormal)
+            {
+                addSensorNode(node, fpWaterSensor, "ZHAWater", modelId, manufacturer);
+            }
+            else
+            {
+                checkSensorNodeReachable(sensor);
+            }
+        }
     }
 }
 
@@ -3108,16 +3193,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = ONOFF_CLUSTER_ID;
         }
-        if (clusterId != IAS_WD_CLUSTER_ID)
-        {
-            sensorNode.addItem(DataTypeBool, RStatePresence);
-            item = sensorNode.addItem(DataTypeUInt16, RConfigDuration);
-            item->setValue(60); // default 60 seconds
-        }
-        else
-        {
-            sensorNode.addItem(DataTypeString, RStateAlert);
-        }
+        sensorNode.addItem(DataTypeBool, RStatePresence);
+        item = sensorNode.addItem(DataTypeUInt16, RConfigDuration);
+        item->setValue(60); // default 60 seconds
     }
     else if (sensorNode.type().endsWith(QLatin1String("OpenClose")))
     {
@@ -3130,6 +3208,38 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             clusterId = ONOFF_CLUSTER_ID;
         }
         sensorNode.addItem(DataTypeBool, RStateOpen);
+    }
+    else if (sensorNode.type().endsWith(QLatin1String("Alarm")))
+    {
+        if (sensorNode.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
+        {
+            clusterId = IAS_ZONE_CLUSTER_ID;
+        }
+        sensorNode.addItem(DataTypeBool, RStateAlarm);
+    }
+    else if (sensorNode.type().endsWith(QLatin1String("CarbonMonoxide")))
+    {
+        if (sensorNode.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
+        {
+            clusterId = IAS_ZONE_CLUSTER_ID;
+        }
+        sensorNode.addItem(DataTypeBool, RStateCarbonMonoxide);
+    }
+    else if (sensorNode.type().endsWith(QLatin1String("Fire")))
+    {
+        if (sensorNode.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
+        {
+            clusterId = IAS_ZONE_CLUSTER_ID;
+        }
+        sensorNode.addItem(DataTypeBool, RStateFire);
+    }
+    else if (sensorNode.type().endsWith(QLatin1String("Water")))
+    {
+        if (sensorNode.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
+        {
+            clusterId = IAS_ZONE_CLUSTER_ID;
+        }
+        sensorNode.addItem(DataTypeBool, RStateWater);
     }
 
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_DDEL)
@@ -3157,6 +3267,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             modelId == QLatin1String("WATER_TPV11"))
         {
             sensorNode.setManufacturer("Heiman");
+            sensorNode.addItem(DataTypeBool, RStateBattery);
+            sensorNode.addItem(DataTypeBool, RStateTamper);
         }
         else
         {

@@ -1861,10 +1861,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = OCCUPANCY_SENSING_CLUSTER_ID;
             }
-            else if (sensor.fingerPrint().hasInCluster(IAS_WD_CLUSTER_ID))
-            {
-                clusterId = IAS_WD_CLUSTER_ID;
-            }
             else if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
             {
                 clusterId = IAS_ZONE_CLUSTER_ID;
@@ -1909,6 +1905,42 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeBool, RStateOpen);
             item->setValue(false);
         }
+        else if (sensor.type().endsWith(QLatin1String("Alarm")))
+        {
+            if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
+            {
+                clusterId = IAS_ZONE_CLUSTER_ID;
+            }
+            item = sensor.addItem(DataTypeBool, RStateAlarm);
+            item->setValue(false);
+        }
+        else if (sensor.type().endsWith(QLatin1String("CarbonMonoxide")))
+        {
+            if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
+            {
+                clusterId = IAS_ZONE_CLUSTER_ID;
+            }
+            item = sensor.addItem(DataTypeBool, RStateCarbonMonoxide);
+            item->setValue(false);
+        }
+        else if (sensor.type().endsWith(QLatin1String("Fire")))
+        {
+            if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
+            {
+                clusterId = IAS_ZONE_CLUSTER_ID;
+            }
+            item = sensor.addItem(DataTypeBool, RStateFire);
+            item->setValue(false);
+        }
+        else if (sensor.type().endsWith(QLatin1String("Water")))
+        {
+            if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
+            {
+                clusterId = IAS_ZONE_CLUSTER_ID;
+            }
+            item = sensor.addItem(DataTypeBool, RStateWater);
+            item->setValue(false);
+        }
 
         if (sensor.modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
         {
@@ -1947,7 +1979,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item->setValue(0);
             item = sensor.addItem(DataTypeBool, RConfigUsertest);
             item->setValue(false);
-        } else if (sensor.modelId().startsWith(QLatin1String("TRADFRI")))
+        }
+        else if (sensor.modelId().startsWith(QLatin1String("TRADFRI")))
         {
             // support power configuration cluster for IKEA devices
             if (!sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
@@ -1958,6 +1991,13 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeString, RConfigAlert);
             item->setValue(R_ALERT_DEFAULT);
         }
+        else if (sensor.manufacturer() == QLatin1String("Heiman"))
+        {
+            item = sensor.addItem(DataTypeBool, RStateBattery);
+            item->setValue(false);
+            item = sensor.addItem(DataTypeBool, RStateTamper);
+            item->setValue(false);
+        }
 
         if (sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
         {
@@ -1965,7 +2005,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item->setValue(100);
         }
 
-        // @manup: What was the reason not to restore state for CLIP sensors?
         if (stateCol >= 0 &&
             sensor.type() != QLatin1String("CLIPGenericFlag") &&
             sensor.type() != QLatin1String("CLIPGenericStatus"))
@@ -1977,15 +2016,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         {
             sensor.jsonToConfig(QLatin1String(colval[configCol]));
         }
-
-        // No - this overrides the duration value restored from the database.
-        // provide default if values are not set or invalid
-        // presence should be reasonable for physical sensors
-        // item = sensor.item(RConfigDuration);
-        // if (!isClip && item && item->toNumber() <= 0)
-        // {
-        //     item->setValue(60);
-        // }
 
         if (extAddr != 0)
         {

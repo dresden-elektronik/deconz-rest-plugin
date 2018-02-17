@@ -89,8 +89,12 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
                 continue;
             }
 
-            if (s.type() != QLatin1String("ZHAPresence") &&
-                s.type() != QLatin1String("ZHAOpenClose"))
+            if (s.type() != QLatin1String("ZHAAlarm") &&
+                s.type() != QLatin1String("ZHACarbonMonoxide") &&
+                s.type() != QLatin1String("ZHAFire") &&
+                s.type() != QLatin1String("ZHAOpenClose") &&
+                s.type() != QLatin1String("ZHAPresence") &&
+                s.type() != QLatin1String("ZHAWater"))
             {
                 continue;
             }
@@ -108,10 +112,36 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
             return;
         }
 
-        ResourceItem *item = sensor->item(RStatePresence);
-        if (!item)
+        const char *attr = 0;
+        if (sensor->type() == QLatin1String("ZHAAlarm"))
         {
-            item = sensor->item(RStateOpen);
+            attr = RStateAlarm;
+        }
+        else if (sensor->type() == QLatin1String("ZHACarbonMonoxide"))
+        {
+            attr = RStateCarbonMonoxide;
+        }
+        else if (sensor->type() == QLatin1String("ZHAFire"))
+        {
+            attr = RStateFire;
+        }
+        else if (sensor->type() == QLatin1String("ZHAOpenClose"))
+        {
+            attr = RStateOpen;
+        }
+        else if (sensor->type() == QLatin1String("ZHAPresence"))
+        {
+            attr = RStatePresence;
+        }
+        else if (sensor->type() == QLatin1String("ZHAWater"))
+        {
+            attr = RStateWater;
+        }
+
+        ResourceItem *item = 0;
+        if (attr)
+        {
+            item = sensor->item(attr);
         }
 
         if (item)
@@ -121,27 +151,36 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
             item->setValue(alarm);
             sensor->updateStateTimestamp();
             sensor->setNeedSaveDatabase(true);
+            updateSensorEtag(sensor);
+            enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor->id(), item));
+            enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
+
+            ResourceItem *item2 = sensor->item(RStateBattery);
+            if (item2)
+            {
+                bool battery = (zoneStatus & STATUS_BATTERY) ? true : false;
+                item2->setValue(battery);
+                enqueueEvent(Event(RSensors, RStateBattery, sensor->id(), item2));
+            }
+
+            item2 = sensor->item(RStateTamper);
+            if (item2)
+            {
+                bool tamper = (zoneStatus & STATUS_TAMPER) ? true : false;
+                item2->setValue(tamper);
+                enqueueEvent(Event(RSensors, RStateTamper, sensor->id(), item2));
+            }
 
             deCONZ::NumericUnion num = {0};
             num.u16 = zoneStatus;
             sensor->setZclValue(NodeValue::UpdateByZclReport, IAS_ZONE_CLUSTER_ID, 0x0000, num);
 
-            ResourceItem *item2 = sensor->item(RConfigReachable);
+            item2 = sensor->item(RConfigReachable);
             if (item2 && !item2->toBool())
             {
                 item2->setValue(true);
-                Event e(RSensors, RConfigReachable, sensor->id(), item2);
-                enqueueEvent(e);
+                enqueueEvent(Event(RSensors, RConfigReachable, sensor->id(), item2));
             }
-
-            updateSensorEtag(sensor);
-
-            if (item->lastSet() == item->lastChanged())
-            {
-                Event e(RSensors, item->descriptor().suffix, sensor->id(), item);
-                enqueueEvent(e);
-            }
-            enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
 
             if (alarm && item->descriptor().suffix == RStatePresence)
             {   // prepare to automatically set presence to false
