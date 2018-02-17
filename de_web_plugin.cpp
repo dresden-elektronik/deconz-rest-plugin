@@ -2892,17 +2892,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             else
             {
                 checkSensorNodeReachable(sensor);
-
-                if (node->nodeDescriptor().receiverOnWhenIdle())
-                {
-                    // @manup: shouldn't we do this only for OCCUPANCY_SENSING sensors?
-                    //sensor->setLastRead(idleTotalCounter);
-                    sensor->enableRead(READ_OCCUPANCY_CONFIG);
-                    sensor->setNextReadTime(READ_OCCUPANCY_CONFIG, queryTime);
-                    queryTime = queryTime.addSecs(5);
-                    Q_Q(DeRestPlugin);
-                    q->startZclAttributeTimer(checkZclAttributesDelay);
-                }
             }
         }
 
@@ -3924,6 +3913,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
                                 }
 
+                                const NodeValue &val = i->getZclValue(event.clusterId(), 0x0000);
+
                                 ResourceItem *item = i->item(RStatePresence);
 
                                 if (item)
@@ -3938,10 +3929,19 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     // prepare to automatically set presence to false
                                     if (item->toBool())
                                     {
-                                        ResourceItem *item2 = i->item(RConfigDuration);
-                                        if (item2 && item2->toNumber() > 0)
+                                        if (val.clusterId == event.clusterId() && val.maxInterval > 0 &&
+                                            updateType == NodeValue::UpdateByZclReport)
                                         {
-                                            i->durationDue = item->lastSet().addSecs(item2->toNumber());
+                                            // prevent setting presence back to false, when report.maxInterval > config.duration
+                                            i->durationDue = item->lastSet().addSecs(val.maxInterval);
+                                        }
+                                        else
+                                        {
+                                            ResourceItem *item2 = i->item(RConfigDuration);
+                                            if (item2 && item2->toNumber() > 0)
+                                            {
+                                                i->durationDue = item->lastSet().addSecs(item2->toNumber());
+                                            }
                                         }
                                     }
                                 }
@@ -3950,6 +3950,11 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             }
                             else if (i->modelId().startsWith(QLatin1String("FLS-NB")) && ia->id() == 0x0010) // occupied to unoccupied delay
                             {
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                }
+
                                 quint16 duration = ia->numericValue().u16;
                                 ResourceItem *item = i->item(RConfigDuration);
 

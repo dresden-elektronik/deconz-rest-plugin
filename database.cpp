@@ -1860,6 +1860,21 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (sensor.fingerPrint().hasInCluster(OCCUPANCY_SENSING_CLUSTER_ID))
             {
                 clusterId = OCCUPANCY_SENSING_CLUSTER_ID;
+                if (sensor.modelId().startsWith(QLatin1String("FLS")) ||
+                    sensor.modelId().startsWith(QLatin1String("SML001")))
+                {
+                    // TODO write and recover min/max to db
+                    deCONZ::NumericUnion dummy;
+                    dummy.u64 = 0;
+                    sensor.setZclValue(NodeValue::UpdateInvalid, clusterId, 0x0000, dummy);
+                    NodeValue &val = sensor.getZclValue(clusterId, 0x0000);
+                    val.minInterval = 1;     // value used by Hue bridge
+                    val.maxInterval = 300;   // value used by Hue bridge
+
+                    sensor.setNextReadTime(READ_OCCUPANCY_CONFIG, QTime::currentTime());
+                    sensor.enableRead(READ_OCCUPANCY_CONFIG);
+                    sensor.setLastRead(READ_OCCUPANCY_CONFIG, 0);
+                }
             }
             else if (sensor.fingerPrint().hasInCluster(IAS_WD_CLUSTER_ID))
             {
