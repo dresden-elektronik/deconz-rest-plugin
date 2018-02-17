@@ -178,6 +178,15 @@
 #define SCENE_COMMAND_IKEA_MOVE_CT 0x08
 #define SCENE_COMMAND_IKEA_STOP_CT 0x09
 
+// IAS Zone Types
+#define IAS_ZONE_TYPE_STANDARD_CIE            0x0000
+#define IAS_ZONE_TYPE_MOTION_SENSOR           0x000d
+#define IAS_ZONE_TYPE_CONTACT_SWITCH          0x0015
+#define IAS_ZONE_TYPE_FIRE_SENSOR             0x0028
+#define IAS_ZONE_TYPE_WATER_SENSOR            0x002a
+#define IAS_ZONE_TYPE_CARBON_MONOXIDE_SENSOR  0x002b
+#define IAS_ZONE_TYPE_WARNING_DEVICE          0x0225
+
 // read flags
 #define READ_MODEL_ID          (1 << 0)
 #define READ_SWBUILD_ID        (1 << 1)
