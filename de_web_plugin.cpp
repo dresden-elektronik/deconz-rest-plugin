@@ -6330,7 +6330,12 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
     bool checkReporting = false;
     const quint64 macPrefix = ind.srcAddress().ext() & macPrefixMask;
 
-    DBG_Printf(DBG_INFO, "ZCL attribute report 0x%016llX for cluster 0x%04X\n", ind.srcAddress().ext(), ind.clusterId());
+    DBG_Printf(DBG_INFO, "ZCL attribute report 0x%016llX for cluster 0x%04X, ep 0x%02X\n", ind.srcAddress().ext(), ind.clusterId(), ind.srcEndpoint());
+
+    if (DBG_IsEnabled(DBG_INFO_L2))
+    {
+        DBG_Printf(DBG_INFO_L2, "\tpayload: %s\n", qPrintable(zclFrame.payload().toHex()));
+    }
 
     if (!(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
     {
