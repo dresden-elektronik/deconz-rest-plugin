@@ -1803,10 +1803,13 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                 std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
                 for (;ia != enda; ++ia)
                 {
-                    // @manup, when reading the Electrical Measurement attributes from the GUI, I get here,
-                    // but only attribute 0x0000 seems available.  Attribute 0x050B is defined in general.xml
-                    // and the value is updated in the GUI.  Is there another magic place where I need to
-                    // specify that we're interested in 0x050B?
+                    if (std::find(event.attributeIds().begin(),
+                                  event.attributeIds().end(),
+                                  ia->id()) == event.attributeIds().end())
+                    {
+                        continue;
+                    }
+
                     DBG_Printf(DBG_INFO, ">>>> 0x%04X/0x%04X: 0x%016llX\n", ic->id(), ia->id(), lightNode->address().ext());
                     if (ia->id() == 0x050B) // Active power
                     {
@@ -1823,9 +1826,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             updated = true;
                         }
                         lightNode->setZclValue(updateType, event.clusterId(), 0x050B, ia->numericValue());
-                        break;
                     }
-                    break;
                 }
             }
             else if (ic->id() == BASIC_CLUSTER_ID && (event.clusterId() == BASIC_CLUSTER_ID))
