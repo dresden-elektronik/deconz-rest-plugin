@@ -1991,7 +1991,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeString, RConfigAlert);
             item->setValue(R_ALERT_DEFAULT);
         }
-        else if (sensor.manufacturer() == QLatin1String("Heiman"))
+        else if (sensor.manufacturer() == QLatin1String("Heiman") &&
+                (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID)))
         {
             item = sensor.addItem(DataTypeBool, RStateBattery);
             item->setValue(false);
