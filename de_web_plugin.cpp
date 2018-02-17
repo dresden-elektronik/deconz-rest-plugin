@@ -2710,41 +2710,79 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case IAS_ZONE_CLUSTER_ID:
                 {
-                    for (const deCONZ::ZclAttribute &attr : ci->attributes())
+                    if (modelid == QLatin1String("CO_V16"))             // Heiman CO sensor
                     {
-                        if (attr.id() == 0x0001) // IAS Zone type
+                        fpCarbonMonoxideSensor.inClusters.push_back(ci->id());
+                    }
+                    else if (modelid == QLatin1String("DOOR_TPV13"))    // Heiman door/window sensor
+                    {
+                        fpOpenCloseSensor.inClusters.push_back(ci->id());
+                    }
+                    else if (modelid == QLatin1String("PIR_TPV11"))     // Heiman motion sensor
+                    {
+                        fpPresenceSensor.inClusters.push_back(ci->id());
+                    }
+                    else if (modelid == QLatin1String("GAS_V15") ||     // Heiman gas sensor
+                             modelid == QLatin1String("SMOK_V16"))      // Heiman fire sensor
+                    {
+                        // Gas sensor detects combustable gas, so fire is more appropriate than CO.
+                        fpFireSensor.inClusters.push_back(ci->id());
+                    }
+                    else if (modelid == QLatin1String("WATER_TPV11"))   // Heiman water sensor
+                    {
+                        fpWaterSensor.inClusters.push_back(ci->id());
+                    }
+                    else if (modelid == QLatin1String("WarningDevice")) // Heiman siren
+                    {
+                        // IAS_ZONE_CUSTER doesn't seem to do anything
+                    }
+                    else
+                    {
+                        for (const deCONZ::ZclAttribute &attr : ci->attributes())
                         {
-                            switch (attr.numericValue().u16) {
-                                case IAS_ZONE_TYPE_MOTION_SENSOR:
-                                    fpPresenceSensor.inClusters.push_back(ci->id());
-                                    break;
-                                case IAS_ZONE_TYPE_CONTACT_SWITCH:
-                                    fpOpenCloseSensor.inClusters.push_back(ci->id());
-                                    break;
-                                case IAS_ZONE_TYPE_STANDARD_CIE:
-                                    fpAlarmSensor.inClusters.push_back(ci->id());
-                                    break;
-                                case IAS_ZONE_TYPE_CARBON_MONOXIDE_SENSOR:
-                                    fpCarbonMonoxideSensor.inClusters.push_back(ci->id());
-                                    break;
-                                case IAS_ZONE_TYPE_FIRE_SENSOR:
-                                    fpFireSensor.inClusters.push_back(ci->id());
-                                    break;
-                                case IAS_ZONE_TYPE_WATER_SENSOR:
-                                    fpWaterSensor.inClusters.push_back(ci->id());
-                                    break;
-                                case IAS_ZONE_TYPE_WARNING_DEVICE:
-                                    // TODO
-                                    // fpAlarmSensor.inClusters.push_back(IAS_WD_CLUSTER_ID);
-                                    break;
-                                default:
-                                    // Don't do anything - most likely IAS Zone type hasn't been read yet.
-                                    // fpAlarmSensor.inClusters.push_back(ci->id());
-                                    break;
+                            if (attr.id() == 0x0001) // IAS Zone type
+                            {
+                                // Might not work as intended, when IAS Zone Type hasn't been read.
+                                switch (attr.numericValue().u16) {
+                                    case IAS_ZONE_TYPE_MOTION_SENSOR:
+                                        fpPresenceSensor.inClusters.push_back(ci->id());
+                                        break;
+                                    case IAS_ZONE_TYPE_CONTACT_SWITCH:
+                                        fpOpenCloseSensor.inClusters.push_back(ci->id());
+                                        break;
+                                    case IAS_ZONE_TYPE_CARBON_MONOXIDE_SENSOR:
+                                        fpCarbonMonoxideSensor.inClusters.push_back(ci->id());
+                                        break;
+                                    case IAS_ZONE_TYPE_FIRE_SENSOR:
+                                        fpFireSensor.inClusters.push_back(ci->id());
+                                        break;
+                                    case IAS_ZONE_TYPE_WATER_SENSOR:
+                                        fpWaterSensor.inClusters.push_back(ci->id());
+                                        break;
+                                    case IAS_ZONE_TYPE_WARNING_DEVICE:
+                                        break;
+                                    case IAS_ZONE_TYPE_STANDARD_CIE:
+                                    default:
+                                        fpAlarmSensor.inClusters.push_back(ci->id());
+                                        break;
+                                }
                             }
                         }
                     }
                 }
+                    break;
+
+                case IAS_WD_CLUSTER_ID:
+                    if (modelid == QLatin1String("SMOK_V16"))           // Heiman fire sensor
+                    {
+                        // TODO
+                        // Fire sensor allows setting Max Duration attribute 0x0000 (u16) to limit siren duration
+                        // Needs to be set through config.pending
+                    }
+                    else if (modelid == QLatin1String("WarningDevice")) // Heiman siren
+                    {
+                        // Should be picked up as light?
+                    }
                     break;
 
                 case OCCUPANCY_SENSING_CLUSTER_ID:
