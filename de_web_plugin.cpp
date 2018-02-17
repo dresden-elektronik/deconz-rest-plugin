@@ -1810,12 +1810,27 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         continue;
                     }
 
-                    DBG_Printf(DBG_INFO, ">>>> 0x%04X/0x%04X: 0x%016llX\n", ic->id(), ia->id(), lightNode->address().ext());
                     if (ia->id() == 0x050B) // Active power
                     {
-                        DBG_Printf(DBG_INFO, ">>>> 0x0B04/0x050B: 0x%016llX\n", lightNode->address().ext());
-
                         qint16 power = ia->numericValue().s16;
+                        if (lightNode->modelId() == QLatin1String("SmartPlug"))              // Heiman Smart Plug
+                        {
+                            power += 5;   // rounding
+                            power /= 10;  // convert to Watt
+                        }
+                        else if (lightNode->modelId() == QLatin1String("Plug 01") ||         // OSRAM Smart+ Plug
+                                 lightNode->modelId() == QLatin1String("Plug - LIGHTIFY"))   // OSRAM Lightify Plug
+                        {
+                            if (power == 28000)
+                            {
+                                power = 0;
+                            }
+                            else
+                            {
+                                power += 5;   // rounding
+                                power /= 10;  // convert to Watt
+                            }
+                        }
                         ResourceItem *item = lightNode->item(RStatePower);
                         if (item && item->toNumber() != power)
                         {
