@@ -2710,29 +2710,29 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case IAS_ZONE_CLUSTER_ID:
                 {
-                    if (modelid == QLatin1String("CO_V16"))             // Heiman CO sensor
+                    if (modelId == QLatin1String("CO_V16"))             // Heiman CO sensor
                     {
                         fpCarbonMonoxideSensor.inClusters.push_back(ci->id());
                     }
-                    else if (modelid == QLatin1String("DOOR_TPV13"))    // Heiman door/window sensor
+                    else if (modelId == QLatin1String("DOOR_TPV13"))    // Heiman door/window sensor
                     {
                         fpOpenCloseSensor.inClusters.push_back(ci->id());
                     }
-                    else if (modelid == QLatin1String("PIR_TPV11"))     // Heiman motion sensor
+                    else if (modelId == QLatin1String("PIR_TPV11"))     // Heiman motion sensor
                     {
                         fpPresenceSensor.inClusters.push_back(ci->id());
                     }
-                    else if (modelid == QLatin1String("GAS_V15") ||     // Heiman gas sensor
-                             modelid == QLatin1String("SMOK_V16"))      // Heiman fire sensor
+                    else if (modelId == QLatin1String("GAS_V15") ||     // Heiman gas sensor
+                             modelId == QLatin1String("SMOK_V16"))      // Heiman fire sensor
                     {
                         // Gas sensor detects combustable gas, so fire is more appropriate than CO.
                         fpFireSensor.inClusters.push_back(ci->id());
                     }
-                    else if (modelid == QLatin1String("WATER_TPV11"))   // Heiman water sensor
+                    else if (modelId == QLatin1String("WATER_TPV11"))   // Heiman water sensor
                     {
                         fpWaterSensor.inClusters.push_back(ci->id());
                     }
-                    else if (modelid == QLatin1String("WarningDevice")) // Heiman siren
+                    else if (modelId == QLatin1String("WarningDevice")) // Heiman siren
                     {
                         // IAS_ZONE_CUSTER doesn't seem to do anything
                     }
@@ -2773,13 +2773,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     break;
 
                 case IAS_WD_CLUSTER_ID:
-                    if (modelid == QLatin1String("SMOK_V16"))           // Heiman fire sensor
+                    if (modelId == QLatin1String("SMOK_V16"))           // Heiman fire sensor
                     {
                         // TODO
                         // Fire sensor allows setting Max Duration attribute 0x0000 (u16) to limit siren duration
                         // Needs to be set through config.pending
                     }
-                    else if (modelid == QLatin1String("WarningDevice")) // Heiman siren
+                    else if (modelId == QLatin1String("WarningDevice")) // Heiman siren
                     {
                         // Should be picked up as light?
                     }
