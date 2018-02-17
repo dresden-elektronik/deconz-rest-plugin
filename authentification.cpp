@@ -213,7 +213,7 @@ bool DeRestPluginPrivate::checkApikeyAuthentification(const ApiRequest &req, Api
 
     if (req.sock)
     {
-        DBG_Printf(DBG_INFO, "\thost: %s\n", qPrintable(req.sock->peerAddress().toString()));
+        DBG_Printf(DBG_HTTP, "\thost: %s\n", qPrintable(req.sock->peerAddress().toString()));
     }
 
     return false;
