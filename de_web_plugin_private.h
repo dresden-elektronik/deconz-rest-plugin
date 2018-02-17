@@ -939,10 +939,10 @@ public:
     LightNode *getLightNodeForId(const QString &id);
     Rule *getRuleForId(const QString &id);
     Rule *getRuleForName(const QString &name);
-    void addSensorNode(const deCONZ::Node *node);
+    void addSensorNode(const deCONZ::Node *node, const deCONZ::NodeEvent *event = 0);
     void addSensorNode(const deCONZ::Node *node, const SensorFingerprint &fingerPrint, const QString &type, const QString &modelId, const QString &manufacturer);
     void checkUpdatedFingerPrint(const deCONZ::Node *node, quint8 endpoint, Sensor *sensorNode);
-    void checkSensorNodeReachable(Sensor *sensor);
+    void checkSensorNodeReachable(Sensor *sensor, const deCONZ::NodeEvent *event = 0);
     void checkSensorButtonEvent(Sensor *sensor, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
     void updateSensorNode(const deCONZ::NodeEvent &event);
     bool isDeviceSupported(const deCONZ::Node *node, const QString &modelId);

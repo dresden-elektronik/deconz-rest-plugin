@@ -2015,8 +2015,9 @@ Rule *DeRestPluginPrivate::getRuleForName(const QString &name)
 
 /*! Checks if a SensorNode is reachable.
     \param sensor - the SensorNode
+    \param event - the related NodeEvent (optional)
  */
-void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor)
+void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor, const deCONZ::NodeEvent *event)
 {
     if (!sensor || sensor->deletedState() != Sensor::StateNormal)
     {
@@ -2121,7 +2122,12 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor)
             checkSensorBindingsForAttributeReporting(sensor);
             updated = true;
 
-            if (sensor->rxCounter() == 0)
+            if (event &&
+                (event->event() == deCONZ::NodeEvent::UpdatedClusterDataZclRead ||
+                 event->event() == deCONZ::NodeEvent::UpdatedClusterDataZclReport))
+            {
+            }
+            else if (sensor->rxCounter() == 0)
             {
                 reachable = false; // wait till received something from sensor
             }
@@ -2507,8 +2513,9 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 /*! Adds a new sensor node to node cache.
     Only supported ZLL and HA nodes will be added.
     \param node - the base for the SensorNode
+    \param event - the related NodeEvent (optional)
  */
-void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
+void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::NodeEvent *event)
 {
     DBG_Assert(node != 0);
 
@@ -2523,8 +2530,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
 
         for (; i != end; ++i)
         {
-            checkSensorNodeReachable(&*i);
-
             if (i->address().ext() == node->address().ext())
             {
                 if (i->node() != node)
@@ -2534,6 +2539,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node)
 
                     pushSensorInfoToCore(&*i);
                 }
+
+                checkSensorNodeReachable(&*i, event);
             }
         }
     }
@@ -3513,7 +3520,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             i->incrementRxCounter();
         }
 
-        checkSensorNodeReachable(&(*i));
+        checkSensorNodeReachable(&*i, &event);
 
         if (!i->isAvailable())
         {
@@ -7047,7 +7054,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         case ANALOG_INPUT_CLUSTER_ID:
         case MULTISTATE_INPUT_CLUSTER_ID:
             {
-                addSensorNode(event.node());
+                addSensorNode(event.node(), &event);
                 updateSensorNode(event);
             }
             break;
