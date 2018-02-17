@@ -2680,10 +2680,16 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     }
                     else if (modelId == QLatin1String("lumi.sensor_86sw1") ||
                              modelId == QLatin1String("lumi.sensor_86sw2") ||
-                             modelId == QLatin1String("lumi.ctrl_neutral1") ||
-                             modelId == QLatin1String("lumi.ctrl_neutral2"))
+                             modelId == QLatin1String("lumi.ctrl_neutral1"))
                     {
                         if (i->endpoint() == 0x01) // create sensor only for first endpoint
+                        {
+                            fpSwitch.inClusters.push_back(ci->id());
+                        }
+                    }
+                    else if (modelId == QLatin1String("lumi.ctrl_neutral2"))
+                    {
+                        if (i->endpoint() == 0x02) // create sensor only for second endpoint
                         {
                             fpSwitch.inClusters.push_back(ci->id());
                         }
