@@ -739,10 +739,24 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
     if (bt.binding.clusterId == OCCUPANCY_SENSING_CLUSTER_ID)
     {
+        // add values if not already present
+        deCONZ::NumericUnion dummy;
+        dummy.u64 = 0;
+        if (bt.restNode->getZclValue(bt.binding.clusterId, 0x0000).clusterId != bt.binding.clusterId)
+        {
+            bt.restNode->setZclValue(NodeValue::UpdateInvalid, bt.binding.clusterId, 0x0000, dummy);
+        }
+
+        NodeValue &val = bt.restNode->getZclValue(bt.binding.clusterId, 0x0000);
+        val.zclSeqNum = rq.zclSeqNum;
+
         rq.dataType = deCONZ::Zcl8BitBitMap;
         rq.attributeId = 0x0000; // occupancy
-        rq.minInterval = 1;      // value used by Hue bridge
-        rq.maxInterval = 300;    // value used by Hue bridge
+        val.minInterval = 1;     // value used by Hue bridge
+        val.maxInterval = 300;   // value used by Hue bridge
+        rq.minInterval = val.minInterval;
+        rq.maxInterval = val.maxInterval;
+
         if (sendConfigureReportingRequest(bt, {rq}))
         {
             Sensor *sensor = static_cast<Sensor *>(bt.restNode);
