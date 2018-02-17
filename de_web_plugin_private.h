@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2018 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -203,10 +203,12 @@
 #define WRITE_USERTEST          (1 << 16)
 
 // manufacturer codes
+// http://cgit.osmocom.org/wireshark/plain/epan/dissectors/packet-zbee.h
 #define VENDOR_NONE         0x0000
 #define VENDOR_ATMEL        0x1014
 #define VENDOR_JENNIC       0x1037
 #define VENDOR_DDEL         0x1135
+#define VENDOR_LUTRON       0x1144
 #define VENDOR_INNR         0x1166
 #define VENDOR_INNR2        0x1168
 #define VENDOR_INSTA        0x117A
@@ -290,7 +292,7 @@
 
 extern const quint64 macPrefixMask;
 extern const quint64 bjeMacPrefix;
-extern const quint64 centraLiteMacPrefix;
+extern const quint64 emberMacPrefix;
 extern const quint64 tiMacPrefix;
 extern const quint64 deMacPrefix;
 extern const quint64 ikeaMacPrefix;
@@ -298,7 +300,10 @@ extern const quint64 instaMacPrefix;
 extern const quint64 jennicMacPrefix;
 extern const quint64 philipsMacPrefix;
 extern const quint64 osramMacPrefix;
-extern const quint64 nyceMacPrefix;
+extern const quint64 ubisysMacPrefix;
+extern const quint64 netvoxMacPrefix;
+extern const quint64 heimanMacPrefix;
+extern const quint64 lutronMacPrefix;
 
 // HTTP status codes
 extern const char *HttpStatusOk;

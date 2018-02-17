@@ -120,8 +120,13 @@ bool DeRestPluginPrivate::readBindingTable(RestNodeBase *node, quint8 startIndex
         return false;
     }
 
+    Resource *r = dynamic_cast<Resource*>(node);
+
     // whitelist
     if ((node->address().ext() & macPrefixMask) == deMacPrefix)
+    {
+    }
+    else if (r && r->item(RAttrModelId)->toString().startsWith(QLatin1String("FLS-")))
     {
     }
     else

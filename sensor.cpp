@@ -305,6 +305,23 @@ static const Sensor::ButtonMap ubisysC4Map[] = {
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
 };
 
+static const Sensor::ButtonMap lutronLZL4BWHLSwitchMap[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+//  vendor specific
+    // top button
+    { Sensor::ModeDimmer,           0x01, 0x0008, 0x04, 0xfe,  S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "on" },
+    // second button
+    { Sensor::ModeDimmer,           0x01, 0x0008, 0x06, 0x00,  S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "dimm up" },
+    { Sensor::ModeDimmer,           0x01, 0x0008, 0x03, 0x00,  S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "dimm up release" },
+    // third button
+    { Sensor::ModeDimmer,           0x01, 0x0008, 0x02, 0x01,  S_BUTTON_3 + S_BUTTON_ACTION_HOLD,           "dimm down" },
+    { Sensor::ModeDimmer,           0x01, 0x0008, 0x03, 0x01,  S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED,  "dimm down release" },
+    // bottom button
+    { Sensor::ModeDimmer,           0x01, 0x0008, 0x04, 0x00,  S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED,  "off" },
+
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
+};
 
 /*! Returns a fingerprint as JSON string. */
 QString SensorFingerprint::toString() const
@@ -808,6 +825,10 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         {
             if      (modelid == QLatin1String("lumi.sensor_switch"))      { m_buttonMap = xiaomiSwitchMap; }
             else if (modelid == QLatin1String("lumi.sensor_switch.aq2"))  { m_buttonMap = xiaomiSwitchAq2Map; }
+        }
+        else if (m_manufacturer == QLatin1String("Lutron"))
+        {
+            if      (modelid.startsWith(QLatin1String("LZL4BWHL")))      { m_buttonMap = lutronLZL4BWHLSwitchMap; }
         }
     }
 

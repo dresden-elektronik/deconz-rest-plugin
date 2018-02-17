@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2018 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -74,6 +74,7 @@ const quint64 osramMacPrefix      = 0x8418260000000000ULL;
 const quint64 ubisysMacPrefix     = 0x001fee0000000000ULL;
 const quint64 netvoxMacPrefix     = 0x00137a0000000000ULL;
 const quint64 heimanMacPrefix     = 0x0050430000000000ULL;
+const quint64 lutronMacPrefix     = 0xffff000000000000ULL;
 
 struct SupportedDevice {
     quint16 vendorId;
@@ -131,6 +132,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_OSRAM_STACK, "SMOK_V16", heimanMacPrefix }, // Heiman fire sensor
     { VENDOR_OSRAM_STACK, "WATER_TPV11", heimanMacPrefix }, // Heiman water sensor
     { VENDOR_120B, "WarningDevice", emberMacPrefix }, // Heiman siren
+    { VENDOR_LUTRON, "LZL4BWHL01", lutronMacPrefix }, // Lutron LZL-4B-WH-L01 Connected Bulb Remote
     { 0, 0, 0 }
 };
 
@@ -3262,6 +3264,15 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
              node->nodeDescriptor().manufacturerCode() == VENDOR_120B)
     {
         sensorNode.setManufacturer("Heiman");
+    }
+    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_LUTRON)
+    {
+        sensorNode.setManufacturer("Lutron");
+
+        if (modelId.startsWith(QLatin1String("LZL4BWHL")))
+        {
+            sensorNode.setMode(Sensor::ModeDimmer);
+        }
     }
 
     if (sensorNode.manufacturer().isEmpty() && !manufacturer.isEmpty())
@@ -10378,28 +10389,6 @@ void DeRestPlugin::idleTimerFired()
                         d->queryTime = d->queryTime.addSecs(tSpacing);
                         processLights = true;
                     }
-                }
-
-                if (lightNode->modelId().isEmpty())
-                {
-                    Sensor *sensor = d->getSensorNodeForAddress(lightNode->address());
-
-                    if (sensor && sensor->modelId().startsWith(QLatin1String("FLS-NB")))
-                    {
-                        // extract model id from sensor node
-                        lightNode->item(RAttrModelId)->setValue(sensor->modelId());
-                        lightNode->setModelId(sensor->modelId());
-                        lightNode->setLastRead(READ_MODEL_ID, d->idleTotalCounter);
-                    }
-                }
-
-                if (!lightNode->mustRead(READ_MODEL_ID) && (lightNode->modelId().isEmpty() || lightNode->lastRead(READ_MODEL_ID) < d->idleTotalCounter - READ_MODEL_ID_INTERVAL))
-                {
-                    lightNode->setLastRead(READ_MODEL_ID, d->idleTotalCounter);
-                    lightNode->enableRead(READ_MODEL_ID);
-                    lightNode->setNextReadTime(READ_MODEL_ID, d->queryTime);
-                    d->queryTime = d->queryTime.addSecs(tSpacing);
-                    processLights = true;
                 }
 
                 if (!lightNode->mustRead(READ_SWBUILD_ID) && (lightNode->swBuildId().isEmpty() || lightNode->lastRead(READ_SWBUILD_ID) < d->idleTotalCounter - READ_SWBUILD_ID_INTERVAL))
