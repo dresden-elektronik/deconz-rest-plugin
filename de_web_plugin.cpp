@@ -4262,15 +4262,25 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (item && !i->buttonMap() &&
                                     event.event() == deCONZ::NodeEvent::UpdatedClusterDataZclReport)
                                 {
-                                    // TODO better button handler
-                                    quint32 button;
+                                    quint32 button = 0;
 
                                     if (i->modelId() == QLatin1String("lumi.sensor_86sw1") ||
-                                        i->modelId() == QLatin1String("lumi.sensor_86sw2") ||
-                                        i->modelId() == QLatin1String("lumi.ctrl_neutral1") ||
-                                        i->modelId() == QLatin1String("lumi.ctrl_neutral2"))
+                                        i->modelId() == QLatin1String("lumi.sensor_86sw2"))
                                     {
                                         button = (S_BUTTON_1 * event.endpoint()) + S_BUTTON_ACTION_SHORT_RELEASED;
+                                    }
+                                    else if (i->modelId() == QLatin1String("lumi.ctrl_neutral1") ||
+                                             i->modelId() == QLatin1String("lumi.ctrl_neutral2"))
+                                    {
+                                        switch (event.endpoint())
+                                        {
+                                        case 2: button = S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED; break;
+                                        case 3: button = S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED; break;
+                                        case 6: button = S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED; break;
+                                        default: // should not happen
+                                            button = (S_BUTTON_1 * event.endpoint()) + S_BUTTON_ACTION_SHORT_RELEASED;
+                                            break;
+                                        }
                                     }
                                     else
                                     {
