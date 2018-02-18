@@ -123,14 +123,14 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_UBISYS, "D1", ubisysMacPrefix },
     { VENDOR_UBISYS, "C4", ubisysMacPrefix },
     { VENDOR_NONE, "Z716A", netvoxMacPrefix },
-    { VENDOR_OSRAM_STACK, "CO_V16", heimanMacPrefix }, // Heiman CO sensor
-    { VENDOR_OSRAM_STACK, "DOOR_TPV13", heimanMacPrefix }, // Heiman door/window sensor
-    { VENDOR_OSRAM_STACK, "PIR_TPV11", heimanMacPrefix }, // Heiman motion sensor
-    { VENDOR_OSRAM_STACK, "GAS_V15", heimanMacPrefix }, // Heiman gas sensor
-    { VENDOR_OSRAM_STACK, "TH-H_V15", heimanMacPrefix }, // Heiman temperature/humidity sensor
-    { VENDOR_OSRAM_STACK, "TH-T_V15", heimanMacPrefix }, // Heiman temperature/humidity sensor
-    { VENDOR_OSRAM_STACK, "SMOK_V16", heimanMacPrefix }, // Heiman fire sensor
-    { VENDOR_OSRAM_STACK, "WATER_TPV11", heimanMacPrefix }, // Heiman water sensor
+    { VENDOR_OSRAM_STACK, "CO_", heimanMacPrefix }, // Heiman CO sensor
+    { VENDOR_OSRAM_STACK, "DOOR_", heimanMacPrefix }, // Heiman door/window sensor
+    { VENDOR_OSRAM_STACK, "PIR_", heimanMacPrefix }, // Heiman motion sensor
+    { VENDOR_OSRAM_STACK, "GAS_", heimanMacPrefix }, // Heiman gas sensor
+    { VENDOR_OSRAM_STACK, "TH-H_", heimanMacPrefix }, // Heiman temperature/humidity sensor
+    { VENDOR_OSRAM_STACK, "TH-T_", heimanMacPrefix }, // Heiman temperature/humidity sensor
+    { VENDOR_OSRAM_STACK, "SMOK_", heimanMacPrefix }, // Heiman fire sensor
+    { VENDOR_OSRAM_STACK, "WATER_", heimanMacPrefix }, // Heiman water sensor
     { VENDOR_120B, "WarningDevice", emberMacPrefix }, // Heiman siren
     { VENDOR_LUTRON, "LZL4BWHL01", lutronMacPrefix }, // Lutron LZL-4B-WH-L01 Connected Bulb Remote
     { 0, 0, 0 }
@@ -2731,29 +2731,29 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case IAS_ZONE_CLUSTER_ID:
                 {
-                    if (modelId == QLatin1String("CO_V16"))             // Heiman CO sensor
+                    if (modelId.startsWith(QLatin1String("CO_")))           // Heiman CO sensor
                     {
                         fpCarbonMonoxideSensor.inClusters.push_back(ci->id());
                     }
-                    else if (modelId == QLatin1String("DOOR_TPV13"))    // Heiman door/window sensor
+                    else if (modelId.startsWith(QLatin1String("DOOR_")))    // Heiman door/window sensor
                     {
                         fpOpenCloseSensor.inClusters.push_back(ci->id());
                     }
-                    else if (modelId == QLatin1String("PIR_TPV11"))     // Heiman motion sensor
+                    else if (modelId.startsWith(QLatin1String("PIR_")))     // Heiman motion sensor
                     {
                         fpPresenceSensor.inClusters.push_back(ci->id());
                     }
-                    else if (modelId == QLatin1String("GAS_V15") ||     // Heiman gas sensor
-                             modelId == QLatin1String("SMOK_V16"))      // Heiman fire sensor
+                    else if (modelId.startsWith(QLatin1String("GAS_")) ||   // Heiman gas sensor
+                             modelId.startsWith(QLatin1String("SMOK_")))   // Heiman fire sensor
                     {
                         // Gas sensor detects combustable gas, so fire is more appropriate than CO.
                         fpFireSensor.inClusters.push_back(ci->id());
                     }
-                    else if (modelId == QLatin1String("WATER_TPV11"))   // Heiman water sensor
+                    else if (modelId.startsWith(QLatin1String("WATER_")))   // Heiman water sensor
                     {
                         fpWaterSensor.inClusters.push_back(ci->id());
                     }
-                    else if (modelId == QLatin1String("WarningDevice")) // Heiman siren
+                    else if (modelId == QLatin1String("WarningDevice"))     // Heiman siren
                     {
                         // IAS_ZONE_CUSTER doesn't seem to do anything
                     }
@@ -2794,7 +2794,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     break;
 
                 case IAS_WD_CLUSTER_ID:
-                    if (modelId == QLatin1String("SMOK_V16"))           // Heiman fire sensor
+                    if (modelId.startsWith(QLatin1String("SMOK_")))      // Heiman fire sensor
+
                     {
                         // TODO
                         // Fire sensor allows setting Max Duration attribute 0x0000 (u16) to limit siren duration
@@ -3305,14 +3306,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     }
     else if ((node->nodeDescriptor().manufacturerCode() == VENDOR_OSRAM_STACK) || (node->nodeDescriptor().manufacturerCode() == VENDOR_OSRAM))
     {
-        if (modelId == QLatin1String("CO_V16") ||
-            modelId == QLatin1String("DOOR_TPV13") ||
-            modelId == QLatin1String("PIR_TPV11") ||
-            modelId == QLatin1String("GAS_V15") ||
-            modelId == QLatin1String("TH-H_V15") ||
-            modelId == QLatin1String("TH-T_V15") ||
-            modelId == QLatin1String("SMOK_V16") ||
-            modelId == QLatin1String("WATER_TPV11"))
+        if (modelId.startsWith(QLatin1String("CO_")) ||   // Heiman CO sensor
+            modelId.startsWith(QLatin1String("DOOR_")) || // Heiman door/window sensor
+            modelId.startsWith(QLatin1String("PIR_")) ||  // Heiman motion sensor
+            modelId.startsWith(QLatin1String("GAS_")) ||  // Heiman conbustable gas sensor
+            modelId.startsWith(QLatin1String("TH-H_")) || // Heiman temperature/humidity sensor
+            modelId.startsWith(QLatin1String("TH-T_")) || // Heiman temperature/humidity sensor
+            modelId.startsWith(QLatin1String("SMOK_")) || // Heiman fire sensor
+            modelId.startsWith(QLatin1String("WATER_")))  // Heiman water sensor
         {
             sensorNode.setManufacturer("Heiman");
             sensorNode.addItem(DataTypeBool, RStateLowBattery);

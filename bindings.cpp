@@ -1167,14 +1167,14 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // IKEA
         sensor->modelId().startsWith(QLatin1String("TRADFRI")) ||
         // Heiman
-        sensor->modelId() == QLatin1String("CO_V16") ||
-        sensor->modelId() == QLatin1String("DOOR_TPV13") ||
-        sensor->modelId() == QLatin1String("PIR_TPV11") ||
-        sensor->modelId() == QLatin1String("GAS_V15") ||
-        sensor->modelId() == QLatin1String("TH-H_V15") ||
-        sensor->modelId() == QLatin1String("TH-T_V15") ||
-        sensor->modelId() == QLatin1String("SMOK_V16") ||
-        sensor->modelId() == QLatin1String("WATER_TPV11"))
+        sensor->modelId().startsWith(QLatin1String("CO_")) ||
+        sensor->modelId().startsWith(QLatin1String("DOOR_")) ||
+        sensor->modelId().startsWith(QLatin1String("PIR_")) ||
+        sensor->modelId().startsWith(QLatin1String("GAS_")) ||
+        sensor->modelId().startsWith(QLatin1String("TH-H_")) ||
+        sensor->modelId().startsWith(QLatin1String("TH-T_")) ||
+        sensor->modelId().startsWith(QLatin1String("SMOK_")) ||
+        sensor->modelId().startsWith(QLatin1String("WATER_")))
     {
         endDeviceSupported = true;
         sensor->setMgmtBindSupported(false);
