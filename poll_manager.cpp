@@ -61,6 +61,7 @@ void PollManager::poll(RestNodeBase *restNode, const QDateTime &tStart)
         if (suffix == RStateOn ||
             suffix == RStateBri ||
             suffix == RStateColorMode ||
+            suffix == RStatePower ||
             suffix == RAttrModelId)
         {
             pitem.items.push_back(suffix);
@@ -294,6 +295,11 @@ void PollManager::pollTimerFired()
                 break;
             }
         }
+    }
+    else if (suffix == RStatePower)
+    {
+        clusterId = ELECTRICAL_MEASUREMENT_CLUSTER_ID;
+        attributes.push_back(0x050b); // active power
     }
     else if (suffix == RAttrModelId)
     {
