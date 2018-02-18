@@ -119,7 +119,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "lumi.sensor_86sw2", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.ctrl_neutral1", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.ctrl_neutral2", jennicMacPrefix },
-    { VENDOR_JENNIC, "lumi.sensor_wleak.aq1", jennicMacPrefix },
+    { VENDOR_JENNIC, "lumi.sensor_wleak", jennicMacPrefix },
+    { VENDOR_JENNIC, "lumi.sensor_smoke", jennicMacPrefix },
     { VENDOR_UBISYS, "D1", ubisysMacPrefix },
     { VENDOR_UBISYS, "C4", ubisysMacPrefix },
     { VENDOR_NONE, "Z716A", netvoxMacPrefix },
@@ -2658,9 +2659,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         fpTemperatureSensor.inClusters.push_back(ci->id());
                     }
                     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC &&
-                             modelId == QLatin1String("lumi.sensor_wleak.aq1"))
+                             modelId.startsWith(QLatin1String("lumi.sensor_wleak")))
                     {
                         fpWaterSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
+                    }
+                    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC &&
+                             modelId.startsWith(QLatin1String("lumi.sensor_smoke")))
+                    {
+                        fpFireSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
                     }
                 }
                     break;
@@ -2731,25 +2737,27 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case IAS_ZONE_CLUSTER_ID:
                 {
-                    if (modelId.startsWith(QLatin1String("CO_")))           // Heiman CO sensor
+                    if (modelId.startsWith(QLatin1String("CO_")))                     // Heiman CO sensor
                     {
                         fpCarbonMonoxideSensor.inClusters.push_back(ci->id());
                     }
-                    else if (modelId.startsWith(QLatin1String("DOOR_")))    // Heiman door/window sensor
+                    else if (modelId.startsWith(QLatin1String("DOOR_")))              // Heiman door/window sensor
                     {
                         fpOpenCloseSensor.inClusters.push_back(ci->id());
                     }
-                    else if (modelId.startsWith(QLatin1String("PIR_")))     // Heiman motion sensor
+                    else if (modelId.startsWith(QLatin1String("PIR_")))               // Heiman motion sensor
                     {
                         fpPresenceSensor.inClusters.push_back(ci->id());
                     }
-                    else if (modelId.startsWith(QLatin1String("GAS_")) ||   // Heiman gas sensor
-                             modelId.startsWith(QLatin1String("SMOK_")))   // Heiman fire sensor
+                    else if (modelId.startsWith(QLatin1String("GAS_")) ||             // Heiman gas sensor
+                             modelId.startsWith(QLatin1String("SMOK_")) ||            // Heiman fire sensor
+                             modelId.startsWith(QLatin1String("lumi.sensor_smoke")))  // Xiaomi Mi smoke sensor
                     {
                         // Gas sensor detects combustable gas, so fire is more appropriate than CO.
                         fpFireSensor.inClusters.push_back(ci->id());
                     }
-                    else if (modelId.startsWith(QLatin1String("WATER_")))   // Heiman water sensor
+                    else if (modelId.startsWith(QLatin1String("WATER_")) ||           // Heiman water sensor
+                             modelId.startsWith(QLatin1String("lumi.sensor_wleak")))  // Xiaomi Aqara flood sensor
                     {
                         fpWaterSensor.inClusters.push_back(ci->id());
                     }
