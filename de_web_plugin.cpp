@@ -2585,6 +2585,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         SensorFingerprint fpSwitch;
         SensorFingerprint fpTemperatureSensor;
         SensorFingerprint fpWaterSensor;
+        SensorFingerprint fpWarningSensor;
 
         {   // scan client clusters of endpoint
             QList<deCONZ::ZclCluster>::const_iterator ci = i->outClusters().constBegin();
@@ -2689,6 +2690,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         fpSwitch.inClusters.push_back(ci->id());
                         fpTemperatureSensor.inClusters.push_back(ci->id());
                         fpWaterSensor.inClusters.push_back(ci->id());
+                        fpWarningSensor.inClusters.push_back(ci->id());
                     // }
                 }
                     break;
@@ -2761,11 +2763,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpWaterSensor.inClusters.push_back(ci->id());
                     }
-                    else if (modelId == QLatin1String("WarningDevice"))     // Heiman siren
+                    else if (modelId == QLatin1String("WarningDevice"))               // Heiman siren
                     {
-                        // IAS_ZONE_CUSTER doesn't seem to do anything
+                        fpAlarmSensor.inClusters.push_back(ci->id());
                     }
-                    else
+                    else if (!modelId.isEmpty())
                     {
                         for (const deCONZ::ZclAttribute &attr : ci->attributes())
                         {
@@ -2802,16 +2804,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     break;
 
                 case IAS_WD_CLUSTER_ID:
-                    if (modelId.startsWith(QLatin1String("SMOK_")))      // Heiman fire sensor
-
+                    if (modelId == QLatin1String("WarningDevice")) // Heiman siren
                     {
-                        // TODO
-                        // Fire sensor allows setting Max Duration attribute 0x0000 (u16) to limit siren duration
-                        // Needs to be set through config.pending
-                    }
-                    else if (modelId == QLatin1String("WarningDevice")) // Heiman siren
-                    {
-                        // Should be picked up as light?
+                        fpWarningSensor.inClusters.push_back(ci->id());
                     }
                     break;
 
@@ -3120,6 +3115,24 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 checkSensorNodeReachable(sensor);
             }
         }
+
+        // ZHAWarning
+        if (fpWarningSensor.hasInCluster(IAS_WD_CLUSTER_ID))
+        {
+            fpWarningSensor.endpoint = i->endpoint();
+            fpWarningSensor.deviceId = i->deviceId();
+            fpWarningSensor.profileId = i->profileId();
+
+            sensor = getSensorNodeForFingerPrint(node->address().ext(), fpWarningSensor, "ZHAWarning");
+            if (!sensor || sensor->deletedState() != Sensor::StateNormal)
+            {
+                addSensorNode(node, fpWarningSensor, "ZHAWarning", modelId, manufacturer);
+            }
+            else
+            {
+                checkSensorNodeReachable(sensor);
+            }
+        }
     }
 }
 
@@ -3250,7 +3263,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = ONOFF_CLUSTER_ID;
         }
-        sensorNode.addItem(DataTypeBool, RStatePresence);
+        item = sensorNode.addItem(DataTypeBool, RStatePresence);
+        item->setValue(false);
         item = sensorNode.addItem(DataTypeUInt16, RConfigDuration);
         item->setValue(60); // default 60 seconds
     }
@@ -3264,7 +3278,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = ONOFF_CLUSTER_ID;
         }
-        sensorNode.addItem(DataTypeBool, RStateOpen);
+        item = sensorNode.addItem(DataTypeBool, RStateOpen);
+        item->setValue(false);
     }
     else if (sensorNode.type().endsWith(QLatin1String("Alarm")))
     {
@@ -3272,7 +3287,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = IAS_ZONE_CLUSTER_ID;
         }
-        sensorNode.addItem(DataTypeBool, RStateAlarm);
+        item = sensorNode.addItem(DataTypeBool, RStateAlarm);
+        item->setValue(false);
     }
     else if (sensorNode.type().endsWith(QLatin1String("CarbonMonoxide")))
     {
@@ -3280,7 +3296,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = IAS_ZONE_CLUSTER_ID;
         }
-        sensorNode.addItem(DataTypeBool, RStateCarbonMonoxide);
+        item = sensorNode.addItem(DataTypeBool, RStateCarbonMonoxide);
+        item->setValue(false);
     }
     else if (sensorNode.type().endsWith(QLatin1String("Fire")))
     {
@@ -3288,7 +3305,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = IAS_ZONE_CLUSTER_ID;
         }
-        sensorNode.addItem(DataTypeBool, RStateFire);
+        item = sensorNode.addItem(DataTypeBool, RStateFire);
+        item->setValue(false);
     }
     else if (sensorNode.type().endsWith(QLatin1String("Water")))
     {
@@ -3296,7 +3314,20 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = IAS_ZONE_CLUSTER_ID;
         }
-        sensorNode.addItem(DataTypeBool, RStateWater);
+        item = sensorNode.addItem(DataTypeBool, RStateWater);
+        item->setValue(false);
+
+    }
+    else if (sensorNode.type().endsWith(QLatin1String("Warning")))
+    {
+      if (sensorNode.fingerPrint().hasInCluster(IAS_WD_CLUSTER_ID))
+      {
+          clusterId = IAS_WD_CLUSTER_ID;
+      }
+      item = sensorNode.addItem(DataTypeString, RStateAlert);
+      item->setValue(QString("none"));
+      item = sensorNode.addItem(DataTypeString, RStateEffect);
+      item->setValue(QString("none"));
     }
 
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_DDEL)
@@ -3324,8 +3355,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             modelId.startsWith(QLatin1String("WATER_")))  // Heiman water sensor
         {
             sensorNode.setManufacturer("Heiman");
-            sensorNode.addItem(DataTypeBool, RStateLowBattery);
-            sensorNode.addItem(DataTypeBool, RStateTampered);
+            item = sensorNode.addItem(DataTypeBool, RStateLowBattery);
+            item->setValue(false);
+            item = sensorNode.addItem(DataTypeBool, RStateTampered);
+            item->setValue(false);
         }
         else
         {
