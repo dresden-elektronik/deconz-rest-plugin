@@ -555,7 +555,7 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
                 item = sensor.addItem(DataTypeBool, RStateTampered);
                 if (!item->setValue(state["tampered"]))
                 {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter tamper").arg(state["tampered"].toString())));
+                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter tampered").arg(state["tampered"].toString())));
                     rsp.httpStatus = HttpStatusBadRequest;
                     return REQ_READY_SEND;
                 }
@@ -594,7 +594,7 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
 
                 if (!item || !item->setValue(config["offset"]))
                 {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/config"), QString("invalid value, %1, for parameter RConfigOffset").arg(config["offset"].toString())));
+                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/config"), QString("invalid value, %1, for parameter offset").arg(config["offset"].toString())));
                     rsp.httpStatus = HttpStatusBadRequest;
                     return REQ_READY_SEND;
                 }
