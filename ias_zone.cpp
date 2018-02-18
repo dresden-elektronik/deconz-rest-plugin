@@ -155,20 +155,20 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
             enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor->id(), item));
             enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
 
-            ResourceItem *item2 = sensor->item(RStateBattery);
+            ResourceItem *item2 = sensor->item(RStateLowBattery);
             if (item2)
             {
                 bool battery = (zoneStatus & STATUS_BATTERY) ? true : false;
                 item2->setValue(battery);
-                enqueueEvent(Event(RSensors, RStateBattery, sensor->id(), item2));
+                enqueueEvent(Event(RSensors, RStateLowBattery, sensor->id(), item2));
             }
 
-            item2 = sensor->item(RStateTamper);
+            item2 = sensor->item(RStateTampered);
             if (item2)
             {
                 bool tamper = (zoneStatus & STATUS_TAMPER) ? true : false;
                 item2->setValue(tamper);
-                enqueueEvent(Event(RSensors, RStateTamper, sensor->id(), item2));
+                enqueueEvent(Event(RSensors, RStateTampered, sensor->id(), item2));
             }
 
             deCONZ::NumericUnion num = {0};

@@ -3315,8 +3315,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             modelId == QLatin1String("WATER_TPV11"))
         {
             sensorNode.setManufacturer("Heiman");
-            sensorNode.addItem(DataTypeBool, RStateBattery);
-            sensorNode.addItem(DataTypeBool, RStateTamper);
+            sensorNode.addItem(DataTypeBool, RStateLowBattery);
+            sensorNode.addItem(DataTypeBool, RStateTampered);
         }
         else
         {

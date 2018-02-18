@@ -2009,9 +2009,9 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         else if (sensor.manufacturer() == QLatin1String("Heiman") &&
                 (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID)))
         {
-            item = sensor.addItem(DataTypeBool, RStateBattery);
+            item = sensor.addItem(DataTypeBool, RStateLowBattery);
             item->setValue(false);
-            item = sensor.addItem(DataTypeBool, RStateTamper);
+            item = sensor.addItem(DataTypeBool, RStateTampered);
             item->setValue(false);
         }
 

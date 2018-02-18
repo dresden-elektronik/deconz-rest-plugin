@@ -540,22 +540,22 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
                     return REQ_READY_SEND;
                 }
             }
-            if (state.contains("battery"))
+            if (state.contains("lowbattery"))
             {
-                item = sensor.addItem(DataTypeBool, RStateBattery);
-                if (!item->setValue(state["battery"]))
+                item = sensor.addItem(DataTypeBool, RStateLowBattery);
+                if (!item->setValue(state["lowbattery"]))
                 {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter battery").arg(state["battery"].toString())));
+                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter lowbattery").arg(state["lowbattery"].toString())));
                     rsp.httpStatus = HttpStatusBadRequest;
                     return REQ_READY_SEND;
                 }
             }
-            if (state.contains("tamper"))
+            if (state.contains("tampered"))
             {
-                item = sensor.addItem(DataTypeBool, RStateTamper);
-                if (!item->setValue(state["tamper"]))
+                item = sensor.addItem(DataTypeBool, RStateTampered);
+                if (!item->setValue(state["tampered"]))
                 {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter tamper").arg(state["tamper"].toString())));
+                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter tamper").arg(state["tampered"].toString())));
                     rsp.httpStatus = HttpStatusBadRequest;
                     return REQ_READY_SEND;
                 }
