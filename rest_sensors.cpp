@@ -956,6 +956,18 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             sensor->enableRead(WRITE_DURATION);
                             sensor->setNextReadTime(WRITE_DURATION, QTime::currentTime());
                         }
+                        else if (rid.suffix == RConfigDuration && sensor->modelId().startsWith(QLatin1String("FLS-NB")))
+                        {
+                            if (sensor->modelId().startsWith("FLS-NB"))
+                            {
+                                DBG_Printf(DBG_INFO, "Force read of occupaction delay for sensor %s\n", qPrintable(sensor->address().toStringExt()));
+                                sensor->enableRead(READ_OCCUPANCY_CONFIG);
+                                sensor->setNextReadTime(READ_OCCUPANCY_CONFIG, queryTime.addSecs(1));
+                                queryTime = queryTime.addSecs(1);
+                                Q_Q(DeRestPlugin);
+                                q->startZclAttributeTimer(0);
+                            }
+                        }
                         else if (rid.suffix == RConfigLedIndication)
                         {
                             pendingMask |= R_PENDING_LEDINDICATION;
@@ -1071,18 +1083,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
           item->setValue(mask);
       }
     }
-
-    // TODO handle this in event, this is relevant for FLS-NB.
-
-//    if (config.duration() != duration)
-//    {
-//        config.setDuration(duration);
-//        DBG_Printf(DBG_INFO, "Force read/write of occupaction delay for sensor %s\n", qPrintable(sensor->address().toStringExt()));
-//        sensor->enableRead(WRITE_OCCUPANCY_CONFIG);
-//        sensor->setNextReadTime(WRITE_OCCUPANCY_CONFIG, QTime::currentTime());
-//        Q_Q(DeRestPlugin);
-//        q->startZclAttributeTimer(0);
-//    }
 
     rsp.list.append(rspItem);
     updateSensorEtag(sensor);
@@ -1654,7 +1654,6 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         checkSensorBindingsForAttributeReporting(sensor);
         checkSensorBindingsForClientClusters(sensor);
 
-        Q_Q(DeRestPlugin);
         pushSensorInfoToCore(sensor);
 
         QVariantMap res;
