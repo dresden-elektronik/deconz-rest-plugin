@@ -1654,7 +1654,6 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         checkSensorBindingsForAttributeReporting(sensor);
         checkSensorBindingsForClientClusters(sensor);
 
-        Q_Q(DeRestPlugin);
         pushSensorInfoToCore(sensor);
 
         QVariantMap res;
