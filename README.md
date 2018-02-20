@@ -28,11 +28,11 @@ Raspbian Wheezy and Qt4 is no longer maintained.
 ### Install deCONZ
 1. Download deCONZ package
 
-        wget http://www.dresden-elektronik.de/rpi/deconz/beta/deconz-2.05.04-qt5.deb
+        wget http://www.dresden-elektronik.de/rpi/deconz/beta/deconz-2.05.05-qt5.deb
 
 2. Install deCONZ package
 
-        sudo dpkg -i deconz-2.05.04-qt5.deb
+        sudo dpkg -i deconz-2.05.05-qt5.deb
 
 **Important** this step might print some errors *that's ok* and will be fixed in the next step.
 
@@ -47,11 +47,11 @@ The deCONZ package already contains the REST API plugin, the development package
 
 1. Download deCONZ development package
 
-        wget http://www.dresden-elektronik.de/rpi/deconz-dev/deconz-dev-2.05.04.deb
+        wget http://www.dresden-elektronik.de/rpi/deconz-dev/deconz-dev-2.05.05.deb
 
 2. Install deCONZ development package
 
-        sudo dpkg -i deconz-dev-2.05.04.deb
+        sudo dpkg -i deconz-dev-2.05.05.deb
 
 3. Install missing dependencies
 
@@ -66,7 +66,7 @@ The deCONZ package already contains the REST API plugin, the development package
 2. Checkout related version tag
 
         cd deconz-rest-plugin
-        git checkout -b mybranch V2_05_04
+        git checkout -b mybranch V2_05_05
 
 3. Compile the plugin
 
