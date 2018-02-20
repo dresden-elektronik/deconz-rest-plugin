@@ -55,9 +55,11 @@ void DeRestPluginPrivate::initConfig()
     gwWifi = "not-configured";
     gwWifiType = "accesspoint";
     gwWifiName = "Not set";
+    gwWifiClientName = "Not set";
     gwWifiChannel = "1";
     gwWifiIp = QLatin1String("192.168.8.1");
     gwWifiPw = "";
+    gwWifiClientPw = "";
     gwRgbwDisplay = "1";
     gwTimeFormat = "12h";
     gwZigbeeChannel = 0;
@@ -287,6 +289,11 @@ int DeRestPluginPrivate::handleConfigurationApi(const ApiRequest &req, ApiRespon
     else if ((req.path.size() == 4) && (req.hdr.method() == "GET") && (req.path[2] == "config") && (req.path[3] == "wifi"))
     {
         return getWifiState(req, rsp);
+    }
+    // PUT /api/<apikey>/config/wifi
+    else if ((req.path.size() == 4) && (req.hdr.method() == "PUT") && (req.path[2] == "config") && (req.path[3] == "wifi"))
+    {
+        return configureWifi(req, rsp);
     }
     // PUT /api/<apikey>/config/wifi/restore
     else if ((req.path.size() == 5) && (req.hdr.method() == "PUT") && (req.path[2] == "config") && (req.path[3] == "wifi") && (req.path[4] == "restore"))
@@ -632,12 +639,15 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
 #endif
 #endif
         map["wifi"] = gwWifi;
+        map["availablewifi"] = gwAvailableWifi;
         map["wifitype"] = gwWifiType;
         map["wifiname"] = gwWifiName;
+        map["wificlientname"] = gwWifiClientName;
         map["wifichannel"] = gwWifiChannel;
         map["wifiip"] = gwWifiIp;
 //        map["wifiappw"] = gwWifiPw;
         map["wifiappw"] = QLatin1String(""); // TODO add secured transfer via PKI
+        map["wificlientpw"] = QLatin1String(""); // TODO add secured transfer via PKI
     }
     else
     {
@@ -2593,6 +2603,108 @@ int DeRestPluginPrivate::getWifiState(const ApiRequest &req, ApiResponse &rsp)
     rsp.map["wifiappw"] = QLatin1String("");
 
     rsp.httpStatus = HttpStatusOk;
+
+    return REQ_READY_SEND;
+}
+
+/*! PUT /api/config/wifi
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::configureWifi(const ApiRequest &req, ApiResponse &rsp)
+{
+    if(!checkApikeyAuthentification(req, rsp))
+    {
+        return REQ_READY_SEND;
+    }
+
+    bool ok;
+    QVariant var = Json::parse(req.content, ok);
+    QVariantMap map = var.toMap();
+
+    rsp.httpStatus = HttpStatusOk;
+
+    if (!ok || map.isEmpty())
+    {
+        rsp.httpStatus = HttpStatusBadRequest;
+        rsp.list.append(errorToMap(ERR_INVALID_JSON, "/config/wifi", "body contains invalid JSON"));
+        return REQ_READY_SEND;
+    }
+
+    if (map.contains("type") && map.contains("name") && map.contains("password"))
+    {
+        QString type = map["type"].toString();
+        QString name = map["name"].toString();
+        QString password = map["password"].toString();
+
+        if ((map["type"].type() != QVariant::String) || ((type != "accesspoint") && (type != "client")))
+        {
+            rsp.httpStatus = HttpStatusBadRequest;
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, "/config/wifi", QString("invalid value, %1 for parameter, type").arg(type)));
+            return REQ_READY_SEND;
+        }
+
+        if ((map["name"].type() != QVariant::String) || name.isEmpty())
+        {
+            rsp.httpStatus = HttpStatusBadRequest;
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, "/config/wifi", QString("invalid value, %1 for parameter, name").arg(name)));
+            return REQ_READY_SEND;
+        }
+
+        if ((map["password"].type() != QVariant::String) || password.isEmpty())
+        {
+            rsp.httpStatus = HttpStatusBadRequest;
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, "/config/wifi", QString("invalid value, %1 for parameter, password").arg(password)));
+            return REQ_READY_SEND;
+        }
+
+        // save in db
+
+        gwWifiType = type;
+        gwWifi = "configured";
+
+        if (type == "accesspoint")
+        {            
+            gwWifiName = name;
+            gwWifiPw = password;
+            if (map.contains("channel"))
+            {
+                bool ok;
+                int channel = map["channel"].toInt(&ok);
+                if (ok && channel >= 1 && channel <= 11)
+                {
+                    gwWifiChannel = channel;
+                }
+                else
+                {
+                    rsp.httpStatus = HttpStatusBadRequest;
+                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, "/config/wifi", QString("invalid value, %1 for parameter, channel").arg(channel)));
+                    return REQ_READY_SEND;
+                }
+            }
+        }
+        else
+        {
+            gwWifiClientName = name;
+            gwWifiClientPw = password;
+        }
+
+        updateEtag(gwConfigEtag);
+        queSaveDb(DB_CONFIG,DB_SHORT_SAVE_DELAY);
+
+    }
+    else
+    {
+        rsp.httpStatus = HttpStatusBadRequest;
+        rsp.list.append(errorToMap(ERR_MISSING_PARAMETER, "/config/wifi", "missing parameters in body"));
+        return REQ_READY_SEND;
+    }
+
+    QVariantMap rspItem;
+    QVariantMap rspItemState;
+    rspItemState["/config/wifi/"] = "configured";
+    rspItem["success"] = rspItemState;
+    rsp.list.append(rspItem);
 
     return REQ_READY_SEND;
 }

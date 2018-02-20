@@ -494,6 +494,14 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
             d->gwWifi = val;
         }
     }
+    else if (strcmp(colval[0], "availablewifi") == 0)
+    {
+        if (!val.isEmpty())
+        {
+            d->gwConfig["availablewifi"] = val;
+            d->gwAvailableWifi = val;
+        }
+    }
     else if (strcmp(colval[0], "wifichannel") == 0)
     {
         if (!val.isEmpty())
@@ -510,12 +518,28 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
             d->gwWifiName = val;
         }
     }
+    else if (strcmp(colval[0], "wificlientname") == 0)
+    {
+        if (!val.isEmpty())
+        {
+            d->gwConfig["wificlientname"] = val;
+            d->gwWifiClientName = val;
+        }
+    }
     else if (strcmp(colval[0], "wifiappw") == 0)
     {
         if (!val.isEmpty())
         {
             //d->gwConfig["wifiappw"] = val;
             d->gwWifiPw = val;
+        }
+    }
+    else if (strcmp(colval[0], "wificlientpw") == 0)
+    {
+        if (!val.isEmpty())
+        {
+            //d->gwConfig["wificlientpw"] = val;
+            d->gwWifiClientPw = val;
         }
     }
     else if (strcmp(colval[0], "wifitype") == 0)
@@ -2555,8 +2579,10 @@ void DeRestPluginPrivate::saveDb()
         gwConfig["wifi"] = gwWifi;
         gwConfig["wifitype"] = gwWifiType;
         gwConfig["wifiname"] = gwWifiName;
+        gwConfig["wificlientname"] = gwWifiClientName;
         gwConfig["wifichannel"] = gwWifiChannel;
         gwConfig["wifiappw"] = gwWifiPw;
+        gwConfig["wificlientpw"] = gwWifiClientPw;
         gwConfig["wifiip"] = gwWifiIp;
         gwConfig["bridgeid"] = gwBridgeId;
         gwConfig["websocketnotifyall"] = gwWebSocketNotifyAll;
