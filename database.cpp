@@ -1991,6 +1991,28 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeString, RStateEffect);
             item->setValue(QString("none"));
         }
+        else if (sensor.type().endsWith(QLatin1String("Power")))
+        {
+            if (sensor.fingerPrint().hasInCluster(METERING_CLUSTER_ID))
+            {
+                clusterId = METERING_CLUSTER_ID;
+                item = sensor.addItem(DataTypeInt64, RStateConsumption);
+                item->setValue(0);
+            }
+            else if (sensor.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))
+            {
+                clusterId = ANALOG_INPUT_CLUSTER_ID;
+                item = sensor.addItem(DataTypeInt64, RStateConsumption);
+                item->setValue(0);
+            }
+            if (sensor.fingerPrint().hasInCluster(ELECTRICAL_MEASUREMENT_CLUSTER_ID))
+            {
+                clusterId = clusterId ? clusterId : ONOFF_CLUSTER_ID;
+                item = sensor.addItem(DataTypeInt16, RStatePower);
+                item = sensor.addItem(DataTypeUInt16, RStateVoltage);
+                item = sensor.addItem(DataTypeUInt16, RStateCurrent);
+            }
+        }
 
         if (sensor.modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
         {

@@ -223,11 +223,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (item->descriptor().suffix == RStateColorMode) { state["colormode"] = item->toString(); }
         else if (item->descriptor().suffix == RStateX) { ix = item; }
         else if (item->descriptor().suffix == RStateY) { iy = item; }
-        else if (item->descriptor().suffix == RStateConsumption) { state["consumption"] = (double)item->toNumber(); }
-        else if (item->descriptor().suffix == RStateCurrent) { state["current"] = (double)item->toNumber(); }
-        else if (item->descriptor().suffix == RStatePower) { state["power"] = (double)item->toNumber(); }
         else if (item->descriptor().suffix == RStateReachable) { state["reachable"] = item->toBool(); }
-        else if (item->descriptor().suffix == RStateVoltage) { state["voltage"] = (double)item->toNumber(); }
         else if (item->descriptor().suffix == RConfigCtMin) { map["ctmin"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigCtMax) { map["ctmax"] = item->toNumber(); }
 
