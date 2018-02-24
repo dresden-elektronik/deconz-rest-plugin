@@ -61,6 +61,7 @@ void PollManager::poll(RestNodeBase *restNode, const QDateTime &tStart)
         if (suffix == RStateOn ||
             suffix == RStateBri ||
             suffix == RStateColorMode ||
+            suffix == RStateConsumption ||
             suffix == RStatePower ||
             suffix == RAttrModelId)
         {
@@ -296,10 +297,17 @@ void PollManager::pollTimerFired()
             }
         }
     }
+    else if (suffix == RStateConsumption)
+    {
+        clusterId = METERING_CLUSTER_ID;
+        attributes.push_back(0x0000); // Curent Summation Delivered
+    }
     else if (suffix == RStatePower)
     {
         clusterId = ELECTRICAL_MEASUREMENT_CLUSTER_ID;
-        attributes.push_back(0x050b); // active power
+        attributes.push_back(0x050b); // Active Power
+        attributes.push_back(0x0505); // RMS Voltage
+        attributes.push_back(0x0508); // RMS Current
     }
     else if (suffix == RAttrModelId)
     {

@@ -153,6 +153,7 @@
 #define OCCUPANCY_SENSING_CLUSTER_ID          0x0406
 #define IAS_ZONE_CLUSTER_ID                   0x0500
 #define IAS_WD_CLUSTER_ID                     0x0502
+#define METERING_CLUSTER_ID                   0x0702
 #define ELECTRICAL_MEASUREMENT_CLUSTER_ID     0x0B04
 #define COMMISSIONING_CLUSTER_ID              0x1000
 #define DE_CLUSTER_ID                         0xFC00

@@ -14,9 +14,11 @@ enum ApiDataType
     DataTypeUInt8,
     DataTypeUInt16,
     DataTypeUInt32,
+    DataTypeUInt64,
     DataTypeInt8,
     DataTypeInt16,
     DataTypeInt32,
+    DataTypeInt64,
     DataTypeReal,
     DataTypeString,
     DataTypeTime,
@@ -52,6 +54,8 @@ extern const char *RStateBri;
 extern const char *RStateButtonEvent;
 extern const char *RStateCarbonMonoxide;
 extern const char *RStateColorMode;
+extern const char *RStateConsumption;
+extern const char *RStateCurrent;
 extern const char *RStateCt;
 extern const char *RStateDark;
 extern const char *RStateDaylight;
@@ -74,6 +78,7 @@ extern const char *RStateSat;
 extern const char *RStateStatus;
 extern const char *RStateTampered;
 extern const char *RStateTemperature;
+extern const char *RStateVoltage;
 extern const char *RStateWater;
 extern const char *RStateX;
 extern const char *RStateY;
@@ -122,7 +127,7 @@ public:
         validMin(0),
         validMax(0) { }
 
-    ResourceItemDescriptor(ApiDataType t, const char *s, int min = 0, int max = 0) :
+    ResourceItemDescriptor(ApiDataType t, const char *s, qint64 min = 0, qint64 max = 0) :
         type(t),
         suffix(s),
         validMin(min),
@@ -131,8 +136,8 @@ public:
     bool isValid() const { return (type != DataTypeUnknown && suffix); }
     ApiDataType type;
     const char *suffix;
-    int validMin;
-    int validMax;
+    qint64 validMin;
+    qint64 validMax;
 };
 
 class ResourceItem

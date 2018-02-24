@@ -689,6 +689,13 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt, const s
             {
                 stream << rq.reportableChange8bit;
             }
+            else if (rq.reportableChange48bit != 0xFFFFFFFF)
+            {
+                stream << rq.reportableChange48bit;
+                // since there's no quint48, we need to pad the quint32 to 48 bits
+                quint16 zero = 0x0000;
+                stream << zero;
+            }
             DBG_Printf(DBG_INFO_L2, "configure reporting for 0x%016llX, attribute 0x%04X/0x%04X\n", bt.restNode->address().ext(), bt.binding.clusterId, rq.attributeId);
         }
     }
@@ -874,14 +881,37 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
         return sendConfigureReportingRequest(bt, {rq});
     }
+    else if (bt.binding.clusterId == METERING_CLUSTER_ID)
+    {
+        rq.dataType = deCONZ::Zcl48BitUint;
+        rq.attributeId = 0x0000; // Curent Summation Delivered
+        rq.minInterval = 1;
+        rq.maxInterval = 300;
+        rq.reportableChange48bit = 1;
+        return sendConfigureReportingRequest(bt, {rq});
+    }
     else if (bt.binding.clusterId == ELECTRICAL_MEASUREMENT_CLUSTER_ID)
     {
         rq.dataType = deCONZ::Zcl16BitInt;
         rq.attributeId = 0x050B; // Active power
-        rq.minInterval = 10;
+        rq.minInterval = 1;
         rq.maxInterval = 300;
         rq.reportableChange16bit = 1;
         return sendConfigureReportingRequest(bt, {rq});
+
+        ConfigureReportingRequest rq2;
+        rq2.dataType = deCONZ::Zcl16BitUint;
+        rq2.attributeId = 0x0505; // RMS Voltage
+        rq2.minInterval = 1;
+        rq2.maxInterval = 300;
+        rq2.reportableChange16bit = 1;
+
+        ConfigureReportingRequest rq3;
+        rq3.dataType = deCONZ::Zcl16BitUint;
+        rq3.attributeId = 0x0508; // RMS Current
+        rq3.minInterval = 1;
+        rq3.maxInterval = 300;
+        rq3.reportableChange16bit = 1;
     }
     else if (bt.binding.clusterId == LEVEL_CLUSTER_ID)
     {
@@ -1059,6 +1089,7 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         switch (i->id())
         {
         case ONOFF_CLUSTER_ID:
+        case METERING_CLUSTER_ID:
         case ELECTRICAL_MEASUREMENT_CLUSTER_ID:
         case LEVEL_CLUSTER_ID:
         case COLOR_CLUSTER_ID:
@@ -1322,6 +1353,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         case TEMPERATURE_MEASUREMENT_CLUSTER_ID:
         case RELATIVE_HUMIDITY_CLUSTER_ID:
         case PRESSURE_MEASUREMENT_CLUSTER_ID:
+        case METERING_CLUSTER_ID:
         case ELECTRICAL_MEASUREMENT_CLUSTER_ID:
         case VENDOR_CLUSTER_ID:
         case BASIC_CLUSTER_ID:

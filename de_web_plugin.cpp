@@ -1798,6 +1798,30 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                     break;
                 }
             }
+            else if (ic->id() == METERING_CLUSTER_ID && (event.clusterId() == METERING_CLUSTER_ID))
+            {
+                std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
+                std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
+                for (;ia != enda; ++ia)
+                {
+                    if (ia->id() == 0x0000) // Current Summation Delivered
+                    {
+                        qint64 consumption = ia->numericValue().s64;
+                        ResourceItem *item = lightNode->item(RStateConsumption);
+                        if (item && item->toNumber() != consumption)
+                        {
+                            DBG_Printf(DBG_INFO, "0x%016llX consumption %llU --> %llU\n", lightNode->address().ext(), (uint)item->toNumber(), consumption);
+                            item->setValue(consumption);
+                            Event e(RLights, RStateConsumption, lightNode->id(), item);
+                            enqueueEvent(e);
+                            updated = true;
+                        }
+                        lightNode->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
+                        break;
+                    }
+                    break;
+                }
+            }
             else if (ic->id() == ELECTRICAL_MEASUREMENT_CLUSTER_ID && (event.clusterId() == ELECTRICAL_MEASUREMENT_CLUSTER_ID))
             {
                 std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
@@ -1814,24 +1838,24 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                     if (ia->id() == 0x050B) // Active power
                     {
                         qint16 power = ia->numericValue().s16;
-                        if (lightNode->modelId() == QLatin1String("SmartPlug"))              // Heiman Smart Plug
-                        {
-                            power += 5;   // rounding
-                            power /= 10;  // convert to Watt
-                        }
-                        else if (lightNode->modelId() == QLatin1String("Plug 01") ||         // OSRAM Smart+ Plug
-                                 lightNode->modelId() == QLatin1String("Plug - LIGHTIFY"))   // OSRAM Lightify Plug
-                        {
-                            if (power == 28000)
-                            {
-                                power = 0;
-                            }
-                            else
-                            {
-                                power += 5;   // rounding
-                                power /= 10;  // convert to Watt
-                            }
-                        }
+                        // if (lightNode->modelId() == QLatin1String("SmartPlug"))              // Heiman Smart Plug
+                        // {
+                        //     power += 5;   // rounding
+                        //     power /= 10;  // convert to Watt
+                        // }
+                        // else if (lightNode->modelId() == QLatin1String("Plug 01") ||         // OSRAM Smart+ Plug
+                        //          lightNode->modelId() == QLatin1String("Plug - LIGHTIFY"))   // OSRAM Lightify Plug
+                        // {
+                        //     if (power == 28000)
+                        //     {
+                        //         power = 0;
+                        //     }
+                        //     else
+                        //     {
+                        //         power += 5;   // rounding
+                        //         power /= 10;  // convert to Watt
+                        //     }
+                        // }
                         ResourceItem *item = lightNode->item(RStatePower);
                         if (item && item->toNumber() != power)
                         {
@@ -1842,6 +1866,32 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             updated = true;
                         }
                         lightNode->setZclValue(updateType, event.clusterId(), 0x050B, ia->numericValue());
+                    }
+                    else if (ia->id() == 0x0505) // RMS Voltage
+                    {
+                        quint16 voltage = ia->numericValue().u16;
+                        ResourceItem *item = lightNode->item(RStateVoltage);
+                        if (item && item->toNumber() != voltage)
+                        {
+                            DBG_Printf(DBG_INFO, "0x%016llX voltage %u --> %u\n", lightNode->address().ext(), item->toNumber(), voltage);
+                            item->setValue(voltage);
+                            Event e(RLights, RStateVoltage, lightNode->id(), item);
+                            enqueueEvent(e);
+                            updated = true;
+                        }
+                    }
+                    else if (ia->id() == 0x0508) // RMS Current
+                    {
+                        quint16 current = ia->numericValue().u16;
+                        ResourceItem *item = lightNode->item(RStateCurrent);
+                        if (item && item->toNumber() != current)
+                        {
+                            DBG_Printf(DBG_INFO, "0x%016llX current %d --> %d\n", lightNode->address().ext(), item->toNumber(), current);
+                            item->setValue(current);
+                            Event e(RLights, RStateCurrent, lightNode->id(), item);
+                            enqueueEvent(e);
+                            updated = true;
+                        }
                     }
                 }
             }
@@ -7309,6 +7359,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         case BASIC_CLUSTER_ID:
         case IDENTIFY_CLUSTER_ID:
         case ONOFF_CLUSTER_ID:
+        case METERING_CLUSTER_ID:
         case ELECTRICAL_MEASUREMENT_CLUSTER_ID:
         case LEVEL_CLUSTER_ID:
         case GROUP_CLUSTER_ID:

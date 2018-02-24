@@ -492,9 +492,15 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 {
                     addItem(DataTypeUInt8, RStateBri);
                 }
+                else if (i->id() == METERING_CLUSTER_ID)
+                {
+                    addItem(DataTypeInt64, RStateConsumption);
+                }
                 else if (i->id() == ELECTRICAL_MEASUREMENT_CLUSTER_ID)
                 {
                     addItem(DataTypeInt16, RStatePower);
+                    addItem(DataTypeUInt16, RStateVoltage);
+                    addItem(DataTypeUInt16, RStateCurrent);
                 }
                 else if (i->id() == COLOR_CLUSTER_ID)
                 {
