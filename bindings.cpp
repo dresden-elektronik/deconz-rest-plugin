@@ -1391,7 +1391,12 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
 
             if (bnd.dstEndpoint > 0) // valid gateway endpoint?
             {
-              queueBindingTask(bindingTask);
+                // @manup, I get here, but I don't see the binding request in Wireshark.
+                // I double-checked that Wireshark captures the binding request when doing a manual bind.
+                DBG_Printf(DBG_INFO_L2, ">>>> 0x%016llX (%s) queue binding for attribute reporting of cluster 0x%04X on endpoint 0x%02X\n",
+                                        sensor->address().ext(), qPrintable(sensor->modelId()), (*i), srcEndpoint);
+
+                queueBindingTask(bindingTask);
             }
         }
             break;

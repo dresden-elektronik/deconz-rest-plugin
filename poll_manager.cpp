@@ -50,9 +50,9 @@ void PollManager::poll(RestNodeBase *restNode, const QDateTime &tStart)
     }
     else if (r->prefix() == RSensors)
     {
-        Sensor *sensorNode = static_cast<Sensor*>(restNode);
-        DBG_Assert(sensorNode != 0);
-        pitem.endpoint = sensorNode->fingerPrint().endpoint;
+        Sensor *sensor = static_cast<Sensor*>(restNode);
+        DBG_Assert(sensor != 0);
+        pitem.endpoint = sensor->fingerPrint().endpoint;
     }
     else
     {
@@ -162,13 +162,19 @@ void PollManager::pollTimerFired()
     QDateTime now = QDateTime::currentDateTime();
     PollItem &pitem = items.front();
     Resource *r = plugin->getResource(pitem.prefix, pitem.id);
-    ResourceItem *item = r ? r->item(RStateReachable) : 0;
+    ResourceItem *item = 0;
     RestNodeBase *restNode = 0;
     const LightNode *lightNode = 0;
     if (r && r->prefix() == RLights)
     {
         restNode = plugin->getLightNodeForId(pitem.id);
         lightNode = static_cast<LightNode*>(restNode);
+        item = r->item(RStateReachable);
+    }
+    else if (r && r->prefix() == RSensors)
+    {
+        restNode = plugin->getSensorNodeForId(pitem.id);
+        item = r->item(RConfigReachable);
     }
 
     if (pitem.tStart.isValid() && pitem.tStart > now)

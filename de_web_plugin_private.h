@@ -215,21 +215,21 @@
 // manufacturer codes
 // http://cgit.osmocom.org/wireshark/plain/epan/dissectors/packet-zbee.h
 #define VENDOR_NONE         0x0000
+#define VENDOR_EMBER        0x1002
+#define VENDOR_PHILIPS      0x100B
 #define VENDOR_ATMEL        0x1014
 #define VENDOR_JENNIC       0x1037
+#define VENDOR_CENTRALITE   0x104E
+#define VENDOR_NYCE         0x10B9
+#define VENDOR_UBISYS       0x10F2
+#define VENDOR_BEGA         0x1105
+#define VENDOR_OSRAM        0x110C
 #define VENDOR_DDEL         0x1135
 #define VENDOR_LUTRON       0x1144
 #define VENDOR_INNR         0x1166
 #define VENDOR_INNR2        0x1168
 #define VENDOR_INSTA        0x117A
 #define VENDOR_IKEA         0x117C
-#define VENDOR_EMBER        0x1002
-#define VENDOR_PHILIPS      0x100B
-#define VENDOR_CENTRALITE   0x104E
-#define VENDOR_NYCE         0x10B9
-#define VENDOR_UBISYS       0x10F2
-#define VENDOR_BEGA         0x1105
-#define VENDOR_OSRAM        0x110C
 #define VENDOR_BUSCH_JAEGER 0x112E
 #define VENDOR_PAULMANN     0x119D
 #define VENDOR_120B         0x120B     // TODO: who is this?

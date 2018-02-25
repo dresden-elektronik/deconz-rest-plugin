@@ -2092,6 +2092,7 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor, const deCONZ:
             }
             //sensor->setLastRead(READ_BINDING_TABLE, idleTotalCounter);
             checkSensorBindingsForAttributeReporting(sensor);
+
             updated = true;
 
             if (event &&
@@ -2124,6 +2125,11 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor, const deCONZ:
     if (updated)
     {
         updateSensorEtag(sensor);
+    }
+
+    if (reachable && sensor->node()->nodeDescriptor().receiverOnWhenIdle())
+    {
+        pollManager->poll(sensor);
     }
 }
 
@@ -3122,10 +3128,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             }
             else
             {
-                if (node->nodeDescriptor().receiverOnWhenIdle())
-                {
-                    pollManager->poll(sensor);
-                }
                 checkSensorNodeReachable(sensor);
             }
         }
@@ -3608,7 +3610,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
 
     sensor2->rx();
     checkSensorBindingsForAttributeReporting(sensor2);
-    if (node->nodeDescriptor().receiverOnWhenIdle())
+    if (sensor2->node()->nodeDescriptor().receiverOnWhenIdle())
     {
         pollManager->poll(sensor2);
     }
@@ -5340,9 +5342,11 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
         }
     }
 
-    if (lightNode->manufacturerCode() == VENDOR_UBISYS)
+    if (lightNode->manufacturerCode() == VENDOR_UBISYS ||
+        lightNode->manufacturerCode() == VENDOR_EMBER ||
+        lightNode->manufacturerCode() == VENDOR_120B)
     {
-        lightNode->clearRead(READ_SWBUILD_ID); // Ubisys devices have empty sw build id
+        lightNode->clearRead(READ_SWBUILD_ID); // Ubisys and Heiman devices have empty sw build id
     }
     else if ((processed < 2) && lightNode->mustRead(READ_SWBUILD_ID) && tNow > lightNode->nextReadTime(READ_SWBUILD_ID))
     {
