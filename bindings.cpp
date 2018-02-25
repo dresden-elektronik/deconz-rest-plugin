@@ -115,7 +115,7 @@ bool DeRestPluginPrivate::readBindingTable(RestNodeBase *node, quint8 startIndex
 {
     DBG_Assert(node != 0);
 
-    if (!node && node->node())
+    if (!node || !node->node())
     {
         return false;
     }
