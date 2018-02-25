@@ -2822,6 +2822,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 {
                     if (modelId == QLatin1String("lumi.sensor_cube")) {
                         fpSwitch.inClusters.push_back(ci->id());
+                    } else if (modelId == QLatin1String("lumi.plug") && i->endpoint() == 0x03) {
+                        // Xiaomi plug reports total consumption on endpoint 3
+                        fpPowerSensor.inClusters.push_back(ci->id());
                     }
                 }
                     break;
@@ -2830,9 +2833,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 {
                     if (modelId == QLatin1String("lumi.sensor_cube")) {
                         fpSwitch.inClusters.push_back(ci->id());
-                    } else if (modelId == QLatin1String("lumi.plug") && i->endpoint() == 0x03) {
-                        // Xiaomi plug reports total consumption on endpoint 3
-                        fpPowerSensor.inClusters.push_back(ci->id());
                     }
                 }
                     break;
