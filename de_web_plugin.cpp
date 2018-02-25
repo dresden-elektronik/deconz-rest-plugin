@@ -2136,11 +2136,6 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor, const deCONZ:
     {
         updateSensorEtag(sensor);
     }
-
-    if (reachable && sensor->node()->nodeDescriptor().receiverOnWhenIdle())
-    {
-        pollManager->poll(sensor);
-    }
 }
 
 void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame)
@@ -3620,10 +3615,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
 
     sensor2->rx();
     checkSensorBindingsForAttributeReporting(sensor2);
-    if (sensor2->node()->nodeDescriptor().receiverOnWhenIdle())
-    {
-        pollManager->poll(sensor2);
-    }
 
     Q_Q(DeRestPlugin);
     q->startZclAttributeTimer(checkZclAttributesDelay);
@@ -10935,6 +10926,13 @@ void DeRestPlugin::idleTimerFired()
                     continue;
                 }
 
+                if (sensorNode->lastRx().secsTo(now) > (5 * 60))
+                {
+                    // let poll manager detect if node is available
+                    d->pollManager->poll(sensorNode);
+                    continue;
+                }
+
                 if (processSensors)
                 {
                     break;
@@ -10966,6 +10964,15 @@ void DeRestPlugin::idleTimerFired()
                     sensorNode->enableRead(READ_VENDOR_NAME);
                     d->queryTime = d->queryTime.addSecs(tSpacing);
                     processSensors = true;
+                }
+
+                if (processSensors)
+                {
+                    DBG_Printf(DBG_INFO_L2, "Force read attributes for node %s\n", qPrintable(sensorNode->name()));
+                }
+                else
+                {
+                    d->pollManager->poll(sensorNode);
                 }
 
                 if ((d->otauLastBusyTimeDelta() > OTA_LOW_PRIORITY_TIME) && (sensorNode->lastRead(READ_BINDING_TABLE) < (d->idleTotalCounter - IDLE_READ_LIMIT)))
