@@ -2009,8 +2009,14 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = clusterId ? clusterId : ONOFF_CLUSTER_ID;
                 item = sensor.addItem(DataTypeInt16, RStatePower);
-                item = sensor.addItem(DataTypeUInt16, RStateVoltage);
-                item = sensor.addItem(DataTypeUInt16, RStateCurrent);
+                item->setValue(0);
+                if (!sensor.modelId().startsWith(QLatin1String("Plug"))) // OSRAM
+                {
+                    item = sensor.addItem(DataTypeUInt16, RStateVoltage);
+                    item->setValue(0);
+                    item = sensor.addItem(DataTypeUInt16, RStateCurrent);
+                    item->setValue(0);
+                }
             }
         }
 

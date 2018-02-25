@@ -887,7 +887,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.attributeId = 0x0000; // Curent Summation Delivered
         rq.minInterval = 1;
         rq.maxInterval = 300;
-        rq.reportableChange48bit = 1;
+        rq.reportableChange48bit = 10; // 0.01 kWh
         return sendConfigureReportingRequest(bt, {rq});
     }
     else if (bt.binding.clusterId == ELECTRICAL_MEASUREMENT_CLUSTER_ID)
@@ -896,7 +896,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.attributeId = 0x050B; // Active power
         rq.minInterval = 1;
         rq.maxInterval = 300;
-        rq.reportableChange16bit = 1;
+        rq.reportableChange16bit = 10; // 1 W
         return sendConfigureReportingRequest(bt, {rq});
 
         ConfigureReportingRequest rq2;
@@ -904,14 +904,14 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq2.attributeId = 0x0505; // RMS Voltage
         rq2.minInterval = 1;
         rq2.maxInterval = 300;
-        rq2.reportableChange16bit = 1;
+        rq2.reportableChange16bit = 100; // 1 V
 
         ConfigureReportingRequest rq3;
         rq3.dataType = deCONZ::Zcl16BitUint;
         rq3.attributeId = 0x0508; // RMS Current
         rq3.minInterval = 1;
         rq3.maxInterval = 300;
-        rq3.reportableChange16bit = 1;
+        rq3.reportableChange16bit = 1; // 0.1 A
     }
     else if (bt.binding.clusterId == LEVEL_CLUSTER_ID)
     {
@@ -1089,8 +1089,6 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         switch (i->id())
         {
         case ONOFF_CLUSTER_ID:
-        case METERING_CLUSTER_ID:
-        case ELECTRICAL_MEASUREMENT_CLUSTER_ID:
         case LEVEL_CLUSTER_ID:
         case COLOR_CLUSTER_ID:
         {
@@ -1309,6 +1307,15 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                 continue;
             }
         }
+        else if (*i == METERING_CLUSTER_ID)
+        {
+            val = sensor->getZclValue(*i, 0x0000); // Curent Summation Delivered
+
+        }
+        else if (*i == ELECTRICAL_MEASUREMENT_CLUSTER_ID)
+        {
+            val = sensor->getZclValue(*i, 0x0000); // Active power
+        }
 
         quint16 maxInterval = (val.maxInterval > 0) ? (val.maxInterval * 1.5) : (60 * 45);
 
@@ -1343,7 +1350,6 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                 }
             }
         }
-
 
         switch (*i)
         {
