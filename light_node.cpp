@@ -562,6 +562,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
             case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:    ltype = QLatin1String("Extended color light"); break;
             case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT: ltype = QLatin1String("Color temperature light"); break;
             case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT: ltype = QLatin1String("Color temperature light"); break;
+            case DEV_ID_XIAOMI_SMART_PLUG:           ltype = QLatin1String("Smart plug"); break;
             default:
                 break;
             }

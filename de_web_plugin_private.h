@@ -128,6 +128,8 @@
 #define DEV_ID_ZLL_CONTROL_BRIDGE           0x0840 // Control bridge
 #define DEV_ID_ZLL_ONOFF_SENSOR             0x0850 // On/Off sensor
 
+#define DEV_ID_XIAOMI_SMART_PLUG            0xffff 
+
 #define DEFAULT_TRANSITION_TIME 4 // 400ms
 #define MAX_ENHANCED_HUE 65535
 #define MAX_ENHANCED_HUE_Z 65278 // max supportet ehue of all devices

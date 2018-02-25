@@ -1181,6 +1181,16 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                     }
                     break;
 
+                case DEV_ID_XIAOMI_SMART_PLUG:
+                    {
+                        if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC &&
+                            i->endpoint() == 0x01 && hasServerOnOff)
+                        {
+                            lightNode.setHaEndpoint(*i);
+                        }
+                    }
+                    break;
+
                 default:
                     {
                     }
