@@ -591,7 +591,6 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
 
     if (req.apiVersion() == ApiVersion_1_DDEL)
     {
-        map["rfconnected"] = gwRfConnected;
         map["permitjoin"] = (double)gwPermitJoinDuration;
         map["permitjoinfull"] = (double)gwPermitJoinResend;
         map["otauactive"] = isOtauActive();
@@ -599,7 +598,6 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         map["groupdelay"] = (double)gwGroupSendDelay;
         map["discovery"] = (gwAnnounceInterval > 0);
         map["updatechannel"] = gwUpdateChannel;
-        map["fwversion"] = gwFirmwareVersion;
         map["fwneedupdate"] = gwFirmwareNeedUpdate;
         if (gwFirmwareNeedUpdate)
         {
@@ -706,6 +704,8 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     swupdate2["lastinstall"] = "";
     map["swupdate2"] = swupdate2;
 
+    map["fwversion"] = gwFirmwareVersion;
+    map["rfconnected"] = gwRfConnected;
     map["name"] = gwName;
     map["uuid"] = gwUuid;
     if (apsCtrl)
