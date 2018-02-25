@@ -4623,15 +4623,15 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 qint64 consumption = ia->numericValue().s64;
                                 ResourceItem *item = i->item(RStateConsumption);
 
-                                if (item)
+                                if (item && (item->toNumber() != consumption || updateType == NodeValue::UpdateByZclReport))
                                 {
                                     item->setValue(consumption); // in 0.001 kWh
                                     i->updateStateTimestamp();
                                     i->setNeedSaveDatabase(true);
                                     enqueueEvent(Event(RSensors, RStateConsumption, i->id(), item));
                                     enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
+                                    updateSensorEtag(&*i);
                                 }
-                                updateSensorEtag(&*i);
                             }
                         }
                     }
@@ -4650,7 +4650,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 qint16 power = ia->numericValue().s16;
                                 ResourceItem *item = i->item(RStatePower);
 
-                                if (item && power != -32768)
+                                if (power != -32768)
                                 {
                                     if (i->modelId() == QLatin1String("SmartPlug")) // Heiman
                                     {
@@ -4660,11 +4660,13 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         power = power == 28000 ? 0 : 40;
                                     }
-                                    item->setValue(power); // in W
-                                    enqueueEvent(Event(RSensors, RStatePower, i->id(), item));
-                                    updated = true;
+                                    if (item && (item->toNumber() != power || updateType == NodeValue::UpdateByZclReport))
+                                    {
+                                        item->setValue(power); // in W
+                                        enqueueEvent(Event(RSensors, RStatePower, i->id(), item));
+                                        updated = true;
+                                    }
                                 }
-                                updateSensorEtag(&*i);
                             }
                             else if (ia->id() == 0x0505) // RMS Voltage
                             {
@@ -4676,17 +4678,19 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 quint16 voltage = ia->numericValue().u16;
                                 ResourceItem *item = i->item(RStateVoltage);
 
-                                if (item && voltage != 65535)
+                                if (voltage != 65535)
                                 {
                                     if (i->modelId() == QLatin1String("SmartPlug")) // Heiman
                                     {
                                         voltage += 50; voltage /= 100; // 0.01V -> V
                                     }
-                                    item->setValue(voltage); // in V
-                                    enqueueEvent(Event(RSensors, RStateVoltage, i->id(), item));
-                                    updated = true;
+                                    if (item && (item->toNumber() != voltage || updateType == NodeValue::UpdateByZclReport))
+                                    {
+                                        item->setValue(voltage); // in V
+                                        enqueueEvent(Event(RSensors, RStateVoltage, i->id(), item));
+                                        updated = true;
+                                    }
                                 }
-                                updateSensorEtag(&*i);
                             }
                             else if (ia->id() == 0x0508) // RMS Current
                             {
@@ -4698,18 +4702,19 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 quint16 current = ia->numericValue().u16;
                                 ResourceItem *item = i->item(RStateCurrent);
 
-                                if (i->modelId() != QLatin1String("SmartPlug")) // Heiman
+                                if (current != 65535)
                                 {
-                                    current *= 10; // A -> 0.1A
+                                    if (i->modelId() != QLatin1String("SmartPlug")) // Heiman
+                                    {
+                                        current *= 10; // A -> 0.1A
+                                    }
+                                    if (item && (item->toNumber() != current || updateType == NodeValue::UpdateByZclReport))
+                                    {
+                                        item->setValue(current); // in 0.1A
+                                        enqueueEvent(Event(RSensors, RStateCurrent, i->id(), item));
+                                        updated = true;
+                                    }
                                 }
-
-                                if (item && current != 65535)
-                                {
-                                    item->setValue(current); // in 0.1A
-                                    enqueueEvent(Event(RSensors, RStateCurrent, i->id(), item));
-                                    updated = true;
-                                }
-                                updateSensorEtag(&*i);
                             }
                         }
                         if (updated)
@@ -4717,6 +4722,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             i->updateStateTimestamp();
                             i->setNeedSaveDatabase(true);
                             enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
+                            updateSensorEtag(&*i);
                         }
                     }
                 }
