@@ -2007,7 +2007,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             if (sensor.fingerPrint().hasInCluster(ELECTRICAL_MEASUREMENT_CLUSTER_ID))
             {
-                clusterId = clusterId ? clusterId : ONOFF_CLUSTER_ID;
+                clusterId = clusterId ? clusterId : ELECTRICAL_MEASUREMENT_CLUSTER_ID;
                 item = sensor.addItem(DataTypeInt16, RStatePower);
                 item->setValue(0);
                 if (!sensor.modelId().startsWith(QLatin1String("Plug"))) // OSRAM
