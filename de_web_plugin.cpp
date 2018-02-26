@@ -2543,6 +2543,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
     {
         SensorFingerprint fpAlarmSensor;
         SensorFingerprint fpCarbonMonoxideSensor;
+        SensorFingerprint fpConsumptionSensor;
         SensorFingerprint fpFireSensor;
         SensorFingerprint fpHumiditySensor;
         SensorFingerprint fpLightSensor;
@@ -2820,11 +2821,20 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case ANALOG_INPUT_CLUSTER_ID:
                 {
-                    if (modelId == QLatin1String("lumi.sensor_cube")) {
+                    if (modelId == QLatin1String("lumi.sensor_cube"))
+                    {
                         fpSwitch.inClusters.push_back(ci->id());
-                    } else if (modelId == QLatin1String("lumi.plug") && i->endpoint() == 0x03) {
-                        // Xiaomi plug reports total consumption on endpoint 3
-                        fpPowerSensor.inClusters.push_back(ci->id());
+                    }
+                    else if (modelId == QLatin1String("lumi.plug"))
+                    {
+                        if (i->endpoint() == 0x02)
+                        {
+                            fpPowerSensor.inClusters.push_back(ci->id());
+                        }
+                        else if (i->endpoint() == 0x03)
+                        {
+                            fpConsumptionSensor.inClusters.push_back(ci->id());
+                        }
                     }
                 }
                     break;
@@ -2839,7 +2849,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case METERING_CLUSTER_ID:
                 {
-                    fpPowerSensor.inClusters.push_back(ci->id());
+                    fpConsumptionSensor.inClusters.push_back(ci->id());
                 }
                     break;
 
@@ -3117,9 +3127,27 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             }
         }
 
+        // ZHAConsumption
+        if (fpConsumptionSensor.hasInCluster(METERING_CLUSTER_ID) ||
+            fpConsumptionSensor.hasInCluster(ANALOG_INPUT_CLUSTER_ID))
+        {
+            fpConsumptionSensor.endpoint = i->endpoint();
+            fpConsumptionSensor.deviceId = i->deviceId();
+            fpConsumptionSensor.profileId = i->profileId();
+
+            sensor = getSensorNodeForFingerPrint(node->address().ext(), fpConsumptionSensor, "ZHAConsumption");
+            if (!sensor || sensor->deletedState() != Sensor::StateNormal)
+            {
+                addSensorNode(node, fpConsumptionSensor, "ZHAConsumption", modelId, manufacturer);
+            }
+            else
+            {
+                checkSensorNodeReachable(sensor);
+            }
+        }
+
         // ZHAPower
-        if (fpPowerSensor.hasInCluster(METERING_CLUSTER_ID) ||
-            fpPowerSensor.hasInCluster(ELECTRICAL_MEASUREMENT_CLUSTER_ID) ||
+        if (fpPowerSensor.hasInCluster(ELECTRICAL_MEASUREMENT_CLUSTER_ID) ||
             fpPowerSensor.hasInCluster(ANALOG_INPUT_CLUSTER_ID))
         {
             fpPowerSensor.endpoint = i->endpoint();
@@ -3331,7 +3359,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         item = sensorNode.addItem(DataTypeString, RStateEffect);
         item->setValue(QString("none"));
     }
-    else if (sensorNode.type().endsWith(QLatin1String("Power")))
+    else if (sensorNode.type().endsWith(QLatin1String("Consumption")))
     {
         if (sensorNode.fingerPrint().hasInCluster(METERING_CLUSTER_ID))
         {
@@ -3343,18 +3371,23 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             clusterId = ANALOG_INPUT_CLUSTER_ID;
             item = sensorNode.addItem(DataTypeInt64, RStateConsumption);
         }
+    }
+    else if (sensorNode.type().endsWith(QLatin1String("Power")))
+    {
         if (sensorNode.fingerPrint().hasInCluster(ELECTRICAL_MEASUREMENT_CLUSTER_ID))
         {
-            if (!clusterId)
-            {
-                clusterId = ELECTRICAL_MEASUREMENT_CLUSTER_ID;
-            }
+            clusterId = ELECTRICAL_MEASUREMENT_CLUSTER_ID;
             item = sensorNode.addItem(DataTypeInt16, RStatePower);
             if (!modelId.startsWith(QLatin1String("Plug"))) // OSRAM
             {
                 item = sensorNode.addItem(DataTypeUInt16, RStateVoltage);
                 item = sensorNode.addItem(DataTypeUInt16, RStateCurrent);
             }
+        }
+        else if (sensorNode.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))
+        {
+            clusterId = ANALOG_INPUT_CLUSTER_ID;
+            item = sensorNode.addItem(DataTypeInt16, RStatePower);
         }
     }
 
@@ -3383,10 +3416,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             modelId.startsWith(QLatin1String("WATER_")))  // Heiman water sensor
         {
             sensorNode.setManufacturer("Heiman");
-            item = sensorNode.addItem(DataTypeBool, RStateLowBattery);
-            item->setValue(false);
-            item = sensorNode.addItem(DataTypeBool, RStateTampered);
-            item->setValue(false);
         }
         else
         {
@@ -3521,6 +3550,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     if (sensorNode.manufacturer().isEmpty())
     {
         return; // required
+    }
+
+    if (clusterId == IAS_ZONE_CLUSTER_ID) {
+        item = sensorNode.addItem(DataTypeBool, RStateLowBattery);
+        item->setValue(false);
+        item = sensorNode.addItem(DataTypeBool, RStateTampered);
+        item->setValue(false);
     }
 
     QString uid = generateUniqueId(sensorNode.address().ext(), sensorNode.fingerPrint().endpoint, clusterId);
@@ -4541,21 +4577,38 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                     updateSensorEtag(&*i);
                                 }
-                                else
+                                else if (i->modelId() == QLatin1String("lumi.plug"))
                                 {
-                                    qint32 consumption = ia->numericValue().real * 1000;
-                                    ResourceItem *item = i->item(RStateConsumption);
-
-                                    if (item)
+                                    if (i->type() == QLatin1String("ZHAPower"))
                                     {
-                                        item->setValue(consumption);
-                                        i->updateStateTimestamp();
-                                        i->setNeedSaveDatabase(true);
-                                        enqueueEvent(Event(RSensors, RStateConsumption, i->id(), item));
-                                        enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
-                                    }
+                                        qint16 power = ia->numericValue().real;
+                                        ResourceItem *item = i->item(RStatePower);
 
-                                    updateSensorEtag(&*i);
+                                        if (item)
+                                        {
+                                            item->setValue(power); // in W
+                                            i->updateStateTimestamp();
+                                            i->setNeedSaveDatabase(true);
+                                            enqueueEvent(Event(RSensors, RStatePower, i->id(), item));
+                                            enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
+                                        }
+                                        updateSensorEtag(&*i);
+                                    }
+                                    else if (i->type() == QLatin1String("ZHAConsumption"))
+                                    {
+                                        qint64 consumption = ia->numericValue().real * 1000;
+                                        ResourceItem *item = i->item(RStateConsumption);
+
+                                        if (item)
+                                        {
+                                            item->setValue(consumption); // in 0.001 kWh
+                                            i->updateStateTimestamp();
+                                            i->setNeedSaveDatabase(true);
+                                            enqueueEvent(Event(RSensors, RStateConsumption, i->id(), item));
+                                            enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
+                                        }
+                                        updateSensorEtag(&*i);
+                                    }
                                 }
                             }
                         }
@@ -12276,7 +12329,7 @@ void DeRestPluginPrivate::pushSensorInfoToCore(Sensor *sensor)
     { } // use name from light
     else if (sensor->modelId().startsWith(QLatin1String("D1")))
     { } // use name from light
-    else if (sensor->type() == QLatin1String("ZHAPower"))
+    else if (sensor->type() == QLatin1String("ZHAConsumption") || sensor->type() == QLatin1String("ZHAPower"))
     { } // use name from light
     else if (sensor->modelId() == QLatin1String("SML001") && sensor->type() != QLatin1String("ZHAPresence"))
     { } // use name from ZHAPresence sensor only

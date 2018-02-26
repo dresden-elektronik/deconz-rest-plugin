@@ -1991,7 +1991,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeString, RStateEffect);
             item->setValue(QString("none"));
         }
-        else if (sensor.type().endsWith(QLatin1String("Power")))
+        else if (sensor.type().endsWith(QLatin1String("Consumption")))
         {
             if (sensor.fingerPrint().hasInCluster(METERING_CLUSTER_ID))
             {
@@ -2005,9 +2005,12 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 item = sensor.addItem(DataTypeInt64, RStateConsumption);
                 item->setValue(0);
             }
+        }
+        else if (sensor.type().endsWith(QLatin1String("Power")))
+        {
             if (sensor.fingerPrint().hasInCluster(ELECTRICAL_MEASUREMENT_CLUSTER_ID))
             {
-                clusterId = clusterId ? clusterId : ELECTRICAL_MEASUREMENT_CLUSTER_ID;
+                clusterId = ELECTRICAL_MEASUREMENT_CLUSTER_ID;
                 item = sensor.addItem(DataTypeInt16, RStatePower);
                 item->setValue(0);
                 if (!sensor.modelId().startsWith(QLatin1String("Plug"))) // OSRAM
@@ -2017,6 +2020,12 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     item = sensor.addItem(DataTypeUInt16, RStateCurrent);
                     item->setValue(0);
                 }
+            }
+            else if (sensor.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))
+            {
+                clusterId = ANALOG_INPUT_CLUSTER_ID;
+                item = sensor.addItem(DataTypeInt16, RStatePower);
+                item->setValue(0);
             }
         }
 
@@ -2069,8 +2078,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeString, RConfigAlert);
             item->setValue(R_ALERT_DEFAULT);
         }
-        else if (sensor.manufacturer() == QLatin1String("Heiman") &&
-                (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID)))
+
+        if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
         {
             item = sensor.addItem(DataTypeBool, RStateLowBattery);
             item->setValue(false);
