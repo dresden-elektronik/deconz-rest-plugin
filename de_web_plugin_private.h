@@ -128,7 +128,7 @@
 #define DEV_ID_ZLL_CONTROL_BRIDGE           0x0840 // Control bridge
 #define DEV_ID_ZLL_ONOFF_SENSOR             0x0850 // On/Off sensor
 
-#define DEV_ID_XIAOMI_SMART_PLUG            0xffff 
+#define DEV_ID_XIAOMI_SMART_PLUG            0xffff
 
 #define DEFAULT_TRANSITION_TIME 4 // 400ms
 #define MAX_ENHANCED_HUE 65535
@@ -228,13 +228,14 @@
 #define VENDOR_OSRAM        0x110C
 #define VENDOR_DDEL         0x1135
 #define VENDOR_LUTRON       0x1144
+#define VENDOR_115F         0x115F    // Used by Xiaomi
 #define VENDOR_INNR         0x1166
 #define VENDOR_INNR2        0x1168
 #define VENDOR_INSTA        0x117A
 #define VENDOR_IKEA         0x117C
 #define VENDOR_BUSCH_JAEGER 0x112E
 #define VENDOR_PAULMANN     0x119D
-#define VENDOR_120B         0x120B     // TODO: who is this?
+#define VENDOR_120B         0x120B     // Used by Heiman
 #define VENDOR_OSRAM_STACK  0xBBAA
 
 #define ANNOUNCE_INTERVAL 10 // minutes default announce interval

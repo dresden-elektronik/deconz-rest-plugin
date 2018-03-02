@@ -121,7 +121,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "lumi.ctrl_neutral2", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_wleak", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_smoke", jennicMacPrefix },
-    { VENDOR_JENNIC, "lumi.plug", jennicMacPrefix },
+    { VENDOR_JENNIC, "lumi.plug", jennicMacPrefix }, // TODO: check whether VENDOR_JENNIC is actually used
+    { VENDOR_115F, "lumi.plug", jennicMacPrefix }, // Xiaomi smart plug
     { VENDOR_UBISYS, "D1", ubisysMacPrefix },
     { VENDOR_UBISYS, "C4", ubisysMacPrefix },
     { VENDOR_NONE, "Z716A", netvoxMacPrefix },
@@ -1183,7 +1184,9 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
                 case DEV_ID_XIAOMI_SMART_PLUG:
                     {
-                        if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC &&
+                        // TODO: check whether VENDOR_JENNIC is actually used
+                        if ((node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC ||
+                             node->nodeDescriptor().manufacturerCode() == VENDOR_115F) &&
                             i->endpoint() == 0x01 && hasServerOnOff)
                         {
                             lightNode.setHaEndpoint(*i);
@@ -4667,9 +4670,14 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 qint64 consumption = ia->numericValue().s64;
                                 ResourceItem *item = i->item(RStateConsumption);
 
+                                if (i->modelId() == QLatin1String("SmartPlug")) // Heiman
+                                {
+                                    consumption += 5; consumption /= 10; // 0.1 Wh -> Wh
+                                }
+
                                 if (item && (item->toNumber() != consumption || updateType == NodeValue::UpdateByZclReport))
                                 {
-                                    item->setValue(consumption); // in 0.001 kWh
+                                    item->setValue(consumption); // in Wh (0.001 kWh)
                                     i->updateStateTimestamp();
                                     i->setNeedSaveDatabase(true);
                                     enqueueEvent(Event(RSensors, RStateConsumption, i->id(), item));
@@ -4702,7 +4710,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     }
                                     else if (i->modelId().startsWith(QLatin1String("Plug"))) // OSRAM
                                     {
-                                        power = power == 28000 ? 0 : 40;
+                                        power = power == 28000 ? 0 : power / 10;
                                     }
                                     if (item && (item->toNumber() != power || updateType == NodeValue::UpdateByZclReport))
                                     {
