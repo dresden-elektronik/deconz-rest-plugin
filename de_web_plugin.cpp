@@ -4547,8 +4547,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             else if (ia->id() == 0xff01) // Xiaomi magic
                             {
                                 QByteArray arr = ia->toString().toLatin1();
-                                const char *str = qPrintable(arr.toHex());
-                                DBG_Printf(DBG_INFO_L2, ">>>>> 0x%016llX: Xiaomi magic: %s\n", event.node()->address().ext(), str);
+                                DBG_Printf(DBG_INFO_L2, ">>>>> 0x%016llX: Xiaomi magic: %s\n", event.node()->address().ext(), qPrintable(arr.toHex()));
                             }
                         }
                     }
