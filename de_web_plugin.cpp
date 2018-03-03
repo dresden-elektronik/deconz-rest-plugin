@@ -6993,6 +6993,8 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         if (updated)
         {
             updateSensorEtag(&sensor);
+            sensor.setNeedSaveDatabase(true);
+            queSaveDb(DB_SENSORS , DB_HUGE_SAVE_DELAY);
         }
     }
 }
