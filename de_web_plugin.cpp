@@ -4628,19 +4628,33 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 qint32 buttonevent = -1;
                                 ResourceItem *item = i->item(RStateButtonEvent);
-
-                                // Map Xiaomi Mi smart cube raw values to buttonevent values
-                                static const int sideMap[] = {1, 3, 5, 6, 4, 2};
                                 int rawValue = ia->numericValue().u16;
-                                int side = sideMap[rawValue & 0x0007];
-                                int previousSide = sideMap[(rawValue & 0x0038) >> 3];
-                                if (rawValue == 0x0002) { buttonevent = 7000; }                            // wakeup
-                                else if (rawValue == 0x0000) { buttonevent = 7007; }                       // shake
-                                else if (rawValue & 0x0040)  { buttonevent = side * 1000 + previousSide; } // flip 90°
-                                else if (rawValue & 0x0080)  { buttonevent = side * 1000 + 7 - side; }     // flip 180°
-                                else if (rawValue & 0x0100)  { buttonevent = side * 1000; }                // push
-                                else if (rawValue & 0x0200)  { buttonevent = side * 1000 + side; }         // double tap
 
+                                if (i->modelId() == QLatin1String("lumi.sensor_cube"))
+                                {
+                                    // Map Xiaomi Mi smart cube raw values to buttonevent values
+                                    static const int sideMap[] = {1, 3, 5, 6, 4, 2};
+                                    int side = sideMap[rawValue & 0x0007];
+                                    int previousSide = sideMap[(rawValue & 0x0038) >> 3];
+                                    if (rawValue == 0x0002) { buttonevent = 7000; }                            // wakeup
+                                    else if (rawValue == 0x0000) { buttonevent = 7007; }                       // shake
+                                    else if (rawValue & 0x0040)  { buttonevent = side * 1000 + previousSide; } // flip 90°
+                                    else if (rawValue & 0x0080)  { buttonevent = side * 1000 + 7 - side; }     // flip 180°
+                                    else if (rawValue & 0x0100)  { buttonevent = side * 1000; }                // push
+                                    else if (rawValue & 0x0200)  { buttonevent = side * 1000 + side; }         // double tap
+                                }
+                                else if (i->modelId() == QLatin1String("lumi.sensor_switch.aq3"))
+                                {
+                                    switch (rawValue)
+                                    {
+                                        case  1: buttonevent = S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED; break;
+                                        case  2: buttonevent = S_BUTTON_1 + S_BUTTON_ACTION_DOUBLE_PRESS;   break;
+                                        case 16: buttonevent = S_BUTTON_1 + S_BUTTON_ACTION_HOLD;           break;
+                                        case 17: buttonevent = S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED;  break;
+                                        case 18: buttonevent = S_BUTTON_1 + S_BUTTON_ACTION_SHAKE;          break;
+                                        default: break;
+                                    }
+                                }
                                 if (item && buttonevent != -1)
                                 {
                                     item->setValue(buttonevent);
