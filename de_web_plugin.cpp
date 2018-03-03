@@ -12282,6 +12282,13 @@ void DeRestPluginPrivate::pollSwUpdateStateTimerFired()
     }
 }
 
+void DeRestPluginPrivate::pollDatabaseWifiTimerFired()
+{
+    openDb();
+    loadWifiInformationFromDb();
+    closeDb();
+}
+
 void DeRestPluginPrivate::restartAppTimerFired()
 {
     reconnectTimer = new QTimer(this);

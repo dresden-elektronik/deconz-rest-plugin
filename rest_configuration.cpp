@@ -217,6 +217,12 @@ void DeRestPluginPrivate::initWiFi()
         return;
     }
 
+    pollDatabaseWifiTimer = new QTimer(this);
+    pollDatabaseWifiTimer->setSingleShot(false);
+    connect(pollDatabaseWifiTimer, SIGNAL(timeout()),
+            this, SLOT(pollDatabaseWifiTimerFired()));
+    pollDatabaseWifiTimer->start(10000);
+
     if (gwWifiName == QLatin1String("Phoscon-Gateway-0000"))
     {
         // proceed to correct these
