@@ -861,6 +861,7 @@ public Q_SLOTS:
     void queueBindingTask(const BindingTask &bindingTask);
     void restartAppTimerFired();
     void pollSwUpdateStateTimerFired();
+    void pollDatabaseWifiTimerFired();
     void restartGatewayTimerFired();
     void shutDownGatewayTimerFired();
     void simpleRestartAppTimerFired();
@@ -1054,6 +1055,7 @@ public:
     void handleZclConfigureReportingResponseIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendZclDefaultResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, quint8 status);
     void taskToLocalData(const TaskItem &task);
+    void handleZclAttributeReportIndicationXiaomiSpecial(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
 
     // Modify node attributes
     void setAttributeOnOff(LightNode *lightNode);
@@ -1085,6 +1087,7 @@ public:
     void loadGroupFromDb(Group *group);
     void loadSceneFromDb(Scene *scene);
     void loadSwUpdateStateFromDb();
+    void loadWifiInformationFromDb();
     void loadAllRulesFromDb();
     void loadAllSensorsFromDb();
     void loadAllGatewaysFromDb();
@@ -1200,6 +1203,7 @@ public:
     };
     QTimer *fwUpdateTimer;
     QTimer *pollSwUpdateStateTimer;
+    QTimer *pollDatabaseWifiTimer;
     int fwUpdateIdleTimeout;
     bool fwUpdateStartedByUser;
     FW_UpdateState fwUpdateState;

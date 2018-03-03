@@ -6839,6 +6839,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
         }
     }
 
+    if (zclFrame.manufacturerCode() == 0x115f && ind.clusterId() == BASIC_CLUSTER_ID)
+    {
+        handleZclAttributeReportIndicationXiaomiSpecial(ind, zclFrame);
+    }
+
     if (otauLastBusyTimeDelta() < (60 * 60))
     {
         if ((idleTotalCounter - otauUnbindIdleTotalCounter) > 5)
@@ -6865,6 +6870,145 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
 
                 queueBindingTask(bindingTask);
             }
+        }
+    }
+}
+
+/*! Handle manufacturer specific Xiaomi ZCL attribute report commands to basic cluster.
+ */
+void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
+{
+    quint16 attrId;
+    quint8 dataType;
+    quint8 length;
+
+    QDataStream stream(zclFrame.payload());
+    stream.setByteOrder(QDataStream::LittleEndian);
+
+    stream >> attrId;
+    stream >> dataType;
+    stream >> length;
+
+    if (stream.atEnd() || attrId != 0xff01 || dataType != deCONZ::ZclCharacterString)
+    {
+        return;
+    }
+
+    quint16 battery = 0;
+    qint16 temperature = INT16_MIN;
+    quint8 onOff = UINT8_MAX;
+
+    DBG_Printf(DBG_INFO, "0x%016llX extract Xiomi special\n", ind.srcAddress().ext());
+
+    while (!stream.atEnd())
+    {
+        qint8 s8;
+        qint16 s16;
+        quint8 u8;
+        quint16 u16;
+        quint16 s32;
+
+        quint8 tag;
+        stream >> tag;
+        stream >> dataType;
+
+        switch (dataType)
+        {
+        case deCONZ::ZclBoolean: stream >> u8; break;
+        case deCONZ::Zcl8BitInt: stream >> s8; break;
+        case deCONZ::Zcl8BitUint: stream >> u8; break;
+        case deCONZ::Zcl16BitInt: stream >> s16; break;
+        case deCONZ::Zcl16BitUint: stream >> u16; break;
+        case deCONZ::Zcl32BitInt: stream >> s32; break;
+        case deCONZ::Zcl40BitUint:
+            for (int i = 0; i < 5; i++) { stream >> u8; }; // TODO
+            break;
+
+        default:
+        {
+            DBG_Printf(DBG_INFO, "Unsupported ZCL tag 0x%02X datatype 0x%02X in Xiaomi attribute report\n", tag, dataType);
+        }
+            return;
+        }
+
+        if (tag == 0x01 && dataType == deCONZ::Zcl16BitUint)
+        {
+            DBG_Printf(DBG_INFO, "\t01 battery %u (0x%04X)\n", u16, u16);
+            battery = u16;
+        }
+        else if (tag == 0x03 && dataType == deCONZ::Zcl8BitInt)
+        {
+            DBG_Printf(DBG_INFO, "\t03 temperature %d °C\n", int(s8));
+            temperature = quint16(s8) * 100;
+        }
+        else if (tag == 0x64 && dataType == deCONZ::ZclBoolean)
+        {
+            DBG_Printf(DBG_INFO, "\t64 on/off %d\n", u8);
+            onOff = u8;
+        }
+        else if (tag == 0x64 && dataType == deCONZ::Zcl16BitInt)
+        {
+            DBG_Printf(DBG_INFO, "\t64 temperature %d\n", int(s16));
+        }
+        else if (tag == 0x65 && dataType == deCONZ::Zcl16BitInt)
+        {
+            DBG_Printf(DBG_INFO, "\t65 humidity %d\n", int(s16));
+        }
+        else if (tag == 0x66 && dataType == deCONZ::Zcl32BitInt)
+        {
+            DBG_Printf(DBG_INFO, "\t66 pressure %d\n", int(s32));
+        }
+    }
+
+    for (Sensor &sensor : sensors)
+    {
+        if (sensor.address().ext() != ind.srcAddress().ext())
+        {
+            continue;
+        }
+
+        bool updated = false;
+        if (battery != 0)
+        {
+            ResourceItem *item = sensor.addItem(DataTypeUInt16, RStateVoltage);
+            DBG_Assert(item != 0);
+            if (item)
+            {
+                item->setValue(battery); // in V
+                enqueueEvent(Event(RSensors, RStateVoltage, sensor.id(), item));
+                updated = true;
+            }
+        }
+
+        if (temperature != INT16_MIN)
+        {
+            ResourceItem *item = sensor.addItem(DataTypeInt16, RStateTemperature);
+            DBG_Assert(item != 0);
+            if (item)
+            {
+                item->setValue(temperature); // in V
+                enqueueEvent(Event(RSensors, RStateTemperature, sensor.id(), item));
+                updated = true;
+            }
+        }
+
+        if (onOff != UINT8_MAX)
+        {   // don't add, just update, useful since door/window and presence sensors otherwise only report on activation
+            ResourceItem *item = sensor.item(RStateOpen);
+            item = item ? item : sensor.item(RStatePresence);
+            if (item)
+            {
+                item->setValue(onOff); // in V
+                enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor.id(), item));
+                updated = true;
+            }
+        }
+
+        if (updated)
+        {
+            updateSensorEtag(&sensor);
+            sensor.setNeedSaveDatabase(true);
+            queSaveDb(DB_SENSORS , DB_HUGE_SAVE_DELAY);
         }
     }
 }
@@ -12294,6 +12438,13 @@ void DeRestPluginPrivate::pollSwUpdateStateTimerFired()
         loadSwUpdateStateFromDb();
         closeDb();
     }
+}
+
+void DeRestPluginPrivate::pollDatabaseWifiTimerFired()
+{
+    openDb();
+    loadWifiInformationFromDb();
+    closeDb();
 }
 
 void DeRestPluginPrivate::restartAppTimerFired()

@@ -30,7 +30,7 @@ void PollManager::poll(RestNodeBase *restNode, const QDateTime &tStart)
 {
     Resource *r = dynamic_cast<Resource*>(restNode);
     DBG_Assert(r != 0);
-    if (!r)
+    if (!r || !restNode->node())
     {
         return;
     }
