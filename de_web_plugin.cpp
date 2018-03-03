@@ -6925,7 +6925,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         else if (tag == 0x03 && dataType == deCONZ::Zcl8BitInt)
         {
             DBG_Printf(DBG_INFO, "\t03 temperature %d °C\n", int(s8));
-            temperature = s8;
+            temperature = quint16(s8) * 100;
         }
         else if (tag == 0x64 && dataType == deCONZ::ZclBoolean)
         {
