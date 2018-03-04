@@ -6926,6 +6926,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     }
 
     quint16 battery = 0;
+    quint16 lightlevel = UINT16_MAX;
     qint16 temperature = INT16_MIN;
     quint8 onOff = UINT8_MAX;
 
@@ -6971,6 +6972,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {
             DBG_Printf(DBG_INFO, "\t03 temperature %d °C\n", int(s8));
             temperature = qint16(s8) * 100;
+        }
+        if (tag == 0x0b && dataType == deCONZ::Zcl16BitUint)
+        {
+            DBG_Printf(DBG_INFO, "\t0b lightlevel %u (0x%04X)\n", u16, u16);
+            lightlevel = u16;
         }
         else if (tag == 0x64 && dataType == deCONZ::ZclBoolean)
         {
@@ -7045,6 +7051,15 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 item->setValue(temperature);
                 enqueueEvent(Event(RSensors, RConfigTemperature, sensor.id(), item));
                 updated = true;
+            }
+        }
+
+        if (lightlevel != UINT16_MAX && sensor.modelId().startsWith(QLatin1String("lumi.sensor_motion")))
+        {
+            ResourceItem *item = sensor.item(RStateLightLevel);
+            if (item)
+            {
+                // TODO
             }
         }
 
