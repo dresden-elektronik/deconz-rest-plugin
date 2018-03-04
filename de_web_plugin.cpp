@@ -6825,7 +6825,13 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
     {
         for (Sensor &sensor : sensors)
         {
-            if (ind.srcAddress().ext() != sensor.address().ext())
+            if      (ind.srcAddress().hasExt() && sensor.address().hasExt() &&
+                     ind.srcAddress().ext() == sensor.address().ext())
+            { }
+            else if (ind.srcAddress().hasNwk() && sensor.address().hasNwk() &&
+                     ind.srcAddress().nwk() == sensor.address().nwk())
+            { }
+            else
             {
                 continue;
             }
@@ -6939,7 +6945,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         else if (tag == 0x03 && dataType == deCONZ::Zcl8BitInt)
         {
             DBG_Printf(DBG_INFO, "\t03 temperature %d °C\n", int(s8));
-            temperature = quint16(s8) * 100;
+            temperature = qint16(s8) * 100;
         }
         else if (tag == 0x64 && dataType == deCONZ::ZclBoolean)
         {
@@ -6962,7 +6968,18 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
     for (Sensor &sensor : sensors)
     {
-        if (sensor.address().ext() != ind.srcAddress().ext())
+        if (!sensor.modelId().startsWith(QLatin1String("lumi.")))
+        {
+            continue;
+        }
+
+        if      (ind.srcAddress().hasExt() && sensor.address().hasExt() &&
+                 ind.srcAddress().ext() == sensor.address().ext())
+        { }
+        else if (ind.srcAddress().hasNwk() && sensor.address().hasNwk() &&
+                 ind.srcAddress().nwk() == sensor.address().nwk())
+        { }
+        else
         {
             continue;
         }
