@@ -6904,7 +6904,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     qint16 temperature = INT16_MIN;
     quint8 onOff = UINT8_MAX;
 
-    DBG_Printf(DBG_INFO, "0x%016llX extract Xiomi special\n", ind.srcAddress().ext());
+    DBG_Printf(DBG_INFO, "0x%016llX extract Xiaomi special\n", ind.srcAddress().ext());
 
     while (!stream.atEnd())
     {
