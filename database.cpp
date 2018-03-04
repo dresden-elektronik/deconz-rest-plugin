@@ -2135,6 +2135,19 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeString, RConfigAlert);
             item->setValue(R_ALERT_DEFAULT);
         }
+        else if (sensor.modelId().startsWith(QLatin1String("lumi.")))
+        {
+            item = sensor.addItem(DataTypeUInt8, RConfigBattery);
+            item->setValue(100);
+
+            if (!sensor.item(RStateTemperature))
+            {
+                item = sensor.addItem(DataTypeInt16, RConfigTemperature);
+                item->setValue(0);
+                //item = sensor.addItem(DataTypeInt16, RConfigOffset);
+                //item->setValue(0);
+            }
+        }
 
         if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
         {

@@ -3529,6 +3529,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else if (modelId.startsWith(QLatin1String("lumi")))
     {
         sensorNode.setManufacturer("LUMI");
+        sensorNode.addItem(DataTypeUInt8, RConfigBattery);
+
+        if (!sensorNode.item(RStateTemperature))
+        {
+            sensorNode.addItem(DataTypeInt16, RConfigTemperature);
+            //sensorNode.addItem(DataTypeInt16, RConfigOffset);
+        }
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER ||
              node->nodeDescriptor().manufacturerCode() == VENDOR_120B)
@@ -6987,24 +6994,38 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         bool updated = false;
         if (battery != 0)
         {
-            ResourceItem *item = sensor.addItem(DataTypeUInt16, RStateVoltage);
-            DBG_Assert(item != 0);
+            ResourceItem *item = sensor.item(RConfigBattery);
+            DBG_Assert(item != 0); // expected
             if (item)
             {
-                item->setValue(battery); // in V
-                enqueueEvent(Event(RSensors, RStateVoltage, sensor.id(), item));
+                // 2.7-3.0V taken from:
+                // https://github.com/snalee/Xiaomi/blob/master/devicetypes/a4refillpad/xiaomi-zigbee-button.src/xiaomi-zigbee-button.groovy
+                const float vmin = 2700;
+                const float vmax = 3000;
+                float bat = battery;
+
+                if      (bat > vmax) { bat = vmax; }
+                else if (bat < vmin) { bat = vmin; }
+
+                bat = ((bat - vmin) /(vmax - vmin)) * 100;
+
+                if      (bat > 100) { bat = 100; }
+                else if (bat <= 0)  { bat = 1; } // ?
+
+                item->setValue(quint8(bat));
+
+                enqueueEvent(Event(RSensors, RConfigBattery, sensor.id(), item));
                 updated = true;
             }
         }
 
         if (temperature != INT16_MIN)
         {
-            ResourceItem *item = sensor.addItem(DataTypeInt16, RStateTemperature);
-            DBG_Assert(item != 0);
+            ResourceItem *item = sensor.item(RConfigTemperature);
             if (item)
             {
-                item->setValue(temperature); // in V
-                enqueueEvent(Event(RSensors, RStateTemperature, sensor.id(), item));
+                item->setValue(temperature);
+                enqueueEvent(Event(RSensors, RConfigTemperature, sensor.id(), item));
                 updated = true;
             }
         }
@@ -7017,6 +7038,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             {
                 item->setValue(onOff); // in V
                 enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor.id(), item));
+                sensor.updateStateTimestamp();
                 updated = true;
             }
         }
@@ -7025,7 +7047,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {
             updateSensorEtag(&sensor);
             sensor.setNeedSaveDatabase(true);
-            queSaveDb(DB_SENSORS , DB_HUGE_SAVE_DELAY);
+            saveDatabaseItems |= DB_SENSORS;
         }
     }
 }
