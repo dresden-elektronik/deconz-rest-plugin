@@ -6891,16 +6891,34 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
  */
 void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
-    quint16 attrId;
-    quint8 dataType;
-    quint8 length;
+    quint16 attrId = 0;
+    quint8 dataType = 0;
+    quint8 length = 0;
 
     QDataStream stream(zclFrame.payload());
     stream.setByteOrder(QDataStream::LittleEndian);
 
-    stream >> attrId;
-    stream >> dataType;
-    stream >> length;
+    while (attrId != 0xff01)
+    {
+        if (stream.atEnd())
+        {
+            break;
+        }
+
+        stream >> attrId;
+        stream >> dataType;
+        stream >> length;
+
+        if (dataType == deCONZ::ZclCharacterString && attrId != 0xff01)
+        {
+            DBG_Printf(DBG_INFO, "0x%016llX skip Xiaomi attribute 0x%04X\n", ind.srcAddress().ext(), attrId);
+            for (; length > 0; length--) // skip
+            {
+                quint8 dummy;
+                stream >> dummy;
+            }
+        }
+    }
 
     if (stream.atEnd() || attrId != 0xff01 || dataType != deCONZ::ZclCharacterString)
     {
