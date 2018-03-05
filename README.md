@@ -25,6 +25,12 @@ Installation
 
 Raspbian Wheezy and Qt4 is no longer maintained.
 
+##### Supported devices
+
+A uncomplete list of supported devices can be found here:
+
+https://github.com/dresden-elektronik/deconz-rest-plugin/wiki/Supported-Devices
+
 ### Install deCONZ
 1. Download deCONZ package
 
