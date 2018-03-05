@@ -3755,6 +3755,121 @@ void DeRestPluginPrivate::checkUpdatedFingerPrint(const deCONZ::Node *node, quin
     }
 }
 
+/*! Updates  ZHALightLevel sensor /state: lightlevel, lux, dark and daylight.
+    \param sensor - the sensor
+    \param measuredValue - 16-bit light level
+ */
+void DeRestPluginPrivate::updateSensorLightLevel(Sensor &sensor, quint16 measuredValue)
+{
+    const quint16 measuredValueIn = measuredValue;
+    ResourceItem *item = sensor.item(RStateLightLevel);
+
+    if (!item)
+    {
+        return;
+    }
+
+    if (sensor.modelId().startsWith(QLatin1String("lumi.sensor_motion")))
+    {
+        // measured value is given as lux: transform
+        // ZCL Attribute = 10.000 * log10(Illuminance (lx)) + 1
+        double ll = 10000 * std::log10(measuredValue) + 1;
+        if (ll > 0xfffe) { measuredValue = 0xfffe; }
+        else             { measuredValue = ll; }
+    }
+
+    if (item)
+    {
+        item->setValue(measuredValue);
+        sensor.updateStateTimestamp();
+        sensor.setNeedSaveDatabase(true);
+        Event e(RSensors, RStateLightLevel, sensor.id(), item);
+        enqueueEvent(e);
+        enqueueEvent(Event(RSensors, RStateLastUpdated, sensor.id()));
+    }
+
+    quint16 tholddark = R_THOLDDARK_DEFAULT;
+    quint16 tholdoffset = R_THOLDOFFSET_DEFAULT;
+    item = sensor.item(RConfigTholdDark);
+    if (item)
+    {
+        tholddark = item->toNumber();
+    }
+    item = sensor.item(RConfigTholdOffset);
+    if (item)
+    {
+        tholdoffset = item->toNumber();
+    }
+    bool dark = measuredValue <= tholddark;
+    bool daylight = measuredValue >= tholddark + tholdoffset;
+
+    item = sensor.item(RStateDark);
+    if (!item)
+    {
+        item = sensor.addItem(DataTypeBool, RStateDark);
+        DBG_Assert(item != 0);
+    }
+    if (item->setValue(dark))
+    {
+        if (item->lastChanged() == item->lastSet())
+        {
+            Event e(RSensors, RStateDark, sensor.id(), item);
+            enqueueEvent(e);
+        }
+    }
+
+    item = sensor.item(RStateDaylight);
+    if (!item)
+    {
+        item = sensor.addItem(DataTypeBool, RStateDaylight);
+        DBG_Assert(item != 0);
+    }
+    if (item->setValue(daylight))
+    {
+        if (item->lastChanged() == item->lastSet())
+        {
+            Event e(RSensors, RStateDaylight, sensor.id(), item);
+            enqueueEvent(e);
+        }
+    }
+
+    item = sensor.item(RStateLux);
+
+    if (!item)
+    {
+        item = sensor.addItem(DataTypeUInt32, RStateLux);
+        DBG_Assert(item != 0);
+    }
+
+    if (item)
+    {
+        quint32 lux = 0;
+        if (sensor.modelId().startsWith(QLatin1String("lumi.sensor_motion")))
+        {   // measured values is actually given in lux
+            lux = measuredValueIn;
+        }
+        else if (measuredValue > 0 && measuredValue < 0xffff)
+        {
+            // valid values are 1 - 0xfffe
+            // 0, too low to measure
+            // 0xffff invalid value
+
+            // ZCL Attribute = 10.000 * log10(Illuminance (lx)) + 1
+            // lux = 10^((ZCL Attribute - 1)/10.000)
+            qreal exp = measuredValue - 1;
+            qreal l = qPow(10, exp / 10000.0f);
+            l += 0.5;   // round value
+            lux = static_cast<quint32>(l);
+        }
+        item->setValue(lux);
+        if (item->lastChanged() == item->lastSet())
+        {
+            Event e(RSensors, RStateLux, sensor.id(), item);
+            enqueueEvent(e);
+        }
+    }
+}
+
 /*! Updates/adds a SensorNode from a Node.
     If the node does not exist it will be created
     otherwise the values will be checked for change
@@ -3990,107 +4105,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
                                 }
 
-                                ResourceItem *item = i->item(RStateLightLevel);
-
-                                quint16 measuredValue = ia->numericValue().u16; // ZigBee uses a 16-bit value
-
-                                if (i->modelId().startsWith(QLatin1String("lumi.sensor_motion")))
-                                {
-                                    // measured value is given as lux: transform
-                                    // ZCL Attribute = 10.000 * log10(Illuminance (lx)) + 1
-                                    double ll = 10000 * std::log10(measuredValue) + 1;
-                                    if (ll > 0xfffe) { measuredValue = 0xfffe; }
-                                    else             { measuredValue = ll; }
-                                }
-
-                                if (item)
-                                {
-                                    item->setValue(measuredValue);
-                                    i->updateStateTimestamp();
-                                    i->setNeedSaveDatabase(true);
-                                    Event e(RSensors, RStateLightLevel, i->id(), item);
-                                    enqueueEvent(e);
-                                    enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
-                                }
-
-                                quint16 tholddark = R_THOLDDARK_DEFAULT;
-                                quint16 tholdoffset = R_THOLDOFFSET_DEFAULT;
-                                item = i->item(RConfigTholdDark);
-                                if (item)
-                                {
-                                    tholddark = item->toNumber();
-                                }
-                                item = i->item(RConfigTholdOffset);
-                                if (item)
-                                {
-                                    tholdoffset = item->toNumber();
-                                }
-                                bool dark = measuredValue <= tholddark;
-                                bool daylight = measuredValue >= tholddark + tholdoffset;
-
-                                item = i->item(RStateDark);
-                                if (!item)
-                                {
-                                    item = i->addItem(DataTypeBool, RStateDark);
-                                }
-                                if (item->setValue(dark))
-                                {
-                                    if (item->lastChanged() == item->lastSet())
-                                    {
-                                        Event e(RSensors, RStateDark, i->id(), item);
-                                        enqueueEvent(e);
-                                    }
-                                }
-
-                                item = i->item(RStateDaylight);
-                                if (!item)
-                                {
-                                    item = i->addItem(DataTypeBool, RStateDaylight);
-                                }
-                                if (item->setValue(daylight))
-                                {
-                                    if (item->lastChanged() == item->lastSet())
-                                    {
-                                        Event e(RSensors, RStateDaylight, i->id(), item);
-                                        enqueueEvent(e);
-                                    }
-                                }
-
-                                item = i->item(RStateLux);
-
-                                if (!item)
-                                {
-                                    item = i->addItem(DataTypeUInt32, RStateLux);
-                                }
-
-                                if (item)
-                                {
-                                    quint32 lux = 0;
-                                    if (i->modelId().startsWith(QLatin1String("lumi.sensor_motion")))
-                                    {   // measured values is actually given in lux
-                                        lux = ia->numericValue().u16;
-                                    }
-                                    else if (measuredValue > 0 && measuredValue < 0xffff)
-                                    {
-                                        // valid values are 1 - 0xfffe
-                                        // 0, too low to measure
-                                        // 0xffff invalid value
-
-                                        // ZCL Attribute = 10.000 * log10(Illuminance (lx)) + 1
-                                        // lux = 10^((ZCL Attribute - 1)/10.000)
-                                        qreal exp = measuredValue - 1;
-                                        qreal l = qPow(10, exp / 10000.0f);
-                                        l += 0.5;   // round value
-                                        lux = static_cast<quint32>(l);
-                                    }
-                                    item->setValue(lux);
-                                    if (item->lastChanged() == item->lastSet())
-                                    {
-                                        Event e(RSensors, RStateLux, i->id(), item);
-                                        enqueueEvent(e);
-                                    }
-                                }
-
+                                updateSensorLightLevel(*i, ia->numericValue().u16); // ZigBee uses a 16-bit measured value
                                 updateSensorEtag(&*i);
                             }
                         }
@@ -6926,7 +6941,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     }
 
     quint16 battery = 0;
-    quint16 lightlevel = UINT16_MAX;
+    quint32 lightlevel = UINT32_MAX; // use 32-bit to mark invalid and support 0xffff value
     qint16 temperature = INT16_MIN;
     quint8 onOff = UINT8_MAX;
 
@@ -7054,13 +7069,12 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             }
         }
 
-        if (lightlevel != UINT16_MAX && sensor.modelId().startsWith(QLatin1String("lumi.sensor_motion")))
+        if (lightlevel != UINT32_MAX &&
+            sensor.type() == QLatin1String("ZHALightLevel") &&
+            sensor.modelId().startsWith(QLatin1String("lumi.sensor_motion")))
         {
-            ResourceItem *item = sensor.item(RStateLightLevel);
-            if (item)
-            {
-                // TODO
-            }
+            updateSensorLightLevel(sensor, lightlevel);
+            updated = true;
         }
 
         if (onOff != UINT8_MAX)
