@@ -3531,7 +3531,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         sensorNode.setManufacturer("LUMI");
         sensorNode.addItem(DataTypeUInt8, RConfigBattery);
 
-        if (!sensorNode.item(RStateTemperature))
+        if (!sensorNode.item(RStateTemperature) &&
+            !sensorNode.modelId().contains(QLatin1String("weather")) &&
+            !sensorNode.modelId().startsWith(QLatin1String("lumi.sensor_ht")))
         {
             sensorNode.addItem(DataTypeInt16, RConfigTemperature);
             //sensorNode.addItem(DataTypeInt16, RConfigOffset);

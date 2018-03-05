@@ -2140,7 +2140,9 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeUInt8, RConfigBattery);
             item->setValue(100);
 
-            if (!sensor.item(RStateTemperature))
+            if (!sensor.item(RStateTemperature) &&
+                !sensor.modelId().contains(QLatin1String("weather")) &&
+                !sensor.modelId().startsWith(QLatin1String("lumi.sensor_ht")))
             {
                 item = sensor.addItem(DataTypeInt16, RConfigTemperature);
                 item->setValue(0);
