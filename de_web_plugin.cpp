@@ -3529,6 +3529,15 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else if (modelId.startsWith(QLatin1String("lumi")))
     {
         sensorNode.setManufacturer("LUMI");
+        sensorNode.addItem(DataTypeUInt8, RConfigBattery);
+
+        if (!sensorNode.item(RStateTemperature) &&
+            !sensorNode.modelId().contains(QLatin1String("weather")) &&
+            !sensorNode.modelId().startsWith(QLatin1String("lumi.sensor_ht")))
+        {
+            sensorNode.addItem(DataTypeInt16, RConfigTemperature);
+            //sensorNode.addItem(DataTypeInt16, RConfigOffset);
+        }
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER ||
              node->nodeDescriptor().manufacturerCode() == VENDOR_120B)
@@ -3744,6 +3753,121 @@ void DeRestPluginPrivate::checkUpdatedFingerPrint(const deCONZ::Node *node, quin
             i->setUniqueId(generateUniqueId(i->address().ext(), fp.endpoint, clusterId));
             i->setNeedSaveDatabase(true);
             queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+        }
+    }
+}
+
+/*! Updates  ZHALightLevel sensor /state: lightlevel, lux, dark and daylight.
+    \param sensor - the sensor
+    \param measuredValue - 16-bit light level
+ */
+void DeRestPluginPrivate::updateSensorLightLevel(Sensor &sensor, quint16 measuredValue)
+{
+    const quint16 measuredValueIn = measuredValue;
+    ResourceItem *item = sensor.item(RStateLightLevel);
+
+    if (!item)
+    {
+        return;
+    }
+
+    if (sensor.modelId().startsWith(QLatin1String("lumi.sensor_motion")))
+    {
+        // measured value is given as lux: transform
+        // ZCL Attribute = 10.000 * log10(Illuminance (lx)) + 1
+        double ll = 10000 * std::log10(measuredValue) + 1;
+        if (ll > 0xfffe) { measuredValue = 0xfffe; }
+        else             { measuredValue = ll; }
+    }
+
+    if (item)
+    {
+        item->setValue(measuredValue);
+        sensor.updateStateTimestamp();
+        sensor.setNeedSaveDatabase(true);
+        Event e(RSensors, RStateLightLevel, sensor.id(), item);
+        enqueueEvent(e);
+        enqueueEvent(Event(RSensors, RStateLastUpdated, sensor.id()));
+    }
+
+    quint16 tholddark = R_THOLDDARK_DEFAULT;
+    quint16 tholdoffset = R_THOLDOFFSET_DEFAULT;
+    item = sensor.item(RConfigTholdDark);
+    if (item)
+    {
+        tholddark = item->toNumber();
+    }
+    item = sensor.item(RConfigTholdOffset);
+    if (item)
+    {
+        tholdoffset = item->toNumber();
+    }
+    bool dark = measuredValue <= tholddark;
+    bool daylight = measuredValue >= tholddark + tholdoffset;
+
+    item = sensor.item(RStateDark);
+    if (!item)
+    {
+        item = sensor.addItem(DataTypeBool, RStateDark);
+        DBG_Assert(item != 0);
+    }
+    if (item->setValue(dark))
+    {
+        if (item->lastChanged() == item->lastSet())
+        {
+            Event e(RSensors, RStateDark, sensor.id(), item);
+            enqueueEvent(e);
+        }
+    }
+
+    item = sensor.item(RStateDaylight);
+    if (!item)
+    {
+        item = sensor.addItem(DataTypeBool, RStateDaylight);
+        DBG_Assert(item != 0);
+    }
+    if (item->setValue(daylight))
+    {
+        if (item->lastChanged() == item->lastSet())
+        {
+            Event e(RSensors, RStateDaylight, sensor.id(), item);
+            enqueueEvent(e);
+        }
+    }
+
+    item = sensor.item(RStateLux);
+
+    if (!item)
+    {
+        item = sensor.addItem(DataTypeUInt32, RStateLux);
+        DBG_Assert(item != 0);
+    }
+
+    if (item)
+    {
+        quint32 lux = 0;
+        if (sensor.modelId().startsWith(QLatin1String("lumi.sensor_motion")))
+        {   // measured values is actually given in lux
+            lux = measuredValueIn;
+        }
+        else if (measuredValue > 0 && measuredValue < 0xffff)
+        {
+            // valid values are 1 - 0xfffe
+            // 0, too low to measure
+            // 0xffff invalid value
+
+            // ZCL Attribute = 10.000 * log10(Illuminance (lx)) + 1
+            // lux = 10^((ZCL Attribute - 1)/10.000)
+            qreal exp = measuredValue - 1;
+            qreal l = qPow(10, exp / 10000.0f);
+            l += 0.5;   // round value
+            lux = static_cast<quint32>(l);
+        }
+        item->setValue(lux);
+        if (item->lastChanged() == item->lastSet())
+        {
+            Event e(RSensors, RStateLux, sensor.id(), item);
+            enqueueEvent(e);
         }
     }
 }
@@ -3983,107 +4107,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
                                 }
 
-                                ResourceItem *item = i->item(RStateLightLevel);
-
-                                quint16 measuredValue = ia->numericValue().u16; // ZigBee uses a 16-bit value
-
-                                if (i->modelId().startsWith(QLatin1String("lumi.sensor_motion")))
-                                {
-                                    // measured value is given as lux: transform
-                                    // ZCL Attribute = 10.000 * log10(Illuminance (lx)) + 1
-                                    double ll = 10000 * std::log10(measuredValue) + 1;
-                                    if (ll > 0xfffe) { measuredValue = 0xfffe; }
-                                    else             { measuredValue = ll; }
-                                }
-
-                                if (item)
-                                {
-                                    item->setValue(measuredValue);
-                                    i->updateStateTimestamp();
-                                    i->setNeedSaveDatabase(true);
-                                    Event e(RSensors, RStateLightLevel, i->id(), item);
-                                    enqueueEvent(e);
-                                    enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
-                                }
-
-                                quint16 tholddark = R_THOLDDARK_DEFAULT;
-                                quint16 tholdoffset = R_THOLDOFFSET_DEFAULT;
-                                item = i->item(RConfigTholdDark);
-                                if (item)
-                                {
-                                    tholddark = item->toNumber();
-                                }
-                                item = i->item(RConfigTholdOffset);
-                                if (item)
-                                {
-                                    tholdoffset = item->toNumber();
-                                }
-                                bool dark = measuredValue <= tholddark;
-                                bool daylight = measuredValue >= tholddark + tholdoffset;
-
-                                item = i->item(RStateDark);
-                                if (!item)
-                                {
-                                    item = i->addItem(DataTypeBool, RStateDark);
-                                }
-                                if (item->setValue(dark))
-                                {
-                                    if (item->lastChanged() == item->lastSet())
-                                    {
-                                        Event e(RSensors, RStateDark, i->id(), item);
-                                        enqueueEvent(e);
-                                    }
-                                }
-
-                                item = i->item(RStateDaylight);
-                                if (!item)
-                                {
-                                    item = i->addItem(DataTypeBool, RStateDaylight);
-                                }
-                                if (item->setValue(daylight))
-                                {
-                                    if (item->lastChanged() == item->lastSet())
-                                    {
-                                        Event e(RSensors, RStateDaylight, i->id(), item);
-                                        enqueueEvent(e);
-                                    }
-                                }
-
-                                item = i->item(RStateLux);
-
-                                if (!item)
-                                {
-                                    item = i->addItem(DataTypeUInt32, RStateLux);
-                                }
-
-                                if (item)
-                                {
-                                    quint32 lux = 0;
-                                    if (i->modelId().startsWith(QLatin1String("lumi.sensor_motion")))
-                                    {   // measured values is actually given in lux
-                                        lux = ia->numericValue().u16;
-                                    }
-                                    else if (measuredValue > 0 && measuredValue < 0xffff)
-                                    {
-                                        // valid values are 1 - 0xfffe
-                                        // 0, too low to measure
-                                        // 0xffff invalid value
-
-                                        // ZCL Attribute = 10.000 * log10(Illuminance (lx)) + 1
-                                        // lux = 10^((ZCL Attribute - 1)/10.000)
-                                        qreal exp = measuredValue - 1;
-                                        qreal l = qPow(10, exp / 10000.0f);
-                                        l += 0.5;   // round value
-                                        lux = static_cast<quint32>(l);
-                                    }
-                                    item->setValue(lux);
-                                    if (item->lastChanged() == item->lastSet())
-                                    {
-                                        Event e(RSensors, RStateLux, i->id(), item);
-                                        enqueueEvent(e);
-                                    }
-                                }
-
+                                updateSensorLightLevel(*i, ia->numericValue().u16); // ZigBee uses a 16-bit measured value
                                 updateSensorEtag(&*i);
                             }
                         }
@@ -6884,16 +6908,34 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
  */
 void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
-    quint16 attrId;
-    quint8 dataType;
-    quint8 length;
+    quint16 attrId = 0;
+    quint8 dataType = 0;
+    quint8 length = 0;
 
     QDataStream stream(zclFrame.payload());
     stream.setByteOrder(QDataStream::LittleEndian);
 
-    stream >> attrId;
-    stream >> dataType;
-    stream >> length;
+    while (attrId != 0xff01)
+    {
+        if (stream.atEnd())
+        {
+            break;
+        }
+
+        stream >> attrId;
+        stream >> dataType;
+        stream >> length;
+
+        if (dataType == deCONZ::ZclCharacterString && attrId != 0xff01)
+        {
+            DBG_Printf(DBG_INFO, "0x%016llX skip Xiaomi attribute 0x%04X\n", ind.srcAddress().ext(), attrId);
+            for (; length > 0; length--) // skip
+            {
+                quint8 dummy;
+                stream >> dummy;
+            }
+        }
+    }
 
     if (stream.atEnd() || attrId != 0xff01 || dataType != deCONZ::ZclCharacterString)
     {
@@ -6901,10 +6943,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     }
 
     quint16 battery = 0;
+    quint32 lightlevel = UINT32_MAX; // use 32-bit to mark invalid and support 0xffff value
     qint16 temperature = INT16_MIN;
     quint8 onOff = UINT8_MAX;
 
-    DBG_Printf(DBG_INFO, "0x%016llX extract Xiomi special\n", ind.srcAddress().ext());
+    DBG_Printf(DBG_INFO, "0x%016llX extract Xiaomi special\n", ind.srcAddress().ext());
 
     while (!stream.atEnd())
     {
@@ -6947,6 +6990,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             DBG_Printf(DBG_INFO, "\t03 temperature %d °C\n", int(s8));
             temperature = qint16(s8) * 100;
         }
+        if (tag == 0x0b && dataType == deCONZ::Zcl16BitUint)
+        {
+            DBG_Printf(DBG_INFO, "\t0b lightlevel %u (0x%04X)\n", u16, u16);
+            lightlevel = u16;
+        }
         else if (tag == 0x64 && dataType == deCONZ::ZclBoolean)
         {
             DBG_Printf(DBG_INFO, "\t64 on/off %d\n", u8);
@@ -6987,26 +7035,48 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         bool updated = false;
         if (battery != 0)
         {
-            ResourceItem *item = sensor.addItem(DataTypeUInt16, RStateVoltage);
-            DBG_Assert(item != 0);
+            ResourceItem *item = sensor.item(RConfigBattery);
+            DBG_Assert(item != 0); // expected
             if (item)
             {
-                item->setValue(battery); // in V
-                enqueueEvent(Event(RSensors, RStateVoltage, sensor.id(), item));
+                // 2.7-3.0V taken from:
+                // https://github.com/snalee/Xiaomi/blob/master/devicetypes/a4refillpad/xiaomi-zigbee-button.src/xiaomi-zigbee-button.groovy
+                const float vmin = 2700;
+                const float vmax = 3000;
+                float bat = battery;
+
+                if      (bat > vmax) { bat = vmax; }
+                else if (bat < vmin) { bat = vmin; }
+
+                bat = ((bat - vmin) /(vmax - vmin)) * 100;
+
+                if      (bat > 100) { bat = 100; }
+                else if (bat <= 0)  { bat = 1; } // ?
+
+                item->setValue(quint8(bat));
+
+                enqueueEvent(Event(RSensors, RConfigBattery, sensor.id(), item));
                 updated = true;
             }
         }
 
         if (temperature != INT16_MIN)
         {
-            ResourceItem *item = sensor.addItem(DataTypeInt16, RStateTemperature);
-            DBG_Assert(item != 0);
+            ResourceItem *item = sensor.item(RConfigTemperature);
             if (item)
             {
-                item->setValue(temperature); // in V
-                enqueueEvent(Event(RSensors, RStateTemperature, sensor.id(), item));
+                item->setValue(temperature);
+                enqueueEvent(Event(RSensors, RConfigTemperature, sensor.id(), item));
                 updated = true;
             }
+        }
+
+        if (lightlevel != UINT32_MAX &&
+            sensor.type() == QLatin1String("ZHALightLevel") &&
+            sensor.modelId().startsWith(QLatin1String("lumi.sensor_motion")))
+        {
+            updateSensorLightLevel(sensor, lightlevel);
+            updated = true;
         }
 
         if (onOff != UINT8_MAX)
@@ -7017,6 +7087,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             {
                 item->setValue(onOff); // in V
                 enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor.id(), item));
+                sensor.updateStateTimestamp();
                 updated = true;
             }
         }
@@ -7025,7 +7096,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {
             updateSensorEtag(&sensor);
             sensor.setNeedSaveDatabase(true);
-            queSaveDb(DB_SENSORS , DB_HUGE_SAVE_DELAY);
+            saveDatabaseItems |= DB_SENSORS;
         }
     }
 }

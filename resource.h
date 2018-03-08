@@ -103,6 +103,7 @@ extern const char *RConfigSensitivity;
 extern const char *RConfigSensitivityMax;
 extern const char *RConfigSunriseOffset;
 extern const char *RConfigSunsetOffset;
+extern const char *RConfigTemperature;
 extern const char *RConfigTholdDark;
 extern const char *RConfigTholdOffset;
 extern const char *RConfigUrl;

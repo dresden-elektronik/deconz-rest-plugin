@@ -2637,11 +2637,9 @@ int DeRestPluginPrivate::configureWifi(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    if (map.contains("type") && map.contains("name") && map.contains("password"))
+    if (map.contains("type"))
     {
         QString type = map["type"].toString();
-        QString name = map["name"].toString();
-        QString password = map["password"].toString();
 
         if ((map["type"].type() != QVariant::String) || ((type != "accesspoint") && (type != "client")))
         {
@@ -2650,12 +2648,32 @@ int DeRestPluginPrivate::configureWifi(const ApiRequest &req, ApiResponse &rsp)
             return REQ_READY_SEND;
         }
 
+        gwWifiType = type;
+        gwWifi = "configured";
+    }
+    if (map.contains("name"))
+    {
+        QString name = map["name"].toString();
+
         if ((map["name"].type() != QVariant::String) || name.isEmpty())
         {
             rsp.httpStatus = HttpStatusBadRequest;
             rsp.list.append(errorToMap(ERR_INVALID_VALUE, "/config/wifi", QString("invalid value, %1 for parameter, name").arg(name)));
             return REQ_READY_SEND;
         }
+
+        if (gwWifiType == "accesspoint")
+        {
+            gwWifiName = name;
+        }
+        else
+        {
+            gwWifiClientName = name;
+        }
+    }
+    if (map.contains("password"))
+    {
+        QString password = map["password"].toString();
 
         if ((map["password"].type() != QVariant::String) || password.isEmpty())
         {
@@ -2664,15 +2682,29 @@ int DeRestPluginPrivate::configureWifi(const ApiRequest &req, ApiResponse &rsp)
             return REQ_READY_SEND;
         }
 
-        // save in db
-
-        gwWifiType = type;
-        gwWifi = "configured";
-
-        if (type == "accesspoint")
-        {            
-            gwWifiName = name;
+        if (gwWifiType == "accesspoint")
+        {
             gwWifiPw = password;
+        }
+        else
+        {
+            gwWifiClientPw = password;
+        }
+    }
+    if (map.contains("wifi"))
+    {
+        QString wifi = map["wifi"].toString();
+
+        if ((map["wifi"].type() != QVariant::String) || ((wifi != "configured") && (wifi != "not-configured") && (wifi != "deactivated")))
+        {
+            rsp.httpStatus = HttpStatusBadRequest;
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, "/config/wifi", QString("invalid value, %1 for parameter, wifi").arg(wifi)));
+            return REQ_READY_SEND;
+        }
+        gwWifi = wifi;
+    }
+
+    /*
             if (map.contains("channel"))
             {
                 bool ok;
@@ -2688,27 +2720,14 @@ int DeRestPluginPrivate::configureWifi(const ApiRequest &req, ApiResponse &rsp)
                     return REQ_READY_SEND;
                 }
             }
-        }
-        else
-        {
-            gwWifiClientName = name;
-            gwWifiClientPw = password;
-        }
+    */
 
-        updateEtag(gwConfigEtag);
-        queSaveDb(DB_CONFIG,DB_SHORT_SAVE_DELAY);
-
-    }
-    else
-    {
-        rsp.httpStatus = HttpStatusBadRequest;
-        rsp.list.append(errorToMap(ERR_MISSING_PARAMETER, "/config/wifi", "missing parameters in body"));
-        return REQ_READY_SEND;
-    }
+    updateEtag(gwConfigEtag);
+    queSaveDb(DB_CONFIG,DB_SHORT_SAVE_DELAY);
 
     QVariantMap rspItem;
     QVariantMap rspItemState;
-    rspItemState["/config/wifi/"] = "configured";
+    rspItemState["/config/wifi/"] = gwWifi;
     rspItem["success"] = rspItemState;
     rsp.list.append(rspItem);
 
