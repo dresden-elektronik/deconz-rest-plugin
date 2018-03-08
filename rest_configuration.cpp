@@ -2695,7 +2695,7 @@ int DeRestPluginPrivate::configureWifi(const ApiRequest &req, ApiResponse &rsp)
     {
         QString wifi = map["wifi"].toString();
 
-        if ((map["wifi"].type() != QVariant::String) || ((wifi != "configured") && (wifi != "not-configured") && (wifi != "deactivated")))
+        if ((map["wifi"].type() != QVariant::String) || ((wifi != "configured") && (wifi != "not-configured") && (wifi != "new-configured") && (wifi != "deactivated")))
         {
             rsp.httpStatus = HttpStatusBadRequest;
             rsp.list.append(errorToMap(ERR_INVALID_VALUE, "/config/wifi", QString("invalid value, %1 for parameter, wifi").arg(wifi)));
