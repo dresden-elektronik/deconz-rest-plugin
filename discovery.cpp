@@ -272,7 +272,7 @@ void DeRestPluginPrivate::internetDiscoveryExtractVersionInfo(QNetworkReply *rep
         QString date = reply->rawHeader("date");
         if (date.isEmpty())
         {
-            reply->rawHeader("Date");
+            date = reply->rawHeader("Date");
         }
         DBG_Printf(DBG_INFO, "discovery server date: %s\n", qPrintable(date));
 
