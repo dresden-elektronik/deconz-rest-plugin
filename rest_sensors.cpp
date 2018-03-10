@@ -1527,7 +1527,12 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, bo
     {
         map["manufacturername"] = sensor->manufacturer();
     }
-    map["uniqueid"] = sensor->uniqueId();
+
+    const ResourceItem *item = sensor->item(RAttrUniqueId);
+    if (item)
+    {
+        map["uniqueid"] = item->toString();
+    }
     map["state"] = state;
     map["config"] = config;
 
