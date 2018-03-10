@@ -550,6 +550,24 @@ ResourceItem *Resource::addItem(ApiDataType type, const char *suffix)
     return it;
 }
 
+void Resource::removeItem(const char *suffix)
+{
+    std::vector<ResourceItem>::iterator i = m_rItems.begin();
+    std::vector<ResourceItem>::iterator end = m_rItems.end();
+
+    for (; i != end; ++i)
+    {
+        if (i->descriptor().suffix != suffix)
+        {
+            continue;
+        }
+
+        *i = m_rItems.back();
+        m_rItems.pop_back();
+        return;
+    }
+}
+
 ResourceItem *Resource::item(const char *suffix)
 {
     for (size_t i = 0; i < m_rItems.size(); i++)
