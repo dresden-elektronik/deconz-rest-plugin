@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2018 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -1871,6 +1871,11 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         quint8 endpoint = sensor.fingerPrint().endpoint;
         DBG_Printf(DBG_INFO_L2, "DB found sensor %s %s\n", qPrintable(sensor.name()), qPrintable(sensor.id()));
 
+        if (!isClip && sensor.type() == QLatin1String("Daylight"))
+        {
+            isClip = true;
+        }
+
         if (isClip)
         {
             ok = true;
@@ -2123,6 +2128,16 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 item = sensor.addItem(DataTypeInt16, RStatePower);
                 item->setValue(0);
             }
+        }
+        else if (sensor.type() == QLatin1String("Daylight"))
+        {
+            d->daylightSensorId = sensor.id();
+            sensor.removeItem(RConfigReachable);
+            sensor.addItem(DataTypeBool, RConfigConfigured);
+            sensor.addItem(DataTypeString, RConfigLat);
+            sensor.addItem(DataTypeString, RConfigLong);
+            sensor.addItem(DataTypeBool, RStateDaylight);
+            sensor.addItem(DataTypeInt32, RStateStatus);
         }
 
         if (sensor.modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch

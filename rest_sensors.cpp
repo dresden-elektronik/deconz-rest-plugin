@@ -1438,9 +1438,9 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, bo
         const ResourceItem *item = sensor->itemForIndex(i);
         const ResourceItemDescriptor &rid = item->descriptor();
 
-        if (!item->lastSet().isValid())
+        if (rid.suffix == RConfigLat || rid.suffix == RConfigLong)
         {
-            continue;
+            continue; //  don't return due privacy reasons
         }
 
         if (rid.suffix == RConfigReachable &&

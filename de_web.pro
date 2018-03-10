@@ -79,6 +79,7 @@ QMAKE_CXXFLAGS += -Wno-attributes
 HEADERS  = bindings.h \
            connectivity.h \
            colorspace.h \
+           daylight.h \
            de_web_plugin.h \
            de_web_plugin_private.h \
            de_web_widget.h \
@@ -106,6 +107,7 @@ SOURCES  = authentification.cpp \
            connectivity.cpp \
            colorspace.cpp \
            database.cpp \
+           daylight.cpp \
            discovery.cpp \
            de_web_plugin.cpp \
            de_web_widget.cpp \
