@@ -346,6 +346,13 @@ bool ResourceItem::setValue(qint64 val)
 
 bool ResourceItem::setValue(const QVariant &val)
 {
+    if (!val.isValid())
+    {
+        m_lastSet = QDateTime();
+        m_lastChanged = m_lastSet;
+        return true;
+    }
+
     QDateTime now = QDateTime::currentDateTime();
 
     if (m_rid.type == DataTypeString ||
@@ -459,6 +466,11 @@ void ResourceItem::setTimeStamps(const QDateTime &t)
 
 QVariant ResourceItem::toVariant() const
 {
+    if (!m_lastSet.isValid())
+    {
+        return QVariant();
+    }
+
     if (m_rid.type == DataTypeString ||
         m_rid.type == DataTypeTimePattern)
     {
