@@ -1484,6 +1484,13 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, bo
         if (strncmp(rid.suffix, "state/", 6) == 0)
         {
             const char *key = item->descriptor().suffix + 6;
+
+            if (rid.suffix == RStateLastUpdated && !item->lastSet().isValid())
+            {
+                state[key] = QLatin1String("none");
+                continue;
+            }
+
             state[key] = item->toVariant();
         }
     }
