@@ -3452,10 +3452,15 @@ void DeRestPluginPrivate::queSaveDb(int items, int msec)
     databaseTimer->start(msec);
 }
 
-/*! Timer handler for storing persistent data.
+/*! Checks various data for consistency.
  */
 void DeRestPluginPrivate::checkConsistency()
 {
+    if (gwProxyAddress == QLatin1String("none"))
+    {
+        gwProxyPort = 0;
+    }
+
     {
         std::vector<Group>::iterator i = groups.begin();
         std::vector<Group>::iterator end = groups.end();
