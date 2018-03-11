@@ -1317,6 +1317,8 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
 
             if (eItem->descriptor().suffix == RStateLastUpdated)
             {}
+            else if (eItem->descriptor().suffix == RConfigLocalTime)
+            {}
             else if (e.num() == e.numPrevious())
             {
                 return false;
