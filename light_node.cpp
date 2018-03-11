@@ -96,13 +96,14 @@ void LightNode::setManufacturerCode(uint16_t code)
         case VENDOR_IKEA:    m_manufacturer = QLatin1String("IKEA of Sweden"); break;
         case VENDOR_INNR:    m_manufacturer = QLatin1String("innr"); break;
         case VENDOR_INNR2:   m_manufacturer = QLatin1String("innr"); break;
-        case VENDOR_INSTA:    m_manufacturer = QLatin1String("Insta"); break;
+        case VENDOR_INSTA:   m_manufacturer = QLatin1String("Insta"); break;
         case VENDOR_PHILIPS: m_manufacturer = QLatin1String("Philips"); break;
         case VENDOR_OSRAM_STACK: // fall through
         case VENDOR_OSRAM:   m_manufacturer = QLatin1String("OSRAM"); break;
         case VENDOR_UBISYS:  m_manufacturer = QLatin1String("ubisys"); break;
         case VENDOR_BUSCH_JAEGER:  m_manufacturer = QLatin1String("Busch-Jaeger"); break;
-        case VENDOR_EMBER:  m_manufacturer = QLatin1String("Heiman"); break;
+        case VENDOR_EMBER:   // fall through
+        case VENDOR_120B:    m_manufacturer = QLatin1String("Heiman"); break;
         default:
             m_manufacturer = QLatin1String("Unknown");
             break;
@@ -563,6 +564,8 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
             case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT: ltype = QLatin1String("Color temperature light"); break;
             case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT: ltype = QLatin1String("Color temperature light"); break;
             case DEV_ID_XIAOMI_SMART_PLUG:           ltype = QLatin1String("Smart plug"); break;
+            case DEV_ID_IAS_WARNING_DEVICE:          removeItem(RStateOn);
+                                                     ltype = QLatin1String("Warning device"); break;
             default:
                 break;
             }

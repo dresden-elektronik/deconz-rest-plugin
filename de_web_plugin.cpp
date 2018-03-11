@@ -1194,6 +1194,12 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                     }
                     break;
 
+                case DEV_ID_IAS_WARNING_DEVICE:
+                    {
+                        lightNode.setHaEndpoint(*i);
+                    }
+                    break;
+
                 default:
                     {
                     }
@@ -1519,6 +1525,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
             case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:
             case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:
             case DEV_ID_ZLL_ONOFF_SENSOR:
+            case DEV_ID_IAS_WARNING_DEVICE:
                 break;
 
             default:
@@ -2557,7 +2564,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         SensorFingerprint fpSwitch;
         SensorFingerprint fpTemperatureSensor;
         SensorFingerprint fpWaterSensor;
-        SensorFingerprint fpWarningSensor;
 
         {   // scan client clusters of endpoint
             QList<deCONZ::ZclCluster>::const_iterator ci = i->outClusters().constBegin();
@@ -2662,7 +2668,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         fpSwitch.inClusters.push_back(ci->id());
                         fpTemperatureSensor.inClusters.push_back(ci->id());
                         fpWaterSensor.inClusters.push_back(ci->id());
-                        fpWarningSensor.inClusters.push_back(ci->id());
                     // }
                 }
                     break;
@@ -2773,13 +2778,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         }
                     }
                 }
-                    break;
-
-                case IAS_WD_CLUSTER_ID:
-                    if (modelId == QLatin1String("WarningDevice")) // Heiman siren
-                    {
-                        fpWarningSensor.inClusters.push_back(ci->id());
-                    }
                     break;
 
                 case OCCUPANCY_SENSING_CLUSTER_ID:
@@ -2949,7 +2947,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         // ZHAPresence
         if (fpPresenceSensor.hasInCluster(OCCUPANCY_SENSING_CLUSTER_ID) ||
             fpPresenceSensor.hasInCluster(IAS_ZONE_CLUSTER_ID) ||
-            fpPresenceSensor.hasInCluster(IAS_WD_CLUSTER_ID) ||
             fpPresenceSensor.hasOutCluster(ONOFF_CLUSTER_ID))
         {
             fpPresenceSensor.endpoint = i->endpoint();
@@ -3112,24 +3109,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             }
         }
 
-        // ZHAWarning
-        if (fpWarningSensor.hasInCluster(IAS_WD_CLUSTER_ID))
-        {
-            fpWarningSensor.endpoint = i->endpoint();
-            fpWarningSensor.deviceId = i->deviceId();
-            fpWarningSensor.profileId = i->profileId();
-
-            sensor = getSensorNodeForFingerPrint(node->address().ext(), fpWarningSensor, "ZHAWarning");
-            if (!sensor || sensor->deletedState() != Sensor::StateNormal)
-            {
-                addSensorNode(node, fpWarningSensor, "ZHAWarning", modelId, manufacturer);
-            }
-            else
-            {
-                checkSensorNodeReachable(sensor);
-            }
-        }
-
         // ZHAConsumption
         if (fpConsumptionSensor.hasInCluster(METERING_CLUSTER_ID) ||
             fpConsumptionSensor.hasInCluster(ANALOG_INPUT_CLUSTER_ID))
@@ -3285,10 +3264,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = OCCUPANCY_SENSING_CLUSTER_ID;
         }
-        else if (sensorNode.fingerPrint().hasInCluster(IAS_WD_CLUSTER_ID))
-        {
-            clusterId = IAS_WD_CLUSTER_ID;
-        }
         else if (sensorNode.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
         {
             clusterId = IAS_ZONE_CLUSTER_ID;
@@ -3350,17 +3325,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         }
         item = sensorNode.addItem(DataTypeBool, RStateWater);
         item->setValue(false);
-    }
-    else if (sensorNode.type().endsWith(QLatin1String("Warning")))
-    {
-        if (sensorNode.fingerPrint().hasInCluster(IAS_WD_CLUSTER_ID))
-        {
-            clusterId = IAS_WD_CLUSTER_ID;
-        }
-        item = sensorNode.addItem(DataTypeString, RStateAlert);
-        item->setValue(QString("none"));
-        item = sensorNode.addItem(DataTypeString, RStateEffect);
-        item->setValue(QString("none"));
     }
     else if (sensorNode.type().endsWith(QLatin1String("Consumption")))
     {
@@ -12593,6 +12557,8 @@ void DeRestPluginPrivate::pushSensorInfoToCore(Sensor *sensor)
     { } // use name from light
     else if (sensor->modelId() == QLatin1String("SML001") && sensor->type() != QLatin1String("ZHAPresence"))
     { } // use name from ZHAPresence sensor only
+    else if (sensor->modelId() == QLatin1String("WarningDevice") && sensor->type() == QLatin1String("ZHAAlarm"))
+    { } // use name from light
     else if (!sensor->name().isEmpty())
     {
         q->nodeUpdated(sensor->address().ext(), QLatin1String("name"), sensor->name());
