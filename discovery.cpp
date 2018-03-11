@@ -231,6 +231,7 @@ void DeRestPluginPrivate::internetDiscoveryFinishedRequest(QNetworkReply *reply)
         }
         gwAnnounceVital++;
         DBG_Printf(DBG_INFO, "Announced to internet\n");
+        internetDiscoveryExtractGeo(reply);
 #ifdef ARCH_ARM
         // currently this is only supported for the RaspBee Gateway
         internetDiscoveryExtractVersionInfo(reply);
@@ -272,7 +273,7 @@ void DeRestPluginPrivate::internetDiscoveryExtractVersionInfo(QNetworkReply *rep
         QString date = reply->rawHeader("date");
         if (date.isEmpty())
         {
-            reply->rawHeader("Date");
+            date = reply->rawHeader("Date");
         }
         DBG_Printf(DBG_INFO, "discovery server date: %s\n", qPrintable(date));
 
@@ -360,6 +361,54 @@ void DeRestPluginPrivate::internetDiscoveryExtractVersionInfo(QNetworkReply *rep
     else
     {
         DBG_Printf(DBG_ERROR, "discovery reply doesn't contain valid version info\n");
+    }
+}
+
+/*! Extracts the geo information.
+
+    \param reply from discovery server
+ */
+void DeRestPluginPrivate::internetDiscoveryExtractGeo(QNetworkReply *reply)
+{
+//    for (const QByteArray &hdr : reply->rawHeaderList())
+//    {
+//        DBG_Printf(DBG_INFO, "hdr: %s: %s\n", qPrintable(hdr), qPrintable(reply->rawHeader(hdr)));
+//    }
+
+    if (reply->hasRawHeader("X-AppEngine-CityLatLong"))
+    {
+        QList<QByteArray> ll = reply->rawHeader("X-AppEngine-CityLatLong").split(',');
+        if (ll.size() != 2)
+        {
+            // no geo information available
+            return;
+        }
+
+        Sensor *sensor = getSensorNodeForId(daylightSensorId);
+        DBG_Assert(sensor != 0);
+        if (!sensor)
+        {
+            return;
+        }
+
+        ResourceItem *configured = sensor->item(RConfigConfigured);
+        ResourceItem *lat = sensor->item(RConfigLat);
+        ResourceItem *lon = sensor->item(RConfigLong);
+
+        DBG_Assert(configured && lat && lon);
+        if (!configured || !lat || !lon)
+        {
+            return;
+        }
+
+        if (!configured->toBool() || !configured->lastSet().isValid())
+        {
+            configured->setValue(true);
+            lat->setValue(QString(ll[0]));
+            lon->setValue(QString(ll[1]));
+            sensor->setNeedSaveDatabase(true);
+            queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+        }
     }
 }
 

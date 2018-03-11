@@ -1438,9 +1438,9 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, bo
         const ResourceItem *item = sensor->itemForIndex(i);
         const ResourceItemDescriptor &rid = item->descriptor();
 
-        if (!item->lastSet().isValid())
+        if (rid.suffix == RConfigLat || rid.suffix == RConfigLong)
         {
-            continue;
+            continue; //  don't return due privacy reasons
         }
 
         if (rid.suffix == RConfigReachable &&
@@ -1484,6 +1484,13 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, bo
         if (strncmp(rid.suffix, "state/", 6) == 0)
         {
             const char *key = item->descriptor().suffix + 6;
+
+            if (rid.suffix == RStateLastUpdated && !item->lastSet().isValid())
+            {
+                state[key] = QLatin1String("none");
+                continue;
+            }
+
             state[key] = item->toVariant();
         }
     }
@@ -1527,7 +1534,12 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, bo
     {
         map["manufacturername"] = sensor->manufacturer();
     }
-    map["uniqueid"] = sensor->uniqueId();
+
+    const ResourceItem *item = sensor->item(RAttrUniqueId);
+    if (item)
+    {
+        map["uniqueid"] = item->toString();
+    }
     map["state"] = state;
     map["config"] = config;
 

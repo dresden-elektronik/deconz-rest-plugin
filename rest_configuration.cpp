@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2013-2018 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -18,6 +18,7 @@
 #include <QVariantMap>
 #include <QNetworkInterface>
 #include <QProcessEnvironment>
+#include "daylight.h"
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "json.h"
@@ -200,6 +201,40 @@ void DeRestPluginPrivate::initTimezone()
     tzset();
 #endif
 #endif
+
+    if (daylightSensorId.isEmpty())
+    {
+        Sensor dl;
+        ResourceItem *item;
+        openDb();
+        daylightSensorId = QString::number(getFreeSensorId());
+        closeDb();
+        dl.setId(daylightSensorId);
+        dl.setType(QLatin1String("Daylight"));
+        dl.setName(QLatin1String("Daylight"));
+        item = dl.addItem(DataTypeBool, RStateDaylight);
+        item->setValue(QVariant());
+
+        item = dl.addItem(DataTypeInt32, RStateStatus);
+        item->setValue(QVariant());
+
+        dl.removeItem(RConfigReachable);
+
+        dl.setModelId(QLatin1String("PHDL00"));
+        dl.setManufacturer(QLatin1String("Philips"));
+        dl.setSwVersion(QLatin1String("1.0"));
+        dl.item(RConfigOn)->setValue(true);
+        dl.setNeedSaveDatabase(true);
+        queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+        sensors.push_back(dl);
+    }
+
+    QTimer *daylighTimer = new QTimer(this);
+    connect(daylighTimer, SIGNAL(timeout()), this, SLOT(daylightTimerFired()));
+    daylighTimer->setSingleShot(false);
+    daylighTimer->start(10000);
+
+    daylightTimerFired();
 }
 
 /*! Init WiFi parameters if necessary. */
@@ -3068,6 +3103,99 @@ void DeRestPluginPrivate::resendPermitJoinTimerFired()
         return;
     }
     resendPermitJoinTimer->start(1000);
+}
+
+/* Check daylight state */
+void DeRestPluginPrivate::daylightTimerFired()
+{
+    Sensor *sensor = getSensorNodeForId(daylightSensorId);
+    DBG_Assert(sensor != 0);
+    if (!sensor)
+    {
+        return;
+    }
+
+    double lat = NAN;
+    double lng = NAN;
+    ResourceItem *configured = sensor->item(RConfigConfigured);
+    if (!configured || !configured->toBool())
+    {
+        return;
+    }
+
+    {
+        ResourceItem *ilat = sensor->item(RConfigLat);
+        ResourceItem *ilng = sensor->item(RConfigLong);
+        if (!ilat || !ilng)
+        {
+            return;
+        }
+
+        bool ok1;
+        bool ok2;
+        lat = ilat->toString().toDouble(&ok1);
+        lng = ilng->toString().toDouble(&ok2);
+        if (!ok1 || !ok2)
+        {
+            return;
+        }
+    }
+
+    ResourceItem *daylight = sensor->item(RStateDaylight);
+    ResourceItem *status = sensor->item(RStateStatus);
+    DBG_Assert(daylight && status);
+    if (!daylight || !status)
+    {
+        return;
+    }
+
+    std::vector<DL_Result> daylightTimes;
+
+    quint64 nowMs = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    getDaylightTimes(nowMs, lat, lng, daylightTimes);
+
+    const char *curName = 0;
+    int cur = 0;
+
+    for (const DL_Result &r : daylightTimes)
+    {
+        //qDebug() << r.name << QDateTime::fromMSecsSinceEpoch(r.msecsSinceEpoch).toString();
+
+        if (r.msecsSinceEpoch <= nowMs)
+        {
+            curName = r.name;
+            cur = r.weight;
+        }
+    }
+
+    if (cur)
+    {
+        bool dl = (cur > DL_SUNRISE_END && cur < DL_SUNSET_START) ? true : false;
+        if (!daylight->lastSet().isValid() || daylight->toBool() != dl)
+        {
+            daylight->setValue(dl);
+            Event e(RSensors, RStateStatus, sensor->id(), status);
+            enqueueEvent(e);
+            sensor->updateStateTimestamp();
+            sensor->setNeedSaveDatabase(true);
+            saveDatabaseItems |= DB_SENSORS;
+        }
+
+        if (cur != status->toNumber())
+        {
+            status->setValue(cur);
+            Event e(RSensors, RStateStatus, sensor->id(), status);
+            enqueueEvent(e);
+            sensor->updateStateTimestamp();
+            sensor->setNeedSaveDatabase(true);
+            saveDatabaseItems |= DB_SENSORS;
+        }
+    }
+
+    if (curName)
+    {
+        DBG_Printf(DBG_INFO, "Daylight now: %s, status: %d\n", curName, cur);
+    }
 }
 
 /*! Manager to asure gateway has proper time.

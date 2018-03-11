@@ -831,6 +831,7 @@ public Q_SLOTS:
     void internetDiscoveryTimerFired();
     void internetDiscoveryFinishedRequest(QNetworkReply *reply);
     void internetDiscoveryExtractVersionInfo(QNetworkReply *reply);
+    void internetDiscoveryExtractGeo(QNetworkReply *reply);
     void inetProxyHostLookupDone(const QHostInfo &host);
     void inetProxyCheckHttpVia(const QString &via);
     void scheduleTimerFired();
@@ -857,6 +858,7 @@ public Q_SLOTS:
     void verifyRuleBindingsTimerFired();
     void indexRulesTriggers();
     void fastRuleCheckTimerFired();
+    void daylightTimerFired();
     void handleRuleEvent(const Event &e);
     void queueBindingTask(const BindingTask &bindingTask);
     void restartAppTimerFired();
@@ -1436,6 +1438,7 @@ public:
     std::vector<Group> groups;
     std::vector<LightNode> nodes;
     std::vector<Rule> rules;
+    QString daylightSensorId;
     std::vector<Sensor> sensors;
     std::list<TaskItem> tasks;
     std::list<TaskItem> runningTasks;

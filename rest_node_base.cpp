@@ -108,6 +108,12 @@ void RestNodeBase::setId(const QString &id)
  */
 const QString &RestNodeBase::uniqueId() const
 {
+    const Resource *r = dynamic_cast<const Resource*>(this);
+    const ResourceItem *item = r ? r->item(RAttrUniqueId) : 0;
+    if (item)
+    {
+        return item->toString();
+    }
     return m_uid;
 }
 
@@ -117,6 +123,12 @@ const QString &RestNodeBase::uniqueId() const
  */
 void RestNodeBase::setUniqueId(const QString &uid)
 {
+    Resource *r = dynamic_cast<Resource*>(this);
+    ResourceItem *item = r ? r->addItem(DataTypeString, RAttrUniqueId) : 0;
+    if (item)
+    {
+        item->setValue(uid);
+    }
     m_uid = uid;
 }
 

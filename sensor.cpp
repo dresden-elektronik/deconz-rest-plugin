@@ -501,7 +501,12 @@ void Sensor::setDeletedState(DeletedState deletedstate)
  */
 bool Sensor::isAvailable() const
 {
-    return item(RConfigReachable)->toBool();
+    const ResourceItem *i = item(RConfigReachable);
+    if (i)
+    {
+        return i->toBool();
+    }
+    return true;
 }
 
 /*! Returns the sensor name.

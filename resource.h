@@ -182,6 +182,7 @@ public:
     Resource(const char *prefix);
     const char *prefix() const;
     ResourceItem *addItem(ApiDataType type, const char *suffix);
+    void removeItem(const char *suffix);
     ResourceItem *item(const char *suffix);
     const ResourceItem *item(const char *suffix) const;
     bool toBool(const char *suffix) const;

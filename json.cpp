@@ -124,6 +124,10 @@ QByteArray Json::serialize(const QVariant &data, bool &success)
 		str += join(pairs, ",");
 		str += "}";
 	}
+	else if (data.isNull())
+	{
+		str = "null";
+	}
 	else if((data.type() == QVariant::String) || (data.type() == QVariant::ByteArray)) // a string or a byte array?
 	{
 		str = sanitizeString(data.toString())
