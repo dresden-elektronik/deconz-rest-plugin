@@ -781,6 +781,52 @@ bool DeRestPluginPrivate::addTaskTriggerEffect(TaskItem &task, uint8_t effectIde
     return addTask(task);
 }
 
+/*! Add a warning task to the queue.
+
+   \param task - the task item
+   \param options - the options
+   \param duration - the duration
+   \return true - on success
+           false - on error
+ */
+bool DeRestPluginPrivate::addTaskWarning(TaskItem &task, uint8_t options, uint16_t duration)
+{
+    task.taskType = TaskWarning;
+    task.options = options;
+    task.duration = duration;
+    uint8_t strobe_duty_cycle = 10;
+    uint8_t strobe_level = 0;
+
+    task.req.setClusterId(IAS_WD_CLUSTER_ID);
+    task.req.setProfileId(HA_PROFILE_ID);
+
+    task.zclFrame.payload().clear();
+    task.zclFrame.setSequenceNumber(zclSeq++);
+    task.zclFrame.setCommandId(0x00); // Start Warning
+    task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
+                             deCONZ::ZclFCDirectionClientToServer |
+                             deCONZ::ZclFCDisableDefaultResponse);
+
+    { // payload
+        QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        stream << task.options;
+        stream << task.duration;
+        stream << strobe_duty_cycle;
+        stream << strobe_level;
+    }
+
+    { // ZCL frame
+        task.req.asdu().clear(); // cleanup old request data if there is any
+        QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        task.zclFrame.writeToStream(stream);
+    }
+
+    return addTask(task);
+}
+
 /*! Add a add to group task to the queue.
 
    \param task - the task item

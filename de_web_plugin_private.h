@@ -104,6 +104,7 @@
 
 //
 #define DEV_ID_IAS_ZONE                     0x0402 // IAS Zone
+#define DEV_ID_IAS_WARNING_DEVICE           0x0403 // IAS Warning Device
 // Smart Energy devices
 #define DEV_ID_SE_METERING_DEVICE           0x0501 // Smart Energy metering device
 
@@ -466,7 +467,8 @@ enum TaskType
     TaskAddToGroup = 30,
     TaskRemoveFromGroup = 31,
     TaskViewGroup = 32,
-    TaskTriggerEffect = 33
+    TaskTriggerEffect = 33,
+    TaskWarning = 34
 };
 
 struct TaskItem
@@ -501,6 +503,8 @@ struct TaskItem
     qreal hueReal;
     uint16_t identifyTime;
     uint8_t effectIdentifier;
+    uint8_t options;
+    uint16_t duration;
     uint8_t hue;
     uint8_t sat;
     uint8_t level;
@@ -1029,6 +1033,7 @@ public:
     bool addTaskSetColorLoop(TaskItem &task, bool colorLoopActive, uint8_t speed);
     bool addTaskIdentify(TaskItem &task, uint16_t identifyTime);
     bool addTaskTriggerEffect(TaskItem &task, uint8_t effectIdentifier);
+    bool addTaskWarning(TaskItem &task, uint8_t options, uint16_t duration);
     bool addTaskAddToGroup(TaskItem &task, uint16_t groupId);
     bool addTaskViewGroup(TaskItem &task, uint16_t groupId);
     bool addTaskRemoveFromGroup(TaskItem &task, uint16_t groupId);

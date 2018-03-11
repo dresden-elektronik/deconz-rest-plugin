@@ -987,48 +987,85 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         TaskItem task;
         copyTaskReq(taskRef, task);
         QString alert = map["alert"].toString();
+        bool isWarningDevice = taskRef.lightNode->type() == QLatin1String("Warning device");
 
         if (alert == "none")
         {
-            task.taskType = TaskIdentify;
-            task.identifyTime = 0;
+            if (isWarningDevice)
+            {
+                task.taskType = TaskWarning;
+                task.options = 0x00; // Warning mode 0 (no warning), No strobe
+                task.duration = 0;
+            }
+            else
+            {
+                task.taskType = TaskIdentify;
+                task.identifyTime = 0;
+            }
         }
         else if (alert == "select")
         {
-            task.taskType = TaskIdentify;
-            task.identifyTime = 2;    // Hue lights don't react to 1.
+            if (isWarningDevice)
+            {
+                task.taskType = TaskWarning;
+                task.options = 0x14; // Warning mode 1 (burglar), Strobe
+                task.duration = 1;
+            }
+            else
+            {
+                task.taskType = TaskIdentify;
+                task.identifyTime = 2;    // Hue lights don't react to 1.
+            }
         }
         else if (alert == "lselect")
         {
-            task.taskType = TaskIdentify;
-            task.identifyTime = 15;   // Default for Philips Hue bridge
+            if (isWarningDevice)
+            {
+                task.taskType = TaskWarning;
+                task.options = 0x14; // Warning mode 1 (burglar), Strobe
+                task.duration = 300;
+            }
+            else
+            {
+                task.taskType = TaskIdentify;
+                task.identifyTime = 15;   // Default for Philips Hue bridge
+            }
         }
         else if (alert == "blink")
         {
-            task.taskType = TaskTriggerEffect;
-            task.effectIdentifier = 0x00;
+            if (isWarningDevice)
+            {
+                task.taskType = TaskWarning;
+                task.options = 0x04; // Warning mode 0 (no warning), Strobe
+                task.duration = 300;
+            }
+            else
+            {
+                task.taskType = TaskTriggerEffect;
+                task.effectIdentifier = 0x00;
+            }
         }
-        else if (alert == "breathe")
+        else if (alert == "breathe" && !isWarningDevice)
         {
             task.taskType = TaskTriggerEffect;
             task.effectIdentifier = 0x01;
         }
-        else if (alert == "okay")
+        else if (alert == "okay" && !isWarningDevice)
         {
             task.taskType = TaskTriggerEffect;
             task.effectIdentifier = 0x02;
         }
-        else if (alert == "channelchange")
+        else if (alert == "channelchange" && !isWarningDevice)
         {
             task.taskType = TaskTriggerEffect;
             task.effectIdentifier = 0x0b;
         }
-        else if (alert == "finish")
+        else if (alert == "finish" && !isWarningDevice)
         {
             task.taskType = TaskTriggerEffect;
             task.effectIdentifier = 0xfe;
         }
-        else if (alert == "stop")
+        else if (alert == "stop" && !isWarningDevice)
         {
             task.taskType = TaskTriggerEffect;
             task.effectIdentifier = 0xff;
@@ -1043,7 +1080,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         taskToLocalData(task);
 
         if ((task.taskType == TaskIdentify && addTaskIdentify(task, task.identifyTime)) ||
-            (task.taskType == TaskTriggerEffect && addTaskTriggerEffect(task, task.effectIdentifier)))
+            (task.taskType == TaskTriggerEffect && addTaskTriggerEffect(task, task.effectIdentifier)) ||
+            (task.taskType == TaskWarning && addTaskWarning(task, task.options, task.duration)))
         {
             QVariantMap rspItem;
             QVariantMap rspItemState;
