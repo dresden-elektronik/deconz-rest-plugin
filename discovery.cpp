@@ -245,6 +245,18 @@ void DeRestPluginPrivate::internetDiscoveryFinishedRequest(QNetworkReply *reply)
             gwAnnounceVital = 0;
         }
         gwAnnounceVital--;
+
+        if (gwProxyAddress != QLatin1String("none") && gwProxyPort > 0)
+        {
+            if (inetDiscoveryManager->proxy().type() == QNetworkProxy::NoProxy)
+            {
+                //first fail, speed up retry
+                QTimer::singleShot(5000, this, SLOT(internetDiscoveryTimerFired()));
+            }
+
+            QNetworkProxy proxy(QNetworkProxy::HttpProxy, gwProxyAddress, gwProxyPort);
+            inetDiscoveryManager->setProxy(proxy);
+        }
     }
 
     reply->deleteLater();
