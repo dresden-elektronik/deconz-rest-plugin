@@ -12494,6 +12494,12 @@ void DeRestPluginPrivate::pollSwUpdateStateTimerFired()
 
 void DeRestPluginPrivate::pollDatabaseWifiTimerFired()
 {
+    if (saveDatabaseItems & DB_CONFIG)
+    {
+        DBG_Printf(DBG_INFO_L2, "Don't read wifi from db. Db save still in progress.\n");
+        return;
+    }
+
     openDb();
     loadWifiInformationFromDb();
     closeDb();
