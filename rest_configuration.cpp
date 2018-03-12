@@ -212,6 +212,8 @@ void DeRestPluginPrivate::initTimezone()
         dl.setId(daylightSensorId);
         dl.setType(QLatin1String("Daylight"));
         dl.setName(QLatin1String("Daylight"));
+        item = dl.addItem(DataTypeBool, RConfigConfigured);
+        item->setValue(false);
         item = dl.addItem(DataTypeBool, RStateDaylight);
         item->setValue(QVariant());
 
