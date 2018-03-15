@@ -214,9 +214,12 @@ void DeRestPluginPrivate::initTimezone()
         dl.setName(QLatin1String("Daylight"));
         item = dl.addItem(DataTypeBool, RConfigConfigured);
         item->setValue(false);
+        item = dl.addItem(DataTypeInt8, RConfigSunriseOffset);
+        item->setValue(30);
+        item = dl.addItem(DataTypeInt8, RConfigSunsetOffset);
+        item->setValue(-30);
         item = dl.addItem(DataTypeBool, RStateDaylight);
         item->setValue(QVariant());
-
         item = dl.addItem(DataTypeInt32, RStateStatus);
         item->setValue(QVariant());
 
@@ -3145,8 +3148,10 @@ void DeRestPluginPrivate::daylightTimerFired()
 
     ResourceItem *daylight = sensor->item(RStateDaylight);
     ResourceItem *status = sensor->item(RStateStatus);
-    DBG_Assert(daylight && status);
-    if (!daylight || !status)
+    ResourceItem *sunriseOffset = sensor->item(RConfigSunriseOffset);
+    ResourceItem *sunsetOffset = sensor->item(RConfigSunsetOffset);
+    DBG_Assert(daylight && status && sunriseOffset && sunsetOffset);
+    if (!daylight || !status || !sunriseOffset || !sunsetOffset)
     {
         return;
     }
@@ -3158,6 +3163,8 @@ void DeRestPluginPrivate::daylightTimerFired()
 
     const char *curName = 0;
     int cur = 0;
+    quint64 sunrise = 0;
+    quint64 sunset = 0;
 
     for (const DL_Result &r : daylightTimes)
     {
@@ -3168,30 +3175,41 @@ void DeRestPluginPrivate::daylightTimerFired()
             curName = r.name;
             cur = r.weight;
         }
+
+        if      (r.weight == DL_SUNRISE_START)  { sunrise = r.msecsSinceEpoch; }
+        else if (r.weight == DL_SUNSET_END)     { sunset = r.msecsSinceEpoch; }
     }
 
-    if (cur)
+    bool dl = false;
+    if (sunrise > 0 && sunset > 0)
     {
-        bool dl = (cur > DL_SUNRISE_END && cur < DL_SUNSET_START) ? true : false;
-        if (!daylight->lastSet().isValid() || daylight->toBool() != dl)
-        {
-            daylight->setValue(dl);
-            Event e(RSensors, RStateStatus, sensor->id(), status);
-            enqueueEvent(e);
-            sensor->updateStateTimestamp();
-            sensor->setNeedSaveDatabase(true);
-            saveDatabaseItems |= DB_SENSORS;
-        }
+        sunrise += (sunriseOffset->toNumber() * 60 * 1000);
+        sunset += (sunsetOffset->toNumber() * 60 * 1000);
 
-        if (cur != status->toNumber())
+        if (nowMs > sunrise && nowMs < sunset)
         {
-            status->setValue(cur);
-            Event e(RSensors, RStateStatus, sensor->id(), status);
-            enqueueEvent(e);
-            sensor->updateStateTimestamp();
-            sensor->setNeedSaveDatabase(true);
-            saveDatabaseItems |= DB_SENSORS;
+            dl = true;
         }
+    }
+
+    if (!daylight->lastSet().isValid() || daylight->toBool() != dl)
+    {
+        daylight->setValue(dl);
+        Event e(RSensors, RStateStatus, sensor->id(), status);
+        enqueueEvent(e);
+        sensor->updateStateTimestamp();
+        sensor->setNeedSaveDatabase(true);
+        saveDatabaseItems |= DB_SENSORS;
+    }
+
+    if (cur && cur != status->toNumber())
+    {
+        status->setValue(cur);
+        Event e(RSensors, RStateStatus, sensor->id(), status);
+        enqueueEvent(e);
+        sensor->updateStateTimestamp();
+        sensor->setNeedSaveDatabase(true);
+        saveDatabaseItems |= DB_SENSORS;
     }
 
     if (curName)

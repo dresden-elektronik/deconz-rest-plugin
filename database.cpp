@@ -2125,6 +2125,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             d->daylightSensorId = sensor.id();
             sensor.removeItem(RConfigReachable);
             sensor.addItem(DataTypeBool, RConfigConfigured);
+            item = sensor.addItem(DataTypeInt8, RConfigSunriseOffset);
+            item->setValue(30);
+            item =sensor.addItem(DataTypeInt8, RConfigSunsetOffset);
+            item->setValue(-30);
             sensor.addItem(DataTypeString, RConfigLat);
             sensor.addItem(DataTypeString, RConfigLong);
             sensor.addItem(DataTypeBool, RStateDaylight);
