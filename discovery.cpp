@@ -248,7 +248,7 @@ void DeRestPluginPrivate::internetDiscoveryFinishedRequest(QNetworkReply *reply)
 
         if (gwProxyAddress != QLatin1String("none") && gwProxyPort > 0)
         {
-            if (inetDiscoveryManager->proxy().type() == QNetworkProxy::NoProxy)
+            if (inetDiscoveryManager->proxy().type() != QNetworkProxy::HttpProxy)
             {
                 //first fail, speed up retry
                 QTimer::singleShot(5000, this, SLOT(internetDiscoveryTimerFired()));
