@@ -2088,35 +2088,37 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (sensor.fingerPrint().hasInCluster(METERING_CLUSTER_ID))
             {
                 clusterId = METERING_CLUSTER_ID;
-                item = sensor.addItem(DataTypeInt64, RStateConsumption);
-                item->setValue(0);
             }
             else if (sensor.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))
             {
                 clusterId = ANALOG_INPUT_CLUSTER_ID;
-                item = sensor.addItem(DataTypeInt64, RStateConsumption);
-                item->setValue(0);
             }
+            item = sensor.addItem(DataTypeInt64, RStateConsumption);
+            item->setValue(0);
         }
         else if (sensor.type().endsWith(QLatin1String("Power")))
         {
+            bool hasVoltage = true;
             if (sensor.fingerPrint().hasInCluster(ELECTRICAL_MEASUREMENT_CLUSTER_ID))
             {
                 clusterId = ELECTRICAL_MEASUREMENT_CLUSTER_ID;
-                item = sensor.addItem(DataTypeInt16, RStatePower);
-                item->setValue(0);
-                if (!sensor.modelId().startsWith(QLatin1String("Plug"))) // OSRAM
+                if (sensor.modelId().startsWith(QLatin1String("Plug"))) // OSRAM
                 {
-                    item = sensor.addItem(DataTypeUInt16, RStateVoltage);
-                    item->setValue(0);
-                    item = sensor.addItem(DataTypeUInt16, RStateCurrent);
-                    item->setValue(0);
+                    hasVoltage = false;
                 }
             }
             else if (sensor.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))
             {
                 clusterId = ANALOG_INPUT_CLUSTER_ID;
-                item = sensor.addItem(DataTypeInt16, RStatePower);
+                hasVoltage = false;
+            }
+            item = sensor.addItem(DataTypeInt16, RStatePower);
+            item->setValue(0);
+            if (hasVoltage)
+            {
+                item = sensor.addItem(DataTypeUInt16, RStateVoltage);
+                item->setValue(0);
+                item = sensor.addItem(DataTypeUInt16, RStateCurrent);
                 item->setValue(0);
             }
         }
