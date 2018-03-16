@@ -245,6 +245,11 @@ void DeRestPluginPrivate::initTimezone()
 /*! Init WiFi parameters if necessary. */
 void DeRestPluginPrivate::initWiFi()
 {
+#if !defined(ARCH_ARMV6) && !defined (ARCH_ARMV7)
+    gwWifi = QLatin1String("not-available");
+    return;
+#endif
+
     // only configure for official image
     if (gwSdImageVersion.isEmpty())
     {
@@ -345,6 +350,11 @@ int DeRestPluginPrivate::handleConfigurationApi(const ApiRequest &req, ApiRespon
     else if ((req.path.size() == 5) && (req.hdr.method() == "PUT") && (req.path[2] == "config") && (req.path[3] == "wifi") && (req.path[4] == "restore"))
     {
         return restoreWifiConfig(req, rsp);
+    }
+    // PUT /api/<apikey>/config/wifi/scanresult
+    else if ((req.path.size() == 5) && (req.hdr.method() == "PUT") && (req.path[2] == "config") && (req.path[3] == "wifi") && (req.path[4] == "scanresult"))
+    {
+        return putWifiScanResult(req, rsp);
     }
     // PUT, PATCH /api/<apikey>/config
     else if ((req.path.size() == 3) && (req.hdr.method() == "PUT" || req.hdr.method() == "PATCH") && (req.path[2] == "config"))
@@ -681,17 +691,19 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
 #ifdef Q_OS_LINUX
         map["system"] = "linux-gw";
 #endif
-#endif
         map["wifi"] = gwWifi;
-        map["availablewifi"] = gwAvailableWifi;
+#else
+        map["wifi"] = QLatin1String("not-available");
+#endif
+        map["wifiavailable"] = gwWifiAvailable;
         map["wifitype"] = gwWifiType;
         map["wifiname"] = gwWifiName;
         map["wificlientname"] = gwWifiClientName;
         map["wifichannel"] = gwWifiChannel;
         map["wifiip"] = gwWifiIp;
 //        map["wifiappw"] = gwWifiPw;
-        map["wifiappw"] = QLatin1String(""); // TODO add secured transfer via PKI
-        map["wificlientpw"] = QLatin1String(""); // TODO add secured transfer via PKI
+        map["wifiappw"] = QString(); // TODO add secured transfer via PKI
+        map["wificlientpw"] = QString(); // TODO add secured transfer via PKI
     }
     else
     {
@@ -2797,6 +2809,33 @@ int DeRestPluginPrivate::restoreWifiConfig(const ApiRequest &req, ApiResponse &r
     rspItemState["/config/wifi/restore"] = "original configuration restored";
     rspItem["success"] = rspItemState;
     rsp.list.append(rspItem);
+    return REQ_READY_SEND;
+}
+
+/*! PUT /api/config/wifi/scanresult
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::putWifiScanResult(const ApiRequest &req, ApiResponse &rsp)
+{
+    QHostAddress localHost(QHostAddress::LocalHost);
+    rsp.httpStatus = HttpStatusForbidden;
+
+    if (req.sock->peerAddress() != localHost)
+    {
+        rsp.list.append(errorToMap(ERR_UNAUTHORIZED_USER, req.path.join("/"), "unauthorized user"));
+        return REQ_READY_SEND;
+    }
+
+    rsp.httpStatus = HttpStatusOk;
+
+    bool ok;
+    QVariant var = Json::parse(req.content, ok);
+    if (ok)
+    {
+        gwWifiAvailable = var.toList();
+    }
+
     return REQ_READY_SEND;
 }
 

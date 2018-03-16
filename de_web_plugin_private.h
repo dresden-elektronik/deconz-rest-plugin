@@ -669,6 +669,7 @@ public:
     int getWifiState(const ApiRequest &req, ApiResponse &rsp);
     int configureWifi(const ApiRequest &req, ApiResponse &rsp);
     int restoreWifiConfig(const ApiRequest &req, ApiResponse &rsp);
+    int putWifiScanResult(const ApiRequest &req, ApiResponse &rsp);
 
     void configToMap(const ApiRequest &req, QVariantMap &map);
     void basicConfigToMap(QVariantMap &map);
@@ -1147,7 +1148,7 @@ public:
     int gwPermitJoinResend; // permit join of values > 255
     uint16_t gwNetworkOpenDuration; // user setting how long network remains open
     QString gwWifi;     // not-configured | not-installed | not-running | running
-    QString gwAvailableWifi;
+    QVariantList gwWifiAvailable;
     QString gwWifiType; // accesspoint | ad-hoc | client
     QString gwWifiName;
     QString gwWifiClientName;
