@@ -3452,8 +3452,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 item->setValue(0);
                 item = sensorNode.addItem(DataTypeUInt8, RConfigSensitivityMax);
                 item->setValue(R_SENSITIVITY_MAX_DEFAULT);
-                item = sensorNode.item(RConfigDuration); // same as max reporting interval / TODO write 60s?
-                item->setValue(300);
+                sensorNode.removeItem(RConfigDuration);
+                item = sensorNode.item(RConfigDelay);
+                item->setValue(0);
             }
             item = sensorNode.addItem(DataTypeString, RConfigAlert);
             item->setValue(R_ALERT_DEFAULT);
@@ -4273,14 +4274,14 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
                                 }
 
-                                quint16 duration = ia->numericValue().u16;
-                                ResourceItem *item = i->item(RConfigDuration);
+                                quint16 delay = ia->numericValue().u16;
+                                ResourceItem *item = i->item(RConfigDelay);
 
-                                if (item && item->toNumber() != duration && duration > 0)
+                                if (item && item->toNumber() != delay)
                                 {
-                                    item->setValue(duration);
+                                    item->setValue(delay);
                                     i->setNeedSaveDatabase(true);
-                                    Event e(RSensors, RConfigDuration, i->id(), item);
+                                    Event e(RSensors, RConfigDelay, i->id(), item);
                                     enqueueEvent(e);
                                 }
 
@@ -5680,31 +5681,31 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         }
     }
 
-    if (sensorNode->mustRead(WRITE_DURATION) && tNow > sensorNode->nextReadTime(WRITE_DURATION))
+    if (sensorNode->mustRead(WRITE_DELAY) && tNow > sensorNode->nextReadTime(WRITE_DELAY))
     {
-        ResourceItem *item = sensorNode->item(RConfigDuration);
+        ResourceItem *item = sensorNode->item(RConfigDelay);
 
-        DBG_Printf(DBG_INFO_L2, "handle pending duration for 0x%016llX\n", sensorNode->address().ext());
+        DBG_Printf(DBG_INFO_L2, "handle pending delay for 0x%016llX\n", sensorNode->address().ext());
         if (item)
         {
-            quint64 duration = item->toNumber();
+            quint64 delay = item->toNumber();
             // occupied to unoccupied delay
             deCONZ::ZclAttribute attr(0x0010, deCONZ::Zcl16BitUint, "occ", deCONZ::ZclReadWrite, true);
-            attr.setValue(duration);
+            attr.setValue(delay);
 
             if (writeAttribute(sensorNode, sensorNode->fingerPrint().endpoint, OCCUPANCY_SENSING_CLUSTER_ID, attr))
             {
                 ResourceItem *item = sensorNode->item(RConfigPending);
                 uint8_t mask = item->toNumber();
-                mask &= ~R_PENDING_DURATION;
+                mask &= ~R_PENDING_DELAY;
                 item->setValue(mask);
-                sensorNode->clearRead(WRITE_DURATION);
+                sensorNode->clearRead(WRITE_DELAY);
                 processed++;
             }
         }
         else
         {
-            sensorNode->clearRead(WRITE_DURATION);
+            sensorNode->clearRead(WRITE_DELAY);
         }
     }
 
@@ -9028,30 +9029,25 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
                      continue;
                 }
                 ResourceItem *item;
+                quint64 delay = 0;
 
                 if (s.modelId() == QLatin1String("TRADFRI motion sensor") && zclFrame.payload().size() >= 3)
                 {
-                    // Set ikea motion sensor config.duration and state.dark from the ZigBee command parameters
+                    // Set ikea motion sensor config.delay and state.dark from the ZigBee command parameters
                     dark = zclFrame.payload().at(0) == 0x00;
                     quint16 timeOn = (zclFrame.payload().at(2) << 8) + zclFrame.payload().at(1);
-                    qint64 duration = (timeOn + 5) / 10;
+                    delay = (timeOn + 5) / 10;
 
-                    item = s.item(RConfigDuration);
+                    item = s.item(RConfigDelay);
                     if (!item)
                     {
-                        item = s.addItem(DataTypeUInt16, RConfigDuration);
+                        item = s.addItem(DataTypeUInt16, RConfigDelay);
                     }
-                    qint64 curDuration = item ? item->toNumber() : 0;
-
-                    if (item && curDuration != duration)
+                    if (item)
                     {
-                        if (curDuration <= 0 || (curDuration >= 60 && curDuration <= 600))
-                        {
-                            // values 0, 60 — 600 can be overwritten by hardware settings
-                            item->setValue((quint64) duration);
-                            Event e(RSensors, RConfigDuration, s.id(), item);
-                            enqueueEvent(e);
-                        }
+                        item->setValue(delay);
+                        Event e(RSensors, RConfigDelay, s.id(), item);
+                        enqueueEvent(e);
                     }
 
                     item = s.item(RStateDark);
@@ -9082,6 +9078,10 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
                 if (item && item->toNumber() > 0)
                 {
                     s.durationDue = QDateTime::currentDateTime().addSecs(item->toNumber());
+                }
+                else if (delay > 0)
+                {
+                    s.durationDue = QDateTime::currentDateTime().addSecs(delay);
                 }
             }
         }

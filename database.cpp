@@ -2013,15 +2013,19 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             item = sensor.addItem(DataTypeBool, RStatePresence);
             item->setValue(false);
-            item = sensor.addItem(DataTypeUInt16, RConfigDuration);
-            item->setValue(60); // presence should be reasonable for physical sensors
             if (sensor.modelId() == QLatin1String("SML001")) // Hue motion sensor
             {
+                item = sensor.addItem(DataTypeUInt16, RConfigDelay);
                 item->setValue(0);
                 item = sensor.addItem(DataTypeUInt8, RConfigSensitivity);
                 item->setValue(0);
                 item = sensor.addItem(DataTypeUInt8, RConfigSensitivityMax);
                 item->setValue(R_SENSITIVITY_MAX_DEFAULT);
+            }
+            else
+            {
+                item = sensor.addItem(DataTypeUInt16, RConfigDuration);
+                item->setValue(60); // presence should be reasonable for physical sensors
             }
         }
         else if (sensor.type().endsWith(QLatin1String("Flag")))

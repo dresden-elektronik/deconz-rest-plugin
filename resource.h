@@ -89,6 +89,7 @@ extern const char *RConfigColorCapabilities;
 extern const char *RConfigCtMin;
 extern const char *RConfigCtMax;
 extern const char *RConfigConfigured;
+extern const char *RConfigDelay;
 extern const char *RConfigDuration;
 extern const char *RConfigGroup;
 extern const char *RConfigLat;
@@ -114,7 +115,7 @@ extern const char *RConfigUsertest;
 #define R_THOLDDARK_DEFAULT         12000
 #define R_THOLDOFFSET_DEFAULT       7000
 
-#define R_PENDING_DURATION          (1 << 0)
+#define R_PENDING_DELAY             (1 << 0)
 #define R_PENDING_LEDINDICATION     (1 << 1)
 #define R_PENDING_SENSITIVITY       (1 << 2)
 #define R_PENDING_USERTEST          (1 << 3)

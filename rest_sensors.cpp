@@ -291,7 +291,7 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
                                                        item = sensor.addItem(DataTypeUInt16, RStateVoltage); item->setValue(0);
                                                        item = sensor.addItem(DataTypeUInt16, RStateCurrent); item->setValue(0); }
         else if (type == QLatin1String("CLIPPresence")) { item = sensor.addItem(DataTypeBool, RStatePresence); item->setValue(false);
-                                                          item = sensor.addItem(DataTypeUInt16, RConfigDuration); item->setValue(0); }
+                                                          item = sensor.addItem(DataTypeUInt16, RConfigDuration); item->setValue(60); }
         else if (type == QLatin1String("CLIPPressure")) { item = sensor.addItem(DataTypeInt16, RStatePressure); item->setValue(0); }
         else if (type == QLatin1String("CLIPSwitch")) { item = sensor.addItem(DataTypeInt32, RStateButtonEvent); item->setValue(0); }
         else if (type == QLatin1String("CLIPTemperature")) { item = sensor.addItem(DataTypeInt16, RStateTemperature); item->setValue(0);
@@ -652,7 +652,7 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
 
             for (; pi != pend; ++pi)
             {
-                if(!((pi.key() == "offset") || (pi.key() == "on") || (pi.key() == "reachable") || (pi.key() == "url") || (pi.key() == "battery") || (pi.key() == "duration")))
+                if(!((pi.key() == "offset") || (pi.key() == "on") || (pi.key() == "reachable") || (pi.key() == "url") || (pi.key() == "battery") || (pi.key() == "duration") || (pi.key() == "delay")))
                 {
                     rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%2").arg(pi.key()), QString("parameter, %1, not available").arg(pi.key())));
                     rsp.httpStatus = HttpStatusBadRequest;
@@ -703,7 +703,18 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
 
                 if (!item || !item->setValue(config["duration"]))
                 {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/config"), QString("invalid value, %1, for parameter battery").arg(config["battery"].toString())));
+                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/config"), QString("invalid value, %1, for parameter duration").arg(config["duration"].toString())));
+                    rsp.httpStatus = HttpStatusBadRequest;
+                    return REQ_READY_SEND;
+                }
+            }
+            if (config.contains("delay"))
+            {
+                item = sensor.item(RConfigDelay);
+
+                if (!item || !item->setValue(config["delay"]))
+                {
+                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/config"), QString("invalid value, %1, for parameter delay").arg(config["delay"].toString())));
                     rsp.httpStatus = HttpStatusBadRequest;
                     return REQ_READY_SEND;
                 }
@@ -1022,23 +1033,20 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             offsetUpdated = true;
                             offset += item->toNumber();
                         }
-                        else if (rid.suffix == RConfigDuration && sensor->modelId() == QLatin1String("SML001")) // Hue motion sensor
+                        else if (rid.suffix == RConfigDelay && sensor->modelId() == QLatin1String("SML001")) // Hue motion sensor
                         {
-                            pendingMask |= R_PENDING_DURATION;
-                            sensor->enableRead(WRITE_DURATION);
-                            sensor->setNextReadTime(WRITE_DURATION, QTime::currentTime());
+                            pendingMask |= R_PENDING_DELAY;
+                            sensor->enableRead(WRITE_DELAY);
+                            sensor->setNextReadTime(WRITE_DELAY, QTime::currentTime());
                         }
                         else if (rid.suffix == RConfigDuration && sensor->modelId().startsWith(QLatin1String("FLS-NB")))
                         {
-                            if (sensor->modelId().startsWith("FLS-NB"))
-                            {
-                                DBG_Printf(DBG_INFO, "Force read of occupaction delay for sensor %s\n", qPrintable(sensor->address().toStringExt()));
-                                sensor->enableRead(READ_OCCUPANCY_CONFIG);
-                                sensor->setNextReadTime(READ_OCCUPANCY_CONFIG, queryTime.addSecs(1));
-                                queryTime = queryTime.addSecs(1);
-                                Q_Q(DeRestPlugin);
-                                q->startZclAttributeTimer(0);
-                            }
+                            DBG_Printf(DBG_INFO, "Force read of occupaction delay for sensor %s\n", qPrintable(sensor->address().toStringExt()));
+                            sensor->enableRead(READ_OCCUPANCY_CONFIG);
+                            sensor->setNextReadTime(READ_OCCUPANCY_CONFIG, queryTime.addSecs(1));
+                            queryTime = queryTime.addSecs(1);
+                            Q_Q(DeRestPlugin);
+                            q->startZclAttributeTimer(0);
                         }
                         else if (rid.suffix == RConfigLedIndication)
                         {
@@ -1529,9 +1537,9 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, bo
                 QVariantList pending;
                 uint8_t value = item->toNumber();
 
-                if (value & R_PENDING_DURATION)
+                if (value & R_PENDING_DELAY)
                 {
-                    pending.append("duration");
+                    pending.append("delay");
                 }
                 if (value & R_PENDING_LEDINDICATION)
                 {
