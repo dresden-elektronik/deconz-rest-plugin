@@ -94,6 +94,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "DC_", tiMacPrefix },
     { VENDOR_NONE, "OJB-IR715-Z", tiMacPrefix },
     { VENDOR_NONE, "902010/21A", tiMacPrefix }, // Bitron: door/window sensor
+    { VENDOR_NONE, "902010/25", tiMacPrefix }, // Bitron: smart plug
     { VENDOR_DDEL, "Lighting Switch", deMacPrefix },
     { VENDOR_DDEL, "Scene Switch", deMacPrefix },
     { VENDOR_DDEL, "FLS-NB1", deMacPrefix },
@@ -3332,6 +3333,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = METERING_CLUSTER_ID;
             item = sensorNode.addItem(DataTypeInt64, RStateConsumption);
+            item = sensorNode.addItem(DataTypeInt16, RStatePower);
         }
         else if (sensorNode.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))
         {
@@ -4660,6 +4662,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                     }
                     else if (event.clusterId() == METERING_CLUSTER_ID)
                     {
+                        bool updated = false;
                         for (;ia != enda; ++ia)
                         {
                             if (ia->id() == 0x0000) // Current Summation Delivered
@@ -4680,13 +4683,39 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (item && (item->toNumber() != consumption || updateType == NodeValue::UpdateByZclReport))
                                 {
                                     item->setValue(consumption); // in Wh (0.001 kWh)
-                                    i->updateStateTimestamp();
-                                    i->setNeedSaveDatabase(true);
                                     enqueueEvent(Event(RSensors, RStateConsumption, i->id(), item));
-                                    enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
-                                    updateSensorEtag(&*i);
+                                    updated = true;
                                 }
                             }
+                            else if (ia->id() == 0x0400) // Instantaneous Demand
+                            {
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                }
+
+                                qint32 power = ia->numericValue().s32;
+                                ResourceItem *item = i->item(RStatePower);
+
+                                if (i->modelId() == QLatin1String("SmartPlug")) // Heiman
+                                {
+                                    power += 5; power /= 10; // 0.1 W -> W
+                                }
+
+                                if (item && (item->toNumber() != power || updateType == NodeValue::UpdateByZclReport))
+                                {
+                                    item->setValue((qint16) power); // in W
+                                    enqueueEvent(Event(RSensors, RStatePower, i->id(), item));
+                                    updated = true;
+                                }
+                            }
+                        }
+                        if (updated)
+                        {
+                            i->updateStateTimestamp();
+                            i->setNeedSaveDatabase(true);
+                            enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
+                            updateSensorEtag(&*i);
                         }
                     }
                     else if (event.clusterId() == ELECTRICAL_MEASUREMENT_CLUSTER_ID)
