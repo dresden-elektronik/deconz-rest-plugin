@@ -496,14 +496,6 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
             d->gwWifi = val;
         }
     }
-    else if (strcmp(colval[0], "availablewifi") == 0)
-    {
-        if (!val.isEmpty())
-        {
-            d->gwConfig["availablewifi"] = val;
-            d->gwAvailableWifi = val;
-        }
-    }
     else if (strcmp(colval[0], "wifichannel") == 0)
     {
         if (!val.isEmpty())
