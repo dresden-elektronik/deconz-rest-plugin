@@ -94,6 +94,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "DC_", tiMacPrefix },
     { VENDOR_NONE, "OJB-IR715-Z", tiMacPrefix },
     { VENDOR_NONE, "902010/21A", tiMacPrefix }, // Bitron: door/window sensor
+    { VENDOR_NONE, "902010/25", tiMacPrefix }, // Bitron: smart plug
     { VENDOR_DDEL, "Lighting Switch", deMacPrefix },
     { VENDOR_DDEL, "Scene Switch", deMacPrefix },
     { VENDOR_DDEL, "FLS-NB1", deMacPrefix },
@@ -3332,6 +3333,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = METERING_CLUSTER_ID;
             item = sensorNode.addItem(DataTypeInt64, RStateConsumption);
+            item = sensorNode.addItem(DataTypeInt16, RStatePower);
         }
         else if (sensorNode.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))
         {
@@ -3452,8 +3454,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 item->setValue(0);
                 item = sensorNode.addItem(DataTypeUInt8, RConfigSensitivityMax);
                 item->setValue(R_SENSITIVITY_MAX_DEFAULT);
-                item = sensorNode.item(RConfigDuration); // same as max reporting interval / TODO write 60s?
-                item->setValue(300);
+                sensorNode.removeItem(RConfigDuration);
+                item = sensorNode.item(RConfigDelay);
+                item->setValue(0);
             }
             item = sensorNode.addItem(DataTypeString, RConfigAlert);
             item->setValue(R_ALERT_DEFAULT);
@@ -4273,14 +4276,14 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
                                 }
 
-                                quint16 duration = ia->numericValue().u16;
-                                ResourceItem *item = i->item(RConfigDuration);
+                                quint16 delay = ia->numericValue().u16;
+                                ResourceItem *item = i->item(RConfigDelay);
 
-                                if (item && item->toNumber() != duration && duration > 0)
+                                if (item && item->toNumber() != delay)
                                 {
-                                    item->setValue(duration);
+                                    item->setValue(delay);
                                     i->setNeedSaveDatabase(true);
-                                    Event e(RSensors, RConfigDuration, i->id(), item);
+                                    Event e(RSensors, RConfigDelay, i->id(), item);
                                     enqueueEvent(e);
                                 }
 
@@ -4659,6 +4662,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                     }
                     else if (event.clusterId() == METERING_CLUSTER_ID)
                     {
+                        bool updated = false;
                         for (;ia != enda; ++ia)
                         {
                             if (ia->id() == 0x0000) // Current Summation Delivered
@@ -4679,13 +4683,39 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (item && (item->toNumber() != consumption || updateType == NodeValue::UpdateByZclReport))
                                 {
                                     item->setValue(consumption); // in Wh (0.001 kWh)
-                                    i->updateStateTimestamp();
-                                    i->setNeedSaveDatabase(true);
                                     enqueueEvent(Event(RSensors, RStateConsumption, i->id(), item));
-                                    enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
-                                    updateSensorEtag(&*i);
+                                    updated = true;
                                 }
                             }
+                            else if (ia->id() == 0x0400) // Instantaneous Demand
+                            {
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                }
+
+                                qint32 power = ia->numericValue().s32;
+                                ResourceItem *item = i->item(RStatePower);
+
+                                if (i->modelId() == QLatin1String("SmartPlug")) // Heiman
+                                {
+                                    power += 5; power /= 10; // 0.1 W -> W
+                                }
+
+                                if (item && (item->toNumber() != power || updateType == NodeValue::UpdateByZclReport))
+                                {
+                                    item->setValue((qint16) power); // in W
+                                    enqueueEvent(Event(RSensors, RStatePower, i->id(), item));
+                                    updated = true;
+                                }
+                            }
+                        }
+                        if (updated)
+                        {
+                            i->updateStateTimestamp();
+                            i->setNeedSaveDatabase(true);
+                            enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
+                            updateSensorEtag(&*i);
                         }
                     }
                     else if (event.clusterId() == ELECTRICAL_MEASUREMENT_CLUSTER_ID)
@@ -5680,31 +5710,31 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         }
     }
 
-    if (sensorNode->mustRead(WRITE_DURATION) && tNow > sensorNode->nextReadTime(WRITE_DURATION))
+    if (sensorNode->mustRead(WRITE_DELAY) && tNow > sensorNode->nextReadTime(WRITE_DELAY))
     {
-        ResourceItem *item = sensorNode->item(RConfigDuration);
+        ResourceItem *item = sensorNode->item(RConfigDelay);
 
-        DBG_Printf(DBG_INFO_L2, "handle pending duration for 0x%016llX\n", sensorNode->address().ext());
+        DBG_Printf(DBG_INFO_L2, "handle pending delay for 0x%016llX\n", sensorNode->address().ext());
         if (item)
         {
-            quint64 duration = item->toNumber();
+            quint64 delay = item->toNumber();
             // occupied to unoccupied delay
             deCONZ::ZclAttribute attr(0x0010, deCONZ::Zcl16BitUint, "occ", deCONZ::ZclReadWrite, true);
-            attr.setValue(duration);
+            attr.setValue(delay);
 
             if (writeAttribute(sensorNode, sensorNode->fingerPrint().endpoint, OCCUPANCY_SENSING_CLUSTER_ID, attr))
             {
                 ResourceItem *item = sensorNode->item(RConfigPending);
                 uint8_t mask = item->toNumber();
-                mask &= ~R_PENDING_DURATION;
+                mask &= ~R_PENDING_DELAY;
                 item->setValue(mask);
-                sensorNode->clearRead(WRITE_DURATION);
+                sensorNode->clearRead(WRITE_DELAY);
                 processed++;
             }
         }
         else
         {
-            sensorNode->clearRead(WRITE_DURATION);
+            sensorNode->clearRead(WRITE_DELAY);
         }
     }
 
@@ -9028,30 +9058,25 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
                      continue;
                 }
                 ResourceItem *item;
+                quint64 delay = 0;
 
                 if (s.modelId() == QLatin1String("TRADFRI motion sensor") && zclFrame.payload().size() >= 3)
                 {
-                    // Set ikea motion sensor config.duration and state.dark from the ZigBee command parameters
+                    // Set ikea motion sensor config.delay and state.dark from the ZigBee command parameters
                     dark = zclFrame.payload().at(0) == 0x00;
                     quint16 timeOn = (zclFrame.payload().at(2) << 8) + zclFrame.payload().at(1);
-                    qint64 duration = (timeOn + 5) / 10;
+                    delay = (timeOn + 5) / 10;
 
-                    item = s.item(RConfigDuration);
+                    item = s.item(RConfigDelay);
                     if (!item)
                     {
-                        item = s.addItem(DataTypeUInt16, RConfigDuration);
+                        item = s.addItem(DataTypeUInt16, RConfigDelay);
                     }
-                    qint64 curDuration = item ? item->toNumber() : 0;
-
-                    if (item && curDuration != duration)
+                    if (item)
                     {
-                        if (curDuration <= 0 || (curDuration >= 60 && curDuration <= 600))
-                        {
-                            // values 0, 60 — 600 can be overwritten by hardware settings
-                            item->setValue((quint64) duration);
-                            Event e(RSensors, RConfigDuration, s.id(), item);
-                            enqueueEvent(e);
-                        }
+                        item->setValue(delay);
+                        Event e(RSensors, RConfigDelay, s.id(), item);
+                        enqueueEvent(e);
                     }
 
                     item = s.item(RStateDark);
@@ -9082,6 +9107,10 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
                 if (item && item->toNumber() > 0)
                 {
                     s.durationDue = QDateTime::currentDateTime().addSecs(item->toNumber());
+                }
+                else if (delay > 0)
+                {
+                    s.durationDue = QDateTime::currentDateTime().addSecs(delay);
                 }
             }
         }
