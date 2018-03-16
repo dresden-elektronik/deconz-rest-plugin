@@ -689,6 +689,12 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt, const s
             {
                 stream << rq.reportableChange8bit;
             }
+            else if (rq.reportableChange24bit != 0xFFFFFF)
+            {
+                stream << (qint8) (rq.reportableChange24bit & 0xFF);
+                stream << (qint8) ((rq.reportableChange24bit >> 8) & 0xFF);
+                stream << (qint8) ((rq.reportableChange24bit >> 16) & 0xFF);
+            }
             else if (rq.reportableChange48bit != 0xFFFFFFFF)
             {
                 stream << rq.reportableChange48bit;
@@ -888,7 +894,15 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.minInterval = 1;
         rq.maxInterval = 300;
         rq.reportableChange48bit = 10; // 0.01 kWh
-        return sendConfigureReportingRequest(bt, {rq});
+
+        ConfigureReportingRequest rq2;
+        rq.dataType = deCONZ::Zcl24BitInt;
+        rq.attributeId = 0x0400; // Instantaneous Demand
+        rq.minInterval = 1;
+        rq.maxInterval = 300;
+        rq.reportableChange24bit = 10; // 1 W
+
+        return sendConfigureReportingRequest(bt, {rq, rq2});
     }
     else if (bt.binding.clusterId == ELECTRICAL_MEASUREMENT_CLUSTER_ID)
     {
@@ -897,7 +911,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.minInterval = 1;
         rq.maxInterval = 300;
         rq.reportableChange16bit = 10; // 1 W
-        return sendConfigureReportingRequest(bt, {rq});
 
         ConfigureReportingRequest rq2;
         rq2.dataType = deCONZ::Zcl16BitUint;
@@ -912,6 +925,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq3.minInterval = 1;
         rq3.maxInterval = 300;
         rq3.reportableChange16bit = 1; // 0.1 A
+
+        return sendConfigureReportingRequest(bt, {rq, rq2, rq3});
     }
     else if (bt.binding.clusterId == LEVEL_CLUSTER_ID)
     {

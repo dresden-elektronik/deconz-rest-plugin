@@ -91,6 +91,7 @@ public:
         direction(0x00),
         reportableChange8bit(0xFF),
         reportableChange16bit(0xFFFF),
+        reportableChange24bit(0xFFFFFF),
         reportableChange48bit(0xFFFFFFFF),  // there's no quint48
         manufacturerCode(0)
     {
@@ -104,6 +105,7 @@ public:
     quint16 maxInterval;
     quint8 reportableChange8bit;
     quint16 reportableChange16bit;
+    quint32 reportableChange24bit;          // there's no quint24
     quint32 reportableChange48bit;          // there's no quint48
     quint16 manufacturerCode;
 };
