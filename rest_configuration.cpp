@@ -245,6 +245,12 @@ void DeRestPluginPrivate::initTimezone()
 /*! Init WiFi parameters if necessary. */
 void DeRestPluginPrivate::initWiFi()
 {
+
+#if !defined(ARCH_ARMV6) && !defined (ARCH_ARMV7)
+    gwWifi = QLatin1String("not-available");
+    return;
+#endif
+
     // only configure for official image
     if (gwSdImageVersion.isEmpty())
     {
