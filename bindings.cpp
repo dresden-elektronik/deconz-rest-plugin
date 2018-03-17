@@ -697,10 +697,12 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt, const s
             }
             else if (rq.reportableChange48bit != 0xFFFFFFFF)
             {
-                stream << rq.reportableChange48bit;
-                // since there's no quint48, we need to pad the quint32 to 48 bits
-                quint16 zero = 0x0000;
-                stream << zero;
+                stream << (qint8) (rq.reportableChange48bit & 0xFF);
+                stream << (qint8) ((rq.reportableChange48bit >> 8) & 0xFF);
+                stream << (qint8) ((rq.reportableChange48bit >> 16) & 0xFF);
+                stream << (qint8) ((rq.reportableChange48bit >> 24) & 0xFF);
+                stream << (qint8) 0x00;
+                stream << (qint8) 0x00;
             }
             DBG_Printf(DBG_INFO_L2, "configure reporting for 0x%016llX, attribute 0x%04X/0x%04X\n", bt.restNode->address().ext(), bt.binding.clusterId, rq.attributeId);
         }
@@ -896,11 +898,11 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.reportableChange48bit = 10; // 0.01 kWh
 
         ConfigureReportingRequest rq2;
-        rq.dataType = deCONZ::Zcl24BitInt;
-        rq.attributeId = 0x0400; // Instantaneous Demand
-        rq.minInterval = 1;
-        rq.maxInterval = 300;
-        rq.reportableChange24bit = 10; // 1 W
+        rq2.dataType = deCONZ::Zcl24BitInt;
+        rq2.attributeId = 0x0400; // Instantaneous Demand
+        rq2.minInterval = 1;
+        rq2.maxInterval = 300;
+        rq2.reportableChange24bit = 10; // 1 W
 
         return sendConfigureReportingRequest(bt, {rq, rq2});
     }
@@ -1083,6 +1085,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturerCode() == VENDOR_IKEA)
         {
         }
+        else if (lightNode->manufacturerCode() == VENDOR_EMBER)
+        {
+        }
         else
         {
             return;
@@ -1208,9 +1213,12 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Philips
         sensor->modelId() == QLatin1String("SML001") ||
         sensor->modelId().startsWith(QLatin1String("RWL02")) ||
+        // ubisys
+        sensor->modelId().startsWith(QLatin1String("D1")) ||
         // IKEA
         sensor->modelId().startsWith(QLatin1String("TRADFRI")) ||
         // Heiman
+        sensor->modelId().startsWith(QLatin1String("SmartPlug")) ||
         sensor->modelId().startsWith(QLatin1String("CO_")) ||
         sensor->modelId().startsWith(QLatin1String("DOOR_")) ||
         sensor->modelId().startsWith(QLatin1String("PIR_")) ||
@@ -1224,7 +1232,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->setMgmtBindSupported(false);
     }
 
-    if (!endDeviceSupported && !sensor->node()->nodeDescriptor().receiverOnWhenIdle())
+    if (!endDeviceSupported)
     {
         DBG_Printf(DBG_INFO_L2, "don't create binding for attribute reporting of end-device %s\n", qPrintable(sensor->name()));
         return;
@@ -1245,8 +1253,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
     // whitelist by Model ID
     if (gwReportingEnabled)
     {
-        if (sensor->modelId().startsWith(QLatin1String("FLS-NB")) ||
-            endDeviceSupported)
+        if (sensor->modelId().startsWith(QLatin1String("FLS-NB")) || endDeviceSupported)
         {
             action = BindingTask::ActionBind;
         }
@@ -1329,7 +1336,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         }
         else if (*i == ELECTRICAL_MEASUREMENT_CLUSTER_ID)
         {
-            val = sensor->getZclValue(*i, 0x0000); // Active power
+            val = sensor->getZclValue(*i, 0x050b); // Active power
         }
 
         quint16 maxInterval = (val.maxInterval > 0) ? (val.maxInterval * 1.5) : (60 * 45);
@@ -1406,11 +1413,6 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
 
             if (bnd.dstEndpoint > 0) // valid gateway endpoint?
             {
-                // @manup, I get here, but I don't see the binding request in Wireshark.
-                // I double-checked that Wireshark captures the binding request when doing a manual bind.
-                DBG_Printf(DBG_INFO_L2, ">>>> 0x%016llX (%s) queue binding for attribute reporting of cluster 0x%04X on endpoint 0x%02X\n",
-                                        sensor->address().ext(), qPrintable(sensor->modelId()), (*i), srcEndpoint);
-
                 queueBindingTask(bindingTask);
             }
         }
