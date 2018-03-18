@@ -3332,13 +3332,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         if (sensorNode.fingerPrint().hasInCluster(METERING_CLUSTER_ID))
         {
             clusterId = METERING_CLUSTER_ID;
-            item = sensorNode.addItem(DataTypeInt64, RStateConsumption);
+            item = sensorNode.addItem(DataTypeUInt64, RStateConsumption);
             item = sensorNode.addItem(DataTypeInt16, RStatePower);
         }
         else if (sensorNode.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))
         {
             clusterId = ANALOG_INPUT_CLUSTER_ID;
-            item = sensorNode.addItem(DataTypeInt64, RStateConsumption);
+            item = sensorNode.addItem(DataTypeUInt64, RStateConsumption);
         }
     }
     else if (sensorNode.type().endsWith(QLatin1String("Power")))
@@ -4535,11 +4535,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 updateSensorEtag(&*i);
                             }
-                            else if (ia->id() == 0xff01) // Xiaomi magic
-                            {
-                                QByteArray arr = ia->toString().toLatin1();
-                                DBG_Printf(DBG_INFO_L2, ">>>>> 0x%016llX: Xiaomi magic: %s\n", event.node()->address().ext(), qPrintable(arr.toHex()));
-                            }
                         }
                     }
                     else if (event.clusterId() == ANALOG_INPUT_CLUSTER_ID)
@@ -4672,7 +4667,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
                                 }
 
-                                qint64 consumption = ia->numericValue().s64;
+                                quint64 consumption = ia->numericValue().u64;
                                 ResourceItem *item = i->item(RStateConsumption);
 
                                 if (i->modelId() == QLatin1String("SmartPlug")) // Heiman
@@ -4680,7 +4675,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     consumption += 5; consumption /= 10; // 0.1 Wh -> Wh
                                 }
 
-                                if (item && (item->toNumber() != consumption || updateType == NodeValue::UpdateByZclReport))
+                                if (item && ((quint64) item->toNumber() != consumption || updateType == NodeValue::UpdateByZclReport))
                                 {
                                     item->setValue(consumption); // in Wh (0.001 kWh)
                                     enqueueEvent(Event(RSensors, RStateConsumption, i->id(), item));

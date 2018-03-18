@@ -2091,7 +2091,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = ANALOG_INPUT_CLUSTER_ID;
             }
-            item = sensor.addItem(DataTypeInt64, RStateConsumption);
+            item = sensor.addItem(DataTypeUInt64, RStateConsumption);
             item->setValue(0);
         }
         else if (sensor.type().endsWith(QLatin1String("Power")))
