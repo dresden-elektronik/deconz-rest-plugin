@@ -2260,6 +2260,23 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
             if (!s)
             {
+                // if sensor was seen recently set reachable true
+                item = sensor.item(RStateLastUpdated);
+                if (!isClip && item && item->toNumber() > 0)
+                {
+                    QDateTime now = QDateTime::currentDateTimeUtc();
+                    QDateTime dt = QDateTime::fromMSecsSinceEpoch(item->toNumber());
+                    const int maxLastSeen = 60 * 60 * 6;
+
+                    item = sensor.item(RConfigReachable);
+
+                    if (item && dt.isValid() &&
+                        now > dt && dt.secsTo(now) < maxLastSeen)
+                    {
+                        item->setValue(true);
+                    }
+                }
+
                 sensor.address().setExt(extAddr);
                 // append to cache if not already known
                 d->sensors.push_back(sensor);

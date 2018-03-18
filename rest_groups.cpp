@@ -445,7 +445,12 @@ int DeRestPluginPrivate::setGroupAttributes(const ApiRequest &req, ApiResponse &
 
         ResourceItem *item = group->item(RAttrClass);
         DBG_Assert(item != 0);
-        item->setValue(gclass);
+        if (item && item->toString() != gclass)
+        {
+            item->setValue(gclass);
+            Event e(RGroups, RAttrClass, group->address());
+            enqueueEvent(e);
+        }
     }
 
     // name
@@ -467,6 +472,8 @@ int DeRestPluginPrivate::setGroupAttributes(const ApiRequest &req, ApiResponse &
                 {
                     group->setName(name);
                     changed = true;
+                    Event e(RGroups, RAttrName, group->address());
+                    enqueueEvent(e);
                     queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
                 }
             }
@@ -3182,6 +3189,21 @@ void DeRestPluginPrivate::handleGroupEvent(const Event &e)
             QVariantMap state;
             state[e.what() + 6] = item->toVariant();
             map["state"] = state;
+
+            webSocketServer->broadcastTextMessage(Json::serialize(map));
+        }
+    }
+    else if (strncmp(e.what(), "attr/", 5) == 0)
+    {
+        ResourceItem *item = group->item(e.what());
+        if (item)
+        {
+            QVariantMap map;
+            map["t"] = QLatin1String("event");
+            map["e"] = QLatin1String("changed");
+            map["r"] = QLatin1String("groups");
+            map["id"] = group->id();
+            map[e.what() + 5] = item->toVariant();
 
             webSocketServer->broadcastTextMessage(Json::serialize(map));
         }
