@@ -937,7 +937,6 @@ public Q_SLOTS:
     bool startUpdateFirmware();
 
     //wifi settings
-    void checkWifiState();
     int scanWifiNetworks(const ApiRequest &req, ApiResponse &rsp);
 
     // time manager
@@ -1460,9 +1459,6 @@ public:
     QUdpSocket *udpSock;
     QUdpSocket *udpSockOut;
     uint8_t haEndpoint;
-
-    // Wifi connected state
-    QTimer *checkWifiTimer;
 
     // events
     QTimer *eventTimer;
