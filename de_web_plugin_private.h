@@ -670,6 +670,7 @@ public:
     int configureWifi(const ApiRequest &req, ApiResponse &rsp);
     int restoreWifiConfig(const ApiRequest &req, ApiResponse &rsp);
     int putWifiScanResult(const ApiRequest &req, ApiResponse &rsp);
+    int putWifiUpdated(const ApiRequest &req, ApiResponse &rsp);
 
     void configToMap(const ApiRequest &req, QVariantMap &map);
     void basicConfigToMap(QVariantMap &map);
@@ -936,7 +937,6 @@ public Q_SLOTS:
     bool startUpdateFirmware();
 
     //wifi settings
-    void checkWifiState();
     int scanWifiNetworks(const ApiRequest &req, ApiResponse &rsp);
 
     // time manager
@@ -1459,9 +1459,6 @@ public:
     QUdpSocket *udpSock;
     QUdpSocket *udpSockOut;
     uint8_t haEndpoint;
-
-    // Wifi connected state
-    QTimer *checkWifiTimer;
 
     // events
     QTimer *eventTimer;

@@ -356,6 +356,11 @@ int DeRestPluginPrivate::handleConfigurationApi(const ApiRequest &req, ApiRespon
     {
         return putWifiScanResult(req, rsp);
     }
+    // PUT /api/<apikey>/config/wifi/updated
+    else if ((req.path.size() == 5) && (req.hdr.method() == "PUT") && (req.path[2] == "config") && (req.path[3] == "wifi") && (req.path[4] == "updated"))
+    {
+        return putWifiUpdated(req, rsp);
+    }
     // PUT, PATCH /api/<apikey>/config
     else if ((req.path.size() == 3) && (req.hdr.method() == "PUT" || req.hdr.method() == "PATCH") && (req.path[2] == "config"))
     {
@@ -1180,14 +1185,8 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
     bool ok;
     bool changed = false;
-    bool restartNetwork = false;
     QVariant var = Json::parse(req.content, ok);
     QVariantMap map = var.toMap();
-#ifdef ARCH_ARM
-#ifdef Q_OS_LINUX
-    std::string command = "";
-#endif
-#endif
 
     DBG_Assert(apsCtrl != 0);
 
@@ -1386,411 +1385,6 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         QVariantMap rspItem;
         QVariantMap rspItemState;
         rspItemState["/config/rgbwdisplay"] = rgbwDisplay;
-        rspItem["success"] = rspItemState;
-        rsp.list.append(rspItem);
-    }
-
-    if (map.contains("wifi")) // optional
-    {
-        QString wifi = map["wifi"].toString();
-
-        if (map["wifi"].type() != QVariant::String ||
-                ! ((wifi == "not-running") ||
-                   (wifi == "running")))
-        {
-            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/wifi"), QString("invalid value, %1, for parameter, wifi").arg(map["wifi"].toString())));
-            rsp.httpStatus = HttpStatusBadRequest;
-            return REQ_READY_SEND;
-        }
-
-        QString wifiType = "accesspoint";
-        QString wifiName = "RaspBee-AP";
-        QString wifiChannel = "1";
-        QString wifiPassword = "raspbeegw";
-        bool ret = true;
-
-        if (map.contains("wifitype"))
-        {
-            wifiType = map["wifitype"].toString();
-
-            if ((map["wifitype"].type() != QVariant::String) ||
-                   ! ((wifiType == "accesspoint") ||
-                      (wifiType == "ad-hoc") ||
-                      (wifiType == "client")))
-            {
-                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/wifitype"), QString("invalid value, %1, for parameter, wifitype").arg(map["wifitype"].toString())));
-                rsp.httpStatus = HttpStatusBadRequest;
-                return REQ_READY_SEND;
-            }
-        }
-
-        if (map.contains("wifiname"))
-        {
-            wifiName = map["wifiname"].toString();
-
-            if ((map["wifiname"].type() != QVariant::String) ||
-                (map["wifiname"].toString().length() > 32))
-            {
-                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/wifiname"), QString("invalid value, %1, for parameter, wifiname").arg(map["wifiname"].toString())));
-                rsp.httpStatus = HttpStatusBadRequest;
-                return REQ_READY_SEND;
-            }
-        }
-
-        if (map.contains("wifichannel"))
-        {
-            wifiChannel = map["wifichannel"].toString();
-            if (!((wifiChannel.toInt(&ok) >= 1) && (wifiChannel.toInt(&ok) <= 11)))
-            {
-                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/wifichannel"), QString("invalid value, %1, for parameter, wifichannel").arg(map["wifichannel"].toString())));
-                rsp.httpStatus = HttpStatusBadRequest;
-                return REQ_READY_SEND;
-            }
-        }
-
-        if (map.contains("wifipassword"))
-        {
-            wifiPassword = map["wifipassword"].toString();
-
-            if (map["wifipassword"].type() != QVariant::String ||
-                wifiPassword.length() < 8 || wifiPassword.length() > 63)
-            {
-                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/wifipassword"), QString("invalid value, %1, for parameter, wifipassword").arg(map["wifipassword"].toString())));
-                rsp.httpStatus = HttpStatusBadRequest;
-                return REQ_READY_SEND;
-            }
-        }
-
-        if ((gwWifi == "not-configured" && wifi == "running") ||
-            (wifiType == "client" && map.contains("wifipassword") && map.contains("wifiname")))
-        {
-#ifdef ARCH_ARM
-#ifdef Q_OS_LINUX
-            command = "sudo bash /usr/bin/deCONZ-configure-wifi.sh " + wifiType.toStdString() + " \"" + wifiName.toStdString() + "\" \"" + wifiPassword.toStdString() + "\" " + wifiChannel.toStdString();
-            system(command.c_str());
-/*
-            char const* cmd = "ifconfig wlan0 | grep 'inet addr:' | cut -d: -f2 | cut -d' ' -f1";
-            FILE* pipe = popen(cmd, "r");
-            if (!pipe)
-            {
-                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/config/wifi"), QString("Error setting wifi")));
-                rsp.httpStatus = HttpStatusServiceUnavailable;
-                return REQ_READY_SEND;
-            }
-            char buffer[128];
-            std::string result = "";
-            while(!feof(pipe)) {
-                if(fgets(buffer, 128, pipe) != NULL)
-                    result += buffer;
-            }
-            pclose(pipe);
-
-            QString ip = QString::fromStdString(result);
-
-            QVariantMap rspItem;
-            QVariantMap rspItemState;
-            rspItemState["ip"] = ip;
-            rspItem["success"] = rspItemState;
-            rsp.list.append(rspItem);
-*/
-#endif
-#endif
-        }
-        else if ((gwWifi == "not-running" && wifi == "running") ||
-                 (gwWifi == "running" && wifi == "not-running"))
-        {
-#ifdef ARCH_ARM
-#ifdef Q_OS_LINUX
-
-            char const* cmd = "";
-
-            if (gwWifiType == "client")
-            {
-                if (wifi == "running")
-                {
-                    cmd = "sudo bash /usr/bin/deCONZ-startstop-wifi.sh client start";
-                }
-                else
-                {
-                    cmd = "sudo bash /usr/bin/deCONZ-startstop-wifi.sh client stop";
-                }
-            }
-            else
-            {
-                if (wifi == "running")
-                {
-                    cmd = "sudo bash /usr/bin/deCONZ-startstop-wifi.sh accesspoint start";
-                }
-                else
-                {
-                    cmd = "sudo bash /usr/bin/deCONZ-startstop-wifi.sh accesspoint stop";
-                }
-            }
-
-            FILE* pipe = popen(cmd, "r");
-            if (!pipe)
-            {
-                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/config/wifi"), QString("Error setting wifi")));
-                rsp.httpStatus = HttpStatusServiceUnavailable;
-                return REQ_READY_SEND;
-            }
-            char buffer[128];
-            std::string result = "";
-            while(!feof(pipe)) {
-                if(fgets(buffer, 128, pipe) != NULL)
-                    result += buffer;
-            }
-            pclose(pipe);
-
-            QString ip = QString::fromStdString(result);
-
-            QVariantMap rspItem;
-            QVariantMap rspItemState;
-            rspItemState["ip"] = ip;
-            rspItem["success"] = rspItemState;
-            rsp.list.append(rspItem);
-#endif
-#endif
-        }
-        else if ((gwWifi == "running" && wifi == "running") || (gwWifi == "not-running" && wifi == "not-running"))
-        {
-            ret = false;
-        }
-
-        if (gwWifi != wifi)
-        {
-            gwWifi = wifi;
-            queSaveDb(DB_CONFIG,DB_SHORT_SAVE_DELAY);
-            changed = true;
-        }
-
-        QVariantMap rspItem;
-        QVariantMap rspItemState;
-        rspItemState["/config/wifi"] = wifi;
-        rspItem["success"] = rspItemState;
-        rsp.list.append(rspItem);
-        if (ret == true)
-        {
-            // skip return here because user wants to set wifitype, ssid, pw or channel
-            return REQ_READY_SEND;
-        }
-    }
-
-    if (map.contains("wifitype")) // optional
-    {
-        QString wifiType = map["wifitype"].toString();
-
-        if ((map["wifitype"].type() != QVariant::String) ||
-               ! ((wifiType == "accesspoint") ||
-                  (wifiType == "ad-hoc") ||
-                  (wifiType == "client")))
-        {
-            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/wifitype"), QString("invalid value, %1, for parameter, wifitype").arg(map["wifitype"].toString())));
-            rsp.httpStatus = HttpStatusBadRequest;
-            return REQ_READY_SEND;
-        }
-
-        if (gwWifiType != wifiType)
-        {
-            QString wifiName = "RaspBee-AP";
-            QString wifiChannel = "1";
-            QString wifiPassword = "raspbeegw";
-
-            if (map.contains("wifiname"))
-            {
-                wifiName = map["wifiname"].toString();
-
-                if ((map["wifiname"].type() != QVariant::String) ||
-                    (map["wifiname"].toString().length() > 32))
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/wifiname"), QString("invalid value, %1, for parameter, wifiname").arg(map["wifiname"].toString())));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-            }
-
-            if (map.contains("wifichannel"))
-            {
-                wifiChannel = map["wifichannel"].toString();
-                if (!((wifiChannel.toInt(&ok) >= 1) && (wifiChannel.toInt(&ok) <= 11)))
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/wifichannel"), QString("invalid value, %1, for parameter, wifichannel").arg(map["wifichannel"].toString())));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-            }
-
-            if (map.contains("wifipassword"))
-            {
-                wifiPassword = map["wifipassword"].toString();
-
-                if (map["wifipassword"].type() != QVariant::String ||
-                    wifiPassword.length() < 8 || wifiPassword.length() > 63)
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/wifipassword"), QString("invalid value, %1, for parameter, wifipassword").arg(map["wifipassword"].toString())));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-            }
-
-#ifdef ARCH_ARM
-#ifdef Q_OS_LINUX
-            command = "sudo bash /usr/bin/deCONZ-configure-wifi.sh " + wifiType.toStdString() + " \"" + wifiName.toStdString() + "\" \"" + wifiPassword.toStdString() + "\" " + wifiChannel.toStdString();
-            system(command.c_str());
-/*
-            char const* cmd = "ifconfig wlan0 | grep 'inet addr:' | cut -d: -f2 | cut -d' ' -f1";
-            FILE* pipe = popen(cmd, "r");
-            if (!pipe)
-            {
-                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/config/wifi"), QString("Error setting wifi")));
-                rsp.httpStatus = HttpStatusServiceUnavailable;
-                return REQ_READY_SEND;
-            }
-            char buffer[128];
-            std::string result = "";
-            while(!feof(pipe)) {
-                if(fgets(buffer, 128, pipe) != NULL)
-                    result += buffer;
-            }
-            pclose(pipe);
-
-            QString ip = QString::fromStdString(result);
-
-            QVariantMap rspItem;
-            QVariantMap rspItemState;
-            rspItemState["ip"] = ip;
-            rspItem["success"] = rspItemState;
-            rsp.list.append(rspItem);
-*/
-#endif
-#endif
-            gwWifiType = wifiType;
-            queSaveDb(DB_CONFIG,DB_SHORT_SAVE_DELAY);
-            changed = true;
-        }
-
-        QVariantMap rspItem;
-        QVariantMap rspItemState;
-        rspItemState["/config/wifitype"] = wifiType;
-        rspItem["success"] = rspItemState;
-        rsp.list.append(rspItem);
-    }
-
-    if (map.contains("wifiname")) // optional
-    {
-        QString wifiName = map["wifiname"].toString();
-
-        if ((map["wifiname"].type() != QVariant::String) ||
-            (map["wifiname"].toString().length() > 32))
-        {
-            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/wifiname"), QString("invalid value, %1, for parameter, wifiname").arg(map["wifiname"].toString())));
-            rsp.httpStatus = HttpStatusBadRequest;
-            return REQ_READY_SEND;
-        }
-
-        if (gwWifiName != wifiName)
-        {
-#ifdef ARCH_ARM
-#ifdef Q_OS_LINUX
-            if (gwWifiType != "client")
-            {
-                command = "sudo sed -i 's/^ssid=.*/ssid=" + wifiName.toStdString() + "/g' /etc/hostapd/hostapd.conf";
-                system(command.c_str());
-            }
-#endif
-#endif
-            if (gwWifi == "running")
-            {
-                if (gwWifiType != "client")
-                {
-                    restartNetwork = true;
-                }
-
-            }
-            gwWifiName = wifiName;
-            queSaveDb(DB_CONFIG,DB_SHORT_SAVE_DELAY);
-            changed = true;
-        }
-
-        QVariantMap rspItem;
-        QVariantMap rspItemState;
-        rspItemState["/config/wifiname"] = wifiName;
-        rspItem["success"] = rspItemState;
-        rsp.list.append(rspItem);
-    }
-
-    if (map.contains("wifichannel")) // optional
-    {
-        QString wifiChannel = map["wifichannel"].toString();
-        if (!((wifiChannel.toInt(&ok) >= 1) && (wifiChannel.toInt(&ok) <= 11)))
-        {
-            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/wifichannel"), QString("invalid value, %1, for parameter, wifichannel").arg(map["wifichannel"].toString())));
-            rsp.httpStatus = HttpStatusBadRequest;
-            return REQ_READY_SEND;
-        }
-
-        if (gwWifiChannel != wifiChannel)
-        {
-#ifdef ARCH_ARM
-#ifdef Q_OS_LINUX
-            if (gwWifiType != "client")
-            {
-                command = "sudo sed -i 's/^channel=.*/channel=" + wifiChannel.toStdString() + "/g' /etc/hostapd/hostapd.conf";
-                system(command.c_str());
-            }
-#endif
-#endif
-            if (gwWifi == "running")
-            {
-                if (gwWifiType != "client")
-                {
-                    restartNetwork = true;
-                }
-            }
-            gwWifiChannel = wifiChannel;
-            queSaveDb(DB_CONFIG,DB_SHORT_SAVE_DELAY);
-            changed = true;
-        }
-
-        QVariantMap rspItem;
-        QVariantMap rspItemState;
-        rspItemState["/config/wifichannel"] = wifiChannel;
-        rspItem["success"] = rspItemState;
-        rsp.list.append(rspItem);
-    }
-
-    if (map.contains("wifipassword")) // optional
-    {
-        QString wifiPassword = map["wifipassword"].toString();
-
-        if (map["wifipassword"].type() != QVariant::String ||
-            wifiPassword.length() < 8 || wifiPassword.length() > 63)
-        {
-            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/wifipassword"), QString("invalid value, %1, for parameter, wifipassword").arg(map["wifipassword"].toString())));
-            rsp.httpStatus = HttpStatusBadRequest;
-            return REQ_READY_SEND;
-        }
-
-#ifdef ARCH_ARM
-#ifdef Q_OS_LINUX
-        if (gwWifiType != "client")
-        {
-            command = "sudo sed -i 's/wpa_passphrase=.*/wpa_passphrase=" + wifiPassword.toStdString() + "/g' /etc/hostapd/hostapd.conf";
-            system(command.c_str());
-        }
-#endif
-#endif
-        if (gwWifi == "running")
-        {
-            if (gwWifiType != "client")
-            {
-                restartNetwork = true;
-            }
-
-        }
-        QVariantMap rspItem;
-        QVariantMap rspItemState;
-        rspItemState["/config/wifipassword"] = wifiPassword;
         rspItem["success"] = rspItemState;
         rsp.list.append(rspItem);
     }
@@ -2084,31 +1678,6 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
     if (changed)
     {
         updateEtag(gwConfigEtag);
-    }
-
-    if (restartNetwork)
-    {
-#ifdef ARCH_ARM
-#ifdef Q_OS_LINUX
-
-        char const* cmd = "";
-        cmd = "sudo bash /usr/bin/deCONZ-startstop-wifi.sh accesspoint start";
-        FILE* pipe = popen(cmd, "r");
-        if (!pipe)
-        {
-            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/config/wifi"), QString("Error setting wifi")));
-            rsp.httpStatus = HttpStatusServiceUnavailable;
-            return REQ_READY_SEND;
-        }
-        char buffer[128];
-        std::string result = "";
-        while(!feof(pipe)) {
-            if(fgets(buffer, 128, pipe) != NULL)
-                result += buffer;
-        }
-        pclose(pipe);
-#endif
-#endif
     }
 
     rsp.etag = gwConfigEtag;
@@ -2650,8 +2219,6 @@ int DeRestPluginPrivate::getWifiState(const ApiRequest &req, ApiResponse &rsp)
 {
     Q_UNUSED(req);
 
-    checkWifiState();
-
     rsp.map["wifi"] = gwWifi;
     rsp.map["wifitype"] = gwWifiType;
     rsp.map["wifiname"] = gwWifiName;
@@ -2794,15 +2361,6 @@ int DeRestPluginPrivate::restoreWifiConfig(const ApiRequest &req, ApiResponse &r
 {
     Q_UNUSED(req);
 
-#if 0
-#ifdef ARCH_ARM
-#ifdef Q_OS_LINUX
-    std::string command = "sudo bash /usr/bin/deCONZ-startstop-wifi.sh accesspoint restore" ;
-    system(command.c_str());
-#endif
-#endif
-#endif
-
     rsp.httpStatus = HttpStatusOk;
     QVariantMap rspItem;
     QVariantMap rspItemState;
@@ -2839,141 +2397,29 @@ int DeRestPluginPrivate::putWifiScanResult(const ApiRequest &req, ApiResponse &r
     return REQ_READY_SEND;
 }
 
-/*! check wifi state on raspberry pi.
+/*! PUT /api/config/wifi/updated (wifi service notifications)
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
  */
-void DeRestPluginPrivate::checkWifiState()
+int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
 {
-#if 0
-#ifdef ARCH_ARM
-#ifdef Q_OS_LINUX
-    char const* cmd = "sudo bash /usr/bin/deCONZ-check-wifi.sh";
-    FILE* pipe = popen(cmd, "r");
-    if (!pipe) return;
-    char buffer[128];
-    std::string result = "";
-    while(!feof(pipe)) {
-        if(fgets(buffer, 128, pipe) != NULL)
-            result += buffer;
-    }
-    pclose(pipe);
+    QHostAddress localHost(QHostAddress::LocalHost);
+    rsp.httpStatus = HttpStatusForbidden;
 
-    if (QString::fromStdString(result).indexOf("not_installed") != -1)
+    if (req.sock->peerAddress() != localHost)
     {
-        if (gwWifi != "not-installed")
-        {
-            // changed
-            updateEtag(gwConfigEtag);
-            gwWifi = "not-installed";
-        }
-        return;
+        rsp.list.append(errorToMap(ERR_UNAUTHORIZED_USER, req.path.join("/"), "unauthorized user"));
+        return REQ_READY_SEND;
     }
-    if (QString::fromStdString(result).indexOf("no_file") != -1 || QString::fromStdString(result).indexOf("not_configured") != -1)
+
+    rsp.httpStatus = HttpStatusOk;
+
+    if (!req.content.isEmpty())
     {
-        if (gwWifi != "not-configured")
-        {
-            // changed
-            updateEtag(gwConfigEtag);
-            gwWifi = "not-configured";
-        }
-        return;
+        DBG_Printf(DBG_HTTP, "wifi: %s\n", qPrintable(req.content));
+        // TODO forward events
     }
-    if (QString::fromStdString(result).indexOf("wlan0_down") != -1)
-    {
-        if (QString::fromStdString(result).indexOf("mode_") != -1)
-        {
-            int begin = QString::fromStdString(result).indexOf("mode_") + 5;
-            int end = QString::fromStdString(result).indexOf("/mode");
-            gwWifiType = QString::fromStdString(result.substr(begin, end-begin));
-        }
-
-        if (QString::fromStdString(result).indexOf("ssid_") != -1)
-        {
-            int begin = QString::fromStdString(result).indexOf("ssid_") + 5;
-            int end = QString::fromStdString(result).indexOf("/ssid");
-            gwWifiName = QString::fromStdString(result.substr(begin, end-begin));
-        }
-
-        if (QString::fromStdString(result).indexOf("channel_") != -1)
-        {
-            int begin = QString::fromStdString(result).indexOf("channel_") + 8;
-            int end = QString::fromStdString(result).indexOf("/channel");
-            QString channel = gwWifiChannel = QString::fromStdString(result.substr(begin, end-begin));
-            gwWifiChannel = channel;
-        }
-        if (QString::fromStdString(result).indexOf("pw_") != -1)
-        {
-            int begin = QString::fromStdString(result).indexOf("pw_") + 3;
-            int end = QString::fromStdString(result).indexOf("/pw");
-            QString pw = QString::fromStdString(result.substr(begin, end-begin));
-            gwWifiPw = pw;
-        }
-        if (QString::fromStdString(result).indexOf("ip_") != -1)
-        {
-            int begin = QString::fromStdString(result).indexOf("ip_") + 3;
-            int end = QString::fromStdString(result).indexOf("/ip");
-            QString ip = QString::fromStdString(result.substr(begin, end-begin));
-            gwWifiIp = ip;
-        }
-        if (gwWifi != "not-running")
-        {
-            // changed
-            updateEtag(gwConfigEtag);
-            gwWifi = "not-running";
-            queSaveDb(DB_CONFIG,DB_SHORT_SAVE_DELAY);
-        }
-        return;
-    }
-    if (QString::fromStdString(result).indexOf("wifi_running") != -1)
-    {
-        if (QString::fromStdString(result).indexOf("mode_") != -1)
-        {
-            int begin = QString::fromStdString(result).indexOf("mode_") + 5;
-            int end = QString::fromStdString(result).indexOf("/mode");
-            gwWifiType = QString::fromStdString(result.substr(begin, end-begin));
-        }
-
-        if (QString::fromStdString(result).indexOf("ssid_") != -1)
-        {
-            int begin = QString::fromStdString(result).indexOf("ssid_") + 5;
-            int end = QString::fromStdString(result).indexOf("/ssid");
-            gwWifiName = QString::fromStdString(result.substr(begin, end-begin));
-        }
-
-        if (QString::fromStdString(result).indexOf("channel_") != -1)
-        {
-            int begin = QString::fromStdString(result).indexOf("channel_") + 8;
-            int end = QString::fromStdString(result).indexOf("/channel");
-            QString channel = QString::fromStdString(result.substr(begin, end-begin));
-            gwWifiChannel = channel;
-        }
-        if (QString::fromStdString(result).indexOf("pw_") != -1)
-        {
-            int begin = QString::fromStdString(result).indexOf("pw_") + 3;
-            int end = QString::fromStdString(result).indexOf("/pw");
-            QString pw = QString::fromStdString(result.substr(begin, end-begin));
-            gwWifiPw = pw;
-        }
-        if (QString::fromStdString(result).indexOf("ip_") != -1)
-        {
-            int begin = QString::fromStdString(result).indexOf("ip_") + 3;
-            int end = QString::fromStdString(result).indexOf("/ip");
-            QString ip = QString::fromStdString(result.substr(begin, end-begin));
-            gwWifiIp = ip;
-        }
-        if (gwWifi != "running")
-        {
-            // changed
-            updateEtag(gwConfigEtag);
-            gwWifi = "running";
-            queSaveDb(DB_CONFIG,DB_SHORT_SAVE_DELAY);
-        }
-
-        return;
-    }
-#endif
-#endif
-#endif
-    return;
+    return REQ_READY_SEND;
 }
 
 /*! POST /api/<apikey>/config/wifiscan
@@ -2986,123 +2432,6 @@ int DeRestPluginPrivate::scanWifiNetworks(const ApiRequest &req, ApiResponse &rs
     Q_UNUSED(rsp);
 
     QVariantMap cells;
-#if 0
-    QVariantMap cell;
-
-#ifdef ARCH_ARM
-#ifdef Q_OS_LINUX
-    char const* cmd1 = "ifconfig";
-    FILE* pipe1 = popen(cmd1, "r");
-    if (!pipe1) return -1;
-    char buffer1[128];
-    std::string ifconfig = "";
-    while(!feof(pipe1)) {
-        if(fgets(buffer1, 128, pipe1) != NULL)
-            ifconfig += buffer1;
-    }
-    pclose(pipe1);
-
-    if (QString::fromStdString(ifconfig).indexOf("wlan0") == -1)
-    {
-        //wlan0 down, activate it
-        std::string command = "sudo ifup wlan0" ;
-        system(command.c_str());
-    }
-
-    char const* cmd = "sudo iwlist wlan0 scan";
-    FILE* pipe = popen(cmd, "r");
-    if (!pipe) return -1;
-    char buffer[128];
-    std::string result = "";
-    while(!feof(pipe)) {
-        if(fgets(buffer, 128, pipe) != NULL)
-            result += buffer;
-    }
-    pclose(pipe);
-
-    QStringList wifiCells = QString::fromStdString(result).split("Cell");
-
-    QString channel;
-    QString security;
-    QString cipher;
-    QString key;
-    QString name;
-    QString signalStrength;
-
-    QList<QString>::const_iterator i = wifiCells.begin();
-    QList<QString>::const_iterator end = wifiCells.end();
-    int n = 1;
-    for (; i != end; ++i)
-    {
-        if (QString(*i).indexOf("ESSID:") != -1 && QString(*i).indexOf("Mode:Ad-Hoc") == -1)
-        {
-            channel = "";
-            security = "";
-            cipher = "";
-            key = "";
-            name = "";
-            signalStrength = "";
-
-            int begin = QString(*i).indexOf("ESSID:\"") + 7;
-            int end = QString(*i).indexOf("\"\n");
-            name = QString(*i).mid(begin, end-begin);
-            cell["name"] = name;
-
-            if (QString(*i).indexOf("Channel:") != -1)
-            {
-                int begin = QString(*i).indexOf("Channel:") + 8;
-                channel = QString(*i).mid(begin, 2);
-                channel = channel.simplified();
-                cell["channel"] = channel;
-            }
-
-            if (QString(*i).indexOf("Signal level=") != -1)
-            {
-                int begin = QString(*i).indexOf("Signal level=") + 13;
-                int end = QString(*i).indexOf(" dBm");
-                signalStrength = QString(*i).mid(begin, end-begin);
-                cell["signalstrength"] = signalStrength;
-            }
-            // security
-            if (QString(*i).indexOf("WPA") != -1)
-            {
-                security = "WPA";
-            }
-            if (QString(*i).indexOf("WPA2") != -1)
-            {
-                security = "WPA2";
-            }
-            if (QString(*i).indexOf("WEP") != -1)
-            {
-                security = "WEP";
-            }
-            //group cipher TODO
-            if (QString(*i).indexOf("CCMP") != -1)
-            {
-                cipher = "(CCMP)";
-            }
-            else if (QString(*i).indexOf("AES") != -1)
-            {
-                cipher = "(AES)";
-            }
-            else if (QString(*i).indexOf("TKIP") != -1)
-            {
-                cipher = "(TKIP)";
-            }
-            // authentication suites
-            if (QString(*i).indexOf("PSK") != -1)
-            {
-                key = "-PSK";
-            }
-            cell["security"] = QString("%1%2").arg(security).arg(key);
-
-            cells[QString::number(n)] = cell;
-            n++;
-        }
-    }
-#endif
-#endif
-#endif
     rsp.map["cells"] = cells;
     rsp.httpStatus = HttpStatusOk;
     return REQ_READY_SEND;
