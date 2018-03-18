@@ -670,6 +670,7 @@ public:
     int configureWifi(const ApiRequest &req, ApiResponse &rsp);
     int restoreWifiConfig(const ApiRequest &req, ApiResponse &rsp);
     int putWifiScanResult(const ApiRequest &req, ApiResponse &rsp);
+    int putWifiUpdated(const ApiRequest &req, ApiResponse &rsp);
 
     void configToMap(const ApiRequest &req, QVariantMap &map);
     void basicConfigToMap(QVariantMap &map);

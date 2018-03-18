@@ -356,6 +356,11 @@ int DeRestPluginPrivate::handleConfigurationApi(const ApiRequest &req, ApiRespon
     {
         return putWifiScanResult(req, rsp);
     }
+    // PUT /api/<apikey>/config/wifi/updated
+    else if ((req.path.size() == 5) && (req.hdr.method() == "PUT") && (req.path[2] == "config") && (req.path[3] == "wifi") && (req.path[4] == "updated"))
+    {
+        return putWifiUpdated(req, rsp);
+    }
     // PUT, PATCH /api/<apikey>/config
     else if ((req.path.size() == 3) && (req.hdr.method() == "PUT" || req.hdr.method() == "PATCH") && (req.path[2] == "config"))
     {
@@ -2392,15 +2397,29 @@ int DeRestPluginPrivate::putWifiScanResult(const ApiRequest &req, ApiResponse &r
     return REQ_READY_SEND;
 }
 
+/*! PUT /api/config/wifi/updated (wifi service notifications)
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
  */
+int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
 {
+    QHostAddress localHost(QHostAddress::LocalHost);
+    rsp.httpStatus = HttpStatusForbidden;
 
+    if (req.sock->peerAddress() != localHost)
     {
+        rsp.list.append(errorToMap(ERR_UNAUTHORIZED_USER, req.path.join("/"), "unauthorized user"));
+        return REQ_READY_SEND;
     }
 
+    rsp.httpStatus = HttpStatusOk;
 
+    if (!req.content.isEmpty())
     {
+        DBG_Printf(DBG_HTTP, "wifi: %s\n", qPrintable(req.content));
+        // TODO forward events
     }
+    return REQ_READY_SEND;
 }
 
 /*! POST /api/<apikey>/config/wifiscan
