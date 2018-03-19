@@ -42,17 +42,22 @@ void PollManager::poll(RestNodeBase *restNode, const QDateTime &tStart)
         return;
     }
 
+    LightNode *lightNode = 0;
+    Sensor *sensor = 0;
+
     if (r->prefix() == RLights)
     {
-        LightNode *lightNode = static_cast<LightNode*>(restNode);
+        lightNode = static_cast<LightNode*>(restNode);
         DBG_Assert(lightNode != 0);
         pitem.endpoint = lightNode->haEndpoint().endpoint();
+        DBG_Printf(DBG_INFO_L2, ">>>> Poll light node %s\n", qPrintable(lightNode->name()));
     }
     else if (r->prefix() == RSensors)
     {
-        Sensor *sensor = static_cast<Sensor*>(restNode);
+        sensor = static_cast<Sensor*>(restNode);
         DBG_Assert(sensor != 0);
         pitem.endpoint = sensor->fingerPrint().endpoint;
+        DBG_Printf(DBG_INFO_L2, ">>>> Poll %s sensor node %s\n", qPrintable(sensor->type()), qPrintable(sensor->name()));
     }
     else
     {
@@ -72,10 +77,11 @@ void PollManager::poll(RestNodeBase *restNode, const QDateTime &tStart)
         if (suffix == RStateOn ||
             suffix == RStateBri ||
             suffix == RStateColorMode ||
-            suffix == RStateConsumption ||
-            suffix == RStatePower ||
+            (suffix == RStateConsumption && sensor && sensor->type() == QLatin1String("ZHAConsumption")) ||
+            (suffix == RStatePower && sensor && sensor->type() == QLatin1String("ZHAPower")) ||
             suffix == RAttrModelId)
         {
+            // DBG_Printf(DBG_INFO_L2, "    attribute %s\n", suffix);
             pitem.items.push_back(suffix);
         }
     }
@@ -318,6 +324,7 @@ void PollManager::pollTimerFired()
     {
         clusterId = METERING_CLUSTER_ID;
         attributes.push_back(0x0000); // Curent Summation Delivered
+        attributes.push_back(0x0400); // Instantaneous Demand
     }
     else if (suffix == RStatePower)
     {

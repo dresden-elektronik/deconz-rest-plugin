@@ -4692,7 +4692,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 qint32 power = ia->numericValue().s32;
                                 ResourceItem *item = i->item(RStatePower);
 
-                                if (i->modelId() == QLatin1String("SmartPlug")) // Heiman
+                                if (i->modelId() == QLatin1String("SmartPlug") || // Heiman
+                                    i->modelId() == QLatin1String("902010/25")) // Bitron
                                 {
                                     power += 5; power /= 10; // 0.1 W -> W
                                 }
@@ -11215,7 +11216,7 @@ void DeRestPlugin::idleTimerFired()
                     continue;
                 }
 
-                if (sensorNode->type().startsWith(QLatin1String("CLIP")))
+                if (!sensorNode->type().startsWith(QLatin1String("Z"))) // Exclude CLIP and Daylight sensors
                 {
                     continue;
                 }
