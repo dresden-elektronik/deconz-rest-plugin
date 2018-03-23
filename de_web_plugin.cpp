@@ -4675,7 +4675,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     consumption += 5; consumption /= 10; // 0.1 Wh -> Wh
                                 }
 
-                                if (item && ((quint64) item->toNumber() != consumption || updateType == NodeValue::UpdateByZclReport))
+                                if (item)
                                 {
                                     item->setValue(consumption); // in Wh (0.001 kWh)
                                     enqueueEvent(Event(RSensors, RStateConsumption, i->id(), item));
@@ -4698,7 +4698,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     power += 5; power /= 10; // 0.1 W -> W
                                 }
 
-                                if (item && (item->toNumber() != power || updateType == NodeValue::UpdateByZclReport))
+                                if (item)
                                 {
                                     item->setValue((qint16) power); // in W
                                     enqueueEvent(Event(RSensors, RStatePower, i->id(), item));
@@ -4729,7 +4729,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 qint16 power = ia->numericValue().s16;
                                 ResourceItem *item = i->item(RStatePower);
 
-                                if (power != -32768)
+                                if (item && power != -32768)
                                 {
                                     if (i->modelId() == QLatin1String("SmartPlug")) // Heiman
                                     {
@@ -4739,12 +4739,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         power = power == 28000 ? 0 : power / 10;
                                     }
-                                    if (item && (item->toNumber() != power || updateType == NodeValue::UpdateByZclReport))
-                                    {
-                                        item->setValue(power); // in W
-                                        enqueueEvent(Event(RSensors, RStatePower, i->id(), item));
-                                        updated = true;
-                                    }
+                                    item->setValue(power); // in W
+                                    enqueueEvent(Event(RSensors, RStatePower, i->id(), item));
+                                    updated = true;
                                 }
                             }
                             else if (ia->id() == 0x0505) // RMS Voltage
@@ -4757,18 +4754,15 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 quint16 voltage = ia->numericValue().u16;
                                 ResourceItem *item = i->item(RStateVoltage);
 
-                                if (voltage != 65535)
+                                if (item && voltage != 65535)
                                 {
                                     if (i->modelId() == QLatin1String("SmartPlug")) // Heiman
                                     {
                                         voltage += 50; voltage /= 100; // 0.01V -> V
                                     }
-                                    if (item && (item->toNumber() != voltage || updateType == NodeValue::UpdateByZclReport))
-                                    {
-                                        item->setValue(voltage); // in V
-                                        enqueueEvent(Event(RSensors, RStateVoltage, i->id(), item));
-                                        updated = true;
-                                    }
+                                    item->setValue(voltage); // in V
+                                    enqueueEvent(Event(RSensors, RStateVoltage, i->id(), item));
+                                    updated = true;
                                 }
                             }
                             else if (ia->id() == 0x0508) // RMS Current
@@ -4781,18 +4775,15 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 quint16 current = ia->numericValue().u16;
                                 ResourceItem *item = i->item(RStateCurrent);
 
-                                if (current != 65535)
+                                if (item && current != 65535)
                                 {
                                     if (i->modelId() != QLatin1String("SmartPlug")) // Heiman
                                     {
                                         current *= 10; // A -> 0.1A
                                     }
-                                    if (item && (item->toNumber() != current || updateType == NodeValue::UpdateByZclReport))
-                                    {
-                                        item->setValue(current); // in 0.1A
-                                        enqueueEvent(Event(RSensors, RStateCurrent, i->id(), item));
-                                        updated = true;
-                                    }
+                                    item->setValue(current); // in 0.1A
+                                    enqueueEvent(Event(RSensors, RStateCurrent, i->id(), item));
+                                    updated = true;
                                 }
                             }
                         }
