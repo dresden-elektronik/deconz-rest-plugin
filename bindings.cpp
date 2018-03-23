@@ -1088,6 +1088,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturerCode() == VENDOR_EMBER)
         {
         }
+        else if (lightNode->manufacturerCode() == VENDOR_KEEN_HOME)
+        {
+        }
         else
         {
             return;

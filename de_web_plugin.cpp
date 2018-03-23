@@ -75,6 +75,7 @@ const quint64 ubisysMacPrefix     = 0x001fee0000000000ULL;
 const quint64 netvoxMacPrefix     = 0x00137a0000000000ULL;
 const quint64 heimanMacPrefix     = 0x0050430000000000ULL;
 const quint64 lutronMacPrefix     = 0xffff000000000000ULL;
+const quint64 keenhomeMacPrefix   = 0x0022a30000000000ULL;
 
 struct SupportedDevice {
     quint16 vendorId;
@@ -139,6 +140,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBER, "SmartPlug", emberMacPrefix }, // Heiman smart plug
     { VENDOR_120B, "WarningDevice", emberMacPrefix }, // Heiman siren
     { VENDOR_LUTRON, "LZL4BWHL01", lutronMacPrefix }, // Lutron LZL-4B-WH-L01 Connected Bulb Remote
+    { VENDOR_KEEN_HOME , "SV01-610-MP", keenhomeMacPrefix}, // Keen Home Vent
     { 0, 0, 0 }
 };
 
@@ -1049,7 +1051,11 @@ qint64 DeRestPluginPrivate::getUptime()
 void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 {
     DBG_Assert(node != 0);
-    if (!node || !node->nodeDescriptor().receiverOnWhenIdle())
+    if (node && node->nodeDescriptor().manufacturerCode() == VENDOR_KEEN_HOME)
+    {
+        // exception for Keen Home Vent
+    }
+    else if (!node || !node->nodeDescriptor().receiverOnWhenIdle())
     {
         return;
     }
@@ -1147,6 +1153,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 case DEV_ID_MAINS_POWER_OUTLET:
                 case DEV_ID_HA_ONOFF_LIGHT:
                 case DEV_ID_ONOFF_OUTPUT:
+                case DEV_ID_LEVEL_CONTROLLABLE_OUTPUT:
                 case DEV_ID_HA_DIMMABLE_LIGHT:
                 case DEV_ID_HA_COLOR_DIMMABLE_LIGHT:
                 case DEV_ID_SMART_PLUG:
@@ -1522,6 +1529,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
             case DEV_ID_Z30_DIMMABLE_PLUGIN_UNIT:
             case DEV_ID_HA_ONOFF_LIGHT:
             case DEV_ID_ONOFF_OUTPUT:
+            case DEV_ID_LEVEL_CONTROLLABLE_OUTPUT:
             case DEV_ID_ZLL_ONOFF_LIGHT:
             case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:
             case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:
@@ -3519,6 +3527,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             sensorNode.setMode(Sensor::ModeDimmer);
         }
+    }
+    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_KEEN_HOME)
+    {
+        sensorNode.setManufacturer("Keen Home Inc");
     }
 
     if (sensorNode.manufacturer().isEmpty() && !manufacturer.isEmpty())

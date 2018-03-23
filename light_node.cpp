@@ -104,6 +104,7 @@ void LightNode::setManufacturerCode(uint16_t code)
         case VENDOR_BUSCH_JAEGER:  m_manufacturer = QLatin1String("Busch-Jaeger"); break;
         case VENDOR_EMBER:   // fall through
         case VENDOR_120B:    m_manufacturer = QLatin1String("Heiman"); break;
+        case VENDOR_KEEN_HOME: m_manufacturer = QLatin1String("Keen Home Inc"); break;
         default:
             m_manufacturer = QLatin1String("Unknown");
             break;
@@ -550,6 +551,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
             }
                 break;
             case DEV_ID_ONOFF_OUTPUT:             ltype = QLatin1String("On/Off output"); break;
+            case DEV_ID_LEVEL_CONTROLLABLE_OUTPUT:   ltype = QLatin1String("Level controllable output"); break;
             case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:    ltype = QLatin1String("On/Off plug-in unit"); break;
             case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:    ltype = QLatin1String("On/Off plug-in unit"); break;
             case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT: ltype = QLatin1String("Dimmable plug-in unit"); break;

@@ -90,6 +90,7 @@
 #define DEV_ID_ONOFF_SWITCH                 0x0000 // On/Off switch
 #define DEV_ID_LEVEL_CONTROL_SWITCH         0x0001 // Level control switch
 #define DEV_ID_ONOFF_OUTPUT                 0x0002 // On/Off output
+#define DEV_ID_LEVEL_CONTROLLABLE_OUTPUT    0x0003 // Level controllable output
 #define DEV_ID_RANGE_EXTENDER               0x0008 // Range extender
 #define DEV_ID_MAINS_POWER_OUTLET           0x0009 // Mains power outlet
 #define DEV_ID_SMART_PLUG                   0x0051 // Smart plug
@@ -229,6 +230,7 @@
 #define VENDOR_OSRAM        0x110C
 #define VENDOR_DDEL         0x1135
 #define VENDOR_LUTRON       0x1144
+#define VENDOR_KEEN_HOME    0x115B
 #define VENDOR_115F         0x115F    // Used by Xiaomi
 #define VENDOR_INNR         0x1166
 #define VENDOR_INNR2        0x1168
@@ -318,6 +320,7 @@ extern const quint64 ubisysMacPrefix;
 extern const quint64 netvoxMacPrefix;
 extern const quint64 heimanMacPrefix;
 extern const quint64 lutronMacPrefix;
+extern const quint64 keenhomeMacPrefix;
 
 // HTTP status codes
 extern const char *HttpStatusOk;
