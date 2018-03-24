@@ -459,11 +459,13 @@ void DeRestPluginPrivate::checkFirmwareDevices()
     else if (usbDongleCount == 1)
     {
         DBG_Printf(DBG_INFO_L2, "GW firmware update select USB device\n");
+#ifndef Q_OS_WIN // windows does append characters  to the serial number for some reason 'A' (TODO)
         if (!serialNumber.isEmpty())
         {
             fwProcessArgs << "-sn" << serialNumber;
         }
         else
+#endif
         {
             fwProcessArgs << "-d" << "0";
         }
