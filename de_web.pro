@@ -61,7 +61,7 @@ DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\" \
 
 # Minimum version of the RaspBee firmware
 # which shall be used in order to support all features for this software release (case sensitive)
-DEFINES += GW_MIN_RPI_FW_VERSION=0x261e0500
+DEFINES += GW_MIN_RPI_FW_VERSION=0x261f0500
 
 # Minimum version of the deRFusb23E0X firmware
 # which shall be used in order to support all features for this software release
