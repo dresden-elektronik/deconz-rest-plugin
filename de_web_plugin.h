@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2018 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -18,8 +18,8 @@
 class DeRestWidget;
 class DeRestPluginPrivate;
 
-#if DECONZ_LIB_VERSION < 0x010500
-  #error "The REST plugin requires at least deCONZ library version 1.5.0."
+#if DECONZ_LIB_VERSION < 0x010600
+  #error "The REST plugin requires at least deCONZ library version 1.6.0."
 #endif
 
 class DeRestPlugin : public QObject,
