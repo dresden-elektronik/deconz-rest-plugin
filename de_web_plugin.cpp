@@ -3463,7 +3463,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 item = sensorNode.addItem(DataTypeUInt8, RConfigSensitivityMax);
                 item->setValue(R_SENSITIVITY_MAX_DEFAULT);
                 sensorNode.removeItem(RConfigDuration);
-                item = sensorNode.item(RConfigDelay);
+                item = sensorNode.addItem(DataTypeUInt16, RConfigDelay);
                 item->setValue(0);
             }
             item = sensorNode.addItem(DataTypeString, RConfigAlert);
