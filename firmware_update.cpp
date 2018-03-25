@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2018 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -436,12 +436,14 @@ void DeRestPluginPrivate::checkFirmwareDevices()
     int raspBeeCount = 0;
     int usbDongleCount = 0;
     QString ttyPath;
+    QString serialNumber;
 
     for (; i != end; ++i)
     {
         if (i->friendlyName.contains(QLatin1String("ConBee")))
         {
             usbDongleCount++;
+            serialNumber = i->serialNumber;
         }
         else if (i->friendlyName.contains(QLatin1String("RaspBee")))
         {
@@ -457,7 +459,16 @@ void DeRestPluginPrivate::checkFirmwareDevices()
     else if (usbDongleCount == 1)
     {
         DBG_Printf(DBG_INFO_L2, "GW firmware update select USB device\n");
-        fwProcessArgs << "-d" << "0";
+#ifndef Q_OS_WIN // windows does append characters  to the serial number for some reason 'A' (TODO)
+        if (!serialNumber.isEmpty())
+        {
+            fwProcessArgs << "-sn" << serialNumber;
+        }
+        else
+#endif
+        {
+            fwProcessArgs << "-d" << "0";
+        }
     }
     else if (raspBeeCount > 0 && usbDongleCount == 0 && !ttyPath.isEmpty())
     {
