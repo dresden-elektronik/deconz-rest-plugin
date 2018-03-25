@@ -4738,6 +4738,13 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                         bool updated = false;
                         for (;ia != enda; ++ia)
                         {
+                            if (std::find(event.attributeIds().begin(),
+                                          event.attributeIds().end(),
+                                          ia->id()) == event.attributeIds().end())
+                            {
+                                continue;
+                            }
+
                             if (ia->id() == 0x050B) // Active power
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
