@@ -1655,6 +1655,11 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         ResourceItem *item = sensor->item(e.what());
         if (item)
         {
+            if (item->descriptor().suffix == RStatePresence && item->toBool())
+            {
+                globalLastMotion = item->lastSet(); // remember
+            }
+
             if (sensor->lastStatePush.isValid() &&
             item->lastSet() < sensor->lastStatePush)
             {

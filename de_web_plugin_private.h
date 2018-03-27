@@ -1193,6 +1193,7 @@ public:
     QString gwBridgeId;
     QString gwSdImageVersion;
     QString gwDeviceName;
+    QDateTime globalLastMotion; // last time any physical PIR has detected motion
 
     // time manager
     enum TimeManagerState {
