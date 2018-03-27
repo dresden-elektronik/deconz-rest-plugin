@@ -801,6 +801,11 @@ void GatewayPrivate::handleEventStateConnected(GW_Event event)
                 }
                 startTimer(15000, ActionProcess);
             }
+            else if (code == 403)
+            {
+                state = Gateway::StateNotAuthorized;
+                startTimer(5000, ActionProcess);
+            }
             else
             {
                 DBG_Printf(DBG_INFO, "unhandled http status code in connected state %d switch to offline state\n", code);
