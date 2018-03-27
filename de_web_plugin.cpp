@@ -9466,12 +9466,12 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
                 continue; // not a active endpoint
             }
 
-            ResourceItem *reachable = i->item(RStateReachable);
+            ResourceItem *item = i->item(RStateReachable);
 
-            if (reachable && !reachable->toBool())
+            if (item)
             {
-                reachable->setValue(true);
-                Event e(RLights, RStateReachable, i->id(), reachable);
+                item->setValue(true); // refresh timestamp after device announce
+                Event e(i->prefix(), RStateReachable, i->id(), item);
                 enqueueEvent(e);
 
                 // TODO only when permit join is active
@@ -9527,10 +9527,10 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
             DBG_Printf(DBG_INFO, "DeviceAnnce of SensorNode: 0x%016llX [1]\n", si->address().ext());
 
             ResourceItem *item = si->item(RConfigReachable);
-            if (item && !item->toBool())
+            if (item)
             {
-                item->setValue(true);
-                Event e(RSensors, RConfigReachable, si->id(), item);
+                item->setValue(true); // refresh timestamp after device announce
+                Event e(si->prefix(), RConfigReachable, si->id(), item);
                 enqueueEvent(e);
             }
             checkSensorGroup(&*si);
