@@ -1216,7 +1216,7 @@ int DeRestPluginPrivate::setLightAttributes(const ApiRequest &req, ApiResponse &
             rsp.list.append(rspItem);
             rsp.etag = lightNode->etag;
 
-            if (item->lastSet() != item->lastChanged())
+            if (item->lastSet() == item->lastChanged())
             {
                 Event e(RLights, RConfigPowerup, lightNode->id(), item);
                 enqueueEvent(e);
