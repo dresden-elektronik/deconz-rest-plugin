@@ -226,7 +226,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (item->descriptor().suffix == RStateReachable) { state["reachable"] = item->toBool(); }
         else if (item->descriptor().suffix == RConfigCtMin) { map["ctmin"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigCtMax) { map["ctmax"] = item->toNumber(); }
-
+        else if (item->descriptor().suffix == RConfigPowerup) { map["powerup"] = item->toNumber(); }
     }
 
     state["alert"] = "none"; // TODO
@@ -1194,11 +1194,51 @@ int DeRestPluginPrivate::setLightAttributes(const ApiRequest &req, ApiResponse &
             return REQ_READY_SEND;
         }
     }
-    else
+
+    // powerup options
+    if (map.contains("powerup"))
+    {
+        ResourceItem *item = lightNode->item(RConfigPowerup);
+
+        if (!item)
+        {
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("parameter, /lights/%1/powerup, is not available").arg(id)));
+            rsp.httpStatus = HttpStatusNotFound;
+            return REQ_READY_SEND;
+        }
+
+        if (item->setValue(map["powerup"]))
+        {
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/powerup").arg(id)] = map["powerup"];
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+            rsp.etag = lightNode->etag;
+
+            if (item->lastSet() != item->lastChanged())
+            {
+                Event e(RLights, RConfigPowerup, lightNode->id(), item);
+                enqueueEvent(e);
+                lightNode->setNeedSaveDatabase(true);
+                queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
+            }
+
+            return REQ_READY_SEND;
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/powerup").arg(id), QString("invalid value, %1, for parameter powerup").arg(map["powerup"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+    }
+
+    /*else
     {
         rsp.list.append(errorToMap(ERR_MISSING_PARAMETER, QString("/lights/%1").arg(id), QString("missing parameters in body")));
         return REQ_READY_SEND;
-    }
+    }*/
 
     return REQ_NOT_HANDLED;
 }

@@ -1255,6 +1255,13 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             QString uid = generateUniqueId(lightNode.address().ext(), lightNode.haEndpoint().endpoint(), 0);
             lightNode.setUniqueId(uid);
 
+            if ((node->address().ext() & macPrefixMask) == deMacPrefix)
+            {
+                ResourceItem *item = lightNode.addItem(DataTypeUInt32, RConfigPowerup);
+                DBG_Assert(item != 0);
+                item->setValue(0);
+            }
+
             openDb();
             loadLightNodeFromDb(&lightNode);
             closeDb();
@@ -1889,6 +1896,8 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
     {
         updateEtag(lightNode->etag);
         updateEtag(gwConfigEtag);
+        lightNode->setNeedSaveDatabase(true);
+        saveDatabaseItems |= DB_LIGHTS;
     }
 
     return lightNode;
@@ -7346,6 +7355,46 @@ void DeRestPluginPrivate::fixSceneTableWrite(LightNode *lightNode, quint16 offse
             }
         }
     }
+}
+
+/*! Stores on/off and bri of a light so that the state can be recovered after powercycle/powerloss.
+    \param lightNode - the related light
+ */
+void DeRestPluginPrivate::storeRecoverOnOffBri(LightNode *lightNode)
+{
+    if (!lightNode || !lightNode->address().hasNwk())
+    {
+        return;
+    }
+
+    ResourceItem *onOff = lightNode->item(RStateOn);
+    ResourceItem *bri = lightNode->item(RStateBri);
+    std::vector<RecoverOnOff>::iterator i = recoverOnOff.begin();
+    std::vector<RecoverOnOff>::iterator end = recoverOnOff.end();
+
+    for (; i != end; ++i)
+    {
+        if (i->address.hasNwk() && lightNode->address().hasNwk() &&
+            i->address.nwk() == lightNode->address().nwk())
+        {
+            // update entry
+            i->onOff = onOff ? onOff->toBool() : false;
+            if (bri && bri->lastSet().isValid()) { i->bri = bri->toNumber(); }
+            else                                 { i->bri = 0; }
+
+            i->idleTotalCounterCopy = idleTotalCounter;
+            return;
+        }
+    }
+
+    // create new entry
+    DBG_Printf(DBG_INFO, "New recover onOff entry 0x%016llX\n", lightNode->address().ext());
+    RecoverOnOff rc;
+    rc.address = lightNode->address();
+    rc.onOff = onOff ? onOff->toBool() : false;
+    rc.bri = bri ? bri->toNumber() : 0;
+    rc.idleTotalCounterCopy = idleTotalCounter;
+    recoverOnOff.push_back(rc);
 }
 
 /*! Queues a client for closing the connection.

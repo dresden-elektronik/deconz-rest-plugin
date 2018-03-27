@@ -130,41 +130,7 @@ void DeRestPluginPrivate::otauDataIndication(const deCONZ::ApsDataIndication &in
         otauIdleTotalCounter = idleTotalCounter;
 
         LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());
-
-        if (lightNode)
-        {
-            ResourceItem *onOff = lightNode->item(RStateOn);
-            ResourceItem *bri = lightNode->item(RStateBri);
-            DBG_Assert(onOff != 0);
-            std::vector<RecoverOnOff>::iterator i = recoverOnOff.begin();
-            std::vector<RecoverOnOff>::iterator end = recoverOnOff.end();
-            for (; i != end; ++i)
-            {
-                if (i->address.hasNwk() && lightNode->address().hasNwk() &&
-                    i->address.nwk() == lightNode->address().nwk())
-                {
-                    i->onOff = onOff ? onOff->toBool() : false;
-                    if (bri && bri->lastSet().isValid()) { i->bri = bri->toNumber(); }
-                    else                                 { i->bri = 0; }
-
-                    i->idleTotalCounterCopy = idleTotalCounter;
-                    lightNode = 0; // release
-                    break;
-                }
-            }
-
-            if (lightNode && lightNode->address().hasNwk())
-            {
-                DBG_Printf(DBG_INFO, "New OTA recover onOff entry 0x%016llX\n", lightNode->address().ext());
-                // create new Entry
-                RecoverOnOff rc;
-                rc.address = lightNode->address();
-                rc.onOff = onOff ? onOff->toBool() : false;
-                rc.bri = bri ? bri->toNumber() : 0;
-                rc.idleTotalCounterCopy = idleTotalCounter;
-                recoverOnOff.push_back(rc);
-            }
-        }
+        storeRecoverOnOffBri(lightNode);
     }
 
     if (!isOtauActive())

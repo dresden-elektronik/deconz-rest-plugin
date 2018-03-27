@@ -99,6 +99,7 @@ extern const char *RConfigLong;
 extern const char *RConfigOffset;
 extern const char *RConfigOn;
 extern const char *RConfigPending;
+extern const char *RConfigPowerup;
 extern const char *RConfigReachable;
 extern const char *RConfigSensitivity;
 extern const char *RConfigSensitivityMax;
@@ -119,6 +120,12 @@ extern const char *RConfigUsertest;
 #define R_PENDING_LEDINDICATION     (1 << 1)
 #define R_PENDING_SENSITIVITY       (1 << 2)
 #define R_PENDING_USERTEST          (1 << 3)
+
+// after device announce is received lights can be brought into a defined state
+// this might be useful for powerloss and OTA updates or simply providing a default power on configuration
+#define R_POWERUP_RESTORE                   (1 << 0)  // restore last known on/off and brightness state
+#define R_POWERUP_RESTORE_AT_DAYLIGHT       (1 << 1)  // restore at daylight
+#define R_POWERUP_RESTORE_AT_NO_DAYLIGHT    (1 << 2)  // restore when no daylight
 
 class  ResourceItemDescriptor
 {

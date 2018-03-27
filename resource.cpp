@@ -84,6 +84,7 @@ const char *RConfigLong = "config/long";
 const char *RConfigOffset = "config/offset";
 const char *RConfigOn = "config/on";
 const char *RConfigPending = "config/pending";
+const char *RConfigPowerup = "config/powerup";
 const char *RConfigReachable = "config/reachable";
 const char *RConfigSensitivity = "config/sensitivity";
 const char *RConfigSensitivityMax = "config/sensitivitymax";
@@ -164,6 +165,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RConfigOffset, -500, 500));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigOn));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigPending));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, RConfigPowerup));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigReachable));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigSensitivity));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigSensitivityMax));

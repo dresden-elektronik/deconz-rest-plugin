@@ -1013,6 +1013,7 @@ public:
     void fixSceneTableRead(LightNode *lightNode, quint16 offset);
     void fixSceneTableReadResponse(LightNode *lightNode, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void fixSceneTableWrite(LightNode *lightNode, quint16 offset);
+    void storeRecoverOnOffBri(LightNode *lightNode);
 
     bool pushState(QString json, QTcpSocket *sock);
 
