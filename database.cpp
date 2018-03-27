@@ -67,6 +67,7 @@ void DeRestPluginPrivate::initDb()
         "ALTER TABLE nodes add column modelid TEXT",
         "ALTER TABLE nodes add column manufacturername TEXT",
         "ALTER TABLE nodes add column swbuildid TEXT",
+        "ALTER TABLE nodes add column ritems TEXT",
         "ALTER TABLE auth add column createdate TEXT",
         "ALTER TABLE auth add column lastusedate TEXT",
         "ALTER TABLE auth add column useragent TEXT",
@@ -1358,6 +1359,10 @@ static int sqliteLoadLightNodeCallback(void *user, int ncols, char **colval , ch
                 {
                     lightNode->setState(LightNode::StateNormal);
                 }
+            }
+            else if (strcmp(colname[i], "ritems") == 0 && !val.isEmpty())
+            {
+                lightNode->jsonToResourceItems(val);
             }
         }
     }
@@ -2976,7 +2981,8 @@ void DeRestPluginPrivate::saveDb()
                 }
             }
 
-            QString sql = QString(QLatin1String("REPLACE INTO nodes (id, state, mac, name, groups, endpoint, modelid, manufacturername, swbuildid) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7', '%8', '%9')"))
+            QString ritems = i->resourceItemsToJson();
+            QString sql = QString(QLatin1String("REPLACE INTO nodes (id, state, mac, name, groups, endpoint, modelid, manufacturername, swbuildid, ritems) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7', '%8', '%9', '%10')"))
                     .arg(i->id())
                     .arg(lightState)
                     .arg(i->uniqueId().toLower())
@@ -2985,7 +2991,8 @@ void DeRestPluginPrivate::saveDb()
                     .arg(i->haEndpoint().endpoint())
                     .arg(i->modelId())
                     .arg(i->manufacturer())
-                    .arg(i->swBuildId());
+                    .arg(i->swBuildId())
+                    .arg(ritems);
 
 
             DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));

@@ -671,3 +671,45 @@ void LightNode::setSceneCapacity(uint8_t sceneCapacity)
 {
     m_sceneCapacity = sceneCapacity;
 }
+
+/*! Parse the light resource items from a JSON string. */
+void LightNode::jsonToResourceItems(const QString &json)
+{
+    bool ok;
+    QVariant var = Json::parse(json, ok);
+
+    if (!ok)
+    {
+        return;
+    }
+
+    QVariantMap map = var.toMap();
+    QDateTime dt = QDateTime::currentDateTime().addSecs(-120);
+
+    for (int i = 0; i < itemCount(); i++)
+    {
+        ResourceItem *item = itemForIndex(i);
+        const char *key = item->descriptor().suffix;
+
+        if (map.contains(QLatin1String(key)))
+        {
+            item->setValue(map[key]);
+            item->setTimeStamps(dt);
+        }
+    }
+}
+
+/*! Transfers resource items into JSON string. */
+QString LightNode::resourceItemsToJson()
+{
+    QVariantMap map;
+
+    for (int i = 0; i < itemCount(); i++)
+    {
+        ResourceItem *item = itemForIndex(i);
+        const char *key = item->descriptor().suffix;
+        map[key] = item->toVariant();
+    }
+
+    return Json::serialize(map);
+}

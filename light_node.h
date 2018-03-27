@@ -82,6 +82,8 @@ public:
     void setGroupCount(uint8_t groupCount);
     uint8_t sceneCapacity() const;
     void setSceneCapacity(uint8_t sceneCapacity);
+    void jsonToResourceItems(const QString &json);
+    QString resourceItemsToJson();
 
     QString etag;
 
