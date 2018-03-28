@@ -1012,7 +1012,7 @@ public:
     bool callScene(Group *group, uint8_t sceneId);
     bool removeAllScenes(Group *group);
     void storeRecoverOnOffBri(LightNode *lightNode);
-
+    bool flsNbMaintenance(LightNode *lightNode);
     bool pushState(QString json, QTcpSocket *sock);
 
     void pushClientForClose(QTcpSocket *sock, int closeTimeout, const QHttpRequestHeader &hdr);

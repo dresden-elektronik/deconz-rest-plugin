@@ -24,6 +24,7 @@
 #include <QCryptographicHash>
 #include <QFile>
 #include <QProcess>
+#include <QSettings>
 #include <queue>
 #include <cmath>
 #ifdef ARCH_ARM
@@ -1259,7 +1260,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             {
                 ResourceItem *item = lightNode.addItem(DataTypeUInt32, RConfigPowerup);
                 DBG_Assert(item != 0);
-                item->setValue(0);
+                item->setValue(R_POWERUP_RESTORE | R_POWERUP_RESTORE_AT_DAYLIGHT | R_POWERUP_RESTORE_AT_NO_DAYLIGHT);
             }
 
             openDb();
@@ -7196,6 +7197,115 @@ void DeRestPluginPrivate::storeRecoverOnOffBri(LightNode *lightNode)
     recoverOnOff.push_back(rc);
 }
 
+/*! Temporary FLS-NB maintenance. */
+bool DeRestPluginPrivate::flsNbMaintenance(LightNode *lightNode)
+{
+    ResourceItem *item = 0;
+    item = lightNode->item(RStateReachable);
+    DBG_Assert(item != 0);
+    if (!item || !item->lastSet().isValid() || !item->toBool())
+    {
+        return false;
+    }
+
+    QDateTime now = QDateTime::currentDateTime();
+    QSettings config(deCONZ::getStorageLocation(deCONZ::ConfigLocation), QSettings::IniFormat);
+
+    int resetDelay = config.value("fls-nb/resetdelay", 86400 / 2).toInt(); // 12h
+    int resetPhase = config.value("fls-nb/resetphase", 100).toInt(); // DL_NADIR
+    int noPirDelay = config.value("fls-nb/nopirdelay", 60 * 30).toInt(); // 30 minutes
+
+    if (resetDelay == 0)
+    {
+        return false; // disabled
+    }
+
+    int uptime = item->lastSet().secsTo(now);
+    DBG_Printf(DBG_INFO, "0x%016llx uptime %d\n", lightNode->address().ext(), uptime);
+
+    if (uptime < resetDelay)
+    {
+        return false;
+    }
+
+    item = lightNode->item(RConfigPowerup);
+    quint32 powerup = item ? item->toNumber() : 0;
+
+    if ((powerup & R_POWERUP_RESTORE) == 0)
+    {
+        return false;
+    }
+
+    // check for specific phase
+    Sensor *daylight = getSensorNodeForId(daylightSensorId);
+    item = daylight ? daylight->item(RConfigConfigured) : 0;
+    if (!item)
+    {
+        return false;
+    }
+
+    item = daylight->item(RStateStatus);
+    if (resetPhase == 0) // 0 = disabled (for testing)
+    {}
+    else if (!item || item->toNumber() != resetPhase)
+    {
+        return false;
+    }
+
+    // wait until no motion was detected for configured time
+    if (globalLastMotion.isValid() && globalLastMotion.secsTo(now) < noPirDelay)
+    {
+        return false;
+    }
+
+    DBG_Printf(DBG_INFO, "0x%016llx start powercycle\n", lightNode->address().ext());
+
+    deCONZ::ApsDataRequest req;
+    req.setProfileId(HA_PROFILE_ID);
+    req.setDstEndpoint(0x0A);
+    req.setClusterId(OTAU_CLUSTER_ID);
+    req.dstAddress() = lightNode->address();
+    req.setDstAddressMode(deCONZ::ApsExtAddress);
+    req.setSrcEndpoint(endpoint());
+    req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+    req.setRadius(0);
+
+    deCONZ::ZclFrame zclFrame;
+    zclFrame.setSequenceNumber(zclSeq++);
+    zclFrame.setCommandId(0x07); // OTAU_UPGRADE_END_RESPONSE_CMD_ID
+
+    zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
+                             deCONZ::ZclFCDirectionServerToClient |
+                             deCONZ::ZclFCDisableDefaultResponse);
+
+    { // ZCL payload
+        QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        stream << (quint16)VENDOR_DDEL;
+        stream << (quint16)0x0002;
+        stream << (quint32)0; // file version
+
+        stream << (quint32)0; // current time
+        stream << (quint32)0; // upgrade time
+    }
+
+    { // ZCL frame
+        QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        zclFrame.writeToStream(stream);
+    }
+
+    storeRecoverOnOffBri(lightNode);
+
+    if (deCONZ::ApsController::instance()->apsdeDataRequest(req) == deCONZ::Success)
+    {
+        return true;
+    }
+
+    return false;
+}
+
 /*! Queues a client for closing the connection.
     \param sock the client socket
     \param closeTimeout timeout in seconds then the socket should be closed
@@ -9272,7 +9382,7 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
                     // light was off before, turn off again
                     if (!rc->onOff)
                     {
-                        DBG_Printf(DBG_INFO, "Turn off light 0x%016llX again after OTA\n", rc->address.ext());
+                        DBG_Printf(DBG_INFO, "Turn off light 0x%016llX again after powercycle\n", rc->address.ext());
                         TaskItem task;
                         task.lightNode = &*i;
                         task.req.dstAddress().setNwk(nwk);
@@ -9286,7 +9396,7 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
                     }
                     else if (rc->bri > 0 && rc->bri < 256)
                     {
-                        DBG_Printf(DBG_INFO, "Turn on light 0x%016llX on again with former brightness after OTA\n", rc->address.ext());
+                        DBG_Printf(DBG_INFO, "Turn on light 0x%016llX on again with former brightness after powercycle\n", rc->address.ext());
                         TaskItem task;
                         task.lightNode = &*i;
                         task.req.dstAddress().setNwk(nwk);
@@ -10931,25 +11041,12 @@ void DeRestPlugin::idleTimerFired()
                     d->addSensorNode(lightNode->node());
                     d->findSensorsState = fss;
 
-                    int uptime = 0;
-                    ResourceItem *item = 0;
-                    item = lightNode->item(RStateReachable);
-
-                    if (item && item->lastSet().isValid())
+                    // temporary,
+                    if (d->flsNbMaintenance(lightNode))
                     {
-                        uptime = item->lastSet().secsTo(now);
-                        DBG_Printf(DBG_INFO, "0x%016llx uptime %d\n", lightNode->address().ext(), uptime);
+                        d->queryTime = d->queryTime.addSecs(10);
+                        processLights = true;
                     }
-
-                    item = lightNode->item(RConfigPowerup);
-                    quint32 powerup = item ? item->toNumber() : 0;
-
-                    if (powerup & R_POWERUP_RESTORE)
-                    {
-                        Sensor *daylight = d->getSensorNodeForId(d->daylightSensorId);
-
-                    }
-
                 }
 
                 const uint32_t items[]   = { READ_GROUPS, READ_SCENES, 0 };
