@@ -1010,9 +1010,6 @@ public:
     bool removeScene(Group *group, uint8_t sceneId);
     bool callScene(Group *group, uint8_t sceneId);
     bool removeAllScenes(Group *group);
-    void fixSceneTableRead(LightNode *lightNode, quint16 offset);
-    void fixSceneTableReadResponse(LightNode *lightNode, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
-    void fixSceneTableWrite(LightNode *lightNode, quint16 offset);
     void storeRecoverOnOffBri(LightNode *lightNode);
 
     bool pushState(QString json, QTcpSocket *sock);
