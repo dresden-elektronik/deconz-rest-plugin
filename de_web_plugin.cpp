@@ -10857,7 +10857,7 @@ void DeRestPlugin::idleTimerFired()
     if (!d->recoverOnOff.empty())
     {
         DeRestPluginPrivate::RecoverOnOff &rc = d->recoverOnOff.back();
-        if ((d->idleTotalCounter - rc.idleTotalCounterCopy) > 240)
+        if ((d->idleTotalCounter - rc.idleTotalCounterCopy) > MAX_RECOVER_ENTRY_AGE)
         {
             DBG_Printf(DBG_INFO, "Pop recover info for 0x%016llX\n", rc.address.ext());
             d->recoverOnOff.pop_back();
@@ -10930,6 +10930,26 @@ void DeRestPlugin::idleTimerFired()
                     d->findSensorsState = DeRestPluginPrivate::FindSensorsActive;
                     d->addSensorNode(lightNode->node());
                     d->findSensorsState = fss;
+
+                    int uptime = 0;
+                    ResourceItem *item = 0;
+                    item = lightNode->item(RStateReachable);
+
+                    if (item && item->lastSet().isValid())
+                    {
+                        uptime = item->lastSet().secsTo(now);
+                        DBG_Printf(DBG_INFO, "0x%016llx uptime %d\n", lightNode->address().ext(), uptime);
+                    }
+
+                    item = lightNode->item(RConfigPowerup);
+                    quint32 powerup = item ? item->toNumber() : 0;
+
+                    if (powerup & R_POWERUP_RESTORE)
+                    {
+                        Sensor *daylight = d->getSensorNodeForId(d->daylightSensorId);
+
+                    }
+
                 }
 
                 const uint32_t items[]   = { READ_GROUPS, READ_SCENES, 0 };
