@@ -715,7 +715,10 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     QString id = req.path[3];
     Group *group = getGroupForId(id);
 
-    userActivity();
+    if (req.sock)
+    {
+        userActivity();
+    }
 
     if (!isInNetwork())
     {
@@ -2560,7 +2563,10 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
     Group *group = getGroupForId(gid);
     rsp.httpStatus = HttpStatusOk;
 
-    userActivity();
+    if (req.sock)
+    {
+        userActivity();
+    }
 
     if (!isInNetwork())
     {

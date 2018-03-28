@@ -405,7 +405,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     uint hue = UINT_MAX;
     uint sat = UINT_MAX;
 
-    userActivity();
+    if (req.sock)
+    {
+        userActivity();
+    }
 
     if (!taskRef.lightNode || taskRef.lightNode->state() == LightNode::StateDeleted)
     {

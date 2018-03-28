@@ -764,7 +764,10 @@ int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    userActivity();
+    if (req.sock)
+    {
+        userActivity();
+    }
 
     //check invalid parameter
     QVariantMap::const_iterator pi = map.begin();
@@ -927,7 +930,10 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 
     bool isClip = sensor->type().startsWith(QLatin1String("CLIP"));
 
-    userActivity();
+    if (req.sock)
+    {
+        userActivity();
+    }
 
     // set destination parameters
     task.req.dstAddress() = sensor->address();
@@ -1211,7 +1217,10 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
 
     bool isClip = sensor->type().startsWith(QLatin1String("CLIP"));
 
-    userActivity();
+    if (req.sock)
+    {
+        userActivity();
+    }
 
     //check invalid parameter
     QVariantMap::const_iterator pi = map.begin();
