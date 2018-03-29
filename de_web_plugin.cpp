@@ -4045,6 +4045,13 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 continue;
                             }
 
+                            if (std::find(event.attributeIds().begin(),
+                                          event.attributeIds().end(),
+                                          ia->id()) == event.attributeIds().end())
+                            {
+                                continue;
+                            }
+
                             if (ia->id() == 0x0021) // battery percentage remaining
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
@@ -4082,6 +4089,33 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 }
 
                                 updateSensorEtag(&*i);
+                            }
+                            else if (ia->id() == 0x0035) // battery alarm mask
+                            {
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                }
+
+                                ResourceItem *item = i->item(RStateLowBattery);
+                                if (!item)
+                                {
+                                    item = i->addItem(DataTypeBool, RStateLowBattery);
+                                    i->setNeedSaveDatabase(true);
+                                    queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+                                }
+
+                                if (item)
+                                {
+                                    bool lowBat = (ia->numericValue().u8 & 0x01);
+                                    if (!item->lastSet().isValid() || item->toBool() != lowBat)
+                                    {
+                                        item->setValue(lowBat);
+                                        enqueueEvent(Event(RSensors, RStateLowBattery, i->id(), item));
+                                        i->setNeedSaveDatabase(true);
+                                        queSaveDb(DB_SENSORS, DB_HUGE_SAVE_DELAY);
+                                    }
+                                }
                             }
                         }
                     }
