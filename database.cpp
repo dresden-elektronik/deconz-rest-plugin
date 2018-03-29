@@ -2215,8 +2215,17 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
         if (sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
         {
-            item = sensor.addItem(DataTypeUInt8, RConfigBattery);
-            item->setValue(100);
+            if (sensor.manufacturer().startsWith(QLatin1String("Climax")))
+            {
+                // climax non IAS reports state/lowbattery via battery alarm mask attribute
+                item = sensor.addItem(DataTypeBool, RStateLowBattery);
+                // don't set value -> null until reported
+            }
+            else
+            {
+                item = sensor.addItem(DataTypeUInt8, RConfigBattery);
+                item->setValue(100);
+            }
         }
 
         if (stateCol >= 0 &&

@@ -3220,7 +3220,16 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
 
     if (sensorNode.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
     {
-        sensorNode.addItem(DataTypeUInt8, RConfigBattery);
+        if (manufacturer.startsWith(QLatin1String("Climax")))
+        {
+            // climax non IAS reports state/lowbattery via battery alarm mask attribute
+            sensorNode.addItem(DataTypeBool, RStateLowBattery);
+            // don't set value -> null until reported
+        }
+        else
+        {
+            sensorNode.addItem(DataTypeUInt8, RConfigBattery);
+        }
     }
 
     if (sensorNode.type().endsWith(QLatin1String("Switch")))
