@@ -830,45 +830,53 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     {
         Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
 
-        // add values if not already present
-        deCONZ::NumericUnion dummy;
-        dummy.u64 = 0;
-        if (bt.restNode->getZclValue(POWER_CONFIGURATION_CLUSTER_ID, 0x0021).attributeId != 0x0021)
-        {
-            bt.restNode->setZclValue(NodeValue::UpdateInvalid, BASIC_CLUSTER_ID, 0x0021, dummy);
-        }
-
-        NodeValue &val = bt.restNode->getZclValue(POWER_CONFIGURATION_CLUSTER_ID, 0x0021);
-        val.zclSeqNum = rq.zclSeqNum;
-
         rq.dataType = deCONZ::Zcl8BitUint;
         rq.attributeId = 0x0021;   // battery percentage remaining
         if (sensor && sensor->modelId() == QLatin1String("SML001")) // Hue motion sensor
         {
-            val.minInterval = 7200;       // value used by Hue bridge
-            val.maxInterval = 7200;       // value used by Hue bridge
-            rq.reportableChange8bit = 0;  // value used by Hue bridge
+            rq.minInterval = 7200;       // value used by Hue bridge
+            rq.maxInterval = 7200;       // value used by Hue bridge
+            rq.reportableChange8bit = 0; // value used by Hue bridge
         }
         else if (sensor && sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
         {
-            val.minInterval = 300;        // value used by Hue bridge
-            val.maxInterval = 300;        // value used by Hue bridge
-            rq.reportableChange8bit = 0;  // value used by Hue bridge
+            rq.minInterval = 300;        // value used by Hue bridge
+            rq.maxInterval = 300;        // value used by Hue bridge
+            rq.reportableChange8bit = 0; // value used by Hue bridge
+        }
+        else if (sensor && sensor->manufacturer().startsWith(QLatin1String("Climax")))
+        {
+            rq.attributeId = 0x0035; // battery alarm mask
+            rq.dataType = deCONZ::Zcl8BitBitMap;
+            rq.minInterval = 300;
+            rq.maxInterval = 1800;
+            rq.reportableChange8bit = 0xFF;
         }
         else
         {
-            val.minInterval = 300;
-            val.maxInterval = 60 * 45;
+            rq.minInterval = 300;
+            rq.maxInterval = 60 * 45;
             rq.reportableChange8bit = 1;
         }
+
+        // add values if not already present
+        deCONZ::NumericUnion dummy;
+        dummy.u64 = 0;
+        if (bt.restNode->getZclValue(POWER_CONFIGURATION_CLUSTER_ID, rq.attributeId).attributeId != rq.attributeId)
+        {
+            bt.restNode->setZclValue(NodeValue::UpdateInvalid, POWER_CONFIGURATION_CLUSTER_ID, rq.attributeId, dummy);
+        }
+
+        NodeValue &val = bt.restNode->getZclValue(POWER_CONFIGURATION_CLUSTER_ID, rq.attributeId);
+        val.zclSeqNum = rq.zclSeqNum;
+
+        val.minInterval = rq.minInterval;
+        val.maxInterval = rq.maxInterval;
 
         if (val.timestampLastReport.isValid() && (val.timestampLastReport.secsTo(now) < val.maxInterval * 1.5))
         {
             return false;
         }
-
-        rq.minInterval = val.minInterval;
-        rq.maxInterval = val.maxInterval;
 
         return sendConfigureReportingRequest(bt, {rq});
     }
@@ -1302,7 +1310,14 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         }
         else if (*i == POWER_CONFIGURATION_CLUSTER_ID)
         {
-            val = sensor->getZclValue(*i, 0x0021); // battery percentage remaining
+            if (sensor->manufacturer().startsWith(QLatin1String("Climax")))
+            {
+                val = sensor->getZclValue(*i, 0x0035); // battery alarm mask
+            }
+            else
+            {
+                val = sensor->getZclValue(*i, 0x0021); // battery percentage remaining
+            }
 
             if (val.timestampLastConfigured.isValid() && val.timestampLastConfigured.secsTo(now) < (val.maxInterval * 1.5))
             {
