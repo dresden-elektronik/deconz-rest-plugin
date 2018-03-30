@@ -31,6 +31,7 @@ public:
     enum Constants
     {
         Timeout = 20,
+        TimeoutEndDevice = 90,
         Retries = 2
     };
 

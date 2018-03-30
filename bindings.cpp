@@ -1408,6 +1408,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
 
             bindingTask.action = action;
             bindingTask.restNode = sensor;
+            bindingTask.timeout = BindingTask::TimeoutEndDevice;
             Binding &bnd = bindingTask.binding;
             bnd.srcAddress = sensor->address().ext();
             bnd.dstAddrMode = deCONZ::ApsExtAddress;
@@ -1549,6 +1550,7 @@ void DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
 
         bindingTask.state = BindingTask::StateIdle;
         bindingTask.action = BindingTask::ActionBind;
+        bindingTask.timeout = BindingTask::TimeoutEndDevice;
         bindingTask.restNode = sensor;
         Binding &bnd = bindingTask.binding;
         bnd.srcAddress = sensor->address().ext();
@@ -1840,6 +1842,10 @@ void DeRestPluginPrivate::bindingTimerFired()
                         DBG_Printf(DBG_INFO_L2, "binding/unbinding timeout srcAddr: %llX, retry\n", i->binding.srcAddress);
                         i->state = BindingTask::StateIdle;
                         i->timeout = BindingTask::Timeout;
+                        if (i->restNode && i->restNode->node() && !i->restNode->node()->nodeDescriptor().receiverOnWhenIdle())
+                        {
+                            i->timeout = BindingTask::TimeoutEndDevice;
+                        }
                     }
                 }
                 else
@@ -1883,6 +1889,10 @@ void DeRestPluginPrivate::bindingTimerFired()
                         i->state = BindingTask::StateIdle;
                     }
                     i->timeout = BindingTask::Timeout;
+                    if (i->restNode && i->restNode->node() && !i->restNode->node()->nodeDescriptor().receiverOnWhenIdle())
+                    {
+                        i->timeout = BindingTask::TimeoutEndDevice;
+                    }
 
                     DBG_Printf(DBG_INFO_L2, "%s check timeout, retries = %d (srcAddr: 0x%016llX cluster: 0x%04X)\n",
                                (i->action == BindingTask::ActionBind ? "bind" : "unbind"), i->retries, i->binding.srcAddress, i->binding.clusterId);
