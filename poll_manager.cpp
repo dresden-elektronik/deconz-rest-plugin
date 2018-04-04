@@ -162,6 +162,7 @@ void PollManager::pollTimerFired()
 
     if (items.empty())
     {
+        plugin->pollNextLight();
         return;
     }
 

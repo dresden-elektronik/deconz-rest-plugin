@@ -878,6 +878,7 @@ public Q_SLOTS:
     void shutDownGatewayTimerFired();
     void simpleRestartAppTimerFired();
     void pushSensorInfoToCore(Sensor *sensor);
+    void pollNextLight();
 
     // touchlink
     void touchlinkDisconnectNetwork();

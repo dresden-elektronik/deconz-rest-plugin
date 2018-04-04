@@ -11143,10 +11143,6 @@ void DeRestPlugin::idleTimerFired()
                 {
                     DBG_Printf(DBG_INFO_L2, "Force read attributes for node %s\n", qPrintable(lightNode->name()));
                 }
-                else
-                {
-                    d->pollManager->poll(lightNode);
-                }
 
                 // don't query low priority items when OTA is busy
                 if (d->otauLastBusyTimeDelta() > OTA_LOW_PRIORITY_TIME)
@@ -12629,6 +12625,45 @@ void DeRestPluginPrivate::pushSensorInfoToCore(Sensor *sensor)
     {
         q->nodeUpdated(sensor->address().ext(), QLatin1String("version"), sensor->swVersion());
     }
+}
+
+/*! Selects the next light to poll.
+ */
+void DeRestPluginPrivate::pollNextLight()
+{
+    DBG_Assert(apsCtrl != 0);
+
+    if (!apsCtrl)
+    {
+        return;
+    }
+
+    if (nodes.empty())
+    {
+        return;
+    }
+
+    QTime t = QTime::currentTime();
+    if (queryTime > t)
+    {
+        return;
+    }
+
+    if (lightIter >= nodes.size())
+    {
+        lightIter = 0;
+    }
+
+    LightNode *lightNode = &nodes[lightIter];
+    lightIter++;
+
+    if (!lightNode->isAvailable())
+    {
+        return;
+    }
+
+    pollManager->poll(lightNode);
+    queryTime = queryTime.addSecs(10);
 }
 
 /*! Request to disconnect from network.
