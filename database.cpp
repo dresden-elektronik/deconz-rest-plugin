@@ -88,6 +88,7 @@ void DeRestPluginPrivate::initDb()
         "ALTER TABLE groups add column hidden TEXT",
         "ALTER TABLE groups add column type TEXT",
         "ALTER TABLE groups add column class TEXT",
+        "ALTER TABLE groups add column uniqueid TEXT",
         "ALTER TABLE scenes add column transitiontime TEXT",
         "ALTER TABLE scenes add column lights TEXT",
         "ALTER TABLE rules add column periodic TEXT",
@@ -928,6 +929,19 @@ static int sqliteLoadAllGroupsCallback(void *user, int ncols, char **colval , ch
             {
                 ResourceItem *item = group.item(RAttrClass);
                 if (item && !val.isEmpty())
+                {
+                    item->setValue(val);
+                }
+            }
+            else if (strcmp(colname[i], "uniqueid") == 0)
+            {
+                ResourceItem *item = 0;
+                if (!val.isEmpty())
+                {
+                    item = group.addItem(DataTypeString, RAttrUniqueId);
+                }
+
+                if (item)
                 {
                     item->setValue(val);
                 }
@@ -3105,8 +3119,14 @@ void DeRestPluginPrivate::saveDb()
             QString hidden((i->hidden == true ? QLatin1String("true") : QLatin1String("false")));
             const QString &gtype = i->item(RAttrType)->toString();
             const QString &gclass = i->item(RAttrClass)->toString();
+            QString uniqueid;
+            const ResourceItem *item = i->item(RAttrUniqueId);
+            if (item)
+            {
+                uniqueid = item->toString();
+            }
 
-            QString sql = QString(QLatin1String("REPLACE INTO groups (gid, name, state, mids, devicemembership, lightsequence, hidden, type, class) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7', '%8', '%9')"))
+            QString sql = QString(QLatin1String("REPLACE INTO groups (gid, name, state, mids, devicemembership, lightsequence, hidden, type, class, uniqueid) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7', '%8', '%9', '%10')"))
                     .arg(gid)
                     .arg(i->name())
                     .arg(grpState)
@@ -3115,7 +3135,8 @@ void DeRestPluginPrivate::saveDb()
                     .arg(i->lightsequenceToString())
                     .arg(hidden)
                     .arg(gtype)
-                    .arg(gclass);
+                    .arg(gclass)
+                    .arg(uniqueid);
 
             DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
             errmsg = NULL;

@@ -247,6 +247,25 @@ int DeRestPluginPrivate::createGroup(const ApiRequest &req, ApiResponse &rsp)
         item->setValue(gclass);
     }
 
+    // uniqueid
+    if (map.contains("uniqueid"))
+    {
+        QString uniqueid = map["uniqueid"].toString();
+        // AA:BB:CC:DD or AA:BB:CC:DD-XX
+        if (uniqueid.size() == 11 || uniqueid.size() == 14)
+        {
+            ResourceItem *item = group.addItem(DataTypeString, RAttrUniqueId);
+            DBG_Assert(item != 0);
+            item->setValue(uniqueid);
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/groups"), QString("invalid value, %1, for parameter, uniqeid").arg(uniqueid)));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+    }
+
     // name
     if (map.contains("name"))
     {
@@ -1682,6 +1701,7 @@ bool DeRestPluginPrivate::groupToMap(const Group *group, QVariantMap &map)
         else if (item->descriptor().suffix == RAttrType) { map["type"] = item->toString(); }
         //else if (item->descriptor().suffix == RAttrModelId) { map["modelid"] = item->toString(); }; // not supported yet
         else if (item->descriptor().suffix == RAttrClass) { map["class"] = item->toString(); }
+        else if (item->descriptor().suffix == RAttrUniqueId) { map["uniqueid"] = item->toString(); }
     }
 
     map["id"] = group->id();
