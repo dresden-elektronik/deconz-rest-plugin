@@ -650,6 +650,8 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         }
     }
 
+    map["modelid"] = QLatin1String("deCONZ");
+
     if (req.apiVersion() == ApiVersion_1_DDEL)
     {
         map["permitjoin"] = (double)gwPermitJoinDuration;
@@ -716,7 +718,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         {
             map["swversion"] = QLatin1String("01038802");
             map["apiversion"] = QLatin1String("1.20.0");
-            map["bridgeid"] = QLatin1String("BSB002");
+            map["modelid"] = QLatin1String("BSB002");
         }
         else
         {
@@ -725,7 +727,6 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
             swversion.sprintf("%d.%d.%d", versions[0].toInt(), versions[1].toInt(), versions[2].toInt());
             map["swversion"] = swversion;
             map["apiversion"] = QString(GW_API_VERSION);
-            map["bridgeid"] = gwBridgeId;
         }
         devicetypes["bridge"] = false;
         devicetypes["lights"] = QVariantList();
@@ -771,6 +772,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     map["rfconnected"] = gwRfConnected;
     map["name"] = gwName;
     map["uuid"] = gwUuid;
+    map["bridgeid"] = gwBridgeId;
     if (apsCtrl)
     {
         map["zigbeechannel"] = apsCtrl->getParameter(deCONZ::ParamCurrentChannel);
@@ -798,7 +800,6 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         map["ntp"] = gwConfig["ntp"];
     }
 
-    map["modelid"] = QLatin1String("deCONZ");
     map["dhcp"] = true; // dummy
     map["proxyaddress"] = gwProxyAddress;
     map["proxyport"] = (double)gwProxyPort;
@@ -2486,6 +2487,24 @@ void DeRestPluginPrivate::daylightTimerFired()
     if (!sensor)
     {
         return;
+    }
+
+    {
+        // check uniqueid
+        // note: might change if device is changed
+        ResourceItem *item = sensor->item(RAttrUniqueId);
+        QString uniqueid = gwBridgeId.toLower() + QLatin1String("-01");
+        // 00:21:2e:ff:ff:00:aa:bb-01
+        for (int i = 0; i < (7 * 3); i += 3)
+        {
+            uniqueid.insert(i + 2, ':');
+        }
+
+        if (!item || (item->toString() != uniqueid))
+        {
+            item = sensor->addItem(DataTypeString, RAttrUniqueId);
+            item->setValue(uniqueid);
+        }
     }
 
     double lat = NAN;
