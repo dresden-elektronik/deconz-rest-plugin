@@ -7091,6 +7091,16 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             continue;
         }
 
+        {
+            ResourceItem *item = sensor.item(RConfigReachable);
+            if (item && !item->toBool())
+            {
+                item->setValue(true);
+                Event e(RSensors, RConfigReachable, sensor.id(), item);
+                enqueueEvent(e);
+            }
+        }
+
         bool updated = false;
         if (battery != 0)
         {
