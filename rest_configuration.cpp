@@ -45,6 +45,8 @@ void DeRestPluginPrivate::initConfig()
 {
     QString dataPath = deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation);
 
+    pollDatabaseWifiTimer = 0;
+
     // default configuration
     gwRunFromShellScript = false;
     gwDeleteUnknownRules = (deCONZ::appArgumentNumeric("--delete-unknown-rules", 1) == 1) ? true : false;
@@ -53,10 +55,12 @@ void DeRestPluginPrivate::initConfig()
     gwPermitJoinDuration = 0;
     gwPermitJoinResend = 0;
     gwNetworkOpenDuration = 60;
-    gwWifi = "not-configured";
-    gwWifiType = "accesspoint";
-    gwWifiName = "Not set";
-    gwWifiClientName = "Not set";
+    gwWifiState = WifiStateInitMgmt;
+    gwWifiMgmt = 0;
+    gwWifi = QLatin1String("not-configured");
+    gwWifiType = QLatin1String("accesspoint");
+    gwWifiName = QString();
+    gwWifiClientName = QString();
     gwWifiChannel = "1";
     gwWifiIp = QLatin1String("192.168.8.1");
     gwWifiPw = "";
@@ -245,6 +249,7 @@ void DeRestPluginPrivate::initTimezone()
 /*! Init WiFi parameters if necessary. */
 void DeRestPluginPrivate::initWiFi()
 {
+    bool retry = false;
 #if !defined(ARCH_ARMV6) && !defined (ARCH_ARMV7)
     gwWifi = QLatin1String("not-available");
     return;
@@ -256,36 +261,64 @@ void DeRestPluginPrivate::initWiFi()
         return;
     }
 
-    if (gwBridgeId.isEmpty() || gwBridgeId.endsWith(QLatin1String("0000")))
+    // deCONZ is startet from a systemd unit?
+    //   -- deconz.service or deconz-gui.service
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    if (!env.contains(QLatin1String("INVOCATION_ID")))
     {
-        QTimer::singleShot(5000, this, SLOT(initWiFi()));
         return;
     }
 
-    pollDatabaseWifiTimer = new QTimer(this);
-    pollDatabaseWifiTimer->setSingleShot(false);
-    connect(pollDatabaseWifiTimer, SIGNAL(timeout()),
-            this, SLOT(pollDatabaseWifiTimerFired()));
-    pollDatabaseWifiTimer->start(10000);
+    if (gwWifiState == WifiStateInitMgmt)
+    {
+        retry = true;
+    }
+
+    if (gwBridgeId.isEmpty() || gwBridgeId.endsWith(QLatin1String("0000")))
+    {
+        retry = true;
+    }
+
+    quint32 fwVersion = apsCtrl->getParameter(deCONZ::ParamFirmwareVersion);
+    if (fwVersion < 0x261e0500) // first version to support security material set
+    {
+        retry = true;;
+    }
+
+    if (gwWifi != QLatin1String("not-configured"))
+    {
+        retry = true;
+    }
+
+    QByteArray sec0 = apsCtrl->getParameter(deCONZ::ParamSecurityMaterial0);
+    if (sec0.isEmpty())
+    {
+        retry = true;
+    }
+
+    if (retry)
+    {
+        QTimer::singleShot(10000, this, SLOT(initWiFi()));
+        return;
+    }
+
+    if (!pollDatabaseWifiTimer)
+    {
+        pollDatabaseWifiTimer = new QTimer(this);
+        pollDatabaseWifiTimer->setSingleShot(false);
+        connect(pollDatabaseWifiTimer, SIGNAL(timeout()),
+                this, SLOT(pollDatabaseWifiTimerFired()));
+        pollDatabaseWifiTimer->start(10000);
+    }
 
     if (gwWifiName == QLatin1String("Phoscon-Gateway-0000"))
     {
         // proceed to correct these
         gwWifiName.clear();
     }
-    else if (gwWifi == QLatin1String("configured"))
-    {
-        return;
-    }
-
-    QByteArray sec0 = apsCtrl->getParameter(deCONZ::ParamSecurityMaterial0);
-    if (sec0.isEmpty())
-    {
-        QTimer::singleShot(10000, this, SLOT(initWiFi()));
-        return;
-    }
 
     gwWifi = QLatin1String("configured");
+    gwWifiType = QLatin1String("accesspoint");
 
     if (gwWifiName.isEmpty() || gwWifiName == QLatin1String("Not set"))
     {
@@ -707,6 +740,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         map["wifiname"] = gwWifiName;
         map["wificlientname"] = gwWifiClientName;
         map["wifichannel"] = gwWifiChannel;
+        map["wifimgmt"] = (double)gwWifiMgmt;
         map["wifiip"] = gwWifiIp;
 //        map["wifiappw"] = gwWifiPw;
         map["wifiappw"] = QString(); // TODO add secured transfer via PKI
@@ -2415,11 +2449,74 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
 
     rsp.httpStatus = HttpStatusOk;
 
-    if (!req.content.isEmpty())
+    if (req.content.isEmpty())
     {
-        DBG_Printf(DBG_HTTP, "wifi: %s\n", qPrintable(req.content));
-        // TODO forward events
+        return REQ_READY_SEND;
     }
+
+    // TODO forward events
+    bool ok;
+    QVariant var = Json::parse(req.content, ok);
+    QVariantMap map = var.toMap();
+
+    if (!ok || map.isEmpty())
+    {
+        return REQ_READY_SEND;
+    }
+
+    QString status;
+
+    if (map.contains("status"))
+    {
+        status = map["status"].toString();
+    }
+
+    if (status == QLatin1String("current-config") && map.contains("mgmt"))
+    {
+        quint32 mgmt = map["mgmt"].toUInt();
+
+        if (gwWifiMgmt != mgmt)
+        {
+            gwWifiMgmt = mgmt;
+            updateEtag(gwConfigEtag);
+        }
+
+        QString type;
+        QString ssid;
+
+        if (map.contains("type")) { type = map["type"].toString(); }
+        if (map.contains("ssid")) { ssid = map["ssid"].toString(); }
+
+        if (gwWifiState == WifiStateInitMgmt)
+        {
+            gwWifiState = WifiStateIdle;
+            updateEtag(gwConfigEtag);
+
+            if (type == QLatin1String("accesspoint") && !ssid.isEmpty())
+            {
+                gwWifiType = QLatin1String("accesspoint");
+                gwWifiName = ssid;
+            }
+
+            if (type == QLatin1String("client") && !ssid.isEmpty())
+            {
+                gwWifiType = QLatin1String("client");
+                gwWifiClientName = ssid;
+            }
+        }
+    }
+    else if (status == QLatin1String("got-ip"))
+    {
+        QString ip = map["ipv4"].toString();
+
+        if (!ip.isEmpty() && gwWifiIp != ip)
+        {
+            gwWifiIp = ip;
+            updateEtag(gwConfigEtag);
+        }
+    }
+
+    DBG_Printf(DBG_HTTP, "wifi: %s\n", qPrintable(req.content));
     return REQ_READY_SEND;
 }
 

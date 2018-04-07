@@ -83,6 +83,12 @@
 #define CHECK_SENSOR_INTERVAL      1000
 #define CHECK_SENSORS_MAX          10
 
+// wifi managed flags
+#define WIFI_MGTM_HOSTAPD         0x01  // hostapd (by deCONZ)
+#define WIFI_MGTM_WPA_SUPPLICANT  0x02  // wpa_supplicant (by deCONZ)
+#define WIFI_MGTM_INTERFACES      0x04  // interfaces (by deCONZ)
+#define WIFI_MGMT_ACTIVE          0x08  // 1 when accesspoint or client is active
+
 #define DE_OTAU_ENDPOINT             0x50
 #define DE_PROFILE_ID              0xDE00
 #define ATMEL_WSNDEMO_PROFILE_ID   0x0001
@@ -1150,8 +1156,14 @@ public:
     uint8_t gwPermitJoinDuration; // global permit join state (last set)
     int gwPermitJoinResend; // permit join of values > 255
     uint16_t gwNetworkOpenDuration; // user setting how long network remains open
-    QString gwWifi;     // not-configured | not-installed | not-running | running
+    QString gwWifi;     // configured | not-configured | not-available | new-configured | deactivated
     QVariantList gwWifiAvailable;
+    enum WifiState {
+        WifiStateInitMgmt,
+        WifiStateIdle
+    };
+    WifiState gwWifiState;
+    quint32 gwWifiMgmt;
     QString gwWifiType; // accesspoint | ad-hoc | client
     QString gwWifiName;
     QString gwWifiClientName;
