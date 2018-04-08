@@ -82,6 +82,7 @@
 #define CHECK_SENSOR_FAST_INTERVAL 100
 #define CHECK_SENSOR_INTERVAL      1000
 #define CHECK_SENSORS_MAX          10
+#define CHECK_ZB_GOOD_INTERVAL     60
 
 // wifi managed flags
 #define WIFI_MGTM_HOSTAPD         0x01  // hostapd (by deCONZ)
@@ -1114,6 +1115,8 @@ public:
     void saveDb();
     void closeDb();
     void queSaveDb(int items, int msec);
+    void updateZigBeeConfigDb();
+    void getLastZigBeeConfigDb(QString &out);
 
     void checkConsistency();
 
@@ -1206,6 +1209,7 @@ public:
     QString gwSdImageVersion;
     QString gwDeviceName;
     QDateTime globalLastMotion; // last time any physical PIR has detected motion
+    QDateTime zbConfigGood; // timestamp incoming ZCL reports/read attribute responses are received, indication that network is operational
 
     // time manager
     enum TimeManagerState {
@@ -1449,6 +1453,7 @@ public:
     uint groupTaskNodeIter; // Iterates through nodes array
     int idleTotalCounter; // sys timer
     int idleLimit;
+    int idleUpdateZigBeeConf; //
     int idleLastActivity; // delta in seconds
     bool supportColorModeXyForGroups;
     size_t lightIter;

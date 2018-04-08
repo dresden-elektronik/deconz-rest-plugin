@@ -92,6 +92,7 @@ void DeRestPluginPrivate::initDb()
         "ALTER TABLE scenes add column transitiontime TEXT",
         "ALTER TABLE scenes add column lights TEXT",
         "ALTER TABLE rules add column periodic TEXT",
+        "CREATE TABLE IF NOT EXISTS zbconf (conf TEXT)",
         NULL
         };
 
@@ -3510,6 +3511,157 @@ void DeRestPluginPrivate::queSaveDb(int items, int msec)
     }
 
     databaseTimer->start(msec);
+}
+
+static int sqliteLastZbconfCallback(void *user, int ncols, char **colval , char **colname)
+{
+    Q_UNUSED(colname);
+    QString *str = static_cast<QString*>(user);
+    if (!str || ncols != 1)
+    {
+        return 0;
+    }
+
+    *str = QString::fromUtf8(colval[0]);
+    return 0;
+}
+
+/* Get the last known working zigbee configuration from database. */
+void DeRestPluginPrivate::getLastZigBeeConfigDb(QString &out)
+{
+
+    QString sql = QLatin1String("SELECT conf FROM zbconf ORDER BY rowid desc limit 1");
+
+    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+    char *errmsg = NULL;
+    int rc = sqlite3_exec(db, qPrintable(sql), sqliteLastZbconfCallback, &out, &errmsg);
+
+    if (rc != SQLITE_OK)
+    {
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR, "sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+            sqlite3_free(errmsg);
+        }
+    }
+}
+
+/*! Put working ZigBee configuration in database for later recovery or fail safe operations.
+    - An entry is only added when different from last entry.
+    - Entries are only added, never modified, this way errors or unwanted changes can be debugged.
+    - Too old entries might be delated later on sqlite3 'rowid' provides timed order.
+ */
+void DeRestPluginPrivate::updateZigBeeConfigDb()
+{
+    if (!apsCtrl)
+    {
+        return;
+    }
+
+    if (!isInNetwork())
+    {
+        return;
+    }
+
+    if (apsCtrl->getParameter(deCONZ::ParamDeviceConnected) == 0)
+    {
+        return;
+    }
+
+    if (gwFirmwareVersion == QLatin1String("0x00000000"))
+    {
+        return;
+    }
+
+    QString conf;
+    getLastZigBeeConfigDb(conf);
+
+    QDateTime now = QDateTime::currentDateTime();
+    if (conf.isEmpty()) // initial
+    {}
+    else if (!zbConfigGood.isValid() || (zbConfigGood.secsTo(now) > CHECK_ZB_GOOD_INTERVAL) || (now < zbConfigGood))
+    {
+        return;
+    }
+
+    uint8_t deviceType = apsCtrl->getParameter(deCONZ::ParamDeviceType);
+    uint16_t panId = apsCtrl->getParameter(deCONZ::ParamPANID);
+    quint64 extPanId = apsCtrl->getParameter(deCONZ::ParamExtendedPANID);
+    quint64 apsUseExtPanId = apsCtrl->getParameter(deCONZ::ParamApsUseExtendedPANID);
+    uint64_t macAddress = apsCtrl->getParameter(deCONZ::ParamMacAddress);
+    uint16_t nwkAddress = apsCtrl->getParameter(deCONZ::ParamNwkAddress);
+    uint8_t staticNwkAddress = apsCtrl->getParameter(deCONZ::ParamStaticNwkAddress);
+    uint8_t curChannel = apsCtrl->getParameter(deCONZ::ParamCurrentChannel);
+    uint8_t securityMode = apsCtrl->getParameter(deCONZ::ParamSecurityMode);
+    quint64 tcAddress = apsCtrl->getParameter(deCONZ::ParamTrustCenterAddress);
+    QByteArray networkKey = apsCtrl->getParameter(deCONZ::ParamNetworkKey);
+    uint8_t nwkUpdateId = apsCtrl->getParameter(deCONZ::ParamNetworkUpdateId);
+
+    // some basic checks for common configuration as HA coordinator
+    if (deviceType != deCONZ::Coordinator)
+    {
+        return;
+    }
+
+    if (curChannel < 11 || curChannel > 26)
+    {
+        return;
+    }
+
+    if (securityMode != 3) // no master but tc link key
+    {
+        return;
+    }
+
+    if (tcAddress != macAddress)
+    {
+        return;
+    }
+
+    QVariantMap map;
+    map["deviceType"] = deviceType;
+    map["panId"] = QString("0x%1").arg(QString::number(panId,16));
+    map["extPanId"] = QString("0x%1").arg(QString::number(extPanId,16));
+    map["apsUseExtPanId"] = QString("0x%1").arg(QString::number(apsUseExtPanId,16));
+    map["macAddress"] = QString("0x%1").arg(QString::number(macAddress,16));
+    map["staticNwkAddress"] = (staticNwkAddress == 0) ? false : true;
+    map["nwkAddress"] = QString("0x%1").arg(QString::number(nwkAddress,16));
+    map["curChannel"] = curChannel;
+    map["securityMode"] = securityMode;
+    map["tcAddress"] = QString("0x%1").arg(QString::number(tcAddress,16));
+    map["networkKey"] = networkKey.toHex();
+    map["nwkUpdateId"] = nwkUpdateId;
+    map["swversion"] = QLatin1String(GW_SW_VERSION);
+    map["fwversion"] = gwFirmwareVersion;
+
+    bool success = true;
+    QString curConf = Json::serialize(map, success);
+    if (!success)
+    {
+        return;
+    }
+
+    if (conf == curConf) // nothing changed
+    {
+        return;
+    }
+
+    {
+        QString sql = QString(QLatin1String("INSERT INTO zbconf (conf) VALUES ('%1')")).arg(curConf);
+
+        DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+        char * errmsg = NULL;
+        int rc = sqlite3_exec(db, qPrintable(sql), NULL, NULL, &errmsg);
+
+        if (rc != SQLITE_OK)
+        {
+            if (errmsg)
+            {
+                DBG_Printf(DBG_ERROR, "sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                sqlite3_free(errmsg);
+            }
+        }
+    }
 }
 
 /*! Checks various data for consistency.

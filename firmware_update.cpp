@@ -166,6 +166,8 @@ void DeRestPluginPrivate::updateFirmwareDisconnectDevice()
 //        }
 //    }
 
+    zbConfigGood = QDateTime(); // clear
+
     if (apsCtrl->getParameter(deCONZ::ParamDeviceConnected) == 1)
     {
         fwUpdateTimer->start(100); // recheck
@@ -190,6 +192,7 @@ bool DeRestPluginPrivate::startUpdateFirmware()
         updateEtag(gwConfigEtag);
         fwUpdateState = FW_DisconnectDevice;
         fwUpdateTimer->start(100);
+        zbConfigGood = QDateTime();
         return true;
     }
 

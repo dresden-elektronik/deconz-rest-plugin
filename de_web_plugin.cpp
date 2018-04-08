@@ -214,6 +214,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     idleLimit = 0;
     idleTotalCounter = IDLE_READ_LIMIT;
     idleLastActivity = 0;
+    idleUpdateZigBeeConf = idleTotalCounter + 15;
     sensorIndIdleTotalCounter = 0;
     queryTime = QTime::currentTime();
     udpSock = 0;
@@ -504,7 +505,12 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
         if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReportAttributesId)
         {
+            zbConfigGood = QDateTime::currentDateTime();
             handleZclAttributeReportIndication(ind, zclFrame);
+        }
+        else if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReadAttributesResponseId)
+        {
+            zbConfigGood = QDateTime::currentDateTime();
         }
         else if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclConfigureReportingResponseId)
         {
@@ -11032,6 +11038,12 @@ void DeRestPlugin::idleTimerFired()
     if (d->idleLimit <= 0)
     {
         QTime t = QTime::currentTime();
+
+        if (d->idleUpdateZigBeeConf < d->idleTotalCounter)
+        {
+            d->idleUpdateZigBeeConf = d->idleTotalCounter += CHECK_ZB_GOOD_INTERVAL;
+            d->updateZigBeeConfigDb();
+        }
 
         if (d->queryTime > t)
         {
