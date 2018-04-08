@@ -311,6 +311,11 @@ void DeRestPluginPrivate::initWiFi()
         pollDatabaseWifiTimer->start(10000);
     }
 
+    if (gwWifiMgmt & WIFI_MGMT_ACTIVE)
+    {
+        return;
+    }
+
     if (gwWifiName == QLatin1String("Phoscon-Gateway-0000"))
     {
         // proceed to correct these
@@ -2494,13 +2499,27 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
 
             if (type == QLatin1String("accesspoint") && !ssid.isEmpty())
             {
-                gwWifiType = QLatin1String("accesspoint");
+                if (gwWifi == QLatin1String("configured"))
+                {
+                    if ((gwWifiMgmt & WIFI_MGTM_HOSTAPD) == 0)
+                    {
+                        gwWifi = QLatin1String("not-configured"); // not configured by deCONZ
+                    }
+                }
+
+                if (gwWifiMgmt & WIFI_MGMT_ACTIVE)
+                {
+                    gwWifiType = QLatin1String("accesspoint");
+                }
                 gwWifiName = ssid;
             }
 
             if (type == QLatin1String("client") && !ssid.isEmpty())
             {
-                gwWifiType = QLatin1String("client");
+                if (gwWifiMgmt & WIFI_MGMT_ACTIVE)
+                {
+                    gwWifiType = QLatin1String("client");
+                }
                 gwWifiClientName = ssid;
             }
         }
