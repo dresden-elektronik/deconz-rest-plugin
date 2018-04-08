@@ -416,7 +416,7 @@ void DeRestPluginPrivate::queryFirmwareVersion()
 
                 // auto update factory fresh devices with too old firmware
                 if (gwDeviceName == QLatin1String("RaspBee") &&
-                    !gwSdImageVersion.isEmpty() && nodes.empty() && sensors.empty())
+                    !gwSdImageVersion.isEmpty() && nodes.empty() && sensors.size() < 2)
                 {
                     if (fwVersion <= GW_AUTO_UPDATE_FW_VERSION)
                     {
