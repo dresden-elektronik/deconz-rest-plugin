@@ -140,12 +140,13 @@ void DeRestPluginPrivate::updateFirmwareWaitFinished()
     // done
     if (fwProcess == 0)
     {
+        gwFirmwareVersion == QLatin1String("0x00000000"); // force reread
         fwUpdateStartedByUser = false;
         gwFirmwareNeedUpdate = false;
         updateEtag(gwConfigEtag);
         apsCtrl->setParameter(deCONZ::ParamFirmwareUpdateActive, deCONZ::FirmwareUpdateIdle);
         fwUpdateState = FW_Idle;
-        fwUpdateTimer->start(FW_IDLE_TIMEOUT_LONG);
+        fwUpdateTimer->start(FW_IDLE_TIMEOUT);
     }
     else // recheck
     {
@@ -400,6 +401,18 @@ void DeRestPluginPrivate::queryFirmwareVersion()
                 fwUpdateState = FW_WaitUserConfirm;
                 fwUpdateTimer->start(FW_WAIT_USER_TIMEOUT);
                 apsCtrl->setParameter(deCONZ::ParamFirmwareUpdateActive, deCONZ::FirmwareUpdateReadyToStart);
+
+                // auto update factory fresh devices with too old firmware
+                if (gwDeviceName == QLatin1String("RaspBee") &&
+                    !gwSdImageVersion.isEmpty() && nodes.empty() && sensors.empty())
+                {
+                    if (fwVersion <= GW_AUTO_UPDATE_FW_VERSION)
+                    {
+                        DBG_Printf(DBG_INFO, "GW firmware start auto update\n");
+                        startUpdateFirmware();
+                    }
+                }
+
                 return;
             }
             else
