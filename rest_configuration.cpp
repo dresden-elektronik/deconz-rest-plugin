@@ -261,14 +261,6 @@ void DeRestPluginPrivate::initWiFi()
         return;
     }
 
-    // deCONZ is startet from a systemd unit?
-    //   -- deconz.service or deconz-gui.service
-    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    if (!env.contains(QLatin1String("INVOCATION_ID")))
-    {
-        return;
-    }
-
     if (gwWifiState == WifiStateInitMgmt)
     {
         retry = true;
