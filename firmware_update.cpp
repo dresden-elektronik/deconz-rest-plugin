@@ -10,6 +10,7 @@
 
 #include <QApplication>
 #include <QDesktopServices>
+#include <QProcessEnvironment>
 #include <QFile>
 #include <QDir>
 #include <QString>
@@ -37,6 +38,17 @@ void DeRestPluginPrivate::initFirmwareUpdate()
     fwUpdateTimer->setSingleShot(true);
     connect(fwUpdateTimer, SIGNAL(timeout()),
             this, SLOT(firmwareUpdateTimerFired()));
+
+
+#if defined(Q_OS_LINUX) && !defined(ARCH_ARM)
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    if (!env.contains(QLatin1String("DISPLAY")))
+    {
+        DBG_Printf(DBG_INFO, "GW firmware update not supported on x86 linux headless\n");
+        return;
+    }
+#endif
+
     fwUpdateTimer->start(5000);
 }
 
@@ -64,7 +76,7 @@ void DeRestPluginPrivate::updateFirmware()
 #ifdef Q_OS_WIN
     gcfFlasherBin.append(".exe");
     QString bin = gcfFlasherBin;
-#elif defined(Q_OS_LINUX) && !defined(ARCH_ARM) // on RPi a normal sudo is ok since we don't need password there
+#elif defined(Q_OS_LINUX) && !defined(ARCH_ARM) // on x86 linux
     QString bin = "pkexec";
     gcfFlasherBin = "/usr/bin/GCFFlasher_internal";
     fwProcessArgs.prepend(gcfFlasherBin);
@@ -73,7 +85,7 @@ void DeRestPluginPrivate::updateFirmware()
     // /usr/bin/osascript -e 'do shell script "make install" with administrator privileges'
     QString bin = "sudo";
     fwProcessArgs.prepend(gcfFlasherBin);
-#else
+#else // on RPi a normal sudo is ok since we don't need password there
     QString bin = "sudo";
     gcfFlasherBin = "/usr/bin/GCFFlasher_internal";
     fwProcessArgs.prepend(gcfFlasherBin);
@@ -285,7 +297,7 @@ void DeRestPluginPrivate::queryFirmwareVersion()
         QString gcfFlasherBin = qApp->applicationDirPath() + "/GCFFlasher";
 #ifdef Q_OS_WIN
         gcfFlasherBin.append(".exe");
-#elif defined(Q_OS_LINUX) && !defined(ARCH_ARM) // on RPi a normal sudo is ok since we don't need password there
+#elif defined(Q_OS_LINUX) && !defined(ARCH_ARM)
         gcfFlasherBin = "/usr/bin/GCFFlasher_internal";
 #elif defined(Q_OS_OSX)
         // TODO
