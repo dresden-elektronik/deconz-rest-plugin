@@ -741,32 +741,7 @@ void DeRestPluginPrivate::loadWifiInformationFromDb()
     }
 
     {
-        QString sql = QLatin1String("SELECT * FROM config2 WHERE key='availablewifi'");
-
-        DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
-        rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadConfigCallback, this, &errmsg);
-
-        if (rc != SQLITE_OK)
-        {
-            if (errmsg)
-            {
-                DBG_Printf(DBG_ERROR, "sqlite3_exec %s, error: %s\n", qPrintable(sql), errmsg);
-                sqlite3_free(errmsg);
-            }
-        }
-        sql = QLatin1String("SELECT * FROM config2 WHERE key='wifiip'");
-
-        DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
-        rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadConfigCallback, this, &errmsg);
-
-        if (rc != SQLITE_OK)
-        {
-            if (errmsg)
-            {
-                DBG_Printf(DBG_ERROR, "sqlite3_exec %s, error: %s\n", qPrintable(sql), errmsg);
-                sqlite3_free(errmsg);
-            }
-        }
+        QString sql;
         sql = QLatin1String("SELECT * FROM config2 WHERE key='wifitype'");
 
         DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
@@ -781,32 +756,6 @@ void DeRestPluginPrivate::loadWifiInformationFromDb()
             }
         }
         sql = QLatin1String("SELECT * FROM config2 WHERE key='wifi'");
-
-        DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
-        rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadConfigCallback, this, &errmsg);
-
-        if (rc != SQLITE_OK)
-        {
-            if (errmsg)
-            {
-                DBG_Printf(DBG_ERROR, "sqlite3_exec %s, error: %s\n", qPrintable(sql), errmsg);
-                sqlite3_free(errmsg);
-            }
-        }
-        sql = QLatin1String("SELECT * FROM config2 WHERE key='wifiname'");
-
-        DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
-        rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadConfigCallback, this, &errmsg);
-
-        if (rc != SQLITE_OK)
-        {
-            if (errmsg)
-            {
-                DBG_Printf(DBG_ERROR, "sqlite3_exec %s, error: %s\n", qPrintable(sql), errmsg);
-                sqlite3_free(errmsg);
-            }
-        }
-        sql = QLatin1String("SELECT * FROM config2 WHERE key='wificlientname'");
 
         DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
         rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadConfigCallback, this, &errmsg);

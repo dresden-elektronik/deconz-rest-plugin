@@ -2516,6 +2516,24 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
             }
         }
     }
+    else if (status == QLatin1String("ap-alive"))
+    {
+        if (gwWifi != QLatin1String("configured"))
+        {
+            gwWifi = QLatin1String("configured");
+            updateEtag(gwConfigEtag);
+        }
+
+        if (map.contains("type"))
+        {
+            QString type = map["type"].toString();
+            if (!type.isEmpty() && type != gwWifiType)
+            {
+                gwWifiType = type;
+                updateEtag(gwConfigEtag);
+            }
+        }
+    }
     else if (status == QLatin1String("got-ip"))
     {
         QString ip = map["ipv4"].toString();
