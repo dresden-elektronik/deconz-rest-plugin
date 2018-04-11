@@ -1245,7 +1245,9 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->setMgmtBindSupported(false);
     }
 
-    if (!endDeviceSupported)
+    if (sensor->modelId().startsWith(QLatin1String("FLS-NB")))
+    { }
+    else if (!endDeviceSupported)
     {
         DBG_Printf(DBG_INFO_L2, "don't create binding for attribute reporting of end-device %s\n", qPrintable(sensor->name()));
         return;
