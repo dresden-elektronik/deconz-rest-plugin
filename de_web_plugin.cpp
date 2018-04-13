@@ -128,6 +128,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_115F, "lumi.plug", jennicMacPrefix }, // Xiaomi smart plug
     { VENDOR_UBISYS, "D1", ubisysMacPrefix },
     { VENDOR_UBISYS, "C4", ubisysMacPrefix },
+    { VENDOR_UBISYS, "S2", ubisysMacPrefix },
     { VENDOR_NONE, "Z716A", netvoxMacPrefix },
     { VENDOR_OSRAM_STACK, "Plug", osramMacPrefix }, // OSRAM plug
     { VENDOR_OSRAM_STACK, "CO_", heimanMacPrefix }, // Heiman CO sensor

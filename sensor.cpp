@@ -305,6 +305,24 @@ static const Sensor::ButtonMap ubisysC4Map[] = {
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
 };
 
+static const Sensor::ButtonMap ubisysS2Map[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    // First button
+    { Sensor::ModeScenes,           0x03, 0x0006, 0x02, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Toggle" },
+    { Sensor::ModeScenes,           0x03, 0x0008, 0x05, 0,    S_BUTTON_1 + S_BUTTON_ACTION_HOLD, "Move up (with on/off)" },
+    { Sensor::ModeScenes,           0x03, 0x0008, 0x07, 0,    S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    { Sensor::ModeScenes,           0x03, 0x0008, 0x05, 1,    S_BUTTON_1 + S_BUTTON_ACTION_HOLD, "Move down (with on/off)" },
+    { Sensor::ModeScenes,           0x03, 0x0008, 0x07, 1,    S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // Second button
+    { Sensor::ModeScenes,           0x04, 0x0006, 0x02, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Toggle" },
+    { Sensor::ModeScenes,           0x04, 0x0008, 0x05, 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD, "Move up (with on/off)" },
+    { Sensor::ModeScenes,           0x04, 0x0008, 0x07, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    { Sensor::ModeScenes,           0x04, 0x0008, 0x05, 1,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD, "Move down (with on/off)" },
+    { Sensor::ModeScenes,           0x04, 0x0008, 0x07, 1,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
+};
+
 static const Sensor::ButtonMap lutronLZL4BWHLSwitchMap[] = {
 //    mode                          ep    cluster cmd   param button                                       name
 //  vendor specific
@@ -825,6 +843,7 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         {
             if      (modelid.startsWith(QLatin1String("D1"))) { m_buttonMap = ubisysD1Map; }
             else if (modelid.startsWith(QLatin1String("C4"))) { m_buttonMap = ubisysC4Map; }
+            else if (modelid.startsWith(QLatin1String("S2"))) { m_buttonMap = ubisysS2Map; }
         }
         else if (m_manufacturer == QLatin1String("LUMI"))
         {
