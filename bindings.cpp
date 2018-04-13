@@ -1214,7 +1214,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         return;
     }
 
-    bool endDeviceSupported = false;
+    bool deviceSupported = false;
     // whitelist
         // Climax
     if (sensor->modelId().startsWith(QLatin1String("LM_")) ||
@@ -1239,17 +1239,20 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("TH-H_")) ||
         sensor->modelId().startsWith(QLatin1String("TH-T_")) ||
         sensor->modelId().startsWith(QLatin1String("SMOK_")) ||
-        sensor->modelId().startsWith(QLatin1String("WATER_")))
+        sensor->modelId().startsWith(QLatin1String("WATER_")) ||
+        // Nimbus
+        sensor->modelId().startsWith(QLatin1String("FLS-NB")))
     {
-        endDeviceSupported = true;
-        sensor->setMgmtBindSupported(false);
+        deviceSupported = true;
+        if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle())
+        {
+            sensor->setMgmtBindSupported(false);
+        }
     }
 
-    if (sensor->modelId().startsWith(QLatin1String("FLS-NB")))
-    { }
-    else if (!endDeviceSupported)
+    if (!deviceSupported)
     {
-        DBG_Printf(DBG_INFO_L2, "don't create binding for attribute reporting of end-device %s\n", qPrintable(sensor->name()));
+        DBG_Printf(DBG_INFO_L2, "don't create binding for attribute reporting of sensor %s\n", qPrintable(sensor->name()));
         return;
     }
 
@@ -1268,7 +1271,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
     // whitelist by Model ID
     if (gwReportingEnabled)
     {
-        if (sensor->modelId().startsWith(QLatin1String("FLS-NB")) || endDeviceSupported)
+        if (deviceSupported)
         {
             action = BindingTask::ActionBind;
         }
