@@ -479,7 +479,8 @@ enum TaskType
     TaskRemoveFromGroup = 31,
     TaskViewGroup = 32,
     TaskTriggerEffect = 33,
-    TaskWarning = 34
+    TaskWarning = 34,
+    TaskIncBrightness = 35
 };
 
 struct TaskItem
@@ -1034,6 +1035,7 @@ public:
     bool addTaskSetOnOff(TaskItem &task, quint8 cmd, quint16 ontime);
     bool addTaskSetBrightness(TaskItem &task, uint8_t bri, bool withOnOff);
     bool addTaskIncColorTemperature(TaskItem &task, int32_t ct);
+    bool addTaskIncBrightness(TaskItem &task, int16_t bri);
     bool addTaskStopBrightness(TaskItem &task);
     bool addTaskSetColorTemperature(TaskItem &task, uint16_t ct);
     bool addTaskSetEnhancedHue(TaskItem &task, uint16_t hue);
