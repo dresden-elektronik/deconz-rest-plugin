@@ -9904,10 +9904,6 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
         break;
 
     case TaskIncBrightness:
-
-        //TODO
-        DBG_Printf(DBG_INFO, "TODO Task to local Data - case TaskIncBrightness");
-
         break;
 
     case TaskSetColorTemperature:
@@ -9927,6 +9923,11 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
     for (; i != end; ++i)
     {
         LightNode *lightNode = *i;
+
+        if (!lightNode->isAvailable())
+        {
+            continue;
+        }
 
         switch (task.taskType)
         {
@@ -10141,6 +10142,35 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
             }
 
             setAttributeColorTemperature(lightNode);
+        }
+            break;
+
+        case TaskIncBrightness:
+        {
+            ResourceItem *item = lightNode->item(RStateOn);
+            if (!item || !item->toBool())
+            {
+                break;
+            }
+
+            item = lightNode->item(RStateBri);
+            if (!item)
+            {
+                break;
+            }
+            qint32 modBri = item->toNumber() + task.inc;
+
+            if (modBri < 1) { modBri = 1; }
+            else if (modBri > 254) { modBri = 254; }
+            if (item && item->toNumber() != modBri)
+            {
+                updateLightEtag(lightNode);
+                item->setValue(modBri);
+                Event e(RLights, RStateBri, lightNode->id(), item);
+                enqueueEvent(e);
+            }
+
+            setAttributeLevel(lightNode);
         }
             break;
 

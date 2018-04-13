@@ -246,25 +246,26 @@ bool DeRestPluginPrivate::addTaskIncBrightness(TaskItem &task, int16_t bri)
 
     task.zclFrame.payload().clear();
     task.zclFrame.setSequenceNumber(zclSeq++);
-    task.zclFrame.setCommandId(0x06); // Step level with on/off
-
     task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
                              deCONZ::ZclFCDirectionClientToServer |
                              deCONZ::ZclFCDisableDefaultResponse);
 
-    // TODO if 0, send stop command
-    quint8 mode = bri > 0 ? 0 : 1; // up, down
-    quint8 stepSize = bri;
-
+    if (bri == 0)
+    {
+        task.zclFrame.setCommandId(0x03); // Stop
+    }
+    else
     { // payload
+        task.zclFrame.setCommandId(0x02); // Step level
+        quint8 mode = bri > 0 ? 0 : 1; // up, down
+        quint8 stepSize = bri;
+
         QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
         stream.setByteOrder(QDataStream::LittleEndian);
 
         stream << mode;
         stream << stepSize;
         stream << task.transitionTime;
-        //stream << (quint16)0; // min dummy
-        //stream << (quint16)0; // max dummy
     }
 
     { // ZCL frame

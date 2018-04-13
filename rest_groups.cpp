@@ -1203,7 +1203,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
             }
             else
             {
-                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/groups/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
             }
         }
         else
@@ -1215,35 +1215,30 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     }
 
     // bri_inc
-    if (hasBriInc)
+    if (hasBriInc && !hasBri)
     {
 
-        int bri_inc = map["bri_inc"].toInt(&ok);
+        int briInc = map["bri_inc"].toInt(&ok);
 
-        if (hasBri)
-        {
-            // TODO should be ignored as of documentation
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIEABLE, QString("/groups/%1").arg(id), QString("parameter, /lights/%1/bri_inc, is not modifiable. bri was specified.").arg(id)));
-        }
-        else if (ok && (map["bri_inc"].type() == QVariant::Double) && (bri_inc >= -254 && bri_inc <= 254))
+        if (ok && (map["bri_inc"].type() == QVariant::Double) && (briInc >= -254 && briInc <= 254))
         {
             TaskItem task;
             copyTaskReq(taskRef, task);
-            task.inc = bri_inc;
+            task.inc = briInc;
             task.taskType = TaskIncBrightness;
 
-            if (addTaskIncBrightness(task, bri_inc)) // will only be evaluated if no bri is set
+            if (addTaskIncBrightness(task, briInc))
             {
                 taskToLocalData(task);
                 QVariantMap rspItem;
                 QVariantMap rspItemState;
-                rspItemState[QString("/groups/%1/action/bri").arg(id)] = group->level; // TODO calculate
+                rspItemState[QString("/groups/%1/action/bri_inc").arg(id)] = briInc;
                 rspItem["success"] = rspItemState;
                 rsp.list.append(rspItem);
             }
             else
             {
-                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/groups/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
             }
         }
         else

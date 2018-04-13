@@ -858,11 +858,11 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
-    if (hasBriInc)
+    if (hasBriInc && !hasBri)
     {
         ResourceItem *item = taskRef.lightNode->item(RStateBri);
 
-        int bri_inc = map["bri_inc"].toInt(&ok);
+        int briIinc = map["bri_inc"].toInt(&ok);
 
         if (!item)
         {
@@ -872,24 +872,19 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         {
             rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1").arg(id), QString("parameter, /lights/%1/bri, is not modifiable. Device is set to off.").arg(id)));
         }
-        else if (hasBri) // TODO should be ignored as of documentation
-        {
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIEABLE, QString("/lights/%1").arg(id), QString("parameter, /lights/%1/bri_inc, is not modifiable. bri was specified.").arg(id)));
-        }
-        else if (ok && (map["bri_inc"].type() == QVariant::Double) && (bri_inc >= -254 && bri_inc <= 254))
+        else if (ok && (map["bri_inc"].type() == QVariant::Double) && (briIinc >= -254 && briIinc <= 254))
         {
             TaskItem task;
             copyTaskReq(taskRef, task);
-            task.inc = bri_inc;
+            task.inc = briIinc;
             task.taskType = TaskIncBrightness;
 
-            if (addTaskIncBrightness(task, bri_inc)) // will only be evaluated if no bri is set
+            if (addTaskIncBrightness(task, briIinc))
             {
-                // TODO calculate item.value
                 taskToLocalData(task);
                 QVariantMap rspItem;
                 QVariantMap rspItemState;
-                rspItemState[QString("/lights/%1/state/bri").arg(id)] = item->toNumber(); // TODO still old value
+                rspItemState[QString("/lights/%1/state/bri").arg(id)] = item->toNumber();
                 rspItem["success"] = rspItemState;
                 rsp.list.append(rspItem);
             }
