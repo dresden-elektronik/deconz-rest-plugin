@@ -2235,10 +2235,13 @@ void DeRestPluginPrivate::bindingToRuleTimerFired()
         }
     }
 
-    DBG_Printf(DBG_INFO, "cond.address: %s\n", qPrintable(cond.address()));
-    DBG_Printf(DBG_INFO, "cond.value: %s\n", qPrintable(cond.value().toString()));
-    DBG_Printf(DBG_INFO, "action.address: %s\n", qPrintable(action.address()));
-    DBG_Printf(DBG_INFO, "action.body: %s\n", qPrintable(action.body()));
+    if (DBG_IsEnabled(DBG_INFO_L2))
+    {
+        DBG_Printf(DBG_INFO_L2, "cond.address: %s\n", qPrintable(cond.address()));
+        DBG_Printf(DBG_INFO_L2, "cond.value: %s\n", qPrintable(cond.value().toString()));
+        DBG_Printf(DBG_INFO_L2, "action.address: %s\n", qPrintable(action.address()));
+        DBG_Printf(DBG_INFO_L2, "action.body: %s\n", qPrintable(action.body()));
+    }
 
     if (!foundRule)
     {
@@ -2308,7 +2311,7 @@ void DeRestPluginPrivate::bindingToRuleTimerFired()
         }
         else
         {
-            DBG_Printf(DBG_INFO, "Rule for Binding 0x%04X already exists\n", bnd.clusterId);
+            DBG_Printf(DBG_INFO_L2, "Rule for Binding 0x%04X already exists\n", bnd.clusterId);
         }
     }
 
