@@ -2155,8 +2155,11 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         }
         else if (sensor.modelId().startsWith(QLatin1String("lumi.")))
         {
-            item = sensor.addItem(DataTypeUInt8, RConfigBattery);
-            item->setValue(100);
+            if (!sensor.modelId().startsWith(QLatin1String("lumi.ctrl_ln2")))
+            {
+                item = sensor.addItem(DataTypeUInt8, RConfigBattery);
+                item->setValue(100);
+            }
 
             if (!sensor.item(RStateTemperature) &&
                 !sensor.modelId().contains(QLatin1String("weather")) &&
