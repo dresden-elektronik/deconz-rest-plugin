@@ -453,6 +453,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     bool hasXy = map.contains("xy");
     bool hasCt = map.contains("ct");
     bool hasCtInc = map.contains("ct_inc");
+    bool hasBriInc = map.contains("bri_inc");
     bool hasEffect = map.contains("effect");
     bool hasEffectColorLoop = false;
     bool hasAlert = map.contains("alert");
@@ -852,6 +853,54 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         else
         {
             rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/state/ct_inc").arg(id), QString("invalid value, %1, for parameter, ct_inc").arg(map["ct_inc"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+    }
+
+    if (hasBriInc)
+    {
+        ResourceItem *item = taskRef.lightNode->item(RStateBri);
+
+        int bri_inc = map["bri_inc"].toInt(&ok);
+
+        if (!item)
+        {
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("parameter, /lights/%1/bri_inc, is not available.").arg(id)));
+        }
+        else if (!isOn)
+        {
+            rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1").arg(id), QString("parameter, /lights/%1/bri, is not modifiable. Device is set to off.").arg(id)));
+        }
+        else if (hasBri) // TODO should be ignored as of documentation
+        {
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIEABLE, QString("/lights/%1").arg(id), QString("parameter, /lights/%1/bri_inc, is not modifiable. bri was specified.").arg(id)));
+        }
+        else if (ok && (map["bri_inc"].type() == QVariant::Double) && (bri_inc >= -254 && bri_inc <= 254))
+        {
+            TaskItem task;
+            copyTaskReq(taskRef, task);
+            task.inc = bri_inc;
+            task.taskType = TaskIncBrightness;
+
+            if (addTaskIncBrightness(task, bri_inc)) // will only be evaluated if no bri is set
+            {
+                // TODO calculate item.value
+                taskToLocalData(task);
+                QVariantMap rspItem;
+                QVariantMap rspItemState;
+                rspItemState[QString("/lights/%1/state/bri").arg(id)] = item->toNumber(); // TODO still old value
+                rspItem["success"] = rspItemState;
+                rsp.list.append(rspItem);
+            }
+            else
+            {
+                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+            }
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/state/bri_inc").arg(id), QString("invalid value, %1, for parameter, bri_inc").arg(map["bri_inc"].toString())));
             rsp.httpStatus = HttpStatusBadRequest;
             return REQ_READY_SEND;
         }

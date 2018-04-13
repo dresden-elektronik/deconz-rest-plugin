@@ -9902,6 +9902,13 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
     }
         break;
 
+    case TaskIncBrightness:
+
+        //TODO
+        DBG_Printf(DBG_INFO, "TODO Task to local Data - case TaskIncBrightness");
+
+        break;
+
     case TaskSetColorTemperature:
         updateGroupEtag(group);
         group->colorTemperature = task.colorTemperature;
