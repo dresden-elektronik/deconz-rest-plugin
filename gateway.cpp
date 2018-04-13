@@ -44,6 +44,8 @@ public:
     void handleEventStateConnected(GW_Event event);
     void checkConfigResponse(const QByteArray &data);
     void checkGroupsResponse(const QByteArray &data);
+    void checkAuthResponse(const QByteArray &data);
+    bool hasAuthorizedError(const QVariant &var);
 
     DeRestPluginPrivate *parent;
     Gateway::State state;
@@ -547,7 +549,7 @@ void GatewayPrivate::handleEventStateNotAuthorized(GW_Event event)
 
         QVariantMap map;
         map[QLatin1String("devicetype")] = QLatin1String("x-gw");
-        map[QLatin1String("username")] = apikey;
+        //map[QLatin1String("username")] = apikey;
 
         QString json = deCONZ::jsonStringFromMap(map);
 
@@ -572,11 +574,6 @@ void GatewayPrivate::handleEventStateNotAuthorized(GW_Event event)
             reply = 0;
             int code = r->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
 
-//            {
-//                QByteArray data = r->readAll();
-//                DBG_Printf(DBG_INFO, "GW create user reply %d: %s\n", code, qPrintable(data));
-//            }
-
             r->deleteLater();
 
             if (code == 403)
@@ -585,8 +582,7 @@ void GatewayPrivate::handleEventStateNotAuthorized(GW_Event event)
             }
             else if (code == 200)
             {
-                // go to state offline first to query config
-                state = Gateway::StateOffline;
+                checkAuthResponse(r->readAll());
                 startTimer(100, ActionProcess);
             }
 
@@ -609,6 +605,13 @@ void GatewayPrivate::handleEventStateConnected(GW_Event event)
     if (event == ActionProcess)
     {
         Q_ASSERT(reply == 0);
+
+        if (apikey.isEmpty())
+        {
+            state = Gateway::StateNotAuthorized;
+            startTimer(5000, ActionProcess);
+            return;
+        }
 
         if (commands.empty())
         {
@@ -849,6 +852,11 @@ void GatewayPrivate::checkConfigResponse(const QByteArray &data)
     bool ok;
     QVariant var = Json::parse(data, ok);
 
+    if (hasAuthorizedError(var))
+    {
+        return;
+    }
+
     if (var.type() != QVariant::Map)
         return;
 
@@ -869,6 +877,11 @@ void GatewayPrivate::checkGroupsResponse(const QByteArray &data)
 {
     bool ok;
     QVariant var = Json::parse(data, ok);
+
+    if (hasAuthorizedError(var))
+    {
+        return;
+    }
 
     if (var.type() != QVariant::Map)
         return;
@@ -916,4 +929,67 @@ void GatewayPrivate::checkGroupsResponse(const QByteArray &data)
             }
         }
     }
+}
+
+void GatewayPrivate::checkAuthResponse(const QByteArray &data)
+{
+    bool ok;
+    QVariant var = Json::parse(data, ok);
+
+    if (hasAuthorizedError(var))
+    {
+        return;
+    }
+
+    if (var.type() != QVariant::List)
+    {
+        return; // unexpected
+    }
+
+    QVariantMap map = var.toList().first().toMap();
+    if (!map.contains("success"))
+    {
+        return;
+    }
+
+    map = map["success"].toMap();
+
+    if (map.contains("username"))
+    {
+        apikey = map["username"].toString();
+        needSaveDatabase = true;
+        state = Gateway::StateConnected;
+    }
+}
+
+bool GatewayPrivate::hasAuthorizedError(const QVariant &var)
+{
+    if (var.type() != QVariant::List)
+    {
+        return false;
+    }
+
+    QVariantList ls = var.toList();
+    for (QVariant item : ls)
+    {
+        QVariantMap map = item.toMap();
+        if (!map.contains(QLatin1String("error")))
+        {
+            continue;
+        }
+
+        map = map["error"].toMap();
+
+        if (map.contains(QLatin1String("type")) && map["type"].toInt() == ERR_UNAUTHORIZED_USER)
+        {
+            if (state == Gateway::StateConnected)
+            {
+                state = Gateway::StateNotAuthorized;
+                apikey.clear();
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
