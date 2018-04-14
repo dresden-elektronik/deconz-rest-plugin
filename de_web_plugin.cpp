@@ -12733,7 +12733,8 @@ void DeRestPluginPrivate::pushSensorInfoToCore(Sensor *sensor)
 
     if (sensor->modelId().startsWith(QLatin1String("FLS-NB")))
     { } // use name from light
-    else if (sensor->modelId().startsWith(QLatin1String("D1")) || sensor->modelId().startsWith(QLatin1String("S2")))
+    else if (sensor->modelId().startsWith(QLatin1String("D1")) || sensor->modelId().startsWith(QLatin1String("S2")) ||
+             sensor->modelId().startsWith(QLatin1String("lumi.ctrl")))
     { } // use name from light
     else if (sensor->type() == QLatin1String("ZHAConsumption") || sensor->type() == QLatin1String("ZHAPower"))
     { } // use name from light
