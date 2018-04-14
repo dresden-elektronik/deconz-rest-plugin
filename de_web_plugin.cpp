@@ -485,9 +485,33 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReportAttributesId))
         {
             Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
-            if (!sensorNode && zclFrame.manufacturerCode() == VENDOR_PHILIPS)
-            {   // dimmer switch?
+            if (!sensorNode)
+            {
+                // No sensorNode found for endpoint - check for multiple endpoints mapped to the same resource
                 sensorNode = getSensorNodeForAddress(ind.srcAddress());
+                if (sensorNode)
+                {
+                    if (zclFrame.manufacturerCode() == VENDOR_PHILIPS)
+                    {
+                        // Hue dimmer switch
+                    }
+                    else if (sensorNode->modelId().startsWith("D1"))
+                    {
+                        sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x02);
+                    }
+                    else if (sensorNode->modelId().startsWith("C4"))
+                    {
+                        sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
+                    }
+                    else if (sensorNode->modelId().startsWith("S2"))
+                    {
+                        sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x03);
+                    }
+                    else
+                    {
+                        sensorNode = 0; // not supported
+                    }
+                }
             }
 
             if (sensorNode)
@@ -2613,10 +2637,15 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpPresenceSensor.outClusters.push_back(ci->id());
                     }
-                    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_UBISYS &&
-                             modelId.startsWith(QLatin1String("C4")) && i->endpoint() > 0x04)
+                    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_UBISYS)
                     {
-                        // Don't create ZHASwitch for the C4's Window Covering Controller endpoints 0x05 and 0x06.
+                        if ((modelId.startsWith(QLatin1String("D1")) && i->endpoint() == 0x02) ||
+                            (modelId.startsWith(QLatin1String("C4")) && i->endpoint() == 0x01) ||
+                            (modelId.startsWith(QLatin1String("S2")) && i->endpoint() == 0x03))
+                        {
+                            // Combine multiple switch endpoints into a single ZHASwitch resource
+                            fpSwitch.outClusters.push_back(ci->id());
+                        }
                     }
                     else if (!node->nodeDescriptor().isNull())
                     {
@@ -12704,7 +12733,7 @@ void DeRestPluginPrivate::pushSensorInfoToCore(Sensor *sensor)
 
     if (sensor->modelId().startsWith(QLatin1String("FLS-NB")))
     { } // use name from light
-    else if (sensor->modelId().startsWith(QLatin1String("D1")))
+    else if (sensor->modelId().startsWith(QLatin1String("D1")) || sensor->modelId().startsWith(QLatin1String("S2")))
     { } // use name from light
     else if (sensor->type() == QLatin1String("ZHAConsumption") || sensor->type() == QLatin1String("ZHAPower"))
     { } // use name from light
