@@ -1574,7 +1574,7 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, bo
         {
             const char *key = item->descriptor().suffix + 6;
 
-            if (rid.suffix == RStateLastUpdated && !item->lastSet().isValid() || (item->lastSet().date().year() < 2000))
+            if (rid.suffix == RStateLastUpdated && (!item->lastSet().isValid() || (item->lastSet().date().year() < 2000)))
             {
                 state[key] = QLatin1String("none");
                 continue;
