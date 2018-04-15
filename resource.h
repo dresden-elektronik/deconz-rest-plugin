@@ -96,6 +96,7 @@ extern const char *RConfigLat;
 extern const char *RConfigLedIndication;
 extern const char *RConfigLocalTime;
 extern const char *RConfigLong;
+extern const char *RConfigMode;
 extern const char *RConfigOffset;
 extern const char *RConfigOn;
 extern const char *RConfigPending;

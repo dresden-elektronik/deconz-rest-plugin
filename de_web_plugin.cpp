@@ -2296,18 +2296,31 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
     if (ind.dstAddressMode() == deCONZ::ApsGroupAddress)
     {
+        QStringList gids;
         ResourceItem *item = sensor->addItem(DataTypeString, RConfigGroup);
         QString gid = QString::number(ind.dstAddress().group());
 
-        if (item && item->toString() != gid)
+        if (item)
         {
-            item->setValue(gid);
-            sensor->setNeedSaveDatabase(true);
-            updateSensorEtag(sensor);
+            gids = item->toString().split(',');
         }
 
-        Event e(RSensors, REventValidGroup, sensor->id());
-        enqueueEvent(e);
+        if (sensor->manufacturer() == QLatin1String("ubisys"))
+        {
+            // TODO
+        }
+        else
+        {
+            if (!gids.contains(gid))
+            {
+                item->setValue(gid);
+                sensor->setNeedSaveDatabase(true);
+                updateSensorEtag(sensor);
+            }
+
+            Event e(RSensors, REventValidGroup, sensor->id());
+            enqueueEvent(e);
+        }
     }
 
     bool ok = false;
@@ -3480,6 +3493,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_UBISYS)
     {
         sensorNode.setManufacturer("ubisys");
+
+        if (type == QLatin1String("ZHASwitch"))
+        {
+            sensorNode.addItem(DataTypeString, RConfigGroup);
+            item = sensorNode.addItem(DataTypeString, RConfigMode);
+            item->setValue(QString("momentary"));
+        }
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_BUSCH_JAEGER)
     {
@@ -5728,6 +5748,21 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
     if (!sensorNode->isAvailable())
     {
         return false;
+    }
+
+    if (!sensorNode->type().startsWith('Z')) // CLIP & Daylight sensors
+    {
+        return false;
+    }
+
+    if (!sensorNode->node())
+    {
+        deCONZ::Node *node = getNodeForAddress(sensorNode->address().ext());
+        if (node)
+        {
+            sensorNode->setNode(node);
+            sensorNode->fingerPrint().checkCounter = SENSOR_CHECK_COUNTER_INIT; // force check
+        }
     }
 
     if (sensorNode->node() && sensorNode->node()->simpleDescriptors().isEmpty())
