@@ -870,6 +870,7 @@ public Q_SLOTS:
     void checkSensorGroup(Sensor *sensor);
     void checkOldSensorGroups(Sensor *sensor);
     void deleteGroupsWithDeviceMembership(const QString &id);
+    void processUbisysBinding(Sensor *sensor, const Binding &bnd);
     void bindingTimerFired();
     void bindingToRuleTimerFired();
     void bindingTableReaderTimerFired();
