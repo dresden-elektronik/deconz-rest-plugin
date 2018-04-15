@@ -126,6 +126,9 @@ bool DeRestPluginPrivate::readBindingTable(RestNodeBase *node, quint8 startIndex
     if ((node->address().ext() & macPrefixMask) == deMacPrefix)
     {
     }
+    else if ((node->address().ext() & macPrefixMask) == ubisysMacPrefix)
+    {
+    }
     else if (r && r->item(RAttrModelId)->toString().startsWith(QLatin1String("FLS-")))
     {
     }
@@ -1480,26 +1483,30 @@ void DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         return;
     }
 
+    Q_Q(DeRestPlugin);
     QDateTime now = QDateTime::currentDateTime();
     if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() && sensor->lastRx().secsTo(now) > 10)
     {
-        DBG_Printf(DBG_INFO, "skip check bindings for client clusters (end-device might sleep)\n");
+        DBG_Printf(DBG_INFO_L2, "skip check bindings for client clusters (end-device might sleep)\n");
         return;
     }
 
     ResourceItem *item = sensor->item(RConfigGroup);
 
-    if (!item || !item->lastSet().isValid())
+    if (!item || item->toString().isEmpty())
     {
         return;
     }
 
-    quint8 srcEndpoint = sensor->fingerPrint().endpoint;
+    std::vector<quint8> srcEndpoints;
+    QStringList gids = item->toString().split(',');
+
+    //quint8 srcEndpoint = sensor->fingerPrint().endpoint;
     std::vector<quint16> clusters;
 
     if (sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
     {
-        srcEndpoint = 1;
+        srcEndpoints.push_back(0x01);
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);
     }
@@ -1524,11 +1531,13 @@ void DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         {
             clusters.push_back(SCENE_CLUSTER_ID);
         }
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
     // IKEA Trådfri dimmer
     else if (sensor->modelId() == QLatin1String("TRADFRI wireless dimmer"))
     {
         clusters.push_back(LEVEL_CLUSTER_ID);
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
     // IKEA Trådfri remote
     else if (sensor->modelId().startsWith(QLatin1String("TRADFRI remote")))
@@ -1536,11 +1545,33 @@ void DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);
         clusters.push_back(SCENE_CLUSTER_ID);
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
     else if (sensor->modelId().startsWith(QLatin1String("D1")))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);
+        srcEndpoints.push_back(0x02);
+        srcEndpoints.push_back(0x03);
+        sensor->setMgmtBindSupported(true);
+    }
+    else if (sensor->modelId().startsWith(QLatin1String("S2")))
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+        srcEndpoints.push_back(0x03);
+        srcEndpoints.push_back(0x04);
+        sensor->setMgmtBindSupported(true);
+    }
+    else if (sensor->modelId().startsWith(QLatin1String("C4")))
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+        srcEndpoints.push_back(0x01);
+        srcEndpoints.push_back(0x02);
+        srcEndpoints.push_back(0x03);
+        srcEndpoints.push_back(0x04);
+        sensor->setMgmtBindSupported(true);
     }
     else
     {
@@ -1553,39 +1584,64 @@ void DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         return;
     }
 
-    Group *group = getGroupForId(item->toString());
-
-    if (!group)
+    for (int j = 0; j < (int)srcEndpoints.size() && j < gids.size(); j++)
     {
-        return;
+        QString gid = gids[j];
+        quint8 srcEndpoint = srcEndpoints[j];
+        Group *group = getGroupForId(gid);
+
+        if (!group)
+        {
+            continue;
+        }
+
+        std::vector<quint16>::const_iterator i = clusters.begin();
+        std::vector<quint16>::const_iterator end = clusters.end();
+
+        for (; i != end; ++i)
+        {
+            DBG_Printf(DBG_ZDP, "0x%016llX [%s] create binding for client cluster 0x%04X on endpoint 0x%02X\n",
+                       sensor->address().ext(), qPrintable(sensor->modelId()), (*i), srcEndpoint);
+
+            BindingTask bindingTask;
+
+            bindingTask.state = BindingTask::StateIdle;
+            bindingTask.action = BindingTask::ActionBind;
+            bindingTask.timeout = BindingTask::TimeoutEndDevice;
+            bindingTask.restNode = sensor;
+            Binding &bnd = bindingTask.binding;
+            bnd.srcAddress = sensor->address().ext();
+            bnd.dstAddrMode = deCONZ::ApsGroupAddress;
+            bnd.srcEndpoint = srcEndpoint;
+            bnd.clusterId = *i;
+            bnd.dstAddress.group = group->address();
+
+            if (sensor->mgmtBindSupported())
+            {
+                bindingTask.state = BindingTask::StateCheck;
+            }
+
+            queueBindingTask(bindingTask);
+
+            // group addressing has no destination endpoint
+//            bnd.dstEndpoint = endpoint();
+
+//            if (bnd.dstEndpoint > 0) // valid gateway endpoint?
+//            {
+//                queueBindingTask(bindingTask);
+//            }
+        }
     }
 
-    std::vector<quint16>::const_iterator i = clusters.begin();
-    std::vector<quint16>::const_iterator end = clusters.end();
-
-    for (; i != end; ++i)
+    if (sensor->mgmtBindSupported())
     {
-        DBG_Printf(DBG_INFO_L2, "0x%016llX (%s) create binding for client cluster 0x%04X on endpoint 0x%02X\n",
-                   sensor->address().ext(), qPrintable(sensor->modelId()), (*i), sensor->fingerPrint().endpoint);
-
-        BindingTask bindingTask;
-
-        bindingTask.state = BindingTask::StateIdle;
-        bindingTask.action = BindingTask::ActionBind;
-        bindingTask.timeout = BindingTask::TimeoutEndDevice;
-        bindingTask.restNode = sensor;
-        Binding &bnd = bindingTask.binding;
-        bnd.srcAddress = sensor->address().ext();
-        bnd.dstAddrMode = deCONZ::ApsGroupAddress;
-        bnd.srcEndpoint = srcEndpoint;
-        bnd.clusterId = *i;
-        bnd.dstAddress.group = group->address();
-        bnd.dstEndpoint = endpoint();
-
-        if (bnd.dstEndpoint > 0) // valid gateway endpoint?
+        if (!sensor->mustRead(READ_BINDING_TABLE))
         {
-            queueBindingTask(bindingTask);
+            sensor->enableRead(READ_BINDING_TABLE);
+            sensor->setNextReadTime(READ_BINDING_TABLE, queryTime);
+            queryTime = queryTime.addSecs(1);
         }
+        q->startZclAttributeTimer(1000);
     }
 
     if (!bindingTimer->isActive())

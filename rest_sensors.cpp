@@ -1073,6 +1073,11 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             sensor->setNextReadTime(WRITE_USERTEST, QTime::currentTime());
                         }
                     }
+
+                    if (rid.suffix == RConfigGroup)
+                    {
+                        checkSensorBindingsForClientClusters(sensor);
+                    }
                 }
                 else // invalid
                 {

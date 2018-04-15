@@ -5750,6 +5750,21 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         return false;
     }
 
+    if (!sensorNode->type().startsWith('Z')) // CLIP & Daylight sensors
+    {
+        return false;
+    }
+
+    if (!sensorNode->node())
+    {
+        deCONZ::Node *node = getNodeForAddress(sensorNode->address().ext());
+        if (node)
+        {
+            sensorNode->setNode(node);
+            sensorNode->fingerPrint().checkCounter = SENSOR_CHECK_COUNTER_INIT; // force check
+        }
+    }
+
     if (sensorNode->node() && sensorNode->node()->simpleDescriptors().isEmpty())
     {
         return false;
