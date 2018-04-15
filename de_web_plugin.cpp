@@ -3493,6 +3493,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_UBISYS)
     {
         sensorNode.setManufacturer("ubisys");
+
+        if (type == QLatin1String("ZHASwitch"))
+        {
+            sensorNode.addItem(DataTypeString, RConfigGroup);
+            item = sensorNode.addItem(DataTypeString, RConfigMode);
+            item->setValue(QString("momentary"));
+        }
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_BUSCH_JAEGER)
     {

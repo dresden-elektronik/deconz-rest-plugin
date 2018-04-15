@@ -2218,6 +2218,14 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 return 0;
             }
 
+            QStringList supportedModes({"momentary", "rocker"});
+            item = sensor.addItem(DataTypeString, RConfigMode);
+
+            if (item->toString().isEmpty() || !supportedModes.contains(item->toString()))
+            {
+                item->setValue(supportedModes.first());
+            }
+
 //            QStringList gids;
 //            item = sensor.addItem(DataTypeString, RConfigGroup);
 //            if (!item->toString().isEmpty())
