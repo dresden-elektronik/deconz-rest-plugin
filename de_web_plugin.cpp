@@ -2296,18 +2296,31 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
     if (ind.dstAddressMode() == deCONZ::ApsGroupAddress)
     {
+        QStringList gids;
         ResourceItem *item = sensor->addItem(DataTypeString, RConfigGroup);
         QString gid = QString::number(ind.dstAddress().group());
 
-        if (item && item->toString() != gid)
+        if (item)
         {
-            item->setValue(gid);
-            sensor->setNeedSaveDatabase(true);
-            updateSensorEtag(sensor);
+            gids = item->toString().split(',');
         }
 
-        Event e(RSensors, REventValidGroup, sensor->id());
-        enqueueEvent(e);
+        if (sensor->manufacturer() == QLatin1String("ubisys"))
+        {
+            // TODO
+        }
+        else
+        {
+            if (!gids.contains(gid))
+            {
+                item->setValue(gid);
+                sensor->setNeedSaveDatabase(true);
+                updateSensorEtag(sensor);
+            }
+
+            Event e(RSensors, REventValidGroup, sensor->id());
+            enqueueEvent(e);
+        }
     }
 
     bool ok = false;

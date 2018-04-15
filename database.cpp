@@ -2172,18 +2172,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
         }
 
-        // check for older setups with multiple ZHASwitch sensors per device
-        if (sensor.manufacturer() == QLatin1String("ubisys") && sensor.type() == QLatin1String("ZHASwitch"))
-        {
-            if ((sensor.modelId().startsWith(QLatin1String("D1")) && sensor.fingerPrint().endpoint != 0x02) ||
-                (sensor.modelId().startsWith(QLatin1String("S2")) && sensor.fingerPrint().endpoint != 0x03) ||
-                (sensor.modelId().startsWith(QLatin1String("C4")) && sensor.fingerPrint().endpoint != 0x01))
-            {
-                DBG_Printf(DBG_INFO, "ubisys sensor id: %s, endpoint 0x%02X (%s) ignored loading from database\n", qPrintable(sensor.id()), sensor.fingerPrint().endpoint, qPrintable(sensor.modelId()));
-                return 0;
-            }
-        }
-
         if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
         {
             item = sensor.addItem(DataTypeBool, RStateLowBattery);
@@ -2217,6 +2205,42 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         if (configCol >= 0)
         {
             sensor.jsonToConfig(QLatin1String(colval[configCol]));
+        }
+
+        // check for older setups with multiple ZHASwitch sensors per device
+        if (sensor.manufacturer() == QLatin1String("ubisys") && sensor.type() == QLatin1String("ZHASwitch"))
+        {
+            if ((sensor.modelId().startsWith(QLatin1String("D1")) && sensor.fingerPrint().endpoint != 0x02) ||
+                (sensor.modelId().startsWith(QLatin1String("S2")) && sensor.fingerPrint().endpoint != 0x03) ||
+                (sensor.modelId().startsWith(QLatin1String("C4")) && sensor.fingerPrint().endpoint != 0x01))
+            {
+                DBG_Printf(DBG_INFO, "ubisys sensor id: %s, endpoint 0x%02X (%s) ignored loading from database\n", qPrintable(sensor.id()), sensor.fingerPrint().endpoint, qPrintable(sensor.modelId()));
+                return 0;
+            }
+
+//            QStringList gids;
+//            item = sensor.addItem(DataTypeString, RConfigGroup);
+//            if (!item->toString().isEmpty())
+//            {
+//                gids = item->toString().split(',');
+//            }
+
+//            int n = 0;
+//            if      (sensor.modelId().startsWith(QLatin1String("D1"))) { n = 2; }
+//            else if (sensor.modelId().startsWith(QLatin1String("S1"))) { n = 1; }
+//            else if (sensor.modelId().startsWith(QLatin1String("S2"))) { n = 2; }
+//            else if (sensor.modelId().startsWith(QLatin1String("C4"))) { n = 4; }
+
+//            while (gids.size() < n)
+//            {
+//                gids.append("-1"); // not configured, TODO extract from BIND rules if available
+//            }
+
+//            QString out = gids.join(',');
+//            if (item->toString() != out)
+//            {
+//                item->setValue(out);
+//            }
         }
 
         if (extAddr != 0)
