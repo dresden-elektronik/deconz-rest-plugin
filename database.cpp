@@ -2158,7 +2158,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (!sensor.modelId().startsWith(QLatin1String("lumi.ctrl_ln2")))
             {
                 item = sensor.addItem(DataTypeUInt8, RConfigBattery);
-                item->setValue(100);
+                //item->setValue(100); // wait for report
             }
 
             if (!sensor.item(RStateTemperature) &&
