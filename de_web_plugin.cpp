@@ -7045,7 +7045,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
         }
     }
 
-    if (zclFrame.manufacturerCode() == 0x115f && ind.clusterId() == BASIC_CLUSTER_ID)
+    if (zclFrame.isProfileWideCommand() && ind.clusterId() == BASIC_CLUSTER_ID)
     {
         handleZclAttributeReportIndicationXiaomiSpecial(ind, zclFrame);
     }
