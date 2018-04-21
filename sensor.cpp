@@ -791,6 +791,11 @@ void Sensor::jsonToConfig(const QString &json)
 
             if (map.contains(QLatin1String(key)))
             {
+                QVariant val = map[key];
+                if (val.isNull())
+                {
+                    continue;
+                }
                 item->setValue(map[key]);
                 item->setTimeStamps(dt);
             }
