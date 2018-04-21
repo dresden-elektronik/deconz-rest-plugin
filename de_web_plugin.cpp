@@ -124,9 +124,9 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "lumi.ctrl_neutral2", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_wleak", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_smoke", jennicMacPrefix },
-    { VENDOR_JENNIC, "lumi.plug", jennicMacPrefix }, // TODO: check whether VENDOR_JENNIC is actually used
+    // { VENDOR_JENNIC, "lumi.plug", jennicMacPrefix }, // TODO: check whether VENDOR_JENNIC is actually used
     { VENDOR_115F, "lumi.plug", jennicMacPrefix }, // Xiaomi smart plug
-    { VENDOR_115F, "lumi.ctrl_ln2", jennicMacPrefix}, // Xiaomi Wall Switch
+    { VENDOR_115F, "lumi.ctrl_ln", jennicMacPrefix}, // Xiaomi Wall Switch
     { VENDOR_UBISYS, "D1", ubisysMacPrefix },
     { VENDOR_UBISYS, "C4", ubisysMacPrefix },
     { VENDOR_UBISYS, "S2", ubisysMacPrefix },
@@ -1084,11 +1084,16 @@ qint64 DeRestPluginPrivate::getUptime()
 void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 {
     DBG_Assert(node != 0);
-    if (node && node->nodeDescriptor().manufacturerCode() == VENDOR_KEEN_HOME)
+    if (!node)
     {
-        // exception for Keen Home Vent
+        return;
     }
-    else if (!node || !node->nodeDescriptor().receiverOnWhenIdle())
+    if (node->nodeDescriptor().manufacturerCode() == VENDOR_KEEN_HOME ||
+        node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC)
+    {
+        // exception for Keen Home Vent and Xiaomi wall switches lumi.ctrl_neutral1, lumi.ctrl_neutral2
+    }
+    else if (!node->nodeDescriptor().receiverOnWhenIdle())
     {
         return;
     }
@@ -1204,8 +1209,10 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT:
                 case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT:
                     {
-                        if (hasServerOnOff)
+                        if (hasServerOnOff &&
+                            (node->nodeDescriptor().manufacturerCode() != VENDOR_JENNIC || i->endpoint() != 0x03))
                         {
+                            // ignore endpoint 03 for Xiaomi wall switch lumi.ctrl_neutral1
                             lightNode.setHaEndpoint(*i);
                         }
                     }
@@ -1225,11 +1232,16 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
                 case DEV_ID_XIAOMI_SMART_PLUG:
                     {
-                        // TODO: check whether VENDOR_JENNIC is actually used
-                        if ((node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC ||
-                             node->nodeDescriptor().manufacturerCode() == VENDOR_115F) &&
+                        if (node->nodeDescriptor().manufacturerCode() == VENDOR_115F &&
                             (i->endpoint() == 0x01 || i->endpoint() == 0x02) && hasServerOnOff)
                         {
+                            // Xiaomi lumi.plug and wall switch lumi.ctrl_ln1.aq2, lumi.ctrl_ln2.aq2
+                            lightNode.setHaEndpoint(*i);
+                        }
+                        else if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC &&
+                                 (i->endpoint() == 0x02 || i->endpoint() == 0x03) && hasServerOnOff)
+                        {
+                            // Xiaomi wall switch lumi.ctrl_neutral1, lumi.ctrl_neutral2
                             lightNode.setHaEndpoint(*i);
                         }
                     }
@@ -2756,17 +2768,16 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         fpOpenCloseSensor.inClusters.push_back(ci->id());
                     }
                     else if (modelId == QLatin1String("lumi.sensor_86sw1") ||
-                             modelId == QLatin1String("lumi.sensor_86sw2") ||
-                             modelId == QLatin1String("lumi.ctrl_neutral1"))
+                             modelId == QLatin1String("lumi.sensor_86sw2"))
                     {
                         if (i->endpoint() == 0x01) // create sensor only for first endpoint
                         {
                             fpSwitch.inClusters.push_back(ci->id());
                         }
                     }
-                    else if (modelId == QLatin1String("lumi.ctrl_neutral2"))
+                    else if (modelId.startsWith(QLatin1String("lumi.ctrl_neutral")))
                     {
-                        if (i->endpoint() == 0x02) // create sensor only for second endpoint
+                        if (i->endpoint() == 0x04) // create sensor only for first switch endpoint
                         {
                             fpSwitch.inClusters.push_back(ci->id());
                         }
@@ -2907,13 +2918,20 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                             fpConsumptionSensor.inClusters.push_back(ci->id());
                         }
                     }
-                    else if (modelId.startsWith(QLatin1String("lumi.ctrl_ln2")))
+                    else if (modelId.startsWith(QLatin1String("lumi.ctrl_ln")))
                     {
                         if (i->endpoint() == 0x03)
                         {
                             fpPowerSensor.inClusters.push_back(ci->id());
                         }
                         else if (i->endpoint() == 0x04)
+                        {
+                            fpConsumptionSensor.inClusters.push_back(ci->id());
+                        }
+                    }
+                    else if (modelId.startsWith(QLatin1String("lumi.ctrl_neutral")))
+                    {
+                        if (i->endpoint() == 0x08)
                         {
                             fpConsumptionSensor.inClusters.push_back(ci->id());
                         }
@@ -2927,7 +2945,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
-                    else if (modelId.startsWith(QLatin1String("lumi.ctrl_ln2")) && i->endpoint() == 0x05)
+                    else if (modelId.startsWith(QLatin1String("lumi.ctrl_ln")) && i->endpoint() == 0x05)
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
@@ -3602,7 +3620,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else if (modelId.startsWith(QLatin1String("lumi")))
     {
         sensorNode.setManufacturer("LUMI");
-        if (!sensorNode.modelId().startsWith("lumi.ctrl_ln2"))
+        if (!sensorNode.modelId().startsWith("lumi.ctrl_ln"))
         {
             sensorNode.addItem(DataTypeUInt8, RConfigBattery);
         }
@@ -4072,7 +4090,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                         i->modelId() == QLatin1String("lumi.sensor_86sw2") ||
                         i->modelId() == QLatin1String("lumi.ctrl_neutral1") ||
                         i->modelId() == QLatin1String("lumi.ctrl_neutral2") ||
-                        (i->modelId().startsWith(QLatin1String("lumi.ctrl_ln2")) && event.clusterId() == MULTISTATE_INPUT_CLUSTER_ID))
+                        (i->modelId().startsWith(QLatin1String("lumi.ctrl_ln")) && event.clusterId() == MULTISTATE_INPUT_CLUSTER_ID))
                     { // 3 endpoints: 1 sensor
                     }
                     else
@@ -4524,11 +4542,11 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         switch (event.endpoint())
                                         {
-                                        case 2: button = S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED; break;
-                                        case 3: button = S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED; break;
+                                        case 4: button = S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED; break;
+                                        case 5: button = S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED; break;
                                         case 6: button = S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED; break;
                                         default: // should not happen
-                                            button = (S_BUTTON_1 * event.endpoint()) + S_BUTTON_ACTION_SHORT_RELEASED;
+                                            // button = (S_BUTTON_1 * event.endpoint()) + S_BUTTON_ACTION_SHORT_RELEASED;
                                             break;
                                         }
                                     }
@@ -4538,13 +4556,16 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         else                            { button = S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED; }
                                     }
 
-                                    item->setValue(button);
+                                    if (button)
+                                    {
+                                        item->setValue(button);
 
-                                    Event e(RSensors, item->descriptor().suffix, i->id(), item);
-                                    enqueueEvent(e);
-                                    i->setNeedSaveDatabase(true);
-                                    i->updateStateTimestamp();
-                                    enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
+                                        Event e(RSensors, item->descriptor().suffix, i->id(), item);
+                                        enqueueEvent(e);
+                                        i->setNeedSaveDatabase(true);
+                                        i->updateStateTimestamp();
+                                        enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
+                                    }
                                 }
 
                                 updateSensorEtag(&*i);
@@ -4714,7 +4735,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     updateSensorEtag(&*i);
                                 }
                                 else if (i->modelId() == QLatin1String("lumi.plug") ||
-                                         i->modelId().startsWith(QLatin1String("lumi.ctrl_ln2")))
+                                         i->modelId().startsWith(QLatin1String("lumi.ctrl_ln")) ||
+                                         i->modelId().startsWith(QLatin1String("lumi.ctrl_neutral")))
                                 {
                                     if (i->type() == QLatin1String("ZHAPower"))
                                     {
@@ -4790,7 +4812,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         default: break;
                                     }
                                 }
-                                else if (i->modelId().startsWith(QLatin1String("lumi.ctrl_ln2")))
+                                else if (i->modelId().startsWith(QLatin1String("lumi.ctrl_ln")))
                                 {
                                     switch (event.endpoint())
                                     {
