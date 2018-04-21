@@ -1866,6 +1866,84 @@ void DeRestPluginPrivate::deleteGroupsWithDeviceMembership(const QString &id)
     }
 }
 
+/*! Check existing bindings on ubisys devices. */
+void DeRestPluginPrivate::processUbisysBinding(Sensor *sensor, const Binding &bnd)
+{
+    if (!sensor)
+    {
+        return;
+    }
+
+    ResourceItem *item = 0;
+
+    if (sensor->type() == QLatin1String("ZHASwitch") && bnd.dstAddrMode == deCONZ::ApsGroupAddress)
+    {
+        item = sensor->item(RConfigGroup);
+
+        DBG_Assert(item != 0);
+        if (!item)
+        {
+            return;
+        }
+
+        if (bnd.clusterId != ONOFF_CLUSTER_ID && bnd.clusterId != LEVEL_CLUSTER_ID)
+        {
+            return;
+        }
+
+        int pos = -1; // index in config.group: "1,4"
+
+        if (sensor->modelId().startsWith(QLatin1String("D1")))
+        {
+            DBG_Assert(sensor->fingerPrint().endpoint == 0x02);
+
+            if       (bnd.srcEndpoint == 0x02) { pos = 0; }
+            else if  (bnd.srcEndpoint == 0x03) { pos = 1; }
+
+        }
+        else if (sensor->modelId().startsWith(QLatin1String("S2")))
+        {
+            DBG_Assert(sensor->fingerPrint().endpoint == 0x03);
+
+            if       (bnd.srcEndpoint == 0x03) { pos = 0; }
+            else if  (bnd.srcEndpoint == 0x04) { pos = 1; }
+
+        }
+        else if (sensor->modelId().startsWith(QLatin1String("C4")))
+        {
+            DBG_Assert(sensor->fingerPrint().endpoint == 0x01);
+
+            if       (bnd.srcEndpoint == 0x01) { pos = 0; }
+            else if  (bnd.srcEndpoint == 0x02) { pos = 1; }
+            else if  (bnd.srcEndpoint == 0x03) { pos = 2; }
+            else if  (bnd.srcEndpoint == 0x04) { pos = 3; }
+        }
+        else
+        {
+            return;
+        }
+
+        // remove group bindings which aren't configured via 'config.group'
+        QString dstGroup = QString::number(bnd.dstAddress.group);
+        QStringList gids = item->toString().split(',');
+
+        if (!gids.contains(dstGroup) || (pos == -1) || (gids.size() < (pos + 1)) || gids[pos] != dstGroup)
+        {
+            DBG_Printf(DBG_INFO, "0x%016llx remove old group binding group: %u, cluster: 0x%04X\n", bnd.srcAddress, bnd.dstAddress.group, bnd.clusterId);
+
+            BindingTask bindingTask;
+            bindingTask.state = BindingTask::StateIdle;
+            bindingTask.action = BindingTask::ActionUnbind;
+            bindingTask.binding = bnd;
+            queueBindingTask(bindingTask);
+            if (!bindingTimer->isActive())
+            {
+                bindingTimer->start();
+            }
+        }
+    }
+}
+
 /*! Process binding related tasks queue every one second. */
 void DeRestPluginPrivate::bindingTimerFired()
 {
@@ -2083,50 +2161,58 @@ void DeRestPluginPrivate::bindingToRuleTimerFired()
 
     for (; i != end; ++i)
     {
+        if (bnd.srcAddress != i->address().ext())
+        {
+            continue;
+        }
+
+        if ((bnd.srcAddress & macPrefixMask) == ubisysMacPrefix)
+        {
+            processUbisysBinding(&*i, bnd);
+            return;
+        }
+
         if (!i->modelId().startsWith(QLatin1String("FLS-NB")))
         {
             continue;
         }
 
-        if (bnd.srcAddress == i->address().ext())
+        if (bnd.srcEndpoint == i->fingerPrint().endpoint)
         {
-            if (bnd.srcEndpoint == i->fingerPrint().endpoint)
+            // match only valid sensors
+            switch (bnd.clusterId)
             {
-                // match only valid sensors
-                switch (bnd.clusterId)
+            case ONOFF_CLUSTER_ID:
+            case LEVEL_CLUSTER_ID:
+            case SCENE_CLUSTER_ID:
+            {
+                if (i->type() == "ZHASwitch")
                 {
-                case ONOFF_CLUSTER_ID:
-                case LEVEL_CLUSTER_ID:
-                case SCENE_CLUSTER_ID:
-                {
-                    if (i->type() == "ZHASwitch")
-                    {
-                        sensor = &(*i);
-                    }
+                    sensor = &(*i);
                 }
-                    break;
+            }
+                break;
 
-                case ILLUMINANCE_MEASUREMENT_CLUSTER_ID:
+            case ILLUMINANCE_MEASUREMENT_CLUSTER_ID:
+            {
+                if (i->type() == "ZHALightLevel")
                 {
-                    if (i->type() == "ZHALightLevel")
-                    {
-                        sensor = &(*i);
-                    }
+                    sensor = &(*i);
                 }
-                    break;
+            }
+                break;
 
-                case OCCUPANCY_SENSING_CLUSTER_ID:
+            case OCCUPANCY_SENSING_CLUSTER_ID:
+            {
+                if (i->type() == "ZHAPresence")
                 {
-                    if (i->type() == "ZHAPresence")
-                    {
-                        sensor = &(*i);
-                    }
+                    sensor = &(*i);
                 }
-                    break;
+            }
+                break;
 
-                default:
-                    break;
-                }
+            default:
+                break;
             }
         }
 

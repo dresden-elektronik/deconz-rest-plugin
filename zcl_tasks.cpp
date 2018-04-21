@@ -258,7 +258,7 @@ bool DeRestPluginPrivate::addTaskIncBrightness(TaskItem &task, int16_t bri)
     { // payload
         task.zclFrame.setCommandId(0x02); // Step level
         quint8 mode = bri > 0 ? 0 : 1; // up, down
-        quint8 stepSize = bri;
+        quint8 stepSize = (bri > 0) ? bri : bri * -1;
 
         QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
         stream.setByteOrder(QDataStream::LittleEndian);
