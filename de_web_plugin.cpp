@@ -7143,6 +7143,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     quint16 battery = 0;
     quint32 lightlevel = UINT32_MAX; // use 32-bit to mark invalid and support 0xffff value
     qint16 temperature = INT16_MIN;
+    quint16 humidity = UINT16_MAX;
     quint8 onOff = UINT8_MAX;
 
     DBG_Printf(DBG_INFO, "0x%016llX extract Xiaomi special\n", ind.srcAddress().ext());
@@ -7153,7 +7154,9 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         qint16 s16;
         quint8 u8;
         quint16 u16;
-        quint16 s32;
+        qint32 s32;
+        quint64 u64;
+
 
         quint8 tag;
         stream >> tag;
@@ -7168,7 +7171,13 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         case deCONZ::Zcl16BitUint: stream >> u16; break;
         case deCONZ::Zcl32BitInt: stream >> s32; break;
         case deCONZ::Zcl40BitUint:
-            for (int i = 0; i < 5; i++) { stream >> u8; }; // TODO
+            u64 = 0;
+            for (int i = 0; i < 5; i++)
+            {
+                u64 <<= 8;
+                stream >> u8;
+                u64 |= u8;
+            }
             break;
 
         default:
@@ -7188,6 +7197,18 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             DBG_Printf(DBG_INFO, "\t03 temperature %d °C\n", int(s8));
             temperature = qint16(s8) * 100;
         }
+        else if (tag == 0x04 && dataType == deCONZ::Zcl16BitUint)
+        {
+            DBG_Printf(DBG_INFO, "\t04 unknown %d (0x%04X)\n", u16, u16);
+        }
+        else if (tag == 0x05 && dataType == deCONZ::Zcl16BitUint)
+        {
+            DBG_Printf(DBG_INFO, "\t05 unknown %d (0x%04X)\n", u16, u16);
+        }
+        else if (tag == 0x06 && dataType == deCONZ::Zcl40BitUint)
+        {
+            DBG_Printf(DBG_INFO, "\t06 unknown %lld (0x%016llX)\n", u64, u64);
+        }
         if (tag == 0x0b && dataType == deCONZ::Zcl16BitUint)
         {
             DBG_Printf(DBG_INFO, "\t0b lightlevel %u (0x%04X)\n", u16, u16);
@@ -7201,10 +7222,16 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         else if (tag == 0x64 && dataType == deCONZ::Zcl16BitInt)
         {
             DBG_Printf(DBG_INFO, "\t64 temperature %d\n", int(s16));
+            temperature = s16;
         }
         else if (tag == 0x65 && dataType == deCONZ::Zcl16BitInt)
         {
-            DBG_Printf(DBG_INFO, "\t65 humidity %d\n", int(s16));
+            DBG_Printf(DBG_INFO, "\t65 humidity %d\n", int(s16)); // Aqara?
+        }
+        else if (tag == 0x65 && dataType == deCONZ::Zcl16BitUint)
+        {
+            DBG_Printf(DBG_INFO, "\t65 humidity %u\n", u16); // Mi
+            humidity = u16;
         }
         else if (tag == 0x66 && dataType == deCONZ::Zcl32BitInt)
         {
@@ -7271,11 +7298,29 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         if (temperature != INT16_MIN)
         {
             ResourceItem *item = sensor.item(RConfigTemperature);
+            item = item ? item : sensor.item(RStateTemperature);
             if (item)
             {
                 item->setValue(temperature);
-                enqueueEvent(Event(RSensors, RConfigTemperature, sensor.id(), item));
+                enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor.id(), item));
                 updated = true;
+
+                if (item->descriptor().suffix == RStateTemperature)
+                {
+                    sensor.updateStateTimestamp();
+                }
+            }
+        }
+
+        if (humidity != UINT16_MAX)
+        {
+            ResourceItem *item = sensor.item(RStateHumidity);
+            if (item)
+            {
+                item->setValue(humidity);
+                enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor.id(), item));
+                updated = true;
+                sensor.updateStateTimestamp();
             }
         }
 
