@@ -412,6 +412,8 @@ int DeRestPluginPrivate::setScheduleAttributes(const ApiRequest &req, ApiRespons
 
         if (!time.isEmpty())
         {
+            i->lastTriggerDatetime = QDateTime(); // reset
+
             { // cutoff random part, A[hh]:[mm]:[ss], because this is not supported yet
                 QStringList ls = time.split("A");
 
