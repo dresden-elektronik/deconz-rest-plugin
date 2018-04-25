@@ -12865,18 +12865,13 @@ void DeRestPluginPrivate::pushSensorInfoToCore(Sensor *sensor)
     }
 }
 
-/*! Selects the next light to poll.
+/*! Selects the next device to poll.
  */
-void DeRestPluginPrivate::pollNextLight()
+void DeRestPluginPrivate::pollNextDevice()
 {
     DBG_Assert(apsCtrl != 0);
 
     if (!apsCtrl)
-    {
-        return;
-    }
-
-    if (nodes.empty())
     {
         return;
     }
@@ -12887,21 +12882,38 @@ void DeRestPluginPrivate::pollNextLight()
         return;
     }
 
-    if (lightIter >= nodes.size())
+    RestNodeBase *restNode = 0;
+
+    if (pollNodes.empty())
     {
-        lightIter = 0;
+        for (LightNode &l : nodes)
+        {
+            if (l.isAvailable())
+            {
+                pollNodes.push_back(&l);
+            }
+        }
+
+        for (Sensor &s : sensors)
+        {
+            if (s.isAvailable() && s.node() && s.node()->nodeDescriptor().receiverOnWhenIdle())
+            {
+                pollNodes.push_back(&s);
+            }
+        }
     }
 
-    LightNode *lightNode = &nodes[lightIter];
-    lightIter++;
-
-    if (!lightNode->isAvailable())
+    if (!pollNodes.empty())
     {
-        return;
+        restNode = pollNodes.back();
+        pollNodes.pop_back();
     }
 
-    pollManager->poll(lightNode);
-    queryTime = queryTime.addSecs(10);
+    if (restNode && restNode->isAvailable())
+    {
+        pollManager->poll(restNode);
+        queryTime = queryTime.addSecs(6);
+    }
 }
 
 /*! Request to disconnect from network.

@@ -887,7 +887,7 @@ public Q_SLOTS:
     void shutDownGatewayTimerFired();
     void simpleRestartAppTimerFired();
     void pushSensorInfoToCore(Sensor *sensor);
-    void pollNextLight();
+    void pollNextDevice();
 
     // touchlink
     void touchlinkDisconnectNetwork();
@@ -1247,6 +1247,7 @@ public:
     QStringList zipProcessArgs;
     QStringList archProcessArgs;
 
+    std::vector<RestNodeBase*> pollNodes;
     PollManager *pollManager;
 
     // upnp
