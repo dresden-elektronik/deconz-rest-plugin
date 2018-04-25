@@ -9295,6 +9295,11 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
                     }
                 }
 
+                if (!s.isAvailable())
+                {
+                    checkSensorNodeReachable(&s);
+                }
+
                 s.incrementRxCounter();
                 item = s.item(RStatePresence);
                 if (item)
@@ -9566,6 +9571,29 @@ void DeRestPluginPrivate::handleZdpIndication(const deCONZ::ApsDataIndication &i
             if (readAttributes(&lightNode, lightNode.haEndpoint().endpoint(), BASIC_CLUSTER_ID, attributes))
             {
                 lightNode.clearRead(READ_MODEL_ID);
+            }
+        }
+
+        if (lightNode.modelId().startsWith(QLatin1String("FLS-NB")))
+        {
+            for (Sensor &s: sensors)
+            {
+                if (s.address().ext() != lightNode.address().ext())
+                {
+                    continue;
+                }
+
+                if (!s.node() && lightNode.node())
+                {
+                    s.setNode(lightNode.node());
+                }
+
+                if (s.isAvailable())
+                {
+                    continue;
+                }
+
+                checkSensorNodeReachable(&s);
             }
         }
     }
