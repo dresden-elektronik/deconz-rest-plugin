@@ -79,6 +79,8 @@ void PollManager::poll(RestNodeBase *restNode, const QDateTime &tStart)
             suffix == RStateColorMode ||
             (suffix == RStateConsumption && sensor && sensor->type() == QLatin1String("ZHAConsumption")) ||
             (suffix == RStatePower && sensor && sensor->type() == QLatin1String("ZHAPower")) ||
+            (suffix == RStatePresence && sensor && sensor->type() == QLatin1String("ZHAPresence")) ||
+            (suffix == RStateLightLevel && sensor && sensor->type() == QLatin1String("ZHALightLevel")) ||
             suffix == RAttrModelId)
         {
             // DBG_Printf(DBG_INFO_L2, "    attribute %s\n", suffix);
@@ -320,6 +322,17 @@ void PollManager::pollTimerFired()
                 break;
             }
         }
+    }
+    else if (suffix == RStatePresence)
+    {
+        clusterId = OCCUPANCY_SENSING_CLUSTER_ID;
+        attributes.push_back(0x0000); // Occupancy
+        attributes.push_back(0x0010); // PIR Occupied To Unoccupied Delay
+    }
+    else if (suffix == RStateLightLevel)
+    {
+        clusterId = ILLUMINANCE_MEASUREMENT_CLUSTER_ID;
+        attributes.push_back(0x0000); // Measured Value
     }
     else if (suffix == RStateConsumption)
     {
