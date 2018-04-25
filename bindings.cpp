@@ -1276,7 +1276,11 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
     // whitelist by Model ID
     if (gwReportingEnabled)
     {
-        if (deviceSupported)
+        if (sensor->modelId().startsWith(QLatin1String("FLS-NB")))
+        {
+            // temporary disable, delete bindings and use read attributes
+        }
+        else if (deviceSupported)
         {
             action = BindingTask::ActionBind;
         }
@@ -2120,13 +2124,79 @@ void DeRestPluginPrivate::bindingToRuleTimerFired()
         return;
     }
 
+    int idx = 0;
+    bool found = false;
+    const deCONZ::Node *node = 0;
+    while (apsCtrl->getNode(idx, &node) == 0)
+    {
+        if (bnd.srcAddress == node->address().ext())
+        {
+            found = true;
+            break;
+        }
+        idx++;
+    }
+
+    // check if cluster does exist
+    if (found && node)
+    {
+        found = false;
+        for (const deCONZ::SimpleDescriptor &sd : node->simpleDescriptors())
+        {
+            if (sd.endpoint() != bnd.srcEndpoint)
+            {
+                continue;
+            }
+
+            for (const deCONZ::ZclCluster &cl : sd.inClusters())
+            {
+                if (cl.id() == bnd.clusterId)
+                {
+                    found = true;
+                    break;
+                }
+            }
+
+            for (const deCONZ::ZclCluster &cl : sd.outClusters())
+            {
+                if (cl.id() == ILLUMINANCE_MEASUREMENT_CLUSTER_ID && (node->address().ext() & macPrefixMask) == deMacPrefix)
+                {
+                    continue; // ignore, binding only allowed for server cluster
+                }
+
+                if (cl.id() == bnd.clusterId)
+                {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (found)
+            {
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            DBG_Printf(DBG_INFO, "remove binding from 0x%016llX cluster 0x%04X due non existing cluster\n", bnd.srcAddress, bnd.clusterId);
+            BindingTask bindingTask;
+            bindingTask.state = BindingTask::StateIdle;
+            bindingTask.action = BindingTask::ActionUnbind;
+            bindingTask.binding = bnd;
+            queueBindingTask(bindingTask);
+            if (!bindingTimer->isActive())
+            {
+                bindingTimer->start();
+            }
+            return;
+        }
+    }
+
     // binding table maintenance
     // check if destination node exist and remove binding if not
     if (bnd.dstAddrMode == deCONZ::ApsExtAddress)
     {
-        bool found = false;
-        int idx = 0;
-        const deCONZ::Node *node = 0;
         while (apsCtrl->getNode(idx, &node) == 0)
         {
             if (bnd.dstAddress.ext == node->address().ext())
