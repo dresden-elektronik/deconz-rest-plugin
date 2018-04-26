@@ -2087,6 +2087,7 @@ Rule *DeRestPluginPrivate::getRuleForName(const QString &name)
  */
 void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor, const deCONZ::NodeEvent *event)
 {
+    Q_UNUSED(event);
     if (!sensor || sensor->deletedState() != Sensor::StateNormal)
     {
         return;
@@ -2190,7 +2191,7 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor, const deCONZ:
             checkSensorBindingsForAttributeReporting(sensor);
 
             updated = true;
-
+/*
             if (event &&
                 (event->event() == deCONZ::NodeEvent::UpdatedClusterDataZclRead ||
                  event->event() == deCONZ::NodeEvent::UpdatedClusterDataZclReport))
@@ -2200,6 +2201,7 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor, const deCONZ:
             {
                 reachable = false; // wait till received something from sensor
             }
+*/
         }
     }
     else
@@ -2211,7 +2213,7 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor, const deCONZ:
         }
     }
 
-    if (item && item->toBool() != reachable)
+    if (item && (item->toBool() != reachable || !item->lastSet().isValid()))
     {
         item->setValue(reachable);
         Event e(RSensors, RConfigReachable, sensor->id(), item);
