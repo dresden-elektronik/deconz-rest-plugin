@@ -7165,6 +7165,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     quint16 humidity = UINT16_MAX;
     qint16 pressure = INT16_MIN;
     quint8 onOff = UINT8_MAX;
+    quint8 onOff2 = UINT8_MAX;
 
     DBG_Printf(DBG_INFO, "0x%016llX extract Xiaomi special\n", ind.srcAddress().ext());
 
@@ -7175,6 +7176,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         quint8 u8;
         quint16 u16;
         qint32 s32;
+        quint32 u32;
         quint64 u64;
 
 
@@ -7199,7 +7201,8 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 u64 |= u8;
             }
             break;
-
+        case deCONZ::Zcl64BitUint: stream >> u64; break;
+        case deCONZ::ZclSingleFloat: stream >> u32; break;  // FIXME: use 4-byte float data type
         default:
         {
             DBG_Printf(DBG_INFO, "Unsupported ZCL tag 0x%02X datatype 0x%02X in Xiaomi attribute report\n", tag, dataType);
@@ -7229,12 +7232,24 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {
             DBG_Printf(DBG_INFO, "\t06 unknown %lld (0x%016llX)\n", u64, u64);
         }
+        else if (tag == 0x07 && dataType == deCONZ::Zcl64BitUint) // lumi.ctrl_ln2
+        {
+            DBG_Printf(DBG_INFO, "\t07 unknown %lld (0x%016llX)\n", u64, u64);
+        }
+        else if (tag == 0x08 && dataType == deCONZ::Zcl16BitUint) // lumi.ctrl_ln2
+        {
+            DBG_Printf(DBG_INFO, "\t08 unknown %d (0x%04X)\n", u16, u16);
+        }
+        else if (tag == 0x09 && dataType == deCONZ::Zcl16BitUint) // lumi.ctrl_ln2
+        {
+            DBG_Printf(DBG_INFO, "\t09 unknown %d (0x%04X)\n", u16, u16);
+        }
         if (tag == 0x0b && dataType == deCONZ::Zcl16BitUint)
         {
             DBG_Printf(DBG_INFO, "\t0b lightlevel %u (0x%04X)\n", u16, u16);
             lightlevel = u16;
         }
-        else if (tag == 0x64 && dataType == deCONZ::ZclBoolean)
+        else if (tag == 0x64 && dataType == deCONZ::ZclBoolean) // lumi.ctrl_ln2 endpoint 01
         {
             DBG_Printf(DBG_INFO, "\t64 on/off %d\n", u8);
             onOff = u8;
@@ -7244,21 +7259,57 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             DBG_Printf(DBG_INFO, "\t64 temperature %d\n", int(s16));
             temperature = s16;
         }
-        else if (tag == 0x65 && dataType == deCONZ::Zcl16BitInt)
+        else if (tag == 0x65 && dataType == deCONZ::ZclBoolean) // lumi.ctrl_ln2 endpoint 02
         {
-            DBG_Printf(DBG_INFO, "\t65 humidity %d\n", int(s16)); // Aqara?
+            DBG_Printf(DBG_INFO, "\t65 on/off %d\n", u8);
+            onOff2 = u8;
         }
+        // lumi.weather reports humidity as u16, if lumi.sensor_ht does so as well, this code can be removed
+        // else if (tag == 0x65 && dataType == deCONZ::Zcl16BitInt)
+        // {
+        //     DBG_Printf(DBG_INFO, "\t65 humidity %d\n", int(s16)); // Aqara?
+        // }
         else if (tag == 0x65 && dataType == deCONZ::Zcl16BitUint)
         {
             DBG_Printf(DBG_INFO, "\t65 humidity %u\n", u16); // Mi
             humidity = u16;
         }
-        else if (tag == 0x66 && dataType == deCONZ::Zcl32BitInt)
+        else if (tag == 0x66 && dataType == deCONZ::Zcl32BitInt) // lumi.weather
         {
             pressure = (s32 + 50) / 100;
             DBG_Printf(DBG_INFO, "\t66 pressure %d\n", pressure);
         }
+        else if (tag == 0x95 && dataType == deCONZ::ZclSingleFloat) // lumi.ctrl_ln2
+        {
+            DBG_Printf(DBG_INFO, "\t95 consumption (?) 0x%08X\n", u32);
+        }
+        else if (tag == 0x97 && dataType == deCONZ::Zcl16BitUint) // lumi.cube
+        {
+            DBG_Printf(DBG_INFO, "\t97 unknown %d (0x%04X)\n", u16, u16);
+        }
+        else if (tag == 0x98 && dataType == deCONZ::Zcl16BitUint) // lumi.cube
+        {
+            DBG_Printf(DBG_INFO, "\t98 unknown %d (0x%04X)\n", u16, u16);
+        }
+        else if (tag == 0x98 && dataType == deCONZ::ZclSingleFloat) // lumi.ctrl_ln2
+        {
+            DBG_Printf(DBG_INFO, "\t98 power (?) 0x%08X\n", u32);
+        }
+        else if (tag == 0x99 && dataType == deCONZ::Zcl16BitUint) // lumi.cube
+        {
+            DBG_Printf(DBG_INFO, "\t99 unknown %d (0x%04X)\n", u16, u16);
+        }
+        else if (tag == 0x9a && dataType == deCONZ::Zcl8BitUint) // lumi.ctrl_ln2
+        {
+            DBG_Printf(DBG_INFO, "\t9a unknown %d (0x%02X)\n", u8, u8);
+        }
+        else if (tag == 0x9a && dataType == deCONZ::Zcl16BitUint) // lumi.cube
+        {
+            DBG_Printf(DBG_INFO, "\t9a unknown %d (0x%04X)\n", u16, u16);
+        }
     }
+
+    // TODO: update light state for lumi.ctrl_ln2.  onOff -> enpoint 01; onOff2 -> endpoint 02.
 
     for (Sensor &sensor : sensors)
     {
