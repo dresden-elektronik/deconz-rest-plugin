@@ -7158,6 +7158,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     quint32 lightlevel = UINT32_MAX; // use 32-bit to mark invalid and support 0xffff value
     qint16 temperature = INT16_MIN;
     quint16 humidity = UINT16_MAX;
+    qint16 pressure = INT16_MIN;
     quint8 onOff = UINT8_MAX;
 
     DBG_Printf(DBG_INFO, "0x%016llX extract Xiaomi special\n", ind.srcAddress().ext());
@@ -7249,7 +7250,8 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x66 && dataType == deCONZ::Zcl32BitInt)
         {
-            DBG_Printf(DBG_INFO, "\t66 pressure %d\n", int(s32));
+            pressure = (s32 + 50) / 100;
+            DBG_Printf(DBG_INFO, "\t66 pressure %d\n", pressure);
         }
     }
 
@@ -7338,6 +7340,18 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             }
         }
 
+        if (pressure != INT16_MIN)
+        {
+          ResourceItem *item = sensor.item(RStatePressure);
+          if (item)
+          {
+              item->setValue(pressure);
+              enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor.id(), item));
+              updated = true;
+              sensor.updateStateTimestamp();
+          }
+        }
+
         if (lightlevel != UINT32_MAX &&
             sensor.type() == QLatin1String("ZHALightLevel") &&
             sensor.modelId().startsWith(QLatin1String("lumi.sensor_motion")))
@@ -7350,9 +7364,10 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {   // don't add, just update, useful since door/window and presence sensors otherwise only report on activation
             ResourceItem *item = sensor.item(RStateOpen);
             item = item ? item : sensor.item(RStatePresence);
+            item = item ? item : sensor.item(RStateWater);      // lumi.sensor_wleak.aq1
             if (item)
             {
-                item->setValue(onOff); // in V
+                item->setValue(onOff);
                 enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor.id(), item));
                 sensor.updateStateTimestamp();
                 updated = true;
