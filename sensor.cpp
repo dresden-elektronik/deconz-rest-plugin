@@ -738,6 +738,8 @@ void Sensor::jsonToState(const QString &json)
         {
             dt = lu;
         }
+        lu.setTimeSpec(Qt::UTC);
+        map["lastupdated"] = lu;
     }
 
     for (int i = 0; i < itemCount(); i++)
