@@ -1378,6 +1378,8 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             lightNode2 = &nodes.back();
             pollManager->poll(lightNode2);
 
+            indexRulesTriggers();
+
             q->startZclAttributeTimer(checkZclAttributesDelay);
             updateLightEtag(lightNode2);
 
