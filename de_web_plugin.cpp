@@ -94,6 +94,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "LMHT_", tiMacPrefix },
     { VENDOR_NONE, "IR_", tiMacPrefix },
     { VENDOR_NONE, "DC_", tiMacPrefix },
+    { VENDOR_NONE, "BX_", tiMacPrefix }, // Climax siren
     { VENDOR_NONE, "OJB-IR715-Z", tiMacPrefix },
     { VENDOR_NONE, "902010/21A", tiMacPrefix }, // Bitron: door/window sensor
     { VENDOR_NONE, "902010/25", tiMacPrefix }, // Bitron: smart plug
@@ -1089,9 +1090,10 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         return;
     }
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_KEEN_HOME ||
-        node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC)
+        node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC ||
+        node->nodeDescriptor().manufacturerCode() == VENDOR_NONE)
     {
-        // exception for Keen Home Vent and Xiaomi wall switches lumi.ctrl_neutral1, lumi.ctrl_neutral2
+        // exception for Keen Home Vent and Xiaomi wall switches lumi.ctrl_neutral1, lumi.ctrl_neutral2; and Climax siren
     }
     else if (!node->nodeDescriptor().receiverOnWhenIdle())
     {
