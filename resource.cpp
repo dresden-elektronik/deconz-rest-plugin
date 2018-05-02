@@ -31,6 +31,8 @@ const char *RAttrType = "attr/type";
 const char *RAttrClass = "attr/class";
 const char *RAttrUniqueId = "attr/uniqueid";
 
+const char *RActionScene = "action/scene";
+
 const char *RStateAlarm = "state/alarm";
 const char *RStateAlert = "state/alert";
 const char *RStateAllOn = "state/all_on";
@@ -142,6 +144,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RStatePower));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateReachable));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RStateSat));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RActionScene));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt32, RStateStatus));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateTampered));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RStateTemperature, -27315, 32767));

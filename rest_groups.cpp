@@ -1733,6 +1733,7 @@ bool DeRestPluginPrivate::groupToMap(const Group *group, QVariantMap &map)
         DBG_Assert(item != 0);
         if (item->descriptor().suffix == RStateAllOn) { state["all_on"] = item->toBool(); }
         else if (item->descriptor().suffix == RStateAnyOn) { state["any_on"] = item->toBool(); }
+        else if (item->descriptor().suffix == RActionScene) { action["scene"] = item->toVariant(); }
         else if (item->descriptor().suffix == RAttrName) { map["name"] = item->toString(); }
         else if (item->descriptor().suffix == RAttrType) { map["type"] = item->toString(); }
         //else if (item->descriptor().suffix == RAttrModelId) { map["modelid"] = item->toString(); }; // not supported yet

@@ -46,6 +46,8 @@ extern const char *RAttrType;
 extern const char *RAttrClass;
 extern const char *RAttrUniqueId;
 
+extern const char *RActionScene;
+
 extern const char *RStateAlarm;
 extern const char *RStateAlert;
 extern const char *RStateAllOn;

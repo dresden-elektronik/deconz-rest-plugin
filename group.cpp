@@ -36,6 +36,7 @@ Group::Group() :
     addItem(DataTypeString, RAttrName);
     addItem(DataTypeBool, RStateAllOn);
     addItem(DataTypeBool, RStateAnyOn);
+    addItem(DataTypeString, RActionScene);
     ResourceItem * rtype = addItem(DataTypeString, RAttrType);
     rtype->setValue(QString(QLatin1String("LightGroup")));
     ResourceItem * rclass = addItem(DataTypeString, RAttrClass);
