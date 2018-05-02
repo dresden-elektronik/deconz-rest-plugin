@@ -184,7 +184,7 @@ bool DeRestPluginPrivate::addTaskSetBrightness(TaskItem &task, uint8_t bri, bool
  * Add a color temperature increase task to the queue
  *
  * \param task - the task item
- * \param ct - step size -65534 ..65534
+ * \param ct - step size -65534 ..65534, 0 to stop running step
  * \return true - on success
  *         false - on error
  */
@@ -198,16 +198,23 @@ bool DeRestPluginPrivate::addTaskIncColorTemperature(TaskItem &task, int32_t ct)
 
     task.zclFrame.payload().clear();
     task.zclFrame.setSequenceNumber(zclSeq++);
-    task.zclFrame.setCommandId(0x4C); // Step color temperature
 
     task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
                              deCONZ::ZclFCDirectionClientToServer |
                              deCONZ::ZclFCDisableDefaultResponse);
 
-    quint8 direction = ct > 0 ? 1 : 3; // up, down
-    quint16 stepSize = ct > 0 ? ct : -ct;
 
+    if (ct == 0)
+    {
+        task.zclFrame.setCommandId(0x47); // Stop move step
+    }
+    else
     { // payload
+        task.zclFrame.setCommandId(0x4C); // Step color temperature
+
+        quint8 direction = ct > 0 ? 1 : 3; // up, down
+        quint16 stepSize = ct > 0 ? ct : -ct;
+
         QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
         stream.setByteOrder(QDataStream::LittleEndian);
 
@@ -232,7 +239,7 @@ bool DeRestPluginPrivate::addTaskIncColorTemperature(TaskItem &task, int32_t ct)
  * Add a brightness increase task to the queue
  *
  * \param task - the task item
- * \param bri - step size -254 ..254
+ * \param bri - step size -254 ..254, 0 to stop running step
  * \return true - on success
  *         false - on error
  */
