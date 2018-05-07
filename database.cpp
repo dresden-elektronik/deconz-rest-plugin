@@ -2101,6 +2101,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             sensor.addItem(DataTypeString, RConfigLat);
             sensor.addItem(DataTypeString, RConfigLong);
             sensor.addItem(DataTypeBool, RStateDaylight);
+            sensor.addItem(DataTypeBool, RStateDark);
             sensor.addItem(DataTypeInt32, RStateStatus);
         }
 
@@ -2197,7 +2198,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
         if (stateCol >= 0 &&
             sensor.type() != QLatin1String("CLIPGenericFlag") &&
-            sensor.type() != QLatin1String("CLIPGenericStatus"))
+            sensor.type() != QLatin1String("CLIPGenericStatus") &&
+            sensor.type() != QLatin1String("Daylight"))
         {
             sensor.jsonToState(QLatin1String(colval[stateCol]));
         }
