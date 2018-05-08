@@ -2022,6 +2022,9 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
         if ((ext & macPrefixMask) == bjeMacPrefix)
         {
         }
+        else if ((ext & macPrefixMask) == ubisysMacPrefix)
+        {
+        }
         else if (macCapabilities & deCONZ::MacDeviceIsFFD)
         {
             return;

@@ -2664,49 +2664,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         SensorFingerprint fpTemperatureSensor;
         SensorFingerprint fpWaterSensor;
 
-        {   // scan client clusters of endpoint
-            QList<deCONZ::ZclCluster>::const_iterator ci = i->outClusters().constBegin();
-            QList<deCONZ::ZclCluster>::const_iterator cend = i->outClusters().constEnd();
-            for (; ci != cend; ++ci)
-            {
-                switch (ci->id())
-                {
-                case ONOFF_CLUSTER_ID:
-                case LEVEL_CLUSTER_ID:
-                case SCENE_CLUSTER_ID:
-                {
-                    if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC)
-                    {
-                        // prevent creation of ZHASwitch, till supported
-                    }
-                    else if (i->deviceId() == DEV_ID_ZLL_ONOFF_SENSOR &&
-                        node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA)
-                    {
-                        fpPresenceSensor.outClusters.push_back(ci->id());
-                    }
-                    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_UBISYS)
-                    {
-                        if ((modelId.startsWith(QLatin1String("D1")) && i->endpoint() == 0x02) ||
-                            (modelId.startsWith(QLatin1String("C4")) && i->endpoint() == 0x01) ||
-                            (modelId.startsWith(QLatin1String("S2")) && i->endpoint() == 0x03))
-                        {
-                            // Combine multiple switch endpoints into a single ZHASwitch resource
-                            fpSwitch.outClusters.push_back(ci->id());
-                        }
-                    }
-                    else if (!node->nodeDescriptor().isNull())
-                    {
-                        fpSwitch.outClusters.push_back(ci->id());
-                    }
-                }
-                    break;
-
-                default:
-                    break;
-                }
-            }
-        }
-
         {   // scan server clusters of endpoint
             QList<deCONZ::ZclCluster>::const_iterator ci = i->inClusters().constBegin();
             QList<deCONZ::ZclCluster>::const_iterator cend = i->inClusters().constEnd();
@@ -2988,6 +2945,49 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 case ELECTRICAL_MEASUREMENT_CLUSTER_ID:
                 {
                     fpPowerSensor.inClusters.push_back(ci->id());
+                }
+                    break;
+
+                default:
+                    break;
+                }
+            }
+        }
+
+        {   // scan client clusters of endpoint
+            QList<deCONZ::ZclCluster>::const_iterator ci = i->outClusters().constBegin();
+            QList<deCONZ::ZclCluster>::const_iterator cend = i->outClusters().constEnd();
+            for (; ci != cend; ++ci)
+            {
+                switch (ci->id())
+                {
+                case ONOFF_CLUSTER_ID:
+                case LEVEL_CLUSTER_ID:
+                case SCENE_CLUSTER_ID:
+                {
+                    if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC)
+                    {
+                        // prevent creation of ZHASwitch, till supported
+                    }
+                    else if (i->deviceId() == DEV_ID_ZLL_ONOFF_SENSOR &&
+                        node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA)
+                    {
+                        fpPresenceSensor.outClusters.push_back(ci->id());
+                    }
+                    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_UBISYS)
+                    {
+                        if ((modelId.startsWith(QLatin1String("D1")) && i->endpoint() == 0x02) ||
+                            (modelId.startsWith(QLatin1String("C4")) && i->endpoint() == 0x01) ||
+                            (modelId.startsWith(QLatin1String("S2")) && i->endpoint() == 0x03))
+                        {
+                            // Combine multiple switch endpoints into a single ZHASwitch resource
+                            fpSwitch.outClusters.push_back(ci->id());
+                        }
+                    }
+                    else if (!node->nodeDescriptor().isNull())
+                    {
+                        fpSwitch.outClusters.push_back(ci->id());
+                    }
                 }
                     break;
 
@@ -10802,6 +10802,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
             else if (swBuildId.isEmpty() && dateCode.isEmpty())
             {
                 if ((sc->address.ext() & macPrefixMask) == tiMacPrefix ||
+                    (sc->address.ext() & macPrefixMask) == ubisysMacPrefix ||
                     modelId == QLatin1String("Motion Sensor-A")) // OSRAM motion sensor
                 {
                     attributes.push_back(0x0006); // date code, sw build id isn't available
