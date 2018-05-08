@@ -678,7 +678,7 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
                     isLightNodeInGroup(&l, groupId))
                 {
                     DBG_Printf(DBG_INFO_L2, "\t0x%016llX force poll\n", l.address().ext());
-                    pollManager->poll(&l, now.addSecs(3));
+                    queuePollNode(&l);
                 }
             }
         }
@@ -697,7 +697,7 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
             case TaskIncColorTemperature:
                 {
                     DBG_Printf(DBG_INFO, "\t0x%016llX force poll (2)\n", task.lightNode->address().ext());
-                    pollManager->poll(task.lightNode, now.addSecs(3));
+                    queuePollNode(task.lightNode);
                 }
                 break;
             default:
@@ -1177,7 +1177,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 updateEtag(lightNode2->etag);
             }
 
-            pollManager->poll(lightNode2);
+            queuePollNode(lightNode2);
             continue;
         }
 
@@ -1380,7 +1380,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
             nodes.push_back(lightNode);
             lightNode2 = &nodes.back();
-            pollManager->poll(lightNode2);
+            queuePollNode(lightNode2);
 
             indexRulesTriggers();
 
@@ -1423,7 +1423,7 @@ void DeRestPluginPrivate::updatedLightNodeEndpoint(const deCONZ::NodeEvent &even
         }
 
         lightNode.rx();
-        pollManager->poll(&lightNode);
+        queuePollNode(&lightNode);
     }
 }
 
@@ -7439,6 +7439,26 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     }
 }
 
+void DeRestPluginPrivate::queuePollNode(RestNodeBase *node)
+{
+    if (!node || !node->node())
+    {
+        return;
+    }
+
+    if (!node->node()->nodeDescriptor().receiverOnWhenIdle())
+    {
+        return; // only support non sleeping devices for now
+    }
+
+    if (std::find(pollNodes.begin(), pollNodes.end(), node) != pollNodes.end())
+    {
+        return; // already in queue
+    }
+
+    pollNodes.push_back(node);
+}
+
 void DeRestPluginPrivate::sendZclDefaultResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, quint8 status)
 {
    deCONZ::ApsDataRequest apsReq;
@@ -9163,7 +9183,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                 LightNode *lightNode = getLightNodeForId(ls->lid());
                 if (lightNode && lightNode->isAvailable() && lightNode->state() == LightNode::StateNormal)
                 {
-                    pollManager->poll(lightNode, now.addSecs(3));
+                    queuePollNode(lightNode);
 
                     bool changed = false;
                     if (lightNode->hasColor())
@@ -9795,7 +9815,7 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
                           READ_GROUPS |
                           READ_SCENES);
 
-            pollManager->poll(&*i);
+            queuePollNode(&*i);
 
             for (uint32_t ii = 0; ii < 32; ii++)
             {
@@ -9922,7 +9942,6 @@ void DeRestPluginPrivate::handleMgmtLqiRspIndication(const deCONZ::ApsDataIndica
             if (l.address().ext() == ind.srcAddress().ext())
             {
                 l.rx();
-                pollManager->poll(&l);
             }
         }
     }
@@ -11383,6 +11402,11 @@ void DeRestPlugin::idleTimerFired()
             }
         }
 
+        if (!d->pollManager->hasItems())
+        {
+            d->pollNextDevice();
+        }
+
         QDateTime now = QDateTime::currentDateTime();
         d->queryTime = t;
 
@@ -11417,7 +11441,7 @@ void DeRestPlugin::idleTimerFired()
                 if (lightNode->lastRx().secsTo(now) > (5 * 60))
                 {
                     // let poll manager detect if node is available
-                    d->pollManager->poll(lightNode);
+                    d->queuePollNode(lightNode);
                     continue;
                 }
 
@@ -11591,7 +11615,7 @@ void DeRestPlugin::idleTimerFired()
                 if (sensorNode->lastRx().secsTo(now) > (5 * 60))
                 {
                     // let poll manager detect if node is available
-                    d->pollManager->poll(sensorNode);
+                    d->queuePollNode(sensorNode);
                     continue;
                 }
 
@@ -11634,7 +11658,7 @@ void DeRestPlugin::idleTimerFired()
                 }
                 else
                 {
-                    d->pollManager->poll(sensorNode);
+                    d->queuePollNode(sensorNode);
                 }
 
                 if ((d->otauLastBusyTimeDelta() > OTA_LOW_PRIORITY_TIME) && (sensorNode->lastRead(READ_BINDING_TABLE) < (d->idleTotalCounter - IDLE_READ_LIMIT)))
@@ -12998,7 +13022,7 @@ void DeRestPluginPrivate::pollNextDevice()
 
     RestNodeBase *restNode = 0;
 
-    if (pollNodes.empty())
+    if (pollNodes.empty()) // TODO time based
     {
         for (LightNode &l : nodes)
         {
@@ -13025,6 +13049,7 @@ void DeRestPluginPrivate::pollNextDevice()
 
     if (restNode && restNode->isAvailable())
     {
+        DBG_Printf(DBG_INFO, "poll node %s\n", qPrintable(restNode->uniqueId()));
         pollManager->poll(restNode);
         queryTime = queryTime.addSecs(6);
     }

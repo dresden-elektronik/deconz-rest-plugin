@@ -164,7 +164,6 @@ void PollManager::pollTimerFired()
 
     if (items.empty())
     {
-        plugin->pollNextDevice();
         return;
     }
 

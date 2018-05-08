@@ -52,6 +52,7 @@ public:
     explicit PollManager(QObject *parent = 0);
     void poll(RestNodeBase *restNode, const QDateTime &tStart = QDateTime());
     void delay(int ms);
+    bool hasItems() const { return !items.empty(); }
 
 signals:
 
