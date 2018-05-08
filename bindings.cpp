@@ -893,6 +893,11 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.minInterval = 5;
             rq.maxInterval = 180;
         }
+        else if ((bt.restNode->address().ext() & macPrefixMask) == xalMacPrefix)
+        {
+            rq.minInterval = 5;
+            rq.maxInterval = 120;
+        }
         else // default configuration
         {
             rq.minInterval = 1;
@@ -1102,6 +1107,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturerCode() == VENDOR_KEEN_HOME)
         {
         }
+        else if (lightNode->manufacturerCode() == VENDOR_XAL)
+        {
+        }
         else
         {
             return;
@@ -1141,8 +1149,15 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
                 }
             }
 
+            // support only XAL on/off cluster for now
+            if (lightNode->manufacturerCode() == VENDOR_XAL && i->id() != ONOFF_CLUSTER_ID)
+            {
+                continue;
+            }
+
             BindingTask bt;
-            if ((lightNode->address().ext() & macPrefixMask) == deMacPrefix)
+            if ((lightNode->address().ext() & macPrefixMask) == deMacPrefix ||
+                (lightNode->address().ext() & macPrefixMask) == xalMacPrefix)
             {
                 bt.state = BindingTask::StateCheck;
             }
@@ -1187,7 +1202,8 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         return;
     }
 
-    if ((lightNode->address().ext() & macPrefixMask) == deMacPrefix)
+    if ((lightNode->address().ext() & macPrefixMask) == deMacPrefix ||
+        (lightNode->address().ext() & macPrefixMask) == xalMacPrefix)
     {
         lightNode->enableRead(READ_BINDING_TABLE);
         lightNode->setNextReadTime(READ_BINDING_TABLE, queryTime);

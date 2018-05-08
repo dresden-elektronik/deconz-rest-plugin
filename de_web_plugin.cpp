@@ -77,6 +77,7 @@ const quint64 netvoxMacPrefix     = 0x00137a0000000000ULL;
 const quint64 heimanMacPrefix     = 0x0050430000000000ULL;
 const quint64 lutronMacPrefix     = 0xffff000000000000ULL;
 const quint64 keenhomeMacPrefix   = 0x0022a30000000000ULL;
+const quint64 xalMacPrefix        = 0xf8f0050000000000ULL;
 
 struct SupportedDevice {
     quint16 vendorId;
