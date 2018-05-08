@@ -1156,8 +1156,7 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
             }
 
             BindingTask bt;
-            if ((lightNode->address().ext() & macPrefixMask) == deMacPrefix ||
-                (lightNode->address().ext() & macPrefixMask) == xalMacPrefix)
+            if ((lightNode->address().ext() & macPrefixMask) == deMacPrefix)
             {
                 bt.state = BindingTask::StateCheck;
             }
