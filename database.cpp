@@ -1656,10 +1656,6 @@ static int sqliteLoadAllRulesCallback(void *user, int ncols, char **colval , cha
             {
                 rule.setStatus(val);
             }
-            else if (strcmp(colname[i], "timestriggered") == 0)
-            {
-                rule.setTimesTriggered(val.toUInt());
-            }
             else if (strcmp(colname[i], "actions") == 0)
             {
                 rule.setActions(Rule::jsonToActions(val));

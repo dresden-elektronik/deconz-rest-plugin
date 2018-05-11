@@ -1350,35 +1350,23 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
         else if (c->op() == RuleCondition::OpIn && c->suffix() == RConfigLocalTime)
         {
             QTime t = now.time();
-            QTime rt;
 
-            if (rule.lastTriggered().isValid())
+            if (rule.lastTriggered().isValid() && rule.lastTriggered().secsTo(now) < 24 * 3600)
             {
-                rt = rule.lastTriggered().time();
+                if (eItem->descriptor().suffix == RConfigLocalTime)
+                {
+                    return false; // already handled
+                }
             }
 
             if (c->time0() < c->time1() && // 8:00 - 16:00
                 (t >= c->time0() && t <= c->time1()))
             {
-                if (rt.isValid() && rt >= c->time0() && rt <= c->time1())
-                {
-                    if (eItem->descriptor().suffix == RConfigLocalTime)
-                    {
-                        return false;  // already handled
-                    }
-                }
             }
             else if (c->time0() > c->time1() && // 20:00 - 4:00
                 (t >= c->time0() || t <= c->time1()))
                 // 20:00 - 0:00  ||  0:00 - 4:00
             {
-                if (rt.isValid() && (rt >= c->time0() || rt <= c->time1()))
-                {
-                    if (eItem->descriptor().suffix == RConfigLocalTime)
-                    {
-                        return false;  // already handled
-                    }
-                } // already handled
             }
             else
             {
@@ -1572,7 +1560,7 @@ void DeRestPluginPrivate::triggerRule(Rule &rule)
 
     if (triggered)
     {
-        rule.m_lastTriggered = QDateTime::currentDateTime();
+        rule.m_lastTriggered = QDateTime::currentDateTimeUtc();
         rule.setTimesTriggered(rule.timesTriggered() + 1);
         updateEtag(rule.etag);
         updateEtag(gwConfigEtag);
