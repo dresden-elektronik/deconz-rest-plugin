@@ -1337,26 +1337,18 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
             }
 
             QDateTime dt = item->lastChanged().addSecs(c->seconds());
-            if (rule.lastTriggered().isValid() && rule.lastTriggered() > dt)
+            if (now.secsTo(dt) != 0)
             {
-                return false; // already handled
-            }
-
-            if (dt > now)
-            {
-                return false; // not time yet
+                return false;
             }
         }
         else if (c->op() == RuleCondition::OpIn && c->suffix() == RConfigLocalTime)
         {
             QTime t = now.time();
 
-            if (rule.lastTriggered().isValid() && rule.lastTriggered().secsTo(now) < 24 * 3600)
+            if (eItem->descriptor().suffix == RConfigLocalTime && t.secsTo(c->time0()) != 0)
             {
-                if (eItem->descriptor().suffix == RConfigLocalTime)
-                {
-                    return false; // already handled
-                }
+                return false; // Only trigger on start time
             }
 
             if (c->time0() < c->time1() && // 8:00 - 16:00
@@ -1373,26 +1365,29 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
                 return false;
             }
         }
-        /*
         else if (c->op() == RuleCondition::OpNotIn && c->suffix() == RConfigLocalTime)
         {
-            return false; // TODO
-            if (rule.lastTriggered().isValid() &&
-                rule.lastTriggered() >= item->lastChanged())
-            { ok = 0; break; } // already handled
-
             QTime t = now.time();
 
+            if (eItem->descriptor().suffix == RConfigLocalTime && t.secsTo(c->time1()) != 0)
+            {
+                return false; // Only trigger on end time
+            }
+
             if (c->time0() < c->time1() && // 8:00 - 16:00
-                (t < c->time0() || t > c->time1()))
-            {  }
+                (t <= c->time0() || t >= c->time1()))
+                // 0:00 - 8:00   || 16.00 - 0.00
+            {
+            }
             else if (c->time0() > c->time1() && // 20:00 - 4:00
-                (t < c->time0() && t > c->time1()))
-                // 0:00 - 20:00 ||  0:00 - 4:00
-            {  }
-            else { ok = 0; break; }
+                (t <= c->time0() && t >= c->time1()))
+            {
+            }
+            else
+            {
+                return false;
+            }
         }
-            */
         else
         {
             DBG_Printf(DBG_ERROR, "error: rule (%s) operator %s not supported\n", qPrintable(rule.id()), qPrintable(c->ooperator()));
