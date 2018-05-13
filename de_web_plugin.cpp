@@ -120,8 +120,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "lumi.sensor_motion", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_switch", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_cube", jennicMacPrefix },
-    { VENDOR_JENNIC, "lumi.sensor_86sw1", jennicMacPrefix },
-    { VENDOR_JENNIC, "lumi.sensor_86sw2", jennicMacPrefix },
+    { VENDOR_JENNIC, "lumi.sensor_86sw", jennicMacPrefix }, // Xiaomi Wireless Wall Switch
     { VENDOR_JENNIC, "lumi.ctrl_neutral", jennicMacPrefix }, // Xioami Wall Switch (end-device)
     { VENDOR_JENNIC, "lumi.sensor_wleak", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_smoke", jennicMacPrefix },
@@ -2747,8 +2746,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpOpenCloseSensor.inClusters.push_back(ci->id());
                     }
-                    else if (modelId == QLatin1String("lumi.sensor_86sw1") ||
-                             modelId == QLatin1String("lumi.sensor_86sw2"))
+                    else if (modelId.startsWith(QLatin1String("lumi.sensor_86sw")))
                     {
                         if (i->endpoint() == 0x01) // create sensor only for first endpoint
                         {
@@ -4109,8 +4107,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             {
                 if ((event.node()->address().ext() & macPrefixMask) == jennicMacPrefix)
                 {
-                    if (i->modelId() == QLatin1String("lumi.sensor_86sw1") ||
-                        i->modelId() == QLatin1String("lumi.sensor_86sw2") ||
+                    if (i->modelId().startsWith(QLatin1String("lumi.sensor_86sw")) ||
                         i->modelId().startsWith(QLatin1String("lumi.ctrl_neutral")) ||
                         (i->modelId().startsWith(QLatin1String("lumi.ctrl_ln")) && event.clusterId() == MULTISTATE_INPUT_CLUSTER_ID))
                     { // 3 endpoints: 1 sensor
@@ -4554,8 +4551,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     quint32 button = 0;
 
-                                    if (i->modelId() == QLatin1String("lumi.sensor_86sw1") ||
-                                        i->modelId() == QLatin1String("lumi.sensor_86sw2"))
+                                    if (i->modelId().startsWith(QLatin1String("lumi.sensor_86sw")))
                                     {
                                         button = (S_BUTTON_1 * event.endpoint()) + S_BUTTON_ACTION_SHORT_RELEASED;
                                     }
