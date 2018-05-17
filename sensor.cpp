@@ -794,10 +794,19 @@ void Sensor::jsonToConfig(const QString &json)
             if (map.contains(QLatin1String(key)))
             {
                 QVariant val = map[key];
+
                 if (val.isNull())
                 {
-                    continue;
+                    if (rid.suffix == RConfigOn)
+                    {
+                        map[key] = true; // default value
+                    }
+                    else
+                    {
+                        continue;
+                    }
                 }
+
                 item->setValue(map[key]);
                 item->setTimeStamps(dt);
             }
