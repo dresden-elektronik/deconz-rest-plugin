@@ -7568,7 +7568,7 @@ bool DeRestPluginPrivate::flsNbMaintenance(LightNode *lightNode)
     QDateTime now = QDateTime::currentDateTime();
     QSettings config(deCONZ::getStorageLocation(deCONZ::ConfigLocation), QSettings::IniFormat);
 
-    int resetDelay = config.value("fls-nb/resetdelay", 86400 / 2).toInt(); // 12h
+    int resetDelay = config.value("fls-nb/resetdelay", 0).toInt(); // default to disabled
     int resetPhase = config.value("fls-nb/resetphase", 100).toInt(); // DL_NADIR
     int noPirDelay = config.value("fls-nb/nopirdelay", 60 * 30).toInt(); // 30 minutes
 
