@@ -1188,6 +1188,18 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 // filter for supported devices
                 switch (i->deviceId())
                 {
+                case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:
+                case DEV_ID_Z30_DIMMABLE_PLUGIN_UNIT:
+                case DEV_ID_Z30_EXTENDED_COLOR_LIGHT:
+                case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT:
+                {
+                    if (hasServerOnOff)
+                    {
+                        lightNode.setHaEndpoint(*i);
+                    }
+                }
+                break;
+
                 case DEV_ID_MAINS_POWER_OUTLET:
                 case DEV_ID_HA_ONOFF_LIGHT:
                 case DEV_ID_ONOFF_OUTPUT:
@@ -1195,24 +1207,21 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 case DEV_ID_HA_DIMMABLE_LIGHT:
                 case DEV_ID_HA_COLOR_DIMMABLE_LIGHT:
                 case DEV_ID_SMART_PLUG:
-
                 case DEV_ID_ZLL_ONOFF_LIGHT:
                 case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:
-                case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:
                 case DEV_ID_ZLL_ONOFF_SENSOR:
     //            case DEV_ID_ZLL_DIMMABLE_LIGHT: // same as DEV_ID_HA_ONOFF_LIGHT
                 case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:
-                case DEV_ID_Z30_DIMMABLE_PLUGIN_UNIT:
                 case DEV_ID_ZLL_COLOR_LIGHT:
                 case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:
-                case DEV_ID_Z30_EXTENDED_COLOR_LIGHT:
                 case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT:
-                case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT:
                     {
                         if (hasServerOnOff)
                         {
-                            if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC && i->endpoint() != 0x02 && i->endpoint() != 0x03)
+                            if ((node->address().ext() & macPrefixMask) == jennicMacPrefix &&
+                                node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC && i->endpoint() != 0x02 && i->endpoint() != 0x03)
                             {
+                                // TODO better filter for lumi. devices (i->deviceId(), modelid?)
                                 // blacklist switch endpoints for lumi.ctrl_neutral1 and lumi.ctrl_neutral1
                             }
                             else
@@ -1323,6 +1332,15 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 lightNode.setId(QString::number(getFreeLightId()));
                 closeDb();
                 lightNode.setNeedSaveDatabase(true);
+            }
+
+            if ((node->address().ext() & macPrefixMask) == osramMacPrefix)
+            {
+                if (lightNode.manufacturer() != QLatin1String("OSRAM"))
+                {
+                    lightNode.setManufacturerName(QLatin1String("OSRAM"));
+                    lightNode.setNeedSaveDatabase(true);
+                }
             }
 
             if ((node->address().ext() & macPrefixMask) == philipsMacPrefix)
