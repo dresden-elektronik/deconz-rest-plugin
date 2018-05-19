@@ -568,6 +568,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
             case DEV_ID_XIAOMI_SMART_PLUG:           ltype = QLatin1String("Smart plug"); break;
             case DEV_ID_IAS_WARNING_DEVICE:          removeItem(RStateOn);
                                                      ltype = QLatin1String("Warning device"); break;
+            case DEV_ID_HA_WINDOW_COVERING_DEVICE:   ltype = QLatin1String("Window covering device"); break;
             default:
                 break;
             }

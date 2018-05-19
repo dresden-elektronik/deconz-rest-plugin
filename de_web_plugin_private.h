@@ -111,6 +111,8 @@
 #define DEV_ID_HA_LIGHT_SENSOR              0x0106 // Light sensor
 #define DEV_ID_HA_OCCUPANCY_SENSOR          0x0107 // Occupancy sensor
 
+// Other HA devices
+#define DEV_ID_HA_WINDOW_COVERING_DEVICE    0x0202 // Window Covering Device
 //
 #define DEV_ID_IAS_ZONE                     0x0402 // IAS Zone
 #define DEV_ID_IAS_WARNING_DEVICE           0x0403 // IAS Warning Device

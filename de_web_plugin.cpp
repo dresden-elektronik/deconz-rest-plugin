@@ -126,6 +126,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "lumi.sensor_smoke", jennicMacPrefix },
     { VENDOR_115F, "lumi.plug", jennicMacPrefix }, // Xiaomi smart plug (router)
     { VENDOR_115F, "lumi.ctrl_ln", jennicMacPrefix}, // Xiaomi Wall Switch (router)
+    { VENDOR_115F, "lumi.curtain", jennicMacPrefix}, // Xiaomi curtain controller (router)
     { VENDOR_UBISYS, "D1", ubisysMacPrefix },
     { VENDOR_UBISYS, "C4", ubisysMacPrefix },
     { VENDOR_UBISYS, "S2", ubisysMacPrefix },
@@ -1192,6 +1193,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 case DEV_ID_Z30_DIMMABLE_PLUGIN_UNIT:
                 case DEV_ID_Z30_EXTENDED_COLOR_LIGHT:
                 case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT:
+                case DEV_ID_HA_WINDOW_COVERING_DEVICE:
                 {
                     if (hasServerOnOff)
                     {
@@ -1611,6 +1613,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
             case DEV_ID_ZLL_ONOFF_LIGHT:
             case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:
             case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:
+            case DEV_ID_HA_WINDOW_COVERING_DEVICE:
             case DEV_ID_ZLL_ONOFF_SENSOR:
             case DEV_ID_XIAOMI_SMART_PLUG:
             case DEV_ID_IAS_WARNING_DEVICE:
@@ -5597,6 +5600,7 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
         case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:
         case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:
         case DEV_ID_ZLL_ONOFF_SENSOR:
+        case DEV_ID_HA_WINDOW_COVERING_DEVICE:
             break;
 
         default:
