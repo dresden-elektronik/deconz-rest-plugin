@@ -102,7 +102,8 @@ $ sudo systemctl enable deconz
 The dresden elektronik Raspbian sd-card image autostarts deCONZ GUI.
 
 ```bash
-$ sudo systemctl enable deconz-gui
+$ sudo systemctl disable deconz-gui
+$ sudo systemctl stop deconz-gui
 ```
 
 Software requirements
