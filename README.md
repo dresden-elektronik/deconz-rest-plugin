@@ -97,12 +97,12 @@ The beta version contains a systemd script, which allows deCONZ to run without a
 $ sudo systemctl enable deconz
 ```
 
-2. Disable X11 deCONZ autostart script
+2. Disable deCONZ GUI Autostart
 
-The dresden elektronik Raspbian sd-card image contains a autostart script for X11 which should be removed.
+The dresden elektronik Raspbian sd-card image autostarts deCONZ GUI.
 
 ```bash
-$ rm -f /home/pi/.config/autostart/deCONZ.desktop
+$ sudo systemctl enable deconz-gui
 ```
 
 Software requirements
