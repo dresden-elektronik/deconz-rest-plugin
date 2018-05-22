@@ -106,6 +106,13 @@ $ sudo systemctl disable deconz-gui
 $ sudo systemctl stop deconz-gui
 ```
 
+On older versions of deCONZ this can be done by removing the X11 Autostart file.
+
+```bash
+$ rm -f /home/pi/.config/autostart/deCONZ.desktop
+```
+
+
 Software requirements
 ---------------------
 * Raspbian Jessie or Raspbian Stretch with Qt5
