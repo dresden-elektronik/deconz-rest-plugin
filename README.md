@@ -34,11 +34,11 @@ https://github.com/dresden-elektronik/deconz-rest-plugin/wiki/Supported-Devices
 ### Install deCONZ
 1. Download deCONZ package
 
-        wget http://www.dresden-elektronik.de/rpi/deconz/beta/deconz-2.05.26-qt5.deb
+        wget http://www.dresden-elektronik.de/rpi/deconz/beta/deconz-2.05.28-qt5.deb
 
 2. Install deCONZ package
 
-        sudo dpkg -i deconz-2.05.26-qt5.deb
+        sudo dpkg -i deconz-2.05.28-qt5.deb
 
 **Important** this step might print some errors *that's ok* and will be fixed in the next step.
 
@@ -53,11 +53,11 @@ The deCONZ package already contains the REST API plugin, the development package
 
 1. Download deCONZ development package
 
-        wget http://www.dresden-elektronik.de/rpi/deconz-dev/deconz-dev-2.05.26.deb
+        wget http://www.dresden-elektronik.de/rpi/deconz-dev/deconz-dev-2.05.28.deb
 
 2. Install deCONZ development package
 
-        sudo dpkg -i deconz-dev-2.05.26.deb
+        sudo dpkg -i deconz-dev-2.05.28.deb
 
 3. Install missing dependencies
 
@@ -72,7 +72,7 @@ The deCONZ package already contains the REST API plugin, the development package
 2. Checkout related version tag
 
         cd deconz-rest-plugin
-        git checkout -b mybranch V2_05_26
+        git checkout -b mybranch V2_05_28
 
 3. Compile the plugin
 
@@ -97,13 +97,21 @@ The beta version contains a systemd script, which allows deCONZ to run without a
 $ sudo systemctl enable deconz
 ```
 
-2. Disable X11 deCONZ autostart script
+2. Disable deCONZ GUI Autostart
 
-The dresden elektronik Raspbian sd-card image contains a autostart script for X11 which should be removed.
+The dresden elektronik Raspbian sd-card image autostarts deCONZ GUI.
+
+```bash
+$ sudo systemctl disable deconz-gui
+$ sudo systemctl stop deconz-gui
+```
+
+On older versions of deCONZ this can be done by removing the X11 Autostart file.
 
 ```bash
 $ rm -f /home/pi/.config/autostart/deCONZ.desktop
 ```
+
 
 Software requirements
 ---------------------

@@ -1249,7 +1249,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // IKEA
         sensor->modelId().startsWith(QLatin1String("TRADFRI")) ||
         // Keen Home
-        sensor->modelId().startsWith(QLatin1String("SV01-610-MP")) ||
+        sensor->modelId().startsWith(QLatin1String("SV01-61")) ||
         // Heiman
         sensor->modelId().startsWith(QLatin1String("SmartPlug")) ||
         sensor->modelId().startsWith(QLatin1String("CO_")) ||
