@@ -68,12 +68,7 @@ DEFINES += GW_MIN_RPI_FW_VERSION=0x26210500
 # which shall be used in order to support all features for this software release
 DEFINES += GW_MIN_DERFUSB23E0X_FW_VERSION=0x22030300
 
-unix:contains(QMAKE_HOST.arch, armv6l) {
-    DEFINES += GW_DEFAULT_NAME=\\\"RaspBee-GW\\\"
-}
-else {
-    DEFINES += GW_DEFAULT_NAME=\\\"deCONZ-GW\\\"
-}
+DEFINES += GW_DEFAULT_NAME=\\\"Phoscon-GW\\\"
 
 QMAKE_CXXFLAGS += -Wno-attributes
 
