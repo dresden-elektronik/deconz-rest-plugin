@@ -33,9 +33,17 @@ greaterThan(QT_MAJOR_VERSION, 4) {
     }
 }
 
-win32:LIBS +=  -L../.. -ldeCONZ1
+QMAKE_SPEC_T = $$[QMAKE_SPEC]
+
+contains(QMAKE_SPEC_T,.*linux.*) {
+    CONFIG += link_pkgconfig
+    packagesExist(sqlite3) {
+        DEFINES += HAS_SQLITE3
+        PKGCONFIG += sqlite3
+    }
+}
+
 unix:LIBS +=  -L../.. -ldeCONZ
-win32:CONFIG += dll
 
 unix:!macx {
     LIBS += -lcrypt
@@ -87,7 +95,6 @@ HEADERS  = bindings.h \
            json.h \
            light_node.h \
            poll_manager.h \
-           sqlite3.h \
            resource.h \
            resourcelinks.h \
            rest_node_base.h \
@@ -120,7 +127,6 @@ SOURCES  = authentification.cpp \
            json.cpp \
            light_node.cpp \
            poll_manager.cpp \
-           sqlite3.c \
            resource.cpp \
            resourcelinks.cpp \
            rest_configuration.cpp \
@@ -142,6 +148,12 @@ SOURCES  = authentification.cpp \
            rest_userparameter.cpp \
            zcl_tasks.cpp \
            websocket_server.cpp
+
+win32 {
+    LIBS +=  -L../.. -ldeCONZ1
+    CONFIG += dll
+    SOURCES += sqlite3.c
+}
 
 win32:DESTDIR  = ../../debug/plugins # TODO adjust
 unix:DESTDIR  = ..

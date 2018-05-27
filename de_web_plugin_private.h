@@ -20,7 +20,7 @@
 #if QT_VERSION < 0x050000
 #include <QHttpRequestHeader>
 #endif
-#include "sqlite3.h"
+#include <sqlite3.h>
 #include <deconz.h>
 #include "resource.h"
 #include "event.h"
