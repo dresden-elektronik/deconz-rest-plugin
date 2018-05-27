@@ -2902,7 +2902,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case ANALOG_INPUT_CLUSTER_ID:
                 {
-                    if (modelId == QLatin1String("lumi.sensor_cube"))
+                    if (modelId.startsWith(QLatin1String("lumi.sensor_cube")))
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
@@ -2940,7 +2940,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case MULTISTATE_INPUT_CLUSTER_ID:
                 {
-                    if (modelId == QLatin1String("lumi.sensor_cube"))
+                    if (modelId.startsWith(QLatin1String("lumi.sensor_cube")))
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
@@ -4757,7 +4757,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
                                 }
 
-                                if (i->modelId() == QLatin1String("lumi.sensor_cube"))
+                                if (i->modelId().startsWith(QLatin1String("lumi.sensor_cube")))
                                 {
                                     qint32 buttonevent = ia->numericValue().real * 100;
                                     ResourceItem *item = i->item(RStateButtonEvent);
@@ -4826,7 +4826,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 ResourceItem *item = i->item(RStateButtonEvent);
                                 int rawValue = ia->numericValue().u16;
 
-                                if (i->modelId() == QLatin1String("lumi.sensor_cube"))
+                                if (i->modelId().startsWith(QLatin1String("lumi.sensor_cube")))
                                 {
                                     // Map Xiaomi Mi smart cube raw values to buttonevent values
                                     static const int sideMap[] = {1, 3, 5, 6, 4, 2};
@@ -7304,11 +7304,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {
             DBG_Printf(DBG_INFO, "\t95 consumption (?) 0x%08X\n", u32);
         }
-        else if (tag == 0x97 && dataType == deCONZ::Zcl16BitUint) // lumi.cube
+        else if (tag == 0x97 && dataType == deCONZ::Zcl16BitUint) // lumi.sensor_cube
         {
             DBG_Printf(DBG_INFO, "\t97 unknown %d (0x%04X)\n", u16, u16);
         }
-        else if (tag == 0x98 && dataType == deCONZ::Zcl16BitUint) // lumi.cube
+        else if (tag == 0x98 && dataType == deCONZ::Zcl16BitUint) // lumi.sensor_cube
         {
             DBG_Printf(DBG_INFO, "\t98 unknown %d (0x%04X)\n", u16, u16);
         }
@@ -7316,7 +7316,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {
             DBG_Printf(DBG_INFO, "\t98 power (?) 0x%08X\n", u32);
         }
-        else if (tag == 0x99 && dataType == deCONZ::Zcl16BitUint) // lumi.cube
+        else if (tag == 0x99 && dataType == deCONZ::Zcl16BitUint) // lumi.sensor_cube
         {
             DBG_Printf(DBG_INFO, "\t99 unknown %d (0x%04X)\n", u16, u16);
         }
@@ -7324,7 +7324,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {
             DBG_Printf(DBG_INFO, "\t9a unknown %d (0x%02X)\n", u8, u8);
         }
-        else if (tag == 0x9a && dataType == deCONZ::Zcl16BitUint) // lumi.cube
+        else if (tag == 0x9a && dataType == deCONZ::Zcl16BitUint) // lumi.sensor_cube
         {
             DBG_Printf(DBG_INFO, "\t9a unknown %d (0x%04X)\n", u16, u16);
         }
