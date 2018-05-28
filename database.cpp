@@ -54,6 +54,7 @@ void DeRestPluginPrivate::initDb()
     int rc;
     char *errmsg;
 
+    DBG_Printf(DBG_INFO, "DB sqlite version %s\n", sqlite3_libversion());
     // create tables
 
     const char *sql[] = {
