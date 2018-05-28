@@ -109,7 +109,52 @@ void DeRestPluginPrivate::initDb()
                 sqlite3_free(errmsg);
             }
         }
+    }   
+
+    checkDbUserVersion();
+}
+
+void DeRestPluginPrivate::checkDbUserVersion()
+{
+    int rc;
+    int userVersion = -1; // unknown (sqlite default is 0)
+    sqlite3_stmt *res = NULL;
+    const char *sql = "PRAGMA user_version";
+
+    rc = sqlite3_prepare_v2(db, sql, -1, &res, 0);
+    DBG_Assert(rc == SQLITE_OK);
+    if (rc == SQLITE_OK) { rc = sqlite3_step(res); }
+
+    DBG_Assert(rc == SQLITE_ROW);
+    if (rc == SQLITE_ROW)
+    {
+        userVersion = sqlite3_column_int(res, 0);
+        DBG_Printf(DBG_INFO, "DB user_version: %d\n", userVersion);
     }
+
+    DBG_Assert(res != NULL);
+    if (res)
+    {
+        rc = sqlite3_finalize(res);
+        DBG_Assert(rc == SQLITE_OK);
+    }
+
+    bool updated = false;
+    if (userVersion == 0)
+    {
+        updated = upgradeDbToUserVersion1();
+    }
+
+    // if something was upgraded
+    if (updated)
+    {
+        checkDbUserVersion();
+    }
+}
+
+bool DeRestPluginPrivate::upgradeDbToUserVersion1()
+{
+    return false;
 }
 
 /*! Clears all content of tables of db except auth table

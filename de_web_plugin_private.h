@@ -1100,6 +1100,8 @@ public:
 
     // Database interface
     void initDb();
+    void checkDbUserVersion();
+    bool upgradeDbToUserVersion1();
     void clearDb();
     void openDb();
     void readDb();
