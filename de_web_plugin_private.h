@@ -302,6 +302,7 @@
 #define DB_USERPARAM      0x00000100
 #define DB_GATEWAYS       0x00000200
 #define DB_RESOURCELINKS  0x00000400
+#define DB_QUERY_QUEUE    0x00000800
 
 #define DB_HUGE_SAVE_DELAY  (60 * 60 * 1000) // 60 minutes
 #define DB_LONG_SAVE_DELAY  (15 * 60 * 1000) // 15 minutes
@@ -1137,6 +1138,7 @@ public:
     QString sqliteDatabaseName;
     std::vector<int> lightIds;
     std::vector<int> sensorIds;
+    std::vector<QString> dbQueryQueue;
     QTimer *databaseTimer;
     QString emptyString;
 

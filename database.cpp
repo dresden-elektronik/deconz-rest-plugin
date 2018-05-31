@@ -3513,7 +3513,32 @@ void DeRestPluginPrivate::saveDb()
         saveDatabaseItems &= ~DB_SENSORS;
     }
 
+    // process query queue
+    if (saveDatabaseItems & DB_QUERY_QUEUE)
+    {
+        for (const QString &sql : dbQueryQueue)
+        {
+            if (DBG_IsEnabled(DBG_INFO_L2))
+            {
+                DBG_Printf(DBG_INFO_L2, "DB sql exec %s\n", qPrintable(sql));
+            }
 
+            errmsg = NULL;
+            rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
+
+            if (rc != SQLITE_OK)
+            {
+                if (errmsg)
+                {
+                    DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                    sqlite3_free(errmsg);
+                }
+            }
+        }
+
+        dbQueryQueue.clear();
+        saveDatabaseItems &= ~DB_QUERY_QUEUE;
+    }
 
     errmsg = NULL;
     rc = sqlite3_exec(db, "COMMIT", 0, 0, &errmsg);
