@@ -2715,29 +2715,47 @@ void DeRestPluginPrivate::saveDb()
 
     measTimer.start();
 
+    // check if former transaction was committed
+    if (sqlite3_get_autocommit(db) == 0) // is 1 when all is committed
     {
-        // create config table version 2 if not exist
-        const char *sql = "CREATE TABLE IF NOT EXISTS config2 (key text PRIMARY KEY, value text)";
-
-        DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
         errmsg = NULL;
-        rc = sqlite3_exec(db, sql, NULL, NULL, &errmsg);
+        rc = sqlite3_exec(db, "COMMIT", 0, 0, &errmsg);
 
-        if( rc != SQLITE_OK )
+        if (rc != SQLITE_OK)
         {
             if (errmsg)
             {
-                DBG_Printf(DBG_ERROR, "SQL exec failed: %s, error: %s\n", sql, errmsg);
+                DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: COMMIT former transaction, error: %s (%d)\n", errmsg, rc);
                 sqlite3_free(errmsg);
             }
+
+            queSaveDb(saveDatabaseItems, DB_SHORT_SAVE_DELAY);
+            return;
         }
     }
 
     // make the whole save process one transaction otherwise each insert would become
     // a transaction which is extremly slow
-    sqlite3_exec(db, "BEGIN", 0, 0, 0);
+    errmsg = NULL;
+    rc = sqlite3_exec(db, "BEGIN", 0, 0, &errmsg);
+    if (rc != SQLITE_OK)
+    {
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR, "DB SQL exec failed: BEGIN, error: %s\n", errmsg);
+            sqlite3_free(errmsg);
+        }
 
-    DBG_Printf(DBG_INFO, "save zll database items 0x%08X\n", saveDatabaseItems);
+        if (rc == SQLITE_BUSY)
+        {
+            DBG_Printf(DBG_INFO, "DB locked by another process, retry later\n");
+        }
+
+        queSaveDb(saveDatabaseItems, DB_SHORT_SAVE_DELAY);
+        return;
+    }
+
+    DBG_Printf(DBG_INFO, "DB save zll database items 0x%08X\n", saveDatabaseItems);
 
     // dump authentification
     if (saveDatabaseItems & DB_AUTH)
@@ -3495,14 +3513,25 @@ void DeRestPluginPrivate::saveDb()
         saveDatabaseItems &= ~DB_SENSORS;
     }
 
-    sqlite3_exec(db, "COMMIT", 0, 0, 0);
-    DBG_Printf(DBG_INFO, "database saved in %ld ms\n", measTimer.elapsed());
 
-#ifdef Q_OS_LINUX
-    measTimer.restart();
-    sync();
-    DBG_Printf(DBG_INFO, "sync() in %d ms\n", int(measTimer.elapsed()));
-#endif
+
+    errmsg = NULL;
+    rc = sqlite3_exec(db, "COMMIT", 0, 0, &errmsg);
+    if (rc != SQLITE_OK)
+    {
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: COMMIT, error: %s (%d)\n", errmsg, rc);
+            sqlite3_free(errmsg);
+        }
+
+        // if the transaction is still intact (SQLITE_BUSY) it will be committed on the next run of saveDb()
+    }
+
+    if (rc == SQLITE_OK)
+    {
+        DBG_Printf(DBG_INFO, "DB saved in %ld ms\n", measTimer.elapsed());
+    }
 }
 
 /*! Closes the database.
@@ -3522,6 +3551,12 @@ void DeRestPluginPrivate::closeDb()
         if (ret == SQLITE_OK)
         {
             db = 0;
+#ifdef Q_OS_LINUX
+            QElapsedTimer measTimer;
+            measTimer.restart();
+            sync();
+            DBG_Printf(DBG_INFO, "sync() in %d ms\n", int(measTimer.elapsed()));
+#endif
             return;
         }
 
