@@ -1243,7 +1243,7 @@ static int sqliteLoadAllSchedulesCallback(void *user, int ncols, char **colval ,
 
     if (d->jsonToSchedule(schedule.jsonString, schedule, NULL))
     {
-        DBG_Printf(DBG_INFO, "DB parsed schedule %s\n", qPrintable(schedule.id));
+        DBG_Printf(DBG_INFO_L2, "DB parsed schedule %s\n", qPrintable(schedule.id));
         d->schedules.push_back(schedule);
     }
 
@@ -2777,7 +2777,7 @@ void DeRestPluginPrivate::saveDb()
                 // delete group from db (if exist)
                 QString sql = QString(QLatin1String("DELETE FROM auth WHERE apikey='%1'")).arg(i->apikey);
 
-                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+                DBG_Printf(DBG_INFO_L2, "DB sql exec %s\n", qPrintable(sql));
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -2785,7 +2785,7 @@ void DeRestPluginPrivate::saveDb()
                 {
                     if (errmsg)
                     {
-                        DBG_Printf(DBG_ERROR, "sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                        DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
                         sqlite3_free(errmsg);
                     }
                 }
@@ -2803,7 +2803,7 @@ void DeRestPluginPrivate::saveDb()
                         .arg(i->useragent);
 
 
-                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+                DBG_Printf(DBG_INFO_L2, "DB sql exec %s\n", qPrintable(sql));
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -2811,7 +2811,7 @@ void DeRestPluginPrivate::saveDb()
                 {
                     if (errmsg)
                     {
-                        DBG_Printf(DBG_ERROR, "sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                        DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
                         sqlite3_free(errmsg);
                     }
                 }
@@ -2864,7 +2864,7 @@ void DeRestPluginPrivate::saveDb()
                         .arg(i.key())
                         .arg(i.value().toString());
 
-                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+                DBG_Printf(DBG_INFO_L2, "DB sql exec %s\n", qPrintable(sql));
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -2872,7 +2872,7 @@ void DeRestPluginPrivate::saveDb()
                 {
                     if (errmsg)
                     {
-                        DBG_Printf(DBG_ERROR, "sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                        DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
                         sqlite3_free(errmsg);
                     }
                 }
@@ -2896,7 +2896,7 @@ void DeRestPluginPrivate::saveDb()
                         .arg(i.key())
                         .arg(i.value().toString());
 
-                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+                DBG_Printf(DBG_INFO_L2, "DB sql exec %s\n", qPrintable(sql));
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -2904,7 +2904,7 @@ void DeRestPluginPrivate::saveDb()
                 {
                     if (errmsg)
                     {
-                        DBG_Printf(DBG_ERROR, "sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                        DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
                         sqlite3_free(errmsg);
                     }
                 }
@@ -2919,7 +2919,7 @@ void DeRestPluginPrivate::saveDb()
             QString sql = QString(QLatin1String("DELETE FROM userparameter WHERE key='%1'")).arg(key);
             gwUserParameterToDelete.pop_back();
 
-            DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+            DBG_Printf(DBG_INFO_L2, "DB sql exec %s\n", qPrintable(sql));
             errmsg = NULL;
             rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -2927,7 +2927,7 @@ void DeRestPluginPrivate::saveDb()
             {
                 if (errmsg)
                 {
-                    DBG_Printf(DBG_ERROR, "sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                    DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
                     sqlite3_free(errmsg);
                 }
             }
@@ -2957,7 +2957,7 @@ void DeRestPluginPrivate::saveDb()
                 // delete gateways from db (if exist)
                 QString sql = QString(QLatin1String("DELETE FROM gateways WHERE uuid='%1'")).arg(gw->uuid());
 
-                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+                DBG_Printf(DBG_INFO_L2, "DB sql exec %s\n", qPrintable(sql));
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -2965,7 +2965,7 @@ void DeRestPluginPrivate::saveDb()
                 {
                     if (errmsg)
                     {
-                        DBG_Printf(DBG_ERROR, "sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                        DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
                         sqlite3_free(errmsg);
                     }
                 }
@@ -3004,7 +3004,7 @@ void DeRestPluginPrivate::saveDb()
                 {
                     if (errmsg)
                     {
-                        DBG_Printf(DBG_ERROR, "sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                        DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
                         sqlite3_free(errmsg);
                     }
                 }
@@ -3042,7 +3042,7 @@ void DeRestPluginPrivate::saveDb()
                 {
                     if (errmsg)
                     {
-                        DBG_Printf(DBG_ERROR, "sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                        DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
                         sqlite3_free(errmsg);
                     }
                 }
@@ -3079,7 +3079,7 @@ void DeRestPluginPrivate::saveDb()
                     .arg(ritems);
 
 
-            DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+            DBG_Printf(DBG_INFO_L2, "DB sql exec %s\n", qPrintable(sql));
             errmsg = NULL;
             rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -3087,7 +3087,7 @@ void DeRestPluginPrivate::saveDb()
             {
                 if (errmsg)
                 {
-                    DBG_Printf(DBG_ERROR, "sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                    DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
                     sqlite3_free(errmsg);
                 }
             }
@@ -3117,7 +3117,7 @@ void DeRestPluginPrivate::saveDb()
             {
                 if (errmsg)
                 {
-                    DBG_Printf(DBG_ERROR, "sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                    DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
                     sqlite3_free(errmsg);
                 }
             }
@@ -3142,7 +3142,7 @@ void DeRestPluginPrivate::saveDb()
                 // delete scenes of this group (if exist)
                 QString sql = QString(QLatin1String("DELETE FROM scenes WHERE gid='%1'")).arg(gid);
 
-                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+                DBG_Printf(DBG_INFO_L2, "DB sql exec %s\n", qPrintable(sql));
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -3150,7 +3150,7 @@ void DeRestPluginPrivate::saveDb()
                 {
                     if (errmsg)
                     {
-                        DBG_Printf(DBG_ERROR, "sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                        DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
                         sqlite3_free(errmsg);
                     }
                 }
@@ -3161,7 +3161,7 @@ void DeRestPluginPrivate::saveDb()
                 // delete group from db (if exist)
                 QString sql = QString(QLatin1String("DELETE FROM groups WHERE gid='%1'")).arg(gid);
 
-                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+                DBG_Printf(DBG_INFO_L2, "DB sql exec %s\n", qPrintable(sql));
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -3169,7 +3169,7 @@ void DeRestPluginPrivate::saveDb()
                 {
                     if (errmsg)
                     {
-                        DBG_Printf(DBG_ERROR, "sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                        DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
                         sqlite3_free(errmsg);
                     }
                 }
@@ -3199,7 +3199,7 @@ void DeRestPluginPrivate::saveDb()
                     .arg(gclass)
                     .arg(uniqueid);
 
-            DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+            DBG_Printf(DBG_INFO_L2, "DB sql exec %s\n", qPrintable(sql));
             errmsg = NULL;
             rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -3207,7 +3207,7 @@ void DeRestPluginPrivate::saveDb()
             {
                 if (errmsg)
                 {
-                    DBG_Printf(DBG_ERROR, "sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                    DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
                     sqlite3_free(errmsg);
                 }
             }
@@ -3243,7 +3243,7 @@ void DeRestPluginPrivate::saveDb()
                             .arg(si->transitiontime())
                             .arg(lights);
                     }
-                    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+                    DBG_Printf(DBG_INFO_L2, "DB sql exec %s\n", qPrintable(sql));
                     errmsg = NULL;
                     rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -3251,7 +3251,7 @@ void DeRestPluginPrivate::saveDb()
                     {
                         if (errmsg)
                         {
-                            DBG_Printf(DBG_ERROR, "sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                            DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
                             sqlite3_free(errmsg);
                         }
                     }
@@ -3277,7 +3277,7 @@ void DeRestPluginPrivate::saveDb()
                 // delete rule from db (if exist)
                 QString sql = QString(QLatin1String("DELETE FROM rules WHERE rid='%1'")).arg(rid);
 
-                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+                DBG_Printf(DBG_INFO_L2, "DB sql exec %s\n", qPrintable(sql));
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -3285,7 +3285,7 @@ void DeRestPluginPrivate::saveDb()
                 {
                     if (errmsg)
                     {
-                        DBG_Printf(DBG_ERROR, "sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                        DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
                         sqlite3_free(errmsg);
                     }
                 }
@@ -3316,7 +3316,7 @@ void DeRestPluginPrivate::saveDb()
                     QString::number(i->triggerPeriodic()) + QLatin1String("')");
 
 
-            DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+            DBG_Printf(DBG_INFO_L2, "DB sql exec %s\n", qPrintable(sql));
             errmsg = NULL;
             rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -3324,7 +3324,7 @@ void DeRestPluginPrivate::saveDb()
             {
                 if (errmsg)
                 {
-                    DBG_Printf(DBG_ERROR, "sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                    DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
                     sqlite3_free(errmsg);
                 }
             }
@@ -3352,7 +3352,7 @@ void DeRestPluginPrivate::saveDb()
                         .arg(rl.id)
                         .arg(json);
 
-                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+                DBG_Printf(DBG_INFO_L2, "DB sql exec %s\n", qPrintable(sql));
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -3360,7 +3360,7 @@ void DeRestPluginPrivate::saveDb()
                 {
                     if (errmsg)
                     {
-                        DBG_Printf(DBG_ERROR, "sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                        DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
                         sqlite3_free(errmsg);
                     }
                 }
@@ -3369,7 +3369,7 @@ void DeRestPluginPrivate::saveDb()
             {
                 QString sql = QString(QLatin1String("DELETE FROM resourcelinks WHERE id='%1'")).arg(rl.id);
 
-                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+                DBG_Printf(DBG_INFO_L2, "DB sql exec %s\n", qPrintable(sql));
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -3377,7 +3377,7 @@ void DeRestPluginPrivate::saveDb()
                 {
                     if (errmsg)
                     {
-                        DBG_Printf(DBG_ERROR, "sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                        DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
                         sqlite3_free(errmsg);
                     }
                 }
@@ -3401,7 +3401,7 @@ void DeRestPluginPrivate::saveDb()
                         .arg(i->id)
                         .arg(i->jsonString);
 
-                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+                DBG_Printf(DBG_INFO_L2, "DB sql exec %s\n", qPrintable(sql));
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -3409,7 +3409,7 @@ void DeRestPluginPrivate::saveDb()
                 {
                     if (errmsg)
                     {
-                        DBG_Printf(DBG_ERROR, "sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                        DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
                         sqlite3_free(errmsg);
                     }
                 }
@@ -3418,7 +3418,7 @@ void DeRestPluginPrivate::saveDb()
             {
                 QString sql = QString(QLatin1String("DELETE FROM schedules WHERE id='%1'")).arg(i->id);
 
-                DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+                DBG_Printf(DBG_INFO_L2, "DB sql exec %s\n", qPrintable(sql));
                 errmsg = NULL;
                 rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -3426,7 +3426,7 @@ void DeRestPluginPrivate::saveDb()
                 {
                     if (errmsg)
                     {
-                        DBG_Printf(DBG_ERROR, "sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                        DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
                         sqlite3_free(errmsg);
                     }
                 }
@@ -3469,7 +3469,7 @@ void DeRestPluginPrivate::saveDb()
                 {
                     if (errmsg)
                     {
-                        DBG_Printf(DBG_ERROR, "sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                        DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
                         sqlite3_free(errmsg);
                     }
                 }
@@ -3496,7 +3496,7 @@ void DeRestPluginPrivate::saveDb()
                     .arg(deletedState)
                     .arg(QString::number(i->mode()));
 
-            DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+            DBG_Printf(DBG_INFO_L2, "DB sql exec %s\n", qPrintable(sql));
             errmsg = NULL;
             rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
 
@@ -3504,7 +3504,7 @@ void DeRestPluginPrivate::saveDb()
             {
                 if (errmsg)
                 {
-                    DBG_Printf(DBG_ERROR, "sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                    DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
                     sqlite3_free(errmsg);
                 }
             }
