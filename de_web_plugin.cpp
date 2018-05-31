@@ -1124,6 +1124,14 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
         if (lightNode2)
         {
+            if (lightNode2->state() == LightNode::StateDeleted)
+            {
+                if (permitJoinFlag)
+                {
+                    lightNode2->setState(LightNode::StateNormal);
+                }
+            }
+
             if (lightNode2->node() != node)
             {
                 lightNode2->setNode(const_cast<deCONZ::Node*>(node));
@@ -1327,6 +1335,14 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             openDb();
             loadLightNodeFromDb(&lightNode);
             closeDb();
+
+            if (lightNode.state() == LightNode::StateDeleted)
+            {
+                if (permitJoinFlag)
+                {
+                    lightNode.setState(LightNode::StateNormal);
+                }
+            }
 
             if (lightNode.id().isEmpty())
             {
