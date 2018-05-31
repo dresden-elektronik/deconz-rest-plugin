@@ -1102,7 +1102,10 @@ public:
     // Database interface
     void initDb();
     void checkDbUserVersion();
+    int getDbPragmaInteger(const char *sql);
+    bool setDbUserVersion(int userVersion);
     bool upgradeDbToUserVersion1();
+    bool upgradeDbToUserVersion2();
     void clearDb();
     void openDb();
     void readDb();

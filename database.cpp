@@ -18,6 +18,11 @@
 #include "gateway.h"
 #include "json.h"
 
+const char *pragmaUserVersion = "PRAGMA user_version";
+const char *pragmaPageCount = "PRAGMA page_count";
+const char *pragmaPageSize = "PRAGMA page_size";
+const char *pragmaFreeListCount = "PRAGMA freelist_count";
+
 /******************************************************************************
                     Local prototypes
 ******************************************************************************/
@@ -48,19 +53,118 @@ void DeRestPluginPrivate::initDb()
 
     if (!db)
     {
+        DBG_Printf(DBG_ERROR, "DB initDb() failed db not opened\n");
         return;
     }
 
+    DBG_Printf(DBG_INFO, "DB sqlite version %s\n", sqlite3_libversion());
+
+    int pageCount = getDbPragmaInteger(pragmaPageCount);
+    int pageSize = getDbPragmaInteger(pragmaPageSize);
+    int pageFreeListCount = getDbPragmaInteger(pragmaFreeListCount);
+    DBG_Printf(DBG_INFO, "DB file size %d bytes, free pages %d\n", pageCount * pageSize, pageFreeListCount);
+
+    checkDbUserVersion();
+}
+
+/*! Checks the sqlite 'user_version' in order to apply database schema updates.
+    Updates are applied in recursive manner to have sane upgrade paths from
+    certain versions in the field.
+ */
+void DeRestPluginPrivate::checkDbUserVersion()
+{
+    bool updated = false;
+    int userVersion = getDbPragmaInteger(pragmaUserVersion); // sqlite default is 0
+
+    if (userVersion == 0) // initial and legacy databases
+    {
+        updated = upgradeDbToUserVersion1();
+    }
+    else if (userVersion == 1)
+    {
+        updated = upgradeDbToUserVersion2();
+    }
+    else if (userVersion == 2)
+    {
+        // latest version
+    }
+    else
+    {
+        DBG_Printf(DBG_INFO, "DB database file opened with a older deCONZ version\n");
+    }
+
+    // if something was upgraded
+    if (updated)
+    {
+        checkDbUserVersion();
+    }
+}
+
+int DeRestPluginPrivate::getDbPragmaInteger(const char *sql)
+{
+    int rc;
+    int val = -1;
+    sqlite3_stmt *res = NULL;
+
+    rc = sqlite3_prepare_v2(db, sql, -1, &res, 0);
+    DBG_Assert(rc == SQLITE_OK);
+    if (rc == SQLITE_OK) { rc = sqlite3_step(res); }
+
+    DBG_Assert(rc == SQLITE_ROW);
+    if (rc == SQLITE_ROW)
+    {
+        val = sqlite3_column_int(res, 0);
+        DBG_Printf(DBG_INFO, "DB %s: %d\n", sql, val);
+    }
+
+    DBG_Assert(res != NULL);
+    if (res)
+    {
+        rc = sqlite3_finalize(res);
+        DBG_Assert(rc == SQLITE_OK);
+    }
+    return val;
+}
+
+/*! Writes database user_version to \p userVersion. */
+bool DeRestPluginPrivate::setDbUserVersion(int userVersion)
+{
     int rc;
     char *errmsg;
 
-    DBG_Printf(DBG_INFO, "DB sqlite version %s\n", sqlite3_libversion());
-    // create tables
+    DBG_Printf(DBG_INFO, "DB write sqlite user_version %d\n", userVersion);
 
+    QString sql;
+    sql.sprintf("PRAGMA user_version = %d", userVersion);
+
+    errmsg = NULL;
+    rc = sqlite3_exec(db, qPrintable(sql), NULL, NULL, &errmsg);
+
+    if (rc != SQLITE_OK)
+    {
+        if (errmsg)
+        {
+            DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", qPrintable(sql), errmsg, rc);
+            sqlite3_free(errmsg);
+        }
+        return false;
+    }
+    return true;
+}
+
+/*! Upgrades database to user_version 1. */
+bool DeRestPluginPrivate::upgradeDbToUserVersion1()
+{
+    int rc;
+    char *errmsg;
+    DBG_Printf(DBG_INFO, "DB upgrade to user_version 1\n");
+
+    // create tables
     const char *sql[] = {
         "CREATE TABLE IF NOT EXISTS auth (apikey TEXT PRIMARY KEY, devicetype TEXT)",
         "CREATE TABLE IF NOT EXISTS userparameter (key TEXT PRIMARY KEY, value TEXT)",
         "CREATE TABLE IF NOT EXISTS nodes (mac TEXT PRIMARY KEY, id TEXT, state TEXT, name TEXT, groups TEXT, endpoint TEXT, modelid TEXT, manufacturername TEXT, swbuildid TEXT)",
+        "CREATE TABLE IF NOT EXISTS config2 (key text PRIMARY KEY, value text)",
         "ALTER TABLE nodes add column id TEXT",
         "ALTER TABLE nodes add column state TEXT",
         "ALTER TABLE nodes add column groups TEXT",
@@ -95,7 +199,7 @@ void DeRestPluginPrivate::initDb()
         "ALTER TABLE rules add column periodic TEXT",
         "CREATE TABLE IF NOT EXISTS zbconf (conf TEXT)",
         NULL
-        };
+    };
 
     for (int i = 0; sql[i] != NULL; i++)
     {
@@ -106,56 +210,54 @@ void DeRestPluginPrivate::initDb()
         {
             if (errmsg)
             {
-                DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s\n", sql[i], errmsg);
+                DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", sql[i], errmsg, rc);
                 sqlite3_free(errmsg);
             }
         }
-    }   
+    }
 
-    checkDbUserVersion();
+    return setDbUserVersion(1);
 }
 
-void DeRestPluginPrivate::checkDbUserVersion()
+/*! Upgrades database to user_version 1. */
+bool DeRestPluginPrivate::upgradeDbToUserVersion2()
 {
     int rc;
-    int userVersion = -1; // unknown (sqlite default is 0)
-    sqlite3_stmt *res = NULL;
-    const char *sql = "PRAGMA user_version";
+    char *errmsg;
 
-    rc = sqlite3_prepare_v2(db, sql, -1, &res, 0);
-    DBG_Assert(rc == SQLITE_OK);
-    if (rc == SQLITE_OK) { rc = sqlite3_step(res); }
+    DBG_Printf(DBG_INFO, "DB upgrade to user_version 2\n");
+    // create tables
 
-    DBG_Assert(rc == SQLITE_ROW);
-    if (rc == SQLITE_ROW)
+    const char *sql[] = {
+        "PRAGMA foreign_keys = 1",
+        "CREATE TABLE IF NOT EXISTS devices (id INTEGER PRIMARY KEY, mac TEXT UNIQUE, timestamp INTEGER NOT NULL)",
+
+        // zcl_values: table for logging various data
+        // zcl_values.data: This field can hold anything (text,integer,blob) since sqlite supports dynamic types on per value level.
+        "CREATE TABLE IF NOT EXISTS zcl_values (id INTEGER PRIMARY KEY, device_id INTEGER REFERENCES devices(id) ON DELETE CASCADE, endpoint INTEGER NOT NULL, cluster INTEGER NOT NULL, attribute INTEGER NOT NULL, data INTEGER NOT NULL, timestamp INTEGER NOT NULL)",
+        NULL
+    };
+
+    for (int i = 0; sql[i] != NULL; i++)
     {
-        userVersion = sqlite3_column_int(res, 0);
-        DBG_Printf(DBG_INFO, "DB user_version: %d\n", userVersion);
+        errmsg = NULL;
+        rc = sqlite3_exec(db, sql[i], NULL, NULL, &errmsg);
+
+        if (rc != SQLITE_OK)
+        {
+            if (errmsg)
+            {
+                DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", sql[i], errmsg, rc);
+                sqlite3_free(errmsg);
+            }
+            return false;
+        }
     }
 
-    DBG_Assert(res != NULL);
-    if (res)
-    {
-        rc = sqlite3_finalize(res);
-        DBG_Assert(rc == SQLITE_OK);
-    }
-
-    bool updated = false;
-    if (userVersion == 0)
-    {
-        updated = upgradeDbToUserVersion1();
-    }
-
-    // if something was upgraded
-    if (updated)
-    {
-        checkDbUserVersion();
-    }
+    return setDbUserVersion(2);
 }
 
-bool DeRestPluginPrivate::upgradeDbToUserVersion1()
 {
-    return false;
 }
 
 /*! Clears all content of tables of db except auth table
@@ -2860,7 +2962,9 @@ void DeRestPluginPrivate::saveDb()
         {
             if (i->canConvert(QVariant::String))
             {
-                QString sql = QString(QLatin1String("REPLACE INTO config2 (key, value) VALUES ('%1', '%2')"))
+                QString sql = QString(QLatin1String(
+                                          "UPDATE config2 SET value = '%2' WHERE key = '%1';"
+                                          "INSERT INTO config2 (key, value) SELECT '%1', '%2' WHERE (SELECT changes() = 0);"))
                         .arg(i.key())
                         .arg(i.value().toString());
 
