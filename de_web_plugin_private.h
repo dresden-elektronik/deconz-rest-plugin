@@ -1106,6 +1106,8 @@ public:
     bool setDbUserVersion(int userVersion);
     bool upgradeDbToUserVersion1();
     bool upgradeDbToUserVersion2();
+    void refreshDeviceDb(quint64 extAddress);
+    void pushZclValueDb(quint64 extAddress, quint8 endpoint, quint16 clusterId, quint16 attributeId, qint64 data);
     void clearDb();
     void openDb();
     void readDb();
@@ -1142,6 +1144,7 @@ public:
     std::vector<int> lightIds;
     std::vector<int> sensorIds;
     std::vector<QString> dbQueryQueue;
+    qint64 dbZclValueMaxAge;
     QTimer *databaseTimer;
     QString emptyString;
 

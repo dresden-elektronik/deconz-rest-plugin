@@ -257,7 +257,59 @@ bool DeRestPluginPrivate::upgradeDbToUserVersion2()
     return setDbUserVersion(2);
 }
 
+/*! Puts a new top level device entry in the db (mac address) or refreshes and existing timestamp.
+    The timestamp is used to keep track of ghost/replaced/removed devices.
+*/
+void DeRestPluginPrivate::refreshDeviceDb(quint64 extAddress)
 {
+    QString sql = QString(QLatin1String(
+                              "UPDATE devices SET timestamp = strftime('%s','now') WHERE mac = '%1';"
+                              "INSERT INTO devices (mac,timestamp) SELECT '%1', strftime('%s','now') WHERE (SELECT changes() = 0);"))
+            .arg(generateUniqueId(extAddress, 0, 0));
+    dbQueryQueue.push_back(sql);
+
+    queSaveDb(DB_QUERY_QUEUE, DB_SHORT_SAVE_DELAY);
+}
+
+/*! Push a zcl value sample in the database to keep track of value history.
+    The data might be a sensor reading or light state or any ZCL value.
+  */
+void DeRestPluginPrivate::pushZclValueDb(quint64 extAddress, quint8 endpoint, quint16 clusterId, quint16 attributeId, qint64 data)
+{
+    /*
+
+    select mac, printf('0x%04X', cluster), data, datetime(zcl_values.timestamp,'unixepoch','localtime')
+    from zcl_values inner join devices ON zcl_values.device_id = devices.id
+    where zcl_values.timestamp > strftime('%s','now') - 300;
+
+    */
+    qint64 now = QDateTime::currentMSecsSinceEpoch() / 1000;
+    QString sql = QString(QLatin1String(
+                              "INSERT INTO zcl_values (device_id,endpoint,cluster,attribute,data,timestamp) "
+                              "SELECT id, %2, %3, %4, %5, %6 "
+                              "FROM devices WHERE mac = '%1'"))
+            .arg(generateUniqueId(extAddress, 0, 0))
+            .arg(endpoint)
+            .arg(clusterId)
+            .arg(attributeId)
+            .arg(data)
+            .arg(now);
+
+    dbQueryQueue.push_back(sql);
+    queSaveDb(DB_QUERY_QUEUE, (dbQueryQueue.size() > 30) ? DB_SHORT_SAVE_DELAY : DB_LONG_SAVE_DELAY);
+
+    // add a cleanup command if not already queued
+    for (const QString &q : dbQueryQueue)
+    {
+        if (q.startsWith(QLatin1String("DELETE FROM zcl_values")))
+        {
+            return; // already queued
+        }
+    }
+
+    sql = QString(QLatin1String("DELETE FROM zcl_values WHERE timestamp < %1")).arg(now - dbZclValueMaxAge);
+    dbQueryQueue.push_back(sql);
+
 }
 
 /*! Clears all content of tables of db except auth table
@@ -768,6 +820,16 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
             d->gwSwUpdateState = val;
         }
     }
+    else if (strcmp(colval[0], "zclvaluemaxage") == 0)
+    {
+        qint64 maxAge = val.toLongLong(&ok);
+        if (!val.isEmpty() && ok)
+        {
+            d->gwConfig["zclvaluemaxage"] = maxAge;
+            d->dbZclValueMaxAge = maxAge;
+        }
+    }
+
     return 0;
 }
 
@@ -2954,6 +3016,7 @@ void DeRestPluginPrivate::saveDb()
         gwConfig["websocketnotifyall"] = gwWebSocketNotifyAll;
         gwConfig["proxyaddress"] = gwProxyAddress;
         gwConfig["proxyport"] = gwProxyPort;
+        gwConfig["zclvaluemaxage"] = dbZclValueMaxAge;
 
         QVariantMap::iterator i = gwConfig.begin();
         QVariantMap::iterator end = gwConfig.end();

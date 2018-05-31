@@ -211,6 +211,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     db = 0;
     saveDatabaseItems = 0;
     saveDatabaseIdleTotalCounter = 0;
+    dbZclValueMaxAge = 60 * 60; // 1 hour
     sqliteDatabaseName = dataPath + QLatin1String("/zll.db");
 
     idleLimit = 0;
@@ -4225,6 +4226,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
                                     i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
                                 }
 
                                 ResourceItem *item = i->item(RConfigBattery);
@@ -4263,6 +4265,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
                                     i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
                                 }
 
                                 ResourceItem *item = i->item(RStateLowBattery);
@@ -4291,11 +4294,19 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                     {
                         for (;ia != enda; ++ia)
                         {
+                            if (std::find(event.attributeIds().begin(),
+                                          event.attributeIds().end(),
+                                          ia->id()) == event.attributeIds().end())
+                            {
+                                continue;
+                            }
+
                             if (ia->id() == 0x0000) // measured illuminance (lux)
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
                                     i->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
+                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u16);
                                 }
 
                                 updateSensorLightLevel(*i, ia->numericValue().u16); // ZigBee uses a 16-bit measured value
@@ -4312,6 +4323,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
                                     i->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
+                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().s16);
                                 }
 
                                 int temp = ia->numericValue().s16;
@@ -4345,6 +4357,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
                                     i->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
+                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u16);
                                 }
 
                                 int humidity = ia->numericValue().u16;
@@ -4373,6 +4386,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
                                     i->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
+                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().s16);
                                 }
 
                                 qint16 pressure = ia->numericValue().s16;
@@ -4408,6 +4422,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
                                     i->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
+                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
                                 }
 
                                 const NodeValue &val = i->getZclValue(event.clusterId(), 0x0000);
@@ -4564,6 +4579,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
                                     i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
                                 }
 
                                 ResourceItem *item = i->item(RStateOpen);
@@ -4836,6 +4852,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
                                     i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u16);
                                 }
 
                                 qint32 buttonevent = -1;
@@ -4916,6 +4933,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
                                     i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u64);
                                 }
 
                                 quint64 consumption = ia->numericValue().u64;
@@ -4938,6 +4956,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
                                     i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().s32);
                                 }
 
                                 qint32 power = ia->numericValue().s32;
@@ -4982,6 +5001,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
                                     i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().s16);
                                 }
 
                                 qint16 power = ia->numericValue().s16;
@@ -5007,6 +5027,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
                                     i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u16);
                                 }
 
                                 quint16 voltage = ia->numericValue().u16;
@@ -5028,6 +5049,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
                                     i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u16);
                                 }
 
                                 quint16 current = ia->numericValue().u16;
@@ -8047,6 +8069,10 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         if (queryTime.secsTo(now) < 20)
         {
             queryTime = now.addSecs(20);
+        }
+        if (event.node() && event.node()->address().hasExt())
+        {
+            refreshDeviceDb(event.node()->address().ext());
         }
         addLightNode(event.node());
         addSensorNode(event.node());
@@ -12470,12 +12496,18 @@ QString DeRestPluginPrivate::generateUniqueId(quint64 extAddress, quint8 endpoin
                     a.bytes[3], a.bytes[2], a.bytes[1], a.bytes[0],
                     endpoint, clusterId);
     }
-    else
+    else if (endpoint != 0)
     {
         uid.sprintf("%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x-%02x",
                     a.bytes[7], a.bytes[6], a.bytes[5], a.bytes[4],
                     a.bytes[3], a.bytes[2], a.bytes[1], a.bytes[0],
                     endpoint);
+    }
+    else
+    {
+        uid.sprintf("%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
+                    a.bytes[7], a.bytes[6], a.bytes[5], a.bytes[4],
+                    a.bytes[3], a.bytes[2], a.bytes[1], a.bytes[0]);
     }
     return uid;
 }
