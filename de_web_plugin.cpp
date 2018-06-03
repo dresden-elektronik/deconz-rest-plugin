@@ -7369,6 +7369,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     }
 
     // TODO: update light state for lumi.ctrl_ln2.  onOff -> enpoint 01; onOff2 -> endpoint 02.
+    Q_UNUSED(onOff2); // silence compiler warning
 
     for (Sensor &sensor : sensors)
     {
