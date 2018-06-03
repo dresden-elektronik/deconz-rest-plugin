@@ -4130,6 +4130,16 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             case ELECTRICAL_MEASUREMENT_CLUSTER_ID:
                 break;
 
+            case VENDOR_CLUSTER_ID:
+            {
+                // ubisys device management (UBISYS_DEVICE_SETUP_CLUSTER_ID)
+                if (event.endpoint() == 0xE8 && (event.node()->address().ext() & macPrefixMask) == ubisysMacPrefix)
+                {
+                    break;
+                }
+            }
+                continue; // ignore
+
             default:
                 continue; // don't process further
             }
@@ -4140,7 +4150,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
         }
 
 
-        if (event.clusterId() != BASIC_CLUSTER_ID && event.clusterId() != POWER_CONFIGURATION_CLUSTER_ID)
+        if (event.clusterId() != BASIC_CLUSTER_ID && event.clusterId() != POWER_CONFIGURATION_CLUSTER_ID && event.clusterId() != VENDOR_CLUSTER_ID)
         {
             // filter endpoint
             if (event.endpoint() != i->fingerPrint().endpoint)
@@ -5073,6 +5083,31 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             i->setNeedSaveDatabase(true);
                             enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
                             updateSensorEtag(&*i);
+                        }
+                    }
+                    else if (event.clusterId() == UBISYS_DEVICE_SETUP_CLUSTER_ID && event.endpoint() == 0xE8 &&
+                             (event.node()->address().ext() & macPrefixMask) == ubisysMacPrefix) // ubisys device management
+                    {
+//                        bool updated = false;
+                        for (;ia != enda; ++ia)
+                        {
+                            if (std::find(event.attributeIds().begin(),
+                                          event.attributeIds().end(),
+                                          ia->id()) == event.attributeIds().end())
+                            {
+                                continue;
+                            }
+
+                            if (ia->id() == 0x0000 && ia->dataType() == deCONZ::ZclArray) // Input configurations
+                            {
+                                QByteArray arr = ia->toVariant().toByteArray();
+                                qDebug() << arr.toHex();
+                            }
+                            else if (ia->id() == 0x0001 && ia->dataType() == deCONZ::ZclArray) // Input actions
+                            {
+                                QByteArray arr = ia->toVariant().toByteArray();
+                                qDebug() << arr.toHex();
+                            }
                         }
                     }
                 }
@@ -8138,6 +8173,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         case MULTISTATE_INPUT_CLUSTER_ID:
         case METERING_CLUSTER_ID:
         case ELECTRICAL_MEASUREMENT_CLUSTER_ID:
+        case VENDOR_CLUSTER_ID:
             {
                 addSensorNode(event.node(), &event);
                 updateSensorNode(event);

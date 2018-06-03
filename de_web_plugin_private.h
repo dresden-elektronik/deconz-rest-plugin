@@ -172,6 +172,7 @@
 #define COMMISSIONING_CLUSTER_ID              0x1000
 #define DE_CLUSTER_ID                         0xFC00
 #define VENDOR_CLUSTER_ID                     0xFC00
+#define UBISYS_DEVICE_SETUP_CLUSTER_ID        0xFC00
 
 #define GREEN_POWER_ENDPOINT 0xf2
 
