@@ -5108,6 +5108,11 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 QByteArray arr = ia->toVariant().toByteArray();
                                 qDebug() << arr.toHex();
                             }
+
+                            if (i->modelId().startsWith(QLatin1String("C4")))
+                            {
+                                processUbisysC4Configuration(&*i);
+                            }
                         }
                     }
                 }
