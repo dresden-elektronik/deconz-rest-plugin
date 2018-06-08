@@ -2008,6 +2008,113 @@ void DeRestPluginPrivate::processUbisysBinding(Sensor *sensor, const Binding &bn
     }
 }
 
+void DeRestPluginPrivate::processUbisysC4Configuration(Sensor *sensor)
+{
+    DBG_Assert(sensor);
+    if (!sensor)
+    {
+        return;
+    }
+
+    DBG_Assert(sensor->node());
+    if (!sensor->node())
+    {
+        return;
+    }
+
+    // device management endpoint
+    const deCONZ::SimpleDescriptor *sd = sensor->node()->getSimpleDescriptor(0xE8);
+    DBG_Assert(sd);
+    if (!sd)
+    {
+        return;
+    }
+
+    const deCONZ::ZclCluster *cl = 0;
+    for (const auto &c : sd->inClusters())
+    {
+        if (c.id() == UBISYS_DEVICE_SETUP_CLUSTER_ID)
+        {
+            cl = &c;
+            break;
+        }
+    }
+
+    DBG_Assert(cl);
+    if (!cl)
+    {
+        return;
+    }
+
+    const deCONZ::ZclAttribute *attr1 = 0;
+    for (const auto &a : cl->attributes())
+    {
+        if (a.id() == 0x0001) //
+        {
+            attr1 = &a;
+            break;
+        }
+    }
+
+    DBG_Assert(cl);
+    if (!attr1)
+    {
+        return;
+    }
+
+    ResourceItem *item = 0;
+
+    item = sensor->item(RConfigMode);
+    DBG_Assert(item);
+    if (!item)
+    {
+        return;
+    }
+
+    deCONZ::ApsDataRequest req;
+    req.setProfileId(HA_PROFILE_ID);
+    req.setClusterId(UBISYS_DEVICE_SETUP_CLUSTER_ID);
+    req.setDstAddressMode(deCONZ::ApsExtAddress);
+    req.dstAddress() = sensor->address();
+    req.setDstEndpoint(0xE8);
+    req.setSrcEndpoint(endpoint());
+
+    deCONZ::ZclFrame zclFrame;
+    zclFrame.setSequenceNumber(zclSeq++);
+    zclFrame.setCommandId(deCONZ::ZclWriteAttributesStructuredId);
+    //zclFrame.setManufacturerCode(VENDOR_UBISYS);
+
+    {
+        QDataStream stream(&zclFrame.payload(), QIODevice::ReadWrite);
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        if (item->toString() == QLatin1String("momentary"))
+        {
+            // write attribute record 1
+            stream << (quint16)0x0001; // attribute id
+            stream << (quint8)0x01; // selector: indicator 1
+            stream << (quint8)0x01; // selector: index #1
+            stream << (quint8)0x41; // attribute datatype: octed string
+            stream << (quint8)0x06; // length: 6
+            stream << (quint8)0x00; // InputAndOptions: 0x00
+            stream << (quint8)0x0D; // transition: released -> pressed
+            stream << (quint8)0x01; // source endpoint: 0x01
+            stream << (quint16)0x0006; // cluster id: on/off
+            stream << (quint8)0x02; // ZCL command template: toggle
+        }
+    }
+
+    QDataStream stream(&req.asdu(), QIODevice::ReadWrite);
+    stream.setByteOrder(QDataStream::LittleEndian);
+    zclFrame.writeToStream(stream);
+
+    if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
+    {
+
+    }
+
+}
+
 /*! Process binding related tasks queue every one second. */
 void DeRestPluginPrivate::bindingTimerFired()
 {

@@ -218,29 +218,14 @@ bool LightNode::hasColor() const
  */
 uint16_t LightNode::level() const
 {
-    switch (m_haEndpoint.deviceId())
+    const ResourceItem *it = item(RStateBri);
+
+    if (!it)
     {
-    case DEV_ID_MAINS_POWER_OUTLET:
-    case DEV_ID_HA_ONOFF_LIGHT:
-//#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
-        if (m_haEndpoint.profileId() == ZLL_PROFILE_ID)
-        {
-            // don't clash with DEV_ID_ZLL_DIMMABLE_LIGHT
-            break;
-        }
-    case DEV_ID_ZLL_ONOFF_LIGHT:
-    case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:
-    case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:
-    {
-        const ResourceItem *it = item(RStateOn);
+        it = item(RStateOn);
         return (it && it->toBool() ? 254 : 0);
     }
 
-    default:
-        break;
-    }
-
-    const ResourceItem *it = item(RStateBri);
     return it ? it->toNumber() : 0;
 }
 
@@ -507,6 +492,9 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                     case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT:
                     case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT: // fall through
                     {
+                        addItem(DataTypeUInt16, RConfigColorCapabilities);
+                        addItem(DataTypeUInt16, RConfigCtMin);
+                        addItem(DataTypeUInt16, RConfigCtMax);
                         addItem(DataTypeUInt16, RStateCt);
 
                         if (haEndpoint().deviceId() == DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT ||

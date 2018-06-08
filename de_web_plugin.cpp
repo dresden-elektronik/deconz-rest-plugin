@@ -1806,8 +1806,20 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                     else if (ia->id() == 0x0008 || ia->id() == 0x4001) // color mode | enhanced color mode
                     {
                         uint8_t cm = ia->numericValue().u8;
+                        {
+                            ResourceItem *item = lightNode->item(RConfigColorCapabilities);
+                            if (item && item->toNumber() > 0)
+                            {
+                                quint16 cap = item->toNumber();
+                                if (cap == 0x0010 && cm != 2) // color temperature only light
+                                {
+                                    cm = 2; // fix unsupported color modes (IKEA ct light)
+                                }
+                            }
+                        }
 
                         const char *modes[4] = {"hs", "xy", "ct", "hs"};
+
                         if (cm < 4)
                         {
                             ResourceItem *item = lightNode->item(RStateColorMode);
@@ -1847,6 +1859,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         DBG_Assert(item != 0);
                         if (item && item->toNumber() != cap)
                         {
+                            lightNode->setNeedSaveDatabase(true);
                             item->setValue(cap);
                             Event e(RLights, RConfigColorCapabilities, lightNode->id(), item);
                             enqueueEvent(e);
@@ -1861,6 +1874,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         if (item && item->toNumber() != cap)
                         {
                             item->setValue(cap);
+                            lightNode->setNeedSaveDatabase(true);
                             Event e(RLights, RConfigCtMin, lightNode->id(), item);
                             enqueueEvent(e);
                             updated = true;
@@ -1874,6 +1888,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         if (item && item->toNumber() != cap)
                         {
                             item->setValue(cap);
+                            lightNode->setNeedSaveDatabase(true);
                             Event e(RLights, RConfigCtMax, lightNode->id(), item);
                             enqueueEvent(e);
                             updated = true;
@@ -4134,6 +4149,16 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             case ELECTRICAL_MEASUREMENT_CLUSTER_ID:
                 break;
 
+            case VENDOR_CLUSTER_ID:
+            {
+                // ubisys device management (UBISYS_DEVICE_SETUP_CLUSTER_ID)
+                if (event.endpoint() == 0xE8 && (event.node()->address().ext() & macPrefixMask) == ubisysMacPrefix)
+                {
+                    break;
+                }
+            }
+                continue; // ignore
+
             default:
                 continue; // don't process further
             }
@@ -4144,7 +4169,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
         }
 
 
-        if (event.clusterId() != BASIC_CLUSTER_ID && event.clusterId() != POWER_CONFIGURATION_CLUSTER_ID)
+        if (event.clusterId() != BASIC_CLUSTER_ID && event.clusterId() != POWER_CONFIGURATION_CLUSTER_ID && event.clusterId() != VENDOR_CLUSTER_ID)
         {
             // filter endpoint
             if (event.endpoint() != i->fingerPrint().endpoint)
@@ -5081,6 +5106,36 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             i->setNeedSaveDatabase(true);
                             enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
                             updateSensorEtag(&*i);
+                        }
+                    }
+                    else if (event.clusterId() == UBISYS_DEVICE_SETUP_CLUSTER_ID && event.endpoint() == 0xE8 &&
+                             (event.node()->address().ext() & macPrefixMask) == ubisysMacPrefix) // ubisys device management
+                    {
+//                        bool updated = false;
+                        for (;ia != enda; ++ia)
+                        {
+                            if (std::find(event.attributeIds().begin(),
+                                          event.attributeIds().end(),
+                                          ia->id()) == event.attributeIds().end())
+                            {
+                                continue;
+                            }
+
+                            if (ia->id() == 0x0000 && ia->dataType() == deCONZ::ZclArray) // Input configurations
+                            {
+                                QByteArray arr = ia->toVariant().toByteArray();
+                                qDebug() << arr.toHex();
+                            }
+                            else if (ia->id() == 0x0001 && ia->dataType() == deCONZ::ZclArray) // Input actions
+                            {
+                                QByteArray arr = ia->toVariant().toByteArray();
+                                qDebug() << arr.toHex();
+                            }
+
+                            if (i->modelId().startsWith(QLatin1String("C4")))
+                            {
+                                processUbisysC4Configuration(&*i);
+                            }
                         }
                     }
                 }
@@ -7378,6 +7433,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     }
 
     // TODO: update light state for lumi.ctrl_ln2.  onOff -> enpoint 01; onOff2 -> endpoint 02.
+    Q_UNUSED(onOff2); // silence compiler warning
 
     for (Sensor &sensor : sensors)
     {
@@ -8146,6 +8202,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         case MULTISTATE_INPUT_CLUSTER_ID:
         case METERING_CLUSTER_ID:
         case ELECTRICAL_MEASUREMENT_CLUSTER_ID:
+        case VENDOR_CLUSTER_ID:
             {
                 addSensorNode(event.node(), &event);
                 updateSensorNode(event);
