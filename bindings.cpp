@@ -907,42 +907,82 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     }
     else if (bt.binding.clusterId == METERING_CLUSTER_ID)
     {
+        Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
+
         rq.dataType = deCONZ::Zcl48BitUint;
         rq.attributeId = 0x0000; // Curent Summation Delivered
         rq.minInterval = 1;
         rq.maxInterval = 300;
-        rq.reportableChange48bit = 10; // 0.01 kWh
+        if (sensor && sensor->modelId() == QLatin1String("SmartPlug")) // Heiman
+        {
+            rq.reportableChange48bit = 10; // 0.001 kWh (1 Wh)
+        }
+        else
+        {
+            rq.reportableChange48bit = 1; // 0.001 kWh (1 Wh)
+        }
 
         ConfigureReportingRequest rq2;
         rq2.dataType = deCONZ::Zcl24BitInt;
         rq2.attributeId = 0x0400; // Instantaneous Demand
         rq2.minInterval = 1;
         rq2.maxInterval = 300;
-        rq2.reportableChange24bit = 10; // 1 W
+        if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") || // Heiman
+                       sensor->modelId() == QLatin1String("902010/25"))) // Bitron
+        {
+            rq2.reportableChange24bit = 10; // 1 W
+        }
+        else
+        {
+            rq2.reportableChange24bit = 1; // 1 W
+        }
 
         return sendConfigureReportingRequest(bt, {rq, rq2});
     }
     else if (bt.binding.clusterId == ELECTRICAL_MEASUREMENT_CLUSTER_ID)
     {
+        Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
+
         rq.dataType = deCONZ::Zcl16BitInt;
         rq.attributeId = 0x050B; // Active power
         rq.minInterval = 1;
         rq.maxInterval = 300;
-        rq.reportableChange16bit = 10; // 1 W
+        if (sensor && sensor->modelId() == QLatin1String("SmartPlug")) // Heiman
+        {
+            rq.reportableChange16bit = 10; // 1 W
+        }
+        else
+        {
+            rq.reportableChange16bit = 1; // 1 W
+        }
 
         ConfigureReportingRequest rq2;
         rq2.dataType = deCONZ::Zcl16BitUint;
         rq2.attributeId = 0x0505; // RMS Voltage
         rq2.minInterval = 1;
         rq2.maxInterval = 300;
-        rq2.reportableChange16bit = 100; // 1 V
+        if (sensor && sensor->modelId() == QLatin1String("SmartPlug")) // Heiman
+        {
+            rq2.reportableChange16bit = 100; // 1 V
+        }
+        else
+        {
+            rq2.reportableChange16bit = 1; // 1 V
+        }
 
         ConfigureReportingRequest rq3;
         rq3.dataType = deCONZ::Zcl16BitUint;
         rq3.attributeId = 0x0508; // RMS Current
         rq3.minInterval = 1;
         rq3.maxInterval = 300;
-        rq3.reportableChange16bit = 1; // 0.1 A
+        if (sensor && sensor->modelId() == QLatin1String("SP 120")) // innr
+        {
+            rq3.reportableChange16bit = 100; // 0.1 A
+        }
+        else
+        {
+            rq3.reportableChange16bit = 1; // 0.1 A
+        }
 
         return sendConfigureReportingRequest(bt, {rq, rq2, rq3});
     }
@@ -1110,6 +1150,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturerCode() == VENDOR_XAL)
         {
         }
+        else if (lightNode->modelId() == QLatin1String("SP 120"))
+        {
+        }
         else
         {
             return;
@@ -1250,6 +1293,8 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("TRADFRI")) ||
         // Keen Home
         sensor->modelId().startsWith(QLatin1String("SV01-61")) ||
+        // innr
+        sensor->modelId() == QLatin1String("SP 120") ||
         // Heiman
         sensor->modelId().startsWith(QLatin1String("SmartPlug")) ||
         sensor->modelId().startsWith(QLatin1String("CO_")) ||

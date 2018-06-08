@@ -144,6 +144,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_120B, "WarningDevice", emberMacPrefix }, // Heiman siren
     { VENDOR_LUTRON, "LZL4BWHL01", lutronMacPrefix }, // Lutron LZL-4B-WH-L01 Connected Bulb Remote
     { VENDOR_KEEN_HOME , "SV01-610-MP", keenhomeMacPrefix}, // Keen Home Vent
+    { VENDOR_INNR, "SP 120", jennicMacPrefix}, // innr smart plug
     { 0, 0, 0 }
 };
 
@@ -3509,7 +3510,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = METERING_CLUSTER_ID;
             item = sensorNode.addItem(DataTypeUInt64, RStateConsumption);
-            item = sensorNode.addItem(DataTypeInt16, RStatePower);
+            if (modelId != QLatin1String("SP 120"))
+            {
+                item = sensorNode.addItem(DataTypeInt16, RStatePower);
+            }
         }
         else if (sensorNode.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))
         {
@@ -5057,7 +5061,11 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 if (item && current != 65535)
                                 {
-                                    if (i->modelId() != QLatin1String("SmartPlug")) // Heiman
+                                    if (i->modelId() == QLatin1String("SP 120")) // innr
+                                    {
+                                        current += 50; current /= 100; // 0.001A -> 0.1A
+                                    }
+                                    else if (i->modelId() != QLatin1String("SmartPlug")) // Heiman
                                     {
                                         current *= 10; // A -> 0.1A
                                     }
@@ -7115,7 +7123,8 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
     else if (macPrefix == philipsMacPrefix ||
              macPrefix == tiMacPrefix ||
              macPrefix == ikeaMacPrefix ||
-             macPrefix == heimanMacPrefix)
+             macPrefix == heimanMacPrefix ||
+             macPrefix == jennicMacPrefix )
     {
         // these sensors tend to mac data poll after report
         checkReporting = true;

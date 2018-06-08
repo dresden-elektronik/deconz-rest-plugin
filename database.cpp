@@ -2259,8 +2259,11 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (sensor.fingerPrint().hasInCluster(METERING_CLUSTER_ID))
             {
                 clusterId = METERING_CLUSTER_ID;
-                item = sensor.addItem(DataTypeInt16, RStatePower);
-                item->setValue(0);
+                if (sensor.modelId() != QLatin1String("SP 120"))
+                {
+                    item = sensor.addItem(DataTypeInt16, RStatePower);
+                    item->setValue(0);
+                }
             }
             else if (sensor.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))
             {
