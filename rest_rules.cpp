@@ -1291,9 +1291,9 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
                 return false;
             }
 
-            if (item == eItem && e.numPrevious() >= e.num())
+            if (item == eItem && e.numPrevious() > c->numericValue())
             {
-                return false; // must become >=
+                return false; // must become >
             }
         }
         else if (c->op() == RuleCondition::OpLowerThan)
@@ -1303,9 +1303,9 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
                 return false;
             }
 
-            if (item == eItem && e.numPrevious() <= e.num())
+            if (item == eItem && e.numPrevious() < c->numericValue())
             {
-                return false; // must become <=
+                return false; // must become <
             }
         }
         else if (c->op() == RuleCondition::OpDx)
