@@ -492,6 +492,9 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                     case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT:
                     case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT: // fall through
                     {
+                        addItem(DataTypeUInt16, RConfigColorCapabilities);
+                        addItem(DataTypeUInt16, RConfigCtMin);
+                        addItem(DataTypeUInt16, RConfigCtMax);
                         addItem(DataTypeUInt16, RStateCt);
 
                         if (haEndpoint().deviceId() == DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT ||

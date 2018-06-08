@@ -1013,7 +1013,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 rspItemState[QString("/lights/%1/state/ct").arg(id)] = map["ct"];
                 rspItem["success"] = rspItemState;
                 rsp.list.append(rspItem);
-                taskToLocalData(task);
+                if (task.taskType == TaskSetColorTemperature)
+                {
+                    taskToLocalData(task); // get through reading
+                }
             }
             else
             {

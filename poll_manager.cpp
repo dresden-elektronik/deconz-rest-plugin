@@ -250,7 +250,7 @@ void PollManager::pollTimerFired()
         clusterId = COLOR_CLUSTER_ID;
         item = r->item(RConfigColorCapabilities);
 
-        if (!item)
+        if (!item || item->toNumber() <= 0)
         {
             attributes.push_back(0x0008); // color mode
             attributes.push_back(0x4001); // enhanced color mode

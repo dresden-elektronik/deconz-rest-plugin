@@ -1805,8 +1805,20 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                     else if (ia->id() == 0x0008 || ia->id() == 0x4001) // color mode | enhanced color mode
                     {
                         uint8_t cm = ia->numericValue().u8;
+                        {
+                            ResourceItem *item = lightNode->item(RConfigColorCapabilities);
+                            if (item && item->toNumber() > 0)
+                            {
+                                quint16 cap = item->toNumber();
+                                if (cap == 0x0010 && cm != 2) // color temperature only light
+                                {
+                                    cm = 2; // fix unsupported color modes (IKEA ct light)
+                                }
+                            }
+                        }
 
                         const char *modes[4] = {"hs", "xy", "ct", "hs"};
+
                         if (cm < 4)
                         {
                             ResourceItem *item = lightNode->item(RStateColorMode);
@@ -1846,6 +1858,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         DBG_Assert(item != 0);
                         if (item && item->toNumber() != cap)
                         {
+                            lightNode->setNeedSaveDatabase(true);
                             item->setValue(cap);
                             Event e(RLights, RConfigColorCapabilities, lightNode->id(), item);
                             enqueueEvent(e);
@@ -1860,6 +1873,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         if (item && item->toNumber() != cap)
                         {
                             item->setValue(cap);
+                            lightNode->setNeedSaveDatabase(true);
                             Event e(RLights, RConfigCtMin, lightNode->id(), item);
                             enqueueEvent(e);
                             updated = true;
@@ -1873,6 +1887,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         if (item && item->toNumber() != cap)
                         {
                             item->setValue(cap);
+                            lightNode->setNeedSaveDatabase(true);
                             Event e(RLights, RConfigCtMax, lightNode->id(), item);
                             enqueueEvent(e);
                             updated = true;

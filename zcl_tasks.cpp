@@ -354,7 +354,34 @@ bool DeRestPluginPrivate::addTaskSetColorTemperature(TaskItem &task, uint16_t ct
 
     if (task.lightNode)
     {
+        ResourceItem *ctMin = task.lightNode->item(RConfigCtMin);
+        ResourceItem *ctMax = task.lightNode->item(RConfigCtMax);
+
+        // keep ct in supported bounds
+        if (ctMin && ctMax && ctMin->toNumber() > 0 && ctMax->toNumber() > 0)
+        {
+            if      (ct < ctMin->toNumber()) { ct = ctMin->toNumber(); }
+            else if (ct > ctMax->toNumber()) { ct = ctMax->toNumber(); }
+        }
+
         task.lightNode->setColorMode("ct");
+
+        // workaround IKEA move to color temperature is broken and won't update x,y values
+        // which results in broken scenes
+        // instead transform into a move to color x,y task
+        if ((task.lightNode->address().ext() & macPrefixMask) == ikeaMacPrefix)
+        {
+            quint16 x;
+            quint16 y;
+            MiredColorTemperatureToXY(ct, &x, &y);
+            qreal xr = x / 65279.0f;
+            qreal yr = y / 65279.0f;
+            if      (xr < 0) { xr = 0; }
+            else if (xr > 1) { xr = 1; }
+            if      (yr < 0) { yr = 0; }
+            else if (yr > 1) { yr = 1; }
+            return addTaskSetXyColor(task, xr, yr);
+        }
     }
 
     task.req.setClusterId(COLOR_CLUSTER_ID);
@@ -1184,7 +1211,7 @@ bool DeRestPluginPrivate::addTaskAddScene(TaskItem &task, uint16_t groupId, uint
                             !task.lightNode->modelId().startsWith(QLatin1String("FLS-PP3"))) // color in add scene not supported well
                     {
                         stream << (uint16_t)0x0300; // color cluster
-                        stream << (uint8_t)11;
+                        stream << (uint8_t)11; // size
                         if (l->colorMode() == QLatin1String("xy"))
                         {
                             stream << l->x();
@@ -1211,6 +1238,9 @@ bool DeRestPluginPrivate::addTaskAddScene(TaskItem &task, uint16_t groupId, uint
                         else if (l->colorMode() == QLatin1String("ct"))
                         {
                             quint16 x,y;
+                            ResourceItem *ctMin = task.lightNode->item(RConfigCtMin);
+                            ResourceItem *ctMax = task.lightNode->item(RConfigCtMax);
+
                             if (task.lightNode->modelId().startsWith(QLatin1String("FLS-H")))
                             {
                                 // quirks mode FLS-H stores color temperature in x
@@ -1231,7 +1261,14 @@ bool DeRestPluginPrivate::addTaskAddScene(TaskItem &task, uint16_t groupId, uint
                             }
                             else
                             {
-                                MiredColorTemperatureToXY(l->colorTemperature(), &x, &y);
+                                quint16 ct = l->colorTemperature();
+                                if (ctMin && ctMax && ctMin->toNumber() > 0 && ctMax->toNumber() > 0)
+                                {
+                                    if      (ct < ctMin->toNumber()) { ct = ctMin->toNumber(); }
+                                    else if (ct > ctMax->toNumber()) { ct = ctMax->toNumber(); }
+                                }
+
+                                MiredColorTemperatureToXY(ct, &x, &y);
                             }
 
                             // view scene command will be used to verify x, y values
