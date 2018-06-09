@@ -4811,7 +4811,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                     {
                         for (;ia != enda; ++ia)
                         {
-                            if (ia->id() == 0x0055) // measured value
+                            if (ia->id() == 0x0055) // present value
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
@@ -4876,7 +4876,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                     {
                         for (;ia != enda; ++ia)
                         {
-                            if (ia->id() == 0x0055) // measured value
+                            if (ia->id() == 0x0055) // present value
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
@@ -4894,8 +4894,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     static const int sideMap[] = {1, 3, 5, 6, 4, 2};
                                     int side = sideMap[rawValue & 0x0007];
                                     int previousSide = sideMap[(rawValue & 0x0038) >> 3];
-                                    if (rawValue == 0x0002) { buttonevent = 7000; }                            // wakeup
+                                         if (rawValue == 0x0002) { buttonevent = 7000; }                       // wakeup
                                     else if (rawValue == 0x0000) { buttonevent = 7007; }                       // shake
+                                    else if (rawValue == 0x0003) { buttonevent = 7008; }                       // drop
                                     else if (rawValue & 0x0040)  { buttonevent = side * 1000 + previousSide; } // flip 90°
                                     else if (rawValue & 0x0080)  { buttonevent = side * 1000 + 7 - side; }     // flip 180°
                                     else if (rawValue & 0x0100)  { buttonevent = side * 1000; }                // push
