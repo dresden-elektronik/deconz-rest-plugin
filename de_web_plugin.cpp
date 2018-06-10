@@ -3425,6 +3425,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             clusterId = ILLUMINANCE_MEASUREMENT_CLUSTER_ID;
         }
         sensorNode.addItem(DataTypeUInt16, RStateLightLevel);
+        sensorNode.addItem(DataTypeUInt32, RStateLux);
+        sensorNode.addItem(DataTypeBool, RStateDark);
+        sensorNode.addItem(DataTypeBool, RStateDaylight);
+        item = sensorNode.addItem(DataTypeUInt16, RConfigTholdDark);
+        item->setValue(R_THOLDDARK_DEFAULT);
+        item = sensorNode.addItem(DataTypeUInt16, RConfigTholdOffset);
+        item->setValue(R_THOLDOFFSET_DEFAULT);
     }
     else if (sensorNode.type().endsWith(QLatin1String("Temperature")))
     {
@@ -3433,7 +3440,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             clusterId = TEMPERATURE_MEASUREMENT_CLUSTER_ID;
         }
         sensorNode.addItem(DataTypeInt16, RStateTemperature);
-        sensorNode.addItem(DataTypeInt16, RConfigOffset);
+        item = sensorNode.addItem(DataTypeInt16, RConfigOffset);
+        item->setValue(0);
     }
     else if (sensorNode.type().endsWith(QLatin1String("Humidity")))
     {
@@ -3984,12 +3992,12 @@ void DeRestPluginPrivate::updateSensorLightLevel(Sensor &sensor, quint16 measure
     bool daylight = measuredValue >= tholddark + tholdoffset;
 
     item = sensor.item(RStateDark);
-    if (!item)
-    {
-        item = sensor.addItem(DataTypeBool, RStateDark);
+    // if (!item)
+    // {
+    //     item = sensor.addItem(DataTypeBool, RStateDark);
         DBG_Assert(item != 0);
-    }
-    if (item->setValue(dark))
+    // }
+    if (item && item->setValue(dark))
     {
         if (item->lastChanged() == item->lastSet())
         {
@@ -3999,12 +4007,12 @@ void DeRestPluginPrivate::updateSensorLightLevel(Sensor &sensor, quint16 measure
     }
 
     item = sensor.item(RStateDaylight);
-    if (!item)
-    {
-        item = sensor.addItem(DataTypeBool, RStateDaylight);
+    // if (!item)
+    // {
+    //     item = sensor.addItem(DataTypeBool, RStateDaylight);
         DBG_Assert(item != 0);
-    }
-    if (item->setValue(daylight))
+    // }
+    if (item && item->setValue(daylight))
     {
         if (item->lastChanged() == item->lastSet())
         {
@@ -4015,11 +4023,11 @@ void DeRestPluginPrivate::updateSensorLightLevel(Sensor &sensor, quint16 measure
 
     item = sensor.item(RStateLux);
 
-    if (!item)
-    {
-        item = sensor.addItem(DataTypeUInt32, RStateLux);
+    // if (!item)
+    // {
+    //     item = sensor.addItem(DataTypeUInt32, RStateLux);
         DBG_Assert(item != 0);
-    }
+    // }
 
     if (item)
     {
