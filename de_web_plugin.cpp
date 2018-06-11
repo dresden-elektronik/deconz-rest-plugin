@@ -3425,6 +3425,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             clusterId = ILLUMINANCE_MEASUREMENT_CLUSTER_ID;
         }
         sensorNode.addItem(DataTypeUInt16, RStateLightLevel);
+        sensorNode.addItem(DataTypeUInt32, RStateLux);
+        sensorNode.addItem(DataTypeBool, RStateDark);
+        sensorNode.addItem(DataTypeBool, RStateDaylight);
+        item = sensorNode.addItem(DataTypeUInt16, RConfigTholdDark);
+        item->setValue(R_THOLDDARK_DEFAULT);
+        item = sensorNode.addItem(DataTypeUInt16, RConfigTholdOffset);
+        item->setValue(R_THOLDOFFSET_DEFAULT);
     }
     else if (sensorNode.type().endsWith(QLatin1String("Temperature")))
     {
@@ -3433,7 +3440,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             clusterId = TEMPERATURE_MEASUREMENT_CLUSTER_ID;
         }
         sensorNode.addItem(DataTypeInt16, RStateTemperature);
-        sensorNode.addItem(DataTypeInt16, RConfigOffset);
+        item = sensorNode.addItem(DataTypeInt16, RConfigOffset);
+        item->setValue(0);
     }
     else if (sensorNode.type().endsWith(QLatin1String("Humidity")))
     {
@@ -3984,12 +3992,12 @@ void DeRestPluginPrivate::updateSensorLightLevel(Sensor &sensor, quint16 measure
     bool daylight = measuredValue >= tholddark + tholdoffset;
 
     item = sensor.item(RStateDark);
-    if (!item)
-    {
-        item = sensor.addItem(DataTypeBool, RStateDark);
+    // if (!item)
+    // {
+    //     item = sensor.addItem(DataTypeBool, RStateDark);
         DBG_Assert(item != 0);
-    }
-    if (item->setValue(dark))
+    // }
+    if (item && item->setValue(dark))
     {
         if (item->lastChanged() == item->lastSet())
         {
@@ -3999,12 +4007,12 @@ void DeRestPluginPrivate::updateSensorLightLevel(Sensor &sensor, quint16 measure
     }
 
     item = sensor.item(RStateDaylight);
-    if (!item)
-    {
-        item = sensor.addItem(DataTypeBool, RStateDaylight);
+    // if (!item)
+    // {
+    //     item = sensor.addItem(DataTypeBool, RStateDaylight);
         DBG_Assert(item != 0);
-    }
-    if (item->setValue(daylight))
+    // }
+    if (item && item->setValue(daylight))
     {
         if (item->lastChanged() == item->lastSet())
         {
@@ -4015,11 +4023,11 @@ void DeRestPluginPrivate::updateSensorLightLevel(Sensor &sensor, quint16 measure
 
     item = sensor.item(RStateLux);
 
-    if (!item)
-    {
-        item = sensor.addItem(DataTypeUInt32, RStateLux);
+    // if (!item)
+    // {
+    //     item = sensor.addItem(DataTypeUInt32, RStateLux);
         DBG_Assert(item != 0);
-    }
+    // }
 
     if (item)
     {
@@ -4811,7 +4819,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                     {
                         for (;ia != enda; ++ia)
                         {
-                            if (ia->id() == 0x0055) // measured value
+                            if (ia->id() == 0x0055) // present value
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
@@ -4876,7 +4884,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                     {
                         for (;ia != enda; ++ia)
                         {
-                            if (ia->id() == 0x0055) // measured value
+                            if (ia->id() == 0x0055) // present value
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
@@ -4894,8 +4902,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     static const int sideMap[] = {1, 3, 5, 6, 4, 2};
                                     int side = sideMap[rawValue & 0x0007];
                                     int previousSide = sideMap[(rawValue & 0x0038) >> 3];
-                                    if (rawValue == 0x0002) { buttonevent = 7000; }                            // wakeup
+                                         if (rawValue == 0x0002) { buttonevent = 7000; }                       // wakeup
                                     else if (rawValue == 0x0000) { buttonevent = 7007; }                       // shake
+                                    else if (rawValue == 0x0003) { buttonevent = 7008; }                       // drop
                                     else if (rawValue & 0x0040)  { buttonevent = side * 1000 + previousSide; } // flip 90°
                                     else if (rawValue & 0x0080)  { buttonevent = side * 1000 + 7 - side; }     // flip 180°
                                     else if (rawValue & 0x0100)  { buttonevent = side * 1000; }                // push
@@ -5090,7 +5099,11 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         current += 50; current /= 100; // 0.001A -> 0.1A
                                     }
-                                    else if (i->modelId() != QLatin1String("SmartPlug")) // Heiman
+                                    else if (i->modelId() == QLatin1String("SmartPlug")) // Heiman
+                                    {
+                                        current += 5; current /= 10; // 0.01A -> 0.1A
+                                    }
+                                    else
                                     {
                                         current *= 10; // A -> 0.1A
                                     }

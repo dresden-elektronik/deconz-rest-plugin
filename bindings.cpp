@@ -979,6 +979,10 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         {
             rq3.reportableChange16bit = 100; // 0.1 A
         }
+        else if (sensor && sensor->modelId() == QLatin1String("SmartPlug")) // Heiman
+        {
+            rq3.reportableChange16bit = 10; // 0.1 A
+        }
         else
         {
             rq3.reportableChange16bit = 1; // 0.1 A
@@ -2081,7 +2085,7 @@ void DeRestPluginPrivate::processUbisysC4Configuration(Sensor *sensor)
 
     deCONZ::ZclFrame zclFrame;
     zclFrame.setSequenceNumber(zclSeq++);
-    zclFrame.setCommandId(deCONZ::ZclWriteAttributesStructuredId);
+    // zclFrame.setCommandId(deCONZ::ZclWriteAttributesStructuredId);
     //zclFrame.setManufacturerCode(VENDOR_UBISYS);
 
     {

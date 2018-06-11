@@ -27,6 +27,7 @@
 #define S_BUTTON_ACTION_TREBLE_PRESS    5
 #define S_BUTTON_ACTION_QUADRUPLE_PRESS 6
 #define S_BUTTON_ACTION_SHAKE           7
+#define S_BUTTON_ACTION_DROP            8
 
 #define S_BUTTON_1   1000
 #define S_BUTTON_2   2000
