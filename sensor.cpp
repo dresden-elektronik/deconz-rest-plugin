@@ -800,6 +800,7 @@ void Sensor::jsonToConfig(const QString &json)
                     if (rid.suffix == RConfigOn)
                     {
                         map[key] = true; // default value
+                        setNeedSaveDatabase(true);
                     }
                     else
                     {
