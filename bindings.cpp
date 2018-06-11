@@ -2085,7 +2085,7 @@ void DeRestPluginPrivate::processUbisysC4Configuration(Sensor *sensor)
 
     deCONZ::ZclFrame zclFrame;
     zclFrame.setSequenceNumber(zclSeq++);
-    // zclFrame.setCommandId(deCONZ::ZclWriteAttributesStructuredId);
+    zclFrame.setCommandId(deCONZ::ZclWriteAttributesStructuredId);
     //zclFrame.setManufacturerCode(VENDOR_UBISYS);
 
     {
