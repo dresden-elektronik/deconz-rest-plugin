@@ -1422,11 +1422,11 @@ void DeRestPluginPrivate::indexRuleTriggers(Rule &rule)
 
         if (!c.id().isEmpty())
         {
-            DBG_Printf(DBG_INFO, "\t%s/%s/%s op: %s\n", c.resource(), qPrintable(c.id()), c.suffix(), qPrintable(c.ooperator()));
+            DBG_Printf(DBG_INFO_L2, "\t%s/%s/%s op: %s\n", c.resource(), qPrintable(c.id()), c.suffix(), qPrintable(c.ooperator()));
         }
         else
         {
-            DBG_Printf(DBG_INFO, "\t%s : %s op: %s\n", c.resource(), c.suffix(), qPrintable(c.ooperator()));
+            DBG_Printf(DBG_INFO_L2, "\t%s : %s op: %s\n", c.resource(), c.suffix(), qPrintable(c.ooperator()));
         }
 
         if (c.op() == RuleCondition::OpDx)
@@ -1467,7 +1467,7 @@ void DeRestPluginPrivate::indexRuleTriggers(Rule &rule)
     for (ResourceItem *item : items)
     {
         item->inRule(rule.handle());
-        DBG_Printf(DBG_INFO, "\t%s (trigger)\n", item->descriptor().suffix);
+        DBG_Printf(DBG_INFO_L2, "\t%s (trigger)\n", item->descriptor().suffix);
     }
 }
 
@@ -1638,7 +1638,7 @@ void DeRestPluginPrivate::fastRuleCheckTimerFired()
         {
             if (rule.handle() == handle)
             {
-                DBG_Printf(DBG_INFO, "index resource items for rules, handle: %d (%s)\n", rule.handle(), qPrintable(rule.name()));
+                DBG_Printf(DBG_INFO_L2, "index resource items for rules, handle: %d (%s)\n", rule.handle(), qPrintable(rule.name()));
                 indexRuleTriggers(rule);
                 fastRuleCheckTimer->start(); // handle in next event loop cycle
                 handle = 0; // mark checked
