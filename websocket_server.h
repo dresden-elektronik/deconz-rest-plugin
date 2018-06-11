@@ -26,6 +26,7 @@ signals:
 
 public slots:
     void broadcastTextMessage(const QString &msg);
+    void flush();
 
 private slots:
     void onNewConnection();

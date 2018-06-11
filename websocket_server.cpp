@@ -121,11 +121,27 @@ void WebSocketServer::broadcastTextMessage(const QString &msg)
             DBG_Printf(DBG_INFO, "Websocket %s:%u unexpected state: %d\n", qPrintable(sock->peerAddress().toString()), sock->peerPort(), sock->state());
         }
 
-        //DBG_Printf(DBG_INFO, "Websocket %s:%u send message: %s\n", qPrintable(sock->peerAddress().toString()), sock->peerPort(), qPrintable(msg));
-        sock->sendTextMessage(msg);
+        int ret = sock->sendTextMessage(msg);
+        DBG_Printf(DBG_INFO, "Websocket %s:%u send message: %s (ret = %d)\n", qPrintable(sock->peerAddress().toString()), sock->peerPort(), qPrintable(msg), ret);
         sock->flush();
     }
 }
+
+/*! Flush the sockets of all connected clients.
+ */
+void WebSocketServer::flush()
+{
+    for (size_t i = 0; i < clients.size(); i++)
+    {
+        QWebSocket *sock = clients[i];
+
+        if (sock->state() == QAbstractSocket::ConnectedState)
+        {
+            sock->flush();
+        }
+    }
+}
+
 #else // no websockets
   WebSocketServer::WebSocketServer(QObject *parent) :
       QObject(parent)
