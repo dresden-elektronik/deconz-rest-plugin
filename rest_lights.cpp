@@ -227,9 +227,13 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (item->descriptor().suffix == RConfigCtMin) { map["ctmin"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigCtMax) { map["ctmax"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigPowerup) { map["powerup"] = item->toNumber(); }
+        else if (item->descriptor().suffix == RConfigPowerOnLevel) { map["poweronlevel"] = item->toNumber(); }
+        else if (item->descriptor().suffix == RConfigPowerOnCt) { map["poweronct"] = item->toNumber(); }
+        else if (item->descriptor().suffix == RConfigLevelMin) { map["levelmin"] = item->toNumber(); }
+        else if (item->descriptor().suffix == RConfigId) { map["configid"] = item->toNumber(); }
     }
 
-    state["alert"] = "none"; // TODO
+    state["alert"] = QLatin1String("none"); // TODO
 
     if (ix && iy)
     {
@@ -277,18 +281,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
 
     map["swversion"] = lightNode->swBuildId();
     map["manufacturername"] = lightNode->manufacturer();
-    /*
-    QVariantMap pointsymbol;
-    map["pointsymbol"] = pointsymbol; // dummy
-    pointsymbol["1"] = QString("none");
-    pointsymbol["2"] = QString("none");
-    pointsymbol["3"] = QString("none");
-    pointsymbol["4"] = QString("none");
-    pointsymbol["5"] = QString("none");
-    pointsymbol["6"] = QString("none");
-    pointsymbol["7"] = QString("none");
-    pointsymbol["8"] = QString("none");
-    */
+
     QString etag = lightNode->etag;
     etag.remove('"'); // no quotes allowed in string
     map["etag"] = etag;

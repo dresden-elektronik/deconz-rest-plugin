@@ -474,6 +474,10 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             handleDEClusterIndication(ind, zclFrame);
             break;
 
+        case XAL_CLUSTER_ID:
+            handleXalClusterIndication(ind, zclFrame);
+            break;
+
         default:
         {
         }
@@ -7164,6 +7168,93 @@ void DeRestPluginPrivate::handleDEClusterIndication(const deCONZ::ApsDataIndicat
     if (zclFrame.isDefaultResponse())
     {
         DBG_Printf(DBG_INFO, "DE cluster default response cmd 0x%02X, status 0x%02X\n", zclFrame.defaultResponseCommandId(), zclFrame.defaultResponseStatus());
+    }
+}
+
+/*! Handle incoming XAL cluster commands.
+ */
+void DeRestPluginPrivate::handleXalClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
+{
+    LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());
+
+    if (!lightNode)
+    {
+        return;
+    }
+
+    if ((lightNode->address().ext() & macPrefixMask) != xalMacPrefix)
+    {
+        return;
+    }
+
+    bool updated = false;
+
+    if (zclFrame.frameControl() & deCONZ::ZclFCDirectionServerToClient && zclFrame.isClusterCommand())
+    {
+        QDataStream stream(zclFrame.payload());
+        stream.setByteOrder(QDataStream::LittleEndian);
+        quint8 status;
+
+        stream >> status;
+
+        if (zclFrame.commandId() == 0x05) // light id
+        {
+            quint8 id;
+            stream >> id;
+            ResourceItem *item = lightNode->addItem(DataTypeUInt32, RConfigId);
+            if (!item->lastSet().isValid() || item->toNumber() != id)
+            {
+                item->setValue(id);
+                enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode->id(), item));
+                updated = true;
+            }
+        }
+        else if (zclFrame.commandId() == 0x07) // min. level
+        {
+            quint8 minLevel;
+            stream >> minLevel;
+            ResourceItem *item = lightNode->addItem(DataTypeUInt8, RConfigLevelMin);
+            if (!item->lastSet().isValid() || item->toNumber() != minLevel)
+            {
+                item->setValue(minLevel);
+                enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode->id(), item));
+                updated = true;
+            }
+        }
+        else if (zclFrame.commandId() == 0x09) // power on level
+        {
+            quint8 powerOnLevel;
+            stream >> powerOnLevel;
+            ResourceItem *item = lightNode->addItem(DataTypeUInt8, RConfigPowerOnLevel);
+            if (!item->lastSet().isValid() || item->toNumber() != powerOnLevel)
+            {
+                item->setValue(powerOnLevel);
+                enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode->id(), item));
+                updated = true;
+            }
+        }
+        else if (zclFrame.commandId() == 0x0d) // power on temperature
+        {
+            quint16 powerOnTemp;
+            stream >> powerOnTemp;
+            ResourceItem *item = lightNode->addItem(DataTypeUInt16, RConfigPowerOnCt);
+            if (!item->lastSet().isValid() || item->toNumber() != powerOnTemp)
+            {
+                item->setValue(powerOnTemp);
+                enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode->id(), item));
+                updated = true;
+            }
+        }
+    }
+
+    if (updated)
+    {
+        updateLightEtag(lightNode);
+    }
+
+    if (zclFrame.isDefaultResponse())
+    {
+        DBG_Printf(DBG_INFO, "XAL cluster default response cmd 0x%02X, status 0x%02X\n", zclFrame.defaultResponseCommandId(), zclFrame.defaultResponseStatus());
     }
 }
 

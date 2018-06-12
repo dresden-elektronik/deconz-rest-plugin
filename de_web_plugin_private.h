@@ -173,6 +173,7 @@
 #define DE_CLUSTER_ID                         0xFC00
 #define VENDOR_CLUSTER_ID                     0xFC00
 #define UBISYS_DEVICE_SETUP_CLUSTER_ID        0xFC00
+#define XAL_CLUSTER_ID                        0xFCCE
 
 #define GREEN_POWER_ENDPOINT 0xf2
 
@@ -1080,6 +1081,7 @@ public:
     void handleMgmtLeaveRspIndication(const deCONZ::ApsDataIndication &ind);
     void handleMgmtLqiRspIndication(const deCONZ::ApsDataIndication &ind);
     void handleDEClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleXalClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZclAttributeReportIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZclConfigureReportingResponseIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendZclDefaultResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, quint8 status);
