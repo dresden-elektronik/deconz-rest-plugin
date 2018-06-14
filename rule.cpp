@@ -438,6 +438,7 @@ RuleCondition::RuleCondition(const QVariantMap &map) :
     else if (m_operator == QLatin1String("ddx")) { m_op = OpDdx; }
     else if (m_operator == QLatin1String("in")) { m_op = OpIn; }
     else if (m_operator == QLatin1String("not in")) { m_op = OpNotIn; }
+    else if (m_operator == QLatin1String("stable")) { m_op = OpStable; }
     else { m_op = OpUnknown; }
 
     // extract proper datatype
@@ -445,7 +446,7 @@ RuleCondition::RuleCondition(const QVariantMap &map) :
     {
         QString str = m_value.toString();
 
-        if (m_op == OpDdx)
+        if (m_op == OpDdx || m_op == OpStable)
         {
             QTime t = QTime::fromString(str, "'PT'hh:mm:ss");
             if (!t.isValid())
@@ -590,7 +591,7 @@ int RuleCondition::numericValue() const
     return m_num;
 }
 
-/*! Returns value as duration in seconds (for operators OpDdx, OpIn and OpNotIn).
+/*! Returns value as duration in seconds (for operators OpDdx, OpStable, OpIn and OpNotIn).
  */
 int RuleCondition::seconds() const
 {

@@ -1342,6 +1342,19 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
                 return false;
             }
         }
+        else if (c->op() == RuleCondition::OpStable)
+        {
+            if (!item->lastSet().isValid())
+            {
+                return false;
+            }
+
+            QDateTime dt = item->lastChanged().addSecs(c->seconds());
+            if (now.secsTo(dt) > 0)
+            {
+                return false;
+            }
+        }
         else if (c->op() == RuleCondition::OpIn && c->suffix() == RConfigLocalTime)
         {
             QTime t = now.time();
@@ -1456,12 +1469,15 @@ void DeRestPluginPrivate::indexRuleTriggers(Rule &rule)
     }
     else if (itemDdx)
     {
-        Resource *resource = getResource(RConfig);
-        itemDdx = resource->item(RConfigLocalTime);
-        DBG_Assert(resource != 0);
+        Resource *r = getResource(RConfig);
+        itemDdx = r ? r->item(RConfigLocalTime) : 0;
+        DBG_Assert(r != 0);
         DBG_Assert(itemDdx != 0);
         items.clear();
-        items.push_back(itemDdx);
+        if (itemDdx)
+        {
+            items.push_back(itemDdx);
+        }
     }
 
     for (ResourceItem *item : items)
