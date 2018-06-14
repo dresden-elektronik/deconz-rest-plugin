@@ -2170,6 +2170,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.setLastRead(READ_OCCUPANCY_CONFIG, 0);
                 }
             }
+            else if (sensor.fingerPrint().hasInCluster(BINARY_INPUT_CLUSTER_ID))
+            {
+                clusterId = BINARY_INPUT_CLUSTER_ID;
+            }
             else if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
             {
                 clusterId = IAS_ZONE_CLUSTER_ID;
@@ -2192,7 +2196,14 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             else
             {
                 item = sensor.addItem(DataTypeUInt16, RConfigDuration);
-                item->setValue(60); // presence should be reasonable for physical sensors
+                if (sensor.modelId() == QLatin1String("tagv4")) // SmartThings Arrival sensor
+                {
+                    item->setValue(310);
+                }
+                else
+                {
+                    item->setValue(60); // presence should be reasonable for physical sensors
+                }
             }
         }
         else if (sensor.type().endsWith(QLatin1String("Flag")))
@@ -2382,6 +2393,11 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 //item = sensor.addItem(DataTypeInt16, RConfigOffset);
                 //item->setValue(0);
             }
+        }
+        else if (sensor.modelId() == QLatin1String("tagv4")) // SmartThings Arrival sensor
+        {
+            item = sensor.addItem(DataTypeString, RConfigAlert);
+            item->setValue(R_ALERT_DEFAULT);
         }
 
         if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))

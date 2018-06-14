@@ -63,21 +63,23 @@ static int checkZclAttributesDelay = 750;
 static uint MaxGroupTasks = 4;
 
 const quint64 macPrefixMask       = 0xffffff0000000000ULL;
-const quint64 bjeMacPrefix        = 0xd85def0000000000ULL;
-const quint64 emberMacPrefix      = 0x000d6f0000000000ULL;
-const quint64 tiMacPrefix         = 0x00124b0000000000ULL;
-const quint64 deMacPrefix         = 0x00212e0000000000ULL;
+
 const quint64 ikeaMacPrefix       = 0x000b570000000000ULL;
+const quint64 emberMacPrefix      = 0x000d6f0000000000ULL;
 const quint64 instaMacPrefix      = 0x000f170000000000ULL;
+const quint64 tiMacPrefix         = 0x00124b0000000000ULL;
+const quint64 netvoxMacPrefix     = 0x00137a0000000000ULL;
 const quint64 jennicMacPrefix     = 0x00158d0000000000ULL;
 const quint64 philipsMacPrefix    = 0x0017880000000000ULL;
-const quint64 osramMacPrefix      = 0x8418260000000000ULL;
 const quint64 ubisysMacPrefix     = 0x001fee0000000000ULL;
-const quint64 netvoxMacPrefix     = 0x00137a0000000000ULL;
-const quint64 heimanMacPrefix     = 0x0050430000000000ULL;
-const quint64 lutronMacPrefix     = 0xffff000000000000ULL;
+const quint64 deMacPrefix         = 0x00212e0000000000ULL;
 const quint64 keenhomeMacPrefix   = 0x0022a30000000000ULL;
+const quint64 heimanMacPrefix     = 0x0050430000000000ULL;
+const quint64 stMacPrefix         = 0x24fd5b0000000000ULL;
+const quint64 osramMacPrefix      = 0x8418260000000000ULL;
+const quint64 bjeMacPrefix        = 0xd85def0000000000ULL;
 const quint64 xalMacPrefix        = 0xf8f0050000000000ULL;
+const quint64 lutronMacPrefix     = 0xffff000000000000ULL;
 
 struct SupportedDevice {
     quint16 vendorId;
@@ -145,6 +147,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_LUTRON, "LZL4BWHL01", lutronMacPrefix }, // Lutron LZL-4B-WH-L01 Connected Bulb Remote
     { VENDOR_KEEN_HOME , "SV01-610-MP", keenhomeMacPrefix}, // Keen Home Vent
     { VENDOR_INNR, "SP 120", jennicMacPrefix}, // innr smart plug
+    { VENDOR_PHYSICAL, "tagv4", stMacPrefix}, // SmartThings Arrival sensor
     { 0, 0, 0 }
 };
 
@@ -2993,6 +2996,12 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 }
                     break;
 
+                case BINARY_INPUT_CLUSTER_ID:
+                {
+                    fpPresenceSensor.inClusters.push_back(ci->id());
+                }
+                    break;
+
                 case METERING_CLUSTER_ID:
                 {
                     fpConsumptionSensor.inClusters.push_back(ci->id());
@@ -3135,6 +3144,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         // ZHAPresence
         if (fpPresenceSensor.hasInCluster(OCCUPANCY_SENSING_CLUSTER_ID) ||
             fpPresenceSensor.hasInCluster(IAS_ZONE_CLUSTER_ID) ||
+            fpPresenceSensor.hasInCluster(BINARY_INPUT_CLUSTER_ID) ||
             fpPresenceSensor.hasOutCluster(ONOFF_CLUSTER_ID))
         {
             fpPresenceSensor.endpoint = i->endpoint();
@@ -3473,6 +3483,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = IAS_ZONE_CLUSTER_ID;
         }
+        else if (sensorNode.fingerPrint().hasInCluster(BINARY_INPUT_CLUSTER_ID))
+        {
+            clusterId = BINARY_INPUT_CLUSTER_ID;
+        }
         else if (sensorNode.fingerPrint().hasOutCluster(ONOFF_CLUSTER_ID))
         {
             clusterId = ONOFF_CLUSTER_ID;
@@ -3480,7 +3494,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         item = sensorNode.addItem(DataTypeBool, RStatePresence);
         item->setValue(false);
         item = sensorNode.addItem(DataTypeUInt16, RConfigDuration);
-        item->setValue(60); // default 60 seconds
+        if (modelId == QLatin1String("tagv4")) // SmartThings Arrival sensor
+        {
+            item->setValue(310); // Sensor will be configured to report every 5 minutes
+        }
+        else
+        {
+            item->setValue(60); // default 60 seconds
+        }
     }
     else if (sensorNode.type().endsWith(QLatin1String("OpenClose")))
     {
@@ -3742,6 +3763,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_KEEN_HOME)
     {
         sensorNode.setManufacturer("Keen Home Inc");
+    }
+    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_PHYSICAL)
+    {
+        sensorNode.setManufacturer("SmartThings");
+
+        item = sensorNode.addItem(DataTypeString, RConfigAlert);
+        item->setValue(R_ALERT_DEFAULT);
     }
 
     if (sensorNode.manufacturer().isEmpty() && !manufacturer.isEmpty())
@@ -4157,6 +4185,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             case ONOFF_CLUSTER_ID:
             case ANALOG_INPUT_CLUSTER_ID:
             case MULTISTATE_INPUT_CLUSTER_ID:
+            case BINARY_INPUT_CLUSTER_ID:
             case METERING_CLUSTER_ID:
             case ELECTRICAL_MEASUREMENT_CLUSTER_ID:
                 break;
@@ -4299,6 +4328,52 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     enqueueEvent(e);
                                 }
 
+                                updateSensorEtag(&*i);
+                            }
+                            else if (ia->id() == 0x0020) // battery voltage
+                            {
+                                if (i->modelId() != QLatin1String("tagv4")) // SmartThings Arrival sensor
+                                {
+                                    continue;
+                                }
+
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
+                                }
+
+                                ResourceItem *item = i->item(RConfigBattery);
+
+                                if (!item && ia->numericValue().u8 > 0) // valid value: create resource item
+                                {
+                                    item = i->addItem(DataTypeUInt8, RConfigBattery);
+                                }
+
+                                if (item)
+                                {
+                                    int battery = ia->numericValue().u8; // in 0.1 V
+                                    const float vmin = 20; // TODO: check - I've seen 24
+                                    const float vmax = 30; // TODO: check - I've seen 29
+                                    float bat = battery;
+
+                                    if      (bat > vmax) { bat = vmax; }
+                                    else if (bat < vmin) { bat = vmin; }
+
+                                    bat = ((bat - vmin) / (vmax - vmin)) * 100;
+
+                                    if      (bat > 100) { bat = 100; }
+                                    else if (bat <= 0)  { bat = 1; } // ?
+
+                                    if (item->toNumber() != bat)
+                                    {
+                                        i->setNeedSaveDatabase(true);
+                                        queSaveDb(DB_SENSORS, DB_HUGE_SAVE_DELAY);
+                                    }
+                                    item->setValue(bat);
+                                    Event e(RSensors, RConfigBattery, i->id(), item);
+                                    enqueueEvent(e);
+                                }
                                 updateSensorEtag(&*i);
                             }
                             else if (ia->id() == 0x0035) // battery alarm mask
@@ -4955,6 +5030,54 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 }
 
                                 updateSensorEtag(&*i);
+                            }
+                        }
+                    }
+                    else if (event.clusterId() == BINARY_INPUT_CLUSTER_ID)
+                    {
+                        for (;ia != enda; ++ia)
+                        {
+                            if (ia->id() == 0x0055) // present value
+                            {
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                }
+
+                                const NodeValue &val = i->getZclValue(event.clusterId(), 0x0055);
+
+                                ResourceItem *item = i->item(RStatePresence);
+
+                                if (item)
+                                {
+                                    item->setValue(true);
+                                    i->updateStateTimestamp();
+                                    i->setNeedSaveDatabase(true);
+                                    Event e(RSensors, RStatePresence, i->id(), item);
+                                    enqueueEvent(e);
+                                    enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
+
+                                    // prepare to automatically set presence to false
+                                    if (item->toBool())
+                                    {
+                                        if (val.clusterId == event.clusterId() && val.maxInterval > 0 &&
+                                            updateType == NodeValue::UpdateByZclReport)
+                                        {
+                                            // prevent setting presence back to false, when report.maxInterval > config.duration
+                                            i->durationDue = item->lastSet().addSecs(val.maxInterval);
+                                        }
+                                        else
+                                        {
+                                            ResourceItem *item2 = i->item(RConfigDuration);
+                                            if (item2 && item2->toNumber() > 0)
+                                            {
+                                                i->durationDue = item->lastSet().addSecs(item2->toNumber());
+                                            }
+                                        }
+                                    }
+                                }
+                                updateSensorEtag(&*i);
+
                             }
                         }
                     }
@@ -8304,6 +8427,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         case BASIC_CLUSTER_ID:
         case ANALOG_INPUT_CLUSTER_ID:
         case MULTISTATE_INPUT_CLUSTER_ID:
+        case BINARY_INPUT_CLUSTER_ID:
         case METERING_CLUSTER_ID:
         case ELECTRICAL_MEASUREMENT_CLUSTER_ID:
         case VENDOR_CLUSTER_ID:

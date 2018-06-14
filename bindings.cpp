@@ -829,6 +829,14 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.reportableChange16bit = 20;
         return sendConfigureReportingRequest(bt, {rq});
     }
+    else if (bt.binding.clusterId == BINARY_INPUT_CLUSTER_ID)
+    {
+        rq.dataType = deCONZ::ZclBoolean;
+        rq.attributeId = 0x0055; // present value
+        rq.minInterval = 10;
+        rq.maxInterval = 300;
+        return sendConfigureReportingRequest(bt, {rq});
+    }
     else if (bt.binding.clusterId == POWER_CONFIGURATION_CLUSTER_ID)
     {
         Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
@@ -854,6 +862,13 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.minInterval = 300;
             rq.maxInterval = 1800;
             rq.reportableChange8bit = 0xFF;
+        }
+        else if (sensor && sensor->modelId() == QLatin1String("tagv4"))
+        {
+            rq.attributeId = 0x0020;   // battery voltage
+            rq.minInterval = 3600;
+            rq.maxInterval = 3600;
+            rq.reportableChange8bit = 1;
         }
         else
         {
@@ -1310,7 +1325,9 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("SMOK_")) ||
         sensor->modelId().startsWith(QLatin1String("WATER_")) ||
         // Nimbus
-        sensor->modelId().startsWith(QLatin1String("FLS-NB")))
+        sensor->modelId().startsWith(QLatin1String("FLS-NB")) ||
+        // SmartThings
+        sensor->modelId() == QLatin1String("tagv4"))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle())

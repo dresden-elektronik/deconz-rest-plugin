@@ -155,6 +155,7 @@
 #define ONOFF_SWITCH_CONFIGURATION_CLUSTER_ID 0x0007
 #define LEVEL_CLUSTER_ID                      0x0008
 #define ANALOG_INPUT_CLUSTER_ID               0x000C
+#define BINARY_INPUT_CLUSTER_ID               0x000F
 #define MULTISTATE_INPUT_CLUSTER_ID           0x0012
 #define OTAU_CLUSTER_ID                       0x0019
 #define GREEN_POWER_CLUSTER_ID                0x0021
@@ -234,23 +235,24 @@
 #define VENDOR_EMBER        0x1002
 #define VENDOR_PHILIPS      0x100B
 #define VENDOR_ATMEL        0x1014
-#define VENDOR_JENNIC       0x1037    // Used by Xiaomi
+#define VENDOR_JENNIC       0x1037 // Used by Xiaomi
 #define VENDOR_CENTRALITE   0x104E
 #define VENDOR_NYCE         0x10B9
 #define VENDOR_UBISYS       0x10F2
 #define VENDOR_BEGA         0x1105
+#define VENDOR_PHYSICAL     0x110A // Used by SmartThings
 #define VENDOR_OSRAM        0x110C
 #define VENDOR_DDEL         0x1135
 #define VENDOR_LUTRON       0x1144
 #define VENDOR_KEEN_HOME    0x115B
-#define VENDOR_115F         0x115F    // Used by Xiaomi
+#define VENDOR_115F         0x115F // Used by Xiaomi
 #define VENDOR_INNR         0x1166
 #define VENDOR_INNR2        0x1168
 #define VENDOR_INSTA        0x117A
 #define VENDOR_IKEA         0x117C
 #define VENDOR_BUSCH_JAEGER 0x112E
 #define VENDOR_PAULMANN     0x119D
-#define VENDOR_120B         0x120B     // Used by Heiman
+#define VENDOR_120B         0x120B // Used by Heiman
 #define VENDOR_XAL          0x122A
 #define VENDOR_OSRAM_STACK  0xBBAA
 
@@ -321,20 +323,22 @@
 #define RECONNECT_NOW          100
 
 extern const quint64 macPrefixMask;
+
 extern const quint64 bjeMacPrefix;
-extern const quint64 emberMacPrefix;
-extern const quint64 tiMacPrefix;
 extern const quint64 deMacPrefix;
+extern const quint64 emberMacPrefix;
+extern const quint64 heimanMacPrefix;
 extern const quint64 ikeaMacPrefix;
 extern const quint64 instaMacPrefix;
 extern const quint64 jennicMacPrefix;
-extern const quint64 philipsMacPrefix;
-extern const quint64 osramMacPrefix;
-extern const quint64 ubisysMacPrefix;
-extern const quint64 netvoxMacPrefix;
-extern const quint64 heimanMacPrefix;
-extern const quint64 lutronMacPrefix;
 extern const quint64 keenhomeMacPrefix;
+extern const quint64 lutronMacPrefix;
+extern const quint64 netvoxMacPrefix;
+extern const quint64 osramMacPrefix;
+extern const quint64 philipsMacPrefix;
+extern const quint64 stMacPrefix;
+extern const quint64 tiMacPrefix;
+extern const quint64 ubisysMacPrefix;
 extern const quint64 xalMacPrefix;
 
 // HTTP status codes
