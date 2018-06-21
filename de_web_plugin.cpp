@@ -12399,34 +12399,26 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         }
     }
 
-    QUrl url(hdrmod.path()); // get rid of query string
-    QString strpath = url.path();
-
-    if (hdrmod.path().startsWith(QLatin1String("/api")))
+    if (DBG_IsEnabled(DBG_HTTP))
     {
-        // some clients send /api123 instead of /api/123
-        // correct the path here
-        if (hdrmod.path().length() > 4 && hdrmod.path().at(4) != '/')
-        {
-            strpath.insert(4, '/');
-        }
+        DBG_Printf(DBG_HTTP, "HTTP API %s %s - %s\n", qPrintable(hdr.method()), qPrintable(hdrmod.url().toString()), qPrintable(sock->peerAddress().toString()));
     }
-
-    hdrmod.setRequest(hdrmod.method(), strpath);
-
-    DBG_Printf(DBG_HTTP, "HTTP API %s %s - %s\n", qPrintable(hdr.method()), qPrintable(hdrmod.path()), qPrintable(sock->peerAddress().toString()));
-
-    //qDebug() << hdr.toString();
 
     if(hdr.hasKey(QLatin1String("Content-Type")) &&
        hdr.value(QLatin1String("Content-Type")).startsWith(QLatin1String("multipart/form-data")))
     {
-        DBG_Printf(DBG_HTTP, "Binary Data: \t%s\n", qPrintable(content));
+        if (DBG_IsEnabled(DBG_HTTP))
+        {
+            DBG_Printf(DBG_HTTP, "Binary Data: \t%s\n", qPrintable(content));
+        }
     }
     else if (!stream.atEnd())
     {
         content = stream.readAll();
-        DBG_Printf(DBG_HTTP, "Text Data: \t%s\n", qPrintable(content));
+        if (DBG_IsEnabled(DBG_HTTP))
+        {
+            DBG_Printf(DBG_HTTP, "Text Data: \t%s\n", qPrintable(content));
+        }
     }
 
     // we might be behind a proxy, do simple check
