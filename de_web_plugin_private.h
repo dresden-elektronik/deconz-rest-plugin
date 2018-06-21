@@ -768,6 +768,7 @@ public:
     int handleSensorsApi(ApiRequest &req, ApiResponse &rsp);
     int getAllSensors(const ApiRequest &req, ApiResponse &rsp);
     int getSensor(const ApiRequest &req, ApiResponse &rsp);
+    int getSensorData(const ApiRequest &req, ApiResponse &rsp);
     int findNewSensors(const ApiRequest &req, ApiResponse &rsp);
     int getNewSensors(const ApiRequest &req, ApiResponse &rsp);
     int updateSensor(const ApiRequest &req, ApiResponse &rsp);
@@ -1110,6 +1111,7 @@ public:
     // Database interface
     void initDb();
     void checkDbUserVersion();
+    void createTempViews();
     int getDbPragmaInteger(const char *sql);
     bool setDbUserVersion(int userVersion);
     bool upgradeDbToUserVersion1();
@@ -1133,6 +1135,7 @@ public:
     void loadWifiInformationFromDb();
     void loadAllRulesFromDb();
     void loadAllSensorsFromDb();
+    void loadSensorDataFromDb(Sensor *sensor, QVariantList &ls, qint64 fromTime, int max);
     void loadAllGatewaysFromDb();
     int getFreeLightId();
     int getFreeSensorId();

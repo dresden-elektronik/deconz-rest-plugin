@@ -11,6 +11,7 @@
 #include <QString>
 #include <QTextCodec>
 #include <QTcpSocket>
+#include <QUrlQuery>
 #include <QVariantMap>
 #include <QtCore/qmath.h>
 #include "de_web_plugin.h"
@@ -53,6 +54,11 @@ int DeRestPluginPrivate::handleSensorsApi(ApiRequest &req, ApiResponse &rsp)
     else if ((req.path.size() == 4) && (req.hdr.method() == "GET"))
     {
         return getSensor(req, rsp);
+    }
+    // GET /api/<apikey>/sensors/<id>/data?maxrecords=<maxrecords>&fromtime=<ISO 8601>
+    else if ((req.path.size() == 5) && (req.hdr.method() == "GET") && (req.path[4] == "data"))
+    {
+        return getSensorData(req, rsp);
     }
     // POST /api/<apikey>/sensors
     else if ((req.path.size() == 3) && (req.hdr.method() == "POST"))
@@ -193,6 +199,80 @@ int DeRestPluginPrivate::getSensor(const ApiRequest &req, ApiResponse &rsp)
 
     sensorToMap(sensor, rsp.map, req.strict);
     rsp.httpStatus = HttpStatusOk;
+    rsp.etag = sensor->etag;
+
+    return REQ_READY_SEND;
+}
+
+/*! GET /api/<apikey>/sensors/<id>/data?maxrecords=<maxrecords>&fromtime=<ISO 8601>
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::getSensorData(const ApiRequest &req, ApiResponse &rsp)
+{
+    DBG_Assert(req.path.size() == 5);
+
+    if (req.path.size() != 5)
+    {
+        return REQ_NOT_HANDLED;
+    }
+
+    QString id = req.path[3];
+    Sensor *sensor = getSensorNodeForId(id);
+
+    if (!sensor || (sensor->deletedState() == Sensor::StateDeleted))
+    {
+        rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/sensors/%1/").arg(id), QString("resource, /sensors/%1/, not available").arg(id)));
+        rsp.httpStatus = HttpStatusNotFound;
+        return REQ_READY_SEND;
+    }
+
+    bool ok;
+    QUrl url(req.hdr.url());
+    QUrlQuery query(url);
+
+    int maxRecords = query.queryItemValue("maxrecords").toInt(&ok);
+    if (!ok || maxRecords <= 0)
+    {
+        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/maxrecords"), QString("invalid value, %1, for parameter, maxrecords").arg(query.queryItemValue("maxrecords"))));
+        rsp.httpStatus = HttpStatusNotFound;
+        return REQ_READY_SEND;
+    }
+
+    QString t = query.queryItemValue("fromtime");
+    QDateTime dt = QDateTime::fromString(t, "yyyy-MM-ddTHH:mm:ss");
+    if (!dt.isValid())
+    {
+        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/fromtime"), QString("invalid value, %1, for parameter, fromtime").arg(query.queryItemValue("fromtime"))));
+        rsp.httpStatus = HttpStatusNotFound;
+        return REQ_READY_SEND;
+    }
+
+    qint64 fromTime = dt.toSecsSinceEpoch();
+
+    openDb();
+    loadSensorDataFromDb(sensor, rsp.list, fromTime, maxRecords);
+    closeDb();
+
+    // handle ETag
+    if (req.hdr.hasKey("If-None-Match"))
+    {
+        QString etag = req.hdr.value("If-None-Match");
+
+        if (sensor->etag == etag)
+        {
+            rsp.httpStatus = HttpStatusNotModified;
+            rsp.etag = etag;
+            return REQ_READY_SEND;
+        }
+    }
+
+    if (rsp.list.isEmpty())
+    {
+        rsp.str = "[]"; // return empty list
+    }
+
+    updateSensorEtag(sensor);
     rsp.etag = sensor->etag;
 
     return REQ_READY_SEND;

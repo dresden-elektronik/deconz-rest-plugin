@@ -39,6 +39,7 @@ static int sqliteLoadAllRulesCallback(void *user, int ncols, char **colval , cha
 static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteGetAllLightIdsCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteGetAllSensorIdsCallback(void *user, int ncols, char **colval , char **colname);
+static int sqliteGetSensorDataCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteLoadAllGatewaysCallback(void *user, int ncols, char **colval , char **colname);
 
 /******************************************************************************
@@ -97,6 +98,49 @@ void DeRestPluginPrivate::checkDbUserVersion()
     if (updated)
     {
         checkDbUserVersion();
+    }
+    else
+    {
+        createTempViews();
+    }
+}
+
+void DeRestPluginPrivate::createTempViews()
+{
+    int rc;
+    char *errmsg;
+    DBG_Printf(DBG_INFO, "DB upgrade to user_version 1\n");
+
+    /* Create SQL statement */
+    const char *sql[] = {
+        "CREATE TEMP VIEW sensor_device_view "
+        "  AS SELECT a.sid, b.mac, b.id FROM sensors a, devices b "
+        "  WHERE a.uniqueid like b.mac||'%'",
+        "CREATE TEMP VIEW sensor_device_value_view "
+        "  AS SELECT a.sid AS sensor_id, b.cluster AS cluster_id, b.data AS data, b.timestamp AS timestamp "
+        "  from sensor_device_view a, zcl_values b where a.id like b.device_id",
+        NULL
+    };
+
+    for (int i = 0; sql[i] != NULL; i++)
+    {
+        errmsg = NULL;
+
+        /* Execute SQL statement */
+        rc = sqlite3_exec(db, sql[i], NULL, NULL, &errmsg);
+
+        if (rc != SQLITE_OK)
+        {
+            if (errmsg)
+            {
+                DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", sql[i], errmsg, rc);
+                sqlite3_free(errmsg);
+            }
+        }
+        else
+        {
+            DBG_Printf(DBG_INFO, "DB view is created \n");
+        }
     }
 }
 
@@ -1443,6 +1487,76 @@ void DeRestPluginPrivate::loadAllSchedulesFromDb()
     }
 }
 
+
+/*! Loads all groups from database.
+ */
+void DeRestPluginPrivate::loadSensorDataFromDb(Sensor *sensor, QVariantList &ls, qint64 fromTime, int max)
+{
+    int rc;
+    char *errmsg = 0;
+
+    DBG_Assert(db != 0);
+
+    if (!db)
+    {
+        return;
+    }
+
+    struct RMap {
+        const char *item;
+        quint16 clusterId;
+        quint16 attributeId;
+    };
+
+    const RMap rmap[] = {
+        { RStatePresence, 0x0406, 0x0000 },
+        { RStateLightLevel, 0x0400, 0x0000 },
+        { RStateTemperature, 0x0402, 0x0000 },
+        { RStateHumidity, 0x0405, 0x0000 },
+        { RStateOpen, 0x0006, 0x0000 },
+        { nullptr, 0, 0 }
+    };
+
+    for (int i  = 0; i < sensor->itemCount(); i++)
+    {
+        ResourceItem *item = sensor->itemForIndex(i);
+        const RMap *found = nullptr;
+        const RMap *r = rmap;
+
+        while (!found && r->item)
+        {
+            if (r->item == item->descriptor().suffix)
+            {
+              found = r;
+              break;
+            }
+            r++;
+        }
+
+        if (!found)
+        {
+            continue;
+        }
+
+        QString sql = QString("SELECT * FROM sensor_device_value_view "
+                              "WHERE sensor_id = %1 AND timestamp > %2 AND cluster_id = %3 limit %4")
+                                .arg(sensor->id()).arg(fromTime).arg(found->clusterId).arg(max);
+
+        DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+        rc = sqlite3_exec(db, qPrintable(sql), sqliteGetSensorDataCallback, &ls, &errmsg);
+
+        if (rc != SQLITE_OK)
+        {
+            if (errmsg)
+            {
+                DBG_Printf(DBG_ERROR_L2, "sqlite3_exec %s, error: %s\n", qPrintable(sql), errmsg);
+                sqlite3_free(errmsg);
+            }
+        }
+    }
+
+}
+
 /*! Sqlite callback to load data for a node (identified by its mac address).
  */
 static int sqliteLoadLightNodeCallback(void *user, int ncols, char **colval , char **colname)
@@ -2723,6 +2837,53 @@ static int sqliteGetAllSensorIdsCallback(void *user, int ncols, char **colval , 
             }
         }
     }
+
+    return 0;
+}
+
+/*! Sqlite callback to load all sensor ids into temporary array.
+ */
+static int sqliteGetSensorDataCallback(void *user, int ncols, char **colval , char **colname)
+{
+    DBG_Assert(user != 0);
+
+    if (!user || (ncols <= 0))
+    {
+        return 0;
+    }
+
+    QVariantList *ls = static_cast<QVariantList*>(user);
+
+    bool ok;
+    QVariantMap map;
+
+    for (int i = 0; i < ncols; i++)
+    {
+        if (colval[i] && (colval[i][0] != '\0'))
+        {
+            if (strcmp(colname[i], "data") == 0)
+            {
+                int data = QString(QLatin1String(colval[i])).toInt(&ok);
+                if (!ok)
+                    return 0;
+                map["value"] = data;
+            }
+            else if (strcmp(colname[i], "timestamp") == 0)
+            {
+                int tst = QString(QLatin1String(colval[i])).toInt();
+                QDateTime dateTime;
+                dateTime.setTime_t(tst);
+
+                map["timestamp"] = dateTime;
+            }
+            else if (strcmp(colname[i], "cluster_id") == 0)
+            {
+                map["clusterId"] = QString(colval[i]);
+            }
+        }
+    }
+
+    ls->append(map);
 
     return 0;
 }
