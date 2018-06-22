@@ -248,7 +248,7 @@ int DeRestPluginPrivate::getSensorData(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    qint64 fromTime = dt.toSecsSinceEpoch();
+    qint64 fromTime = dt.toMSecsSinceEpoch() / 1000;
 
     openDb();
     loadSensorDataFromDb(sensor, rsp.list, fromTime, maxRecords);
