@@ -2196,7 +2196,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             else
             {
                 item = sensor.addItem(DataTypeUInt16, RConfigDuration);
-                if (sensor.modelId() == QLatin1String("tagv4")) // SmartThings Arrival sensor
+                if (sensor.modelId().startsWith(QLatin1String("tagv4"))) // SmartThings Arrival sensor
                 {
                     item->setValue(310);
                 }
@@ -2394,7 +2394,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 //item->setValue(0);
             }
         }
-        else if (sensor.modelId() == QLatin1String("tagv4")) // SmartThings Arrival sensor
+        else if (sensor.modelId().startsWith(QLatin1String("tagv4"))) // SmartThings Arrival sensor
         {
             item = sensor.addItem(DataTypeString, RConfigAlert);
             item->setValue(R_ALERT_DEFAULT);

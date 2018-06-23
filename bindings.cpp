@@ -863,12 +863,12 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 1800;
             rq.reportableChange8bit = 0xFF;
         }
-        else if (sensor && sensor->modelId() == QLatin1String("tagv4"))
+        else if (sensor && sensor->modelId().startsWith(QLatin1String("tagv4")))
         {
             rq.attributeId = 0x0020;   // battery voltage
             rq.minInterval = 3600;
             rq.maxInterval = 3600;
-            rq.reportableChange8bit = 1;
+            rq.reportableChange8bit = 0;
         }
         else
         {
@@ -1327,7 +1327,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Nimbus
         sensor->modelId().startsWith(QLatin1String("FLS-NB")) ||
         // SmartThings
-        sensor->modelId() == QLatin1String("tagv4"))
+        sensor->modelId().startsWith(QLatin1String("tagv4")))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle())
@@ -1453,6 +1453,10 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         {
             val = sensor->getZclValue(*i, 0x050b); // Active power
         }
+        else if (*i == BINARY_INPUT_CLUSTER_ID)
+        {
+            val = sensor->getZclValue(*i, 0x0055); // Present value
+        }
 
         quint16 maxInterval = (val.maxInterval > 0) ? (val.maxInterval * 1.5) : (60 * 45);
 
@@ -1500,6 +1504,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         case ELECTRICAL_MEASUREMENT_CLUSTER_ID:
         case VENDOR_CLUSTER_ID:
         case BASIC_CLUSTER_ID:
+        case BINARY_INPUT_CLUSTER_ID:
         {
             DBG_Printf(DBG_INFO_L2, "0x%016llX (%s) create binding for attribute reporting of cluster 0x%04X on endpoint 0x%02X\n",
                        sensor->address().ext(), qPrintable(sensor->modelId()), (*i), srcEndpoint);
