@@ -2998,7 +2998,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case BINARY_INPUT_CLUSTER_ID:
                 {
-                    fpPresenceSensor.inClusters.push_back(ci->id());
+                    if (modelId.startsWith(QLatin1String("tagv4"))) // SmartThings Arrival sensor
+                    {
+                        fpPresenceSensor.inClusters.push_back(ci->id());
+                    }
                 }
                     break;
 
