@@ -1040,6 +1040,82 @@ Data Request rate.</description>
 			<description></description>
 			<!-- TODO -->
 		</cluster>
+    <cluster id="0102" name="Window Covering"> <!-- ebaauw -->
+      <description>The window covering cluster provides an interface for controlling and adjusting automatic window coverings such as drapery motors, automatic shades, and blinds.</description>
+      <server>
+        <attribute-set id="00" description="Window Covering Information">
+          <attribute id="0x0000" name="Window Covering Type" type="enum8" default="0x00" access="r" required="m">
+            <value name="Rollershade" value="0"></value>
+            <value name="Rollershade - 2 Motor" value="1"></value>
+            <value name="Rollershade – Exterior" value="2"></value>
+            <value name="Rollershade - Exterior - 2 Motor" value="3"></value>
+            <value name="Drapery" value="4"></value>
+            <value name="Awning" value="5"></value>
+            <value name="Shutter" value="6"></value>
+            <value name="Tilt Blind - Tilt Only" value="7"></value>
+            <value name="Tilt Blind - Lift and Tilt" value="8"></value>
+            <value name="Projector Screen" value="9"></value>
+          </attribute>
+          <attribute id="0x0001" name="Physical Closed Limit – Lift" type="u16" default="0x0000" access="r" required="o"></attribute>
+          <attribute id="0x0002" name="Physical Closed Limit – Tilt" type="u16" default="0x0000" access="r" required="o"></attribute>
+          <attribute id="0x0003" name="Current Position – Lift" type="u16" default="0x0000" access="r" required="o"></attribute>
+          <attribute id="0x0004" name="Current Position – Tilt" type="u16" default="0x0000" access="r" required="o"></attribute>
+          <attribute id="0x0005" name="Number of Actuations – Lift" type="u16" default="0x0000" access="r" required="o"></attribute>
+          <attribute id="0x0006" name="Number of Actuations – Tilt" type="u16" default="0x0000" access="r" required="o"></attribute>
+          <attribute id="0x0007" name="Config / Status" type="bmp8" default="0x03" access="r" required="o">
+            <value name="Operational" value="0"></value>
+            <value name="Online" value="1"></value>
+            <value name="Commands Reversed" value="2"></value>
+            <value name="Lift control is Closed Loop" value="3"></value>
+            <value name="Tilt control is Closed Loop" value="4"></value>
+            <value name="Encoder Controlled" value="5"></value>
+            <value name="Encoder Controlled" value="6"></value>
+          </attribute>
+          <attribute id="0x0008" name="Current Position Lift Percentage" type="u8" default="0x00" access="r" required="o" range="0,0x64"></attribute>
+          <attribute id="0x0009" name="Current Position Tilt Percentage" type="u8" default="0x00" access="r" required="o" range="0,0x64"></attribute>
+        </attribute-set>
+        <attribute-set id="01" description="Window Covering Settings">
+          <attribute id="0x0100" name="Installed Open Limit – Lift" type="u16" default="0x0000" access="r" required="o"></attribute>
+          <attribute id="0x0101" name="Installed Closed Limit – Lift" type="u16" default="0xffff" access="r" required="o"></attribute>
+          <attribute id="0x0102" name="Installed Open Limit – Tilt" type="u16" default="0x0000" access="r" required="o"></attribute>
+          <attribute id="0x0103" name="Installed Open Limit – Tilt" type="u16" default="0xffff" access="r" required="o"></attribute>
+          <attribute id="0x0104" name="Velocity – Lift" type="u16" default="0x0000" access="rw" required="o"></attribute>
+          <attribute id="0x0105" name="Acceleration Time – Lift" type="u16" default="0x0000" access="rw" required="o"></attribute>
+          <attribute id="0x0106" name="Deceleration Time – Lift" type="u16" default="0x0000" access="rw" required="o"></attribute>
+          <attribute id="0x0107" name="Mode" type="bmp8" default="0x0000" access="rw" required="o">
+            <value name="Reversed" value="0"></value>
+            <value name="Calibration Mode" value="1"></value>
+            <value name="Maintenance Mode" value="2"></value>
+            <value name="LED feedback" value="3"></value>
+          </attribute>
+          <attribute id="0x0108" name="Intermediate Setpoints – Lift" type="ostring" default="1,0x0000" access="rw" required="o"></attribute>
+          <attribute id="0x0109" name="Intermediate Setpoints – Tilt" type="ostring" default="1,0x0000" access="rw" required="o"></attribute>
+        </attribute-set>
+        <command id="0x00" dir="recv" name="Up / Open" required="m"></command>
+        <command id="0x01" dir="recv" name="Down / Close" required="m"></command>
+        <command id="0x02" dir="recv" name="Stop" required="m"></command>
+        <command id="0x04" dir="recv" name="Go To Lift Value" required="o">
+          <payload>
+            <attribute id="0x0000" type="u16" name="Lift Value" required="m" default="0x0000"></attribute>
+          </payload>
+        </command>
+        <command id="0x05" dir="recv" name="Go to Lift Percentage" required="o">
+          <payload>
+            <attribute id="0x0000" type="u8" name="Lift Percentage" required="m" default="0x00" range="0,0x64"></attribute>
+          </payload>
+        </command>
+        <command id="0x07" dir="recv" name="Go to Tilt Value" required="o">
+          <payload>
+            <attribute id="0x0000" type="u16" name="Tilt Value" required="m" default="0x0000"></attribute>
+          </payload>
+        </command>
+        <command id="0x08" dir="recv" name="Go to Tilt Percentage" required="o">
+          <payload>
+            <attribute id="0x0000" type="u8" name="Tilt Percentage" required="m" default="0x00" range="0,0x64"></attribute>
+          </payload>
+        </command>
+      </server>
+    </cluster>
 	</domain>
 	<domain name="HVAC" low_bound="0200" high_bound="02ff" description="The HVAC functional domain contains clusters and information to build devices in the HVAC domain, e.g. pumps.">
 		<cluster id="0200" name="Pump Configuration and Control">
@@ -1590,6 +1666,10 @@ Data Request rate.</description>
 				<attribute id="0x0510" name="Power Factor" type="s8" access="r" required="o" default="0x00"></attribute>
 			</attribute-set>
 			<attribute-set id="0x06" description="AC Formatting">
+				<attribute id="0x0600" name="AC Voltage Multiplier" type="u16" access="r" required="o" default="0x0001"></attribute>
+				<attribute id="0x0601" name="AC Voltage Divisor" type="u16" access="r" required="o" default="0x0001"></attribute>
+				<attribute id="0x0602" name="AC Current Multiplier" type="u16" access="r" required="o" default="0x0001"></attribute>
+				<attribute id="0x0603" name="AC Current Divisor" type="u16" access="r" required="o" default="0x0001"></attribute>
 				<attribute id="0x0604" name="AC Power Multiplier" type="u16" access="r" required="o" default="0x0001"></attribute>
 				<attribute id="0x0605" name="AC Power Divisor" type="u16" access="r" required="o" default="0x0001"></attribute>
 			</attribute-set>
@@ -1867,7 +1947,8 @@ devices can operate on either battery or mains power, and can have a wide variet
 					<value name="kPA(gauge) BCD" value="88"></value>
 					<value name="kPA(absolute) BCD" value="89"></value>
 				</attribute>
-				<!-- TODO -->
+				<attribute id="0301" name="Multiplier" type="u24" access="r" required="o"></attribute>
+				<attribute id="0302" name="Divisor" type="u24" access="r" required="o"></attribute>
 				<attribute id="0303" name="Summation Formatting" type="bmp8" access="r" required="m">
 					<value name="Number Digits Right" description="Number of Digets to the right of the Decimal Point" value="0,2"></value>
 					<value name="Number Digits Left" description="Number of Digets to the left of the Decimal Point" value="3,6"></value>
@@ -2127,6 +2208,7 @@ devices can operate on either battery or mains power, and can have a wide variet
 		<domain-ref name="Light Link" low_bound="1000" />
 		<domain-ref name="Lighting" low_bound="0300" />
 		<domain-ref name="Measurement and Sensing" low_bound="0400" />
+		<domain-ref name="Smart Energy" low_bound="0x0700" />
 		<domain-ref name="Manufacturer Specific" low_bound="0xfc00" />
 		<device id="0x0000" name="On/off light" description="" icon="dev-on-off-light.png"></device>
 		<device id="0x0010" name="On/off plug-in unit" description=""></device>
@@ -2228,6 +2310,9 @@ devices can operate on either battery or mains power, and can have a wide variet
 			<description></description>
 		</device>
 		<device id="0201" name="Shade Controller">
+			<description></description>
+		</device>
+			<device id="0202" name="Window Covering Device">
 			<description></description>
 		</device>
 		<!-- HVAC -->
