@@ -2998,7 +2998,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case BINARY_INPUT_CLUSTER_ID:
                 {
-                    fpPresenceSensor.inClusters.push_back(ci->id());
+                    if (modelId.startsWith(QLatin1String("tagv4"))) // SmartThings Arrival sensor
+                    {
+                        fpPresenceSensor.inClusters.push_back(ci->id());
+                    }
                 }
                     break;
 
@@ -3494,7 +3497,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         item = sensorNode.addItem(DataTypeBool, RStatePresence);
         item->setValue(false);
         item = sensorNode.addItem(DataTypeUInt16, RConfigDuration);
-        if (modelId == QLatin1String("tagv4")) // SmartThings Arrival sensor
+        if (modelId.startsWith(QLatin1String("tagv4"))) // SmartThings Arrival sensor
         {
             item->setValue(310); // Sensor will be configured to report every 5 minutes
         }
@@ -4332,7 +4335,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             }
                             else if (ia->id() == 0x0020) // battery voltage
                             {
-                                if (i->modelId() != QLatin1String("tagv4")) // SmartThings Arrival sensor
+                                if (!i->modelId().startsWith(QLatin1String("tagv4"))) // SmartThings Arrival sensor
                                 {
                                     continue;
                                 }
