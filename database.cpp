@@ -39,7 +39,6 @@ static int sqliteLoadAllRulesCallback(void *user, int ncols, char **colval , cha
 static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteGetAllLightIdsCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteGetAllSensorIdsCallback(void *user, int ncols, char **colval , char **colname);
-static int sqliteGetSensorDataCallback(void *user, int ncols, char **colval , char **colname);
 static int sqliteLoadAllGatewaysCallback(void *user, int ncols, char **colval , char **colname);
 
 /******************************************************************************
@@ -1488,16 +1487,22 @@ void DeRestPluginPrivate::loadAllSchedulesFromDb()
 }
 
 
-/*! Loads all groups from database.
+/*! Loads sensor_data from database.
  */
 void DeRestPluginPrivate::loadSensorDataFromDb(Sensor *sensor, QVariantList &ls, qint64 fromTime, int max)
 {
-    int rc;
     char *errmsg = 0;
 
     DBG_Assert(db != 0);
 
     if (!db)
+    {
+        return;
+    }
+
+    DBG_Assert(sensor != 0);
+
+    if (!sensor)
     {
         return;
     }
@@ -1538,23 +1543,73 @@ void DeRestPluginPrivate::loadSensorDataFromDb(Sensor *sensor, QVariantList &ls,
             continue;
         }
 
-        QString sql = QString("SELECT * FROM sensor_device_value_view "
-                              "WHERE sensor_id = %1 AND timestamp > %2 AND cluster_id = %3 limit %4")
-                                .arg(sensor->id()).arg(fromTime).arg(found->clusterId).arg(max);
+        const char *sql = "SELECT data,timestamp FROM sensor_device_value_view "
+                          "WHERE sensor_id = ?1 AND timestamp > ?2 AND cluster_id = ?3 limit ?4";
 
-        DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
-        rc = sqlite3_exec(db, qPrintable(sql), sqliteGetSensorDataCallback, &ls, &errmsg);
+        int rc;
+        int sid = sensor->id().toInt();
+        sqlite3_stmt *res = nullptr;
+
+        rc = sqlite3_prepare_v2(db, sql, -1, &res, 0);
+        DBG_Assert(res != nullptr);
+        DBG_Assert(rc == SQLITE_OK);
+
+        if (rc == SQLITE_OK)
+        {
+            rc = sqlite3_bind_int(res, 1, sid);
+            DBG_Assert(rc == SQLITE_OK);
+        }
+
+        if (rc == SQLITE_OK)
+        {
+            rc = sqlite3_bind_int(res, 2, fromTime);
+            DBG_Assert(rc == SQLITE_OK);
+        }
+
+        if (rc == SQLITE_OK)
+        {
+            rc = sqlite3_bind_int(res, 3, found->clusterId);
+            DBG_Assert(rc == SQLITE_OK);
+        }
+
+        if (rc == SQLITE_OK)
+        {
+            rc = sqlite3_bind_int(res, 4, max);
+            DBG_Assert(rc == SQLITE_OK);
+        }
 
         if (rc != SQLITE_OK)
         {
             if (errmsg)
             {
-                DBG_Printf(DBG_ERROR_L2, "sqlite3_exec %s, error: %s\n", qPrintable(sql), errmsg);
+                DBG_Printf(DBG_ERROR_L2, "sqlite3_* %s, error: %s\n", qPrintable(sql), errmsg);
                 sqlite3_free(errmsg);
             }
-        }
-    }
 
+            if (res)
+            {
+                rc = sqlite3_finalize(res);
+                DBG_Assert(rc == SQLITE_OK);
+            }
+            continue;
+        }
+
+        while (sqlite3_step(res) == SQLITE_ROW)
+        {
+            QVariantMap map;
+            qint64 val = sqlite3_column_int64(res, 0);
+            qint64 timestamp = sqlite3_column_int64(res, 1);
+
+            QDateTime dateTime;
+            dateTime.setMSecsSinceEpoch(timestamp * 1000);
+            map[item->descriptor().suffix] = val;
+            map["t"] = dateTime.toString("yyyy-MM-ddTHH:mm:ss");
+            ls.append(map);
+        }
+
+        rc = sqlite3_finalize(res);
+        DBG_Assert(rc == SQLITE_OK);
+    }
 }
 
 /*! Sqlite callback to load data for a node (identified by its mac address).
@@ -2841,52 +2896,6 @@ static int sqliteGetAllSensorIdsCallback(void *user, int ncols, char **colval , 
     return 0;
 }
 
-/*! Sqlite callback to load all sensor ids into temporary array.
- */
-static int sqliteGetSensorDataCallback(void *user, int ncols, char **colval , char **colname)
-{
-    DBG_Assert(user != 0);
-
-    if (!user || (ncols <= 0))
-    {
-        return 0;
-    }
-
-    QVariantList *ls = static_cast<QVariantList*>(user);
-
-    bool ok;
-    QVariantMap map;
-
-    for (int i = 0; i < ncols; i++)
-    {
-        if (colval[i] && (colval[i][0] != '\0'))
-        {
-            if (strcmp(colname[i], "data") == 0)
-            {
-                int data = QString(QLatin1String(colval[i])).toInt(&ok);
-                if (!ok)
-                    return 0;
-                map["value"] = data;
-            }
-            else if (strcmp(colname[i], "timestamp") == 0)
-            {
-                int tst = QString(QLatin1String(colval[i])).toInt();
-                QDateTime dateTime;
-                dateTime.setTime_t(tst);
-
-                map["timestamp"] = dateTime;
-            }
-            else if (strcmp(colname[i], "cluster_id") == 0)
-            {
-                map["clusterId"] = QString(colval[i]);
-            }
-        }
-    }
-
-    ls->append(map);
-
-    return 0;
-}
 
 static int sqliteLoadAllGatewaysCallback(void *user, int ncols, char **colval , char **colname)
 {
