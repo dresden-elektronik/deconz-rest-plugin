@@ -1589,7 +1589,7 @@ void DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     }
 
     std::vector<quint8> srcEndpoints;
-    QStringList gids = item->toString().split(',');
+    QStringList gids = item->toString().split(',', QString::SkipEmptyParts);
 
     //quint8 srcEndpoint = sensor->fingerPrint().endpoint;
     std::vector<quint16> clusters;
@@ -1622,6 +1622,7 @@ void DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
             clusters.push_back(SCENE_CLUSTER_ID);
         }
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+        sensor->setMgmtBindSupported(false);
     }
     // IKEA Trådfri dimmer
     else if (sensor->modelId() == QLatin1String("TRADFRI wireless dimmer"))
