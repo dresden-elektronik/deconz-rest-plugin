@@ -100,10 +100,52 @@ void DeRestPluginPrivate::checkDbUserVersion()
     }
     else
     {
+        cleanUpDb();
         createTempViews();
     }
 }
 
+/*! Cleanup tasks for database maintenance.
+ */
+void DeRestPluginPrivate::cleanUpDb()
+{
+    int rc;
+    char *errmsg;
+    DBG_Printf(DBG_INFO, "DB upgrade to user_version 1\n");
+
+    /* Create SQL statement */
+    const char *sql[] = {
+        // cleanup invalid sensors created in version 2.05.30
+        "DELETE from sensors "
+        "   WHERE modelid like 'RWL02%' "
+        "   AND type = 'ZHAPresence'",
+        NULL
+    };
+
+    for (int i = 0; sql[i] != NULL; i++)
+    {
+        errmsg = NULL;
+
+        /* Execute SQL statement */
+        rc = sqlite3_exec(db, sql[i], NULL, NULL, &errmsg);
+
+        if (rc != SQLITE_OK)
+        {
+            if (errmsg)
+            {
+                DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", sql[i], errmsg, rc);
+                sqlite3_free(errmsg);
+            }
+        }
+        else
+        {
+            DBG_Printf(DBG_INFO, "DB view is created \n");
+        }
+    }
+}
+
+/*! Creates temporary views only valid during this session.
+ */
 void DeRestPluginPrivate::createTempViews()
 {
     int rc;
@@ -143,6 +185,8 @@ void DeRestPluginPrivate::createTempViews()
     }
 }
 
+/*! Returns SQLite pragma parameters specified by \p sql.
+ */
 int DeRestPluginPrivate::getDbPragmaInteger(const char *sql)
 {
     int rc;

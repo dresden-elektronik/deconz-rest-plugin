@@ -1111,6 +1111,7 @@ public:
     // Database interface
     void initDb();
     void checkDbUserVersion();
+    void cleanUpDb();
     void createTempViews();
     int getDbPragmaInteger(const char *sql);
     bool setDbUserVersion(int userVersion);
