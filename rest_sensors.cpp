@@ -274,6 +274,7 @@ int DeRestPluginPrivate::getSensorData(const ApiRequest &req, ApiResponse &rsp)
 
     updateSensorEtag(sensor);
     rsp.etag = sensor->etag;
+    rsp.httpStatus = HttpStatusOk;
 
     return REQ_READY_SEND;
 }
