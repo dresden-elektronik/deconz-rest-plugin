@@ -264,9 +264,13 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     archProcess = 0;
     zipProcess = 0;
 
+    // lights
+    searchLightsState = SearchLightsIdle;
+    searchLightsTimeout = 0;
+
     // sensors
-    findSensorsState = FindSensorsIdle;
-    findSensorsTimeout = 0;
+    searchSensorsState = SearchSensorsIdle;
+    searchSensorsTimeout = 0;
 
     ttlDataBaseConnection = 0;
     openDb();
@@ -381,11 +385,6 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
             this, SLOT(openClientTimerFired()));
     openClientTimer->start(1000);
 
-    resendPermitJoinTimer = new QTimer(this);
-    resendPermitJoinTimer->setSingleShot(true);
-    connect(resendPermitJoinTimer, SIGNAL(timeout()),
-            this, SLOT(resendPermitJoinTimerFired()));
-
     quint16 wsPort = deCONZ::appArgumentNumeric(QLatin1String("--ws-port"), gwConfig["websocketport"].toUInt());
     webSocketServer = new WebSocketServer(this, wsPort);
     gwConfig["websocketport"] = webSocketServer->port();
@@ -487,7 +486,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             break;
         }
 
-        handleIndicationFindSensors(ind, zclFrame);
+        handleIndicationSearchSensors(ind, zclFrame);
 
         if (ind.dstAddressMode() == deCONZ::ApsGroupAddress || ind.clusterId() == VENDOR_CLUSTER_ID ||
             !(zclFrame.frameControl() & deCONZ::ZclFCDirectionServerToClient) ||
@@ -562,14 +561,14 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
         case ZDP_SIMPLE_DESCRIPTOR_RSP_CLID:
         case ZDP_ACTIVE_ENDPOINTS_RSP_CLID:
         {
-            handleIndicationFindSensors(ind, zclFrame);
+            handleIndicationSearchSensors(ind, zclFrame);
         }
             break;
 
         case ZDP_DEVICE_ANNCE_CLID:
         {
             handleDeviceAnnceIndication(ind);
-            handleIndicationFindSensors(ind, zclFrame);
+            handleIndicationSearchSensors(ind, zclFrame);
         }
             break;
 
@@ -933,7 +932,7 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
 
         if (!sensor)
         {
-            if (findSensorsState != FindSensorsActive)
+            if (searchSensorsState != SearchSensorsActive)
             {
                 return;
             }
@@ -992,7 +991,7 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
         }
         else if (sensor && sensor->deletedState() == Sensor::StateDeleted)
         {
-            if (findSensorsState == FindSensorsActive)
+            if (searchSensorsState == SearchSensorsActive)
             {
                 sensor->setDeletedState(Sensor::StateNormal);
                 checkSensorGroup(sensor);
@@ -1198,6 +1197,12 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             queuePollNode(lightNode2);
             continue;
         }
+
+        // new light node
+        // if (searchLightsState != SearchLightsActive)
+        // {
+        //     return;
+        // }
 
         if (!i->inClusters().isEmpty())
         {
@@ -1426,6 +1431,12 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             nodes.push_back(lightNode);
             lightNode2 = &nodes.back();
             queuePollNode(lightNode2);
+
+            if (searchLightsState == SearchLightsActive)
+            {
+                Event e(RLights, REventAdded, lightNode.id());
+                enqueueEvent(e);
+            }
 
             indexRulesTriggers();
 
@@ -2698,7 +2709,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         }
     }
 
-    if (findSensorsState != FindSensorsActive)
+    if (searchSensorsState != SearchSensorsActive)
     {
         return;
     }
@@ -3870,7 +3881,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         updateSensorEtag(sensor2);
     }
 
-    if (findSensorsState == FindSensorsActive)
+    if (searchSensorsState == SearchSensorsActive)
     {
         Event e(RSensors, REventAdded, sensorNode.id());
         enqueueEvent(e);
@@ -10221,7 +10232,7 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
             checkSensorBindingsForClientClusters(&*si);
             updateSensorEtag(&*si);
 
-            if (findSensorsState == FindSensorsActive && si->node())
+            if (searchSensorsState == SearchSensorsActive && si->node())
             {
                 // address changed?
                 if (si->address().nwk() != nwk)
@@ -10230,7 +10241,7 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
                     // indicator that the device was resettet
                     si->address().setNwk(nwk);
 
-                    if (findSensorsState == FindSensorsActive &&
+                    if (searchSensorsState == SearchSensorsActive &&
                         si->deletedState() == Sensor::StateNormal)
                     {
                         updateSensorEtag(&*si);
@@ -10244,7 +10255,7 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
         }
     }
 
-    if (findSensorsState == FindSensorsActive)
+    if (searchSensorsState == SearchSensorsActive)
     {
         if (!found && apsCtrl)
         {
@@ -10265,7 +10276,7 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
         }
 
         deCONZ::ZclFrame zclFrame; // dummy
-        handleIndicationFindSensors(ind, zclFrame);
+        handleIndicationSearchSensors(ind, zclFrame);
     }
 }
 
@@ -10866,15 +10877,15 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
  */
 void DeRestPluginPrivate::delayedFastEnddeviceProbe()
 {
-    if (getUptime() < WARMUP_TIME && findSensorsState != FindSensorsActive)
+    if (getUptime() < WARMUP_TIME && searchSensorsState != SearchSensorsActive)
     {
         return;
     }
 
     SensorCandidate *sc = 0;
     {
-        std::vector<SensorCandidate>::iterator i = findSensorCandidates.begin();
-        std::vector<SensorCandidate>::iterator end = findSensorCandidates.end();
+        std::vector<SensorCandidate>::iterator i = searchSensorsCandidates.begin();
+        std::vector<SensorCandidate>::iterator end = searchSensorsCandidates.end();
 
         for (; i != end; ++i)
         {
@@ -11229,7 +11240,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
             return;
         }
 
-        if (!sensor || findSensorsState != FindSensorsActive)
+        if (!sensor || searchSensorsState != SearchSensorsActive)
         {
             // do nothing
         }
@@ -11814,10 +11825,10 @@ void DeRestPlugin::idleTimerFired()
                     lightNode->modelId().startsWith(QLatin1String("FLS-NB")))
                 {
                     // temporary activate sensor search
-                    DeRestPluginPrivate::FindSensorsState fss = d->findSensorsState; // remember
-                    d->findSensorsState = DeRestPluginPrivate::FindSensorsActive;
+                    DeRestPluginPrivate::SearchSensorsState fss = d->searchSensorsState; // remember
+                    d->searchSensorsState = DeRestPluginPrivate::SearchSensorsActive;
                     d->addSensorNode(lightNode->node());
-                    d->findSensorsState = fss;
+                    d->searchSensorsState = fss;
 
                     // temporary,
                     if (d->flsNbMaintenance(lightNode))
@@ -12445,7 +12456,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
 
     int ret = REQ_NOT_HANDLED;
 
-    // general response to a OPTIONS HTTP method
+     // general response to a OPTIONS HTTP method
     if (req.hdr.method() == QLatin1String("OPTIONS"))
     {
         stream << "HTTP/1.1 200 OK\r\n";

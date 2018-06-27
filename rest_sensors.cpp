@@ -69,7 +69,7 @@ int DeRestPluginPrivate::handleSensorsApi(ApiRequest &req, ApiResponse &rsp)
 
         if (map.isEmpty())
         {
-            return findNewSensors(req, rsp);
+            return searchNewSensors(req, rsp);
         }
         else
         {
@@ -1536,7 +1536,7 @@ int DeRestPluginPrivate::deleteSensor(const ApiRequest &req, ApiResponse &rsp)
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
-int DeRestPluginPrivate::findNewSensors(const ApiRequest &req, ApiResponse &rsp)
+int DeRestPluginPrivate::searchNewSensors(const ApiRequest &req, ApiResponse &rsp)
 {
     Q_UNUSED(req);
 
@@ -1547,12 +1547,12 @@ int DeRestPluginPrivate::findNewSensors(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    startFindSensors();
+    startSearchSensors();
     {
         QVariantMap rspItem;
         QVariantMap rspItemState;
         rspItemState[QLatin1String("/sensors")] = QLatin1String("Searching for new devices");
-        rspItemState[QLatin1String("/sensors/duration")] = (double)findSensorsTimeout;
+        rspItemState[QLatin1String("/sensors/duration")] = (double)searchSensorsTimeout;
         rspItem[QLatin1String("success")] = rspItemState;
         rsp.list.append(rspItem);
     }
@@ -1570,18 +1570,18 @@ int DeRestPluginPrivate::getNewSensors(const ApiRequest &req, ApiResponse &rsp)
 {
     Q_UNUSED(req);
 
-    if (!findSensorResult.isEmpty() &&
-        (findSensorsState == FindSensorsActive || findSensorsState == FindSensorsDone))
+    if (!searchSensorsResult.isEmpty() &&
+        (searchSensorsState == SearchSensorsActive || searchSensorsState == SearchSensorsDone))
     {
 
-        rsp.map = findSensorResult;
+        rsp.map = searchSensorsResult;
     }
 
-    if (findSensorsState == FindSensorsActive)
+    if (searchSensorsState == SearchSensorsActive)
     {
         rsp.map["lastscan"] = QLatin1String("active");
     }
-    else if (findSensorsState == FindSensorsDone)
+    else if (searchSensorsState == SearchSensorsDone)
     {
         rsp.map["lastscan"] = lastSensorsScan;
     }
@@ -1851,7 +1851,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
 
         QVariantMap res;
         res["name"] = sensor->name();
-        findSensorResult[sensor->id()] = res;
+        searchSensorsResult[sensor->id()] = res;
 
         QVariantMap map;
         map["t"] = QLatin1String("event");
@@ -1942,51 +1942,51 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
 
 /*! Starts the search for new sensors.
  */
-void DeRestPluginPrivate::startFindSensors()
+void DeRestPluginPrivate::startSearchSensors()
 {
-    if (findSensorsState == FindSensorsIdle || findSensorsState == FindSensorsDone)
+    if (searchSensorsState == SearchSensorsIdle || searchSensorsState == SearchSensorsDone)
     {
-        findSensorCandidates.clear();
-        findSensorResult.clear();
+        searchSensorsCandidates.clear();
+        searchSensorsResult.clear();
         lastSensorsScan = QDateTime::currentDateTimeUtc().toString(QLatin1String("yyyy-MM-ddTHH:mm:ss"));
-        QTimer::singleShot(1000, this, SLOT(findSensorsTimerFired()));
-        findSensorsState = FindSensorsActive;
+        QTimer::singleShot(1000, this, SLOT(searchSensorsTimerFired()));
+        searchSensorsState = SearchSensorsActive;
     }
     else
     {
-        Q_ASSERT(findSensorsState == FindSensorsActive);
+        Q_ASSERT(searchSensorsState == SearchSensorsActive);
     }
 
-    findSensorsTimeout = gwNetworkOpenDuration;
-    gwPermitJoinResend = findSensorsTimeout;
+    searchSensorsTimeout = gwNetworkOpenDuration;
+    gwPermitJoinResend = searchSensorsTimeout;
     if (!resendPermitJoinTimer->isActive())
     {
         resendPermitJoinTimer->start(100);
     }
 }
 
-/*! Handler for find sensors active state.
+/*! Handler for search sensors active state.
  */
-void DeRestPluginPrivate::findSensorsTimerFired()
+void DeRestPluginPrivate::searchSensorsTimerFired()
 {
     if (gwPermitJoinResend == 0)
     {
         if (gwPermitJoinDuration == 0)
         {
-            findSensorsTimeout = 0; // done
+            searchSensorsTimeout = 0; // done
         }
     }
 
-    if (findSensorsTimeout > 0)
+    if (searchSensorsTimeout > 0)
     {
-        findSensorsTimeout--;
-        QTimer::singleShot(1000, this, SLOT(findSensorsTimerFired()));
+        searchSensorsTimeout--;
+        QTimer::singleShot(1000, this, SLOT(searchSensorsTimerFired()));
     }
 
-    if (findSensorsTimeout == 0)
+    if (searchSensorsTimeout == 0)
     {
         fastProbeAddr = deCONZ::Address();
-        findSensorsState = FindSensorsDone;
+        searchSensorsState = SearchSensorsDone;
     }
 }
 
@@ -2074,9 +2074,9 @@ void DeRestPluginPrivate::checkInstaModelId(Sensor *sensor)
 
 /*! Heuristic to detect the type and configuration of devices.
  */
-void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
+void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
-//    if (findSensorsState != FindSensorsActive)
+//    if (searchSensorsState != SearchSensorsActive)
 //    {
 //        return;
 //    }
@@ -2124,8 +2124,8 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
             fastProbeTimer->start(1000);
         }
 
-        std::vector<SensorCandidate>::iterator i = findSensorCandidates.begin();
-        std::vector<SensorCandidate>::iterator end = findSensorCandidates.end();
+        std::vector<SensorCandidate>::iterator i = searchSensorsCandidates.begin();
+        std::vector<SensorCandidate>::iterator end = searchSensorsCandidates.end();
 
         for (; i != end; ++i)
         {
@@ -2141,14 +2141,14 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
         sc.address.setExt(ext);
         sc.address.setNwk(nwk);
         sc.macCapabilities = macCapabilities;
-        findSensorCandidates.push_back(sc);
+        searchSensorsCandidates.push_back(sc);
         return;
     }
     else if (ind.profileId() == ZDP_PROFILE_ID)
     {
 
-        std::vector<SensorCandidate>::iterator i = findSensorCandidates.begin();
-        std::vector<SensorCandidate>::iterator end = findSensorCandidates.end();
+        std::vector<SensorCandidate>::iterator i = searchSensorsCandidates.begin();
+        std::vector<SensorCandidate>::iterator end = searchSensorsCandidates.end();
 
         for (; i != end; ++i)
         {
@@ -2195,8 +2195,8 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
             }
             else if (fastProbeAddr.hasExt())
             {
-                std::vector<SensorCandidate>::const_iterator i = findSensorCandidates.begin();
-                std::vector<SensorCandidate>::const_iterator end = findSensorCandidates.end();
+                std::vector<SensorCandidate>::const_iterator i = searchSensorsCandidates.begin();
+                std::vector<SensorCandidate>::const_iterator end = searchSensorsCandidates.end();
 
                 for (; i != end; ++i)
                 {
@@ -2230,8 +2230,8 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
 
     SensorCandidate *sc = 0;
     {
-        std::vector<SensorCandidate>::iterator i = findSensorCandidates.begin();
-        std::vector<SensorCandidate>::iterator end = findSensorCandidates.end();
+        std::vector<SensorCandidate>::iterator i = searchSensorsCandidates.begin();
+        std::vector<SensorCandidate>::iterator end = searchSensorsCandidates.end();
 
         for (; i != end; ++i)
         {
@@ -2305,10 +2305,10 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
         SensorCandidate sc2;
         sc2.address = indAddress;
         sc2.macCapabilities = macCapabilities;
-        findSensorCandidates.push_back(sc2);
-        sc = &findSensorCandidates.back();
+        searchSensorsCandidates.push_back(sc2);
+        sc = &searchSensorsCandidates.back();
 
-        if (!fastProbeAddr.hasExt() && findSensorsState == FindSensorsActive)
+        if (!fastProbeAddr.hasExt() && searchSensorsState == SearchSensorsActive)
         {
             fastProbeAddr = indAddress;
             if (!fastProbeTimer->isActive())
@@ -2451,7 +2451,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
 
             bool update = false;
 
-            if (!s1 && isSceneSwitch && findSensorsState == FindSensorsActive)
+            if (!s1 && isSceneSwitch && searchSensorsState == SearchSensorsActive)
             {
                 openDb();
                 sensorNode.setId(QString::number(getFreeSensorId()));
@@ -2469,7 +2469,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
             }
             else if (isLightingSwitch)
             {
-                if (!s1 && findSensorsState == FindSensorsActive)
+                if (!s1 && searchSensorsState == SearchSensorsActive)
                 {
                     openDb();
                     sensorNode.setId(QString::number(getFreeSensorId()));
@@ -2486,7 +2486,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
                     enqueueEvent(e);
                 }
 
-                if (!s2 && findSensorsState == FindSensorsActive)
+                if (!s2 && searchSensorsState == SearchSensorsActive)
                 {
                     openDb();
                     sensorNode.setId(QString::number(getFreeSensorId()));
@@ -2637,7 +2637,7 @@ void DeRestPluginPrivate::handleIndicationFindSensors(const deCONZ::ApsDataIndic
         {
             DBG_Printf(DBG_INFO, "ikea remote toggle button\n");
 
-            if (findSensorsState != FindSensorsActive)
+            if (searchSensorsState != SearchSensorsActive)
             {
                 return;
             }
