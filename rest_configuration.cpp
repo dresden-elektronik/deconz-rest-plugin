@@ -1365,7 +1365,8 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
         if (seconds > 0)
         {
-            startFindSensors();
+            startSearchLights();
+            startSearchSensors();
         }
 
         QVariantMap rspItem;
@@ -2564,47 +2565,6 @@ int DeRestPluginPrivate::scanWifiNetworks(const ApiRequest &req, ApiResponse &rs
     rsp.map["cells"] = cells;
     rsp.httpStatus = HttpStatusOk;
     return REQ_READY_SEND;
-}
-
-/*! Check if permitJoin is > 60 seconds then resend permitjoin with 60 seconds
- */
-void DeRestPluginPrivate::resendPermitJoinTimerFired()
-{
-    resendPermitJoinTimer->stop();
-    if (gwPermitJoinDuration <= 1)
-    {
-        if (gwPermitJoinResend > 0)
-        {
-
-            if (gwPermitJoinResend >= 60)
-            {
-                setPermitJoinDuration(60);
-            }
-            else
-            {
-                setPermitJoinDuration(gwPermitJoinResend);
-            }
-            gwPermitJoinResend -= 60;
-            updateEtag(gwConfigEtag);
-            if (gwPermitJoinResend <= 0)
-            {
-                gwPermitJoinResend = 0;
-                return;
-            }
-
-        }
-        else if (gwPermitJoinResend == 0)
-        {
-            setPermitJoinDuration(0);
-            return;
-        }
-    }
-    else if (gwPermitJoinResend == 0)
-    {
-        setPermitJoinDuration(0);
-        return;
-    }
-    resendPermitJoinTimer->start(1000);
 }
 
 /* Check daylight state */

@@ -710,7 +710,7 @@ public:
     // REST API lights
     int handleLightsApi(ApiRequest &req, ApiResponse &rsp);
     int getAllLights(const ApiRequest &req, ApiResponse &rsp);
-    int searchLights(const ApiRequest &req, ApiResponse &rsp);
+    int searchNewLights(const ApiRequest &req, ApiResponse &rsp);
     int getNewLights(const ApiRequest &req, ApiResponse &rsp);
     int getLightState(const ApiRequest &req, ApiResponse &rsp);
     int setLightState(const ApiRequest &req, ApiResponse &rsp);
@@ -769,7 +769,7 @@ public:
     int getAllSensors(const ApiRequest &req, ApiResponse &rsp);
     int getSensor(const ApiRequest &req, ApiResponse &rsp);
     int getSensorData(const ApiRequest &req, ApiResponse &rsp);
-    int findNewSensors(const ApiRequest &req, ApiResponse &rsp);
+    int searchNewSensors(const ApiRequest &req, ApiResponse &rsp);
     int getNewSensors(const ApiRequest &req, ApiResponse &rsp);
     int updateSensor(const ApiRequest &req, ApiResponse &rsp);
     int deleteSensor(const ApiRequest &req, ApiResponse &rsp);
@@ -941,9 +941,13 @@ public Q_SLOTS:
     void checkResetState();
     void resetDeviceSendConfirm(bool success);
 
+    // lights
+    void startSearchLights();
+    void searchLightsTimerFired();
+    
     // sensors
-    void startFindSensors();
-    void findSensorsTimerFired();
+    void startSearchSensors();
+    void searchSensorsTimerFired();
     void checkInstaModelId(Sensor *sensor);
     void delayedFastEnddeviceProbe();
     void checkSensorStateTimerFired();
@@ -1074,7 +1078,7 @@ public:
     void handleClusterIndicationGateways(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleIasZoneClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendIasZoneEnrollResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
-    void handleIndicationFindSensors(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleIndicationSearchSensors(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleCommissioningClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZdpIndication(const deCONZ::ApsDataIndication &ind);
     bool handleMgmtBindRspConfirm(const deCONZ::ApsDataConfirm &conf);
@@ -1408,12 +1412,20 @@ public:
     uint64_t lastNodeAddressExt;
     uint8_t resetDeviceApsRequestId;
 
-    // sensors
-    enum FindSensorsState
+    // lights
+    enum SearchLightsState
     {
-        FindSensorsIdle,
-        FindSensorsActive,
-        FindSensorsDone,
+        SearchLightsIdle,
+        SearchLightsActive,
+        SearchLightsDone,
+    };
+
+    // sensors
+    enum SearchSensorsState
+    {
+        SearchSensorsIdle,
+        SearchSensorsActive,
+        SearchSensorsDone,
     };
 
     int sensorIndIdleTotalCounter;
@@ -1452,13 +1464,18 @@ public:
         std::vector<SensorCommand> rxCommands;
     };
 
-    FindSensorsState findSensorsState;
+    SearchLightsState searchLightsState;
+    QVariantMap searchLightsResult;
+    int searchLightsTimeout;
+    QString lastLightsScan;
+
+    SearchSensorsState searchSensorsState;
     deCONZ::Address fastProbeAddr;
-    QVariantMap findSensorResult;
+    QVariantMap searchSensorsResult;
     QTimer *fastProbeTimer;
-    int findSensorsTimeout;
+    int searchSensorsTimeout;
     QString lastSensorsScan;
-    std::vector<SensorCandidate> findSensorCandidates;
+    std::vector<SensorCandidate> searchSensorsCandidates;
 
     class RecoverOnOff
     {

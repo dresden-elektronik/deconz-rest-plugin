@@ -1288,7 +1288,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         return;
     }
 
-    if (findSensorsState != FindSensorsActive &&
+    if (searchSensorsState != SearchSensorsActive &&
         idleTotalCounter < (IDLE_READ_LIMIT + 120)) // wait for some input before fire bindings
     {
         return;
@@ -1567,7 +1567,7 @@ void DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         return;
     }
 
-    if (findSensorsState != FindSensorsActive &&
+    if (searchSensorsState != SearchSensorsActive &&
         idleTotalCounter < (IDLE_READ_LIMIT + 60)) // wait for some input before fire bindings
     {
         return;

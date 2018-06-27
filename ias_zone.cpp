@@ -52,7 +52,7 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
     {
         // during setup the IAS Zone type will be read
         // start to proceed discovery here
-        if (findSensorsState == FindSensorsActive)
+        if (searchSensorsState == SearchSensorsActive)
         {
             if (!fastProbeTimer->isActive())
             {

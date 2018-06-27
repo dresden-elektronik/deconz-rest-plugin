@@ -44,7 +44,7 @@ int DeRestPluginPrivate::handleLightsApi(ApiRequest &req, ApiResponse &rsp)
     // POST /api/<apikey>/lights
     else if ((req.path.size() == 3) && (req.hdr.method() == "POST"))
     {
-        return searchLights(req, rsp);
+        return searchNewLights(req, rsp);
     }
     // GET /api/<apikey>/lights/new
     else if ((req.path.size() == 4) && (req.hdr.method() == "GET") && (req.path[3] == "new"))
@@ -148,27 +148,28 @@ int DeRestPluginPrivate::getAllLights(const ApiRequest &req, ApiResponse &rsp)
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
-int DeRestPluginPrivate::searchLights(const ApiRequest &req, ApiResponse &rsp)
+int DeRestPluginPrivate::searchNewLights(const ApiRequest &req, ApiResponse &rsp)
 {
     Q_UNUSED(req);
 
-    userActivity();
-
-    if (isInNetwork())
+    if (!isInNetwork())
     {
-        setPermitJoinDuration(60);
-        QVariantMap map1;
-        QVariantMap map2;
-        map1["/lights"] = "Searching for new devices";
-        map2["success"] = map1;
-        rsp.list.append(map2);
-        rsp.httpStatus = HttpStatusOk;
-    }
-    else
-    {
-        rsp.list.append(errorToMap(ERR_NOT_CONNECTED, "/lights/search", "Not connected"));
+        rsp.list.append(errorToMap(ERR_NOT_CONNECTED, QLatin1String("/lights"), QLatin1String("Not connected")));
         rsp.httpStatus = HttpStatusServiceUnavailable;
+        return REQ_READY_SEND;
     }
+
+    startSearchLights();
+    {
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState[QLatin1String("/lights")] = QLatin1String("Searching for new devices");
+        rspItemState[QLatin1String("/lights/duration")] = (double)searchLightsTimeout;
+        rspItem[QLatin1String("success")] = rspItemState;
+        rsp.list.append(rspItem);
+    }
+
+    rsp.httpStatus = HttpStatusOk;
 
     return REQ_READY_SEND;
 }
@@ -179,11 +180,30 @@ int DeRestPluginPrivate::searchLights(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::getNewLights(const ApiRequest &req, ApiResponse &rsp)
 {
-    // TODO: implement
     Q_UNUSED(req);
-    Q_UNUSED(rsp);
-    rsp.map["lastscan"] = "2012-10-29T12:00:00";
-    return REQ_NOT_HANDLED; // TODO
+
+    if (!searchLightsResult.isEmpty() &&
+        (searchLightsState == SearchLightsActive || searchLightsState == SearchLightsDone))
+    {
+
+        rsp.map = searchLightsResult;
+    }
+
+    if (searchLightsState == SearchLightsActive)
+    {
+        rsp.map["lastscan"] = QLatin1String("active");
+    }
+    else if (searchLightsState == SearchLightsDone)
+    {
+        rsp.map["lastscan"] = lastLightsScan;
+    }
+    else
+    {
+        rsp.map["lastscan"] = QLatin1String("none");
+    }
+
+    rsp.httpStatus = HttpStatusOk;
+    return REQ_READY_SEND;
 }
 
 /*! Put all parameters in a map for later json serialization.
@@ -1761,6 +1781,10 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
     }
     else if (e.what() == REventAdded)
     {
+        QVariantMap res;
+        res["name"] = lightNode->name();
+        searchLightsResult[lightNode->id()] = res;
+
         QVariantMap map;
         map["t"] = QLatin1String("event");
         map["e"] = QLatin1String("added");
@@ -1778,5 +1802,53 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
         map["id"] = e.id();
 
         webSocketServer->broadcastTextMessage(Json::serialize(map));
+    }
+}
+
+/*! Starts the search for new lights.
+ */
+void DeRestPluginPrivate::startSearchLights()
+{
+    if (searchLightsState == SearchLightsIdle || searchLightsState == SearchLightsDone)
+    {
+        searchLightsResult.clear();
+        lastLightsScan = QDateTime::currentDateTimeUtc().toString(QLatin1String("yyyy-MM-ddTHH:mm:ss"));
+        QTimer::singleShot(1000, this, SLOT(searchLightsTimerFired()));
+        searchLightsState = SearchLightsActive;
+    }
+    else
+    {
+        Q_ASSERT(searchLightsState == SearchLightsActive);
+    }
+
+    searchLightsTimeout = gwNetworkOpenDuration;
+    gwPermitJoinResend = searchLightsTimeout;
+    if (!resendPermitJoinTimer->isActive())
+    {
+        resendPermitJoinTimer->start(100);
+    }
+}
+
+/*! Handler for search lights active state.
+ */
+void DeRestPluginPrivate::searchLightsTimerFired()
+{
+    if (gwPermitJoinResend == 0)
+    {
+        if (gwPermitJoinDuration == 0)
+        {
+            searchLightsTimeout = 0; // done
+        }
+    }
+
+    if (searchLightsTimeout > 0)
+    {
+        searchLightsTimeout--;
+        QTimer::singleShot(1000, this, SLOT(searchLightsTimerFired()));
+    }
+
+    if (searchLightsTimeout == 0)
+    {
+        searchLightsState = SearchLightsDone;
     }
 }

@@ -23,6 +23,11 @@ void DeRestPluginPrivate::initPermitJoin()
             this, SLOT(permitJoinTimerFired()));
     permitJoinTimer->start(1000);
     permitJoinLastSendTime = QTime::currentTime();
+
+    resendPermitJoinTimer = new QTimer(this);
+    resendPermitJoinTimer->setSingleShot(true);
+    connect(resendPermitJoinTimer, SIGNAL(timeout()),
+            this, SLOT(resendPermitJoinTimerFired()));
 }
 
 /*! Sets the permit join interval
@@ -146,4 +151,45 @@ void DeRestPluginPrivate::permitJoinTimerFired()
             DBG_Printf(DBG_INFO, "send permit join failed\n");
         }
     }
+}
+
+/*! Check if permitJoin is > 60 seconds then resend permitjoin with 60 seconds
+ */
+void DeRestPluginPrivate::resendPermitJoinTimerFired()
+{
+    resendPermitJoinTimer->stop();
+    if (gwPermitJoinDuration <= 1)
+    {
+        if (gwPermitJoinResend > 0)
+        {
+
+            if (gwPermitJoinResend >= 60)
+            {
+                setPermitJoinDuration(60);
+            }
+            else
+            {
+                setPermitJoinDuration(gwPermitJoinResend);
+            }
+            gwPermitJoinResend -= 60;
+            updateEtag(gwConfigEtag);
+            if (gwPermitJoinResend <= 0)
+            {
+                gwPermitJoinResend = 0;
+                return;
+            }
+
+        }
+        else if (gwPermitJoinResend == 0)
+        {
+            setPermitJoinDuration(0);
+            return;
+        }
+    }
+    else if (gwPermitJoinResend == 0)
+    {
+        setPermitJoinDuration(0);
+        return;
+    }
+    resendPermitJoinTimer->start(1000);
 }
