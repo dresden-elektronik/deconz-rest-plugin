@@ -159,7 +159,8 @@ void DeRestPluginPrivate::createTempViews()
         "  WHERE a.uniqueid like b.mac||'%'",
         "CREATE TEMP VIEW sensor_device_value_view "
         "  AS SELECT a.sid AS sensor_id, b.cluster AS cluster_id, b.data AS data, b.timestamp AS timestamp "
-        "  from sensor_device_view a, zcl_values b where a.id like b.device_id",
+        "  from sensor_device_view a, zcl_values b where a.id like b.device_id "
+        "  ORDER BY timestamp ASC ",
         NULL
     };
 
