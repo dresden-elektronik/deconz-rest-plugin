@@ -1098,6 +1098,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
     }
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_KEEN_HOME || // Keen Home Vent
         node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC || // Xiaomi lumi.ctrl_neutral1, lumi.ctrl_neutral2
+        node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER || // atsmart Z6-03 switch
         node->nodeDescriptor().manufacturerCode() == VENDOR_NONE) // Climax Siren
     {
         // whitelist
