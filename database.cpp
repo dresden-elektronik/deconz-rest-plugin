@@ -111,7 +111,7 @@ void DeRestPluginPrivate::cleanUpDb()
 {
     int rc;
     char *errmsg;
-    DBG_Printf(DBG_INFO, "DB upgrade to user_version 1\n");
+    DBG_Printf(DBG_INFO, "DB cleanup\n");
 
     /* Create SQL statement */
     const char *sql[] = {
@@ -137,10 +137,6 @@ void DeRestPluginPrivate::cleanUpDb()
                 sqlite3_free(errmsg);
             }
         }
-        else
-        {
-            DBG_Printf(DBG_INFO, "DB view is created \n");
-        }
     }
 }
 
@@ -150,7 +146,7 @@ void DeRestPluginPrivate::createTempViews()
 {
     int rc;
     char *errmsg;
-    DBG_Printf(DBG_INFO, "DB upgrade to user_version 1\n");
+    DBG_Printf(DBG_INFO, "DB create temporary views\n");
 
     /* Create SQL statement */
     const char *sql[] = {
@@ -181,7 +177,7 @@ void DeRestPluginPrivate::createTempViews()
         }
         else
         {
-            DBG_Printf(DBG_INFO, "DB view is created \n");
+            DBG_Printf(DBG_INFO_L2, "DB view [%d] created\n", i);
         }
     }
 }
