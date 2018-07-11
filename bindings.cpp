@@ -2391,6 +2391,9 @@ void DeRestPluginPrivate::bindingToRuleTimerFired()
     // check if destination node exist and remove binding if not
     if (bnd.dstAddrMode == deCONZ::ApsExtAddress)
     {
+        idx = 0;
+        found = false;
+        node = nullptr;
         while (apsCtrl->getNode(idx, &node) == 0)
         {
             if (bnd.dstAddress.ext == node->address().ext())
