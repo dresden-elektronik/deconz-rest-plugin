@@ -908,10 +908,11 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.minInterval = 5;
             rq.maxInterval = 180;
         }
-        else if ((bt.restNode->address().ext() & macPrefixMask) == xalMacPrefix)
+        else if ((bt.restNode->address().ext() & macPrefixMask) == xalMacPrefix ||
+                 bt.restNode->node()->nodeDescriptor().manufacturerCode() == VENDOR_XAL)
         {
             rq.minInterval = 5;
-            rq.maxInterval = 120;
+            rq.maxInterval = 3600;
         }
         else // default configuration
         {
@@ -1264,7 +1265,7 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
     }
 
     if ((lightNode->address().ext() & macPrefixMask) == deMacPrefix ||
-        (lightNode->address().ext() & macPrefixMask) == xalMacPrefix)
+         lightNode->manufacturerCode() == VENDOR_XAL)
     {
         lightNode->enableRead(READ_BINDING_TABLE);
         lightNode->setNextReadTime(READ_BINDING_TABLE, queryTime);
