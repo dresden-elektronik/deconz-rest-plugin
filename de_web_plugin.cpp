@@ -2582,6 +2582,18 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 ResourceItem *item = sensor->item(RStateButtonEvent);
                 if (item)
                 {
+                    if (item->toNumber() == buttonMap->button)
+                    {
+                        QDateTime now = QDateTime::currentDateTime();
+                        const auto dt = item->lastSet().msecsTo(now);
+
+                        if (dt > 0 && dt < 500)
+                        {
+                            DBG_Printf(DBG_INFO, "button %u %s, discard too fast event (dt = %d)\n", buttonMap->button, buttonMap->name, dt);
+                            break;
+                        }
+                    }
+
                     item->setValue(buttonMap->button);
 
                     Event e(RSensors, RStateButtonEvent, sensor->id(), item);
