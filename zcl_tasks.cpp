@@ -369,7 +369,7 @@ bool DeRestPluginPrivate::addTaskSetColorTemperature(TaskItem &task, uint16_t ct
         // workaround IKEA move to color temperature is broken and won't update x,y values
         // which results in broken scenes
         // instead transform into a move to color x,y task
-        if ((task.lightNode->address().ext() & macPrefixMask) == ikeaMacPrefix)
+        if (task.lightNode->manufacturerCode() == VENDOR_IKEA || (task.lightNode->address().ext() & macPrefixMask) == ikeaMacPrefix)
         {
             quint16 x;
             quint16 y;
