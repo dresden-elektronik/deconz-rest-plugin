@@ -473,10 +473,15 @@ int DeRestPluginPrivate::createUser(const ApiRequest &req, ApiResponse &rsp)
     QVariant var = Json::parse(req.content, ok);
     QVariantMap map = var.toMap();
     ApiAuth auth;
+    QHostAddress localHost(QHostAddress::LocalHost);
 
     if (!gwLinkButton)
     {
-        if (!allowedToCreateApikey(req, rsp, map))
+        if (req.sock->peerAddress() == localHost)
+        {
+            // proceed
+        }
+        else if (!allowedToCreateApikey(req, rsp, map))
         {
             return REQ_READY_SEND;
         }
