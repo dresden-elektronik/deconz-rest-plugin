@@ -1613,10 +1613,6 @@ void DeRestPluginPrivate::verifyRuleBindingsTimerFired()
             }
         }
     }
-    else
-    {
-        DBG_Printf(DBG_INFO, "");
-    }
 
     verifyRuleIter++;
     if (verifyRulesTimer->interval() != NORMAL_RULE_CHECK_INTERVAL_MS)
