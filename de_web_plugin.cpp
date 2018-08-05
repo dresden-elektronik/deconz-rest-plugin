@@ -8056,6 +8056,9 @@ void DeRestPluginPrivate::pushClientForClose(QTcpSocket *sock, int closeTimeout,
     client.sock = sock;
     client.closeTimeout = closeTimeout;
 
+    connect(sock, SIGNAL(destroyed()),
+            this, SLOT(clientSocketDestroyed()));
+
     openClients.push_back(client);
 }
 
@@ -12468,9 +12471,6 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
             d->inetProxyCheckHttpVia(hdr.value(QLatin1String("Via")));
         }
     }
-
-    connect(sock, SIGNAL(destroyed()),
-            d, SLOT(clientSocketDestroyed()));
 
     QStringList path = hdrmod.path().split(QLatin1String("/"), QString::SkipEmptyParts);
     ApiRequest req(hdrmod, path, sock, content);
