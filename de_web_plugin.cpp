@@ -12426,6 +12426,18 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         }
     }
 
+    if (hdrmod.path().startsWith(QLatin1String("/api")))
+    {
+        // some clients send /api123 instead of /api/123
+        // correct the path here
+        if (hdrmod.path().length() > 4 && hdrmod.path().at(4) != '/')
+        {
+            QString urlpath = hdrmod.url().toString();
+            urlpath.insert(4, '/');
+            hdrmod.setRequest(hdrmod.method(), urlpath);
+        }
+    }
+
     if (DBG_IsEnabled(DBG_HTTP))
     {
         DBG_Printf(DBG_HTTP, "HTTP API %s %s - %s\n", qPrintable(hdr.method()), qPrintable(hdrmod.url().toString()), qPrintable(sock->peerAddress().toString()));
