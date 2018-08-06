@@ -307,11 +307,13 @@ function checkHomebridge {
 		if [[ "$HOMEBRIDGE" != "managed" ]]; then
 			sqlite3 $ZLLDB "replace into config2 (key, value) values('homebridge', 'managed')" &> /dev/null
 		fi
+		# this is currently a hack/fix for the common issue "My iOS App Can't Find Homebridge" (see github homebridge)
+		rm -rf /home/$MAINUSER/.homebridge/persist
 		homebridge -U /home/$MAINUSER/.homebridge
 	else
-		#[[ $LOG_INFO ]] && echo "${LOG_INFO}homebridge is already running"
-		#return
 		pkill homebridge
+		# this is currently a hack/fix for the common issue "My iOS App Can't Find Homebridge" (see github homebridge)
+		rm -rf /home/$MAINUSER/.homebridge/persist
 		homebridge -U /home/$MAINUSER/.homebridge
 	fi
 }
