@@ -271,7 +271,7 @@ function checkHomebridge {
 		echo "{
 \"bridge\": {
     \"name\": \"Phoscon Homebridge\",
-    \"username\": \"00:21:2E:FF:FF:00\",
+    \"username\": \"$(echo ${BRIDGEID:4} | fold -w2 | paste -sd':' -)\",
     \"port\": 51826,
     \"pin\": \"111-11-111\"
 },
