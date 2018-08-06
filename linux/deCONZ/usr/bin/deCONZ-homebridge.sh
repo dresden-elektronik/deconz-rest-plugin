@@ -248,8 +248,11 @@ function checkHomebridge {
 	# create config file if not exists
 	if [[ -f /home/$MAINUSER/.homebridge/config.json ]]; then
 		[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}found existing homebridge config.json"
-		if [[ "$HOMEBRIDGE" != "not-managed" ]]; then
-			sqlite3 $ZLLDB "replace into config2 (key, value) values('homebridge', 'not-managed')" &> /dev/null
+		if [ -z $(cat /home/$MAINUSER/.homebridge/config.json | grep "Phoscon Homebridge") ]; then
+			# set to not-managed only if homebridge is not set up by phoscon
+			if [[ "$HOMEBRIDGE" != "not-managed" ]]; then
+				sqlite3 $ZLLDB "replace into config2 (key, value) values('homebridge', 'not-managed')" &> /dev/null
+			fi
 		fi
 	else
 		APIKEY=$(sqlite3 $ZLLDB "select apikey from auth where devicetype like 'homebridge-hue#%'")
