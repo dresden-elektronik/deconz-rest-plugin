@@ -263,8 +263,8 @@ function checkHomebridge {
 		fi
 		# create homebridge dir and add Mainuser ownership
 		mkdir /home/$MAINUSER/.homebridge
-		mkdir /home/$MAINUSER/.homebridge/persist
-		mkdir /home/$MAINUSER/.homebridge/accessories
+		#mkdir /home/$MAINUSER/.homebridge/persist
+		#mkdir /home/$MAINUSER/.homebridge/accessories
 		touch /home/$MAINUSER/.homebridge/config.json
 		chown -R $MAINUSER /home/$MAINUSER/.homebridge
 
