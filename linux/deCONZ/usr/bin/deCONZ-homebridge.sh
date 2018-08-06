@@ -279,9 +279,9 @@ function checkHomebridge {
 \"platforms\": [
 {
   \"platform\": \"Hue\",
-  \"host\": \"${IP_ADDRESS}\",
+  \"host\": \"127.0.0.1\",
   \"users\": {
-    \"$BRIDGEID\": \"${APIKEY}\"
+    \"${BRIDGEID}\": \"${APIKEY}\"
   },
   \"sensors\": true,
   \"nativeHomeKitSensors\": false,
