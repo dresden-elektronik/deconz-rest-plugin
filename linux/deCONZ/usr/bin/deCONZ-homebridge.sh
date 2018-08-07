@@ -248,7 +248,7 @@ function checkHomebridge {
 	# create config file if not exists
 	if [[ -f /home/$MAINUSER/.homebridge/config.json ]]; then
 		[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}found existing homebridge config.json"
-		if [ -z $(cat /home/$MAINUSER/.homebridge/config.json | grep "Phoscon Homebridge") ]; then
+		if [ -z "$(cat /home/$MAINUSER/.homebridge/config.json | grep "Phoscon Homebridge")" ]; then
 			# set to not-managed only if homebridge is not set up by phoscon
 			if [[ "$HOMEBRIDGE" != "not-managed" ]]; then
 				sqlite3 $ZLLDB "replace into config2 (key, value) values('homebridge', 'not-managed')" &> /dev/null
@@ -263,8 +263,6 @@ function checkHomebridge {
 		fi
 		# create homebridge dir and add Mainuser ownership
 		mkdir /home/$MAINUSER/.homebridge
-		#mkdir /home/$MAINUSER/.homebridge/persist
-		#mkdir /home/$MAINUSER/.homebridge/accessories
 		touch /home/$MAINUSER/.homebridge/config.json
 		chown -R $MAINUSER /home/$MAINUSER/.homebridge
 
@@ -284,7 +282,6 @@ function checkHomebridge {
     \"${BRIDGEID}\": \"${APIKEY}\"
   },
   \"sensors\": true,
-  \"nativeHomeKitSensors\": false,
   \"excludeSensorTypes\": [\"CLIPPresence\", \"Geofence\"],
   \"lights\": true,
   \"hueMotionTemperatureHistory\": true
