@@ -366,10 +366,16 @@ bool DeRestPluginPrivate::addTaskSetColorTemperature(TaskItem &task, uint16_t ct
 
         task.lightNode->setColorMode("ct");
 
-        // workaround IKEA move to color temperature is broken and won't update x,y values
-        // which results in broken scenes
-        // instead transform into a move to color x,y task
-        if (task.lightNode->manufacturerCode() == VENDOR_IKEA || (task.lightNode->address().ext() & macPrefixMask) == ikeaMacPrefix)
+        // If light does not support "ct" but does suport "xy", we can emulate the former:
+        ResourceItem *colorCaps = task.lightNode->item(RConfigColorCapabilities);
+        bool supportsXy = colorCaps && colorCaps->toNumber() & 0x0008;
+        bool supportsCt = colorCaps && colorCaps->toNumber() & 0x0010;
+        bool useXy = supportsXy && !supportsCt;
+        // IKEA lights need to use "xy" because move to color temperature is broken and
+        // won't update x,y values resulting in broken scenes.
+        useXy = useXy || task.lightNode->manufacturerCode() == VENDOR_IKEA;
+
+        if (useXy)
         {
             quint16 x;
             quint16 y;
