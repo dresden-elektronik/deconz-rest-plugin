@@ -65,6 +65,7 @@ void DeRestPluginPrivate::initConfig()
     gwWifiIp = QLatin1String("192.168.8.1");
     gwWifiPw = "";
     gwWifiClientPw = "";
+    gwHomebridge = QLatin1String("not-managed");
     gwRgbwDisplay = "1";
     gwTimeFormat = "12h";
     gwZigbeeChannel = 0;
@@ -736,8 +737,10 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         map["system"] = "linux-gw";
 #endif
         map["wifi"] = gwWifi;
+        map["homebridge"] = gwHomebridge;
 #else
         map["wifi"] = QLatin1String("not-available");
+        map["homebridge"] = QLatin1String("not-available");
 #endif
         map["wifiavailable"] = gwWifiAvailable;
         map["wifitype"] = gwWifiType;

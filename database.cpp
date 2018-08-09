@@ -839,6 +839,14 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
             d->gwWifiIp = val;
         }
     }
+    else if (strcmp(colval[0], "homebridge") == 0)
+    {
+        if (!val.isEmpty())
+        {
+            d->gwConfig["homebridge"] = val;
+            d->gwHomebridge = val;
+        }
+    }
     else if (strcmp(colval[0], "userparameter") == 0)
     {
         if (!val.isEmpty())
@@ -3230,6 +3238,7 @@ void DeRestPluginPrivate::saveDb()
         gwConfig["zigbeechannel"] = gwZigbeeChannel;
         gwConfig["gwusername"] = gwAdminUserName;
         gwConfig["gwpassword"] = gwAdminPasswordHash;
+        gwConfig["homebridge"] = gwHomebridge;
         gwConfig["updatechannel"] = gwUpdateChannel;
         gwConfig["swupdatestate"] = gwSwUpdateState;
         gwConfig["uuid"] = gwUuid;

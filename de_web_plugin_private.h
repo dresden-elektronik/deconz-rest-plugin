@@ -1216,6 +1216,7 @@ public:
     QString gwTimeFormat;
     QString gwIpAddress;
     uint16_t gwPort;
+    QString gwHomebridge;
     QString gwName;
     QString gwUuid;
     QString gwUpdateVersion;
