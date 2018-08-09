@@ -304,11 +304,17 @@ function checkHomebridge {
 		if [[ "$HOMEBRIDGE" != "managed" ]]; then
 			sqlite3 $ZLLDB "replace into config2 (key, value) values('homebridge', 'managed')" &> /dev/null
 		fi
-		homebridge -U /home/$MAINUSER/.homebridge
+		homebridge -U /home/$MAINUSER/.homebridge &
 	else
 		pkill homebridge
-		homebridge -U /home/$MAINUSER/.homebridge
+		homebridge -U /home/$MAINUSER/.homebridge &
 	fi
+	sleep 30
+	pkill homebridge
+	homebridge -U /home/$MAINUSER/.homebridge &
+	sleep 60
+	pkill homebridge
+	homebridge -U /home/$MAINUSER/.homebridge
 }
 
 # break loop on SIGUSR1
