@@ -1068,28 +1068,28 @@ Data Request rate.</description>
             <value name="Commands Reversed" value="2"></value>
             <value name="Lift control is Closed Loop" value="3"></value>
             <value name="Tilt control is Closed Loop" value="4"></value>
-            <value name="Encoder Controlled" value="5"></value>
-            <value name="Encoder Controlled" value="6"></value>
+            <value name="Lift: Encoder Controlled" value="5"></value>
+            <value name="Tilt: Encoder Controlled" value="6"></value>
           </attribute>
           <attribute id="0x0008" name="Current Position Lift Percentage" type="u8" default="0x00" access="r" required="o" range="0,0x64"></attribute>
           <attribute id="0x0009" name="Current Position Tilt Percentage" type="u8" default="0x00" access="r" required="o" range="0,0x64"></attribute>
         </attribute-set>
         <attribute-set id="01" description="Window Covering Settings">
-          <attribute id="0x0100" name="Installed Open Limit – Lift" type="u16" default="0x0000" access="r" required="o"></attribute>
-          <attribute id="0x0101" name="Installed Closed Limit – Lift" type="u16" default="0xffff" access="r" required="o"></attribute>
-          <attribute id="0x0102" name="Installed Open Limit – Tilt" type="u16" default="0x0000" access="r" required="o"></attribute>
-          <attribute id="0x0103" name="Installed Open Limit – Tilt" type="u16" default="0xffff" access="r" required="o"></attribute>
-          <attribute id="0x0104" name="Velocity – Lift" type="u16" default="0x0000" access="rw" required="o"></attribute>
-          <attribute id="0x0105" name="Acceleration Time – Lift" type="u16" default="0x0000" access="rw" required="o"></attribute>
-          <attribute id="0x0106" name="Deceleration Time – Lift" type="u16" default="0x0000" access="rw" required="o"></attribute>
-          <attribute id="0x0107" name="Mode" type="bmp8" default="0x0000" access="rw" required="o">
+          <attribute id="0x0010" name="Installed Open Limit – Lift" type="u16" default="0x0000" access="r" required="o"></attribute>
+          <attribute id="0x0011" name="Installed Closed Limit – Lift" type="u16" default="0xffff" access="r" required="o"></attribute>
+          <attribute id="0x0012" name="Installed Open Limit – Tilt" type="u16" default="0x0000" access="r" required="o"></attribute>
+          <attribute id="0x0013" name="Installed Open Limit – Tilt" type="u16" default="0xffff" access="r" required="o"></attribute>
+          <attribute id="0x0014" name="Velocity – Lift" type="u16" default="0x0000" access="rw" required="o"></attribute>
+          <attribute id="0x0015" name="Acceleration Time – Lift" type="u16" default="0x0000" access="rw" required="o"></attribute>
+          <attribute id="0x0016" name="Deceleration Time – Lift" type="u16" default="0x0000" access="rw" required="o"></attribute>
+          <attribute id="0x0017" name="Mode" type="bmp8" default="0x0000" access="rw" required="o">
             <value name="Reversed" value="0"></value>
             <value name="Calibration Mode" value="1"></value>
             <value name="Maintenance Mode" value="2"></value>
             <value name="LED feedback" value="3"></value>
           </attribute>
-          <attribute id="0x0108" name="Intermediate Setpoints – Lift" type="ostring" default="1,0x0000" access="rw" required="o"></attribute>
-          <attribute id="0x0109" name="Intermediate Setpoints – Tilt" type="ostring" default="1,0x0000" access="rw" required="o"></attribute>
+          <attribute id="0x0018" name="Intermediate Setpoints – Lift" type="ostring" default="1,0x0000" access="rw" required="o"></attribute>
+          <attribute id="0x0019" name="Intermediate Setpoints – Tilt" type="ostring" default="1,0x0000" access="rw" required="o"></attribute>
         </attribute-set>
         <command id="0x00" dir="recv" name="Up / Open" required="m"></command>
         <command id="0x01" dir="recv" name="Down / Close" required="m"></command>
