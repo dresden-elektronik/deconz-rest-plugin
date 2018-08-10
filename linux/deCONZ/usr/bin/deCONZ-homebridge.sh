@@ -4,9 +4,10 @@ ZLLDB=""
 MAINUSER=$(getent passwd 1000 | cut -d: -f1)
 DECONZ_CONF_DIR="/home/$MAINUSER/.local/share"
 DECONZ_PORT=
+LAST_MAX_TIMESTAMP=0
 
 TIMEOUT=0      # main loop iteration timeout, can be controlled by SIGUSR1
-LOG_LEVEL=4
+LOG_LEVEL=6
 
 LOG_EMERG=
 LOG_ALERT=
@@ -57,6 +58,32 @@ function init {
 function addUser() {
 	local json="{\"devicetype\":\"homebridge-hue#deconz\"}"
 	curl --noproxy '*' -s -o /dev/null -d "$json" -X POST http://127.0.0.1:${DECONZ_PORT}/api
+}
+
+function checkNewLights() {
+	local max_timestamp=0
+	local proceed=false
+	local changed=false
+
+	while [[ $proceed == false ]]
+	do
+		max_timestamp=$(sqlite3 $ZLLDB "select timestamp from devices order by timestamp limit 1")
+		if [ $max_timestamp -ne $LAST_MAX_TIMESTAMP ]; then
+			# there is a new light discovered by deCONZ
+			[[ $LOG_INFO ]] && echo "${LOG_INFO} new light discovered by deCONZ - wait 15 sec for more lights"
+			LAST_MAX_TIMESTAMP=$max_timestamp
+			changed=true
+			sleep 15
+		else
+			proceed=true
+		fi
+	done
+
+	if [[ $changed == true ]]; then
+		[[ $LOG_INFO ]] && echo "${LOG_INFO} all new lights discovered - restarting homebridge"
+		pkill homebridge
+		homebridge -U /home/$MAINUSER/.homebridge &
+	fi
 }
 
 function checkHomebridge {
@@ -288,9 +315,9 @@ function checkHomebridge {
 }
 ]
 }" > /home/$MAINUSER/.homebridge/config.json
-	fi
 
-	chown $MAINUSER /home/$MAINUSER/.homebridge/config.json
+		chown $MAINUSER /home/$MAINUSER/.homebridge/config.json
+	fi
 
 	## start homebridge
 	systemctl -q is-active homebridge
@@ -299,22 +326,14 @@ function checkHomebridge {
 		return
 	fi
 
-	if [ -z $(ps -a | grep homebridge) ]; then
-		[[ $LOG_INFO ]] && echo "${LOG_INFO}starting  homebridge"
+	if [ -z $(ps -ax | grep "homebridge$") ]; then
+		[[ $LOG_INFO ]] && echo "${LOG_INFO}starting homebridge"
 		if [[ "$HOMEBRIDGE" != "managed" ]]; then
 			sqlite3 $ZLLDB "replace into config2 (key, value) values('homebridge', 'managed')" &> /dev/null
 		fi
 		homebridge -U /home/$MAINUSER/.homebridge &
-	else
-		pkill homebridge
-		homebridge -U /home/$MAINUSER/.homebridge &
 	fi
-	sleep 30
-	pkill homebridge
-	homebridge -U /home/$MAINUSER/.homebridge &
-	sleep 60
-	pkill homebridge
-	homebridge -U /home/$MAINUSER/.homebridge
+
 }
 
 # break loop on SIGUSR1
@@ -338,5 +357,5 @@ do
 	[[ ! -f "$ZLLDB" ]] && continue
 
     checkHomebridge
-
+	checkNewLights
 done
