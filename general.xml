@@ -2379,6 +2379,9 @@ devices can operate on either battery or mains power, and can have a wide variet
 		<device id="0009" name="Mains Power Outlet">
 			<description></description>
 		</device>
+    <device id="0x000a" name="Door lock">
+      <description></description>
+    </device>
 		<!-- Lighting -->
 		<device id="0100" name="On/Off Light" icon="dev-on-off-light.png">
 			<description></description>
