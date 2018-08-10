@@ -1040,7 +1040,128 @@ Data Request rate.</description>
 			<description></description>
 			<!-- TODO -->
 		</cluster>
-    <cluster id="0102" name="Window Covering"> <!-- ebaauw -->
+    <cluster id="0101" name="Door Lock">
+      <description>The door lock cluster provides an interface to a generic way to secure a door.</description>
+      <client>
+      </client>
+      <server>
+        <attribute-set id="00" description="Basic Information Attribute Set">
+          <attribute id="0x00" name="Lock State" type="enum8" access="r" required="m">
+            <value name="Not fully locked" value="0x00"></value>
+            <value name="Locked" value="0x01"></value>
+            <value name="Unlocked" value="0x02"></value>
+            <value name="Undefined" value="0xff"></value>
+          </attribute>
+          <attribute id="0x01" name="Lock Type" type="enum8" access="r" required="m">
+            <value name="Dead bolt" value="0x00"></value>
+            <value name="Magnetic" value="0x01"></value>
+            <value name="Other" value="0x02"></value>
+            <value name="Mortise" value="0x03"></value>
+            <value name="Rim" value="0x04"></value>
+            <value name="Latch Bolt" value="0x05"></value>
+            <value name="Cylindrical Lock" value="0x06"></value>
+            <value name="Tubular Lock" value="0x07"></value>
+            <value name="Interconnected Lock" value="0x08"></value>
+            <value name="Dead Latch" value="0x09"></value>
+            <value name="Door Furniture" value="0x0A"></value>
+          </attribute>
+          <attribute id="0x02" name="Actuator enabled" type="bool" access="r" required="m"></attribute>
+        </attribute-set>
+        <attribute-set id="10" description="User, PIN, Schedule Information Attribute Set">
+          <attribute id="0x10" name="Number Of Log Records Supported" type="u16" default="0" access="r" required="o"></attribute>
+          <attribute id="0x11" name="Number Of Total Users Supported" type="u16" default="0" access="r" required="o"></attribute>
+          <attribute id="0x12" name="Number Of PIN Users Supported" type="u16" default="0" access="r" required="o"></attribute>
+          <attribute id="0x13" name="Number Of RFID Users Supported" type="u16" default="0" access="r" required="o"></attribute>
+          <attribute id="0x14" name="Number Of WeekDay Schedules Supported Per User" type="u8" default="0" access="r" required="o"></attribute>
+          <attribute id="0x15" name="Number Of Year Day Schedules Supported Per User" type="u8" default="0" access="r" required="o"></attribute>
+          <attribute id="0x16" name="Number Of Holiday Schedules Supported" type="u8" default="0" access="r" required="o"></attribute>
+        </attribute-set>
+        <attribute-set id="20" description="Operational Settings Attribute Set">
+          <attribute id="0x20" name="Enable Logging" type="bool" default="0" access="rw" required="o"></attribute>
+        </attribute-set>
+        <attribute-set id="30" description="Security Settings Attribute Set">
+          <attribute id="0x34" name="Zigbee Security Level" type="enum8" default="0" access="r" required="o">
+            <value name="Network Security" value="0x00"></value>
+            <value name="APS Security" value="0x01"></value>
+          </attribute>
+        </attribute-set>
+        <attribute-set id="40" description="Alarm and Event Masks Attribute Set">
+          <attribute id="0x40" name="Alarm Mask" type="bmp16" default="0x0000" access="rw" required="o">
+            <value name="Deadbolt Jammed" value="0"></value>
+            <value name="Lock Reset to Factory Defaults" value="1"></value>
+            <value name="Reserved" value="2"></value>
+            <value name="RF Module Power Cycled" value="3"></value>
+            <value name="Tamper Alarm – wrong code entry limit" value="4"></value>
+            <value name="Tamper Alarm - front escutcheon removed from main" value="5"></value>
+            <value name="Forced Door Open under Door Locked Condition" value="6"></value>
+          </attribute>
+          <attribute id="0x42" name="RF Operation Event Mask" type="bmp16" default="0x0000" access="rw" required="o">
+            <value name="Unknown or manufacturer-specific RF operation event" value="0"></value>
+            <value name="Lock, source: RF" value="1"></value>
+            <value name="Unlock, source: RF" value="2"></value>
+            <value name="Lock, source: RF, error: invalid code" value="3"></value>
+            <value name="Lock, source: RF, error: invalid schedule" value="4"></value>
+            <value name="Unlock, source: RF, error: invalid code" value="5"></value>
+            <value name="Unlock, source: RF, error: invalid schedule" value="6"></value>
+          </attribute>
+          <attribute id="0x43" name="Manual Operation Event Mask" type="bmp16" default="0x0000" access="rw" required="o">
+            <value name="Unknown or manufacturer-specific manual operation event" value="0"></value>
+            <value name="Thumbturn Lock" value="1"></value>
+            <value name="Thumbturn Unlock" value="2"></value>
+            <value name="One touch lock" value="3"></value>
+            <value name="Key Lock" value="4"></value>
+            <value name="Key Unlock" value="5"></value>
+            <value name="Auto lock" value="6"></value>
+            <value name="Schedule Lock" value="7"></value>
+            <value name="Schedule Unlock" value="8"></value>
+            <value name="Manual Lock (Key or Thumbturn)" value="9"></value>
+            <value name="Manual Unlock (Key or Thumbturn)" value="10"></value>
+          </attribute>
+        </attribute-set>
+        <command id="0x00" dir="recv" name="Lock Door" required="m">
+          <description>This command causes the lock device to lock the door.</description>
+          <payload></payload>
+        </command>
+        <command id="0x01" dir="recv" name="Unlock Door" required="m">
+          <description>This command causes the lock device to unlock the door.</description>
+          <payload></payload>
+        </command>
+        <command id="0x04" dir="recv" name="Get Log Record" required="o">
+          <description>Request a log record.</description>
+          <payload>
+            <attribute id="0x0000" type="u16" name="Log Index" required="m" default="0x0000"></attribute>
+          </payload>
+        </command>
+        <command id="0x04" dir="send" name="Get Log Record Response" required="m">
+          <description>Returns the specified log record.</description>
+          <payload>
+          <attribute id="0x0000" type="u16" name="Log Entry ID" required="m"></attribute>
+          <attribute id="0x0001" type="u32" name="Timestamp" required="m"></attribute>
+          <attribute id="0x0002" type="enum8" name="Event Type" required="m">
+            <value name="Operation" value="0"></value>
+            <value name="Programming" value="1"></value>
+            <value name="Alarm" value="2"></value>
+          </attribute>
+          <attribute id="0x0003" type="u8" name="Source" required="m"></attribute>
+          <attribute id="0x0004" type="u8" name="Event ID/Alarm Code" required="m"></attribute>
+          <attribute id="0x0005" type="u16" name="User ID" required="m"></attribute>
+          <attribute id="0x0006" type="cstring" name="PIN" required="m"></attribute>
+          </payload>
+        </command>
+        <command id="0x20" dir="send" name="Operationg Event Notification" required="o">
+          <description>The door lock server sends out operation event notification when the event is triggered by the various event sources.</description>
+          <payload>
+            <attribute id="0x0000" type="u8" name="Operation Event Source" required="m"></attribute>
+            <attribute id="0x0001" type="u8" name="Operation Event Code" required="m"></attribute>
+            <attribute id="0x0002" type="u16" name="User ID" required="m"></attribute>
+            <attribute id="0x0003" type="u8" name="PIN" required="m" default="0x0000"></attribute>
+            <attribute id="0x0004" type="u32" name="ZigBee Local Time" required="m"></attribute>
+            <attribute id="0x0005" type="cstring" name="Data" required="m"></attribute>
+          </payload>
+        </command>
+      </server>
+    </cluster>
+    <cluster id="0102" name="Window Covering">
       <description>The window covering cluster provides an interface for controlling and adjusting automatic window coverings such as drapery motors, automatic shades, and blinds.</description>
       <server>
         <attribute-set id="00" description="Window Covering Information">
