@@ -95,3 +95,50 @@ void DeRestPluginPrivate::handleWindowCoveringClusterIndication(const deCONZ::Ap
     // More to do ...
 }
 
+/*! Adds a window covering task to the queue.
+
+   \param task - the task item
+   \param cmdId - moveUp/Down/stop/moveTo/moveToPct
+   \param pos - position centimeter
+   \param pct - position percent
+   \return true - on success
+           false - on error
+ */
+bool DeRestPluginPrivate::addTaskWindowCovering(TaskItem &task, uint8_t cmd, uint16_t pos, uint8_t pct)
+{
+    task.taskType = TaskStoreScene;
+
+    task.req.setClusterId(WINDOW_COVERING_CLUSTER_ID);
+    task.req.setProfileId(HA_PROFILE_ID);
+
+    task.zclFrame.payload().clear();
+    task.zclFrame.setSequenceNumber(zclSeq++);
+    task.zclFrame.setCommandId(cmd);
+    task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
+                             deCONZ::ZclFCDirectionClientToServer |
+                             deCONZ::ZclFCDisableDefaultResponse);
+
+    if (cmd == 0x04 || cmd == 0x05 || cmd == 0x07 || cmd == 0x08)
+    { // payload
+        QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        if (cmd == 0x04 || cmd == 0x07)
+        {
+        	stream << pos;  // 16-bit moveToPosition
+        }
+        if (cmd == 0x05 || cmd == 0x08)
+        {
+        	stream << pct;  // 8-bit moveToPct
+        }
+    }
+
+    { // ZCL frame
+        task.req.asdu().clear(); // cleanup old request data if there is any
+        QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        task.zclFrame.writeToStream(stream);
+    }
+
+    return addTask(task);
+}
