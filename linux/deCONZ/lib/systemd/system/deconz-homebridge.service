@@ -2,7 +2,7 @@
 Description=deCONZ: ZigBee gateway -- homebridge Service
 
 [Service]
-ExecStart=/bin/bash /usr/bin/deCONZ-homebridge.sh
+ExecStart=/usr/bin/deCONZ-homebridge.sh
 Restart=on-failure
 StartLimitInterval=600
 
