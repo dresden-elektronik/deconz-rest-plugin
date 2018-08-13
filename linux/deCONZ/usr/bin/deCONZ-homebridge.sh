@@ -60,7 +60,7 @@ function addUser() {
 	curl --noproxy '*' -s -o /dev/null -d "$json" -X POST http://127.0.0.1:${DECONZ_PORT}/api
 }
 
-function checkNewLights() {
+function checkNewDevices() {
 	local max_timestamp=0
 	local proceed=false
 	local changed=false
@@ -360,5 +360,5 @@ do
 	[[ ! -f "$ZLLDB" ]] && continue
 
     checkHomebridge
-	checkNewLights
+	checkNewDevices
 done
