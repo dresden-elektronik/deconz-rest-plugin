@@ -68,12 +68,14 @@ function checkNewLights() {
 	while [[ $proceed == false ]]
 	do
 		max_timestamp=$(sqlite3 $ZLLDB "select timestamp from devices order by timestamp limit 1")
-		if [ $max_timestamp -ne $LAST_MAX_TIMESTAMP ]; then
+		if [[ "$max_timestamp" -ne "$LAST_MAX_TIMESTAMP" ]]; then
 			# there is a new light discovered by deCONZ
-			[[ $LOG_INFO ]] && echo "${LOG_INFO} new light discovered by deCONZ - wait 15 sec for more lights"
-			LAST_MAX_TIMESTAMP=$max_timestamp
-			changed=true
-			sleep 15
+			[[ $LOG_INFO ]] && echo "${LOG_INFO} new light discovered by deCONZ - wait 30 sec for more lights"
+			if [ "$max_timestamp" ]; then
+				LAST_MAX_TIMESTAMP=$max_timestamp
+				changed=true
+			fi
+			sleep 30
 		else
 			proceed=true
 		fi
@@ -186,7 +188,7 @@ function checkHomebridge {
 		node_installed=true
 		# get version and strip it to only major part: v8.11.2 -> 8
 		node_ver=$(nodejs --version | cut -d. -f1 | cut -c 2-)
-		echo $node_ver
+		[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG} nodejs ver. $node_ver"
 	fi
 
 	if [[ $hb_installed = false || $hb_hue_installed = false || $node_installed = false ]]; then
@@ -326,7 +328,8 @@ function checkHomebridge {
 		return
 	fi
 
-	if [ -z $(ps -ax | grep "homebridge$") ]; then
+	process=$(ps -ax | grep "homebridge$")
+	if [ -z "$process" ]; then
 		[[ $LOG_INFO ]] && echo "${LOG_INFO}starting homebridge"
 		if [[ "$HOMEBRIDGE" != "managed" ]]; then
 			sqlite3 $ZLLDB "replace into config2 (key, value) values('homebridge', 'managed')" &> /dev/null
