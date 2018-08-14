@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2013-2018 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -172,10 +172,9 @@ int DeRestPluginPrivate::getSensor(const ApiRequest &req, ApiResponse &rsp)
         return REQ_NOT_HANDLED;
     }
 
-
     const QString &id = req.path[3];
 
-    Sensor *sensor = getSensorNodeForId(id);
+    Sensor *sensor = id.length() < MIN_UNIQUEID_LENGTH ? getSensorNodeForId(id) : getSensorNodeForUniqueId(id);
 
     if (!sensor || (sensor->deletedState() == Sensor::StateDeleted))
     {
@@ -218,7 +217,7 @@ int DeRestPluginPrivate::getSensorData(const ApiRequest &req, ApiResponse &rsp)
     }
 
     QString id = req.path[3];
-    Sensor *sensor = getSensorNodeForId(id);
+    Sensor *sensor = id.length() < MIN_UNIQUEID_LENGTH ? getSensorNodeForId(id) : getSensorNodeForUniqueId(id);
 
     if (!sensor || (sensor->deletedState() == Sensor::StateDeleted))
     {
@@ -820,7 +819,7 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
 int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
 {
     QString id = req.path[3];
-    Sensor *sensor = getSensorNodeForId(id);
+    Sensor *sensor = id.length() < MIN_UNIQUEID_LENGTH ? getSensorNodeForId(id) : getSensorNodeForUniqueId(id);
     QString name;
     bool ok;
     bool error = false;
@@ -978,7 +977,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 {
     TaskItem task;
     QString id = req.path[3];
-    Sensor *sensor = getSensorNodeForId(id);
+    Sensor *sensor = id.length() < MIN_UNIQUEID_LENGTH ? getSensorNodeForId(id) : getSensorNodeForUniqueId(id);
     bool ok;
     bool updated = false;
     bool offsetUpdated = false;
@@ -1277,7 +1276,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &rsp)
 {
     QString id = req.path[3];
-    Sensor *sensor = getSensorNodeForId(id);
+    Sensor *sensor = id.length() < MIN_UNIQUEID_LENGTH ? getSensorNodeForId(id) : getSensorNodeForUniqueId(id);
     bool ok;
     bool updated = false;
     QVariant var = Json::parse(req.content, ok);
@@ -1460,7 +1459,7 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
 int DeRestPluginPrivate::deleteSensor(const ApiRequest &req, ApiResponse &rsp)
 {
     QString id = req.path[3];
-    Sensor *sensor = getSensorNodeForId(id);
+    Sensor *sensor = id.length() < MIN_UNIQUEID_LENGTH ? getSensorNodeForId(id) : getSensorNodeForUniqueId(id);
 
     userActivity();
 

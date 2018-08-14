@@ -13271,7 +13271,7 @@ Resource *DeRestPluginPrivate::getResource(const char *resource, const QString &
 {
     if (resource == RSensors)
     {
-        return getSensorNodeForId(id);
+        return id.length() < MIN_UNIQUEID_LENGTH ? getSensorNodeForId(id) : getSensorNodeForUniqueId(id);
     }
     else if (resource == RLights)
     {
