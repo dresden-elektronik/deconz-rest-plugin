@@ -2348,6 +2348,8 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             mode = Sensor::ModeColorTemperature;
         }
 
+        Sensor *other = getSensorNodeForAddressAndEndpoint(sensor->address(), (sensor->fingerPrint().endpoint == 2) ? 1 : 2);
+
         if (mode != sensor->mode())
         {
             sensor->setMode(mode);
@@ -2356,13 +2358,17 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
 
             // set changed mode for sensor endpoints 1 and 2
-            Sensor *other = getSensorNodeForAddressAndEndpoint(sensor->address(), (ind.srcEndpoint() == 2) ? 1 : 2);
             if (other)
             {
                 other->setMode(mode);
                 other->setNeedSaveDatabase(true);
                 updateSensorEtag(other);
             }
+        }
+
+        if (other && ind.srcEndpoint() == 2 && other->fingerPrint().endpoint == 1)
+        {   // forward button events 300x and 400x to first endpoint sensor
+            checkSensorButtonEvent(other, ind, zclFrame);
         }
     }
     // Busch-Jaeger
