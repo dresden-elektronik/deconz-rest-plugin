@@ -12492,12 +12492,18 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
      // general response to a OPTIONS HTTP method
     if (req.hdr.method() == QLatin1String("OPTIONS"))
     {
+        QString origin('*');
+        if (hdr.hasKey(QLatin1String("Origin")))
+        {
+            origin = hdr.value(QLatin1String("Origin"));
+        }
+
         stream << "HTTP/1.1 200 OK\r\n";
         stream << "Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0\r\n";
         stream << "Pragma: no-cache\r\n";
         stream << "Connection: close\r\n";
         stream << "Access-Control-Max-Age: 0\r\n";
-        stream << "Access-Control-Allow-Origin: *\r\n";
+        stream << "Access-Control-Allow-Origin: " << origin << " \r\n";
         stream << "Access-Control-Allow-Credentials: true\r\n";
         stream << "Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE\r\n";
         stream << "Access-Control-Allow-Headers: Authorization, Access-Control-Allow-Origin, Content-Type\r\n";
