@@ -147,6 +147,7 @@ SOURCES  = authentification.cpp \
            reset_device.cpp \
            rest_userparameter.cpp \
            zcl_tasks.cpp \
+           window_covering.cpp \
            websocket_server.cpp
 
 win32 {

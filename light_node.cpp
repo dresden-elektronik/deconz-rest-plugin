@@ -475,7 +475,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
             for (; i != end; ++i)
             {
 
-                if (i->id() == LEVEL_CLUSTER_ID)
+                if (i->id() == LEVEL_CLUSTER_ID || i->id() == WINDOW_COVERING_CLUSTER_ID /*FIXME ubisys J1*/)
                 {
                     addItem(DataTypeUInt8, RStateBri);
                 }

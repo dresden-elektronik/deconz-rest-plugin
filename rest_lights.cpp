@@ -510,7 +510,18 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
             TaskItem task;
             copyTaskReq(taskRef, task);
-            if (hasBri ||
+            //FIXME workaround ubisys J1 is not a light
+            if (taskRef.lightNode->modelId().startsWith(QLatin1String("J1")) &&
+            		addTaskWindowCovering(task, isOn ? 0x01 /*down*/ : 0x00 /*up*/, 0, 0))
+            {
+				QVariantMap rspItem;
+				QVariantMap rspItemState;
+				rspItemState[QString("/lights/%1/state/on").arg(id)] = isOn;
+				rspItem["success"] = rspItemState;
+				rsp.list.append(rspItem);
+				taskToLocalData(task);
+            } // FIXME end workaround ubisys J1
+            else if (hasBri ||
                 // map.contains("transitiontime") || // FIXME: use bri if transitionTime is given
                 addTaskSetOnOff(task, isOn ? ONOFF_COMMAND_ON : ONOFF_COMMAND_OFF, 0)) // onOff task only if no bri or transitionTime is given
             {
@@ -551,7 +562,49 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             }
         }
 
-        if (!isOn && !hasOn)
+        //FIXME workaround ubisys J1
+        if (taskRef.lightNode->modelId().startsWith(QLatin1String("J1")))
+        {
+        	if ((map["bri"].type() == QVariant::String) && map["bri"].toString() == "stop")
+        	{
+        		TaskItem task;
+        		copyTaskReq(taskRef, task);
+        		if (addTaskWindowCovering(task, 0x02 /*stop motion*/, 0, 0))
+        		{
+        			QVariantMap rspItem;
+        			QVariantMap rspItemState;
+        			rspItemState[QString("/groups/%1/action/bri").arg(id)] = map["bri"];
+        			rspItem["success"] = rspItemState;
+        			rsp.list.append(rspItem);
+        			taskToLocalData(task);
+        		}
+        		else
+        		{
+        			rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+        		}
+        	}
+        	else if (ok && (map["bri"].type() == QVariant::Double) && (bri < 256))
+        	{
+        		TaskItem task;
+        		copyTaskReq(taskRef, task);
+        		uint8_t moveToPct = 0x00;
+        		moveToPct = bri * 100 / 255;  // Percent 0 - 100 (0x00 - 0x64)
+        		if (addTaskWindowCovering(task, 0x05 /*move to Lift Percent*/, 0, moveToPct))
+        		{
+        			QVariantMap rspItem;
+        			QVariantMap rspItemState;
+        			rspItemState[QString("/lights/%1/state/bri").arg(id)] = map["bri"];
+        			rspItem["success"] = rspItemState;
+        			rsp.list.append(rspItem);
+        			taskToLocalData(task);
+        		}
+        		else
+        		{
+        			rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+        		}
+        	}
+        } // FIXME end workaround ubisys J1
+        else if (!isOn && !hasOn)
         {
             rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1").arg(id), QString("parameter, /lights/%1/bri, is not modifiable. Device is set to off.").arg(id)));
         }
@@ -881,6 +934,28 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         {
             rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("parameter, /lights/%1/bri_inc, is not available.").arg(id)));
         }
+        //FIXME workaround ubisys J1
+        else if (taskRef.lightNode->modelId().startsWith(QLatin1String("J1")))
+        {
+        	if (ok && (map["bri_inc"].type() == QVariant::Double) && (briIinc == 0))
+        	{
+        		TaskItem task;
+        		copyTaskReq(taskRef, task);
+        		if (addTaskWindowCovering(task, 0x02 /*stop motion*/, 0, 0))
+        		{
+        			QVariantMap rspItem;
+        			QVariantMap rspItemState;
+        			rspItemState[QString("/lights/%1/state/bri").arg(id)] = item->toNumber();
+        			rspItem["success"] = rspItemState;
+        			rsp.list.append(rspItem);
+        			taskToLocalData(task);
+        		}
+        		else
+        		{
+        			rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+        		}
+        	}
+        } // FIXME end workaround ubisys J1
         else if (!isOn)
         {
             rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1").arg(id), QString("parameter, /lights/%1/bri, is not modifiable. Device is set to off.").arg(id)));
