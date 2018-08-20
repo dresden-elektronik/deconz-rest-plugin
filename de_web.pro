@@ -151,9 +151,14 @@ SOURCES  = authentification.cpp \
            websocket_server.cpp
 
 win32 {
-    LIBS +=  -L../.. -ldeCONZ1
+
+    LIBS += \
+         -L../.. \
+         -L$${PWD}/../../../lib/sqlite-dll-win32-x86-3240000 \
+         -ldeCONZ1 \
+         -lsqlite3
+    INCLUDEPATH += $${PWD}/../../../lib/sqlite-amalgamation-3240000
     CONFIG += dll
-    SOURCES += sqlite3.c
 }
 
 win32:DESTDIR  = ../../debug/plugins # TODO adjust
