@@ -8425,6 +8425,15 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
     }
         break;
 
+    case deCONZ::NodeEvent::UpdatedNodeDescriptor:
+    {
+        if (event.node() && !event.node()->nodeDescriptor().isNull())
+        {
+            pushZdpDescriptorDb(event.node()->address().ext(), ZDO_ENDPOINT, ZDP_NODE_DESCRIPTOR_CLID, event.node()->nodeDescriptor().toByteArray());
+        }
+    }
+        break;
+
     case deCONZ::NodeEvent::UpdatedPowerDescriptor:
     {
         updateSensorNode(event);

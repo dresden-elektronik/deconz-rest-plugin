@@ -86,6 +86,10 @@ void DeRestPluginPrivate::checkDbUserVersion()
     }
     else if (userVersion == 2)
     {
+        updated = upgradeDbToUserVersion3();
+    }
+    else if (userVersion == 3)
+    {
         // latest version
     }
     else
@@ -303,15 +307,15 @@ bool DeRestPluginPrivate::upgradeDbToUserVersion1()
     return setDbUserVersion(1);
 }
 
-/*! Upgrades database to user_version 1. */
+/*! Upgrades database to user_version 2. */
 bool DeRestPluginPrivate::upgradeDbToUserVersion2()
 {
     int rc;
     char *errmsg;
 
     DBG_Printf(DBG_INFO, "DB upgrade to user_version 2\n");
-    // create tables
 
+    // create tables
     const char *sql[] = {
         "PRAGMA foreign_keys = 1",
         "CREATE TABLE IF NOT EXISTS devices (id INTEGER PRIMARY KEY, mac TEXT UNIQUE, timestamp INTEGER NOT NULL)",
@@ -341,6 +345,50 @@ bool DeRestPluginPrivate::upgradeDbToUserVersion2()
     return setDbUserVersion(2);
 }
 
+/*! Upgrades database to user_version 3. */
+bool DeRestPluginPrivate::upgradeDbToUserVersion3()
+{
+    int rc;
+    char *errmsg;
+
+    DBG_Printf(DBG_INFO, "DB upgrade to user_version 3\n");
+
+    // create tables
+    const char *sql[] = {
+        "PRAGMA foreign_keys = 1",
+
+        // device_descriptors: cache for queried descriptors
+        // device_descriptors.data: This field holds the raw descriptor as blob.
+        "CREATE TABLE IF NOT EXISTS device_descriptors ("
+        " id INTEGER PRIMARY KEY,"
+        " device_id INTEGER REFERENCES devices(id) ON DELETE CASCADE,"
+        " flags INTEGER NOT NULL DEFAULT 0,"
+        " endpoint INTEGER NOT NULL,"
+        " type INTEGER NOT NULL,"  // ZDP cluster id which was used to query the descriptor
+        " data BLOB NOT NULL,"
+        " timestamp INTEGER NOT NULL)",
+        nullptr
+    };
+
+    for (int i = 0; sql[i] != nullptr; i++)
+    {
+        errmsg = nullptr;
+        rc = sqlite3_exec(db, sql[i], nullptr, nullptr, &errmsg);
+
+        if (rc != SQLITE_OK)
+        {
+            if (errmsg)
+            {
+                DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", sql[i], errmsg, rc);
+                sqlite3_free(errmsg);
+            }
+            return false;
+        }
+    }
+
+    return setDbUserVersion(3);
+}
+
 /*! Puts a new top level device entry in the db (mac address) or refreshes and existing timestamp.
     The timestamp is used to keep track of ghost/replaced/removed devices.
 */
@@ -353,6 +401,141 @@ void DeRestPluginPrivate::refreshDeviceDb(quint64 extAddress)
     dbQueryQueue.push_back(sql);
 
     queSaveDb(DB_QUERY_QUEUE, DB_SHORT_SAVE_DELAY);
+}
+
+/*! Push/update a zdp descriptor in the database to cache node data.
+  */
+void DeRestPluginPrivate::pushZdpDescriptorDb(quint64 extAddress, quint8 endpoint, quint16 type, const QByteArray &data)
+{
+    qint64 now = QDateTime::currentMSecsSinceEpoch() / 1000;
+    const QString uniqueid = generateUniqueId(extAddress, 0, 0);
+
+    const char * sql = "UPDATE device_descriptors SET data = ?1, timestamp = ?2"
+                       " WHERE device_id = (SELECT id FROM devices WHERE mac = ?3)"
+                       " AND endpoint = ?4"
+                       " AND type = ?5";
+
+    int rc;
+    sqlite3_stmt *res = nullptr;
+
+    rc = sqlite3_prepare_v2(db, sql, -1, &res, nullptr);
+    DBG_Assert(res);
+    DBG_Assert(rc == SQLITE_OK);
+
+    if (rc == SQLITE_OK)
+    {
+        rc = sqlite3_bind_blob(res, 1, data.constData(), data.size(), SQLITE_STATIC);
+        DBG_Assert(rc == SQLITE_OK);
+    }
+
+    if (rc == SQLITE_OK)
+    {
+        rc = sqlite3_bind_int64(res, 2, now);
+        DBG_Assert(rc == SQLITE_OK);
+    }
+
+    if (rc == SQLITE_OK)
+    {
+        rc = sqlite3_bind_text(res, 3, qPrintable(uniqueid), uniqueid.size(), SQLITE_STATIC);
+        DBG_Assert(rc == SQLITE_OK);
+    }
+
+    if (rc == SQLITE_OK)
+    {
+        rc = sqlite3_bind_int(res, 4, endpoint);
+        DBG_Assert(rc == SQLITE_OK);
+    }
+
+    if (rc == SQLITE_OK)
+    {
+        rc = sqlite3_bind_int(res, 5, type);
+        DBG_Assert(rc == SQLITE_OK);
+    }
+
+    if (rc != SQLITE_OK)
+    {
+        DBG_Printf(DBG_INFO, "DB failed %s", sqlite3_errmsg(db));
+        if (res)
+        {
+            rc = sqlite3_finalize(res);
+            DBG_Assert(rc == SQLITE_OK);
+        }
+        return;
+    }
+
+    int changes = -1;
+    rc = sqlite3_step(res);
+    if (rc == SQLITE_DONE)
+    {
+        changes = sqlite3_changes(db);
+    }
+    rc = sqlite3_finalize(res);
+    DBG_Assert(rc == SQLITE_OK);
+
+    if (changes == 1)
+    {
+        return; // done
+    }
+
+    // else insert
+    res = nullptr;
+    sql = "INSERT INTO device_descriptors (device_id, endpoint, type, data, timestamp)"
+          " SELECT id, ?1, ?2, ?3, ?4"
+          " FROM devices WHERE mac = ?5";
+
+    rc = sqlite3_prepare_v2(db, sql, -1, &res, nullptr);
+    DBG_Assert(res);
+    DBG_Assert(rc == SQLITE_OK);
+
+    if (rc == SQLITE_OK)
+    {
+        rc = sqlite3_bind_int(res, 1, endpoint);
+        DBG_Assert(rc == SQLITE_OK);
+    }
+
+    if (rc == SQLITE_OK)
+    {
+        rc = sqlite3_bind_int(res, 2, type);
+        DBG_Assert(rc == SQLITE_OK);
+    }
+
+    if (rc == SQLITE_OK)
+    {
+        rc = sqlite3_bind_blob(res, 3, data.constData(), data.size(), SQLITE_STATIC);
+        DBG_Assert(rc == SQLITE_OK);
+    }
+
+    if (rc == SQLITE_OK)
+    {
+        rc = sqlite3_bind_int64(res, 4, now);
+        DBG_Assert(rc == SQLITE_OK);
+    }
+
+    if (rc == SQLITE_OK)
+    {
+        rc = sqlite3_bind_text(res, 5, qPrintable(uniqueid), uniqueid.size(), SQLITE_STATIC);
+        DBG_Assert(rc == SQLITE_OK);
+    }
+
+    if (rc != SQLITE_OK)
+    {
+        DBG_Printf(DBG_INFO, "DB failed %s", sqlite3_errmsg(db));
+        if (res)
+        {
+            rc = sqlite3_finalize(res);
+            DBG_Assert(rc == SQLITE_OK);
+        }
+        return;
+    }
+
+    rc = sqlite3_step(res);
+    if (rc == SQLITE_DONE)
+    {
+        changes = sqlite3_changes(db);
+        DBG_Assert(changes == 1);
+    }
+    rc = sqlite3_finalize(res);
+    DBG_Assert(rc == SQLITE_OK);
 }
 
 /*! Push a zcl value sample in the database to keep track of value history.
@@ -393,7 +576,6 @@ void DeRestPluginPrivate::pushZclValueDb(quint64 extAddress, quint8 endpoint, qu
 
     sql = QString(QLatin1String("DELETE FROM zcl_values WHERE timestamp < %1")).arg(now - dbZclValueMaxAge);
     dbQueryQueue.push_back(sql);
-
 }
 
 /*! Clears all content of tables of db except auth table
@@ -1540,8 +1722,6 @@ void DeRestPluginPrivate::loadAllSchedulesFromDb()
  */
 void DeRestPluginPrivate::loadSensorDataFromDb(Sensor *sensor, QVariantList &ls, qint64 fromTime, int max)
 {
-    char *errmsg = 0;
-
     DBG_Assert(db != 0);
 
     if (!db)
@@ -1629,12 +1809,6 @@ void DeRestPluginPrivate::loadSensorDataFromDb(Sensor *sensor, QVariantList &ls,
 
         if (rc != SQLITE_OK)
         {
-            if (errmsg)
-            {
-                DBG_Printf(DBG_ERROR_L2, "sqlite3_* %s, error: %s\n", qPrintable(sql), errmsg);
-                sqlite3_free(errmsg);
-            }
-
             if (res)
             {
                 rc = sqlite3_finalize(res);
