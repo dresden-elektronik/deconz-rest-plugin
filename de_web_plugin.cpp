@@ -8421,7 +8421,25 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         addLightNode(event.node());
         updatedLightNodeEndpoint(event);
         addSensorNode(event.node());
-        checkUpdatedFingerPrint(event.node(), event.endpoint(), 0);
+        checkUpdatedFingerPrint(event.node(), event.endpoint(), nullptr);
+        if (!event.node())
+        {
+            return;
+        }
+        deCONZ::SimpleDescriptor sd;
+        if (event.node()->copySimpleDescriptor(event.endpoint(), &sd) != 0)
+        {
+            return;
+        }
+
+        QByteArray data;
+        QDataStream stream(&data, QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        sd.writeToStream(stream);
+        if (!data.isEmpty())
+        {
+            pushZdpDescriptorDb(event.node()->address().ext(), sd.endpoint(), ZDP_SIMPLE_DESCRIPTOR_CLID, data);
+        }
     }
         break;
 

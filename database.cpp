@@ -18,10 +18,10 @@
 #include "gateway.h"
 #include "json.h"
 
-const char *pragmaUserVersion = "PRAGMA user_version";
-const char *pragmaPageCount = "PRAGMA page_count";
-const char *pragmaPageSize = "PRAGMA page_size";
-const char *pragmaFreeListCount = "PRAGMA freelist_count";
+static const char *pragmaUserVersion = "PRAGMA user_version";
+static const char *pragmaPageCount = "PRAGMA page_count";
+static const char *pragmaPageSize = "PRAGMA page_size";
+static const char *pragmaFreeListCount = "PRAGMA freelist_count";
 
 /******************************************************************************
                     Local prototypes
@@ -84,11 +84,11 @@ void DeRestPluginPrivate::checkDbUserVersion()
     {
         updated = upgradeDbToUserVersion2();
     }
-    else if (userVersion == 2)
+    else if (userVersion == 2 || userVersion == 3)
     {
-        updated = upgradeDbToUserVersion3();
+        updated = upgradeDbToUserVersion4();
     }
-    else if (userVersion == 3)
+    else if (userVersion == 4)
     {
         // latest version
     }
@@ -345,13 +345,13 @@ bool DeRestPluginPrivate::upgradeDbToUserVersion2()
     return setDbUserVersion(2);
 }
 
-/*! Upgrades database to user_version 3. */
-bool DeRestPluginPrivate::upgradeDbToUserVersion3()
+/*! Upgrades database to user_version 4. */
+bool DeRestPluginPrivate::upgradeDbToUserVersion4()
 {
     int rc;
     char *errmsg;
 
-    DBG_Printf(DBG_INFO, "DB upgrade to user_version 3\n");
+    DBG_Printf(DBG_INFO, "DB upgrade to user_version 4\n");
 
     // create tables
     const char *sql[] = {
@@ -367,6 +367,13 @@ bool DeRestPluginPrivate::upgradeDbToUserVersion3()
         " type INTEGER NOT NULL,"  // ZDP cluster id which was used to query the descriptor
         " data BLOB NOT NULL,"
         " timestamp INTEGER NOT NULL)",
+
+        "CREATE TABLE if NOT EXISTS device_gui ("
+        " id INTEGER PRIMARY KEY,"
+        " device_id INTEGER REFERENCES devices(id) ON DELETE CASCADE,"
+        " flags INTEGER NOT NULL DEFAULT 0,"
+        " scene_x REAL NOT NULL,"
+        " scene_y REAL NOT NULL)",
         nullptr
     };
 
@@ -386,7 +393,7 @@ bool DeRestPluginPrivate::upgradeDbToUserVersion3()
         }
     }
 
-    return setDbUserVersion(3);
+    return setDbUserVersion(4);
 }
 
 /*! Puts a new top level device entry in the db (mac address) or refreshes and existing timestamp.
@@ -415,6 +422,7 @@ void DeRestPluginPrivate::pushZdpDescriptorDb(quint64 extAddress, quint8 endpoin
                        " AND endpoint = ?4"
                        " AND type = ?5";
 
+    // 1) if exist, try to update existing entry
     int rc;
     sqlite3_stmt *res = nullptr;
 
@@ -474,10 +482,10 @@ void DeRestPluginPrivate::pushZdpDescriptorDb(quint64 extAddress, quint8 endpoin
 
     if (changes == 1)
     {
-        return; // done
+        return; // done updating already existing entry
     }
 
-    // else insert
+    // 2) no existing entry, insert new entry
     res = nullptr;
     sql = "INSERT INTO device_descriptors (device_id, endpoint, type, data, timestamp)"
           " SELECT id, ?1, ?2, ?3, ?4"
