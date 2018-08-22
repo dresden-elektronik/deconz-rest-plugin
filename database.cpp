@@ -1037,7 +1037,7 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
             d->gwHomebridge = val;
         }
     }
-    else if (strcmp(colval[0], "homebridgepin") == 0)
+    else if (strcmp(colval[0], "homebridge-pin") == 0)
     {
         if (!val.isEmpty())
         {
