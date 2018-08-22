@@ -190,7 +190,7 @@ function checkHomebridge {
 	npm_installed=false
 	node_ver=""
 
-	which homebridge
+	which homebridge &> /dev/null
 	if [ $? -eq 0 ]; then
 		hb_installed=true
 		# look for homebridge-hue installation
@@ -203,7 +203,7 @@ function checkHomebridge {
 		done
 	fi
 
-	which nodejs
+	which nodejs &> /dev/null
 	if [ $? -eq 0 ]; then
 		node_installed=true
 		# get version and strip it to only major part: v8.11.2 -> 8
@@ -333,7 +333,7 @@ function checkHomebridge {
     \"${BRIDGEID}\": \"${APIKEY}\"
   },
   \"sensors\": true,
-  \"excludeSensorTypes\": [\"CLIPPresence\", \"Geofence\"],
+  \"excludeSensorTypes\": [\"CLIP\", \"Geofence\"],
   \"lights\": true,
   \"hueMotionTemperatureHistory\": true
 }
