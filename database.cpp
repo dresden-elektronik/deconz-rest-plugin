@@ -1037,6 +1037,14 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
             d->gwHomebridge = val;
         }
     }
+    else if (strcmp(colval[0], "homebridge-pin") == 0)
+    {
+        if (!val.isEmpty())
+        {
+            d->gwConfig["homebridge-pin"] = val;
+            d->gwHomebridgePin = val;
+        }
+    }
     else if (strcmp(colval[0], "userparameter") == 0)
     {
         if (!val.isEmpty())
@@ -3421,6 +3429,7 @@ void DeRestPluginPrivate::saveDb()
         gwConfig["gwusername"] = gwAdminUserName;
         gwConfig["gwpassword"] = gwAdminPasswordHash;
         gwConfig["homebridge"] = gwHomebridge;
+        gwConfig["homebridge-pin"] = gwHomebridgePin;
         gwConfig["updatechannel"] = gwUpdateChannel;
         gwConfig["swupdatestate"] = gwSwUpdateState;
         gwConfig["uuid"] = gwUuid;
