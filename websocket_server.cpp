@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2018 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -75,7 +75,7 @@ void WebSocketServer::onSocketDisconnected()
     for (size_t i = 0; i < clients.size(); i++)
     {
         QWebSocket *sock = qobject_cast<QWebSocket*>(sender());
-        DBG_Assert(sock != 0);
+        DBG_Assert(sock);
         if (sock && clients[i] == sock)
         {
             DBG_Printf(DBG_INFO, "Websocket disconnected %s:%u (state: %d) \n", qPrintable(sock->peerAddress().toString()), sock->peerPort(), sock->state());
@@ -95,7 +95,7 @@ void WebSocketServer::onSocketError(QAbstractSocket::SocketError err)
     for (size_t i = 0; i < clients.size(); i++)
     {
         QWebSocket *sock = qobject_cast<QWebSocket*>(sender());
-        DBG_Assert(sock != 0);
+        DBG_Assert(sock);
         if (sock && clients[i] == sock)
         {
             DBG_Printf(DBG_INFO, "Remove websocket %s:%u after error %s\n",
@@ -121,8 +121,8 @@ void WebSocketServer::broadcastTextMessage(const QString &msg)
             DBG_Printf(DBG_INFO, "Websocket %s:%u unexpected state: %d\n", qPrintable(sock->peerAddress().toString()), sock->peerPort(), sock->state());
         }
 
-        int ret = sock->sendTextMessage(msg);
-        DBG_Printf(DBG_INFO, "Websocket %s:%u send message: %s (ret = %d)\n", qPrintable(sock->peerAddress().toString()), sock->peerPort(), qPrintable(msg), ret);
+        qint64 ret = sock->sendTextMessage(msg);
+        DBG_Printf(DBG_INFO_L2, "Websocket %s:%u send message: %s (ret = %d)\n", qPrintable(sock->peerAddress().toString()), sock->peerPort(), qPrintable(msg), ret);
         sock->flush();
     }
 }
