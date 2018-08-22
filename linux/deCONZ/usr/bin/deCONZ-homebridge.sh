@@ -294,23 +294,31 @@ function checkHomebridge {
 		fi
 	fi
 
+	APIKEY=$(sqlite3 $ZLLDB "select apikey from auth where devicetype like 'homebridge-hue#%' limit 1")
+	if [ -z "$APIKEY" ]; then
+		[[ $LOG_DEBUG ]] && echo "${LOG_WARN}could not read api key from db"
+		TIMEOUT=10
+		return
+	fi
+
 	# create config file if not exists
 	if [[ -f /home/$MAINUSER/.homebridge/config.json ]]; then
+		# existing config found
 		[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}found existing homebridge config.json"
 		if [ -z "$(cat /home/$MAINUSER/.homebridge/config.json | grep "Phoscon Homebridge")" ]; then
 			# set to not-managed only if homebridge is not set up by phoscon
 			if [[ "$HOMEBRIDGE" != "not-managed" ]]; then
 				sqlite3 $ZLLDB "replace into config2 (key, value) values('homebridge', 'not-managed')" &> /dev/null
 			fi
+		else
+			# config created by deCONZ - check if apikey is still correct
+			if [ -z "$(cat /home/$MAINUSER/.homebridge/config.json | grep "$APIKEY")" ]; then
+				# apikey not found - update config
+				sed -i '/\"${BRIDGEID}\":/c\    \"${BRIDGEID}\": \"$APIKEY\"' /home/$MAINUSER/.homebridge/config.json
+			fi
 		fi
 	else
-		APIKEY=$(sqlite3 $ZLLDB "select apikey from auth where devicetype like 'homebridge-hue#%'")
-		if [ -z $APIKEY ]; then
-			[[ $LOG_DEBUG ]] && echo "${LOG_WARN}could not read api key from db"
-			TIMEOUT=10
-			return
-		fi
-		# create homebridge dir and add Mainuser ownership
+		# create homebridge dir and config and add Mainuser ownership
 		mkdir /home/$MAINUSER/.homebridge
 		touch /home/$MAINUSER/.homebridge/config.json
 		chown -R $MAINUSER /home/$MAINUSER/.homebridge
