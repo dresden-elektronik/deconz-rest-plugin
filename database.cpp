@@ -4172,9 +4172,13 @@ void DeRestPluginPrivate::closeDb()
 #endif
             return;
         }
+        else if (ret == SQLITE_BUSY)
+        {
+            DBG_Printf(DBG_INFO, "sqlite3_close() busy %d\n", ret);
+            return; // close later
+        }
 
         DBG_Printf(DBG_INFO, "sqlite3_close() failed %d\n", ret);
-
     }
 
     DBG_Assert(db == 0);
