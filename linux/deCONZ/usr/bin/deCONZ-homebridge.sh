@@ -168,17 +168,16 @@ function checkHomebridge {
 				sqlite3 $ZLLDB "replace into config2 (key, value) values('homebridge', 'not-managed')" &> /dev/null
 			fi
 			[[ $LOG_INFO ]] && echo "${LOG_INFO}existing homebridge hue auth found"
-
-			if [[ -z "$HOMEBRIDGE_PIN" ]]; then
-				if [[ -f /home/$MAINUSER/.homebridge/config.json ]]; then
-					local p=$(cat /home/$MAINUSER/.homebridge/config.json | grep "pin" | cut -d'"' -f4)
-					local pin="${p:0:3}${p:4:2}${p:7:3}"
-					# write pin from config.json in db
-					sqlite3 $ZLLDB "insert into config2 (key, value) values('homebridge-pin', '${pin}')" &> /dev/null					
-				else
-					# or create new pin and write it in db
-					sqlite3 $ZLLDB "insert into config2 (key, value) values('homebridge-pin', 'ABS(RANDOM()) % (99999999 - 10000000) + 10000000')" &> /dev/null
-				fi
+        fi
+		if [[ -z "$HOMEBRIDGE_PIN" ]]; then
+			if [[ -f /home/$MAINUSER/.homebridge/config.json ]]; then
+				local p=$(cat /home/$MAINUSER/.homebridge/config.json | grep "pin" | cut -d'"' -f4)
+				local pin="${p:0:3}${p:4:2}${p:7:3}"
+				# write pin from config.json in db
+				sqlite3 $ZLLDB "insert into config2 (key, value) values('homebridge-pin', '${pin}')" &> /dev/null
+			else
+				# or create new pin and write it in db
+				sqlite3 $ZLLDB "insert into config2 (key, value) values('homebridge-pin', 'ABS(RANDOM()) % (99999999 - 10000000) + 10000000')" &> /dev/null
 			fi
 		fi
 	fi
