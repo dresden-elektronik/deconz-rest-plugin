@@ -95,12 +95,13 @@ function checkHomebridge {
 	local BRIDGEID=""
 	local HOMEBRIDGE=""
 	local IP_ADDRESS=""
+	local HOMEBRIDGE_PIN=""
 
 	## get database config
-	params=( [0]="bridgeid" [1]="homebridge" [2]="proxyaddress" [3]="proxyport" [4]="port" [5]="ipaddress")
+	params=( [0]="bridgeid" [1]="homebridge" [2]="proxyaddress" [3]="proxyport" [4]="port" [5]="ipaddress" [6]="homebridge-pin")
 	values=()
 
-	for i in {0..5}; do
+	for i in {0..6}; do
 		param=${params[$i]}
 		value=$(sqlite3 $ZLLDB "select * from config2 where key=\"${param}\"")
 		if [ $? -ne 0 ]; then
@@ -137,6 +138,7 @@ function checkHomebridge {
 	PROXY_PORT="${values[3]}"
 	DECONZ_PORT="${values[4]}"
 	IP_ADDRESS="${values[5]}"
+	HOMEBRIDGE_PIN="${values[6]}"
 
 	if [[ "$HOMEBRIDGE" == "disabled" ]]; then
 		systemctl -q is-active homebridge
@@ -153,6 +155,12 @@ function checkHomebridge {
 	if [[ $HOMEBRIDGE_AUTH == "" ]]; then
 		# generate a new deconz apikey for homebridge-hue
 		addUser
+		# generate pin and write it in db
+		if [[ -z "$HOMEBRIDGE_PIN" ]]; then
+			sqlite3 $ZLLDB "insert into config2 (key, value) values('homebridge-pin', 'ABS(RANDOM()) % (99999999 - 10000000) + 10000000')" &> /dev/null
+		else
+			sqlite3 $ZLLDB "replace into config2 (key, value) values('homebridge-pin', 'ABS(RANDOM()) % (99999999 - 10000000) + 10000000')" &> /dev/null
+		fi
 	else
 		# homebridge-hue apikey exists
 		if [ -z $(echo $HOMEBRIDGE_AUTH | grep deconz) ]; then
@@ -160,6 +168,18 @@ function checkHomebridge {
 				sqlite3 $ZLLDB "replace into config2 (key, value) values('homebridge', 'not-managed')" &> /dev/null
 			fi
 			[[ $LOG_INFO ]] && echo "${LOG_INFO}existing homebridge hue auth found"
+
+			if [[ -z "$HOMEBRIDGE_PIN" ]]; then
+				if [[ -f /home/$MAINUSER/.homebridge/config.json ]]; then
+					local p=$(cat /home/$MAINUSER/.homebridge/config.json | grep "pin" | cut -d'"' -f4)
+					local pin="${p:0:3}${p:4:2}${p:7:3}"
+					# write pin from config.json in db
+					sqlite3 $ZLLDB "insert into config2 (key, value) values('homebridge-pin', '${pin}')" &> /dev/null					
+				else
+					# or create new pin and write it in db
+					sqlite3 $ZLLDB "insert into config2 (key, value) values('homebridge-pin', 'ABS(RANDOM()) % (99999999 - 10000000) + 10000000')" &> /dev/null
+				fi
+			fi
 		fi
 	fi
 
@@ -295,12 +315,14 @@ function checkHomebridge {
 		touch /home/$MAINUSER/.homebridge/config.json
 		chown -R $MAINUSER /home/$MAINUSER/.homebridge
 
+		HOMEBRIDGE_PIN=$(sqlite3 $ZLLDB "select value from config2 where key='homebridge-pin'")
+		local HB_PIN="${HOMEBRIDGE_PIN:0:3}-${HOMEBRIDGE_PIN:3:2}-${HOMEBRIDGE_PIN:5:3}"
 		echo "{
 \"bridge\": {
     \"name\": \"Phoscon Homebridge\",
     \"username\": \"$(echo ${BRIDGEID:4} | fold -w2 | paste -sd':' -)\",
     \"port\": 51826,
-    \"pin\": \"111-11-111\"
+    \"pin\": \"${HB_PIN}\"
 },
 
 \"platforms\": [
