@@ -84,11 +84,11 @@ void DeRestPluginPrivate::checkDbUserVersion()
     {
         updated = upgradeDbToUserVersion2();
     }
-    else if (userVersion == 2 || userVersion == 3)
+    else if (userVersion >= 2 && userVersion <= 4 )
     {
-        updated = upgradeDbToUserVersion4();
+        updated = upgradeDbToUserVersion5();
     }
-    else if (userVersion == 4)
+    else if (userVersion == 5)
     {
         // latest version
     }
@@ -345,8 +345,8 @@ bool DeRestPluginPrivate::upgradeDbToUserVersion2()
     return setDbUserVersion(2);
 }
 
-/*! Upgrades database to user_version 4. */
-bool DeRestPluginPrivate::upgradeDbToUserVersion4()
+/*! Upgrades database to user_version 5. */
+bool DeRestPluginPrivate::upgradeDbToUserVersion5()
 {
     int rc;
     char *errmsg;
@@ -356,6 +356,8 @@ bool DeRestPluginPrivate::upgradeDbToUserVersion4()
     // create tables
     const char *sql[] = {
         "PRAGMA foreign_keys = 1",
+
+        "DROP TABLE IF EXISTS device_gui", // development version
 
         // device_descriptors: cache for queried descriptors
         // device_descriptors.data: This field holds the raw descriptor as blob.
@@ -370,10 +372,11 @@ bool DeRestPluginPrivate::upgradeDbToUserVersion4()
 
         "CREATE TABLE if NOT EXISTS device_gui ("
         " id INTEGER PRIMARY KEY,"
-        " device_id INTEGER REFERENCES devices(id) ON DELETE CASCADE,"
+        " device_id INTEGER UNIQUE,"
         " flags INTEGER NOT NULL DEFAULT 0,"
         " scene_x REAL NOT NULL,"
-        " scene_y REAL NOT NULL)",
+        " scene_y REAL NOT NULL,"
+        " FOREIGN KEY(device_id) REFERENCES devices(id) ON DELETE CASCADE)",
         nullptr
     };
 
@@ -393,7 +396,7 @@ bool DeRestPluginPrivate::upgradeDbToUserVersion4()
         }
     }
 
-    return setDbUserVersion(4);
+    return setDbUserVersion(5);
 }
 
 /*! Puts a new top level device entry in the db (mac address) or refreshes and existing timestamp.
