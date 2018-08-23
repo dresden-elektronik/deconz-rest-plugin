@@ -511,8 +511,9 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             TaskItem task;
             copyTaskReq(taskRef, task);
             //FIXME workaround ubisys J1 is not a light
-            if (taskRef.lightNode->modelId().startsWith(QLatin1String("J1")) &&
-            		addTaskWindowCovering(task, isOn ? 0x01 /*down*/ : 0x00 /*up*/, 0, 0))
+            if ((taskRef.lightNode->modelId().startsWith(QLatin1String("J1"))
+            		|| taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain")))
+            		&& addTaskWindowCovering(task, isOn ? 0x01 /*down*/ : 0x00 /*up*/, 0, 0))
             {
 				QVariantMap rspItem;
 				QVariantMap rspItemState;
@@ -563,7 +564,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
 
         //FIXME workaround ubisys J1
-        if (taskRef.lightNode->modelId().startsWith(QLatin1String("J1")))
+        if (taskRef.lightNode->modelId().startsWith(QLatin1String("J1"))
+        		|| taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain")))
         {
         	if ((map["bri"].type() == QVariant::String) && map["bri"].toString() == "stop")
         	{
@@ -803,7 +805,31 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     {
         uint sat2 = map["sat"].toUInt(&ok);
 
-        if (!isOn)
+        //FIXME workaround ubisys J1
+        if (taskRef.lightNode->modelId().startsWith(QLatin1String("J1"))
+        		|| taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain")))
+        {
+        	if (ok && (map["sat"].type() == QVariant::Double) && (sat2 < 256))
+        	{
+        		TaskItem task;
+        		copyTaskReq(taskRef, task);
+        		uint8_t moveToPct = 0x00;
+        		moveToPct = sat2 * 100 / 255;  // Percent 0 - 100 (0x00 - 0x64)
+        		if (addTaskWindowCovering(task, 0x08 /*move to Tilt Percent*/, 0, moveToPct))
+        		{
+        			QVariantMap rspItem;
+        			QVariantMap rspItemState;
+        			rspItemState[QString("/lights/%1/state/sat").arg(id)] = map["sat"];
+        			rspItem["success"] = rspItemState;
+        			rsp.list.append(rspItem);
+        		}
+        		else
+        		{
+        			rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+        		}
+        	}
+        } //FIXME workaround ubisys J1 end
+        else if (!isOn)
         {
             rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1").arg(id), QString("parameter, /lights/%1/sat, is not modifiable. Device is set to off.").arg(id)));
         }
@@ -935,7 +961,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("parameter, /lights/%1/bri_inc, is not available.").arg(id)));
         }
         //FIXME workaround ubisys J1
-        else if (taskRef.lightNode->modelId().startsWith(QLatin1String("J1")))
+        else if (taskRef.lightNode->modelId().startsWith(QLatin1String("J1"))
+        		|| taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain")))
         {
         	if (ok && (map["bri_inc"].type() == QVariant::Double) && (briIinc == 0))
         	{
