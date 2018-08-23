@@ -2730,7 +2730,7 @@ void DeRestPluginPrivate::daylightTimerFired()
 
     if (curName)
     {
-        DBG_Printf(DBG_INFO, "Daylight now: %s, status: %d, daylight: %d, dark: %d\n", curName, cur, dl, dk);
+        DBG_Printf(DBG_INFO_L2, "Daylight now: %s, status: %d, daylight: %d, dark: %d\n", curName, cur, dl, dk);
     }
 }
 
