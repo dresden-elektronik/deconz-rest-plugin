@@ -417,8 +417,17 @@ void DeRestPluginPrivate::refreshDeviceDb(quint64 extAddress)
   */
 void DeRestPluginPrivate::pushZdpDescriptorDb(quint64 extAddress, quint8 endpoint, quint16 type, const QByteArray &data)
 {
+    openDb();
+    DBG_Assert(db);
+    if (!db)
+    {
+        return;
+    }
     qint64 now = QDateTime::currentMSecsSinceEpoch() / 1000;
     const QString uniqueid = generateUniqueId(extAddress, 0, 0);
+    char mac[23 + 1];
+    strncpy(mac, qPrintable(uniqueid), uniqueid.size());
+    mac[23] = '\0';
 
     const char * sql = "UPDATE device_descriptors SET data = ?1, timestamp = ?2"
                        " WHERE device_id = (SELECT id FROM devices WHERE mac = ?3)"
@@ -447,7 +456,7 @@ void DeRestPluginPrivate::pushZdpDescriptorDb(quint64 extAddress, quint8 endpoin
 
     if (rc == SQLITE_OK)
     {
-        rc = sqlite3_bind_text(res, 3, qPrintable(uniqueid), uniqueid.size(), SQLITE_STATIC);
+        rc = sqlite3_bind_text(res, 3, mac, -1, SQLITE_STATIC);
         DBG_Assert(rc == SQLITE_OK);
     }
 
@@ -524,7 +533,7 @@ void DeRestPluginPrivate::pushZdpDescriptorDb(quint64 extAddress, quint8 endpoin
 
     if (rc == SQLITE_OK)
     {
-        rc = sqlite3_bind_text(res, 5, qPrintable(uniqueid), uniqueid.size(), SQLITE_STATIC);
+        rc = sqlite3_bind_text(res, 5, mac, -1, SQLITE_STATIC);
         DBG_Assert(rc == SQLITE_OK);
     }
 
@@ -547,6 +556,7 @@ void DeRestPluginPrivate::pushZdpDescriptorDb(quint64 extAddress, quint8 endpoin
     }
     rc = sqlite3_finalize(res);
     DBG_Assert(rc == SQLITE_OK);
+    closeDb();
 }
 
 /*! Push a zcl value sample in the database to keep track of value history.
