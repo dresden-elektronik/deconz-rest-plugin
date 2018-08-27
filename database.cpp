@@ -681,6 +681,10 @@ void DeRestPluginPrivate::openDb()
         return;
     }
 
+    const char *sql = "PRAGMA foreign_keys = ON"; // must be enabled at runtime for each connection
+    rc = sqlite3_exec(db, sql, nullptr, nullptr, nullptr);
+    DBG_Assert(rc == SQLITE_OK);
+
     ttlDataBaseConnection = idleTotalCounter + DB_CONNECTION_TTL;
 }
 
