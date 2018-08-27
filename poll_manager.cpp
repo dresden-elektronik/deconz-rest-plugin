@@ -208,7 +208,7 @@ void PollManager::pollTimerFired()
         return;
     }
 
-    quint16 clusterId = 0;
+    quint16 clusterId = 0xffff; // invalid
     std::vector<quint16> attributes;
 
     item = r->item(RStateOn);
@@ -374,13 +374,13 @@ void PollManager::pollTimerFired()
         }
     }
 
-    if (clusterId && fresh > 0 && fresh == attributes.size())
+    if (clusterId != 0xffff && fresh > 0 && fresh == attributes.size())
     {
         DBG_Printf(DBG_INFO, "Poll APS request to 0x%016llX cluster: 0x%04X dropped, values are fresh enough\n", pitem.address.ext(), clusterId);
         suffix = 0; // clear
         timer->start(100);
     }
-    else if (!attributes.empty() && clusterId &&
+    else if (!attributes.empty() && clusterId != 0xffff &&
         plugin->readAttributes(restNode, pitem.endpoint, clusterId, attributes))
     {
         pollState = StateWait;
@@ -399,7 +399,7 @@ void PollManager::pollTimerFired()
     }
     else
     {
-        if (clusterId)
+        if (clusterId != 0xffff)
         {
             DBG_Printf(DBG_INFO, "Poll APS request to 0x%016llX cluster: 0x%04X dropped\n", pitem.address.ext(), clusterId);
         }
