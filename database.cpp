@@ -2044,7 +2044,7 @@ void DeRestPluginPrivate::loadLightNodeFromDb(LightNode *lightNode)
     }
 
     // check for new uniqueId format
-    QString sql = QString("SELECT * FROM nodes WHERE mac='%1' COLLATE NOCASE").arg(lightNode->uniqueId());
+    QString sql = QString("SELECT * FROM nodes WHERE mac='%1' COLLATE NOCASE AND state != 'deleted'").arg(lightNode->uniqueId());
 
     DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
     rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadLightNodeCallback, lightNode, &errmsg);
@@ -2071,7 +2071,7 @@ void DeRestPluginPrivate::loadLightNodeFromDb(LightNode *lightNode)
     // check for old mac address only format
     if (lightNode->id().isEmpty())
     {
-        sql = QString("SELECT * FROM nodes WHERE mac='%1' COLLATE NOCASE").arg(lightNode->address().toStringExt());
+        sql = QString("SELECT * FROM nodes WHERE mac='%1' COLLATE NOCASE AND state != 'deleted'").arg(lightNode->address().toStringExt());
 
         DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
         rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadLightNodeCallback, lightNode, &errmsg);
