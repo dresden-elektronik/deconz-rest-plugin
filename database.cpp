@@ -474,13 +474,20 @@ void DeRestPluginPrivate::pushZdpDescriptorDb(quint64 extAddress, quint8 endpoin
 
     if (rc != SQLITE_OK)
     {
-        DBG_Printf(DBG_INFO, "DB failed %s", sqlite3_errmsg(db));
+        DBG_Printf(DBG_INFO, "DB failed %s\n", sqlite3_errmsg(db));
         if (res)
         {
             rc = sqlite3_finalize(res);
             DBG_Assert(rc == SQLITE_OK);
         }
         return;
+    }
+
+    auto exp = sqlite3_expanded_sql(res);
+    if (exp)
+    {
+        DBG_Printf(DBG_INFO, "DB %s\n", exp);
+        sqlite3_free(exp);
     }
 
     int changes = -1;
@@ -539,13 +546,20 @@ void DeRestPluginPrivate::pushZdpDescriptorDb(quint64 extAddress, quint8 endpoin
 
     if (rc != SQLITE_OK)
     {
-        DBG_Printf(DBG_INFO, "DB failed %s", sqlite3_errmsg(db));
+        DBG_Printf(DBG_INFO, "DB failed %s\n", sqlite3_errmsg(db));
         if (res)
         {
             rc = sqlite3_finalize(res);
             DBG_Assert(rc == SQLITE_OK);
         }
         return;
+    }
+
+    exp = sqlite3_expanded_sql(res);
+    if (exp)
+    {
+        DBG_Printf(DBG_INFO, "DB %s\n", exp);
+        sqlite3_free(exp);
     }
 
     rc = sqlite3_step(res);
