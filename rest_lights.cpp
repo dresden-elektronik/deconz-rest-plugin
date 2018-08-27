@@ -1474,6 +1474,12 @@ int DeRestPluginPrivate::deleteLight(const ApiRequest &req, ApiResponse &rsp)
         lightNode->setState(LightNode::StateDeleted);
         lightNode->setNeedSaveDatabase(true);
     }
+
+    {
+        Q_Q(DeRestPlugin);
+        q->nodeUpdated(lightNode->address().ext(), QLatin1String("deleted"), QLatin1String(""));
+    }
+
     updateLightEtag(lightNode);
     queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
 

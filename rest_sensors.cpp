@@ -1523,6 +1523,11 @@ int DeRestPluginPrivate::deleteSensor(const ApiRequest &req, ApiResponse &rsp)
         rsp.httpStatus = HttpStatusOk;
     }
 
+    {
+        Q_Q(DeRestPlugin);
+        q->nodeUpdated(sensor->address().ext(), QLatin1String("deleted"), QLatin1String(""));
+    }
+
     queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
 
     updateSensorEtag(sensor);
