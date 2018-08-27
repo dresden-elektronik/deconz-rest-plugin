@@ -1152,41 +1152,45 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             lightNode2->setManufacturerCode(node->nodeDescriptor().manufacturerCode());
             ResourceItem *reachable = lightNode2->item(RStateReachable);
 
-            DBG_Assert(reachable != 0);
-            if (!reachable->toBool())
+            DBG_Assert(reachable);
+            bool avail = !node->isZombie();
+            if (reachable->toBool() != avail)
             {
                 // the node existed before
                 // refresh all with new values
                 DBG_Printf(DBG_INFO, "LightNode %u: %s updated\n", lightNode2->id().toUInt(), qPrintable(lightNode2->name()));
-                reachable->setValue(true);
+                reachable->setValue(avail);
                 Event e(RLights, RStateReachable, lightNode2->id(), reachable);
                 enqueueEvent(e);
 
-                lightNode2->enableRead(READ_VENDOR_NAME |
-                                       READ_MODEL_ID |
-                                       READ_SWBUILD_ID |
-                                       READ_COLOR |
-                                       READ_LEVEL |
-                                       READ_ON_OFF |
-                                       READ_GROUPS |
-                                       READ_SCENES |
-                                       READ_BINDING_TABLE);
-
-                for (uint32_t j = 0; j < 32; j++)
+                if (avail)
                 {
-                    uint32_t item = 1 << j;
-                    if (lightNode.mustRead(item))
+                    lightNode2->enableRead(READ_VENDOR_NAME |
+                                           READ_MODEL_ID |
+                                           READ_SWBUILD_ID |
+                                           READ_COLOR |
+                                           READ_LEVEL |
+                                           READ_ON_OFF |
+                                           READ_GROUPS |
+                                           READ_SCENES |
+                                           READ_BINDING_TABLE);
+
+                    for (uint32_t j = 0; j < 32; j++)
                     {
-                        lightNode.setNextReadTime(item, queryTime);
-                        lightNode.setLastRead(item, idleTotalCounter);
+                        uint32_t item = 1 << j;
+                        if (lightNode.mustRead(item))
+                        {
+                            lightNode.setNextReadTime(item, queryTime);
+                            lightNode.setLastRead(item, idleTotalCounter);
+                        }
+
                     }
 
+                    queryTime = queryTime.addSecs(1);
+
+                    //lightNode2->setLastRead(idleTotalCounter);
+                    updateEtag(lightNode2->etag);
                 }
-
-                queryTime = queryTime.addSecs(1);
-
-                //lightNode2->setLastRead(idleTotalCounter);
-                updateEtag(lightNode2->etag);
             }
 
             if (lightNode2->uniqueId().isEmpty() || lightNode2->uniqueId().startsWith(QLatin1String("0x")))
@@ -1359,6 +1363,13 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 {
                     lightNode.setState(LightNode::StateNormal);
                 }
+            }
+
+            ResourceItem *reachable = lightNode.item(RStateReachable);
+            DBG_Assert(reachable);
+            if (reachable)
+            {
+                reachable->setValue(!node->isZombie());
             }
 
             if (lightNode.id().isEmpty())
