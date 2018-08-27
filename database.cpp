@@ -3706,6 +3706,10 @@ void DeRestPluginPrivate::saveDb()
                     .arg(i->swBuildId())
                     .arg(ritems);
 
+            if (i->state() == LightNode::StateDeleted)
+            {
+                sql.append(QString("; DELETE FROM devices WHERE mac = '%1'").arg(generateUniqueId(i->address().ext(), 0, 0)));
+            }
 
             DBG_Printf(DBG_INFO_L2, "DB sql exec %s\n", qPrintable(sql));
             errmsg = NULL;
@@ -4123,6 +4127,11 @@ void DeRestPluginPrivate::saveDb()
                     .arg(fingerPrintJSON)
                     .arg(deletedState)
                     .arg(QString::number(i->mode()));
+
+            if (i->deletedState() == Sensor::StateDeleted)
+            {
+                sql.append(QString("; DELETE FROM devices WHERE mac = '%1'").arg(generateUniqueId(i->address().ext(), 0, 0)));
+            }
 
             DBG_Printf(DBG_INFO_L2, "DB sql exec %s\n", qPrintable(sql));
             errmsg = NULL;
