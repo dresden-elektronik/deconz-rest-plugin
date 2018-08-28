@@ -58,6 +58,8 @@ void DeRestPluginPrivate::initConfig()
     gwWifiState = WifiStateInitMgmt;
     gwWifiMgmt = 0;
     gwWifi = QLatin1String("not-configured");
+    gwWifiApStatus = QLatin1String("not-configured");
+    gwWifiClientStatus = QLatin1String("not-configured");
     gwWifiType = QLatin1String("accesspoint");
     gwWifiName = QString();
     gwWifiClientName = QString();
@@ -320,6 +322,8 @@ void DeRestPluginPrivate::initWiFi()
 
     gwWifi = QLatin1String("configured");
     gwWifiType = QLatin1String("accesspoint");
+    gwWifiApStatus = QLatin1String("connected");
+    gwWifiClientStatus = QLatin1String("disconnected");
 
     if (gwWifiName.isEmpty() || gwWifiName == QLatin1String("Not set"))
     {
@@ -751,6 +755,8 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         map["wifichannel"] = gwWifiChannel;
         map["wifimgmt"] = (double)gwWifiMgmt;
         map["wifiip"] = gwWifiIp;
+        map["wifiapstatus"] = gwWifiApStatus;
+        map["wificlientstatus"] = gwWifiClientStatus;
 //        map["wifiappw"] = gwWifiPw;
         map["wifiappw"] = QString(); // TODO add secured transfer via PKI
         map["wificlientpw"] = QString(); // TODO add secured transfer via PKI
@@ -2269,6 +2275,8 @@ int DeRestPluginPrivate::getWifiState(const ApiRequest &req, ApiResponse &rsp)
     rsp.map["wifiname"] = gwWifiName;
     rsp.map["wifichannel"] = gwWifiChannel;
     rsp.map["wifiip"] = gwWifiIp;
+    rsp.map["wifiapstatus"] = gwWifiApStatus;
+    rsp.map["wificlientstatus"] = gwWifiClientStatus;
     // rsp.map["wifiappw"] = gwWifiPw;
     rsp.map["wifiappw"] = QLatin1String("");
 
@@ -2521,6 +2529,14 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
 
             if (type == QLatin1String("client") && !ssid.isEmpty())
             {
+                if (gwWifi == QLatin1String("configured"))
+                {
+                    if ((gwWifiMgmt & WIFI_MGTM_WPA_SUPPLICANT) == 0)
+                    {
+                        gwWifi = QLatin1String("not-configured"); // not configured by deCONZ
+                    }
+                }
+
                 if (gwWifiMgmt & WIFI_MGMT_ACTIVE)
                 {
                     gwWifiType = QLatin1String("client");
@@ -2556,8 +2572,64 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
             gwWifiIp = ip;
             updateEtag(gwConfigEtag);
         }
-    }
+        if (ip.isEmpty())
+        {
+            // not connected
+            gwWifiIp = ip;
+            if (gwWifiType == QLatin1String("accesspoint"))
+            {
+                if (gwWifi == QLatin1String("new-configured"))
+                {
 
+                }
+            }
+
+
+            updateEtag(gwConfigEtag);
+
+        }
+    }
+    else if (status == QLatin1String("ap-connecting"))
+    {
+        gwWifiApStatus = QLatin1String("connecting");
+    }
+    else if (status == QLatin1String("client-connecting"))
+    {
+        gwWifiClientStatus = QLatin1String("connecting");
+    }
+    else if (status == QLatin1String("ap-connected"))
+    {
+        gwWifiApStatus = QLatin1String("connected");
+    }
+    else if (status == QLatin1String("client-connected"))
+    {
+        gwWifiClientStatus = QLatin1String("connected");
+    }
+    else if (status == QLatin1String("ap-connecting-failed"))
+    {
+        gwWifiApStatus = QLatin1String("connecting-failed");
+    }
+    else if (status == QLatin1String("client-connecting-failed"))
+    {
+        gwWifiClientStatus = QLatin1String("connecting-failed");
+    }
+    else if (status == QLatin1String("ap-disconnected"))
+    {
+        gwWifiApStatus = QLatin1String("disconnected");
+    }
+    else if (status == QLatin1String("client-disconnected"))
+    {
+        gwWifiClientStatus = QLatin1String("disconnected");
+    }
+    else if (status == QLatin1String("ap-not-configured"))
+    {
+        gwWifiApStatus = QLatin1String("not-configured");
+    }
+    else if (status == QLatin1String("client-not-configured"))
+    {
+        gwWifiClientStatus = QLatin1String("not-configured");
+    }
+    updateEtag(gwConfigEtag);
     DBG_Printf(DBG_HTTP, "wifi: %s\n", qPrintable(req.content));
     return REQ_READY_SEND;
 }
