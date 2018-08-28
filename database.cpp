@@ -483,12 +483,14 @@ void DeRestPluginPrivate::pushZdpDescriptorDb(quint64 extAddress, quint8 endpoin
         return;
     }
 
+#if SQLITE_VERSION_NUMBER > 3014000
     auto exp = sqlite3_expanded_sql(res);
     if (exp)
     {
         DBG_Printf(DBG_INFO, "DB %s\n", exp);
         sqlite3_free(exp);
     }
+#endif
 
     int changes = -1;
     rc = sqlite3_step(res);
@@ -555,12 +557,14 @@ void DeRestPluginPrivate::pushZdpDescriptorDb(quint64 extAddress, quint8 endpoin
         return;
     }
 
+#if SQLITE_VERSION_NUMBER > 3014000
     exp = sqlite3_expanded_sql(res);
     if (exp)
     {
         DBG_Printf(DBG_INFO, "DB %s\n", exp);
         sqlite3_free(exp);
     }
+#endif
 
     rc = sqlite3_step(res);
     if (rc == SQLITE_DONE)
