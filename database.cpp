@@ -1056,6 +1056,30 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
             d->gwWifiType = val;
         }
     }
+    else if (strcmp(colval[0], "workingtype") == 0)
+    {
+        if (!val.isEmpty())
+        {
+            d->gwConfig["workingtype"] = val;
+            d->gwWifiWorkingType = val;
+        }
+    }
+    else if (strcmp(colval[0], "workingname") == 0)
+    {
+        if (!val.isEmpty())
+        {
+            d->gwConfig["workingname"] = val;
+            d->gwWifiWorkingName = val;
+        }
+    }
+    else if (strcmp(colval[0], "workingpw") == 0)
+    {
+        if (!val.isEmpty())
+        {
+            //d->gwConfig["workingpw"] = val;
+            d->gwWifiWorkingPw = val;
+        }
+    }
     else if (strcmp(colval[0], "wifiip") == 0)
     {
         if (!val.isEmpty())
@@ -3475,6 +3499,9 @@ void DeRestPluginPrivate::saveDb()
         gwConfig["wificlientname"] = gwWifiClientName;
         gwConfig["wifichannel"] = gwWifiChannel;
         gwConfig["wifiappw"] = gwWifiPw;
+        gwConfig["workingpw"] = gwWifiWorkingPw;
+        gwConfig["workingtype"] = gwWifiWorkingType;
+        gwConfig["workingname"] = gwWifiWorkingName;
         gwConfig["wificlientpw"] = gwWifiClientPw;
         gwConfig["wifiip"] = gwWifiIp;
         gwConfig["bridgeid"] = gwBridgeId;

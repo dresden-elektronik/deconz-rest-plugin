@@ -1206,11 +1206,13 @@ public:
         WifiStateIdle
     };
     WifiState gwWifiState;
-    QString gwWifiApStatus;
-    QString gwWifiClientStatus;
+    QString gwWifiStateString;
     quint32 gwWifiMgmt;
     QString gwWifiType; // accesspoint | ad-hoc | client
     QString gwWifiName;
+    QString gwWifiWorkingType;
+    QString gwWifiWorkingName;
+    QString gwWifiWorkingPw;
     QString gwWifiClientName;
     QString gwWifiChannel;
     QString gwWifiIp;
