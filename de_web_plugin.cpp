@@ -12821,7 +12821,7 @@ void DeRestPluginPrivate::clientSocketDestroyed()
 
 /*! Returns the endpoint number of the HA endpoint.
     \return 1..254 - on success
-            0 - if not found
+            1 - if not found as default
  */
 uint8_t DeRestPluginPrivate::endpoint()
 {
@@ -12853,7 +12853,7 @@ uint8_t DeRestPluginPrivate::endpoint()
         }
     }
 
-    return 0;
+    return 1;
 }
 
 QString DeRestPluginPrivate::generateUniqueId(quint64 extAddress, quint8 endpoint, quint16 clusterId)
