@@ -1125,8 +1125,8 @@ public:
     bool setDbUserVersion(int userVersion);
     bool upgradeDbToUserVersion1();
     bool upgradeDbToUserVersion2();
-    bool upgradeDbToUserVersion5();
-    void refreshDeviceDb(quint64 extAddress);
+    bool upgradeDbToUserVersion6();
+    void refreshDeviceDb(const deCONZ::Address &addr);
     void pushZdpDescriptorDb(quint64 extAddress, quint8 endpoint, quint16 type, const QByteArray &data);
     void pushZclValueDb(quint64 extAddress, quint8 endpoint, quint16 clusterId, quint16 attributeId, qint64 data);
     void clearDb();

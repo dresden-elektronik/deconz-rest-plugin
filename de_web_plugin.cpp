@@ -8411,9 +8411,9 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         {
             queryTime = now.addSecs(20);
         }
-        if (event.node() && event.node()->address().hasExt())
+        if (event.node())
         {
-            refreshDeviceDb(event.node()->address().ext());
+            refreshDeviceDb(event.node()->address());
         }
         addLightNode(event.node());
         addSensorNode(event.node());
@@ -8426,6 +8426,15 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         nodeZombieStateChanged(event.node());
     }
         break;
+
+    case deCONZ::NodeEvent::UpdatedNodeAddress:
+    {
+        if (event.node())
+        {
+            refreshDeviceDb(event.node()->address());
+        }
+        break;
+    }
 
     case deCONZ::NodeEvent::UpdatedSimpleDescriptor:
     {

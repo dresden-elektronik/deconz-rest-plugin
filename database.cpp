@@ -84,11 +84,11 @@ void DeRestPluginPrivate::checkDbUserVersion()
     {
         updated = upgradeDbToUserVersion2();
     }
-    else if (userVersion >= 2 && userVersion <= 4 )
+    else if (userVersion >= 2 && userVersion <= 5 )
     {
-        updated = upgradeDbToUserVersion5();
+        updated = upgradeDbToUserVersion6();
     }
-    else if (userVersion == 5)
+    else if (userVersion == 6)
     {
         // latest version
     }
@@ -345,19 +345,19 @@ bool DeRestPluginPrivate::upgradeDbToUserVersion2()
     return setDbUserVersion(2);
 }
 
-/*! Upgrades database to user_version 5. */
-bool DeRestPluginPrivate::upgradeDbToUserVersion5()
+/*! Upgrades database to user_version 6. */
+bool DeRestPluginPrivate::upgradeDbToUserVersion6()
 {
     int rc;
     char *errmsg;
 
-    DBG_Printf(DBG_INFO, "DB upgrade to user_version 4\n");
+    DBG_Printf(DBG_INFO, "DB upgrade to user_version 6\n");
 
     // create tables
     const char *sql[] = {
-        "PRAGMA foreign_keys = 1",
-
         "DROP TABLE IF EXISTS device_gui", // development version
+
+        "ALTER TABLE devices ADD COLUMN nwk INTEGER",
 
         // device_descriptors: cache for queried descriptors
         // device_descriptors.data: This field holds the raw descriptor as blob.
@@ -396,18 +396,23 @@ bool DeRestPluginPrivate::upgradeDbToUserVersion5()
         }
     }
 
-    return setDbUserVersion(5);
+    return setDbUserVersion(6);
 }
 
 /*! Puts a new top level device entry in the db (mac address) or refreshes and existing timestamp.
     The timestamp is used to keep track of ghost/replaced/removed devices.
 */
-void DeRestPluginPrivate::refreshDeviceDb(quint64 extAddress)
+void DeRestPluginPrivate::refreshDeviceDb(const deCONZ::Address &addr)
 {
+    if (!addr.hasExt() || !addr.hasNwk())
+    {
+        return;
+    }
+
     QString sql = QString(QLatin1String(
-                              "UPDATE devices SET timestamp = strftime('%s','now') WHERE mac = '%1';"
-                              "INSERT INTO devices (mac,timestamp) SELECT '%1', strftime('%s','now') WHERE (SELECT changes() = 0);"))
-            .arg(generateUniqueId(extAddress, 0, 0));
+                              "UPDATE devices SET timestamp = strftime('%s','now'), nwk = %2 WHERE mac = '%1';"
+                              "INSERT INTO devices (mac,nwk,timestamp) SELECT '%1', strftime('%s','now') WHERE (SELECT changes() = 0);"))
+            .arg(generateUniqueId(addr.ext(), 0, 0)).arg(addr.nwk());
     dbQueryQueue.push_back(sql);
 
     queSaveDb(DB_QUERY_QUEUE, DB_SHORT_SAVE_DELAY);
