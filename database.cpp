@@ -428,6 +428,13 @@ void DeRestPluginPrivate::pushZdpDescriptorDb(quint64 extAddress, quint8 endpoin
     {
         return;
     }
+
+    // store now to make sure 'devices' table is populated
+    if (!dbQueryQueue.empty())
+    {
+        saveDb();
+    }
+
     qint64 now = QDateTime::currentMSecsSinceEpoch() / 1000;
     const QString uniqueid = generateUniqueId(extAddress, 0, 0);
     char mac[23 + 1];
