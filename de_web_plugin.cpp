@@ -3499,6 +3499,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             clusterId = RELATIVE_HUMIDITY_CLUSTER_ID;
         }
         sensorNode.addItem(DataTypeUInt16, RStateHumidity);
+        item = sensorNode.addItem(DataTypeInt16, RConfigOffset);
+        item->setValue(0);
     }
     else if (sensorNode.type().endsWith(QLatin1String("Pressure")))
     {
@@ -4516,6 +4518,12 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 if (item)
                                 {
+                                    ResourceItem *item2 = i->item(RConfigOffset);
+                                    if (item2 && item2->toNumber() != 0)
+                                    {
+                                        qint16 _humidity = humidity + item2->toNumber();
+                                        humidity = _humidity < 0 ? 0 : _humidity > 10000 ? 10000 : _humidity;
+                                    }
                                     item->setValue(humidity);
                                     i->updateStateTimestamp();
                                     i->setNeedSaveDatabase(true);
