@@ -481,6 +481,10 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             handleXalClusterIndication(ind, zclFrame);
             break;
 
+        case TIME_CLUSTER_ID:
+            handleTimeClusterIndication(ind, zclFrame);
+            break;
+
         default:
         {
         }

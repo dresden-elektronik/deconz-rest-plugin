@@ -155,6 +155,7 @@
 #define ONOFF_CLUSTER_ID                      0x0006
 #define ONOFF_SWITCH_CONFIGURATION_CLUSTER_ID 0x0007
 #define LEVEL_CLUSTER_ID                      0x0008
+#define TIME_CLUSTER_ID                       0x000A
 #define ANALOG_INPUT_CLUSTER_ID               0x000C
 #define BINARY_INPUT_CLUSTER_ID               0x000F
 #define MULTISTATE_INPUT_CLUSTER_ID           0x0012
@@ -946,7 +947,7 @@ public Q_SLOTS:
     // lights
     void startSearchLights();
     void searchLightsTimerFired();
-    
+
     // sensors
     void startSearchSensors();
     void searchSensorsTimerFired();
@@ -1095,6 +1096,8 @@ public:
     void handleDEClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleXalClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleWindowCoveringClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleTimeClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void sendTimeClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZclAttributeReportIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZclConfigureReportingResponseIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendZclDefaultResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, quint8 status);
