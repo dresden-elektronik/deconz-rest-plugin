@@ -1104,8 +1104,12 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
     {
         if (!val.isEmpty())
         {
-            d->gwConfig["wifilastupdated"] = val;
-            d->gwWifiLastUpdated = val;
+            uint lastupdated = val.toUInt(&ok);
+            if (ok)
+            {
+                d->gwConfig["wifilastupdated"] = (uint)lastupdated;
+                d->gwWifiLastUpdated = lastupdated;
+            }
         }
     }
     else if (strcmp(colval[0], "homebridge") == 0)
