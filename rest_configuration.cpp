@@ -2400,7 +2400,7 @@ int DeRestPluginPrivate::configureWifi(const ApiRequest &req, ApiResponse &rsp)
             }
     */
 
-    QDateTime currentDateTime = QDateTime::QDate::currentDateUtc();
+    QDateTime currentDateTime = QDateTime::currentDateTimeUtc();
     gwWifiLastUpdated = currentDateTime.toTime_t();
 
     updateEtag(gwConfigEtag);
