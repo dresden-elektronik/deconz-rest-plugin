@@ -2277,12 +2277,12 @@ int DeRestPluginPrivate::getWifiState(const ApiRequest &req, ApiResponse &rsp)
     rsp.map["type"] = gwWifiType;
     rsp.map["ip"] = gwWifiIp;
     rsp.map["name"] = gwWifiName;
-    rsp.map["pw"] = QLatin1String();
+    rsp.map["pw"] = QString();
     rsp.map["workingtype"] = gwWifiWorkingType;
     rsp.map["workingname"] = gwWifiWorkingName;
-    rsp.map["workingpw"] = QLatin1String();
+    rsp.map["workingpw"] = QString();
     // rsp.map["wifiappw"] = gwWifiPw;
-    rsp.map["wifiappw"] = QLatin1String();
+    rsp.map["wifiappw"] = QString();
     rsp.map["wifiavailable"] = gwWifiAvailable;
     rsp.map["lastupdated"] = gwWifiLastUpdated;
 
