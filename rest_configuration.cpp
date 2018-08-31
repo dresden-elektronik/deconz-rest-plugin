@@ -279,7 +279,7 @@ void DeRestPluginPrivate::initWiFi()
     quint32 fwVersion = apsCtrl->getParameter(deCONZ::ParamFirmwareVersion);
     if (fwVersion < 0x261e0500) // first version to support security material set
     {
-        retry = true;;
+        retry = true;
     }
 
     if (gwWifi != QLatin1String("not-configured"))
@@ -326,11 +326,13 @@ void DeRestPluginPrivate::initWiFi()
     if (gwWifiName.isEmpty() || gwWifiName == QLatin1String("Not set"))
     {
         gwWifiName = QString("Phoscon-Gateway-%1").arg(gwBridgeId.right(4));
+        gwWifiBackupName = gwWifiName;
     }
 
     if (gwWifiPw.isEmpty() || gwWifiPw.length() < 8)
     {
         gwWifiPw = sec0.mid(16, 16).toUpper();
+        gwWifiBackupPw = gwWifiPw;
     }
 
     queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
@@ -2275,13 +2277,14 @@ int DeRestPluginPrivate::getWifiState(const ApiRequest &req, ApiResponse &rsp)
     rsp.map["type"] = gwWifiType;
     rsp.map["ip"] = gwWifiIp;
     rsp.map["name"] = gwWifiName;
-    rsp.map["pw"] = QLatin1String("");
+    rsp.map["pw"] = QLatin1String();
     rsp.map["workingtype"] = gwWifiWorkingType;
     rsp.map["workingname"] = gwWifiWorkingName;
-    rsp.map["workingpw"] = QLatin1String("");
+    rsp.map["workingpw"] = QLatin1String();
     // rsp.map["wifiappw"] = gwWifiPw;
-    rsp.map["wifiappw"] = QLatin1String("");
+    rsp.map["wifiappw"] = QLatin1String();
     rsp.map["wifiavailable"] = gwWifiAvailable;
+    rsp.map["lastupdated"] = gwWifiLastUpdated;
 
     rsp.httpStatus = HttpStatusOk;
 
@@ -2396,6 +2399,9 @@ int DeRestPluginPrivate::configureWifi(const ApiRequest &req, ApiResponse &rsp)
                 }
             }
     */
+
+    QDateTime currentDateTime = QDateTime::QDate::currentDateUtc();
+    gwWifiLastUpdated = currentDateTime.toTime_t();
 
     updateEtag(gwConfigEtag);
     queSaveDb(DB_CONFIG,DB_SHORT_SAVE_DELAY);
