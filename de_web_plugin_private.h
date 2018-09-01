@@ -1204,6 +1204,7 @@ public:
     int gwPermitJoinResend; // permit join of values > 255
     uint16_t gwNetworkOpenDuration; // user setting how long network remains open
     QString gwWifi;     // configured | not-configured | not-available | new-configured | deactivated
+    uint gwWifiLastUpdated;
     QVariantList gwWifiAvailable;
     enum WifiState {
         WifiStateInitMgmt,
@@ -1214,6 +1215,7 @@ public:
     quint32 gwWifiMgmt;
     QString gwWifiType; // accesspoint | ad-hoc | client
     QString gwWifiName;
+    QString gwWifiBackupName;
     QString gwWifiWorkingType;
     QString gwWifiWorkingName;
     QString gwWifiWorkingPw;
@@ -1221,6 +1223,7 @@ public:
     QString gwWifiChannel;
     QString gwWifiIp;
     QString gwWifiPw;
+    QString gwWifiBackupPw;
     QString gwWifiClientPw;
     QString gwProxyAddress;
     quint16 gwProxyPort;

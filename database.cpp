@@ -1100,6 +1100,18 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
             d->gwWifiIp = val;
         }
     }
+    else if (strcmp(colval[0], "wifilastupdated") == 0)
+    {
+        if (!val.isEmpty())
+        {
+            uint lastupdated = val.toUInt(&ok);
+            if (ok)
+            {
+                d->gwConfig["wifilastupdated"] = (uint)lastupdated;
+                d->gwWifiLastUpdated = lastupdated;
+            }
+        }
+    }
     else if (strcmp(colval[0], "homebridge") == 0)
     {
         if (!val.isEmpty())
@@ -3526,7 +3538,11 @@ void DeRestPluginPrivate::saveDb()
         gwConfig["workingtype"] = gwWifiWorkingType;
         gwConfig["workingname"] = gwWifiWorkingName;
         gwConfig["wificlientpw"] = gwWifiClientPw;
+        gwConfig["wifipw"] = gwWifiPw;
         gwConfig["wifiip"] = gwWifiIp;
+        gwConfig["wifibackupname"] = gwWifiBackupName;
+        gwConfig["wifibackuppw"] = gwWifiBackupPw;
+        gwConfig["wifilastupdated"] = gwWifiLastUpdated;
         gwConfig["bridgeid"] = gwBridgeId;
         gwConfig["websocketnotifyall"] = gwWebSocketNotifyAll;
         gwConfig["proxyaddress"] = gwProxyAddress;
