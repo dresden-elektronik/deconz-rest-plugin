@@ -475,7 +475,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
             for (; i != end; ++i)
             {
 
-                if (i->id() == LEVEL_CLUSTER_ID || i->id() == WINDOW_COVERING_CLUSTER_ID /*FIXME ubisys J1*/)
+                if (i->id() == LEVEL_CLUSTER_ID)
                 {
                     addItem(DataTypeUInt8, RStateBri);
                 }
@@ -523,6 +523,44 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                     default:
                         break;
                     }
+                }
+                else if (i->id() == WINDOW_COVERING_CLUSTER_ID /*FIXME ubisys J1*/)
+                {
+                	QList<deCONZ::ZclCluster>::const_iterator ic = haEndpoint().inClusters().constBegin();
+                	std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
+                	std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
+                	bool hasLift = true; // set default to lift
+                	bool hasTilt = false;
+                	for (;ia != enda; ++ia)
+                	{
+                		if (ia->id() == 0x0000)  // WindowCoveringType
+                		{
+                			/*
+                			 * Value 	Type 					Capabilities
+                			 * 0  	Roller Shade 				= Lift only
+                			 * 1  	Roller Shade two motors		= Lift only
+                			 * 2 	Roller Shade exterior		= Lift only
+                			 * 3 	Roller Shade two motors ext = Lift only
+                			 * 4 	Drapery						= Lift only
+                			 * 5 	Awning						= Lift only
+                			 * 6 	Shutter 					= Tilt only
+                			 * 7 	Tilt Blind Lift only		= Tilt only
+                			 * 8 	Tilt Blind lift & tilt 		= Lift & Tilt
+                			 * 9 	Projector Screen 			= Lift only
+                			 */
+                			uint8_t coveringType = ia->numericValue().u8;
+                			if (coveringType == 8 ) {
+                				hasTilt = true;
+                			}
+                			else if (coveringType == 6 || coveringType == 7)
+                			{
+                				hasTilt = true;
+                				hasLift = false;
+                			}
+                		}
+                	}
+                	if (hasLift) { addItem(DataTypeUInt8, RStateBri);}
+                	if (hasTilt) { addItem(DataTypeUInt8, RStateSat);}
                 }
             }
         }
