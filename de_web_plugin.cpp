@@ -7700,11 +7700,20 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 u64 |= u8;
             }
             break;
+        case deCONZ::Zcl48BitUint:
+            u64 = 0;
+            for (int i = 0; i < 6; i++)
+            {
+                u64 <<= 8;
+                stream >> u8;
+                u64 |= u8;
+            }
+            break;
         case deCONZ::Zcl64BitUint: stream >> u64; break;
         case deCONZ::ZclSingleFloat: stream >> u32; break;  // FIXME: use 4-byte float data type
         default:
         {
-            DBG_Printf(DBG_INFO, "Unsupported ZCL tag 0x%02X datatype 0x%02X in Xiaomi attribute report\n", tag, dataType);
+            DBG_Printf(DBG_INFO, "Unsupported datatype 0x%02X (tag 0x%02X) in Xiaomi attribute report\n", dataType, tag);
         }
             return;
         }
@@ -7725,11 +7734,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x05 && dataType == deCONZ::Zcl16BitUint)
         {
-            DBG_Printf(DBG_INFO, "\t05 unknown %d (0x%04X)\n", u16, u16);
+            DBG_Printf(DBG_INFO, "\t05 RSSI dB (?) %d (0x%04X)\n", u16, u16);
         }
         else if (tag == 0x06 && dataType == deCONZ::Zcl40BitUint)
         {
-            DBG_Printf(DBG_INFO, "\t06 unknown %lld (0x%016llX)\n", u64, u64);
+            DBG_Printf(DBG_INFO, "\t06 LQI (?) %lld (0x%010llX)\n", u64, u64);
         }
         else if (tag == 0x07 && dataType == deCONZ::Zcl64BitUint) // lumi.ctrl_ln2
         {
@@ -7763,11 +7772,6 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             DBG_Printf(DBG_INFO, "\t65 on/off %d\n", u8);
             onOff2 = u8;
         }
-        // lumi.weather reports humidity as u16, if lumi.sensor_ht does so as well, this code can be removed
-        // else if (tag == 0x65 && dataType == deCONZ::Zcl16BitInt)
-        // {
-        //     DBG_Printf(DBG_INFO, "\t65 humidity %d\n", int(s16)); // Aqara?
-        // }
         else if (tag == 0x65 && dataType == deCONZ::Zcl16BitUint)
         {
             DBG_Printf(DBG_INFO, "\t65 humidity %u\n", u16); // Mi
@@ -7805,6 +7809,14 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         else if (tag == 0x9a && dataType == deCONZ::Zcl16BitUint) // lumi.sensor_cube
         {
             DBG_Printf(DBG_INFO, "\t9a unknown %d (0x%04X)\n", u16, u16);
+        }
+        else if (tag == 0x9a && dataType == deCONZ::Zcl48BitUint) // lumi.vibration.aq1
+        {
+            DBG_Printf(DBG_INFO, "\t9a unknown %lld (0x%012llX)\n", u64, u64);
+        }
+        else
+        {
+            DBG_Printf(DBG_INFO, "\t%02X unsupported tag (data type 0x%02X)\n", tag, dataType);
         }
     }
 
