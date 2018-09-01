@@ -80,6 +80,7 @@ extern const char *RStateSat;
 extern const char *RStateStatus;
 extern const char *RStateTampered;
 extern const char *RStateTemperature;
+extern const char *RStateVibration;
 extern const char *RStateVoltage;
 extern const char *RStateWater;
 extern const char *RStateX;

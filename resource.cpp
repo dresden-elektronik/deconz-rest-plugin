@@ -65,6 +65,7 @@ const char *RStateSat = "state/sat";
 const char *RStateStatus = "state/status";
 const char *RStateTampered = "state/tampered";
 const char *RStateTemperature = "state/temperature";
+const char *RStateVibration = "state/vibration";
 const char *RStateVoltage = "state/voltage";
 const char *RStateWater = "state/water";
 const char *RStateX = "state/x";
@@ -152,6 +153,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt32, RStateStatus));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateTampered));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RStateTemperature, -27315, 32767));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateVibration));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateVoltage));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateWater));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateX));

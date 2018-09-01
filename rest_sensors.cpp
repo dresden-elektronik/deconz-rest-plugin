@@ -377,6 +377,7 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
         else if (type == QLatin1String("CLIPSwitch")) { item = sensor.addItem(DataTypeInt32, RStateButtonEvent); item->setValue(0); }
         else if (type == QLatin1String("CLIPTemperature")) { item = sensor.addItem(DataTypeInt16, RStateTemperature); item->setValue(0);
                                                              item = sensor.addItem(DataTypeInt16, RConfigOffset); item->setValue(0); }
+        else if (type == QLatin1String("CLIPVibration")) { item = sensor.addItem(DataTypeBool, RStateVibration); item->setValue(false); }
         else if (type == QLatin1String("CLIPWater")) { item = sensor.addItem(DataTypeBool, RStateWater); item->setValue(false); }
         else
         {
@@ -604,6 +605,23 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
                 if (!item->setValue(state["fire"]))
                 {
                     rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter fire").arg(state["fire"].toString())));
+                    rsp.httpStatus = HttpStatusBadRequest;
+                    return REQ_READY_SEND;
+                }
+            }
+            if (state.contains("vibration"))
+            {
+                item = sensor.item(RStateVibration);
+                if (!item)
+                {
+                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors"), QString("parameter, vibration, not available")));
+                    rsp.httpStatus = HttpStatusBadRequest;
+                    return REQ_READY_SEND;
+                }
+
+                if (!item->setValue(state["vibration"]))
+                {
+                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter vibration").arg(state["vibration"].toString())));
                     rsp.httpStatus = HttpStatusBadRequest;
                     return REQ_READY_SEND;
                 }
