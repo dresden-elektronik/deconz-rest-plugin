@@ -94,6 +94,7 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
                 s.type() != QLatin1String("ZHAFire") &&
                 s.type() != QLatin1String("ZHAOpenClose") &&
                 s.type() != QLatin1String("ZHAPresence") &&
+                s.type() != QLatin1String("ZHAVibration") &&
                 s.type() != QLatin1String("ZHAWater"))
             {
                 continue;
@@ -132,6 +133,10 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
         else if (sensor->type() == QLatin1String("ZHAPresence"))
         {
             attr = RStatePresence;
+        }
+        else if (sensor->type() == QLatin1String("ZHAVibration"))
+        {
+            attr = RStateVibration;
         }
         else if (sensor->type() == QLatin1String("ZHAWater"))
         {

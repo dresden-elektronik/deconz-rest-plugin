@@ -359,7 +359,8 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
         else if (type == QLatin1String("CLIPFire")) { item = sensor.addItem(DataTypeBool, RStateFire); item->setValue(false); }
         else if (type == QLatin1String("CLIPGenericFlag")) { item = sensor.addItem(DataTypeBool, RStateFlag); item->setValue(false); }
         else if (type == QLatin1String("CLIPGenericStatus")) { item = sensor.addItem(DataTypeInt32, RStateStatus); item->setValue(0); }
-        else if (type == QLatin1String("CLIPHumidity")) { item = sensor.addItem(DataTypeUInt16, RStateHumidity); item->setValue(0); }
+        else if (type == QLatin1String("CLIPHumidity")) { item = sensor.addItem(DataTypeUInt16, RStateHumidity); item->setValue(0);
+                                                          item = sensor.addItem(DataTypeInt16, RConfigOffset); item->setValue(0); }
         else if (type == QLatin1String("CLIPLightLevel")) { item = sensor.addItem(DataTypeUInt16, RStateLightLevel); item->setValue(0);
                                                             item = sensor.addItem(DataTypeUInt32, RStateLux); item->setValue(0);
                                                             item = sensor.addItem(DataTypeBool, RStateDark); item->setValue(true);
@@ -376,6 +377,7 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
         else if (type == QLatin1String("CLIPSwitch")) { item = sensor.addItem(DataTypeInt32, RStateButtonEvent); item->setValue(0); }
         else if (type == QLatin1String("CLIPTemperature")) { item = sensor.addItem(DataTypeInt16, RStateTemperature); item->setValue(0);
                                                              item = sensor.addItem(DataTypeInt16, RConfigOffset); item->setValue(0); }
+        else if (type == QLatin1String("CLIPVibration")) { item = sensor.addItem(DataTypeBool, RStateVibration); item->setValue(false); }
         else if (type == QLatin1String("CLIPWater")) { item = sensor.addItem(DataTypeBool, RStateWater); item->setValue(false); }
         else
         {
@@ -603,6 +605,23 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
                 if (!item->setValue(state["fire"]))
                 {
                     rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter fire").arg(state["fire"].toString())));
+                    rsp.httpStatus = HttpStatusBadRequest;
+                    return REQ_READY_SEND;
+                }
+            }
+            if (state.contains("vibration"))
+            {
+                item = sensor.item(RStateVibration);
+                if (!item)
+                {
+                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors"), QString("parameter, vibration, not available")));
+                    rsp.httpStatus = HttpStatusBadRequest;
+                    return REQ_READY_SEND;
+                }
+
+                if (!item->setValue(state["vibration"]))
+                {
+                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter vibration").arg(state["vibration"].toString())));
                     rsp.httpStatus = HttpStatusBadRequest;
                     return REQ_READY_SEND;
                 }
@@ -1242,6 +1261,17 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 enqueueEvent(e);
             }
         }
+        item = sensor->item(RStateHumidity);
+        if (item)
+        {
+            quint16 humidity = item->toNumber();
+            qint16 _humidity = humidity + offset;
+            humidity = _humidity < 0 ? 0 : _humidity > 10000 ? 10000 : _humidity;
+            if (item->setValue(humidity)) {
+                Event e(RSensors, RStateHumidity, sensor->id(), item);
+                enqueueEvent(e);
+            }
+        }
     }
 
     if (pendingMask)
@@ -1324,6 +1354,17 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
             if (item)
             {
                 QVariant val = map[pi.key()];
+                if (rid.suffix == RStateTemperature || rid.suffix == RStateHumidity)
+                {
+                    ResourceItem *item2 = sensor->item(RConfigOffset);
+                    if (item2 && item2->toNumber() != 0) {
+                        val = val.toInt() + item2->toNumber();
+                        if (rid.suffix == RStateHumidity)
+                        {
+                            val = val < 0 ? 0 : val > 10000 ? 10000 : val;
+                        }
+                    }
+                }
                 if (item->setValue(val))
                 {
                     rspItemState[QString("/sensors/%1/state/%2").arg(id).arg(pi.key())] = val;

@@ -124,6 +124,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "lumi.sensor_cube", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_86sw", jennicMacPrefix }, // Xiaomi Wireless Wall Switch
     { VENDOR_JENNIC, "lumi.ctrl_neutral", jennicMacPrefix }, // Xioami Wall Switch (end-device)
+    { VENDOR_JENNIC, "lumi.vibration", jennicMacPrefix }, // Xiaomi Aqara vibration/shock sensor
     { VENDOR_JENNIC, "lumi.sensor_wleak", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_smoke", jennicMacPrefix },
     { VENDOR_115F, "lumi.plug", jennicMacPrefix }, // Xiaomi smart plug (router)
@@ -132,7 +133,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_UBISYS, "D1", ubisysMacPrefix },
     { VENDOR_UBISYS, "C4", ubisysMacPrefix },
     { VENDOR_UBISYS, "S2", ubisysMacPrefix },
-	{ VENDOR_UBISYS, "J1", ubisysMacPrefix },
+    { VENDOR_UBISYS, "J1", ubisysMacPrefix },
     { VENDOR_NONE, "Z716A", netvoxMacPrefix },
     { VENDOR_OSRAM_STACK, "Plug", osramMacPrefix }, // OSRAM plug
     { VENDOR_OSRAM_STACK, "CO_", heimanMacPrefix }, // Heiman CO sensor
@@ -479,6 +480,10 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
         case XAL_CLUSTER_ID:
             handleXalClusterIndication(ind, zclFrame);
+            break;
+
+        case TIME_CLUSTER_ID:
+            handleTimeClusterIndication(ind, zclFrame);
             break;
 
         default:
@@ -2766,6 +2771,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         SensorFingerprint fpPressureSensor;
         SensorFingerprint fpSwitch;
         SensorFingerprint fpTemperatureSensor;
+        SensorFingerprint fpVibrationSensor;
         SensorFingerprint fpWaterSensor;
 
         {   // scan server clusters of endpoint
@@ -2812,6 +2818,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpFireSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
                     }
+                    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC &&
+                             modelId.startsWith(QLatin1String("lumi.vibration")))
+                    {
+                        fpVibrationSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
+                    }
                 }
                     break;
 
@@ -2832,6 +2843,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         fpPressureSensor.inClusters.push_back(ci->id());
                         fpSwitch.inClusters.push_back(ci->id());
                         fpTemperatureSensor.inClusters.push_back(ci->id());
+                        fpVibrationSensor.inClusters.push_back(ci->id());
                         fpWaterSensor.inClusters.push_back(ci->id());
                     // }
                 }
@@ -2903,6 +2915,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpWaterSensor.inClusters.push_back(ci->id());
                     }
+                    else if (modelId.startsWith(QLatin1String("lumi.vibration")))     // Xiaomi Aqara vibration sensor
+                    {
+                        fpVibrationSensor.inClusters.push_back(ci->id());
+                    }
                     else if (modelId == QLatin1String("WarningDevice"))               // Heiman siren
                     {
                         fpAlarmSensor.inClusters.push_back(ci->id());
@@ -2927,11 +2943,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                                     case IAS_ZONE_TYPE_FIRE_SENSOR:
                                         fpFireSensor.inClusters.push_back(ci->id());
                                         break;
+                                    case IAS_ZONE_TYPE_VIBRATION_SENSOR:
+                                        fpVibrationSensor.inClusters.push_back(ci->id());
+                                        break;
                                     case IAS_ZONE_TYPE_WATER_SENSOR:
                                         fpWaterSensor.inClusters.push_back(ci->id());
                                         break;
                                     case IAS_ZONE_TYPE_WARNING_DEVICE:
-                                        break;
                                     case IAS_ZONE_TYPE_STANDARD_CIE:
                                     default:
                                         fpAlarmSensor.inClusters.push_back(ci->id());
@@ -3335,6 +3353,24 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             }
         }
 
+        // ZHAVibration
+        if (fpVibrationSensor.hasInCluster(IAS_ZONE_CLUSTER_ID))
+        {
+            fpVibrationSensor.endpoint = i->endpoint();
+            fpVibrationSensor.deviceId = i->deviceId();
+            fpVibrationSensor.profileId = i->profileId();
+
+            sensor = getSensorNodeForFingerPrint(node->address().ext(), fpVibrationSensor, "ZHAVibration");
+            if (!sensor || sensor->deletedState() != Sensor::StateNormal)
+            {
+                addSensorNode(node, fpVibrationSensor, "ZHAVibration", modelId, manufacturer);
+            }
+            else
+            {
+                checkSensorNodeReachable(sensor);
+            }
+        }
+
         // ZHAWater
         if (fpWaterSensor.hasInCluster(IAS_ZONE_CLUSTER_ID))
         {
@@ -3510,6 +3546,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             clusterId = RELATIVE_HUMIDITY_CLUSTER_ID;
         }
         sensorNode.addItem(DataTypeUInt16, RStateHumidity);
+        item = sensorNode.addItem(DataTypeInt16, RConfigOffset);
+        item->setValue(0);
     }
     else if (sensorNode.type().endsWith(QLatin1String("Pressure")))
     {
@@ -3587,6 +3625,15 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             clusterId = IAS_ZONE_CLUSTER_ID;
         }
         item = sensorNode.addItem(DataTypeBool, RStateFire);
+        item->setValue(false);
+    }
+    else if (sensorNode.type().endsWith(QLatin1String("Vibration")))
+    {
+        if (sensorNode.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
+        {
+            clusterId = IAS_ZONE_CLUSTER_ID;
+        }
+        item = sensorNode.addItem(DataTypeBool, RStateVibration);
         item->setValue(false);
     }
     else if (sensorNode.type().endsWith(QLatin1String("Water")))
@@ -4527,6 +4574,12 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 if (item)
                                 {
+                                    ResourceItem *item2 = i->item(RConfigOffset);
+                                    if (item2 && item2->toNumber() != 0)
+                                    {
+                                        qint16 _humidity = humidity + item2->toNumber();
+                                        humidity = _humidity < 0 ? 0 : _humidity > 10000 ? 10000 : _humidity;
+                                    }
                                     item->setValue(humidity);
                                     i->updateStateTimestamp();
                                     i->setNeedSaveDatabase(true);
@@ -7817,6 +7870,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {   // don't add, just update, useful since door/window and presence sensors otherwise only report on activation
             ResourceItem *item = sensor.item(RStateOpen);
             item = item ? item : sensor.item(RStatePresence);
+            item = item ? item : sensor.item(RStateVibration);  // lumi.vibration.aq1
             item = item ? item : sensor.item(RStateWater);      // lumi.sensor_wleak.aq1
             if (item)
             {

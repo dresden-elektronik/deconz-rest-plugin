@@ -2618,6 +2618,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             item = sensor.addItem(DataTypeUInt16, RStateHumidity);
             item->setValue(0);
+            item = sensor.addItem(DataTypeInt16, RConfigOffset);
+            item->setValue(0);
         }
         else if (sensor.type().endsWith(QLatin1String("Pressure")))
         {
@@ -2733,6 +2735,15 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 clusterId = IAS_ZONE_CLUSTER_ID;
             }
             item = sensor.addItem(DataTypeBool, RStateFire);
+            item->setValue(false);
+        }
+        else if (sensor.type().endsWith(QLatin1String("Vibration")))
+        {
+            if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
+            {
+                clusterId = IAS_ZONE_CLUSTER_ID;
+            }
+            item = sensor.addItem(DataTypeBool, RStateVibration);
             item->setValue(false);
         }
         else if (sensor.type().endsWith(QLatin1String("Water")))

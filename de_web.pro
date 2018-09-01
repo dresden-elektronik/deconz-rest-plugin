@@ -145,6 +145,7 @@ SOURCES  = authentification.cpp \
            permitJoin.cpp \
            scene.cpp \
            sensor.cpp \
+           time.cpp \
            reset_device.cpp \
            rest_userparameter.cpp \
            zcl_tasks.cpp \
