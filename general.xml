@@ -213,6 +213,8 @@
 			</attribute>
 		</attribute-set>
 		</server>
+    <client>
+    </client>
 	</cluster>
 	<cluster id="0002" name="Device Temperature Configuration">
 		<description>Attributes for determining information about a device’s internal temperature, and for configuring under/over temperature alarms.</description>
@@ -1144,6 +1146,11 @@ Data Request rate.</description>
             <value name="Manual Unlock (Key or Thumbturn)" value="10"></value>
           </attribute>
         </attribute-set>
+        <attribute-set id="0x0050" description="Xiaomi Special">
+          <attribute id="0x0055" name="Xiaomi 0x0055" type="u16" access="r" required="o"></attribute>
+          <attribute id="0x0503" name="Xiaomi 0x0503" type="u16" access="r" required="o"></attribute>
+          <attribute id="0x0508" name="Xiaomi 0x0508" type="u48" access="r" required="o"></attribute>
+        </attribute-set>
         <command id="0x00" dir="recv" name="Lock Door" required="m">
           <description>This command causes the lock device to lock the door.</description>
           <payload></payload>
@@ -1262,6 +1269,8 @@ Data Request rate.</description>
           </payload>
         </command>
       </server>
+      <client>
+      </client>
     </cluster>
 	</domain>
 	<domain name="HVAC" low_bound="0200" high_bound="02ff" description="The HVAC functional domain contains clusters and information to build devices in the HVAC domain, e.g. pumps.">
