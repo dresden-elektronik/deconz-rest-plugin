@@ -7752,7 +7752,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {
             DBG_Printf(DBG_INFO, "\t09 unknown %d (0x%04X)\n", u16, u16);
         }
-        if (tag == 0x0b && dataType == deCONZ::Zcl16BitUint)
+        else if (tag == 0x0b && dataType == deCONZ::Zcl16BitUint)
         {
             DBG_Printf(DBG_INFO, "\t0b lightlevel %u (0x%04X)\n", u16, u16);
             lightlevel = u16;
