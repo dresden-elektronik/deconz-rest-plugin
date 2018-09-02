@@ -30,7 +30,7 @@ https://github.com/dresden-elektronik/deconz-rest-plugin/wiki/Supported-Devices
 
 ### Install deCONZ
 
-**Important** If you're updateing from a previous version always make sure to create an update in the Phoscon App and read the changelog first.
+**Important** If you're updateing from a previous version always make sure to create an backup in the Phoscon App and read the changelog first.
 
 https://github.com/dresden-elektronik/deconz-rest-plugin/releases
 
