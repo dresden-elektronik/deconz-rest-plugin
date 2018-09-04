@@ -1149,7 +1149,7 @@ Data Request rate.</description>
         <attribute-set id="0x0050" description="Xiaomi Special">
           <attribute id="0x0055" name="Xiaomi 0x0055" type="u16" access="r" required="o"></attribute>
           <attribute id="0x0503" name="Xiaomi 0x0503" type="u16" access="r" required="o"></attribute>
-          <attribute id="0x0508" name="Xiaomi 0x0508" type="u48" access="r" required="o"></attribute>
+          <attribute id="0x0508" name="Xiaomi 0x0508" type="u64" access="r" required="o"></attribute>
         </attribute-set>
         <command id="0x00" dir="recv" name="Lock Door" required="m">
           <description>This command causes the lock device to lock the door.</description>

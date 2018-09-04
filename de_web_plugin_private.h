@@ -161,6 +161,7 @@
 #define MULTISTATE_INPUT_CLUSTER_ID           0x0012
 #define OTAU_CLUSTER_ID                       0x0019
 #define GREEN_POWER_CLUSTER_ID                0x0021
+#define DOOR_LOCK_CLUSTER_ID                  0x0101
 #define WINDOW_COVERING_CLUSTER_ID            0x0102
 #define COLOR_CLUSTER_ID                      0x0300
 #define ILLUMINANCE_MEASUREMENT_CLUSTER_ID    0x0400

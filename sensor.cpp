@@ -270,6 +270,17 @@ static const Sensor::ButtonMap xiaomiSwitchAq2Map[] = {
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
 };
 
+static const Sensor::ButtonMap xiaomiVibrationMap[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    // First button
+    { Sensor::ModeScenes,           0x01, 0x0101, 0x0a, 1,    S_BUTTON_1 + S_BUTTON_ACTION_SHAKE, "Shake" },
+    { Sensor::ModeScenes,           0x01, 0x0101, 0x0a, 2,    S_BUTTON_1 + S_BUTTON_ACTION_TILT, "Tilt" },
+    { Sensor::ModeScenes,           0x01, 0x0101, 0x0a, 3,    S_BUTTON_1 + S_BUTTON_ACTION_DROP, "Drop" },
+
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
+};
+
 static const Sensor::ButtonMap ubisysD1Map[] = {
 //    mode                          ep    cluster cmd   param button                                       name
     // First button
@@ -879,6 +890,7 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         {
             if      (modelid == QLatin1String("lumi.sensor_switch"))      { m_buttonMap = xiaomiSwitchMap; }
             else if (modelid == QLatin1String("lumi.sensor_switch.aq2"))  { m_buttonMap = xiaomiSwitchAq2Map; }
+            else if (modelid.startsWith(QLatin1String("lumi.vibration"))) { m_buttonMap = xiaomiVibrationMap; }
         }
         else if (m_manufacturer == QLatin1String("Lutron"))
         {
