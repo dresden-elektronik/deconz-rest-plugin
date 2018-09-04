@@ -2584,6 +2584,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = clusterId ? clusterId : ANALOG_INPUT_CLUSTER_ID;
             }
+            else if (sensor.fingerPrint().hasInCluster(DOOR_LOCK_CLUSTER_ID))
+            {
+                clusterId = clusterId ? clusterId : DOOR_LOCK_CLUSTER_ID;
+            }
             else if (sensor.fingerPrint().hasInCluster(MULTISTATE_INPUT_CLUSTER_ID))
             {
                 clusterId = clusterId ? clusterId : MULTISTATE_INPUT_CLUSTER_ID;

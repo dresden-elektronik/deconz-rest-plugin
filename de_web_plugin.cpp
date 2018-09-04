@@ -7950,7 +7950,6 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {   // don't add, just update, useful since door/window and presence sensors otherwise only report on activation
             ResourceItem *item = sensor.item(RStateOpen);
             item = item ? item : sensor.item(RStatePresence);
-            item = item ? item : sensor.item(RStateVibration);  // lumi.vibration.aq1
             item = item ? item : sensor.item(RStateWater);      // lumi.sensor_wleak.aq1
             if (item)
             {
