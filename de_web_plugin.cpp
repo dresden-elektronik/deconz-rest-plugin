@@ -2541,6 +2541,15 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                         ok = true;
                     }
                 }
+                else if (ind.clusterId() == DOOR_LOCK_CLUSTER_ID && sensor->manufacturer() == QLatin1String("LUMI"))
+                {
+                    ok = false;
+                    if (attrId == 0x0055 && dataType == 0x21 && // Xiaomi non-standard attribute
+                        buttonMap->zclParam0 == zclFrame.payload().at(3))
+                    {
+                        ok = true;
+                    }
+                }
             }
             else if (zclFrame.isProfileWideCommand())
             {
@@ -2868,11 +2877,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpFireSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
                     }
-                    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC &&
-                             modelId.startsWith(QLatin1String("lumi.vibration")))
-                    {
-                        fpVibrationSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
-                    }
                 }
                     break;
 
@@ -2964,10 +2968,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("lumi.sensor_wleak")))  // Xiaomi Aqara flood sensor
                     {
                         fpWaterSensor.inClusters.push_back(ci->id());
-                    }
-                    else if (modelId.startsWith(QLatin1String("lumi.vibration")))     // Xiaomi Aqara vibration sensor
-                    {
-                        fpVibrationSensor.inClusters.push_back(ci->id());
                     }
                     else if (modelId == QLatin1String("WarningDevice"))               // Heiman siren
                     {
@@ -3116,6 +3116,15 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 }
                     break;
 
+                case DOOR_LOCK_CLUSTER_ID:
+                {
+                    if (modelId.startsWith(QLatin1String("lumi.vibration"))) // lumi.vibration
+                    {
+                        fpSwitch.inClusters.push_back(DOOR_LOCK_CLUSTER_ID);
+                    }
+                }
+                    break;
+
                 case METERING_CLUSTER_ID:
                 {
                     fpConsumptionSensor.inClusters.push_back(ci->id());
@@ -3206,6 +3215,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             fpSwitch.hasInCluster(ONOFF_CLUSTER_ID) ||
             fpSwitch.hasInCluster(ANALOG_INPUT_CLUSTER_ID) ||
             fpSwitch.hasInCluster(MULTISTATE_INPUT_CLUSTER_ID) ||
+            fpSwitch.hasInCluster(DOOR_LOCK_CLUSTER_ID) ||
             !fpSwitch.outClusters.empty())
         {
             fpSwitch.endpoint = i->endpoint();
@@ -3557,6 +3567,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         else if (sensorNode.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))
         {
             clusterId = ANALOG_INPUT_CLUSTER_ID;
+        }
+        else if (sensorNode.fingerPrint().hasInCluster(DOOR_LOCK_CLUSTER_ID))
+        {
+            clusterId = DOOR_LOCK_CLUSTER_ID;
         }
         else if (sensorNode.fingerPrint().hasInCluster(MULTISTATE_INPUT_CLUSTER_ID))
         {
@@ -7700,11 +7714,20 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 u64 |= u8;
             }
             break;
+        case deCONZ::Zcl48BitUint:
+            u64 = 0;
+            for (int i = 0; i < 6; i++)
+            {
+                u64 <<= 8;
+                stream >> u8;
+                u64 |= u8;
+            }
+            break;
         case deCONZ::Zcl64BitUint: stream >> u64; break;
         case deCONZ::ZclSingleFloat: stream >> u32; break;  // FIXME: use 4-byte float data type
         default:
         {
-            DBG_Printf(DBG_INFO, "Unsupported ZCL tag 0x%02X datatype 0x%02X in Xiaomi attribute report\n", tag, dataType);
+            DBG_Printf(DBG_INFO, "Unsupported datatype 0x%02X (tag 0x%02X) in Xiaomi attribute report\n", dataType, tag);
         }
             return;
         }
@@ -7725,11 +7748,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x05 && dataType == deCONZ::Zcl16BitUint)
         {
-            DBG_Printf(DBG_INFO, "\t05 unknown %d (0x%04X)\n", u16, u16);
+            DBG_Printf(DBG_INFO, "\t05 RSSI dB (?) %d (0x%04X)\n", u16, u16);
         }
         else if (tag == 0x06 && dataType == deCONZ::Zcl40BitUint)
         {
-            DBG_Printf(DBG_INFO, "\t06 unknown %lld (0x%016llX)\n", u64, u64);
+            DBG_Printf(DBG_INFO, "\t06 LQI (?) %lld (0x%010llX)\n", u64, u64);
         }
         else if (tag == 0x07 && dataType == deCONZ::Zcl64BitUint) // lumi.ctrl_ln2
         {
@@ -7743,7 +7766,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {
             DBG_Printf(DBG_INFO, "\t09 unknown %d (0x%04X)\n", u16, u16);
         }
-        if (tag == 0x0b && dataType == deCONZ::Zcl16BitUint)
+        else if (tag == 0x0a && dataType == deCONZ::Zcl16BitUint) // lumi.vibration.aq1
+        {
+            DBG_Printf(DBG_INFO, "\t0a unknown %d (0x%04X)\n", u16, u16);
+        }
+        else if (tag == 0x0b && dataType == deCONZ::Zcl16BitUint)
         {
             DBG_Printf(DBG_INFO, "\t0b lightlevel %u (0x%04X)\n", u16, u16);
             lightlevel = u16;
@@ -7763,11 +7790,6 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             DBG_Printf(DBG_INFO, "\t65 on/off %d\n", u8);
             onOff2 = u8;
         }
-        // lumi.weather reports humidity as u16, if lumi.sensor_ht does so as well, this code can be removed
-        // else if (tag == 0x65 && dataType == deCONZ::Zcl16BitInt)
-        // {
-        //     DBG_Printf(DBG_INFO, "\t65 humidity %d\n", int(s16)); // Aqara?
-        // }
         else if (tag == 0x65 && dataType == deCONZ::Zcl16BitUint)
         {
             DBG_Printf(DBG_INFO, "\t65 humidity %u\n", u16); // Mi
@@ -7805,6 +7827,14 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         else if (tag == 0x9a && dataType == deCONZ::Zcl16BitUint) // lumi.sensor_cube
         {
             DBG_Printf(DBG_INFO, "\t9a unknown %d (0x%04X)\n", u16, u16);
+        }
+        else if (tag == 0x9a && dataType == deCONZ::Zcl48BitUint) // lumi.vibration.aq1
+        {
+            DBG_Printf(DBG_INFO, "\t9a unknown %lld (0x%012llX)\n", u64, u64);
+        }
+        else
+        {
+            DBG_Printf(DBG_INFO, "\t%02X unsupported tag (data type 0x%02X)\n", tag, dataType);
         }
     }
 
@@ -7920,7 +7950,6 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {   // don't add, just update, useful since door/window and presence sensors otherwise only report on activation
             ResourceItem *item = sensor.item(RStateOpen);
             item = item ? item : sensor.item(RStatePresence);
-            item = item ? item : sensor.item(RStateVibration);  // lumi.vibration.aq1
             item = item ? item : sensor.item(RStateWater);      // lumi.sensor_wleak.aq1
             if (item)
             {
