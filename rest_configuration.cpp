@@ -2340,7 +2340,15 @@ int DeRestPluginPrivate::configureWifi(const ApiRequest &req, ApiResponse &rsp)
             return REQ_READY_SEND;
         }
 
-        gwWifiName = name;
+        if (gwWifiType == "accesspoint")
+        {
+            gwWifiName = name;
+        }
+        else
+        {
+            gwWifiClientName = name;
+            gwWifiName = name;
+        }
     }
     if (map.contains("password"))
     {
@@ -2353,7 +2361,16 @@ int DeRestPluginPrivate::configureWifi(const ApiRequest &req, ApiResponse &rsp)
             return REQ_READY_SEND;
         }
 
-        gwWifiPw = password;
+        if (gwWifiType == "accesspoint")
+        {
+            gwWifiPw = password;
+        }
+        else
+        {
+            gwWifiClientPw = password;
+            gwWifiPw = password;
+        }
+
 
     }
     if (map.contains("wifi"))
