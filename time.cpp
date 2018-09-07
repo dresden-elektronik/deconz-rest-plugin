@@ -5,7 +5,7 @@
  * Send ZCL attribute response to read request on Time Cluster attributes.
  *
  * 0x0000 Time         / UTC Time seconds from 1/1/2000
- * 0x0001 TimeStatus   / Master(bit-0)=1, MasterZoneDst(bit-2)=1
+ * 0x0001 TimeStatus   / Master(bit-0)=1, Superseding(bit-3)= 1, MasterZoneDst(bit-2)=1
  * 0x0002 TimeZone     / offset seconds from UTC
  * 0x0003 DstStart     / daylight savings time start
  * 0x0004 DstEnd       / daylight savings time end
@@ -60,7 +60,7 @@ void DeRestPluginPrivate::sendTimeClusterResponse(const deCONZ::ApsDataIndicatio
                                 deCONZ::ZclFCDisableDefaultResponse);
 
     quint32 time_now = 0xFFFFFFFF;              // id 0x0000 Time
-    qint8 time_status = 0x01;                   // id 0x0001 TimeStatus Master(bit-0)=1
+    qint8 time_status = 0x09;                   // id 0x0001 TimeStatus Master(bit-0)=1, Superseding(bit-3)= 1
     qint32 time_zone = 0xFFFFFFFF;              // id 0x0002 TimeZone
     quint32 time_dst_start = 0xFFFFFFFF;        // id 0x0003 DstStart
     quint32 time_dst_end = 0xFFFFFFFF;          // id 0x0004 DstEnd
