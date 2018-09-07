@@ -157,9 +157,9 @@ function checkHomebridge {
 		addUser
 		# generate pin and write it in db
 		if [[ -z "$HOMEBRIDGE_PIN" ]]; then
-			sqlite3 $ZLLDB "insert into config2 (key, value) values('homebridge-pin', 'ABS(RANDOM()) % (99999999 - 10000000) + 10000000')" &> /dev/null
+			sqlite3 $ZLLDB "insert into config2 (key, value) values('homebridge-pin', ABS(RANDOM()) % (99999999 - 10000000) + 10000000)" &> /dev/null
 		else
-			sqlite3 $ZLLDB "replace into config2 (key, value) values('homebridge-pin', 'ABS(RANDOM()) % (99999999 - 10000000) + 10000000')" &> /dev/null
+			sqlite3 $ZLLDB "replace into config2 (key, value) values('homebridge-pin', ABS(RANDOM()) % (99999999 - 10000000) + 10000000)" &> /dev/null
 		fi
 	else
 		# homebridge-hue apikey exists
@@ -177,7 +177,7 @@ function checkHomebridge {
 				sqlite3 $ZLLDB "insert into config2 (key, value) values('homebridge-pin', '${pin}')" &> /dev/null
 			else
 				# or create new pin and write it in db
-				sqlite3 $ZLLDB "insert into config2 (key, value) values('homebridge-pin', 'ABS(RANDOM()) % (99999999 - 10000000) + 10000000')" &> /dev/null
+				sqlite3 $ZLLDB "insert into config2 (key, value) values('homebridge-pin', ABS(RANDOM()) % (99999999 - 10000000) + 10000000)" &> /dev/null
 			fi
 		fi
 	fi
