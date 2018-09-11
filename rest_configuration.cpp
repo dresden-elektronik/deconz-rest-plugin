@@ -61,6 +61,8 @@ void DeRestPluginPrivate::initConfig()
     gwWifiStateString = QLatin1String("not-configured");
     gwWifiType = QLatin1String("accesspoint");
     gwWifiName = QString();
+    gwWifiEth0 = QString();
+    gwWifiWlan0 = QString();
     gwWifiClientName = QString();
     gwWifiChannel = "1";
     gwWifiIp = QLatin1String("192.168.8.1");
@@ -2285,6 +2287,8 @@ int DeRestPluginPrivate::getWifiState(const ApiRequest &req, ApiResponse &rsp)
     rsp.map["wifiappw"] = QString();
     rsp.map["wifiavailable"] = gwWifiAvailable;
     rsp.map["lastupdated"] = gwWifiLastUpdated;
+    rsp.map["eth0"] = gwWifiEth0;
+    rsp.map["wlan0"] = gwWifiWlan0;
 
     rsp.httpStatus = HttpStatusOk;
 
@@ -2608,21 +2612,25 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
             gwWifiIp = ip;
             updateEtag(gwConfigEtag);
         }
-        if (ip.isEmpty())
+    }
+    else if (status == QLatin1String("got-ip-wlan0"))
+    {
+        QString ip = map["ipv4"].toString();
+
+        if (gwWifiWlan0 != ip)
         {
-            // not connected
-            gwWifiIp = ip;
-            if (gwWifiType == QLatin1String("accesspoint"))
-            {
-                if (gwWifi == QLatin1String("new-configured"))
-                {
-
-                }
-            }
-
-
+            gwWifiWlan0 = ip;
             updateEtag(gwConfigEtag);
+        }
+    }
+    else if (status == QLatin1String("got-ip-eth0"))
+    {
+        QString ip = map["ipv4"].toString();
 
+        if (gwWifiEth0 != ip)
+        {
+            gwWifiEth0 = ip;
+            updateEtag(gwConfigEtag);
         }
     }
     else if (status == QLatin1String("ap-connecting"))

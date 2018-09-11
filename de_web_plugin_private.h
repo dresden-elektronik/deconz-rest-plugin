@@ -1206,6 +1206,8 @@ public:
     uint16_t gwNetworkOpenDuration; // user setting how long network remains open
     QString gwWifi;     // configured | not-configured | not-available | new-configured | deactivated
     uint gwWifiLastUpdated;
+    QString gwWifiEth0;
+    QString gwWifiWlan0;
     QVariantList gwWifiAvailable;
     enum WifiState {
         WifiStateInitMgmt,
