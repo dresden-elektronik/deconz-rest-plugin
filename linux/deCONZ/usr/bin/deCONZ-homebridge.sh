@@ -4,8 +4,9 @@ ZLLDB=""
 MAINUSER=$(getent passwd 1000 | cut -d: -f1)
 DECONZ_CONF_DIR="/home/$MAINUSER/.local/share"
 DECONZ_PORT=
+BRIDGEID=
 LAST_MAX_TIMESTAMP=0
-
+RC=1		# return code of function calls
 TIMEOUT=0      # main loop iteration timeout, can be controlled by SIGUSR1
 LOG_LEVEL=6
 
@@ -53,6 +54,30 @@ function init {
 		[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}no database file (zll.db) found"
 		return
 	fi
+
+	# get deCONZ REST-API port
+	local value=$(sqlite3 $ZLLDB "select value from config2 where key=\"port\"")
+	if [ $? -ne 0 ]; then
+		[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}no deCONZ port found in database"
+		return
+	fi
+
+	if [[ -n $value ]]; then
+		DECONZ_PORT=$value
+		[[ $LOG_INFO ]] && echo "${LOG_INFO}use deCONZ port $DECONZ_PORT"
+	fi
+
+	# get bridgeid
+	local value=$(sqlite3 $ZLLDB "select value from config2 where key=\"bridgeid\"")
+	if [ $? -ne 0 ]; then
+		[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}no bridgeid found in database"
+		return
+	fi
+
+	if [[ -n $value ]]; then
+		BRIDGEID=$value
+		[[ $LOG_INFO ]] && echo "${LOG_INFO}use bridgeid $BRIDGEID"
+	fi
 }
 
 function addUser() {
@@ -67,11 +92,24 @@ function checkNewDevices() {
 
 	while [[ $proceed == false ]]
 	do
-		max_timestamp=$(sqlite3 $ZLLDB "select timestamp from devices order by timestamp limit 1")
+		RC=1
+		while [ $RC -ne 0 ]; do
+			max_timestamp=$(sqlite3 $ZLLDB "select timestamp from devices order by timestamp DESC limit 1")
+			RC=$?
+			if [ $RC -ne 0 ]; then
+				[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}Error reading timestamp from db"
+				sleep 2
+			fi
+		done
+		if [ $LAST_MAX_TIMESTAMP -eq 0 ]; then
+			# skip first run
+			LAST_MAX_TIMESTAMP=$max_timestamp
+			return
+		fi
 		if [[ "$max_timestamp" -ne "$LAST_MAX_TIMESTAMP" ]]; then
 			# there is a new light discovered by deCONZ
 			[[ $LOG_INFO ]] && echo "${LOG_INFO} new light discovered by deCONZ - wait 30 sec for more lights"
-			if [ "$max_timestamp" ]; then
+			if [ -n "$max_timestamp" ]; then
 				LAST_MAX_TIMESTAMP=$max_timestamp
 				changed=true
 			fi
@@ -92,21 +130,25 @@ function checkHomebridge {
 
 	local PROXY_ADDRESS=""
 	local PROXY_PORT=""
-	local BRIDGEID=""
 	local HOMEBRIDGE=""
 	local IP_ADDRESS=""
 	local HOMEBRIDGE_PIN=""
 
 	## get database config
-	params=( [0]="bridgeid" [1]="homebridge" [2]="proxyaddress" [3]="proxyport" [4]="port" [5]="ipaddress" [6]="homebridge-pin")
+	params=( [0]="homebridge" [1]="proxyaddress" [2]="proxyport" [3]="ipaddress" [4]="homebridge-pin")
 	values=()
 
-	for i in {0..6}; do
+	for i in {0..4}; do
 		param=${params[$i]}
-		value=$(sqlite3 $ZLLDB "select * from config2 where key=\"${param}\"")
-		if [ $? -ne 0 ]; then
-			return
-		fi
+		RC=1
+		while [ $RC -ne 0 ]; do
+			value=$(sqlite3 $ZLLDB "select * from config2 where key=\"${param}\"")
+			RC=$?
+			if [ $RC -ne 0 ]; then
+				[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}Error reading parameter ${param} from db"
+				sleep 2
+			fi
+		done
 
 		value=$(echo $value | cut -d'|' -f2)
 
@@ -117,28 +159,16 @@ function checkHomebridge {
 	done
 
 	## all parameters found and valid?
-	if [ -z "${values[0]}" ]; then
-		[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}missing parameter 'bridgeid'"
-		return
-	fi
-
 	if [ -z "${values[4]}" ]; then
-		[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}missing parameter 'port'"
-		return
-	fi
-
-	if [ -z "${values[5]}" ]; then
 		[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}missing parameter 'ipaddress'"
 		return
 	fi
 
-	BRIDGEID="${values[0]}"
-	HOMEBRIDGE="${values[1]}" # disabled | managed | not-managed
-	PROXY_ADDRESS="${values[2]}"
-	PROXY_PORT="${values[3]}"
-	DECONZ_PORT="${values[4]}"
-	IP_ADDRESS="${values[5]}"
-	HOMEBRIDGE_PIN="${values[6]}"
+	HOMEBRIDGE="${values[0]}" # disabled | managed | not-managed
+	PROXY_ADDRESS="${values[1]}"
+	PROXY_PORT="${values[2]}"
+	IP_ADDRESS="${values[3]}"
+	HOMEBRIDGE_PIN="${values[4]}"
 
 	if [[ "$HOMEBRIDGE" == "disabled" ]]; then
 		systemctl -q is-active homebridge
@@ -151,21 +181,53 @@ function checkHomebridge {
 	fi
 
 	## check if apikey already exist or create a new apikey for homebridge apps
-	local HOMEBRIDGE_AUTH=$(sqlite3 $ZLLDB "select * from auth where devicetype like 'homebridge-hue#%' limit 1")
+	RC=1
+	while [ $RC -ne 0 ]; do
+		local HOMEBRIDGE_AUTH=$(sqlite3 $ZLLDB "select * from auth where devicetype like 'homebridge-hue#%' limit 1")
+		RC=$?
+		if [ $RC -ne 0 ]; then
+			[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}Error reading homebridge-hue auth db"
+			sleep 2
+		fi
+	done
 	if [[ $HOMEBRIDGE_AUTH == "" ]]; then
 		# generate a new deconz apikey for homebridge-hue
 		addUser
 		# generate pin and write it in db
 		if [[ -z "$HOMEBRIDGE_PIN" ]]; then
-			sqlite3 $ZLLDB "insert into config2 (key, value) values('homebridge-pin', ABS(RANDOM()) % (99999999 - 10000000) + 10000000)" &> /dev/null
+			RC=1
+			while [ $RC -ne 0 ]; do
+				sqlite3 $ZLLDB "insert into config2 (key, value) values('homebridge-pin', ABS(RANDOM()) % (99999999 - 10000000) + 10000000)" &> /dev/null
+				RC=$?
+				if [ $RC -ne 0 ]; then
+					[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}Error insert homebridge-pin into db"
+					sleep 2
+				fi
+			done
 		else
-			sqlite3 $ZLLDB "replace into config2 (key, value) values('homebridge-pin', ABS(RANDOM()) % (99999999 - 10000000) + 10000000)" &> /dev/null
+			RC=1
+			while [ $RC -ne 0 ]; do
+				sqlite3 $ZLLDB "replace into config2 (key, value) values('homebridge-pin', ABS(RANDOM()) % (99999999 - 10000000) + 10000000)" &> /dev/null
+				RC=$?
+				if [ $RC -ne 0 ]; then
+					[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}Error replacing homebridge-pin in db"
+					sleep 2
+				fi
+			done
 		fi
 	else
 		# homebridge-hue apikey exists
 		if [ -z $(echo $HOMEBRIDGE_AUTH | grep deconz) ]; then
 			if [[ "$HOMEBRIDGE" != "not-managed" ]]; then
-				sqlite3 $ZLLDB "replace into config2 (key, value) values('homebridge', 'not-managed')" &> /dev/null
+				RC=1
+				while [ $RC -ne 0 ]; do
+					sqlite3 $ZLLDB "replace into config2 (key, value) values('homebridge', 'not-managed')" &> /dev/null
+					RC=$?
+					if [ $RC -ne 0 ]; then
+						[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}Error setting homebridge to not-managed in db"
+						sleep 2
+					fi
+				done
 			fi
 			[[ $LOG_INFO ]] && echo "${LOG_INFO}existing homebridge hue auth found"
         fi
@@ -174,10 +236,26 @@ function checkHomebridge {
 				local p=$(cat /home/$MAINUSER/.homebridge/config.json | grep "pin" | cut -d'"' -f4)
 				local pin="${p:0:3}${p:4:2}${p:7:3}"
 				# write pin from config.json in db
-				sqlite3 $ZLLDB "insert into config2 (key, value) values('homebridge-pin', '${pin}')" &> /dev/null
+				RC=1
+				while [ $RC -ne 0 ]; do
+					sqlite3 $ZLLDB "insert into config2 (key, value) values('homebridge-pin', '${pin}')" &> /dev/null
+					RC=$?
+					if [ $RC -ne 0 ]; then
+						[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}Error insert existing homebridge-pin into db"
+						sleep 2
+					fi
+				done
 			else
 				# or create new pin and write it in db
-				sqlite3 $ZLLDB "insert into config2 (key, value) values('homebridge-pin', ABS(RANDOM()) % (99999999 - 10000000) + 10000000)" &> /dev/null
+				RC=1
+				while [ $RC -ne 0 ]; do
+					sqlite3 $ZLLDB "insert into config2 (key, value) values('homebridge-pin', ABS(RANDOM()) % (99999999 - 10000000) + 10000000)" &> /dev/null
+					RC=$?
+					if [ $RC -ne 0 ]; then
+						[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}Error insert new homebridge-pin into db"
+						sleep 2
+					fi
+				done
 			fi
 		fi
 	fi
@@ -293,12 +371,15 @@ function checkHomebridge {
 		fi
 	fi
 
-	APIKEY=$(sqlite3 $ZLLDB "select apikey from auth where devicetype like 'homebridge-hue#%' limit 1")
-	if [ -z "$APIKEY" ]; then
-		[[ $LOG_DEBUG ]] && echo "${LOG_WARN}could not read api key from db"
-		TIMEOUT=10
-		return
-	fi
+	RC=1
+	while [ $RC -ne 0 ]; do
+		APIKEY=$(sqlite3 $ZLLDB "select apikey from auth where devicetype like 'homebridge-hue#%' limit 1")
+		RC=$?
+		if [ $RC -ne 0 ]; then
+			[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}Error reading apikey from db"
+			sleep 2
+		fi
+	done
 
 	# create config file if not exists
 	if [[ -f /home/$MAINUSER/.homebridge/config.json ]]; then
@@ -307,7 +388,15 @@ function checkHomebridge {
 		if [ -z "$(cat /home/$MAINUSER/.homebridge/config.json | grep "Phoscon Homebridge")" ]; then
 			# set to not-managed only if homebridge is not set up by phoscon
 			if [[ "$HOMEBRIDGE" != "not-managed" ]]; then
-				sqlite3 $ZLLDB "replace into config2 (key, value) values('homebridge', 'not-managed')" &> /dev/null
+				RC=1
+				while [ $RC -ne 0 ]; do
+					sqlite3 $ZLLDB "replace into config2 (key, value) values('homebridge', 'not-managed')" &> /dev/null
+					RC=$?
+					if [ $RC -ne 0 ]; then
+						[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}Error setting homebridge to not-managed in db"
+						sleep 2
+					fi
+				done
 			fi
 		else
 			# config created by deCONZ - check if apikey is still correct
@@ -322,7 +411,15 @@ function checkHomebridge {
 		touch /home/$MAINUSER/.homebridge/config.json
 		chown -R $MAINUSER /home/$MAINUSER/.homebridge
 
-		HOMEBRIDGE_PIN=$(sqlite3 $ZLLDB "select value from config2 where key='homebridge-pin'")
+		RC=1
+		while [ $RC -ne 0 ]; do
+			HOMEBRIDGE_PIN=$(sqlite3 $ZLLDB "select value from config2 where key='homebridge-pin'")
+			RC=$?
+			if [ $RC -ne 0 ]; then
+				[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}Error reading homebridge-pin from db"
+				sleep 2
+			fi
+		done
 		local HB_PIN="${HOMEBRIDGE_PIN:0:3}-${HOMEBRIDGE_PIN:3:2}-${HOMEBRIDGE_PIN:5:3}"
 		echo "{
 \"bridge\": {
@@ -361,7 +458,15 @@ function checkHomebridge {
 	if [ -z "$process" ]; then
 		[[ $LOG_INFO ]] && echo "${LOG_INFO}starting homebridge"
 		if [[ "$HOMEBRIDGE" != "managed" ]]; then
-			sqlite3 $ZLLDB "replace into config2 (key, value) values('homebridge', 'managed')" &> /dev/null
+			RC=1
+			while [ $RC -ne 0 ]; do
+				sqlite3 $ZLLDB "replace into config2 (key, value) values('homebridge', 'managed')" &> /dev/null
+				RC=$?
+				if [ $RC -ne 0 ]; then
+					[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}Error setting homebridge to managed in db"
+					sleep 2
+				fi
+			done
 		fi
 		homebridge -U /home/$MAINUSER/.homebridge &
 	fi

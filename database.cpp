@@ -3527,7 +3527,7 @@ void DeRestPluginPrivate::saveDb()
         gwConfig["gwusername"] = gwAdminUserName;
         gwConfig["gwpassword"] = gwAdminPasswordHash;
         gwConfig["homebridge"] = gwHomebridge;
-        gwConfig["homebridgepin"] = gwHomebridgePin;
+        gwConfig["homebridge-pin"] = gwHomebridgePin;
         gwConfig["updatechannel"] = gwUpdateChannel;
         gwConfig["swupdatestate"] = gwSwUpdateState;
         gwConfig["uuid"] = gwUuid;
