@@ -2633,59 +2633,72 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
             updateEtag(gwConfigEtag);
         }
     }
-    else if (status == QLatin1String("ap-connecting"))
+    else if (status == QLatin1String("ap-connecting") && gwWifiStateString != QLatin1String("ap-connecting"))
     {
         gwWifiStateString = QLatin1String("ap-connecting");
+        updateEtag(gwConfigEtag);
     }
-    else if (status == QLatin1String("client-connecting"))
+    else if (status == QLatin1String("client-connecting") && gwWifiStateString != QLatin1String("client-connecting"))
     {
         gwWifiStateString = QLatin1String("client-connecting");
+        updateEtag(gwConfigEtag);
     }
-    else if (status == QLatin1String("ap-configured"))
+    else if (status == QLatin1String("ap-configured") && gwWifiStateString != QLatin1String("ap-configured"))
     {
         gwWifiStateString = QLatin1String("ap-configured");
+        updateEtag(gwConfigEtag);
     }
-    else if (status == QLatin1String("client-configured"))
+    else if (status == QLatin1String("client-configured") && gwWifiStateString != QLatin1String("client-configured"))
     {
         gwWifiStateString = QLatin1String("client-configured");
+        updateEtag(gwConfigEtag);
     }
-    else if (status == QLatin1String("ap-connect-fail"))
+    else if (status == QLatin1String("ap-connect-fail") && gwWifiStateString != QLatin1String("ap-connect-fail"))
     {
         gwWifiStateString = QLatin1String("ap-connect-fail");
+        updateEtag(gwConfigEtag);
     }
-    else if (status == QLatin1String("client-connect-fail"))
+    else if (status == QLatin1String("client-connect-fail") && gwWifiStateString != QLatin1String("client-connect-fail"))
     {
         gwWifiStateString = QLatin1String("client-connect-fail");
+        updateEtag(gwConfigEtag);
     }
-    else if (status == QLatin1String("check-ap"))
+    else if (status == QLatin1String("check-ap") && gwWifiStateString != QLatin1String("check-ap"))
     {
         gwWifiStateString = QLatin1String("check-ap");
+        updateEtag(gwConfigEtag);
     }
-    else if (status == QLatin1String("check-client"))
+    else if (status == QLatin1String("check-client") && gwWifiStateString != QLatin1String("check-client"))
     {
         gwWifiStateString = QLatin1String("check-client");
+        updateEtag(gwConfigEtag);
     }
-    else if (status == QLatin1String("not-configured"))
+    else if (status == QLatin1String("not-configured") && gwWifiStateString != QLatin1String("not-configured"))
     {
         gwWifiStateString = QLatin1String("not-configured");
+        updateEtag(gwConfigEtag);
     }
-    else if (status == QLatin1String("deactivated"))
+    else if (status == QLatin1String("deactivated") && gwWifiStateString != QLatin1String("deactivated"))
     {
         gwWifiStateString = QLatin1String("deactivated");
+        updateEtag(gwConfigEtag);
     }
-    else if (status == QLatin1String("check-config"))
+    else if (status == QLatin1String("check-config") && gwWifiStateString != QLatin1String("check-config"))
     {
         gwWifiStateString = QLatin1String("check-config");
+        updateEtag(gwConfigEtag);
     }
-    else if (status == QLatin1String("last-working-config"))
+    else if (status == QLatin1String("last-working-config") && gwWifiStateString != QLatin1String("last-working-config"))
     {
         gwWifiStateString = QLatin1String("last-working-config");
+        updateEtag(gwConfigEtag);
     }
-    else if (status == QLatin1String("ap-backup"))
+    else if (status == QLatin1String("ap-backup") && gwWifiStateString != QLatin1String("ap-backup"))
     {
         gwWifiStateString = QLatin1String("ap-backup");
+        updateEtag(gwConfigEtag);
     }
-    updateEtag(gwConfigEtag);
+
     DBG_Printf(DBG_HTTP, "wifi: %s\n", qPrintable(req.content));
     return REQ_READY_SEND;
 }
