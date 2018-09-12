@@ -78,8 +78,8 @@ void DeRestPluginPrivate::checkResetState()
                     stream << (quint64)i->address().ext(); // device address
 
                     uint8_t flags = 0;
-//                    flags |= 1; // rejoin
-//                    flags |= 2; // remove children
+//                    flags |= 0x40; // remove children
+//                    flags |= 0x80; // rejoin
                     stream << flags; // flags
 
                     if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
@@ -145,8 +145,8 @@ void DeRestPluginPrivate::checkResetState()
                     stream << (quint64)si->address().ext(); // device address
 
                     uint8_t flags = 0;
-//                    flags |= 1; // rejoin
-//                    flags |= 2; // remove children
+//                    flags |= 0x40; // remove children
+//                    flags |= 0x80; // rejoin
                     stream << flags; // flags
 
                     if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
