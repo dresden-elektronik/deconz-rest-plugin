@@ -1930,6 +1930,10 @@ Data Request rate.</description>
 						<attribute id="0x01" type="u8" name="Zone ID" required="m"></attribute>
 					</payload>
 				</command>
+				<command id="0x01" dir="recv" name="Initiate Normal Operation Mode" required="o">
+					<payload>
+					</payload>
+				</command>
 				<command id="0x00" dir="send" name="Zone Status Change Notification" required="m">
 					<payload>
 						<attribute id="0x00" type="bmp16" name="Zone Status" required="m">
