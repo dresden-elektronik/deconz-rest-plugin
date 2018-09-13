@@ -2585,6 +2585,34 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
             }
         }
     }
+    else if (status == QLatin1String("current-config"))
+    {
+        QString workingtype;
+        QString workingname;
+        QString workingpw;
+
+        if (map.contains("workingtype")) { workingtype = map["workingtype"].toString(); }
+        if (map.contains("workingname")) { workingname = map["workingname"].toString(); }
+        if (map.contains("workingpw")) { workingpw = map["workingpw"].toString(); }
+
+        if (gwWifiWorkingType != workingtype)
+        {
+            gwWifiWorkingType = workingtype;
+            updateEtag(gwConfigEtag);
+        }
+
+        if (gwWifiWorkingName != workingname)
+        {
+            gwWifiWorkingName = workingname;
+            updateEtag(gwConfigEtag);
+        }
+
+        if (gwWifiWorkingPw != workingpw)
+        {
+            gwWifiWorkingPw = workingpw;
+            updateEtag(gwConfigEtag);
+        }
+    }
     else if (status == QLatin1String("ap-alive"))
     {
         if (gwWifi != QLatin1String("configured"))
