@@ -142,15 +142,13 @@ function checkHomebridge {
 		param=${params[$i]}
 		RC=1
 		while [ $RC -ne 0 ]; do
-			value=$(sqlite3 $ZLLDB "select * from config2 where key=\"${param}\"")
+			value=$(sqlite3 $ZLLDB "select value from config2 where key=\"${param}\"")
 			RC=$?
 			if [ $RC -ne 0 ]; then
 				[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}Error reading parameter ${param} from db"
 				sleep 2
 			fi
 		done
-
-		value=$(echo $value | cut -d'|' -f2)
 
 		# basic check for non empty
 		if [[ ! -z "$value" ]]; then
@@ -159,7 +157,11 @@ function checkHomebridge {
 	done
 
 	## all parameters found and valid?
-	if [ -z "${values[4]}" ]; then
+	if [ -z "${values[0]}" ]; then
+		[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}missing parameter 'homebridge'"
+		return
+	fi
+	if [ -z "${values[3]}" ]; then
 		[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}missing parameter 'ipaddress'"
 		return
 	fi
@@ -193,28 +195,6 @@ function checkHomebridge {
 	if [[ $HOMEBRIDGE_AUTH == "" ]]; then
 		# generate a new deconz apikey for homebridge-hue
 		addUser
-		# generate pin and write it in db
-		if [[ -z "$HOMEBRIDGE_PIN" ]]; then
-			RC=1
-			while [ $RC -ne 0 ]; do
-				sqlite3 $ZLLDB "insert into config2 (key, value) values('homebridge-pin', ABS(RANDOM()) % (99999999 - 10000000) + 10000000)" &> /dev/null
-				RC=$?
-				if [ $RC -ne 0 ]; then
-					[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}Error insert homebridge-pin into db"
-					sleep 2
-				fi
-			done
-		else
-			RC=1
-			while [ $RC -ne 0 ]; do
-				sqlite3 $ZLLDB "replace into config2 (key, value) values('homebridge-pin', ABS(RANDOM()) % (99999999 - 10000000) + 10000000)" &> /dev/null
-				RC=$?
-				if [ $RC -ne 0 ]; then
-					[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}Error replacing homebridge-pin in db"
-					sleep 2
-				fi
-			done
-		fi
 	else
 		# homebridge-hue apikey exists
 		if [ -z $(echo $HOMEBRIDGE_AUTH | grep deconz) ]; then
@@ -231,32 +211,32 @@ function checkHomebridge {
 			fi
 			[[ $LOG_INFO ]] && echo "${LOG_INFO}existing homebridge hue auth found"
         fi
-		if [[ -z "$HOMEBRIDGE_PIN" ]]; then
-			if [[ -f /home/$MAINUSER/.homebridge/config.json ]]; then
-				local p=$(cat /home/$MAINUSER/.homebridge/config.json | grep "pin" | cut -d'"' -f4)
-				local pin="${p:0:3}${p:4:2}${p:7:3}"
-				# write pin from config.json in db
-				RC=1
-				while [ $RC -ne 0 ]; do
-					sqlite3 $ZLLDB "insert into config2 (key, value) values('homebridge-pin', '${pin}')" &> /dev/null
-					RC=$?
-					if [ $RC -ne 0 ]; then
-						[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}Error insert existing homebridge-pin into db"
-						sleep 2
-					fi
-				done
-			else
-				# or create new pin and write it in db
-				RC=1
-				while [ $RC -ne 0 ]; do
-					sqlite3 $ZLLDB "insert into config2 (key, value) values('homebridge-pin', ABS(RANDOM()) % (99999999 - 10000000) + 10000000)" &> /dev/null
-					RC=$?
-					if [ $RC -ne 0 ]; then
-						[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}Error insert new homebridge-pin into db"
-						sleep 2
-					fi
-				done
-			fi
+	fi
+	if [[ -z "$HOMEBRIDGE_PIN" ]]; then
+		if [[ -f /home/$MAINUSER/.homebridge/config.json ]]; then
+			local p=$(cat /home/$MAINUSER/.homebridge/config.json | grep "pin" | cut -d'"' -f4)
+			local pin="${p:0:3}${p:4:2}${p:7:3}"
+			# write pin from config.json in db
+			RC=1
+			while [ $RC -ne 0 ]; do
+				sqlite3 $ZLLDB "replace into config2 (key, value) values('homebridge-pin', '${pin}')" &> /dev/null
+				RC=$?
+				if [ $RC -ne 0 ]; then
+					[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}Error replace existing homebridge-pin into db"
+					sleep 2
+				fi
+			done
+		else
+			# or create new pin and write it in db
+			RC=1
+			while [ $RC -ne 0 ]; do
+				sqlite3 $ZLLDB "replace into config2 (key, value) values('homebridge-pin', ABS(RANDOM()) % (99999999 - 10000000) + 10000000)" &> /dev/null
+				RC=$?
+				if [ $RC -ne 0 ]; then
+					[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}Error replace new homebridge-pin into db"
+					sleep 2
+				fi
+			done
 		fi
 	fi
 
