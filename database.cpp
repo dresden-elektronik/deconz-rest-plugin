@@ -4267,6 +4267,17 @@ void DeRestPluginPrivate::saveDb()
     if (rc == SQLITE_OK)
     {
         DBG_Printf(DBG_INFO, "DB saved in %ld ms\n", measTimer.elapsed());
+
+        if (saveDatabaseItems & DB_SYNC)
+        {
+#ifdef Q_OS_LINUX
+            QElapsedTimer measTimer;
+            measTimer.restart();
+            sync();
+            DBG_Printf(DBG_INFO, "sync() in %d ms\n", int(measTimer.elapsed()));
+#endif
+            saveDatabaseItems &= ~DB_SYNC;
+        }
     }
 }
 

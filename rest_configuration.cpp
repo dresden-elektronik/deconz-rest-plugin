@@ -2412,7 +2412,7 @@ int DeRestPluginPrivate::configureWifi(const ApiRequest &req, ApiResponse &rsp)
     gwWifiLastUpdated = currentDateTime.toTime_t();
 
     updateEtag(gwConfigEtag);
-    queSaveDb(DB_CONFIG,DB_SHORT_SAVE_DELAY);
+    queSaveDb(DB_CONFIG | DB_SYNC, DB_SHORT_SAVE_DELAY);
 
     QVariantMap rspItem;
     QVariantMap rspItemState;
