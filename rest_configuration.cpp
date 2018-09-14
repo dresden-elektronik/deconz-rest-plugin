@@ -2332,6 +2332,7 @@ int DeRestPluginPrivate::configureWifi(const ApiRequest &req, ApiResponse &rsp)
 
         gwWifiType = type;
         gwWifi = "configured";
+        DBG_Printf(DBG_INFO_L2, "gwWifiType = %s, map.type= %s\n", qPrintable(gwWifiType), qPrintable(type));
     }
     if (map.contains("name"))
     {
@@ -2353,6 +2354,7 @@ int DeRestPluginPrivate::configureWifi(const ApiRequest &req, ApiResponse &rsp)
             gwWifiClientName = name;
             gwWifiName = name;
         }
+        DBG_Printf(DBG_INFO_L2, "gwWifiName = %s, map.name= %s\n", qPrintable(gwWifiName), qPrintable(name));
     }
     if (map.contains("password"))
     {
@@ -2374,8 +2376,7 @@ int DeRestPluginPrivate::configureWifi(const ApiRequest &req, ApiResponse &rsp)
             gwWifiClientPw = password;
             gwWifiPw = password;
         }
-
-
+        DBG_Printf(DBG_INFO_L2, "gwWifiName = %s, map.name= %s\n", qPrintable(gwWifiPw), qPrintable(password));
     }
     if (map.contains("wifi"))
     {
@@ -2412,6 +2413,7 @@ int DeRestPluginPrivate::configureWifi(const ApiRequest &req, ApiResponse &rsp)
     gwWifiLastUpdated = currentDateTime.toTime_t();
 
     updateEtag(gwConfigEtag);
+    DBG_Printf(DBG_INFO_L2, "gwWifiName = %s, gwWifiType = %s, gwWifiPw = %s\n", qPrintable(gwWifiName), qPrintable(gwWifiType), qPrintable(gwWifiPw));
     queSaveDb(DB_CONFIG | DB_SYNC, DB_SHORT_SAVE_DELAY);
 
     QVariantMap rspItem;
