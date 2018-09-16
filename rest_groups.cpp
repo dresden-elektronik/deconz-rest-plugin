@@ -3253,9 +3253,17 @@ int DeRestPluginPrivate::deleteScene(const ApiRequest &req, ApiResponse &rsp)
 void DeRestPluginPrivate::handleGroupEvent(const Event &e)
 {
     DBG_Assert(e.resource() == RGroups);
-    DBG_Assert(e.what() != 0);
+    DBG_Assert(e.what() != nullptr);
+    DBG_Assert(e.num() >= 0);
+    DBG_Assert(e.num() <= UINT16_MAX);
 
-    Group *group = getGroupForId(e.num());
+    if (e.num() < 0 || e.num() > UINT16_MAX)
+    {
+        return;
+    }
+
+    const quint16 groupId = static_cast<quint16>(e.num());
+    Group *group = getGroupForId(groupId);
 
     if (!group)
     {
@@ -3272,7 +3280,7 @@ void DeRestPluginPrivate::handleGroupEvent(const Event &e)
 
         for (; i != end; ++i)
         {
-            if (!isLightNodeInGroup(&*i, e.num()))
+            if (!isLightNodeInGroup(&*i, groupId))
             {
                 continue;
             }
@@ -3284,25 +3292,20 @@ void DeRestPluginPrivate::handleGroupEvent(const Event &e)
                 count++;
                 if (item->toBool()) { on++; }
             }
-            //
-            // if (on)
-            // {
-            //     break; // any
-            // }
         }
 
         ResourceItem *item = group->item(RStateAllOn);
-        DBG_Assert(item != 0);
-        if (item && item->toBool() != (on == count))
+        DBG_Assert(item != nullptr);
+        if (item && (item->toBool() != (on > 0 && on == count) || !item->lastSet().isValid()))
         {
-            item->setValue(on == count);
+            item->setValue(on > 0 && on == count);
             updateGroupEtag(group);
             Event e(RGroups, RStateAllOn, group->address());
             enqueueEvent(e);
         }
         item = group->item(RStateAnyOn);
-        DBG_Assert(item != 0);
-        if (item && item->toBool() != (on > 0))
+        DBG_Assert(item != nullptr);
+        if (item && (item->toBool() != (on > 0) || !item->lastSet().isValid()))
         {
             item->setValue(on > 0);
             updateGroupEtag(group);
