@@ -2747,6 +2747,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
         else if (ind.srcEndpoint() == 0x01 && ind.clusterId() == SCENE_CLUSTER_ID  && zclFrame.manufacturerCode() == VENDOR_IKEA &&
                  zclFrame.commandId() == 0x07 && zclFrame.payload().at(0) == 0x02)
         {
+            // TODO move following legacy cleanup code in Phoscon App / switch editor
             DBG_Printf(DBG_INFO, "ikea remote setup button\n");
 
             Sensor *s = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
@@ -2761,7 +2762,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
             QString sensorAddress(QLatin1String("/sensors/"));
             sensorAddress.append(s->id());
 
-            bool hasRules = false;
+            bool changed = false;
 
             for (; ri != rend; ++ri)
             {
@@ -2769,11 +2770,6 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
                 {
                     continue;
                 }
-
-                // if (ri->status() != QLatin1String("enabled"))
-                // {
-                //     continue;
-                // }
 
                 std::vector<RuleCondition>::const_iterator ci = ri->conditions().begin();
                 std::vector<RuleCondition>::const_iterator cend = ri->conditions().end();
@@ -2784,101 +2780,17 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
                     {
                         if (ri->name().startsWith(QLatin1String("default-ct")) && ri->owner() == QLatin1String("deCONZ"))
                         {
-                            DBG_Printf(DBG_INFO, "ikea remote delete old rule %s\n", qPrintable(ri->name()));
+                            DBG_Printf(DBG_INFO, "ikea remote delete legacy rule %s\n", qPrintable(ri->name()));
                             ri->setState(Rule::StateDeleted);
+                            changed = true;
                         }
-                        else
-                        {
-                            hasRules = true;
-                        }
-                        break;
                     }
                 }
             }
 
-            if (hasRules)
+            if (changed)
             {
-                DBG_Printf(DBG_INFO, "ikea remote already has custom rules\n");
-            }
-            else if (s->mode() == Sensor::ModeColorTemperature)
-            {
-                Rule r;
-                RuleCondition c1;
-                RuleCondition lu;
-                RuleAction a;
-                r.setOwner(QLatin1String("deCONZ"));
-                r.setCreationtime(QDateTime::currentDateTimeUtc().toString("yyyy-MM-ddTHH:mm:ss"));
-                updateEtag(r.etag);
-
-                int ruleId = 1;
-                r.setId(QString::number(ruleId));
-
-                while (std::find_if(rules.begin(), rules.end(),
-                          [&r](Rule &r2) { return r2.id() == r.id(); }) != rules.end())
-                {
-                    ruleId++;
-                    r.setId(QString::number(ruleId));
-                }
-
-                // cw rule
-                r.setName(QString("default-ct-cw-%1").arg(s->id()));
-
-                { // state/buttonevent/4002
-                    QVariantMap map;
-                    map["address"] = sensorAddress + QLatin1String("/state/buttonevent");
-                    map["operator"] = QLatin1String("eq");
-                    map["value"] = QLatin1String("4002");
-                    c1 = RuleCondition(map);
-                }
-
-                { // state/lastupdated
-                    QVariantMap map;
-                    map["address"] = sensorAddress + QLatin1String("/state/lastupdated");
-                    map["operator"] = QLatin1String("dx");
-                    lu = RuleCondition(map);
-                }
-
-                r.setConditions({c1, lu});
-
-                a.setAddress(QString("/groups/%1/action").arg(ind.dstAddress().group()));
-                a.setMethod(QLatin1String("PUT"));
-                a.setBody("{\"ct_inc\": -32, \"transitiontime\":4}");
-                r.setActions({a});
-
-                rules.push_back(r);
-
-                // ww rule
-                ruleId++;
-                r.setId(QString::number(ruleId));
-                updateEtag(r.etag);
-
-                while (std::find_if(rules.begin(), rules.end(),
-                          [&r](Rule &r2) { return r2.id() == r.id(); }) != rules.end())
-                {
-                    ruleId++;
-                    r.setId(QString::number(ruleId));
-                }
-
-                r.setName(QString("default-ct-ww-%1").arg(s->id()));
-
-                { // state/buttonevent/5002
-                    QVariantMap map;
-                    map["address"] = sensorAddress + QLatin1String("/state/buttonevent");
-                    map["operator"] = QLatin1String("eq");
-                    map["value"] = QLatin1String("5002");
-                    c1 = RuleCondition(map);
-                }
-
-                r.setConditions({c1, lu});
-
-                //a.setAddress(QString("/groups/%1/action").arg(ind.dstAddress().group()));
-                //a.setMethod(QLatin1String("PUT"));
-                a.setBody("{\"ct_inc\": 32, \"transitiontime\":4}");
-                r.setActions({a});
-
-                rules.push_back(r);
                 indexRulesTriggers();
-
                 queSaveDb(DB_RULES, DB_SHORT_SAVE_DELAY);
             }
         }
