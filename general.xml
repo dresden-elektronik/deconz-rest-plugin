@@ -700,8 +700,9 @@
 		<attribute id="0000" name="Time" type="utc" access="rw" required="m"></attribute>
 		<attribute id="0001" name="Time Status" type="bmp8" default="0b00000000" access="rw" required="m">
 				<value name="Master Clock" value="0"></value>
-				<value name="Syncronized" value="1"></value>
+				<value name="Synchronized" value="1"></value>
 				<value name="Master for Timezone and Dst" value="2"></value>
+        <value name="Superseding" value="3"></value>
 		</attribute>
 		<attribute id="0002" name="Time Zone" type="s32" range="-86400,86400" default="0" access="rw" required="o"></attribute>
 		<attribute id="0003" name="Dst Start" type="u32" range="0x00000000,0xfffffffe" access="rw" required="o"></attribute>
@@ -709,6 +710,8 @@
 		<attribute id="0005" name="Dst Shift" type="s32" range="-86400,86400" default="0" access="rw" required="o"></attribute>
 		<attribute id="0006" name="Standard Time" type="u32" range="0x00000000,0xfffffffe" access="r" required="o"></attribute>
 		<attribute id="0007" name="Local Time" type="u32" range="0x00000000,0xfffffffe" access="r" required="o"></attribute>
+    <attribute id="0008" name="Last Set Time" type="utc" range="0x00000000,0xfffffffe" default="0xffffffff" access="r" required="o"></attribute>
+    <attribute id="0009" name="Valid Until Time" type="utc" range="0x00000000,0xfffffffe" default="0xffffffff" access="rw" required="o"></attribute>
 		<!-- TODO -->
 		</server>
 		<client>
@@ -1149,7 +1152,8 @@ Data Request rate.</description>
         <attribute-set id="0x0050" description="Xiaomi Special">
           <attribute id="0x0055" name="Xiaomi 0x0055" type="u16" access="r" required="o"></attribute>
           <attribute id="0x0503" name="Xiaomi 0x0503" type="u16" access="r" required="o"></attribute>
-          <attribute id="0x0508" name="Xiaomi 0x0508" type="u64" access="r" required="o"></attribute>
+          <attribute id="0x0505" name="Xiaomi 0x0505" type="u32" access="r" required="o"></attribute>
+          <attribute id="0x0508" name="Xiaomi 0x0508" type="u48" access="r" required="o"></attribute>
         </attribute-set>
         <command id="0x00" dir="recv" name="Lock Door" required="m">
           <description>This command causes the lock device to lock the door.</description>
