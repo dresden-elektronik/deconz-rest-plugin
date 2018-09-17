@@ -150,7 +150,9 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_KEEN_HOME , "SV01-610-MP", keenhomeMacPrefix}, // Keen Home Vent
     { VENDOR_INNR, "SP 120", jennicMacPrefix}, // innr smart plug
     { VENDOR_PHYSICAL, "tagv4", stMacPrefix}, // SmartThings Arrival sensor
-    { 0, 0, 0 }
+    { VENDOR_JENNIC, "VMS_ADUROLIGHT", jennicMacPrefix }, // Trust motion sensor ZPIR-8000
+    { VENDOR_JENNIC, "ZYCT-202", jennicMacPrefix }, // Trust remote control ZYCT-202
+    { 0, nullptr, 0 }
 };
 
 int TaskItem::_taskCounter = 1; // static rolling taskcounter
@@ -2816,6 +2818,37 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
     QList<deCONZ::SimpleDescriptor>::const_iterator i = node->simpleDescriptors().constBegin();
     QList<deCONZ::SimpleDescriptor>::const_iterator end = node->simpleDescriptors().constEnd();
 
+    // Trust specific
+    if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC && modelId.isEmpty())
+    {
+        // check Trust motion sensor ZPIR-8000
+        if (node->simpleDescriptors().size() == 1 &&
+                node->simpleDescriptors().first().endpoint() == 0x01 &&
+                node->simpleDescriptors().first().profileId() == HA_PROFILE_ID &&
+                node->simpleDescriptors().first().deviceId() == DEV_ID_IAS_ZONE)
+        {
+            // server clusters: 0x0000, 0x0003, 0x0500, 0xffff, 0x0001
+            modelId = QLatin1String("VMS_ADUROLIGHT"); // would be returned by reading the modelid
+            manufacturer = QLatin1String("Trust");
+        }
+        // check Trust remote control ZYCT-202
+        else if (node->simpleDescriptors().size() == 2 &&
+                 node->simpleDescriptors()[0].endpoint() == 0x01 &&
+                 node->simpleDescriptors()[0].profileId() == ZLL_PROFILE_ID &&
+                 node->simpleDescriptors()[0].deviceId() == DEV_ID_ZLL_NON_COLOR_CONTROLLER &&
+                 node->simpleDescriptors()[1].endpoint() == 0x02 &&
+                 node->simpleDescriptors()[1].profileId() == ZLL_PROFILE_ID &&
+                 node->simpleDescriptors()[1].deviceId() == 0x03f2)
+        {
+            // server clusters endpoint 0x01: 0x0000, 0x0004, 0x0003, 0x0006, 0x0008, 0x1000
+            // client clusters endpoint 0x01: 0x0000, 0x0004, 0x0003, 0x0006, 0x0008, 0x1000
+            // server clusters endpoint 0x02: 0x1000
+            // client clusters endpoint 0x02: 0x1000
+            modelId = QLatin1String("ZYCT-202"); //  the modelid returned by device is empty
+            manufacturer = QLatin1String("Trust");
+        }
+    }
+
     for (;i != end; ++i)
     {
         SensorFingerprint fpAlarmSensor;
@@ -2905,8 +2938,15 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case COMMISSIONING_CLUSTER_ID:
                 {
-                    fpSwitch.inClusters.push_back(ci->id());
-                    fpPresenceSensor.inClusters.push_back(ci->id());
+                    if (modelId == QLatin1String("ZYCT-202") && i->endpoint() != 0x01)
+                    {
+                        // ignore second endpoint
+                    }
+                    else
+                    {
+                        fpSwitch.inClusters.push_back(ci->id());
+                        fpPresenceSensor.inClusters.push_back(ci->id());
+                    }
                 }
                     break;
 
@@ -3002,7 +3042,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                                     case IAS_ZONE_TYPE_WARNING_DEVICE:
                                     case IAS_ZONE_TYPE_STANDARD_CIE:
                                     default:
-                                        fpAlarmSensor.inClusters.push_back(ci->id());
+                                        if (manufacturer == QLatin1String("Trust"))
+                                        {
+                                            // ignore for ZHAAlarm
+                                        }
+                                        else
+                                        {
+                                            fpAlarmSensor.inClusters.push_back(ci->id());
+                                        }
                                         break;
                                 }
                             }
@@ -3154,7 +3201,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 case LEVEL_CLUSTER_ID:
                 case SCENE_CLUSTER_ID:
                 {
-                    if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC)
+                    if (modelId == QLatin1String("ZYCT-202"))
+                    {
+                        fpSwitch.outClusters.push_back(ci->id());
+                    }
+                    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC)
                     {
                         // prevent creation of ZHASwitch, till supported
                     }
@@ -3208,7 +3259,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             continue;
         }
 
-        Sensor *sensor = 0;
+        Sensor *sensor = nullptr;
 
         // ZHASwitch
         if (fpSwitch.hasInCluster(ONOFF_SWITCH_CONFIGURATION_CLUSTER_ID) ||
@@ -11087,7 +11138,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
         return;
     }
 
-    SensorCandidate *sc = 0;
+    SensorCandidate *sc = nullptr;
     {
         std::vector<SensorCandidate>::iterator i = searchSensorsCandidates.begin();
         std::vector<SensorCandidate>::iterator end = searchSensorsCandidates.end();
@@ -11109,12 +11160,12 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
 
     {
         Sensor *sensor = getSensorNodeForAddress(sc->address);
-        const deCONZ::Node *node = sensor ? sensor->node() : 0;
+        const deCONZ::Node *node = sensor ? sensor->node() : nullptr;
 
         if (sensor && sensor->deletedState() != Sensor::StateNormal)
         {
             DBG_Printf(DBG_INFO, "don't use deleted sensor 0x%016llX as candidate\n", sc->address.ext());
-            sensor = 0;
+            sensor = nullptr;
         }
 
         if (!node)
@@ -11350,7 +11401,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
 
         if (sensor && sensor->deletedState() != Sensor::StateNormal)
         {
-            sensor = 0; // force query
+            sensor = nullptr; // force query
         }
 
         // manufacturer, model id, sw build id

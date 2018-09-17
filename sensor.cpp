@@ -184,6 +184,20 @@ static const Sensor::ButtonMap ikeaMotionSensorMap[] = {
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
 };
 
+static const Sensor::ButtonMap trustZYCT202SwitchMap[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x01, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "Dimm up" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "Dimm up stop" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 1,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD,           "Dimm down" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 1,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED,  "Dimm down stop" },
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x40, 0,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
+
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
+};
+
+
 static const Sensor::ButtonMap bjeSwitchMap[] = {
 //    mode                          ep    cluster cmd   param button                                       name
 //  1) row left button
@@ -895,6 +909,10 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         else if (m_manufacturer == QLatin1String("Lutron"))
         {
             if      (modelid.startsWith(QLatin1String("LZL4BWHL")))      { m_buttonMap = lutronLZL4BWHLSwitchMap; }
+        }
+        else if (m_manufacturer == QLatin1String("Trust"))
+        {
+            if      (modelid == QLatin1String("ZYCT-202"))      { m_buttonMap = trustZYCT202SwitchMap; }
         }
     }
 

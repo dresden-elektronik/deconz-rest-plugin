@@ -1313,6 +1313,8 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("TRADFRI")) ||
         // Keen Home
         sensor->modelId().startsWith(QLatin1String("SV01-")) ||
+        // Trust ZPIR-8000
+        sensor->modelId().startsWith(QLatin1String("VMS_ADUROLIGHT")) ||
         // innr
         sensor->modelId() == QLatin1String("SP 120") ||
         // Heiman
@@ -1420,6 +1422,10 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                 continue;
             }
         }
+        else if (*i == IAS_ZONE_CLUSTER_ID)
+        {
+            val = sensor->getZclValue(*i, 0x0000); // zone status
+        }
         else if (*i == VENDOR_CLUSTER_ID)
         {
             if (sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
@@ -1497,6 +1503,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         {
         case POWER_CONFIGURATION_CLUSTER_ID:
         case OCCUPANCY_SENSING_CLUSTER_ID:
+        case IAS_ZONE_CLUSTER_ID:
         case ILLUMINANCE_MEASUREMENT_CLUSTER_ID:
         case TEMPERATURE_MEASUREMENT_CLUSTER_ID:
         case RELATIVE_HUMIDITY_CLUSTER_ID:
