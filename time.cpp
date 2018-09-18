@@ -116,7 +116,7 @@ void DeRestPluginPrivate::sendTimeClusterResponse(const deCONZ::ApsDataIndicatio
     DBG_Printf(DBG_INFO, "Time_Cluster time_dst_end   %s %ld\n", dstend.toUTC().toString(Qt::ISODate).toStdString().c_str(), (long) time_dst_end);
 	DBG_Printf(DBG_INFO, "Time_Cluster time_dst_shift %d\n", (int) time_dst_shift);
 	DBG_Printf(DBG_INFO, "Time_Cluster time_zone      %d %s\n", (int) time_zone, timeZoneLocal.abbreviation(local).toStdString().c_str());
-	DBG_Printf(DBG_INFO, "Time_Cluster systemTimeZone %s\n", QTimeZone::systemTimeZone().abbreviation(local).toStdString().c_str());
+    //DBG_Printf(DBG_INFO, "Time_Cluster systemTimeZone %s\n", QTimeZone::systemTimeZone().abbreviation(local).toStdString().c_str());
 
     { // payload
         QDataStream stream(&outZclFrame.payload(), QIODevice::WriteOnly);
