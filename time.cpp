@@ -79,7 +79,8 @@ void DeRestPluginPrivate::sendTimeClusterResponse(const deCONZ::ApsDataIndicatio
 
     time_now = epoch.secsTo(local);
 
-    QTimeZone timeZoneLocal(QTimeZone::systemTimeZone());
+    QTimeZone timeZoneLocal(QTimeZone::systemTimeZoneId());
+
     if (timeZoneLocal.operator == (QTimeZone("Etc/GMT")))
     {
     	timeZoneLocal = QTimeZone("Europe/Berlin");
