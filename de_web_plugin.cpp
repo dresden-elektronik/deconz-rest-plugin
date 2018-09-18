@@ -11318,6 +11318,9 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
             swBuildId = sensor->swVersion();
         }
 
+        quint8 basicClusterEndpoint  = 0;
+        std::vector<quint16> unavailBasicAttr;
+
         for (const deCONZ::SimpleDescriptor &sd : node->simpleDescriptors())
         {
             for (const deCONZ::ZclCluster &cl : sd.inClusters())
@@ -11326,6 +11329,11 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
                 {
                     if (cl.id() == BASIC_CLUSTER_ID)
                     {
+                        if (basicClusterEndpoint == 0)
+                        {
+                            basicClusterEndpoint = sd.endpoint();
+                        }
+
                         if (attr.id() == 0x0004 && manufacturer.isEmpty())
                         {
                             manufacturer = attr.toString();
@@ -11341,6 +11349,15 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
                         else if (attr.id() == 0x4000 && swBuildId.isEmpty())
                         {
                             swBuildId = attr.toString();
+                        }
+                        else
+                        {
+                            continue;
+                        }
+
+                        if (!attr.isAvailable())
+                        {
+                            unavailBasicAttr.push_back(attr.id());
                         }
                     }
                     else if (cl.id() == IAS_ZONE_CLUSTER_ID)
@@ -11407,7 +11424,6 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
         // manufacturer, model id, sw build id
         if (!sensor || modelId.isEmpty() || manufacturer.isEmpty() || (swBuildId.isEmpty() && dateCode.isEmpty()))
         {
-
             if (!modelId.isEmpty() && !isDeviceSupported(node, modelId))
             {
                 return;
@@ -11418,13 +11434,18 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
                 return; // Xiaomi devices won't respond to ZCL read
             }
 
+            if (basicClusterEndpoint == 0)
+            {
+                return;
+            }
+
             deCONZ::ApsDataRequest apsReq;
             std::vector<quint16> attributes;
 
             // ZDP Header
             apsReq.dstAddress() = sc->address;
             apsReq.setDstAddressMode(deCONZ::ApsNwkAddress);
-            apsReq.setDstEndpoint(node->endpoints()[0]);
+            apsReq.setDstEndpoint(basicClusterEndpoint);
             apsReq.setSrcEndpoint(endpoint());
             apsReq.setProfileId(HA_PROFILE_ID);
             apsReq.setRadius(0);
@@ -11456,6 +11477,18 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
                 else
                 {
                     attributes.push_back(0x4000); // sw build id
+                }
+            }
+
+            { // filter for available basic cluster attributes
+                std::vector<quint16> tmp = attributes;
+                attributes.clear();
+                for (auto id: tmp)
+                {
+                    if (std::find(unavailBasicAttr.begin(), unavailBasicAttr.end(), id) == unavailBasicAttr.end())
+                    {
+                        attributes.push_back(id);
+                    }
                 }
             }
 
