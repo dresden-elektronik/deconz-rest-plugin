@@ -503,6 +503,8 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                             colorMode->setValue(QVariant("ct"));
                         }
                     }
+                    [[clang::fallthrough]];
+
                     default:
                         break;
                     }
