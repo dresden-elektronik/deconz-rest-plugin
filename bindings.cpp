@@ -1173,6 +1173,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->modelId() == QLatin1String("SP 120"))
         {
         }
+        else if (lightNode->manufacturer().startsWith(QLatin1String("Climax")))
+        {
+        }
         else
         {
             return;
