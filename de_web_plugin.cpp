@@ -1343,131 +1343,134 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             }
         }
 
-        if (lightNode.haEndpoint().isValid())
+        if (!lightNode.haEndpoint().isValid())
         {
-            Q_Q(DeRestPlugin);
-            lightNode.setNode(const_cast<deCONZ::Node*>(node));
-            lightNode.address() = node->address();
-            lightNode.setManufacturerCode(node->nodeDescriptor().manufacturerCode());
+            continue;
+        }
 
-            QString uid = generateUniqueId(lightNode.address().ext(), lightNode.haEndpoint().endpoint(), 0);
-            lightNode.setUniqueId(uid);
+        Q_Q(DeRestPlugin);
+        lightNode.setNode(const_cast<deCONZ::Node*>(node));
+        lightNode.address() = node->address();
+        lightNode.setManufacturerCode(node->nodeDescriptor().manufacturerCode());
 
-            if ((node->address().ext() & macPrefixMask) == deMacPrefix)
+        QString uid = generateUniqueId(lightNode.address().ext(), lightNode.haEndpoint().endpoint(), 0);
+        lightNode.setUniqueId(uid);
+
+        if ((node->address().ext() & macPrefixMask) == deMacPrefix)
+        {
+            ResourceItem *item = lightNode.addItem(DataTypeUInt32, RConfigPowerup);
+            DBG_Assert(item != 0);
+            item->setValue(R_POWERUP_RESTORE | R_POWERUP_RESTORE_AT_DAYLIGHT | R_POWERUP_RESTORE_AT_NO_DAYLIGHT);
+        }
+
+        openDb();
+        loadLightNodeFromDb(&lightNode);
+        closeDb();
+
+        if (lightNode.state() == LightNode::StateDeleted)
+        {
+            if (permitJoinFlag)
             {
-                ResourceItem *item = lightNode.addItem(DataTypeUInt32, RConfigPowerup);
-                DBG_Assert(item != 0);
-                item->setValue(R_POWERUP_RESTORE | R_POWERUP_RESTORE_AT_DAYLIGHT | R_POWERUP_RESTORE_AT_NO_DAYLIGHT);
+                lightNode.setState(LightNode::StateNormal);
             }
+        }
 
+        ResourceItem *reachable = lightNode.item(RStateReachable);
+        DBG_Assert(reachable);
+        if (reachable)
+        {
+            reachable->setValue(!node->isZombie());
+        }
+
+        if (lightNode.id().isEmpty())
+        {
             openDb();
-            loadLightNodeFromDb(&lightNode);
+            lightNode.setId(QString::number(getFreeLightId()));
             closeDb();
+            lightNode.setNeedSaveDatabase(true);
+        }
 
-            if (lightNode.state() == LightNode::StateDeleted)
+        if ((node->address().ext() & macPrefixMask) == osramMacPrefix)
+        {
+            if (lightNode.manufacturer() != QLatin1String("OSRAM"))
             {
-                if (permitJoinFlag)
-                {
-                    lightNode.setState(LightNode::StateNormal);
-                }
-            }
-
-            ResourceItem *reachable = lightNode.item(RStateReachable);
-            DBG_Assert(reachable);
-            if (reachable)
-            {
-                reachable->setValue(!node->isZombie());
-            }
-
-            if (lightNode.id().isEmpty())
-            {
-                openDb();
-                lightNode.setId(QString::number(getFreeLightId()));
-                closeDb();
+                lightNode.setManufacturerName(QLatin1String("OSRAM"));
                 lightNode.setNeedSaveDatabase(true);
             }
+        }
 
-            if ((node->address().ext() & macPrefixMask) == osramMacPrefix)
-            {
-                if (lightNode.manufacturer() != QLatin1String("OSRAM"))
-                {
-                    lightNode.setManufacturerName(QLatin1String("OSRAM"));
-                    lightNode.setNeedSaveDatabase(true);
-                }
+        if ((node->address().ext() & macPrefixMask) == philipsMacPrefix)
+        {
+            if (lightNode.manufacturer() != QLatin1String("Philips"))
+            { // correct vendor name, was atmel, de sometimes
+                lightNode.setManufacturerName(QLatin1String("Philips"));
+                lightNode.setNeedSaveDatabase(true);
             }
+        }
 
-            if ((node->address().ext() & macPrefixMask) == philipsMacPrefix)
+        if (lightNode.modelId() == QLatin1String("FLS-PP3 White"))
+        { } // only push data from FLS-PP3 color endpoint
+        else
+        {
+            if (lightNode.name().isEmpty())
+                lightNode.setName(QString("Light %1").arg(lightNode.id()));
+
+            if (!lightNode.name().isEmpty())
+            { q->nodeUpdated(lightNode.address().ext(), QLatin1String("name"), lightNode.name()); }
+
+            if (!lightNode.swBuildId().isEmpty())
+            { q->nodeUpdated(lightNode.address().ext(), QLatin1String("version"), lightNode.swBuildId()); }
+
+            if (!lightNode.manufacturer().isEmpty())
+            { q->nodeUpdated(lightNode.address().ext(), QLatin1String("vendor"), lightNode.manufacturer()); }
+
+            if (!lightNode.modelId().isEmpty())
+            { q->nodeUpdated(lightNode.address().ext(), QLatin1String("modelid"), lightNode.modelId()); }
+        }
+
+        // force reading attributes
+        lightNode.enableRead(READ_VENDOR_NAME |
+                             READ_MODEL_ID |
+                             READ_SWBUILD_ID |
+                             READ_COLOR |
+                             READ_LEVEL |
+                             READ_ON_OFF |
+                             READ_GROUPS |
+                             READ_SCENES |
+                             READ_BINDING_TABLE);
+        for (uint32_t j = 0; j < 32; j++)
+        {
+            uint32_t item = 1 << j;
+            if (lightNode.mustRead(item))
             {
-                if (lightNode.manufacturer() != QLatin1String("Philips"))
-                { // correct vendor name, was atmel, de sometimes
-                    lightNode.setManufacturerName(QLatin1String("Philips"));
-                    lightNode.setNeedSaveDatabase(true);
-                }
+                lightNode.setNextReadTime(item, queryTime);
+                lightNode.setLastRead(item, idleTotalCounter);
             }
+        }
+        lightNode.setLastAttributeReportBind(idleTotalCounter);
+        queryTime = queryTime.addSecs(1);
 
-            if (lightNode.modelId() == QLatin1String("FLS-PP3 White"))
-            { } // only push data from FLS-PP3 color endpoint
-            else
-            {
-                if (lightNode.name().isEmpty())
-                    lightNode.setName(QString("Light %1").arg(lightNode.id()));
+        DBG_Printf(DBG_INFO, "LightNode %u: %s added\n", lightNode.id().toUInt(), qPrintable(lightNode.name()));
 
-                if (!lightNode.name().isEmpty())
-                { q->nodeUpdated(lightNode.address().ext(), QLatin1String("name"), lightNode.name()); }
+        //nodes.push_back(std::move(lightNode));
+        nodes.push_back(lightNode);
+        lightNode2 = &nodes.back();
+        queuePollNode(lightNode2);
 
-                if (!lightNode.swBuildId().isEmpty())
-                { q->nodeUpdated(lightNode.address().ext(), QLatin1String("version"), lightNode.swBuildId()); }
+        if (searchLightsState == SearchLightsActive)
+        {
+            Event e(RLights, REventAdded, lightNode2->id());
+            enqueueEvent(e);
+        }
 
-                if (!lightNode.manufacturer().isEmpty())
-                { q->nodeUpdated(lightNode.address().ext(), QLatin1String("vendor"), lightNode.manufacturer()); }
+        indexRulesTriggers();
 
-                if (!lightNode.modelId().isEmpty())
-                { q->nodeUpdated(lightNode.address().ext(), QLatin1String("modelid"), lightNode.modelId()); }
-            }
+        q->startZclAttributeTimer(checkZclAttributesDelay);
+        updateLightEtag(lightNode2);
 
-            // force reading attributes
-            lightNode.enableRead(READ_VENDOR_NAME |
-                                 READ_MODEL_ID |
-                                 READ_SWBUILD_ID |
-                                 READ_COLOR |
-                                 READ_LEVEL |
-                                 READ_ON_OFF |
-                                 READ_GROUPS |
-                                 READ_SCENES |
-                                 READ_BINDING_TABLE);
-            for (uint32_t j = 0; j < 32; j++)
-            {
-                uint32_t item = 1 << j;
-                if (lightNode.mustRead(item))
-                {
-                    lightNode.setNextReadTime(item, queryTime);
-                    lightNode.setLastRead(item, idleTotalCounter);
-                }
-            }
-            lightNode.setLastAttributeReportBind(idleTotalCounter);
-            queryTime = queryTime.addSecs(1);
-
-            DBG_Printf(DBG_INFO, "LightNode %u: %s added\n", lightNode.id().toUInt(), qPrintable(lightNode.name()));
-
-            nodes.push_back(std::move(lightNode));
-            lightNode2 = &nodes.back();
-            queuePollNode(lightNode2);
-
-            if (searchLightsState == SearchLightsActive)
-            {
-                Event e(RLights, REventAdded, lightNode2->id());
-                enqueueEvent(e);
-            }
-
-            indexRulesTriggers();
-
-            q->startZclAttributeTimer(checkZclAttributesDelay);
-            updateLightEtag(lightNode2);
-
-            if (lightNode2->needSaveDatabase())
-            {
-                queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
-            }
+        if (lightNode2->needSaveDatabase())
+        {
+            queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
         }
     }
 }
