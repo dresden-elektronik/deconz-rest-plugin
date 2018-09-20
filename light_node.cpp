@@ -481,9 +481,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 }
                 else if (i->id() == COLOR_CLUSTER_ID)
                 {
-                    ResourceItem *colorMode = addItem(DataTypeString, RStateColorMode);
-
-                    colorMode->setValue(QVariant("hs"));
+                    addItem(DataTypeString, RStateColorMode)->setValue(QVariant("hs"));
 
                     switch (haEndpoint().deviceId())
                     {
@@ -500,7 +498,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                         if (haEndpoint().deviceId() == DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT ||
                             haEndpoint().deviceId() == DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT)
                         {
-                            colorMode->setValue(QVariant("ct"));
+                            item(RStateColorMode)->setValue(QVariant("ct")); // note due addItem() calls, pointer is different here
                         }
                     }
                     [[clang::fallthrough]];
