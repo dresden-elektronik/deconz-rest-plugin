@@ -1099,7 +1099,7 @@ qint64 DeRestPluginPrivate::getUptime()
  */
 void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 {
-    DBG_Assert(node != 0);
+    DBG_Assert(node != nullptr);
     if (!node)
     {
         return;
@@ -1121,10 +1121,6 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
     for (;i != end; ++i)
     {
-        LightNode lightNode;
-        lightNode.setNode(0);
-        lightNode.item(RStateReachable)->setValue(true);
-
         bool hasServerOnOff = false;
         bool hasServerLevel = false;
         bool hasServerColor = false;
@@ -1185,10 +1181,10 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                     for (uint32_t j = 0; j < 32; j++)
                     {
                         uint32_t item = 1 << j;
-                        if (lightNode.mustRead(item))
+                        if (lightNode2->mustRead(item))
                         {
-                            lightNode.setNextReadTime(item, queryTime);
-                            lightNode.setLastRead(item, idleTotalCounter);
+                            lightNode2->setNextReadTime(item, queryTime);
+                            lightNode2->setLastRead(item, idleTotalCounter);
                         }
 
                     }
@@ -1211,6 +1207,10 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             queuePollNode(lightNode2);
             continue;
         }
+
+        LightNode lightNode;
+        lightNode.setNode(nullptr);
+        lightNode.item(RStateReachable)->setValue(true);
 
         // new light node
         // if (searchLightsState != SearchLightsActive)
@@ -1449,13 +1449,13 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
             DBG_Printf(DBG_INFO, "LightNode %u: %s added\n", lightNode.id().toUInt(), qPrintable(lightNode.name()));
 
-            nodes.push_back(lightNode);
+            nodes.push_back(std::move(lightNode));
             lightNode2 = &nodes.back();
             queuePollNode(lightNode2);
 
             if (searchLightsState == SearchLightsActive)
             {
-                Event e(RLights, REventAdded, lightNode.id());
+                Event e(RLights, REventAdded, lightNode2->id());
                 enqueueEvent(e);
             }
 
@@ -1464,7 +1464,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             q->startZclAttributeTimer(checkZclAttributesDelay);
             updateLightEtag(lightNode2);
 
-            if (lightNode.needSaveDatabase())
+            if (lightNode2->needSaveDatabase())
             {
                 queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
             }

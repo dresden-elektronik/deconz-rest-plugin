@@ -219,11 +219,6 @@ bool getResourceItemDescriptor(const QString &str, ResourceItemDescriptor &descr
 ResourceItem::ResourceItem(const ResourceItem &other)
 {
     *this = other;
-    if (m_str)
-    {
-        m_str = new QString;
-        *m_str = other.toString();
-    }
 }
 
 ResourceItem::~ResourceItem()
@@ -250,7 +245,7 @@ ResourceItem &ResourceItem::operator=(const ResourceItem &other)
     m_lastSet = other.lastSet();
     m_lastChanged = other.lastChanged();
     m_rulesInvolved = other.rulesInvolved();
-    m_str = 0;
+    m_str = nullptr;
 
     if (other.m_str)
     {
@@ -265,7 +260,7 @@ ResourceItem &ResourceItem::operator=(const ResourceItem &other)
 ResourceItem::ResourceItem(const ResourceItemDescriptor &rid) :
     m_num(0),
     m_numPrev(0),
-    m_str(0),
+    m_str(nullptr),
     m_rid(rid)
 {
     if (m_rid.type == DataTypeString ||
@@ -540,6 +535,11 @@ Resource::Resource(const char *prefix) :
 {
 }
 
+Resource::~Resource()
+{
+    DBG_Printf(DBG_INFO_L2, "~Resource() %s %p\n", m_prefix, this);
+}
+
 const char *Resource::prefix() const
 {
     return m_prefix;
@@ -557,7 +557,7 @@ ResourceItem *Resource::addItem(ApiDataType type, const char *suffix)
         {
             if (i->suffix == suffix && i->type == type)
             {
-                m_rItems.emplace_back(ResourceItem(*i));
+                m_rItems.emplace_back(*i);
                 return &m_rItems.back();
             }
         }

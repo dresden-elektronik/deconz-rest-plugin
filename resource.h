@@ -196,6 +196,7 @@ class Resource
 {
 public:
     Resource(const char *prefix);
+    ~Resource();
     const char *prefix() const;
     ResourceItem *addItem(ApiDataType type, const char *suffix);
     void removeItem(const char *suffix);
