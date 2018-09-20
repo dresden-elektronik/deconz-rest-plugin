@@ -3403,8 +3403,6 @@ void DeRestPluginPrivate::saveDb()
     char *errmsg;
     QElapsedTimer measTimer;
 
-    DBG_Printf(DBG_INFO_L2, "gwWifiName = %s, gwWifiType = %s, gwWifiPw = %s\n", qPrintable(gwWifiName), qPrintable(gwWifiType), qPrintable(gwWifiPw));
-
     measTimer.start();
 
     // check if former transaction was committed
@@ -3554,8 +3552,6 @@ void DeRestPluginPrivate::saveDb()
         gwConfig["proxyaddress"] = gwProxyAddress;
         gwConfig["proxyport"] = gwProxyPort;
         gwConfig["zclvaluemaxage"] = dbZclValueMaxAge;
-
-        DBG_Printf(DBG_INFO_L2, "gwWifiName = %s, gwWifiType = %s, gwWifiPw = %s\n", qPrintable(gwWifiName), qPrintable(gwWifiType), qPrintable(gwWifiPw));
 
         QVariantMap::iterator i = gwConfig.begin();
         QVariantMap::iterator end = gwConfig.end();
