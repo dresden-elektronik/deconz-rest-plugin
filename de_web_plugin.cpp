@@ -12052,7 +12052,7 @@ void DeRestPlugin::idleTimerFired()
 
         if (d->idleUpdateZigBeeConf < d->idleTotalCounter)
         {
-            d->idleUpdateZigBeeConf = d->idleTotalCounter += CHECK_ZB_GOOD_INTERVAL;
+            d->idleUpdateZigBeeConf = d->idleTotalCounter + CHECK_ZB_GOOD_INTERVAL;
             d->updateZigBeeConfigDb();
         }
 
