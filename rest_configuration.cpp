@@ -2289,6 +2289,7 @@ int DeRestPluginPrivate::getWifiState(const ApiRequest &req, ApiResponse &rsp)
     rsp.map["lastupdated"] = gwWifiLastUpdated;
     rsp.map["eth0"] = gwWifiEth0;
     rsp.map["wlan0"] = gwWifiWlan0;
+    rsp.map["active"] = gwWifiActive;
 
     rsp.httpStatus = HttpStatusOk;
 
@@ -2534,6 +2535,16 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
         if (gwWifiMgmt != mgmt)
         {
             gwWifiMgmt = mgmt;
+
+            if (gwWifiMgmt & WIFI_MGMT_ACTIVE)
+            {
+                gwWifiActive = QLatin1String("active");
+            }
+            else
+            {
+                gwWifiActive = QLatin1String("inactive");
+            }
+
             updateEtag(gwConfigEtag);
         }
 
@@ -2546,41 +2557,47 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
         if (gwWifiState == WifiStateInitMgmt)
         {
             gwWifiState = WifiStateIdle;
-            updateEtag(gwConfigEtag);
 
             if (type == QLatin1String("accesspoint") && !ssid.isEmpty())
             {
-                if (gwWifi == QLatin1String("configured"))
+                if (gwWifi != QLatin1String("not-configured") && (gwWifiMgmt & WIFI_MGTM_HOSTAPD) == 0)
                 {
-                    if ((gwWifiMgmt & WIFI_MGTM_HOSTAPD) == 0)
-                    {
-                        gwWifi = QLatin1String("not-configured"); // not configured by deCONZ
-                    }
+                    gwWifi = QLatin1String("not-configured"); // not configured by deCONZ
                 }
 
                 if (gwWifiMgmt & WIFI_MGMT_ACTIVE)
                 {
-                    gwWifiType = QLatin1String("accesspoint");
+                    gwWifiActive = QLatin1String("active");
+                }
+                else
+                {
+                    gwWifiActive = QLatin1String("inactive");
                 }
                 gwWifiName = ssid;
+                gwWifiType = type;
             }
 
             if (type == QLatin1String("client") && !ssid.isEmpty())
             {
-                if (gwWifi == QLatin1String("configured"))
+                if (gwWifi != QLatin1String("not-configured") && (gwWifiMgmt & WIFI_MGTM_WPA_SUPPLICANT) == 0)
                 {
-                    if ((gwWifiMgmt & WIFI_MGTM_WPA_SUPPLICANT) == 0)
-                    {
-                        gwWifi = QLatin1String("not-configured"); // not configured by deCONZ
-                    }
+                    gwWifi = QLatin1String("not-configured"); // not configured by deCONZ
                 }
 
                 if (gwWifiMgmt & WIFI_MGMT_ACTIVE)
                 {
-                    gwWifiType = QLatin1String("client");
+                    gwWifiActive = QLatin1String("active");
                 }
+                else
+                {
+                    gwWifiActive = QLatin1String("inactive");
+                }
+                gwWifiName = ssid;
                 gwWifiClientName = ssid;
+                gwWifiType = type;
             }
+
+            updateEtag(gwConfigEtag);
         }
     }
     else if (status == QLatin1String("current-config"))
@@ -2611,41 +2628,32 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
             updateEtag(gwConfigEtag);
         }
     }
-    else if (status == QLatin1String("ap-alive"))
-    {
-        if (gwWifi != QLatin1String("configured"))
-        {
-            gwWifi = QLatin1String("configured");
-            updateEtag(gwConfigEtag);
-        }
 
-        if (map.contains("type"))
-        {
-            QString type = map["type"].toString();
-            if (!type.isEmpty() && type != gwWifiType)
-            {
-                gwWifiType = type;
-                updateEtag(gwConfigEtag);
-            }
-        }
-    }
     else if (status == QLatin1String("got-ip"))
     {
         QString ip = map["ipv4"].toString();
 
         if (!ip.isEmpty() && gwWifiIp != ip)
         {
+            if (gwWifiActive != QLatin1String("active"))
+            {
+                gwWifiActive = QLatin1String("active");
+            }
+
             gwWifiIp = ip;
             updateEtag(gwConfigEtag);
         }
-    }
-    else if (status == QLatin1String("got-ip-wlan0"))
-    {
-        QString ip = map["ipv4"].toString();
 
         if (gwWifiWlan0 != ip)
         {
-            gwWifiWlan0 = ip;
+            if (ip.isEmpty())
+            {
+                gwWifiWlan0 = QString();
+            }
+            else
+            {
+                gwWifiWlan0 = ip;
+            }
             updateEtag(gwConfigEtag);
         }
     }
@@ -2655,58 +2663,160 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
 
         if (gwWifiEth0 != ip)
         {
-            gwWifiEth0 = ip;
+            if (ip.isEmpty())
+            {
+                gwWifiEth0 = QString();
+            }
+            else
+            {
+                gwWifiEth0 = ip;
+            }
             updateEtag(gwConfigEtag);
         }
     }
     else if (status == QLatin1String("ap-connecting") && gwWifiStateString != QLatin1String("ap-connecting"))
     {
         gwWifiStateString = QLatin1String("ap-connecting");
+
+        if (gwWifiType != QLatin1String("accesspoint"))
+        {
+            gwWifiType = QLatin1String("accesspoint");
+        }
+
         updateEtag(gwConfigEtag);
     }
     else if (status == QLatin1String("client-connecting") && gwWifiStateString != QLatin1String("client-connecting"))
     {
         gwWifiStateString = QLatin1String("client-connecting");
+
+        if (gwWifiType != QLatin1String("client"))
+        {
+            gwWifiType = QLatin1String("client");
+        }
+
         updateEtag(gwConfigEtag);
     }
     else if (status == QLatin1String("ap-configured") && gwWifiStateString != QLatin1String("ap-configured"))
     {
         gwWifiStateString = QLatin1String("ap-configured");
+
+        if (gwWifi != QLatin1String("configured"))
+        {
+            gwWifi = QLatin1String("configured");
+        }
+
+        if (gwWifiType != QLatin1String("accesspoint"))
+        {
+            gwWifiType = QLatin1String("accesspoint");
+        }
+
+        if (gwWifiActive != QLatin1String("active"))
+        {
+            gwWifiActive = QLatin1String("active");
+        }
+
         updateEtag(gwConfigEtag);
     }
     else if (status == QLatin1String("client-configured") && gwWifiStateString != QLatin1String("client-configured"))
     {
         gwWifiStateString = QLatin1String("client-configured");
+
+        if (gwWifi != QLatin1String("configured"))
+        {
+            gwWifi = QLatin1String("configured");
+        }
+
+        if (gwWifiType != QLatin1String("client"))
+        {
+            gwWifiType = QLatin1String("client");
+        }
+
+        if (gwWifiActive != QLatin1String("active"))
+        {
+            gwWifiActive = QLatin1String("active");
+        }
+
         updateEtag(gwConfigEtag);
     }
     else if (status == QLatin1String("ap-connect-fail") && gwWifiStateString != QLatin1String("ap-connect-fail"))
     {
         gwWifiStateString = QLatin1String("ap-connect-fail");
+
+        if (gwWifiType != QLatin1String("accesspoint"))
+        {
+            gwWifiType = QLatin1String("accesspoint");
+        }
+
+        if (gwWifiActive != QLatin1String("inactive"))
+        {
+            gwWifiActive = QLatin1String("inactive");
+        }
+
         updateEtag(gwConfigEtag);
     }
     else if (status == QLatin1String("client-connect-fail") && gwWifiStateString != QLatin1String("client-connect-fail"))
     {
         gwWifiStateString = QLatin1String("client-connect-fail");
+
+        if (gwWifiType != QLatin1String("client"))
+        {
+            gwWifiType = QLatin1String("client");
+        }
+
+        if (gwWifiActive != QLatin1String("inactive"))
+        {
+            gwWifiActive = QLatin1String("inactive");
+        }
+
         updateEtag(gwConfigEtag);
     }
     else if (status == QLatin1String("check-ap") && gwWifiStateString != QLatin1String("check-ap"))
     {
         gwWifiStateString = QLatin1String("check-ap");
+
+        if (gwWifiType != QLatin1String("accesspoint"))
+        {
+            gwWifiType = QLatin1String("accesspoint");
+        }
+
         updateEtag(gwConfigEtag);
     }
     else if (status == QLatin1String("check-client") && gwWifiStateString != QLatin1String("check-client"))
     {
         gwWifiStateString = QLatin1String("check-client");
+
+        if (gwWifiType != QLatin1String("client"))
+        {
+            gwWifiType = QLatin1String("client");
+        }
+
         updateEtag(gwConfigEtag);
     }
     else if (status == QLatin1String("not-configured") && gwWifiStateString != QLatin1String("not-configured"))
     {
         gwWifiStateString = QLatin1String("not-configured");
+
+        if (gwWifi != QLatin1String("not-configured"))
+        {
+            gwWifi = QLatin1String("not-configured");
+        }
+
         updateEtag(gwConfigEtag);
     }
     else if (status == QLatin1String("deactivated") && gwWifiStateString != QLatin1String("deactivated"))
     {
         gwWifiStateString = QLatin1String("deactivated");
+
+        if (gwWifi != QLatin1String("deactivated"))
+        {
+            gwWifi = QLatin1String("deactivated");
+        }
+
+        if (gwWifiActive != QLatin1String("inactive"))
+        {
+            gwWifiActive = QLatin1String("inactive");
+        }
+
         updateEtag(gwConfigEtag);
     }
     else if (status == QLatin1String("check-config") && gwWifiStateString != QLatin1String("check-config"))

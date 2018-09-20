@@ -1206,6 +1206,7 @@ public:
     int gwPermitJoinResend; // permit join of values > 255
     uint16_t gwNetworkOpenDuration; // user setting how long network remains open
     QString gwWifi;     // configured | not-configured | not-available | new-configured | deactivated
+    QString gwWifiActive;
     uint gwWifiLastUpdated;
     QString gwWifiEth0;
     QString gwWifiWlan0;
