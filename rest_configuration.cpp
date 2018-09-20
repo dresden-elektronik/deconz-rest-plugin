@@ -2573,8 +2573,8 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
                 {
                     gwWifiActive = QLatin1String("inactive");
                 }
-                gwWifiName = ssid;
-                gwWifiType = type;
+                gwWifiWorkingName = ssid;
+                gwWifiWorkingType = type;
             }
 
             if (type == QLatin1String("client") && !ssid.isEmpty())
@@ -2592,9 +2592,9 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
                 {
                     gwWifiActive = QLatin1String("inactive");
                 }
-                gwWifiName = ssid;
+                gwWifiWorkingName = ssid;
                 gwWifiClientName = ssid;
-                gwWifiType = type;
+                gwWifiWorkingType = type;
             }
 
             updateEtag(gwConfigEtag);
@@ -2610,22 +2610,29 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
         if (map.contains("workingname")) { workingname = map["workingname"].toString(); }
         if (map.contains("workingpw")) { workingpw = map["workingpw"].toString(); }
 
+        bool changed = false;
         if (gwWifiWorkingType != workingtype)
         {
             gwWifiWorkingType = workingtype;
-            updateEtag(gwConfigEtag);
+            changed = true;
         }
 
         if (gwWifiWorkingName != workingname)
         {
             gwWifiWorkingName = workingname;
-            updateEtag(gwConfigEtag);
+            changed = true;
         }
 
         if (gwWifiWorkingPw != workingpw)
         {
             gwWifiWorkingPw = workingpw;
+            changed = true;
+        }
+
+        if (changed)
+        {
             updateEtag(gwConfigEtag);
+            queSaveDb(DB_CONFIG | DB_SYNC, DB_SHORT_SAVE_DELAY);
         }
     }
 
@@ -2678,73 +2685,81 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
     {
         gwWifiStateString = QLatin1String("ap-connecting");
 
-        if (gwWifiType != QLatin1String("accesspoint"))
-        {
-            gwWifiType = QLatin1String("accesspoint");
-        }
-
         updateEtag(gwConfigEtag);
     }
     else if (status == QLatin1String("client-connecting") && gwWifiStateString != QLatin1String("client-connecting"))
     {
         gwWifiStateString = QLatin1String("client-connecting");
 
-        if (gwWifiType != QLatin1String("client"))
-        {
-            gwWifiType = QLatin1String("client");
-        }
-
         updateEtag(gwConfigEtag);
     }
     else if (status == QLatin1String("ap-configured") && gwWifiStateString != QLatin1String("ap-configured"))
     {
+        bool changed = false;
         gwWifiStateString = QLatin1String("ap-configured");
 
         if (gwWifi != QLatin1String("configured"))
         {
             gwWifi = QLatin1String("configured");
+            changed = true;
         }
 
-        if (gwWifiType != QLatin1String("accesspoint"))
+        if (gwWifiWorkingType != QLatin1String("accesspoint"))
         {
-            gwWifiType = QLatin1String("accesspoint");
+            gwWifiWorkingType = QLatin1String("accesspoint");
+            changed = true;
         }
 
         if (gwWifiActive != QLatin1String("active"))
         {
             gwWifiActive = QLatin1String("active");
+            changed = true;
         }
 
         updateEtag(gwConfigEtag);
+
+        if (changed)
+        {
+            queSaveDb(DB_CONFIG | DB_SYNC, DB_SHORT_SAVE_DELAY);
+        }
     }
     else if (status == QLatin1String("client-configured") && gwWifiStateString != QLatin1String("client-configured"))
     {
+        bool changed = false;
         gwWifiStateString = QLatin1String("client-configured");
 
         if (gwWifi != QLatin1String("configured"))
         {
             gwWifi = QLatin1String("configured");
+            changed = true;
         }
 
-        if (gwWifiType != QLatin1String("client"))
+        if (gwWifiWorkingType != QLatin1String("client"))
         {
-            gwWifiType = QLatin1String("client");
+            gwWifiWorkingType = QLatin1String("client");
+            changed = true;
         }
 
         if (gwWifiActive != QLatin1String("active"))
         {
             gwWifiActive = QLatin1String("active");
+            changed = true;
         }
 
         updateEtag(gwConfigEtag);
+
+        if (changed)
+        {
+            queSaveDb(DB_CONFIG | DB_SYNC, DB_SHORT_SAVE_DELAY);
+        }
     }
     else if (status == QLatin1String("ap-connect-fail") && gwWifiStateString != QLatin1String("ap-connect-fail"))
     {
         gwWifiStateString = QLatin1String("ap-connect-fail");
 
-        if (gwWifiType != QLatin1String("accesspoint"))
+        if (gwWifiWorkingType != QLatin1String("accesspoint"))
         {
-            gwWifiType = QLatin1String("accesspoint");
+            gwWifiWorkingType = QLatin1String("accesspoint");
         }
 
         if (gwWifiActive != QLatin1String("inactive"))
@@ -2758,9 +2773,9 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
     {
         gwWifiStateString = QLatin1String("client-connect-fail");
 
-        if (gwWifiType != QLatin1String("client"))
+        if (gwWifiWorkingType != QLatin1String("client"))
         {
-            gwWifiType = QLatin1String("client");
+            gwWifiWorkingType = QLatin1String("client");
         }
 
         if (gwWifiActive != QLatin1String("inactive"))
@@ -2774,9 +2789,9 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
     {
         gwWifiStateString = QLatin1String("check-ap");
 
-        if (gwWifiType != QLatin1String("accesspoint"))
+        if (gwWifiWorkingType != QLatin1String("accesspoint"))
         {
-            gwWifiType = QLatin1String("accesspoint");
+            gwWifiWorkingType = QLatin1String("accesspoint");
         }
 
         updateEtag(gwConfigEtag);
@@ -2785,9 +2800,9 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
     {
         gwWifiStateString = QLatin1String("check-client");
 
-        if (gwWifiType != QLatin1String("client"))
+        if (gwWifiWorkingType != QLatin1String("client"))
         {
-            gwWifiType = QLatin1String("client");
+            gwWifiWorkingType = QLatin1String("client");
         }
 
         updateEtag(gwConfigEtag);
