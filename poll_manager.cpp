@@ -29,7 +29,7 @@ PollManager::PollManager(QObject *parent) :
 void PollManager::poll(RestNodeBase *restNode, const QDateTime &tStart)
 {
     Resource *r = dynamic_cast<Resource*>(restNode);
-    DBG_Assert(r != 0);
+    DBG_Assert(r);
     if (!r || !restNode->node())
     {
         return;
@@ -42,20 +42,20 @@ void PollManager::poll(RestNodeBase *restNode, const QDateTime &tStart)
         return;
     }
 
-    LightNode *lightNode = 0;
-    Sensor *sensor = 0;
+    LightNode *lightNode = nullptr;
+    Sensor *sensor = nullptr;
 
     if (r->prefix() == RLights)
     {
         lightNode = static_cast<LightNode*>(restNode);
-        DBG_Assert(lightNode != 0);
+        DBG_Assert(lightNode);
         pitem.endpoint = lightNode->haEndpoint().endpoint();
         DBG_Printf(DBG_INFO_L2, ">>>> Poll light node %s\n", qPrintable(lightNode->name()));
     }
     else if (r->prefix() == RSensors)
     {
         sensor = static_cast<Sensor*>(restNode);
-        DBG_Assert(sensor != 0);
+        DBG_Assert(sensor);
         pitem.endpoint = sensor->fingerPrint().endpoint;
         DBG_Printf(DBG_INFO_L2, ">>>> Poll %s sensor node %s\n", qPrintable(sensor->type()), qPrintable(sensor->name()));
     }
@@ -72,7 +72,7 @@ void PollManager::poll(RestNodeBase *restNode, const QDateTime &tStart)
     for (int i = 0; i < r->itemCount(); i++)
     {
         const ResourceItem *item = r->itemForIndex(i);
-        const char *suffix = item ? item->descriptor().suffix : 0;
+        const char *suffix = item ? item->descriptor().suffix : nullptr;
 
         if (suffix == RStateOn ||
             suffix == RStateBri ||
@@ -170,9 +170,9 @@ void PollManager::pollTimerFired()
     QDateTime now = QDateTime::currentDateTime();
     PollItem &pitem = items.front();
     Resource *r = plugin->getResource(pitem.prefix, pitem.id);
-    ResourceItem *item = 0;
-    RestNodeBase *restNode = 0;
-    const LightNode *lightNode = 0;
+    ResourceItem *item = nullptr;
+    RestNodeBase *restNode = nullptr;
+    const LightNode *lightNode = nullptr;
     if (r && r->prefix() == RLights)
     {
         restNode = plugin->getLightNodeForId(pitem.id);
@@ -215,12 +215,12 @@ void PollManager::pollTimerFired()
     bool isOn = item ? item->toBool() : false;
     const char *&suffix = pitem.items[0];
 
-    for (size_t i = 0; pitem.items[0] == 0 && i < pitem.items.size(); i++)
+    for (size_t i = 0; pitem.items[0] == nullptr && i < pitem.items.size(); i++)
     {
-        if (pitem.items[i] != 0)
+        if (pitem.items[i] != nullptr)
         {
             pitem.items[0] = pitem.items[i]; // move to front
-            pitem.items[i] = 0; // clear
+            pitem.items[i] = nullptr; // clear
             break;
         }
     }
@@ -377,7 +377,7 @@ void PollManager::pollTimerFired()
     if (clusterId != 0xffff && fresh > 0 && fresh == attributes.size())
     {
         DBG_Printf(DBG_INFO, "Poll APS request to 0x%016llX cluster: 0x%04X dropped, values are fresh enough\n", pitem.address.ext(), clusterId);
-        suffix = 0; // clear
+        suffix = nullptr; // clear
         timer->start(100);
     }
     else if (!attributes.empty() && clusterId != 0xffff &&
@@ -389,12 +389,12 @@ void PollManager::pollTimerFired()
         apsReqId = plugin->tasks.back().req.id();
         dstAddr = pitem.address;
         timer->start(20 * 1000); // wait for confirm
-        suffix = 0; // clear
+        suffix = nullptr; // clear
         DBG_Printf(DBG_INFO_L2, "Poll APS request %u to 0x%016llX cluster: 0x%04X\n", apsReqId, dstAddr.ext(), clusterId);
     }
     else if (suffix)
     {
-        suffix = 0; // clear
+        suffix = nullptr; // clear
         timer->start(100);
     }
     else
