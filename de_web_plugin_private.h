@@ -883,7 +883,7 @@ public Q_SLOTS:
     bool sendConfigureReportingRequest(BindingTask &bt, const std::vector<ConfigureReportingRequest> &requests);
     bool sendConfigureReportingRequest(BindingTask &bt);
     void checkLightBindingsForAttributeReporting(LightNode *lightNode);
-    void checkSensorBindingsForAttributeReporting(Sensor *sensor);
+    bool checkSensorBindingsForAttributeReporting(Sensor *sensor);
     void checkSensorBindingsForClientClusters(Sensor *sensor);
     void checkSensorGroup(Sensor *sensor);
     void checkOldSensorGroups(Sensor *sensor);
@@ -898,7 +898,7 @@ public Q_SLOTS:
     void fastRuleCheckTimerFired();
     void daylightTimerFired();
     void handleRuleEvent(const Event &e);
-    void queueBindingTask(const BindingTask &bindingTask);
+    bool queueBindingTask(const BindingTask &bindingTask);
     void restartAppTimerFired();
     void pollSwUpdateStateTimerFired();
     void pollDatabaseWifiTimerFired();
@@ -955,7 +955,7 @@ public Q_SLOTS:
     void startSearchSensors();
     void searchSensorsTimerFired();
     void checkInstaModelId(Sensor *sensor);
-    void delayedFastEnddeviceProbe();
+    void delayedFastEnddeviceProbe(const deCONZ::NodeEvent *event = nullptr);
     void checkSensorStateTimerFired();
 
     // events
@@ -989,6 +989,7 @@ public:
     void generateGatewayUuid();
     void updateEtag(QString &etag);
     qint64 getUptime();
+    void handleMacDataRequest(const deCONZ::NodeEvent &event);
     void addLightNode(const deCONZ::Node *node);
     void updatedLightNodeEndpoint(const deCONZ::NodeEvent &event);
     void nodeZombieStateChanged(const deCONZ::Node *node);

@@ -67,7 +67,7 @@ public:
     quint8 zdpSeqNum;
     int timeout; // seconds
     int retries;
-    RestNodeBase *restNode;
+    RestNodeBase *restNode; // TODO refactor, this can become dangling pointer after each nodes, sensors .push_back()
 
     Binding binding;
 };

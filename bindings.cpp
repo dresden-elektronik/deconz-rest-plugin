@@ -483,6 +483,8 @@ void DeRestPluginPrivate::handleZclConfigureReportingResponseIndication(const de
             }
         }
     }
+
+    bindingTimer->start(0); // fast process of next request
 }
 
 /*! Handle bind/unbind response.
@@ -513,7 +515,10 @@ void DeRestPluginPrivate::handleBindAndUnbindRspIndication(const deCONZ::ApsData
                 DBG_Printf(DBG_INFO, "%s response success\n", what);
                 if (ind.clusterId() == ZDP_BIND_RSP_CLID)
                 {
-                    sendConfigureReportingRequest(*i);
+                    if (sendConfigureReportingRequest(*i))
+                    {
+                        return;
+                    }
                 }
             }
             else
@@ -522,9 +527,11 @@ void DeRestPluginPrivate::handleBindAndUnbindRspIndication(const deCONZ::ApsData
             }
 
             i->state = BindingTask::StateFinished;
-            return;
+            break;
         }
     }
+
+    bindingTimer->start(0); // fast process of next binding requests
 }
 
 /*! Sends a ZDP bind request.
@@ -532,11 +539,37 @@ void DeRestPluginPrivate::handleBindAndUnbindRspIndication(const deCONZ::ApsData
  */
 bool DeRestPluginPrivate::sendBindRequest(BindingTask &bt)
 {
-    DBG_Assert(apsCtrl != 0);
+    DBG_Assert(apsCtrl != nullptr);
 
     if (!apsCtrl)
     {
         return false;
+    }
+
+    for (auto &s : sensors)
+    {
+        if (s.address().ext() != bt.binding.srcAddress)
+        {
+            continue;
+        }
+
+        if (!s.node() || s.node()->nodeDescriptor().isNull())
+        {
+            return false; // needs to be known
+        }
+
+        if (s.node()->nodeDescriptor().receiverOnWhenIdle())
+        {
+            break; // ok
+        }
+
+        const QDateTime now = QDateTime::currentDateTime();
+        if (s.lastRx().secsTo(now) > 2)
+        {
+            return false;
+        }
+
+        break; // ok
     }
 
     Binding &bnd = bt.binding;
@@ -1284,18 +1317,25 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
 }
 
 
-/*! Creates binding for attribute reporting to gateway node. */
-void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *sensor)
+/*! Creates binding for attribute reporting to gateway node.
+    \return true - when a binding request got queued.
+ */
+bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *sensor)
 {
     if (!apsCtrl || !sensor || !sensor->address().hasExt() || !sensor->node() || !sensor->toBool(RConfigReachable))
     {
-        return;
+        return false;
     }
 
     if (searchSensorsState != SearchSensorsActive &&
-        idleTotalCounter < (IDLE_READ_LIMIT + 120)) // wait for some input before fire bindings
+        idleTotalCounter < (IDLE_READ_LIMIT + (60 * 15))) // wait for some input before fire bindings
     {
-        return;
+        return false;
+    }
+
+    if (sensor->node()->nodeDescriptor().isNull())
+    {
+        return false;
     }
 
     bool deviceSupported = false;
@@ -1345,7 +1385,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
     if (!deviceSupported)
     {
         DBG_Printf(DBG_INFO_L2, "don't create binding for attribute reporting of sensor %s\n", qPrintable(sensor->name()));
-        return;
+        return false;
     }
 
     // prevent binding action if otau was busy recently
@@ -1354,7 +1394,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         if (sensor->modelId().startsWith(QLatin1String("FLS-")))
         {
             DBG_Printf(DBG_INFO_L2, "don't check binding for attribute reporting of %s (otau busy)\n", qPrintable(sensor->name()));
-            return;
+            return false;
         }
     }
 
@@ -1373,6 +1413,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         }
     }
 
+    bool ret = false;
     bool checkBindingTable = false;
     QDateTime now = QDateTime::currentDateTime();
     std::vector<quint16>::const_iterator i = sensor->fingerPrint().inClusters.begin();
@@ -1424,6 +1465,12 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             {
                 continue;
             }
+
+            // assume reporting is working
+            if (val.isValid() && val.timestamp.isValid() && val.timestamp.secsTo(now) < (val.maxInterval * 3 / 2))
+            {
+                continue;
+            }
         }
         else if (*i == IAS_ZONE_CLUSTER_ID)
         {
@@ -1468,7 +1515,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             val = sensor->getZclValue(*i, 0x0055); // Present value
         }
 
-        quint16 maxInterval = (val.maxInterval > 0) ? (val.maxInterval * 1.5) : (60 * 45);
+        quint16 maxInterval = (val.maxInterval > 0) ? (val.maxInterval * 3 / 2) : (60 * 45);
 
         if (val.timestampLastReport.isValid() &&
             val.timestampLastReport.secsTo(now) < maxInterval) // got update in timely manner
@@ -1480,7 +1527,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() && sensor->lastRx().secsTo(now) > 3)
         {
             DBG_Printf(DBG_INFO, "skip binding for attribute reporting of cluster 0x%04X (end-device might sleep)\n", (*i));
-            return;
+            return false;
         }
 
         quint8 srcEndpoint = sensor->fingerPrint().endpoint;
@@ -1545,7 +1592,7 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
 
             if (bnd.dstEndpoint > 0) // valid gateway endpoint?
             {
-                queueBindingTask(bindingTask);
+                ret = queueBindingTask(bindingTask);
             }
         }
             break;
@@ -1564,10 +1611,17 @@ void DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         q->startZclAttributeTimer(1000);
     }
 
-    if (!bindingTimer->isActive())
+    if (ret)
     {
-        bindingTimer->start();
+        // fast iteration
+        bindingTimer->start(0);
     }
+    else if (!bindingTimer->isActive())
+    {
+        bindingTimer->start(1000);
+    }
+
+    return ret;
 }
 
 /*! Creates binding for group control (switches, motion sensor, ...). */
@@ -1579,7 +1633,7 @@ void DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     }
 
     if (searchSensorsState != SearchSensorsActive &&
-        idleTotalCounter < (IDLE_READ_LIMIT + 60)) // wait for some input before fire bindings
+        idleTotalCounter < (60 * 15)) // wait for some input before fire bindings
     {
         return;
     }
@@ -2181,6 +2235,11 @@ void DeRestPluginPrivate::bindingTimerFired()
             else if (sendBindRequest(*i))
             {
                 i->state = BindingTask::StateInProgress;
+                break;
+            }
+            else if (i->retries < 5)
+            {
+                i->retries++;
             }
             else
             {
@@ -2279,7 +2338,7 @@ void DeRestPluginPrivate::bindingTimerFired()
 
     if (!bindingQueue.empty())
     {
-        bindingTimer->start();
+        bindingTimer->start(1000);
     }
 }
 

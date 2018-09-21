@@ -990,6 +990,7 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             DBG_Printf(DBG_INFO, "SensorNode %u: %s added\n", sensorNode.id().toUInt(), qPrintable(sensorNode.name()));
             updateSensorEtag(&sensorNode);
 
+            bindingQueue.clear(); // TODO workaround to prevent dangling pointers
             sensorNode.setNeedSaveDatabase(true);
             sensors.push_back(sensorNode);
 
@@ -1091,6 +1092,43 @@ qint64 DeRestPluginPrivate::getUptime()
     }
 
     return 0;
+}
+
+/*! Child end-device polled for data.
+    \param event - the related node event
+ */
+void DeRestPluginPrivate::handleMacDataRequest(const deCONZ::NodeEvent &event)
+{
+    DBG_Assert(event.node());
+    if (!event.node())
+    {
+        return;
+    }
+
+    for (auto &s : sensors)
+    {
+        if (s.address().ext() != event.node()->address().ext())
+        {
+            continue;
+        }
+
+        s.rx();
+        checkSensorNodeReachable(&s, &event);
+        //checkSensorBindingsForAttributeReporting(&s);
+        if (searchSensorsState == SearchSensorsActive && fastProbeAddr.ext() == s.address().ext())
+        {
+            delayedFastEnddeviceProbe(&event);
+            checkSensorBindingsForClientClusters(&s);
+        }
+
+        if (s.lastAttributeReportBind() < (idleTotalCounter - IDLE_ATTR_REPORT_BIND_LIMIT))
+        {
+            if (checkSensorBindingsForAttributeReporting(&s))
+            {
+                s.setLastAttributeReportBind(idleTotalCounter);
+            }
+        }
+    }
 }
 
 /*! Adds new node(s) to node cache.
@@ -1452,7 +1490,8 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
         DBG_Printf(DBG_INFO, "LightNode %u: %s added\n", lightNode.id().toUInt(), qPrintable(lightNode.name()));
 
-        //nodes.push_back(std::move(lightNode));
+        bindingQueue.clear(); // TODO workaround to prevent dangling pointers
+
         nodes.push_back(lightNode);
         lightNode2 = &nodes.back();
         queuePollNode(lightNode2);
@@ -2359,7 +2398,7 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor, const deCONZ:
                 queryTime = queryTime.addSecs(5);
             }
             //sensor->setLastRead(READ_BINDING_TABLE, idleTotalCounter);
-            checkSensorBindingsForAttributeReporting(sensor);
+            //checkSensorBindingsForAttributeReporting(sensor);
 
             updated = true;
 /*
@@ -4090,6 +4129,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else
     {
         DBG_Printf(DBG_INFO, "SensorNode %s: %s added\n", qPrintable(sensorNode.id()), qPrintable(sensorNode.name()));
+        bindingQueue.clear(); // TODO workaround to prevent dangling pointers
         sensors.push_back(sensorNode);
         sensor2 = &sensors.back();
         updateSensorEtag(sensor2);
@@ -8606,6 +8646,14 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
     }
         break;
 
+#if DECONZ_LIB_VERSION >= 0x010900
+    case deCONZ::NodeEvent::NodeMacDataRequest:
+    {
+        handleMacDataRequest(event);
+    }
+        break;
+#endif
+
     case deCONZ::NodeEvent::NodeZombieChanged:
     {
         DBG_Printf(DBG_INFO, "Node zombie state changed %s\n", qPrintable(event.node()->address().toStringExt()));
@@ -11133,7 +11181,7 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
 
 /*! Speed up discovery of end devices.
  */
-void DeRestPluginPrivate::delayedFastEnddeviceProbe()
+void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *event)
 {
     if (getUptime() < WARMUP_TIME && searchSensorsState != SearchSensorsActive)
     {
@@ -11158,6 +11206,18 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
     if (!sc)
     {
         return;
+    }
+
+#if DECONZ_LIB_VERSION >= 0x010900
+    // when macPoll = true core will handle ZDP descriptor queries
+    bool macPoll = event && event->event() == deCONZ::NodeEvent::NodeMacDataRequest;
+#else
+    bool macPoll = false;
+#endif
+
+    if (macPoll && fastProbeTimer->isActive())
+    {
+        fastProbeTimer->stop();
     }
 
     {
@@ -11191,7 +11251,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
             return;
         }
 
-        if (node->nodeDescriptor().isNull())
+        if (!macPoll && node->nodeDescriptor().isNull())
         {
             DBG_Printf(DBG_INFO, "[1] get node descriptor for 0x%016llx\n", sc->address.ext());
             deCONZ::ApsDataRequest apsReq;
@@ -11226,7 +11286,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
             sc->endpoints = node->endpoints();
         }
 
-        if (sc->endpoints.empty())
+        if (!macPoll && sc->endpoints.empty())
         {
             DBG_Printf(DBG_INFO, "[2] get active endpoints for 0x%016llx\n", sc->address.ext());
             deCONZ::ApsDataRequest apsReq;
@@ -11257,7 +11317,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
         }
 
         // simple descriptor for endpoint 0x01
-        if (node->simpleDescriptors().size() != (int)node->endpoints().size())
+        if (!macPoll && node->simpleDescriptors().size() != (int)node->endpoints().size())
         {
             quint8 ep = 0;
 
@@ -11629,6 +11689,14 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
                 {
                     queueBindingTask(bindingTask);
                 }
+            }
+        }
+
+        if (sensor->lastAttributeReportBind() < (idleTotalCounter - IDLE_ATTR_REPORT_BIND_LIMIT))
+        {
+            if (checkSensorBindingsForAttributeReporting(sensor))
+            {
+                sensor->setLastAttributeReportBind(idleTotalCounter);
             }
         }
     }

@@ -950,12 +950,13 @@ int DeRestPluginPrivate::deleteRule(const ApiRequest &req, ApiResponse &rsp)
 
 /*! Add a binding task to the queue and prevent double entries.
     \param bindingTask - the binding task
+    \return true - when enqueued
  */
-void DeRestPluginPrivate::queueBindingTask(const BindingTask &bindingTask)
+bool DeRestPluginPrivate::queueBindingTask(const BindingTask &bindingTask)
 {
     if (!apsCtrl || apsCtrl->networkState() != deCONZ::InNetwork)
     {
-        return;
+        return false;
     }
 
     const std::list<BindingTask>::const_iterator i = std::find(bindingQueue.begin(), bindingQueue.end(), bindingTask);
@@ -969,6 +970,8 @@ void DeRestPluginPrivate::queueBindingTask(const BindingTask &bindingTask)
     {
         DBG_Printf(DBG_INFO, "discard double entry in binding queue for for 0x%016llX, cluster 0x%04X\n", bindingTask.binding.srcAddress, bindingTask.binding.clusterId);
     }
+
+    return true;
 }
 
 /*! Starts verification that the ZigBee bindings of a rule are present
