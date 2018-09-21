@@ -997,6 +997,8 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             Event e(RSensors, REventAdded, sensorNode.id());
             enqueueEvent(e);
             queSaveDb(DB_SENSORS , DB_SHORT_SAVE_DELAY);
+
+            indexRulesTriggers();
         }
         else if (sensor && sensor->deletedState() == Sensor::StateDeleted)
         {
@@ -11588,10 +11590,6 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             {
                 addSensorNode(node);
             }
-            else
-            {
-                DBG_Printf(DBG_INFO, "[4] TODO unhandled, no attributes to fetch for 0x%016llX\n", sc->address.ext());
-            }
             return;
         }
 
@@ -11603,10 +11601,31 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         {
             // Stop the Hue dimmer from touchlinking when holding the On button.
             deCONZ::ZclAttribute attr(0x0031, deCONZ::Zcl16BitBitMap, "mode", deCONZ::ZclReadWrite, false);
-            attr.setBitmap((quint64) 0x000b);
-            if (writeAttribute(sensor, sensor->fingerPrint().endpoint, BASIC_CLUSTER_ID, attr, VENDOR_PHILIPS))
+            attr.setBitmap(0x000b);
+
+            NodeValue val = sensor->getZclValue(BASIC_CLUSTER_ID, 0x0031);
+
+            if (val.isValid()) // already done
+            {
+            }
+            else if (writeAttribute(sensor, sensor->fingerPrint().endpoint, BASIC_CLUSTER_ID, attr, VENDOR_PHILIPS))
             {
                 queryTime = queryTime.addSecs(1);
+
+                // mark done
+                deCONZ::NumericUnion touchLink;
+                touchLink.u64 = 0x000b;
+                sensor->setZclValue(NodeValue::UpdateByZclRead, BASIC_CLUSTER_ID, 0x0031, touchLink);
+                return;
+            }
+
+            val = sensor->getZclValue(VENDOR_CLUSTER_ID, 0x0000);
+            if (!val.isValid())
+            {
+                if (checkSensorBindingsForAttributeReporting(sensor))
+                {
+                    return;
+                }
             }
 
             ResourceItem *item = sensor->item(RConfigGroup);

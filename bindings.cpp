@@ -1155,6 +1155,18 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
         return sendConfigureReportingRequest(bt, {rq, rq2});
     }
+    else if (bt.binding.clusterId == VENDOR_CLUSTER_ID)
+    {
+        Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
+
+        if (sensor && sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
+        {
+            deCONZ::NumericUnion val;
+            val.u64 = 0;
+            // mark button event binding as resolved
+            sensor->setZclValue(NodeValue::UpdateByZclReport, VENDOR_CLUSTER_ID, 0x0000, val);
+        }
+    }
     return false;
 }
 
