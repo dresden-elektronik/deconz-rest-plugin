@@ -196,7 +196,7 @@ void initResourceDescriptors()
 const char *getResourcePrefix(const QString &str)
 {
     Q_UNUSED(str);
-    return 0;
+    return nullptr;
 }
 
 bool getResourceItemDescriptor(const QString &str, ResourceItemDescriptor &descr)
@@ -223,11 +223,10 @@ ResourceItem::ResourceItem(const ResourceItem &other)
 
 ResourceItem::~ResourceItem()
 {
-    DBG_Printf(DBG_INFO_L2, "~ResourceItem() %s -- str %p\n", m_rid.suffix, m_str);
     if (m_str)
     {
         delete m_str;
-        m_str = 0;
+        m_str = nullptr;
     }
 }
 
@@ -538,6 +537,12 @@ Resource::Resource(const char *prefix) :
 Resource::~Resource()
 {
     DBG_Printf(DBG_INFO_L2, "~Resource() %s %p\n", m_prefix, this);
+}
+
+Resource::Resource(const Resource &other)
+{
+    m_prefix = other.m_prefix;
+    m_rItems = other.m_rItems;
 }
 
 const char *Resource::prefix() const

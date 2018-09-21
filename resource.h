@@ -180,8 +180,7 @@ public:
     const std::vector<int> rulesInvolved() const;
 
 private:
-    ResourceItem() :
-        m_num(-1), m_str(0) {}
+    ResourceItem() = delete;
 
     qint64 m_num;
     qint64 m_numPrev;
@@ -197,6 +196,7 @@ class Resource
 public:
     Resource(const char *prefix);
     ~Resource();
+    Resource(const Resource &other);
     const char *prefix() const;
     ResourceItem *addItem(ApiDataType type, const char *suffix);
     void removeItem(const char *suffix);
@@ -210,7 +210,7 @@ public:
     const ResourceItem *itemForIndex(size_t idx) const;
 
 private:
-    Resource() {}
+    Resource() = delete;
     const char *m_prefix;
     std::vector<ResourceItem> m_rItems;
 };
