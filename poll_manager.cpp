@@ -81,7 +81,8 @@ void PollManager::poll(RestNodeBase *restNode, const QDateTime &tStart)
             (suffix == RStatePower && sensor && sensor->type() == QLatin1String("ZHAPower")) ||
             (suffix == RStatePresence && sensor && sensor->type() == QLatin1String("ZHAPresence")) ||
             (suffix == RStateLightLevel && sensor && sensor->type() == QLatin1String("ZHALightLevel")) ||
-            suffix == RAttrModelId)
+            suffix == RAttrModelId ||
+            suffix == RAttrSwVersion)
         {
             // DBG_Printf(DBG_INFO_L2, "    attribute %s\n", suffix);
             pitem.items.push_back(suffix);
@@ -360,6 +361,27 @@ void PollManager::pollTimerFired()
             clusterId = BASIC_CLUSTER_ID;
             //attributes.push_back(0x0004); // manufacturer
             attributes.push_back(0x0005); // model id
+        }
+    }
+    else if (suffix == RAttrSwVersion && lightNode)
+    {
+        item = r->item(RAttrSwVersion);
+        if (item && (item->toString().isEmpty() ||
+             (item->lastSet().secsTo(now) > READ_SWBUILD_ID_INTERVAL))) // dynamic
+        {
+            clusterId = BASIC_CLUSTER_ID;
+
+            if (lightNode->manufacturerCode() == VENDOR_UBISYS ||
+                lightNode->manufacturerCode() == VENDOR_EMBER ||
+                lightNode->manufacturerCode() == VENDOR_120B ||
+                lightNode->manufacturer().startsWith(QLatin1String("Climax")))
+            {
+                attributes.push_back(0x0006); // date code
+            }
+            else
+            {
+                attributes.push_back(0x4000); // sw build id
+            }
         }
     }
 

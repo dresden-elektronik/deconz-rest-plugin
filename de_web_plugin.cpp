@@ -2036,11 +2036,28 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             updated = true;
                         }
                     }
+                    else if (ia->id() == 0x0006) // Date code
+                    {
+                        QString str = ia->toString();
+                        ResourceItem *item = lightNode->item(RAttrSwVersion);
+
+                        if (item && !str.isEmpty() && str != item->toString())
+                        {
+                            item->setValue(str);
+                            lightNode->setSwBuildId(str);
+                            lightNode->setNeedSaveDatabase(true);
+                            queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
+                            updated = true;
+                        }
+                    }
                     else if (ia->id() == 0x4000) // Software build identifier
                     {
                         QString str = ia->toString();
-                        if (!str.isEmpty() && str != lightNode->swBuildId())
+                        ResourceItem *item = lightNode->item(RAttrSwVersion);
+
+                        if (item && !str.isEmpty() && str != item->toString())
                         {
+                            item->setValue(str);
                             lightNode->setSwBuildId(str);
                             lightNode->setNeedSaveDatabase(true);
                             queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
@@ -6126,24 +6143,6 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
                 lightNode->clearRead(READ_MODEL_ID);
                 processed++;
             }
-        }
-    }
-
-    if (lightNode->manufacturerCode() == VENDOR_UBISYS ||
-        lightNode->manufacturerCode() == VENDOR_EMBER ||
-        lightNode->manufacturerCode() == VENDOR_120B)
-    {
-        lightNode->clearRead(READ_SWBUILD_ID); // Ubisys and Heiman devices have empty sw build id
-    }
-    else if ((processed < 2) && lightNode->mustRead(READ_SWBUILD_ID) && tNow > lightNode->nextReadTime(READ_SWBUILD_ID))
-    {
-        std::vector<uint16_t> attributes;
-        attributes.push_back(0x4000); // Software build identifier
-
-        if (readAttributes(lightNode, lightNode->haEndpoint().endpoint(), BASIC_CLUSTER_ID, attributes))
-        {
-            lightNode->clearRead(READ_SWBUILD_ID);
-            processed++;
         }
     }
 
@@ -11313,6 +11312,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
         QString swBuildId;
         QString dateCode;
         quint16 iasZoneType = 0;
+        bool swBuildIdAvailable = false;
 
         if (sensor)
         {
@@ -11352,6 +11352,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
                         else if (attr.id() == 0x4000 && swBuildId.isEmpty())
                         {
                             swBuildId = attr.toString();
+                            swBuildIdAvailable = attr.isAvailable(); // might become false after first read
                         }
                         else
                         {
@@ -11473,9 +11474,11 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe()
             {
                 if ((sc->address.ext() & macPrefixMask) == tiMacPrefix ||
                     (sc->address.ext() & macPrefixMask) == ubisysMacPrefix ||
-                    modelId == QLatin1String("Motion Sensor-A")) // OSRAM motion sensor
+                    modelId == QLatin1String("Motion Sensor-A") || // OSRAM motion sensor
+                    manufacturer.startsWith(QLatin1String("Climax")) ||
+                    !swBuildIdAvailable)
                 {
-                    attributes.push_back(0x0006); // date code, sw build id isn't available
+                    attributes.push_back(0x0006); // date code
                 }
                 else
                 {

@@ -43,6 +43,7 @@ LightNode::LightNode() :
     addItem(DataTypeString, RAttrName);
     addItem(DataTypeString, RAttrModelId);
     addItem(DataTypeString, RAttrType);
+    addItem(DataTypeString, RAttrSwVersion);
 }
 
 /*! Returns the LightNode state.
