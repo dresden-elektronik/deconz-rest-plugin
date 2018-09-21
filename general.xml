@@ -162,6 +162,16 @@
 				<value name="General Software Fault" value="1"></value>
 			</attribute>
 		</attribute-set>
+		<attribute-set id="0x0030" description="Philips Specific" mfcode="0x100b">
+			<attribute id="0x0031" name="Configuration" type="bmp16" default="0" access="rw" required="o" mfcode="0x100b" description="TODO flags are only known for hue dimmer switch">
+				<value name="Touchlink enabled 0" value="0"></value>
+				<value name="Touchlink enabled 1" value="1"></value>
+				<value name="Touchlink enabled 2" value="3"></value>
+			</attribute>
+			<attribute id="0x0032" name="Usertest" type="bool" default="0" access="rw" required="o" mfcode="0x100b"></attribute>
+			<attribute id="0x0033" name="LED Indication" type="bool" default="0" access="rw" required="o" mfcode="0x100b"></attribute>
+		</attribute-set>
+
 		<command id="00" dir="recv" name="Reset to Factory Defaults" required="o"></command>
 		</server>
 		<client>
@@ -1788,6 +1798,10 @@ Data Request rate.</description>
 					<attribute id="0021" name="Ultrasonic Unoccupied To Occupied Delay" type="u8" range="0x00,0xfe" access="rw" required="o" default="0x00">
 						<description>The UltraSonicUnoccupiedToOccupiedTime attribute specifies the time delay, in seconds, before the ultrasonic sensor changes to its unoccupied state when the sensed area becomes occupied.</description>
 					</attribute>
+				</attribute-set>
+				<attribute-set id="0x0030" description="Philips Specific" mfcode="0x100b">
+					<attribute id="0x0030" name="Sensitivity" type="u8" default="0" access="rw" required="o" mfcode="0x100b"></attribute>
+					<attribute id="0x0031" name="Sensitivity max." type="u8" default="0" access="rw" required="o" mfcode="0x100b"></attribute>
 				</attribute-set>
 			</server>
 			<client>
