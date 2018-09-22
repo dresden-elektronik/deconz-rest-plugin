@@ -2253,6 +2253,17 @@ void DeRestPluginPrivate::checkRfConnectState()
             }
         }
 
+        const quint32 fwVersion = apsCtrl->getParameter(deCONZ::ParamFirmwareVersion);
+        QString str;
+        str.sprintf("0x%08x", fwVersion);
+
+        if (gwFirmwareVersion != str)
+        {
+            gwFirmwareVersion = str;
+            gwConfig["fwversion"] = str;
+            updateEtag(gwConfigEtag);
+        }
+
         // upgrade setting if needed
         if (!gwRfConnectedExpected && gwRfConnected)
         {
