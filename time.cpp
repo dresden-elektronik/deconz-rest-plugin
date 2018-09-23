@@ -81,10 +81,10 @@ void DeRestPluginPrivate::sendTimeClusterResponse(const deCONZ::ApsDataIndicatio
 
     QTimeZone timeZoneLocal(QTimeZone::systemTimeZoneId());
 
-    if (timeZoneLocal.operator == (QTimeZone("Etc/GMT")))
-    {
-    	timeZoneLocal = QTimeZone("Europe/Berlin");
-    }
+    // if (timeZoneLocal.operator == (QTimeZone("Etc/GMT")))
+    // {
+    // 	timeZoneLocal = QTimeZone("Europe/Berlin");
+    // }
 
     if (timeZoneLocal.hasTransitions())
     {
@@ -108,15 +108,15 @@ void DeRestPluginPrivate::sendTimeClusterResponse(const deCONZ::ApsDataIndicatio
     	time_valid_until_time = time_now + (3600 * 24 * 30 * 12);
     }
 
-    DBG_Printf(DBG_INFO, "Time_Cluster time_now       %s\n", local.toString(Qt::ISODate).toStdString().c_str());
-    DBG_Printf(DBG_INFO, "Time_Cluster time_local     %s\n", local.toTimeZone(timeZoneLocal).toString(Qt::ISODate).toStdString().c_str());
-    DBG_Printf(DBG_INFO, "Time_Cluster time_now       %ld \n", (long) time_now);
-    DBG_Printf(DBG_INFO, "Time_Cluster time_local     %ld \n", (long) time_local_time);
-    DBG_Printf(DBG_INFO, "Time_Cluster time_dst_start %s %ld\n", dststart.toUTC().toString(Qt::ISODate).toStdString().c_str(), (long) time_dst_start);
-    DBG_Printf(DBG_INFO, "Time_Cluster time_dst_end   %s %ld\n", dstend.toUTC().toString(Qt::ISODate).toStdString().c_str(), (long) time_dst_end);
-	DBG_Printf(DBG_INFO, "Time_Cluster time_dst_shift %d\n", (int) time_dst_shift);
-	DBG_Printf(DBG_INFO, "Time_Cluster time_zone      %d %s\n", (int) time_zone, timeZoneLocal.abbreviation(local).toStdString().c_str());
-    //DBG_Printf(DBG_INFO, "Time_Cluster systemTimeZone %s\n", QTimeZone::systemTimeZone().abbreviation(local).toStdString().c_str());
+    // DBG_Printf(DBG_INFO, "Time_Cluster time_now       %s\n", local.toString(Qt::ISODate).toStdString().c_str());
+    // DBG_Printf(DBG_INFO, "Time_Cluster time_local     %s\n", local.toTimeZone(timeZoneLocal).toString(Qt::ISODate).toStdString().c_str());
+    // DBG_Printf(DBG_INFO, "Time_Cluster time_now       %ld \n", (long) time_now);
+    // DBG_Printf(DBG_INFO, "Time_Cluster time_local     %ld \n", (long) time_local_time);
+    // DBG_Printf(DBG_INFO, "Time_Cluster time_dst_start %s %ld\n", dststart.toUTC().toString(Qt::ISODate).toStdString().c_str(), (long) time_dst_start);
+    // DBG_Printf(DBG_INFO, "Time_Cluster time_dst_end   %s %ld\n", dstend.toUTC().toString(Qt::ISODate).toStdString().c_str(), (long) time_dst_end);
+    // DBG_Printf(DBG_INFO, "Time_Cluster time_dst_shift %d\n", (int) time_dst_shift);
+    // DBG_Printf(DBG_INFO, "Time_Cluster time_zone      %d %s\n", (int) time_zone, timeZoneLocal.abbreviation(local).toStdString().c_str());
+    // DBG_Printf(DBG_INFO, "Time_Cluster systemTimeZone %s\n", QTimeZone::systemTimeZone().abbreviation(local).toStdString().c_str());
 
     { // payload
         QDataStream stream(&outZclFrame.payload(), QIODevice::WriteOnly);
@@ -131,10 +131,10 @@ void DeRestPluginPrivate::sendTimeClusterResponse(const deCONZ::ApsDataIndicatio
         {
         	instream >> attr;
         	stream << attr;
-        	DBG_Printf(DBG_INFO, "Time_Cluster received read request attribute 0x%04X from %s %s\n",
-        			(int) attr,
-					ind.srcAddress().toStringNwk().toUtf8().data(),
-					ind.srcAddress().toStringExt().toUtf8().data());
+        	// DBG_Printf(DBG_INFO, "Time_Cluster received read request attribute 0x%04X from %s %s\n",
+        	// 		(int) attr,
+					// ind.srcAddress().toStringNwk().toUtf8().data(),
+					// ind.srcAddress().toStringExt().toUtf8().data());
         	switch(attr)
         	{
         	case 0x0000:
@@ -187,13 +187,13 @@ void DeRestPluginPrivate::sendTimeClusterResponse(const deCONZ::ApsDataIndicatio
 
         	case 0x0008:
         		stream << code;
-        		stream << deCONZ::ZclUtcTime;
+        		stream << (quint8) deCONZ::ZclUtcTime;
         		stream << time_last_set_time;
         		break;
 
         	case 0x0009:
         		stream << code;
-        		stream << deCONZ::ZclUtcTime;
+        		stream << (quint8) deCONZ::ZclUtcTime;
         		stream << time_valid_until_time;
         		break;
 
