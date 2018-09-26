@@ -121,7 +121,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "lumi.weather", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_magnet", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_motion", jennicMacPrefix },
-    { VENDOR_JENNIC, "lumi.sensor_switch", jennicMacPrefix },
+    { VENDOR_JENNIC, "lumi.sensor_switch", jennicMacPrefix }, // lumi.sensor_switch.aq2 (WXKG11LM) lumi.sensor_switch.aq3 (WXKG12LM)
+    { VENDOR_JENNIC, "lumi.remote.b1acn01", jennicMacPrefix }, // WXKG11LM
     { VENDOR_JENNIC, "lumi.sensor_cube", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_86sw", jennicMacPrefix }, // Xiaomi Wireless Wall Switch
     { VENDOR_JENNIC, "lumi.ctrl_neutral", jennicMacPrefix }, // Xioami Wall Switch (end-device)
@@ -3036,6 +3037,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
+                    else if (modelId == QLatin1String("lumi.remote.b1acn01"))
+                    {
+                        fpSwitch.inClusters.push_back(ci->id());
+                    }
                 }
                     break;
 
@@ -3209,6 +3214,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         fpSwitch.inClusters.push_back(ci->id());
                     }
                     else if (modelId == QLatin1String("lumi.sensor_switch.aq3"))
+                    {
+                        fpSwitch.inClusters.push_back(ci->id());
+                    }
+                    else if (modelId == QLatin1String("lumi.remote.b1acn01"))
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
@@ -5266,7 +5275,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     else if (rawValue & 0x0100)  { buttonevent = side * 1000; }                // push
                                     else if (rawValue & 0x0200)  { buttonevent = side * 1000 + side; }         // double tap
                                 }
-                                else if (i->modelId() == QLatin1String("lumi.sensor_switch.aq3"))
+                                else if (i->modelId() == QLatin1String("lumi.sensor_switch.aq3") || i->modelId() == QLatin1String("lumi.remote.b1acn01"))
                                 {
                                     switch (rawValue)
                                     {
