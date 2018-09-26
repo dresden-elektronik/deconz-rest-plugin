@@ -98,6 +98,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "IR_", tiMacPrefix },
     { VENDOR_NONE, "DC_", tiMacPrefix },
     { VENDOR_NONE, "BX_", tiMacPrefix }, // Climax siren
+    { VENDOR_NONE, "PSMD_", tiMacPrefix }, // Climax smart plug
     { VENDOR_NONE, "OJB-IR715-Z", tiMacPrefix },
     { VENDOR_NONE, "902010/21A", tiMacPrefix }, // Bitron: door/window sensor
     { VENDOR_NONE, "902010/25", tiMacPrefix }, // Bitron: smart plug
