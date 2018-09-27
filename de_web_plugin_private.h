@@ -976,6 +976,9 @@ public Q_SLOTS:
     //wifi settings
     int scanWifiNetworks(const ApiRequest &req, ApiResponse &rsp);
 
+    //homebridge
+    int resetHomebridge(const ApiRequest &req, ApiResponse &rsp);
+
     // time manager
     void timeManagerTimerFired();
     void ntpqFinished();

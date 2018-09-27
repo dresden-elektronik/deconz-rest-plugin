@@ -166,7 +166,7 @@ function checkHomebridge {
 		return
 	fi
 
-	HOMEBRIDGE="${values[0]}" # disabled | managed | not-managed
+	HOMEBRIDGE="${values[0]}" # disabled | managed | not-managed | reset
 	PROXY_ADDRESS="${values[1]}"
 	PROXY_PORT="${values[2]}"
 	IP_ADDRESS="${values[3]}"
@@ -180,6 +180,17 @@ function checkHomebridge {
 		fi
 		pkill homebridge
 		return
+	fi
+
+	if [[ "$HOMEBRIDGE" == "reset" ]]; then
+		systemctl -q is-active homebridge
+		if [ $? -eq 0 ]; then
+			systemctl stop homebridge
+			systemctl disable homebridge
+		fi
+		pkill homebridge
+
+		rm -rf /home/$MAINUSER/.homebridge/persist
 	fi
 
 	## check if apikey already exist or create a new apikey for homebridge apps

@@ -401,6 +401,11 @@ int DeRestPluginPrivate::handleConfigurationApi(const ApiRequest &req, ApiRespon
     {
         return putWifiUpdated(req, rsp);
     }
+    // PUT /api/<apikey>/config/homebridge/reset
+    else if ((req.path.size() == 5) && (req.hdr.method() == "PUT") && (req.path[2] == "config") && (req.path[3] == "homebridge") && (req.path[4] == "reset"))
+    {
+        return resetHomebridge(req, rsp);
+    }
     // PUT, PATCH /api/<apikey>/config
     else if ((req.path.size() == 3) && (req.hdr.method() == "PUT" || req.hdr.method() == "PATCH") && (req.path[2] == "config"))
     {
@@ -2877,6 +2882,32 @@ int DeRestPluginPrivate::scanWifiNetworks(const ApiRequest &req, ApiResponse &rs
     QVariantMap cells;
     rsp.map["cells"] = cells;
     rsp.httpStatus = HttpStatusOk;
+    return REQ_READY_SEND;
+}
+
+/*! PUT /api/config/homebridge/reset
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::resetHomebridge(const ApiRequest &req, ApiResponse &rsp)
+{
+    Q_UNUSED(req);
+
+    if(!checkApikeyAuthentification(req, rsp))
+    {
+        return REQ_READY_SEND;
+    }
+
+    rsp.httpStatus = HttpStatusOk;
+#ifdef ARCH_ARM
+    gwHomebridge = QLatin1String("reset");
+    queSaveDb(DB_CONFIG | DB_SYNC, DB_SHORT_SAVE_DELAY);
+#endif
+    QVariantMap rspItem;
+    QVariantMap rspItemState;
+    rspItemState["/config/homebridge/reset"] = "success";
+    rspItem["success"] = rspItemState;
+    rsp.list.append(rspItem);
     return REQ_READY_SEND;
 }
 
