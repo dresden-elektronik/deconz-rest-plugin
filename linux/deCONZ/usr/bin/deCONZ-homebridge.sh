@@ -189,7 +189,7 @@ function checkHomebridge {
 			systemctl disable homebridge
 		fi
 		pkill homebridge
-
+		sleep 5
 		rm -rf /home/$MAINUSER/.homebridge/persist
 	fi
 
@@ -393,7 +393,7 @@ function checkHomebridge {
 			# config created by deCONZ - check if apikey is still correct
 			if [ -z "$(cat /home/$MAINUSER/.homebridge/config.json | grep "$APIKEY")" ]; then
 				# apikey not found - update config
-				sed -i '/\"${BRIDGEID}\":/c\    \"${BRIDGEID}\": \"$APIKEY\"' /home/$MAINUSER/.homebridge/config.json
+				sed -i "/\"${BRIDGEID}\":/c\    \"${BRIDGEID}\": \"$APIKEY\"" /home/$MAINUSER/.homebridge/config.json
 			fi
 		fi
 	else
@@ -445,7 +445,7 @@ function checkHomebridge {
 		return
 	fi
 
-	process=$(ps -ax | grep "homebridge$")
+	process=$(ps -ax | grep " homebridge$")
 	if [ -z "$process" ]; then
 		[[ $LOG_INFO ]] && echo "${LOG_INFO}starting homebridge"
 		if [[ "$HOMEBRIDGE" != "managed" ]]; then
