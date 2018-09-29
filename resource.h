@@ -119,6 +119,7 @@ extern const char *RConfigTholdDark;
 extern const char *RConfigTholdOffset;
 extern const char *RConfigUrl;
 extern const char *RConfigUsertest;
+extern const char *RConfigWindowCoveringType;
 
 #define R_ALERT_DEFAULT             QVariant(QLatin1String("none"))
 #define R_SENSITIVITY_MAX_DEFAULT   2

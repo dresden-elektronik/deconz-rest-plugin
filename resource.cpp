@@ -104,7 +104,7 @@ const char *RConfigTholdDark = "config/tholddark";
 const char *RConfigTholdOffset = "config/tholdoffset";
 const char *RConfigUrl = "config/url";
 const char *RConfigUsertest = "config/usertest";
-
+const char *RConfigWindowCoveringType = "config/windowcoveringtype";
 
 static std::vector<const char*> rPrefixes;
 static std::vector<ResourceItemDescriptor> rItemDescriptors;
@@ -193,6 +193,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigTholdOffset, 1, 0xfffe));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigUrl));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigUsertest));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigWindowCoveringType));
 }
 
 const char *getResourcePrefix(const QString &str)

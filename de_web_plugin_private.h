@@ -497,7 +497,8 @@ enum TaskType
     TaskViewGroup = 32,
     TaskTriggerEffect = 33,
     TaskWarning = 34,
-    TaskIncBrightness = 35
+    TaskIncBrightness = 35,
+    TaskWindowCovering = 36
 };
 
 struct TaskItem
@@ -983,6 +984,9 @@ public Q_SLOTS:
     // gateways
     void foundGateway(const QHostAddress &host, quint16 port, const QString &uuid, const QString &name);
 
+    // window covering
+    void calibrateWindowCoveringNextStep();
+
 public:
     void checkRfConnectState();
     bool isInNetwork();
@@ -1080,6 +1084,8 @@ public:
     bool addTaskAddScene(TaskItem &task, uint16_t groupId, uint8_t sceneId, const QString &lightId);
     bool addTaskRemoveScene(TaskItem &task, uint16_t groupId, uint8_t sceneId);
     bool addTaskWindowCovering(TaskItem &task, uint8_t cmdId, uint16_t pos, uint8_t pct);
+    bool addTaskWindowCoveringCalibrate(TaskItem &task, int WindowCoveringType);
+    bool addTaskUbisysJ1ConfigureSwitch(TaskItem &taskRef);
     void handleGroupClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleSceneClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleOnOffClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
