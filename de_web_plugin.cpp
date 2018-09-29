@@ -2571,6 +2571,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
             Event e(RSensors, REventValidGroup, sensor->id());
             enqueueEvent(e);
+            enqueueEvent(Event(RSensors, RConfigGroup, sensor->id(), item));
         }
     }
 
@@ -10349,6 +10350,7 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
 
                 Event e(RSensors, REventValidGroup, sensorNode->id());
                 enqueueEvent(e);
+                enqueueEvent(Event(RSensors, RConfigGroup, sensor->id(), item));
             }
         }
     }
