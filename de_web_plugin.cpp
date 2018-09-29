@@ -526,10 +526,10 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                     {
                         sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x03);
                     }
-                    else if (sensorNode->modelId().startsWith("RC 110"))
-                    {
-                        sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
-                    }
+                    // else if (sensorNode->modelId().startsWith("RC 110"))
+                    // {
+                    //     sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
+                    // }
                     else
                     {
                         sensorNode = 0; // not supported
@@ -2560,6 +2560,32 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         {
             // TODO
         }
+        // if (sensor->modelId().startsWith("RC 110")) // innr remote
+        // {
+        //     // 7 controller endpoints: 0x01, 0x03, 0x04, ..., 0x08
+        //     if (gids.length() != 7)
+        //     {
+        //         // initialise list of groups: one for each endpoint
+        //         gids = QStringList();
+        //         gids << "0" << "0" << "0" << "0" << "0" << "0" << "0";
+        //     }
+        //
+        //     // check group corresponding to source endpoint
+        //     int i = ind.srcEndpoint();
+        //     i -= i == 1 ? 1 : 2;
+        //     if (gids.value(i) != gid)
+        //     {
+        //         // replace group corresponding to source endpoint
+        //         gids.replace(i, gid);
+        //         item->setValue(gids.join(','));
+        //         sensor->setNeedSaveDatabase(true);
+        //         updateSensorEtag(sensor);
+        //         enqueueEvent(Event(RSensors, RConfigGroup, sensor->id(), item));
+        //     }
+        //
+        //     Event e(RSensors, REventValidGroup, sensor->id());
+        //     enqueueEvent(e);
+        // }
         else
         {
             if (!gids.contains(gid))
@@ -2567,11 +2593,11 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 item->setValue(gid);
                 sensor->setNeedSaveDatabase(true);
                 updateSensorEtag(sensor);
+                enqueueEvent(Event(RSensors, RConfigGroup, sensor->id(), item));
             }
 
             Event e(RSensors, REventValidGroup, sensor->id());
             enqueueEvent(e);
-            enqueueEvent(Event(RSensors, RConfigGroup, sensor->id(), item));
         }
     }
 
@@ -3282,13 +3308,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpSwitch.outClusters.push_back(ci->id());
                     }
-                    else if (modelId.startsWith(QLatin1String("RC 110")))
-                    {
-                        if (i->endpoint() == 0x01) // create sensor only for first endpoint
-                        {
-                            fpSwitch.outClusters.push_back(ci->id());
-                        }
-                    }
+                    // else if (modelId.startsWith(QLatin1String("RC 110")))
+                    // {
+                    //     if (i->endpoint() == 0x01) // create sensor only for first endpoint
+                    //     {
+                    //         fpSwitch.outClusters.push_back(ci->id());
+                    //     }
+                    // }
                     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC)
                     {
                         // prevent creation of ZHASwitch, till supported
@@ -10350,7 +10376,7 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
 
                 Event e(RSensors, REventValidGroup, sensorNode->id());
                 enqueueEvent(e);
-                enqueueEvent(Event(RSensors, RConfigGroup, sensor->id(), item));
+                enqueueEvent(Event(RSensors, RConfigGroup, sensorNode->id(), item));
             }
         }
     }

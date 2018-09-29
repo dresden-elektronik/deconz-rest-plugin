@@ -38,6 +38,7 @@
 #define S_BUTTON_6   6000
 #define S_BUTTON_7   7000
 #define S_BUTTON_8   8000
+#define S_BUTTON_9   9000
 
 struct SensorFingerprint
 {
