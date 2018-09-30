@@ -1237,6 +1237,7 @@ public:
     QString gwTimeFormat;
     QString gwIpAddress;
     uint16_t gwPort;
+    bool gwAllowLocal;
     QString gwHomebridge;
     QString gwHomebridgePin;
     QString gwName;

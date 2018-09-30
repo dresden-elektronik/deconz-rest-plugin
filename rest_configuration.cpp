@@ -82,6 +82,7 @@ void DeRestPluginPrivate::initConfig()
     gwFirmwareVersion = "0x00000000"; // query later
     gwFirmwareVersionUpdate = "";
     gwBridgeId = "0000000000000000";
+    gwAllowLocal = (deCONZ::appArgumentNumeric("--allow-local", 1) == 1);
     gwConfig["websocketport"] = 443;
     fwUpdateState = FW_Idle;
 
@@ -485,7 +486,7 @@ int DeRestPluginPrivate::createUser(const ApiRequest &req, ApiResponse &rsp)
 
     if (!gwLinkButton)
     {
-        if (req.sock->peerAddress() == localHost)
+        if (gwAllowLocal && req.sock->peerAddress() == localHost)
         {
             // proceed
         }
