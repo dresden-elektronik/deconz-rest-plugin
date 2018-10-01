@@ -319,6 +319,7 @@ void DeRestPluginPrivate::initNetworkInfo()
                 gwIPAddress = a->ip().toString();
                 gwConfig["ipaddress"] = gwIPAddress;
                 gwNetMask = a->netmask().toString();
+                initDescriptionXml();
                 ok = true;
                 retry = false;
                 break;
