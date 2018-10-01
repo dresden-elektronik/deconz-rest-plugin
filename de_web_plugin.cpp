@@ -305,8 +305,6 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     group.setName("All");
     groups.push_back(group);
 
-    initUpnpDiscovery();
-
     connect(apsCtrl, SIGNAL(apsdeDataConfirm(const deCONZ::ApsDataConfirm&)),
             this, SLOT(apsdeDataConfirm(const deCONZ::ApsDataConfirm&)));
 
@@ -392,6 +390,9 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     quint16 wsPort = deCONZ::appArgumentNumeric(QLatin1String("--ws-port"), gwConfig["websocketport"].toUInt());
     webSocketServer = new WebSocketServer(this, wsPort);
     gwConfig["websocketport"] = webSocketServer->port();
+
+    initNetworkInfo();
+    initUpnpDiscovery();
 
     initAuthentification();
     initInternetDicovery();

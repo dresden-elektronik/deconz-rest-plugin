@@ -66,7 +66,7 @@ void DeRestPluginPrivate::initDescriptionXml()
                if (!line.isEmpty())
                {
                    line.replace(QString("{{PORT}}"), qPrintable(QString::number(gwPort)));
-                   line.replace(QString("{{IPADDRESS}}"), qPrintable(gwIpAddress));
+                   line.replace(QString("{{IPADDRESS}}"), qPrintable(gwIPAddress));
                    line.replace(QString("{{UUID}}"), qPrintable(gwUuid));
                    line.replace(QString("{{GWNAME}}"), qPrintable(gwName));
                    line.replace(QString("{{BRIDGEID}}"), qPrintable(gwBridgeId));
