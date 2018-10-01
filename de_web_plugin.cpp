@@ -109,6 +109,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_IKEA, "TRADFRI remote control", ikeaMacPrefix },
     { VENDOR_IKEA, "TRADFRI motion sensor", ikeaMacPrefix },
     { VENDOR_IKEA, "TRADFRI wireless dimmer", ikeaMacPrefix },
+    { VENDOR_IKEA, "TRADFRI on/off switch", ikeaMacPrefix },
     { VENDOR_INSTA, "Remote", instaMacPrefix },
     { VENDOR_INSTA, "HS_4f_GJ_1", instaMacPrefix },
     { VENDOR_INSTA, "WS_4f_J_1", instaMacPrefix },
@@ -2481,6 +2482,10 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         {
             sensor->setMode(Sensor::ModeDimmer);
         }
+    }
+    else if (sensor->modelId() == QLatin1String("TRADFRI on/off switch"))
+    {
+        checkReporting = true;
     }
     else if (sensor->modelId() == QLatin1String("TRADFRI motion sensor"))
     {
