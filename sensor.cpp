@@ -131,6 +131,12 @@ static const Sensor::ButtonMap philipsDimmerSwitchMap[] = {
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
 };
 
+static const Sensor::ButtonMap ikeaOnOffMap[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x01, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x00, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
+};
+
 static const Sensor::ButtonMap ikeaRemoteMap[] = {
 //    mode                          ep    cluster cmd   param button                                       name
     // big button
@@ -893,6 +899,7 @@ const Sensor::ButtonMap *Sensor::buttonMap()
             if      (modelid.contains(QLatin1String("remote"))) { m_buttonMap = ikeaRemoteMap; }
             else if (modelid.contains(QLatin1String("motion"))) { m_buttonMap = ikeaMotionSensorMap; }
             else if (modelid.contains(QLatin1String("dimmer"))) { m_buttonMap = ikeaDimmerMap; }
+            else if (modelid.contains(QLatin1String("on/off"))) { m_buttonMap = ikeaOnOffMap; }
         }
         else if (m_manufacturer == QLatin1String("ubisys"))
         {

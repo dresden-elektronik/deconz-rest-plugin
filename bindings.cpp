@@ -1719,6 +1719,12 @@ void DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         clusters.push_back(SCENE_CLUSTER_ID);
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
+    // IKEA Trådfri on/off switch
+    else if (sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")))
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+    }
     else if (sensor->modelId().startsWith(QLatin1String("D1")))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
