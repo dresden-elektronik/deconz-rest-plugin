@@ -65,11 +65,11 @@ void DeRestPluginPrivate::initDescriptionXml()
                line = f.readLine(320);
                if (!line.isEmpty())
                {
-                   line.replace(QString("{{PORT}}"), qPrintable(QString::number(gwPort)));
                    line.replace(QString("{{IPADDRESS}}"), qPrintable(gwIpAddress));
-                   line.replace(QString("{{UUID}}"), qPrintable(gwUuid));
+                   line.replace(QString("{{PORT}}"), qPrintable(QString::number(gwPort)));
                    line.replace(QString("{{GWNAME}}"), qPrintable(gwName));
-                   line.replace(QString("{{BRIDGEID}}"), qPrintable(gwBridgeId));
+                   line.replace(QString("{{SERIAL}}"), qPrintable(gwBridgeId.left(6) + gwBridgeId.right(6)));
+                   line.replace(QString("{{UUID}}"), qPrintable(gwUuid));
                    descriptionXml.append(line);
 
                    DBG_Printf(DBG_INFO_L2, "%s", line.constData());
@@ -108,28 +108,41 @@ void DeRestPluginPrivate::announceUpnp()
     if (upnpTimer->interval() != (20 * 1000))
         upnpTimer->start(20 * 1000);
 
-    quint16 port = 1900;
-    QHostAddress host;
     QByteArray datagram = QString(QLatin1String(
-    "NOTIFY * HTTP/1.1\r\n"
-    "HOST: 239.255.255.250:1900\r\n"
-    "CACHE-CONTROL: max-age=100\r\n"
-    "LOCATION: http://%1:%2/description.xml\r\n"
-    "SERVER: FreeRTOS/7.4.2, UPnP/1.0, IpBridge/1.8.0\r\n"
-    "NTS: ssdp:alive\r\n"
-    "NT: upnp:rootdevice\r\n"
-    "USN: uuid:%3::upnp:rootdevice\r\n"
-    "GWID.phoscon.de: %4\r\n"
-    "hue-bridgeid: %4\r\n"
-    "\r\n"))
+        "NOTIFY * HTTP/1.1\r\n"
+        "HOST: 239.255.255.250:1900\r\n"
+        "CACHE-CONTROL: max-age=100\r\n"
+        "LOCATION: http://%1:%2/description.xml\r\n"
+        "SERVER: Linux/3.14.0 UPnP/1.0 IpBridge/1.26.0\r\n"
+        "hue-bridgeid: %3\r\n"
+        "GWID.phoscon.de: %3\r\n"
+        "NTS: ssdp:alive\r\n"))
             .arg(gwConfig["ipaddress"].toString())
             .arg(gwConfig["port"].toDouble())
-            .arg(gwConfig["uuid"].toString())
-            .arg(gwBridgeId).toLocal8Bit();
+            .arg(gwBridgeId.toUpper()).toLocal8Bit();
+    QByteArray nt1 = QString(QLatin1String(
+        "NT: upnp:rootdevice\r\n"
+        "USN: uuid:%1::upnp:rootdevice\r\n")).arg(gwConfig["uuid"].toString()).toLocal8Bit();
+    QByteArray nt2 = QString(QLatin1String(
+        "NT: uuid:%1\r\n"
+        "USN: uuid:%1\r\n")).arg(gwConfig["uuid"].toString()).toLocal8Bit();
+    QByteArray nt3 = QString(QLatin1String(
+        "NT: urn:schemas-upnp-org:device:basic:1\r\n"
+        "USN: uuid:%1::upnp:rootdevice\r\n")).arg(gwConfig["uuid"].toString()).toLocal8Bit();
 
+    quint16 port = 1900;
+    QHostAddress host;
     host.setAddress(QLatin1String("239.255.255.250"));
 
-    if (udpSockOut->writeDatagram(datagram, host, port) == -1)
+    if (udpSockOut->writeDatagram(datagram + nt1 + "\r\n", host, port) == -1)
+    {
+        DBG_Printf(DBG_ERROR, "UDP send error %s\n", qPrintable(udpSockOut->errorString()));
+    }
+    if (udpSockOut->writeDatagram(datagram + nt2 + "\r\n", host, port) == -1)
+    {
+        DBG_Printf(DBG_ERROR, "UDP send error %s\n", qPrintable(udpSockOut->errorString()));
+    }
+    if (udpSockOut->writeDatagram(datagram + nt3 + "\r\n", host, port) == -1)
     {
         DBG_Printf(DBG_ERROR, "UDP send error %s\n", qPrintable(udpSockOut->errorString()));
     }
@@ -191,27 +204,62 @@ void DeRestPluginPrivate::upnpReadyRead()
         {}
         else if (datagram.startsWith("M-SEARCH *"))
         {
+            QByteArray response = QString(QLatin1String(
+                "HTTP/1.1 200 OK\r\n"
+                "CACHE-CONTROL: max-age=100\r\n"
+                "EXT:\r\n"
+                "LOCATION: http://%1:%2/description.xml\r\n"
+                "SERVER: Linux/3.14.0 UPnP/1.0 IpBridge/1.26.0\r\n"
+                "hue-bridgeid: %3\r\n"
+                "GWID.phoscon.de: %3\r\n"))
+                    .arg(gwConfig["ipaddress"].toString())
+                    .arg(gwConfig["port"].toDouble())
+                    .arg(gwBridgeId.toUpper()).toLocal8Bit();
+            QByteArray st1 = QString(QLatin1String(
+                "ST: upnp:rootdevice\r\n"
+                "USN: uuid:%1::upnp:rootdevice\r\n")).arg(gwConfig["uuid"].toString()).toLocal8Bit();
+            QByteArray st2 = QString(QLatin1String(
+                "ST: uuid:%1\r\n"
+                "USN: uuid:%1\r\n")).arg(gwConfig["uuid"].toString()).toLocal8Bit();
+            QByteArray st3 = QString(QLatin1String(
+                "ST: urn:schemas-upnp-org:device:basic:1\r\n"
+                "USN: uuid:%1::upnp:rootdevice\r\n")).arg(gwConfig["uuid"].toString()).toLocal8Bit();
 
             DBG_Printf(DBG_HTTP, "UPNP %s:%u\n%s\n", qPrintable(host.toString()), port, datagram.data());
             datagram.clear();
 
-            datagram.append("HTTP/1.1 200 OK\r\n");
-            datagram.append("CACHE-CONTROL: max-age=100\r\n");
-            datagram.append("EXT:\r\n");
-            datagram.append(QString("LOCATION: http://%1:%2/description.xml\r\n")
-                            .arg(gwConfig["ipaddress"].toString())
-                            .arg(gwConfig["port"].toDouble()).toLocal8Bit());
-            datagram.append("SERVER: FreeRTOS/7.4.2, UPnP/1.0, IpBridge/1.8.0\r\n");
-            datagram.append(searchTarget);
-            datagram.append(QLatin1String("\r\n"));
-            datagram.append(QString("USN: uuid:%1::upnp:rootdevice\r\n").arg(gwUuid));
-            datagram.append(QString("GWID.phoscon.de: %1\r\n").arg(gwBridgeId));
-            datagram.append(QString("hue-bridgeid: %1\r\n").arg(gwBridgeId));
-            datagram.append("\r\n");
-
-            if (udpSockOut->writeDatagram(datagram.data(), datagram.size(), host, port) == -1)
+            if (searchTarget == "ST: ssdp:all\r\n" || searchTarget == "ST: upnp:rootdevice\r\n")
             {
-                DBG_Printf(DBG_ERROR, "UDP send error %s\n", qPrintable(udpSockOut->errorString()));
+                datagram.append(response);
+                datagram.append(st1);
+                datagram.append("\r\n");
+                if (udpSockOut->writeDatagram(datagram.data(), datagram.size(), host, port) == -1)
+                {
+                    DBG_Printf(DBG_ERROR, "UDP send error %s\n", qPrintable(udpSockOut->errorString()));
+                }
+                datagram.clear();
+            }
+            if (searchTarget == "ST: ssdp:all\r\n" || searchTarget == QString(QLatin1String("ST: uuid:%1\r\n")).arg(gwConfig["uuid"].toString()))
+            {
+                datagram.append(response);
+                datagram.append(st2);
+                datagram.append("\r\n");
+                if (udpSockOut->writeDatagram(datagram.data(), datagram.size(), host, port) == -1)
+                {
+                    DBG_Printf(DBG_ERROR, "UDP send error %s\n", qPrintable(udpSockOut->errorString()));
+                }
+                datagram.clear();
+            }
+            if (searchTarget == "ST ssdp:all\r\n" || searchTarget == "ST: urn:schemas-upnp-org:device:basic:1\r\n")
+            {
+                datagram.append(response);
+                datagram.append(st3);
+                datagram.append("\r\n");
+                if (udpSockOut->writeDatagram(datagram.data(), datagram.size(), host, port) == -1)
+                {
+                    DBG_Printf(DBG_ERROR, "UDP send error %s\n", qPrintable(udpSockOut->errorString()));
+                }
+                datagram.clear();
             }
         }
         else if (datagram.startsWith("NOTIFY *") && !location.isEmpty())
