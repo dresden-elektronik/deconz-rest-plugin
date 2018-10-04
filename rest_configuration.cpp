@@ -85,6 +85,7 @@ void DeRestPluginPrivate::initConfig()
     gwIPAddress = "127.0.0.1";
     gwPort = (apsCtrl ? apsCtrl->getParameter(deCONZ::ParamHttpPort) : deCONZ::appArgumentNumeric("--http-port", 80));
     gwNetMask = "255.0.0.0";
+    gwLANBridgeId = (deCONZ::appArgumentNumeric("--lan-bridgeid", 0) == 1);
     gwBridgeId = "0000000000000000";
     gwConfig["websocketport"] = 443;
     fwUpdateState = FW_Idle;
@@ -316,6 +317,15 @@ void DeRestPluginPrivate::initNetworkInfo()
 
                 QString mac = i->hardwareAddress().toLower();
                 gwMAC = mac;
+                if (gwLANBridgeId) {
+                    gwBridgeId = mac.mid(0,2) + mac.mid(3,2) + mac.mid(6,2) + "fffe" + mac.mid(9,2) + mac.mid(12,2) + mac.mid(15,2);
+                    if (!gwConfig.contains("bridgeid") || gwConfig["bridgeid"] != gwBridgeId)
+                    {
+                        DBG_Printf(DBG_INFO, "Set bridgeid to %s\n", qPrintable(gwBridgeId));
+                        gwConfig["bridgeid"] = gwBridgeId;
+                        queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
+                    }
+                }
                 gwIPAddress = a->ip().toString();
                 gwConfig["ipaddress"] = gwIPAddress;
                 gwNetMask = a->netmask().toString();

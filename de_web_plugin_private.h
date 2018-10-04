@@ -1243,6 +1243,7 @@ public:
     QString gwHomebridge;
     QString gwHomebridgePin;
     QString gwName;
+    bool gwLANBridgeId;
     QString gwBridgeId;
     QString gwUuid;
     QString gwUpdateVersion;

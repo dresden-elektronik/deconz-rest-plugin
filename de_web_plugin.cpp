@@ -12089,7 +12089,7 @@ void DeRestPlugin::idleTimerFired()
     {
         d->gwDeviceAddress.setExt(d->apsCtrl->getParameter(deCONZ::ParamMacAddress));
         d->gwDeviceAddress.setNwk(d->apsCtrl->getParameter(deCONZ::ParamNwkAddress));
-        if (d->gwDeviceAddress.hasExt())
+        if (!(d->gwLANBridgeId) && d->gwDeviceAddress.hasExt())
         {
             d->gwBridgeId.sprintf("%016llX", (quint64)d->gwDeviceAddress.ext());
             if (!d->gwConfig.contains("bridgeid") || d->gwConfig["bridgeid"] != d->gwBridgeId)
