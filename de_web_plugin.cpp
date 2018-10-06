@@ -132,7 +132,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "lumi.sensor_smoke", jennicMacPrefix },
     { VENDOR_115F, "lumi.plug", jennicMacPrefix }, // Xiaomi smart plug (router)
     { VENDOR_115F, "lumi.ctrl_ln", jennicMacPrefix}, // Xiaomi Wall Switch (router)
-    { VENDOR_115F, "lumi.curtain", jennicMacPrefix}, // Xiaomi curtain controller (router)
+    // { VENDOR_115F, "lumi.curtain", jennicMacPrefix}, // Xiaomi curtain controller (router) - exposed only as light
     { VENDOR_UBISYS, "D1", ubisysMacPrefix },
     { VENDOR_UBISYS, "C4", ubisysMacPrefix },
     { VENDOR_UBISYS, "S2", ubisysMacPrefix },
@@ -493,7 +493,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             break;
 
         case WINDOW_COVERING_CLUSTER_ID:
-        	handleWindowCoveringClusterIndication(ind, zclFrame);
+            handleWindowCoveringClusterIndication(ind, zclFrame);
             break;
 
         default:

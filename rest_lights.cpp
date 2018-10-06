@@ -596,6 +596,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         		copyTaskReq(taskRef, task);
         		uint8_t moveToPct = 0x00;
         		moveToPct = bri * 100 / 255;  // Percent 0 - 100 (0x00 - 0x64)
+                if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain")))
+                {
+                    moveToPct = 100 - moveToPct;
+                }
         		if (addTaskWindowCovering(task, 0x05 /*move to Lift Percent*/, 0, moveToPct))
         		{
         			QVariantMap rspItem;
