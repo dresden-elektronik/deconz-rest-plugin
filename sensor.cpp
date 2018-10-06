@@ -379,6 +379,81 @@ static const Sensor::ButtonMap lutronLZL4BWHLSwitchMap[] = {
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
 };
 
+static const Sensor::ButtonMap innrRC110Map[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    // Remote's switch set to Scenes.
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x00, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "OnOff" },
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x01, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "OnOff" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "DimUp" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "DimUp" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "DimUp" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 1,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD,           "DimDown" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 1,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "DimDown" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 1,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED,  "DimDown" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x04, 0x02, S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED,  "1" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x04, 0x34, S_BUTTON_5 + S_BUTTON_ACTION_SHORT_RELEASED,  "2" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x04, 0x66, S_BUTTON_6 + S_BUTTON_ACTION_SHORT_RELEASED,  "3" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x04, 0x99, S_BUTTON_7 + S_BUTTON_ACTION_SHORT_RELEASED,  "4" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x04, 0xC2, S_BUTTON_8 + S_BUTTON_ACTION_SHORT_RELEASED,  "5" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x04, 0xFE, S_BUTTON_9 + S_BUTTON_ACTION_SHORT_RELEASED,  "6" },
+    // Remote's switch set to Lights, after pressing 1
+    { Sensor::ModeScenes,           0x03, 0x0006, 0x00, 0,         10000 + S_BUTTON_ACTION_SHORT_RELEASED, "OnOff 1" },
+    { Sensor::ModeScenes,           0x03, 0x0006, 0x01, 0,         10000 + S_BUTTON_ACTION_SHORT_RELEASED, "OnOff 1" },
+    { Sensor::ModeScenes,           0x03, 0x0008, 0x01, 0,         11000 + S_BUTTON_ACTION_HOLD,           "DimUp 1" },
+    { Sensor::ModeScenes,           0x03, 0x0008, 0x02, 0,         11000 + S_BUTTON_ACTION_SHORT_RELEASED, "DimUp 1" },
+    { Sensor::ModeScenes,           0x03, 0x0008, 0x03, 0,         11000 + S_BUTTON_ACTION_LONG_RELEASED,  "DimUp 1" },
+    { Sensor::ModeScenes,           0x03, 0x0008, 0x01, 1,         12000 + S_BUTTON_ACTION_HOLD,           "DimDown 1" },
+    { Sensor::ModeScenes,           0x03, 0x0008, 0x02, 1,         12000 + S_BUTTON_ACTION_SHORT_RELEASED, "DimDown 1" },
+    { Sensor::ModeScenes,           0x03, 0x0008, 0x03, 1,         12000 + S_BUTTON_ACTION_LONG_RELEASED,  "DimDown 1" },
+    // Remote's switch set to Lights, after pressing 2
+    { Sensor::ModeScenes,           0x04, 0x0006, 0x00, 0,         13000 + S_BUTTON_ACTION_SHORT_RELEASED, "OnOff 2" },
+    { Sensor::ModeScenes,           0x04, 0x0006, 0x01, 0,         13000 + S_BUTTON_ACTION_SHORT_RELEASED, "OnOff 2" },
+    { Sensor::ModeScenes,           0x04, 0x0008, 0x01, 0,         14000 + S_BUTTON_ACTION_HOLD,           "DimUp 2" },
+    { Sensor::ModeScenes,           0x04, 0x0008, 0x02, 0,         14000 + S_BUTTON_ACTION_SHORT_RELEASED, "DimUp 2" },
+    { Sensor::ModeScenes,           0x04, 0x0008, 0x03, 0,         14000 + S_BUTTON_ACTION_LONG_RELEASED,  "DimUp 2" },
+    { Sensor::ModeScenes,           0x04, 0x0008, 0x01, 1,         15000 + S_BUTTON_ACTION_HOLD,           "DimDown 2" },
+    { Sensor::ModeScenes,           0x04, 0x0008, 0x02, 1,         15000 + S_BUTTON_ACTION_SHORT_RELEASED, "DimDown 2" },
+    { Sensor::ModeScenes,           0x04, 0x0008, 0x03, 1,         15000 + S_BUTTON_ACTION_LONG_RELEASED,  "DimDown 2" },
+    // Remote's switch set to Lights, after pressing 3
+    { Sensor::ModeScenes,           0x05, 0x0006, 0x00, 0,         16000 + S_BUTTON_ACTION_SHORT_RELEASED, "OnOff 3" },
+    { Sensor::ModeScenes,           0x05, 0x0006, 0x01, 0,         16000 + S_BUTTON_ACTION_SHORT_RELEASED, "OnOff 3" },
+    { Sensor::ModeScenes,           0x05, 0x0008, 0x01, 0,         17000 + S_BUTTON_ACTION_HOLD,           "DimUp 3" },
+    { Sensor::ModeScenes,           0x05, 0x0008, 0x02, 0,         17000 + S_BUTTON_ACTION_SHORT_RELEASED, "DimUp 3" },
+    { Sensor::ModeScenes,           0x05, 0x0008, 0x03, 0,         17000 + S_BUTTON_ACTION_LONG_RELEASED,  "DimUp 3" },
+    { Sensor::ModeScenes,           0x05, 0x0008, 0x01, 1,         18000 + S_BUTTON_ACTION_HOLD,           "DimDown 3" },
+    { Sensor::ModeScenes,           0x05, 0x0008, 0x02, 1,         18000 + S_BUTTON_ACTION_SHORT_RELEASED, "DimDown 3" },
+    { Sensor::ModeScenes,           0x05, 0x0008, 0x03, 1,         18000 + S_BUTTON_ACTION_LONG_RELEASED,  "DimDown 3" },
+    // Remote's switch set to Lights, after pressing 4
+    { Sensor::ModeScenes,           0x06, 0x0006, 0x00, 0,         19000 + S_BUTTON_ACTION_SHORT_RELEASED, "OnOff 4" },
+    { Sensor::ModeScenes,           0x06, 0x0006, 0x01, 0,         19000 + S_BUTTON_ACTION_SHORT_RELEASED, "OnOff 4" },
+    { Sensor::ModeScenes,           0x06, 0x0008, 0x01, 0,         20000 + S_BUTTON_ACTION_HOLD,           "DimUp 4" },
+    { Sensor::ModeScenes,           0x06, 0x0008, 0x02, 0,         20000 + S_BUTTON_ACTION_SHORT_RELEASED, "DimUp 4" },
+    { Sensor::ModeScenes,           0x06, 0x0008, 0x03, 0,         20000 + S_BUTTON_ACTION_LONG_RELEASED,  "DimUp 4" },
+    { Sensor::ModeScenes,           0x06, 0x0008, 0x01, 1,         21000 + S_BUTTON_ACTION_HOLD,           "DimDown 4" },
+    { Sensor::ModeScenes,           0x06, 0x0008, 0x02, 1,         21000 + S_BUTTON_ACTION_SHORT_RELEASED, "DimDown 4" },
+    { Sensor::ModeScenes,           0x06, 0x0008, 0x03, 1,         21000 + S_BUTTON_ACTION_LONG_RELEASED,  "DimDown 4" },
+    // Remote's switch set to Lights, after pressing 5
+    { Sensor::ModeScenes,           0x07, 0x0006, 0x00, 0,         22000 + S_BUTTON_ACTION_SHORT_RELEASED, "OnOff 5" },
+    { Sensor::ModeScenes,           0x07, 0x0006, 0x01, 0,         22000 + S_BUTTON_ACTION_SHORT_RELEASED, "OnOff 5" },
+    { Sensor::ModeScenes,           0x07, 0x0008, 0x01, 0,         23000 + S_BUTTON_ACTION_HOLD,           "DimUp 5" },
+    { Sensor::ModeScenes,           0x07, 0x0008, 0x02, 0,         23000 + S_BUTTON_ACTION_SHORT_RELEASED, "DimUp 5" },
+    { Sensor::ModeScenes,           0x07, 0x0008, 0x03, 0,         23000 + S_BUTTON_ACTION_LONG_RELEASED,  "DimUp 5" },
+    { Sensor::ModeScenes,           0x07, 0x0008, 0x01, 1,         24000 + S_BUTTON_ACTION_HOLD,           "DimDown 5" },
+    { Sensor::ModeScenes,           0x07, 0x0008, 0x02, 1,         24000 + S_BUTTON_ACTION_SHORT_RELEASED, "DimDown 5" },
+    { Sensor::ModeScenes,           0x07, 0x0008, 0x03, 1,         24000 + S_BUTTON_ACTION_LONG_RELEASED,  "DimDown 5" },
+    // Remote's switch set to Lights, after pressing 6
+    { Sensor::ModeScenes,           0x08, 0x0006, 0x00, 0,         25000 + S_BUTTON_ACTION_SHORT_RELEASED, "OnOff 6" },
+    { Sensor::ModeScenes,           0x08, 0x0006, 0x01, 0,         25000 + S_BUTTON_ACTION_SHORT_RELEASED, "OnOff 6" },
+    { Sensor::ModeScenes,           0x08, 0x0008, 0x01, 0,         26000 + S_BUTTON_ACTION_HOLD,           "DimUp 6" },
+    { Sensor::ModeScenes,           0x08, 0x0008, 0x02, 0,         26000 + S_BUTTON_ACTION_SHORT_RELEASED, "DimUp 6" },
+    { Sensor::ModeScenes,           0x08, 0x0008, 0x03, 0,         26000 + S_BUTTON_ACTION_LONG_RELEASED,  "DimUp 6" },
+    { Sensor::ModeScenes,           0x08, 0x0008, 0x01, 1,         27000 + S_BUTTON_ACTION_HOLD,           "DimDown 6" },
+    { Sensor::ModeScenes,           0x08, 0x0008, 0x02, 1,         27000 + S_BUTTON_ACTION_SHORT_RELEASED, "DimDown 6" },
+    { Sensor::ModeScenes,           0x08, 0x0008, 0x03, 1,         27000 + S_BUTTON_ACTION_LONG_RELEASED,  "DimDown 6" },
+
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
+};
+
 /*! Returns a fingerprint as JSON string. */
 QString SensorFingerprint::toString() const
 {
@@ -913,6 +988,10 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         else if (m_manufacturer == QLatin1String("Trust"))
         {
             if      (modelid == QLatin1String("ZYCT-202"))      { m_buttonMap = trustZYCT202SwitchMap; }
+        }
+        else if (m_manufacturer == QLatin1String("innr"))
+        {
+            if      (modelid.startsWith(QLatin1String("RC 110"))) { m_buttonMap = innrRC110Map; }
         }
     }
 
