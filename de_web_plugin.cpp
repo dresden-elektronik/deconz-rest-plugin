@@ -491,6 +491,10 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             handleTimeClusterIndication(ind, zclFrame);
             break;
 
+        case WINDOW_COVERING_CLUSTER_ID:
+        	handleWindowCoveringClusterIndication(ind, zclFrame);
+            break;
+
         default:
         {
         }
@@ -2114,56 +2118,6 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                     }
                 }
             }
-            else if (ic->id() == WINDOW_COVERING_CLUSTER_ID && (event.clusterId() == WINDOW_COVERING_CLUSTER_ID))
-            { // FIXME ubisys J1 begin
-                std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
-                std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
-                for (;ia != enda; ++ia)
-                {
-                    if (ia->id() == 0x0008) // current CurrentPositionLiftPercentage 0-100
-                    {
-                        uint8_t level = ia->numericValue().u8 * 255 / 100;
-                        ResourceItem *item = lightNode->item(RStateBri);
-                        if (item && item->toNumber() != level)
-                        {
-                            DBG_Printf(DBG_INFO, "0x%016llX level %u --> %u\n", lightNode->address().ext(), (uint)item->toNumber(), level);
-                            lightNode->clearRead(READ_LEVEL);
-                            item->setValue(level);
-                            Event e(RLights, RStateBri, lightNode->id(), item);
-                            enqueueEvent(e);
-                            updated = true;
-
-                            // also change on-state if bri changes to/from 0
-                            bool on = (ia->numericValue().u8 > 0 ? true : false) ;
-                            ResourceItem *itemOn = lightNode->item(RStateOn);
-                            if (itemOn && itemOn->toBool() != on)
-                            {
-                                DBG_Printf(DBG_INFO, "0x%016llX onOff %u --> %u\n", lightNode->address().ext(), (uint)item->toNumber(), on);
-                                itemOn->setValue(on);
-                                Event e(RLights, RStateOn, lightNode->id(), itemOn);
-                                enqueueEvent(e);
-                                updated = true;
-                            }
-
-                        }
-                        lightNode->setZclValue(updateType, event.clusterId(), 0x0008, ia->numericValue());
-                        break;
-                    }
-                    else if (ia->id() == 0x0009) // current CurrentPositionTiltPercentage 0-100
-                    {
-                        uint8_t sat = ia->numericValue().u8 * 255 / 100;
-                        ResourceItem *item = lightNode->item(RStateSat);
-                        if (item && item->toNumber() != sat)
-                        {
-                            item->setValue(sat);
-                            Event e(RLights, RStateSat, lightNode->id(), item);
-                            enqueueEvent(e);
-                            updated = true;
-                        }
-                    }
-                }
-                break;
-            } // FIXME ubisys J1 end
         }
 
         break;
@@ -3303,6 +3257,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 case ONOFF_CLUSTER_ID:
                 case LEVEL_CLUSTER_ID:
                 case SCENE_CLUSTER_ID:
+                case WINDOW_COVERING_CLUSTER_ID:
                 {
                     if (modelId == QLatin1String("ZYCT-202"))
                     {
@@ -3327,6 +3282,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_UBISYS)
                     {
                         if ((modelId.startsWith(QLatin1String("D1")) && i->endpoint() == 0x02) ||
+                            (modelId.startsWith(QLatin1String("J1")) && i->endpoint() == 0x02) ||
                             (modelId.startsWith(QLatin1String("C4")) && i->endpoint() == 0x01) ||
                             (modelId.startsWith(QLatin1String("S2")) && i->endpoint() == 0x03))
                         {
@@ -3946,6 +3902,12 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             sensorNode.addItem(DataTypeString, RConfigGroup);
             item = sensorNode.addItem(DataTypeString, RConfigMode);
             item->setValue(QString("momentary"));
+
+            if (sensorNode.modelId().startsWith(QLatin1String("J1")))
+            {
+            	item = sensorNode.addItem(DataTypeUInt8, RConfigWindowCoveringType);
+            	item->setValue(0);
+            }
         }
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_BUSCH_JAEGER)
@@ -8805,6 +8767,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         case METERING_CLUSTER_ID:
         case ELECTRICAL_MEASUREMENT_CLUSTER_ID:
         case VENDOR_CLUSTER_ID:
+        case WINDOW_COVERING_CLUSTER_ID:
             {
                 addSensorNode(event.node(), &event);
                 updateSensorNode(event);

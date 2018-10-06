@@ -1173,6 +1173,42 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                     }
 
+                    if (rid.suffix == RConfigMode)
+                    {
+                    	if (sensor->modelId().startsWith(QLatin1String("J1")))
+                    	{
+                    		if (addTaskUbisysJ1ConfigureSwitch(task))
+                    		{
+                    			rspItemState[QString("successfully updated %1").arg(sensor->modelId())] = val;
+                    		}
+                    		else
+                    		{
+                    			rspItemState[QString("error %1").arg(sensor->modelId())] = val;
+                    		}
+                    		rspItem["success"] = rspItemState;
+                    	}
+                    }
+
+                    if (rid.suffix == RConfigWindowCoveringType)
+                    {
+                    	if (sensor->modelId().startsWith(QLatin1String("J1")))
+                    	{
+                    		bool ok;
+                    		int WindowCoveringType = val.toUInt(&ok);
+
+                    		if (ok && addTaskWindowCoveringCalibrate(task, WindowCoveringType))
+                    		{
+                    			rspItemState[QString("started calibration %1").arg(sensor->modelId())] = val;
+                    		}
+                    		else
+                    		{
+                    			rspItemState[QString("error calibration %1").arg(sensor->modelId())] = val;
+                    		}
+                    		rspItem["success"] = rspItemState;
+                    	}
+                    }
+
+
                     if (rid.suffix == RConfigGroup)
                     {
                         checkSensorBindingsForClientClusters(sensor);
