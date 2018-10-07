@@ -2018,6 +2018,10 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
             }
             else if (ic->id() == ONOFF_CLUSTER_ID && (event.clusterId() == ONOFF_CLUSTER_ID))
             {
+                if (lightNode->modelId().startsWith(QLatin1String("lumi.curtain")))
+                {
+                    continue; // ignore OnOff cluster
+                }
                 std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
                 std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
                 for (;ia != enda; ++ia)
@@ -4018,7 +4022,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         sensorNode.setManufacturer("LUMI");
         if (!sensorNode.modelId().startsWith(QLatin1String("lumi.ctrl_")) &&
             sensorNode.modelId() != QLatin1String("lumi.plug") &&
-            sensorNode.modelId() != QLatin1String("lumi.curtain"))
+            !sensorNode.modelId().startsWith(QLatin1String("lumi.curtain")))
         {
             sensorNode.addItem(DataTypeUInt8, RConfigBattery);
         }
