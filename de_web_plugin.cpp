@@ -7798,6 +7798,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     qint16 pressure = INT16_MIN;
     quint8 onOff = UINT8_MAX;
     quint8 onOff2 = UINT8_MAX;
+    quint8 currentPositionLift = UINT8_MAX;
 
     DBG_Printf(DBG_INFO, "0x%016llX extract Xiaomi special\n", ind.srcAddress().ext());
 
@@ -7824,6 +7825,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         case deCONZ::Zcl16BitInt: stream >> s16; break;
         case deCONZ::Zcl16BitUint: stream >> u16; break;
         case deCONZ::Zcl32BitInt: stream >> s32; break;
+        case deCONZ::Zcl32BitUint: stream >> u32; break;
         case deCONZ::Zcl40BitUint:
             u64 = 0;
             for (int i = 0; i < 5; i++)
@@ -7846,7 +7848,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         case deCONZ::ZclSingleFloat: stream >> u32; break;  // FIXME: use 4-byte float data type
         default:
         {
-            DBG_Printf(DBG_INFO, "Unsupported datatype 0x%02X (tag 0x%02X) in Xiaomi attribute report\n", dataType, tag);
+            DBG_Printf(DBG_INFO, "\tUnsupported datatype 0x%02X (tag 0x%02X)\n", dataType, tag);
         }
             return;
         }
@@ -7899,6 +7901,14 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             DBG_Printf(DBG_INFO, "\t64 on/off %d\n", u8);
             onOff = u8;
         }
+        else if (tag == 0x64 && dataType == deCONZ::Zcl8BitUint) // lumi.curtain
+        {
+            DBG_Printf(DBG_INFO, "\t64 current position lift %d%%\n", u8);
+            if (u8 <= 100)
+            {
+                currentPositionLift = 100 - u8;
+            }
+        }
         else if (tag == 0x64 && dataType == deCONZ::Zcl16BitInt)
         {
             DBG_Printf(DBG_INFO, "\t64 temperature %d\n", int(s16));
@@ -7918,6 +7928,16 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {
             pressure = (s32 + 50) / 100;
             DBG_Printf(DBG_INFO, "\t66 pressure %d\n", pressure);
+        }
+        else if (tag == 0x6e && dataType == deCONZ::Zcl8BitUint) // lumi.ctrl_neutral2
+        {
+            DBG_Printf(DBG_INFO, "\t6e unknown %d (0x%02X)\n", u8, u8);
+            temperature = s16;
+        }
+        else if (tag == 0x6f && dataType == deCONZ::Zcl8BitUint) // lumi.ctrl_neutral2
+        {
+            DBG_Printf(DBG_INFO, "\t6f unknown %d (0x%02X)\n", u8, u8);
+            temperature = s16;
         }
         else if (tag == 0x95 && dataType == deCONZ::ZclSingleFloat) // lumi.ctrl_ln2
         {
@@ -7939,6 +7959,10 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {
             DBG_Printf(DBG_INFO, "\t99 unknown %d (0x%04X)\n", u16, u16);
         }
+        else if (tag == 0x99 && dataType == deCONZ::Zcl32BitUint) // lumi.ctrl_neutral2
+        {
+            DBG_Printf(DBG_INFO, "\t99 unknown %d (0x%08X)\n", u32, u32);
+        }
         else if (tag == 0x9a && dataType == deCONZ::Zcl8BitUint) // lumi.ctrl_ln2
         {
             DBG_Printf(DBG_INFO, "\t9a unknown %d (0x%02X)\n", u8, u8);
@@ -7951,14 +7975,96 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {
             DBG_Printf(DBG_INFO, "\t9a unknown %lld (0x%012llX)\n", u64, u64);
         }
+        else if (tag == 0x9b && dataType == deCONZ::Zcl16BitUint) // lumi.ctrl_neutral2
+        {
+            DBG_Printf(DBG_INFO, "\t9b unknown %d (0x%04X)\n", u16, u16);
+        }
         else
         {
             DBG_Printf(DBG_INFO, "\t%02X unsupported tag (data type 0x%02X)\n", tag, dataType);
         }
     }
 
-    // TODO: update light state for lumi.ctrl_ln2.  onOff -> enpoint 01; onOff2 -> endpoint 02.
-    Q_UNUSED(onOff2); // silence compiler warning
+    for (LightNode &lightNode: nodes)
+    {
+        if      (ind.srcAddress().hasExt() && lightNode.address().hasExt() &&
+                 ind.srcAddress().ext() == lightNode.address().ext())
+        { }
+        else if (ind.srcAddress().hasNwk() && lightNode.address().hasNwk() &&
+                 ind.srcAddress().nwk() == lightNode.address().nwk())
+        { }
+        else
+        {
+            continue;
+        }
+
+        quint8 value = UINT8_MAX;
+        ResourceItem *item;
+
+        if (lightNode.modelId().startsWith(QLatin1String("lumi.ctrl_neutral")))
+        {
+            if (lightNode.haEndpoint().endpoint() == 0x02 && onOff != UINT8_MAX)
+            {
+                value = onOff;
+
+            }
+            else if (lightNode.haEndpoint().endpoint() == 0x03 && onOff2 != UINT8_MAX)
+            {
+                value = onOff2;
+            }
+            else
+            {
+                continue;
+            }
+        }
+        else if (lightNode.modelId().startsWith(QLatin1String("lumi.ctrl_ln")))
+        {
+            if (lightNode.haEndpoint().endpoint() == 0x01 && onOff != UINT8_MAX)
+            {
+                value = onOff;
+            }
+            else if (lightNode.haEndpoint().endpoint() == 0x02 && onOff2 != UINT8_MAX)
+            {
+                value = onOff2;
+            }
+            else
+            {
+                continue;
+            }
+        }
+        else if (lightNode.modelId().startsWith(QLatin1String("lumi.curtain")) && currentPositionLift != UINT8_MAX)
+        {
+            item = lightNode.item(RStateBri);
+            if (item)
+            {
+                const uint bri = currentPositionLift * 255 / 100;
+                item->setValue(bri);
+                enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
+                value = bri != 0;
+            }
+        }
+        else
+        {
+            continue;
+        }
+
+        lightNode.rx();
+        item = lightNode.item(RStateReachable);
+        if (item && !item->toBool())
+        {
+            item->setValue(true);
+            enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
+        }
+        item = lightNode.item(RStateOn);
+        if (item)
+        {
+            item->setValue(value);
+            enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
+        }
+        updateLightEtag(&lightNode);
+        lightNode.setNeedSaveDatabase(true);
+        saveDatabaseItems |= DB_LIGHTS;
+    }
 
     for (Sensor &sensor : sensors)
     {
@@ -7978,6 +8084,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             continue;
         }
 
+        sensor.rx();
         {
             ResourceItem *item = sensor.item(RConfigReachable);
             if (item && !item->toBool())
@@ -7992,7 +8099,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         if (battery != 0)
         {
             ResourceItem *item = sensor.item(RConfigBattery);
-            DBG_Assert(item != 0); // expected
+            // DBG_Assert(item != 0); // expected - no, lumi.ctrl_neutral2
             if (item)
             {
                 // 2.7-3.0V taken from:
