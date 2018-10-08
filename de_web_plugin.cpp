@@ -2276,6 +2276,7 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor, const deCONZ:
         reachable = true; // assumption for GP device
     }
     if (sensor->node() && !sensor->node()->nodeDescriptor().receiverOnWhenIdle() &&
+        sensor->lastRx().isValid() &&
         sensor->lastRx().secsTo(now) < (60 * 60 * 24)) // if end device was active in last 24 hours
     {
         reachable = true;
@@ -2291,7 +2292,10 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor, const deCONZ:
 
         if (it != sensor->node()->endpoints().end())
         {
-            reachable = true;
+            if (sensor->lastRx().isValid() && sensor->lastRx().secsTo(now) < (60 * 60 * 24))
+            {
+                reachable = true;
+            }
 
             // check that all clusters from fingerprint are present
             for (const deCONZ::SimpleDescriptor &sd : sensor->node()->simpleDescriptors())
