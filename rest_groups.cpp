@@ -145,7 +145,7 @@ int DeRestPluginPrivate::getAllGroups(const ApiRequest &req, ApiResponse &rsp)
         if (i->address() != 0) // don't return special group 0
         {
             QVariantMap mnode;
-            groupToMap(&(*i), mnode);
+            groupToMap(req, &(*i), mnode);
             rsp.map[i->id()] = mnode;
         }
     }
@@ -398,7 +398,7 @@ int DeRestPluginPrivate::getGroupAttributes(const ApiRequest &req, ApiResponse &
         }
     }
 
-    groupToMap(group,rsp.map);
+    groupToMap(req, group, rsp.map);
 
     return REQ_READY_SEND;
 }
@@ -1689,7 +1689,7 @@ Group *DeRestPluginPrivate::addGroup()
     \return true - on success
             false - on error
  */
-bool DeRestPluginPrivate::groupToMap(const Group *group, QVariantMap &map)
+bool DeRestPluginPrivate::groupToMap(const ApiRequest &req, const Group *group, QVariantMap &map)
 {
     if (!group)
     {
@@ -1730,7 +1730,7 @@ bool DeRestPluginPrivate::groupToMap(const Group *group, QVariantMap &map)
     for (int i = 0; i < group->itemCount(); i++)
     {
         const ResourceItem *item = group->itemForIndex(i);
-        DBG_Assert(item != 0);
+        DBG_Assert(item != nullptr);
         if (item->descriptor().suffix == RStateAllOn) { state["all_on"] = item->toBool(); }
         else if (item->descriptor().suffix == RStateAnyOn) { state["any_on"] = item->toBool(); }
         else if (item->descriptor().suffix == RActionScene) { action["scene"] = item->toVariant(); }
@@ -1742,44 +1742,48 @@ bool DeRestPluginPrivate::groupToMap(const Group *group, QVariantMap &map)
     }
 
     map["id"] = group->id();
-    map["hidden"] = group->hidden;
     QString etag = group->etag;
     etag.remove('"'); // no quotes allowed in string
     map["etag"] = etag;
     map["action"] = action;
     map["state"] = state;
 
-    QStringList multis;
-    std::vector<QString>::const_iterator m = group->m_multiDeviceIds.begin();
-    std::vector<QString>::const_iterator mend = group->m_multiDeviceIds.end();
-
-    for ( ;m != mend; ++m)
+    // following attributes are only shown for Phoscon App
+    if (req.apiVersion() == ApiVersion_1_DDEL)
     {
-        multis.append(*m);
+        QStringList multis;
+        auto m = group->m_multiDeviceIds.begin();
+        auto mend = group->m_multiDeviceIds.end();
+
+        for ( ;m != mend; ++m)
+        {
+            multis.append(*m);
+        }
+
+        map["hidden"] = group->hidden;
+        map["multideviceids"] = multis;
+
+        QStringList lightsequence;
+        auto l = group->m_lightsequence.begin();
+        auto lend = group->m_lightsequence.end();
+
+        for ( ;l != lend; ++l)
+        {
+            lightsequence.append(*l);
+        }
+
+        map["lightsequence"] = lightsequence;
+
+        QStringList deviceIds;
+        auto d = group->m_deviceMemberships.begin();
+        auto dend = group->m_deviceMemberships.end();
+
+        for ( ;d != dend; ++d)
+        {
+            deviceIds.append(*d);
+        }
+        map["devicemembership"] = deviceIds;
     }
-
-    map["multideviceids"] = multis;
-
-    QStringList lightsequence;
-    std::vector<QString>::const_iterator l = group->m_lightsequence.begin();
-    std::vector<QString>::const_iterator lend = group->m_lightsequence.end();
-
-    for ( ;l != lend; ++l)
-    {
-        lightsequence.append(*l);
-    }
-
-    map["lightsequence"] = lightsequence;
-
-    QStringList deviceIds;
-    std::vector<QString>::const_iterator d = group->m_deviceMemberships.begin();
-    std::vector<QString>::const_iterator dend = group->m_deviceMemberships.end();
-
-    for ( ;d != dend; ++d)
-    {
-        deviceIds.append(*d);
-    }
-    map["devicemembership"] = deviceIds;
 
     // append lights which are known members in this group
     QVariantList lights;

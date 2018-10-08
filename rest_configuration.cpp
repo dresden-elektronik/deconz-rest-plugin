@@ -1018,7 +1018,7 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
             if (i->id() != "0")
             {
                 QVariantMap map;
-                if (groupToMap(&(*i), map))
+                if (groupToMap(req, &(*i), map))
                 {
                     groupsMap[i->id()] = map;
                 }

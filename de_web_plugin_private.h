@@ -751,7 +751,7 @@ public:
     int modifyScene(const ApiRequest &req, ApiResponse &rsp);
     int deleteScene(const ApiRequest &req, ApiResponse &rsp);
 
-    bool groupToMap(const Group *group, QVariantMap &map);
+    bool groupToMap(const ApiRequest &req, const Group *group, QVariantMap &map);
 
     // REST API schedules
     void initSchedules();

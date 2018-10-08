@@ -313,15 +313,11 @@ void Gateway::handleGroupCommand(const deCONZ::ApsDataIndication &ind, deCONZ::Z
                     case ONOFF_COMMAND_TOGGLE:
                         // IKEA Trådfri Remote On/Off
                         {
-                            ::Group *group;
-                            QVariantMap map;
-                            QVariantMap state;
-
-                            group = d->parent->getGroupForId(cg.local);
-                            if (group && d->parent->groupToMap(group , map))
+                            ::Group *group = d->parent->getGroupForId(cg.local);
+                            const ResourceItem *item = group ? group->item(RStateAllOn) : nullptr;
+                            if (group && item)
                             {
-                                state = map["state"].toMap();
-                                cmd.param.level = state["all_on"].toBool() ? 0x00 : 0x01;
+                                cmd.param.level = item->toBool() ? 0x00 : 0x01;
                                 break;
                             }
                         }
