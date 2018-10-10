@@ -95,11 +95,11 @@ void DeRestPluginPrivate::handleWindowCoveringClusterIndication(const deCONZ::Ap
     }
 
     bool updated = false;
-	deCONZ::NumericUnion numericValue;
-	quint16 attrid = 0x0000;
-	quint8 attrTypeId = 0x00;
-	quint8 attrValue = 0x00;
-	quint8 status = 0x00;
+    deCONZ::NumericUnion numericValue;
+    quint16 attrid = 0x0000;
+    quint8 attrTypeId = 0x00;
+    quint8 attrValue = 0x00;
+    quint8 status = 0x00;
 
     QDataStream stream(zclFrame.payload());
     stream.setByteOrder(QDataStream::LittleEndian);
@@ -150,7 +150,11 @@ void DeRestPluginPrivate::handleWindowCoveringClusterIndication(const deCONZ::Ap
 
     	if (attrid == 0x0008) // current CurrentPositionLiftPercentage 0-100
     	{
-    		uint8_t level = attrValue * 255 / 100;
+            if (lightNode->modelId().startsWith(QLatin1String("lumi.curtain")))
+            {
+                attrValue = 100 - attrValue;
+            }
+        	uint8_t level = attrValue * 255 / 100;
     		numericValue.u8 = level;
     		ResourceItem *item = lightNode->item(RStateBri);
     		if (item && item->toNumber() != level)
@@ -785,4 +789,3 @@ void DeRestPluginPrivate::calibrateWindowCoveringNextStep()
 	break;
 	}
 }
-
