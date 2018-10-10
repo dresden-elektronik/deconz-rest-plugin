@@ -399,8 +399,7 @@ bool DeRestPluginPrivate::upgradeDbToUserVersion6()
     return setDbUserVersion(6);
 }
 
-/*! Puts a new top level device entry in the db (mac address) or refreshes and existing timestamp.
-    The timestamp is used to keep track of ghost/replaced/removed devices.
+/*! Puts a new top level device entry in the db (mac address) or refreshes nwk address.
 */
 void DeRestPluginPrivate::refreshDeviceDb(const deCONZ::Address &addr)
 {
@@ -410,7 +409,7 @@ void DeRestPluginPrivate::refreshDeviceDb(const deCONZ::Address &addr)
     }
 
     QString sql = QString(QLatin1String(
-                              "UPDATE devices SET timestamp = strftime('%s','now'), nwk = %2 WHERE mac = '%1';"
+                              "UPDATE devices SET nwk = %2 WHERE mac = '%1';"
                               "INSERT INTO devices (mac,nwk,timestamp) SELECT '%1', %2, strftime('%s','now') WHERE (SELECT changes() = 0);"))
             .arg(generateUniqueId(addr.ext(), 0, 0)).arg(addr.nwk());
     dbQueryQueue.push_back(sql);
