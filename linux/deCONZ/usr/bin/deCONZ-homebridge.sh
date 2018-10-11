@@ -469,7 +469,7 @@ trap 'TIMEOUT=0' SIGUSR1
 
 while [ 1 ]
 do
-	if [[ -z "$ZLLDB" ]] || [[ ! -f "$ZLLDB" ]]; then
+	if [[ -z "$ZLLDB" ]] || [[ ! -f "$ZLLDB" ]] || [[ ! -f "$DECONZ_PORT" ]] || [[ ! -f "$BRIDGEID" ]]; then
 		init
 	fi
 
