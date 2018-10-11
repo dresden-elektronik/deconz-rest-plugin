@@ -2715,11 +2715,11 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
         bool changed = false;
         gwWifiStateString = QLatin1String("ap-configured");
 
-        if (gwWifi != QLatin1String("configured"))
-        {
-            gwWifi = QLatin1String("configured");
-            changed = true;
-        }
+        //if (gwWifi != QLatin1String("configured"))
+        //{
+        //    gwWifi = QLatin1String("configured");
+        //    changed = true;
+        //}
 
         if (gwWifiWorkingType != QLatin1String("accesspoint"))
         {
@@ -2745,11 +2745,11 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
         bool changed = false;
         gwWifiStateString = QLatin1String("client-configured");
 
-        if (gwWifi != QLatin1String("configured"))
-        {
-            gwWifi = QLatin1String("configured");
-            changed = true;
-        }
+        //if (gwWifi != QLatin1String("configured"))
+        //{
+        //    gwWifi = QLatin1String("configured");
+        //    changed = true;
+        //}
 
         if (gwWifiWorkingType != QLatin1String("client"))
         {
