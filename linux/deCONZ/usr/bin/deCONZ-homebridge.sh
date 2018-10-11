@@ -483,6 +483,8 @@ do
 
 	[[ -z "$ZLLDB" ]] && continue
 	[[ ! -f "$ZLLDB" ]] && continue
+	[[ -z "$DECONZ_PORT" ]] && continue
+	[[ -z "$BRIDGEID" ]] && continue
 
     checkHomebridge
 	checkNewDevices
