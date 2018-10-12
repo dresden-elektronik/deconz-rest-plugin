@@ -772,24 +772,25 @@ various characteristics of that measurement.</description>
         </client>
 	<!-- TODO -->
 	</cluster>
-	<cluster id="000d" name="Analog Output (Basic)">
-	   <description>The Analog Output (Basic) cluster provides an interface for setting the value of an analog output (typically to the environment) and accessing various characteristics of that value.</description>
-     <server>
-       <attribute id="0x001c" type="cstring" name="Description" required="o" access="rw"></attribute>
-       <attribute id="0x0041" type="float" name="Max Present Value" required="o" access="rw"></attribute>
-       <attribute id="0x0045" type="float" name="Min Present Value" required="o" access="rw"></attribute>
-       <attribute id="0x0051" type="bool" name="Out of service" required="m" access="rw" default="0"></attribute>
-       <attribute id="0x0055" type="float" name="Present value" required="m" access="rw" default="0"></attribute>
-       <attribute id="0x006f" type="bmp8" name="Status flags" required="m" access="r" default="0">
- 				<value name="In Alarm" value="0x01"></value>
- 				<value name="Fault" value="0x02"></value>
- 				<value name="Overidden" value="0x04"></value>
- 				<value name="Out of Service" value="0x08"></value>
- 			</attribute>
+  <cluster id="0x000d" name="Analog Output (Basic)">
+    <description>The Analog Output (Basic) cluster provides an interface for setting the value of an analog output (typically to the environment) and accessing various characteristics of that value.</description>
+    <server>
+      <attribute id="0x001c" type="cstring" name="Description" required="o" access="rw"></attribute>
+      <attribute id="0x0041" type="float" name="Max Present Value" required="o" access="rw"></attribute>
+      <attribute id="0x0045" type="float" name="Min Present Value" required="o" access="rw"></attribute>
+      <attribute id="0x0051" type="bool" name="Out of service" required="m" access="rw" default="0"></attribute>
+      <attribute id="0x0055" type="float" name="Present value" required="m" access="rw" default="0"></attribute>
+      <attribute id="0x006f" type="bmp8" name="Status flags" required="m" access="r" default="0">
+        <value name="In Alarm" value="0x01"></value>
+        <value name="Fault" value="0x02"></value>
+        <value name="Overidden" value="0x04"></value>
+        <value name="Out of Service" value="0x08"></value>
+      </attribute>
+      <attribute id="0xf000" type="u32" name="Xiaomi 0xf000" required="o" access="r"></attribute>
      </server>
      <client>
      </client>
-	</cluster>
+   </cluster>
 	<cluster id="000e" name="Analog Value (Basic)">
 	<description>An interface for setting an analog value, typically used as a control system parameter, and accessing various characteristics of that value.</description>
 	<!-- TODO -->
