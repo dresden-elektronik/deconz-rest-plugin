@@ -7936,12 +7936,10 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         else if (tag == 0x6e && dataType == deCONZ::Zcl8BitUint) // lumi.ctrl_neutral2
         {
             DBG_Printf(DBG_INFO, "\t6e unknown %d (0x%02X)\n", u8, u8);
-            temperature = s16;
         }
         else if (tag == 0x6f && dataType == deCONZ::Zcl8BitUint) // lumi.ctrl_neutral2
         {
             DBG_Printf(DBG_INFO, "\t6f unknown %d (0x%02X)\n", u8, u8);
-            temperature = s16;
         }
         else if (tag == 0x95 && dataType == deCONZ::ZclSingleFloat) // lumi.ctrl_ln2
         {
