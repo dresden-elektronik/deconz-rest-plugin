@@ -5528,17 +5528,17 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     if (i->modelId() == QLatin1String("SP 120")) // innr
                                     {
-                                        current += 50; current /= 100; // 0.001A -> 0.1A
+                                        // already in mA
                                     }
                                     else if (i->modelId() == QLatin1String("SmartPlug")) // Heiman
                                     {
-                                        current += 5; current /= 10; // 0.01A -> 0.1A
+                                        current *= 100; // 0.01A -> mA
                                     }
                                     else
                                     {
-                                        current *= 10; // A -> 0.1A
+                                        current *= 1000; // A -> mA
                                     }
-                                    item->setValue(current); // in 0.1A
+                                    item->setValue(current); // in mA
                                     enqueueEvent(Event(RSensors, RStateCurrent, i->id(), item));
                                     updated = true;
                                 }
