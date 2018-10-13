@@ -3192,13 +3192,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                             fpConsumptionSensor.inClusters.push_back(ci->id());
                         }
                     }
-                    else if (modelId.startsWith(QLatin1String("lumi.ctrl_neutral")))
-                    {
-                        if (i->endpoint() == 0x08)
-                        {
-                            fpConsumptionSensor.inClusters.push_back(ci->id());
-                        }
-                    }
                 }
                     break;
 
