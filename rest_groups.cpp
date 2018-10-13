@@ -1773,17 +1773,18 @@ bool DeRestPluginPrivate::groupToMap(const ApiRequest &req, const Group *group, 
         }
 
         map["lightsequence"] = lightsequence;
-
-        QStringList deviceIds;
-        auto d = group->m_deviceMemberships.begin();
-        auto dend = group->m_deviceMemberships.end();
-
-        for ( ;d != dend; ++d)
-        {
-            deviceIds.append(*d);
-        }
-        map["devicemembership"] = deviceIds;
     }
+
+    QStringList deviceIds;
+    auto d = group->m_deviceMemberships.begin();
+    auto dend = group->m_deviceMemberships.end();
+
+    for ( ;d != dend; ++d)
+    {
+        deviceIds.append(*d);
+    }
+
+    map["devicemembership"] = deviceIds;
 
     // append lights which are known members in this group
     QVariantList lights;
