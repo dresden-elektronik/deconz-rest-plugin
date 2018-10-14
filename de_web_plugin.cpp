@@ -10558,6 +10558,7 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
             {
                 val.timestamp = QDateTime();
                 val.timestampLastReport = QDateTime();
+                val.timestampLastConfigured = QDateTime();
             }
 
             std::vector<RecoverOnOff>::iterator rc = recoverOnOff.begin();
@@ -10611,42 +10612,56 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
 
             if (item)
             {
-                item->setValue(true); // refresh timestamp after device announce
-                Event e(i->prefix(), RStateReachable, i->id(), item);
-                enqueueEvent(e);
-
-                // TODO only when permit join is active
-                if (i->state() == LightNode::StateDeleted)
+                if (gwPermitJoinDuration > 0)
                 {
-                    i->setState(LightNode::StateNormal);
-                    i->setNeedSaveDatabase(true);
-                    queSaveDb(DB_LIGHTS,DB_SHORT_SAVE_DELAY);
+                    if (i->state() == LightNode::StateDeleted)
+                    {
+                        i->setState(LightNode::StateNormal);
+                        i->setNeedSaveDatabase(true);
+                        queSaveDb(DB_LIGHTS,DB_SHORT_SAVE_DELAY);
+                    }
                 }
+
+                item->setValue(true); // refresh timestamp after device announce
+                if (i->state() == LightNode::StateNormal)
+                {
+                    Event e(i->prefix(), RStateReachable, i->id(), item);
+                    enqueueEvent(e);
+                }
+
                 updateEtag(gwConfigEtag);
             }
 
             DBG_Printf(DBG_INFO, "DeviceAnnce of LightNode: %s Permit Join: %i\n", qPrintable(i->address().toStringExt()), gwPermitJoinDuration);
 
-            // force reading attributes
-
-            i->enableRead(READ_SWBUILD_ID |
-                          READ_GROUPS |
-                          READ_SCENES);
-
-            queuePollNode(&*i);
-
-            for (uint32_t ii = 0; ii < 32; ii++)
+            if (i->state() == LightNode::StateNormal)
             {
-                uint32_t item = 1 << ii;
-                if (i->mustRead(item))
-                {
-                    i->setNextReadTime(item, queryTime);
-                    i->setLastRead(item, idleTotalCounter);
-                }
-            }
+                // force reading attributes
+                i->enableRead(READ_GROUPS | READ_SCENES);
 
-            queryTime = queryTime.addSecs(1);
-            updateEtag(i->etag);
+                queuePollNode(&*i);
+
+                // reorder, bring to back to force next polling
+                auto n = std::find(pollNodes.begin(), pollNodes.end(), &*i);
+                if (n != pollNodes.end())
+                {
+                    *n = pollNodes.back();
+                    pollNodes.back() = &*i;
+                }
+
+                for (uint32_t ii = 0; ii < 32; ii++)
+                {
+                    uint32_t item = 1 << ii;
+                    if (i->mustRead(item))
+                    {
+                        i->setNextReadTime(item, queryTime);
+                        i->setLastRead(item, idleTotalCounter);
+                    }
+                }
+
+                queryTime = queryTime.addSecs(1);
+                updateEtag(i->etag);
+            }
         }
     }
 
