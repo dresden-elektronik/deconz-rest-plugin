@@ -145,6 +145,7 @@
 				<value name="Mains (single phase) with battery backup" value="0x81"></value>
 			</attribute>
 			<attribute id="0x4000" name="SW Build ID" type="cstring" access="r" required="o" range="0,16"></attribute>
+			<attribute id="0xff0d" name="Xiaomi Sensitivity" type="u8" access="rw" required="o" mfcode="0x11f5"></attribute>
 		</attribute-set>
 		<attribute-set id="001" description="Basic Device Settings">
 			<attribute id="0010" name="Location Description" type="cstring" range="0,16" access="rw" required="o"></attribute>
@@ -171,7 +172,6 @@
 			<attribute id="0x0032" name="Usertest" type="bool" default="0" access="rw" required="o" mfcode="0x100b"></attribute>
 			<attribute id="0x0033" name="LED Indication" type="bool" default="0" access="rw" required="o" mfcode="0x100b"></attribute>
 		</attribute-set>
-
 		<command id="00" dir="recv" name="Reset to Factory Defaults" required="o"></command>
 		</server>
 		<client>
