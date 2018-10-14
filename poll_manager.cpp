@@ -209,6 +209,8 @@ void PollManager::pollTimerFired()
         return;
     }
 
+    const auto dtReachable = item->lastSet().secsTo(now);
+
     quint16 clusterId = 0xffff; // invalid
     std::vector<quint16> attributes;
 
@@ -386,11 +388,18 @@ void PollManager::pollTimerFired()
     }
 
     size_t fresh = 0;
+    const int reportWaitTime = 360;
     for (quint16 attrId : attributes)
     {
+        // force polling after node becomes reachable, since reporting might not be active
+        if (dtReachable < reportWaitTime)
+        {
+            break;
+        }
+
         NodeValue &val = restNode->getZclValue(clusterId, attrId);
 
-        if (val.timestampLastReport.isValid() && val.timestampLastReport.secsTo(now) < 360)
+        if (val.timestampLastReport.isValid() && val.timestampLastReport.secsTo(now) < reportWaitTime)
         {
             fresh++;
         }
