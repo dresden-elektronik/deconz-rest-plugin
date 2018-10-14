@@ -2435,6 +2435,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
     }
 
     Sensor sensor;
+    QDateTime startTime = QDateTime::currentDateTimeUtc();
     DeRestPluginPrivate *d = static_cast<DeRestPluginPrivate*>(user);
 
     int configCol = -1;
@@ -2706,11 +2707,15 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         {
             item = sensor.addItem(DataTypeBool, RStateFlag);
             item->setValue(false);
+            item = sensor.item(RStateLastUpdated);
+            item->setValue(startTime);
         }
         else if (sensor.type().endsWith(QLatin1String("Status")))
         {
             item = sensor.addItem(DataTypeInt32, RStateStatus);
             item->setValue(0);
+            item = sensor.item(RStateLastUpdated);
+            item->setValue(startTime);
         }
         else if (sensor.type().endsWith(QLatin1String("OpenClose")))
         {
