@@ -22,6 +22,7 @@
 #define FW_WAIT_UPDATE_READY (2) //s
 #define FW_IDLE_TIMEOUT_LONG (240 * 1000)
 #define FW_WAIT_USER_TIMEOUT (120 * 1000)
+#define FW_ONLY_AVR_BOOTLOADER 1
 
 /*! Inits the firmware update manager.
  */
@@ -386,7 +387,7 @@ void DeRestPluginPrivate::queryFirmwareVersion()
         }
         return;
     }
-    else if (devConnected)
+    else if (devConnected || fwVersion == FW_ONLY_AVR_BOOTLOADER)
     {
         QString str;
         str.sprintf("0x%08x", fwVersion);
@@ -401,7 +402,8 @@ void DeRestPluginPrivate::queryFirmwareVersion()
         DBG_Printf(DBG_INFO, "GW firmware version: %s\n", qPrintable(gwFirmwareVersion));
 
         // if the device is detected check that the firmware version is >= min version
-        if ((fwVersion & FW_PLATFORM_MASK) == FW_PLATFORM_RPI)
+        // if fwVersion is FW_ONLY_AVR_BOOTLOADER, there might be no firmware at all, but update is possible
+        if (((fwVersion & FW_PLATFORM_MASK) == FW_PLATFORM_RPI) || fwVersion == FW_ONLY_AVR_BOOTLOADER)
         {
             if (fwVersion < GW_MIN_RPI_FW_VERSION)
             {
@@ -414,15 +416,23 @@ void DeRestPluginPrivate::queryFirmwareVersion()
                 fwUpdateTimer->start(FW_WAIT_USER_TIMEOUT);
                 apsCtrl->setParameter(deCONZ::ParamFirmwareUpdateActive, deCONZ::FirmwareUpdateReadyToStart);
 
-                // auto update factory fresh devices with too old firmware
-                if (gwDeviceName == QLatin1String("RaspBee") &&
+                bool autoUpdate = false;
+
+                // auto update factory fresh devices with too old or no firmware
+                if (fwVersion == FW_ONLY_AVR_BOOTLOADER)
+                {
+                    autoUpdate = true;
+                }
+                else if (gwDeviceName == QLatin1String("RaspBee") &&
                     !gwSdImageVersion.isEmpty() && nodes.empty() && sensors.size() < 2)
                 {
-                    if (fwVersion <= GW_AUTO_UPDATE_FW_VERSION)
-                    {
-                        DBG_Printf(DBG_INFO, "GW firmware start auto update\n");
-                        startUpdateFirmware();
-                    }
+                    autoUpdate = true;
+                }
+
+                if (autoUpdate && fwVersion <= GW_AUTO_UPDATE_FW_VERSION)
+                {
+                    DBG_Printf(DBG_INFO, "GW firmware start auto update\n");
+                    startUpdateFirmware();
                 }
 
                 return;
