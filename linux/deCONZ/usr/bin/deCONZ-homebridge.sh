@@ -428,11 +428,6 @@ function checkHomebridge {
 			fi
 		fi
 	else
-		# create homebridge dir and config and add Mainuser ownership
-		mkdir /home/$MAINUSER/.homebridge
-		touch /home/$MAINUSER/.homebridge/config.json
-		chown -R $MAINUSER /home/$MAINUSER/.homebridge
-
 		RC=1
 		while [ $RC -ne 0 ]; do
 			HOMEBRIDGE_PIN=$(sqlite3 $ZLLDB "select value from config2 where key='homebridge-pin'")
@@ -442,6 +437,18 @@ function checkHomebridge {
 				sleep 2
 			fi
 		done
+
+		if [ -z "$HOMEBRIDGE_PIN" ]; then
+			[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}homebridge-pin is empty. Trying to get new one."
+			TIMEOUT=2
+			return
+		fi
+
+		# create homebridge dir and config and add Mainuser ownership
+		mkdir /home/$MAINUSER/.homebridge
+		touch /home/$MAINUSER/.homebridge/config.json
+		chown -R $MAINUSER /home/$MAINUSER/.homebridge
+
 		local HB_PIN="${HOMEBRIDGE_PIN:0:3}-${HOMEBRIDGE_PIN:3:2}-${HOMEBRIDGE_PIN:5:3}"
 		echo "{
 \"bridge\": {
