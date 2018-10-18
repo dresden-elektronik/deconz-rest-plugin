@@ -75,7 +75,7 @@ function init {
 	fi
 
 	if [[ -n $value ]]; then
-		if [[ "$value" = "0000000000000000" ]]; then
+		if [[ ! "$value" == 00212e* ]]; then
 		    return
 		fi
 		BRIDGEID=$value
