@@ -207,6 +207,7 @@ function checkHomebridge {
 		pkill homebridge
 		sleep 5
 		rm -rf /home/$MAINUSER/.homebridge/persist
+		rm -rf /home/$MAINUSER/.homebridge/config.json
 	fi
 
 	## check if apikey already exist or create a new apikey for homebridge apps
