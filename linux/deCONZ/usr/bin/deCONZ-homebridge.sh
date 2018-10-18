@@ -75,6 +75,9 @@ function init {
 	fi
 
 	if [[ -n $value ]]; then
+		if [[ "$value" = "0000000000000000" ]]; then
+		    return
+		fi
 		BRIDGEID=$value
 		[[ $LOG_INFO ]] && echo "${LOG_INFO}use bridgeid $BRIDGEID"
 	fi
