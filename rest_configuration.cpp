@@ -40,7 +40,7 @@ ApiConfig::ApiConfig() :
 {
 }
 
-/*! Intit the configuration. */
+/*! Init the configuration. */
 void DeRestPluginPrivate::initConfig()
 {
     QString dataPath = deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation);
@@ -81,6 +81,11 @@ void DeRestPluginPrivate::initConfig()
     gwFirmwareNeedUpdate = false;
     gwFirmwareVersion = "0x00000000"; // query later
     gwFirmwareVersionUpdate = "";
+    gwMAC = "38:60:77:7c:53:18";
+    gwIPAddress = "127.0.0.1";
+    gwPort = (apsCtrl ? apsCtrl->getParameter(deCONZ::ParamHttpPort) : deCONZ::appArgumentNumeric("--http-port", 80));
+    gwNetMask = "255.0.0.0";
+    gwLANBridgeId = (deCONZ::appArgumentNumeric("--lan-bridgeid", 0) == 1);
     gwBridgeId = "0000000000000000";
     gwAllowLocal = (deCONZ::appArgumentNumeric("--allow-local", 1) == 1);
     gwConfig["websocketport"] = 443;
@@ -252,6 +257,96 @@ void DeRestPluginPrivate::initTimezone()
     daylighTimer->start(10000);
 
     daylightTimerFired();
+}
+
+/*! Init the network info. */
+void DeRestPluginPrivate::initNetworkInfo()
+{
+    bool ok = false;
+    bool retry = false;
+
+    QList<QNetworkInterface> ifaces = QNetworkInterface::allInterfaces();
+    QList<QNetworkInterface>::Iterator i = ifaces.begin();
+    QList<QNetworkInterface>::Iterator end = ifaces.end();
+
+    // optimistic approach chose the first available ethernet interface
+    for (; !ok && i != end; ++i)
+    {
+        if (i->name() == QLatin1String("tun0"))
+        {
+            continue;
+        }
+
+        retry = true;
+        if ((i->flags() & QNetworkInterface::IsUp) &&
+            (i->flags() & QNetworkInterface::IsRunning) &&
+            !(i->flags() & QNetworkInterface::IsLoopBack))
+        {
+            //DBG_Printf(DBG_INFO, "%s (%s)\n", qPrintable(i->name()), qPrintable(i->humanReadableName()));
+
+            QList<QNetworkAddressEntry> addresses = i->addressEntries();
+
+            if (ok || addresses.isEmpty())
+            {
+                continue;
+            }
+
+            QList<QNetworkAddressEntry>::Iterator a = addresses.begin();
+            QList<QNetworkAddressEntry>::Iterator aend = addresses.end();
+
+            for (; a != aend; ++a)
+            {
+                if (a->ip().protocol() != QAbstractSocket::IPv4Protocol)
+                {
+                    continue;
+                }
+
+                quint32 ipv4 = a->ip().toIPv4Address();
+                if ((ipv4 & 0xff000000UL) == 0x7f000000UL)
+                {
+                    // 127.x.x.x
+                    continue;
+                }
+
+                if ((ipv4 & 0x80000000UL) != 0x00000000UL && // class A 0xxx xxxx
+                    (ipv4 & 0xc0000000UL) != 0x80000000UL && // class B 10xx xxxx
+                    (ipv4 & 0xe0000000UL) != 0xc0000000UL)   // class C 110x xxxx
+                {
+                    // unsupported network
+                    continue;
+                }
+
+                QString mac = i->hardwareAddress().toLower();
+                gwMAC = mac;
+                if (gwLANBridgeId) {
+                    gwBridgeId = mac.mid(0,2) + mac.mid(3,2) + mac.mid(6,2) + "fffe" + mac.mid(9,2) + mac.mid(12,2) + mac.mid(15,2);
+                    if (!gwConfig.contains("bridgeid") || gwConfig["bridgeid"] != gwBridgeId)
+                    {
+                        DBG_Printf(DBG_INFO, "Set bridgeid to %s\n", qPrintable(gwBridgeId));
+                        gwConfig["bridgeid"] = gwBridgeId;
+                        queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
+                    }
+                }
+                gwIPAddress = a->ip().toString();
+                gwConfig["ipaddress"] = gwIPAddress;
+                gwNetMask = a->netmask().toString();
+                initDescriptionXml();
+                ok = true;
+                retry = false;
+                break;
+            }
+        }
+    }
+
+    if (!ok)
+    {
+        DBG_Printf(DBG_ERROR, "No valid ethernet interface found\n");
+    }
+
+    if (retry)
+    {
+        QTimer::singleShot(10000, this, SLOT(initNetworkInfo()));
+    }
 }
 
 /*! Init WiFi parameters if necessary. */
@@ -605,7 +700,6 @@ int DeRestPluginPrivate::createUser(const ApiRequest &req, ApiResponse &rsp)
  */
 void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
 {
-    bool ok = false;
     QVariantMap whitelist;
     QVariantMap swupdate;
     QVariantMap swupdate2;
@@ -618,73 +712,17 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     QDateTime datetime = QDateTime::currentDateTimeUtc();
     QDateTime localtime = QDateTime::currentDateTime();
 
+    basicConfigToMap(map);
+    map["ipaddress"] = gwIPAddress;
+    map["netmask"] = gwNetMask;
+    if (gwDeviceName.isEmpty())
     {
-        QList<QNetworkInterface> ifaces = QNetworkInterface::allInterfaces();
-        QList<QNetworkInterface>::Iterator i = ifaces.begin();
-        QList<QNetworkInterface>::Iterator end = ifaces.end();
-
-        // optimistic approach chose the first available ethernet interface
-        for (; !ok && i != end; ++i)
-        {
-            if (i->name() == QLatin1String("tun0"))
-            {
-                continue;
-            }
-
-            if ((i->flags() & QNetworkInterface::IsUp) &&
-                (i->flags() & QNetworkInterface::IsRunning) &&
-                !(i->flags() & QNetworkInterface::IsLoopBack))
-            {
-                //DBG_Printf(DBG_INFO, "%s (%s)\n", qPrintable(i->name()), qPrintable(i->humanReadableName()));
-
-                QList<QNetworkAddressEntry> addresses = i->addressEntries();
-
-                if (ok || addresses.isEmpty())
-                {
-                    continue;
-                }
-
-                QList<QNetworkAddressEntry>::Iterator a = addresses.begin();
-                QList<QNetworkAddressEntry>::Iterator aend = addresses.end();
-
-                for (; a != aend; ++a)
-                {
-                    if (a->ip().protocol() != QAbstractSocket::IPv4Protocol)
-                    {
-                        continue;
-                    }
-
-                    quint32 ipv4 = a->ip().toIPv4Address();
-                    if ((ipv4 & 0xff000000UL) == 0x7f000000UL)
-                    {
-                        // 127.x.x.x
-                        continue;
-                    }
-
-                    if ((ipv4 & 0x80000000UL) != 0x00000000UL && // class A 0xxx xxxx
-                        (ipv4 & 0xc0000000UL) != 0x80000000UL && // class B 10xx xxxx
-                        (ipv4 & 0xe0000000UL) != 0xc0000000UL)   // class C 110x xxxx
-                    {
-                        // unsupported network
-                        continue;
-                    }
-
-                    map["ipaddress"] = a->ip().toString();
-                    map["netmask"] = a->netmask().toString();
-                    map["mac"] = i->hardwareAddress().toLower();
-                    ok = true;
-                    break;
-                }
-            }
-        }
+        gwDeviceName = apsCtrl->getParameter(deCONZ::ParamDeviceName);
     }
 
-    if (!ok)
+    if (!gwDeviceName.isEmpty())
     {
-        map["mac"] = "38:60:77:7c:53:18";
-        map["ipaddress"] = "127.0.0.1";
-        map["netmask"] = "255.0.0.0";
-        DBG_Printf(DBG_ERROR, "No valid ethernet interface found\n");
+        map["devicename"] = gwDeviceName;
     }
 
     std::vector<ApiAuth>::const_iterator i = apiAuths.begin();
@@ -700,8 +738,6 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
             whitelist[i->apikey] = au;
         }
     }
-
-    map["modelid"] = QLatin1String("deCONZ");
 
     if (req.apiVersion() == ApiVersion_1_DDEL)
     {
@@ -741,7 +777,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         swupdate["text"] = "";
         swupdate["notify"] = false;
         map["swupdate"] = swupdate;
-        map["port"] = (double)(apsCtrl ? apsCtrl->getParameter(deCONZ::ParamHttpPort) : 80);
+        map["port"] = gwPort;
         // since api version 1.2.1
         map["apiversion"] = QLatin1String(GW_SW_VERSION);
         map["system"] = "other";
@@ -775,14 +811,6 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
             map["apiversion"] = QLatin1String("1.20.0");
             map["modelid"] = QLatin1String("BSB002");
         }
-        else
-        {
-            QStringList versions = QString(GW_SW_VERSION).split('.');
-            QString swversion;
-            swversion.sprintf("%d.%d.%d", versions[0].toInt(), versions[1].toInt(), versions[2].toInt());
-            map["swversion"] = swversion;
-            map["apiversion"] = QString(GW_API_VERSION);
-        }
         devicetypes["bridge"] = false;
         devicetypes["lights"] = QVariantList();
         devicetypes["sensors"] = QVariantList();
@@ -803,11 +831,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         backup["status"] = QLatin1String("idle");
         backup["errorcode"] = 0;
         map["backup"] = backup;
-        map["factorynew"] = false;
-        map["replacesbridgeid"] = QVariant();
-        map["datastoreversion"] = QLatin1String("60");
         map["swupdate"] = swupdate;
-        map["starterkitid"] = QLatin1String("");
     }
 
     bridge["state"] = gwSwUpdateState;
@@ -825,29 +849,15 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
 
     map["fwversion"] = gwFirmwareVersion;
     map["rfconnected"] = gwRfConnected;
-    map["name"] = gwName;
     map["uuid"] = gwUuid;
-    map["bridgeid"] = gwBridgeId;
     if (apsCtrl)
     {
         map["zigbeechannel"] = apsCtrl->getParameter(deCONZ::ParamCurrentChannel);
         map["panid"] = apsCtrl->getParameter(deCONZ::ParamPANID);
-        gwPort = apsCtrl->getParameter(deCONZ::ParamHttpPort); // cache
     }
     else
     {
         map["zigbeechannel"] = (double)gwZigbeeChannel;
-        gwPort = deCONZ::appArgumentNumeric("--http-port", 80); // cache
-    }
-
-    if (gwDeviceName.isEmpty())
-    {
-        gwDeviceName = apsCtrl->getParameter(deCONZ::ParamDeviceName);
-    }
-
-    if (!gwDeviceName.isEmpty())
-    {
-        map["devicename"] = gwDeviceName;
     }
 
     if (gwConfig.contains(QLatin1String("ntp")))
@@ -869,10 +879,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     map["websocketport"] = (double)gwConfig["websocketport"].toUInt();
     map["websocketnotifyall"] = gwWebSocketNotifyAll;
 
-    gwIpAddress = map["ipaddress"].toString(); // cache
-
-
-    QStringList ipv4 = gwIpAddress.split(".");
+    QStringList ipv4 = gwIPAddress.split(".");
 
     if (ipv4.size() == 4)
     {
@@ -890,62 +897,19 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
  */
 void DeRestPluginPrivate::basicConfigToMap(QVariantMap &map)
 {
-    QNetworkInterface eth;
-
-    {
-        QList<QNetworkInterface> ifaces = QNetworkInterface::allInterfaces();
-        QList<QNetworkInterface>::Iterator i = ifaces.begin();
-        QList<QNetworkInterface>::Iterator end = ifaces.end();
-
-        // optimistic approach chose the first available ethernet interface
-        for (;i != end; ++i)
-        {
-            if ((i->flags() & QNetworkInterface::IsUp) &&
-                (i->flags() & QNetworkInterface::IsRunning) &&
-                !(i->flags() & QNetworkInterface::IsLoopBack))
-            {
-                QList<QNetworkAddressEntry> addresses = i->addressEntries();
-
-                if (!addresses.isEmpty())
-                {
-                    eth = *i;
-                    break;
-                }
-            }
-        }
-    }
-
-    if (eth.isValid() && !eth.addressEntries().isEmpty())
-    {
-        map["mac"] = eth.hardwareAddress().toLower();
-    }
-    else
-    {
-        DBG_Printf(DBG_ERROR, "No valid ethernet interface found\n");
-    }
-
-    map["bridgeid"] = gwBridgeId;
+    map["name"] = gwName;
+    map["datastoreversion"] = QLatin1String("60");
     QStringList versions = QString(GW_SW_VERSION).split('.');
     QString swversion;
     swversion.sprintf("%d.%d.%d", versions[0].toInt(), versions[1].toInt(), versions[2].toInt());
     map["swversion"] = swversion;
-    map["modelid"] = QLatin1String("deCONZ");
+    map["apiversion"] = QString(GW_API_VERSION);
+    map["mac"] = gwMAC;
+    map["bridgeid"] = gwBridgeId;
     map["factorynew"] = false;
     map["replacesbridgeid"] = QVariant();
-    map["datastoreversion"] = QLatin1String("60");
-    map["apiversion"] = QString(GW_API_VERSION);
-    map["name"] = gwName;
+    map["modelid"] = QLatin1String("deCONZ");
     map["starterkitid"] = QLatin1String("");
-
-    if (gwDeviceName.isEmpty())
-    {
-        gwDeviceName = apsCtrl->getParameter(deCONZ::ParamDeviceName);
-    }
-
-    if (!gwDeviceName.isEmpty())
-    {
-        map["devicename"] = gwDeviceName;
-    }
 }
 
 /*! GET /api/<apikey>

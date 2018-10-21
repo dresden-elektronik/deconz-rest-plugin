@@ -864,6 +864,7 @@ public Q_SLOTS:
     void processGroupTasks();
     void nodeEvent(const deCONZ::NodeEvent &event);
     void initTimezone();
+    void initNetworkInfo();
     void initWiFi();
     void internetDiscoveryTimerFired();
     void internetDiscoveryFinishedRequest(QNetworkReply *reply);
@@ -1244,12 +1245,16 @@ public:
     quint16 gwProxyPort;
     QString gwTimezone;
     QString gwTimeFormat;
-    QString gwIpAddress;
+    QString gwMAC;
+    QString gwIPAddress;
     uint16_t gwPort;
     bool gwAllowLocal;
+    QString gwNetMask;
     QString gwHomebridge;
     QString gwHomebridgePin;
     QString gwName;
+    bool gwLANBridgeId;
+    QString gwBridgeId;
     QString gwUuid;
     QString gwUpdateVersion;
     QString gwSwUpdateState;
@@ -1274,7 +1279,6 @@ public:
     QVariantMap gwUserParameter;
     std::vector<QString> gwUserParameterToDelete;
     deCONZ::Address gwDeviceAddress;
-    QString gwBridgeId;
     QString gwSdImageVersion;
     QString gwDeviceName;
     QDateTime globalLastMotion; // last time any physical PIR has detected motion

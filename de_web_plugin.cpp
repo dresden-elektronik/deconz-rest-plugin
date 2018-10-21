@@ -309,8 +309,6 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     group.setName("All");
     groups.push_back(group);
 
-    initUpnpDiscovery();
-
     connect(apsCtrl, SIGNAL(apsdeDataConfirm(const deCONZ::ApsDataConfirm&)),
             this, SLOT(apsdeDataConfirm(const deCONZ::ApsDataConfirm&)));
 
@@ -396,6 +394,9 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     quint16 wsPort = deCONZ::appArgumentNumeric(QLatin1String("--ws-port"), gwConfig["websocketport"].toUInt());
     webSocketServer = new WebSocketServer(this, wsPort);
     gwConfig["websocketport"] = webSocketServer->port();
+
+    initNetworkInfo();
+    initUpnpDiscovery();
 
     initAuthentification();
     initInternetDicovery();
@@ -12249,7 +12250,7 @@ void DeRestPlugin::idleTimerFired()
     {
         d->gwDeviceAddress.setExt(d->apsCtrl->getParameter(deCONZ::ParamMacAddress));
         d->gwDeviceAddress.setNwk(d->apsCtrl->getParameter(deCONZ::ParamNwkAddress));
-        if (d->gwDeviceAddress.hasExt())
+        if (!(d->gwLANBridgeId) && d->gwDeviceAddress.hasExt())
         {
             d->gwBridgeId.sprintf("%016llX", (quint64)d->gwDeviceAddress.ext());
             if (!d->gwConfig.contains("bridgeid") || d->gwConfig["bridgeid"] != d->gwBridgeId)
