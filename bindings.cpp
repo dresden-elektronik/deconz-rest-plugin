@@ -563,8 +563,13 @@ bool DeRestPluginPrivate::sendBindRequest(BindingTask &bt)
             break; // ok
         }
 
+        if (permitJoinFlag || searchSensorsState == SearchSensorsActive)
+        {
+            break; // ok
+        }
+
         const QDateTime now = QDateTime::currentDateTime();
-        if (s.lastRx().secsTo(now) > 2)
+        if (s.lastRx().secsTo(now) > 7)
         {
             return false;
         }
@@ -1647,17 +1652,17 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
 }
 
 /*! Creates binding for group control (switches, motion sensor, ...). */
-void DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
+bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
 {
     if (!apsCtrl || !sensor || !sensor->node() || !sensor->address().hasExt() || !sensor->toBool(RConfigReachable))
     {
-        return;
+        return false;
     }
 
     if (searchSensorsState != SearchSensorsActive &&
         idleTotalCounter < (60 * 15)) // wait for some input before fire bindings
     {
-        return;
+        return false;
     }
 
     Q_Q(DeRestPlugin);
@@ -1665,7 +1670,7 @@ void DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() && sensor->lastRx().secsTo(now) > 10)
     {
         DBG_Printf(DBG_INFO_L2, "skip check bindings for client clusters (end-device might sleep)\n");
-        return;
+        return false;
     }
 
     ResourceItem *item = sensor->item(RConfigGroup);
@@ -1673,7 +1678,7 @@ void DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     if (!item || item->toString().isEmpty())
     {
         DBG_Printf(DBG_INFO_L2, "skip check bindings for client clusters (no group)\n");
-        return;
+        return false;
     }
 
     std::vector<quint8> srcEndpoints;
@@ -1760,15 +1765,16 @@ void DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     }
     else
     {
-        return;
+        return false;
     }
 
     // prevent binding action if otau was busy recently
     if (otauLastBusyTimeDelta() < OTA_LOW_PRIORITY_TIME)
     {
-        return;
+        return false;
     }
 
+    bool ret = false;
     for (int j = 0; j < (int)srcEndpoints.size() && j < gids.size(); j++)
     {
         QString gid = gids[j];
@@ -1806,7 +1812,10 @@ void DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
                 bindingTask.state = BindingTask::StateCheck;
             }
 
-            queueBindingTask(bindingTask);
+            if (queueBindingTask(bindingTask))
+            {
+                ret = true;
+            }
 
             // group addressing has no destination endpoint
 //            bnd.dstEndpoint = endpoint();
@@ -1833,6 +1842,8 @@ void DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     {
         bindingTimer->start();
     }
+
+    return ret;
 }
 
 /*! Creates groups for \p sensor if needed. */

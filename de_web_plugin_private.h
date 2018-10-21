@@ -886,7 +886,7 @@ public Q_SLOTS:
     bool sendConfigureReportingRequest(BindingTask &bt);
     void checkLightBindingsForAttributeReporting(LightNode *lightNode);
     bool checkSensorBindingsForAttributeReporting(Sensor *sensor);
-    void checkSensorBindingsForClientClusters(Sensor *sensor);
+    bool checkSensorBindingsForClientClusters(Sensor *sensor);
     void checkSensorGroup(Sensor *sensor);
     void checkOldSensorGroups(Sensor *sensor);
     void deleteGroupsWithDeviceMembership(const QString &id);

@@ -1123,6 +1123,11 @@ void DeRestPluginPrivate::handleMacDataRequest(const deCONZ::NodeEvent &event)
 
     for (auto &s : sensors)
     {
+        if (s.deletedState() != Sensor::StateNormal)
+        {
+            continue;
+        }
+
         if (s.address().ext() != event.node()->address().ext())
         {
             continue;
@@ -3350,6 +3355,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             if (modelId.startsWith(QLatin1String("RWL02")))
             {
                 sensor = getSensorNodeForAddress(node->address().ext()); // former created with with endpoint 1
+                if (sensor && sensor->deletedState() != Sensor::StateNormal)
+                {
+                    sensor = nullptr;
+                }
                 fpSwitch.endpoint = 2;
             }
 
@@ -12436,8 +12445,8 @@ void DeRestPlugin::idleTimerFired()
                     DBG_Printf(DBG_INFO_L2, "Force read attributes for node %s\n", qPrintable(lightNode->name()));
                 }
 
-                // don't query low priority items when OTA is busy
-                if (d->otauLastBusyTimeDelta() > OTA_LOW_PRIORITY_TIME)
+                // don't query low priority items when OTA is busy or sensor search is active
+                if (d->otauLastBusyTimeDelta() > OTA_LOW_PRIORITY_TIME || d->permitJoinFlag)
                 {
                     if (lightNode->lastAttributeReportBind() < (d->idleTotalCounter - IDLE_ATTR_REPORT_BIND_LIMIT))
                     {
@@ -13894,7 +13903,7 @@ void DeRestPluginPrivate::simpleRestartAppTimerFired()
 void DeRestPluginPrivate::pushSensorInfoToCore(Sensor *sensor)
 {
     DBG_Assert(sensor != 0);
-    if (!sensor)
+    if (!sensor || sensor->deletedState() != Sensor::StateNormal)
     {
         return;
     }
