@@ -12,9 +12,17 @@ The *Phoscon App* is the successor of the current WebApp (Wireless Light Control
 
 https://www.dresden-elektronik.de/funktechnik/solutions/wireless-light-control/phoscon-app?L=1
 
+Precompiled deCONZ packages
+===========================
 
-Installation
-============
+The deCONZ application is available for the following platforms and contains the main application and the pre-compiled REST-API plugin.
+
+* Windows  https://www.dresden-elektronik.de/deconz/ubuntu/beta/
+* Raspbian https://www.dresden-elektronik.de/deconz/raspbian/beta/
+* Ubuntu   https://www.dresden-elektronik.de/deconz/ubuntu/beta/
+
+Installation Raspberry Pi
+=========================
 
 ##### Supported platforms
 * Raspbian Jessie
@@ -36,11 +44,11 @@ https://github.com/dresden-elektronik/deconz-rest-plugin/releases
 
 1. Download deCONZ package
 
-        wget http://www.dresden-elektronik.de/rpi/deconz/beta/deconz-2.05.41-qt5.deb
+        wget http://www.dresden-elektronik.de/rpi/deconz/beta/deconz-2.05.42-qt5.deb
 
 2. Install deCONZ package
 
-        sudo dpkg -i deconz-2.05.41-qt5.deb
+        sudo dpkg -i deconz-2.05.42-qt5.deb
 
 **Important** this step might print some errors *that's ok* and will be fixed in the next step.
 
@@ -55,11 +63,11 @@ The deCONZ package already contains the REST API plugin, the development package
 
 1. Download deCONZ development package
 
-        wget http://www.dresden-elektronik.de/rpi/deconz-dev/deconz-dev-2.05.41.deb
+        wget http://www.dresden-elektronik.de/rpi/deconz-dev/deconz-dev-2.05.42.deb
 
 2. Install deCONZ development package
 
-        sudo dpkg -i deconz-dev-2.05.41.deb
+        sudo dpkg -i deconz-dev-2.05.42.deb
 
 3. Install missing dependencies
 
@@ -74,7 +82,7 @@ The deCONZ package already contains the REST API plugin, the development package
 2. Checkout related version tag
 
         cd deconz-rest-plugin
-        git checkout -b mybranch V2_05_41
+        git checkout -b mybranch V2_05_42
 
 3. Compile the plugin
 
