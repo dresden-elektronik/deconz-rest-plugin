@@ -2109,16 +2109,6 @@ void DeRestPluginPrivate::loadLightNodeFromDb(LightNode *lightNode)
         }
     }
 
-    if (!lightNode->swBuildId().isEmpty())
-    {
-        lightNode->setLastRead(READ_SWBUILD_ID, idleTotalCounter);
-    }
-
-    if (!lightNode->modelId().isEmpty())
-    {
-        lightNode->setLastRead(READ_MODEL_ID, idleTotalCounter);
-    }
-
     // check for old mac address only format
     if (lightNode->id().isEmpty())
     {
