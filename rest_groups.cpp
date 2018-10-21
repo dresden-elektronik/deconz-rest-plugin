@@ -795,6 +795,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     bool hasEffectColorLoop = false;
     bool hasAlert = map.contains("alert");
     bool hasToggle = map.contains("toggle");
+    bool hasWrap = map.contains("wrap");
 
     bool on = false;
     uint bri = 0;
@@ -1229,6 +1230,33 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     {
 
         int briInc = map["bri_inc"].toInt(&ok);
+        if(hasWrap && map["wrap"].type() == QVariant::Bool && map["wrap"] == true) {
+            std::vector<LightNode>::iterator i = nodes.begin();
+            std::vector<LightNode>::iterator end = nodes.end();
+
+            // Find the highest and lowest brightness lights
+            int hiBri = -1, loBri = 255;
+            for (; i != end; ++i)
+            {
+                if (isLightNodeInGroup(&(*i), group->address()))
+                {
+                    if (i->isAvailable() && i->state() != LightNode::StateDeleted)
+                    {
+                        hiBri = (i->level() > hiBri) ? i->level() : hiBri;
+                        loBri = (i->level() < loBri) ? i->level() : loBri;
+                    }
+                }
+            }
+
+            // Check if we need to wrap around
+            if(hiBri >= 0 && loBri < 255) {
+                if(briInc < 0 && loBri + briInc <= -briInc) {
+                    briInc = 254;
+                } else if(briInc > 0 && hiBri + briInc >= 254) {
+                    briInc = -254;
+                }
+            }
+        }
 
         if (ok && (map["bri_inc"].type() == QVariant::Double) && (briInc >= -254 && briInc <= 254))
         {

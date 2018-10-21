@@ -470,6 +470,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     bool hasEffect = map.contains("effect");
     bool hasEffectColorLoop = false;
     bool hasAlert = map.contains("alert");
+    bool hasWrap = map.contains("wrap");
 
     {
         ResourceItem *item = taskRef.lightNode->item(RStateOn);
@@ -963,6 +964,17 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         ResourceItem *item = taskRef.lightNode->item(RStateBri);
 
         int briIinc = map["bri_inc"].toInt(&ok);
+
+        if (hasWrap && map["wrap"].type() == QVariant::Bool && map["wrap"] == true) {
+            int lightLevel = taskRef.lightNode->level();
+            if(ok) {
+                if(briIinc < 0 && lightLevel + briIinc <= -briIinc) {
+                    briIinc = 254;
+                } else if(briIinc > 0 && lightLevel + briIinc >= 254) {
+                    briIinc = -254;
+                }
+            }
+        }
 
         if (!item)
         {
