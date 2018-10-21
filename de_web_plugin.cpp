@@ -1199,9 +1199,13 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         {
             if (lightNode2->state() == LightNode::StateDeleted)
             {
-                if (permitJoinFlag)
+                if (searchLightsState == SearchLightsActive || permitJoinFlag)
                 {
                     lightNode2->setState(LightNode::StateNormal);
+                }
+                else
+                {
+                    continue;
                 }
             }
 
@@ -1428,7 +1432,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
         if (lightNode.state() == LightNode::StateDeleted)
         {
-            if (permitJoinFlag)
+            if (searchLightsState == SearchLightsActive || permitJoinFlag)
             {
                 lightNode.setState(LightNode::StateNormal);
             }
@@ -1443,6 +1447,12 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
         if (lightNode.id().isEmpty())
         {
+            if (!(searchLightsState == SearchLightsActive || permitJoinFlag))
+            {
+                // don't add new light node when search is not active
+                return;
+            }
+
             openDb();
             lightNode.setId(QString::number(getFreeLightId()));
             closeDb();
@@ -1517,7 +1527,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         lightNode2 = &nodes.back();
         queuePollNode(lightNode2);
 
-        if (searchLightsState == SearchLightsActive)
+        if (searchLightsState == SearchLightsActive || permitJoinFlag)
         {
             Event e(RLights, REventAdded, lightNode2->id());
             enqueueEvent(e);

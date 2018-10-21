@@ -1444,7 +1444,7 @@ int DeRestPluginPrivate::deleteLight(const ApiRequest &req, ApiResponse &rsp)
 
     LightNode *lightNode = getLightNodeForId(id);
 
-    if (!lightNode)
+    if (!lightNode || lightNode->state() == LightNode::StateDeleted)
     {
         rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("resource, /lights/%1, not available").arg(id)));
         rsp.httpStatus = HttpStatusNotFound;
@@ -1527,7 +1527,7 @@ int DeRestPluginPrivate::deleteLight(const ApiRequest &req, ApiResponse &rsp)
     }
 
     updateLightEtag(lightNode);
-    queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
+    queSaveDb(DB_LIGHTS | DB_GROUPS | DB_SCENES, DB_SHORT_SAVE_DELAY);
 
     rsp.httpStatus = HttpStatusOk;
     rsp.etag = lightNode->etag;
