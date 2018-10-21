@@ -1163,8 +1163,14 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         {
             deCONZ::NumericUnion val;
             val.u64 = 0;
+
             // mark button event binding as resolved
             sensor->setZclValue(NodeValue::UpdateByZclReport, VENDOR_CLUSTER_ID, 0x0000, val);
+            NodeValue &val2 = bt.restNode->getZclValue(VENDOR_CLUSTER_ID, 0x0000);
+            if (val2.maxInterval == 0)
+            {
+                val2.maxInterval = 60 * 60 * 8; // prevent further check for 8 hours
+            }
         }
     }
     return false;
