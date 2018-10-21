@@ -512,7 +512,7 @@ void DeRestPluginPrivate::handleBindAndUnbindRspIndication(const deCONZ::ApsData
 
             if (status == deCONZ::ZdpSuccess)
             {
-                DBG_Printf(DBG_INFO, "%s response success\n", what);
+                DBG_Printf(DBG_INFO, "%s response success for 0x%016llx cluster 0x%04X\n", what, i->binding.srcAddress, i->binding.clusterId);
                 if (ind.clusterId() == ZDP_BIND_RSP_CLID)
                 {
                     if (sendConfigureReportingRequest(*i))
@@ -523,7 +523,7 @@ void DeRestPluginPrivate::handleBindAndUnbindRspIndication(const deCONZ::ApsData
             }
             else
             {
-                DBG_Printf(DBG_INFO, "%s response failed with status 0x%02X\n", what, status);
+                DBG_Printf(DBG_INFO, "%s response failed with status 0x%02X for 0x%016llx cluster 0x%04X\n", what, status, i->binding.srcAddress, i->binding.clusterId);
             }
 
             i->state = BindingTask::StateFinished;
@@ -1672,6 +1672,7 @@ void DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
 
     if (!item || item->toString().isEmpty())
     {
+        DBG_Printf(DBG_INFO_L2, "skip check bindings for client clusters (no group)\n");
         return;
     }
 
@@ -2272,7 +2273,7 @@ void DeRestPluginPrivate::bindingTimerFired()
             else
             {
                 // too harsh?
-                DBG_Printf(DBG_INFO_L2, "failed to send bind/unbind request. drop\n");
+                DBG_Printf(DBG_INFO_L2, "failed to send bind/unbind request to 0x%016llX cluster 0x%04X. drop\n", i->binding.srcAddress, i->binding.clusterId);
                 i->state = BindingTask::StateFinished;
             }
         }

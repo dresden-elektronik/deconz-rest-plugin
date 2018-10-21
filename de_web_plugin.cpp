@@ -1003,6 +1003,7 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             DBG_Printf(DBG_INFO, "SensorNode %u: %s added\n", sensorNode.id().toUInt(), qPrintable(sensorNode.name()));
             updateSensorEtag(&sensorNode);
 
+            DBG_Printf(DBG_INFO, "clear binding queue (TODO workaround) line: %d\n", __LINE__);
             bindingQueue.clear(); // TODO workaround to prevent dangling pointers
             sensorNode.setNeedSaveDatabase(true);
             sensors.push_back(sensorNode);
@@ -1504,7 +1505,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         queryTime = queryTime.addSecs(1);
 
         DBG_Printf(DBG_INFO, "LightNode %u: %s added\n", lightNode.id().toUInt(), qPrintable(lightNode.name()));
-
+        DBG_Printf(DBG_INFO, "clear binding queue (TODO workaround) line: %d\n", __LINE__);
         bindingQueue.clear(); // TODO workaround to prevent dangling pointers
 
         nodes.push_back(lightNode);
@@ -4153,6 +4154,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else
     {
         DBG_Printf(DBG_INFO, "SensorNode %s: %s added\n", qPrintable(sensorNode.id()), qPrintable(sensorNode.name()));
+        DBG_Printf(DBG_INFO, "clear binding queue (TODO workaround) line: %d\n", __LINE__);
         bindingQueue.clear(); // TODO workaround to prevent dangling pointers
         sensors.push_back(sensorNode);
         sensor2 = &sensors.back();
