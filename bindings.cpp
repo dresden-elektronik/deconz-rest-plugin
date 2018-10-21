@@ -1364,6 +1364,11 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         return false;
     }
 
+    if (sensor->deletedState() != Sensor::StateNormal)
+    {
+        return false;
+    }
+
     bool deviceSupported = false;
     // whitelist
         // Climax
@@ -1443,8 +1448,20 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
     bool ret = false;
     bool checkBindingTable = false;
     QDateTime now = QDateTime::currentDateTime();
-    std::vector<quint16>::const_iterator i = sensor->fingerPrint().inClusters.begin();
-    std::vector<quint16>::const_iterator end = sensor->fingerPrint().inClusters.end();
+
+    // sort server clusters so that 'more important' clusters will be bound as soon as possible
+    // 0xfc00, 0x0500, 0x0406, 0x0402, 0x0400, 0x0001
+
+    // for example for Philips motion sensor after joining the occupancy cluster 0x0406 is more
+    // important than power configuration cluster 0x0001 and should be bound first
+
+    // for the Philips dimmer switch the 0xfc00 for button events is also the most important
+    std::vector<quint16> inClusters = sensor->fingerPrint().inClusters;
+    std::sort(sensor->fingerPrint().inClusters.begin(), sensor->fingerPrint().inClusters.end(),
+              [](quint16 a, quint16 b) { return a < b; });
+
+    std::vector<quint16>::const_iterator i = inClusters.begin();
+    std::vector<quint16>::const_iterator end = inClusters.end();
 
     for (; i != end; ++i)
     {
@@ -1479,6 +1496,11 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         }
         else if (*i == POWER_CONFIGURATION_CLUSTER_ID)
         {
+            if (sensor->modelId() == QLatin1String("SML001") && sensor->type() != QLatin1String("ZHAPresence"))
+            {
+                continue; // process only once
+            }
+
             if (sensor->manufacturer().startsWith(QLatin1String("Climax")))
             {
                 val = sensor->getZclValue(*i, 0x0035); // battery alarm mask

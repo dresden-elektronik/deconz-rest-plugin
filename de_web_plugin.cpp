@@ -1003,8 +1003,6 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             DBG_Printf(DBG_INFO, "SensorNode %u: %s added\n", sensorNode.id().toUInt(), qPrintable(sensorNode.name()));
             updateSensorEtag(&sensorNode);
 
-            DBG_Printf(DBG_INFO, "clear binding queue (TODO workaround) line: %d\n", __LINE__);
-            bindingQueue.clear(); // TODO workaround to prevent dangling pointers
             sensorNode.setNeedSaveDatabase(true);
             sensors.push_back(sensorNode);
 
@@ -1520,8 +1518,6 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         queryTime = queryTime.addSecs(1);
 
         DBG_Printf(DBG_INFO, "LightNode %u: %s added\n", lightNode.id().toUInt(), qPrintable(lightNode.name()));
-        DBG_Printf(DBG_INFO, "clear binding queue (TODO workaround) line: %d\n", __LINE__);
-        bindingQueue.clear(); // TODO workaround to prevent dangling pointers
 
         nodes.push_back(lightNode);
         lightNode2 = &nodes.back();
@@ -3391,24 +3387,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             }
         }
 
-        // ZHALightLevel
-        if (fpLightSensor.hasInCluster(ILLUMINANCE_MEASUREMENT_CLUSTER_ID))
-        {
-            fpLightSensor.endpoint = i->endpoint();
-            fpLightSensor.deviceId = i->deviceId();
-            fpLightSensor.profileId = i->profileId();
-
-            sensor = getSensorNodeForFingerPrint(node->address().ext(), fpLightSensor, "ZHALightLevel");
-            if (!sensor || sensor->deletedState() != Sensor::StateNormal)
-            {
-                addSensorNode(node, fpLightSensor, "ZHALightLevel", modelId, manufacturer);
-            }
-            else
-            {
-                checkSensorNodeReachable(sensor);
-            }
-        }
-
         // ZHAPresence
         if (fpPresenceSensor.hasInCluster(OCCUPANCY_SENSING_CLUSTER_ID) ||
             fpPresenceSensor.hasInCluster(IAS_ZONE_CLUSTER_ID) ||
@@ -3460,6 +3438,24 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             if (!sensor || sensor->deletedState() != Sensor::StateNormal)
             {
                 addSensorNode(node, fpTemperatureSensor, "ZHATemperature", modelId, manufacturer);
+            }
+            else
+            {
+                checkSensorNodeReachable(sensor);
+            }
+        }
+
+        // ZHALightLevel
+        if (fpLightSensor.hasInCluster(ILLUMINANCE_MEASUREMENT_CLUSTER_ID))
+        {
+            fpLightSensor.endpoint = i->endpoint();
+            fpLightSensor.deviceId = i->deviceId();
+            fpLightSensor.profileId = i->profileId();
+
+            sensor = getSensorNodeForFingerPrint(node->address().ext(), fpLightSensor, "ZHALightLevel");
+            if (!sensor || sensor->deletedState() != Sensor::StateNormal)
+            {
+                addSensorNode(node, fpLightSensor, "ZHALightLevel", modelId, manufacturer);
             }
             else
             {
@@ -4173,8 +4169,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else
     {
         DBG_Printf(DBG_INFO, "SensorNode %s: %s added\n", qPrintable(sensorNode.id()), qPrintable(sensorNode.name()));
-        DBG_Printf(DBG_INFO, "clear binding queue (TODO workaround) line: %d\n", __LINE__);
-        bindingQueue.clear(); // TODO workaround to prevent dangling pointers
         sensors.push_back(sensorNode);
         sensor2 = &sensors.back();
         updateSensorEtag(sensor2);
@@ -7735,6 +7729,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
     {
         for (Sensor &sensor : sensors)
         {
+            if (sensor.deletedState() != Sensor::StateNormal)
+            {
+                continue;
+            }
+
             if      (ind.srcAddress().hasExt() && sensor.address().hasExt() &&
                      ind.srcAddress().ext() == sensor.address().ext())
             { }
@@ -11368,7 +11367,7 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
  */
 void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *event)
 {
-    if (getUptime() < WARMUP_TIME && searchSensorsState != SearchSensorsActive)
+    if (/*getUptime() < WARMUP_TIME &&*/ searchSensorsState != SearchSensorsActive)
     {
         return;
     }
@@ -11894,11 +11893,24 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             }
         }
 
-        if (sensor->lastAttributeReportBind() < (idleTotalCounter - IDLE_ATTR_REPORT_BIND_LIMIT))
+        for (auto &s : sensors)
         {
-            if (checkSensorBindingsForAttributeReporting(sensor))
+            if (s.address().ext() != sc->address.ext())
             {
-                sensor->setLastAttributeReportBind(idleTotalCounter);
+                continue;
+            }
+
+            if (s.deletedState() != Sensor::StateNormal)
+            {
+                continue;
+            }
+
+            if (s.lastAttributeReportBind() < (idleTotalCounter - IDLE_ATTR_REPORT_BIND_LIMIT_SHORT))
+            {
+                if (checkSensorBindingsForAttributeReporting(&s))
+                {
+                    s.setLastAttributeReportBind(idleTotalCounter);
+                }
             }
         }
     }

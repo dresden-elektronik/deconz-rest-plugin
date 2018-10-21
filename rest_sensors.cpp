@@ -2027,6 +2027,8 @@ void DeRestPluginPrivate::startSearchSensors()
 {
     if (searchSensorsState == SearchSensorsIdle || searchSensorsState == SearchSensorsDone)
     {
+        bindingQueue.clear();
+        sensors.reserve(sensors.size() + 10);
         searchSensorsCandidates.clear();
         searchSensorsResult.clear();
         lastSensorsScan = QDateTime::currentDateTimeUtc().toString(QLatin1String("yyyy-MM-ddTHH:mm:ss"));
