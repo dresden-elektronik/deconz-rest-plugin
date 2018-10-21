@@ -845,15 +845,25 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
             group->setIsOn(on);
             quint16 ontime = 0;
             quint8 command = on ? ONOFF_COMMAND_ON : ONOFF_COMMAND_OFF;
+            quint8 flags = 0;
             if (on)
             {
                 if (hasOnTime && map["ontime"].type() == QVariant::Double)
                 {
-                    double ot = map["ontime"].toDouble(&ok);
-                    if (ok && (ot >= 0 && ot <= 65535))
+                    uint ot = map["ontime"].toUInt(&ok);
+                    if (ok && ot <= 65535)
                     {
-                        ontime = ot;
+                        ontime = static_cast<quint16>(ot);
                         command = ONOFF_COMMAND_ON_WITH_TIMED_OFF;
+                    }
+
+                    if (ok && map.contains("onoffcontrol"))
+                    {
+                        uint ooc = map["onoffcontrol"].toUInt(&ok);
+                        if (ok && ooc & 1) // accept only when on
+                        {
+                            flags |= 1;
+                        }
                     }
                 }
             }
@@ -891,7 +901,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
             TaskItem task;
             copyTaskReq(taskRef, task);
             if (hasBri ||
-                addTaskSetOnOff(task, command, ontime)) // onOff task only if no bri is given
+                addTaskSetOnOff(task, command, ontime, flags)) // onOff task only if no bri is given
             {
                 QVariantMap rspItem;
                 QVariantMap rspItemState;

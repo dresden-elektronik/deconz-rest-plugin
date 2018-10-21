@@ -1064,7 +1064,7 @@ public:
     // Task interface
     bool addTask(const TaskItem &task);
     bool addTaskMoveLevel(TaskItem &task, bool withOnOff, bool upDirection, quint8 rate);
-    bool addTaskSetOnOff(TaskItem &task, quint8 cmd, quint16 ontime);
+    bool addTaskSetOnOff(TaskItem &task, quint8 cmd, quint16 ontime, quint8 flags = 0);
     bool addTaskSetBrightness(TaskItem &task, uint8_t bri, bool withOnOff);
     bool addTaskIncColorTemperature(TaskItem &task, int32_t ct);
     bool addTaskIncBrightness(TaskItem &task, int16_t bri);

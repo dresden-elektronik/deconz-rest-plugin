@@ -94,7 +94,7 @@ bool DeRestPluginPrivate::addTaskMoveLevel(TaskItem &task, bool withOnOff, bool 
  * \return true - on success
  *         false - on error
  */
-bool DeRestPluginPrivate::addTaskSetOnOff(TaskItem &task, quint8 cmd, quint16 ontime)
+bool DeRestPluginPrivate::addTaskSetOnOff(TaskItem &task, quint8 cmd, quint16 ontime, quint8 flags)
 {
     DBG_Assert(cmd == ONOFF_COMMAND_ON || cmd == ONOFF_COMMAND_OFF || cmd == ONOFF_COMMAND_TOGGLE || cmd == ONOFF_COMMAND_ON_WITH_TIMED_OFF);
     if (!(cmd == ONOFF_COMMAND_ON || cmd == ONOFF_COMMAND_OFF || cmd == ONOFF_COMMAND_TOGGLE || cmd == ONOFF_COMMAND_ON_WITH_TIMED_OFF))
@@ -116,11 +116,13 @@ bool DeRestPluginPrivate::addTaskSetOnOff(TaskItem &task, quint8 cmd, quint16 on
 
     if (cmd == ONOFF_COMMAND_ON_WITH_TIMED_OFF)
     {
+        const quint16 offWaitTime = 0;
         QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
         stream.setByteOrder(QDataStream::LittleEndian);
-        stream << (quint8)0x80; // 0x01 accept only when on --> no, 0x80 overwrite ontime (yes, non standard)
+        // stream << (quint8)0x80; // 0x01 accept only when on --> no, 0x80 overwrite ontime (yes, non standard)
+        stream << flags;
         stream << ontime;
-        stream << (quint16)0; // off wait time
+        stream << offWaitTime;
     }
 
 
