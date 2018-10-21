@@ -4946,6 +4946,13 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
                                     i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    NodeValue &val = i->getZclValue(event.clusterId(), ia->id());
+                                    // allow proper binding checks
+                                    if (val.minInterval == 0 || val.maxInterval == 0)
+                                    {
+                                        val.minInterval = 5;      // value used by Hue bridge
+                                        val.maxInterval = 7200;   // value used by Hue bridge
+                                    }
                                 }
 
                                 quint8 sensitivity = ia->numericValue().u8;
