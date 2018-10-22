@@ -17,7 +17,7 @@ Precompiled deCONZ packages
 
 The deCONZ application is available for the following platforms and contains the main application and the pre-compiled REST-API plugin.
 
-* Windows  https://www.dresden-elektronik.de/deconz/ubuntu/beta/
+* Windows  https://www.dresden-elektronik.de/deconz/win/
 * Raspbian https://www.dresden-elektronik.de/deconz/raspbian/beta/
 * Ubuntu   https://www.dresden-elektronik.de/deconz/ubuntu/beta/
 
