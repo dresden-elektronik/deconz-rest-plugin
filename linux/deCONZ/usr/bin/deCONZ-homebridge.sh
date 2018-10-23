@@ -102,7 +102,7 @@ function writeInDB {
 }
 
 function checkNewDevices() {
-	local max_timestamp=0
+	local max_timestamp=
 	local proceed=false
 	local changed=false
 
@@ -117,9 +117,14 @@ function checkNewDevices() {
 				sleep 2
 			fi
 		done
+		if [ -z $max_timestamp ]; then
+			[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}timestamp from db is empty - skip check for new devices"
+			return
+		fi
 		if [ $LAST_MAX_TIMESTAMP -eq 0 ]; then
 			# skip first run
 			LAST_MAX_TIMESTAMP=$max_timestamp
+			[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}set last max timestamp to $max_timestamp - skip check"
 			return
 		fi
 		if [[ "$max_timestamp" -ne "$LAST_MAX_TIMESTAMP" ]]; then
@@ -425,7 +430,14 @@ function checkHomebridge {
 			# config created by deCONZ - check if apikey is still correct
 			if [ -z "$(cat /home/$MAINUSER/.homebridge/config.json | grep "$APIKEY")" ]; then
 				# apikey not found - update config
+				[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}update apikey in config file with $APIKEY"
 				sed -i "/\"${BRIDGEID}\":/c\    \"${BRIDGEID}\": \"$APIKEY\"" /home/$MAINUSER/.homebridge/config.json
+			fi
+			# check if bridgeid is correct
+			if [ -n "$(cat /home/$MAINUSER/.homebridge/config.json | grep "00000000")" ]; then
+				# bridgeid has faulty value replace it with correct value from db
+				[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}update bridgeid in config file with ${BRIDGEID}"
+				sed -i "/\"00000000:/c\    \"${BRIDGEID}\": \"$APIKEY\"" /home/$MAINUSER/.homebridge/config.json
 			fi
 		fi
 	else
