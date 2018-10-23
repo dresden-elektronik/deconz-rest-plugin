@@ -75,7 +75,8 @@ function init {
 	fi
 
 	if [[ -n $value ]]; then
-		if [[ ! "$value" == 00212e* ]]; then
+		if [[ ! "$value" == 00212E* ]]; then
+			[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}no valid bridge id"
 		    return
 		fi
 		BRIDGEID=$value
