@@ -438,7 +438,7 @@ function checkHomebridge {
 			if [ -n "$(cat /home/$MAINUSER/.homebridge/config.json | grep "00000000")" ]; then
 				# bridgeid has faulty value replace it with correct value from db
 				[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}update bridgeid in config file with ${BRIDGEID}"
-				sed -i "/\"00000000:/c\    \"${BRIDGEID}\": \"$APIKEY\"" /home/$MAINUSER/.homebridge/config.json
+				sed -i "/\"00000000/c\    \"${BRIDGEID}\": \"$APIKEY\"" /home/$MAINUSER/.homebridge/config.json
 			fi
 		fi
 	else
