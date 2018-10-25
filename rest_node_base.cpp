@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2018 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -15,7 +15,6 @@
  */
 RestNodeBase::RestNodeBase() :
     m_node(0),
-    m_available(false),
     m_mgmtBindSupported(true),
     m_needSaveDatabase(false),
     m_read(0),

@@ -92,7 +92,6 @@ private:
     deCONZ::Address m_addr;
     QString m_id;
     QString m_uid;
-    bool m_available;
     bool m_mgmtBindSupported;
     bool m_needSaveDatabase;
 
