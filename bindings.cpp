@@ -1235,6 +1235,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturer().startsWith(QLatin1String("Bitron")))
         {
         }
+        else if (lightNode->modelId() == QLatin1String("NL08-0800")) // Nanoleaf Ivy
+        {
+        }
         else
         {
             return;
