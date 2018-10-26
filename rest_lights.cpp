@@ -1851,7 +1851,7 @@ int DeRestPluginPrivate::getConnectivity(const ApiRequest &req, ApiResponse &rsp
 void DeRestPluginPrivate::handleLightEvent(const Event &e)
 {
     DBG_Assert(e.resource() == RLights);
-    DBG_Assert(e.what() != 0);
+    DBG_Assert(e.what() != nullptr);
 
     LightNode *lightNode = getLightNodeForId(e.id());
 
@@ -1871,6 +1871,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
             map["e"] = QLatin1String("changed");
             map["r"] = QLatin1String("lights");
             map["id"] = e.id();
+            map["uniqueid"] = lightNode->uniqueId();
             QVariantMap state;
             state[e.what() + 6] = item->toVariant();
             map["state"] = state;
@@ -1899,6 +1900,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
         map["e"] = QLatin1String("changed");
         map["r"] = QLatin1String("lights");
         map["id"] = e.id();
+        map["uniqueid"] = lightNode->uniqueId();
 
         if (e.what() == RAttrName) // new attributes might be added in future
         {
@@ -1917,6 +1919,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
         map["e"] = QLatin1String("added");
         map["r"] = QLatin1String("lights");
         map["id"] = e.id();
+        map["uniqueid"] = lightNode->uniqueId();
 
         webSocketServer->broadcastTextMessage(Json::serialize(map));
     }
@@ -1927,6 +1930,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
         map["e"] = QLatin1String("deleted");
         map["r"] = QLatin1String("lights");
         map["id"] = e.id();
+        map["uniqueid"] = lightNode->uniqueId();
 
         webSocketServer->broadcastTextMessage(Json::serialize(map));
     }

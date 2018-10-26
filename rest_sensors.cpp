@@ -1808,7 +1808,7 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, bo
 void DeRestPluginPrivate::handleSensorEvent(const Event &e)
 {
     DBG_Assert(e.resource() == RSensors);
-    DBG_Assert(e.what() != 0);
+    DBG_Assert(e.what() != nullptr);
 
     Sensor *sensor = getSensorNodeForId(e.id());
 
@@ -1849,6 +1849,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             map["e"] = QLatin1String("changed");
             map["r"] = QLatin1String("sensors");
             map["id"] = e.id();
+            map["uniqueid"] = sensor->uniqueId();
             QVariantMap state;
 
             for (int i = 0; i < sensor->itemCount(); i++)
@@ -1892,6 +1893,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             map["e"] = QLatin1String("changed");
             map["r"] = QLatin1String("sensors");
             map["id"] = e.id();
+            map["uniqueid"] = sensor->uniqueId();
             QVariantMap config;
 
             for (int i = 0; i < sensor->itemCount(); i++)
@@ -1943,6 +1945,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         bool strictMode = false;
         sensorToMap(sensor, smap, strictMode);
         map["id"] = sensor->id();
+        map["uniqueid"] = sensor->uniqueId();
         smap["id"] = sensor->id();
         map["sensor"] = smap;
 
@@ -1959,6 +1962,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
 
         QVariantMap smap;
         map["id"] = e.id();
+        map["uniqueid"] = sensor->uniqueId();
         smap["id"] = e.id();
         map["sensor"] = smap;
 
@@ -1971,6 +1975,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         map["e"] = QLatin1String("changed");
         map["r"] = QLatin1String("sensors");
         map["id"] = e.id();
+        map["uniqueid"] = sensor->uniqueId();
 
         if (e.what() == RAttrName) // new attributes might be added in future
         {
@@ -1983,7 +1988,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         checkOldSensorGroups(sensor);
 
         ResourceItem *item = sensor->item(RConfigGroup);
-        DBG_Assert(item != 0);
+        DBG_Assert(item != nullptr);
         if (!item)
         {
             return;
