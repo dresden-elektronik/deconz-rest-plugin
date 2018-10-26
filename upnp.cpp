@@ -228,7 +228,7 @@ void DeRestPluginPrivate::upnpReadyRead()
             DBG_Printf(DBG_HTTP, "UPNP %s:%u\n%s\n", qPrintable(host.toString()), port, datagram.data());
             datagram.clear();
 
-            if (searchTarget == "ST: ssdp:all\r\n" || searchTarget == "ST: upnp:rootdevice\r\n")
+            if (searchTarget.startsWith(QLatin1String("ST: ssdp:all")) || searchTarget.startsWith(QLatin1String("ST: upnp:rootdevice")))
             {
                 datagram.append(response);
                 datagram.append(st1);
@@ -239,7 +239,7 @@ void DeRestPluginPrivate::upnpReadyRead()
                 }
                 datagram.clear();
             }
-            if (searchTarget == "ST: ssdp:all\r\n" || searchTarget == QString(QLatin1String("ST: uuid:%1\r\n")).arg(gwConfig["uuid"].toString()))
+            if (searchTarget.startsWith(QLatin1String("ST: ssdp:all")) || searchTarget == QString(QLatin1String("ST: uuid:%1\r\n")).arg(gwConfig["uuid"].toString()))
             {
                 datagram.append(response);
                 datagram.append(st2);
@@ -250,7 +250,7 @@ void DeRestPluginPrivate::upnpReadyRead()
                 }
                 datagram.clear();
             }
-            if (searchTarget == "ST ssdp:all\r\n" || searchTarget == "ST: urn:schemas-upnp-org:device:basic:1\r\n")
+            if (searchTarget.startsWith(QLatin1String("ST: ssdp:all")) || searchTarget.startsWith(QLatin1String("ST: urn:schemas-upnp-org:device:basic:1")))
             {
                 datagram.append(response);
                 datagram.append(st3);
