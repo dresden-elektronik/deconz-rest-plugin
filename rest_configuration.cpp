@@ -183,6 +183,9 @@ void DeRestPluginPrivate::initConfig()
     pollSwUpdateStateTimer->setSingleShot(false);
     connect(pollSwUpdateStateTimer, SIGNAL(timeout()),
             this, SLOT(pollSwUpdateStateTimerFired()));
+
+    connect(deCONZ::ApsController::instance(), &deCONZ::ApsController::configurationChanged,
+            this, &DeRestPluginPrivate::configurationChanged);
 }
 
 /*! Init timezone. */
@@ -434,6 +437,43 @@ void DeRestPluginPrivate::initWiFi()
     }
 
     queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
+}
+
+/*! Handle deCONZ::ApsController::configurationChanged() event.
+    This will be called when the configuration was changed via deCONZ network settings.
+ */
+void DeRestPluginPrivate::configurationChanged()
+{
+    if (!apsCtrl)
+    {
+        return;
+    }
+
+    DBG_Printf(DBG_INFO, "deCONZ configuration changed");
+
+    bool update = false;
+
+    const quint64 macAddress = apsCtrl->getParameter(deCONZ::ParamMacAddress);
+    const quint16 nwkAddress = apsCtrl->getParameter(deCONZ::ParamNwkAddress);
+    if (macAddress != 0 && gwDeviceAddress.ext() != macAddress)
+    {
+        gwDeviceAddress.setExt(macAddress);
+        gwDeviceAddress.setNwk(nwkAddress);
+        update = true;
+    }
+
+    const quint8 channel = apsCtrl->getParameter(deCONZ::ParamCurrentChannel);
+    if (channel >= 11 && channel <= 26 && gwZigbeeChannel != channel)
+    {
+        gwZigbeeChannel = channel;
+        update = true;
+    }
+
+    if (update)
+    {
+        updateZigBeeConfigDb();
+        queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
+    }
 }
 
 /*! Configuration REST API broker.

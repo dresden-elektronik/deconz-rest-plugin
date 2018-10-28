@@ -4416,7 +4416,7 @@ void DeRestPluginPrivate::updateZigBeeConfigDb()
         return;
     }
 
-    if (gwFirmwareVersion == QLatin1String("0x00000000"))
+    if (gwFirmwareVersion.startsWith(QLatin1String("0x0000000"))) // 0x00000000 and 0x00000001
     {
         return;
     }
@@ -4446,9 +4446,33 @@ void DeRestPluginPrivate::updateZigBeeConfigDb()
     uint8_t nwkUpdateId = apsCtrl->getParameter(deCONZ::ParamNetworkUpdateId);
 
     // some basic checks for common configuration as HA coordinator
+    if (macAddress == 0)
+    {
+        return;
+    }
+
     if (deviceType != deCONZ::Coordinator)
     {
         return;
+    }
+
+    if (deviceType == deCONZ::Coordinator)
+    {
+        // 0 is required and means the used extended panid will become
+        // coordinator mac address once network is up
+        if (apsUseExtPanId != 0)
+        {
+            return;
+        }
+
+        if (tcAddress != macAddress)
+        {
+            return;
+        }
+    }
+    else
+    {
+        return; // router currently not supported
     }
 
     if (curChannel < 11 || curChannel > 26)
@@ -4457,11 +4481,6 @@ void DeRestPluginPrivate::updateZigBeeConfigDb()
     }
 
     if (securityMode != 3) // no master but tc link key
-    {
-        return;
-    }
-
-    if (tcAddress != macAddress)
     {
         return;
     }

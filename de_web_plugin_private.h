@@ -861,6 +861,7 @@ public Q_SLOTS:
     void apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf);
     void gpDataIndication(const deCONZ::GpDataIndication &ind);
     void gpProcessButtonEvent(const deCONZ::GpDataIndication &ind);
+    void configurationChanged();
     int taskCountForAddress(const deCONZ::Address &address);
     void processTasks();
     void processGroupTasks();
@@ -937,7 +938,7 @@ public Q_SLOTS:
     void checkChannelChangeNetworkDisconnected();
     void channelChangeStartReconnectNetwork(int delay);
     void channelChangeReconnectNetwork();
-    void channelWatchdogTimerFired();
+    void networkWatchdogTimerFired();
 
     // generic reconnect network
     void reconnectTimerFired();

@@ -31,7 +31,7 @@ void DeRestPluginPrivate::initChangeChannelApi()
 
     QTimer *wdTimer = new QTimer(this);
     wdTimer->setSingleShot(false);
-    connect(wdTimer, SIGNAL(timeout()), this, SLOT(channelWatchdogTimerFired()));
+    connect(wdTimer, SIGNAL(timeout()), this, SLOT(networkWatchdogTimerFired()));
     wdTimer->start(10000);
 }
 
@@ -83,15 +83,38 @@ bool DeRestPluginPrivate::verifyChannel(quint8 channel)
     }
 
     quint8 currentChannel = apsCtrl->getParameter(deCONZ::ParamCurrentChannel);
+    quint64 apsUseExtPanid = apsCtrl->getParameter(deCONZ::ParamApsUseExtendedPANID);
+    quint64 tcAddress = apsCtrl->getParameter(deCONZ::ParamTrustCenterAddress);
+    quint64 macAddress = apsCtrl->getParameter(deCONZ::ParamMacAddress);
+    quint8 deviceType = apsCtrl->getParameter(deCONZ::ParamDeviceType);
 
-    if (currentChannel == channel)
+    bool ok = true;
+
+    if (currentChannel != channel)
     {
-        DBG_Printf(DBG_INFO, "channel change verified!\n");
+        ok = false;
+    }
+
+    if (deviceType == deCONZ::Coordinator)
+    {
+        if (apsUseExtPanid != 0)
+        {
+            ok = false;
+        }
+        else if (tcAddress != macAddress)
+        {
+            ok = false;
+        }
+    }
+
+    if (ok)
+    {
+        DBG_Printf(DBG_INFO, "network configuration verified!\n");
         return true;
     }
     else
     {
-        DBG_Printf(DBG_INFO, "channel change NOT verified!\n");
+        DBG_Printf(DBG_INFO, "network configuration NOT verified!\n");
         return false;
     }
 }
@@ -102,9 +125,15 @@ bool DeRestPluginPrivate::verifyChannel(quint8 channel)
  */
 void DeRestPluginPrivate::changeChannel(quint8 channel)
 {
-    if (ccRetries < 3)
+    if (!apsCtrl)
     {
-        DBG_Assert(apsCtrl != 0);
+    }
+    else if ((gwDeviceAddress.ext() & deMacPrefix) != deMacPrefix)
+    {
+        // require valid mac address
+    }
+    else if (ccRetries < 3)
+    {
         DBG_Assert(channel >= 11 && channel <= 26);
         if (apsCtrl && (channel >= 11) && (channel <= 26))
         {
@@ -117,9 +146,9 @@ void DeRestPluginPrivate::changeChannel(quint8 channel)
             {
                 nwkUpdateId = 1;
             }
-            uint8_t zdpSeq = (qrand() % 255);
-            uint32_t scanChannels = (1 << (uint)channel);
-            uint8_t scanDuration = 0xfe; //special value = channel change
+            const quint8 zdpSeq = (qrand() % 255);
+            const quint32 scanChannels = (1 << static_cast<uint>(channel));
+            const quint8 scanDuration = 0xfe; //special value = channel change
 
             DBG_Printf(DBG_INFO, "change channel with nwkUpdateId = %u\n", nwkUpdateId);
 
@@ -128,7 +157,7 @@ void DeRestPluginPrivate::changeChannel(quint8 channel)
 
             deCONZ::ApsDataRequest req;
 
-            req.setTxOptions(0);
+            req.setTxOptions(nullptr);
             req.setDstEndpoint(ZDO_ENDPOINT);
             req.setDstAddressMode(deCONZ::ApsNwkAddress);
             req.dstAddress().setNwk(deCONZ::BroadcastRouters);
@@ -167,8 +196,10 @@ void DeRestPluginPrivate::changeChannel(quint8 channel)
 
     if (apsCtrl && isInNetwork())
     {
-        gwZigbeeChannel = apsCtrl->getParameter(deCONZ::ParamCurrentChannel);
-        queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
+        if (gwZigbeeChannel != apsCtrl->getParameter(deCONZ::ParamCurrentChannel))
+        {
+
+        }
     }
     ccRetries = 0;
     channelChangeState = CC_Idle;
@@ -327,7 +358,17 @@ void DeRestPluginPrivate::channelChangeReconnectNetwork()
     {
         if (apsCtrl->networkState() != deCONZ::Connecting)
         {
-           ccNetworkReconnectAttempts--;
+            ccNetworkReconnectAttempts--;
+
+            const quint8 deviceType = apsCtrl->getParameter(deCONZ::ParamDeviceType);
+
+            if (deviceType == deCONZ::Coordinator)
+            {
+                apsCtrl->setParameter(deCONZ::ParamApsUseExtendedPANID, 0); // will become mac address
+                apsCtrl->setParameter(deCONZ::ParamTrustCenterAddress, gwDeviceAddress.ext());
+                apsCtrl->setParameter(deCONZ::ParamStaticNwkAddress, false);
+                apsCtrl->setParameter(deCONZ::ParamNwkAddress, 0);
+            }
 
             if (apsCtrl->setNetworkState(deCONZ::InNetwork) != deCONZ::Success)
             {
@@ -349,9 +390,9 @@ void DeRestPluginPrivate::channelChangeReconnectNetwork()
     }
 }
 
-/*! Checks if network is on the channel it's suppoesed to be.
+/*! Checks if network uses parameters it's suppoesed to be.
  */
-void DeRestPluginPrivate::channelWatchdogTimerFired()
+void DeRestPluginPrivate::networkWatchdogTimerFired()
 {
     if (!apsCtrl || channelChangeState != CC_Idle)
     {
@@ -365,6 +406,10 @@ void DeRestPluginPrivate::channelWatchdogTimerFired()
 
     quint8 channel = apsCtrl->getParameter(deCONZ::ParamCurrentChannel);
     quint32 channelMask = apsCtrl->getParameter(deCONZ::ParamChannelMask);
+    quint64 apsUseExtPanid = apsCtrl->getParameter(deCONZ::ParamApsUseExtendedPANID);
+    quint64 tcAddress = apsCtrl->getParameter(deCONZ::ParamTrustCenterAddress);
+    quint64 macAddress = apsCtrl->getParameter(deCONZ::ParamMacAddress);
+    quint8 deviceType = apsCtrl->getParameter(deCONZ::ParamDeviceType);
 
     if (gwZigbeeChannel == 0)
     {
@@ -388,6 +433,17 @@ void DeRestPluginPrivate::channelWatchdogTimerFired()
 
     if (gwZigbeeChannel == 0)
     {
+        DBG_Printf(DBG_INFO, "invalid gwZigbeeChannel %u (TODO)\n", gwZigbeeChannel);
+        return;
+    }
+    else if (deviceType != deCONZ::Coordinator)
+    {
+        DBG_Printf(DBG_INFO, "unsupported device type %u (TODO)\n", deviceType);
+        return;
+    }
+    else if ((macAddress & deMacPrefix) != deMacPrefix) // only support our mac address
+    {
+        DBG_Printf(DBG_INFO, "invalid mac address 0x%016llX\n", macAddress);
         return;
     }
     else if (gwZigbeeChannel < 11 || gwZigbeeChannel > 26)
@@ -396,9 +452,33 @@ void DeRestPluginPrivate::channelWatchdogTimerFired()
         return;
     }
 
+    bool needCheck = false;
+
     if (channel != gwZigbeeChannel)
     {
+        needCheck = true;
         DBG_Printf(DBG_INFO, "channel is %u but should be %u, start channel change\n", channel, gwZigbeeChannel);
+    }
+    else if (deviceType == deCONZ::Coordinator)
+    {
+        if (apsUseExtPanid != 0)
+        {
+            needCheck = true;
+            DBG_Printf(DBG_INFO, "apsUseExtPanid is 0x%016llX but should be 0, start reconfiguration\n", apsUseExtPanid);
+        }
+
+        if (tcAddress != macAddress)
+        {
+            needCheck = true;
+            DBG_Printf(DBG_INFO, "tcAddress is 0x%016llX but should be 0x%016llX, start reconfiguration\n", tcAddress, macAddress);
+        }
+
+        gwDeviceAddress.setExt(macAddress);
+        gwDeviceAddress.setNwk(0x0000);
+    }
+
+    if (needCheck)
+    {
         startChannelChange(gwZigbeeChannel);
     }
 }

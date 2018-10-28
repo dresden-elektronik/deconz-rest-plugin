@@ -12288,8 +12288,12 @@ void DeRestPlugin::idleTimerFired()
 
     if (!d->gwDeviceAddress.hasExt() && d->apsCtrl)
     {
-        d->gwDeviceAddress.setExt(d->apsCtrl->getParameter(deCONZ::ParamMacAddress));
-        d->gwDeviceAddress.setNwk(d->apsCtrl->getParameter(deCONZ::ParamNwkAddress));
+        const quint64 macAddress = d->apsCtrl->getParameter(deCONZ::ParamMacAddress);
+        if (macAddress != 0)
+        {
+            d->gwDeviceAddress.setExt(macAddress);
+            d->gwDeviceAddress.setNwk(d->apsCtrl->getParameter(deCONZ::ParamNwkAddress));
+        }
         if (!(d->gwLANBridgeId) && d->gwDeviceAddress.hasExt())
         {
             d->gwBridgeId.sprintf("%016llX", (quint64)d->gwDeviceAddress.ext());
@@ -13780,7 +13784,8 @@ bool DeRestPluginPrivate::resetConfiguration(bool resetGW, bool deleteDB)
             //reset Endpoint config
             QVariantMap epData;
             QVariantList inClusters;
-            inClusters.append("0x19");
+            inClusters.append("0x0019");
+            inClusters.append("0x000a");
 
             epData["index"] = 0;
             epData["endpoint"] = "0x1";
