@@ -147,6 +147,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_OSRAM_STACK, "TH-T_", heimanMacPrefix }, // Heiman temperature/humidity sensor
     { VENDOR_OSRAM_STACK, "SMOK_", heimanMacPrefix }, // Heiman fire sensor
     { VENDOR_OSRAM_STACK, "WATER_", heimanMacPrefix }, // Heiman water sensor
+    { VENDOR_LGE, "LG IP65 HMS", emberMacPrefix },
     { VENDOR_EMBER, "SmartPlug", emberMacPrefix }, // Heiman smart plug
     { VENDOR_120B, "WarningDevice", emberMacPrefix }, // Heiman siren
     { VENDOR_LUTRON, "LZL4BWHL01", lutronMacPrefix }, // Lutron LZL-4B-WH-L01 Connected Bulb Remote
@@ -4054,6 +4055,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     {
         sensorNode.setManufacturer("Heiman");
     }
+    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_LGE)
+    {
+        sensorNode.setManufacturer("LG Electronics");
+    }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_LUTRON)
     {
         sensorNode.setManufacturer("Lutron");
@@ -4889,7 +4894,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 updateSensorEtag(&*i);
 
                             }
-                            else if (i->modelId().startsWith(QLatin1String("FLS-NB")) && ia->id() == 0x0010) // occupied to unoccupied delay
+                            else if ((i->modelId().startsWith(QLatin1String("FLS-NB")) ||
+                                      i->modelId() == QLatin1String("LG IP65 HMS"))
+                                     && ia->id() == 0x0010) // occupied to unoccupied delay
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {

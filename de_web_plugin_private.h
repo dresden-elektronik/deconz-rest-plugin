@@ -241,6 +241,7 @@
 #define VENDOR_EMBER        0x1002
 #define VENDOR_PHILIPS      0x100B
 #define VENDOR_ATMEL        0x1014
+#define VENDOR_LGE          0x102E
 #define VENDOR_JENNIC       0x1037 // Used by Xiaomi, Trust
 #define VENDOR_CENTRALITE   0x104E
 #define VENDOR_NYCE         0x10B9

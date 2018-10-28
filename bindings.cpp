@@ -1220,6 +1220,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturerCode() == VENDOR_EMBER)
         {
         }
+        else if (lightNode->manufacturerCode() == VENDOR_LGE)
+        {
+        }
         else if (lightNode->manufacturerCode() == VENDOR_KEEN_HOME)
         {
         }
@@ -1408,10 +1411,13 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Nimbus
         sensor->modelId().startsWith(QLatin1String("FLS-NB")) ||
         // SmartThings
-        sensor->modelId().startsWith(QLatin1String("tagv4")))
+        sensor->modelId().startsWith(QLatin1String("tagv4")) ||
+        // LG
+        sensor->modelId() == QLatin1String("LG IP65 HMS"))
     {
         deviceSupported = true;
-        if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle())
+        if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||
+            sensor->node()->nodeDescriptor().manufacturerCode() != VENDOR_DDEL)
         {
             sensor->setMgmtBindSupported(false);
         }
