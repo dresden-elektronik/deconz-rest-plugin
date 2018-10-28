@@ -1444,11 +1444,11 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
     // whitelist by Model ID
     if (gwReportingEnabled)
     {
-        if (sensor->modelId().startsWith(QLatin1String("FLS-NB")))
-        {
-            // temporary disable, delete bindings and use read attributes
-        }
-        else if (deviceSupported)
+//        if (sensor->modelId().startsWith(QLatin1String("FLS-NB")))
+//        {
+//            // temporary disable, delete bindings and use read attributes
+//        }
+        if (deviceSupported)
         {
             action = BindingTask::ActionBind;
         }
