@@ -8,7 +8,7 @@
   <device>
     <deviceType>urn:schemas-upnp-org:device:Basic:1</deviceType>
     <friendlyName>{{GWNAME}} ({{IPADDRESS}})</friendlyName>
-    <manufacturer>dresden elektronik</manufacturer>
+    <manufacturer>Royal Philips Electronics</manufacturer>
     <manufacturerURL>http://www.dresden-elektronik.de</manufacturerURL>
     <modelDescription>Philips hue compatible Personal Wireless Lighting</modelDescription>
     <modelName>Philips hue bridge 2015</modelName>
