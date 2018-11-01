@@ -160,7 +160,7 @@ void DeRestPluginPrivate::changeChannel(quint8 channel)
             req.setTxOptions(nullptr);
             req.setDstEndpoint(ZDO_ENDPOINT);
             req.setDstAddressMode(deCONZ::ApsNwkAddress);
-            req.dstAddress().setNwk(deCONZ::BroadcastRouters);
+            req.dstAddress().setNwk(deCONZ::BroadcastRxOnWhenIdle);
             req.setProfileId(ZDP_PROFILE_ID);
             req.setClusterId(ZDP_MGMT_NWK_UPDATE_REQ_CLID);
             req.setSrcEndpoint(ZDO_ENDPOINT);
