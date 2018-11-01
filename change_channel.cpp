@@ -473,8 +473,11 @@ void DeRestPluginPrivate::networkWatchdogTimerFired()
             DBG_Printf(DBG_INFO, "tcAddress is 0x%016llX but should be 0x%016llX, start reconfiguration\n", tcAddress, macAddress);
         }
 
-        gwDeviceAddress.setExt(macAddress);
-        gwDeviceAddress.setNwk(0x0000);
+        if (needCheck)
+        {
+            gwDeviceAddress.setExt(macAddress);
+            gwDeviceAddress.setNwk(0x0000);
+        }
     }
 
     if (needCheck)

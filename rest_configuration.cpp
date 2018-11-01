@@ -454,11 +454,10 @@ void DeRestPluginPrivate::configurationChanged()
     bool update = false;
 
     const quint64 macAddress = apsCtrl->getParameter(deCONZ::ParamMacAddress);
-    const quint16 nwkAddress = apsCtrl->getParameter(deCONZ::ParamNwkAddress);
+    //const quint16 nwkAddress = apsCtrl->getParameter(deCONZ::ParamNwkAddress);
     if (macAddress != 0 && gwDeviceAddress.ext() != macAddress)
     {
-        gwDeviceAddress.setExt(macAddress);
-        gwDeviceAddress.setNwk(nwkAddress);
+        gwDeviceAddress = {}; // reset let idle timer update bridgeid
         update = true;
     }
 
