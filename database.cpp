@@ -2947,7 +2947,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 return 0;
             }
 
-            QStringList supportedModes({"momentary", "rocker"});
+            QStringList supportedModes({"momentary", "rocker", "custom"});
             item = sensor.addItem(DataTypeString, RConfigMode);
 
             bool isWindowCovering = sensor.modelId().startsWith(QLatin1String("J1"));
