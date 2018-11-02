@@ -112,6 +112,7 @@ SOURCES  = authentification.cpp \
            colorspace.cpp \
            database.cpp \
            daylight.cpp \
+           device_setup.cpp \
            discovery.cpp \
            de_web_plugin.cpp \
            de_web_widget.cpp \

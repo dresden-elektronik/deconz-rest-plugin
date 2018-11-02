@@ -1175,9 +1175,11 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 
                     if (rid.suffix == RConfigMode)
                     {
-                    	if (sensor->modelId().startsWith(QLatin1String("J1")))
+                    	if (sensor->modelId().startsWith(QLatin1String("S1")) ||
+                    	    sensor->modelId().startsWith(QLatin1String("S2")) ||
+                    	    sensor->modelId().startsWith(QLatin1String("J1")))
                     	{
-                    		if (addTaskUbisysJ1ConfigureSwitch(task))
+                    		if (addTaskUbisysConfigureSwitch(task))
                     		{
                     			rspItemState[QString("successfully updated %1").arg(sensor->modelId())] = val;
                     		}
