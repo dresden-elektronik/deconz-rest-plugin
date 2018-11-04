@@ -1222,6 +1222,103 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     return REQ_READY_SEND;
                 }
             }
+
+            if (QString(rid.suffix).startsWith("config/ubisys_j1_"))
+            {
+                uint16_t mfrCode = VENDOR_UBISYS;
+                uint16_t attrId;
+                uint8_t attrType = deCONZ::Zcl16BitUint;
+                if (rid.suffix == RConfigUbisysJ1Mode)
+                {
+                    mfrCode = 0x0000;
+                    attrId = 0x0017;
+                    attrType = deCONZ::Zcl8BitBitMap;
+                }
+                else if (rid.suffix == RConfigUbisysJ1WindowCoveringType)
+                {
+                    attrId = 0x0000;
+                    attrType = deCONZ::Zcl8BitEnum;
+                }
+                else if (rid.suffix == RConfigUbisysJ1ConfigurationAndStatus)
+                {
+                    attrId = 0x0007;
+                    attrType = deCONZ::Zcl8BitBitMap;
+                }
+                else if (rid.suffix == RConfigUbisysJ1InstalledOpenLimitLift)
+                {
+                    attrId = 0x0010;
+                }
+                else if (rid.suffix == RConfigUbisysJ1InstalledClosedLimitLift)
+                {
+                    attrId = 0x0011;
+                }
+                else if (rid.suffix == RConfigUbisysJ1InstalledOpenLimitTilt)
+                {
+                    attrId = 0x0012;
+                }
+                else if (rid.suffix == RConfigUbisysJ1InstalledClosedLimitTilt)
+                {
+                    attrId = 0x0013;
+                }
+                else if (rid.suffix == RConfigUbisysJ1TurnaroundGuardTime)
+                {
+                    attrId = 0x1000;
+                    attrType = deCONZ::Zcl8BitUint;
+                }
+                else if (rid.suffix == RConfigUbisysJ1LiftToTiltTransitionSteps)
+                {
+                    attrId = 0x1001;
+                }
+                else if (rid.suffix == RConfigUbisysJ1TotalSteps)
+                {
+                    attrId = 0x1002;
+                }
+                else if (rid.suffix == RConfigUbisysJ1LiftToTiltTransitionSteps2)
+                {
+                    attrId = 0x1003;
+                }
+                else if (rid.suffix == RConfigUbisysJ1TotalSteps2)
+                {
+                    attrId = 0x1004;
+                }
+                else if (rid.suffix == RConfigUbisysJ1AdditionalSteps)
+                {
+                    attrId = 0x1005;
+                    attrType = deCONZ::Zcl8BitUint;
+                }
+                else if (rid.suffix == RConfigUbisysJ1InactivePowerThreshold)
+                {
+                    attrId = 0x1006;
+                }
+                else if (rid.suffix == RConfigUbisysJ1StartupSteps)
+                {
+                    attrId = 0x1007;
+                }
+                else
+                {
+                    rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/sensors/%1/%2").arg(id).arg(rid.suffix), QString("unknown attribute")));
+                    rsp.httpStatus = HttpStatusServiceUnavailable;
+                    return REQ_READY_SEND;
+                }
+
+                bool ok;
+                int attrValue = map[pi.key()].toUInt(&ok);
+
+                if (ok && addTaskWindowCoveringSetAttr(task, mfrCode, attrId, attrType, attrValue))
+                {
+                    rspItemState[QString("set attribute %1").arg(rid.suffix)] = attrValue;
+                    rspItem["success"] = rspItemState;
+                }
+                else
+                {
+                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/%2").arg(id).arg(rid.suffix), QString("could not set attribute")));
+                    rsp.httpStatus = HttpStatusBadRequest;
+                    return REQ_READY_SEND;
+                }
+
+                rsp.list.append(rspItem);
+                return REQ_READY_SEND;
+            }
         }
 
         if (!item)
