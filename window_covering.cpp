@@ -276,6 +276,59 @@ bool DeRestPluginPrivate::addTaskWindowCovering(TaskItem &task, uint8_t cmd, uin
     return addTask(task);
 }
 
+bool DeRestPluginPrivate::addTaskWindowCoveringSetAttr(TaskItem &task, uint16_t mfrCode, uint16_t attrId, uint8_t attrType, uint16_t attrValue)
+{
+    DBG_Printf(DBG_INFO, "addTaskWindowCoveringSetAttr: mfrCode = 0x%04x, attrId = 0x%04x, attrType = 0x%02x, attrValue = 0x%04x\n", mfrCode, attrId, attrType, attrValue);
+
+    task.taskType = TaskWindowCovering;
+
+    task.req.setDstEndpoint(0x01);
+    task.req.setClusterId(WINDOW_COVERING_CLUSTER_ID);
+    task.req.setProfileId(HA_PROFILE_ID);
+
+    task.zclFrame.payload().clear();
+    task.zclFrame.setSequenceNumber(zclSeq++);
+    task.zclFrame.setCommandId(deCONZ::ZclWriteAttributesId);
+
+    task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                            deCONZ::ZclFCDirectionClientToServer |
+                            deCONZ::ZclFCDisableDefaultResponse);
+    if (mfrCode != 0x0000)
+    {
+        task.zclFrame.setFrameControl(task.zclFrame.frameControl() | deCONZ::ZclFCManufacturerSpecific);
+        task.zclFrame.setManufacturerCode(mfrCode);
+    }
+
+    { // payload
+        QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        stream << (quint16) attrId;
+        stream << (quint8) attrType;
+        if (attrType == deCONZ::Zcl8BitEnum || attrType == deCONZ::Zcl8BitBitMap || attrType == deCONZ::Zcl8BitUint)
+        {
+            stream << (quint8) attrValue;
+        }
+        else if (attrType == deCONZ::Zcl16BitUint)
+        {
+            stream << (quint16) attrValue;
+        }
+        else
+        {
+            DBG_Printf(DBG_INFO, "unsupported attribute type 0x%04x\n", attrType);
+            return false;
+        }
+    }
+
+    { // ZCL frame
+        task.req.asdu().clear(); // cleanup old request data if there is any
+        QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        task.zclFrame.writeToStream(stream);
+    }
+
+    return addTask(task);
+}
+
 /*! Helper to generate a new task with new task and req id based on a reference */
 static void copyTaskReq(TaskItem &a, TaskItem &b)
 {

@@ -120,6 +120,21 @@ extern const char *RConfigTholdOffset;
 extern const char *RConfigUrl;
 extern const char *RConfigUsertest;
 extern const char *RConfigWindowCoveringType;
+extern const char *RConfigUbisysJ1Mode;
+extern const char *RConfigUbisysJ1WindowCoveringType;
+extern const char *RConfigUbisysJ1ConfigurationAndStatus;
+extern const char *RConfigUbisysJ1InstalledOpenLimitLift;
+extern const char *RConfigUbisysJ1InstalledClosedLimitLift;
+extern const char *RConfigUbisysJ1InstalledOpenLimitTilt;
+extern const char *RConfigUbisysJ1InstalledClosedLimitTilt;
+extern const char *RConfigUbisysJ1TurnaroundGuardTime;
+extern const char *RConfigUbisysJ1LiftToTiltTransitionSteps;
+extern const char *RConfigUbisysJ1TotalSteps;
+extern const char *RConfigUbisysJ1LiftToTiltTransitionSteps2;
+extern const char *RConfigUbisysJ1TotalSteps2;
+extern const char *RConfigUbisysJ1AdditionalSteps;
+extern const char *RConfigUbisysJ1InactivePowerThreshold;
+extern const char *RConfigUbisysJ1StartupSteps;
 
 #define R_ALERT_DEFAULT             QVariant(QLatin1String("none"))
 #define R_SENSITIVITY_MAX_DEFAULT   2
