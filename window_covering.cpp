@@ -318,6 +318,22 @@ static void copyTaskReq(TaskItem &a, TaskItem &b)
  */
 bool DeRestPluginPrivate::addTaskWindowCoveringCalibrate(TaskItem &taskRef, int WindowCoveringType)
 {
+	LightNode *lightNode = getLightNodeForAddress(taskRef.req.dstAddress(), 0x01);  // Endpoint 0x01
+
+	if (lightNode)
+	{
+		if (WindowCoveringType == 6 || WindowCoveringType == 7 || WindowCoveringType == 8)
+		{
+			lightNode->addItem(DataTypeUInt8, RStateSat);  // add sat for Tilt
+		}
+		else
+		{
+			lightNode->removeItem(RStateSat);
+		}
+		lightNode->setNeedSaveDatabase(true);
+		saveDatabaseItems |= DB_LIGHTS;
+	}
+
 	Sensor *sensor = getSensorNodeForAddressAndEndpoint(taskRef.req.dstAddress(), 0x02); // Endpoint 0x02
 
 	if (!sensor || !sensor->modelId().startsWith(QLatin1String("J1")))
