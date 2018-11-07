@@ -2476,7 +2476,11 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
             continue;
         }
 
-        ls->setNeedRead(true);
+        if (req.sock != nullptr) // this isn't done by a rule (sensor pir control)
+        {
+            ls->setNeedRead(true);
+        }
+
         lightNode->clearRead(READ_SCENE_DETAILS | READ_SCENES); // prevent reading before writing
 
         ResourceItem *item = lightNode->item(RStateOn);
@@ -2569,7 +2573,10 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
             queSaveDb(DB_SCENES, DB_LONG_SAVE_DELAY);
         }
 
-        ls->tVerified = QTime(); // invalidate, trigger verify or add
+        if (req.sock != nullptr)
+        {
+            ls->tVerified = QTime(); // invalidate, trigger verify or add
+        }
     }
 
     /*if (!foundLight)
