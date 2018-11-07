@@ -69,6 +69,7 @@ const quint64 emberMacPrefix      = 0x000d6f0000000000ULL;
 const quint64 instaMacPrefix      = 0x000f170000000000ULL;
 const quint64 tiMacPrefix         = 0x00124b0000000000ULL;
 const quint64 netvoxMacPrefix     = 0x00137a0000000000ULL;
+const quint64 boschMacPrefix      = 0x00155f0000000000ULL;
 const quint64 jennicMacPrefix     = 0x00158d0000000000ULL;
 const quint64 philipsMacPrefix    = 0x0017880000000000ULL;
 const quint64 ubisysMacPrefix     = 0x001fee0000000000ULL;
@@ -90,6 +91,8 @@ struct SupportedDevice {
 static const SupportedDevice supportedDevices[] = {
     { VENDOR_BUSCH_JAEGER, "RB01", bjeMacPrefix },
     { VENDOR_BUSCH_JAEGER, "RM01", bjeMacPrefix },
+    { VENDOR_BOSCH, "ISW-ZDL1-WP11G", boschMacPrefix },
+    { VENDOR_BOSCH, "ISW-ZPR1-WP13", boschMacPrefix },
     { VENDOR_CENTRALITE, "Motion Sensor-A", emberMacPrefix },
     { VENDOR_CENTRALITE, "3325-S", emberMacPrefix },
     { VENDOR_CENTRALITE, "3321-S", emberMacPrefix },
@@ -4010,6 +4013,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_BEGA)
     {
         sensorNode.setManufacturer("BEGA Gantenbrink-Leuchten KG");
+    }
+    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_BOSCH)
+    {
+        sensorNode.setManufacturer("BOSCH");
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA)
     {

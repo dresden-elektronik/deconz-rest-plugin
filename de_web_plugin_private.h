@@ -249,6 +249,7 @@
 #define VENDOR_BEGA         0x1105
 #define VENDOR_PHYSICAL     0x110A // Used by SmartThings
 #define VENDOR_OSRAM        0x110C
+#define VENDOR_BOSCH        0x1133
 #define VENDOR_DDEL         0x1135
 #define VENDOR_LUTRON       0x1144
 #define VENDOR_KEEN_HOME    0x115B
@@ -338,6 +339,7 @@ extern const quint64 emberMacPrefix;
 extern const quint64 heimanMacPrefix;
 extern const quint64 ikeaMacPrefix;
 extern const quint64 instaMacPrefix;
+extern const quint64 boschMacPrefix;
 extern const quint64 jennicMacPrefix;
 extern const quint64 keenhomeMacPrefix;
 extern const quint64 lutronMacPrefix;
