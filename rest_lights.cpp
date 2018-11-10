@@ -281,6 +281,8 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
     map["uniqueid"] = lightNode->uniqueId();
     map["name"] = lightNode->name();
     map["modelid"] = lightNode->modelId(); // real model id
+    map["manufacturername"] = lightNode->manufacturer();
+
     if (!auth.strict)
     {
         map["hascolor"] = lightNode->hasColor();
@@ -291,16 +293,17 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
     // Amazon Echo quirks mode
     if (auth.strict && auth.devicetype.startsWith(QLatin1String("Echo")))
     {
-        // OSRAM plug
-        if (lightNode->type() == QLatin1String("On/Off plug-in unit"))
+        // OSRAM plug + Ubisys S1/S2
+        if (lightNode->type().startsWith(QLatin1String("On/Off")))
         {
+            map["modelid"] = QLatin1String("LWB010");
+            map["manufacturername"] = QLatin1String("Philips");
             map["type"] = QLatin1String("Dimmable light");
             state["bri"] = (double)254;
         }
     }
 
     map["swversion"] = lightNode->swBuildId();
-    map["manufacturername"] = lightNode->manufacturer();
 
     QString etag = lightNode->etag;
     etag.remove('"'); // no quotes allowed in string
