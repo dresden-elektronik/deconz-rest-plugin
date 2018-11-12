@@ -157,7 +157,7 @@ void PollManager::pollTimerFired()
 {
     if (pollState == StateWait)
     {
-        DBG_Printf(DBG_INFO, "timout on poll APS confirm\n");
+        DBG_Printf(DBG_INFO, "timeout on poll APS confirm\n");
         pollState = StateIdle;
     }
 
@@ -419,7 +419,7 @@ void PollManager::pollTimerFired()
         DBG_Assert(plugin->tasks.back().taskType == TaskReadAttributes);
         apsReqId = plugin->tasks.back().req.id();
         dstAddr = pitem.address;
-        timer->start(20 * 1000); // wait for confirm
+        timer->start(60 * 1000); // wait for confirm
         suffix = nullptr; // clear
         DBG_Printf(DBG_INFO_L2, "Poll APS request %u to 0x%016llX cluster: 0x%04X\n", apsReqId, dstAddr.ext(), clusterId);
     }
