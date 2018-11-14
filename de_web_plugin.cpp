@@ -154,7 +154,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBER, "SmartPlug", emberMacPrefix }, // Heiman smart plug
     { VENDOR_120B, "WarningDevice", emberMacPrefix }, // Heiman siren
     { VENDOR_LUTRON, "LZL4BWHL01", lutronMacPrefix }, // Lutron LZL-4B-WH-L01 Connected Bulb Remote
-    { VENDOR_KEEN_HOME , "SV01-610-MP", keenhomeMacPrefix}, // Keen Home Vent
+    { VENDOR_KEEN_HOME , "SV01-", keenhomeMacPrefix}, // Keen Home Vent
     { VENDOR_INNR, "SP 120", jennicMacPrefix}, // innr smart plug
     { VENDOR_PHYSICAL, "tagv4", stMacPrefix}, // SmartThings Arrival sensor
     { VENDOR_JENNIC, "VMS_ADUROLIGHT", jennicMacPrefix }, // Trust motion sensor ZPIR-8000
