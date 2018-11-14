@@ -294,6 +294,11 @@ void DeRestPluginPrivate::queryFirmwareVersion()
         return;
     }
 
+    if (gwDeviceName.isEmpty())
+    {
+        gwDeviceName = apsCtrl->getParameter(deCONZ::ParamDeviceName);
+    }
+
     { // check for GCFFlasher binary
         QString gcfFlasherBin = qApp->applicationDirPath() + "/GCFFlasher";
 #ifdef Q_OS_WIN
