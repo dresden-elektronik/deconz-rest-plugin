@@ -143,6 +143,15 @@ void DeRestPluginPrivate::initConfig()
         {
             gwSdImageVersion = f.readAll().trimmed();
         }
+        else
+        {
+            DBG_Printf(DBG_INFO, "GW sd-card image version file does not exist: %s\n", qPrintable(f.fileName()));
+        }
+    }
+
+    if (!gwSdImageVersion.isEmpty())
+    {
+        DBG_Printf(DBG_INFO, "GW sd-card image version: %s\n", qPrintable(gwSdImageVersion));
     }
 
 #ifdef Q_OS_LINUX
