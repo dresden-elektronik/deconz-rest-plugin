@@ -3214,7 +3214,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case MULTISTATE_INPUT_CLUSTER_ID:
                 {
-                    if (modelId.startsWith(QLatin1String("lumi.sensor_cube")))
+                    if (modelId.startsWith(QLatin1String("lumi.sensor_cube")) && i->endpoint() == 0x02)
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
