@@ -2294,6 +2294,9 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
         else if ((ext & macPrefixMask) == ubisysMacPrefix)
         {
         }
+        else if ((ext & macPrefixMask) == boschMacPrefix)
+        { // macCapabilities == 0
+        }
         else if (macCapabilities & deCONZ::MacDeviceIsFFD)
         {
             return;
