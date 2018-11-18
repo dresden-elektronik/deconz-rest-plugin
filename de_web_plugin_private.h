@@ -338,6 +338,7 @@ extern const quint64 deMacPrefix;
 extern const quint64 emberMacPrefix;
 extern const quint64 heimanMacPrefix;
 extern const quint64 ikeaMacPrefix;
+extern const quint64 silabsMacPrefix;
 extern const quint64 instaMacPrefix;
 extern const quint64 boschMacPrefix;
 extern const quint64 jennicMacPrefix;

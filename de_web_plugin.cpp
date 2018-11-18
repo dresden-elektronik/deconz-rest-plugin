@@ -65,6 +65,7 @@ static uint MaxGroupTasks = 4;
 const quint64 macPrefixMask       = 0xffffff0000000000ULL;
 
 const quint64 ikeaMacPrefix       = 0x000b570000000000ULL;
+const quint64 silabsMacPrefix     = 0x90fd9f0000000000ULL;
 const quint64 emberMacPrefix      = 0x000d6f0000000000ULL;
 const quint64 instaMacPrefix      = 0x000f170000000000ULL;
 const quint64 tiMacPrefix         = 0x00124b0000000000ULL;
@@ -110,6 +111,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_DDEL, "FLS-NB1", deMacPrefix },
     { VENDOR_DDEL, "FLS-NB2", deMacPrefix },
     { VENDOR_IKEA, "TRADFRI remote control", ikeaMacPrefix },
+    { VENDOR_IKEA, "TRADFRI remote control", silabsMacPrefix },
     { VENDOR_IKEA, "TRADFRI motion sensor", ikeaMacPrefix },
     { VENDOR_IKEA, "TRADFRI wireless dimmer", ikeaMacPrefix },
     { VENDOR_IKEA, "TRADFRI on/off switch", ikeaMacPrefix },
@@ -7733,7 +7735,8 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
              macPrefix == tiMacPrefix ||
              macPrefix == ikeaMacPrefix ||
              macPrefix == heimanMacPrefix ||
-             macPrefix == jennicMacPrefix )
+             macPrefix == jennicMacPrefix ||
+             macPrefix == silabsMacPrefix )
     {
         // these sensors tend to mac data poll after report
         checkReporting = true;
