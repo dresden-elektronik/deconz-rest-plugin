@@ -151,6 +151,7 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
 
         if (item)
         {
+            sensor->rx();
             sensor->incrementRxCounter();
             bool alarm = (zoneStatus & (STATUS_ALARM1 | STATUS_ALARM2)) ? true : false;
             item->setValue(alarm);
