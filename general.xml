@@ -2304,6 +2304,21 @@ devices can operate on either battery or mains power, and can have a wide variet
 	<domain name="Manufacturer Specific" useZcl="true"
 		description="Manufacturer specific clusters.">
 
+		<!-- Legrand -->
+		<cluster id="0xfc01" name="Legrand - Specific clusters" mfcode="1021">
+			<description>Legrand Specific clusters.</description>
+			<server>
+				<attribute id="0x0000" name="Dimmer" type="dat16" default="0x0101" access="rw" required="m" showas="hex">
+					<description>0100 = Dimmer Off, 0101 = Dimmer On</description>
+				</attribute>
+				<attribute id="0x0001" type="bool" name="LED" required="m" access="rw" default="0">
+					<description>Enable LED in dark</description>
+				</attribute>
+			</server>
+			<client>
+			</client>
+		</cluster>
+
 		<!-- ubisys -->
 		<cluster id="0xfc00" name="Device Setup" mfcode="0x10f2">
 			<description>Attributes and commands.</description>
