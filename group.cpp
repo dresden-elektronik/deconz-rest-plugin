@@ -278,3 +278,9 @@ bool Group::deviceIsMember(const QString &id) const
     }
     return true;
 }
+
+/*! Returns true if group is controlled by devices. */
+bool Group::hasDeviceMembers() const
+{
+    return !m_deviceMemberships.empty();
+}

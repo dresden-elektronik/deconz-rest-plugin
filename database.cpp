@@ -3056,6 +3056,17 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                             item->setValue(false);
                         }
                     }
+
+                    // when reachable and assigned to a group, force check of group membership
+                    if (item->toBool())
+                    {
+                        item = sensor.item(RConfigGroup);
+                        if (item && !item->toString().isEmpty())
+                        {
+                            Event e(RSensors, REventValidGroup, sensor.id());
+                            d->enqueueEvent(e);
+                        }
+                    }
                 }
 
                 sensor.address().setExt(extAddr);

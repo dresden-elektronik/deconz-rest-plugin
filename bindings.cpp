@@ -1885,7 +1885,7 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
         return;
     }
 
-    Group *group = 0;
+    Group *group = nullptr;
 
     {
         std::vector<Group>::iterator i = groups.begin();
@@ -1894,7 +1894,7 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
         for (; i != end; ++i)
         {
             if (i->state() == Group::StateNormal &&
-                i->deviceIsMember(sensor->id()))
+                (i->deviceIsMember(sensor->uniqueId()) || i->deviceIsMember(sensor->id())))
             {
                 group = &*i;
                 break;
@@ -1929,7 +1929,7 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
 
                     for (; i != end; ++i)
                     {
-                        if (i->state() == Group::StateNormal && i->id() == gid)
+                        if (!gid.isEmpty() && i->state() == Group::StateNormal && i->id() == gid)
                         {
                             group = &*i;
                             break;
@@ -1963,7 +1963,7 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
 
         for (; i != end; ++i)
         {
-            if (i->state() == Group::StateNormal && i->id() == gid)
+            if (!gid.isEmpty() && i->state() == Group::StateNormal && i->id() == gid)
             {
                 group = &*i;
                 break;
@@ -1975,6 +1975,19 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
     {
         group = addGroup();
         group->setName(sensor->name());
+        ResourceItem *item2 = group->addItem(DataTypeString, RAttrUniqueId);
+        DBG_Assert(item2);
+        if (item2)
+        {
+            const QString uid = generateUniqueId(sensor->address().ext(), 0, 0);
+            item2->setValue(uid);
+        }
+    }
+
+    DBG_Assert(group);
+    if (!group)
+    {
+        return;
     }
 
     if (group->addDeviceMembership(sensor->id()))
@@ -2002,7 +2015,7 @@ void DeRestPluginPrivate::checkOldSensorGroups(Sensor *sensor)
 
     ResourceItem *item = sensor->item(RConfigGroup);
 
-    if (!item || !item->lastSet().isValid())
+    if (!item || !item->lastSet().isValid() || item->toString().isEmpty())
     {
         return;
     }
@@ -2025,9 +2038,14 @@ void DeRestPluginPrivate::checkOldSensorGroups(Sensor *sensor)
                     queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
                 }
             }
-            else if (i->deviceIsMember(sensor->id()))
+            else if (i->deviceIsMember(sensor->uniqueId()) || i->deviceIsMember(sensor->id()))
             {
-                if (i->state() == Group::StateNormal)
+                if (!i->removeDeviceMembership(sensor->uniqueId()))
+                {
+                    i->removeDeviceMembership(sensor->id());
+                }
+
+                if (i->state() == Group::StateNormal && !i->hasDeviceMembers())
                 {
                     DBG_Printf(DBG_INFO, "delete old group %u of sensor %s\n", i->address(), qPrintable(sensor->name()));
                     i->setState(Group::StateDeleted);
@@ -2066,11 +2084,17 @@ void DeRestPluginPrivate::deleteGroupsWithDeviceMembership(const QString &id)
     {
         if (i->deviceIsMember(id) && i->state() == Group::StateNormal)
         {
-            i->setState(Group::StateDeleted);
             i->removeDeviceMembership(id);
 
             updateGroupEtag(&*i);
             queSaveDb(DB_GROUPS | DB_LIGHTS, DB_SHORT_SAVE_DELAY);
+
+            if (i->hasDeviceMembers())
+            {
+                continue;
+            }
+
+            i->setState(Group::StateDeleted);
 
             // for each node which is part of this group send a remove group request (will be unicast)
             // note: nodes which are curently switched off will not be removed!

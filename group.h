@@ -54,6 +54,7 @@ public:
     bool addDeviceMembership(const QString &id);
     bool removeDeviceMembership(const QString &id);
     bool deviceIsMember(const QString &id) const;
+    bool hasDeviceMembers() const;
 
     uint16_t colorX;
     uint16_t colorY;

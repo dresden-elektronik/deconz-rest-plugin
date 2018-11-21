@@ -1720,7 +1720,7 @@ Group *DeRestPluginPrivate::addGroup()
         }
     }
 
-    return 0;
+    return nullptr;
 }
 
 /*! Put all parameters in a map for later json serialization.
