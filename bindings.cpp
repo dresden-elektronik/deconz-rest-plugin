@@ -1691,7 +1691,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     }
 
     if (searchSensorsState != SearchSensorsActive &&
-        idleTotalCounter < (60 * 15)) // wait for some input before fire bindings
+        idleTotalCounter < (IDLE_READ_LIMIT + (60 * 15))) // wait for some input before fire bindings
     {
         return false;
     }
