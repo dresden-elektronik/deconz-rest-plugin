@@ -3038,7 +3038,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 {
                     QDateTime now = QDateTime::currentDateTimeUtc();
                     QDateTime lastSeen = QDateTime::fromMSecsSinceEpoch(item->toNumber());
-                    const int minLastSeen = 60 * 60 * 6;
+                    const int minLastSeen = 60 * 60 * 24; // 24 hours
                     const int maxLastSeen = 60 * 60 * 24 * 7; // 1 week
 
                     item = sensor.item(RConfigReachable);
@@ -3048,6 +3048,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                         const auto dt = lastSeen.secsTo(now);
                         if (dt < minLastSeen)
                         {
+                            sensor.rx();
                             item->setValue(true);
                         }
                         else if (dt > maxLastSeen && item->toBool()) // reachable but way too long ago
