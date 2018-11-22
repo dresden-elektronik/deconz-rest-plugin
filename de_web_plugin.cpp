@@ -2535,7 +2535,25 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     {
         QStringList gids;
         ResourceItem *item = sensor->addItem(DataTypeString, RConfigGroup);
-        QString gid = QString::number(ind.dstAddress().group());
+
+        quint16 groupId = ind.dstAddress().group();
+
+        if (sensor->modelId() == QLatin1String("Lighting Switch"))
+        {
+            // adjust groupId for endpoints
+            // ep 1: <gid>
+            // ep 2: <gid> + 1
+            if (sensor->fingerPrint().endpoint == 2 && ind.srcEndpoint() == 1)
+            {
+                groupId++;
+            }
+            else if (sensor->fingerPrint().endpoint == 1 && ind.srcEndpoint() == 2)
+            {
+                groupId--;
+            }
+        }
+
+        QString gid = QString::number(groupId);
 
         if (item)
         {
