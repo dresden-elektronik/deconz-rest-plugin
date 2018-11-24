@@ -2657,17 +2657,17 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.setLastRead(READ_OCCUPANCY_CONFIG, 0);
                 }
             }
-            else if (sensor.fingerPrint().hasInCluster(BINARY_INPUT_CLUSTER_ID))
-            {
-                clusterId = BINARY_INPUT_CLUSTER_ID;
-            }
             else if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
             {
                 clusterId = IAS_ZONE_CLUSTER_ID;
             }
-            else if (sensor.fingerPrint().hasInCluster(COMMISSIONING_CLUSTER_ID))
+            else if (sensor.fingerPrint().hasInCluster(BINARY_INPUT_CLUSTER_ID))
             {
-                clusterId = COMMISSIONING_CLUSTER_ID;
+                clusterId = BINARY_INPUT_CLUSTER_ID;
+            }
+            else if (sensor.fingerPrint().hasInCluster(ONOFF_CLUSTER_ID))
+            {
+                clusterId = ONOFF_CLUSTER_ID;
             }
             item = sensor.addItem(DataTypeBool, RStatePresence);
             item->setValue(false);
