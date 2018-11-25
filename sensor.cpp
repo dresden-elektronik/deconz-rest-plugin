@@ -260,10 +260,11 @@ static const Sensor::ButtonMap bjeSwitchMap[] = {
 //  2) row left button
     { Sensor::ModeDimmer,           0x0B, 0x0006, 0x00, 0,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
     { Sensor::ModeDimmer,           0x0B, 0x0008, 0x02, 1,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD, "Step down" },
-    { Sensor::ModeDimmer,           0x0B, 0x0008, 0x03, 0,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED, "Stop" },
+    { Sensor::ModeDimmer,           0x0B, 0x0008, 0x03, 1,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED, "Stop" },
 //  2) row right button
     { Sensor::ModeDimmer,           0x0B, 0x0006, 0x01, 0,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
     { Sensor::ModeDimmer,           0x0B, 0x0008, 0x06, 0,    S_BUTTON_4 + S_BUTTON_ACTION_HOLD, "Step up (with on/off)" },
+    { Sensor::ModeDimmer,           0x0B, 0x0008, 0x03, 0,    S_BUTTON_4 + S_BUTTON_ACTION_LONG_RELEASED, "Stop" },
 
     // end
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
