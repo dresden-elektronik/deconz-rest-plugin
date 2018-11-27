@@ -162,6 +162,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "VMS_ADUROLIGHT", jennicMacPrefix }, // Trust motion sensor ZPIR-8000
     { VENDOR_JENNIC, "ZYCT-202", jennicMacPrefix }, // Trust remote control ZYCT-202
     { VENDOR_INNR, "RC 110", jennicMacPrefix }, // innr remote RC 110
+    { VENDOR_VISONIC, "MCT-340", emberMacPrefix }, // Visonic MCT-340 E temperature/motion
     { 0, nullptr, 0 }
 };
 
@@ -2030,6 +2031,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             updated = true;
                         }
                         lightNode->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
+                        pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
                         break;
                     }
                 }
@@ -2070,9 +2072,9 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             }
                         }
                         lightNode->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
+                        pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
                         break;
                     }
-                    break;
                 }
             }
             else if (ic->id() == BASIC_CLUSTER_ID && (event.clusterId() == BASIC_CLUSTER_ID))
@@ -4109,6 +4111,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_INNR)
     {
         sensorNode.setManufacturer("innr");
+    }
+    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_VISONIC)
+    {
+        sensorNode.setManufacturer("Visonic");
     }
 
     if (sensorNode.manufacturer().isEmpty() && !manufacturer.isEmpty())
@@ -8296,7 +8302,7 @@ void DeRestPluginPrivate::sendZclDefaultResponse(const deCONZ::ApsDataIndication
     apsReq.setProfileId(ind.profileId());
     apsReq.setRadius(0);
     apsReq.setClusterId(ind.clusterId());
-    apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+    //apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
 
     deCONZ::ZclFrame outZclFrame;
     outZclFrame.setSequenceNumber(zclFrame.sequenceNumber());
