@@ -162,6 +162,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "VMS_ADUROLIGHT", jennicMacPrefix }, // Trust motion sensor ZPIR-8000
     { VENDOR_JENNIC, "ZYCT-202", jennicMacPrefix }, // Trust remote control ZYCT-202
     { VENDOR_INNR, "RC 110", jennicMacPrefix }, // innr remote RC 110
+    { VENDOR_VISONIC, "MCT-340", emberMacPrefix }, // Visonic MCT-340 E temperature/motion
     { 0, nullptr, 0 }
 };
 
@@ -4110,6 +4111,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_INNR)
     {
         sensorNode.setManufacturer("innr");
+    }
+    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_VISONIC)
+    {
+        sensorNode.setManufacturer("Visonic");
     }
 
     if (sensorNode.manufacturer().isEmpty() && !manufacturer.isEmpty())
