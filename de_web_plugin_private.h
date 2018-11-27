@@ -814,6 +814,15 @@ public:
     bool checkActions(QVariantList actionsList, ApiResponse &rsp);
     bool checkConditions(QVariantList conditionsList, ApiResponse &rsp);
 
+    // REST API scenes
+    int handleScenesApi(ApiRequest &req, ApiResponse &rsp);
+
+    // REST API info
+    int handleInfoApi(ApiRequest &req, ApiResponse &rsp);
+
+    // REST API capabilities
+    int handleCapabilitiesApi(ApiRequest &req, ApiResponse &rsp);
+
     // REST API common
     QVariantMap errorToMap(int id, const QString &ressource, const QString &description);
 

@@ -30,16 +30,6 @@ const int MaxOnTimeWithoutPresence = 60 * 6;
  */
 int DeRestPluginPrivate::handleSensorsApi(ApiRequest &req, ApiResponse &rsp)
 {
-    if (req.path[2] != QLatin1String("sensors"))
-    {
-        return REQ_NOT_HANDLED;
-    }
-
-    if(!checkApikeyAuthentification(req, rsp))
-    {
-        return REQ_READY_SEND;
-    }
-
     // GET /api/<apikey>/sensors
     if ((req.path.size() == 3) && (req.hdr.method() == "GET"))
     {

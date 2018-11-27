@@ -79,16 +79,6 @@ void DeRestPluginPrivate::initTouchlinkApi()
  */
 int DeRestPluginPrivate::handleTouchlinkApi(ApiRequest &req, ApiResponse &rsp)
 {
-    if (req.path[2] != "touchlink")
-    {
-        return REQ_NOT_HANDLED;
-    }
-
-    if(!checkApikeyAuthentification(req, rsp))
-    {
-        return REQ_READY_SEND;
-    }
-
     // POST /api/<apikey>/touchlink/scan
     if ((req.path.size() == 4) && (req.hdr.method() == "POST") && (req.path[3] == "scan"))
     {

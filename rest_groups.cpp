@@ -25,16 +25,6 @@
  */
 int DeRestPluginPrivate::handleGroupsApi(ApiRequest &req, ApiResponse &rsp)
 {
-    if (req.path[2] != QLatin1String("groups"))
-    {
-        return REQ_NOT_HANDLED;
-    }
-
-    if(!checkApikeyAuthentification(req, rsp))
-    {
-        return REQ_READY_SEND;
-    }
-
     // GET /api/<apikey>/groups
     if ((req.path.size() == 3) && (req.hdr.method() == "GET"))
     {

@@ -28,11 +28,6 @@
  */
 int DeRestPluginPrivate::handleRulesApi(const ApiRequest &req, ApiResponse &rsp)
 {
-    if(!checkApikeyAuthentification(req, rsp))
-    {
-        return REQ_READY_SEND;
-    }
-
     // GET /api/<apikey>/rules
     if ((req.path.size() == 3) && (req.hdr.method() == "GET")  && (req.path[2] == "rules"))
     {

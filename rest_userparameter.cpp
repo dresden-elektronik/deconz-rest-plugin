@@ -71,11 +71,6 @@ int DeRestPluginPrivate::handleUserparameterApi(const ApiRequest &req, ApiRespon
  */
 int DeRestPluginPrivate::createUserParameter(const ApiRequest &req, ApiResponse &rsp)
 {
-    if(!checkApikeyAuthentification(req, rsp))
-    {
-        return REQ_READY_SEND;
-    }
-
     if (req.content.isEmpty())
     {
         rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/userparameter"), QString("invalid value for userparameter")));
@@ -112,11 +107,6 @@ int DeRestPluginPrivate::createUserParameter(const ApiRequest &req, ApiResponse 
  */
 int DeRestPluginPrivate::addUserParameter(const ApiRequest &req, ApiResponse &rsp)
 {
-    if(!checkApikeyAuthentification(req, rsp))
-    {
-        return REQ_READY_SEND;
-    }
-
     DBG_Assert(req.path.size() == 4);
 
     if (req.path.size() != 4)
@@ -155,11 +145,6 @@ int DeRestPluginPrivate::addUserParameter(const ApiRequest &req, ApiResponse &rs
  */
 int DeRestPluginPrivate::modifyUserParameter(const ApiRequest &req, ApiResponse &rsp)
 {
-    if(!checkApikeyAuthentification(req, rsp))
-    {
-        return REQ_READY_SEND;
-    }
-
     DBG_Assert(req.path.size() == 4);
 
     if (req.path.size() != 4)
@@ -210,11 +195,6 @@ int DeRestPluginPrivate::getAllUserParameter(const ApiRequest &req, ApiResponse 
 {
     Q_UNUSED(req);
 
-    if(!checkApikeyAuthentification(req, rsp))
-    {
-        return REQ_READY_SEND;
-    }
-
     rsp.httpStatus = HttpStatusOk;
 
     QVariantMap::const_iterator k = gwUserParameter.begin();
@@ -240,11 +220,6 @@ int DeRestPluginPrivate::getAllUserParameter(const ApiRequest &req, ApiResponse 
 int DeRestPluginPrivate::getUserParameter(const ApiRequest &req, ApiResponse &rsp)
 {
     Q_UNUSED(req);
-
-    if(!checkApikeyAuthentification(req, rsp))
-    {
-        return REQ_READY_SEND;
-    }
 
     DBG_Assert(req.path.size() == 4);
 
@@ -280,11 +255,6 @@ int DeRestPluginPrivate::getUserParameter(const ApiRequest &req, ApiResponse &rs
  */
 int DeRestPluginPrivate::deleteUserParameter(const ApiRequest &req, ApiResponse &rsp)
 {
-    if(!checkApikeyAuthentification(req, rsp))
-    {
-        return REQ_READY_SEND;
-    }
-
     DBG_Assert(req.path.size() == 4);
 
     if (req.path.size() != 4)
