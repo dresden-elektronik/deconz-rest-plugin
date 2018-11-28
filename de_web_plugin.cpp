@@ -2217,22 +2217,35 @@ int DeRestPluginPrivate::getNumberOfEndpoints(quint64 extAddr)
     return count;
 }
 
-/*! Returns a LightNode for its given \p id or 0 if not found.
+/*! Returns a LightNode for its given \p id or uniqueid, or 0 if not found.
  */
 LightNode *DeRestPluginPrivate::getLightNodeForId(const QString &id)
 {
     std::vector<LightNode>::iterator i;
     std::vector<LightNode>::iterator end = nodes.end();
 
-    for (i = nodes.begin(); i != end; ++i)
+    if (id.length() < MIN_UNIQUEID_LENGTH)
     {
-        if (i->id() == id)
+        for (i = nodes.begin(); i != end; ++i)
         {
-            return &(*i);
+            if (i->id() == id)
+            {
+                return &*i;
+            }
+        }
+    }
+    else
+    {
+        for (i = nodes.begin(); i != end; ++i)
+        {
+            if (i->uniqueId() == id)
+            {
+                return &*i;
+            }
         }
     }
 
-    return 0;
+    return nullptr;
 }
 
 /*! Returns a Rule for its given \p id or 0 if not found.

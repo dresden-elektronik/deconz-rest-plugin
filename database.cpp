@@ -161,7 +161,15 @@ void DeRestPluginPrivate::createTempViews()
         "  AS SELECT a.sid AS sensor_id, b.cluster AS cluster_id, b.data AS data, b.timestamp AS timestamp "
         "  from sensor_device_view a, zcl_values b where a.id = b.device_id "
         "  ORDER BY timestamp ASC ",
-        NULL
+
+        "CREATE TEMP VIEW light_device_view "
+        "  AS SELECT a.id as lid, b.mac, b.id FROM nodes a, devices b "
+        "  WHERE a.mac like b.mac || '%'",
+        "CREATE TEMP VIEW light_device_value_view "
+        "  AS SELECT a.lid AS light_id, b.cluster AS cluster_id, b.data AS data, b.timestamp AS timestamp "
+        "  from light_device_view a, zcl_values b where a.id = b.device_id "
+        "  ORDER BY timestamp ASC ",
+        nullptr
     };
 
     for (int i = 0; sql[i] != NULL; i++)
@@ -1816,18 +1824,18 @@ void DeRestPluginPrivate::loadAllSchedulesFromDb()
 }
 
 
-/*! Loads sensor_data from database.
+/*! Load sensor data from database.
  */
 void DeRestPluginPrivate::loadSensorDataFromDb(Sensor *sensor, QVariantList &ls, qint64 fromTime, int max)
 {
-    DBG_Assert(db != 0);
+    DBG_Assert(db);
 
     if (!db)
     {
         return;
     }
 
-    DBG_Assert(sensor != 0);
+    DBG_Assert(sensor);
 
     if (!sensor)
     {
@@ -1841,6 +1849,7 @@ void DeRestPluginPrivate::loadSensorDataFromDb(Sensor *sensor, QVariantList &ls,
     };
 
     const RMap rmap[] = {
+        // Item, clusterId, attributeId
         { RStatePresence, 0x0406, 0x0000 },
         { RStateLightLevel, 0x0400, 0x0000 },
         { RStateTemperature, 0x0402, 0x0000 },
@@ -1924,7 +1933,124 @@ void DeRestPluginPrivate::loadSensorDataFromDb(Sensor *sensor, QVariantList &ls,
             QDateTime dateTime;
             dateTime.setMSecsSinceEpoch(timestamp * 1000);
             map[item->descriptor().suffix] = val;
-            map["t"] = dateTime.toString("yyyy-MM-ddTHH:mm:ss");
+            map["t"] = dateTime.toString(QLatin1String("yyyy-MM-ddTHH:mm:ss"));
+            ls.append(map);
+        }
+
+        rc = sqlite3_finalize(res);
+        DBG_Assert(rc == SQLITE_OK);
+    }
+}
+
+/*! Load light from database.
+ */
+void DeRestPluginPrivate::loadLightDataFromDb(LightNode *lightNode, QVariantList &ls, qint64 fromTime, int max)
+{
+    DBG_Assert(db);
+
+    if (!db)
+    {
+        return;
+    }
+
+    DBG_Assert(lightNode);
+
+    if (!lightNode)
+    {
+        return;
+    }
+
+    struct RMap {
+        const char *item;
+        quint16 clusterId;
+        quint16 attributeId;
+    };
+
+    const RMap rmap[] = {
+        // Item, clusterId, attributeId
+        { RStateOn, 0x0006, 0x0000 },
+        { RStateLightLevel, 0x0008, 0x0000 },
+        { nullptr, 0, 0 }
+    };
+
+    for (int i  = 0; i < lightNode->itemCount(); i++)
+    {
+        ResourceItem *item = lightNode->itemForIndex(i);
+        const RMap *found = nullptr;
+        const RMap *r = rmap;
+
+        while (!found && r->item)
+        {
+            if (r->item == item->descriptor().suffix)
+            {
+              found = r;
+              break;
+            }
+            r++;
+        }
+
+        if (!found)
+        {
+            continue;
+        }
+
+        const char *sql = "SELECT data,timestamp FROM light_device_value_view "
+                          "WHERE light_id = ?1 AND timestamp > ?2 AND cluster_id = ?3 limit ?4";
+
+        int rc;
+        int sid = lightNode->id().toInt();
+        sqlite3_stmt *res = nullptr;
+
+        rc = sqlite3_prepare_v2(db, sql, -1, &res, 0);
+        DBG_Assert(res != nullptr);
+        DBG_Assert(rc == SQLITE_OK);
+
+        if (rc == SQLITE_OK)
+        {
+            rc = sqlite3_bind_int(res, 1, sid);
+            DBG_Assert(rc == SQLITE_OK);
+        }
+
+        if (rc == SQLITE_OK)
+        {
+            rc = sqlite3_bind_int(res, 2, fromTime);
+            DBG_Assert(rc == SQLITE_OK);
+        }
+
+        if (rc == SQLITE_OK)
+        {
+            rc = sqlite3_bind_int(res, 3, found->clusterId);
+            DBG_Assert(rc == SQLITE_OK);
+        }
+
+        // TODO zcl attribute
+
+        if (rc == SQLITE_OK)
+        {
+            rc = sqlite3_bind_int(res, 4, max);
+            DBG_Assert(rc == SQLITE_OK);
+        }
+
+        if (rc != SQLITE_OK)
+        {
+            if (res)
+            {
+                rc = sqlite3_finalize(res);
+                DBG_Assert(rc == SQLITE_OK);
+            }
+            continue;
+        }
+
+        while (sqlite3_step(res) == SQLITE_ROW)
+        {
+            QVariantMap map;
+            qint64 val = sqlite3_column_int64(res, 0);
+            qint64 timestamp = sqlite3_column_int64(res, 1);
+
+            QDateTime dateTime;
+            dateTime.setMSecsSinceEpoch(timestamp * 1000);
+            map[item->descriptor().suffix] = val;
+            map["t"] = dateTime.toString(QLatin1String("yyyy-MM-ddTHH:mm:ss"));
             ls.append(map);
         }
 

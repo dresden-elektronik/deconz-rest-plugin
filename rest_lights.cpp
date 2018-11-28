@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2018 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -11,6 +11,7 @@
 #include <QString>
 #include <QTextCodec>
 #include <QTcpSocket>
+#include <QUrlQuery>
 #include <QVariantMap>
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
@@ -55,6 +56,11 @@ int DeRestPluginPrivate::handleLightsApi(ApiRequest &req, ApiResponse &rsp)
     else if ((req.path.size() == 4) && (req.hdr.method() == "GET"))
     {
         return getLightState(req, rsp);
+    }
+    // GET /api/<apikey>/lights/<id>/data?maxrecords=<maxrecords>&fromtime=<ISO 8601>
+    else if ((req.path.size() == 5) && (req.hdr.method() == "GET") && (req.path[4] == "data"))
+    {
+        return getLightData(req, rsp);
     }
     // PUT, PATCH /api/<apikey>/lights/<id>/state
     else if ((req.path.size() == 5) && (req.hdr.method() == "PUT" || req.hdr.method() == "PATCH") && (req.path[4] == "state"))
@@ -310,6 +316,66 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
     map["etag"] = etag;
     map["state"] = state;
     return true;
+}
+
+/*! GET /api/<apikey>/lights/<id>/data?maxrecords=<maxrecords>&fromtime=<ISO 8601>
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::getLightData(const ApiRequest &req, ApiResponse &rsp)
+{
+    DBG_Assert(req.path.size() == 5);
+
+    if (req.path.size() != 5)
+    {
+        return REQ_NOT_HANDLED;
+    }
+
+    QString id = req.path[3];
+    LightNode *lightNode = getLightNodeForId(id);
+
+    if (!lightNode || (lightNode->state() != LightNode::StateNormal))
+    {
+        rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/lights/%1/").arg(id), QString("resource, /lights/%1/, not available").arg(id)));
+        rsp.httpStatus = HttpStatusNotFound;
+        return REQ_READY_SEND;
+    }
+
+    bool ok;
+    QUrl url(req.hdr.url());
+    QUrlQuery query(url);
+
+    const int maxRecords = query.queryItemValue(QLatin1String("maxrecords")).toInt(&ok);
+    if (!ok || maxRecords <= 0)
+    {
+        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/maxrecords"), QString("invalid value, %1, for parameter, maxrecords").arg(query.queryItemValue("maxrecords"))));
+        rsp.httpStatus = HttpStatusNotFound;
+        return REQ_READY_SEND;
+    }
+
+    QString t = query.queryItemValue(QLatin1String("fromtime"));
+    QDateTime dt = QDateTime::fromString(t, QLatin1String("yyyy-MM-ddTHH:mm:ss"));
+    if (!dt.isValid())
+    {
+        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/fromtime"), QString("invalid value, %1, for parameter, fromtime").arg(query.queryItemValue("fromtime"))));
+        rsp.httpStatus = HttpStatusNotFound;
+        return REQ_READY_SEND;
+    }
+
+    const qint64 fromTime = dt.toMSecsSinceEpoch() / 1000;
+
+    openDb();
+    loadLightDataFromDb(lightNode, rsp.list, fromTime, maxRecords);
+    closeDb();
+
+    if (rsp.list.isEmpty())
+    {
+        rsp.str = QLatin1String("[]"); // return empty list
+    }
+
+    rsp.httpStatus = HttpStatusOk;
+
+    return REQ_READY_SEND;
 }
 
 /*! GET /api/<apikey>/lights/<id>

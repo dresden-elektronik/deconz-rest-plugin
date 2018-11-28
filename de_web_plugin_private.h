@@ -725,6 +725,7 @@ public:
     int getAllLights(const ApiRequest &req, ApiResponse &rsp);
     int searchNewLights(const ApiRequest &req, ApiResponse &rsp);
     int getNewLights(const ApiRequest &req, ApiResponse &rsp);
+    int getLightData(const ApiRequest &req, ApiResponse &rsp);
     int getLightState(const ApiRequest &req, ApiResponse &rsp);
     int setLightState(const ApiRequest &req, ApiResponse &rsp);
     int setLightAttributes(const ApiRequest &req, ApiResponse &rsp);
@@ -1172,6 +1173,7 @@ public:
     void loadAllRulesFromDb();
     void loadAllSensorsFromDb();
     void loadSensorDataFromDb(Sensor *sensor, QVariantList &ls, qint64 fromTime, int max);
+    void loadLightDataFromDb(LightNode *lightNode, QVariantList &ls, qint64 fromTime, int max);
     void loadAllGatewaysFromDb();
     int getFreeLightId();
     int getFreeSensorId();
