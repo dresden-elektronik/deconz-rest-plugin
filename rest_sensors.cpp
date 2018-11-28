@@ -230,7 +230,7 @@ int DeRestPluginPrivate::getSensorData(const ApiRequest &req, ApiResponse &rsp)
     QUrl url(req.hdr.url());
     QUrlQuery query(url);
 
-    int maxRecords = query.queryItemValue("maxrecords").toInt(&ok);
+    const int maxRecords = query.queryItemValue(QLatin1String("maxrecords")).toInt(&ok);
     if (!ok || maxRecords <= 0)
     {
         rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/maxrecords"), QString("invalid value, %1, for parameter, maxrecords").arg(query.queryItemValue("maxrecords"))));
@@ -238,8 +238,8 @@ int DeRestPluginPrivate::getSensorData(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    QString t = query.queryItemValue("fromtime");
-    QDateTime dt = QDateTime::fromString(t, "yyyy-MM-ddTHH:mm:ss");
+    QString t = query.queryItemValue(QLatin1String("fromtime"));
+    QDateTime dt = QDateTime::fromString(t, QLatin1String("yyyy-MM-ddTHH:mm:ss"));
     if (!dt.isValid())
     {
         rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/fromtime"), QString("invalid value, %1, for parameter, fromtime").arg(query.queryItemValue("fromtime"))));
@@ -247,32 +247,17 @@ int DeRestPluginPrivate::getSensorData(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    qint64 fromTime = dt.toMSecsSinceEpoch() / 1000;
+    const qint64 fromTime = dt.toMSecsSinceEpoch() / 1000;
 
     openDb();
     loadSensorDataFromDb(sensor, rsp.list, fromTime, maxRecords);
     closeDb();
 
-    // handle ETag
-    if (req.hdr.hasKey("If-None-Match"))
-    {
-        QString etag = req.hdr.value("If-None-Match");
-
-        if (sensor->etag == etag)
-        {
-            rsp.httpStatus = HttpStatusNotModified;
-            rsp.etag = etag;
-            return REQ_READY_SEND;
-        }
-    }
-
     if (rsp.list.isEmpty())
     {
-        rsp.str = "[]"; // return empty list
+        rsp.str = QLatin1String("[]"); // return empty list
     }
 
-    updateSensorEtag(sensor);
-    rsp.etag = sensor->etag;
     rsp.httpStatus = HttpStatusOk;
 
     return REQ_READY_SEND;
