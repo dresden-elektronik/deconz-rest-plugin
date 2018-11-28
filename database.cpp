@@ -2663,9 +2663,28 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         }
         else
         {
-            QString mac = sensor.uniqueId(); // need copy
-            mac = mac.remove(':').split('-').first();
+            const QStringList ls = sensor.uniqueId().split('-', QString::SkipEmptyParts);
+            if (ls.size() != 3)
+            {
+                return 0;
+            }
+
+            QString mac = ls[0]; // need copy
+            mac.remove(':'); // inplace remove
             extAddr = mac.toULongLong(&ok, 16);
+
+            if (!ok)
+            {
+                return 0;
+            }
+
+            // restore clusterId
+            clusterId = ls[2].toUShort(&ok, 16);
+
+            if (!ok)
+            {
+                return 0;
+            }
         }
 
         if (!isClip && extAddr == 0)
@@ -2684,7 +2703,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
             if (sensor.fingerPrint().hasInCluster(COMMISSIONING_CLUSTER_ID))
             {
-                clusterId = COMMISSIONING_CLUSTER_ID;
+                clusterId = clusterId ? clusterId : COMMISSIONING_CLUSTER_ID;
             }
 
             if (sensor.fingerPrint().hasOutCluster(ONOFF_CLUSTER_ID))
@@ -2715,7 +2734,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         {
             if (sensor.fingerPrint().hasInCluster(ILLUMINANCE_MEASUREMENT_CLUSTER_ID))
             {
-                clusterId = ILLUMINANCE_MEASUREMENT_CLUSTER_ID;
+                clusterId = clusterId ? clusterId : ILLUMINANCE_MEASUREMENT_CLUSTER_ID;
             }
             item = sensor.addItem(DataTypeUInt16, RStateLightLevel);
             item->setValue(0);
@@ -2735,7 +2754,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         {
             if (sensor.fingerPrint().hasInCluster(TEMPERATURE_MEASUREMENT_CLUSTER_ID))
             {
-                clusterId = TEMPERATURE_MEASUREMENT_CLUSTER_ID;
+                clusterId = clusterId ? clusterId : TEMPERATURE_MEASUREMENT_CLUSTER_ID;
             }
             item = sensor.addItem(DataTypeInt16, RStateTemperature);
             item->setValue(0);
@@ -2746,7 +2765,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         {
             if (sensor.fingerPrint().hasInCluster(RELATIVE_HUMIDITY_CLUSTER_ID))
             {
-                clusterId = RELATIVE_HUMIDITY_CLUSTER_ID;
+                clusterId = clusterId ? clusterId : RELATIVE_HUMIDITY_CLUSTER_ID;
             }
             item = sensor.addItem(DataTypeUInt16, RStateHumidity);
             item->setValue(0);
@@ -2757,7 +2776,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         {
             if (sensor.fingerPrint().hasInCluster(PRESSURE_MEASUREMENT_CLUSTER_ID))
             {
-                clusterId = PRESSURE_MEASUREMENT_CLUSTER_ID;
+                clusterId = clusterId ? clusterId : PRESSURE_MEASUREMENT_CLUSTER_ID;
             }
             item = sensor.addItem(DataTypeInt16, RStatePressure);
             item->setValue(0);
@@ -2766,7 +2785,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         {
             if (sensor.fingerPrint().hasInCluster(OCCUPANCY_SENSING_CLUSTER_ID))
             {
-                clusterId = OCCUPANCY_SENSING_CLUSTER_ID;
+                clusterId = clusterId ? clusterId : OCCUPANCY_SENSING_CLUSTER_ID;
                 if (sensor.modelId().startsWith(QLatin1String("FLS")) ||
                     sensor.modelId().startsWith(QLatin1String("SML001")))
                 {
@@ -2785,15 +2804,15 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             else if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
             {
-                clusterId = IAS_ZONE_CLUSTER_ID;
+                clusterId = clusterId ? clusterId : IAS_ZONE_CLUSTER_ID;
             }
             else if (sensor.fingerPrint().hasInCluster(BINARY_INPUT_CLUSTER_ID))
             {
-                clusterId = BINARY_INPUT_CLUSTER_ID;
+                clusterId = clusterId ? clusterId : BINARY_INPUT_CLUSTER_ID;
             }
             else if (sensor.fingerPrint().hasInCluster(ONOFF_CLUSTER_ID))
             {
-                clusterId = ONOFF_CLUSTER_ID;
+                clusterId = clusterId ? clusterId : ONOFF_CLUSTER_ID;
             }
             item = sensor.addItem(DataTypeBool, RStatePresence);
             item->setValue(false);
@@ -2837,11 +2856,11 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         {
             if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
             {
-                clusterId = IAS_ZONE_CLUSTER_ID;
+                clusterId = clusterId ? clusterId : IAS_ZONE_CLUSTER_ID;
             }
             else if (sensor.fingerPrint().hasInCluster(ONOFF_CLUSTER_ID))
             {
-                clusterId = ONOFF_CLUSTER_ID;
+                clusterId = clusterId ? clusterId : ONOFF_CLUSTER_ID;
             }
             item = sensor.addItem(DataTypeBool, RStateOpen);
             item->setValue(false);
@@ -2850,7 +2869,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         {
             if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
             {
-                clusterId = IAS_ZONE_CLUSTER_ID;
+                clusterId = clusterId ? clusterId : IAS_ZONE_CLUSTER_ID;
             }
             item = sensor.addItem(DataTypeBool, RStateAlarm);
             item->setValue(false);
@@ -2859,7 +2878,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         {
             if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
             {
-                clusterId = IAS_ZONE_CLUSTER_ID;
+                clusterId = clusterId ? clusterId : IAS_ZONE_CLUSTER_ID;
             }
             item = sensor.addItem(DataTypeBool, RStateCarbonMonoxide);
             item->setValue(false);
@@ -2868,7 +2887,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         {
             if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
             {
-                clusterId = IAS_ZONE_CLUSTER_ID;
+                clusterId = clusterId ? clusterId : IAS_ZONE_CLUSTER_ID;
             }
             item = sensor.addItem(DataTypeBool, RStateFire);
             item->setValue(false);
@@ -2877,7 +2896,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         {
             if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
             {
-                clusterId = IAS_ZONE_CLUSTER_ID;
+                clusterId = clusterId ? clusterId : IAS_ZONE_CLUSTER_ID;
             }
             item = sensor.addItem(DataTypeBool, RStateVibration);
             item->setValue(false);
@@ -2886,7 +2905,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         {
             if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
             {
-                clusterId = IAS_ZONE_CLUSTER_ID;
+                clusterId = clusterId ? clusterId : IAS_ZONE_CLUSTER_ID;
             }
             item = sensor.addItem(DataTypeBool, RStateWater);
             item->setValue(false);
@@ -2895,7 +2914,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         {
             if (sensor.fingerPrint().hasInCluster(METERING_CLUSTER_ID))
             {
-                clusterId = METERING_CLUSTER_ID;
+                clusterId = clusterId ? clusterId : METERING_CLUSTER_ID;
                 if (sensor.modelId() != QLatin1String("SP 120"))
                 {
                     item = sensor.addItem(DataTypeInt16, RStatePower);
@@ -2904,7 +2923,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             else if (sensor.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))
             {
-                clusterId = ANALOG_INPUT_CLUSTER_ID;
+                clusterId = clusterId ? clusterId : ANALOG_INPUT_CLUSTER_ID;
             }
             item = sensor.addItem(DataTypeUInt64, RStateConsumption);
             item->setValue(0);
@@ -2914,7 +2933,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             bool hasVoltage = true;
             if (sensor.fingerPrint().hasInCluster(ELECTRICAL_MEASUREMENT_CLUSTER_ID))
             {
-                clusterId = ELECTRICAL_MEASUREMENT_CLUSTER_ID;
+                clusterId = clusterId ? clusterId : ELECTRICAL_MEASUREMENT_CLUSTER_ID;
                 if (sensor.modelId().startsWith(QLatin1String("Plug"))) // OSRAM
                 {
                     hasVoltage = false;
@@ -2922,7 +2941,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             else if (sensor.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))
             {
-                clusterId = ANALOG_INPUT_CLUSTER_ID;
+                clusterId = clusterId ? clusterId : ANALOG_INPUT_CLUSTER_ID;
                 hasVoltage = false;
             }
             item = sensor.addItem(DataTypeInt16, RStatePower);
