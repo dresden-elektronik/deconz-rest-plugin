@@ -127,10 +127,15 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "lumi.weather", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_magnet", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_motion", jennicMacPrefix },
-    { VENDOR_JENNIC, "lumi.sensor_switch", jennicMacPrefix }, // lumi.sensor_switch.aq2 (WXKG11LM) lumi.sensor_switch.aq3 (WXKG12LM)
-    { VENDOR_JENNIC, "lumi.remote.b1acn01", jennicMacPrefix }, // WXKG11LM
+    { VENDOR_JENNIC, "lumi.sensor_switch.aq2", jennicMacPrefix }, // Xiaomi WXKG11LM 2016
+    { VENDOR_JENNIC, "lumi.remote.b1acn01", jennicMacPrefix },    // Xiaomi WXKG11LM 2018
+    { VENDOR_JENNIC, "lumi.sensor_switch.aq3", jennicMacPrefix }, // Xiaomi WXKG12LM
     { VENDOR_JENNIC, "lumi.sensor_cube", jennicMacPrefix },
-    { VENDOR_JENNIC, "lumi.sensor_86sw", jennicMacPrefix }, // Xiaomi Wireless Wall Switch
+    { VENDOR_JENNIC, "lumi.sensor_86sw1", jennicMacPrefix },      // Xiaomi single button wall switch WXKG03LM 2016
+    { VENDOR_JENNIC, "lumi.remote.b186acn01", jennicMacPrefix },  // Xiaomi single button wall switch WXKG03LM 2018
+    { VENDOR_JENNIC, "lumi.sensor_86sw2", jennicMacPrefix },      // Xiaomi dual button wall switch WXKG02LM 2016
+    { VENDOR_JENNIC, "lumi.remote.b286acn01", jennicMacPrefix },  // Xiaomi dual button wall switch WXKG02LM 2018
+    { VENDOR_JENNIC, "lumi.sensor_switch", jennicMacPrefix },     // Xiaomi WXKG11LM and WXKG12LM (fallback)
     { VENDOR_JENNIC, "lumi.ctrl_neutral", jennicMacPrefix }, // Xioami Wall Switch (end-device)
     { VENDOR_JENNIC, "lumi.vibration", jennicMacPrefix }, // Xiaomi Aqara vibration/shock sensor
     { VENDOR_JENNIC, "lumi.sensor_wleak", jennicMacPrefix },
@@ -3266,7 +3271,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
-
+                    else if (modelId == QLatin1String("lumi.remote.b186acn01") && i->endpoint() == 0x01)
+                    {
+                        fpSwitch.inClusters.push_back(ci->id());
+                    }
+                    else if (modelId == QLatin1String("lumi.remote.b286acn01") && i->endpoint() == 0x01)
+                    {
+                        fpSwitch.inClusters.push_back(ci->id());
+                    }
                 }
                     break;
 
@@ -4578,7 +4590,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                 {
                     if (i->modelId().startsWith(QLatin1String("lumi.sensor_86sw")) ||
                         i->modelId().startsWith(QLatin1String("lumi.ctrl_neutral")) ||
-                        (i->modelId().startsWith(QLatin1String("lumi.ctrl_ln")) && event.clusterId() == MULTISTATE_INPUT_CLUSTER_ID))
+                        (i->modelId().startsWith(QLatin1String("lumi.ctrl_ln")) && event.clusterId() == MULTISTATE_INPUT_CLUSTER_ID) ||
+                        (i->modelId().startsWith(QLatin1String("lumi.remote")) && event.clusterId() == MULTISTATE_INPUT_CLUSTER_ID))
                     { // 3 endpoints: 1 sensor
                     }
                     else
@@ -5375,15 +5388,23 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         default: break;
                                     }
                                 }
-                                else if (i->modelId() == QLatin1String("lumi.remote.b1acn01"))
+                                else if (i->modelId() == QLatin1String("lumi.remote.b1acn01") ||
+                                         i->modelId() == QLatin1String("lumi.remote.b186acn01") ||
+                                         i->modelId() == QLatin1String("lumi.remote.b286acn01"))
                                 {
+                                    buttonevent = S_BUTTON_1 * event.endpoint();
                                     switch (rawValue)
                                     {
-                                        case   1: buttonevent = S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED; break;
-                                        case   2: buttonevent = S_BUTTON_1 + S_BUTTON_ACTION_DOUBLE_PRESS;   break;
-                                        case   0: buttonevent = S_BUTTON_1 + S_BUTTON_ACTION_HOLD;           break;
-                                        case 255: buttonevent = S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED;  break;
-                                        default: break;
+                                        case   0: buttonevent += S_BUTTON_ACTION_HOLD;           break;
+                                        case   1: buttonevent += S_BUTTON_ACTION_SHORT_RELEASED; break;
+                                        case   2: buttonevent += S_BUTTON_ACTION_DOUBLE_PRESS;   break;
+                                        case 255: buttonevent += S_BUTTON_ACTION_LONG_RELEASED;  break;
+                                        default:
+                                        {
+                                            DBG_Printf(DBG_INFO, "unsupported button rawValue 0x%04X\n", rawValue);
+                                            buttonevent = -1;
+                                        }
+                                            break;
                                     }
                                 }
                                 else if (i->modelId().startsWith(QLatin1String("lumi.ctrl_ln")))
