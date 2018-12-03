@@ -17,9 +17,32 @@
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
-int DeRestPluginPrivate::handleInfoApi(ApiRequest &req, ApiResponse &rsp)
+int DeRestPluginPrivate::handleInfoApi(const ApiRequest &req, ApiResponse &rsp)
 {
+    // GET /api/<apikey>/info/timezones
+    if ((req.path.size() == 4) && (req.hdr.method() == "GET") && (req.path[3] == "timezones"))
+    {
+        return getInfoTimezones(req, rsp);
+    }
+
+    return REQ_NOT_HANDLED;
+}
+
+/*! GET /api/<apikey>/info/timezones
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::getInfoTimezones(const ApiRequest &req, ApiResponse &rsp)
+{
+    Q_UNUSED(req);
+
+    // QByteArrayList tzs = getTimezones();
+    // foreach (QByteArray tz, tzs)
+    // {
+    //     rsp.list.append(QVariant(tz));
+    // }
+    rsp.list = getTimezones();
+
     rsp.httpStatus = HttpStatusOk;
     return REQ_READY_SEND;
-    // return REQ_NOT_HANDLED;
 }

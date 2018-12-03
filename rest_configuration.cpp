@@ -951,11 +951,12 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
 
     QVariantMap lightsMap;
     QVariantMap groupsMap;
-    QVariantMap configMap;
     QVariantMap schedulesMap;
+    QVariantMap scenesMap;
     QVariantMap sensorsMap;
-    QVariantMap resourcelinksMap;
     QVariantMap rulesMap;
+    QVariantMap configMap;
+    QVariantMap resourcelinksMap;
 
     // lights
     {
@@ -1069,15 +1070,20 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
+    // scenes
+    {
+    }
+
     configToMap(req, configMap);
 
     rsp.map["lights"] = lightsMap;
     rsp.map["groups"] = groupsMap;
-    rsp.map["config"] = configMap;
     rsp.map["schedules"] = schedulesMap;
+    rsp.map["scenes"] = scenesMap;
     rsp.map["sensors"] = sensorsMap;
-    rsp.map["resourcelinks"] = resourcelinksMap;
     rsp.map["rules"] = rulesMap;
+    rsp.map["config"] = configMap;
+    rsp.map["resourcelinks"] = resourcelinksMap;
     rsp.etag = gwConfigEtag;
     rsp.httpStatus = HttpStatusOk;
     return REQ_READY_SEND;

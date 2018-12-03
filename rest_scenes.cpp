@@ -17,8 +17,12 @@
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
-int DeRestPluginPrivate::handleScenesApi(ApiRequest &req, ApiResponse &rsp)
+int DeRestPluginPrivate::handleScenesApi(const ApiRequest &req, ApiResponse &rsp)
 {
+    if (rsp.map.isEmpty())
+    {
+        rsp.str = "{}"; // return empty object
+    }
     rsp.httpStatus = HttpStatusOk;
     return REQ_READY_SEND;
     // return REQ_NOT_HANDLED;

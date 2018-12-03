@@ -140,6 +140,9 @@ SOURCES  = authentification.cpp \
            rest_sensors.cpp \
            rest_schedules.cpp \
            rest_touchlink.cpp \
+           rest_scenes.cpp \
+           rest_info.cpp \
+           rest_capabilities.cpp \
            rule.cpp \
            upnp.cpp \
            permitJoin.cpp \
