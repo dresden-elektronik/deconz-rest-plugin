@@ -164,6 +164,7 @@
 #define GREEN_POWER_CLUSTER_ID                0x0021
 #define DOOR_LOCK_CLUSTER_ID                  0x0101
 #define WINDOW_COVERING_CLUSTER_ID            0x0102
+#define THERMOSTAT_CLUSTER_ID                 0x0201
 #define COLOR_CLUSTER_ID                      0x0300
 #define ILLUMINANCE_MEASUREMENT_CLUSTER_ID    0x0400
 #define ILLUMINANCE_LEVEL_SENSING_CLUSTER_ID  0x0401
@@ -224,6 +225,7 @@
 #define READ_BINDING_TABLE     (1 << 9)
 #define READ_OCCUPANCY_CONFIG  (1 << 10)
 #define READ_GROUP_IDENTIFIERS (1 << 12)
+#define READ_THERMOSTAT_STATE  (1 << 13)
 
 #define READ_MODEL_ID_INTERVAL   (60 * 60) // s
 #define READ_SWBUILD_ID_INTERVAL (60 * 60) // s
@@ -245,6 +247,7 @@
 #define VENDOR_LGE          0x102E
 #define VENDOR_JENNIC       0x1037 // Used by Xiaomi, Trust
 #define VENDOR_CENTRALITE   0x104E
+#define VENDOR_BITRON       0x1071
 #define VENDOR_NYCE         0x10B9
 #define VENDOR_UBISYS       0x10F2
 #define VENDOR_BEGA         0x1105
@@ -352,6 +355,7 @@ extern const quint64 stMacPrefix;
 extern const quint64 tiMacPrefix;
 extern const quint64 ubisysMacPrefix;
 extern const quint64 xalMacPrefix;
+extern const quint64 bitronMacPrefix;
 
 // HTTP status codes
 extern const char *HttpStatusOk;
@@ -504,7 +508,8 @@ enum TaskType
     TaskTriggerEffect = 33,
     TaskWarning = 34,
     TaskIncBrightness = 35,
-    TaskWindowCovering = 36
+    TaskWindowCovering = 36,
+    TaskThermostat = 37
 };
 
 struct TaskItem
@@ -999,6 +1004,9 @@ public Q_SLOTS:
     // window covering
     void calibrateWindowCoveringNextStep();
 
+    // thermostat
+    void addTaskThermostatGetScheduleTimer();
+
 public:
     void checkRfConnectState();
     bool isInNetwork();
@@ -1099,6 +1107,9 @@ public:
     bool addTaskWindowCoveringSetAttr(TaskItem &task, uint16_t mfrCode, uint16_t attrId, uint8_t attrType, uint16_t attrValue);
     bool addTaskWindowCoveringCalibrate(TaskItem &task, int WindowCoveringType);
     bool addTaskUbisysConfigureSwitch(TaskItem &taskRef);
+    bool addTaskThermostatCmd(TaskItem &task, uint8_t cmd, int8_t setpoint, QString schedule, uint8_t daysToReturn);
+    bool addTaskThermostatSetAndGetSchedule(TaskItem &task, QString sched);
+    bool addTaskThermostatReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t attrId, uint8_t attrType, uint16_t attrValue);
     void handleGroupClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleSceneClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleOnOffClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
@@ -1119,6 +1130,7 @@ public:
     void handleDEClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleXalClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleWindowCoveringClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleThermostatClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleTimeClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendTimeClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZclAttributeReportIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);

@@ -146,6 +146,7 @@ SOURCES  = authentification.cpp \
            permitJoin.cpp \
            scene.cpp \
            sensor.cpp \
+           thermostat.cpp \
            time.cpp \
            reset_device.cpp \
            rest_userparameter.cpp \

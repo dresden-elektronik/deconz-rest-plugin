@@ -849,6 +849,15 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.reportableChange16bit = 20; // value used by Hue bridge
         return sendConfigureReportingRequest(bt, {rq});
     }
+    else if (bt.binding.clusterId == THERMOSTAT_CLUSTER_ID)
+    {
+        rq.dataType = deCONZ::Zcl16BitInt;
+        rq.attributeId = 0x0000;       // measured value
+        rq.minInterval = 0;
+        rq.maxInterval = 300;
+        rq.reportableChange16bit = 10;
+        return sendConfigureReportingRequest(bt, {rq});
+    }
     else if (bt.binding.clusterId == RELATIVE_HUMIDITY_CLUSTER_ID)
     {
         rq.dataType = deCONZ::Zcl16BitUint;
@@ -1412,6 +1421,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("FLS-NB")) ||
         // SmartThings
         sensor->modelId().startsWith(QLatin1String("tagv4")) ||
+        // Bitron
+        sensor->modelId().startsWith(QLatin1String("902010")) ||
         // LG
         sensor->modelId() == QLatin1String("LG IP65 HMS"))
     {
@@ -1572,6 +1583,11 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         {
             val = sensor->getZclValue(*i, 0x0055); // Present value
         }
+        else if (*i == THERMOSTAT_CLUSTER_ID)
+        {
+            val = sensor->getZclValue(*i, 0x0000); // Local temperature
+
+        }
 
         quint16 maxInterval = (val.maxInterval > 0) ? (val.maxInterval * 3 / 2) : (60 * 45);
 
@@ -1621,6 +1637,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         case VENDOR_CLUSTER_ID:
         case BASIC_CLUSTER_ID:
         case BINARY_INPUT_CLUSTER_ID:
+        case THERMOSTAT_CLUSTER_ID:
         {
             DBG_Printf(DBG_INFO_L2, "0x%016llX (%s) create binding for attribute reporting of cluster 0x%04X on endpoint 0x%02X\n",
                        sensor->address().ext(), qPrintable(sensor->modelId()), (*i), srcEndpoint);

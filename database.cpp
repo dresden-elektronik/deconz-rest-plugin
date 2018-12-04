@@ -2969,6 +2969,21 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             sensor.addItem(DataTypeBool, RStateDark);
             sensor.addItem(DataTypeInt32, RStateStatus);
         }
+        else if (sensor.type().endsWith(QLatin1String("Thermostat")))
+        {
+            if (sensor.fingerPrint().hasInCluster(THERMOSTAT_CLUSTER_ID))
+            {
+                clusterId = THERMOSTAT_CLUSTER_ID;
+            }
+            item = sensor.addItem(DataTypeInt16, RStateTemperature);
+            item->setValue(0);
+            item = sensor.addItem(DataTypeInt16, RConfigOffset);
+            item->setValue(0);
+            sensor.addItem(DataTypeInt16, RStateHeating);     // Heating set point
+            sensor.addItem(DataTypeBool, RStateSchedulerOn);  // Scheduler state on/off
+            sensor.addItem(DataTypeBool, RStateOn);           // Heating on/off
+            sensor.addItem(DataTypeString, RConfigScheduler); // Scheduler setting
+        }
 
         if (sensor.modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
         {

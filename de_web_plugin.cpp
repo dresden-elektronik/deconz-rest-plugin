@@ -82,6 +82,7 @@ const quint64 osramMacPrefix      = 0x8418260000000000ULL;
 const quint64 bjeMacPrefix        = 0xd85def0000000000ULL;
 const quint64 xalMacPrefix        = 0xf8f0050000000000ULL;
 const quint64 lutronMacPrefix     = 0xffff000000000000ULL;
+const quint64 bitronMacPrefix     = 0x000d6f0000000000ULL;
 
 struct SupportedDevice {
     quint16 vendorId;
@@ -106,6 +107,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "OJB-IR715-Z", tiMacPrefix },
     { VENDOR_NONE, "902010/21A", tiMacPrefix }, // Bitron: door/window sensor
     { VENDOR_NONE, "902010/25", tiMacPrefix }, // Bitron: smart plug
+    { VENDOR_BITRON, "902010/32", bitronMacPrefix }, // Bitron: thermostat
     { VENDOR_DDEL, "Lighting Switch", deMacPrefix },
     { VENDOR_DDEL, "Scene Switch", deMacPrefix },
     { VENDOR_DDEL, "FLS-NB1", deMacPrefix },
@@ -508,6 +510,10 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
         case WINDOW_COVERING_CLUSTER_ID:
             handleWindowCoveringClusterIndication(ind, zclFrame);
+            break;
+
+        case THERMOSTAT_CLUSTER_ID:
+            handleThermostatClusterIndication(ind, zclFrame);
             break;
 
         default:
@@ -2985,6 +2991,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         SensorFingerprint fpTemperatureSensor;
         SensorFingerprint fpVibrationSensor;
         SensorFingerprint fpWaterSensor;
+        SensorFingerprint fpThermostatSensor;
 
         {   // scan server clusters of endpoint
             QList<deCONZ::ZclCluster>::const_iterator ci = i->inClusters().constBegin();
@@ -3052,6 +3059,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         fpTemperatureSensor.inClusters.push_back(ci->id());
                         fpVibrationSensor.inClusters.push_back(ci->id());
                         fpWaterSensor.inClusters.push_back(ci->id());
+                        fpThermostatSensor.inClusters.push_back(ci->id());
                     // }
                 }
                     break;
@@ -3309,6 +3317,12 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 case ELECTRICAL_MEASUREMENT_CLUSTER_ID:
                 {
                     fpPowerSensor.inClusters.push_back(ci->id());
+                }
+                    break;
+
+                case THERMOSTAT_CLUSTER_ID:
+                {
+                    fpThermostatSensor.inClusters.push_back(ci->id());
                 }
                     break;
 
@@ -3678,6 +3692,25 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 checkSensorNodeReachable(sensor);
             }
         }
+
+        // ZHAThermostat
+        if (fpThermostatSensor.hasInCluster(THERMOSTAT_CLUSTER_ID))
+        {
+            fpThermostatSensor.endpoint = i->endpoint();
+            fpThermostatSensor.deviceId = i->deviceId();
+            fpThermostatSensor.profileId = i->profileId();
+
+            sensor = getSensorNodeForFingerPrint(node->address().ext(), fpThermostatSensor, "ZHAThermostat");
+            if (!sensor || sensor->deletedState() != Sensor::StateNormal)
+            {
+                addSensorNode(node, fpThermostatSensor, "ZHAThermostat", modelId, manufacturer);
+            }
+            else
+            {
+                checkSensorNodeReachable(sensor);
+            }
+        }
+
     }
 }
 
@@ -3935,6 +3968,20 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             clusterId = ANALOG_INPUT_CLUSTER_ID;
             item = sensorNode.addItem(DataTypeInt16, RStatePower);
         }
+    }
+    else if (sensorNode.type().endsWith(QLatin1String("Thermostat")))
+    {
+        if (sensorNode.fingerPrint().hasInCluster(THERMOSTAT_CLUSTER_ID))
+        {
+            clusterId = THERMOSTAT_CLUSTER_ID;
+        }
+        sensorNode.addItem(DataTypeInt16, RStateTemperature);
+        item = sensorNode.addItem(DataTypeInt16, RConfigOffset);
+        item->setValue(0);
+        sensorNode.addItem(DataTypeInt16, RStateHeating);     // Heating set point
+        sensorNode.addItem(DataTypeBool, RStateSchedulerOn);  // Scheduler state on/off
+        sensorNode.addItem(DataTypeBool, RStateOn);           // Heating on/off
+        sensorNode.addItem(DataTypeString, RConfigScheduler); // Scheduler setting
     }
 
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_DDEL)
@@ -6693,6 +6740,21 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         else
         {
             sensorNode->clearRead(WRITE_USERTEST);
+        }
+    }
+
+    if (sensorNode->mustRead(READ_THERMOSTAT_STATE) && tNow > sensorNode->nextReadTime(READ_THERMOSTAT_STATE))
+    {
+        std::vector<uint16_t> attributes;
+        attributes.push_back(0x0000); // temperature
+        attributes.push_back(0x0012); // heating setpoint
+        attributes.push_back(0x0025); // scheduler state
+        attributes.push_back(0x0029); // heating operation state
+
+        if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, THERMOSTAT_CLUSTER_ID, attributes))
+        {
+            sensorNode->clearRead(READ_THERMOSTAT_STATE);
+            processed++;
         }
     }
 
@@ -12734,6 +12796,20 @@ void DeRestPlugin::idleTimerFired()
                                     d->queryTime = d->queryTime.addSecs(tSpacing);
                                     processSensors = true;
                                 }
+                            }
+                        }
+
+                        if (*ci == THERMOSTAT_CLUSTER_ID)
+                        {
+                            val = sensorNode->getZclValue(*ci, 0x0029); // heating state
+
+                            if (!val.timestamp.isValid() || val.timestamp.secsTo(now) > 300)
+                            {
+                                sensorNode->enableRead(READ_THERMOSTAT_STATE);
+                                sensorNode->setLastRead(READ_THERMOSTAT_STATE, d->idleTotalCounter);
+                                sensorNode->setNextReadTime(READ_THERMOSTAT_STATE, d->queryTime);
+                                d->queryTime = d->queryTime.addSecs(tSpacing);
+                                processSensors = true;
                             }
                         }
                     }

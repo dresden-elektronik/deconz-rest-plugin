@@ -1306,6 +1306,41 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 rsp.list.append(rspItem);
                 return REQ_READY_SEND;
             }
+
+            if (sensor->type() == "ZHAThermostat")
+            {
+                if (rid.suffix == RConfigOffset)
+                {
+                    bool ok;
+                    int offset = map[pi.key()].toUInt(&ok);
+                    if (ok && addTaskThermostatReadWriteAttribute(task, 0x02, 0x0010, 0x28, offset))
+                    {
+                        rspItemState[QString("set %1").arg(rid.suffix)] = offset;
+                        rspItem["success"] = rspItemState;
+                    }
+                    else
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/%2").arg(id).arg(rid.suffix), QString("could not set attribute")));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
+                    }
+                }
+                if (rid.suffix == RConfigScheduler)
+                {
+                    QString sched = map[pi.key()].toString().simplified();
+                    if (addTaskThermostatSetAndGetSchedule(task, sched))
+                    {
+                        rspItemState[QString("set %1").arg(rid.suffix)] = offset;
+                        rspItem["success"] = rspItemState;
+                    }
+                    else
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/%2").arg(id).arg(rid.suffix), QString("could not set attribute")));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
+                    }
+                }
+            }
         }
 
         if (!item)
@@ -1452,6 +1487,11 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
 
     bool isClip = sensor->type().startsWith(QLatin1String("CLIP"));
 
+    if (sensor->type() == "ZHAThermostat")
+    {
+        isClip = true; // ZHAThermostat allow PUT on state
+    }
+
     if (req.sock)
     {
         userActivity();
@@ -1580,6 +1620,58 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
                         if (item2 && item2->toNumber() > 0)
                         {
                             sensor->durationDue = QDateTime::currentDateTime().addSecs(item2->toNumber()).addMSecs(-500);
+                        }
+                    }
+                    else if (sensor->type() == "ZHAThermostat")
+                    {
+                        TaskItem task;
+                        // set destination parameters
+                        task.req.dstAddress() = sensor->address();
+                        task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+                        task.req.setDstEndpoint(sensor->fingerPrint().endpoint);
+                        task.req.setSrcEndpoint(getSrcEndpoint(sensor, task.req));
+                        task.req.setDstAddressMode(deCONZ::ApsExtAddress);
+
+                        if (rid.suffix == RStateSchedulerOn)
+                        {
+                            bool onoff = val.toBool();
+                            uint8_t onoffAttr = onoff ? 0x01 : 0x00;
+
+                            if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0025, deCONZ::Zcl8BitBitMap, onoffAttr))
+                            {
+                                updated = true;
+                            }
+                            else
+                            {
+                                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/%2").arg(id).arg(rid.suffix), QString("could not set attribute")));
+                                rsp.httpStatus = HttpStatusBadRequest;
+
+                            }
+                        }
+                        else if (rid.suffix == RStateHeating)
+                        {
+                            bool ok;
+                            int16_t heatsetpoint =val.toUInt(&ok);
+
+                            if (ok && addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0012, deCONZ::Zcl16BitInt, heatsetpoint))
+                            {
+                                updated = true;
+                            }
+                            else
+                            {
+                                rsp.list.append(errorToMap(ERR_INVALID_VALUE,
+                                                           QString("/sensors/%1/%2").arg(id).arg(rid.suffix),
+                                                           QString("could not set attribute value=%1").arg(val.toString())));
+                                rsp.httpStatus = HttpStatusBadRequest;
+                            }
+                        }
+                        else
+                        {
+                            rsp.list.append(errorToMap(ERR_INVALID_VALUE,
+                                                       QString("/sensors/%1/state/%2").arg(id).arg(pi.key()),
+                                                       QString("thermostat invalid value, %1, for parameter %2").arg(rid.suffix).arg(pi.key())));
+                            rsp.httpStatus = HttpStatusBadRequest;
+                            return REQ_READY_SEND;
                         }
                     }
                 }
