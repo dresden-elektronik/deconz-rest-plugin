@@ -12929,46 +12929,9 @@ QDialog *DeRestPlugin::createDialog()
  */
 bool DeRestPlugin::isHttpTarget(const QHttpRequestHeader &hdr)
 {
-    if (hdr.path().startsWith(QLatin1String("/api/config")))
+    if (hdr.path().startsWith(QLatin1String("/api")))
     {
         return true;
-    }
-    else if (hdr.path().startsWith(QLatin1String("/api")))
-    {
-        QString path = hdr.path();
-        int quest = path.indexOf('?');
-
-        if (quest > 0)
-        {
-            path = path.mid(0, quest);
-        }
-
-        QStringList ls = path.split(QLatin1String("/"), QString::SkipEmptyParts);
-
-        if (ls.size() > 2)
-        {
-            if ((ls[2] == QLatin1String("lights")) ||
-                (ls[2] == QLatin1String("groups")) ||
-                (ls[2] == QLatin1String("schedules")) ||
-                (ls[2] == QLatin1String("scenes")) ||
-                (ls[2] == QLatin1String("sensors")) ||
-                (ls[2] == QLatin1String("rules")) ||
-                (ls[2] == QLatin1String("config")) ||
-                (ls[2] == QLatin1String("info")) ||
-                (ls[2] == QLatin1String("resourcelinks")) ||
-                (ls[2] == QLatin1String("capabilities")) ||
-                (ls[2] == QLatin1String("touchlink")) ||
-                (ls[2] == QLatin1String("userparameter")) ||
-                (ls[2] == QLatin1String("gateways")) ||
-                (hdr.path().at(4) != '/') /* Bug in some clients */)
-            {
-                return true;
-            }
-        }
-        else // /api, /api/config and /api/287398279837
-        {
-            return true;
-        }
     }
     else if (hdr.path().startsWith(QLatin1String("/description.xml")))
     {
@@ -13176,6 +13139,8 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         }
         else if (req.path.size() >= 2) // && checkApikeyAuthentification(req, rsp)
         {
+            bool res = true;
+
             // GET /api/<apikey>
             if ((req.path.size() == 2) && (req.hdr.method() == "GET"))
             {
@@ -13232,6 +13197,23 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
             else if (path[2] == QLatin1String("gateways"))
             {
                 ret = d->handleGatewaysApi(req, rsp);
+            }
+            else {
+                res = false;
+            }
+            if (ret == REQ_NOT_HANDLED)
+            {
+                QString resource = "/" + req.path.mid(2).join("/");
+                if (res && req.hdr.method() == "GET")
+                {
+                    rsp.list.append(d->errorToMap(ERR_RESOURCE_NOT_AVAILABLE, resource, "resource, " + resource + ", not available"));
+                }
+                else
+                {
+                    rsp.list.append(d->errorToMap(ERR_METHOD_NOT_AVAILABLE, resource, "method, " + req.hdr.method() + ", not available for resource, " + resource));
+                }
+                rsp.httpStatus = HttpStatusNotFound;
+                ret = REQ_READY_SEND;
             }
         }
     }

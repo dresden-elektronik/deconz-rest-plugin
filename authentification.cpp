@@ -209,7 +209,7 @@ bool DeRestPluginPrivate::checkApikeyAuthentification(const ApiRequest &req, Api
 #endif
 
     rsp.httpStatus = HttpStatusForbidden;
-    rsp.list.append(errorToMap(ERR_UNAUTHORIZED_USER, req.path.join("/"), "unauthorized user"));
+    rsp.list.append(errorToMap(ERR_UNAUTHORIZED_USER, "/" + req.path.mid(2).join("/"), "unauthorized user"));
 
     if (req.sock)
     {

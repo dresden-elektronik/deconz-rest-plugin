@@ -2128,7 +2128,7 @@ int DeRestPluginPrivate::deletePassword(const ApiRequest &req, ApiResponse &rsp)
     if (!ok)
     {
         rsp.httpStatus = HttpStatusForbidden;
-        rsp.list.append(errorToMap(ERR_UNAUTHORIZED_USER, req.path.join("/"), "unauthorized user"));
+        rsp.list.append(errorToMap(ERR_UNAUTHORIZED_USER, "/" + req.path.join("/"), "unauthorized user"));
         return REQ_READY_SEND;
     }
 
@@ -2383,7 +2383,7 @@ int DeRestPluginPrivate::putWifiScanResult(const ApiRequest &req, ApiResponse &r
 
     if (req.sock->peerAddress() != localHost)
     {
-        rsp.list.append(errorToMap(ERR_UNAUTHORIZED_USER, req.path.join("/"), "unauthorized user"));
+        rsp.list.append(errorToMap(ERR_UNAUTHORIZED_USER, "/" + req.path.join("/"), "unauthorized user"));
         return REQ_READY_SEND;
     }
 
@@ -2410,7 +2410,7 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
 
     if (req.sock->peerAddress() != localHost)
     {
-        rsp.list.append(errorToMap(ERR_UNAUTHORIZED_USER, req.path.join("/"), "unauthorized user"));
+        rsp.list.append(errorToMap(ERR_UNAUTHORIZED_USER, "/" + req.path.join("/"), "unauthorized user"));
         return REQ_READY_SEND;
     }
 
