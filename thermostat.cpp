@@ -8,26 +8,26 @@
  * option             | read/write | attribute | description
  * -------------------|------------|-----------|---------------------
  * state.on           | read only  | 0x0029    | running state on/off
- * state.heatsetpoint | read write | 0x0012    | heating setpoint
- * state.scheduleron  | read write | 0x0025    | scheduler on/off
- * state.temperature  | read only  | 0x0000    | meassured temperature
+ * state.temperature  | read only  | 0x0000    | measured temperature
+ * config.heatsetpoint| read write | 0x0012    | heating setpoint
+ * config.scheduleron | read write | 0x0025    | scheduler on/off
  * config.offset      | read write | 0x0010    | temperature offset
  * config.scheduler   | read write | (command) | scheduled setpoints
  *
  *
  * Example sensor:
  *
- * /api/<apike<>/sensors/<id>/
+ * /api/<apikey>/sensors/<id>/
  *    {
  *       config: {
+ *          "heatsetpoint": 2200,
  *          "offset": 0,
- *          "scheduler": "Monday,Tuesday,Wednesday,Thursday,Friday  05:00 2200 19:00 1800;Saturday,Sunday  06:00 2100 19:00 1800;"
+ *          "scheduler": "Monday,Tuesday,Wednesday,Thursday,Friday 05:00 2200 19:00 1800;Saturday,Sunday 06:00 2100 19:00 1800;"
+ *          "scheduleron": true
  *       },
  *       state: {
- *          "heatsetpoint": 1800,
- *          "on": false,
- *          "scheduleron": true,
- *          "temperature": 2190
+ *          "on": true,
+ *          "temperature": 2150
  *        },
  *       "ep": 1,
  *       "manufacturername": "Bitron Home",
@@ -37,8 +37,8 @@
  *    }
  *
  * Rest API example commands:
- * -X PUT /api/<apikey>/sensors/<id>/state -d '{ "heatsetpoint": 1800 }'
- * -X PUT /api/<apikey>/sensors/<id>/state -d '{ "scheduleron": true }'
+ * -X PUT /api/<apikey>/sensors/<id>/config -d '{ "heatsetpoint": 1800 }'
+ * -X PUT /api/<apikey>/sensors/<id>/config -d '{ "scheduleron": true }'
  * -X PUT /api/<apikey>/sensors/<id>/config -d '{ "offset": 0 }'
  * -X PUT /api/<apikey>/sensors/<id>/config -d '{ "scheduler": "Monday 05:00 2200 19:00 1800;" }'
  *                                          -d '{ "scheduler": "" }'  (send get scheduler command)
@@ -207,22 +207,22 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 				break;
 
 			case 0x0012: // Occupied Heating Setpoint
-				item = sensor->item(RStateHeating);
+				item = sensor->item(RConfigHeating);
 				if (item)
 				{
 					item->setValue(attrValue);
-					Event e(RSensors, RStateHeating, sensor->id(), item);
+					Event e(RSensors, RConfigHeating, sensor->id(), item);
 					enqueueEvent(e);
 				}
 				break;
 
 			case 0x0025:  // Thermostat Programming Operation Mode, default 0 (bit#0 = disable/enable Scheduler)
-				item = sensor->item(RStateSchedulerOn);
+				item = sensor->item(RConfigSchedulerOn);
 				if (item)
 				{
 					bool onoff = attrValue & 0x01 ? true : false;
 					item->setValue(onoff);
-					Event e(RSensors, RStateSchedulerOn, sensor->id(), item);
+					Event e(RSensors, RConfigSchedulerOn, sensor->id(), item);
 					enqueueEvent(e);
 				}
 				break;

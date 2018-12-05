@@ -3978,8 +3978,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         sensorNode.addItem(DataTypeInt16, RStateTemperature);
         item = sensorNode.addItem(DataTypeInt16, RConfigOffset);
         item->setValue(0);
-        sensorNode.addItem(DataTypeInt16, RStateHeating);     // Heating set point
-        sensorNode.addItem(DataTypeBool, RStateSchedulerOn);  // Scheduler state on/off
+        sensorNode.addItem(DataTypeInt16, RConfigHeating);    // Heating set point
+        sensorNode.addItem(DataTypeBool, RConfigSchedulerOn); // Scheduler state on/off
         sensorNode.addItem(DataTypeBool, RStateOn);           // Heating on/off
         sensorNode.addItem(DataTypeString, RConfigScheduler); // Scheduler setting
     }

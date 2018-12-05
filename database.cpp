@@ -2979,8 +2979,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item->setValue(0);
             item = sensor.addItem(DataTypeInt16, RConfigOffset);
             item->setValue(0);
-            sensor.addItem(DataTypeInt16, RStateHeating);     // Heating set point
-            sensor.addItem(DataTypeBool, RStateSchedulerOn);  // Scheduler state on/off
+            sensor.addItem(DataTypeInt16, RConfigHeating);    // Heating set point
+            sensor.addItem(DataTypeBool, RConfigSchedulerOn); // Scheduler state on/off
             sensor.addItem(DataTypeBool, RStateOn);           // Heating on/off
             sensor.addItem(DataTypeString, RConfigScheduler); // Scheduler setting
         }
