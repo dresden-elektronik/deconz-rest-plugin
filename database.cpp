@@ -2936,7 +2936,9 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 clusterId = clusterId ? clusterId : ELECTRICAL_MEASUREMENT_CLUSTER_ID;
                 if (sensor.modelId().startsWith(QLatin1String("Plug"))) // OSRAM
                 {
-                    hasVoltage = false;
+                    DBG_Printf(DBG_INFO, "OSRAM %s: ZHAPower sensor id: %s ignored loading from database\n", qPrintable(sensor.modelId()), qPrintable(sensor.id()));
+                    return 0;
+                    // hasVoltage = false;
                 }
             }
             else if (sensor.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))

@@ -148,7 +148,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_UBISYS, "S2", ubisysMacPrefix },
     { VENDOR_UBISYS, "J1", ubisysMacPrefix },
     { VENDOR_NONE, "Z716A", netvoxMacPrefix },
-    { VENDOR_OSRAM_STACK, "Plug", osramMacPrefix }, // OSRAM plug
+    // { VENDOR_OSRAM_STACK, "Plug", osramMacPrefix }, // OSRAM plug - exposed only as light
     { VENDOR_OSRAM_STACK, "CO_", heimanMacPrefix }, // Heiman CO sensor
     { VENDOR_OSRAM_STACK, "DOOR_", heimanMacPrefix }, // Heiman door/window sensor
     { VENDOR_OSRAM_STACK, "PIR_", heimanMacPrefix }, // Heiman motion sensor
@@ -5513,6 +5513,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (i->modelId() == QLatin1String("SmartPlug")) // Heiman
                                 {
                                     consumption += 5; consumption /= 10; // 0.1 Wh -> Wh
+                                }
+                                else if (i->modelId() == QLatin1String("SP 120")) // innr
+                                {
+                                    consumption *= 10; // 0.01 kWh = 10 Wh -> Wh
                                 }
 
                                 if (item)
