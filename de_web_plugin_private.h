@@ -225,7 +225,7 @@
 #define READ_BINDING_TABLE     (1 << 9)
 #define READ_OCCUPANCY_CONFIG  (1 << 10)
 #define READ_GROUP_IDENTIFIERS (1 << 12)
-#define READ_THERMOSTAT_STATE  (1 << 13)
+#define READ_THERMOSTAT_STATE  (1 << 17)
 
 #define READ_MODEL_ID_INTERVAL   (60 * 60) // s
 #define READ_SWBUILD_ID_INTERVAL (60 * 60) // s

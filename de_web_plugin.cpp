@@ -12806,7 +12806,7 @@ void DeRestPlugin::idleTimerFired()
                         {
                             val = sensorNode->getZclValue(*ci, 0x0029); // heating state
 
-                            if (!val.timestamp.isValid() || val.timestamp.secsTo(now) > 300)
+                            if (!val.timestamp.isValid() || val.timestamp.secsTo(now) > 600)
                             {
                                 sensorNode->enableRead(READ_THERMOSTAT_STATE);
                                 sensorNode->setLastRead(READ_THERMOSTAT_STATE, d->idleTotalCounter);

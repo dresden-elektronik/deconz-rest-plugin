@@ -234,6 +234,9 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 					item->setValue(attrValue);
 					Event e(RSensors, RStateOn, sensor->id(), item);
 					enqueueEvent(e);
+					deCONZ::NumericUnion val;
+					val.u8 = attrValue;
+					sensor->setZclValue(NodeValue::UpdateByZclRead, THERMOSTAT_CLUSTER_ID,0x0029, val);
 				}
 				break;
 
