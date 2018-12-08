@@ -376,6 +376,7 @@ void PollManager::pollTimerFired()
             if (lightNode->manufacturerCode() == VENDOR_UBISYS ||
                 lightNode->manufacturerCode() == VENDOR_EMBER ||
                 lightNode->manufacturerCode() == VENDOR_120B ||
+                lightNode->manufacturerCode() == VENDOR_115F ||
                 lightNode->manufacturer().startsWith(QLatin1String("Climax")))
             {
                 attributes.push_back(0x0006); // date code

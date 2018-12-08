@@ -146,7 +146,7 @@ void LightNode::setModelId(const QString &modelId)
  */
 const QString &LightNode::swBuildId() const
 {
-    return m_swBuildId;
+    return item(RAttrSwVersion)->toString();
 }
 
 /*! Sets the software build identifier.
@@ -154,7 +154,7 @@ const QString &LightNode::swBuildId() const
  */
 void LightNode::setSwBuildId(const QString &swBuildId)
 {
-    m_swBuildId = swBuildId;
+    item(RAttrSwVersion)->setValue(swBuildId.trimmed());
 }
 
 /*! Returns the name of the light node.

@@ -94,7 +94,6 @@ private:
     uint8_t m_groupCapacity;
     QString m_manufacturer;
     uint16_t m_manufacturerCode;
-    QString m_swBuildId;
     uint16_t m_otauClusterId;
     std::vector<GroupInfo> m_groups;
     bool m_isOn;

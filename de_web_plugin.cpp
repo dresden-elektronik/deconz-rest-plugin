@@ -1446,6 +1446,15 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         loadLightNodeFromDb(&lightNode);
         closeDb();
 
+        if (lightNode.manufacturerCode() == VENDOR_115F)
+        {
+            if (lightNode.manufacturer() != QLatin1String("LUMI"))
+            {
+                lightNode.setManufacturerName(QLatin1String("LUMI"));
+                lightNode.setNeedSaveDatabase(true);
+            }
+        }
+
         if (lightNode.state() == LightNode::StateDeleted)
         {
             if (searchLightsState == SearchLightsActive || permitJoinFlag)
@@ -12543,8 +12552,34 @@ void DeRestPlugin::idleTimerFired()
                     break;
                 }
 
-                if (lightNode->node() &&
-                    lightNode->modelId().startsWith(QLatin1String("FLS-NB")))
+                // workaround for Xiaomi lights and smart plugs with multiple endpoints but only one basic cluster
+                if (lightNode->manufacturerCode() == VENDOR_115F && (lightNode->modelId().isEmpty() || lightNode->item(RAttrSwVersion)->toString().isEmpty()))
+                {
+                    for (const auto &l : d->nodes)
+                    {
+                        if (l.address().ext() != lightNode->address().ext() || (l.haEndpoint().endpoint() == lightNode->haEndpoint().endpoint()))
+                        {
+                            continue;
+                        }
+
+                        if (lightNode->modelId().isEmpty() && !l.modelId().isEmpty())
+                        {
+                            lightNode->setModelId(l.modelId());
+                            lightNode->setNeedSaveDatabase(true);
+                            d->queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
+                        }
+
+                        if (lightNode->item(RAttrSwVersion)->toString().isEmpty() && !l.item(RAttrSwVersion)->toString().isEmpty())
+                        {
+                            lightNode->item(RAttrSwVersion)->setValue(l.item(RAttrSwVersion)->toString());
+                            lightNode->setNeedSaveDatabase(true);
+                            d->queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
+                        }
+                        break;
+                    }
+                }
+
+                if (lightNode->modelId().startsWith(QLatin1String("FLS-NB")))
                 {
                     // temporary activate sensor search
                     DeRestPluginPrivate::SearchSensorsState fss = d->searchSensorsState; // remember
