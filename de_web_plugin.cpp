@@ -82,7 +82,6 @@ const quint64 osramMacPrefix      = 0x8418260000000000ULL;
 const quint64 bjeMacPrefix        = 0xd85def0000000000ULL;
 const quint64 xalMacPrefix        = 0xf8f0050000000000ULL;
 const quint64 lutronMacPrefix     = 0xffff000000000000ULL;
-const quint64 bitronMacPrefix     = 0x000d6f0000000000ULL;
 
 struct SupportedDevice {
     quint16 vendorId;
@@ -107,7 +106,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "OJB-IR715-Z", tiMacPrefix },
     { VENDOR_NONE, "902010/21A", tiMacPrefix }, // Bitron: door/window sensor
     { VENDOR_NONE, "902010/25", tiMacPrefix }, // Bitron: smart plug
-    { VENDOR_BITRON, "902010/32", bitronMacPrefix }, // Bitron: thermostat
+    { VENDOR_BITRON, "902010/32", emberMacPrefix }, // Bitron: thermostat
     { VENDOR_DDEL, "Lighting Switch", deMacPrefix },
     { VENDOR_DDEL, "Scene Switch", deMacPrefix },
     { VENDOR_DDEL, "FLS-NB1", deMacPrefix },

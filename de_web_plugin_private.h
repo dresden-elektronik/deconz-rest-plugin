@@ -355,7 +355,6 @@ extern const quint64 stMacPrefix;
 extern const quint64 tiMacPrefix;
 extern const quint64 ubisysMacPrefix;
 extern const quint64 xalMacPrefix;
-extern const quint64 bitronMacPrefix;
 
 // HTTP status codes
 extern const char *HttpStatusOk;
