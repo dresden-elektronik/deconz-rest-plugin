@@ -13387,7 +13387,8 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
 
             if (ret == REQ_NOT_HANDLED)
             {
-                QString resource = "/" + req.path.mid(2).join("/");
+                const QStringList ls = req.path.mid(2);
+                const QString resource = "/" + ls.join("/");
                 if (resourceExist && req.hdr.method() == QLatin1String("GET"))
                 {
                     rsp.list.append(d->errorToMap(ERR_RESOURCE_NOT_AVAILABLE, resource, "resource, " + resource + ", not available"));
