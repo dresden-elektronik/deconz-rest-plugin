@@ -13251,28 +13251,27 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         return 0;
     }
 
-    else if (req.path[0] == "api")
+    else if (req.path[0] == QLatin1String("api"))
     {
         // POST /api
-        if ((req.path.size() == 1) && (req.hdr.method() == "POST"))
+        if ((req.path.size() == 1) && (req.hdr.method() == QLatin1String("POST")))
         {
             ret = d->createUser(req, rsp);
         }
         // GET /api/challenge
-        else if ((req.path.size() == 2) && (req.hdr.method() == "GET") && (req.path[1] == "challenge"))
+        else if ((req.path.size() == 2) && (req.hdr.method() == QLatin1String("GET")) && (req.path[1] == QLatin1String("challenge")))
         {
             ret = d->getChallenge(req, rsp);
         }
         // GET /api/config
-        else if ((req.path.size() == 2) && (req.hdr.method() == "GET") && (req.path[1] == "config"))
+        else if ((req.path.size() == 2) && (req.hdr.method() == QLatin1String("GET")) && (req.path[1] == QLatin1String("config")))
         {
             ret = d->getBasicConfig(req, rsp);
         }
-
         else if ((req.path.size() >= 2) && !(d->checkApikeyAuthentification(req, rsp)))
         {
             // GET /api/<nouser>/config
-            if ((req.path.size() == 3) && (req.path[2] == "config"))
+            if ((req.path.size() == 3) && (req.path[2] == QLatin1String("config")))
             {
                 ret = d->getBasicConfig(req, rsp);
             }
@@ -13283,10 +13282,10 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         }
         else if (req.path.size() >= 2) // && checkApikeyAuthentification(req, rsp)
         {
-            bool res = true;
+            bool resourceExist = true;
 
             // GET /api/<apikey>
-            if ((req.path.size() == 2) && (req.hdr.method() == "GET"))
+            if ((req.path.size() == 2) && (req.hdr.method() == QLatin1String("GET")))
             {
                 ret = d->getFullState(req, rsp);
             }
@@ -13342,13 +13341,15 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
             {
                 ret = d->handleGatewaysApi(req, rsp);
             }
-            else {
-                res = false;
+            else
+            {
+                resourceExist = false;
             }
+
             if (ret == REQ_NOT_HANDLED)
             {
                 QString resource = "/" + req.path.mid(2).join("/");
-                if (res && req.hdr.method() == "GET")
+                if (resourceExist && req.hdr.method() == QLatin1String("GET"))
                 {
                     rsp.list.append(d->errorToMap(ERR_RESOURCE_NOT_AVAILABLE, resource, "resource, " + resource + ", not available"));
                 }
