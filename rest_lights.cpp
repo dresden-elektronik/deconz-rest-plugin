@@ -27,16 +27,6 @@
  */
 int DeRestPluginPrivate::handleLightsApi(ApiRequest &req, ApiResponse &rsp)
 {
-    if (req.path[2] != QLatin1String("lights"))
-    {
-        return REQ_NOT_HANDLED;
-    }
-
-    if(!checkApikeyAuthentification(req, rsp))
-    {
-        return REQ_READY_SEND;
-    }
-
     // GET /api/<apikey>/lights
     if ((req.path.size() == 3) && (req.hdr.method() == "GET"))
     {

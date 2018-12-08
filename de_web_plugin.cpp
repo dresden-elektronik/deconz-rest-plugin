@@ -13073,43 +13073,9 @@ QDialog *DeRestPlugin::createDialog()
  */
 bool DeRestPlugin::isHttpTarget(const QHttpRequestHeader &hdr)
 {
-    if (hdr.path().startsWith(QLatin1String("/api/config")))
+    if (hdr.path().startsWith(QLatin1String("/api")))
     {
         return true;
-    }
-    else if (hdr.path().startsWith(QLatin1String("/api")))
-    {
-        QString path = hdr.path();
-        int quest = path.indexOf('?');
-
-        if (quest > 0)
-        {
-            path = path.mid(0, quest);
-        }
-
-        QStringList ls = path.split(QLatin1String("/"), QString::SkipEmptyParts);
-
-        if (ls.size() > 2)
-        {
-            if ((ls[2] == QLatin1String("lights")) ||
-                (ls[2] == QLatin1String("groups")) ||
-                (ls[2] == QLatin1String("config")) ||
-                (ls[2] == QLatin1String("schedules")) ||
-                (ls[2] == QLatin1String("sensors")) ||
-                (ls[2] == QLatin1String("touchlink")) ||
-                (ls[2] == QLatin1String("resourcelinks")) ||
-                (ls[2] == QLatin1String("rules")) ||
-                (ls[2] == QLatin1String("userparameter")) ||
-                (ls[2] == QLatin1String("gateways")) ||
-                (hdr.path().at(4) != '/') /* Bug in some clients */)
-            {
-                return true;
-            }
-        }
-        else // /api, /api/config and /api/287398279837
-        {
-            return true;
-        }
     }
     else if (hdr.path().startsWith(QLatin1String("/description.xml")))
     {
@@ -13225,7 +13191,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         return 0;
     }
 
-    if (req.hdr.method() == QLatin1String("POST") && path.size() == 2 && path[1] == QLatin1String("fileupload"))
+    else if (req.hdr.method() == QLatin1String("POST") && path.size() == 2 && path[1] == QLatin1String("fileupload"))
     {
         QString path = deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation);
         QString filename = path + "/deCONZ.tar.gz";
@@ -13265,60 +13231,6 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         return 0;
     }
 
-    if (path.size() > 2)
-    {
-        if (path[2] == QLatin1String("lights"))
-        {
-            ret = d->handleLightsApi(req, rsp);
-        }
-        else if (path[2] == QLatin1String("groups"))
-        {
-            ret = d->handleGroupsApi(req, rsp);
-        }
-        else if (path[2] == QLatin1String("schedules"))
-        {
-            ret = d->handleSchedulesApi(req, rsp);
-        }
-        else if (path[2] == QLatin1String("touchlink"))
-        {
-            ret = d->handleTouchlinkApi(req, rsp);
-        }
-        else if (path[2] == QLatin1String("sensors"))
-        {
-            ret = d->handleSensorsApi(req, rsp);
-        }
-        else if (path[2] == QLatin1String("resourcelinks"))
-        {
-            ret = d->handleResourcelinksApi(req, rsp);
-        }
-        else if (path[2] == QLatin1String("rules"))
-        {
-            ret = d->handleRulesApi(req, rsp);
-        }
-        else if (path[2] == QLatin1String("userparameter"))
-        {
-            ret = d->handleUserparameterApi(req, rsp);
-        }
-        else if (path[2] == QLatin1String("gateways"))
-        {
-            ret = d->handleGatewaysApi(req, rsp);
-        }
-    }
-
-    if (ret == REQ_NOT_HANDLED)
-    {
-        ret = d->handleConfigurationApi(req, rsp);
-    }
-
-    if (ret == REQ_DONE)
-    {
-        return 0;
-    }
-    else if (ret == REQ_READY_SEND)
-    {
-        // new api // TODO cleanup/remove later
-        // sending below
-    }
     else if (hdr.path().startsWith(QLatin1String("/description.xml")) && (hdr.method() == QLatin1String("GET")))
     {
         rsp.httpStatus = HttpStatusOk;
@@ -13337,9 +13249,120 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         stream << d->descriptionXml.constData();
         stream.flush();
         return 0;
-
     }
-    else
+
+    else if (req.path[0] == "api")
+    {
+        // POST /api
+        if ((req.path.size() == 1) && (req.hdr.method() == "POST"))
+        {
+            ret = d->createUser(req, rsp);
+        }
+        // GET /api/challenge
+        else if ((req.path.size() == 2) && (req.hdr.method() == "GET") && (req.path[1] == "challenge"))
+        {
+            ret = d->getChallenge(req, rsp);
+        }
+        // GET /api/config
+        else if ((req.path.size() == 2) && (req.hdr.method() == "GET") && (req.path[1] == "config"))
+        {
+            ret = d->getBasicConfig(req, rsp);
+        }
+
+        else if ((req.path.size() >= 2) && !(d->checkApikeyAuthentification(req, rsp)))
+        {
+            // GET /api/<nouser>/config
+            if ((req.path.size() == 3) && (req.path[2] == "config"))
+            {
+                ret = d->getBasicConfig(req, rsp);
+            }
+            else
+            {
+                ret = REQ_READY_SEND;
+            }
+        }
+        else if (req.path.size() >= 2) // && checkApikeyAuthentification(req, rsp)
+        {
+            bool res = true;
+
+            // GET /api/<apikey>
+            if ((req.path.size() == 2) && (req.hdr.method() == "GET"))
+            {
+                ret = d->getFullState(req, rsp);
+            }
+            else if (path[2] == QLatin1String("lights"))
+            {
+                ret = d->handleLightsApi(req, rsp);
+            }
+            else if (path[2] == QLatin1String("groups"))
+            {
+                ret = d->handleGroupsApi(req, rsp);
+            }
+            else if (path[2] == QLatin1String("schedules"))
+            {
+                ret = d->handleSchedulesApi(req, rsp);
+            }
+            else if (path[2] == QLatin1String("scenes"))
+            {
+                ret = d->handleScenesApi(req, rsp);
+            }
+            else if (path[2] == QLatin1String("sensors"))
+            {
+                ret = d->handleSensorsApi(req, rsp);
+            }
+            else if (path[2] == QLatin1String("rules"))
+            {
+                ret = d->handleRulesApi(req, rsp);
+            }
+            else if (path[2] == QLatin1String("config"))
+            {
+                ret = d->handleConfigurationApi(req, rsp);
+            }
+            else if (path[2] == QLatin1String("info"))
+            {
+                ret = d->handleInfoApi(req, rsp);
+            }
+            else if (path[2] == QLatin1String("resourcelinks"))
+            {
+                ret = d->handleResourcelinksApi(req, rsp);
+            }
+            else if (path[2] == QLatin1String("capabilities"))
+            {
+                ret = d->handleCapabilitiesApi(req, rsp);
+            }
+            else if (path[2] == QLatin1String("touchlink"))
+            {
+                ret = d->handleTouchlinkApi(req, rsp);
+            }
+            else if (path[2] == QLatin1String("userparameter"))
+            {
+                ret = d->handleUserparameterApi(req, rsp);
+            }
+            else if (path[2] == QLatin1String("gateways"))
+            {
+                ret = d->handleGatewaysApi(req, rsp);
+            }
+            else {
+                res = false;
+            }
+            if (ret == REQ_NOT_HANDLED)
+            {
+                QString resource = "/" + req.path.mid(2).join("/");
+                if (res && req.hdr.method() == "GET")
+                {
+                    rsp.list.append(d->errorToMap(ERR_RESOURCE_NOT_AVAILABLE, resource, "resource, " + resource + ", not available"));
+                }
+                else
+                {
+                    rsp.list.append(d->errorToMap(ERR_METHOD_NOT_AVAILABLE, resource, "method, " + req.hdr.method() + ", not available for resource, " + resource));
+                }
+                rsp.httpStatus = HttpStatusNotFound;
+                ret = REQ_READY_SEND;
+            }
+        }
+    }
+
+    if (ret == REQ_NOT_HANDLED)
     {
         DBG_Printf(DBG_HTTP, "%s unknown request: %s\n", Q_FUNC_INFO, qPrintable(hdr.path()));
     }

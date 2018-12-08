@@ -218,3 +218,17 @@ void DeRestPluginPrivate::sendTimeClusterResponse(const deCONZ::ApsDataIndicatio
     }
 
 }
+
+/*! Get all available timezone ids
+ */
+QVariantList DeRestPluginPrivate::getTimezones()
+{
+    // return QTimeZone::availableTimeZoneIds();
+    QByteArrayList tzs = QTimeZone::availableTimeZoneIds();
+    QVariantList list;
+    foreach (QByteArray tz, tzs)
+    {
+        list.append(QVariant(tz));
+    }
+	return list;
+}

@@ -823,6 +823,17 @@ public:
     bool checkActions(QVariantList actionsList, ApiResponse &rsp);
     bool checkConditions(QVariantList conditionsList, ApiResponse &rsp);
 
+    // REST API scenes
+    int handleScenesApi(const ApiRequest &req, ApiResponse &rsp);
+
+    // REST API info
+    int handleInfoApi(const ApiRequest &req, ApiResponse &rsp);
+    int getInfoTimezones(const ApiRequest &req, ApiResponse &rsp);
+
+    // REST API capabilities
+    int handleCapabilitiesApi(const ApiRequest &req, ApiResponse &rsp);
+    int getCapabilities(const ApiRequest &req, ApiResponse &rsp);
+
     // REST API common
     QVariantMap errorToMap(int id, const QString &ressource, const QString &description);
 
@@ -855,7 +866,8 @@ public:
     void initResetDeviceApi();
 
     //Timezone
-    std::string getTimezone();
+    // std::string getTimezone();
+    QVariantList getTimezones();
 
     //Export/Import/Reset Configuration
     bool exportConfiguration();

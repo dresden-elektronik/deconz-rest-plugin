@@ -492,31 +492,8 @@ void DeRestPluginPrivate::configurationChanged()
  */
 int DeRestPluginPrivate::handleConfigurationApi(const ApiRequest &req, ApiResponse &rsp)
 {
-    // POST /api
-    if ((req.path.size() == 1) && (req.hdr.method() == "POST"))
-    {
-        return createUser(req, rsp);
-    }
-    else if ((req.path.size() == 2) && (req.hdr.method() == "GET"))
-    {
-        // GET /api/config
-        if (req.path[1] == "config")
-        {
-          return getBasicConfig(req, rsp);
-        }
-        // GET /api/challenge
-        else if (req.path[1] == "challenge")
-        {
-          return getChallenge(req, rsp);
-        }
-        // GET /api/<apikey>
-        else
-        {
-          return getFullState(req, rsp);
-        }
-    }
     // GET /api/<apikey>/config
-    else if ((req.path.size() == 3) && (req.hdr.method() == "GET") && (req.path[2] == "config"))
+    if ((req.path.size() == 3) && (req.hdr.method() == "GET") && (req.path[2] == "config"))
     {
         return getConfig(req, rsp);
     }
@@ -966,11 +943,6 @@ void DeRestPluginPrivate::basicConfigToMap(QVariantMap &map)
  */
 int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
 {
-    if(!checkApikeyAuthentification(req, rsp))
-    {
-        return REQ_READY_SEND;
-    }
-
     checkRfConnectState();
 
     // handle ETag
@@ -988,11 +960,12 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
 
     QVariantMap lightsMap;
     QVariantMap groupsMap;
-    QVariantMap configMap;
     QVariantMap schedulesMap;
+    QVariantMap scenesMap;
     QVariantMap sensorsMap;
-    QVariantMap resourcelinksMap;
     QVariantMap rulesMap;
+    QVariantMap configMap;
+    QVariantMap resourcelinksMap;
 
     // lights
     {
@@ -1106,15 +1079,20 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
+    // scenes
+    {
+    }
+
     configToMap(req, configMap);
 
     rsp.map["lights"] = lightsMap;
     rsp.map["groups"] = groupsMap;
-    rsp.map["config"] = configMap;
     rsp.map["schedules"] = schedulesMap;
+    rsp.map["scenes"] = scenesMap;
     rsp.map["sensors"] = sensorsMap;
-    rsp.map["resourcelinks"] = resourcelinksMap;
     rsp.map["rules"] = rulesMap;
+    rsp.map["config"] = configMap;
+    rsp.map["resourcelinks"] = resourcelinksMap;
     rsp.etag = gwConfigEtag;
     rsp.httpStatus = HttpStatusOk;
     return REQ_READY_SEND;
@@ -1126,11 +1104,6 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::getConfig(const ApiRequest &req, ApiResponse &rsp)
 {
-    if(!checkApikeyAuthentification(req, rsp))
-    {
-        return getBasicConfig(req, rsp);
-    }
-
     checkRfConnectState();
 
     // handle ETag
@@ -1246,11 +1219,6 @@ int DeRestPluginPrivate::getChallenge(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 {
-    if(!checkApikeyAuthentification(req, rsp))
-    {
-        return REQ_READY_SEND;
-    }
-
     bool ok;
     bool changed = false;
     QVariant var = Json::parse(req.content, ok);
@@ -1760,11 +1728,6 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::deleteUser(const ApiRequest &req, ApiResponse &rsp)
 {
-    if(!checkApikeyAuthentification(req, rsp))
-    {
-        return REQ_READY_SEND;
-    }
-
     QString username2 = req.path[4];
 
     std::vector<ApiAuth>::iterator i = apiAuths.begin();
@@ -1798,11 +1761,6 @@ int DeRestPluginPrivate::deleteUser(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::updateSoftware(const ApiRequest &req, ApiResponse &rsp)
 {
-    if(!checkApikeyAuthentification(req, rsp))
-    {
-        return REQ_READY_SEND;
-    }
-
     rsp.httpStatus = HttpStatusOk;
     QVariantMap rspItem;
     QVariantMap rspItemState;
@@ -1829,11 +1787,6 @@ int DeRestPluginPrivate::updateSoftware(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::restartGateway(const ApiRequest &req, ApiResponse &rsp)
 {
-    if(!checkApikeyAuthentification(req, rsp))
-    {
-        return REQ_READY_SEND;
-    }
-
     rsp.httpStatus = HttpStatusOk;
     QVariantMap rspItem;
     QVariantMap rspItemState;
@@ -1862,11 +1815,6 @@ int DeRestPluginPrivate::restartGateway(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::restartApp(const ApiRequest &req, ApiResponse &rsp)
 {
-    if(!checkApikeyAuthentification(req, rsp))
-    {
-        return REQ_READY_SEND;
-    }
-
     rsp.httpStatus = HttpStatusOk;
     QVariantMap rspItem;
     QVariantMap rspItemState;
@@ -1893,11 +1841,6 @@ int DeRestPluginPrivate::restartApp(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::shutDownGateway(const ApiRequest &req, ApiResponse &rsp)
 {
-    if(!checkApikeyAuthentification(req, rsp))
-    {
-        return REQ_READY_SEND;
-    }
-
     rsp.httpStatus = HttpStatusOk;
     QVariantMap rspItem;
     QVariantMap rspItemState;
@@ -1926,11 +1869,6 @@ int DeRestPluginPrivate::shutDownGateway(const ApiRequest &req, ApiResponse &rsp
  */
 int DeRestPluginPrivate::updateFirmware(const ApiRequest &req, ApiResponse &rsp)
 {
-    if(!checkApikeyAuthentification(req, rsp))
-    {
-        return REQ_READY_SEND;
-    }
-
     if (startUpdateFirmware())
     {
         rsp.httpStatus = HttpStatusOk;
@@ -1954,11 +1892,6 @@ int DeRestPluginPrivate::updateFirmware(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::exportConfig(const ApiRequest &req, ApiResponse &rsp)
 {
-    if(!checkApikeyAuthentification(req, rsp))
-    {
-        return REQ_READY_SEND;
-    }
-
     if (exportConfiguration())
     {
         rsp.httpStatus = HttpStatusOk;
@@ -1982,11 +1915,6 @@ int DeRestPluginPrivate::exportConfig(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::importConfig(const ApiRequest &req, ApiResponse &rsp)
 {
-    if(!checkApikeyAuthentification(req, rsp))
-    {
-        return REQ_READY_SEND;
-    }
-
     if (importConfiguration())
     {
         rsp.httpStatus = HttpStatusOk;
@@ -2018,11 +1946,6 @@ int DeRestPluginPrivate::importConfig(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::resetConfig(const ApiRequest &req, ApiResponse &rsp)
 {
-    if(!checkApikeyAuthentification(req, rsp))
-    {
-        return REQ_READY_SEND;
-    }
-
     bool resetGW = false;
     bool deleteDB = false;
     bool ok;
@@ -2117,11 +2040,6 @@ int DeRestPluginPrivate::resetConfig(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::changePassword(const ApiRequest &req, ApiResponse &rsp)
 {
-    if(!checkApikeyAuthentification(req, rsp))
-    {
-        return REQ_READY_SEND;
-    }
-
     bool ok;
     QVariant var = Json::parse(req.content, ok);
     QVariantMap map = var.toMap();
@@ -2219,7 +2137,7 @@ int DeRestPluginPrivate::deletePassword(const ApiRequest &req, ApiResponse &rsp)
     if (!ok)
     {
         rsp.httpStatus = HttpStatusForbidden;
-        rsp.list.append(errorToMap(ERR_UNAUTHORIZED_USER, req.path.join("/"), "unauthorized user"));
+        rsp.list.append(errorToMap(ERR_UNAUTHORIZED_USER, "/" + req.path.join("/"), "unauthorized user"));
         return REQ_READY_SEND;
     }
 
@@ -2331,11 +2249,6 @@ int DeRestPluginPrivate::getWifiState(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::configureWifi(const ApiRequest &req, ApiResponse &rsp)
 {
-    if(!checkApikeyAuthentification(req, rsp))
-    {
-        return REQ_READY_SEND;
-    }
-
     bool ok;
     QVariant var = Json::parse(req.content, ok);
     QVariantMap map = var.toMap();
@@ -2479,7 +2392,7 @@ int DeRestPluginPrivate::putWifiScanResult(const ApiRequest &req, ApiResponse &r
 
     if (req.sock->peerAddress() != localHost)
     {
-        rsp.list.append(errorToMap(ERR_UNAUTHORIZED_USER, req.path.join("/"), "unauthorized user"));
+        rsp.list.append(errorToMap(ERR_UNAUTHORIZED_USER, "/" + req.path.join("/"), "unauthorized user"));
         return REQ_READY_SEND;
     }
 
@@ -2506,7 +2419,7 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
 
     if (req.sock->peerAddress() != localHost)
     {
-        rsp.list.append(errorToMap(ERR_UNAUTHORIZED_USER, req.path.join("/"), "unauthorized user"));
+        rsp.list.append(errorToMap(ERR_UNAUTHORIZED_USER, "/" + req.path.join("/"), "unauthorized user"));
         return REQ_READY_SEND;
     }
 
@@ -2905,11 +2818,6 @@ int DeRestPluginPrivate::scanWifiNetworks(const ApiRequest &req, ApiResponse &rs
 int DeRestPluginPrivate::resetHomebridge(const ApiRequest &req, ApiResponse &rsp)
 {
     Q_UNUSED(req);
-
-    if(!checkApikeyAuthentification(req, rsp))
-    {
-        return REQ_READY_SEND;
-    }
 
     rsp.httpStatus = HttpStatusOk;
 #ifdef ARCH_ARM
