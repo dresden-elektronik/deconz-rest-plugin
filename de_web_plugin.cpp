@@ -2959,7 +2959,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         if (node->simpleDescriptors().size() == 1 &&
                 node->simpleDescriptors().first().endpoint() == 0x01 &&
                 node->simpleDescriptors().first().profileId() == HA_PROFILE_ID &&
-                node->simpleDescriptors().first().deviceId() == DEV_ID_IAS_ZONE)
+                node->simpleDescriptors().first().deviceId() == DEV_ID_IAS_ZONE &&
+                node->simpleDescriptors().first().inClusters().size() == 5)
         {
             // server clusters: 0x0000, 0x0003, 0x0500, 0xffff, 0x0001
             modelId = QLatin1String("VMS_ADUROLIGHT"); // would be returned by reading the modelid
