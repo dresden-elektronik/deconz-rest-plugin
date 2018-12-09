@@ -224,7 +224,7 @@ void DeRestPluginPrivate::sendTimeClusterResponse(const deCONZ::ApsDataIndicatio
 QVariantList DeRestPluginPrivate::getTimezones()
 {
     QVariantList list;
-    const QByteArrayList tzs = QTimeZone::availableTimeZoneIds();
+    const auto tzs = QTimeZone::availableTimeZoneIds();
 
     for (const QByteArray &tz : tzs)
     {
