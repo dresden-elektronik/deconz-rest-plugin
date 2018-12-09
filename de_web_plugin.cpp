@@ -2946,6 +2946,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         return;
     }
 
+    if (fastProbeAddr.hasExt() && fastProbeAddr.ext() != node->address().ext())
+    {
+        return;
+    }
+
     // check for new sensors
     QString modelId;
     QString manufacturer;
