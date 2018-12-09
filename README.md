@@ -7,8 +7,8 @@ As hardware the [RaspBee](https://www.dresden-elektronik.de/raspbee?L=1&ref=gh) 
 
 To learn more about the REST API itself please visit the [REST API Documentation](http://dresden-elektronik.github.io/deconz-rest-doc/) page.
 
-### Phoscon App Beta
-The *Phoscon App* is the successor of the current WebApp (Wireless Light Control), it's browser based too and in open beta state, for more information and screenshots check out:
+### Phoscon App
+The *Phoscon App* is the successor of the 2016 WebApp (Wireless Light Control), it's browser based and supports more sensors and switches. For more information and screenshots check out:
 
 https://www.dresden-elektronik.de/funktechnik/solutions/wireless-light-control/phoscon-app?L=1
 
@@ -28,8 +28,6 @@ Installation Raspberry Pi
 * Raspbian Jessie
 * Raspbian Stretch
 
-Raspbian Wheezy and Qt4 is no longer maintained.
-
 ##### Supported devices
 
 A uncomplete list of supported devices can be found here:
@@ -44,11 +42,11 @@ https://github.com/dresden-elektronik/deconz-rest-plugin/releases
 
 1. Download deCONZ package
 
-        wget http://www.dresden-elektronik.de/rpi/deconz/beta/deconz-2.05.48-qt5.deb
+        wget http://www.dresden-elektronik.de/rpi/deconz/beta/deconz-2.05.50-qt5.deb
 
 2. Install deCONZ package
 
-        sudo dpkg -i deconz-2.05.48-qt5.deb
+        sudo dpkg -i deconz-2.05.50-qt5.deb
 
 **Important** this step might print some errors *that's ok* and will be fixed in the next step.
 
@@ -63,11 +61,11 @@ The deCONZ package already contains the REST API plugin, the development package
 
 1. Download deCONZ development package
 
-        wget http://www.dresden-elektronik.de/rpi/deconz-dev/deconz-dev-2.05.48.deb
+        wget http://www.dresden-elektronik.de/rpi/deconz-dev/deconz-dev-2.05.50.deb
 
 2. Install deCONZ development package
 
-        sudo dpkg -i deconz-dev-2.05.48.deb
+        sudo dpkg -i deconz-dev-2.05.50.deb
 
 3. Install missing dependencies
 
@@ -82,7 +80,7 @@ The deCONZ package already contains the REST API plugin, the development package
 2. Checkout related version tag
 
         cd deconz-rest-plugin
-        git checkout -b mybranch V2_05_48
+        git checkout -b mybranch V2_05_50
 
 3. Compile the plugin
 
@@ -98,8 +96,6 @@ Headless support
 ----------------
 
 The beta version contains a systemd script, which allows deCONZ to run without a X11 server.
-
-**Note** The service does not yet support deCONZ updates via WebApp, therefore these must be installed manually. A further systemd script will handle updates in future versions.
 
 1. Enable the service at boot time
 
