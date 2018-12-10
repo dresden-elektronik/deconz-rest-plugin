@@ -13313,6 +13313,11 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         {
             ret = d->getBasicConfig(req, rsp);
         }
+        // PUT /api/<apikey>/config/wifi/updated
+        else if ((req.path.size() == 5) && (req.hdr.method() == QLatin1String("PUT")) && (req.path[2] == QLatin1String("config")) && (req.path[3] == QLatin1String("wifi")) && (req.path[4] == QLatin1String("updated")))
+        {
+            return d->putWifiUpdated(req, rsp);
+        }
         else if ((req.path.size() >= 2) && !(d->checkApikeyAuthentification(req, rsp)))
         {
             // GET /api/<nouser>/config
