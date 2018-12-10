@@ -512,11 +512,6 @@ int DeRestPluginPrivate::handleConfigurationApi(const ApiRequest &req, ApiRespon
     {
         return restoreWifiConfig(req, rsp);
     }
-    // PUT /api/<apikey>/config/wifi/scanresult
-    else if ((req.path.size() == 5) && (req.hdr.method() == "PUT") && (req.path[2] == "config") && (req.path[3] == "wifi") && (req.path[4] == "scanresult"))
-    {
-        return putWifiScanResult(req, rsp);
-    }
     // PUT /api/<apikey>/config/homebridge/reset
     else if ((req.path.size() == 5) && (req.hdr.method() == "PUT") && (req.path[2] == "config") && (req.path[3] == "homebridge") && (req.path[4] == "reset"))
     {
