@@ -406,6 +406,33 @@ void PollManager::pollTimerFired()
         }
     }
 
+    // check that cluster exists on endpoint
+    {
+        bool found = false;
+        deCONZ::SimpleDescriptor sd;
+        if (restNode->node()->copySimpleDescriptor(pitem.endpoint, &sd) == 0)
+        {
+            for (const auto &cl : sd.inClusters())
+            {
+                if (cl.id() == clusterId)
+                {
+                    found = true;
+                    break;
+                }
+            }
+        }
+
+        if (!found)
+        {
+            if (clusterId != 0xffff)
+            {
+                DBG_Printf(DBG_INFO, "Poll APS request to 0x%016llX cluster: 0x%04X dropped, cluster doesn't exist\n", pitem.address.ext(), clusterId);
+                clusterId = 0xffff;
+            }
+            suffix = nullptr;
+        }
+    }
+
     if (clusterId != 0xffff && fresh > 0 && fresh == attributes.size())
     {
         DBG_Printf(DBG_INFO, "Poll APS request to 0x%016llX cluster: 0x%04X dropped, values are fresh enough\n", pitem.address.ext(), clusterId);
@@ -439,5 +466,4 @@ void PollManager::pollTimerFired()
         items.front() = items.back();
         items.pop_back();
     }
-
 }
