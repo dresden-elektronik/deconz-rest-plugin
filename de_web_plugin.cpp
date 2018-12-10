@@ -5268,7 +5268,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             else if (ia->id() == 0x0006) // Date code as fallback for sw build id
                             {
                                 QString str = ia->toString().simplified();
-                                if (!i->swVersion().isEmpty())
+                                if (!i->swVersion().isEmpty() && !i->modelId().startsWith(QLatin1String("lumi.")))
                                 {
                                     // check
                                 }
@@ -7994,6 +7994,8 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
     DBG_Printf(DBG_INFO, "0x%016llX extract Xiaomi special\n", ind.srcAddress().ext());
 
+    QString dateCode;
+
     while (!stream.atEnd())
     {
         qint8 s8;
@@ -8256,6 +8258,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         saveDatabaseItems |= DB_LIGHTS;
     }
 
+    Sensor *sensorPending = nullptr;
     for (Sensor &sensor : sensors)
     {
         if (!sensor.modelId().startsWith(QLatin1String("lumi.")))
@@ -8275,6 +8278,8 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
 
         sensor.rx();
+        sensorPending = &sensor; // remember one sensor for pending tasks
+
         {
             ResourceItem *item = sensor.item(RConfigReachable);
             if (item && !item->toBool())
@@ -8376,12 +8381,24 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             }
         }
 
+        ResourceItem *item = sensor.item(RAttrSwVersion);
+        if (item && dateCode.isEmpty() && !item->toString().isEmpty() && !item->toString().startsWith("3000"))
+        {
+            dateCode = item->toString();
+        }
+
         if (updated)
         {
             updateSensorEtag(&sensor);
             sensor.setNeedSaveDatabase(true);
             saveDatabaseItems |= DB_SENSORS;
         }
+    }
+
+    if (dateCode.isEmpty() && sensorPending)
+    {
+        // read datecode, will be applied to all sensors of this device
+        readAttributes(sensorPending, ind.srcEndpoint(), BASIC_CLUSTER_ID, { 0x0006 });
     }
 }
 
