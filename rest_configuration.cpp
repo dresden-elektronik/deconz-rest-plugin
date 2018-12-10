@@ -2447,29 +2447,6 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
         status = map["status"].toString();
     }
 
-//test start (delete later)
-    if (map.contains("workingname"))
-    {
-        gwWifiWorkingName =  map["workingname"].toString();
-    }
-    if (map.contains("workingtype"))
-    {
-        gwWifiWorkingType =  map["workingtype"].toString();
-    }
-    if (map.contains("name"))
-    {
-        gwWifiName =  map["name"].toString();
-    }
-    if (map.contains("type"))
-    {
-        gwWifiType =  map["type"].toString();
-    }
-    if (map.contains("ip"))
-    {
-        gwWifiIp =  map["ip"].toString();
-    }
-//test end
-
     if (status == QLatin1String("current-config") && map.contains("mgmt"))
     {
         quint32 mgmt = map["mgmt"].toUInt();
@@ -2485,6 +2462,8 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
             else
             {
                 gwWifiActive = QLatin1String("inactive");
+                gwWifiWorkingName = QString();
+                gwWifiWorkingType = QString();
             }
 
             updateEtag(gwConfigEtag);
@@ -2510,13 +2489,15 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
                 if (gwWifiMgmt & WIFI_MGMT_ACTIVE)
                 {
                     gwWifiActive = QLatin1String("active");
+                    gwWifiWorkingName = ssid;
+                    gwWifiWorkingType = type;
                 }
                 else
                 {
                     gwWifiActive = QLatin1String("inactive");
+                    gwWifiWorkingName = QString();
+                    gwWifiWorkingType = QString();
                 }
-                gwWifiWorkingName = ssid;
-                gwWifiWorkingType = type;
             }
 
             if (type == QLatin1String("client") && !ssid.isEmpty())
@@ -2529,14 +2510,16 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
                 if (gwWifiMgmt & WIFI_MGMT_ACTIVE)
                 {
                     gwWifiActive = QLatin1String("active");
+                    gwWifiWorkingName = ssid;
+                    gwWifiWorkingType = type;
                 }
                 else
                 {
                     gwWifiActive = QLatin1String("inactive");
+                    gwWifiWorkingName = QString();
+                    gwWifiWorkingType = QString();
                 }
-                gwWifiWorkingName = ssid;
                 gwWifiClientName = ssid;
-                gwWifiWorkingType = type;
             }
 
             updateEtag(gwConfigEtag);
@@ -2640,12 +2623,6 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
         bool changed = false;
         gwWifiStateString = QLatin1String("ap-configured");
 
-        //if (gwWifi != QLatin1String("configured"))
-        //{
-        //    gwWifi = QLatin1String("configured");
-        //    changed = true;
-        //}
-
         if (gwWifiWorkingType != QLatin1String("accesspoint"))
         {
             gwWifiWorkingType = QLatin1String("accesspoint");
@@ -2669,12 +2646,6 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
     {
         bool changed = false;
         gwWifiStateString = QLatin1String("client-configured");
-
-        //if (gwWifi != QLatin1String("configured"))
-        //{
-        //    gwWifi = QLatin1String("configured");
-        //    changed = true;
-        //}
 
         if (gwWifiWorkingType != QLatin1String("client"))
         {
@@ -2709,6 +2680,10 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
             gwWifiActive = QLatin1String("inactive");
         }
 
+        gwWifiWorkingName = QString();
+        gwWifiWorkingPw = QString();
+        gwWifiWorkingType = QString();
+
         updateEtag(gwConfigEtag);
     }
     else if (status == QLatin1String("client-connect-fail") && gwWifiStateString != QLatin1String("client-connect-fail"))
@@ -2724,6 +2699,10 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
         {
             gwWifiActive = QLatin1String("inactive");
         }
+
+        gwWifiWorkingName = QString();
+        gwWifiWorkingPw = QString();
+        gwWifiWorkingType = QString();
 
         updateEtag(gwConfigEtag);
     }
@@ -2773,6 +2752,10 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
         {
             gwWifiActive = QLatin1String("inactive");
         }
+
+        gwWifiWorkingName = QString();
+        gwWifiWorkingPw = QString();
+        gwWifiWorkingType = QString();
 
         updateEtag(gwConfigEtag);
     }
