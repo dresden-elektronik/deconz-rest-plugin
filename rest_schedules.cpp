@@ -1207,51 +1207,11 @@ void DeRestPluginPrivate::scheduleTimerFired()
             QHttpRequestHeader hdr(method, address);
             QStringList path = hdr.path().split('/', QString::SkipEmptyParts);
 
-            ApiRequest req(hdr, path, NULL, content);
+            ApiRequest req(hdr, path, nullptr, content);
             ApiResponse rsp; // dummy
 
             DBG_Printf(DBG_INFO, "schedule %s body: %s\n",  qPrintable(i->id), qPrintable(content));
 
-#if 0 // TODO don't do magic: following function should be achived by a second schedule running prior to this one
-            // fading not visible when turning lights on and light level was already bright
-            if (content.indexOf("on\":true") != -1 && content.indexOf("transitiontime\":0") == -1)
-            {
-                QString id = path[3];
-                bool stateOn = true;
-                if (path[2] == QLatin1String("groups"))
-                {
-                    Group *group = getGroupForId(id);
-                    stateOn = group->isOn();
-                }
-                else if (path[2] == QLatin1String("lights"))
-                {
-                    LightNode *lightNode = getLightNodeForId(id);
-                    ResourceItem *item = lightNode ? lightNode->item(RStateOn) : 0;
-                    if (item)
-                    {
-                        stateOn = item->toBool();
-                    }
-                }
-                if (!stateOn)
-                {
-                    // activate lights with low brightness then activate schedule with fading
-                    // only if lights were off
-                    QVariantMap body;
-                    body["on"] = true;
-                    body["bri"] = (double)2;
-                    body["transitiontime"] = (double)0;
-                    QString content2 = deCONZ::jsonStringFromMap(body);
-
-                    ApiRequest req2(hdr, path, NULL, content2);
-                    ApiResponse rsp2; // dummy
-
-                    if (handleLightsApi(req2, rsp2) == REQ_NOT_HANDLED)
-                    {
-                        handleGroupsApi(req2, rsp2);
-                    }
-                }
-            }
-#endif
             if (handleLightsApi(req, rsp) == REQ_NOT_HANDLED)
             {
                 if (handleGroupsApi(req, rsp) == REQ_NOT_HANDLED)
