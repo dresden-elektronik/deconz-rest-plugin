@@ -165,7 +165,11 @@
 			</attribute>
 		</attribute-set>
 		<attribute-set id="0x0030" description="Philips Specific" mfcode="0x100b">
-			<attribute id="0x0030" name="Sensitivity" description="Hue motion sensor related SML001" type="u8" default="0" access="rw" required="o" mfcode="0x100b"></attribute>
+			<attribute id="0x0030" name="Sensitivity" description="Hue motion sensor related SML001" type="enum8" default="0" access="rw" required="o" mfcode="0x100b">
+				<value name="default" value="0"></value>
+				<value name="high" value="1"></value>
+				<value name="max" value="2"></value>
+			</attribute>
 			<attribute id="0x0031" name="Configuration" type="bmp16" default="0" access="rw" required="o" mfcode="0x100b" description="TODO flags are only known for hue dimmer switch">
 				<value name="Touchlink enabled 0" value="0"></value>
 				<value name="Touchlink enabled 1" value="1"></value>
