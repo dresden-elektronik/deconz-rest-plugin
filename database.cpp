@@ -3098,6 +3098,14 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             sensor.jsonToConfig(QLatin1String(colval[configCol]));
         }
 
+        {
+            ResourceItem *item = sensor.item(RStatePresence);
+            if (item && item->toBool())
+            {
+                item->setValue(false); // reset at startup
+            }
+        }
+
         // check for older setups with multiple ZHASwitch sensors per device
         if (sensor.manufacturer() == QLatin1String("ubisys") && sensor.type() == QLatin1String("ZHASwitch"))
         {
