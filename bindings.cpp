@@ -788,7 +788,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         return false;
     }
 
-    QDateTime now = QDateTime::currentDateTime();
+    const QDateTime now = QDateTime::currentDateTime();
     ConfigureReportingRequest rq;
 
     rq.zclSeqNum = zclSeq++; // to match in configure reporting response handler
@@ -813,23 +813,37 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.minInterval = val.minInterval;
         rq.maxInterval = val.maxInterval;
 
+        int processed = 0;
         if (sendConfigureReportingRequest(bt, {rq}))
         {
-            Sensor *sensor = static_cast<Sensor *>(bt.restNode);
-            if (sensor && sensor->modelId() == QLatin1String("SML001")) // Hue motion sensor
-            {
-                rq = ConfigureReportingRequest();
-                rq.dataType = deCONZ::Zcl8BitUint;
-                rq.attributeId = 0x0030;      // sensitivity
-                rq.minInterval = 5;           // value used by Hue bridge
-                rq.maxInterval = 7200;        // value used by Hue bridge
-                rq.reportableChange8bit = 1;  // value used by Hue bridge
-                rq.manufacturerCode = VENDOR_PHILIPS;
-                return sendConfigureReportingRequest(bt, {rq});
-            }
-            return true;
+            processed++;
         }
-        return false;
+
+        const Sensor *sensor = static_cast<Sensor *>(bt.restNode);
+        if (sensor && sensor->modelId() == QLatin1String("SML001")) // Hue motion sensor
+        {
+            if (bt.restNode->getZclValue(bt.binding.clusterId, 0x0030).clusterId != bt.binding.clusterId)
+            {
+                bt.restNode->setZclValue(NodeValue::UpdateInvalid, bt.binding.clusterId, 0x0030, dummy);
+            }
+            ConfigureReportingRequest rq2;
+            NodeValue &val2 = bt.restNode->getZclValue(bt.binding.clusterId, 0x0030);
+            rq2.dataType = deCONZ::Zcl8BitUint;
+            rq2.attributeId = 0x0030;     // sensitivity
+            val2.minInterval = 5;         // value used by Hue bridge
+            val2.maxInterval = 7200;      // value used by Hue bridge
+            rq2.minInterval = val2.minInterval;
+            rq2.maxInterval = val2.maxInterval;
+            rq2.reportableChange8bit = 1;  // value used by Hue bridge
+            rq2.manufacturerCode = VENDOR_PHILIPS;
+
+            if (sendConfigureReportingRequest(bt, {rq2}))
+            {
+                processed++;
+            }
+        }
+
+        return processed > 0;
     }
     else if (bt.binding.clusterId == ILLUMINANCE_MEASUREMENT_CLUSTER_ID)
     {
@@ -1505,14 +1519,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         }
         else if (*i == OCCUPANCY_SENSING_CLUSTER_ID)
         {
-            if (sensor->modelId() == QLatin1String("SML001")) // Hue motion sensor
-            {
-                val = sensor->getZclValue(*i, 0x0030); // sensitivity
-            }
-            else
-            {
-                val = sensor->getZclValue(*i, 0x0000); // occupied state
-            }
+            val = sensor->getZclValue(*i, 0x0000); // occupied state
         }
         else if (*i == POWER_CONFIGURATION_CLUSTER_ID)
         {
