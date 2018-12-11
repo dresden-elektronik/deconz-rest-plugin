@@ -8177,6 +8177,8 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
     }
 
+    RestNodeBase *restNodePending = nullptr;
+
     for (LightNode &lightNode: nodes)
     {
         if      (ind.srcAddress().hasExt() && lightNode.address().hasExt() &&
@@ -8258,7 +8260,6 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         saveDatabaseItems |= DB_LIGHTS;
     }
 
-    Sensor *sensorPending = nullptr;
     for (Sensor &sensor : sensors)
     {
         if (!sensor.modelId().startsWith(QLatin1String("lumi.")))
@@ -8278,7 +8279,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
 
         sensor.rx();
-        sensorPending = &sensor; // remember one sensor for pending tasks
+        restNodePending = &sensor; // remember one sensor for pending tasks
 
         {
             ResourceItem *item = sensor.item(RConfigReachable);
@@ -8395,10 +8396,10 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
     }
 
-    if (dateCode.isEmpty() && sensorPending)
+    if (dateCode.isEmpty() && restNodePending)
     {
         // read datecode, will be applied to all sensors of this device
-        readAttributes(sensorPending, ind.srcEndpoint(), BASIC_CLUSTER_ID, { 0x0006 });
+        readAttributes(restNodePending, ind.srcEndpoint(), BASIC_CLUSTER_ID, { 0x0006 });
     }
 }
 

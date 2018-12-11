@@ -617,6 +617,7 @@ Sensor::Sensor() :
     addItem(DataTypeString, RAttrName);
     addItem(DataTypeString, RAttrModelId);
     addItem(DataTypeString, RAttrType);
+    addItem(DataTypeString, RAttrSwVersion);
     addItem(DataTypeBool, RConfigOn);
     addItem(DataTypeBool, RConfigReachable);
     addItem(DataTypeTime, RStateLastUpdated);
@@ -787,7 +788,7 @@ void Sensor::setManufacturer(const QString &manufacturer)
  */
 const QString &Sensor::swVersion() const
 {
-        return m_swversion;
+    return item(RAttrSwVersion)->toString();
 }
 
 /*! Sets the sensor software version.
@@ -795,7 +796,7 @@ const QString &Sensor::swVersion() const
  */
 void Sensor::setSwVersion(const QString &swversion)
 {
-    m_swversion = swversion;
+    item(RAttrSwVersion)->setValue(swversion.trimmed());
 }
 
 /*! Transfers state into JSONString.
