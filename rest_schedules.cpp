@@ -1209,6 +1209,7 @@ void DeRestPluginPrivate::scheduleTimerFired()
 
             ApiRequest req(hdr, path, nullptr, content);
             ApiResponse rsp; // dummy
+            rsp.httpStatus = HttpStatusOk;
 
             DBG_Printf(DBG_INFO, "schedule %s body: %s\n",  qPrintable(i->id), qPrintable(content));
 
@@ -1221,6 +1222,12 @@ void DeRestPluginPrivate::scheduleTimerFired()
                         DBG_Printf(DBG_INFO, "schedule was neither light nor group nor sensor request.\n");
                     }
                 }
+            }
+
+            if (rsp.httpStatus != HttpStatusOk && DBG_IsEnabled(DBG_INFO) && rsp.list.size() > 0)
+            {
+                QString err = Json::serialize(rsp.list);
+                DBG_Printf(DBG_INFO, "schedule failed: %s %s\n", rsp.httpStatus, qPrintable(err));
             }
 
             return;
