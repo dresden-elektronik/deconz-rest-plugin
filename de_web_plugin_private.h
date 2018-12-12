@@ -267,6 +267,7 @@
 #define VENDOR_120B         0x120B // Used by Heiman
 #define VENDOR_XAL          0x122A
 #define VENDOR_OSRAM_STACK  0xBBAA
+#define VENDOR_SAMJIN       0x1241
 
 #define ANNOUNCE_INTERVAL 10 // minutes default announce interval
 
