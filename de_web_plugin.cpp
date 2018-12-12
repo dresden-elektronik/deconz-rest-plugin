@@ -82,6 +82,7 @@ const quint64 osramMacPrefix      = 0x8418260000000000ULL;
 const quint64 bjeMacPrefix        = 0xd85def0000000000ULL;
 const quint64 xalMacPrefix        = 0xf8f0050000000000ULL;
 const quint64 lutronMacPrefix     = 0xffff000000000000ULL;
+const quint64 samjinMacPrefix     = 0xffff000000000000ULL;
 
 struct SupportedDevice {
     quint16 vendorId;
@@ -170,6 +171,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "ZYCT-202", jennicMacPrefix }, // Trust remote control ZYCT-202
     { VENDOR_INNR, "RC 110", jennicMacPrefix }, // innr remote RC 110
     { VENDOR_VISONIC, "MCT-340", emberMacPrefix }, // Visonic MCT-340 E temperature/motion
+    { VENDOR_SAMJIN, "button", samjinMacPrefix }, // Samsung SmartThings Button
+    { VENDOR_SAMJIN, "water", samjinMacPrefix }, // Samsung Leak Sensor
     { 0, nullptr, 0 }
 };
 
