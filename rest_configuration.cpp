@@ -31,6 +31,7 @@
 #ifdef ARCH_ARM
   #include <sys/reboot.h>
   #include <sys/time.h>
+  #include <signal.h>
 #endif
 #endif // Q_OS_LINUX
 
@@ -2345,6 +2346,10 @@ int DeRestPluginPrivate::configureWifi(const ApiRequest &req, ApiResponse &rsp)
     updateEtag(gwConfigEtag);
     queSaveDb(DB_CONFIG | DB_SYNC, DB_SHORT_SAVE_DELAY);
 
+#ifdef ARCH_ARM
+    kill(gwWifiPID, SIGUSR1);
+#endif
+
     QVariantMap rspItem;
     QVariantMap rspItemState;
     rspItemState["/config/wifi/"] = gwWifi;
@@ -2411,6 +2416,12 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
     {
         rsp.list.append(errorToMap(ERR_UNAUTHORIZED_USER, "/" + req.path.join("/"), "unauthorized user"));
         return REQ_READY_SEND;
+    }
+
+    int pid = req.path[1].toInt();
+    if (gwWifiPID != pid)
+    {
+        gwWifiPID = pid;
     }
 
     rsp.httpStatus = HttpStatusOk;
