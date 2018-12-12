@@ -28,6 +28,11 @@
  */
 int DeRestPluginPrivate::handleGatewaysApi(const ApiRequest &req, ApiResponse &rsp)
 {
+    if (req.path[2] != QLatin1String("gateways"))
+    {
+        return REQ_NOT_HANDLED;
+    }
+
     // GET /api/<apikey>/gateways
     if ((req.path.size() == 3) && (req.hdr.method() == QLatin1String("GET")))
     {

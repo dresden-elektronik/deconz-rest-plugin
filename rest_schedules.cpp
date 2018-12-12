@@ -35,6 +35,11 @@ void DeRestPluginPrivate::initSchedules()
  */
 int DeRestPluginPrivate::handleSchedulesApi(ApiRequest &req, ApiResponse &rsp)
 {
+    if (req.path[2] != "schedules")
+    {
+        return REQ_NOT_HANDLED;
+    }
+
     // GET /api/<apikey>/schedules
     if ((req.path.size() == 3) && (req.hdr.method() == "GET"))
     {

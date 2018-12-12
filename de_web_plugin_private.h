@@ -286,7 +286,6 @@
 
 // REST API return codes
 #define REQ_READY_SEND   0
-#define REQ_DONE         2
 #define REQ_NOT_HANDLED -1
 
 // Special application return codes
