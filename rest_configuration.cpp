@@ -2203,6 +2203,16 @@ int DeRestPluginPrivate::getWifiState(const ApiRequest &req, ApiResponse &rsp)
 {
     Q_UNUSED(req);
 
+    QHostAddress localHost(QHostAddress::LocalHost);
+    if (req.sock->peerAddress() == localHost || checkApikeyAuthentification(req, rsp))
+    {
+        // continue
+    }
+    else
+    {
+        return REQ_READY_SEND;
+    }
+
     rsp.map["wifi"] = gwWifi;
     rsp.map["wifitype"] = gwWifiType;
     rsp.map["wifiname"] = gwWifiName;
