@@ -13341,6 +13341,11 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         {
             ret = d->putWifiScanResult(req, rsp);
         }
+        // DELETE /api/config/password
+        else if ((req.path.size() == 3) && (req.hdr.method() == QLatin1String("DELETE")) && (req.path[1] == QLatin1String("config")) && (req.path[2] == QLatin1String("password")))
+        {
+            ret = d->deletePassword(req, rsp);
+        }
         else if ((req.path.size() >= 2) && !(d->checkApikeyAuthentification(req, rsp)))
         {
             // GET /api/<nouser>/config

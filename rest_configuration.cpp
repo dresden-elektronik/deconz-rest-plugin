@@ -578,11 +578,6 @@ int DeRestPluginPrivate::handleConfigurationApi(const ApiRequest &req, ApiRespon
     {
         return changePassword(req, rsp);
     }
-    // DELETE /api/config/password
-    else if ((req.path.size() == 3) && (req.hdr.method() == "DELETE") && (req.path[1] == "config") && (req.path[2] == "password"))
-    {
-        return deletePassword(req, rsp);
-    }
 
     return REQ_NOT_HANDLED;
 }
