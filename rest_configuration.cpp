@@ -2352,7 +2352,7 @@ int DeRestPluginPrivate::configureWifi(const ApiRequest &req, ApiResponse &rsp)
     queSaveDb(DB_CONFIG | DB_SYNC, DB_SHORT_SAVE_DELAY);
 
 #ifdef ARCH_ARM
-    kill(gwWifiPID, SIGUSR1);
+    //kill(gwWifiPID, SIGUSR1);
 #endif
 
     QVariantMap rspItem;
@@ -2423,7 +2423,7 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    int pid = req.path[1].toInt();
+    pid_t pid = req.path[1].toInt();
     if (gwWifiPID != pid)
     {
         gwWifiPID = pid;
