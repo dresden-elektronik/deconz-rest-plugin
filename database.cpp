@@ -3112,6 +3112,15 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 //item->setValue(100); // wait for report
             }
 
+            if (sensor.modelId() == QLatin1String("lumi.vibration.aq1"))
+            {
+                // low: 0x15, medium: 0x0B, high: 0x01
+                item = sensor.addItem(DataTypeUInt8, RConfigSensitivity);
+                item = sensor.addItem(DataTypeUInt8, RConfigSensitivityMax);
+                item->setValue(0x15); // low
+                item = sensor.addItem(DataTypeUInt8, RConfigPending);
+            }
+
             if (!sensor.item(RStateTemperature) &&
                 !sensor.modelId().contains(QLatin1String("weather")) &&
                 !sensor.modelId().startsWith(QLatin1String("lumi.sensor_ht")))

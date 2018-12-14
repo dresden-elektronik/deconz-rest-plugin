@@ -5138,6 +5138,13 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                     {
                         for (;ia != enda; ++ia)
                         {
+                            if (std::find(event.attributeIds().begin(),
+                                          event.attributeIds().end(),
+                                          ia->id()) == event.attributeIds().end())
+                            {
+                                continue;
+                            }
+
                             if (ia->id() == 0x0000) // onoff
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
@@ -5211,8 +5218,16 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                     else if (event.clusterId() == BASIC_CLUSTER_ID)
                     {
                         DBG_Printf(DBG_INFO_L2, "Update Sensor 0x%016llX Basic Cluster\n", event.node()->address().ext());
+
                         for (;ia != enda; ++ia)
                         {
+                            if (std::find(event.attributeIds().begin(),
+                                          event.attributeIds().end(),
+                                          ia->id()) == event.attributeIds().end())
+                            {
+                                continue;
+                            }
+
                             if (ia->id() == 0x0005) // Model identifier
                             {
                                 if (i->mustRead(READ_MODEL_ID))
@@ -5335,6 +5350,46 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     item->setValue(ledindication);
                                     i->setNeedSaveDatabase(true);
                                     Event e(RSensors, RConfigLedIndication, i->id(), item);
+                                    enqueueEvent(e);
+                                }
+
+                                updateSensorEtag(&*i);
+                            }
+                            else if (ia->id() == 0xff0d && i->modelId() == QLatin1String("lumi.vibration.aq1")) // sensitivity
+                            {
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                }
+
+                                const quint8 sensitivity = ia->numericValue().u8;
+                                ResourceItem *item = i->item(RConfigSensitivity);
+
+                                if (item && item->toNumber() != sensitivity)
+                                {
+                                    if (!item->lastSet().isValid())
+                                    {
+                                        item->setValue(sensitivity);
+                                    }
+                                    else
+                                    {
+                                        // values differs
+                                        quint8 pending = R_PENDING_SENSITIVITY;
+                                        ResourceItem *item2 = i->item(RConfigPending);
+                                        DBG_Assert(item2);
+                                        if (item2)
+                                        {
+                                            if (item2->lastSet().isValid())
+                                            {
+                                                pending |= item2->toNumber();
+                                            }
+
+                                            item2->setValue(pending);
+                                        }
+                                    }
+
+                                    i->setNeedSaveDatabase(true);
+                                    Event e(RSensors, RConfigSensitivity, i->id(), item);
                                     enqueueEvent(e);
                                 }
 
@@ -6521,7 +6576,25 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         }
     }
 
-    if (sensorNode->node() && sensorNode->node()->simpleDescriptors().isEmpty())
+    if (!sensorNode->node())
+    {
+        return false;
+    }
+
+    const deCONZ::NodeDescriptor &nd = sensorNode->node()->nodeDescriptor();
+
+    if (nd.isNull())
+    {
+        return false;
+    }
+
+    if (!nd.receiverOnWhenIdle() && (nd.manufacturerCode() == VENDOR_115F || sensorNode->modelId().startsWith(QLatin1String("lumi."))))
+    {
+        // don't talk to sleeping Xiaomi devices here
+        return false;
+    }
+
+    if (sensorNode->node()->simpleDescriptors().isEmpty())
     {
         return false;
     }
@@ -8393,6 +8466,47 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             updateSensorEtag(&sensor);
             sensor.setNeedSaveDatabase(true);
             saveDatabaseItems |= DB_SENSORS;
+        }
+    }
+
+    if  (!restNodePending)
+    {
+        return;
+    }
+
+    Resource *r = dynamic_cast<Resource*>(restNodePending);
+    DBG_Assert(r != nullptr);
+    if (!r)
+    {
+        return;
+    }
+
+    ResourceItem *item = r->item(RAttrModelId);
+    if (item && item->toString() == QLatin1String("lumi.vibration.aq1"))
+    {
+        item = r->item(RConfigSensitivity);
+        ResourceItem *item2 = r->item(RConfigPending);
+        DBG_Assert(item2);
+        DBG_Assert(item);
+        if (!item->lastSet().isValid() || item2->toNumber() == 0)
+        {
+            if (readAttributes(restNodePending, ind.srcEndpoint(), BASIC_CLUSTER_ID, { 0xff0d }, VENDOR_115F))
+            {
+                return;
+            }
+        }
+        else
+        {
+            if (item2 && item2->toNumber() & R_PENDING_SENSITIVITY)
+            {
+                deCONZ::ZclAttribute attr(0xff0d, deCONZ::Zcl8BitUint, "sensitivity", deCONZ::ZclReadWrite, true);
+                attr.setValue(static_cast<quint64>(item->toNumber()));
+                if (writeAttribute(restNodePending, ind.srcEndpoint(), BASIC_CLUSTER_ID, attr, VENDOR_115F))
+                {
+                    item2->setValue(item2->toNumber() & ~R_PENDING_SENSITIVITY);
+                    return;
+                }
+            }
         }
     }
 
