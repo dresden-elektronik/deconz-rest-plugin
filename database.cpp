@@ -448,14 +448,69 @@ void DeRestPluginPrivate::pushZdpDescriptorDb(quint64 extAddress, quint8 endpoin
     strncpy(mac, qPrintable(uniqueid), uniqueid.size());
     mac[23] = '\0';
 
-    const char * sql = "UPDATE device_descriptors SET data = ?1, timestamp = ?2"
-                       " WHERE device_id = (SELECT id FROM devices WHERE mac = ?3)"
-                       " AND endpoint = ?4"
-                       " AND type = ?5";
-
-    // 1) if exist, try to update existing entry
+    // 0) check if exists
     int rc;
     sqlite3_stmt *res = nullptr;
+    const char * sql = "SELECT COUNT(*) FROM device_descriptors"
+                       " WHERE device_id = (SELECT id FROM devices WHERE mac = ?1)"
+                       " AND endpoint = ?2"
+                       " AND type = ?3"
+                       " AND data = ?4";
+
+    rc = sqlite3_prepare_v2(db, sql, -1, &res, nullptr);
+    DBG_Assert(res);
+    DBG_Assert(rc == SQLITE_OK);
+
+    if (rc == SQLITE_OK)
+    {
+        rc = sqlite3_bind_text(res, 1, mac, -1, SQLITE_STATIC);
+        DBG_Assert(rc == SQLITE_OK);
+    }
+
+    if (rc == SQLITE_OK)
+    {
+        rc = sqlite3_bind_int(res, 2, endpoint);
+        DBG_Assert(rc == SQLITE_OK);
+    }
+
+    if (rc == SQLITE_OK)
+    {
+        rc = sqlite3_bind_int(res, 3, type);
+        DBG_Assert(rc == SQLITE_OK);
+    }
+
+    if (rc == SQLITE_OK)
+    {
+        rc = sqlite3_bind_blob(res, 4, data.constData(), data.size(), SQLITE_STATIC);
+        DBG_Assert(rc == SQLITE_OK);
+    }
+
+    int rows = -1;
+    if (rc == SQLITE_OK)
+    {
+        rc = sqlite3_step(res);
+        DBG_Assert(rc == SQLITE_ROW);
+        if (rc == SQLITE_ROW)
+        {
+            rows = sqlite3_column_int(res, 0);
+        }
+    }
+
+    rc = sqlite3_finalize(res);
+    DBG_Assert(rc == SQLITE_OK);
+
+    if (rows != 0) // error or already existing
+    {
+        return;
+    }
+
+    // 1) if exist, try to update existing entry
+
+    sql = "UPDATE device_descriptors SET data = ?1, timestamp = ?2"
+          " WHERE device_id = (SELECT id FROM devices WHERE mac = ?3)"
+          " AND endpoint = ?4"
+          " AND type = ?5";
+
 
     rc = sqlite3_prepare_v2(db, sql, -1, &res, nullptr);
     DBG_Assert(res);
@@ -517,8 +572,15 @@ void DeRestPluginPrivate::pushZdpDescriptorDb(quint64 extAddress, quint8 endpoin
     {
         changes = sqlite3_changes(db);
     }
+    DBG_Assert(rc == SQLITE_DONE);
+
     rc = sqlite3_finalize(res);
     DBG_Assert(rc == SQLITE_OK);
+
+    if (rc != SQLITE_OK)
+    {
+        return;
+    }
 
     if (changes == 1)
     {
