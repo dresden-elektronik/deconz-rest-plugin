@@ -1273,7 +1273,7 @@ public:
     QString gwWifiPw;
     QString gwWifiBackupPw;
     QString gwWifiClientPw;
-    int gwWifiPID;
+    pid_t gwWifiPID;
     QString gwProxyAddress;
     quint16 gwProxyPort;
     QString gwTimezone;

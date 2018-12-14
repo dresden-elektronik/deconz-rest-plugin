@@ -13331,12 +13331,12 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         {
             ret = d->getBasicConfig(req, rsp);
         }
-        // PUT /api/<apikey>/config/wifi/updated
+        // PUT /api/<nouser>/config/wifi/updated
         else if ((req.path.size() == 5) && (req.hdr.method() == QLatin1String("PUT")) && (req.path[2] == QLatin1String("config")) && (req.path[3] == QLatin1String("wifi")) && (req.path[4] == QLatin1String("updated")))
         {
             ret = d->putWifiUpdated(req, rsp);
         }
-        // PUT /api/<apikey>/config/wifi/scanresult
+        // PUT /api/<nouser>/config/wifi/scanresult
         else if ((req.path.size() == 5) && (req.hdr.method() == QLatin1String("PUT")) && (req.path[2] == QLatin1String("config")) && (req.path[3] == QLatin1String("wifi")) && (req.path[4] == QLatin1String("scanresult")))
         {
             ret = d->putWifiScanResult(req, rsp);
@@ -13345,6 +13345,11 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         else if ((req.path.size() == 3) && (req.hdr.method() == QLatin1String("DELETE")) && (req.path[1] == QLatin1String("config")) && (req.path[2] == QLatin1String("password")))
         {
             ret = d->deletePassword(req, rsp);
+        }
+        // GET api/<apikey>/config/wifi
+        else if ((req.path.size() == 4) && (req.hdr.method() == "GET") && (req.path[2] == "config") && (req.path[3] == "wifi"))
+        {
+            ret = d->getWifiState(req, rsp);
         }
         else if ((req.path.size() >= 2) && !(d->checkApikeyAuthentification(req, rsp)))
         {
