@@ -123,15 +123,19 @@ void DeRestPluginPrivate::cleanUpDb()
         "DELETE from sensors "
         "   WHERE modelid like 'RWL02%' "
         "   AND type = 'ZHAPresence'",
-        NULL
+
+        // delete duplicates in device_descriptors
+        "DELETE FROM device_descriptors WHERE rowid NOT IN"
+        " (SELECT max(rowid) FROM device_descriptors GROUP BY device_id,type,endpoint)",
+        nullptr
     };
 
-    for (int i = 0; sql[i] != NULL; i++)
+    for (int i = 0; sql[i] != nullptr; i++)
     {
-        errmsg = NULL;
+        errmsg = nullptr;
 
         /* Execute SQL statement */
-        rc = sqlite3_exec(db, sql[i], NULL, NULL, &errmsg);
+        rc = sqlite3_exec(db, sql[i], nullptr, nullptr, &errmsg);
 
         if (rc != SQLITE_OK)
         {
