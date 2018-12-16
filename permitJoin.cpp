@@ -58,7 +58,7 @@ bool DeRestPluginPrivate::setPermitJoinDuration(uint8_t duration)
 void DeRestPluginPrivate::permitJoinTimerFired()
 {
     Q_Q(DeRestPlugin);
-    if (!q->pluginActive())
+    if (!q->pluginActive() || !apsCtrl)
     {
         return;
     }
