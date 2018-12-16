@@ -4170,6 +4170,16 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             sensorNode.addItem(DataTypeInt16, RConfigTemperature);
             //sensorNode.addItem(DataTypeInt16, RConfigOffset);
         }
+
+        if (sensorNode.modelId() == QLatin1String("lumi.vibration.aq1"))
+        {
+            // low: 0x15, medium: 0x0B, high: 0x01
+            ResourceItem *item = nullptr;
+            item = sensorNode.addItem(DataTypeUInt8, RConfigSensitivity);
+            item = sensorNode.addItem(DataTypeUInt8, RConfigSensitivityMax);
+            item->setValue(0x15); // low
+            item = sensorNode.addItem(DataTypeUInt8, RConfigPending);
+        }
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER ||
              node->nodeDescriptor().manufacturerCode() == VENDOR_120B)
