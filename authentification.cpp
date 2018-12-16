@@ -22,7 +22,6 @@
 #define AUTH_KEEP_ALIVE 60
 
 ApiAuth::ApiAuth() :
-    strict(false),
     needSaveDatabase(false),
     state(StateNormal)
 {
@@ -33,11 +32,6 @@ ApiAuth::ApiAuth() :
  */
 void ApiAuth::setDeviceType(const QString &devtype)
 {
-    if (devtype.startsWith(QLatin1String("Echo")) ||
-        devtype.startsWith(QLatin1String("iConnectHue")))
-    {
-        strict = true;
-    }
     devicetype = devtype;
 }
 
@@ -135,8 +129,10 @@ bool DeRestPluginPrivate::allowedToCreateApikey(const ApiRequest &req, ApiRespon
     \retval true if authenticated
     \retval false if not authenticated and the rsp http status is set to 403 Forbidden and JSON error is appended
  */
-bool DeRestPluginPrivate::checkApikeyAuthentification(const ApiRequest &req, ApiResponse &rsp)
+bool DeRestPluginPrivate::checkAuthentification(ApiRequest &req, ApiResponse &rsp)
 {
+    Q_UNUSED(rsp);
+
     QString apikey = req.apikey();
     apiAuthCurrent = apiAuths.size();
 
@@ -182,6 +178,21 @@ bool DeRestPluginPrivate::checkApikeyAuthentification(const ApiRequest &req, Api
                 }
             }
 
+            if ((!(i->useragent.isEmpty()) && i->useragent.startsWith(QLatin1String("iConnect"))) || i->devicetype.startsWith(QLatin1String("iConnectHue")))
+            {
+                req.mode = ApiModeStrict;
+            }
+            else if (i->devicetype.startsWith(QLatin1String("Echo")))
+            {
+                req.mode = ApiModeEcho;
+            }
+            else if (i->devicetype.startsWith(QLatin1String("hue_")) ||
+                     i->devicetype.startsWith(QLatin1String("Hue ")))
+            {
+                req.mode = ApiModeHue;
+            }
+            DBG_Printf(DBG_HTTP, "ApiMode: %d\n", req.mode);
+
             i->needSaveDatabase = true;
             if (!apiAuthSaveDatabaseTime.isValid() || apiAuthSaveDatabaseTime.elapsed() > (1000 * 60 * 30))
             {
@@ -207,16 +218,6 @@ bool DeRestPluginPrivate::checkApikeyAuthentification(const ApiRequest &req, Api
         return true;
     }
 #endif
-
-    const QStringList ls = req.path.mid(2);
-
-    rsp.httpStatus = HttpStatusForbidden;
-    rsp.list.append(errorToMap(ERR_UNAUTHORIZED_USER, "/" + ls.join("/"), "unauthorized user"));
-
-    if (req.sock)
-    {
-        DBG_Printf(DBG_HTTP, "\thost: %s\n", qPrintable(req.sock->peerAddress().toString()));
-    }
 
     return false;
 }

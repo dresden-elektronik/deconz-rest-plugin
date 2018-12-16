@@ -33,7 +33,7 @@ void DeRestPluginPrivate::initSchedules()
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
-int DeRestPluginPrivate::handleSchedulesApi(ApiRequest &req, ApiResponse &rsp)
+int DeRestPluginPrivate::handleSchedulesApi(const ApiRequest &req, ApiResponse &rsp)
 {
     if (req.path[2] != "schedules")
     {

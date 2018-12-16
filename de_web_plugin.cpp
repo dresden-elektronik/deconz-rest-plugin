@@ -176,7 +176,7 @@ static const SupportedDevice supportedDevices[] = {
 int TaskItem::_taskCounter = 1; // static rolling taskcounter
 
 ApiRequest::ApiRequest(const QHttpRequestHeader &h, const QStringList &p, QTcpSocket *s, const QString &c) :
-    hdr(h), path(p), sock(s), content(c), version(ApiVersion_1), strict(false)
+    hdr(h), path(p), sock(s), content(c), version(ApiVersion_1), mode(ApiModeNormal)
 {
     if (hdr.hasKey("Accept"))
     {
@@ -185,23 +185,13 @@ ApiRequest::ApiRequest(const QHttpRequestHeader &h, const QStringList &p, QTcpSo
             version = ApiVersion_1_DDEL;
         }
     }
-
-    // some client may not be prepared for some responses
-    if (hdr.hasKey(QLatin1String("User-Agent")))
-    {
-        QString ua = hdr.value(QLatin1String("User-Agent"));
-        if (ua.startsWith(QLatin1String("iConnect")))
-        {
-            strict = true;
-        }
-    }
 }
 
 /*! Returns the apikey of a request or a empty string if not available
  */
 QString ApiRequest::apikey() const
 {
-    if (path.length() > 1)
+    if (path.length() > 1 && path[0] == "api")
     {
         return path.at(1);
     }
@@ -13226,6 +13216,8 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
 
     int ret = REQ_NOT_HANDLED;
 
+    bool auth = d->checkAuthentification(req, rsp);
+
      // general response to a OPTIONS HTTP method
     if (req.hdr.method() == QLatin1String("OPTIONS"))
     {
@@ -13346,7 +13338,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
         {
             ret = d->deletePassword(req, rsp);
         }
-        else if ((req.path.size() >= 2) && !(d->checkApikeyAuthentification(req, rsp)))
+        else if ((req.path.size() >= 2) && !auth)
         {
             // GET /api/<nouser>/config
             if ((req.path.size() == 3) && (req.path[2] == QLatin1String("config")))
@@ -13355,10 +13347,16 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
             }
             else
             {
+                rsp.httpStatus = HttpStatusForbidden;
+                rsp.list.append(d->errorToMap(ERR_UNAUTHORIZED_USER, "/" + req.path.mid(2).join("/"), "unauthorized user"));
+                if (req.sock)
+                {
+                    DBG_Printf(DBG_HTTP, "\thost: %s\n", qPrintable(req.sock->peerAddress().toString()));
+                }
                 ret = REQ_READY_SEND;
             }
         }
-        else if (req.path.size() >= 2) // && checkApikeyAuthentification(req, rsp)
+        else if ((req.path.size() >= 2) && auth)
         {
             bool resourceExist = true;
 
@@ -13466,7 +13464,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
     }
 
     // some client may not be prepared for http return codes other than 200 OK
-    if (rsp.httpStatus != HttpStatusOk && req.strict)
+    if (rsp.httpStatus != HttpStatusOk && req.mode != ApiModeNormal)
     {
         rsp.httpStatus = HttpStatusOk;
     }

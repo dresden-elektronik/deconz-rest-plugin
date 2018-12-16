@@ -77,7 +77,7 @@ void DeRestPluginPrivate::initTouchlinkApi()
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
-int DeRestPluginPrivate::handleTouchlinkApi(ApiRequest &req, ApiResponse &rsp)
+int DeRestPluginPrivate::handleTouchlinkApi(const ApiRequest &req, ApiResponse &rsp)
 {
     if (req.path[2] != "touchlink")
     {
@@ -114,7 +114,7 @@ int DeRestPluginPrivate::handleTouchlinkApi(ApiRequest &req, ApiResponse &rsp)
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
-int DeRestPluginPrivate::touchlinkScan(ApiRequest &req, ApiResponse &rsp)
+int DeRestPluginPrivate::touchlinkScan(const ApiRequest &req, ApiResponse &rsp)
 {
     Q_UNUSED(req);
 
@@ -151,7 +151,7 @@ int DeRestPluginPrivate::touchlinkScan(ApiRequest &req, ApiResponse &rsp)
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
-int DeRestPluginPrivate::getTouchlinkScanResults(ApiRequest &req, ApiResponse &rsp)
+int DeRestPluginPrivate::getTouchlinkScanResults(const ApiRequest &req, ApiResponse &rsp)
 {
     Q_UNUSED(req);
     rsp.httpStatus = HttpStatusOk;
@@ -194,7 +194,7 @@ int DeRestPluginPrivate::getTouchlinkScanResults(ApiRequest &req, ApiResponse &r
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
-int DeRestPluginPrivate::identifyLight(ApiRequest &req, ApiResponse &rsp)
+int DeRestPluginPrivate::identifyLight(const ApiRequest &req, ApiResponse &rsp)
 {
     /*
      * - disconnect
@@ -258,7 +258,7 @@ int DeRestPluginPrivate::identifyLight(ApiRequest &req, ApiResponse &rsp)
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
-int DeRestPluginPrivate::resetLight(ApiRequest &req, ApiResponse &rsp)
+int DeRestPluginPrivate::resetLight(const ApiRequest &req, ApiResponse &rsp)
 {
     /*
      * - disconnect

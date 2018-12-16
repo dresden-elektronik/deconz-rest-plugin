@@ -76,6 +76,7 @@ void DeRestPluginPrivate::initConfig()
     gwZigbeeChannel = 0;
     gwName = GW_DEFAULT_NAME;
     gwUpdateVersion = GW_SW_VERSION; // will be replaced by discovery handler
+    gwUpdateDate = GW_SW_DATE;
     gwSwUpdateState = swUpdateState.noUpdate;
     gwUpdateChannel = "stable";
     gwReportingEnabled = (deCONZ::appArgumentNumeric("--reporting", 1) == 1) ? true : false;
@@ -816,10 +817,10 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     }
     else
     {
-        if (req.strict)
+        if (req.mode != ApiModeNormal)
         {
-            map["swversion"] = QLatin1String("01038802");
-            map["apiversion"] = QLatin1String("1.20.0");
+            map["swversion"] = QLatin1String("1810251352");
+            map["apiversion"] = QLatin1String("1.28.0");
             map["modelid"] = QLatin1String("BSB002");
         }
         devicetypes["bridge"] = false;
@@ -846,7 +847,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     }
 
     bridge["state"] = gwSwUpdateState;
-    bridge["lastinstall"] = "";
+    bridge["lastinstall"] = gwUpdateDate;
     swupdate2["bridge"] = bridge;
     swupdate2["checkforupdate"] = false;
     swupdate2["state"] = gwSwUpdateState;
@@ -1024,7 +1025,7 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
                 continue;
             }
             QVariantMap map;
-            if (sensorToMap(&(*i), map, req.strict))
+            if (sensorToMap(&(*i), map, req.mode))
             {
                 sensorsMap[i->id()] = map;
             }
@@ -1747,6 +1748,7 @@ int DeRestPluginPrivate::deleteUser(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::updateSoftware(const ApiRequest &req, ApiResponse &rsp)
 {
+    Q_UNUSED(req);
     rsp.httpStatus = HttpStatusOk;
     QVariantMap rspItem;
     QVariantMap rspItemState;
@@ -1773,6 +1775,7 @@ int DeRestPluginPrivate::updateSoftware(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::restartGateway(const ApiRequest &req, ApiResponse &rsp)
 {
+    Q_UNUSED(req);
     rsp.httpStatus = HttpStatusOk;
     QVariantMap rspItem;
     QVariantMap rspItemState;
@@ -1801,6 +1804,7 @@ int DeRestPluginPrivate::restartGateway(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::restartApp(const ApiRequest &req, ApiResponse &rsp)
 {
+    Q_UNUSED(req);
     rsp.httpStatus = HttpStatusOk;
     QVariantMap rspItem;
     QVariantMap rspItemState;
@@ -1827,6 +1831,7 @@ int DeRestPluginPrivate::restartApp(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::shutDownGateway(const ApiRequest &req, ApiResponse &rsp)
 {
+    Q_UNUSED(req);
     rsp.httpStatus = HttpStatusOk;
     QVariantMap rspItem;
     QVariantMap rspItemState;
@@ -1855,6 +1860,7 @@ int DeRestPluginPrivate::shutDownGateway(const ApiRequest &req, ApiResponse &rsp
  */
 int DeRestPluginPrivate::updateFirmware(const ApiRequest &req, ApiResponse &rsp)
 {
+    Q_UNUSED(req);
     if (startUpdateFirmware())
     {
         rsp.httpStatus = HttpStatusOk;
@@ -1878,6 +1884,7 @@ int DeRestPluginPrivate::updateFirmware(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::exportConfig(const ApiRequest &req, ApiResponse &rsp)
 {
+    Q_UNUSED(req);
     if (exportConfiguration())
     {
         rsp.httpStatus = HttpStatusOk;
@@ -1901,6 +1908,7 @@ int DeRestPluginPrivate::exportConfig(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::importConfig(const ApiRequest &req, ApiResponse &rsp)
 {
+    Q_UNUSED(req);
     if (importConfiguration())
     {
         rsp.httpStatus = HttpStatusOk;
