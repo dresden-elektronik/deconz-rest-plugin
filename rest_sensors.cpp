@@ -2222,6 +2222,7 @@ void DeRestPluginPrivate::searchSensorsTimerFired()
     if (searchSensorsTimeout == 0)
     {
         fastProbeAddr = deCONZ::Address();
+        fastProbeIndications.clear();
         searchSensorsState = SearchSensorsDone;
     }
 }
@@ -2312,10 +2313,10 @@ void DeRestPluginPrivate::checkInstaModelId(Sensor *sensor)
  */
 void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
-//    if (searchSensorsState != SearchSensorsActive)
-//    {
-//        return;
-//    }
+    if (searchSensorsState != SearchSensorsActive)
+    {
+        return;
+    }
 
     if (ind.profileId() == ZDP_PROFILE_ID && ind.clusterId() == ZDP_DEVICE_ANNCE_CLID)
     {
@@ -2355,13 +2356,21 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
             return;
         }
 
+        if (fastProbeAddr.hasExt() && fastProbeAddr.ext() != ext)
+        {
+            return;
+        }
+
         DBG_Printf(DBG_INFO, "set fast probe address to 0x%016llX (0x%04X)\n", ext, nwk);
         fastProbeAddr.setExt(ext);
         fastProbeAddr.setNwk(nwk);
         if (!fastProbeTimer->isActive())
         {
-            fastProbeTimer->start(1000);
+            fastProbeTimer->start(100);
         }
+
+
+        fastProbeIndications.push_back(ind);
 
         std::vector<SensorCandidate>::iterator i = searchSensorsCandidates.begin();
         std::vector<SensorCandidate>::iterator end = searchSensorsCandidates.end();
@@ -2370,13 +2379,15 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
         {
             if (i->address.ext() == ext || i->address.nwk() == nwk)
             {
+                i->waitIndicationClusterId = 0xffff;
+                i->timeout = QTime();
                 i->address = fastProbeAddr; // nwk might have changed
                 return;
             }
         }
 
         SensorCandidate sc;
-        sc.indClusterId = ind.clusterId();
+        sc.waitIndicationClusterId = 0xffff;
         sc.address.setExt(ext);
         sc.address.setNwk(nwk);
         sc.macCapabilities = macCapabilities;
@@ -2385,6 +2396,24 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
     }
     else if (ind.profileId() == ZDP_PROFILE_ID)
     {
+        if (ind.clusterId() == ZDP_MATCH_DESCRIPTOR_CLID)
+        {
+            return;
+        }
+
+        if (!fastProbeAddr.hasExt())
+        {
+            return;
+        }
+
+        if (ind.srcAddress().hasExt() && fastProbeAddr.ext() != ind.srcAddress().ext())
+        {
+            return;
+        }
+        else if (ind.srcAddress().hasNwk() && fastProbeAddr.nwk() != ind.srcAddress().nwk())
+        {
+            return;
+        }
 
         std::vector<SensorCandidate>::iterator i = searchSensorsCandidates.begin();
         std::vector<SensorCandidate>::iterator end = searchSensorsCandidates.end();
@@ -2393,12 +2422,22 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
         {
             if (i->address.ext() == fastProbeAddr.ext())
             {
-                i->indClusterId = ind.clusterId();
+                DBG_Printf(DBG_INFO, "ZDP indication search sensors 0x%016llX (0x%04X) cluster 0x%04X\n", ind.srcAddress().ext(), ind.srcAddress().nwk(), ind.clusterId());
 
-                if (!fastProbeTimer->isActive())
+                if (ind.clusterId() == i->waitIndicationClusterId && i->timeout.isValid())
                 {
-                    fastProbeTimer->start(100);
+                    i->timeout = QTime();
+                    i->waitIndicationClusterId = 0xffff;
                 }
+
+                if (ind.clusterId() & 0x8000)
+                {
+                    fastProbeIndications.push_back(ind); // remember responses
+                }
+
+                fastProbeTimer->stop();
+                fastProbeTimer->start(5);
+                break;
             }
         }
         return;
@@ -2428,25 +2467,9 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
                 return;
             }
 
-            if (zclFrame.commandId() != deCONZ::ZclReadAttributesResponseId)
+            if (zclFrame.commandId() != deCONZ::ZclReadAttributesResponseId && zclFrame.commandId() != deCONZ::ZclReportAttributesId)
             {
                 return;
-            }
-            else if (fastProbeAddr.hasExt())
-            {
-                std::vector<SensorCandidate>::const_iterator i = searchSensorsCandidates.begin();
-                std::vector<SensorCandidate>::const_iterator end = searchSensorsCandidates.end();
-
-                for (; i != end; ++i)
-                {
-                    if (i->address.ext() == fastProbeAddr.ext())
-                    {
-                        if (!fastProbeTimer->isActive())
-                        {
-                            fastProbeTimer->start(5);
-                        }
-                    }
-                }
             }
             break; // ok
 
@@ -2467,7 +2490,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
         return;
     }
 
-    SensorCandidate *sc = 0;
+    SensorCandidate *sc = nullptr;
     {
         std::vector<SensorCandidate>::iterator i = searchSensorsCandidates.begin();
         std::vector<SensorCandidate>::iterator end = searchSensorsCandidates.end();
@@ -2484,6 +2507,23 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
             {
                 sc = &*i;
                 break;
+            }
+        }
+    }
+
+    if (sc && fastProbeAddr.hasExt() && sc->address.ext() == fastProbeAddr.ext())
+    {
+        if (!fastProbeTimer->isActive())
+        {
+            fastProbeTimer->start(5);
+        }
+
+        if (ind.profileId() == ZLL_PROFILE_ID || ind.profileId() == HA_PROFILE_ID)
+        {
+            if (ind.clusterId() == sc->waitIndicationClusterId && sc->timeout.isValid())
+            {
+                sc->timeout = QTime();
+                sc->waitIndicationClusterId = 0xffff;
             }
         }
     }
@@ -2546,15 +2586,6 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
         sc2.macCapabilities = macCapabilities;
         searchSensorsCandidates.push_back(sc2);
         sc = &searchSensorsCandidates.back();
-
-        if (!fastProbeAddr.hasExt() && searchSensorsState == SearchSensorsActive)
-        {
-            fastProbeAddr = indAddress;
-            if (!fastProbeTimer->isActive())
-            {
-                fastProbeTimer->start(1000);
-            }
-        }
     }
 
     if (!sc) // we need a valid candidate from device announce or cache

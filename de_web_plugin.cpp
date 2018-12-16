@@ -11708,14 +11708,18 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
 #if DECONZ_LIB_VERSION >= 0x010900
     // when macPoll = true core will handle ZDP descriptor queries
     bool macPoll = event && event->event() == deCONZ::NodeEvent::NodeMacDataRequest;
-#else
-    bool macPoll = false;
-#endif
-
-    if (macPoll && fastProbeTimer->isActive())
+    if (macPoll)
     {
-        fastProbeTimer->stop();
+        if (event->node() && event->node()->address().ext() != sc->address.ext())
+        {
+            return;
+        }
+
+        DBG_Printf(DBG_INFO, "MAC poll fastEnddeviceProbe() 0x%016llX\n", macPoll, sc->address.ext());
     }
+#else
+//    bool macPoll = false;
+#endif
 
     {
         Sensor *sensor = getSensorNodeForAddress(sc->address);
@@ -11748,7 +11752,22 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             return;
         }
 
-        if (!macPoll && node->nodeDescriptor().isNull())
+        if (sc->timeout.isValid() && sc->timeout.elapsed() < 9000)
+        {
+            DBG_Printf(DBG_INFO, "wait response fastEnddeviceProbe() 0x%016llX, elapsed %d ms\n", sc->address.ext(), sc->timeout.elapsed());
+            return;
+        }
+
+        bool hasNodeDescriptor = false;
+        bool hasActiveEndpoints = false;
+
+        for (auto const &ind : fastProbeIndications)
+        {
+            if      (ind.clusterId() == ZDP_NODE_DESCRIPTOR_RSP_CLID) { hasNodeDescriptor = true; }
+            else if (ind.clusterId() == ZDP_ACTIVE_ENDPOINTS_RSP_CLID) { hasActiveEndpoints = true; }
+        }
+
+        if (!hasNodeDescriptor)
         {
             DBG_Printf(DBG_INFO, "[1] get node descriptor for 0x%016llx\n", sc->address.ext());
             deCONZ::ApsDataRequest apsReq;
@@ -11761,7 +11780,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             apsReq.setProfileId(ZDP_PROFILE_ID);
             apsReq.setRadius(0);
             apsReq.setClusterId(ZDP_NODE_DESCRIPTOR_CLID);
-            //apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+            apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
 
             QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
             stream.setByteOrder(QDataStream::LittleEndian);
@@ -11774,16 +11793,15 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
             {
                 queryTime = queryTime.addSecs(5);
+                sc->timeout.restart();
+                sc->waitIndicationClusterId = ZDP_NODE_DESCRIPTOR_RSP_CLID;
             }
             return;
         }
 
-        if (sc->indClusterId == ZDP_ACTIVE_ENDPOINTS_RSP_CLID)
-        {
-            sc->endpoints = node->endpoints();
-        }
+        sc->endpoints = node->endpoints();
 
-        if (!macPoll && sc->endpoints.empty())
+        if (!hasActiveEndpoints)
         {
             DBG_Printf(DBG_INFO, "[2] get active endpoints for 0x%016llx\n", sc->address.ext());
             deCONZ::ApsDataRequest apsReq;
@@ -11809,12 +11827,13 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
             {
                 queryTime = queryTime.addSecs(5);
+                sc->timeout.restart();
+                sc->waitIndicationClusterId = ZDP_ACTIVE_ENDPOINTS_RSP_CLID;
             }
             return;
         }
 
         // simple descriptor for endpoint 0x01
-        if (!macPoll && node->simpleDescriptors().size() != (int)node->endpoints().size())
         {
             quint8 ep = 0;
 
@@ -11824,9 +11843,11 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
 
                 for (int j = 0; j < node->simpleDescriptors().size(); j++)
                 {
-                    if (node->simpleDescriptors()[j].endpoint() == ep)
+                    const deCONZ::SimpleDescriptor &sd = node->simpleDescriptors()[j];
+                    if (sd.endpoint() == ep && sd.deviceId() != 0xffff)
                     {
                         ep = 0;
+                        break;
                     }
                 }
 
@@ -11857,6 +11878,8 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                     if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
                     {
                         queryTime = queryTime.addSecs(1);
+                        sc->timeout.restart();
+                        sc->waitIndicationClusterId = ZDP_SIMPLE_DESCRIPTOR_RSP_CLID;
                     }
 
                     return;
@@ -11972,6 +11995,8 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
                 {
                     queryTime = queryTime.addSecs(1);
+                    sc->timeout.restart();
+                    sc->waitIndicationClusterId = apsReq.clusterId();
                 }
                 return;
             }
@@ -12079,6 +12104,8 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                         apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
                 {
                     queryTime = queryTime.addSecs(1);
+                    sc->timeout.restart();
+                    sc->waitIndicationClusterId = apsReq.clusterId();
                 }
             }
             else if (!sensor)
