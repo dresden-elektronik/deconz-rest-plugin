@@ -12094,11 +12094,20 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         }
         else if (sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
         {
+            NodeValue val = sensor->getZclValue(VENDOR_CLUSTER_ID, 0x0000);
+            if (!val.isValid())
+            {
+                if (checkSensorBindingsForAttributeReporting(sensor))
+                {
+                    return;
+                }
+            }
+
             // Stop the Hue dimmer from touchlinking when holding the On button.
             deCONZ::ZclAttribute attr(0x0031, deCONZ::Zcl16BitBitMap, "mode", deCONZ::ZclReadWrite, false);
             attr.setBitmap(0x000b);
 
-            NodeValue val = sensor->getZclValue(BASIC_CLUSTER_ID, 0x0031);
+            val = sensor->getZclValue(BASIC_CLUSTER_ID, 0x0031);
 
             if (val.isValid()) // already done
             {
@@ -12114,14 +12123,6 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 return;
             }
 
-            val = sensor->getZclValue(VENDOR_CLUSTER_ID, 0x0000);
-            if (!val.isValid())
-            {
-                if (checkSensorBindingsForAttributeReporting(sensor))
-                {
-                    return;
-                }
-            }
 
             ResourceItem *item = sensor->item(RConfigGroup);
             if (!item || !item->lastSet().isValid())
