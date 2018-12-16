@@ -11161,12 +11161,6 @@ void DeRestPluginPrivate::handleIeeeAddressReqIndication(const deCONZ::ApsDataIn
     stream.setByteOrder(QDataStream::LittleEndian);
 
     extAddr = apsCtrl->getParameter(deCONZ::ParamMacAddress);
-    // trick OTA client of busch jaeger switch to think this is a bj dongle
-    if ((ind.srcAddress().ext() & macPrefixMask) == bjeMacPrefix)
-    {
-        extAddr &= ~macPrefixMask;
-        extAddr |= bjeMacPrefix;
-    }
 
     quint8 status = ZDP_SUCCESS;
     stream << seq;
