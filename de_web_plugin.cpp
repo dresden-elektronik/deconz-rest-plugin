@@ -7173,6 +7173,21 @@ bool DeRestPluginPrivate::readGroupMembership(LightNode *lightNode, const std::v
         return false;
     }
 
+    bool found = false;
+    for (const auto &cl : lightNode->haEndpoint().inClusters())
+    {
+        if (cl.id() == GROUP_CLUSTER_ID)
+        {
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) // not all light endpoints have a group cluster (lumi.ctrl_ln2.aq1)
+    {
+        return false;
+    }
+
     TaskItem task;
     task.taskType = TaskGetGroupMembership;
 
