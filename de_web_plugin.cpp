@@ -2471,6 +2471,11 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         return;
     }
 
+    if (ind.clusterId() == OTAU_CLUSTER_ID)
+    {
+        return;
+    }
+
     bool checkReporting = false;
     const Sensor::ButtonMap *buttonMap = sensor->buttonMap();
     if (!buttonMap)
