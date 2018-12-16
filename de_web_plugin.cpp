@@ -4325,10 +4325,22 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             fastProbeTimer->start(100);
         }
+
+        if (modelId.startsWith(QLatin1String("lumi.")))
+        {
+            for (const auto &ind : fastProbeIndications)
+            {
+                if (ind.clusterId() == BASIC_CLUSTER_ID && ind.profileId() != ZDP_PROFILE_ID)
+                {
+                    apsdeDataIndication(ind); // replay Xiaomi special report
+                }
+            }
+        }
     }
 
     sensor2->rx();
     checkSensorBindingsForAttributeReporting(sensor2);
+
 
     Q_Q(DeRestPlugin);
     q->startZclAttributeTimer(checkZclAttributesDelay);
@@ -8500,6 +8512,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
     }
 
+    if (searchSensorsState == SearchSensorsActive)
+    {
+        return;
+    }
+
     if  (!restNodePending)
     {
         return;
@@ -8509,6 +8526,13 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     DBG_Assert(r != nullptr);
     if (!r)
     {
+        return;
+    }
+
+    if (dateCode.isEmpty() && restNodePending)
+    {
+        // read datecode, will be applied to all sensors of this device
+        readAttributes(restNodePending, ind.srcEndpoint(), BASIC_CLUSTER_ID, { 0x0006 });
         return;
     }
 
@@ -8539,12 +8563,6 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 }
             }
         }
-    }
-
-    if (dateCode.isEmpty() && restNodePending)
-    {
-        // read datecode, will be applied to all sensors of this device
-        readAttributes(restNodePending, ind.srcEndpoint(), BASIC_CLUSTER_ID, { 0x0006 });
     }
 }
 
