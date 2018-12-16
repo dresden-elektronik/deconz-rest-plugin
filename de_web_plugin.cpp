@@ -4312,6 +4312,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         sensors.push_back(sensorNode);
         sensor2 = &sensors.back();
         updateSensorEtag(sensor2);
+        indexRulesTriggers();
     }
 
     if (searchSensorsState == SearchSensorsActive)
