@@ -9175,7 +9175,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         QDataStream stream(&data, QIODevice::WriteOnly);
         stream.setByteOrder(QDataStream::LittleEndian);
         sd.writeToStream(stream);
-        if (!data.isEmpty())
+        if (!data.isEmpty() && sd.deviceId() != 0xffff)
         {
             pushZdpDescriptorDb(event.node()->address().ext(), sd.endpoint(), ZDP_SIMPLE_DESCRIPTOR_CLID, data);
         }
