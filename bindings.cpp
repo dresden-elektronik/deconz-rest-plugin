@@ -1537,6 +1537,11 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                 val = sensor->getZclValue(*i, 0x0021); // battery percentage remaining
             }
 
+            if (sensor->modelId() == QLatin1String("TRADFRI remote control") && sensor->swVersion() == QLatin1String("0.9.8.1-5.7.0.0"))
+            {
+                continue; // too old doesn't support battery percentage remaining attribute
+            }
+
             if (val.timestampLastConfigured.isValid() && val.timestampLastConfigured.secsTo(now) < (val.maxInterval * 1.5))
             {
                 continue;

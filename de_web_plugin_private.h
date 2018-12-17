@@ -267,6 +267,7 @@
 #define VENDOR_120B         0x120B // Used by Heiman
 #define VENDOR_XAL          0x122A
 #define VENDOR_OSRAM_STACK  0xBBAA
+#define VENDOR_SAMJIN       0x1241
 
 #define ANNOUNCE_INTERVAL 10 // minutes default announce interval
 
@@ -1280,7 +1281,7 @@ public:
     QString gwWifiPw;
     QString gwWifiBackupPw;
     QString gwWifiClientPw;
-    int gwWifiPID;
+    pid_t gwWifiPID;
     QString gwProxyAddress;
     quint16 gwProxyPort;
     QString gwTimezone;
@@ -1533,13 +1534,14 @@ public:
     public:
         SensorCandidate() :
             macCapabilities(0),
-            indClusterId(0)
+            waitIndicationClusterId(0)
         {
 
         }
         deCONZ::Address address;
         quint8 macCapabilities;
-        quint16 indClusterId;
+        QTime timeout;
+        quint16 waitIndicationClusterId;
         std::vector<quint8> endpoints;
         std::vector<SensorCommand> rxCommands;
     };
@@ -1551,6 +1553,7 @@ public:
 
     SearchSensorsState searchSensorsState;
     deCONZ::Address fastProbeAddr;
+    std::vector<deCONZ::ApsDataIndication> fastProbeIndications;
     QVariantMap searchSensorsResult;
     QTimer *fastProbeTimer;
     int searchSensorsTimeout;

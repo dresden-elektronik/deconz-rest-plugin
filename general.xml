@@ -1430,8 +1430,10 @@ Data Request rate.</description>
 				<attribute id="0x400b" name="Color temperature min" type="u16" access="r" range="0x0000,0xffff" default="0" required="m"></attribute>
 				<attribute id="0x400c" name="Color temperature max" type="u16" access="r" range="0x0000,0xffff" default="0xffff" required="m"></attribute>
 				<attribute id="0x4010" name="PowerOn Color Temperature" type="u16" access="rw" range="0x0000,0xffff" default="0xffff" required="o"></attribute>
+        <!--
         <attribute id="0x0003" mfcode="0x100b" name="PowerOn X" type="u16" access="rw" range="0x0000,0xffff" default="0xffff" required="o"></attribute>
         <attribute id="0x0004" mfcode="0x100b" name="PowerOn Y" type="u16" access="rw" range="0x0000,0xffff" default="0xffff" required="o"></attribute>
+        -->
 				<attribute id="0xde01" name="Active channels" type="u8" access="r" range="0x00,0xff" default="0x00" required="m"></attribute>
 			</attribute-set>
 			<command id="0x00" dir="recv" name="Move to hue" required="o">
