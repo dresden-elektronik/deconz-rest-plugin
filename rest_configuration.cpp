@@ -1168,7 +1168,7 @@ int DeRestPluginPrivate::getBasicConfig(const ApiRequest &req, ApiResponse &rsp)
 }
 
 /*! GET /api/challenge
-    Creates a new authentification challenge which should be used as HMAC-Sha256(challenge, install code).
+    Creates a new authentication challenge which should be used as HMAC-Sha256(challenge, install code).
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
@@ -2139,7 +2139,7 @@ int DeRestPluginPrivate::deletePassword(const ApiRequest &req, ApiResponse &rsp)
     gwConfig.remove("gwusername");
     gwConfig.remove("gwpassword");
 
-    initAuthentification();
+    initAuthentication();
 
     rsp.httpStatus = HttpStatusOk;
     return REQ_READY_SEND;

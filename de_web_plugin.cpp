@@ -402,7 +402,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     initNetworkInfo();
     initUpnpDiscovery();
 
-    initAuthentification();
+    initAuthentication();
     initInternetDicovery();
     initSchedules();
     initPermitJoin();
@@ -13216,7 +13216,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
 
     int ret = REQ_NOT_HANDLED;
 
-    bool auth = d->checkAuthentification(req, rsp);
+    bool auth = d->checkAuthorisation(req, rsp);
 
      // general response to a OPTIONS HTTP method
     if (req.hdr.method() == QLatin1String("OPTIONS"))

@@ -35,9 +35,9 @@ void ApiAuth::setDeviceType(const QString &devtype)
     devicetype = devtype;
 }
 
-/*! Init authentification and security.
+/*! Init authentication.
  */
-void DeRestPluginPrivate::initAuthentification()
+void DeRestPluginPrivate::initAuthentication()
 {
     bool ok = false;
 
@@ -62,7 +62,7 @@ void DeRestPluginPrivate::initAuthentification()
 
         // combine username:password
         QString comb = QString("%1:%2").arg(gwAdminUserName).arg(gwAdminPasswordHash);
-        // create base64 encoded version as used in HTTP basic authentification
+        // create base64 encoded version as used in HTTP basic authentication
         QString hash = comb.toLocal8Bit().toBase64();
 
         gwAdminPasswordHash = encryptString(hash);
@@ -72,7 +72,7 @@ void DeRestPluginPrivate::initAuthentification()
 
 }
 
-/*! Use HTTP basic authentification or HMAC token to check if the request
+/*! Use HTTP basic authentication or HMAC token to check if the request
     has valid credentials to create API key.
  */
 bool DeRestPluginPrivate::allowedToCreateApikey(const ApiRequest &req, ApiResponse &rsp, QVariantMap &map)
@@ -125,11 +125,11 @@ bool DeRestPluginPrivate::allowedToCreateApikey(const ApiRequest &req, ApiRespon
     return false;
 }
 
-/*! Checks if the request is authenticated to access the API.
-    \retval true if authenticated
-    \retval false if not authenticated and the rsp http status is set to 403 Forbidden and JSON error is appended
+/*! Checks if the request is authorised to access the API.
+    \retval true if authorised
+    \retval false if not authorised and the rsp http status is set to 403 Forbidden and JSON error is appended
  */
-bool DeRestPluginPrivate::checkAuthentification(ApiRequest &req, ApiResponse &rsp)
+bool DeRestPluginPrivate::checkAuthorisation(ApiRequest &req, ApiResponse &rsp)
 {
     Q_UNUSED(rsp);
 

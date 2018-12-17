@@ -734,7 +734,7 @@ void DeRestPluginPrivate::readDb()
     loadAllGatewaysFromDb();
 }
 
-/*! Sqlite callback to load authentification data.
+/*! Sqlite callback to load authorisation data.
  */
 static int sqliteLoadAuthCallback(void *user, int ncols, char **colval , char **colname)
 {
@@ -793,7 +793,7 @@ static int sqliteLoadAuthCallback(void *user, int ncols, char **colval , char **
     return 0;
 }
 
-/*! Loads all authentification data from database.
+/*! Loads all authorisation data from database.
  */
 void DeRestPluginPrivate::loadAuthFromDb()
 {
@@ -3649,7 +3649,7 @@ void DeRestPluginPrivate::saveDb()
 
     DBG_Printf(DBG_INFO, "DB save zll database items 0x%08X\n", saveDatabaseItems);
 
-    // dump authentification
+    // dump authorisation data
     if (saveDatabaseItems & DB_AUTH)
     {
         std::vector<ApiAuth>::iterator i = apiAuths.begin();

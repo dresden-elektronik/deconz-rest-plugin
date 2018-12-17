@@ -569,7 +569,7 @@ private:
 
 /*! \class ApiAuth
 
-    Helper to combine serval authentification parameters.
+    Helper to combine serval authorisation parameters.
  */
 class ApiAuth
 {
@@ -677,10 +677,10 @@ public:
     DeRestPluginPrivate(QObject *parent = 0);
     ~DeRestPluginPrivate();
 
-    // REST API authentification
-    void initAuthentification();
+    // REST API authorisation
+    void initAuthentication();
     bool allowedToCreateApikey(const ApiRequest &req, ApiResponse &rsp, QVariantMap &map);
-    bool checkAuthentification(ApiRequest &req, ApiResponse &rsp);
+    bool checkAuthorisation(ApiRequest &req, ApiResponse &rsp);
     QString encryptString(const QString &str);
 
     // REST API gateways
@@ -1230,7 +1230,7 @@ public:
     std::vector<Gateway*> gateways;
     GatewayScanner *gwScanner;
 
-    // authentification
+    // authorisation
     QTime apiAuthSaveDatabaseTime;
     size_t apiAuthCurrent;
     std::vector<ApiAuth> apiAuths;
