@@ -2313,10 +2313,41 @@ devices can operate on either battery or mains power, and can have a wide variet
 		<cluster id="0x0021" name="Green Power">
 		<description>Attributes and commands.</description>
 			<server>
+				<attribute id="0x0000" name="Max Sink Table Entries" type="u8" default="0x00" access="r" required="m" showas="hex">
+					<description>Maximum number of Sink Table entries supported by this device.</description>
+				</attribute>
+				<attribute id="0x0001" name="Sink Table" type="lostring" default="0x0000" access="r" required="m" showas="hex">
+					<description>Sink Table, holding information about local bindings between a particular GPD and target‘s local endpoints.</description>
+				</attribute>
+				<attribute id="0x0002" name="Communication Mode" type="bmp8" default="0x01" access="rw" required="m" showas="hex">
+					<description>Default communication mode requested by this sink.</description>
+				</attribute>
+				<attribute id="0x0003" name="Commissioning Exit Mode" type="bmp8" default="0x02" access="rw" required="m" showas="hex">
+					<description>Conditions for the sink to exit the commissioning mode.</description>
+				</attribute>
+				<attribute id="0x0004" name="Commissioning Window" type="u16" default="0x00B4" access="rw" required="o" showas="hex">
+					<description>Default duration of the Commissioning window duration, in seconds, as requested by this sink.</description>
+				</attribute>
+				<attribute id="0x0005" name="Security Level" type="bmp8" default="0x06" access="rw" required="m" showas="hex">
+					<description>The minimum required security level to be supported by the paired GPDs.</description>
+				</attribute>
+				<attribute id="0x0006" name="Functionality" type="bmp24" default="0x0" access="r" required="m" showas="hex">
+					<description>The optional GP functionality supported by this sink.</description>
+				</attribute>
+				<attribute id="0x0007" name="Active Functionality" type="bmp24" default="0xffffff" access="r" required="m" showas="hex">
+					<description>The optional GP functionality supported by this sink that is active.</description>
+				</attribute>
 			</server>
 			<client>
 			</client>
 		</cluster>
+		<device id="0x0060" name="GP Proxy" description=""></device>
+		<device id="0x0061" name="GP Proxy Basic" description=""></device>
+		<device id="0x0062" name="GP Target Plus" description=""></device>
+		<device id="0x0063" name="GP Target" description=""></device>
+		<device id="0x0064" name="GP Commissioning Tool" description=""></device>
+		<device id="0x0065" name="GP Combo" description=""></device>
+		<device id="0x0066" name="GP Combo Basic" description=""></device>
 	</domain>
 
 	<domain name="Manufacturer Specific" useZcl="true"
