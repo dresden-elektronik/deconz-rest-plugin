@@ -11004,15 +11004,8 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
                 // force reading attributes
                 i->enableRead(READ_GROUPS | READ_SCENES);
 
-                queuePollNode(&*i);
-
-                // reorder, bring to back to force next polling
-                auto n = std::find(pollNodes.begin(), pollNodes.end(), &*i);
-                if (n != pollNodes.end())
-                {
-                    *n = pollNodes.back();
-                    pollNodes.back() = &*i;
-                }
+                // bring to front to force next polling
+                pollNodes.push_front(&*i);
 
                 for (uint32_t ii = 0; ii < 32; ii++)
                 {
@@ -12749,18 +12742,6 @@ void DeRestPlugin::idleTimerFired()
                     }
                 }
 
-                if (lightNode->lastRx().secsTo(now) > (5 * 60))
-                {
-                    // let poll manager detect if node is available
-                    d->queuePollNode(lightNode);
-                    continue;
-                }
-
-                if (processLights)
-                {
-                    break;
-                }
-
                 // workaround for Xiaomi lights and smart plugs with multiple endpoints but only one basic cluster
                 if (lightNode->manufacturerCode() == VENDOR_115F && (lightNode->modelId().isEmpty() || lightNode->item(RAttrSwVersion)->toString().isEmpty()))
                 {
@@ -12804,6 +12785,19 @@ void DeRestPlugin::idleTimerFired()
                     }
                 }
 
+                d->queuePollNode(lightNode);
+
+                if (lightNode->lastRx().secsTo(now) > (5 * 60))
+                {
+                    // let poll manager detect if node is available
+                    continue;
+                }
+
+                if (processLights)
+                {
+                    break;
+                }
+
                 const uint32_t items[]   = { READ_GROUPS, READ_SCENES, 0 };
                 const int tRead[]        = {        1800,        3600, 0 };
 
@@ -12831,15 +12825,6 @@ void DeRestPlugin::idleTimerFired()
                         d->queryTime = d->queryTime.addSecs(tSpacing);
                         processLights = true;
                     }
-                }
-
-                if (!lightNode->mustRead(READ_SWBUILD_ID) && (lightNode->swBuildId().isEmpty() || lightNode->lastRead(READ_SWBUILD_ID) < d->idleTotalCounter - READ_SWBUILD_ID_INTERVAL))
-                {
-                    lightNode->setLastRead(READ_SWBUILD_ID, d->idleTotalCounter);
-                    lightNode->enableRead(READ_SWBUILD_ID);
-                    lightNode->setNextReadTime(READ_SWBUILD_ID, d->queryTime);
-                    d->queryTime = d->queryTime.addSecs(tSpacing);
-                    processLights = true;
                 }
 
                 if (lightNode->manufacturer().isEmpty() || (lightNode->manufacturer() == QLatin1String("Unknown")))
@@ -12949,17 +12934,6 @@ void DeRestPlugin::idleTimerFired()
                     continue;
                 }
 
-                if (sensorNode->lastRx().secsTo(now) > (5 * 60))
-                {
-                    // let poll manager detect if node is available
-                    d->queuePollNode(sensorNode);
-                    continue;
-                }
-
-                if (processSensors)
-                {
-                    break;
-                }
 
                 if (sensorNode->modelId().isEmpty())
                 {
@@ -12968,14 +12942,19 @@ void DeRestPlugin::idleTimerFired()
                     {
                         sensorNode->setModelId(lightNode->modelId());
                     }
-                    else if (!sensorNode->mustRead(READ_MODEL_ID))
-                    {
-                        sensorNode->setLastRead(READ_MODEL_ID, d->idleTotalCounter);
-                        sensorNode->setNextReadTime(READ_MODEL_ID, d->queryTime);
-                        sensorNode->enableRead(READ_MODEL_ID);
-                        d->queryTime = d->queryTime.addSecs(tSpacing);
-                        processSensors = true;
-                    }
+                }
+
+                d->queuePollNode(sensorNode);
+
+                if (sensorNode->lastRx().secsTo(now) > (5 * 60))
+                {
+                    // let poll manager detect if node is available
+                    continue;
+                }
+
+                if (processSensors)
+                {
+                    break;
                 }
 
                 if (!sensorNode->mustRead(READ_VENDOR_NAME) &&
@@ -12992,10 +12971,6 @@ void DeRestPlugin::idleTimerFired()
                 if (processSensors)
                 {
                     DBG_Printf(DBG_INFO_L2, "Force read attributes for node %s\n", qPrintable(sensorNode->name()));
-                }
-                else
-                {
-                    d->queuePollNode(sensorNode);
                 }
 
                 if ((d->otauLastBusyTimeDelta() > OTA_LOW_PRIORITY_TIME) && (sensorNode->lastRead(READ_BINDING_TABLE) < (d->idleTotalCounter - IDLE_READ_LIMIT)))
@@ -14417,7 +14392,7 @@ void DeRestPluginPrivate::pushSensorInfoToCore(Sensor *sensor)
  */
 void DeRestPluginPrivate::pollNextDevice()
 {
-    DBG_Assert(apsCtrl != 0);
+    DBG_Assert(apsCtrl != nullptr);
 
     if (!apsCtrl)
     {
@@ -14430,7 +14405,13 @@ void DeRestPluginPrivate::pollNextDevice()
         return;
     }
 
-    RestNodeBase *restNode = 0;
+    RestNodeBase *restNode = nullptr;
+
+    if (!pollNodes.empty())
+    {
+        restNode = pollNodes.front();
+        pollNodes.pop_front();
+    }
 
     if (pollNodes.empty()) // TODO time based
     {
@@ -14449,12 +14430,6 @@ void DeRestPluginPrivate::pollNextDevice()
                 pollNodes.push_back(&s);
             }
         }
-    }
-
-    if (!pollNodes.empty())
-    {
-        restNode = pollNodes.back();
-        pollNodes.pop_back();
     }
 
     if (restNode && restNode->isAvailable())

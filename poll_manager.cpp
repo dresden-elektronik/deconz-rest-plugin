@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2018 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -407,6 +407,7 @@ void PollManager::pollTimerFired()
     }
 
     // check that cluster exists on endpoint
+    if (clusterId != 0xffff)
     {
         bool found = false;
         deCONZ::SimpleDescriptor sd;
@@ -424,12 +425,8 @@ void PollManager::pollTimerFired()
 
         if (!found)
         {
-            if (clusterId != 0xffff)
-            {
-                DBG_Printf(DBG_INFO, "Poll APS request to 0x%016llX cluster: 0x%04X dropped, cluster doesn't exist\n", pitem.address.ext(), clusterId);
-                clusterId = 0xffff;
-            }
-            suffix = nullptr;
+            DBG_Printf(DBG_INFO, "Poll APS request to 0x%016llX cluster: 0x%04X dropped, cluster doesn't exist\n", pitem.address.ext(), clusterId);
+            clusterId = 0xffff;
         }
     }
 

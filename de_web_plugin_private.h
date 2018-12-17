@@ -1351,7 +1351,7 @@ public:
     QStringList zipProcessArgs;
     QStringList archProcessArgs;
 
-    std::vector<RestNodeBase*> pollNodes;
+    std::deque<RestNodeBase*> pollNodes;
     PollManager *pollManager;
 
     // upnp
