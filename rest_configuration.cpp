@@ -2688,7 +2688,7 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
 
         gwWifiWorkingName = QString();
         gwWifiWorkingPw = QString();
-        gwWifiWorkingType = QString();
+        //gwWifiWorkingType = QString();
 
         updateEtag(gwConfigEtag);
     }
@@ -2708,7 +2708,7 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
 
         gwWifiWorkingName = QString();
         gwWifiWorkingPw = QString();
-        gwWifiWorkingType = QString();
+        //gwWifiWorkingType = QString();
 
         updateEtag(gwConfigEtag);
     }
