@@ -2266,6 +2266,14 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
                     Event e(RSensors, RStatePresence, sensor->id(), item);
                     enqueueEvent(e);
                     enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
+                    for (const quint16 clusterId : sensor->fingerPrint().inClusters)
+                    {
+                        if (clusterId == IAS_ZONE_CLUSTER_ID || clusterId == OCCUPANCY_SENSING_CLUSTER_ID)
+                        {
+                            pushZclValueDb(sensor->address().ext(), sensor->fingerPrint().endpoint, clusterId, 0x0000, 0);
+                            break;
+                        }
+                    }
                 }
                 sensor->durationDue = QDateTime();
             }
