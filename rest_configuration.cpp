@@ -2676,11 +2676,6 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
     {
         gwWifiStateString = QLatin1String("ap-connect-fail");
 
-        if (gwWifiWorkingType != QLatin1String("accesspoint"))
-        {
-            gwWifiWorkingType = QLatin1String("accesspoint");
-        }
-
         if (gwWifiActive != QLatin1String("inactive"))
         {
             gwWifiActive = QLatin1String("inactive");
@@ -2695,11 +2690,6 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
     else if (status == QLatin1String("client-connect-fail") && gwWifiStateString != QLatin1String("client-connect-fail"))
     {
         gwWifiStateString = QLatin1String("client-connect-fail");
-
-        if (gwWifiWorkingType != QLatin1String("client"))
-        {
-            gwWifiWorkingType = QLatin1String("client");
-        }
 
         if (gwWifiActive != QLatin1String("inactive"))
         {
