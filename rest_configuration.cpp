@@ -2716,21 +2716,11 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
     {
         gwWifiStateString = QLatin1String("check-ap");
 
-        if (gwWifiWorkingType != QLatin1String("accesspoint"))
-        {
-            gwWifiWorkingType = QLatin1String("accesspoint");
-        }
-
         updateEtag(gwConfigEtag);
     }
     else if (status == QLatin1String("check-client") && gwWifiStateString != QLatin1String("check-client"))
     {
         gwWifiStateString = QLatin1String("check-client");
-
-        if (gwWifiWorkingType != QLatin1String("client"))
-        {
-            gwWifiWorkingType = QLatin1String("client");
-        }
 
         updateEtag(gwConfigEtag);
     }
