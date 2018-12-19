@@ -2696,19 +2696,19 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
         }
 
         bool changed = false;
-        if (!gwWifiName.isEmpty())
+        if (gwWifiName != "undefined")
         {
-            gwWifiName = QString();
+            gwWifiName = "undefined";
             changed = true;
         }
-        if (!gwWifiPw.isEmpty())
+        if (gwWifiPw != "undefined")
         {
-            gwWifiPw = QString();
+            gwWifiPw = "undefined";
             changed = true;
         }
-        if (!gwWifiType.isEmpty())
+        if (gwWifiType != "undefined")
         {
-            gwWifiType = QString();
+            gwWifiType = "undefined";
             changed = true;
         }
         gwWifiWorkingName = QString();
@@ -2732,19 +2732,19 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
         }
 
         bool changed = false;
-        if (!gwWifiName.isEmpty())
+        if (gwWifiName != "undefined")
         {
-            gwWifiName = QString();
+            gwWifiName = "undefined";
             changed = true;
         }
-        if (!gwWifiPw.isEmpty())
+        if (gwWifiPw != "undefined")
         {
-            gwWifiPw = QString();
+            gwWifiPw = "undefined";
             changed = true;
         }
-        if (!gwWifiType.isEmpty())
+        if (gwWifiType != "undefined")
         {
-            gwWifiType = QString();
+            gwWifiType = "undefined";
             changed = true;
         }
         gwWifiWorkingName = QString();
