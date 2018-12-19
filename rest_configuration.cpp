@@ -379,6 +379,7 @@ void DeRestPluginPrivate::initWiFi()
 
     QDateTime currentDateTime = QDateTime::currentDateTimeUtc();
     gwWifiLastUpdated = currentDateTime.toTime_t();
+    queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
 
     if (gwWifiState == WifiStateInitMgmt)
     {
