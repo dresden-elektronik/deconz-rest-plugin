@@ -2560,6 +2560,20 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
             changed = true;
         }
 
+        if (workingtype == "accesspoint")
+        {
+            if (!workingname.isEmpty() && gwWifiBackupName != workingname)
+            {
+                gwWifiBackupName = workingname;
+                changed = true;
+            }
+            if (!workingpw.isEmpty() && gwWifiBackupPw != workingpw)
+            {
+                gwWifiBackupPw = workingpw;
+                changed = true;
+            }
+        }
+
         if (changed)
         {
             updateEtag(gwConfigEtag);
