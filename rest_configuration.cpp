@@ -446,6 +446,9 @@ void DeRestPluginPrivate::initWiFi()
         gwWifiBackupPw = gwWifiPw;
     }
 
+    QDateTime currentDateTime = QDateTime::currentDateTimeUtc();
+    gwWifiLastUpdated = currentDateTime.toTime_t();
+
     queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
 }
 
