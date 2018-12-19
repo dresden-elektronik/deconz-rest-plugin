@@ -377,6 +377,9 @@ void DeRestPluginPrivate::initWiFi()
         return;
     }
 
+    QDateTime currentDateTime = QDateTime::currentDateTimeUtc();
+    gwWifiLastUpdated = currentDateTime.toTime_t();
+
     if (gwWifiState == WifiStateInitMgmt)
     {
         retry = true;
@@ -445,9 +448,6 @@ void DeRestPluginPrivate::initWiFi()
         gwWifiPw = sec0.mid(16, 16).toUpper();
         gwWifiBackupPw = gwWifiPw;
     }
-
-    QDateTime currentDateTime = QDateTime::currentDateTimeUtc();
-    gwWifiLastUpdated = currentDateTime.toTime_t();
 
     queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
 }
