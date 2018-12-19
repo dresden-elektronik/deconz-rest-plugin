@@ -2695,9 +2695,30 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
             gwWifiActive = QLatin1String("inactive");
         }
 
+        bool changed = false;
+        if (!gwWifiName.isEmpty())
+        {
+            gwWifiName = QString();
+            changed = true;
+        }
+        if (!gwWifiPw.isEmpty())
+        {
+            gwWifiPw = QString();
+            changed = true;
+        }
+        if (!gwWifiType.isEmpty())
+        {
+            gwWifiType = QString();
+            changed = true;
+        }
         gwWifiWorkingName = QString();
         gwWifiWorkingPw = QString();
         //gwWifiWorkingType = QString();
+
+        if (changed)
+        {
+            queSaveDb(DB_CONFIG | DB_SYNC, DB_SHORT_SAVE_DELAY);
+        }
 
         updateEtag(gwConfigEtag);
     }
@@ -2710,9 +2731,30 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
             gwWifiActive = QLatin1String("inactive");
         }
 
+        bool changed = false;
+        if (!gwWifiName.isEmpty())
+        {
+            gwWifiName = QString();
+            changed = true;
+        }
+        if (!gwWifiPw.isEmpty())
+        {
+            gwWifiPw = QString();
+            changed = true;
+        }
+        if (!gwWifiType.isEmpty())
+        {
+            gwWifiType = QString();
+            changed = true;
+        }
         gwWifiWorkingName = QString();
         gwWifiWorkingPw = QString();
         //gwWifiWorkingType = QString();
+
+        if (changed)
+        {
+            queSaveDb(DB_CONFIG | DB_SYNC, DB_SHORT_SAVE_DELAY);
+        }
 
         updateEtag(gwConfigEtag);
     }
