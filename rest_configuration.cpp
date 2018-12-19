@@ -49,6 +49,7 @@ void DeRestPluginPrivate::initConfig()
     pollDatabaseWifiTimer = 0;
 
     // default configuration
+    gwWifiLastUpdated = 0;
     gwRunFromShellScript = false;
     gwDeleteUnknownRules = (deCONZ::appArgumentNumeric("--delete-unknown-rules", 1) == 1) ? true : false;
     gwRfConnected = false; // will be detected later
@@ -377,9 +378,12 @@ void DeRestPluginPrivate::initWiFi()
         return;
     }
 
-    QDateTime currentDateTime = QDateTime::currentDateTimeUtc();
-    gwWifiLastUpdated = currentDateTime.toTime_t();
-    queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
+    if (gwWifiLastUpdated == 0)
+    {
+        QDateTime currentDateTime = QDateTime::currentDateTimeUtc();
+        gwWifiLastUpdated = currentDateTime.toTime_t();
+        queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
+    }
 
     if (gwWifiState == WifiStateInitMgmt)
     {
