@@ -125,8 +125,9 @@ void DeRestPluginPrivate::cleanUpDb()
         "   AND type = 'ZHAPresence'",
 
         // delete duplicates in device_descriptors
-        "DELETE FROM device_descriptors WHERE rowid NOT IN"
-        " (SELECT max(rowid) FROM device_descriptors GROUP BY device_id,type,endpoint)",
+        //"DELETE FROM device_descriptors WHERE rowid NOT IN"
+        //" (SELECT max(rowid) FROM device_descriptors GROUP BY device_id,type,endpoint)",
+
         nullptr
     };
 
