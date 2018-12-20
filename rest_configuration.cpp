@@ -499,11 +499,6 @@ int DeRestPluginPrivate::handleConfigurationApi(const ApiRequest &req, ApiRespon
     {
         return getConfig(req, rsp);
     }
-    // GET /api/<apikey>/config/wifi
-    else if ((req.path.size() == 4) && (req.hdr.method() == "GET") && (req.path[2] == "config") && (req.path[3] == "wifi"))
-    {
-        return getWifiState(req, rsp);
-    }
     // PUT /api/<apikey>/config/wifi
     else if ((req.path.size() == 4) && (req.hdr.method() == "PUT") && (req.path[2] == "config") && (req.path[3] == "wifi"))
     {
@@ -2210,16 +2205,6 @@ void DeRestPluginPrivate::checkRfConnectState()
 int DeRestPluginPrivate::getWifiState(const ApiRequest &req, ApiResponse &rsp)
 {
     Q_UNUSED(req);
-
-    QHostAddress localHost(QHostAddress::LocalHost);
-    if (req.sock->peerAddress() == localHost || checkApikeyAuthentification(req, rsp))
-    {
-        // continue
-    }
-    else
-    {
-        return REQ_READY_SEND;
-    }
 
     rsp.map["wifi"] = gwWifi;
     rsp.map["wifitype"] = gwWifiType;

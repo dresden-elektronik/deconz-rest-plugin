@@ -1772,7 +1772,7 @@ bool DeRestPluginPrivate::groupToMap(const ApiRequest &req, const Group *group, 
         else if (item->descriptor().suffix == RAttrClass) { map["class"] = item->toString(); }
         else if (item->descriptor().suffix == RAttrUniqueId) { map["uniqueid"] = item->toString(); }
     }
-    if (map["type"] == "LightGroup")
+    if (map["type"] != QLatin1String("Room"))
     {
         map.remove("class");
     }

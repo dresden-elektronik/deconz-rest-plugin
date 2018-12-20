@@ -191,7 +191,7 @@ ApiRequest::ApiRequest(const QHttpRequestHeader &h, const QStringList &p, QTcpSo
  */
 QString ApiRequest::apikey() const
 {
-    if (path.length() > 1 && path[0] == "api")
+    if (path.length() > 1 && path[0] == QLatin1String("api"))
     {
         return path.at(1);
     }
@@ -13337,6 +13337,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
     QString content;
     QTextStream stream(sock);
     QHttpRequestHeader hdrmod(hdr);
+    QHostAddress localHost(QHostAddress::LocalHost);
 
     stream.setCodec(QTextCodec::codecForName("UTF-8"));
     d->pushClientForClose(sock, 10, hdr);
@@ -13524,7 +13525,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
             ret = d->deletePassword(req, rsp);
         }
         // GET api/<apikey>/config/wifi
-        else if ((req.path.size() == 4) && (req.hdr.method() == "GET") && (req.path[2] == "config") && (req.path[3] == "wifi"))
+        else if ((req.path.size() == 4) && (req.hdr.method() == "GET") && (req.path[2] == "config") && (req.path[3] == "wifi") && (req.sock->peerAddress() == localHost || auth))
         {
             ret = d->getWifiState(req, rsp);
         }
