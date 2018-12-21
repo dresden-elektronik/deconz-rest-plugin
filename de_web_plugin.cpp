@@ -905,6 +905,43 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
         // 0/4  u32           GPD Key MIC
         // 0/4  u32           GPD outgoing counter
 
+        // Philips Hue Tap
+        // 0x02               GPD DeviceID
+        // 0x81               Options (MAC Sequence number, extended options field)
+        // 0xF2               Extended Options Field: (Key Type: Individual, out of the box GPD key, GPD Key Present, GPD Key Encryption, GPD Outgoing present)
+        // 0/16 Security Key  GPD Key
+        // 0/4  u32           GPD Key MIC
+        // 0/4  u32           GPD outgoing counter
+
+        // Vimar (Friends of Hue) 4 button 03906
+        // Note 1: Niko and Busch-Jaeger Friends of Hue switches may use the same module?
+        // Note 2: Which modelid does Hue bridge use for Friends of Hue switches?
+        // 0x02               GPD DeviceID
+        // 0xC5               Options (MAC Sequence number, application information present, extended options field)
+        // 0xF2               Extended Options Field: (Key Type: Individual, out of the box GPD key, GPD Key Present, GPD Key Encryption, GPD Outgoing present)
+        // 16   Security Key  GPD Key
+        // 4    u32           GPD Key MIC
+        // 4    u32           GPD outgoing counter
+        // 0x04               ApplicationInformation (GPD commands are present)
+        // ManufacturerSpecific (18 byte)
+        // Number of GPD commands (1 byte): 0x11
+        // GPD CommandID list (17 byte): 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x22, 0x60, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68
+
+        // Illumra (ZBT-S1AWH and ZBT-S2AWH)
+        // Uses the more advanced PTM 215ZE module
+        // 0x02               GPD DeviceID
+        // 0x81               Options (MAC Sequence number, application information present, extended options field)
+        // 0xF2               Extended Options Field: (Key Type: Individual, out of the box GPD key, GPD Key Present, GPD Key Encryption, GPD Outgoing present)
+        // 16   Security Key  GPD Key
+        // 4    u32           GPD Key MIC
+        // 4    u32           GPD outgoing counter
+        // Commissioning package is identical to Hue tab, however PTM 215ZE has a very different command set to above two modules
+
+        // TODO: Capture all received commands and store them in ordered string.
+        //       This way we can distinguish between the modules.
+        // Note: It would be better to map things to the usual 1002, 1001, 1003, ... buttonevents
+        //       Maybe except for Hue Tap to keep compatibility? -- Maybe.
+
         quint8 gpdDeviceId;
         quint8 gpdKey[16];
         quint32 gpdMIC = 0;
