@@ -8109,16 +8109,26 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     QDataStream stream(zclFrame.payload());
     stream.setByteOrder(QDataStream::LittleEndian);
 
-    while (attrId != 0xff01)
+    while (attrId == 0)
     {
         if (stream.atEnd())
         {
             break;
         }
 
-        stream >> attrId;
+        quint16 a;
+        stream >> a;
         stream >> dataType;
         stream >> length;
+
+        if (a == 0xff01 && dataType == deCONZ::ZclCharacterString)
+        {
+            attrId = a;
+        }
+        else if (a == 0xff02 && dataType == 0x4c /*deCONZ::ZclStruct*/)
+        {
+            attrId = a;
+        }
 
         if (dataType == deCONZ::ZclCharacterString && attrId != 0xff01)
         {
@@ -8131,10 +8141,13 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
     }
 
-    if (stream.atEnd() || attrId != 0xff01 || dataType != deCONZ::ZclCharacterString)
+    if (stream.atEnd() || attrId == 0)
     {
         return;
     }
+
+    quint8 structIndex = 0; // only attribute id 0xff02
+    quint16 structSize = 0; // only attribute id 0xff02
 
     quint16 battery = 0;
     quint32 lightlevel = UINT32_MAX; // use 32-bit to mark invalid and support 0xffff value
@@ -8145,7 +8158,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     quint8 onOff2 = UINT8_MAX;
     quint8 currentPositionLift = UINT8_MAX;
 
-    DBG_Printf(DBG_INFO, "0x%016llX extract Xiaomi special\n", ind.srcAddress().ext());
+    DBG_Printf(DBG_INFO, "0x%016llX extract Xiaomi special attribute 0x%04X\n", ind.srcAddress().ext(), attrId);
 
     QString dateCode;
 
@@ -8159,9 +8172,21 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         quint32 u32;
         quint64 u64;
 
+        quint8 tag = 0;
 
-        quint8 tag;
-        stream >> tag;
+        if (attrId == 0xff01)
+        {
+            stream >> tag;
+        }
+        else if (attrId == 0xff02)
+        {
+            if (structIndex == 0)
+            {
+                stream >> structSize; // number of elements
+            }
+            structIndex++;
+        }
+
         stream >> dataType;
 
         switch (dataType)
@@ -8200,7 +8225,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             return;
         }
 
-        if (tag == 0x01 && dataType == deCONZ::Zcl16BitUint)
+        if ((tag == 0x01 || structIndex == 0x02) && dataType == deCONZ::Zcl16BitUint)
         {
             DBG_Printf(DBG_INFO, "\t01 battery %u (0x%04X)\n", u16, u16);
             battery = u16;
@@ -8243,7 +8268,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             DBG_Printf(DBG_INFO, "\t0b lightlevel %u (0x%04X)\n", u16, u16);
             lightlevel = u16;
         }
-        else if (tag == 0x64 && dataType == deCONZ::ZclBoolean) // lumi.ctrl_ln2 endpoint 01
+        else if ((tag == 0x64 || structIndex == 0x01) && dataType == deCONZ::ZclBoolean) // lumi.ctrl_ln2 endpoint 01
         {
             DBG_Printf(DBG_INFO, "\t64 on/off %d\n", u8);
             onOff = u8;
@@ -8324,9 +8349,13 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {
             DBG_Printf(DBG_INFO, "\t9b unknown %d (0x%04X)\n", u16, u16);
         }
-        else
+        else if (tag)
         {
             DBG_Printf(DBG_INFO, "\t%02X unsupported tag (data type 0x%02X)\n", tag, dataType);
+        }
+        else if (structIndex)
+        {
+            DBG_Printf(DBG_INFO, "\t%02X unsupported index (data type 0x%02X)\n", structIndex, dataType);
         }
     }
 
