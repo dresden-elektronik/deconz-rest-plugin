@@ -136,7 +136,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "lumi.remote.b186acn01", jennicMacPrefix },  // Xiaomi single button wall switch WXKG03LM 2018
     { VENDOR_JENNIC, "lumi.sensor_86sw2", jennicMacPrefix },      // Xiaomi dual button wall switch WXKG02LM 2016
     { VENDOR_JENNIC, "lumi.remote.b286acn01", jennicMacPrefix },  // Xiaomi dual button wall switch WXKG02LM 2018
-    { VENDOR_JENNIC, "lumi.sensor_switch", jennicMacPrefix },     // Xiaomi WXKG11LM and WXKG12LM (fallback)
+    { VENDOR_JENNIC, "lumi.sensor_switch", jennicMacPrefix },     // Xiaomi WXKG01LM, WXKG11LM and WXKG12LM (fallback)
     { VENDOR_JENNIC, "lumi.ctrl_neutral", jennicMacPrefix }, // Xioami Wall Switch (end-device)
     { VENDOR_JENNIC, "lumi.vibration", jennicMacPrefix }, // Xiaomi Aqara vibration/shock sensor
     { VENDOR_JENNIC, "lumi.sensor_wleak", jennicMacPrefix },
@@ -2707,14 +2707,15 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 if (ind.clusterId() == ONOFF_CLUSTER_ID && sensor->manufacturer() == QLatin1String("LUMI"))
                 {
                     ok = false;
+                    const quint16 pl3 = static_cast<quint16>(zclFrame.payload().at(3)) & 0xff;
                     // payload: u16 attrId, u8 datatype, u8 data
                     if (attrId == 0x0000 && dataType == 0x10 && // onoff attribute
-                        buttonMap->zclParam0 == zclFrame.payload().at(3))
+                        buttonMap->zclParam0 == pl3)
                     {
                         ok = true;
                     }
                     else if (attrId == 0x8000 && dataType == 0x20 && // custom attribute for multi press
-                        buttonMap->zclParam0 == zclFrame.payload().at(3))
+                        buttonMap->zclParam0 == pl3)
                     {
                         ok = true;
                     }

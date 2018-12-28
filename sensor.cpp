@@ -278,6 +278,7 @@ static const Sensor::ButtonMap xiaomiSwitchMap[] = {
     { Sensor::ModeScenes,           0x01, 0x0006, 0x0a, 2,    S_BUTTON_1 + S_BUTTON_ACTION_DOUBLE_PRESS, "Double press" },
     { Sensor::ModeScenes,           0x01, 0x0006, 0x0a, 3,    S_BUTTON_1 + S_BUTTON_ACTION_TREBLE_PRESS, "Triple press" },
     { Sensor::ModeScenes,           0x01, 0x0006, 0x0a, 4,    S_BUTTON_1 + S_BUTTON_ACTION_QUADRUPLE_PRESS, "Quad press" },
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x0a, 0x80, S_BUTTON_1 + S_BUTTON_ACTION_MANY_PRESS, "Many press" },
 
     // end
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }

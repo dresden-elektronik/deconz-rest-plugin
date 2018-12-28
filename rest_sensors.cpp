@@ -2521,7 +2521,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
 
     if (sc && fastProbeAddr.hasExt() && sc->address.ext() == fastProbeAddr.ext())
     {
-        if (zclFrame.manufacturerCode() == VENDOR_115F)
+        if (zclFrame.manufacturerCode() == VENDOR_115F || zclFrame.manufacturerCode() == VENDOR_1234)
         {
             fastProbeIndications.push_back(ind); // remember Xiaomi special report
         }

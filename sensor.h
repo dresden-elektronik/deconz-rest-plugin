@@ -29,6 +29,7 @@
 #define S_BUTTON_ACTION_SHAKE           7
 #define S_BUTTON_ACTION_DROP            8
 #define S_BUTTON_ACTION_TILT            9
+#define S_BUTTON_ACTION_MANY_PRESS      10
 
 #define S_BUTTON_1   1000
 #define S_BUTTON_2   2000
