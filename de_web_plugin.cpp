@@ -8119,7 +8119,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         quint16 a;
         stream >> a;
         stream >> dataType;
-        stream >> length;
+
+        if (dataType == deCONZ::ZclCharacterString)
+        {
+            stream >> length;
+        }
 
         if (a == 0xff01 && dataType == deCONZ::ZclCharacterString)
         {
