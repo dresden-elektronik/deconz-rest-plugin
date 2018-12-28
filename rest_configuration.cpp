@@ -1604,6 +1604,12 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         rsp.list.append(rspItem);
     }
 
+    // old versions used lower case utc, support both styles
+    if (map.contains("UTC") && !map.contains("utc"))
+    {
+        map["utc"] = map["UTC"];
+    }
+
     if (map.contains("utc")) // optional
     {
         bool error = false;
