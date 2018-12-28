@@ -2013,7 +2013,7 @@ void DeRestPluginPrivate::startSearchLights()
     }
     else
     {
-        Q_ASSERT(searchLightsState == SearchLightsActive);
+        DBG_Assert(searchLightsState == SearchLightsActive);
     }
 
     searchLightsTimeout = gwNetworkOpenDuration;

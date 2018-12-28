@@ -1246,21 +1246,32 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         }
 
         // check if node already exist
-        LightNode *lightNode2 = getLightNodeForAddress(node->address(), i->endpoint());
+        LightNode *lightNode2 = nullptr;
+
+        for (auto &l : nodes)
+        {
+            if (l.state() != LightNode::StateNormal)
+            {
+                continue;
+            }
+
+            if (!node->address().hasExt() || node->address().ext() != l.address().ext())
+            {
+                continue;
+            }
+
+            if (l.haEndpoint().endpoint() != i->endpoint())
+            {
+                continue;
+            }
+
+            lightNode2 = &l;
+            break;
+        }
 
         if (lightNode2)
         {
-            if (lightNode2->state() == LightNode::StateDeleted)
-            {
-                if (searchLightsState == SearchLightsActive || permitJoinFlag)
-                {
-                    lightNode2->setState(LightNode::StateNormal);
-                }
-                else
-                {
-                    continue;
-                }
-            }
+            DBG_Assert(lightNode2->state() != LightNode::StateDeleted);
 
             if (lightNode2->node() != node)
             {
@@ -1483,20 +1494,14 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         loadLightNodeFromDb(&lightNode);
         closeDb();
 
+        DBG_Assert(lightNode.state() != LightNode::StateDeleted);
+
         if (lightNode.manufacturerCode() == VENDOR_115F)
         {
             if (lightNode.manufacturer() != QLatin1String("LUMI"))
             {
                 lightNode.setManufacturerName(QLatin1String("LUMI"));
                 lightNode.setNeedSaveDatabase(true);
-            }
-        }
-
-        if (lightNode.state() == LightNode::StateDeleted)
-        {
-            if (searchLightsState == SearchLightsActive || permitJoinFlag)
-            {
-                lightNode.setState(LightNode::StateNormal);
             }
         }
 
