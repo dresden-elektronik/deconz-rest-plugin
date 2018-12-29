@@ -4207,6 +4207,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         }
 
         if (!sensorNode.item(RStateTemperature) &&
+            sensorNode.modelId() != QLatin1String("lumi.sensor_switch") &&
             !sensorNode.modelId().contains(QLatin1String("weather")) &&
             !sensorNode.modelId().startsWith(QLatin1String("lumi.sensor_ht")))
         {

@@ -3123,6 +3123,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
 
             if (!sensor.item(RStateTemperature) &&
+                sensor.modelId() != QLatin1String("lumi.sensor_switch") &&
                 !sensor.modelId().contains(QLatin1String("weather")) &&
                 !sensor.modelId().startsWith(QLatin1String("lumi.sensor_ht")))
             {
