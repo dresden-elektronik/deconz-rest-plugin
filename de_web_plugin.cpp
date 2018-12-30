@@ -8455,6 +8455,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
     for (Sensor &sensor : sensors)
     {
+        if (sensor.deletedState() != Sensor::StateNormal)
+        {
+            continue;
+        }
+
         if (!sensor.modelId().startsWith(QLatin1String("lumi.")))
         {
             continue;
@@ -8505,10 +8510,13 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 if      (bat > 100) { bat = 100; }
                 else if (bat <= 0)  { bat = 1; } // ?
 
+                if (item->lastSet() == item->lastChanged())
+                {
+                    updated = true;
+                }
                 item->setValue(quint8(bat));
 
                 enqueueEvent(Event(RSensors, RConfigBattery, sensor.id(), item));
-                updated = true;
             }
         }
 
@@ -8520,8 +8528,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             {
                 item->setValue(temperature);
                 enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor.id(), item));
-                updated = true;
 
+                if (item->lastSet() == item->lastChanged())
+                {
+                    updated = true;
+                }
                 if (item->descriptor().suffix == RStateTemperature)
                 {
                     sensor.updateStateTimestamp();
@@ -8536,7 +8547,10 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             {
                 item->setValue(humidity);
                 enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor.id(), item));
-                updated = true;
+                if (item->lastSet() == item->lastChanged())
+                {
+                    updated = true;
+                }
                 sensor.updateStateTimestamp();
             }
         }
@@ -8548,7 +8562,10 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
           {
               item->setValue(pressure);
               enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor.id(), item));
-              updated = true;
+              if (item->lastSet() == item->lastChanged())
+              {
+                  updated = true;
+              }
               sensor.updateStateTimestamp();
           }
         }
@@ -8571,7 +8588,10 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 item->setValue(onOff);
                 enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor.id(), item));
                 sensor.updateStateTimestamp();
-                updated = true;
+                if (item->lastSet() == item->lastChanged())
+                {
+                    updated = true;
+                }
             }
         }
 
