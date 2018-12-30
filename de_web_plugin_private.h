@@ -158,6 +158,7 @@
 #define LEVEL_CLUSTER_ID                      0x0008
 #define TIME_CLUSTER_ID                       0x000A
 #define ANALOG_INPUT_CLUSTER_ID               0x000C
+#define ANALOG_OUTPUT_CLUSTER_ID              0x000D
 #define BINARY_INPUT_CLUSTER_ID               0x000F
 #define MULTISTATE_INPUT_CLUSTER_ID           0x0012
 #define OTAU_CLUSTER_ID                       0x0019

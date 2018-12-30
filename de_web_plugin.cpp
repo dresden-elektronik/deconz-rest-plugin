@@ -2206,6 +2206,45 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                     }
                 }
             }
+            else if (ic->id() == ANALOG_OUTPUT_CLUSTER_ID && (event.clusterId() == ANALOG_OUTPUT_CLUSTER_ID))
+            {
+                if (!(lightNode->modelId().startsWith(QLatin1String("lumi.curtain"))))
+                {
+                    continue; // ignore except for lumi.curtain
+                }
+
+                std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
+                std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
+                for (;ia != enda; ++ia)
+                {
+                    if (ia->id() == 0x0055) // Present Value
+                    {
+                        uint8_t level = 255 * (100 - ia->numericValue().real) / 100;
+                        ResourceItem *item = lightNode->item(RStateBri);
+                        if (item && item->toNumber() != level)
+                        {
+                            DBG_Printf(DBG_INFO, "0x%016llX level %u --> %u\n", lightNode->address().ext(), (uint)item->toNumber(), level);
+                            item->setValue(level);
+                            Event e(RLights, RStateBri, lightNode->id(), item);
+                            enqueueEvent(e);
+                            updated = true;
+                        }
+                        bool on = level > 0;
+                        item = lightNode->item(RStateOn);
+                        if (item && item->toBool() != on)
+                        {
+                            DBG_Printf(DBG_INFO, "0x%016llX onOff %u --> %u\n", lightNode->address().ext(), (uint)item->toNumber(), on);
+                            item->setValue(on);
+                            Event e(RLights, RStateOn, lightNode->id(), item);
+                            enqueueEvent(e);
+                            updated = true;
+                        }
+                        lightNode->setZclValue(updateType, event.clusterId(), 0x0055, ia->numericValue());
+                        pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().real);
+                        break;
+                    }
+                }
+            }
         }
 
         break;
@@ -9373,6 +9412,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         case GROUP_CLUSTER_ID:
         case SCENE_CLUSTER_ID:
         case COLOR_CLUSTER_ID:
+        case ANALOG_OUTPUT_CLUSTER_ID: // lumi.curtain
         case WINDOW_COVERING_CLUSTER_ID:  // FIXME ubisys J1 is not a light
             {
                 updateLightNode(event);
