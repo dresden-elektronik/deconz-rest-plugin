@@ -374,7 +374,6 @@ void PollManager::pollTimerFired()
         if (item && (item->toString().isEmpty() ||
              (item->lastSet().secsTo(now) > READ_SWBUILD_ID_INTERVAL))) // dynamic
         {
-            clusterId = BASIC_CLUSTER_ID;
 
             if (lightNode->manufacturerCode() == VENDOR_UBISYS ||
                 lightNode->manufacturerCode() == VENDOR_EMBER ||
@@ -382,11 +381,21 @@ void PollManager::pollTimerFired()
                 lightNode->manufacturerCode() == VENDOR_115F ||
                 lightNode->manufacturer().startsWith(QLatin1String("Climax")))
             {
-                attributes.push_back(0x0006); // date code
+                if (item->toString().isEmpty())
+                {
+                    attributes.push_back(0x0006); // date code
+                    clusterId = BASIC_CLUSTER_ID;
+                }
             }
             else
             {
-                attributes.push_back(0x4000); // sw build id
+                if (item->toString().isEmpty() ||
+                    lightNode->manufacturerCode() == VENDOR_XAL ||
+                    lightNode->manufacturerCode() == VENDOR_DDEL)
+                {
+                    attributes.push_back(0x4000); // sw build id
+                    clusterId = BASIC_CLUSTER_ID;
+                }
             }
         }
     }
