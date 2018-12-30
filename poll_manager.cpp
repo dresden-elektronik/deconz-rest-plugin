@@ -235,8 +235,11 @@ void PollManager::pollTimerFired()
 
     if (suffix == RStateOn)
     {
-        clusterId = ONOFF_CLUSTER_ID;
-        attributes.push_back(0x0000); // onOff
+        if (lightNode && lightNode->manufacturerCode() != VENDOR_115F) // reports
+        {
+            clusterId = ONOFF_CLUSTER_ID;
+            attributes.push_back(0x0000); // onOff
+        }
     }
     else if (suffix == RStateBri && isOn)
     {
