@@ -3678,6 +3678,11 @@ void DeRestPluginPrivate::saveDb()
         return;
     }
 
+    if (saveDatabaseItems & DB_NOSAVE)
+    {
+        return;
+    }
+
     int rc;
     char *errmsg;
     QElapsedTimer measTimer;
@@ -4837,6 +4842,12 @@ void DeRestPluginPrivate::saveDatabaseTimerFired()
             databaseTimer->start(DB_SHORT_SAVE_DELAY);
             return;
         }
+    }
+
+    if (saveDatabaseItems & DB_NOSAVE)
+    {
+        databaseTimer->start(DB_SHORT_SAVE_DELAY);
+        return;
     }
 
     if (saveDatabaseItems)

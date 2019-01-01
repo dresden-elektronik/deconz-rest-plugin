@@ -54,6 +54,7 @@ public:
     bool pluginActive() const;
 
 public Q_SLOTS:
+    bool dbSaveAllowed() const;
     void idleTimerFired();
     void refreshAll();
     void startZclAttributeTimer(int delay);
