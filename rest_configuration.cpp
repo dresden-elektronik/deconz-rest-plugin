@@ -492,12 +492,81 @@ void DeRestPluginPrivate::configurationChanged()
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
-int DeRestPluginPrivate::handleConfigurationApi(const ApiRequest &req, ApiResponse &rsp)
+int DeRestPluginPrivate::handleConfigBasicApi(const ApiRequest &req, ApiResponse &rsp)
+{
+    // POST /api
+    if ((req.path.size() == 1) && (req.hdr.method() == QLatin1String("POST")))
+    {
+        return createUser(req, rsp);
+    }
+    // GET /api/challenge
+    else if ((req.path.size() == 2) && (req.hdr.method() == QLatin1String("GET")) && (req.path[1] == QLatin1String("challenge")))
+    {
+        return getChallenge(req, rsp);
+    }
+    // GET /api/config
+    else if ((req.path.size() == 2) && (req.hdr.method() == QLatin1String("GET")) && (req.path[1] == QLatin1String("config")))
+    {
+        return getBasicConfig(req, rsp);
+    }
+    // DELETE /api/config/password
+    else if ((req.path.size() == 3) && (req.hdr.method() == QLatin1String("DELETE")) && (req.path[1] == QLatin1String("config")) && (req.path[2] == QLatin1String("password")))
+    {
+        return deletePassword(req, rsp);
+    }
+    // GET /api/<nouser>/config
+    else if ((req.path.size() == 3) && (req.hdr.method() == QLatin1String("GET")) && (req.path[2] == QLatin1String("config")))
+    {
+        return getBasicConfig(req, rsp);
+    }
+
+    return REQ_NOT_HANDLED;
+}
+
+/*! Configuration REST API broker.
+    \param req - request data
+    \param rsp - response data
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::handleConfigLocalApi(const ApiRequest &req, ApiResponse &rsp)
+{
+    // GET api/<localuser>/config/wifi
+    if ((req.path.size() == 4) && (req.hdr.method() == QLatin1String("GET")) && (req.path[2] == QLatin1String("config")) && (req.path[3] == QLatin1String("wifi")))
+    {
+        return getWifiState(req, rsp);
+    }
+    // PUT /api/<localuser>/config/wifi/updated
+    else if ((req.path.size() == 5) && (req.hdr.method() == QLatin1String("PUT")) && (req.path[2] == QLatin1String("config")) && (req.path[3] == QLatin1String("wifi")) && (req.path[4] == QLatin1String("updated")))
+    {
+        return putWifiUpdated(req, rsp);
+    }
+    // PUT /api/<localuser>/config/wifi/scanresult
+    else if ((req.path.size() == 5) && (req.hdr.method() == QLatin1String("PUT")) && (req.path[2] == QLatin1String("config")) && (req.path[3] == QLatin1String("wifi")) && (req.path[4] == QLatin1String("scanresult")))
+    {
+        return putWifiScanResult(req, rsp);
+    }
+
+    return REQ_NOT_HANDLED;
+}
+
+/*! Configuration REST API broker.
+    \param req - request data
+    \param rsp - response data
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::handleConfigFullApi(const ApiRequest &req, ApiResponse &rsp)
 {
     // GET /api/<apikey>/config
     if ((req.path.size() == 3) && (req.hdr.method() == "GET") && (req.path[2] == "config"))
     {
         return getConfig(req, rsp);
+    }
+    // GET api/<apikey>/config/wifi
+    else if ((req.path.size() == 4) && (req.hdr.method() == "GET") && (req.path[2] == "config") && (req.path[3] == "wifi"))
+    {
+        return getWifiState(req, rsp);
     }
     // PUT /api/<apikey>/config/wifi
     else if ((req.path.size() == 4) && (req.hdr.method() == "PUT") && (req.path[2] == "config") && (req.path[3] == "wifi"))

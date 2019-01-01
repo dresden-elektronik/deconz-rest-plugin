@@ -599,6 +599,14 @@ enum ApiVersion
     ApiVersion_1_DDEL  //!< version 1.0, "Accept: application/vnd.ddel.v1"
 };
 
+enum ApiAuthorisation
+{
+    ApiAuthNone,
+    ApiAuthLocal,
+    ApiAuthInternal,
+    ApiAuthFull
+};
+
 enum ApiMode
 {
     ApiModeNormal,
@@ -623,6 +631,7 @@ public:
     QTcpSocket *sock;
     QString content;
     ApiVersion version;
+    ApiAuthorisation auth;
     ApiMode mode;
 };
 
@@ -681,7 +690,7 @@ public:
     // REST API authorisation
     void initAuthentication();
     bool allowedToCreateApikey(const ApiRequest &req, ApiResponse &rsp, QVariantMap &map);
-    bool checkAuthorisation(ApiRequest &req, ApiResponse &rsp);
+    void authorise(ApiRequest &req, ApiResponse &rsp);
     QString encryptString(const QString &str);
 
     // REST API gateways
@@ -695,7 +704,9 @@ public:
 
     // REST API configuration
     void initConfig();
-    int handleConfigurationApi(const ApiRequest &req, ApiResponse &rsp);
+    int handleConfigBasicApi(const ApiRequest &req, ApiResponse &rsp);
+    int handleConfigLocalApi(const ApiRequest &req, ApiResponse &rsp);
+    int handleConfigFullApi(const ApiRequest &req, ApiResponse &rsp);
     int createUser(const ApiRequest &req, ApiResponse &rsp);
     int getFullState(const ApiRequest &req, ApiResponse &rsp);
     int getConfig(const ApiRequest &req, ApiResponse &rsp);

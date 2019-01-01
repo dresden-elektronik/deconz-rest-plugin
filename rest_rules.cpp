@@ -1548,7 +1548,7 @@ void DeRestPluginPrivate::triggerRule(Rule &rule)
         }
         else if (path[2] == QLatin1String("config"))
         {
-            if (handleConfigurationApi(req, rsp) == REQ_NOT_HANDLED)
+            if (handleConfigFullApi(req, rsp) == REQ_NOT_HANDLED)
             {
                 return;
             }

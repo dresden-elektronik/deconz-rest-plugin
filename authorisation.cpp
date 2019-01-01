@@ -125,25 +125,29 @@ bool DeRestPluginPrivate::allowedToCreateApikey(const ApiRequest &req, ApiRespon
     return false;
 }
 
-/*! Checks if the request is authorised to access the API.
-    \retval true if authorised
-    \retval false if not authorised and the rsp http status is set to 403 Forbidden and JSON error is appended
+/*! Authorise API access for the request.
  */
-bool DeRestPluginPrivate::checkAuthorisation(ApiRequest &req, ApiResponse &rsp)
+void DeRestPluginPrivate::authorise(ApiRequest &req, ApiResponse &rsp)
 {
     Q_UNUSED(rsp);
+
+    QHostAddress localHost(QHostAddress::LocalHost);
+    if (req.sock->peerAddress() == localHost)
+    {
+        req.auth = ApiAuthLocal;
+    }
+
+    if (req.sock == 0) // allow internal requests, as they are issued by triggering rules
+    {
+        req.auth = ApiAuthInternal;
+    }
 
     QString apikey = req.apikey();
     apiAuthCurrent = apiAuths.size();
 
     if (apikey.isEmpty())
     {
-        return false;
-    }
-
-    if (req.sock == 0) // allow internal requests, as they are issued by triggering rules
-    {
-        return true;
+        return;
     }
 
     std::vector<ApiAuth>::iterator i = apiAuths.begin();
@@ -199,7 +203,7 @@ bool DeRestPluginPrivate::checkAuthorisation(ApiRequest &req, ApiResponse &rsp)
                 apiAuthSaveDatabaseTime.start();
                 queSaveDb(DB_AUTH, DB_HUGE_SAVE_DELAY);
             }
-            return true;
+            req.auth = ApiAuthFull;
         }
     }
 
@@ -219,7 +223,6 @@ bool DeRestPluginPrivate::checkAuthorisation(ApiRequest &req, ApiResponse &rsp)
     }
 #endif
 
-    return false;
 }
 
 /*! Encrypts a string with using crypt() MD5 + salt. (unix only)

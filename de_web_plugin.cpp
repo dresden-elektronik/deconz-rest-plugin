@@ -176,7 +176,7 @@ static const SupportedDevice supportedDevices[] = {
 int TaskItem::_taskCounter = 1; // static rolling taskcounter
 
 ApiRequest::ApiRequest(const QHttpRequestHeader &h, const QStringList &p, QTcpSocket *s, const QString &c) :
-    hdr(h), path(p), sock(s), content(c), version(ApiVersion_1), mode(ApiModeNormal)
+    hdr(h), path(p), sock(s), content(c), version(ApiVersion_1), auth(ApiAuthNone), mode(ApiModeNormal)
 {
     if (hdr.hasKey("Accept"))
     {
@@ -13312,7 +13312,6 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
     QString content;
     QTextStream stream(sock);
     QHttpRequestHeader hdrmod(hdr);
-    QHostAddress localHost(QHostAddress::LocalHost);
 
     stream.setCodec(QTextCodec::codecForName("UTF-8"));
     d->pushClientForClose(sock, 10, hdr);
@@ -13377,7 +13376,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
 
     int ret = REQ_NOT_HANDLED;
 
-    bool auth = d->checkAuthorisation(req, rsp);
+    d->authorise(req, rsp);
 
      // general response to a OPTIONS HTTP method
     if (req.hdr.method() == QLatin1String("OPTIONS"))
@@ -13469,63 +13468,10 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
 
     else if (req.path[0] == QLatin1String("api"))
     {
-        // POST /api
-        if ((req.path.size() == 1) && (req.hdr.method() == QLatin1String("POST")))
-        {
-            ret = d->createUser(req, rsp);
-        }
-        // GET /api/challenge
-        else if ((req.path.size() == 2) && (req.hdr.method() == QLatin1String("GET")) && (req.path[1] == QLatin1String("challenge")))
-        {
-            ret = d->getChallenge(req, rsp);
-        }
-        // GET /api/config
-        else if ((req.path.size() == 2) && (req.hdr.method() == QLatin1String("GET")) && (req.path[1] == QLatin1String("config")))
-        {
-            ret = d->getBasicConfig(req, rsp);
-        }
-        // PUT /api/<nouser>/config/wifi/updated
-        else if ((req.path.size() == 5) && (req.hdr.method() == QLatin1String("PUT")) && (req.path[2] == QLatin1String("config")) && (req.path[3] == QLatin1String("wifi")) && (req.path[4] == QLatin1String("updated")))
-        {
-            ret = d->putWifiUpdated(req, rsp);
-        }
-        // PUT /api/<nouser>/config/wifi/scanresult
-        else if ((req.path.size() == 5) && (req.hdr.method() == QLatin1String("PUT")) && (req.path[2] == QLatin1String("config")) && (req.path[3] == QLatin1String("wifi")) && (req.path[4] == QLatin1String("scanresult")))
-        {
-            ret = d->putWifiScanResult(req, rsp);
-        }
-        // DELETE /api/config/password
-        else if ((req.path.size() == 3) && (req.hdr.method() == QLatin1String("DELETE")) && (req.path[1] == QLatin1String("config")) && (req.path[2] == QLatin1String("password")))
-        {
-            ret = d->deletePassword(req, rsp);
-        }
-        // GET api/<apikey>/config/wifi
-        else if ((req.path.size() == 4) && (req.hdr.method() == "GET") && (req.path[2] == "config") && (req.path[3] == "wifi") && (req.sock->peerAddress() == localHost || auth))
-        {
-            ret = d->getWifiState(req, rsp);
-        }
-        else if ((req.path.size() >= 2) && !auth)
-        {
-            // GET /api/<nouser>/config
-            if ((req.path.size() == 3) && (req.path[2] == QLatin1String("config")))
-            {
-                ret = d->getBasicConfig(req, rsp);
-            }
-            else
-            {
-                rsp.httpStatus = HttpStatusForbidden;
-                rsp.list.append(d->errorToMap(ERR_UNAUTHORIZED_USER, "/" + req.path.mid(2).join("/"), "unauthorized user"));
-                if (req.sock)
-                {
-                    DBG_Printf(DBG_HTTP, "\thost: %s\n", qPrintable(req.sock->peerAddress().toString()));
-                }
-                ret = REQ_READY_SEND;
-            }
-        }
-        else if ((req.path.size() >= 2) && auth)
-        {
-            bool resourceExist = true;
+        bool resourceExist = true;
 
+        if ((req.path.size() >= 2) && (req.auth == ApiAuthFull || req.auth == ApiAuthInternal))
+        {
             // GET /api/<apikey>
             if ((req.path.size() == 2) && (req.hdr.method() == QLatin1String("GET")))
             {
@@ -13557,7 +13503,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
             }
             else if (path[2] == QLatin1String("config"))
             {
-                ret = d->handleConfigurationApi(req, rsp);
+                ret = d->handleConfigFullApi(req, rsp);
             }
             else if (path[2] == QLatin1String("info"))
             {
@@ -13587,8 +13533,20 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
             {
                 resourceExist = false;
             }
+        }
+        else
+        {
+            ret = d->handleConfigBasicApi(req, rsp);
+        }
 
-            if (ret == REQ_NOT_HANDLED)
+        if ((ret == REQ_NOT_HANDLED) && (req.auth == ApiAuthLocal || req.auth == ApiAuthInternal || req.auth == ApiAuthFull))
+        {
+            ret = d->handleConfigLocalApi(req, rsp);
+        }
+
+        if (ret == REQ_NOT_HANDLED)
+        {
+            if (req.auth == ApiAuthFull || req.auth == ApiAuthInternal)
             {
                 const QStringList ls = req.path.mid(2);
                 const QString resource = "/" + ls.join("/");
@@ -13601,6 +13559,16 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
                     rsp.list.append(d->errorToMap(ERR_METHOD_NOT_AVAILABLE, resource, "method, " + req.hdr.method() + ", not available for resource, " + resource));
                 }
                 rsp.httpStatus = HttpStatusNotFound;
+                ret = REQ_READY_SEND;
+            }
+            else
+            {
+                rsp.httpStatus = HttpStatusForbidden;
+                rsp.list.append(d->errorToMap(ERR_UNAUTHORIZED_USER, "/" + req.path.mid(2).join("/"), "unauthorized user"));
+                if (req.sock)
+                {
+                    DBG_Printf(DBG_HTTP, "\thost: %s\n", qPrintable(req.sock->peerAddress().toString()));
+                }
                 ret = REQ_READY_SEND;
             }
         }
