@@ -14407,114 +14407,126 @@ bool DeRestPluginPrivate::importConfiguration()
     return ok;
 }
 
-/*! Reset the deCONZ network settings and/or delete Database.
+/*! Reset the deCONZ network settings and/or delete database.
  */
 bool DeRestPluginPrivate::resetConfiguration(bool resetGW, bool deleteDB)
 {
-    if (apsCtrl)
-    {
-        if (resetGW)
-        {
-            qsrand(QDateTime::currentDateTime().toTime_t());
-            uint8_t deviceType = deCONZ::Coordinator;
-            uint16_t panId = qrand();
-            quint64 apsUseExtPanId = 0x0000000000000000;
-            uint16_t nwkAddress = 0x0000;
-            //uint32_t channelMask = 33554432; // 25
-            uint8_t curChannel = 11;
-            gwZigbeeChannel = 11;
-            uint8_t securityMode = 3;
-            // TODO: original macAddress
-            quint64 macAddress = apsCtrl->getParameter(deCONZ::ParamMacAddress);
-
-            QByteArray nwkKey1 = QByteArray::number(qrand(), 16);
-            QByteArray nwkKey2 = QByteArray::number(qrand(), 16);
-            QByteArray nwkKey3 = QByteArray::number(qrand(), 16);
-            QByteArray nwkKey4 = QByteArray::number(qrand(), 16);
-
-            QByteArray nwkKey = nwkKey1.append(nwkKey2).append(nwkKey3).append(nwkKey4);
-            nwkKey.resize(16);
-
-            QByteArray tcLinkKey = QByteArray::fromHex("5a6967426565416c6c69616e63653039");
-            uint8_t nwkUpdateId = 1;
-
-            apsCtrl->setParameter(deCONZ::ParamDeviceType, deviceType);
-            apsCtrl->setParameter(deCONZ::ParamPredefinedPanId, 1);
-            apsCtrl->setParameter(deCONZ::ParamPANID, panId);
-            apsCtrl->setParameter(deCONZ::ParamApsUseExtendedPANID, apsUseExtPanId);
-            apsCtrl->setParameter(deCONZ::ParamExtendedPANID, macAddress);
-            apsCtrl->setParameter(deCONZ::ParamApsAck, 0);
-            apsCtrl->setParameter(deCONZ::ParamNwkAddress, nwkAddress);
-            //apsCtrl->setParameter(deCONZ::ParamChannelMask, channelMask);
-            apsCtrl->setParameter(deCONZ::ParamCurrentChannel, curChannel);
-            apsCtrl->setParameter(deCONZ::ParamSecurityMode, securityMode);
-            apsCtrl->setParameter(deCONZ::ParamTrustCenterAddress, macAddress);
-            apsCtrl->setParameter(deCONZ::ParamNetworkKey, nwkKey);
-            apsCtrl->setParameter(deCONZ::ParamTrustCenterLinkKey, tcLinkKey);
-            apsCtrl->setParameter(deCONZ::ParamNetworkUpdateId, nwkUpdateId);
-            apsCtrl->setParameter(deCONZ::ParamOtauActive, 1);
-
-            //reset Endpoint config
-            QVariantMap epData;
-            QVariantList inClusters;
-            inClusters.append("0x0019");
-            inClusters.append("0x000a");
-
-            epData["index"] = 0;
-            epData["endpoint"] = "0x1";
-            epData["profileId"] = "0x104";
-            epData["deviceId"] = "0x5";
-            epData["deviceVersion"] = "0x1";
-            epData["inClusters"] = inClusters;
-            apsCtrl->setParameter(deCONZ::ParamHAEndpoint, epData);
-
-            epData.clear();
-            epData["index"] = 1;
-            epData["endpoint"] = "0x50";
-            epData["profileId"] = "0xde00";
-            epData["deviceId"] = "0x1";
-            epData["deviceVersion"] = "0x1";
-            apsCtrl->setParameter(deCONZ::ParamHAEndpoint, epData);
-        }
-        if (deleteDB)
-        {
-            QString path = deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation);
-            QString filename = path + "/zll.db";
-
-            QFile file(filename);
-            if (file.exists())
-            {
-                QDateTime now = QDateTime::currentDateTime();
-                QString newFilename = path + "zll_" + now.toString(Qt::ISODate) + ".bak";
-                bool ret = QFile::copy(filename, newFilename);
-                if (ret)
-                {
-                 DBG_Printf(DBG_INFO, "db backup success\n");
-                }
-                else
-                {
-                 DBG_Printf(DBG_INFO, "db backup failed\n");
-                }
-            }
-
-            nodes.clear();
-            groups.clear();
-            sensors.clear();
-            schedules.clear();
-            apiAuths.clear();
-            apiAuthCurrent = 0;
-
-            openDb();
-            clearDb();
-            closeDb();
-            DBG_Printf(DBG_INFO, "all database tables (except auth) cleared.\n");
-        }
-        return true;
-    }
-    else
+    if (!apsCtrl)
     {
         return false;
     }
+
+    // prevent overwrite database with content of current memory
+    // will be reset after application soft restart
+    ttlDataBaseConnection = 0;
+    saveDatabaseItems |= DB_NOSAVE;
+    closeDb();
+
+    if (db)
+    {
+        DBG_Printf(DBG_ERROR, "backup: failed to import - database busy\n");
+        return false; // database might be busy
+    }
+
+    if (resetGW)
+    {
+        qsrand(QDateTime::currentDateTime().toTime_t());
+        uint8_t deviceType = deCONZ::Coordinator;
+        uint16_t panId = qrand();
+        quint64 apsUseExtPanId = 0x0000000000000000;
+        uint16_t nwkAddress = 0x0000;
+        //uint32_t channelMask = 33554432; // 25
+        uint8_t curChannel = 11;
+        gwZigbeeChannel = 11;
+        uint8_t securityMode = 3;
+        // TODO: original macAddress
+        quint64 macAddress = apsCtrl->getParameter(deCONZ::ParamMacAddress);
+
+        if (macAddress == 0)
+        {
+            return false;
+        }
+
+        QByteArray nwkKey1 = QByteArray::number(qrand(), 16);
+        QByteArray nwkKey2 = QByteArray::number(qrand(), 16);
+        QByteArray nwkKey3 = QByteArray::number(qrand(), 16);
+        QByteArray nwkKey4 = QByteArray::number(qrand(), 16);
+
+        QByteArray nwkKey = nwkKey1.append(nwkKey2).append(nwkKey3).append(nwkKey4);
+        nwkKey.resize(16);
+
+        QByteArray tcLinkKey = QByteArray::fromHex("5a6967426565416c6c69616e63653039");
+        uint8_t nwkUpdateId = 1;
+
+        apsCtrl->setParameter(deCONZ::ParamDeviceType, deviceType);
+        apsCtrl->setParameter(deCONZ::ParamPredefinedPanId, 1);
+        apsCtrl->setParameter(deCONZ::ParamPANID, panId);
+        apsCtrl->setParameter(deCONZ::ParamApsUseExtendedPANID, apsUseExtPanId);
+        apsCtrl->setParameter(deCONZ::ParamExtendedPANID, macAddress);
+        apsCtrl->setParameter(deCONZ::ParamApsAck, 0);
+        apsCtrl->setParameter(deCONZ::ParamNwkAddress, nwkAddress);
+        //apsCtrl->setParameter(deCONZ::ParamChannelMask, channelMask);
+        apsCtrl->setParameter(deCONZ::ParamCurrentChannel, curChannel);
+        apsCtrl->setParameter(deCONZ::ParamSecurityMode, securityMode);
+        apsCtrl->setParameter(deCONZ::ParamTrustCenterAddress, macAddress);
+        apsCtrl->setParameter(deCONZ::ParamNetworkKey, nwkKey);
+        apsCtrl->setParameter(deCONZ::ParamTrustCenterLinkKey, tcLinkKey);
+        apsCtrl->setParameter(deCONZ::ParamNetworkUpdateId, nwkUpdateId);
+        apsCtrl->setParameter(deCONZ::ParamOtauActive, 1);
+
+        // reset endpoints
+        QVariantMap epData;
+
+        epData["index"] = 0;
+        epData["endpoint"] = "0x1";
+        epData["profileId"] = "0x104";
+        epData["deviceId"] = "0x5";
+        epData["deviceVersion"] = "0x1";
+        epData["inClusters"] = QVariantList({ "0x0019", "0x000a" });
+        epData["outClusters"] = QVariantList({ "0x0500" });
+        apsCtrl->setParameter(deCONZ::ParamHAEndpoint, epData);
+
+        epData.clear();
+        epData["index"] = 1;
+        epData["endpoint"] = "0xF2";
+        epData["profileId"] = "0xA1E0";
+        epData["deviceId"] = "0x0064";
+        epData["deviceVersion"] = "0x1";
+        epData["outClusters"] = QVariantList({ "0x0021" });
+        apsCtrl->setParameter(deCONZ::ParamHAEndpoint, epData);
+    }
+
+    if (deleteDB)
+    {
+        QString path = deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation);
+        QString filename = path + "/zll.db";
+
+        QFile file(filename);
+        if (file.exists())
+        {
+            QDateTime now = QDateTime::currentDateTime();
+            QString newFilename = path + "zll_" + now.toString(Qt::ISODate) + ".bak";
+            if (QFile::copy(filename, newFilename))
+            {
+                DBG_Printf(DBG_INFO, "db backup success\n");
+            }
+            else
+            {
+                DBG_Printf(DBG_INFO, "db backup failed\n");
+            }
+
+            if (file.remove())
+            {
+                DBG_Printf(DBG_INFO, "db deleted %s\n", qPrintable(file.fileName()));
+            }
+            else
+            {
+                DBG_Printf(DBG_INFO, "db failed to delete %s\n", qPrintable(file.fileName()));
+            }
+        }
+    }
+
+    return true;
 }
 
 Resource *DeRestPluginPrivate::getResource(const char *resource, const QString &id)
@@ -14574,7 +14586,7 @@ void DeRestPluginPrivate::restartAppTimerFired()
     connect(reconnectTimer, SIGNAL(timeout()),
             this, SLOT(reconnectTimerFired()));
 
-    //on rpi deCONZ is restarted if reconnect was successfull
+    // deCONZ will be restarted after reconnect
     genericDisconnectNetwork();
 }
 

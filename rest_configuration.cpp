@@ -2002,33 +2002,6 @@ int DeRestPluginPrivate::resetConfig(const ApiRequest &req, ApiResponse &rsp)
 
     if (resetConfiguration(resetGW, deleteDB))
     {
-        //kick all lights out of their groups that they will not recover their groups
-        if (deleteDB)
-        {
-            std::vector<Group>::const_iterator g = groups.begin();
-            std::vector<Group>::const_iterator gend = groups.end();
-
-            for (; g != gend; ++g)
-            {
-                if (g->state() != Group::StateDeleted && g->state() != Group::StateDeleteFromDB)
-                {
-                    std::vector<LightNode>::iterator i = nodes.begin();
-                    std::vector<LightNode>::iterator end = nodes.end();
-
-                    for (; i != end; ++i)
-                    {
-                        GroupInfo *groupInfo = getGroupInfo(&(*i), g->address());
-
-                        if (groupInfo)
-                        {
-                            groupInfo->actions &= ~GroupInfo::ActionAddToGroup; // sanity
-                            groupInfo->actions |= GroupInfo::ActionRemoveFromGroup;
-                            groupInfo->state = GroupInfo::StateNotInGroup;
-                        }
-                    }
-                }
-            }
-        }
         rsp.httpStatus = HttpStatusOk;
         QVariantMap rspItem;
         QVariantMap rspItemState;
