@@ -131,6 +131,24 @@ void DeRestPluginPrivate::initConfig()
                 DBG_Printf(DBG_INFO, "parent process %s\n", qPrintable(name));
             }
         }
+
+        QFile cgroups("/proc/1/cgroup");
+        if (cgroups.exists() && cgroups.open(QIODevice::ReadOnly))
+        {
+            QByteArray content = cgroups.readAll();
+            if (content.contains("/docker/"))
+            {
+                // https://github.com/marthoc/docker-deconz/blob/master/amd64-hassio-addon/run.sh
+                if (QFile::exists("/data/options.json"))
+                {
+                    gwRunMode = QLatin1String("docker/hassio");
+                }
+                else
+                {
+                    gwRunMode = QLatin1String("docker");
+                }
+            }
+        }
 #else
         gwRunFromShellScript = false;
 #endif
@@ -768,6 +786,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         map["discovery"] = (gwAnnounceInterval > 0);
         map["updatechannel"] = gwUpdateChannel;
         map["fwneedupdate"] = gwFirmwareNeedUpdate;
+        map["runmode"] = gwRunMode;
         if (gwFirmwareNeedUpdate)
         {
             map["fwversionupdate"] = gwFirmwareVersionUpdate;
