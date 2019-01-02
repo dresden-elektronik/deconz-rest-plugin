@@ -25,7 +25,7 @@
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
-int DeRestPluginPrivate::handleLightsApi(ApiRequest &req, ApiResponse &rsp)
+int DeRestPluginPrivate::handleLightsApi(const ApiRequest &req, ApiResponse &rsp)
 {
     if (req.path[2] != QLatin1String("lights"))
     {
@@ -220,13 +220,6 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         return false;
     }
 
-    if (apiAuthCurrent >= apiAuths.size())
-    {
-        return false;
-    }
-
-    const ApiAuth &auth = apiAuths[apiAuthCurrent];
-
     QVariantMap state;
     const ResourceItem *ix = 0;
     const ResourceItem *iy = 0;
@@ -284,7 +277,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
     map["modelid"] = lightNode->modelId(); // real model id
     map["manufacturername"] = lightNode->manufacturer();
 
-    if (!auth.strict)
+    if (req.mode != ApiModeEcho)
     {
         map["hascolor"] = lightNode->hasColor();
     }
@@ -292,7 +285,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
     map["type"] = lightNode->type();
 
     // Amazon Echo quirks mode
-    if (auth.strict && auth.devicetype.startsWith(QLatin1String("Echo")))
+    if (req.mode == ApiModeEcho)
     {
         // OSRAM plug + Ubisys S1/S2
         if (lightNode->type().startsWith(QLatin1String("On/Off")))

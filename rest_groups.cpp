@@ -23,7 +23,7 @@
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
-int DeRestPluginPrivate::handleGroupsApi(ApiRequest &req, ApiResponse &rsp)
+int DeRestPluginPrivate::handleGroupsApi(const ApiRequest &req, ApiResponse &rsp)
 {
     if (req.path[2] != QLatin1String("groups"))
     {
@@ -158,7 +158,6 @@ int DeRestPluginPrivate::getAllGroups(const ApiRequest &req, ApiResponse &rsp)
 /*! POST /api/<apikey>/groups
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
-    \note currently not in Philips API 1.0
  */
 int DeRestPluginPrivate::createGroup(const ApiRequest &req, ApiResponse &rsp)
 {
@@ -211,7 +210,7 @@ int DeRestPluginPrivate::createGroup(const ApiRequest &req, ApiResponse &rsp)
     }
 
     // class
-    if (map.contains("class"))
+    if (type == "Room" && map.contains("class"))
     {
         ok = false;
         QString gclass = map["class"].toString();
@@ -1772,6 +1771,10 @@ bool DeRestPluginPrivate::groupToMap(const ApiRequest &req, const Group *group, 
         //else if (item->descriptor().suffix == RAttrModelId) { map["modelid"] = item->toString(); }; // not supported yet
         else if (item->descriptor().suffix == RAttrClass) { map["class"] = item->toString(); }
         else if (item->descriptor().suffix == RAttrUniqueId) { map["uniqueid"] = item->toString(); }
+    }
+    if (map["type"] != QLatin1String("Room"))
+    {
+        map.remove("class");
     }
 
     map["id"] = group->id();

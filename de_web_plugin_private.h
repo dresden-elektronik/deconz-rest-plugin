@@ -573,7 +573,7 @@ private:
 
 /*! \class ApiAuth
 
-    Helper to combine serval authentification parameters.
+    Helper to combine serval authorisation parameters.
  */
 class ApiAuth
 {
@@ -587,7 +587,6 @@ public:
     ApiAuth();
     void setDeviceType(const QString &devtype);
 
-    bool strict;
     bool needSaveDatabase;
     State state;
     QString apikey; // also called username (10..32 chars)
@@ -601,6 +600,22 @@ enum ApiVersion
 {
     ApiVersion_1,      //!< common version 1.0
     ApiVersion_1_DDEL  //!< version 1.0, "Accept: application/vnd.ddel.v1"
+};
+
+enum ApiAuthorisation
+{
+    ApiAuthNone,
+    ApiAuthLocal,
+    ApiAuthInternal,
+    ApiAuthFull
+};
+
+enum ApiMode
+{
+    ApiModeNormal,
+    ApiModeStrict,
+    ApiModeEcho,
+    ApiModeHue
 };
 
 /*! \class ApiRequest
@@ -619,7 +634,8 @@ public:
     QTcpSocket *sock;
     QString content;
     ApiVersion version;
-    bool strict;
+    ApiAuthorisation auth;
+    ApiMode mode;
 };
 
 /*! \class ApiResponse
@@ -674,10 +690,10 @@ public:
     DeRestPluginPrivate(QObject *parent = 0);
     ~DeRestPluginPrivate();
 
-    // REST API authentification
-    void initAuthentification();
+    // REST API authorisation
+    void initAuthentication();
     bool allowedToCreateApikey(const ApiRequest &req, ApiResponse &rsp, QVariantMap &map);
-    bool checkApikeyAuthentification(const ApiRequest &req, ApiResponse &rsp);
+    void authorise(ApiRequest &req, ApiResponse &rsp);
     QString encryptString(const QString &str);
 
     // REST API gateways
@@ -691,7 +707,9 @@ public:
 
     // REST API configuration
     void initConfig();
-    int handleConfigurationApi(const ApiRequest &req, ApiResponse &rsp);
+    int handleConfigBasicApi(const ApiRequest &req, ApiResponse &rsp);
+    int handleConfigLocalApi(const ApiRequest &req, ApiResponse &rsp);
+    int handleConfigFullApi(const ApiRequest &req, ApiResponse &rsp);
     int createUser(const ApiRequest &req, ApiResponse &rsp);
     int getFullState(const ApiRequest &req, ApiResponse &rsp);
     int getConfig(const ApiRequest &req, ApiResponse &rsp);
@@ -728,7 +746,7 @@ public:
     int deleteUserParameter(const ApiRequest &req, ApiResponse &rsp);
 
     // REST API lights
-    int handleLightsApi(ApiRequest &req, ApiResponse &rsp);
+    int handleLightsApi(const ApiRequest &req, ApiResponse &rsp);
     int getAllLights(const ApiRequest &req, ApiResponse &rsp);
     int searchNewLights(const ApiRequest &req, ApiResponse &rsp);
     int getNewLights(const ApiRequest &req, ApiResponse &rsp);
@@ -745,7 +763,7 @@ public:
     bool lightToMap(const ApiRequest &req, const LightNode *webNode, QVariantMap &map);
 
     // REST API groups
-    int handleGroupsApi(ApiRequest &req, ApiResponse &rsp);
+    int handleGroupsApi(const ApiRequest &req, ApiResponse &rsp);
     int getAllGroups(const ApiRequest &req, ApiResponse &rsp);
     int createGroup(const ApiRequest &req, ApiResponse &rsp);
     int getGroupAttributes(const ApiRequest &req, ApiResponse &rsp);
@@ -769,7 +787,7 @@ public:
 
     // REST API schedules
     void initSchedules();
-    int handleSchedulesApi(ApiRequest &req, ApiResponse &rsp);
+    int handleSchedulesApi(const ApiRequest &req, ApiResponse &rsp);
     int getAllSchedules(const ApiRequest &req, ApiResponse &rsp);
     int createSchedule(const ApiRequest &req, ApiResponse &rsp);
     int getScheduleAttributes(const ApiRequest &req, ApiResponse &rsp);
@@ -779,14 +797,14 @@ public:
 
     // REST API touchlink
     void initTouchlinkApi();
-    int handleTouchlinkApi(ApiRequest &req, ApiResponse &rsp);
-    int touchlinkScan(ApiRequest &req, ApiResponse &rsp);
-    int getTouchlinkScanResults(ApiRequest &req, ApiResponse &rsp);
-    int identifyLight(ApiRequest &req, ApiResponse &rsp);
-    int resetLight(ApiRequest &req, ApiResponse &rsp);
+    int handleTouchlinkApi(const ApiRequest &req, ApiResponse &rsp);
+    int touchlinkScan(const ApiRequest &req, ApiResponse &rsp);
+    int getTouchlinkScanResults(const ApiRequest &req, ApiResponse &rsp);
+    int identifyLight(const ApiRequest &req, ApiResponse &rsp);
+    int resetLight(const ApiRequest &req, ApiResponse &rsp);
 
     // REST API sensors
-    int handleSensorsApi(ApiRequest &req, ApiResponse &rsp);
+    int handleSensorsApi(const ApiRequest &req, ApiResponse &rsp);
     int getAllSensors(const ApiRequest &req, ApiResponse &rsp);
     int getSensor(const ApiRequest &req, ApiResponse &rsp);
     int getSensorData(const ApiRequest &req, ApiResponse &rsp);
@@ -799,16 +817,16 @@ public:
     int createSensor(const ApiRequest &req, ApiResponse &rsp);
     int getGroupIdentifiers(const ApiRequest &req, ApiResponse &rsp);
     int recoverSensor(const ApiRequest &req, ApiResponse &rsp);
-    bool sensorToMap(const Sensor *sensor, QVariantMap &map, bool strictMode);
+    bool sensorToMap(const Sensor *sensor, QVariantMap &map, const ApiMode mode);
     void handleSensorEvent(const Event &e);
 
     // REST API resourcelinks
-    int handleResourcelinksApi(ApiRequest &req, ApiResponse &rsp);
-    int getAllResourcelinks(ApiRequest &req, ApiResponse &rsp);
-    int getResourcelinks(ApiRequest &req, ApiResponse &rsp);
-    int createResourcelinks(ApiRequest &req, ApiResponse &rsp);
-    int updateResourcelinks(ApiRequest &req, ApiResponse &rsp);
-    int deleteResourcelinks(ApiRequest &req, ApiResponse &rsp);
+    int handleResourcelinksApi(const ApiRequest &req, ApiResponse &rsp);
+    int getAllResourcelinks(const ApiRequest &req, ApiResponse &rsp);
+    int getResourcelinks(const ApiRequest &req, ApiResponse &rsp);
+    int createResourcelinks(const ApiRequest &req, ApiResponse &rsp);
+    int updateResourcelinks(const ApiRequest &req, ApiResponse &rsp);
+    int deleteResourcelinks(const ApiRequest &req, ApiResponse &rsp);
 
     // REST API rules
     int handleRulesApi(const ApiRequest &req, ApiResponse &rsp);
@@ -1229,7 +1247,7 @@ public:
     std::vector<Gateway*> gateways;
     GatewayScanner *gwScanner;
 
-    // authentification
+    // authorisation
     QTime apiAuthSaveDatabaseTime;
     size_t apiAuthCurrent;
     std::vector<ApiAuth> apiAuths;
@@ -1296,6 +1314,7 @@ public:
     QString gwBridgeId;
     QString gwUuid;
     QString gwUpdateVersion;
+    QString gwUpdateDate;
     QString gwSwUpdateState;
     QString gwRgbwDisplay;
     QString gwFirmwareVersion;

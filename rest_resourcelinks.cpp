@@ -22,7 +22,7 @@
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
-int DeRestPluginPrivate::handleResourcelinksApi(ApiRequest &req, ApiResponse &rsp)
+int DeRestPluginPrivate::handleResourcelinksApi(const ApiRequest &req, ApiResponse &rsp)
 {
     if (req.path[2] != QLatin1String("resourcelinks"))
     {
@@ -64,7 +64,7 @@ int DeRestPluginPrivate::handleResourcelinksApi(ApiRequest &req, ApiResponse &rs
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
-int DeRestPluginPrivate::getAllResourcelinks(ApiRequest &req, ApiResponse &rsp)
+int DeRestPluginPrivate::getAllResourcelinks(const ApiRequest &req, ApiResponse &rsp)
 {
     Q_UNUSED(req);
     for (const Resourcelinks &rl : resourcelinks)
@@ -91,7 +91,7 @@ int DeRestPluginPrivate::getAllResourcelinks(ApiRequest &req, ApiResponse &rsp)
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
-int DeRestPluginPrivate::getResourcelinks(ApiRequest &req, ApiResponse &rsp)
+int DeRestPluginPrivate::getResourcelinks(const ApiRequest &req, ApiResponse &rsp)
 {
     DBG_Assert(req.path.size() == 4);
     const QString &id = req.path[3];
@@ -117,7 +117,7 @@ int DeRestPluginPrivate::getResourcelinks(ApiRequest &req, ApiResponse &rsp)
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
-int DeRestPluginPrivate::createResourcelinks(ApiRequest &req, ApiResponse &rsp)
+int DeRestPluginPrivate::createResourcelinks(const ApiRequest &req, ApiResponse &rsp)
 {
     rsp.httpStatus = HttpStatusOk;
 
@@ -234,7 +234,7 @@ int DeRestPluginPrivate::createResourcelinks(ApiRequest &req, ApiResponse &rsp)
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
-int DeRestPluginPrivate::updateResourcelinks(ApiRequest &req, ApiResponse &rsp)
+int DeRestPluginPrivate::updateResourcelinks(const ApiRequest &req, ApiResponse &rsp)
 {
     bool ok;
     int errors = 0;
@@ -330,7 +330,7 @@ int DeRestPluginPrivate::updateResourcelinks(ApiRequest &req, ApiResponse &rsp)
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
-int DeRestPluginPrivate::deleteResourcelinks(ApiRequest &req, ApiResponse &rsp)
+int DeRestPluginPrivate::deleteResourcelinks(const ApiRequest &req, ApiResponse &rsp)
 {
     DBG_Assert(req.path.size() == 4);
     const QString &id = req.path[3];

@@ -28,7 +28,7 @@ const int MaxOnTimeWithoutPresence = 60 * 6;
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
-int DeRestPluginPrivate::handleSensorsApi(ApiRequest &req, ApiResponse &rsp)
+int DeRestPluginPrivate::handleSensorsApi(const ApiRequest &req, ApiResponse &rsp)
 {
     if (req.path[2] != QLatin1String("sensors"))
     {
@@ -140,8 +140,10 @@ int DeRestPluginPrivate::getAllSensors(const ApiRequest &req, ApiResponse &rsp)
         }
 
         QVariantMap map;
-        sensorToMap(&*i, map, req.strict);
-        rsp.map[i->id()] = map;
+        if (sensorToMap(&(*i), map, req.mode))
+        {
+            rsp.map[i->id()] = map;
+        }
     }
 
     if (rsp.map.isEmpty())
@@ -191,7 +193,7 @@ int DeRestPluginPrivate::getSensor(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
-    sensorToMap(sensor, rsp.map, req.strict);
+    sensorToMap(sensor, rsp.map, req.mode);
     rsp.httpStatus = HttpStatusOk;
     rsp.etag = sensor->etag;
 
@@ -1827,7 +1829,7 @@ int DeRestPluginPrivate::getNewSensors(const ApiRequest &req, ApiResponse &rsp)
     \return true - on success
             false - on error
  */
-bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, bool strictMode)
+bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, const ApiMode mode)
 {
     if (!sensor)
     {
@@ -1901,26 +1903,62 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, bo
 
     //sensor
     map["name"] = sensor->name();
-
-    if (strictMode)
-    {
-        if (sensor->manufacturer().startsWith(QLatin1String("Philips")) &&
-            sensor->type().startsWith(QLatin1String("ZHA")))
-        {
-            QString type = sensor->type();
-            type.replace(QLatin1String("ZHA"), QLatin1String("ZLL"));
-            map["type"] = type;
-        }
-    }
-    else
-    {
-        map["type"] = sensor->type();
-    }
-
+    map["type"] = sensor->type();
     if (!sensor->modelId().isEmpty())
     {
         map["modelid"] = sensor->modelId();
     }
+    if (!sensor->manufacturer().isEmpty())
+    {
+        map["manufacturername"] = sensor->manufacturer();
+    }
+
+    // whitelist, HueApp crashes on ZHAAlarm and ZHAPressure
+    if (mode == ApiModeHue)
+    {
+        if (!(sensor->type() == QLatin1String("Daylight") ||
+              sensor->type() == QLatin1String("CLIPGenericFlag") ||
+              sensor->type() == QLatin1String("CLIPGenericStatus") ||
+              sensor->type() == QLatin1String("CLIPSwitch") ||
+              sensor->type() == QLatin1String("CLIPOpenClose") ||
+              sensor->type() == QLatin1String("CLIPPresence") ||
+              sensor->type() == QLatin1String("CLIPTemperature") ||
+              sensor->type() == QLatin1String("CLIPHumidity") ||
+              sensor->type() == QLatin1String("CLIPLightlevel") ||
+              sensor->type() == QLatin1String("ZGPSwitch") ||
+              sensor->type() == QLatin1String("ZHASwitch") ||
+              sensor->type() == QLatin1String("ZHAOpenClose") ||
+              sensor->type() == QLatin1String("ZHAPresence") ||
+              sensor->type() == QLatin1String("ZHATemperature") ||
+              sensor->type() == QLatin1String("ZHAHumidity") ||
+              sensor->type() == QLatin1String("ZHALightLevel")))
+        {
+            return false;
+        }
+        // mimic Hue Dimmer Switch
+        if (sensor->modelId() == QLatin1String("TRADFRI wireless dimmer") ||
+            sensor->modelId() == QLatin1String("lumi.sensor_switch.aq2"))
+        {
+            map["manufacturername"] = "Philips";
+            map["modelid"] = "RWL021";
+        }
+        // mimic Hue motions sensor
+        else if (false)
+        {
+            map["manufacturername"] = "Philips";
+            map["modelid"] = "SML001";
+        }
+    }
+
+    if (mode != ApiModeNormal &&
+        sensor->manufacturer().startsWith(QLatin1String("Philips")) &&
+        sensor->type().startsWith(QLatin1String("ZHA")))
+    {
+        QString type = sensor->type();
+        type.replace(QLatin1String("ZHA"), QLatin1String("ZLL"));
+        map["type"] = type;
+    }
+
     if (sensor->fingerPrint().endpoint != INVALID_ENDPOINT)
     {
         map["ep"] = sensor->fingerPrint().endpoint;
@@ -1933,10 +1971,6 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, bo
         sensor->type().endsWith(QLatin1String("Switch")))
     {
         map["mode"] = (double)sensor->mode();
-    }
-    if (!sensor->manufacturer().isEmpty())
-    {
-        map["manufacturername"] = sensor->manufacturer();
     }
 
     const ResourceItem *item = sensor->item(RAttrUniqueId);
@@ -2090,8 +2124,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         map["r"] = QLatin1String("sensors");
 
         QVariantMap smap;
-        bool strictMode = false;
-        sensorToMap(sensor, smap, strictMode);
+        sensorToMap(sensor, smap, ApiModeNormal);
         map["id"] = sensor->id();
         map["uniqueid"] = sensor->uniqueId();
         smap["id"] = sensor->id();

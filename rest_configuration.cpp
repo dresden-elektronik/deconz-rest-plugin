@@ -77,6 +77,7 @@ void DeRestPluginPrivate::initConfig()
     gwZigbeeChannel = 0;
     gwName = GW_DEFAULT_NAME;
     gwUpdateVersion = GW_SW_VERSION; // will be replaced by discovery handler
+    gwUpdateDate = GW_SW_DATE;
     gwSwUpdateState = swUpdateState.noUpdate;
     gwUpdateChannel = "stable";
     gwReportingEnabled = (deCONZ::appArgumentNumeric("--reporting", 1) == 1) ? true : false;
@@ -517,14 +518,78 @@ void DeRestPluginPrivate::configurationChanged()
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
-int DeRestPluginPrivate::handleConfigurationApi(const ApiRequest &req, ApiResponse &rsp)
+int DeRestPluginPrivate::handleConfigBasicApi(const ApiRequest &req, ApiResponse &rsp)
+{
+    // POST /api
+    if ((req.path.size() == 1) && (req.hdr.method() == QLatin1String("POST")))
+    {
+        return createUser(req, rsp);
+    }
+    // GET /api/challenge
+    else if ((req.path.size() == 2) && (req.hdr.method() == QLatin1String("GET")) && (req.path[1] == QLatin1String("challenge")))
+    {
+        return getChallenge(req, rsp);
+    }
+    // GET /api/config
+    else if ((req.path.size() == 2) && (req.hdr.method() == QLatin1String("GET")) && (req.path[1] == QLatin1String("config")))
+    {
+        return getBasicConfig(req, rsp);
+    }
+    // DELETE /api/config/password
+    else if ((req.path.size() == 3) && (req.hdr.method() == QLatin1String("DELETE")) && (req.path[1] == QLatin1String("config")) && (req.path[2] == QLatin1String("password")))
+    {
+        return deletePassword(req, rsp);
+    }
+    // GET /api/<nouser>/config
+    else if ((req.path.size() == 3) && (req.hdr.method() == QLatin1String("GET")) && (req.path[2] == QLatin1String("config")))
+    {
+        return getBasicConfig(req, rsp);
+    }
+
+    return REQ_NOT_HANDLED;
+}
+
+/*! Configuration REST API broker.
+    \param req - request data
+    \param rsp - response data
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::handleConfigLocalApi(const ApiRequest &req, ApiResponse &rsp)
+{
+    // GET api/<localuser>/config/wifi
+    if ((req.path.size() == 4) && (req.hdr.method() == QLatin1String("GET")) && (req.path[2] == QLatin1String("config")) && (req.path[3] == QLatin1String("wifi")))
+    {
+        return getWifiState(req, rsp);
+    }
+    // PUT /api/<localuser>/config/wifi/updated
+    else if ((req.path.size() == 5) && (req.hdr.method() == QLatin1String("PUT")) && (req.path[2] == QLatin1String("config")) && (req.path[3] == QLatin1String("wifi")) && (req.path[4] == QLatin1String("updated")))
+    {
+        return putWifiUpdated(req, rsp);
+    }
+    // PUT /api/<localuser>/config/wifi/scanresult
+    else if ((req.path.size() == 5) && (req.hdr.method() == QLatin1String("PUT")) && (req.path[2] == QLatin1String("config")) && (req.path[3] == QLatin1String("wifi")) && (req.path[4] == QLatin1String("scanresult")))
+    {
+        return putWifiScanResult(req, rsp);
+    }
+
+    return REQ_NOT_HANDLED;
+}
+
+/*! Configuration REST API broker.
+    \param req - request data
+    \param rsp - response data
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::handleConfigFullApi(const ApiRequest &req, ApiResponse &rsp)
 {
     // GET /api/<apikey>/config
     if ((req.path.size() == 3) && (req.hdr.method() == "GET") && (req.path[2] == "config"))
     {
         return getConfig(req, rsp);
     }
-    // GET /api/<apikey>/config/wifi
+    // GET api/<apikey>/config/wifi
     else if ((req.path.size() == 4) && (req.hdr.method() == "GET") && (req.path[2] == "config") && (req.path[3] == "wifi"))
     {
         return getWifiState(req, rsp);
@@ -843,10 +908,10 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     }
     else
     {
-        if (req.strict)
+        if (req.mode != ApiModeNormal)
         {
-            map["swversion"] = QLatin1String("01038802");
-            map["apiversion"] = QLatin1String("1.20.0");
+            map["swversion"] = QLatin1String("1810251352");
+            map["apiversion"] = QLatin1String("1.28.0");
             map["modelid"] = QLatin1String("BSB002");
         }
         devicetypes["bridge"] = false;
@@ -873,7 +938,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     }
 
     bridge["state"] = gwSwUpdateState;
-    bridge["lastinstall"] = "";
+    bridge["lastinstall"] = gwUpdateDate;
     swupdate2["bridge"] = bridge;
     swupdate2["checkforupdate"] = false;
     swupdate2["state"] = gwSwUpdateState;
@@ -1051,7 +1116,7 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
                 continue;
             }
             QVariantMap map;
-            if (sensorToMap(&(*i), map, req.strict))
+            if (sensorToMap(&(*i), map, req.mode))
             {
                 sensorsMap[i->id()] = map;
             }
@@ -1194,7 +1259,7 @@ int DeRestPluginPrivate::getBasicConfig(const ApiRequest &req, ApiResponse &rsp)
 }
 
 /*! GET /api/challenge
-    Creates a new authentification challenge which should be used as HMAC-Sha256(challenge, install code).
+    Creates a new authentication challenge which should be used as HMAC-Sha256(challenge, install code).
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
@@ -1782,6 +1847,7 @@ int DeRestPluginPrivate::deleteUser(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::updateSoftware(const ApiRequest &req, ApiResponse &rsp)
 {
+    Q_UNUSED(req);
     rsp.httpStatus = HttpStatusOk;
     QVariantMap rspItem;
     QVariantMap rspItemState;
@@ -1808,6 +1874,7 @@ int DeRestPluginPrivate::updateSoftware(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::restartGateway(const ApiRequest &req, ApiResponse &rsp)
 {
+    Q_UNUSED(req);
     rsp.httpStatus = HttpStatusOk;
     QVariantMap rspItem;
     QVariantMap rspItemState;
@@ -1836,6 +1903,7 @@ int DeRestPluginPrivate::restartGateway(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::restartApp(const ApiRequest &req, ApiResponse &rsp)
 {
+    Q_UNUSED(req);
     rsp.httpStatus = HttpStatusOk;
     QVariantMap rspItem;
     QVariantMap rspItemState;
@@ -1862,6 +1930,7 @@ int DeRestPluginPrivate::restartApp(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::shutDownGateway(const ApiRequest &req, ApiResponse &rsp)
 {
+    Q_UNUSED(req);
     rsp.httpStatus = HttpStatusOk;
     QVariantMap rspItem;
     QVariantMap rspItemState;
@@ -1890,6 +1959,7 @@ int DeRestPluginPrivate::shutDownGateway(const ApiRequest &req, ApiResponse &rsp
  */
 int DeRestPluginPrivate::updateFirmware(const ApiRequest &req, ApiResponse &rsp)
 {
+    Q_UNUSED(req);
     if (startUpdateFirmware())
     {
         rsp.httpStatus = HttpStatusOk;
@@ -1913,6 +1983,7 @@ int DeRestPluginPrivate::updateFirmware(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::exportConfig(const ApiRequest &req, ApiResponse &rsp)
 {
+    Q_UNUSED(req);
     if (exportConfiguration())
     {
         rsp.httpStatus = HttpStatusOk;
@@ -1936,6 +2007,7 @@ int DeRestPluginPrivate::exportConfig(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::importConfig(const ApiRequest &req, ApiResponse &rsp)
 {
+    Q_UNUSED(req);
     if (importConfiguration())
     {
         rsp.httpStatus = HttpStatusOk;
@@ -2139,7 +2211,7 @@ int DeRestPluginPrivate::deletePassword(const ApiRequest &req, ApiResponse &rsp)
     gwConfig.remove("gwusername");
     gwConfig.remove("gwpassword");
 
-    initAuthentification();
+    initAuthentication();
 
     rsp.httpStatus = HttpStatusOk;
     return REQ_READY_SEND;
@@ -2210,16 +2282,6 @@ void DeRestPluginPrivate::checkRfConnectState()
 int DeRestPluginPrivate::getWifiState(const ApiRequest &req, ApiResponse &rsp)
 {
     Q_UNUSED(req);
-
-    QHostAddress localHost(QHostAddress::LocalHost);
-    if (req.sock->peerAddress() == localHost || checkApikeyAuthentification(req, rsp))
-    {
-        // continue
-    }
-    else
-    {
-        return REQ_READY_SEND;
-    }
 
     rsp.map["wifi"] = gwWifi;
     rsp.map["wifitype"] = gwWifiType;

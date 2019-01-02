@@ -22,7 +22,6 @@
 #define AUTH_KEEP_ALIVE 60
 
 ApiAuth::ApiAuth() :
-    strict(false),
     needSaveDatabase(false),
     state(StateNormal)
 {
@@ -33,17 +32,12 @@ ApiAuth::ApiAuth() :
  */
 void ApiAuth::setDeviceType(const QString &devtype)
 {
-    if (devtype.startsWith(QLatin1String("Echo")) ||
-        devtype.startsWith(QLatin1String("iConnectHue")))
-    {
-        strict = true;
-    }
     devicetype = devtype;
 }
 
-/*! Init authentification and security.
+/*! Init authentication.
  */
-void DeRestPluginPrivate::initAuthentification()
+void DeRestPluginPrivate::initAuthentication()
 {
     bool ok = false;
 
@@ -68,7 +62,7 @@ void DeRestPluginPrivate::initAuthentification()
 
         // combine username:password
         QString comb = QString("%1:%2").arg(gwAdminUserName).arg(gwAdminPasswordHash);
-        // create base64 encoded version as used in HTTP basic authentification
+        // create base64 encoded version as used in HTTP basic authentication
         QString hash = comb.toLocal8Bit().toBase64();
 
         gwAdminPasswordHash = encryptString(hash);
@@ -78,7 +72,7 @@ void DeRestPluginPrivate::initAuthentification()
 
 }
 
-/*! Use HTTP basic authentification or HMAC token to check if the request
+/*! Use HTTP basic authentication or HMAC token to check if the request
     has valid credentials to create API key.
  */
 bool DeRestPluginPrivate::allowedToCreateApikey(const ApiRequest &req, ApiResponse &rsp, QVariantMap &map)
@@ -131,23 +125,29 @@ bool DeRestPluginPrivate::allowedToCreateApikey(const ApiRequest &req, ApiRespon
     return false;
 }
 
-/*! Checks if the request is authenticated to access the API.
-    \retval true if authenticated
-    \retval false if not authenticated and the rsp http status is set to 403 Forbidden and JSON error is appended
+/*! Authorise API access for the request.
  */
-bool DeRestPluginPrivate::checkApikeyAuthentification(const ApiRequest &req, ApiResponse &rsp)
+void DeRestPluginPrivate::authorise(ApiRequest &req, ApiResponse &rsp)
 {
+    Q_UNUSED(rsp);
+
+    QHostAddress localHost(QHostAddress::LocalHost);
+    if (req.sock->peerAddress() == localHost)
+    {
+        req.auth = ApiAuthLocal;
+    }
+
+    if (req.sock == 0) // allow internal requests, as they are issued by triggering rules
+    {
+        req.auth = ApiAuthInternal;
+    }
+
     QString apikey = req.apikey();
     apiAuthCurrent = apiAuths.size();
 
     if (apikey.isEmpty())
     {
-        return false;
-    }
-
-    if (req.sock == 0) // allow internal requests, as they are issued by triggering rules
-    {
-        return true;
+        return;
     }
 
     std::vector<ApiAuth>::iterator i = apiAuths.begin();
@@ -182,13 +182,28 @@ bool DeRestPluginPrivate::checkApikeyAuthentification(const ApiRequest &req, Api
                 }
             }
 
+            if ((!(i->useragent.isEmpty()) && i->useragent.startsWith(QLatin1String("iConnect"))) || i->devicetype.startsWith(QLatin1String("iConnectHue")))
+            {
+                req.mode = ApiModeStrict;
+            }
+            else if (i->devicetype.startsWith(QLatin1String("Echo")))
+            {
+                req.mode = ApiModeEcho;
+            }
+            else if (i->devicetype.startsWith(QLatin1String("hue_")) ||
+                     i->devicetype.startsWith(QLatin1String("Hue ")))
+            {
+                req.mode = ApiModeHue;
+            }
+            DBG_Printf(DBG_HTTP, "ApiMode: %d\n", req.mode);
+
             i->needSaveDatabase = true;
             if (!apiAuthSaveDatabaseTime.isValid() || apiAuthSaveDatabaseTime.elapsed() > (1000 * 60 * 30))
             {
                 apiAuthSaveDatabaseTime.start();
                 queSaveDb(DB_AUTH, DB_HUGE_SAVE_DELAY);
             }
-            return true;
+            req.auth = ApiAuthFull;
         }
     }
 
@@ -208,17 +223,6 @@ bool DeRestPluginPrivate::checkApikeyAuthentification(const ApiRequest &req, Api
     }
 #endif
 
-    const QStringList ls = req.path.mid(2);
-
-    rsp.httpStatus = HttpStatusForbidden;
-    rsp.list.append(errorToMap(ERR_UNAUTHORIZED_USER, "/" + ls.join("/"), "unauthorized user"));
-
-    if (req.sock)
-    {
-        DBG_Printf(DBG_HTTP, "\thost: %s\n", qPrintable(req.sock->peerAddress().toString()));
-    }
-
-    return false;
 }
 
 /*! Encrypts a string with using crypt() MD5 + salt. (unix only)

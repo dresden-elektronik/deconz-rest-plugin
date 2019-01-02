@@ -19,6 +19,7 @@
  */
 int DeRestPluginPrivate::handleScenesApi(const ApiRequest &req, ApiResponse &rsp)
 {
+    Q_UNUSED(req);
     if (rsp.map.isEmpty())
     {
         rsp.str = "{}"; // return empty object
