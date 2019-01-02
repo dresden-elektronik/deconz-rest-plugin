@@ -975,6 +975,13 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             if (extOptions.bits.gpdKeyEncryption)
             {
                 // TODO decrypt key
+                // When GPDkeyPresent sub-field is set
+                // to 0b1 and the GPDkeyEncryption sub-field is set to 0b1, both fields GPDkey and GPDkeyMIC are
+                // present; the field GPDkey contains the gpdSecurityKey, of the type as indicated in the gpdSecurityKey-
+                // Type, encrypted with the default TC-LK (see A.3.3.3.3) as described inA.3.7.1.2.3; and the GPDk-
+                // eyMIC field contains the MIC for the encrypted GPD key, calculated as described in A.3.7.1.2.3.
+
+                // (TC-LK), ‘ZigBeeAlliance09’.
 
                 if (stream.atEnd()) { return; }
                 stream >> gpdMIC;
@@ -1003,6 +1010,15 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
 
         Sensor *sensor = getSensorNodeForFingerPrint(ind.gpdSrcId(), fp, "ZGPSwitch");
 
+        if (searchSensorsState == SearchSensorsActive)
+        {
+            const QDateTime now = QDateTime::currentDateTime();
+            if (!sensor || !sensor->lastRx().isValid() || sensor->lastRx().secsTo(now) > 5)
+            {
+                sendGPPairing(ind.gpdSrcId(), 0xdd09, gpdDeviceId, gpdOutgoingCounter, gpdKey);
+            }
+        }
+
         if (!sensor)
         {
             if (searchSensorsState != SearchSensorsActive)
@@ -1030,6 +1046,7 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             sensorNode.fingerPrint() = fp;
             sensorNode.setUniqueId(generateUniqueId(sensorNode.address().ext(), sensorNode.fingerPrint().endpoint, GREEN_POWER_CLUSTER_ID));
             sensorNode.setMode(Sensor::ModeNone);
+            sensorNode.rx();
 
             ResourceItem *item;
             item = sensorNode.item(RConfigOn);
@@ -1071,6 +1088,7 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
                 sensor->setDeletedState(Sensor::StateNormal);
                 checkSensorGroup(sensor);
                 sensor->setNeedSaveDatabase(true);
+                sensor->rx();
                 DBG_Printf(DBG_INFO, "SensorNode %u: %s reactivated\n", sensor->id().toUInt(), qPrintable(sensor->name()));
                 updateSensorEtag(sensor);
 

@@ -849,6 +849,8 @@ public:
     // Permit join
     void initPermitJoin();
     bool setPermitJoinDuration(uint8_t duration);
+    bool sendGPProxyCommissioningMode();
+    bool sendGPPairing(quint32 gpdSrcId, quint16 sinkGroupId, quint8 deviceId, quint32 frameCounter, const quint8 *key);
 
     // Otau
     void initOtau();

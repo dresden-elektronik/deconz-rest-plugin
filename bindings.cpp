@@ -1974,10 +1974,6 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
             }
         }
     }
-    else if (sensor->modelId() == QLatin1String("ZGPSWITCH"))
-    {
-        // go on
-    }
     else
     {
         return;
