@@ -32,8 +32,7 @@ void DeRestPluginPrivate::initResetDeviceApi()
  */
 void DeRestPluginPrivate::checkResetState()
 {
-
-    if (!isInNetwork())
+    if (!apsCtrl || !isInNetwork())
     {
         resetDeviceTimer->start(CHECK_RESET_DEVICES);
         return;
@@ -44,56 +43,63 @@ void DeRestPluginPrivate::checkResetState()
 
     for (; i != end; ++i)
     {
-        if (i->isAvailable() /* && i->state() == LightNode::StateDeleted */ && i->resetRetryCount() > 0)
+        if (/*i->isAvailable() && */ i->state() == LightNode::StateDeleted && i->resetRetryCount() > 0)
         {
             uint8_t retryCount = i->resetRetryCount();
             retryCount--;
             i->setResetRetryCount(retryCount);
-            DBG_Printf(DBG_INFO, "reset device retries: %i\n", retryCount);
+
+            // check if light has already a new pairing
+            for (const LightNode &l : nodes)
+            {
+                if (l.address().ext() == i->address().ext() && l.state() == LightNode::StateNormal)
+                {
+                    i->setResetRetryCount(0);
+                    retryCount = 0; // do nothing
+                    break;
+                }
+            }
 
             if (retryCount > 0 && i->address().ext() != lastNodeAddressExt) // prefer unhandled nodes
             {
+                DBG_Printf(DBG_INFO, "reset device retries: %i\n", retryCount);
                 // send mgmt_leave_request
-                DBG_Assert(apsCtrl != 0);
-                if (apsCtrl)
+                lastNodeAddressExt = i->address().ext();
+                zdpResetSeq += 1;
+                i->setZdpResetSeq(zdpResetSeq);
+
+                deCONZ::ApsDataRequest req;
+
+                req.setTxOptions(0);
+                req.setDstEndpoint(ZDO_ENDPOINT);
+                req.setDstAddressMode(deCONZ::ApsExtAddress);
+                req.dstAddress().setExt(i->address().ext());
+                req.setProfileId(ZDP_PROFILE_ID);
+                req.setClusterId(ZDP_MGMT_LEAVE_REQ_CLID);
+                req.setSrcEndpoint(ZDO_ENDPOINT);
+                req.setRadius(0);
+
+                QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
+                stream.setByteOrder(QDataStream::LittleEndian);
+                stream << zdpResetSeq; // seq no.
+                stream << (quint64)i->address().ext(); // device address
+
+                uint8_t flags = 0;
+                //                    flags |= 0x40; // remove children
+                //                    flags |= 0x80; // rejoin
+                stream << flags; // flags
+
+                if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
                 {
-                    lastNodeAddressExt = i->address().ext();
-                    zdpResetSeq += 1;
-                    i->setZdpResetSeq(zdpResetSeq);
-
-                    deCONZ::ApsDataRequest req;
-
-                    req.setTxOptions(0);
-                    req.setDstEndpoint(ZDO_ENDPOINT);
-                    req.setDstAddressMode(deCONZ::ApsExtAddress);
-                    req.dstAddress().setExt(i->address().ext());
-                    req.setProfileId(ZDP_PROFILE_ID);
-                    req.setClusterId(ZDP_MGMT_LEAVE_REQ_CLID);
-                    req.setSrcEndpoint(ZDO_ENDPOINT);
-                    req.setRadius(0);
-
-                    QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
-                    stream.setByteOrder(QDataStream::LittleEndian);
-                    stream << zdpResetSeq; // seq no.
-                    stream << (quint64)i->address().ext(); // device address
-
-                    uint8_t flags = 0;
-//                    flags |= 0x40; // remove children
-//                    flags |= 0x80; // rejoin
-                    stream << flags; // flags
-
-                    if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
-                    {
-                        resetDeviceApsRequestId = req.id();
-                        resetDeviceState = ResetWaitConfirm;
-                        resetDeviceTimer->start(WAIT_CONFIRM);
-                        DBG_Printf(DBG_INFO, "reset device apsdeDataRequest success\n");
-                        return;
-                    }
-                    else
-                    {
-                        DBG_Printf(DBG_ERROR, "can't send reset device apsdeDataRequest\n");
-                    }
+                    resetDeviceApsRequestId = req.id();
+                    resetDeviceState = ResetWaitConfirm;
+                    resetDeviceTimer->start(WAIT_CONFIRM);
+                    DBG_Printf(DBG_INFO, "reset device apsdeDataRequest success\n");
+                    return;
+                }
+                else
+                {
+                    DBG_Printf(DBG_ERROR, "can't send reset device apsdeDataRequest\n");
                 }
             }
         }
@@ -121,47 +127,44 @@ void DeRestPluginPrivate::checkResetState()
             if (retryCount > 0 && si->address().ext() != lastNodeAddressExt) // prefer unhandled nodes
             {
                 // send mgmt_leave_request
-                DBG_Assert(apsCtrl != 0);
-                if (apsCtrl)
+                lastNodeAddressExt = si->address().ext();
+                zdpResetSeq += 1;
+                si->setZdpResetSeq(zdpResetSeq);
+
+                deCONZ::ApsDataRequest req;
+
+                req.setTxOptions(0);
+                req.setDstEndpoint(ZDO_ENDPOINT);
+                req.setDstAddressMode(deCONZ::ApsExtAddress);
+                req.dstAddress().setExt(si->address().ext());
+                req.setProfileId(ZDP_PROFILE_ID);
+                req.setClusterId(ZDP_MGMT_LEAVE_REQ_CLID);
+                req.setSrcEndpoint(ZDO_ENDPOINT);
+                req.setRadius(0);
+
+                QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
+                stream.setByteOrder(QDataStream::LittleEndian);
+                stream << zdpResetSeq; // seq no.
+                stream << (quint64)si->address().ext(); // device address
+
+                uint8_t flags = 0;
+                //                    flags |= 0x40; // remove children
+                //                    flags |= 0x80; // rejoin
+                stream << flags; // flags
+
+                if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
                 {
-                    lastNodeAddressExt = si->address().ext();
-                    zdpResetSeq += 1;
-                    si->setZdpResetSeq(zdpResetSeq);
-
-                    deCONZ::ApsDataRequest req;
-
-                    req.setTxOptions(0);
-                    req.setDstEndpoint(ZDO_ENDPOINT);
-                    req.setDstAddressMode(deCONZ::ApsExtAddress);
-                    req.dstAddress().setExt(si->address().ext());
-                    req.setProfileId(ZDP_PROFILE_ID);
-                    req.setClusterId(ZDP_MGMT_LEAVE_REQ_CLID);
-                    req.setSrcEndpoint(ZDO_ENDPOINT);
-                    req.setRadius(0);
-
-                    QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
-                    stream.setByteOrder(QDataStream::LittleEndian);
-                    stream << zdpResetSeq; // seq no.
-                    stream << (quint64)si->address().ext(); // device address
-
-                    uint8_t flags = 0;
-//                    flags |= 0x40; // remove children
-//                    flags |= 0x80; // rejoin
-                    stream << flags; // flags
-
-                    if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
-                    {
-                        resetDeviceApsRequestId = req.id();
-                        resetDeviceState = ResetWaitConfirm;
-                        resetDeviceTimer->start(WAIT_CONFIRM);
-                        DBG_Printf(DBG_INFO, "reset device apsdeDataRequest success\n");
-                        return;
-                    }
-                    else
-                    {
-                        DBG_Printf(DBG_ERROR, "can't send reset device apsdeDataRequest\n");
-                    }
+                    resetDeviceApsRequestId = req.id();
+                    resetDeviceState = ResetWaitConfirm;
+                    resetDeviceTimer->start(WAIT_CONFIRM);
+                    DBG_Printf(DBG_INFO, "reset device apsdeDataRequest success\n");
+                    return;
                 }
+                else
+                {
+                    DBG_Printf(DBG_ERROR, "can't send reset device apsdeDataRequest\n");
+                }
+
             }
         }
         lastNodeAddressExt = 0;
@@ -207,18 +210,6 @@ void DeRestPluginPrivate::handleMgmtLeaveRspIndication(const deCONZ::ApsDataIndi
             return;
         }
 
-        RestNodeBase *node = getLightNodeForAddress(ind.srcAddress());
-
-        if (!node)
-        {
-            node = getSensorNodeForAddress(ind.srcAddress());
-        }
-
-        if (!node)
-        {
-            return;
-        }
-
         resetDeviceTimer->stop();
 
         QDataStream stream(ind.asdu());
@@ -230,7 +221,7 @@ void DeRestPluginPrivate::handleMgmtLeaveRspIndication(const deCONZ::ApsDataIndi
         stream >> seqNo;    // use SeqNo ?
         stream >> status;
 
-        DBG_Printf(DBG_INFO, "MgmtLeave_rsp %s seq: %u, status 0x%02X \n", qPrintable(node->address().toStringExt()), seqNo, status);
+        DBG_Printf(DBG_INFO, "MgmtLeave_rsp %s seq: %u, status 0x%02X \n", qPrintable(ind.srcAddress().toStringExt()), seqNo, status);
 
         if (status == deCONZ::ZdpSuccess || status == deCONZ::ZdpNotSupported)
         {
@@ -240,11 +231,15 @@ void DeRestPluginPrivate::handleMgmtLeaveRspIndication(const deCONZ::ApsDataIndi
 
             for (i = nodes.begin(); i != end; ++i)
             {
+
                 if ((ind.srcAddress().hasExt() && i->address().ext() == ind.srcAddress().ext()) ||
                     (ind.srcAddress().hasNwk() && i->address().nwk() == ind.srcAddress().nwk()))
                 {
                    i->setResetRetryCount(0);
-                   i->item(RStateReachable)->setValue(false);
+                   if (i->state() == LightNode::StateDeleted)
+                   {
+                       i->item(RStateReachable)->setValue(false);
+                   }
                 }
             }
 

@@ -192,46 +192,39 @@ void DeRestPluginPrivate::permitJoinTimerFired()
     {
         permitJoinFlag = true;
         gwPermitJoinDuration--;
-        updateEtag(gwConfigEtag); // update Etag so that webApp can count down permitJoin duration
 
-        //periodically check if there are deleted lights and undelete them
-        if (gwPermitJoinDuration % 10 == 0)
+        if ((gwPermitJoinDuration % 10) == 0)
         {
-            std::vector<LightNode>::iterator i = nodes.begin();
-            std::vector<LightNode>::iterator end = nodes.end();
-
-            for (; i != end; ++i)
+            // try to add light nodes even if they existed in deCONZ bevor and therefore
+            // no node added event will be triggert in this phase
+            int i = 0;
+            const deCONZ::Node *node = nullptr;
+            while (apsCtrl->getNode(i, &node) == 0)
             {
-                if (i->state() == LightNode::StateDeleted)
+                if (node && !node->isZombie() &&
+                        !node->nodeDescriptor().isNull() && node->nodeDescriptor().receiverOnWhenIdle())
                 {
-                    if (i->isAvailable())
-                    {
-                        i->setState(LightNode::StateNormal);
-                        i->setNeedSaveDatabase(true);
-                        queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
-                    }
+                    addLightNode(node);
+                }
+                i++;
+            }
+        }
+        else if ((gwPermitJoinDuration % 15) == 0)
+        {
+            for (LightNode &l : nodes)
+            {
+                if (l.isAvailable() && l.modelId().isEmpty())
+                {
+                    queuePollNode(&l);
                 }
             }
         }
+
+        updateEtag(gwConfigEtag); // update Etag so that webApp can count down permitJoin duration
     }
 
     if (gwPermitJoinDuration == 0 && permitJoinFlag)
     {
-        int i = 0;
-        const deCONZ::Node *node = nullptr;
-
-        // try to add light nodes even if they existed in deCONZ bevor and therefore
-        // no node added event will be triggert in this phase
-        while (apsCtrl->getNode(i, &node) == 0)
-        {
-            if (node && !node->isZombie() &&
-                !node->nodeDescriptor().isNull() && node->nodeDescriptor().receiverOnWhenIdle())
-            {
-                addLightNode(node);
-            }
-            i++;
-        }
-
         permitJoinFlag = false;
     }
 

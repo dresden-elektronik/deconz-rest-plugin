@@ -1999,6 +1999,7 @@ void DeRestPluginPrivate::startSearchLights()
 {
     if (searchLightsState == SearchLightsIdle || searchLightsState == SearchLightsDone)
     {
+        pollNodes.clear();
         searchLightsResult.clear();
         lastLightsScan = QDateTime::currentDateTimeUtc().toString(QLatin1String("yyyy-MM-ddTHH:mm:ss"));
         QTimer::singleShot(1000, this, SLOT(searchLightsTimerFired()));

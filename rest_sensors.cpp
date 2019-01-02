@@ -2213,6 +2213,7 @@ void DeRestPluginPrivate::startSearchSensors()
 {
     if (searchSensorsState == SearchSensorsIdle || searchSensorsState == SearchSensorsDone)
     {
+        pollNodes.clear();
         bindingQueue.clear();
         sensors.reserve(sensors.size() + 10);
         searchSensorsCandidates.clear();

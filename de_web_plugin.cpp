@@ -695,6 +695,11 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
 
             for (LightNode &l : nodes)
             {
+                if (gwPermitJoinDuration > 0)
+                {
+                    break;
+                }
+
                 if (!l.isAvailable() ||
                     !l.lastRx().isValid() /*||
                     l.manufacturerCode() == VENDOR_IKEA ||
@@ -717,7 +722,7 @@ void DeRestPluginPrivate::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
                 }
             }
         }
-        else if (task.lightNode)
+        else if (task.lightNode && gwPermitJoinDuration == 0)
         {
             switch (task.taskType)
             {
@@ -1336,7 +1341,6 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 updateEtag(lightNode2->etag);
             }
 
-            queuePollNode(lightNode2);
             continue;
         }
 
@@ -2277,6 +2281,11 @@ LightNode *DeRestPluginPrivate::getLightNodeForAddress(const deCONZ::Address &ad
     {
         for (; i != end; ++i)
         {
+            if (i->state() != LightNode::StateNormal)
+            {
+                continue;
+            }
+
             if (i->address().ext() == addr.ext())
             {
                 if ((endpoint == 0) || (endpoint == i->haEndpoint().endpoint()))
@@ -2290,6 +2299,11 @@ LightNode *DeRestPluginPrivate::getLightNodeForAddress(const deCONZ::Address &ad
     {
         for (; i != end; ++i)
         {
+            if (i->state() != LightNode::StateNormal)
+            {
+                continue;
+            }
+
             if (i->address().nwk() == addr.nwk())
             {
                 if ((endpoint == 0) || (endpoint == i->haEndpoint().endpoint()))
@@ -2300,7 +2314,7 @@ LightNode *DeRestPluginPrivate::getLightNodeForAddress(const deCONZ::Address &ad
         }
     }
 
-    return 0;
+    return nullptr;
 }
 
 /*! Returns the number of Endpoints of a device.
@@ -10507,7 +10521,10 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                 LightNode *lightNode = getLightNodeForId(ls->lid());
                 if (lightNode && lightNode->isAvailable() && lightNode->state() == LightNode::StateNormal)
                 {
-                    queuePollNode(lightNode);
+                    if (gwPermitJoinDuration == 0)
+                    {
+                        queuePollNode(lightNode);
+                    }
 
                     bool changed = false;
                     if (lightNode->hasColor())
@@ -11119,16 +11136,6 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
 
             if (item)
             {
-                if (gwPermitJoinDuration > 0)
-                {
-                    if (i->state() == LightNode::StateDeleted)
-                    {
-                        i->setState(LightNode::StateNormal);
-                        i->setNeedSaveDatabase(true);
-                        queSaveDb(DB_LIGHTS,DB_SHORT_SAVE_DELAY);
-                    }
-                }
-
                 item->setValue(true); // refresh timestamp after device announce
                 if (i->state() == LightNode::StateNormal)
                 {
@@ -12928,7 +12935,10 @@ void DeRestPlugin::idleTimerFired()
                     }
                 }
 
-                d->queuePollNode(lightNode);
+                if (d->gwPermitJoinDuration == 0)
+                {
+                    d->queuePollNode(lightNode);
+                }
 
                 if (lightNode->lastRx().secsTo(now) > (5 * 60))
                 {
@@ -13087,7 +13097,10 @@ void DeRestPlugin::idleTimerFired()
                     }
                 }
 
-                d->queuePollNode(sensorNode);
+                if (d->gwPermitJoinDuration == 0)
+                {
+                    d->queuePollNode(sensorNode);
+                }
 
                 if (sensorNode->lastRx().secsTo(now) > (5 * 60))
                 {
