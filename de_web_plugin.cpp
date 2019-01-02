@@ -82,7 +82,7 @@ const quint64 osramMacPrefix      = 0x8418260000000000ULL;
 const quint64 bjeMacPrefix        = 0xd85def0000000000ULL;
 const quint64 xalMacPrefix        = 0xf8f0050000000000ULL;
 const quint64 lutronMacPrefix     = 0xffff000000000000ULL;
-const quint64 samjinMacPrefix     = 0xffff000000000000ULL;
+const quint64 samjinMacPrefix     = 0x286d000000000000ULL;
 
 struct SupportedDevice {
     quint16 vendorId;
