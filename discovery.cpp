@@ -235,6 +235,12 @@ void DeRestPluginPrivate::internetDiscoveryFinishedRequest(QNetworkReply *reply)
 #ifdef ARCH_ARM
         // currently this is only supported for the RaspBee Gateway
         internetDiscoveryExtractVersionInfo(reply);
+#else
+        if (gwSwUpdateState != swUpdateState.noUpdate)
+        {
+            gwSwUpdateState = swUpdateState.noUpdate;
+            queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
+        }
 #endif // ARCH_ARM
     }
     else
