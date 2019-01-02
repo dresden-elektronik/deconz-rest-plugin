@@ -404,6 +404,11 @@ void DeRestPluginPrivate::networkWatchdogTimerFired()
         return;
     }
 
+    if (saveDatabaseItems & DB_NOSAVE)
+    {
+        return; // deCONZ will restart shortly
+    }
+
     quint8 channel = apsCtrl->getParameter(deCONZ::ParamCurrentChannel);
     quint32 channelMask = apsCtrl->getParameter(deCONZ::ParamChannelMask);
     quint64 apsUseExtPanid = apsCtrl->getParameter(deCONZ::ParamApsUseExtendedPANID);
