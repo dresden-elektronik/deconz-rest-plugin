@@ -13712,10 +13712,10 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
 
         if (ret == REQ_NOT_HANDLED)
         {
+            const QStringList ls = req.path.mid(2);
+            const QString resource = "/" + ls.join('/');
             if (req.auth == ApiAuthFull || req.auth == ApiAuthInternal)
             {
-                const QStringList ls = req.path.mid(2);
-                const QString resource = "/" + ls.join("/");
                 if (resourceExist && req.hdr.method() == QLatin1String("GET"))
                 {
                     rsp.list.append(d->errorToMap(ERR_RESOURCE_NOT_AVAILABLE, resource, "resource, " + resource + ", not available"));
@@ -13730,7 +13730,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
             else
             {
                 rsp.httpStatus = HttpStatusForbidden;
-                rsp.list.append(d->errorToMap(ERR_UNAUTHORIZED_USER, "/" + req.path.mid(2).join("/"), "unauthorized user"));
+                rsp.list.append(d->errorToMap(ERR_UNAUTHORIZED_USER, resource, "unauthorized user"));
                 if (req.sock)
                 {
                     DBG_Printf(DBG_HTTP, "\thost: %s\n", qPrintable(req.sock->peerAddress().toString()));
