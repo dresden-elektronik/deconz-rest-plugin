@@ -1752,6 +1752,8 @@ int DeRestPluginPrivate::deleteUser(const ApiRequest &req, ApiResponse &rsp)
     std::vector<ApiAuth>::iterator i = apiAuths.begin();
     std::vector<ApiAuth>::iterator end = apiAuths.end();
 
+    // TODO compare error not found on hue bridge
+
     for (; i != end; ++i)
     {
         if (username2 == i->apikey && i->state == ApiAuth::StateNormal)
