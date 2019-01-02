@@ -14231,8 +14231,9 @@ bool DeRestPluginPrivate::importConfiguration()
         // unpack .tar
         QProcess *zipProcess = new QProcess(this);
 #ifdef Q_OS_WIN
-        cmd = appPath + "/7za.exe";
-        args.clear();
+        QString appPath = qApp->applicationDirPath();
+        QString cmd = appPath + "/7za.exe";
+        QStringList args;
         args.append("e");
         args.append("-y");
         args.append(path + "/deCONZ.tar");
