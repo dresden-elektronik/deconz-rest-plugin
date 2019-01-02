@@ -1261,7 +1261,7 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
     }
     else if (strcmp(colval[0], "swupdatestate") == 0)
     {
-        if (!val.isEmpty() && ok)
+        if (!val.isEmpty())
         {
             d->gwConfig["swupdatestate"] = val;
             d->gwSwUpdateState = val;
