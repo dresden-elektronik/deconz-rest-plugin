@@ -47,14 +47,14 @@ void PollManager::poll(RestNodeBase *restNode, const QDateTime &tStart)
 
     if (r->prefix() == RLights)
     {
-        lightNode = static_cast<LightNode*>(restNode);
+        lightNode = dynamic_cast<LightNode*>(restNode);
         DBG_Assert(lightNode);
         pitem.endpoint = lightNode->haEndpoint().endpoint();
         DBG_Printf(DBG_INFO_L2, ">>>> Poll light node %s\n", qPrintable(lightNode->name()));
     }
     else if (r->prefix() == RSensors)
     {
-        sensor = static_cast<Sensor*>(restNode);
+        sensor = dynamic_cast<Sensor*>(restNode);
         DBG_Assert(sensor);
         pitem.endpoint = sensor->fingerPrint().endpoint;
         DBG_Printf(DBG_INFO_L2, ">>>> Poll %s sensor node %s\n", qPrintable(sensor->type()), qPrintable(sensor->name()));
@@ -177,7 +177,7 @@ void PollManager::pollTimerFired()
     if (r && r->prefix() == RLights)
     {
         restNode = plugin->getLightNodeForId(pitem.id);
-        lightNode = static_cast<LightNode*>(restNode);
+        lightNode = dynamic_cast<LightNode*>(restNode);
         item = r->item(RStateReachable);
     }
     else if (r && r->prefix() == RSensors)

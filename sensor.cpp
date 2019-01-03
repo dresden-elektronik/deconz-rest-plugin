@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2013-2019 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -52,7 +52,7 @@ static const Sensor::ButtonMap deLightingSwitchMap[] = {
     { Sensor::ModeColorTemperature, 0x01, 0x0300, 0x4b, 0x3028,    S_BUTTON_4 + S_BUTTON_ACTION_LONG_RELEASED,  "Color temperature move down stop" },
 
     // end
-    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
 static const Sensor::ButtonMap deSceneSwitchMap[] = {
@@ -70,7 +70,7 @@ static const Sensor::ButtonMap deSceneSwitchMap[] = {
     { Sensor::ModeScenes,           0x01, 0x0005, 0x05, 4,    S_BUTTON_6 + S_BUTTON_ACTION_SHORT_RELEASED, "Recall scene 4" },
 
     // end
-    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
 static const Sensor::ButtonMap instaRemoteMap[] = {
@@ -90,7 +90,7 @@ static const Sensor::ButtonMap instaRemoteMap[] = {
     { Sensor::ModeScenes,           0x01, 0x0005, 0x05, 5,    S_BUTTON_8 + S_BUTTON_ACTION_SHORT_RELEASED, "Recall scene 5" },
 
     // end
-    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
 static const Sensor::ButtonMap philipsDimmerSwitchMap[] = {
@@ -128,7 +128,7 @@ static const Sensor::ButtonMap philipsDimmerSwitchMap[] = {
     { Sensor::ModeScenes,           0x02, 0xfc00, 0x00, 0x43,  S_BUTTON_4 + S_BUTTON_ACTION_LONG_RELEASED,  "long release" },
 
     // end
-    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
 static const Sensor::ButtonMap ikeaOnOffMap[] = {
@@ -163,7 +163,7 @@ static const Sensor::ButtonMap ikeaRemoteMap[] = {
     { Sensor::ModeColorTemperature, 0x01, 0x0005, 0x08, 0,    S_BUTTON_5 + S_BUTTON_ACTION_HOLD,           "Move ct warmer" },
     { Sensor::ModeColorTemperature, 0x01, 0x0005, 0x09, 0,    S_BUTTON_5 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop ct warmer" },
     // end
-    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
 static const Sensor::ButtonMap ikeaDimmerMap[] = {
@@ -181,7 +181,7 @@ static const Sensor::ButtonMap ikeaDimmerMap[] = {
     // off
     { Sensor::ModeDimmer, 0x01, 0x0008, 0x04, 0,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Move to level 0 (with on/off)" },
     // end
-    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
 
@@ -191,7 +191,7 @@ static const Sensor::ButtonMap ikeaMotionSensorMap[] = {
     { Sensor::ModeScenes,           0x01, 0x0006, 0x42, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "On with timed off" },
 
     // end
-    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
 static const Sensor::ButtonMap trustZYCT202SwitchMap[] = {
@@ -267,7 +267,7 @@ static const Sensor::ButtonMap bjeSwitchMap[] = {
     { Sensor::ModeDimmer,           0x0B, 0x0008, 0x03, 0,    S_BUTTON_4 + S_BUTTON_ACTION_LONG_RELEASED, "Stop" },
 
     // end
-    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
 static const Sensor::ButtonMap xiaomiSwitchMap[] = {
@@ -281,7 +281,7 @@ static const Sensor::ButtonMap xiaomiSwitchMap[] = {
     { Sensor::ModeScenes,           0x01, 0x0006, 0x0a, 0x80, S_BUTTON_1 + S_BUTTON_ACTION_MANY_PRESS, "Many press" },
 
     // end
-    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
 static const Sensor::ButtonMap xiaomiSwitchAq2Map[] = {
@@ -293,7 +293,7 @@ static const Sensor::ButtonMap xiaomiSwitchAq2Map[] = {
     { Sensor::ModeScenes,           0x01, 0x0006, 0x0a, 4,    S_BUTTON_1 + S_BUTTON_ACTION_QUADRUPLE_PRESS, "Quad press" },
 
     // end
-    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
 static const Sensor::ButtonMap xiaomiVibrationMap[] = {
@@ -304,7 +304,7 @@ static const Sensor::ButtonMap xiaomiVibrationMap[] = {
     { Sensor::ModeScenes,           0x01, 0x0101, 0x0a, 3,    S_BUTTON_1 + S_BUTTON_ACTION_DROP, "Drop" },
 
     // end
-    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
 static const Sensor::ButtonMap ubisysD1Map[] = {
@@ -322,7 +322,7 @@ static const Sensor::ButtonMap ubisysD1Map[] = {
     { Sensor::ModeScenes,           0x03, 0x0008, 0x05, 1,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD, "Move down (with on/off)" },
     { Sensor::ModeScenes,           0x03, 0x0008, 0x07, 1,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
     // end
-    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
 static const Sensor::ButtonMap ubisysC4Map[] = {
@@ -352,7 +352,7 @@ static const Sensor::ButtonMap ubisysC4Map[] = {
     { Sensor::ModeScenes,           0x04, 0x0008, 0x05, 1,    S_BUTTON_4 + S_BUTTON_ACTION_HOLD, "Move down (with on/off)" },
     { Sensor::ModeScenes,           0x04, 0x0008, 0x07, 1,    S_BUTTON_4 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
     // end
-    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
 static const Sensor::ButtonMap ubisysS2Map[] = {
@@ -370,7 +370,7 @@ static const Sensor::ButtonMap ubisysS2Map[] = {
     { Sensor::ModeScenes,           0x04, 0x0008, 0x05, 1,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD, "Move down (with on/off)" },
     { Sensor::ModeScenes,           0x04, 0x0008, 0x07, 1,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
     // end
-    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
 static const Sensor::ButtonMap lutronLZL4BWHLSwitchMap[] = {
@@ -388,7 +388,7 @@ static const Sensor::ButtonMap lutronLZL4BWHLSwitchMap[] = {
     { Sensor::ModeDimmer,           0x01, 0x0008, 0x04, 0x00,  S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED,  "off" },
 
     // end
-    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
 static const Sensor::ButtonMap innrRC110Map[] = {
@@ -463,7 +463,7 @@ static const Sensor::ButtonMap innrRC110Map[] = {
     { Sensor::ModeScenes,           0x08, 0x0008, 0x02, 1,         27000 + S_BUTTON_ACTION_SHORT_RELEASED, "DimDown 6" },
     { Sensor::ModeScenes,           0x08, 0x0008, 0x03, 1,         27000 + S_BUTTON_ACTION_LONG_RELEASED,  "DimDown 6" },
 
-    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           0 }
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
 /*! Returns a fingerprint as JSON string. */
@@ -606,7 +606,7 @@ Sensor::Sensor() :
     m_deletedstate(Sensor::StateNormal),
     m_mode(ModeTwoGroups),
     m_resetRetryCount(0),
-    m_buttonMap(0),
+    m_buttonMap(nullptr),
     m_rxCounter(0)
 {
     QDateTime now = QDateTime::currentDateTime();

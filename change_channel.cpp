@@ -228,7 +228,6 @@ void DeRestPluginPrivate::channelChangeSendConfirm(bool success)
             channelchangeTimer->start(CC_CHANNELCHANGE_VERIFY_TIME);
         }
     }
-    return;
 }
 
 

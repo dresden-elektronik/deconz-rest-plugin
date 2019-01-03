@@ -1137,8 +1137,8 @@ public:
     bool addTaskWindowCoveringSetAttr(TaskItem &task, uint16_t mfrCode, uint16_t attrId, uint8_t attrType, uint16_t attrValue);
     bool addTaskWindowCoveringCalibrate(TaskItem &task, int WindowCoveringType);
     bool addTaskUbisysConfigureSwitch(TaskItem &taskRef);
-    bool addTaskThermostatCmd(TaskItem &task, uint8_t cmd, int8_t setpoint, QString schedule, uint8_t daysToReturn);
-    bool addTaskThermostatSetAndGetSchedule(TaskItem &task, QString sched);
+    bool addTaskThermostatCmd(TaskItem &task, uint8_t cmd, int8_t setpoint, const QString &schedule, uint8_t daysToReturn);
+    bool addTaskThermostatSetAndGetSchedule(TaskItem &task, const QString &sched);
     bool addTaskThermostatReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t attrId, uint8_t attrType, uint16_t attrValue);
     void handleGroupClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleSceneClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);

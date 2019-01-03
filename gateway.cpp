@@ -967,7 +967,7 @@ bool GatewayPrivate::hasAuthorizedError(const QVariant &var)
     }
 
     QVariantList ls = var.toList();
-    for (QVariant item : ls)
+    for (const QVariant &item : ls)
     {
         QVariantMap map = item.toMap();
         if (!map.contains(QLatin1String("error")))

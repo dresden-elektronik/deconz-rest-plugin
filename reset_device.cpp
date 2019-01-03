@@ -172,7 +172,6 @@ void DeRestPluginPrivate::checkResetState()
 
     resetDeviceState = ResetIdle;
     resetDeviceTimer->start(CHECK_RESET_DEVICES);
-    return;
 }
 
 /*! Handle confirmation of ZDP reset device request.

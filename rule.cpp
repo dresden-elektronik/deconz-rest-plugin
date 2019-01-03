@@ -378,14 +378,16 @@ const QString &RuleAction::body() const
 
 // Condition
 RuleCondition::RuleCondition() :
+    m_prefix(nullptr),
+    m_suffix(nullptr),
     m_op(OpUnknown),
     m_num(0)
 {
 }
 
 RuleCondition::RuleCondition(const QVariantMap &map) :
-    m_prefix(0),
-    m_suffix(0),
+    m_prefix(nullptr),
+    m_suffix(nullptr),
     m_num(0)
 {
     bool ok;
@@ -485,7 +487,7 @@ RuleCondition::RuleCondition(const QVariantMap &map) :
             int num = str.toInt(&ok);
             if (ok)
             {
-                m_value = (double)num;
+                m_value = static_cast<double>(num);
             } else { m_op = OpUnknown; } // mark invalid
         }
     }

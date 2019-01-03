@@ -13874,7 +13874,7 @@ void DeRestPluginPrivate::openClientTimerFired()
 void DeRestPluginPrivate::clientSocketDestroyed()
 {
     QObject *obj = sender();
-    QTcpSocket *sock = static_cast<QTcpSocket *>(obj);
+    QTcpSocket *sock = dynamic_cast<QTcpSocket *>(obj);
 
     std::vector<TcpClient>::iterator i = openClients.begin();
     std::vector<TcpClient>::iterator end = openClients.end();
