@@ -74,10 +74,11 @@ Gateway::Gateway(DeRestPluginPrivate *parent) :
     Q_D(Gateway);
     d->parent = parent;
     d->pings = 0;
+    d->port = 0;
     d->state = Gateway::StateOffline;
     d->pairingEnabled = false;
     d->needSaveDatabase = false;
-    d->reply = 0;
+    d->reply = nullptr;
     d->manager = new QNetworkAccessManager(this);
     connect(d->manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(finished(QNetworkReply*)));
     d->timer = new QTimer(this);
@@ -90,12 +91,12 @@ Gateway::Gateway(DeRestPluginPrivate *parent) :
 
 Gateway::~Gateway()
 {
-    Q_ASSERT(d_ptr != 0);
+    Q_ASSERT(d_ptr);
 
     if (d_ptr)
     {
         delete d_ptr;
-        d_ptr = 0;
+        d_ptr = nullptr;
     }
 }
 

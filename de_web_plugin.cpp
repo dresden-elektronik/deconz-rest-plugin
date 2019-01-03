@@ -278,6 +278,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     searchLightsTimeout = 0;
 
     // sensors
+    sensorCheckIter = 0;
     searchSensorsState = SearchSensorsIdle;
     searchSensorsTimeout = 0;
 
@@ -13369,13 +13370,13 @@ void DeRestPlugin::appAboutToQuit()
 
     if (d)
     {
-        d->ttlDataBaseConnection = 0;
         d->saveDatabaseItems |= (DB_SENSORS | DB_RULES | DB_LIGHTS);
         d->openDb();
         d->saveDb();
+        d->ttlDataBaseConnection = 0;
         d->closeDb();
 
-        d->apsCtrl = 0;
+        d->apsCtrl = nullptr;
     }
 }
 
