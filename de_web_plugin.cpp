@@ -640,10 +640,6 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
     {
         otauDataIndication(ind, deCONZ::ZclFrame());
     }
-    else if (ind.profileId() == ATMEL_WSNDEMO_PROFILE_ID)
-    {
-        wsnDemoDataIndication(ind);
-    }
 }
 
 /*! APSDE-DATA.confirm callback.

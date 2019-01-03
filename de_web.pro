@@ -107,7 +107,6 @@ HEADERS  = bindings.h \
            websocket_server.h
 
 SOURCES  = authorisation.cpp \
-           atmel_wsndemo_sensor.cpp \
            bindings.cpp \
            change_channel.cpp \
            connectivity.cpp \

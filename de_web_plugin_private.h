@@ -93,7 +93,6 @@
 
 #define DE_OTAU_ENDPOINT             0x50
 #define DE_PROFILE_ID              0xDE00
-#define ATMEL_WSNDEMO_PROFILE_ID   0x0001
 
 // Generic devices
 #define DEV_ID_ONOFF_SWITCH                 0x0000 // On/Off switch
@@ -877,9 +876,6 @@ public:
     bool isOtauBusy();
     bool isOtauActive();
     int otauLastBusyTimeDelta() const;
-
-    // WSNDemo sensor
-    void wsnDemoDataIndication(const deCONZ::ApsDataIndication &ind);
 
     //Channel Change
     void initChangeChannelApi();
