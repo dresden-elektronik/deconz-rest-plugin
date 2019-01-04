@@ -79,7 +79,9 @@ DeRestWidget::DeRestWidget(QWidget *parent) :
 /*! Deconstructor. */
 DeRestWidget::~DeRestWidget()
 {
+    Q_ASSERT(ui);
     delete ui;
+    ui = nullptr;
 }
 
 /*! Returns true if the plugin is active. */
