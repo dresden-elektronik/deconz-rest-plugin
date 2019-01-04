@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2013-2019 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -19,7 +19,7 @@
     static const char *pwsalt = "$1$8282jdkmskwiu29291"; // $1$ for MD5
 #endif
 
-#define AUTH_KEEP_ALIVE 60
+#define AUTH_KEEP_ALIVE 240
 
 ApiAuth::ApiAuth() :
     needSaveDatabase(false),
@@ -137,7 +137,7 @@ void DeRestPluginPrivate::authorise(ApiRequest &req, ApiResponse &rsp)
         req.auth = ApiAuthLocal;
     }
 
-    if (req.sock == 0) // allow internal requests, as they are issued by triggering rules
+    if (req.sock == nullptr) // allow internal requests, as they are issued by triggering rules
     {
         req.auth = ApiAuthInternal;
     }
@@ -174,7 +174,7 @@ void DeRestPluginPrivate::authorise(ApiRequest &req, ApiResponse &rsp)
             {
                 for (TcpClient &cl : openClients)
                 {
-                    if (cl.sock == req.sock)
+                    if (cl.sock == req.sock && cl.closeTimeout > 0)
                     {
                         cl.closeTimeout = AUTH_KEEP_ALIVE;
                         break;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2019 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -8941,12 +8941,15 @@ void DeRestPluginPrivate::pushClientForClose(QTcpSocket *sock, int closeTimeout,
         if (i->sock == sock)
         {
             // update
-            i->hdr = hdr;
-            if (i->closeTimeout < closeTimeout)
+            if (i->closeTimeout > 0)
             {
-                i->closeTimeout = closeTimeout;
+                i->hdr = hdr;
+                if (i->closeTimeout < closeTimeout)
+                {
+                    i->closeTimeout = closeTimeout;
+                    //DBG_Printf(DBG_INFO, "refresh socket %s : %u %s\n", qPrintable(sock->peerAddress().toString()), sock->peerPort(), qPrintable(hdr.path()));
+                }
             }
-            //DBG_Printf(DBG_INFO, "refresh socket %s : %u %s\n", qPrintable(sock->peerAddress().toString()), sock->peerPort(), qPrintable(hdr.path()));
             return;
         }
     }
@@ -13477,7 +13480,7 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
     QHttpRequestHeader hdrmod(hdr);
 
     stream.setCodec(QTextCodec::codecForName("UTF-8"));
-    d->pushClientForClose(sock, 10, hdr);
+    d->pushClientForClose(sock, 60, hdr);
 
     if (m_state == StateOff)
     {
@@ -13839,7 +13842,7 @@ void DeRestPluginPrivate::openClientTimerFired()
         {
             i->closeTimeout = -1;
 
-            DBG_Assert(i->sock != 0);
+            DBG_Assert(i->sock != nullptr);
 
             if (i->sock)
             {
@@ -13874,14 +13877,13 @@ void DeRestPluginPrivate::openClientTimerFired()
 void DeRestPluginPrivate::clientSocketDestroyed()
 {
     QObject *obj = sender();
-    QTcpSocket *sock = dynamic_cast<QTcpSocket *>(obj);
 
     std::vector<TcpClient>::iterator i = openClients.begin();
     std::vector<TcpClient>::iterator end = openClients.end();
 
     for ( ; i != end; ++i)
     {
-        if (i->sock == sock)
+        if (i->sock == obj)
         {
             //int dt = i->created.secsTo(QDateTime::currentDateTime());
             //DBG_Printf(DBG_INFO, "remove socket %s : %u after %d s, %s\n", qPrintable(sock->peerAddress().toString()), sock->peerPort(), dt, qPrintable(i->hdr.path()));
