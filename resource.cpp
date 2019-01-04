@@ -130,6 +130,10 @@ static std::vector<QString> rItemStrings; // string allocator: only grows, never
 
 void initResourceDescriptors()
 {
+    rPrefixes.clear();
+    rItemDescriptors.clear();
+    rItemStrings.clear();
+
     rItemStrings.emplace_back(QString()); // invalid string on index 0
 
     // init resource lookup
