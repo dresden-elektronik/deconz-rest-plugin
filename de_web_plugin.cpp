@@ -39,6 +39,7 @@
 #include "gateway_scanner.h"
 #include "json.h"
 #include "poll_manager.h"
+#include "rest_devices.h"
 
 const char *HttpStatusOk           = "200 OK"; // OK
 const char *HttpStatusAccepted     = "202 Accepted"; // Accepted but not complete
@@ -206,6 +207,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     QObject(parent)
 {
     pollManager = new PollManager(this);
+    restDevices = new RestDevices(this);
 
     databaseTimer = new QTimer(this);
     databaseTimer->setSingleShot(true);
@@ -13642,6 +13644,10 @@ int DeRestPlugin::handleHttpRequest(const QHttpRequestHeader &hdr, QTcpSocket *s
             if ((req.path.size() == 2) && (req.hdr.method() == QLatin1String("GET")))
             {
                 ret = d->getFullState(req, rsp);
+            }
+            else if (path[2] == QLatin1String("devices"))
+            {
+                ret = d->restDevices->handleApi(req, rsp);
             }
             else if (path[2] == QLatin1String("lights"))
             {

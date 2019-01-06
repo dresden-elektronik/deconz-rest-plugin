@@ -1116,7 +1116,7 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
                 continue;
             }
             QVariantMap map;
-            if (sensorToMap(&(*i), map, req.mode))
+            if (sensorToMap(&(*i), map, req))
             {
                 sensorsMap[i->id()] = map;
             }

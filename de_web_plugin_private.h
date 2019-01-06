@@ -387,6 +387,7 @@ class QNetworkReply;
 class QNetworkAccessManager;
 class QProcess;
 class PollManager;
+class RestDevices;
 
 struct Schedule
 {
@@ -816,7 +817,7 @@ public:
     int createSensor(const ApiRequest &req, ApiResponse &rsp);
     int getGroupIdentifiers(const ApiRequest &req, ApiResponse &rsp);
     int recoverSensor(const ApiRequest &req, ApiResponse &rsp);
-    bool sensorToMap(const Sensor *sensor, QVariantMap &map, const ApiMode mode);
+    bool sensorToMap(const Sensor *sensor, QVariantMap &map, const ApiRequest &req);
     void handleSensorEvent(const Event &e);
 
     // REST API resourcelinks
@@ -1518,6 +1519,8 @@ public:
         SearchSensorsActive,
         SearchSensorsDone,
     };
+
+    RestDevices *restDevices;
 
     int sensorIndIdleTotalCounter;
 

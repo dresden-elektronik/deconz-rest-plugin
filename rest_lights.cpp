@@ -274,14 +274,6 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
 
     map["uniqueid"] = lightNode->uniqueId();
     map["name"] = lightNode->name();
-    map["modelid"] = lightNode->modelId(); // real model id
-    map["manufacturername"] = lightNode->manufacturer();
-
-    if (req.mode != ApiModeEcho)
-    {
-        map["hascolor"] = lightNode->hasColor();
-    }
-
     map["type"] = lightNode->type();
 
     // Amazon Echo quirks mode
@@ -297,11 +289,25 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         }
     }
 
-    map["swversion"] = lightNode->swBuildId();
+    if (req.path.size() > 2 && req.path[2] == QLatin1String("devices"))
+    {
+        // don't add in sub device
+    }
+    else
+    {
+        if (req.mode != ApiModeEcho)
+        {
+            map["hascolor"] = lightNode->hasColor();
+        }
 
-    QString etag = lightNode->etag;
-    etag.remove('"'); // no quotes allowed in string
-    map["etag"] = etag;
+        map["modelid"] = lightNode->modelId(); // real model id
+        map["manufacturername"] = lightNode->manufacturer();
+        map["swversion"] = lightNode->swBuildId();
+        QString etag = lightNode->etag;
+        etag.remove('"'); // no quotes allowed in string
+        map["etag"] = etag;
+    }
+
     map["state"] = state;
     return true;
 }

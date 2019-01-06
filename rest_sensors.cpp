@@ -140,7 +140,7 @@ int DeRestPluginPrivate::getAllSensors(const ApiRequest &req, ApiResponse &rsp)
         }
 
         QVariantMap map;
-        if (sensorToMap(&(*i), map, req.mode))
+        if (sensorToMap(&*i, map, req))
         {
             rsp.map[i->id()] = map;
         }
@@ -193,7 +193,7 @@ int DeRestPluginPrivate::getSensor(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
-    sensorToMap(sensor, rsp.map, req.mode);
+    sensorToMap(sensor, rsp.map, req);
     rsp.httpStatus = HttpStatusOk;
     rsp.etag = sensor->etag;
 
@@ -1829,7 +1829,7 @@ int DeRestPluginPrivate::getNewSensors(const ApiRequest &req, ApiResponse &rsp)
     \return true - on success
             false - on error
  */
-bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, const ApiMode mode)
+bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, const ApiRequest &req)
 {
     if (!sensor)
     {
@@ -1904,17 +1904,36 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
     //sensor
     map["name"] = sensor->name();
     map["type"] = sensor->type();
-    if (!sensor->modelId().isEmpty())
+
+    if (req.path.size() > 2 && req.path[2] == QLatin1String("devices"))
     {
-        map["modelid"] = sensor->modelId();
+        // don't add in sub device
     }
-    if (!sensor->manufacturer().isEmpty())
+    else
     {
-        map["manufacturername"] = sensor->manufacturer();
+        if (!sensor->modelId().isEmpty())
+        {
+            map["modelid"] = sensor->modelId();
+        }
+        if (!sensor->manufacturer().isEmpty())
+        {
+            map["manufacturername"] = sensor->manufacturer();
+        }
+        if (!sensor->swVersion().isEmpty() && !sensor->type().startsWith(QLatin1String("ZGP")))
+        {
+            map["swversion"] = sensor->swVersion();
+        }
+        if (sensor->fingerPrint().endpoint != INVALID_ENDPOINT)
+        {
+            map["ep"] = sensor->fingerPrint().endpoint;
+        }
+        QString etag = sensor->etag;
+        etag.remove('"'); // no quotes allowed in string
+        map["etag"] = etag;
     }
 
     // whitelist, HueApp crashes on ZHAAlarm and ZHAPressure
-    if (mode == ApiModeHue)
+    if (req.mode == ApiModeHue)
     {
         if (!(sensor->type() == QLatin1String("Daylight") ||
               sensor->type() == QLatin1String("CLIPGenericFlag") ||
@@ -1950,7 +1969,7 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
         }
     }
 
-    if (mode != ApiModeNormal &&
+    if (req.mode != ApiModeNormal &&
         sensor->manufacturer().startsWith(QLatin1String("Philips")) &&
         sensor->type().startsWith(QLatin1String("ZHA")))
     {
@@ -1959,14 +1978,6 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
         map["type"] = type;
     }
 
-    if (sensor->fingerPrint().endpoint != INVALID_ENDPOINT)
-    {
-        map["ep"] = sensor->fingerPrint().endpoint;
-    }
-    if (!sensor->swVersion().isEmpty() && !sensor->type().startsWith(QLatin1String("ZGP")))
-    {
-        map["swversion"] = sensor->swVersion();
-    }
     if (sensor->mode() != Sensor::ModeNone &&
         sensor->type().endsWith(QLatin1String("Switch")))
     {
@@ -1981,9 +1992,6 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
     map["state"] = state;
     map["config"] = config;
 
-    QString etag = sensor->etag;
-    etag.remove('"'); // no quotes allowed in string
-    map["etag"] = etag;
     return true;
 }
 
@@ -2124,7 +2132,13 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         map["r"] = QLatin1String("sensors");
 
         QVariantMap smap;
-        sensorToMap(sensor, smap, ApiModeNormal);
+
+        QHttpRequestHeader hdr;  // dummy
+        QStringList path;  // dummy
+        ApiRequest req(hdr, path, nullptr, QLatin1String("")); // dummy
+
+        req.mode = ApiModeNormal;
+        sensorToMap(sensor, smap, req);
         map["id"] = sensor->id();
         map["uniqueid"] = sensor->uniqueId();
         smap["id"] = sensor->id();

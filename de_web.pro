@@ -100,6 +100,7 @@ HEADERS  = bindings.h \
            poll_manager.h \
            resource.h \
            resourcelinks.h \
+           rest_devices.h \
            rest_node_base.h \
            rule.h \
            scene.h \
@@ -133,6 +134,7 @@ SOURCES  = authorisation.cpp \
            resource.cpp \
            resourcelinks.cpp \
            rest_configuration.cpp \
+           rest_devices.cpp \
            rest_gateways.cpp \
            rest_groups.cpp \
            rest_lights.cpp \
