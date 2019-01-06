@@ -1659,6 +1659,11 @@ static int sqliteLoadAllResourcelinksCallback(void *user, int ncols, char **colv
         }
     }
 
+    if (!rl.data.contains(QLatin1String("description")) || rl.data["description"].toString().isNull())
+    {
+        rl.data["description"] = QLatin1String("");
+    }
+
     d->resourcelinks.push_back(rl);
 
     return 0;

@@ -160,11 +160,11 @@ int DeRestPluginPrivate::createResourcelinks(const ApiRequest &req, ApiResponse 
     //check available and valid parameters
     {
         QVariantMap available;
-        available["name"] = (uint)QVariant::String;
-        available["description"] = (uint)QVariant::String;
-        available["classid"] = (uint)QVariant::Double;
-        available["links"] = (uint)QVariant::List;
-        available["recycle"] = (uint)QVariant::Bool;
+        available["name"] = static_cast<uint>(QVariant::String);
+        available["description"] = static_cast<uint>(QVariant::String);
+        available["classid"] = static_cast<uint>(QVariant::Double);
+        available["links"] = static_cast<uint>(QVariant::List);
+        available["recycle"] = static_cast<uint>(QVariant::Bool);
         QStringList availableKeys = available.keys();
 
         for (const QString &param : map.keys())
@@ -205,12 +205,12 @@ int DeRestPluginPrivate::createResourcelinks(const ApiRequest &req, ApiResponse 
     rl.data["type"]  = QLatin1String("Link");
     rl.data["owner"] = req.path[1];
 
-    if (!rl.data.contains("description"))
+    if (!rl.data.contains(QLatin1String("description")) || rl.data["description"].toString().isNull())
     {
-        rl.data["description"] = "";
+        rl.data["description"] = QLatin1String("");
     }
 
-    if (!rl.data.contains("recycle"))
+    if (!rl.data.contains(QLatin1String("recycle")))
     {
         rl.data["recycle"] = false;
     }
@@ -241,7 +241,7 @@ int DeRestPluginPrivate::updateResourcelinks(const ApiRequest &req, ApiResponse 
     DBG_Assert(req.path.size() == 4);
     const QString &id = req.path[3];
     rsp.httpStatus = HttpStatusOk;
-    Resourcelinks *rl = 0;
+    Resourcelinks *rl = nullptr;
 
     for (Resourcelinks &r : resourcelinks)
     {
@@ -274,11 +274,11 @@ int DeRestPluginPrivate::updateResourcelinks(const ApiRequest &req, ApiResponse 
     //check available and valid parameters
     {
         QVariantMap available;
-        available["name"] = (uint)QVariant::String;
-        available["description"] = (uint)QVariant::String;
-        available["classid"] = (uint)QVariant::Double;
-        available["links"] = (uint)QVariant::List;
-        available["recycle"] = (uint)QVariant::Bool;
+        available["name"] = static_cast<uint>(QVariant::String);
+        available["description"] = static_cast<uint>(QVariant::String);
+        available["classid"] = static_cast<uint>(QVariant::Double);
+        available["links"] = static_cast<uint>(QVariant::List);
+        available["recycle"] = static_cast<uint>(QVariant::Bool);
         QStringList availableKeys = available.keys();
 
         for (const QString &param : map.keys())
@@ -313,12 +313,17 @@ int DeRestPluginPrivate::updateResourcelinks(const ApiRequest &req, ApiResponse 
         rsp.list.push_back(rspItem);
     }
 
+    if (!rl->data.contains(QLatin1String("description")) || rl->data["description"].toString().isNull())
+    {
+        rl->data["description"] = QLatin1String("");
+    }
+
     rl->setNeedSaveDatabase(true);
     queSaveDb(DB_RESOURCELINKS, DB_SHORT_SAVE_DELAY);
 
     if (rsp.list.empty())
     {
-        rsp.str = "[]"; // empty
+        rsp.str = QLatin1String("[]"); // empty
     }
 
     return REQ_READY_SEND;
