@@ -26,6 +26,7 @@ const char *REventCheckGroupAnyOn = "event/checkgroupanyon";
 const char *RInvalidSuffix = "invalid/suffix";
 
 const char *RAttrName = "attr/name";
+const char *RAttrManufacturerName = "attr/manufacturername";
 const char *RAttrModelId = "attr/modelid";
 const char *RAttrType = "attr/type";
 const char *RAttrClass = "attr/class";
@@ -138,6 +139,7 @@ void initResourceDescriptors()
 
     // init resource lookup
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrName));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrManufacturerName));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrModelId));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrType));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrClass));

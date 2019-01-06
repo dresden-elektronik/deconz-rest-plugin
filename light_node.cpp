@@ -18,7 +18,6 @@ LightNode::LightNode() :
    m_resetRetryCount(0),
    m_zdpResetSeq(0),
    m_groupCapacity(0),
-   m_manufacturer("Unknown"),
    m_manufacturerCode(0),
    m_otauClusterId(0), // unknown
    m_isOn(false),
@@ -41,9 +40,12 @@ LightNode::LightNode() :
     addItem(DataTypeString, RStateAlert);
     addItem(DataTypeBool, RStateReachable);
     addItem(DataTypeString, RAttrName);
+    addItem(DataTypeString, RAttrManufacturerName);
     addItem(DataTypeString, RAttrModelId);
     addItem(DataTypeString, RAttrType);
     addItem(DataTypeString, RAttrSwVersion);
+
+    setManufacturerName(QLatin1String("Unknown"));
 }
 
 /*! Returns the LightNode state.
@@ -84,39 +86,42 @@ void LightNode::setManufacturerCode(uint16_t code)
     {
         m_manufacturerCode = code;
 
-        if (!m_manufacturer.isEmpty() && (m_manufacturer != QLatin1String("Unknown")))
+        if (!manufacturer().isEmpty() && (manufacturer() != QLatin1String("Unknown")))
         {
             return;
         }
 
+        QString name;
         switch (code)
         {
         case VENDOR_ATMEL: // fall through
-        case VENDOR_DDEL:    m_manufacturer = QLatin1String("dresden elektronik"); break;
-        case VENDOR_BEGA:    m_manufacturer = QLatin1String("BEGA"); break;
-        case VENDOR_IKEA:    m_manufacturer = QLatin1String("IKEA of Sweden"); break;
-        case VENDOR_INNR:    m_manufacturer = QLatin1String("innr"); break;
-        case VENDOR_INNR2:   m_manufacturer = QLatin1String("innr"); break;
-        case VENDOR_INSTA:   m_manufacturer = QLatin1String("Insta"); break;
-        case VENDOR_PHILIPS: m_manufacturer = QLatin1String("Philips"); break;
+        case VENDOR_DDEL:    name = QLatin1String("dresden elektronik"); break;
+        case VENDOR_BEGA:    name = QLatin1String("BEGA"); break;
+        case VENDOR_IKEA:    name = QLatin1String("IKEA of Sweden"); break;
+        case VENDOR_INNR:    name = QLatin1String("innr"); break;
+        case VENDOR_INNR2:   name = QLatin1String("innr"); break;
+        case VENDOR_INSTA:   name = QLatin1String("Insta"); break;
+        case VENDOR_PHILIPS: name = QLatin1String("Philips"); break;
         case VENDOR_OSRAM_STACK: // fall through
-        case VENDOR_OSRAM:   m_manufacturer = QLatin1String("OSRAM"); break;
-        case VENDOR_UBISYS:  m_manufacturer = QLatin1String("ubisys"); break;
-        case VENDOR_BUSCH_JAEGER:  m_manufacturer = QLatin1String("Busch-Jaeger"); break;
+        case VENDOR_OSRAM:   name = QLatin1String("OSRAM"); break;
+        case VENDOR_UBISYS:  name = QLatin1String("ubisys"); break;
+        case VENDOR_BUSCH_JAEGER:  name = QLatin1String("Busch-Jaeger"); break;
         case VENDOR_EMBER:   // fall through
-        case VENDOR_120B:    m_manufacturer = QLatin1String("Heiman"); break;
-        case VENDOR_KEEN_HOME: m_manufacturer = QLatin1String("Keen Home Inc"); break;
+        case VENDOR_120B:    name = QLatin1String("Heiman"); break;
+        case VENDOR_KEEN_HOME: name = QLatin1String("Keen Home Inc"); break;
         default:
-            m_manufacturer = QLatin1String("Unknown");
+            name = QLatin1String("Unknown");
             break;
         }
+
+        setManufacturerName(name);
     }
 }
 
 /*! Returns the manufacturer name. */
 const QString &LightNode::manufacturer() const
 {
-    return m_manufacturer;
+    return item(RAttrManufacturerName)->toString();
 }
 
 /*! Sets the manufacturer name.
@@ -124,7 +129,7 @@ const QString &LightNode::manufacturer() const
  */
 void LightNode::setManufacturerName(const QString &name)
 {
-    m_manufacturer = name.trimmed();
+    item(RAttrManufacturerName)->setValue(name.trimmed());
 }
 
 /*! Returns the model indentifier.

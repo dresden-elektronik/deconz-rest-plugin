@@ -141,7 +141,6 @@ public:
 
 private:
     DeletedState m_deletedstate;
-    QString m_manufacturer;
     SensorFingerprint m_fingerPrint;
     SensorMode m_mode;
     uint8_t m_resetRetryCount;

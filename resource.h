@@ -41,6 +41,7 @@ extern const char *REventCheckGroupAnyOn;
 extern const char *RInvalidSuffix;
 
 extern const char *RAttrName;
+extern const char *RAttrManufacturerName;
 extern const char *RAttrModelId;
 extern const char *RAttrType;
 extern const char *RAttrClass;

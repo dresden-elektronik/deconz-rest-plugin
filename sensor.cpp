@@ -616,6 +616,7 @@ Sensor::Sensor() :
 
     // common sensor items
     addItem(DataTypeString, RAttrName);
+    addItem(DataTypeString, RAttrManufacturerName);
     addItem(DataTypeString, RAttrModelId);
     addItem(DataTypeString, RAttrType);
     addItem(DataTypeString, RAttrSwVersion);
@@ -773,7 +774,7 @@ int Sensor::rxCounter() const
  */
 const QString &Sensor::manufacturer() const
 {
-    return m_manufacturer;
+    return item(RAttrManufacturerName)->toString();
 }
 
 /*! Sets the sensor manufacturer.
@@ -781,7 +782,7 @@ const QString &Sensor::manufacturer() const
  */
 void Sensor::setManufacturer(const QString &manufacturer)
 {
-    m_manufacturer = manufacturer;
+    item(RAttrManufacturerName)->setValue(manufacturer.trimmed());
 }
 
 /*! Returns the sensor software version.
@@ -958,52 +959,53 @@ const Sensor::ButtonMap *Sensor::buttonMap()
     if (!m_buttonMap)
     {
         const QString &modelid = item(RAttrModelId)->toString();
-        if (m_manufacturer == QLatin1String("dresden elektronik"))
+        const QString &manufacturer = item(RAttrManufacturerName)->toString();
+        if (manufacturer == QLatin1String("dresden elektronik"))
         {
             if      (modelid == QLatin1String("Lighting Switch")) { m_buttonMap = deLightingSwitchMap; }
             else if (modelid == QLatin1String("Scene Switch"))    { m_buttonMap = deSceneSwitchMap; }
         }
-        else if (m_manufacturer == QLatin1String("Insta"))
+        else if (manufacturer == QLatin1String("Insta"))
         {
             if      (modelid.endsWith(QLatin1String("_1")))       { m_buttonMap = instaRemoteMap; }
             if      (modelid.contains(QLatin1String("Remote")))   { m_buttonMap = instaRemoteMap; }
         }
-        else if (m_manufacturer == QLatin1String("Philips"))
+        else if (manufacturer == QLatin1String("Philips"))
         {
             if      (modelid.startsWith(QLatin1String("RWL02")))  { m_buttonMap = philipsDimmerSwitchMap; }
         }
-        else if (m_manufacturer == QLatin1String("Busch-Jaeger"))
+        else if (manufacturer == QLatin1String("Busch-Jaeger"))
         {
             m_buttonMap = bjeSwitchMap;
         }
-        else if (m_manufacturer.startsWith(QLatin1String("IKEA")))
+        else if (manufacturer.startsWith(QLatin1String("IKEA")))
         {
             if      (modelid.contains(QLatin1String("remote"))) { m_buttonMap = ikeaRemoteMap; }
             else if (modelid.contains(QLatin1String("motion"))) { m_buttonMap = ikeaMotionSensorMap; }
             else if (modelid.contains(QLatin1String("dimmer"))) { m_buttonMap = ikeaDimmerMap; }
             else if (modelid.contains(QLatin1String("on/off"))) { m_buttonMap = ikeaOnOffMap; }
         }
-        else if (m_manufacturer == QLatin1String("ubisys"))
+        else if (manufacturer == QLatin1String("ubisys"))
         {
             if      (modelid.startsWith(QLatin1String("D1"))) { m_buttonMap = ubisysD1Map; }
             else if (modelid.startsWith(QLatin1String("C4"))) { m_buttonMap = ubisysC4Map; }
             else if (modelid.startsWith(QLatin1String("S2"))) { m_buttonMap = ubisysS2Map; }
         }
-        else if (m_manufacturer == QLatin1String("LUMI"))
+        else if (manufacturer == QLatin1String("LUMI"))
         {
             if      (modelid == QLatin1String("lumi.sensor_switch"))      { m_buttonMap = xiaomiSwitchMap; }
             else if (modelid == QLatin1String("lumi.sensor_switch.aq2"))  { m_buttonMap = xiaomiSwitchAq2Map; }
             else if (modelid.startsWith(QLatin1String("lumi.vibration"))) { m_buttonMap = xiaomiVibrationMap; }
         }
-        else if (m_manufacturer == QLatin1String("Lutron"))
+        else if (manufacturer == QLatin1String("Lutron"))
         {
             if      (modelid.startsWith(QLatin1String("LZL4BWHL")))      { m_buttonMap = lutronLZL4BWHLSwitchMap; }
         }
-        else if (m_manufacturer == QLatin1String("Trust"))
+        else if (manufacturer == QLatin1String("Trust"))
         {
             if      (modelid == QLatin1String("ZYCT-202"))      { m_buttonMap = trustZYCT202SwitchMap; }
         }
-        else if (m_manufacturer == QLatin1String("innr"))
+        else if (manufacturer == QLatin1String("innr"))
         {
             if      (modelid.startsWith(QLatin1String("RC 110"))) { m_buttonMap = innrRC110Map; }
         }

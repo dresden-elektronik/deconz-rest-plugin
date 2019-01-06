@@ -92,7 +92,6 @@ private:
     uint8_t m_resetRetryCount;
     uint8_t m_zdpResetSeq;
     uint8_t m_groupCapacity;
-    QString m_manufacturer;
     uint16_t m_manufacturerCode;
     uint16_t m_otauClusterId;
     std::vector<GroupInfo> m_groups;
