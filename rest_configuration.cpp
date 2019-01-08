@@ -70,6 +70,7 @@ void DeRestPluginPrivate::initConfig()
     gwWifiIp = QLatin1String("192.168.8.1");
     gwWifiPw = "";
     gwWifiClientPw = "";
+    gwWifiPageActive = false;
     gwHomebridge = QLatin1String("not-managed");
     gwHomebridgePin = QString();
     gwRgbwDisplay = "1";
@@ -93,6 +94,12 @@ void DeRestPluginPrivate::initConfig()
     gwAllowLocal = (deCONZ::appArgumentNumeric("--allow-local", 1) == 1);
     gwConfig["websocketport"] = 443;
     fwUpdateState = FW_Idle;
+
+    wifiPageActiveTimer = new QTimer(this);
+    wifiPageActiveTimer->setSingleShot(true);
+
+    connect(wifiPageActiveTimer, SIGNAL(timeout()),
+            this, SLOT(wifiPageActiveTimerFired()));
 
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
 
@@ -2316,6 +2323,7 @@ int DeRestPluginPrivate::getWifiState(const ApiRequest &req, ApiResponse &rsp)
 int DeRestPluginPrivate::configureWifi(const ApiRequest &req, ApiResponse &rsp)
 {
     bool ok;
+    bool changed = false;
     QVariant var = Json::parse(req.content, ok);
     QVariantMap map = var.toMap();
 
@@ -2326,6 +2334,36 @@ int DeRestPluginPrivate::configureWifi(const ApiRequest &req, ApiResponse &rsp)
         rsp.httpStatus = HttpStatusBadRequest;
         rsp.list.append(errorToMap(ERR_INVALID_JSON, "/config/wifi", "body contains invalid JSON"));
         return REQ_READY_SEND;
+    }
+
+    if (map.contains("pageactive"))
+    {
+        bool active = map["pageactive"].toBool();
+
+        if (map["pageactive"].type() != QVariant::Bool)
+        {
+            rsp.httpStatus = HttpStatusBadRequest;
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, "/config/wifi", QString("invalid value, %1 for parameter, pageactive").arg(active)));
+            return REQ_READY_SEND;
+        }
+
+        if (active)
+        {
+            if (wifiPageActiveTimer->isActive())
+            {
+                wifiPageActiveTimer->stop();
+                wifiPageActiveTimer->start(6000);
+            }
+            else
+            {
+                if (!gwWifiPageActive)
+                {
+                    gwWifiPageActive = true;
+                    queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
+                    wifiPageActiveTimer->start(6000);
+                }
+            }
+        }
     }
 
     if (map.contains("type"))
@@ -2339,8 +2377,12 @@ int DeRestPluginPrivate::configureWifi(const ApiRequest &req, ApiResponse &rsp)
             return REQ_READY_SEND;
         }
 
-        gwWifiType = type;
-        gwWifi = "configured";
+        if (gwWifiType != type)
+        {
+            changed = true;
+            gwWifiType = type;
+            gwWifi = "configured";
+        }
     }
     if (map.contains("name"))
     {
@@ -2353,14 +2395,18 @@ int DeRestPluginPrivate::configureWifi(const ApiRequest &req, ApiResponse &rsp)
             return REQ_READY_SEND;
         }
 
-        if (gwWifiType == "accesspoint")
+        if (gwWifiName != name)
         {
-            gwWifiName = name;
-        }
-        else
-        {
-            gwWifiClientName = name;
-            gwWifiName = name;
+            changed = true;
+            if (gwWifiType == "accesspoint")
+            {
+                gwWifiName = name;
+            }
+            else
+            {
+                gwWifiClientName = name;
+                gwWifiName = name;
+            }
         }
     }
     if (map.contains("password"))
@@ -2374,14 +2420,18 @@ int DeRestPluginPrivate::configureWifi(const ApiRequest &req, ApiResponse &rsp)
             return REQ_READY_SEND;
         }
 
-        if (gwWifiType == "accesspoint")
+        if (gwWifiPw != password)
         {
-            gwWifiPw = password;
-        }
-        else
-        {
-            gwWifiClientPw = password;
-            gwWifiPw = password;
+            changed = true;
+            if (gwWifiType == "accesspoint")
+            {
+                gwWifiPw = password;
+            }
+            else
+            {
+                gwWifiClientPw = password;
+                gwWifiPw = password;
+            }
         }
     }
     if (map.contains("wifi"))
@@ -2394,7 +2444,11 @@ int DeRestPluginPrivate::configureWifi(const ApiRequest &req, ApiResponse &rsp)
             rsp.list.append(errorToMap(ERR_INVALID_VALUE, "/config/wifi", QString("invalid value, %1 for parameter, wifi").arg(wifi)));
             return REQ_READY_SEND;
         }
-        gwWifi = wifi;
+        if (gwWifi != wifi)
+        {
+            changed = true;
+            gwWifi = wifi;
+        }
     }
 
     /*
@@ -2415,15 +2469,17 @@ int DeRestPluginPrivate::configureWifi(const ApiRequest &req, ApiResponse &rsp)
             }
     */
 
-    QDateTime currentDateTime = QDateTime::currentDateTimeUtc();
-    gwWifiLastUpdated = currentDateTime.toTime_t();
+    if (changed)
+    {
+        QDateTime currentDateTime = QDateTime::currentDateTimeUtc();
+        gwWifiLastUpdated = currentDateTime.toTime_t();
 
-    updateEtag(gwConfigEtag);
-    queSaveDb(DB_CONFIG | DB_SYNC, DB_SHORT_SAVE_DELAY);
-
+        updateEtag(gwConfigEtag);
+        queSaveDb(DB_CONFIG | DB_SYNC, DB_SHORT_SAVE_DELAY);
 #ifdef ARCH_ARM
-    //kill(gwWifiPID, SIGUSR1);
+        //kill(gwWifiPID, SIGUSR1);
 #endif
+    }
 
     QVariantMap rspItem;
     QVariantMap rspItemState;
@@ -3097,6 +3153,17 @@ void DeRestPluginPrivate::timeManagerTimerFired()
         QStringList args;
         args << "-c" << "rv";
         ntpqProcess->start(QLatin1String("ntpq"), args);
+    }
+}
+
+/*! Timer that indicates that phoscon app wifi page is inactive.
+ */
+void DeRestPluginPrivate::wifiPageActiveTimerFired()
+{
+    if (gwWifiPageActive)
+    {
+        gwWifiPageActive = false;
+        queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
     }
 }
 

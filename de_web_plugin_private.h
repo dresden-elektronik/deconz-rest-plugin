@@ -1021,6 +1021,7 @@ public Q_SLOTS:
 
     //wifi settings
     int scanWifiNetworks(const ApiRequest &req, ApiResponse &rsp);
+    void wifiPageActiveTimerFired();
 
     //homebridge
     int resetHomebridge(const ApiRequest &req, ApiResponse &rsp);
@@ -1295,6 +1296,8 @@ public:
     QString gwWifiBackupPw;
     QString gwWifiClientPw;
     pid_t gwWifiPID;
+    QTimer *wifiPageActiveTimer;
+    bool gwWifiPageActive;
     QString gwProxyAddress;
     quint16 gwProxyPort;
     QString gwTimezone;
