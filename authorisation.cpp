@@ -190,6 +190,10 @@ void DeRestPluginPrivate::authorise(ApiRequest &req, ApiResponse &rsp)
             {
                 req.mode = ApiModeEcho;
             }
+            else if (i->devicetype.startsWith(QLatin1String("Hue Essentials")))
+            {
+                // supports deCONZ specifics
+            }
             else if (i->devicetype.startsWith(QLatin1String("hue_")) ||
                      i->devicetype.startsWith(QLatin1String("Hue ")))
             {
