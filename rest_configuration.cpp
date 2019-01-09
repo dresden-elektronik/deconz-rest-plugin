@@ -2646,27 +2646,51 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
         QString workingtype;
         QString workingname;
         QString workingpw;
+        QString wifipw;
+        QString wifiname;
+        QString wifi;
 
         if (map.contains("workingtype")) { workingtype = map["workingtype"].toString(); }
         if (map.contains("workingname")) { workingname = map["workingname"].toString(); }
         if (map.contains("workingpw")) { workingpw = map["workingpw"].toString(); }
+        if (map.contains("wifipw")) { wifipw = map["wifipw"].toString(); }
+        if (map.contains("wifiname")) { wifiname = map["wifiname"].toString(); }
+        if (map.contains("wifi")) { wifi = map["wifi"].toString(); }
 
         bool changed = false;
-        if (gwWifiWorkingType != workingtype)
+        if (!workingtype.isEmpty() && gwWifiWorkingType != workingtype)
         {
             gwWifiWorkingType = workingtype;
             changed = true;
         }
 
-        if (gwWifiWorkingName != workingname)
+        if (!workingname.isEmpty() && gwWifiWorkingName != workingname)
         {
             gwWifiWorkingName = workingname;
             changed = true;
         }
 
-        if (gwWifiWorkingPw != workingpw)
+        if (!workingpw.isEmpty() && gwWifiWorkingPw != workingpw)
         {
             gwWifiWorkingPw = workingpw;
+            changed = true;
+        }
+
+        if (!wifipw.isEmpty() && gwWifiPw != wifipw)
+        {
+            gwWifiPw = wifipw;
+            changed = true;
+        }
+
+        if (!wifiname.isEmpty() && gwWifiName != wifiname)
+        {
+            gwWifiName = wifiname;
+            changed = true;
+        }
+
+        if (!wifi.isEmpty() && gwWifi != wifi)
+        {
+            gwWifi = wifi;
             changed = true;
         }
 
