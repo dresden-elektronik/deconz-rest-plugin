@@ -70,6 +70,7 @@ void DeRestPluginPrivate::initConfig()
     gwWifiIp = QLatin1String("192.168.8.1");
     gwWifiPw = "";
     gwWifiClientPw = "";
+    gwWifiApPw = "";
     gwWifiPageActive = false;
     gwHomebridge = QLatin1String("not-managed");
     gwHomebridgePin = QString();
@@ -480,6 +481,15 @@ void DeRestPluginPrivate::initWiFi()
         gwWifiBackupPw = gwWifiPw;
     }
 
+    if (gwWifiBackupName.isEmpty())
+    {
+        gwWifiBackupName = gwWifiName;
+    }
+
+    if (gwWifiBackupPw.isEmpty())
+    {
+        gwWifiBackupPw = gwWifiApPw;
+    }
     queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
 }
 
