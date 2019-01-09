@@ -1242,6 +1242,16 @@ int DeRestPluginPrivate::getBasicConfig(const ApiRequest &req, ApiResponse &rsp)
     }
     basicConfigToMap(rsp.map);
 
+    // include devicename attribute in web based requests
+    if (!gwDeviceName.isEmpty() && req.hdr.hasKey("User-Agent"))
+    {
+        const QString ua = req.hdr.value("User-Agent");
+        if (ua.startsWith(QLatin1String("Mozilla"))) // all browser UA start with Mozilla/5.0
+        {
+            rsp.map["devicename"] = gwDeviceName;
+        }
+    }
+
     // add more details if this was requested from discover page
     // this should speedup multi-gateway discovery
     if (!gateways.empty())
