@@ -256,7 +256,7 @@ void PollManager::pollTimerFired()
         clusterId = COLOR_CLUSTER_ID;
         item = r->item(RConfigColorCapabilities);
 
-        if (!item || item->toNumber() <= 0)
+        if ((!item || item->toNumber() <= 0) && lightNode->haEndpoint().profileId() != HA_PROFILE_ID)
         {
             attributes.push_back(0x0008); // color mode
             attributes.push_back(0x4001); // enhanced color mode
@@ -266,7 +266,15 @@ void PollManager::pollTimerFired()
         }
         else
         {
-            quint16 cap = item->toNumber();
+            quint16 cap = item ? static_cast<quint16>(item->toNumber()) : 0;
+
+            if (cap == 0 && lightNode->haEndpoint().profileId() == HA_PROFILE_ID)
+            {
+                // e.g. OSRAM US version
+                // DEV_ID_HA_COLOR_DIMMABLE_LIGHT
+                cap  = (0x0001 | 0x0008); // hue, saturation, color mode, xy
+            }
+
             std::vector<quint16> toCheck;
             if (cap & 0x0002) // enhanced hue supported
             {
