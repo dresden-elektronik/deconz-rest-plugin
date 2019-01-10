@@ -1295,7 +1295,7 @@ public:
     QString gwWifiPw;
     QString gwWifiBackupPw;
     QString gwWifiClientPw;
-    QString gwWifiApPw;
+    //QString gwWifiApPw;
     pid_t gwWifiPID;
     QTimer *wifiPageActiveTimer;
     bool gwWifiPageActive;

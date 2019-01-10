@@ -1126,20 +1126,24 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
             d->gwWifiPw = val;
         }
     }
+    /*
     else if (strcmp(colval[0], "wifiappw") == 0)
     {
         if (!val.isEmpty())
         {
             //d->gwConfig["wifiappw"] = val;
             d->gwWifiApPw = val;
+            DBG_Printf(DBG_INFO, "LOAD wifiappw from DB with value: %s", qPrintable(val));
         }
     }
+    */
     else if (strcmp(colval[0], "wifibackuppw") == 0)
     {
         if (!val.isEmpty())
         {
             //d->gwConfig["wifibackuppw"] = val;
             d->gwWifiBackupPw = val;
+            DBG_Printf(DBG_INFO, "LOAD wifibackuppw from DB with value: %s", qPrintable(val));
         }
     }
     else if (strcmp(colval[0], "wifibackupname") == 0)
@@ -1148,6 +1152,7 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
         {
             //d->gwConfig["wifibackupname"] = val;
             d->gwWifiBackupName = val;
+            DBG_Printf(DBG_INFO, "LOAD wifibackupname from DB with value: %s", qPrintable(val));
         }
     }
     else if (strcmp(colval[0], "wificlientpw") == 0)

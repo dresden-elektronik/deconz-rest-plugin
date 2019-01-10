@@ -70,7 +70,7 @@ void DeRestPluginPrivate::initConfig()
     gwWifiIp = QLatin1String("192.168.8.1");
     gwWifiPw = "";
     gwWifiClientPw = "";
-    gwWifiApPw = "";
+    //gwWifiApPw = "";
     gwWifiPageActive = false;
     gwHomebridge = QLatin1String("not-managed");
     gwHomebridgePin = QString();
@@ -911,8 +911,8 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         map["wifimgmt"] = (double)gwWifiMgmt;
         map["wifiip"] = gwWifiIp;
 //        map["wifiappw"] = gwWifiPw;
-        map["wifiappw"] = QString(); // TODO add secured transfer via PKI
-        map["wificlientpw"] = QString(); // TODO add secured transfer via PKI
+//        map["wifiappw"] = QString(); // TODO add secured transfer via PKI
+//        map["wificlientpw"] = QString(); // TODO add secured transfer via PKI
     }
     else
     {
@@ -2315,7 +2315,7 @@ int DeRestPluginPrivate::getWifiState(const ApiRequest &req, ApiResponse &rsp)
     rsp.map["workingname"] = gwWifiWorkingName;
     rsp.map["workingpw"] = QString();
     // rsp.map["wifiappw"] = gwWifiPw;
-    rsp.map["wifiappw"] = QString();
+    // rsp.map["wifiappw"] = QString();
     rsp.map["wifiavailable"] = gwWifiAvailable;
     rsp.map["lastupdated"] = gwWifiLastUpdated;
     rsp.map["eth0"] = gwWifiEth0;
@@ -2588,6 +2588,7 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
             }
             else
             {
+                DBG_Printf(DBG_INFO, "PUT WIFI UPDATED REQUEST - mgmt: %u - empty working name and type", gwWifiMgmt);
                 gwWifiActive = QLatin1String("inactive");
                 gwWifiWorkingName = QString();
                 gwWifiWorkingType = QString();
@@ -2615,12 +2616,14 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
 
                 if (gwWifiMgmt & WIFI_MGMT_ACTIVE)
                 {
+                    DBG_Printf(DBG_INFO, "PUT WIFI UPDATED REQUEST - mgmt: %u - working name and type: %s, %s", gwWifiMgmt,  qPrintable(ssid), qPrintable(type));
                     gwWifiActive = QLatin1String("active");
                     gwWifiWorkingName = ssid;
                     gwWifiWorkingType = type;
                 }
                 else
                 {
+                    DBG_Printf(DBG_INFO, "PUT WIFI UPDATED REQUEST - mgmt: %u - empty working name and type", gwWifiMgmt);
                     gwWifiActive = QLatin1String("inactive");
                     gwWifiWorkingName = QString();
                     gwWifiWorkingType = QString();
@@ -2636,12 +2639,14 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
 
                 if (gwWifiMgmt & WIFI_MGMT_ACTIVE)
                 {
+                    DBG_Printf(DBG_INFO, "PUT WIFI UPDATED REQUEST - mgmt: %u - working name and type: %s, %s", gwWifiMgmt,  qPrintable(ssid), qPrintable(type));
                     gwWifiActive = QLatin1String("active");
                     gwWifiWorkingName = ssid;
                     gwWifiWorkingType = type;
                 }
                 else
                 {
+                    DBG_Printf(DBG_INFO, "PUT WIFI UPDATED REQUEST - mgmt: %u - empty working name and type", gwWifiMgmt);
                     gwWifiActive = QLatin1String("inactive");
                     gwWifiWorkingName = QString();
                     gwWifiWorkingType = QString();
@@ -2671,18 +2676,21 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
         bool changed = false;
         if (!workingtype.isEmpty() && gwWifiWorkingType != workingtype)
         {
+            DBG_Printf(DBG_INFO, "CURRENT CONFIG REQUEST - change workingtype to: %s", qPrintable(workingtype));
             gwWifiWorkingType = workingtype;
             changed = true;
         }
 
         if (!workingname.isEmpty() && gwWifiWorkingName != workingname)
         {
+            DBG_Printf(DBG_INFO, "CURRENT CONFIG REQUEST - change workingname to: %s", qPrintable(workingname));
             gwWifiWorkingName = workingname;
             changed = true;
         }
 
         if (!workingpw.isEmpty() && gwWifiWorkingPw != workingpw)
         {
+            DBG_Printf(DBG_INFO, "CURRENT CONFIG REQUEST - change workingpw to: %s", qPrintable(workingpw));
             gwWifiWorkingPw = workingpw;
             changed = true;
         }
@@ -2709,11 +2717,13 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
         {
             if (!workingname.isEmpty() && gwWifiBackupName != workingname)
             {
+                DBG_Printf(DBG_INFO, "CURRENT CONFIG REQUEST - workingtype==accesspoint - change gwWifiBackupName to: %s", qPrintable(workingname));
                 gwWifiBackupName = workingname;
                 changed = true;
             }
             if (!workingpw.isEmpty() && gwWifiBackupPw != workingpw)
             {
+                DBG_Printf(DBG_INFO, "CURRENT CONFIG REQUEST - workingtype==accesspoint - change gwWifiBackupPw to: %s", qPrintable(workingpw));
                 gwWifiBackupPw = workingpw;
                 changed = true;
             }
