@@ -3855,7 +3855,7 @@ void DeRestPluginPrivate::saveDb()
         gwConfig["workingname"] = gwWifiWorkingName;
         gwConfig["wificlientpw"] = gwWifiClientPw;
         gwConfig["wifipw"] = gwWifiPw;
-        gwConfig["wifiappw"] = gwWifiApPw;
+        //gwConfig["wifiappw"] = gwWifiApPw;
         gwConfig["wifiip"] = gwWifiIp;
         gwConfig["wifipageactive"] = gwWifiPageActive;
         gwConfig["wifibackupname"] = gwWifiBackupName;

@@ -481,15 +481,6 @@ void DeRestPluginPrivate::initWiFi()
         gwWifiBackupPw = gwWifiPw;
     }
 
-    if (gwWifiBackupName.isEmpty())
-    {
-        gwWifiBackupName = gwWifiName;
-    }
-
-    if (gwWifiBackupPw.isEmpty())
-    {
-        gwWifiBackupPw = gwWifiApPw;
-    }
     queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
 }
 
