@@ -247,6 +247,7 @@
 #define VENDOR_LGE          0x102E
 #define VENDOR_JENNIC       0x1037 // Used by Xiaomi, Trust
 #define VENDOR_CENTRALITE   0x104E
+#define VENDOR_SI_LABS      0x1049
 #define VENDOR_BITRON       0x1071
 #define VENDOR_NYCE         0x10B9
 #define VENDOR_UBISYS       0x10F2
@@ -343,6 +344,7 @@ extern const quint64 macPrefixMask;
 extern const quint64 bjeMacPrefix;
 extern const quint64 deMacPrefix;
 extern const quint64 emberMacPrefix;
+extern const quint64 energyMiMacPrefix;
 extern const quint64 heimanMacPrefix;
 extern const quint64 ikeaMacPrefix;
 extern const quint64 silabsMacPrefix;
@@ -358,6 +360,76 @@ extern const quint64 stMacPrefix;
 extern const quint64 tiMacPrefix;
 extern const quint64 ubisysMacPrefix;
 extern const quint64 xalMacPrefix;
+
+inline bool checkMacVendor(quint64 addr, quint16 vendor)
+{
+    quint64 prefix = addr & macPrefixMask;
+    switch (vendor) {
+        case VENDOR_115F:
+            return prefix == jennicMacPrefix;
+        case VENDOR_120B:
+            return prefix == emberMacPrefix;
+        case VENDOR_1224:
+            return prefix == emberMacPrefix;
+        case VENDOR_BITRON:
+            return prefix == tiMacPrefix;
+        case VENDOR_BOSCH:
+            return prefix == boschMacPrefix;
+        case VENDOR_BUSCH_JAEGER:
+            return prefix == bjeMacPrefix;
+        case VENDOR_CENTRALITE:
+            return prefix == emberMacPrefix;
+        case VENDOR_EMBER:
+            return prefix == emberMacPrefix;
+        case VENDOR_DDEL:
+            return prefix == deMacPrefix;
+        case VENDOR_IKEA:
+            return prefix == ikeaMacPrefix ||
+                   prefix == silabsMacPrefix ||
+                   prefix == energyMiMacPrefix ||
+                   prefix == emberMacPrefix;
+        case VENDOR_INNR:
+        case VENDOR_INNR2:
+            return prefix == jennicMacPrefix;
+        case VENDOR_INSTA:
+            return prefix == instaMacPrefix;
+        case VENDOR_JENNIC:
+            return prefix == jennicMacPrefix;
+        case VENDOR_KEEN_HOME:
+            return prefix == keenhomeMacPrefix;
+        case VENDOR_LGE:
+            return prefix == emberMacPrefix;
+        case VENDOR_LUTRON:
+            return prefix == lutronMacPrefix;
+        case VENDOR_NYCE:
+            return prefix == emberMacPrefix;
+        case VENDOR_OSRAM:
+        case VENDOR_OSRAM_STACK:
+            return prefix == osramMacPrefix ||
+                   prefix == heimanMacPrefix;
+        case VENDOR_PHILIPS:
+            return prefix == philipsMacPrefix;
+        case VENDOR_PHYSICAL:
+            return stMacPrefix;
+        case VENDOR_SI_LABS:
+            return prefix == silabsMacPrefix ||
+                   prefix == energyMiMacPrefix ||
+                   prefix == ikeaMacPrefix; // belongs to SiLabs
+        case VENDOR_UBISYS:
+            return prefix == ubisysMacPrefix;
+        case VENDOR_VISONIC:
+            return prefix == emberMacPrefix;
+        case VENDOR_XAL:
+            return prefix == xalMacPrefix;
+        default:
+            return false;
+    }
+}
+
+inline bool checkMacVendor(const deCONZ::Address &addr, quint16 vendor)
+{
+    return checkMacVendor(addr.ext(), vendor);
+}
 
 // HTTP status codes
 extern const char *HttpStatusOk;
