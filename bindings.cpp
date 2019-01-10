@@ -123,10 +123,10 @@ bool DeRestPluginPrivate::readBindingTable(RestNodeBase *node, quint8 startIndex
     Resource *r = dynamic_cast<Resource*>(node);
 
     // whitelist
-    if ((node->address().ext() & macPrefixMask) == deMacPrefix)
+    if (checkMacVendor(node->address(), VENDOR_DDEL))
     {
     }
-    else if ((node->address().ext() & macPrefixMask) == ubisysMacPrefix)
+    else if (checkMacVendor(node->address(), VENDOR_UBISYS))
     {
     }
     else if (r && r->item(RAttrModelId)->toString().startsWith(QLatin1String("FLS-")))
@@ -964,12 +964,12 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.dataType = deCONZ::ZclBoolean;
         rq.attributeId = 0x0000; // on/off
 
-        if ((bt.restNode->address().ext() & macPrefixMask) == deMacPrefix)
+        if (checkMacVendor(bt.restNode->address(), VENDOR_DDEL))
         {
             rq.minInterval = 5;
             rq.maxInterval = 180;
         }
-        else if ((bt.restNode->address().ext() & macPrefixMask) == xalMacPrefix ||
+        else if (checkMacVendor(bt.restNode->address(), VENDOR_XAL) ||
                  bt.restNode->node()->nodeDescriptor().manufacturerCode() == VENDOR_XAL)
         {
             rq.minInterval = 5;
@@ -1072,7 +1072,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.dataType = deCONZ::Zcl8BitUint;
         rq.attributeId = 0x0000; // current level
 
-        if ((bt.restNode->address().ext() & macPrefixMask) == deMacPrefix)
+        if (checkMacVendor(bt.restNode->address(), VENDOR_DDEL))
         {
             rq.minInterval = 5;
             rq.maxInterval = 180;
@@ -1116,8 +1116,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
         return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
     }
-    else if (bt.binding.clusterId == BASIC_CLUSTER_ID &&
-            (bt.restNode->address().ext() & macPrefixMask) == philipsMacPrefix)
+    else if (bt.binding.clusterId == BASIC_CLUSTER_ID && checkMacVendor(bt.restNode->address(), VENDOR_PHILIPS))
     {
         Sensor *sensor = dynamic_cast<Sensor*>(bt.restNode);
         if (!sensor)
@@ -1316,7 +1315,7 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
             }
 
             BindingTask bt;
-            if ((lightNode->address().ext() & macPrefixMask) == deMacPrefix)
+            if (checkMacVendor(lightNode->address(), VENDOR_DDEL))
             {
                 bt.state = BindingTask::StateCheck;
             }
@@ -1361,8 +1360,7 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         return;
     }
 
-    if ((lightNode->address().ext() & macPrefixMask) == deMacPrefix ||
-         lightNode->manufacturerCode() == VENDOR_XAL)
+    if (checkMacVendor(lightNode->address(), VENDOR_DDEL) || lightNode->manufacturerCode() == VENDOR_XAL)
     {
         lightNode->enableRead(READ_BINDING_TABLE);
         lightNode->setNextReadTime(READ_BINDING_TABLE, queryTime);
@@ -2598,7 +2596,7 @@ void DeRestPluginPrivate::bindingToRuleTimerFired()
 
             for (const deCONZ::ZclCluster &cl : sd.outClusters())
             {
-                if (cl.id() == ILLUMINANCE_MEASUREMENT_CLUSTER_ID && (node->address().ext() & macPrefixMask) == deMacPrefix)
+                if (cl.id() == ILLUMINANCE_MEASUREMENT_CLUSTER_ID && checkMacVendor(node->address(), VENDOR_DDEL))
                 {
                     continue; // ignore, binding only allowed for server cluster
                 }
@@ -2678,7 +2676,7 @@ void DeRestPluginPrivate::bindingToRuleTimerFired()
             continue;
         }
 
-        if ((bnd.srcAddress & macPrefixMask) == ubisysMacPrefix)
+        if (checkMacVendor(bnd.srcAddress, VENDOR_UBISYS))
         {
             processUbisysBinding(&*i, bnd);
             return;

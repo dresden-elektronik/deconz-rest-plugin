@@ -2364,7 +2364,7 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
  */
 void DeRestPluginPrivate::checkInstaModelId(Sensor *sensor)
 {
-    if (sensor && (sensor->address().ext() & macPrefixMask) == instaMacPrefix)
+    if (sensor && checkMacVendor(sensor->address(), VENDOR_INSTA))
     {
         if (!sensor->modelId().endsWith(QLatin1String("_1")))
         {   // extract model identifier from mac address 6th byte
@@ -2420,13 +2420,13 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
         // filter supported devices
 
         // Busch-Jaeger
-        if ((ext & macPrefixMask) == bjeMacPrefix)
+        if (checkMacVendor(ext, VENDOR_BUSCH_JAEGER))
         {
         }
-        else if ((ext & macPrefixMask) == ubisysMacPrefix)
+        else if (checkMacVendor(ext, VENDOR_UBISYS))
         {
         }
-        else if ((ext & macPrefixMask) == boschMacPrefix)
+        else if (checkMacVendor(ext, VENDOR_BOSCH))
         { // macCapabilities == 0
         }
         else if (macCapabilities & deCONZ::MacDeviceIsFFD)
@@ -2683,7 +2683,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
     }
 
     // check for dresden elektronik devices
-    if ((sc->address.ext() & macPrefixMask) == deMacPrefix)
+    if (checkMacVendor(sc->address, VENDOR_DDEL))
     {
         if (sc->macCapabilities & deCONZ::MacDeviceIsFFD) // end-devices only
             return;
@@ -2983,7 +2983,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
             }
         }
     }
-    else if ((sc->address.ext() & macPrefixMask) == ikeaMacPrefix)
+    else if (checkMacVendor(sc->address, VENDOR_IKEA))
     {
         if (sc->macCapabilities & deCONZ::MacDeviceIsFFD) // end-devices only
             return;
