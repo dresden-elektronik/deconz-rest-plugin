@@ -8640,7 +8640,12 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             ResourceItem *item = sensor.item(RStateOpen);
             item = item ? item : sensor.item(RStatePresence);
             item = item ? item : sensor.item(RStateWater);      // lumi.sensor_wleak.aq1
-            if (item)
+            if (attrId == 0xff02)
+            {
+                // don't update Mija devices
+                // e.g. lumi.sensor_motion always reports 1
+            }
+            else if (item)
             {
                 item->setValue(onOff);
                 enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor.id(), item));
