@@ -1706,6 +1706,11 @@ void DeRestPluginPrivate::nodeZombieStateChanged(const deCONZ::Node *node)
 
         for (; i != end; ++i)
         {
+            if (i->deletedState() != Sensor::StateNormal)
+            {
+                continue;
+            }
+
             if (i->address().ext() == node->address().ext())
             {
                 if (i->node() != node)
@@ -3033,6 +3038,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         {
             if (i->address().ext() == node->address().ext())
             {
+                if (i->deletedState() != Sensor::StateNormal)
+                {
+                    continue;
+                }
+
                 if (i->node() != node)
                 {
                     i->setNode(const_cast<deCONZ::Node*>(node));
@@ -11894,8 +11904,9 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
 
         if (sensor && sensor->deletedState() != Sensor::StateNormal)
         {
-            DBG_Printf(DBG_INFO, "don't use deleted sensor 0x%016llX as candidate\n", sc->address.ext());
+            DBG_Printf(DBG_INFO, "don't use deleted sensor and node 0x%016llX as candidate\n", sc->address.ext());
             sensor = nullptr;
+            node = nullptr;
         }
 
         if (!node)
