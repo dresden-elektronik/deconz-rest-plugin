@@ -79,7 +79,10 @@ void DeRestPluginPrivate::initConfig()
     gwZigbeeChannel = 0;
     gwName = GW_DEFAULT_NAME;
     gwUpdateVersion = GW_SW_VERSION; // will be replaced by discovery handler
-    gwUpdateDate = GW_SW_DATE;
+    {
+        const QDateTime d = QDateTime::fromSecsSinceEpoch(GW_SW_DATE);
+        gwUpdateDate = d.toString("yyyy-MM-ddTHH:mm:ss"); // ISO 8601;
+    }
     gwSwUpdateState = swUpdateState.noUpdate;
     gwUpdateChannel = "stable";
     gwReportingEnabled = (deCONZ::appArgumentNumeric("--reporting", 1) == 1) ? true : false;
