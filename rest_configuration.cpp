@@ -80,7 +80,7 @@ void DeRestPluginPrivate::initConfig()
     gwName = GW_DEFAULT_NAME;
     gwUpdateVersion = GW_SW_VERSION; // will be replaced by discovery handler
     {
-        const QDateTime d = QDateTime::fromSecsSinceEpoch(GW_SW_DATE);
+        const QDateTime d = QDateTime::fromMSecsSinceEpoch(GW_SW_DATE * 1000LLU);
         gwUpdateDate = d.toString("yyyy-MM-ddTHH:mm:ss"); // ISO 8601;
     }
     gwSwUpdateState = swUpdateState.noUpdate;
