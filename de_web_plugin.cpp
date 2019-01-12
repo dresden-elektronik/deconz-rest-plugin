@@ -105,6 +105,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "PSMD_", tiMacPrefix }, // Climax smart plug
     { VENDOR_NONE, "OJB-IR715-Z", tiMacPrefix },
     { VENDOR_NONE, "902010/21", tiMacPrefix }, // Bitron: door/window sensor
+    { VENDOR_NONE, "902010/22", tiMacPrefix }, // Bitron: motion sensor
     { VENDOR_NONE, "902010/24", tiMacPrefix }, // Bitron: smoke detector
     { VENDOR_NONE, "902010/25", tiMacPrefix }, // Bitron: smart plug
     { VENDOR_BITRON, "902010/32", emberMacPrefix }, // Bitron: thermostat
@@ -3145,7 +3146,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpOpenCloseSensor.inClusters.push_back(ci->id());
                     }
-                    else if (modelId.startsWith(QLatin1String("PIR_")))               // Heiman motion sensor
+                    else if (modelId.startsWith(QLatin1String("PIR_")) ||             // Heiman motion sensor
+                             modelId.startsWith(QLatin1String("902010/22")))          // Bitron motion sensor
                     {
                         fpPresenceSensor.inClusters.push_back(ci->id());
                     }
