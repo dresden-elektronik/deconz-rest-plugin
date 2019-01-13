@@ -51,15 +51,23 @@ void PollManager::poll(RestNodeBase *restNode, const QDateTime &tStart)
     {
         lightNode = dynamic_cast<LightNode*>(restNode);
         DBG_Assert(lightNode);
+        if (!lightNode || lightNode->state() != LightNode::StateNormal)
+        {
+            return;
+        }
         pitem.endpoint = lightNode->haEndpoint().endpoint();
-        DBG_Printf(DBG_INFO_L2, ">>>> Poll light node %s\n", qPrintable(lightNode->name()));
+        DBG_Printf(DBG_INFO_L2, "Poll light node %s\n", qPrintable(lightNode->name()));
     }
     else if (r->prefix() == RSensors)
     {
         sensor = dynamic_cast<Sensor*>(restNode);
         DBG_Assert(sensor);
+        if (!sensor || sensor->deletedState() != Sensor::StateNormal)
+        {
+            return;
+        }
         pitem.endpoint = sensor->fingerPrint().endpoint;
-        DBG_Printf(DBG_INFO_L2, ">>>> Poll %s sensor node %s\n", qPrintable(sensor->type()), qPrintable(sensor->name()));
+        DBG_Printf(DBG_INFO_L2, "Poll %s sensor node %s\n", qPrintable(sensor->type()), qPrintable(sensor->name()));
     }
     else
     {

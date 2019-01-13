@@ -2299,6 +2299,11 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
         Sensor *sensor = &sensors[sensorCheckIter];
         sensorCheckIter++;
 
+        if (sensor->deletedState() != Sensor::StateNormal)
+        {
+            continue;
+        }
+
         // automatically set presence to false, if not triggered in config.duration
         if (sensor->durationDue.isValid())
         {

@@ -9299,6 +9299,11 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         {
             if (i->address().ext() == event.node()->address().ext())
             {
+                if (i->state() != LightNode::StateNormal)
+                {
+                    continue;
+                }
+
                 DBG_Printf(DBG_INFO, "LightNode removed %s\n", qPrintable(event.node()->address().toStringExt()));
                 nodeZombieStateChanged(event.node());
             }
@@ -9496,6 +9501,11 @@ void DeRestPluginPrivate::processGroupTasks()
     groupTaskNodeIter++;
 
     if (!task.lightNode->isAvailable())
+    {
+        return;
+    }
+
+    if (task.lightNode->state() != LightNode::StateNormal)
     {
         return;
     }
@@ -11089,6 +11099,11 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
 
     for (; i != end; ++i)
     {
+        if (i->state() != LightNode::StateNormal)
+        {
+            continue;
+        }
+
         deCONZ::Node *node = i->node();
         if (node && (i->address().ext() == ext))
         {
@@ -11165,27 +11180,25 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
 
             DBG_Printf(DBG_INFO, "DeviceAnnce of LightNode: %s Permit Join: %i\n", qPrintable(i->address().toStringExt()), gwPermitJoinDuration);
 
-            if (i->state() == LightNode::StateNormal)
+            // force reading attributes
+            i->enableRead(READ_GROUPS | READ_SCENES);
+
+            // bring to front to force next polling
+            pollNodes.push_front(&*i);
+
+            for (uint32_t ii = 0; ii < 32; ii++)
             {
-                // force reading attributes
-                i->enableRead(READ_GROUPS | READ_SCENES);
-
-                // bring to front to force next polling
-                pollNodes.push_front(&*i);
-
-                for (uint32_t ii = 0; ii < 32; ii++)
+                uint32_t item = 1 << ii;
+                if (i->mustRead(item))
                 {
-                    uint32_t item = 1 << ii;
-                    if (i->mustRead(item))
-                    {
-                        i->setNextReadTime(item, queryTime);
-                        i->setLastRead(item, idleTotalCounter);
-                    }
+                    i->setNextReadTime(item, queryTime);
+                    i->setLastRead(item, idleTotalCounter);
                 }
-
-                queryTime = queryTime.addSecs(1);
-                updateEtag(i->etag);
             }
+
+            queryTime = queryTime.addSecs(1);
+            updateEtag(i->etag);
+
         }
     }
 
@@ -14709,7 +14722,7 @@ void DeRestPluginPrivate::pollNextDevice()
     {
         for (LightNode &l : nodes)
         {
-            if (l.isAvailable())
+            if (l.isAvailable() && l.state() == LightNode::StateNormal)
             {
                 pollNodes.push_back(&l);
             }
@@ -14717,7 +14730,7 @@ void DeRestPluginPrivate::pollNextDevice()
 
         for (Sensor &s : sensors)
         {
-            if (s.isAvailable() && s.node() && s.node()->nodeDescriptor().receiverOnWhenIdle())
+            if (s.isAvailable() && s.node() && s.node()->nodeDescriptor().receiverOnWhenIdle() && s.deletedState() == Sensor::StateNormal)
             {
                 pollNodes.push_back(&s);
             }
