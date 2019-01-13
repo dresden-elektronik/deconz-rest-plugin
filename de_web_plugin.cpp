@@ -105,7 +105,9 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "BX_", tiMacPrefix }, // Climax siren
     { VENDOR_NONE, "PSMD_", tiMacPrefix }, // Climax smart plug
     { VENDOR_NONE, "OJB-IR715-Z", tiMacPrefix },
-    { VENDOR_NONE, "902010/21A", tiMacPrefix }, // Bitron: door/window sensor
+    { VENDOR_NONE, "902010/21", tiMacPrefix }, // Bitron: door/window sensor
+    { VENDOR_NONE, "902010/22", tiMacPrefix }, // Bitron: motion sensor
+    { VENDOR_NONE, "902010/24", tiMacPrefix }, // Bitron: smoke detector
     { VENDOR_NONE, "902010/25", tiMacPrefix }, // Bitron: smart plug
     { VENDOR_BITRON, "902010/32", emberMacPrefix }, // Bitron: thermostat
     { VENDOR_DDEL, "Lighting Switch", deMacPrefix },
@@ -3254,12 +3256,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpOpenCloseSensor.inClusters.push_back(ci->id());
                     }
-                    else if (modelId.startsWith(QLatin1String("PIR_")))               // Heiman motion sensor
+                    else if (modelId.startsWith(QLatin1String("PIR_")) ||             // Heiman motion sensor
+                             modelId.startsWith(QLatin1String("902010/22")))          // Bitron motion sensor
                     {
                         fpPresenceSensor.inClusters.push_back(ci->id());
                     }
                     else if (modelId.startsWith(QLatin1String("GAS_")) ||             // Heiman gas sensor
                              modelId.startsWith(QLatin1String("SMOK_")) ||            // Heiman fire sensor
+                             modelId.startsWith(QLatin1String("902010/24")) ||        // Bitron smoke detector
                              modelId.startsWith(QLatin1String("lumi.sensor_smoke")))  // Xiaomi Mi smoke sensor
                     {
                         // Gas sensor detects combustable gas, so fire is more appropriate than CO.
