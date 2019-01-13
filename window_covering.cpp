@@ -120,7 +120,6 @@ void DeRestPluginPrivate::handleWindowCoveringClusterIndication(const deCONZ::Ap
     {
     	while(!stream.atEnd())
     	{
-
     		stream >> attrid;
     		if (isReadAttr)
     		{
@@ -137,83 +136,87 @@ void DeRestPluginPrivate::handleWindowCoveringClusterIndication(const deCONZ::Ap
     		{
     			stream >> attrValue;
     		}
+    		// only read 16-bit values, i.e. attrTypeId 0x21,0x31,0x09,0x19,0x29
+    		else if ( ((attrTypeId >> 4) <= 0x03 && (attrTypeId & 0x0F) == 0x01) || // 0x21,0x31
+    		          ((attrTypeId >> 4) <= 0x02 && (attrTypeId & 0x0F) == 0x09))   // 0x09,0x19,0x29
+    		{
+    			quint16 attrVal16;
+    			stream >> attrVal16;
+    		}
     		else
     		{
     			return;
     		}
 
+    		NodeValue::UpdateType updateType = NodeValue::UpdateByZclReport;
 
-    		break;
-    	}
-
-    	NodeValue::UpdateType updateType = NodeValue::UpdateByZclReport;
-
-    	if (attrid == 0x0008) // current CurrentPositionLiftPercentage 0-100
-    	{
-            if (lightNode->modelId().startsWith(QLatin1String("lumi.curtain")))
-            {
-                attrValue = 100 - attrValue;
-            }
-        	uint8_t level = attrValue * 255 / 100;
-    		numericValue.u8 = level;
-    		ResourceItem *item = lightNode->item(RStateBri);
-    		if (item && item->toNumber() != level)
+    		if (attrid == 0x0008) // current CurrentPositionLiftPercentage 0-100
     		{
-    			DBG_Printf(DBG_INFO, "0x%016llX level %u --> %u\n", lightNode->address().ext(), (uint)item->toNumber(), level);
-    			lightNode->clearRead(READ_LEVEL);
-    			item->setValue(level);
-    			Event e(RLights, RStateBri, lightNode->id(), item);
-    			enqueueEvent(e);
-    			updated = true;
-
-    			// also change on-state if bri changes to/from 0
-    			bool on = (attrValue > 0 ? true : false) ;
-    			ResourceItem *itemOn = lightNode->item(RStateOn);
-    			if (itemOn && itemOn->toBool() != on)
+    			if (lightNode->modelId().startsWith(QLatin1String("lumi.curtain")))
     			{
-    				DBG_Printf(DBG_INFO, "0x%016llX onOff %u --> %u\n", lightNode->address().ext(), (uint)item->toNumber(), on);
-    				itemOn->setValue(on);
-    				Event e(RLights, RStateOn, lightNode->id(), itemOn);
+    				attrValue = 100 - attrValue;
+    			}
+    			uint8_t level = attrValue * 255 / 100;
+    			numericValue.u8 = level;
+    			ResourceItem *item = lightNode->item(RStateBri);
+    			if (item && item->toNumber() != level)
+    			{
+    				DBG_Printf(DBG_INFO, "0x%016llX level %u --> %u\n", lightNode->address().ext(), (uint)item->toNumber(), level);
+    				lightNode->clearRead(READ_LEVEL);
+    				item->setValue(level);
+    				Event e(RLights, RStateBri, lightNode->id(), item);
+    				enqueueEvent(e);
+    				updated = true;
+
+    				// also change on-state if bri changes to/from 0
+    				bool on = (attrValue > 0 ? true : false) ;
+    				ResourceItem *itemOn = lightNode->item(RStateOn);
+    				if (itemOn && itemOn->toBool() != on)
+    				{
+    					DBG_Printf(DBG_INFO, "0x%016llX onOff %u --> %u\n", lightNode->address().ext(), (uint)item->toNumber(), on);
+    					itemOn->setValue(on);
+    					Event e(RLights, RStateOn, lightNode->id(), itemOn);
+    					enqueueEvent(e);
+    					updated = true;
+    				}
+    			}
+    			lightNode->setZclValue(updateType, WINDOW_COVERING_CLUSTER_ID, 0x0008, numericValue);
+    		}
+    		else if (attrid == 0x0009) // current CurrentPositionTiltPercentage 0-100
+    		{
+    			uint8_t sat = attrValue * 255 / 100;
+    			numericValue.u8 = sat;
+    			ResourceItem *item = lightNode->item(RStateSat);
+    			if (item && item->toNumber() != sat)
+    			{
+    				item->setValue(sat);
+    				Event e(RLights, RStateSat, lightNode->id(), item);
     				enqueueEvent(e);
     				updated = true;
     			}
+    			lightNode->setZclValue(updateType, WINDOW_COVERING_CLUSTER_ID, 0x0009, numericValue);
     		}
-    		lightNode->setZclValue(updateType, WINDOW_COVERING_CLUSTER_ID, 0x0008, numericValue);
-    	}
-    	else if (attrid == 0x0009) // current CurrentPositionTiltPercentage 0-100
-    	{
-    		uint8_t sat = attrValue * 255 / 100;
-    		numericValue.u8 = sat;
-    		ResourceItem *item = lightNode->item(RStateSat);
-    		if (item && item->toNumber() != sat)
+    		else if (attrid == 0x000A)  // read attribute 0x000A OperationalStatus
     		{
-    			item->setValue(sat);
-    			Event e(RLights, RStateSat, lightNode->id(), item);
-    			enqueueEvent(e);
-    			updated = true;
-    		}
-    		lightNode->setZclValue(updateType, WINDOW_COVERING_CLUSTER_ID, 0x0009, numericValue);
-    	}
-    	else if (attrid == 0x000A)  // read attribute 0x000A OperationalStatus
-    	{
-    		if (calibrationStep != 0 && ind.srcAddress().ext() == calibrationTask.req.dstAddress().ext())
-    		{
-    			operationalStatus = attrValue;
-    		}
-    	}
-    	else if (attrid == 0x0000)  // read attribute 0x0000 WindowConveringType
-    	{
-    		Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x02);
-    		if (sensor)
-    		{
-    			ResourceItem *item = 0;
-
-    			item = sensor->item(RConfigWindowCoveringType);
-    			if (item)
+    			if (calibrationStep != 0 && ind.srcAddress().ext() == calibrationTask.req.dstAddress().ext())
     			{
-    				item->setValue(attrValue);
-    		        sensor->setNeedSaveDatabase(true);
-    		        queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+    				operationalStatus = attrValue;
+    			}
+    		}
+    		else if (attrid == 0x0000)  // read attribute 0x0000 WindowConveringType
+    		{
+    			Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x02);
+    			if (sensor)
+    			{
+    				ResourceItem *item = nullptr;
+
+    				item = sensor->item(RConfigWindowCoveringType);
+    				if (item)
+    				{
+    					item->setValue(attrValue);
+    					sensor->setNeedSaveDatabase(true);
+    					queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+    				}
     			}
     		}
     	}
