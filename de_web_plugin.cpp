@@ -66,7 +66,6 @@ static uint MaxGroupTasks = 4;
 const quint64 macPrefixMask       = 0xffffff0000000000ULL;
 
 const quint64 ikeaMacPrefix       = 0x000b570000000000ULL;
-const quint64 silabsMacPrefix     = 0x90fd9f0000000000ULL;
 const quint64 emberMacPrefix      = 0x000d6f0000000000ULL;
 const quint64 instaMacPrefix      = 0x000f170000000000ULL;
 const quint64 tiMacPrefix         = 0x00124b0000000000ULL;
@@ -80,6 +79,7 @@ const quint64 keenhomeMacPrefix   = 0x0022a30000000000ULL;
 const quint64 heimanMacPrefix     = 0x0050430000000000ULL;
 const quint64 stMacPrefix         = 0x24fd5b0000000000ULL;
 const quint64 osramMacPrefix      = 0x8418260000000000ULL;
+const quint64 silabsMacPrefix     = 0x90fd9f0000000000ULL;
 const quint64 bjeMacPrefix        = 0xd85def0000000000ULL;
 const quint64 xalMacPrefix        = 0xf8f0050000000000ULL;
 const quint64 lutronMacPrefix     = 0xffff000000000000ULL;
@@ -145,10 +145,11 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_115F, "lumi.plug", jennicMacPrefix }, // Xiaomi smart plug (router)
     { VENDOR_115F, "lumi.ctrl_ln", jennicMacPrefix}, // Xiaomi Wall Switch (router)
     // { VENDOR_115F, "lumi.curtain", jennicMacPrefix}, // Xiaomi curtain controller (router) - exposed only as light
-    { VENDOR_UBISYS, "D1", ubisysMacPrefix },
     { VENDOR_UBISYS, "C4", ubisysMacPrefix },
-    { VENDOR_UBISYS, "S2", ubisysMacPrefix },
+    { VENDOR_UBISYS, "D1", ubisysMacPrefix },
     { VENDOR_UBISYS, "J1", ubisysMacPrefix },
+    { VENDOR_UBISYS, "S1", ubisysMacPrefix },
+    { VENDOR_UBISYS, "S2", ubisysMacPrefix },
     { VENDOR_NONE, "Z716A", netvoxMacPrefix },
     // { VENDOR_OSRAM_STACK, "Plug", osramMacPrefix }, // OSRAM plug - exposed only as light
     { VENDOR_OSRAM_STACK, "CO_", heimanMacPrefix }, // Heiman CO sensor
@@ -171,6 +172,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "ZYCT-202", jennicMacPrefix }, // Trust remote control ZYCT-202
     { VENDOR_INNR, "RC 110", jennicMacPrefix }, // innr remote RC 110
     { VENDOR_VISONIC, "MCT-340", emberMacPrefix }, // Visonic MCT-340 E temperature/motion
+    { VENDOR_1224, "ICZB-KPD1", emberMacPrefix }, // iCasa keypad
     { 0, nullptr, 0 }
 };
 
@@ -535,6 +537,10 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                     else if (sensorNode->modelId().startsWith("C4"))
                     {
                         sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
+                    }
+                    else if (sensorNode->modelId().startsWith("S1"))
+                    {
+                        sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x02);
                     }
                     else if (sensorNode->modelId().startsWith("S2"))
                     {
@@ -3498,6 +3504,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         if ((modelId.startsWith(QLatin1String("D1")) && i->endpoint() == 0x02) ||
                             (modelId.startsWith(QLatin1String("J1")) && i->endpoint() == 0x02) ||
                             (modelId.startsWith(QLatin1String("C4")) && i->endpoint() == 0x01) ||
+                            (modelId.startsWith(QLatin1String("S1")) && i->endpoint() == 0x02) ||
                             (modelId.startsWith(QLatin1String("S2")) && i->endpoint() == 0x03))
                         {
                             // Combine multiple switch endpoints into a single ZHASwitch resource
@@ -4885,7 +4892,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     int bat = ia->numericValue().u8 / 2;
 
-                                    if (i->modelId().startsWith("TRADFRI"))
+                                    if (i->modelId().startsWith("TRADFRI") || i->modelId().startsWith("ICZB-KPD1"))
                                     {
                                         bat = ia->numericValue().u8;
                                     }
@@ -14651,8 +14658,8 @@ void DeRestPluginPrivate::pushSensorInfoToCore(Sensor *sensor)
 
     if (sensor->modelId().startsWith(QLatin1String("FLS-NB")))
     { } // use name from light
-    else if (sensor->modelId().startsWith(QLatin1String("D1")) || sensor->modelId().startsWith(QLatin1String("S2")) ||
-             sensor->modelId().startsWith(QLatin1String("lumi.ctrl_")))
+    else if (sensor->modelId().startsWith(QLatin1String("D1")) || sensor->modelId().startsWith(QLatin1String("S1")) ||
+             sensor->modelId().startsWith(QLatin1String("S2")) ||sensor->modelId().startsWith(QLatin1String("lumi.ctrl_")))
     { } // use name from light
     else if (sensor->type() == QLatin1String("ZHAConsumption") || sensor->type() == QLatin1String("ZHAPower"))
     { } // use name from light
