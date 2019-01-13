@@ -577,7 +577,7 @@ bool DeRestPluginPrivate::addTaskThermostatReadWriteAttribute(TaskItem &task, ui
         {
             stream << (quint8) attrValue;
         }
-        else if (attrType == deCONZ::Zcl16BitInt || attrType == deCONZ::Zcl16BitBitMap)
+        else if (attrType == deCONZ::Zcl16BitInt || attrType == deCONZ::Zcl16BitBitMap || attrType == deCONZ::Zcl8BitBitMap)
         {
             stream << (quint16) attrValue;
         }
