@@ -434,6 +434,8 @@ void DeRestPluginPrivate::refreshDeviceDb(const deCONZ::Address &addr)
   */
 void DeRestPluginPrivate::pushZdpDescriptorDb(quint64 extAddress, quint8 endpoint, quint16 type, const QByteArray &data)
 {
+    DBG_Printf(DBG_INFO_L2, "DB pushZdpDescriptorDb()\n");
+
     openDb();
     DBG_Assert(db);
     if (!db)
@@ -3750,7 +3752,7 @@ void DeRestPluginPrivate::saveDb()
         return;
     }
 
-    DBG_Printf(DBG_INFO, "DB save zll database items 0x%08X\n", saveDatabaseItems);
+    DBG_Printf(DBG_INFO_L2, "DB save zll database items 0x%08X\n", saveDatabaseItems);
 
     // dump authorisation data
     if (saveDatabaseItems & DB_AUTH)
@@ -4571,7 +4573,7 @@ void DeRestPluginPrivate::saveDb()
 
     if (rc == SQLITE_OK)
     {
-        DBG_Printf(DBG_INFO, "DB saved in %ld ms\n", measTimer.elapsed());
+        DBG_Printf(DBG_INFO_L2, "DB saved in %ld ms\n", measTimer.elapsed());
 
         if (saveDatabaseItems & DB_SYNC)
         {
@@ -4579,7 +4581,7 @@ void DeRestPluginPrivate::saveDb()
             QElapsedTimer measTimer;
             measTimer.restart();
             sync();
-            DBG_Printf(DBG_INFO, "sync() in %d ms\n", int(measTimer.elapsed()));
+            DBG_Printf(DBG_INFO_L2, "sync() in %d ms\n", int(measTimer.elapsed()));
 #endif
             saveDatabaseItems &= ~DB_SYNC;
         }
