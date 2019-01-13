@@ -14692,8 +14692,7 @@ void DeRestPluginPrivate::pollNextDevice()
         return;
     }
 
-    QTime t = QTime::currentTime();
-    if (queryTime > t)
+    if (pollManager->hasItems())
     {
         return;
     }
@@ -14729,7 +14728,6 @@ void DeRestPluginPrivate::pollNextDevice()
     {
         DBG_Printf(DBG_INFO, "poll node %s\n", qPrintable(restNode->uniqueId()));
         pollManager->poll(restNode);
-        queryTime = queryTime.addSecs(6);
     }
 }
 

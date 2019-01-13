@@ -35,6 +35,8 @@ void PollManager::poll(RestNodeBase *restNode, const QDateTime &tStart)
         return;
     }
 
+    DBG_Assert(!hasItems());
+
     PollItem pitem;
 
     if (!restNode->node()->nodeDescriptor().receiverOnWhenIdle())
