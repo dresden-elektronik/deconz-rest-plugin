@@ -266,9 +266,10 @@
 #define VENDOR_BUSCH_JAEGER 0x112E
 #define VENDOR_PAULMANN     0x119D
 #define VENDOR_120B         0x120B // Used by Heiman
+#define VENDOR_1224         0x1224 // Used by iCasa keypads
 #define VENDOR_XAL          0x122A
-#define VENDOR_OSRAM_STACK  0xBBAA
 #define VENDOR_SAMJIN       0x1241
+#define VENDOR_OSRAM_STACK  0xBBAA
 
 #define ANNOUNCE_INTERVAL 10 // minutes default announce interval
 

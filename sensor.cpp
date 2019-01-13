@@ -466,6 +466,27 @@ static const Sensor::ButtonMap innrRC110Map[] = {
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
+static const Sensor::ButtonMap icasaKeypadMap[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    // Off button
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x00, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x05, 1,    S_BUTTON_1 + S_BUTTON_ACTION_HOLD, "Move down (with on/off)" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x07, 1,    S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // On button
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x01, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x05, 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD, "Move up (with on/off)" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x07, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // Scene buttons
+    { Sensor::ModeScenes,           0x01, 0x0005, 0x05, 1,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "Recall scene 1" },
+    { Sensor::ModeScenes,           0x01, 0x0005, 0x05, 2,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Recall scene 2" },
+    { Sensor::ModeScenes,           0x01, 0x0005, 0x05, 3,    S_BUTTON_5 + S_BUTTON_ACTION_SHORT_RELEASED, "Recall scene 3" },
+    { Sensor::ModeScenes,           0x01, 0x0005, 0x05, 4,    S_BUTTON_6 + S_BUTTON_ACTION_SHORT_RELEASED, "Recall scene 4" },
+    { Sensor::ModeScenes,           0x01, 0x0005, 0x05, 5,    S_BUTTON_7 + S_BUTTON_ACTION_SHORT_RELEASED, "Recall scene 5" },
+    { Sensor::ModeScenes,           0x01, 0x0005, 0x05, 6,    S_BUTTON_8 + S_BUTTON_ACTION_SHORT_RELEASED, "Recall scene 6" },
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
+};
+
 /*! Returns a fingerprint as JSON string. */
 QString SensorFingerprint::toString() const
 {
@@ -989,6 +1010,7 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         {
             if      (modelid.startsWith(QLatin1String("D1"))) { m_buttonMap = ubisysD1Map; }
             else if (modelid.startsWith(QLatin1String("C4"))) { m_buttonMap = ubisysC4Map; }
+            else if (modelid.startsWith(QLatin1String("S1"))) { m_buttonMap = ubisysD1Map; }
             else if (modelid.startsWith(QLatin1String("S2"))) { m_buttonMap = ubisysS2Map; }
         }
         else if (manufacturer == QLatin1String("LUMI"))
@@ -1008,6 +1030,10 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         else if (manufacturer == QLatin1String("innr"))
         {
             if      (modelid.startsWith(QLatin1String("RC 110"))) { m_buttonMap = innrRC110Map; }
+        }
+        else if (manufacturer == QLatin1String("icasa"))
+        {
+            if      (modelid.startsWith(QLatin1String("ICZB-KPD1"))) { m_buttonMap = icasaKeypadMap; }
         }
     }
 

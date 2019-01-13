@@ -3252,6 +3252,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
 //            int n = 0;
 //            if      (sensor.modelId().startsWith(QLatin1String("D1"))) { n = 2; }
+//            else if (sensor.modelId().startsWith(QLatin1String("S1-R"))) { n = 2; }
 //            else if (sensor.modelId().startsWith(QLatin1String("S1"))) { n = 1; }
 //            else if (sensor.modelId().startsWith(QLatin1String("S2"))) { n = 2; }
 //            else if (sensor.modelId().startsWith(QLatin1String("C4"))) { n = 4; }

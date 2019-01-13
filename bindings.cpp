@@ -1264,6 +1264,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->modelId() == QLatin1String("NL08-0800")) // Nanoleaf Ivy
         {
         }
+        else if (lightNode->modelId() == QLatin1String("ICZB-IW11D")) // iCasa Dimmer
+        {
+        }
         else
         {
             return;
@@ -1410,8 +1413,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("SML001") ||
         sensor->modelId().startsWith(QLatin1String("RWL02")) ||
         // ubisys
-        sensor->modelId().startsWith(QLatin1String("D1")) ||
         sensor->modelId().startsWith(QLatin1String("C4")) ||
+        sensor->modelId().startsWith(QLatin1String("D1")) ||
+        sensor->modelId().startsWith(QLatin1String("S1")) ||
         sensor->modelId().startsWith(QLatin1String("S2")) ||
         // IKEA
         sensor->modelId().startsWith(QLatin1String("TRADFRI")) ||
@@ -1811,6 +1815,17 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(0x03);
         sensor->setMgmtBindSupported(true);
     }
+    else if (sensor->modelId().startsWith(QLatin1String("S1")))
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+        srcEndpoints.push_back(0x02);
+        if (sensor->modelId().startsWith(QLatin1String("S1-R")))
+        {
+            srcEndpoints.push_back(0x03);
+        }
+        sensor->setMgmtBindSupported(true);
+    }
     else if (sensor->modelId().startsWith(QLatin1String("S2")))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
@@ -2182,6 +2197,13 @@ void DeRestPluginPrivate::processUbisysBinding(Sensor *sensor, const Binding &bn
             if       (bnd.srcEndpoint == 0x02) { pos = 0; }
             else if  (bnd.srcEndpoint == 0x03) { pos = 1; }
 
+        }
+        else if (sensor->modelId().startsWith(QLatin1String("S1")))
+        {
+            DBG_Assert(sensor->fingerPrint().endpoint == 0x02);
+
+            if       (bnd.srcEndpoint == 0x02) { pos = 0; }
+            else if  (bnd.srcEndpoint == 0x03) { pos = 1; } // S1-R only
         }
         else if (sensor->modelId().startsWith(QLatin1String("S2")))
         {
