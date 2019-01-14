@@ -4454,7 +4454,19 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             {
                 if (ind.clusterId() == BASIC_CLUSTER_ID && ind.profileId() != ZDP_PROFILE_ID)
                 {
-                    apsdeDataIndication(ind); // replay Xiaomi special report
+                    deCONZ::ZclFrame zclFrame;
+
+                    {
+                        QDataStream stream(ind.asdu());
+                        stream.setByteOrder(QDataStream::LittleEndian);
+                        zclFrame.readFromStream(stream);
+                    }
+
+                    // replay Xiaomi special report
+                    if (zclFrame.manufacturerCode() != 0)
+                    {
+                        handleZclAttributeReportIndicationXiaomiSpecial(ind, zclFrame);
+                    }
                 }
             }
         }

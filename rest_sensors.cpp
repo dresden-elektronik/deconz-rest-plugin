@@ -18,10 +18,6 @@
 #include "de_web_plugin_private.h"
 #include "json.h"
 
-// duration after which the state.presence is turned to 'false'
-// if the sensor doesn't trigger
-const int MaxOnTimeWithoutPresence = 60 * 6;
-
 /*! Sensors REST API broker.
     \param req - request data
     \param rsp - response data
@@ -2269,6 +2265,7 @@ void DeRestPluginPrivate::searchSensorsTimerFired()
 
     if (searchSensorsTimeout == 0)
     {
+        DBG_Printf(DBG_INFO, "Search sensors done\n");
         fastProbeAddr = deCONZ::Address();
         fastProbeIndications.clear();
         searchSensorsState = SearchSensorsDone;
@@ -2379,6 +2376,13 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
         return;
     }
 
+    if ((ind.srcAddress().hasExt() && ind.srcAddress().ext() == fastProbeAddr.ext()) ||
+        (ind.srcAddress().hasNwk() && ind.srcAddress().nwk() == fastProbeAddr.nwk()))
+    {
+        DBG_Printf(DBG_INFO, "FP indication 0x%04X / 0x%04X (0x%016llX / 0x%04X)\n", ind.profileId(), ind.clusterId(), ind.srcAddress().ext(), ind.srcAddress().nwk());
+        DBG_Printf(DBG_INFO, "                      ...     (0x%016llX / 0x%04X)\n", fastProbeAddr.ext(), fastProbeAddr.nwk());
+    }
+
     if (ind.profileId() == ZDP_PROFILE_ID && ind.clusterId() == ZDP_DEVICE_ANNCE_CLID)
     {
         QDataStream stream(ind.asdu());
@@ -2417,7 +2421,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
             return;
         }
 
-        if (fastProbeAddr.hasExt() && fastProbeAddr.ext() != ext)
+        if (fastProbeAddr.hasExt())
         {
             return;
         }
@@ -2430,7 +2434,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
             fastProbeTimer->start(100);
         }
 
-
+        fastProbeIndications.clear();
         fastProbeIndications.push_back(ind);
 
         std::vector<SensorCandidate>::iterator i = searchSensorsCandidates.begin();
@@ -2442,8 +2446,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
             {
                 i->waitIndicationClusterId = 0xffff;
                 i->timeout = QTime();
-                i->address = fastProbeAddr; // nwk might have changed
-                return;
+                i->address = deCONZ::Address(); // clear
             }
         }
 
@@ -2487,6 +2490,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
 
                 if (ind.clusterId() == i->waitIndicationClusterId && i->timeout.isValid())
                 {
+                    DBG_Printf(DBG_INFO, "ZDP indication search sensors 0x%016llX (0x%04X) clear timeout on cluster 0x%04X\n", ind.srcAddress().ext(), ind.srcAddress().nwk(), ind.clusterId());
                     i->timeout = QTime();
                     i->waitIndicationClusterId = 0xffff;
                 }
@@ -2576,6 +2580,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
     {
         if (zclFrame.manufacturerCode() == VENDOR_115F || zclFrame.manufacturerCode() == VENDOR_1234)
         {
+            DBG_Printf(DBG_INFO, "Remember Xiaomi special for 0x%016llX\n", ind.srcAddress().ext());
             fastProbeIndications.push_back(ind); // remember Xiaomi special report
         }
 
@@ -2588,6 +2593,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
         {
             if (ind.clusterId() == sc->waitIndicationClusterId && sc->timeout.isValid())
             {
+                DBG_Printf(DBG_INFO, "Clear fast probe timeout for cluster 0x%04X, 0x%016llX\n", ind.clusterId(), ind.srcAddress().ext());
                 sc->timeout = QTime();
                 sc->waitIndicationClusterId = 0xffff;
             }
@@ -3027,7 +3033,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
                 Event e(RSensors, REventAdded, sensorNode.id());
                 enqueueEvent(e);
 
-                fastProbeAddr = sc->address;
+                //fastProbeAddr = sc->address;
                 if (!fastProbeTimer->isActive())
                 {
                     fastProbeTimer->start(100);
