@@ -2731,7 +2731,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
     {
         bool ok;
         bool isClip = sensor.type().startsWith(QLatin1String("CLIP"));
-        ResourceItem *item = 0;
+        ResourceItem *item = nullptr;
         quint64 extAddr = 0;
         quint16 clusterId = 0;
         quint8 endpoint = sensor.fingerPrint().endpoint;
@@ -2754,7 +2754,11 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         else
         {
             const QStringList ls = sensor.uniqueId().split('-', QString::SkipEmptyParts);
-            if (ls.size() != 3)
+            if (ls.size() == 2 && ls[1] == QLatin1String("f2"))
+            {
+                // Green Power devices, e.g. ZGPSwitch
+            }
+            else if (ls.size() != 3)
             {
                 return 0;
             }
@@ -2769,11 +2773,14 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
 
             // restore clusterId
-            clusterId = ls[2].toUShort(&ok, 16);
-
-            if (!ok)
+            if (ls.size() == 3)
             {
-                return 0;
+                clusterId = ls[2].toUShort(&ok, 16);
+
+                if (!ok)
+                {
+                    return 0;
+                }
             }
         }
 
