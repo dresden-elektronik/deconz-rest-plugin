@@ -286,6 +286,8 @@ void PollManager::pollTimerFired()
             }
 
             std::vector<quint16> toCheck;
+            toCheck.push_back(0x0008); // color mode
+
             if (cap & 0x0002) // enhanced hue supported
             {
                 toCheck.push_back(0x4001); // enhanced color mode
@@ -296,11 +298,6 @@ void PollManager::pollTimerFired()
             {
                 toCheck.push_back(0x0000); // hue
                 toCheck.push_back(0x0001); // saturation
-                toCheck.push_back(0x0008); // color mode
-            }
-            else
-            {
-                toCheck.push_back(0x0008); // color mode
             }
 
             if (cap & 0x0004)
