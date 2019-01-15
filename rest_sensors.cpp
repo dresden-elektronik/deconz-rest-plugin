@@ -2002,10 +2002,10 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
     {
         return;
     }
-    QDateTime now = QDateTime::currentDateTime();
+    const QDateTime now = QDateTime::currentDateTime();
 
     // speedup sensor state check
-    if (e.what() == RStatePresence &&
+    if ((e.what() == RStatePresence || e.what() == RStateButtonEvent) &&
         sensor && sensor->durationDue.isValid())
     {
         sensorCheckFast = CHECK_SENSOR_FAST_ROUNDS;
@@ -2301,12 +2301,12 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
             continue;
         }
 
-        // automatically set presence to false, if not triggered in config.duration
         if (sensor->durationDue.isValid())
         {
             QDateTime now = QDateTime::currentDateTime();
             if (sensor->durationDue <= now)
             {
+                // automatically set presence to false, if not triggered in config.duration
                 ResourceItem *item = sensor->item(RStatePresence);
                 if (item && item->toBool())
                 {
@@ -2325,6 +2325,22 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
                         }
                     }
                 }
+                else if (!item && sensor->modelId() == QLatin1String("lumi.sensor_switch"))
+                {
+                    // Xiaomi round button (WXKG01LM)
+                    // generate artificial hold event
+                    item = sensor->item(RStateButtonEvent);
+                    if (item && item->toNumber() == (S_BUTTON_1 + S_BUTTON_ACTION_INITIAL_PRESS))
+                    {
+                        item->setValue(S_BUTTON_1 + S_BUTTON_ACTION_HOLD);
+                        DBG_Printf(DBG_INFO, "button %d Hold\n", item->toNumber());
+                        sensor->updateStateTimestamp();
+                        Event e(RSensors, RStateButtonEvent, sensor->id(), item);
+                        enqueueEvent(e);
+                        enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
+                    }
+                }
+
                 sensor->durationDue = QDateTime();
             }
             else
@@ -2339,6 +2355,7 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
                                          : CHECK_SENSOR_INTERVAL;
     if (interval != checkSensorsTimer->interval())
     {
+        DBG_Printf(DBG_INFO, "Set sensor check interval to %d milliseconds\n", interval);
         checkSensorsTimer->setInterval(interval);
     }
 }

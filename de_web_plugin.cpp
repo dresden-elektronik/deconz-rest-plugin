@@ -2577,7 +2577,7 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor, const deCONZ:
 
 void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame)
 {
-    DBG_Assert(sensor != 0);
+    DBG_Assert(sensor != nullptr);
 
     if (!sensor)
     {
@@ -2794,6 +2794,33 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                         buttonMap->zclParam0 == pl3)
                     {
                         ok = true;
+                    }
+
+                    // the round button (lumi.sensor_switch) sends a release command regardless if it is a short press or a long release
+                    // figure it out here to decide if it is a short release (1002) or a long release (1003)
+                    if (ok && sensor->modelId() == QLatin1String("lumi.sensor_switch"))
+                    {
+                        const QDateTime now = QDateTime::currentDateTime();
+
+                        if (buttonMap->button == (S_BUTTON_1 + S_BUTTON_ACTION_INITIAL_PRESS))
+                        {
+                            sensor->durationDue = now.addMSecs(500); // enable generation of 1001 (hold)
+                            checkSensorsTimer->start(CHECK_SENSOR_FAST_INTERVAL);
+                        }
+                        else if (buttonMap->button == (S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED))
+                        {
+                            sensor->durationDue = QDateTime(); // disable generation of 1001 (hold)
+
+                            ResourceItem *item = sensor->item(RStateButtonEvent);
+                            if (item && (item->toNumber() == (S_BUTTON_1 + S_BUTTON_ACTION_INITIAL_PRESS) ||
+                                         item->toNumber() == (S_BUTTON_1 + S_BUTTON_ACTION_HOLD)))
+                            {
+                                if (item->lastSet().msecsTo(now) > 400) // over 400 ms since initial press? -> long release
+                                {
+                                    ok = false; // force long release button event
+                                }
+                            }
+                        }
                     }
                 }
                 else if (ind.clusterId() == DOOR_LOCK_CLUSTER_ID && sensor->manufacturer() == QLatin1String("LUMI"))
