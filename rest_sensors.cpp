@@ -924,7 +924,7 @@ int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
             {
                 pushSensorInfoToCore(sensor);
             }
-            rspItemState[QString("/sensors/%1/name:").arg(id)] = name;
+            rspItemState[QString("/sensors/%1/name").arg(id)] = name;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
         }
@@ -949,7 +949,7 @@ int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
                 updateSensorEtag(sensor);
             }
 
-            rspItemState[QString("/sensors/%1/mode:").arg(id)] = (double)mode;
+            rspItemState[QString("/sensors/%1/mode").arg(id)] = (double)mode;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
             updateEtag(sensor->etag);
