@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2019 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -35,7 +35,7 @@ void DeRestPluginPrivate::initSchedules()
  */
 int DeRestPluginPrivate::handleSchedulesApi(const ApiRequest &req, ApiResponse &rsp)
 {
-    if (req.path[2] != "schedules")
+    if (req.path[2] != QLatin1String("schedules"))
     {
         return REQ_NOT_HANDLED;
     }
