@@ -8702,7 +8702,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {   // don't add, just update, useful since door/window and presence sensors otherwise only report on activation
             ResourceItem *item = sensor.item(RStateOpen);
             item = item ? item : sensor.item(RStatePresence);
-            item = item ? item : sensor.item(RStateWater);      // lumi.sensor_wleak.aq1
+//            item = item ? item : sensor.item(RStateWater);      // lumi.sensor_wleak.aq1, ignore, value is not reliable
             if (attrId == 0xff02)
             {
                 // don't update Mija devices
