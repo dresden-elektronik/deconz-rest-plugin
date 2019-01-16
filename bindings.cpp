@@ -1429,6 +1429,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("VMS_ADUROLIGHT")) ||
         // innr
         sensor->modelId() == QLatin1String("SP 120") ||
+        // Eurotronic
+        sensor->modelId() == QLatin1String("SPZB0001") ||
         // Heiman
         sensor->modelId().startsWith(QLatin1String("SmartPlug")) ||
         sensor->modelId().startsWith(QLatin1String("CO_")) ||

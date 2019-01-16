@@ -176,6 +176,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_INNR, "RC 110", jennicMacPrefix }, // innr remote RC 110
     { VENDOR_VISONIC, "MCT-340", emberMacPrefix }, // Visonic MCT-340 E temperature/motion
     { VENDOR_1224, "ICZB-KPD1", emberMacPrefix }, // iCasa keypad
+    { VENDOR_JENNIC, "SPZB0001", jennicMacPrefix }, // Eurotronic thermostat
     { 0, nullptr, 0 }
 };
 
