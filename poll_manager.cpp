@@ -175,6 +175,7 @@ void PollManager::pollTimerFired()
 
     if (items.empty())
     {
+        emit done();
         return;
     }
 

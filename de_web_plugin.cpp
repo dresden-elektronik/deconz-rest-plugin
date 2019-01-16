@@ -420,6 +420,8 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     indexRulesTriggers();
 
     QTimer::singleShot(3000, this, SLOT(initWiFi()));
+
+    connect(pollManager, &PollManager::done, this, &DeRestPluginPrivate::pollNextDevice);
 }
 
 /*! Deconstructor for pimpl.
@@ -14785,6 +14787,10 @@ void DeRestPluginPrivate::pollNextDevice()
     {
         DBG_Printf(DBG_INFO, "poll node %s\n", qPrintable(restNode->uniqueId()));
         pollManager->poll(restNode);
+    }
+    else
+    {
+        QTimer::singleShot(500, this, SLOT(pollNextDevice()));
     }
 }
 

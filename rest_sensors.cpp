@@ -2025,7 +2025,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             if (sensor->lastStatePush.isValid() &&
             item->lastSet() < sensor->lastStatePush)
             {
-                DBG_Printf(DBG_INFO, "discard sensor state push for %s: %s (already pushed)\n", qPrintable(e.id()), e.what());
+                DBG_Printf(DBG_INFO_L2, "discard sensor state push for %s: %s (already pushed)\n", qPrintable(e.id()), e.what());
                 webSocketServer->flush(); // force transmit send buffer
                 return; // already pushed
             }
@@ -2070,7 +2070,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             if (sensor->lastConfigPush.isValid() &&
             item->lastSet() < sensor->lastConfigPush)
             {
-                DBG_Printf(DBG_INFO, "discard sensor config push for %s (already pushed)\n", e.what());
+                DBG_Printf(DBG_INFO_L2, "discard sensor config push for %s (already pushed)\n", e.what());
                 return; // already pushed
             }
 

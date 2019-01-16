@@ -55,6 +55,7 @@ public:
     bool hasItems() const { return !items.empty(); }
 
 signals:
+    void done();
 
 public slots:
     void apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf);
