@@ -541,7 +541,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         isOn = item ? item->toBool() : false;
     }
 
-    if (taskRef.lightNode->manufacturerCode() == VENDOR_ATMEL)
+    if (taskRef.lightNode->modelId() == QLatin1String("FLS-PP")) // old FLS-PP
     {
         hasXy = false;
     }
@@ -814,7 +814,6 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 }
                 task.enhancedHue = hue;
                 task.taskType = TaskSetEnhancedHue;
-                taskToLocalData(task);
             }
 
             if (!hasXy && !hasSat)
@@ -859,6 +858,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 rspItemState[QString("/lights/%1/state/hue").arg(id)] = map["hue"];
                 rspItem["success"] = rspItemState;
                 rsp.list.append(rspItem);
+                taskToLocalData(task);
             }
             else
             {
@@ -917,7 +917,6 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             sat = sat2;
             task.sat = sat;
             task.taskType = TaskSetSat;
-            taskToLocalData(task);
 
             if (!hasXy && !hasHue)
             {
@@ -960,6 +959,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 rspItemState[QString("/lights/%1/state/sat").arg(id)] = map["sat"];
                 rspItem["success"] = rspItemState;
                 rsp.list.append(rspItem);
+                taskToLocalData(task);
             }
             else
             {
@@ -1026,16 +1026,18 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     {
         ResourceItem *item = taskRef.lightNode->item(RStateBri);
 
-        int briIinc = map["bri_inc"].toInt(&ok);
+        int briInc = map["bri_inc"].toInt(&ok);
 
-        if (hasWrap && map["wrap"].type() == QVariant::Bool && map["wrap"] == true) {
-            int lightLevel = taskRef.lightNode->level();
-            if(ok) {
-                if(briIinc < 0 && lightLevel + briIinc <= -briIinc) {
-                    briIinc = 254;
-                } else if(briIinc > 0 && lightLevel + briIinc >= 254) {
-                    briIinc = -254;
-                }
+        if (ok && hasWrap && map["wrap"].type() == QVariant::Bool && map["wrap"].toBool() == true) {
+            const int bri = static_cast<int>(item->toNumber());
+
+            if (briInc < 0 && bri + briInc <= -briInc)
+            {
+                briInc = 254;
+            }
+            else if(briInc > 0 && bri + briInc >= 254)
+            {
+                briInc = -254;
             }
         }
 
@@ -1046,7 +1048,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         //FIXME workaround window_covering
         else if (isWindowCoveringDevice)
         {
-        	if (ok && (map["bri_inc"].type() == QVariant::Double) && (briIinc == 0))
+            if (ok && (map["bri_inc"].type() == QVariant::Double) && (briInc == 0))
         	{
         		TaskItem task;
         		copyTaskReq(taskRef, task);
@@ -1069,14 +1071,14 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         {
             rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1").arg(id), QString("parameter, /lights/%1/bri, is not modifiable. Device is set to off.").arg(id)));
         }
-        else if (ok && (map["bri_inc"].type() == QVariant::Double) && (briIinc >= -254 && briIinc <= 254))
+        else if (ok && (map["bri_inc"].type() == QVariant::Double) && (briInc >= -254 && briInc <= 254))
         {
             TaskItem task;
             copyTaskReq(taskRef, task);
-            task.inc = briIinc;
+            task.inc = briInc;
             task.taskType = TaskIncBrightness;
 
-            if (addTaskIncBrightness(task, briIinc))
+            if (addTaskIncBrightness(task, briInc))
             {
                 taskToLocalData(task);
                 QVariantMap rspItem;

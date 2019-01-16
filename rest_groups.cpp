@@ -1136,7 +1136,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     }
 
     // xy
-    if (hasXy)
+    if (hasXy && supportColorModeXyForGroups)
     {
         hasXy = false;
         QVariantList ls = map["xy"].toList();
@@ -1181,7 +1181,6 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     // ct_inc
     if (hasCtInc)
     {
-
         int ct_inc = map["ct_inc"].toInt(&ok);
 
         if (hasCt)
@@ -1222,9 +1221,9 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     // bri_inc
     if (hasBriInc && !hasBri)
     {
-
         int briInc = map["bri_inc"].toInt(&ok);
-        if(hasWrap && map["wrap"].type() == QVariant::Bool && map["wrap"] == true) {
+        if (hasWrap && map["wrap"].type() == QVariant::Bool && map["wrap"].toBool() == true)
+        {
             std::vector<LightNode>::iterator i = nodes.begin();
             std::vector<LightNode>::iterator end = nodes.end();
 
@@ -1234,19 +1233,25 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
             {
                 if (isLightNodeInGroup(&(*i), group->address()))
                 {
-                    if (i->isAvailable() && i->state() != LightNode::StateDeleted)
+                    ResourceItem *item = i->item(RStateBri);
+                    if (item && i->isAvailable() && i->state() != LightNode::StateDeleted)
                     {
-                        hiBri = (i->level() > hiBri) ? i->level() : hiBri;
-                        loBri = (i->level() < loBri) ? i->level() : loBri;
+                        const int bri = static_cast<int>(item->toNumber());
+                        hiBri = (bri > hiBri) ? bri : hiBri;
+                        loBri = (bri < loBri) ? bri : loBri;
                     }
                 }
             }
 
             // Check if we need to wrap around
-            if(hiBri >= 0 && loBri < 255) {
-                if(briInc < 0 && loBri + briInc <= -briInc) {
+            if (hiBri >= 0 && loBri < 255)
+            {
+                if (briInc < 0 && loBri + briInc <= -briInc)
+                {
                     briInc = 254;
-                } else if(briInc > 0 && hiBri + briInc >= 254) {
+                }
+                else if (briInc > 0 && hiBri + briInc >= 254)
+                {
                     briInc = -254;
                 }
             }
@@ -1547,17 +1552,18 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
 
                         if (item && item->toNumber() != group->hue)
                         {
-                            i->setEnhancedHue(group->hue);
                             item->setValue(group->hue);
                             Event e(RLights, RStateHue, i->id(), item);
                             enqueueEvent(e);
 
-                            if (!hasXy && !hasSat)
+                            item = i->item(RStateSat);
+
+                            if (item && !hasXy && !hasSat)
                             {
                                 double r, g, b;
                                 double x, y;
                                 double h = ((360.0f / 65535.0f) * hue);
-                                double s = i->saturation() / 255.0f;
+                                double s = item->toNumber() / 255.0f;
                                 double v = 1.0f;
 
                                 Hsv2Rgb(&r, &g, &b, h, s, v);
@@ -1577,6 +1583,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
                             }
                         }
                     }
+                    // TODO case hasHue && hasSat not handled
                     else if (hasSat)
                     {
                         if (item->toString() != QLatin1String("hs"))
@@ -1597,9 +1604,18 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
 
                             if (!hasXy)
                             {
+                                quint16 enhancedHue = 0;
+                                {
+                                    ResourceItem *item2 = i->item(RStateHue);
+                                    if (item2)
+                                    {
+                                        enhancedHue = static_cast<quint16>(item2->toNumber());
+                                    }
+                                }
+
                                 double r, g, b;
                                 double x, y;
-                                double h = (!hasHue) ? ((360.0f / 65535.0f) * i->enhancedHue()) : ((360.0f / 65535.0f) * hue);
+                                double h = (!hasHue) ? ((360.0f / 65535.0f) * enhancedHue) : ((360.0f / 65535.0f) * hue);
                                 double s = sat / 254.0f;
                                 double v = 1.0f;
 

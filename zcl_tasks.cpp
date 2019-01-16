@@ -550,7 +550,7 @@ bool DeRestPluginPrivate::addTaskSetHueAndSaturation(TaskItem &task, uint8_t hue
 
     if (task.lightNode)
     {
-        task.lightNode->setColorMode("hs");
+        task.lightNode->setColorMode(QLatin1String("hs"));
     }
 
     if (sat == 255)
@@ -617,7 +617,7 @@ bool DeRestPluginPrivate::addTaskSetXyColorAsHueAndSaturation(TaskItem &task, do
         ResourceItem *item = task.lightNode->item(RStateBri);
         if (item)
         {
-            Y = task.lightNode->level() / 255.0f;
+            Y = item->toNumber() / 255.0f;
         }
         else
         {
@@ -697,11 +697,11 @@ bool DeRestPluginPrivate::addTaskSetXyColor(TaskItem &task, double x, double y)
 
     if (task.lightNode)
     {
-        task.lightNode->setColorMode("xy");
+        task.lightNode->setColorMode(QLatin1String("xy"));
 
         // convert xy coordinates to hue and saturation
-        // due the lights itself don't support this mode yet
-        if (task.lightNode->manufacturerCode() == VENDOR_ATMEL)
+        // due the old FLS-PP don't support this mode
+        if (task.lightNode->manufacturerCode() == VENDOR_ATMEL && task.lightNode->modelId() == QLatin1String("FLS-PP"))
         {
             task.lightNode->setColorXY(task.colorX, task.colorY); // update here
             return addTaskSetXyColorAsHueAndSaturation(task, x, y);

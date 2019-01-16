@@ -246,7 +246,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     udpSock = 0;
     haEndpoint = 0;
     gwGroupSendDelay = deCONZ::appArgumentNumeric("--group-delay", GROUP_SEND_DELAY);
-    supportColorModeXyForGroups = false;
+    supportColorModeXyForGroups = true;
     groupDeviceMembershipChecked = false;
     gwLinkButton = false;
     gwWebSocketNotifyAll = true;
@@ -1908,22 +1908,24 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                     if (ia->id() == 0x0000) // current hue
                     {
                         uint8_t hue = ia->numericValue().u8;
-                        if (lightNode->hue() != hue)
+
+                        if (hue > 254)
                         {
-                            if (hue > 254)
-                            {
-                                hue = 254;
-                            }
+                            hue = 254;
+                        }
 
-                            lightNode->setHue(hue);
-                            ResourceItem *item = lightNode->item(RStateHue);
-                            if (item && item->toNumber() != lightNode->enhancedHue())
-                            {
-                                item->setValue(lightNode->enhancedHue());
-                                Event e(RLights, RStateHue, lightNode->id(), item);
-                                enqueueEvent(e);
-                            }
+                        qreal normHue = (static_cast<double>(hue) * 360 / 254) / 360;
+                        if      (normHue < 0) { normHue = 0; }
+                        else if (normHue > 1) { normHue = 1; }
 
+                        const quint16 ehue = static_cast<quint16>(normHue * 65535);
+
+                        ResourceItem *item = lightNode->item(RStateHue);
+                        if (item && item->toNumber() != ehue)
+                        {
+                            item->setValue(ehue);
+                            Event e(RLights, RStateHue, lightNode->id(), item);
+                            enqueueEvent(e);
                             updated = true;
                         }
                     }
@@ -11725,8 +11727,6 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
 
         case TaskSetEnhancedHue:
         {
-            lightNode->setEnhancedHue(task.enhancedHue);
-
             ResourceItem *item = lightNode->item(RStateHue);
             if (item && item->toNumber() != task.enhancedHue)
             {
@@ -11750,8 +11750,6 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
 
         case TaskSetHueAndSaturation:
         {
-            lightNode->setEnhancedHue(task.enhancedHue);
-
             ResourceItem *item = lightNode->item(RStateHue);
             if (item && item->toNumber() != task.enhancedHue)
             {
@@ -11899,13 +11897,8 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
             break;
 
         case TaskSetColorLoop:
-            if (lightNode->colorMode() == QLatin1String("ct") || (lightNode->colorX() == 0 && lightNode->colorY() == 0 && lightNode->hue() == 0 && lightNode->enhancedHue() == 0))
             {
-                //do nothing
-            }
-            else
-            {
-                updateEtag(lightNode->etag);
+                updateLightEtag(lightNode);
                 lightNode->setColorLoopActive(task.colorLoop);
                 setAttributeColorLoopActive(lightNode);
             }
@@ -13302,7 +13295,7 @@ void DeRestPlugin::idleTimerFired()
             for (; i != end; ++i)
             {
                 // older FLS which do not have correct support for color mode xy has atmel vendor id
-                if (i->isAvailable() && (i->manufacturerCode() == VENDOR_ATMEL))
+                if (i->isAvailable() && i->manufacturerCode() == VENDOR_ATMEL && i->modelId().startsWith("FLS")) // old FLS devices
                 {
                     countNoColorXySupport++;
                 }

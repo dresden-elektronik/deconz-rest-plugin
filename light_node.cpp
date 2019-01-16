@@ -20,15 +20,6 @@ LightNode::LightNode() :
    m_groupCapacity(0),
    m_manufacturerCode(0),
    m_otauClusterId(0), // unknown
-   m_isOn(false),
-   m_level(0),
-   m_hue(0),
-   m_ehue(0),
-   m_normHue(0),
-   m_sat(0),
-   m_colorX(0),
-   m_colorY(0),
-   m_colorTemperature(0),
    m_colorLoopActive(false),
    m_colorLoopSpeed(0),
    m_groupCount(0),
@@ -217,114 +208,7 @@ void LightNode::setOtauClusterId(uint16_t clusterId)
  */
 bool LightNode::hasColor() const
 {
-    return item(RStateColorMode) != 0;
-}
-
-/*! Returns the light dimm level (0..255).
- */
-uint16_t LightNode::level() const
-{
-    const ResourceItem *it = item(RStateBri);
-
-    if (!it)
-    {
-        it = item(RStateOn);
-        return (it && it->toBool() ? 254 : 0);
-    }
-
-    return it ? it->toNumber() : 0;
-}
-
-/*! Sets the light dimm level.
-    \param level the dimm level (0..255)
- */
-void LightNode::setLevel(uint16_t level)
-{
-    DBG_Assert(level <= 255);
-    if (level <= 255)
-    {
-        m_level = level;
-    }
-}
-
-/*! Returns the lights hue (0..254).
- */
-uint8_t LightNode::hue() const
-{
-    return m_hue;
-}
-
-/*! Sets the lights hue.
-    \param hue the hue (0..254)
- */
-void LightNode::setHue(uint8_t hue)
-{
-    DBG_Assert(hue <= 254);
-    if (hue <= 254)
-    {
-        m_hue = hue;
-
-        m_normHue = ((double)hue * 360.0f / 254.0f) / 360.0f;
-
-        DBG_Assert(m_normHue >= 0.0f);
-        DBG_Assert(m_normHue <= 1.0f);
-
-        if (m_normHue < 0.0f)
-        {
-            m_normHue = 0.0f;
-        }
-        else if (m_normHue > 1.0f)
-        {
-            m_normHue = 1.0f;
-        }
-
-        m_ehue = (m_normHue * 65535.0f);
-    }
-}
-
-/*! Returns the lights enhanced hue (0..65535).
- */
-uint16_t LightNode::enhancedHue() const
-{
-    return m_ehue;
-}
-
-/*! Sets the lights enhanced hue.
-    \param ehue the enhanced hue (0..65535)
- */
-void LightNode::setEnhancedHue(uint16_t ehue)
-{
-    m_normHue = (((double)ehue) / 65535.0f);
-    DBG_Assert(m_normHue >= 0.0f);
-    DBG_Assert(m_normHue <= 1.0f);
-
-    if (m_normHue < 0.0f)
-    {
-        m_normHue = 0.0f;
-    }
-    else if (m_normHue > 1.0f)
-    {
-        m_normHue = 1.0f;
-    }
-    m_hue = m_normHue * 254.0f;
-    DBG_Assert(m_hue <= 254);
-
-    m_ehue = ehue;
-}
-
-/*! Returns the lights saturation (0..255).
- */
-uint8_t LightNode::saturation() const
-{
-    return m_sat;
-}
-
-/*! Sets the lights saturation.
-    \param sat the saturation (0..255)
- */
-void LightNode::setSaturation(uint8_t sat)
-{
-    m_sat = sat;
+    return item(RStateColorMode) != nullptr;
 }
 
 /*! Sets the lights CIE color coordinates.
@@ -346,39 +230,17 @@ void LightNode::setColorXY(uint16_t x, uint16_t y)
         y = 65279;
     }
 
-    m_colorX = x;
-    m_colorY = y;
-}
+    ResourceItem *i = item(RStateX);
+    if (i)
+    {
+        i->setValue(x);
+    }
 
-/*! Returns the lights CIE X color coordinate (0.. 65279).
- */
-uint16_t LightNode::colorX() const
-{
-    return m_colorX;
-}
-
-/*! Returns the lights CIE Y color coordinate (0.. 65279).
- */
-uint16_t LightNode::colorY() const
-{
-    return m_colorY;
-}
-
-/*! Returns the lights mired color temperature.
-    Where mired is expressed as M = 1000000 / T.
-    T is the color temperature in kelvin.
- */
-uint16_t LightNode::colorTemperature() const
-{
-    return m_colorTemperature;
-}
-
-/*! Sets the lights mired color temperature.
-    \param colorTemperature the color temperature as mired value
- */
-void LightNode::setColorTemperature(uint16_t colorTemperature)
-{
-    m_colorTemperature = colorTemperature;
+    i = item(RStateY);
+    if (i)
+    {
+        i->setValue(y);
+    }
 }
 
 /*! Returns the current colormode.
@@ -387,7 +249,7 @@ const QString &LightNode::colorMode() const
 {
     static QString foo;
     const ResourceItem *i = item(RStateColorMode);
-    DBG_Assert(i != 0);
+    DBG_Assert(i != nullptr);
     if (i)
     {
         return i->toString();
@@ -400,7 +262,7 @@ const QString &LightNode::colorMode() const
  */
 void LightNode::setColorMode(const QString &colorMode)
 {
-    DBG_Assert((colorMode == "hs") || (colorMode == "xy") || (colorMode == "ct"));
+    DBG_Assert((colorMode == QLatin1String("hs")) || (colorMode == QLatin1String("xy")) || (colorMode == QLatin1String("ct")));
 
     ResourceItem *i = item(RStateColorMode);
     if (i && i->toString() != colorMode)
