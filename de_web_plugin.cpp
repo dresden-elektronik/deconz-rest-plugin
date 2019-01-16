@@ -8705,11 +8705,19 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {   // don't add, just update, useful since door/window and presence sensors otherwise only report on activation
             ResourceItem *item = sensor.item(RStateOpen);
             item = item ? item : sensor.item(RStatePresence);
-//            item = item ? item : sensor.item(RStateWater);      // lumi.sensor_wleak.aq1, ignore, value is not reliable
+//            item = item ? item : sensor.item(RStateWater);  // lumi.sensor_wleak.aq1, ignore, value is not reliable
             if (attrId == 0xff02)
             {
                 // don't update Mija devices
                 // e.g. lumi.sensor_motion always reports 1
+                sensor.updateStateTimestamp();
+                updated = true;
+            }
+            else if (sensor.modelId().startsWith(QLatin1String("lumi.sensor_wleak")))
+            {
+               // only update state timestamp assuming last known value is valid
+                sensor.updateStateTimestamp();
+                updated = true;
             }
             else if (item)
             {
