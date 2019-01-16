@@ -495,7 +495,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
     rsp.httpStatus = HttpStatusOk;
 
-    if (!taskRef.lightNode->isAvailable() || !taskRef.lightNode->lastRx().isValid())
+    if (!taskRef.lightNode->isAvailable())
     {
         rsp.httpStatus = HttpStatusOk;
         rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("resource, /lights/%1, not available").arg(id)));

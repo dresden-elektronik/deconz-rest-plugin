@@ -1303,7 +1303,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             ResourceItem *reachable = lightNode2->item(RStateReachable);
 
             DBG_Assert(reachable);
-            bool avail = !node->isZombie();
+            bool avail = !node->isZombie() && lightNode2->lastRx().isValid();
             if (reachable->toBool() != avail)
             {
                 // the node existed before
@@ -1528,7 +1528,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         DBG_Assert(reachable);
         if (reachable)
         {
-            reachable->setValue(!node->isZombie());
+            reachable->setValue(!node->isZombie() && lightNode.lastRx().isValid());
         }
 
         if (lightNode.id().isEmpty())
@@ -11080,6 +11080,11 @@ void DeRestPluginPrivate::handleZdpIndication(const deCONZ::ApsDataIndication &i
 {
     for (LightNode &lightNode: nodes)
     {
+        if (lightNode.state() != LightNode::StateNormal)
+        {
+            continue;
+        }
+
         if (ind.srcAddress().hasExt() && ind.srcAddress().ext() != lightNode.address().ext())
         {
             continue;
@@ -11091,6 +11096,14 @@ void DeRestPluginPrivate::handleZdpIndication(const deCONZ::ApsDataIndication &i
         }
 
         lightNode.rx();
+
+        ResourceItem *item = lightNode.item(RStateReachable);
+        if (item && !item->toBool())
+        {
+            item->setValue(true);
+            Event e(RLights, RStateReachable, lightNode.id(), item);
+            enqueueEvent(e);
+        }
 
         if (lightNode.modelId().isEmpty() && lightNode.haEndpoint().isValid())
         {
@@ -11107,6 +11120,11 @@ void DeRestPluginPrivate::handleZdpIndication(const deCONZ::ApsDataIndication &i
         {
             for (Sensor &s: sensors)
             {
+                if (s.deletedState() != Sensor::StateNormal)
+                {
+                    continue;
+                }
+
                 if (s.address().ext() != lightNode.address().ext())
                 {
                     continue;
