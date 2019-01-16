@@ -2662,6 +2662,7 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
         QString workingpw;
         QString wifipw;
         QString wifiname;
+        QString wifitype;
         QString wifi;
 
         if (map.contains("workingtype")) { workingtype = map["workingtype"].toString(); }
@@ -2669,6 +2670,7 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
         if (map.contains("workingpw")) { workingpw = map["workingpw"].toString(); }
         if (map.contains("wifipw")) { wifipw = map["wifipw"].toString(); }
         if (map.contains("wifiname")) { wifiname = map["wifiname"].toString(); }
+        if (map.contains("wifitype")) { wifitype = map["wifitype"].toString(); }
         if (map.contains("wifi")) { wifi = map["wifi"].toString(); }
 
         bool changed = false;
@@ -2699,6 +2701,12 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
         if (!wifiname.isEmpty() && gwWifiName != wifiname)
         {
             gwWifiName = wifiname;
+            changed = true;
+        }
+
+        if (!wifitype.isEmpty() && gwWifiType != wifitype)
+        {
+            gwWifiType = wifitype;
             changed = true;
         }
 
