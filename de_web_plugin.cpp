@@ -126,7 +126,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_INSTA, "HS_4f_GJ_1", instaMacPrefix },
     { VENDOR_INSTA, "WS_4f_J_1", instaMacPrefix },
     { VENDOR_INSTA, "WS_3f_G_1", instaMacPrefix },
-    { VENDOR_NYCE, "3011", emberMacPrefix }, // door/window sensor
+    { VENDOR_NYCE, "3011", emberMacPrefix }, // NYCE door/window sensor
+    { VENDOR_NYCE, "3043", emberMacPrefix }, // NYCE ceiling motion sensor
     { VENDOR_PHILIPS, "RWL020", philipsMacPrefix }, // Hue dimmer switch
     { VENDOR_PHILIPS, "RWL021", philipsMacPrefix }, // Hue dimmer switch
     { VENDOR_PHILIPS, "SML001", philipsMacPrefix }, // Hue motion sensor
@@ -3377,6 +3378,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         // only use IAS Zone cluster on endpoint 0x01 for Centralite motion sensors
                     }
+                    if (node->nodeDescriptor().manufacturerCode() == VENDOR_NYCE)
+                    {
+                        // only use IAS Zone cluster on endpoint 0x01 for NYCE motion sensors
+                    }
                     else
                     {
                         fpPresenceSensor.inClusters.push_back(ci->id());
@@ -4383,6 +4388,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_CENTRALITE)
     {
         sensorNode.setManufacturer("CentraLite");
+    }
+    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_NYCE)
+    {
+        sensorNode.setManufacturer("NYCE");
     }
 
     if (sensorNode.manufacturer().isEmpty() && !manufacturer.isEmpty())
