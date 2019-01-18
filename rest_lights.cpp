@@ -1159,12 +1159,12 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
         else if ((ls.size() == 2) && (ls[0].type() == QVariant::Double) && (ls[1].type() == QVariant::Double))
         {
-            double x = ls[0].toDouble();
-            double y = ls[1].toDouble();
+            double x = ls[0].toDouble(&ok);
+            double y = ok ? ls[1].toDouble(&ok) : 0;
             TaskItem task;
             copyTaskReq(taskRef, task);
 
-            if ((x < 0.0f) || (x > 1.0f) || (y < 0.0f) || (y > 1.0f))
+            if (!ok || (x < 0) || (x > 1) || (y < 0) || (y > 1))
             {
                 rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1").arg(id), QString("invalid value, [%1,%2], for parameter, /lights/%3/xy").arg(x).arg(y).arg(id)));
             }
