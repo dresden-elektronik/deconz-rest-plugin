@@ -4379,6 +4379,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     {
         sensorNode.setManufacturer("Visonic");
     }
+    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_CENTRALITE)
+    {
+        sensorNode.setManufacturer("CentraLite");
+    }
 
     if (sensorNode.manufacturer().isEmpty() && !manufacturer.isEmpty())
     {
