@@ -278,20 +278,22 @@ void PollManager::pollTimerFired()
         else
         {
             quint16 cap = item ? static_cast<quint16>(item->toNumber()) : 0;
+            std::vector<quint16> toCheck;
 
             if (cap == 0 && lightNode->haEndpoint().profileId() == HA_PROFILE_ID)
             {
                 // e.g. OSRAM US version
                 // DEV_ID_HA_COLOR_DIMMABLE_LIGHT
                 cap  = (0x0001 | 0x0008); // hue, saturation, color mode, xy
+                toCheck.push_back(0x0008); // color mode
             }
-
-            std::vector<quint16> toCheck;
-            toCheck.push_back(0x0008); // color mode
+            else
+            {
+                toCheck.push_back(0x4001); // enhanced color mode
+            }
 
             if (cap & 0x0002) // enhanced hue supported
             {
-                toCheck.push_back(0x4001); // enhanced color mode
                 toCheck.push_back(0x4000); // enhanced hue
                 toCheck.push_back(0x0001); // saturation
             }
