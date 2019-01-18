@@ -456,14 +456,14 @@ void PollManager::pollTimerFired()
 
         if (!found)
         {
-            DBG_Printf(DBG_INFO, "Poll APS request to 0x%016llX cluster: 0x%04X dropped, cluster doesn't exist\n", pitem.address.ext(), clusterId);
+            DBG_Printf(DBG_INFO_L2, "Poll APS request to 0x%016llX cluster: 0x%04X dropped, cluster doesn't exist\n", pitem.address.ext(), clusterId);
             clusterId = 0xffff;
         }
     }
 
     if (clusterId != 0xffff && fresh > 0 && fresh == attributes.size())
     {
-        DBG_Printf(DBG_INFO, "Poll APS request to 0x%016llX cluster: 0x%04X dropped, values are fresh enough\n", pitem.address.ext(), clusterId);
+        DBG_Printf(DBG_INFO_L2, "Poll APS request to 0x%016llX cluster: 0x%04X dropped, values are fresh enough\n", pitem.address.ext(), clusterId);
         suffix = nullptr; // clear
         timer->start(100);
     }
@@ -488,7 +488,7 @@ void PollManager::pollTimerFired()
     {
         if (clusterId != 0xffff)
         {
-            DBG_Printf(DBG_INFO, "Poll APS request to 0x%016llX cluster: 0x%04X dropped\n", pitem.address.ext(), clusterId);
+            DBG_Printf(DBG_INFO_L2, "Poll APS request to 0x%016llX cluster: 0x%04X dropped\n", pitem.address.ext(), clusterId);
         }
         timer->start(100);
         items.front() = items.back();

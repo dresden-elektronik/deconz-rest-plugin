@@ -14900,7 +14900,7 @@ void DeRestPluginPrivate::pollNextDevice()
 
     if (restNode && restNode->isAvailable())
     {
-        DBG_Printf(DBG_INFO, "poll node %s\n", qPrintable(restNode->uniqueId()));
+        DBG_Printf(DBG_INFO_L2, "poll node %s\n", qPrintable(restNode->uniqueId()));
         pollManager->poll(restNode);
     }
     else
