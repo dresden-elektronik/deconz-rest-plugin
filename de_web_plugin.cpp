@@ -3297,7 +3297,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpCarbonMonoxideSensor.inClusters.push_back(ci->id());
                     }
-                    else if (modelId.startsWith(QLatin1String("DOOR_")))              // Heiman door/window sensor
+                    else if (modelId.startsWith(QLatin1String("DOOR_")) ||            // Heiman door/window sensor
+                             modelId.startsWith(QLatin1String("902010/21")))          // Bitron door/window sensor
                     {
                         fpOpenCloseSensor.inClusters.push_back(ci->id());
                     }
