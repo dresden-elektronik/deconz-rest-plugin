@@ -1415,6 +1415,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("PSMP5_")) ||
         // CentraLite
         sensor->modelId().startsWith(QLatin1String("Motion Sensor-A")) ||
+        sensor->modelId().startsWith(QLatin1String("332")) ||
         // Philips
         sensor->modelId() == QLatin1String("SML001") ||
         sensor->modelId().startsWith(QLatin1String("RWL02")) ||

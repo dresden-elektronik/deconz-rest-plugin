@@ -96,8 +96,10 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_BOSCH, "ISW-ZDL1-WP11G", boschMacPrefix },
     { VENDOR_BOSCH, "ISW-ZPR1-WP13", boschMacPrefix },
     { VENDOR_CENTRALITE, "Motion Sensor-A", emberMacPrefix },
-    { VENDOR_CENTRALITE, "3325-S", emberMacPrefix },
-    { VENDOR_CENTRALITE, "3321-S", emberMacPrefix },
+    { VENDOR_CENTRALITE, "3321-S", emberMacPrefix }, // Centralite multipurpose sensor
+    { VENDOR_CENTRALITE, "3325-S", emberMacPrefix }, // Centralite motion sensor
+//    { VENDOR_CENTRALITE, "3326-L", emberMacPrefix }, // Iris motion sensor
+    { VENDOR_CENTRALITE, "3328-G", emberMacPrefix }, // Centralite micro motion sensor
     { VENDOR_NONE, "LM_",  tiMacPrefix },
     { VENDOR_NONE, "LMHT_", tiMacPrefix },
     { VENDOR_NONE, "IR_", tiMacPrefix },
@@ -3371,11 +3373,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case OCCUPANCY_SENSING_CLUSTER_ID:
                 {
-                    // @manup: Does this sensor indeed have an OCCUPANCY_SENSING_CLUSTER_ID custer?
-                    if (node->nodeDescriptor().manufacturerCode() == VENDOR_CENTRALITE &&
-                        i->endpoint() == 0x02 && modelId == QLatin1String("Motion Sensor-A"))
+                    if (node->nodeDescriptor().manufacturerCode() == VENDOR_CENTRALITE)
                     {
-                        // only use endpoint 0x01 of this sensor
+                        // only use IAS Zone cluster on endpoint 0x01 for Centralite motion sensors
                     }
                     else
                     {
@@ -12343,8 +12343,8 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             {
                 if ((sc->address.ext() & macPrefixMask) == tiMacPrefix ||
                     (sc->address.ext() & macPrefixMask) == ubisysMacPrefix ||
-                    modelId == QLatin1String("Motion Sensor-A") || // OSRAM motion sensor
                     manufacturer.startsWith(QLatin1String("Climax")) ||
+                    node->nodeDescriptor().manufacturerCode() == VENDOR_CENTRALITE ||
                     !swBuildIdAvailable)
                 {
                     attributes.push_back(0x0006); // date code
