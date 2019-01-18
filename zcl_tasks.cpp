@@ -346,7 +346,12 @@ bool DeRestPluginPrivate::addTaskSetColorTemperature(TaskItem &task, uint16_t ct
         task.colorTemperature = ct;
         if (task.lightNode)
         {
-            task.lightNode->setColorMode("ct");
+            if (task.lightNode->colorMode() != QLatin1String("ct"))
+            {
+                task.lightNode->setColorMode(QLatin1String("ct"));
+                Event e(RLights, RStateColorMode, task.lightNode->id());
+                enqueueEvent(e);
+            }
         }
         return ret;
     }
@@ -366,7 +371,12 @@ bool DeRestPluginPrivate::addTaskSetColorTemperature(TaskItem &task, uint16_t ct
             else if (ct > ctMax->toNumber()) { ct = ctMax->toNumber(); }
         }
 
-        task.lightNode->setColorMode("ct");
+        if (task.lightNode->colorMode() != QLatin1String("ct"))
+        {
+            task.lightNode->setColorMode(QLatin1String("ct"));
+            Event e(RLights, RStateColorMode, task.lightNode->id());
+            enqueueEvent(e);
+        }
 
         // If light does not support "ct" but does suport "xy", we can emulate the former:
         ResourceItem *colorCaps = task.lightNode->item(RConfigColorCapabilities);
@@ -435,7 +445,12 @@ bool DeRestPluginPrivate::addTaskSetEnhancedHue(TaskItem &task, uint16_t hue)
 
     if (task.lightNode)
     {
-        task.lightNode->setColorMode("hs");
+        if (task.lightNode->colorMode() != QLatin1String("hs"))
+        {
+            task.lightNode->setColorMode(QLatin1String("hs"));
+            Event e(RLights, RStateColorMode, task.lightNode->id());
+            enqueueEvent(e);
+        }
     }
 
     if (task.hueReal < 0.0f)
@@ -495,7 +510,12 @@ bool DeRestPluginPrivate::addTaskSetSaturation(TaskItem &task, uint8_t sat)
 
     if (task.lightNode)
     {
-        task.lightNode->setColorMode("hs");
+        if (task.lightNode->colorMode() != QLatin1String("hs"))
+        {
+            task.lightNode->setColorMode(QLatin1String("hs"));
+            Event e(RLights, RStateColorMode, task.lightNode->id());
+            enqueueEvent(e);
+        }
     }
 
     if (sat == 255)
@@ -550,7 +570,12 @@ bool DeRestPluginPrivate::addTaskSetHueAndSaturation(TaskItem &task, uint8_t hue
 
     if (task.lightNode)
     {
-        task.lightNode->setColorMode(QLatin1String("hs"));
+        if (task.lightNode->colorMode() != QLatin1String("hs"))
+        {
+            task.lightNode->setColorMode(QLatin1String("hs"));
+            Event e(RLights, RStateColorMode, task.lightNode->id());
+            enqueueEvent(e);
+        }
     }
 
     if (sat == 255)
@@ -697,7 +722,12 @@ bool DeRestPluginPrivate::addTaskSetXyColor(TaskItem &task, double x, double y)
 
     if (task.lightNode)
     {
-        task.lightNode->setColorMode(QLatin1String("xy"));
+        if (task.lightNode->colorMode() != QLatin1String("xy"))
+        {
+            task.lightNode->setColorMode(QLatin1String("xy"));
+            Event e(RLights, RStateColorMode, task.lightNode->id());
+            enqueueEvent(e);
+        }
 
         // convert xy coordinates to hue and saturation
         // due the old FLS-PP don't support this mode
@@ -753,7 +783,12 @@ bool DeRestPluginPrivate::addTaskSetColorLoop(TaskItem &task, bool colorLoopActi
 
     if (task.lightNode && colorLoopActive)
     {
-        task.lightNode->setColorMode("hs");
+        if (task.lightNode->colorMode() != QLatin1String("hs"))
+        {
+            task.lightNode->setColorMode(QLatin1String("hs"));
+            Event e(RLights, RStateColorMode, task.lightNode->id());
+            enqueueEvent(e);
+        }
     }
 
     task.req.setClusterId(COLOR_CLUSTER_ID);
