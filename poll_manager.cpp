@@ -285,12 +285,13 @@ void PollManager::pollTimerFired()
                 // e.g. OSRAM US version
                 // DEV_ID_HA_COLOR_DIMMABLE_LIGHT
                 cap  = (0x0001 | 0x0008); // hue, saturation, color mode, xy
-                toCheck.push_back(0x0008); // color mode
             }
-            else
-            {
-                toCheck.push_back(0x4001); // enhanced color mode
-            }
+
+            toCheck.push_back(0x0008); // color mode
+            toCheck.push_back(0x4001); // enhanced color mode
+
+            // if reading 0x400x attributes fail with response 0x86 they will be marked
+            // as not available and will be ignored in further poll cycles
 
             if (cap & 0x0002) // enhanced hue supported
             {
