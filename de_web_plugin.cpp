@@ -4390,7 +4390,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         return; // required
     }
 
-    if (clusterId == IAS_ZONE_CLUSTER_ID) {
+    if (clusterId == IAS_ZONE_CLUSTER_ID)
+    {
         item = sensorNode.addItem(DataTypeBool, RStateLowBattery);
         item->setValue(false);
         item = sensorNode.addItem(DataTypeBool, RStateTampered);
@@ -4456,6 +4457,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                     sensorNode.enableRead(READ_VENDOR_NAME);
                     queryTime = queryTime.addSecs(1);
                 }
+            }
+            else if (*ci == IAS_ZONE_CLUSTER_ID)
+            {
+                item = sensorNode.addItem(DataTypeUInt8, RConfigPending);
+                item->setValue(R_PENDING_WRITE_CIE_ADDRESS);
             }
         }
     }
@@ -11949,6 +11955,11 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
  */
 void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *event)
 {
+    if (!apsCtrl)
+    {
+        return;
+    }
+
     if (/*getUptime() < WARMUP_TIME &&*/ searchSensorsState != SearchSensorsActive)
     {
         return;
@@ -12218,7 +12229,8 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                     {
                         if (attr.id() == 0x0001 && attr.numericValue().u64 != 0) // Zone type
                         {
-                            iasZoneType = attr.numericValue().u64;
+                            DBG_Assert(attr.numericValue().u64 <= UINT8_MAX);
+                            iasZoneType = static_cast<quint8>(attr.numericValue().u64);
                         }
                     }
                 }
@@ -12388,6 +12400,27 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         if (!sensor || searchSensorsState != SearchSensorsActive)
         {
             // do nothing
+        }
+        else if (iasZoneType != 0)
+        {
+            ResourceItem *item = sensor->item(RConfigPending);
+            if (item && (item->toNumber() & R_PENDING_WRITE_CIE_ADDRESS))
+            {
+                // write CIE address needed for some IAS Zone devices
+                const quint64 iasCieAddress = apsCtrl->getParameter(deCONZ::ParamMacAddress);
+                deCONZ::ZclAttribute attr(0x0010, deCONZ::ZclIeeeAddress, QLatin1String("CIE address"), deCONZ::ZclReadWrite, false);
+                attr.setValue(iasCieAddress);
+
+                DBG_Printf(DBG_INFO, "[5] write IAS CIE address for 0x%016llx\n", sc->address.ext());
+
+                if (writeAttribute(sensor, sensor->fingerPrint().endpoint, IAS_ZONE_CLUSTER_ID, attr, 0))
+                {
+                    // mark done
+                    item->setValue(item->toNumber() & ~R_PENDING_WRITE_CIE_ADDRESS);
+                    return;
+                }
+            }
+
         }
         else if (sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
         {
