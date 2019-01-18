@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2013-2019 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -334,13 +334,13 @@ bool DeRestPluginPrivate::addTaskSetColorTemperature(TaskItem &task, uint16_t ct
     {
         float ctMin = 153;
         float ctMax = 500;
-        float sat = ((float)ct - ctMin) / (ctMax - ctMin) * 254;
+        float sat = (static_cast<float>(ct) - ctMin) / (ctMax - ctMin) * 254;
         if (sat > 254)
         {
             sat = 254;
         }
 
-        bool ret = addTaskSetSaturation(task, sat);
+        bool ret = addTaskSetSaturation(task, static_cast<quint8>(sat));
         // overwrite for later use
         task.taskType = TaskSetColorTemperature;
         task.colorTemperature = ct;
@@ -367,8 +367,8 @@ bool DeRestPluginPrivate::addTaskSetColorTemperature(TaskItem &task, uint16_t ct
         // keep ct in supported bounds
         if (ctMin && ctMax && ctMin->toNumber() > 0 && ctMax->toNumber() > 0)
         {
-            if      (ct < ctMin->toNumber()) { ct = ctMin->toNumber(); }
-            else if (ct > ctMax->toNumber()) { ct = ctMax->toNumber(); }
+            if      (ct < ctMin->toNumber()) { ct = static_cast<quint16>(ctMin->toNumber()); }
+            else if (ct > ctMax->toNumber()) { ct = static_cast<quint16>(ctMax->toNumber()); }
         }
 
         if (task.lightNode->colorMode() != QLatin1String("ct"))
@@ -392,8 +392,8 @@ bool DeRestPluginPrivate::addTaskSetColorTemperature(TaskItem &task, uint16_t ct
             quint16 x;
             quint16 y;
             MiredColorTemperatureToXY(ct, &x, &y);
-            qreal xr = x / 65279.0f;
-            qreal yr = y / 65279.0f;
+            qreal xr = x / 65279.0;
+            qreal yr = y / 65279.0;
             if      (xr < 0) { xr = 0; }
             else if (xr > 1) { xr = 1; }
             if      (yr < 0) { yr = 0; }
@@ -441,7 +441,7 @@ bool DeRestPluginPrivate::addTaskSetColorTemperature(TaskItem &task, uint16_t ct
 bool DeRestPluginPrivate::addTaskSetEnhancedHue(TaskItem &task, uint16_t hue)
 {
     task.taskType = TaskSetEnhancedHue;
-    task.hueReal = (double)hue / (360.0f * 182.04444f);
+    task.hueReal = hue / (360.0 * 182.04444);
 
     if (task.lightNode)
     {
@@ -453,16 +453,16 @@ bool DeRestPluginPrivate::addTaskSetEnhancedHue(TaskItem &task, uint16_t hue)
         }
     }
 
-    if (task.hueReal < 0.0f)
+    if (task.hueReal < 0.0)
     {
-        task.hueReal = 0.0f;
+        task.hueReal = 0.0;
     }
-    else if (task.hueReal > 1.0f)
+    else if (task.hueReal > 1.0)
     {
-        task.hueReal = 1.0f;
+        task.hueReal = 1.0;
     }
-    task.hue = task.hueReal * 254.0f;
-//    task.enhancedHue = hue * 360.0f * 182.04444f;
+    task.hue = static_cast<quint8>(task.hueReal * 254.0);
+//    task.enhancedHue = hue * 360.0 * 182.04444;
     task.enhancedHue = hue;
 
     task.req.setClusterId(COLOR_CLUSTER_ID);
@@ -565,8 +565,8 @@ bool DeRestPluginPrivate::addTaskSetHueAndSaturation(TaskItem &task, uint8_t hue
     task.taskType = TaskSetHueAndSaturation;
     task.sat = sat;
     task.hue = hue;
-    task.hueReal = hue / 254.0f;
-    task.enhancedHue = task.hueReal * 360.0f * 182.04444f;
+    task.hueReal = hue / 254.0;
+    task.enhancedHue = static_cast<quint16>(task.hueReal * 360.0 * 182.04444);
 
     if (task.lightNode)
     {
@@ -629,12 +629,12 @@ bool DeRestPluginPrivate::addTaskSetXyColorAsHueAndSaturation(TaskItem &task, do
 
     // prevent division through zero
     if (x <= 0.0) {
-        x = 0.00000001f;
+        x = 0.00000001;
     }
 
     // prevent division through zero
     if (y <= 0.0) {
-        y = 0.00000001f;
+        y = 0.00000001;
     }
 
     if (task.lightNode)
@@ -642,18 +642,18 @@ bool DeRestPluginPrivate::addTaskSetXyColorAsHueAndSaturation(TaskItem &task, do
         ResourceItem *item = task.lightNode->item(RStateBri);
         if (item)
         {
-            Y = item->toNumber() / 255.0f;
+            Y = item->toNumber() / 255.0;
         }
         else
         {
-            Y = 1.0f;
+            Y = 1.0;
         }
     }
     else {
-        Y = 1.0f;
+        Y = 1.0;
     }
     X = (Y / y) * x;
-    Z = (Y / y) * (1.0f - x - y);
+    Z = (Y / y) * (1.0 - x - y);
 
     num min = MIN3(X,Y,Z);
     if (min < 0)
@@ -688,19 +688,19 @@ bool DeRestPluginPrivate::addTaskSetXyColorAsHueAndSaturation(TaskItem &task, do
     Rgb2Hsv(&h, &s, &v, r, g, b);
 
     // normalize
-    h /= 360.0f;
+    h /= 360.0;
 
-    if (h > 1.0f)
+    if (h > 1.0)
     {
-        h = 1.0f;
+        h = 1.0;
     }
-    else if (h < 0.0f)
+    else if (h < 0.0)
     {
-        h = 0.0f;
+        h = 0.0;
     }
 
-    uint8_t hue = h * 254.0f;
-    uint8_t sat = s * 254.0f;
+    uint8_t hue = h * 254.0;
+    uint8_t sat = s * 254.0;
 
     return addTaskSetHueAndSaturation(task, hue, sat);
 }
@@ -717,8 +717,8 @@ bool DeRestPluginPrivate::addTaskSetXyColorAsHueAndSaturation(TaskItem &task, do
 bool DeRestPluginPrivate::addTaskSetXyColor(TaskItem &task, double x, double y)
 {
     task.taskType = TaskSetXyColor;
-    task.colorX = x * 65279.0f; // current X in range 0 .. 65279
-    task.colorY = y * 65279.0f; // current Y in range 0 .. 65279
+    task.colorX = static_cast<quint16>(x * 65279.0); // current X in range 0 .. 65279
+    task.colorY = static_cast<quint16>(y * 65279.0); // current Y in range 0 .. 65279
 
     if (task.lightNode)
     {
@@ -1181,7 +1181,7 @@ bool DeRestPluginPrivate::addTaskAddEmptyScene(TaskItem &task, quint16 groupId, 
  */
 bool DeRestPluginPrivate::addTaskAddScene(TaskItem &task, uint16_t groupId, uint8_t sceneId, const QString &lightId)
 {
-    DBG_Assert(task.lightNode != 0);
+    DBG_Assert(task.lightNode);
     if (!task.lightNode)
     {
         return false;
@@ -1307,8 +1307,8 @@ bool DeRestPluginPrivate::addTaskAddScene(TaskItem &task, uint16_t groupId, uint
                                 quint16 ct = l->colorTemperature();
                                 if (ctMin && ctMax && ctMin->toNumber() > 0 && ctMax->toNumber() > 0)
                                 {
-                                    if      (ct < ctMin->toNumber()) { ct = ctMin->toNumber(); }
-                                    else if (ct > ctMax->toNumber()) { ct = ctMax->toNumber(); }
+                                    if      (ct < ctMin->toNumber()) { ct = static_cast<quint16>(ctMin->toNumber()); }
+                                    else if (ct > ctMax->toNumber()) { ct = static_cast<quint16>(ctMax->toNumber()); }
                                 }
 
                                 MiredColorTemperatureToXY(ct, &x, &y);
