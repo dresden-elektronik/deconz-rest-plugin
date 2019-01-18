@@ -3070,7 +3070,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
  */
 void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::NodeEvent *event)
 {
-    DBG_Assert(node != 0);
+    DBG_Assert(node);
 
     if (!node)
     {
@@ -3895,7 +3895,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
 void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFingerprint &fingerPrint, const QString &type, const QString &modelId, const QString &manufacturer)
 {
-    DBG_Assert(node != 0);
+    DBG_Assert(node);
     if (!node)
     {
         return;
@@ -3911,7 +3911,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     quint16 clusterId = 0;
 
     // simple check if existing device needs to be updated
-    Sensor *sensor2 = 0;
+    Sensor *sensor2 = nullptr;
     if (node->endpoints().size() == 1)
     {
         quint8 ep = node->endpoints()[0];
@@ -4461,7 +4461,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             else if (*ci == IAS_ZONE_CLUSTER_ID)
             {
                 item = sensorNode.addItem(DataTypeUInt8, RConfigPending);
-                item->setValue(R_PENDING_WRITE_CIE_ADDRESS);
+                item->setValue(R_PENDING_WRITE_CIE_ADDRESS | R_PENDING_ENROLL_RESPONSE);
             }
         }
     }
@@ -12420,7 +12420,52 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                     return;
                 }
             }
+            else if (item && (item->toNumber() & R_PENDING_ENROLL_RESPONSE))
+            {
+                DBG_Printf(DBG_INFO, "[6] send IAS zone enroll response to 0x%016llx\n", sc->address.ext());
 
+                deCONZ::ApsDataRequest req;
+                deCONZ::ZclFrame zclFrame;
+
+                // ZDP Header
+                req.dstAddress() = sc->address;
+                req.setDstAddressMode(deCONZ::ApsNwkAddress);
+                req.setProfileId(sensor->fingerPrint().profileId);
+                req.setClusterId(IAS_ZONE_CLUSTER_ID);
+                req.setDstAddressMode(deCONZ::ApsExtAddress);
+                req.setSrcEndpoint(endpoint());
+
+                zclFrame.setSequenceNumber(zclSeq++);
+                zclFrame.setCommandId(0x00); // enroll response
+
+                zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
+                                            deCONZ::ZclFCDirectionClientToServer);
+
+                { // payload
+                    QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
+                    stream.setByteOrder(QDataStream::LittleEndian);
+
+                    quint8 code = 0x00; // success
+                    quint8 zoneId = 100;
+
+                    stream << code;
+                    stream << zoneId;
+                }
+
+                { // ZCL frame
+                    QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
+                    stream.setByteOrder(QDataStream::LittleEndian);
+                    zclFrame.writeToStream(stream);
+                }
+
+                DBG_Printf(DBG_INFO, "IAS Zone send enroll reponse\n");
+                if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
+                {
+                    // mark done
+                    item->setValue(item->toNumber() & ~R_PENDING_ENROLL_RESPONSE);
+                    return;
+                }
+            }
         }
         else if (sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
         {

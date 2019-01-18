@@ -80,7 +80,7 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
 
         DBG_Printf(DBG_ZCL, "IAS Zone Status Change, status: 0x%04X, zoneId: %u, delay: %u\n", zoneStatus, zoneId, delay);
 
-        Sensor *sensor = 0;
+        Sensor *sensor = nullptr;
 
         for (Sensor &s : sensors)
         {
@@ -210,6 +210,14 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
         DBG_Printf(DBG_ZCL, "IAS Zone Enroll Request, zone type: 0x%04X, manufacturer: 0x%04X\n", zoneType, manufacturer);
 
         sendIasZoneEnrollResponse(ind, zclFrame);
+
+        Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
+        ResourceItem *item = sensor ? sensor->item(RConfigPending) : nullptr;
+
+        if (sensor && item)
+        {
+            item->setValue(item->toNumber() & ~R_PENDING_ENROLL_RESPONSE);
+        }
     }
 }
 

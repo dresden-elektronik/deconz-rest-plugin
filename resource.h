@@ -150,6 +150,7 @@ extern const char *RConfigUbisysJ1StartupSteps;
 #define R_PENDING_SENSITIVITY       (1 << 2)
 #define R_PENDING_USERTEST          (1 << 3)
 #define R_PENDING_WRITE_CIE_ADDRESS (1 << 4)
+#define R_PENDING_ENROLL_RESPONSE   (1 << 5)
 
 // after device announce is received lights can be brought into a defined state
 // this might be useful for powerloss and OTA updates or simply providing a default power on configuration
