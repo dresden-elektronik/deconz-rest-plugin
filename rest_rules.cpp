@@ -1222,7 +1222,7 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
         return false;
     }
 
-    QDateTime now = QDateTime::currentDateTime();
+    const QDateTime now = QDateTime::currentDateTime();
 
     if (rule.triggerPeriodic() > 0)
     {
@@ -1362,6 +1362,11 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
                 return false; // Only trigger on start time
             }
 
+            if (!c->weekDayEnabled(now.date().dayOfWeek()))
+            {
+                return false;
+            }
+
             if (c->time0() < c->time1() && // 8:00 - 16:00
                 (t >= c->time0() && t <= c->time1()))
             {
@@ -1383,6 +1388,11 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
             if (eItem->descriptor().suffix == RConfigLocalTime && t.secsTo(c->time1()) != 0)
             {
                 return false; // Only trigger on end time
+            }
+
+            if (!c->weekDayEnabled(now.date().dayOfWeek()))
+            {
+                return false;
             }
 
             if (c->time0() < c->time1() && // 8:00 - 16:00

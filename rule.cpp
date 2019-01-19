@@ -381,7 +381,8 @@ RuleCondition::RuleCondition() :
     m_prefix(nullptr),
     m_suffix(nullptr),
     m_op(OpUnknown),
-    m_num(0)
+    m_num(0),
+    m_weekDays(127) // default all days enabled
 {
 }
 
@@ -463,6 +464,22 @@ RuleCondition::RuleCondition(const QVariantMap &map) :
         else if (m_op == OpIn || m_op == OpNotIn)
         {
             QStringList interval = str.split('/', QString::SkipEmptyParts);
+            if (interval.size() == 3)
+            {
+                const QRegExp rx("W([0-9]{1,3})");
+                const QString weekDays = interval.takeFirst();
+                if (rx.exactMatch(weekDays))
+                {
+                    const uint w = rx.cap(1).toUInt(&ok);
+                    if (!ok || w > 127)
+                    {
+                        return; // invalid
+                    }
+
+                    m_weekDays = static_cast<quint8>(w);
+                }
+            }
+
             if (interval.size() != 2)
             {
                 m_op = OpUnknown; // invalid
@@ -614,11 +631,28 @@ const QTime &RuleCondition::time1() const
     return m_time1;
 }
 
+/*! Returns true if the given weekday is enabled (for operators OpIn and OpNotIn).
+
+    The condition needs format of W[bbb]/T[hh]:[mm]:[ss]/T[hh]:[mm]:[ss].
+    If W[bbb] is not specified all days are enabled as of W127.
+    \param day - 1 Monday .. 7 Sunday
+ */
+bool RuleCondition::weekDayEnabled(const int day) const
+{
+    // bbb = 0MTWTFSS – e.g. Tuesdays is 00100000 = 32
+    DBG_Assert(day >= 0 && day <= 7);
+    return (m_weekDays & (1 << (7 - day))) != 0;
+}
+
+/*! Returns the related Resource prefix like RSensors, RLights, etc.
+ */
 const char *RuleCondition::resource() const
 {
     return m_prefix;
 }
 
+/*! Returns the Resource suffix like RStateButtonevent.
+ */
 const char *RuleCondition::suffix() const
 {
     return m_suffix;

@@ -196,6 +196,7 @@ public:
     int seconds() const;
     const QTime &time0() const;
     const QTime &time1() const;
+    bool weekDayEnabled(const int day) const;
     const char *resource() const;
     const char *suffix() const;
 
@@ -210,6 +211,7 @@ private:
     QString m_id;
     Operator m_op;
     int m_num;
+    quint8 m_weekDays;
     QTime m_time0;
     QTime m_time1;
 
