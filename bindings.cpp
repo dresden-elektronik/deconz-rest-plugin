@@ -1433,6 +1433,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("SV01-")) ||
         // Trust ZPIR-8000
         sensor->modelId().startsWith(QLatin1String("VMS_ADUROLIGHT")) ||
+        // Trust ZMST-808
+        sensor->modelId().startsWith(QLatin1String("CSW_ADUROLIGHT")) ||
         // innr
         sensor->modelId() == QLatin1String("SP 120") ||
         // Eurotronic

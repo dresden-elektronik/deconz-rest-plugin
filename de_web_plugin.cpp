@@ -175,6 +175,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_INNR, "SP 120", jennicMacPrefix}, // innr smart plug
     { VENDOR_PHYSICAL, "tagv4", stMacPrefix}, // SmartThings Arrival sensor
     { VENDOR_JENNIC, "VMS_ADUROLIGHT", jennicMacPrefix }, // Trust motion sensor ZPIR-8000
+    { VENDOR_JENNIC, "CSW_ADUROLIGHT", jennicMacPrefix }, // Trust contact sensor ZMST-808
     { VENDOR_JENNIC, "ZYCT-202", jennicMacPrefix }, // Trust remote control ZYCT-202
     { VENDOR_INNR, "RC 110", jennicMacPrefix }, // innr remote RC 110
     { VENDOR_VISONIC, "MCT-340", emberMacPrefix }, // Visonic MCT-340 E temperature/motion
@@ -3125,19 +3126,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
     // Trust specific
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC && modelId.isEmpty())
     {
-        // check Trust motion sensor ZPIR-8000
-        if (node->simpleDescriptors().size() == 1 &&
-                node->simpleDescriptors().first().endpoint() == 0x01 &&
-                node->simpleDescriptors().first().profileId() == HA_PROFILE_ID &&
-                node->simpleDescriptors().first().deviceId() == DEV_ID_IAS_ZONE &&
-                node->simpleDescriptors().first().inClusters().size() == 5)
-        {
-            // server clusters: 0x0000, 0x0003, 0x0500, 0xffff, 0x0001
-            modelId = QLatin1String("VMS_ADUROLIGHT"); // would be returned by reading the modelid
-            manufacturer = QLatin1String("Trust");
-        }
         // check Trust remote control ZYCT-202
-        else if (node->simpleDescriptors().size() == 2 &&
+        if (node->simpleDescriptors().size() == 2 &&
                  node->simpleDescriptors()[0].endpoint() == 0x01 &&
                  node->simpleDescriptors()[0].profileId() == ZLL_PROFILE_ID &&
                  node->simpleDescriptors()[0].deviceId() == DEV_ID_ZLL_NON_COLOR_CONTROLLER &&
@@ -12238,6 +12228,11 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                         {
                             unavailBasicAttr.push_back(attr.id());
                         }
+                        else if (attr.lastRead() != static_cast<time_t>(-1) && attr.dataType() == deCONZ::ZclCharacterString && attr.toString().isEmpty())
+                        {
+                            // e.g. some Trust devices return empty strings
+                            unavailBasicAttr.push_back(attr.id());
+                        }
                     }
                     else if (cl.id() == IAS_ZONE_CLUSTER_ID)
                     {
@@ -12341,7 +12336,9 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                                      deCONZ::ZclFCDirectionClientToServer |
                                      deCONZ::ZclFCDisableDefaultResponse);
 
-            if ((sc->address.ext() & macPrefixMask) == jennicMacPrefix)
+            if ((sc->address.ext() & macPrefixMask) == jennicMacPrefix &&
+                 iasZoneType == 0 && // allows Trust motion (ZPIR-8000) and contact sensor (ZMST-808), but skip remote (ZYCT-202)
+                 !modelId.startsWith(QLatin1String("lumi.")))
             {
                 // don't read these (Xiaomi, Trust, ...)
                 // response is empty or no response at all
@@ -12353,6 +12350,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 if ((sc->address.ext() & macPrefixMask) == tiMacPrefix ||
                     (sc->address.ext() & macPrefixMask) == ubisysMacPrefix ||
                     manufacturer.startsWith(QLatin1String("Climax")) ||
+                    modelId.startsWith(QLatin1String("lumi")) ||
                     node->nodeDescriptor().manufacturerCode() == VENDOR_CENTRALITE ||
                     !swBuildIdAvailable)
                 {
@@ -12448,6 +12446,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 req.setClusterId(IAS_ZONE_CLUSTER_ID);
                 req.setDstAddressMode(deCONZ::ApsExtAddress);
                 req.setSrcEndpoint(endpoint());
+                req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
 
                 zclFrame.setSequenceNumber(zclSeq++);
                 zclFrame.setCommandId(0x00); // enroll response
