@@ -2015,7 +2015,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                     {
                         if (ia->id() == 0x0008 && lightNode->manufacturerCode() == VENDOR_IKEA)
                         {
-                            DBG_Printf(DBG_INFO, "Ignore color mode (0x0008) in favor for enhanced color mode (0x4001) for Ikea light 0x%016llx\n", lightNode->address().ext());
+                            //DBG_Printf(DBG_INFO, "Ignore color mode (0x0008) in favor for enhanced color mode (0x4001) for Ikea light 0x%016llx\n", lightNode->address().ext());
                             continue;
                         }
 
