@@ -389,7 +389,8 @@ RuleCondition::RuleCondition() :
 RuleCondition::RuleCondition(const QVariantMap &map) :
     m_prefix(nullptr),
     m_suffix(nullptr),
-    m_num(0)
+    m_num(0),
+    m_weekDays(127) // default all days enabled
 {
     bool ok;
     m_address = map["address"].toString();
