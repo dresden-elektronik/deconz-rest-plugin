@@ -392,8 +392,8 @@ bool DeRestPluginPrivate::addTaskSetColorTemperature(TaskItem &task, uint16_t ct
             quint16 x;
             quint16 y;
             MiredColorTemperatureToXY(ct, &x, &y);
-            qreal xr = x / 65279.0;
-            qreal yr = y / 65279.0;
+            qreal xr = x / 65535.0;
+            qreal yr = y / 65535.0;
             if      (xr < 0) { xr = 0; }
             else if (xr > 1) { xr = 1; }
             if      (yr < 0) { yr = 0; }
@@ -717,8 +717,22 @@ bool DeRestPluginPrivate::addTaskSetXyColorAsHueAndSaturation(TaskItem &task, do
 bool DeRestPluginPrivate::addTaskSetXyColor(TaskItem &task, double x, double y)
 {
     task.taskType = TaskSetXyColor;
-    task.colorX = static_cast<quint16>(x * 65279.0); // current X in range 0 .. 65279
-    task.colorY = static_cast<quint16>(y * 65279.0); // current Y in range 0 .. 65279
+    DBG_Assert(x >= 0);
+    DBG_Assert(x <= 1);
+    DBG_Assert(y >= 0);
+    DBG_Assert(y <= 1);
+    // The CurrentX attribute contains the current value of the normalized chromaticity value x
+    // The value of x SHALL be related to the CurrentX attribute by the relationship
+    // x = CurrentX / 65536 (CurrentX in the range 0 to 65279 inclusive)
+
+    task.colorX = static_cast<quint16>(x * 65535.0); // current X in range 0 .. 65279
+    task.colorY = static_cast<quint16>(y * 65535.0); // current Y in range 0 .. 65279
+
+    if (task.colorX > 65279) { task.colorX = 65279; }
+    else if (task.colorX == 0) { task.colorX = 1; }
+
+    if (task.colorY > 65279) { task.colorY = 65279; }
+    else if (task.colorY == 0) { task.colorY = 1; }
 
     if (task.lightNode)
     {
@@ -1312,6 +1326,11 @@ bool DeRestPluginPrivate::addTaskAddScene(TaskItem &task, uint16_t groupId, uint
                                 }
 
                                 MiredColorTemperatureToXY(ct, &x, &y);
+                                if (x > 65279) { x = 65279; }
+                                else if (x == 0) { x = 1; }
+
+                                if (y > 65279) { y = 65279; }
+                                else if (y == 0) { y = 1; }
                             }
 
                             // view scene command will be used to verify x, y values

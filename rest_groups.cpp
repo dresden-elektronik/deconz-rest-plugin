@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2013-2019 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -983,15 +983,15 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
             { // TODO: this is needed if saturation is set and addTaskSetEnhancedHue() will not be called
                 task.hueReal = (double)hue / (360.0f * 182.04444f);
 
-                if (task.hueReal < 0.0f)
+                if (task.hueReal < 0.0)
                 {
-                    task.hueReal = 0.0f;
+                    task.hueReal = 0.0;
                 }
-                else if (task.hueReal > 1.0f)
+                else if (task.hueReal > 1.0)
                 {
-                    task.hueReal = 1.0f;
+                    task.hueReal = 1.0;
                 }
-                task.hue = task.hueReal * 254.0f;
+                task.hue = task.hueReal * 254.0;
                 if (hue > MAX_ENHANCED_HUE_Z)
                 {
                     hue = MAX_ENHANCED_HUE_Z;
@@ -1008,16 +1008,28 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
             {
                 double r, g, b;
                 double x, y;
-                double h = ((360.0f / 65535.0f) * hue);
-                double s = group->sat / 255.0f;
-                double v = 1.0f;
+                double h = ((360.0 / 65535.0) * hue);
+                double s = group->sat / 255.0;
+                double v = 1.0;
 
                 Hsv2Rgb(&r, &g, &b, h, s, v);
                 Rgb2xy(&x, &y, r, g, b);
 
+                if (x < 0) { x = 0; }
+                else if (x > 1) { x = 1; }
+
+                if (y < 0) { y = 0; }
+                else if (y > 1) { y = 1; }
+
                 DBG_Printf(DBG_INFO, "x: %f, y: %f\n", x, y);
-                group->colorX = x * 65279.0f;
-                group->colorY = y * 65279.0f;
+                group->colorX = static_cast<quint16>(x * 65535.0);
+                group->colorY = static_cast<quint16>(y * 65535.0);
+
+                if (group->colorX > 65279) { group->colorX = 65279; }
+                else if (group->colorX == 0) { group->colorX = 1; }
+
+                if (group->colorY > 65279) { group->colorY = 65279; }
+                else if (group->colorY == 0) { group->colorY = 1; }
             }
 
             if (hasSat || // merge later to set hue and saturation
@@ -1052,7 +1064,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
         if (ok && (map["sat"].type() == QVariant::Double) && (sat2 < 256))
         {
             hasSat = true;
-            if (sat2 == 255)
+            if (sat2 >= 255)
             {
                 sat2 = 254; // max valid value for level attribute
             }
@@ -1069,16 +1081,28 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
             {
                 double r, g, b;
                 double x, y;
-                double h = ((360.0f / 65535.0f) * group->hue);
-                double s = sat / 254.0f;
-                double v = 1.0f;
+                double h = ((360.0 / 65535.0) * group->hue);
+                double s = sat / 254.0;
+                double v = 1.0;
 
                 Hsv2Rgb(&r, &g, &b, h, s, v);
                 Rgb2xy(&x, &y, r, g, b);
 
+                if (x < 0) { x = 0; }
+                else if (x > 1) { x = 1; }
+
+                if (y < 0) { y = 0; }
+                else if (y > 1) { y = 1; }
+
                 DBG_Printf(DBG_INFO, "x: %f, y: %f\n", x, y);
-                group->colorX = x * 65279.0f;
-                group->colorY = y * 65279.0f;
+                group->colorX = static_cast<quint16>(x * 65535.0);
+                group->colorY = static_cast<quint16>(y * 65535.0);
+
+                if (group->colorX > 65279) { group->colorX = 65279; }
+                else if (group->colorX == 0) { group->colorX = 1; }
+
+                if (group->colorY > 65279) { group->colorY = 65279; }
+                else if (group->colorY == 0) { group->colorY = 1; }
             }
 
             if (hasXy || hasCt
@@ -1143,14 +1167,15 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
 
         if ((ls.size() == 2) && (ls[0].type() == QVariant::Double) && (ls[1].type() == QVariant::Double))
         {
-            x = ls[0].toDouble();
-            y = ls[1].toDouble();
+            x = ls[0].toDouble(&ok);
+            y = ok ? ls[1].toDouble(&ok) : 0;
             TaskItem task;
             copyTaskReq(taskRef, task);
 
-            if ((x < 0.0f) || (x > 1.0f) || (y < 0.0f) || (y > 1.0f))
+            if (!ok || (x < 0.0) || (x > 1.0) || (y < 0.0) || (y > 1.0))
             {
                 rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/groups/%1").arg(id), QString("invalid value, [%1,%2], for parameter, /groups/%3/xy").arg(x).arg(y).arg(id)));
+                hasXy = false;
             }
             else if (hasEffectColorLoop ||
                      addTaskSetXyColor(task, x, y))
@@ -1161,9 +1186,15 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
                 rspItem["success"] = rspItemState;
                 rsp.list.append(rspItem);
                 hasXy = true;
-                group->colorX = x * 65279.0f; // current X in range 0 .. 65279
-                group->colorY = y * 65279.0f; // current Y in range 0 .. 65279
                 group->colormode = QLatin1String("xy");
+                group->colorX = static_cast<quint16>(x * 65535.0); // current X in range 0 .. 65279
+                group->colorY = static_cast<quint16>(y * 65535.0); // current Y in range 0 .. 65279
+
+                if (group->colorX > 65279) { group->colorX = 65279; }
+                else if (group->colorX == 0) { group->colorX = 1; }
+
+                if (group->colorY > 65279) { group->colorY = 65279; }
+                else if (group->colorY == 0) { group->colorY = 1; }
             }
             else
             {
@@ -1496,8 +1527,14 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
                             modified = true;
                         }
 
-                        quint16 colorX = x * 65279.0f; // current X in range 0 .. 65279
-                        quint16 colorY = y * 65279.0f; // current Y in range 0 .. 65279
+                        quint16 colorX = static_cast<quint16>(x * 65535.0); // current X in range 0 .. 65279
+                        quint16 colorY = static_cast<quint16>(y * 65535.0); // current Y in range 0 .. 65279
+
+                        if (colorX > 65279) { colorX = 65279; }
+                        else if (colorX == 0) { colorX = 1; }
+
+                        if (colorY > 65279) { colorY = 65279; }
+                        else if (colorY == 0) { colorY = 1; }
 
                         item = i->item(RStateX);
                         if (item && item->toNumber() != colorX)
@@ -1528,7 +1565,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
                         }
 
                         item = i->item(RStateCt);
-                        DBG_Assert(item != 0);
+                        DBG_Assert(item);
 
                         if (item && item->toNumber() != ct)
                         {
@@ -1562,23 +1599,35 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
                             {
                                 double r, g, b;
                                 double x, y;
-                                double h = ((360.0f / 65535.0f) * hue);
-                                double s = item->toNumber() / 255.0f;
-                                double v = 1.0f;
+                                double h = ((360.0 / 65535.0) * hue);
+                                double s = item->toNumber() / 255.0;
+                                double v = 1.0;
 
                                 Hsv2Rgb(&r, &g, &b, h, s, v);
                                 Rgb2xy(&x, &y, r, g, b);
+
+                                if (x < 0) { x = 0; }
+                                else if (x > 1) { x = 1; }
+
+                                if (y < 0) { y = 0; }
+                                else if (y > 1) { y = 1; }
 
                                 DBG_Printf(DBG_INFO, "x: %f, y: %f\n", x, y);
                                 item = i->item(RStateX);
                                 if (item)
                                 {
-                                    item->setValue(x * 65279.0f);
+                                    x = x * 65535.0;
+                                    if (x > 65279) { x = 65279; }
+                                    else if (x < 1) { x = 1; }
+                                    item->setValue(static_cast<quint16>(x));
                                 }
                                 item = i->item(RStateY);
                                 if (item)
                                 {
-                                    item->setValue(y * 65279.0f);
+                                    y = y * 65535.0;
+                                    if (y > 65279) { y = 65279; }
+                                    else if (y < 1) { y = 1; }
+                                    item->setValue(static_cast<quint16>(y));
                                 }
                             }
                         }
@@ -1615,23 +1664,35 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
 
                                 double r, g, b;
                                 double x, y;
-                                double h = (!hasHue) ? ((360.0f / 65535.0f) * enhancedHue) : ((360.0f / 65535.0f) * hue);
-                                double s = sat / 254.0f;
-                                double v = 1.0f;
+                                double h = (!hasHue) ? ((360.0 / 65535.0) * enhancedHue) : ((360.0 / 65535.0) * hue);
+                                double s = sat / 254.0;
+                                double v = 1.0;
 
                                 Hsv2Rgb(&r, &g, &b, h, s, v);
                                 Rgb2xy(&x, &y, r, g, b);
+
+                                if (x < 0) { x = 0; }
+                                else if (x > 1) { x = 1; }
+
+                                if (y < 0) { y = 0; }
+                                else if (y > 1) { y = 1; }
 
                                 DBG_Printf(DBG_INFO, "x: %f, y: %f\n", x, y);
                                 item = i->item(RStateX);
                                 if (item)
                                 {
-                                    item->setValue(x * 65279.0f);
+                                    x = x * 65535.0;
+                                    if (x > 65279) { x = 65279; }
+                                    else if (x < 1) { x = 1; }
+                                    item->setValue(static_cast<quint16>(x));
                                 }
                                 item = i->item(RStateY);
                                 if (item)
                                 {
-                                    item->setValue(y * 65279.0f);
+                                    y = y * 65535.0;
+                                    if (y > 65279) { y = 65279; }
+                                    else if (y < 1) { y = 1; }
+                                    item->setValue(static_cast<quint16>(y));
                                 }
                             }
 
@@ -1756,8 +1817,8 @@ bool DeRestPluginPrivate::groupToMap(const ApiRequest &req, const Group *group, 
     action["ct"] = (double)group->colorTemperature;
     QVariantList xy;
 
-    uint16_t colorX = group->colorX;
-    uint16_t colorY = group->colorY;
+    double colorX = group->colorX;
+    double colorY = group->colorY;
     // sanity for colorX
     if (colorX > 65279)
     {
@@ -1768,8 +1829,9 @@ bool DeRestPluginPrivate::groupToMap(const ApiRequest &req, const Group *group, 
     {
         colorY = 65279;
     }
-    double x = (double)colorX / 65279.0f; // normalize 0 .. 65279 to 0 .. 1
-    double y = (double)colorY / 65279.0f; // normalize 0 .. 65279 to 0 .. 1
+    // x = CurrentX / 65536 (CurrentX in the range 0 to 65279 inclusive)
+    const double x = colorX / 65535.0; // normalize to 0 .. 1
+    const double y = colorY / 65535.0; // normalize to 0 .. 1
     xy.append(x);
     xy.append(y);
     action["xy"] = xy;
@@ -1784,7 +1846,6 @@ bool DeRestPluginPrivate::groupToMap(const ApiRequest &req, const Group *group, 
         else if (item->descriptor().suffix == RActionScene) { action["scene"] = item->toVariant(); }
         else if (item->descriptor().suffix == RAttrName) { map["name"] = item->toString(); }
         else if (item->descriptor().suffix == RAttrType) { map["type"] = item->toString(); }
-        //else if (item->descriptor().suffix == RAttrModelId) { map["modelid"] = item->toString(); }; // not supported yet
         else if (item->descriptor().suffix == RAttrClass) { map["class"] = item->toString(); }
         else if (item->descriptor().suffix == RAttrUniqueId) { map["uniqueid"] = item->toString(); }
     }
@@ -2241,8 +2302,12 @@ int DeRestPluginPrivate::getSceneAttributes(const ApiRequest &req, ApiResponse &
                     {
                         if (l->colorMode() == QLatin1String("xy"))
                         {
-                            double x = l->x() / 65279.0f;
-                            double y = l->y() / 65279.0f;
+                            double x = l->x() / 65535.0;
+                            double y = l->y() / 65535.0;
+                            if (x > 0.9961) { x = 0.9961; }
+                            else if (x < 0) { x = 0; }
+                            if (y > 0.9961) { y = 0.9961; }
+                            else if (y < 0) { y = 0; }
                             lstate["x"] = x;
                             lstate["y"] = y;
                         }
@@ -2592,73 +2657,6 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
             ls->tVerified = QTime(); // invalidate, trigger verify or add
         }
     }
-
-    /*if (!foundLight)
-    {
-        LightState state;
-        state.setNeedRead(true);
-        state.setLightId(lightNode->id());
-        state.setTransitionTime(10);
-        ResourceItem *item = lightNode->item(RStateOn);
-        DBG_Assert(item != 0);
-        if (item)
-        {
-            state.setOn(item->toBool());
-        }
-        item = lightNode->item(RStateBri);
-        if (item)
-        {
-            state.setBri(qMin((quint16)item->toNumber(), (quint16)254));
-        }
-
-        item = lightNode->item(RStateColorMode);
-        if (item)
-        {
-            state.setColorMode(item->toString());
-            if (item->toString() == QLatin1String("xy") || item->toString() == QLatin1String("hs"))
-            {
-                item = lightNode->item(RStateX);
-                DBG_Assert(item != 0);
-                if (item)
-                {
-                    state.setX(item->toNumber());
-                }
-                item = lightNode->item(RStateY);
-                DBG_Assert(item != 0);
-                if (item)
-                {
-                    state.setY(item->toNumber());
-                }
-                item = lightNode->item(RStateHue);
-                DBG_Assert(item != 0);
-                if (item)
-                {
-                    state.setEnhancedHue(item->toNumber());
-                }
-                item = lightNode->item(RStateSat);
-                DBG_Assert(item != 0);
-                if (item)
-                {
-                    state.setSaturation(item->toNumber());
-                }
-            }
-            else if (item->toString() == QLatin1String("ct"))
-            {
-                item = lightNode->item(RStateCt);
-                DBG_Assert(item != 0);
-                if (item)
-                {
-                    state.setColorTemperature(item->toNumber());
-                }
-            }
-
-            state.setColorloopActive(lightNode->isColorLoopActive());
-            state.setColorloopTime(lightNode->colorLoopSpeed());
-        }
-
-        scene->addLightState(state);
-        queSaveDb(DB_SCENES, DB_LONG_SAVE_DELAY);
-    }*/
 
     updateGroupEtag(group);
 
@@ -3099,15 +3097,14 @@ int DeRestPluginPrivate::modifyScene(const ApiRequest &req, ApiResponse &rsp)
     // xy
     if (map.contains("xy"))
     {
-
         QVariantList xy = map["xy"].toList();
 
         if ((xy.size() == 2) && (xy[0].type() == QVariant::Double) && (xy[1].type() == QVariant::Double))
         {
-            double x = xy[0].toDouble();
-            double y = xy[1].toDouble();
+            double x = xy[0].toDouble(&ok);
+            double y = ok ? xy[1].toDouble() : 0;
 
-            if ((x < 0.0f) || (x > 1.0f) || (y < 0.0f) || (y > 1.0f))
+            if (!ok || (x < 0.0) || (x > 1.0) || (y < 0.0) || (y > 1.0))
             {
                 rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1").arg(lid), QString("invalid value, [%1,%2], for parameter, /lights/%3/xy").arg(x).arg(y).arg(lid)));
                 rsp.httpStatus = HttpStatusBadRequest;
@@ -3116,8 +3113,14 @@ int DeRestPluginPrivate::modifyScene(const ApiRequest &req, ApiResponse &rsp)
             else
             {
                 hasXy = true;
-                xy_x = floor(x * 65279.0f);
-                xy_y = floor(y * 65279.0f);
+                xy_x = static_cast<quint16>(x * 65535.0);
+                xy_y = static_cast<quint16>(y * 65535.0);
+
+                if (xy_x > 65279) { xy_x = 65279; }
+                else if (xy_x == 0) { xy_x = 1; }
+
+                if (xy_y > 65279) { xy_y = 65279; }
+                else if (xy_y == 0) { xy_y = 1; }
             }
         }
         else

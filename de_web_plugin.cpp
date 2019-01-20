@@ -2015,7 +2015,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                     {
                         if (ia->id() == 0x0008 && lightNode->manufacturerCode() == VENDOR_IKEA)
                         {
-                            DBG_Printf(DBG_INFO, "Ignore color mode (0x0008) in favor for enhanced color mode (0x4001) for Ikea light 0x%016llx\n", lightNode->address().ext());
+                            //DBG_Printf(DBG_INFO, "Ignore color mode (0x0008) in favor for enhanced color mode (0x4001) for Ikea light 0x%016llx\n", lightNode->address().ext());
                             continue;
                         }
 
@@ -2375,7 +2375,7 @@ LightNode *DeRestPluginPrivate::getLightNodeForId(const QString &id)
     {
         for (i = nodes.begin(); i != end; ++i)
         {
-            if (i->id() == id)
+            if (i->id() == id && i->state() == LightNode::StateNormal)
             {
                 return &*i;
             }
@@ -2385,7 +2385,7 @@ LightNode *DeRestPluginPrivate::getLightNodeForId(const QString &id)
     {
         for (i = nodes.begin(); i != end; ++i)
         {
-            if (i->uniqueId() == id)
+            if (i->uniqueId() == id && i->state() == LightNode::StateNormal)
             {
                 return &*i;
             }
@@ -3167,6 +3167,16 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             QList<deCONZ::ZclCluster>::const_iterator cend = i->inClusters().constEnd();
             for (; ci != cend; ++ci)
             {
+                if ((ci->id() & 0xfff0) == 0x0400)
+                {
+                    if (modelId == QLatin1String("lumi.plug"))
+                    {
+                        // prevent creation of some sensor clusters for Xiaomi plug
+                        // 0x0400, 0x0402, 0x0403, 0x0405, 0x0406
+                        continue;
+                    }
+                }
+
                 switch (ci->id())
                 {
                 case BASIC_CLUSTER_ID:
@@ -6217,36 +6227,30 @@ Sensor *DeRestPluginPrivate::getSensorNodeForFingerPrint(quint64 extAddr, const 
  */
 Sensor *DeRestPluginPrivate::getSensorNodeForUniqueId(const QString &uniqueId)
 {
-    std::vector<Sensor>::iterator i;
-    std::vector<Sensor>::iterator end = sensors.end();
-
-    for (i = sensors.begin(); i != end; ++i)
+    for (Sensor &s : sensors)
     {
-        if (i->uniqueId() == uniqueId)
+        if (s.deletedState() == Sensor::StateNormal && s.uniqueId() == uniqueId)
         {
-            return &(*i);
+            return &s;
         }
     }
 
-    return 0;
+    return nullptr;
 }
 
 /*! Returns a Sensor for its given \p id or 0 if not found.
  */
 Sensor *DeRestPluginPrivate::getSensorNodeForId(const QString &id)
 {
-    std::vector<Sensor>::iterator i;
-    std::vector<Sensor>::iterator end = sensors.end();
-
-    for (i = sensors.begin(); i != end; ++i)
+    for (Sensor &s : sensors)
     {
-        if (i->id() == id)
+        if (s.deletedState() == Sensor::StateNormal && s.id() == id)
         {
-            return &(*i);
+            return &s;
         }
     }
 
-    return 0;
+    return nullptr;
 }
 
 /*! Returns a Group for a given group id or 0 if not found.
