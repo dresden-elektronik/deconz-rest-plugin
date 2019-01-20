@@ -144,7 +144,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "lumi.sensor_86sw2", jennicMacPrefix },      // Xiaomi dual button wall switch WXKG02LM 2016
     { VENDOR_JENNIC, "lumi.remote.b286acn01", jennicMacPrefix },  // Xiaomi dual button wall switch WXKG02LM 2018
     { VENDOR_JENNIC, "lumi.sensor_switch", jennicMacPrefix },     // Xiaomi WXKG01LM, WXKG11LM and WXKG12LM (fallback)
-    { VENDOR_JENNIC, "lumi.ctrl_neutral", jennicMacPrefix }, // Xioami Wall Switch (end-device)
+    { VENDOR_JENNIC, "lumi.ctrl_neutral", jennicMacPrefix }, // Xiaomi Wall Switch (end-device)
     { VENDOR_JENNIC, "lumi.vibration", jennicMacPrefix }, // Xiaomi Aqara vibration/shock sensor
     { VENDOR_JENNIC, "lumi.sensor_wleak", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_smoke", jennicMacPrefix },
@@ -8616,6 +8616,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
 
         sensor.rx();
+        bool updated = false;
         restNodePending = &sensor; // remember one sensor for pending tasks
 
         {
@@ -8623,12 +8624,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             if (item && !item->toBool())
             {
                 item->setValue(true);
-                Event e(RSensors, RConfigReachable, sensor.id(), item);
-                enqueueEvent(e);
+                enqueueEvent(Event(RSensors, RConfigReachable, sensor.id(), item));
+                updated = true;
             }
         }
 
-        bool updated = false;
         if (battery != 0)
         {
             ResourceItem *item = sensor.item(RConfigBattery);
@@ -8649,20 +8649,31 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 if      (bat > 100) { bat = 100; }
                 else if (bat <= 0)  { bat = 1; } // ?
 
+                item->setValue(quint8(bat));
+                enqueueEvent(Event(RSensors, RConfigBattery, sensor.id(), item));
+
                 if (item->lastSet() == item->lastChanged())
                 {
                     updated = true;
                 }
-                item->setValue(quint8(bat));
-
-                enqueueEvent(Event(RSensors, RConfigBattery, sensor.id(), item));
             }
         }
 
         if (temperature != INT16_MIN)
         {
-            ResourceItem *item = sensor.item(RConfigTemperature);
-            item = item ? item : sensor.item(RStateTemperature);
+            ResourceItem *item = sensor.item(RStateTemperature);
+            if (item)
+            {
+                ResourceItem *item2 = sensor.item(RConfigOffset);
+                if (item2 && item2->toNumber() != 0)
+                {
+                    temperature += item2->toNumber();
+                }
+            }
+            else
+            {
+                item = sensor.item(RConfigTemperature);
+            }
             if (item)
             {
                 item->setValue(temperature);
@@ -8675,6 +8686,8 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 if (item->descriptor().suffix == RStateTemperature)
                 {
                     sensor.updateStateTimestamp();
+                    enqueueEvent(Event(RSensors, RStateLastUpdated, sensor.id()));
+                    updated = true;
                 }
             }
         }
@@ -8684,13 +8697,16 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             ResourceItem *item = sensor.item(RStateHumidity);
             if (item)
             {
+                ResourceItem *item2 = sensor.item(RConfigOffset);
+                if (item2 && item2->toNumber() != 0)
+                {
+                    humidity += item2->toNumber();
+                }
                 item->setValue(humidity);
                 enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor.id(), item));
-                if (item->lastSet() == item->lastChanged())
-                {
-                    updated = true;
-                }
                 sensor.updateStateTimestamp();
+                enqueueEvent(Event(RSensors, RStateLastUpdated, sensor.id()));
+                updated = true;
             }
         }
 
@@ -8701,11 +8717,9 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
           {
               item->setValue(pressure);
               enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor.id(), item));
-              if (item->lastSet() == item->lastChanged())
-              {
-                  updated = true;
-              }
               sensor.updateStateTimestamp();
+              enqueueEvent(Event(RSensors, RStateLastUpdated, sensor.id()));
+              updated = true;
           }
         }
 
@@ -8727,12 +8741,14 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 // don't update Mija devices
                 // e.g. lumi.sensor_motion always reports 1
                 sensor.updateStateTimestamp();
+                enqueueEvent(Event(RSensors, RStateLastUpdated, sensor.id()));
                 updated = true;
             }
             else if (sensor.modelId().startsWith(QLatin1String("lumi.sensor_wleak")))
             {
                // only update state timestamp assuming last known value is valid
                 sensor.updateStateTimestamp();
+                enqueueEvent(Event(RSensors, RStateLastUpdated, sensor.id()));
                 updated = true;
             }
             else if (item)
@@ -8740,10 +8756,8 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 item->setValue(onOff);
                 enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor.id(), item));
                 sensor.updateStateTimestamp();
-                if (item->lastSet() == item->lastChanged())
-                {
-                    updated = true;
-                }
+                enqueueEvent(Event(RSensors, RStateLastUpdated, sensor.id()));
+                updated = true;
             }
         }
 
