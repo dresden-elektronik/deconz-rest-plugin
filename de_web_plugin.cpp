@@ -2375,7 +2375,7 @@ LightNode *DeRestPluginPrivate::getLightNodeForId(const QString &id)
     {
         for (i = nodes.begin(); i != end; ++i)
         {
-            if (i->id() == id)
+            if (i->id() == id && i->state() == LightNode::StateNormal)
             {
                 return &*i;
             }
@@ -2385,7 +2385,7 @@ LightNode *DeRestPluginPrivate::getLightNodeForId(const QString &id)
     {
         for (i = nodes.begin(); i != end; ++i)
         {
-            if (i->uniqueId() == id)
+            if (i->uniqueId() == id && i->state() == LightNode::StateNormal)
             {
                 return &*i;
             }
@@ -6227,36 +6227,30 @@ Sensor *DeRestPluginPrivate::getSensorNodeForFingerPrint(quint64 extAddr, const 
  */
 Sensor *DeRestPluginPrivate::getSensorNodeForUniqueId(const QString &uniqueId)
 {
-    std::vector<Sensor>::iterator i;
-    std::vector<Sensor>::iterator end = sensors.end();
-
-    for (i = sensors.begin(); i != end; ++i)
+    for (Sensor &s : sensors)
     {
-        if (i->uniqueId() == uniqueId)
+        if (s.deletedState() == Sensor::StateNormal && s.uniqueId() == uniqueId)
         {
-            return &(*i);
+            return &s;
         }
     }
 
-    return 0;
+    return nullptr;
 }
 
 /*! Returns a Sensor for its given \p id or 0 if not found.
  */
 Sensor *DeRestPluginPrivate::getSensorNodeForId(const QString &id)
 {
-    std::vector<Sensor>::iterator i;
-    std::vector<Sensor>::iterator end = sensors.end();
-
-    for (i = sensors.begin(); i != end; ++i)
+    for (Sensor &s : sensors)
     {
-        if (i->id() == id)
+        if (s.deletedState() == Sensor::StateNormal && s.id() == id)
         {
-            return &(*i);
+            return &s;
         }
     }
 
-    return 0;
+    return nullptr;
 }
 
 /*! Returns a Group for a given group id or 0 if not found.
