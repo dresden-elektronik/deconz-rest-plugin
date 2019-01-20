@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2013-2019 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -221,13 +221,13 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
     }
 
     QVariantMap state;
-    const ResourceItem *ix = 0;
-    const ResourceItem *iy = 0;
+    const ResourceItem *ix = nullptr;
+    const ResourceItem *iy = nullptr;
 
     for (int i = 0; i < lightNode->itemCount(); i++)
     {
         const ResourceItem *item = lightNode->itemForIndex(i);
-        DBG_Assert(item != 0);
+        DBG_Assert(item);
 
         if      (item->descriptor().suffix == RStateOn) { state["on"] = item->toBool(); }
         else if (item->descriptor().suffix == RStateBri) { state["bri"] = (double)item->toNumber(); }
@@ -253,8 +253,8 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
     {
         state["effect"] = (lightNode->isColorLoopActive() ? "colorloop" : "none");
         QVariantList xy;
-        uint16_t colorX = ix->toNumber();
-        uint16_t colorY = iy->toNumber();
+        double colorX = ix->toNumber();
+        double colorY = iy->toNumber();
         // sanity for colorX
         if (colorX > 65279)
         {
@@ -265,8 +265,9 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         {
             colorY = 65279;
         }
-        double x = (double)colorX / 65279.0f; // normalize 0 .. 65279 to 0 .. 1
-        double y = (double)colorY / 65279.0f; // normalize 0 .. 65279 to 0 .. 1
+        // x = CurrentX / 65536 (CurrentX in the range 0 to 65279 inclusive)
+        const double x = colorX / 65535.0; // normalize to 0 .. 1
+        const double y = colorY / 65535.0; // normalize to 0 .. 1
         xy.append(x);
         xy.append(y);
         state["xy"] = xy;
@@ -821,29 +822,41 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 ResourceItem *item = task.lightNode->item(RStateSat);
                 double r, g, b;
                 double x, y;
-                double h = ((360.0f / 65535.0f) * hue);
-                double s = (item ? item->toNumber() : 0) / 255.0f;
-                double v = 1.0f;
+                double h = ((360.0 / 65535.0) * hue);
+                double s = (item ? item->toNumber() : 0) / 255.0;
+                double v = 1.0;
 
                 Hsv2Rgb(&r, &g, &b, h, s, v);
                 Rgb2xy(&x, &y, r, g, b);
 
+                if (x < 0) { x = 0; }
+                else if (x > 1) { x = 1; }
+
+                if (y < 0) { y = 0; }
+                else if (y > 1) { y = 1; }
+
                 DBG_Printf(DBG_INFO, "x: %f, y: %f\n", x, y);
-                x *= 65279.0f;
-                y *= 65279.0f;
+                x *= 65535.0;
+                y *= 65535.0;
+
+                if (x > 65279) { x = 65279; }
+                else if (x < 1) { x = 1; }
+
+                if (y > 65279) { y = 65279; }
+                else if (y < 1) { y = 1; }
 
                 item = task.lightNode->item(RStateX);
-                if (item && item->toNumber() != (quint16)x)
+                if (item && item->toNumber() != static_cast<quint16>(x))
                 {
-                    item->setValue((quint16)x);
+                    item->setValue(static_cast<quint16>(x));
                     Event e(RLights, RStateX, task.lightNode->id(), item);
                     enqueueEvent(e);
                 }
 
                 item = task.lightNode->item(RStateY);
-                if (item && item->toNumber() != (quint16)y)
+                if (item && item->toNumber() != static_cast<quint16>(y))
                 {
-                    item->setValue((quint16)y);
+                    item->setValue(static_cast<quint16>(y));
                     Event e(RLights, RStateY, task.lightNode->id(), item);
                     enqueueEvent(e);
                 }
@@ -923,28 +936,40 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 ResourceItem *item = task.lightNode->item(RStateHue);
                 double r, g, b;
                 double x, y;
-                double h = ((360.0f / 65535.0f) * (item ? item->toNumber() : 0));
-                double s = sat / 255.0f;
-                double v = 1.0f;
+                double h = ((360.0 / 65535.0) * (item ? item->toNumber() : 0));
+                double s = sat / 255.0;
+                double v = 1.0;
 
                 Hsv2Rgb(&r, &g, &b, h, s, v);
                 Rgb2xy(&x, &y, r, g, b);
 
-                x *= 65279.0f;
-                y *= 65279.0f;
+                if (x < 0) { x = 0; }
+                else if (x > 1) { x = 1; }
+
+                if (y < 0) { y = 0; }
+                else if (y > 1) { y = 1; }
+
+                x *= 65535.0;
+                y *= 65535.0;
+
+                if (x > 65279) { x = 65279; }
+                else if (x < 1) { x = 1; }
+
+                if (y > 65279) { y = 65279; }
+                else if (y < 1) { y = 1; }
 
                 item = task.lightNode->item(RStateX);
-                if (item && item->toNumber() != (quint16)x)
+                if (item && item->toNumber() != static_cast<quint16>(x))
                 {
-                    item->setValue((quint16)x);
+                    item->setValue(static_cast<quint16>(x));
                     Event e(RLights, RStateX, task.lightNode->id(), item);
                     enqueueEvent(e);
                 }
 
                 item = task.lightNode->item(RStateY);
-                if (item && item->toNumber() != (quint16)y)
+                if (item && item->toNumber() != static_cast<quint16>(y))
                 {
-                    item->setValue((quint16)y);
+                    item->setValue(static_cast<quint16>(y));
                     Event e(RLights, RStateY, task.lightNode->id(), item);
                     enqueueEvent(e);
                 }
@@ -1110,32 +1135,37 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         else if (!hasEffectColorLoop && (hue != UINT_MAX) && (sat != UINT_MAX))
         {
             // need 8 bit hue
-            qreal f = (qreal)hue / 182.04444f;
+            qreal f = (qreal)hue / 182.04444;
 
-            f /= 360.0f;
+            f /= 360.0;
 
-            if (f > 1.0f)
+            if (f > 1.0)
             {
-                f = 1.0f;
+                f = 1.0;
             }
 
-            hue = f * 254.0f;
+            hue = f * 254.0;
 
             DBG_Printf(DBG_INFO, "hue: %u, sat: %u\n", hue, sat);
 
             double r, g, b;
             double x, y;
-            double h = ((360.0f / 65535.0f) * hue);
-            double s = sat / 254.0f;
-            double v = 1.0f;
+            double h = ((360.0 / 65535.0) * hue);
+            double s = sat / 254.0;
+            double v = 1.0;
 
             Hsv2Rgb(&r, &g, &b, h, s, v);
             Rgb2xy(&x, &y, r, g, b);
+            if (x < 0) { x = 0; }
+            else if (x > 1) { x = 1; }
+
+            if (y < 0) { y = 0; }
+            else if (y > 1) { y = 1; }
 
             TaskItem task;
             copyTaskReq(taskRef, task);
             DBG_Printf(DBG_INFO, "x: %f, y: %f\n", x, y);
-            task.lightNode->setColorXY(x * 65279.0f, y * 65279.0f);
+            task.lightNode->setColorXY(static_cast<quint16>(x * 65535.0), static_cast<quint16>(y * 65535.0));
 
             if (!addTaskSetHueAndSaturation(task, hue, sat))
             {
