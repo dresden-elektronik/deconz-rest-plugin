@@ -1307,16 +1307,28 @@ Data Request rate.</description>
 			<!-- TODO -->
 		</cluster>
 		<cluster id="0201" name="Thermostat">
-			<description>Foobar.</description>
+			<description>Thermostat control cluster attributes and commands.</description>
 			<server>
 				<attribute-set id="000" description="Thermostat Information">
-					<attribute id="0000" name="Local Temperature" type="s16" range="0x954d,0x7fff" access="r" required="m"></attribute>
-					<attribute id="0001" name="Outdoor Temperature" type="s16" range="0x954d,0x7fff" access="r" required="o"></attribute>
-					<!-- TODO -->
+					<attribute id="0x0000" name="Local Temperature" type="s16" range="0x954d,0x7fff" access="r" required="m"></attribute>
+					<attribute id="0x0001" name="Outdoor Temperature" type="s16" range="0x954d,0x7fff" access="r" required="o"></attribute>
+					<attribute id="0x0002" name="Occupancy" type="bmp8" access="r" required="o" default="0"></attribute>
+					<attribute id="0x0003" name="Abs Min Heat Setpoint Limit" type="s16" range="0x954d,0x7fff" access="r" required="o" default="0x02bc"></attribute>
+					<attribute id="0x0004" name="Abs Max Heat Setpoint Limit" type="s16" range="0x954d,0x7fff" access="r" required="o" default="0x0bb8"></attribute>
+					<attribute id="0x0005" name="Abs Min Cool Setpoint Limit" type="s16" range="0x954d,0x7fff" access="r" required="o" default="0x0640"></attribute>
+					<attribute id="0x0006" name="Abs Max Cool Setpoint Limit" type="s16" range="0x954d,0x7fff" access="r" required="o" default="0x0c80"></attribute>
+					<attribute id="0x0007" name="PI Cooling Demand" type="u8" range="0x00,0x64" access="r" required="o"></attribute>
+					<attribute id="0x0008" name="PI Heating Demand" type="u8" range="0x00,0x64" access="r" required="o"></attribute>
+					<attribute id="0x0009" name="HVAC System Type Configuration" type="bmp8" access="rw" required="o" default="0"></attribute>
 				</attribute-set>
 				<attribute-set id="001" description="Thermostat Settings">
-					<attribute id="0011" name="Occupied Cooling Setpoint" type="s16" default="0x0a28" range="0x954d,0x7fff" access="rw" required="m"></attribute>
-					<attribute id="0012" name="Occupied Heating Setpoint" type="s16" default="0x07d0" range="0x954d,0x7fff" access="rw" required="m"></attribute>
+					<attribute id="0x0010" name="Local Temperature Calibration" type="s8" default="0x00" range="0xe7,0x19" access="rw" required="o"></attribute>
+					<attribute id="0x0011" name="Occupied Cooling Setpoint" type="s16" default="0x0a28" range="0x954d,0x7fff" access="rw" required="m"></attribute>
+					<attribute id="0x0012" name="Occupied Heating Setpoint" type="s16" default="0x07d0" range="0x954d,0x7fff" access="rw" required="m"></attribute>
+					<attribute id="0x0013" name="Unoccupied Cooling Setpoint" type="s16" default="0x0a28" access="rw" required="o"></attribute>
+					<attribute id="0x0014" name="Unoccupied Heating Setpoint" type="s16" default="0x07d0" access="rw" required="o"></attribute>
+					<attribute id="0x0015" name="Min Heat Setpoint Limit" type="s16" default="0x02bc" range="0x954d,0x7fff" access="rw" required="o"></attribute>
+					<attribute id="0x0016" name="Max Heat Setpoint Limit" type="s16" default="0x0bb8" range="0x954d,0x7fff" access="rw" required="o"></attribute>
 					<attribute id="001b" name="Control Sequence Of Operation" type="enum8" default="0x04" access="rw" required="m">
 						<value name="Cooling Only" value="0"></value>
 						<value name="Cooling With Reheat" value="1"></value>
