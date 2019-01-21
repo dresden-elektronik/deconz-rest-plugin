@@ -866,7 +866,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     else if (bt.binding.clusterId == THERMOSTAT_CLUSTER_ID)
     {
         rq.dataType = deCONZ::Zcl16BitInt;
-        rq.attributeId = 0x0000;       // measured value
+        rq.attributeId = 0x0000;       // local temperature
         rq.minInterval = 0;
         rq.maxInterval = 300;
         rq.reportableChange16bit = 10;
@@ -1622,7 +1622,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         else if (*i == THERMOSTAT_CLUSTER_ID)
         {
             val = sensor->getZclValue(*i, 0x0000); // Local temperature
-
         }
 
         quint16 maxInterval = (val.maxInterval > 0) ? (val.maxInterval * 3 / 2) : (60 * 45);

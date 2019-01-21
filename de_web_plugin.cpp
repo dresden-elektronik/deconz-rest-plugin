@@ -7052,8 +7052,12 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
     if (sensorNode->mustRead(READ_THERMOSTAT_STATE) && tNow > sensorNode->nextReadTime(READ_THERMOSTAT_STATE))
     {
         std::vector<uint16_t> attributes;
+        // following are reported by Eurotronics Spirit thermostat (SPZB0001)
+        // TODO use poll manager, only poll when needed
         attributes.push_back(0x0000); // temperature
         attributes.push_back(0x0012); // heating setpoint
+
+        // following are not supported by Eurotronics Spirit thermostat (SPZB0001)
         attributes.push_back(0x0025); // scheduler state
         attributes.push_back(0x0029); // heating operation state
 
@@ -12193,6 +12197,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         QString dateCode;
         quint16 iasZoneType = 0;
         bool swBuildIdAvailable = false;
+        quint8 thermostatClusterEndpoint = 0;
 
         if (sensor)
         {
@@ -12256,6 +12261,10 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                             DBG_Assert(attr.numericValue().u64 <= UINT8_MAX);
                             iasZoneType = static_cast<quint8>(attr.numericValue().u64);
                         }
+                    }
+                    else if (cl.id() == THERMOSTAT_CLUSTER_ID)
+                    {
+                        thermostatClusterEndpoint = sd.endpoint();
                     }
                 }
             }
@@ -12321,11 +12330,6 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 return;
             }
 
-            if (modelId.startsWith(QLatin1String("lumi.")))
-            {
-                return; // Xiaomi devices won't respond to ZCL read
-            }
-
             if (basicClusterEndpoint == 0)
             {
                 return;
@@ -12351,9 +12355,22 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                                      deCONZ::ZclFCDirectionClientToServer |
                                      deCONZ::ZclFCDisableDefaultResponse);
 
-            if ((sc->address.ext() & macPrefixMask) == jennicMacPrefix &&
-                 iasZoneType == 0 && // allows Trust motion (ZPIR-8000) and contact sensor (ZMST-808), but skip remote (ZYCT-202)
-                 !modelId.startsWith(QLatin1String("lumi.")))
+            bool skip = false;
+
+            if (thermostatClusterEndpoint == 0) // e.g. Eurotronic SPZB0001 thermostat
+            {  }
+            else if (iasZoneType > 0) // Trust / and IAS motion and contact sensors
+            {  }
+            else if (modelId.startsWith(QLatin1String("lumi.")))
+            {
+                skip = true; // Xiaomi Mija devices won't respond to ZCL read
+            }
+            else if ((sc->address.ext() & macPrefixMask) == jennicMacPrefix)
+            {
+                skip = true; // e.g. Trust remote (ZYCT-202)
+            }
+
+            if (skip)
             {
                 // don't read these (Xiaomi, Trust, ...)
                 // response is empty or no response at all

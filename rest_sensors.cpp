@@ -1306,7 +1306,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 {
                     bool ok;
                     int offset = map[pi.key()].toUInt(&ok);
-                    if (ok && addTaskThermostatReadWriteAttribute(task, 0x02, 0x0010, 0x28, offset))
+                    if (ok && addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0010, deCONZ::Zcl8BitInt, offset))
                     {
                         rspItemState[QString("set %1").arg(rid.suffix)] = offset;
                         rspItem["success"] = rspItemState;

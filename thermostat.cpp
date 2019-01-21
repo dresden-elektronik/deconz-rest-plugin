@@ -99,23 +99,6 @@ static int dayofweekTimer = 0;
  */
 void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
-    quint16 attrid = 0x0000;
-    quint8 attrTypeId = 0x00;
-    quint8 attrVal8 = 0x00;
-    quint16 attrVal16 = 0x0000;
-    quint8 status = 0x00;
-    quint32 utctime = 0;
-    int attrValue = 0;
-
-    // ZCL Cluster Command Response variables
-    quint8 nrTrans = 0;
-    quint8 dayOfWeek = 0;
-    quint8 modeSeq = 0;
-    quint16 transTime;
-    qint16 heatSetPoint;
-    qint16 coolSetPoint;
-    int count = 0;
-
     Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
 
     QDataStream stream(zclFrame.payload());
@@ -140,40 +123,30 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
     // Read ZCL reporting and ZCL Read Attributes Response
     if (isReadAttr || isReporting)
     {
+        const NodeValue::UpdateType updateType = isReadAttr ? NodeValue::UpdateByZclRead : NodeValue::UpdateByZclReport;
+
         while (!stream.atEnd())
         {
-            stream >> attrid;
+            quint16 attrId;
+            quint8 attrTypeId;
+
+            stream >> attrId;
             if (isReadAttr)
             {
+                quint8 status;
                 stream >> status;  // Read Attribute Response status
-                if (status != 0)
+                if (status != deCONZ::ZclSuccessStatus)
                 {
                     continue;
                 }
             }
             stream >> attrTypeId;
-            // only read 8-bit values, i.e. attrTypeId 0x10,0x20,0x30,0x08,0x18,0x28
-            if ( ((attrTypeId >> 4) <= 0x03 && (attrTypeId & 0x0F) == 0x00) || // 0x10,0x20,0x30
-                 ((attrTypeId >> 4) <= 0x02 && (attrTypeId & 0x0F) == 0x08))   // 0x08,0x18,0x28
+
+            deCONZ::ZclAttribute attr(attrId, attrTypeId, QLatin1String(""), deCONZ::ZclRead, false);
+
+            if (!attr.readFromStream(stream))
             {
-                stream >> attrVal8;
-                attrValue = attrVal8;
-            }
-            // only read 16-bit values, i.e. attrTypeId 0x21,0x31,0x09,0x19,0x29
-            else if ( ((attrTypeId >> 4) <= 0x03 && (attrTypeId & 0x0F) == 0x01) || // 0x21,0x31
-                      ((attrTypeId >> 4) <= 0x02 && (attrTypeId & 0x0F) == 0x09))   // 0x09,0x19,0x29
-            {
-                stream >> attrVal16;
-                attrValue = attrVal16;
-            }
-            else if (attrTypeId == 0xE2)
-            {
-                stream >> utctime;
-                attrValue = utctime;
-            }
-            else
-            {
-                break;
+                continue;
             }
 
             if (!sensor)
@@ -183,16 +156,17 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 
             ResourceItem *item = nullptr;
 
-            switch(attrid)
+            switch (attrId)
             {
             case 0x0000: // Local Temperature
                 item = sensor->item(RStateTemperature);
                 if (item)
                 {
-                    item->setValue(attrValue);
+                    item->setValue(attr.numericValue().s16);
                     sensor->updateStateTimestamp();
                     Event e(RSensors, RStateTemperature, sensor->id(), item);
                     enqueueEvent(e);
+                    sensor->setZclValue(updateType, THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
                 }
                 break;
 
@@ -200,7 +174,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 item = sensor->item(RConfigOffset);
                 if (item)
                 {
-                    item->setValue(attrValue);
+                    item->setValue(attr.numericValue().s8);
                     Event e(RSensors, RConfigOffset, sensor->id(), item);
                     enqueueEvent(e);
                 }
@@ -210,7 +184,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 item = sensor->item(RConfigHeating);
                 if (item)
                 {
-                    item->setValue(attrValue);
+                    item->setValue(attr.numericValue().s16);
                     Event e(RSensors, RConfigHeating, sensor->id(), item);
                     enqueueEvent(e);
                 }
@@ -220,7 +194,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 item = sensor->item(RConfigSchedulerOn);
                 if (item)
                 {
-                    bool onoff = attrValue & 0x01 ? true : false;
+                    bool onoff = attr.bitmap() & 0x01 ? true : false;
                     item->setValue(onoff);
                     Event e(RSensors, RConfigSchedulerOn, sensor->id(), item);
                     enqueueEvent(e);
@@ -231,12 +205,22 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 item = sensor->item(RStateOn);
                 if (item)
                 {
-                    item->setValue(attrValue);
+                    item->setValue(attr.bitmap() > 0);
                     Event e(RSensors, RStateOn, sensor->id(), item);
                     enqueueEvent(e);
-                    deCONZ::NumericUnion val;
-                    val.u8 = attrValue;
-                    sensor->setZclValue(NodeValue::UpdateByZclRead, THERMOSTAT_CLUSTER_ID,0x0029, val);
+                    sensor->setZclValue(updateType, THERMOSTAT_CLUSTER_ID, 0x0029, attr.numericValue());
+                }
+                break;
+
+            // manufacturerspecific reported by Eurotronic SPZB0001
+            case 0x4002: // U8 (0x20): value 0x00
+            case 0x4003: // S16 (0x29): 2300
+            case 0x4008: // U24 (0x22): 0x000001
+                {
+                    if (zclFrame.manufacturerCode() == VENDOR_JENNIC)
+                    {
+
+                    }
                 }
                 break;
 
@@ -256,7 +240,6 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
         QVariantMap mapsorted;
         QStringList schedList;
         QString sched;
-        int daycount = 0;
 
         ResourceItem *item = nullptr;
         item = sensor->item(RConfigScheduler);
@@ -293,8 +276,16 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
             }
         }
 
+        // ZCL Cluster Command Response variables
+        int count = 0;
+        int daycount = 0;
+
         while (!stream.atEnd())
         {
+            quint8 nrTrans = 0;
+            quint8 dayOfWeek = 0;
+            quint8 modeSeq = 0;
+
             if (count == 0)
             {
                 stream >> nrTrans;
@@ -309,8 +300,13 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                     }
                 }
             }
+
             if (count < nrTrans)
             {
+                quint16 transTime;
+                qint16 heatSetPoint;
+                qint16 coolSetPoint;
+
                 stream >> transTime;
 
                 QTime midnight(0, 0, 0);
@@ -329,6 +325,11 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 }
                 count++;
             }
+        }
+
+        if (stream.status() == QDataStream::ReadPastEnd)
+        {
+            return;
         }
 
         map[weekday.at(daycount)] = val.trimmed();
@@ -363,8 +364,11 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
         //                                18.0 °C  ----         |            |                               --------                -----                                            ----------
         //                                17.0 °C               --------------
 
-        DBG_Printf(DBG_INFO, "Thermostat %s scheduler = %s\n", qPrintable(ind.srcAddress().toStringNwk()), qPrintable(sched));
-        item->setValue(sched);
+        DBG_Printf(DBG_INFO, "Thermostat 0x%04X scheduler = %s\n", ind.srcAddress().nwk(), qPrintable(sched));
+        if (item)
+        {
+            item->setValue(sched);
+        }
     }
 
 }
