@@ -1956,6 +1956,11 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
 
         for (; i != end; ++i)
         {
+            if (i->address() == 0)
+            {
+                continue;
+            }
+
             if (i->state() == Group::StateNormal &&
                 (i->deviceIsMember(sensor->uniqueId()) || i->deviceIsMember(sensor->id())))
             {
@@ -1972,6 +1977,10 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
             getGroupIdentifiers(sensor, 0x01, 0x00);
             return;
         }
+    }
+    else if (sensor->modelId() == QLatin1String("TRADFRI on/off switch"))
+    {
+
     }
     else if (sensor->modelId() == QLatin1String("RB01") ||
              sensor->modelId() == QLatin1String("RM01"))
@@ -2022,6 +2031,11 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
 
         for (; i != end; ++i)
         {
+            if (i->address() == 0)
+            {
+                continue;
+            }
+
             if (!gid.isEmpty() && i->state() == Group::StateNormal && i->id() == gid)
             {
                 group = &*i;

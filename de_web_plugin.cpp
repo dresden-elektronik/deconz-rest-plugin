@@ -2605,6 +2605,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     }
 
     bool checkReporting = false;
+    bool checkClientCluster = false;
     const Sensor::ButtonMap *buttonMap = sensor->buttonMap();
     if (!buttonMap)
     {
@@ -2681,6 +2682,17 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     else if (sensor->modelId() == QLatin1String("TRADFRI on/off switch"))
     {
         checkReporting = true;
+
+        if (ind.dstAddressMode() == deCONZ::ApsGroupAddress && ind.dstAddress().group() == 0)
+        {
+            checkClientCluster = true;
+            ResourceItem *item = sensor->item(RConfigGroup);
+            if (!item || (item && (item->toString() == QLatin1String("0") || item->toString().isEmpty())))
+            {
+                // still default group, create unique group and binding
+                checkSensorGroup(sensor);
+            }
+        }
     }
     else if (sensor->modelId() == QLatin1String("TRADFRI motion sensor"))
     {
@@ -2699,7 +2711,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         }
     }
 
-    if (ind.dstAddressMode() == deCONZ::ApsGroupAddress)
+    if (ind.dstAddressMode() == deCONZ::ApsGroupAddress && ind.dstAddress().group() != 0)
     {
         QStringList gids;
         ResourceItem *item = sensor->addItem(DataTypeString, RConfigGroup);
@@ -3018,6 +3030,11 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             queryTime = queryTime.addSecs(1);
         }
         DBG_Printf(DBG_INFO_L2, "Force binding of attribute reporting for sensor %s\n", qPrintable(sensor->name()));
+    }
+
+    if (checkClientCluster && sensor->node())
+    {
+        checkSensorBindingsForClientClusters(sensor);
     }
 
     if (ok)
@@ -11052,6 +11069,11 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
             stream >> groupId;
             stream >> type;
 
+            if (groupId == 0)
+            {
+                continue;
+            }
+
             if (stream.status() == QDataStream::ReadPastEnd)
             {
                 break;
@@ -12589,6 +12611,19 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 readAttributes(sensor, sensor->fingerPrint().endpoint, BASIC_CLUSTER_ID, attributes, VENDOR_PHILIPS))
             {
                 queryTime = queryTime.addSecs(1);
+            }
+        }
+        else if (sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")))
+        {
+            checkSensorGroup(sensor);
+
+            if (sensor->lastAttributeReportBind() < (idleTotalCounter - IDLE_ATTR_REPORT_BIND_LIMIT_SHORT))
+            {
+                if (checkSensorBindingsForClientClusters(sensor))
+                {
+                    sensor->setLastAttributeReportBind(idleTotalCounter);
+
+                }
             }
         }
         else if (sensor->modelId() == QLatin1String("TRADFRI wireless dimmer")) // IKEA dimmer

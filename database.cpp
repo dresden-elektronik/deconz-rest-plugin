@@ -3339,7 +3339,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     if (item->toBool())
                     {
                         item = sensor.item(RConfigGroup);
-                        if (item && !item->toString().isEmpty())
+                        if (item && !item->toString().isEmpty() && item->toString() != QLatin1String("0"))
                         {
                             Event e(RSensors, REventValidGroup, sensor.id());
                             d->enqueueEvent(e);
