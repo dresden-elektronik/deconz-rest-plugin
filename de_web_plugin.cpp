@@ -14947,6 +14947,11 @@ void DeRestPluginPrivate::pollNextDevice()
         return;
     }
 
+    if (q_ptr && !q_ptr->pluginActive())
+    {
+        return;
+    }
+
     RestNodeBase *restNode = nullptr;
 
     if (!pollNodes.empty())
