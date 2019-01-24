@@ -1329,7 +1329,15 @@ Data Request rate.</description>
 					<attribute id="0x0014" name="Unoccupied Heating Setpoint" type="s16" default="0x07d0" access="rw" required="o"></attribute>
 					<attribute id="0x0015" name="Min Heat Setpoint Limit" type="s16" default="0x02bc" range="0x954d,0x7fff" access="rw" required="o"></attribute>
 					<attribute id="0x0016" name="Max Heat Setpoint Limit" type="s16" default="0x0bb8" range="0x954d,0x7fff" access="rw" required="o"></attribute>
-					<attribute id="001b" name="Control Sequence Of Operation" type="enum8" default="0x04" access="rw" required="m">
+					<attribute id="0x0017" name="Min Cool Setpoint Limit" type="s16" default="0x0640" range="0x954d,0x7fff" access="rw" required="o"></attribute>
+					<attribute id="0x0018" name="Max Cool Setpoint Limit" type="s16" default="0x0c80" range="0x954d,0x7fff" access="rw" required="o"></attribute>
+					<attribute id="0x0019" name="Min Setpoint Dead Band" type="s8" default="0x19" range="0x0a,0x19" access="rw" required="o"></attribute>
+					<attribute id="0x001a" name="Remote Sensing" type="bmp8" default="0" access="rw" required="o">
+						<value name="Local temperature sensed remotely" value="0"></value>
+						<value name="Outdoor temperature sensed remotely" value="1"></value>
+						<value name="Occupancy sensed remotely" value="2"></value>
+					</attribute>
+					<attribute id="0x001b" name="Control Sequence Of Operation" type="enum8" default="0x04" access="rw" required="m">
 						<value name="Cooling Only" value="0"></value>
 						<value name="Cooling With Reheat" value="1"></value>
 						<value name="Heating Only" value="2"></value>
@@ -1337,7 +1345,7 @@ Data Request rate.</description>
 						<value name="Cooling and Heating 4-pipes" value="4"></value>
 						<value name="Cooling and Heating 4-pipes with Reheat" value="5"></value>
 					</attribute>
-					<attribute id="001c" name="System Mode" type="enum8" default="0x01" access="rw" required="m">
+					<attribute id="0x001c" name="System Mode" type="enum8" default="0x01" access="rw" required="m">
 						<value name="Off" value="0"></value>
 						<value name="Auto" value="1"></value>
 						<value name="Cool" value="3"></value>
@@ -1345,8 +1353,58 @@ Data Request rate.</description>
 						<value name="Emergency heating" value="5"></value>
 						<value name="Precooling" value="6"></value>
 						<value name="Fan only" value="7"></value>
+						<value name="Dry" value="8"></value>
+						<value name="Sleep" value="9"></value>
 					</attribute>
-					<!-- TODO -->
+					<attribute id="0x001d" name="Alarm Mask" type="bmp8" default="0" access="r" required="o">
+						<value name="Initialization failure" value="0"></value>
+						<value name="Hardware failure" value="1"></value>
+						<value name="Self-calibration failure" value="2"></value>
+					</attribute>
+					<attribute id="0x001e" name="Thermostat Running Mode" type="enum8" default="0x00" access="r" required="o">
+						<value name="Off" value="0"></value>
+						<value name="Cool" value="3"></value>
+						<value name="Heat" value="4"></value>
+					</attribute>
+				</attribute-set>
+				<attribute-set id="0x0020" description="Thermostat Schedule and HVAC Relay">
+					<attribute id="0x0020" name="Start of Week" type="enum8" default="0x00" access="r" required="o">
+						<value name="Sunday" value="0"></value>
+						<value name="Monday" value="1"></value>
+						<value name="Tuesday" value="2"></value>
+						<value name="Wednesday" value="3"></value>
+						<value name="Thursday" value="4"></value>
+						<value name="Friday" value="5"></value>
+						<value name="Saturday" value="6"></value>
+					</attribute>
+					<attribute id="0x0021" name="Number of Weekly Transitions" type="u8" range="0x00,0xff" access="r" required="o"></attribute>
+					<attribute id="0x0022" name="Number of Dail Transitions" type="u8" range="0x00,0xff" access="r" required="o"></attribute>
+					<attribute id="0x0023" name="Temperature Setpoint Hold" type="enum8" default="0x00" access="r" required="o">
+						<value name="Setpoint Hold Off" value="0"></value>
+						<value name="Setpoint Hold On" value="1"></value>
+					</attribute>
+					<attribute id="0x0024" name="Temperature Setpoint Hold Duration" type="u8" range="0x05a0,0xffff" default="0xffff" access="rw" required="o"></attribute>
+					<attribute id="0x0025" name="Thermostat Programming Operation Mode" type="bmp8" default="0" access="rw" required="o">
+						<value name="Simple/setpoint mode" value="0">
+							<description>0 – This mode means the thermostat setpoint is altered only by manual
+up/down changes at the thermostat or remotely, not by internal schedule programming.
+1 – Schedule programming mode. This enables or disables any programmed weekly schedule con-
+figurations.
+Note: It does not clear or delete previous weekly schedule programming configurations.</description></value>
+						<value name="Auto/recovery mode" value="1"></value>
+						<value name="Economy/EnergyStar mode" value="2"></value>
+					</attribute>
+				</attribute-set>
+				<attribute-set id="0x0029" description="HVAC Relay">
+					<attribute id="0x0029" name="Thermostat Running State" type="bmp16" access="r" required="o">
+						<value name="Heat State On" value="0"></value>
+						<value name="Cool State On" value="1"></value>
+						<value name="Fan State On" value="2"></value>
+						<value name="Heat 2nd Stage State On" value="3"></value>
+						<value name="Cool 2nd Stage State On" value="4"></value>
+						<value name="Fan 2nd Stage State On" value="5"></value>
+						<value name="Fan 3rd Stage State On" value="6"></value>
+					</attribute>
 				</attribute-set>
 				<command id="0x00" dir="recv" name="Setpoint Raise/Lower" required="m">
 					<description>This command increases (or decreases) the setpoint(s) by amount, in steps of 0.1°C.</description>
