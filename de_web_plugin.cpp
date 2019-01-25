@@ -13423,14 +13423,17 @@ void DeRestPlugin::idleTimerFired()
 
                         if (*ci == POWER_CONFIGURATION_CLUSTER_ID)
                         {
-                            val = sensorNode->getZclValue(*ci, 0x0021); // battery percentage remaining
-                            if (!val.timestamp.isValid() || val.timestamp.secsTo(now) > 1800)
+                            if (sensorNode->modelId().startsWith(QLatin1String("ICZB-KPD1"))) // iCasa Pulse keypads
                             {
-                                sensorNode->enableRead(READ_BATTERY);
-                                sensorNode->setLastRead(READ_BATTERY, d->idleTotalCounter);
-                                sensorNode->setNextReadTime(READ_BATTERY, d->queryTime);
-                                d->queryTime = d->queryTime.addSecs(tSpacing);
-                                processSensors = true;
+                                val = sensorNode->getZclValue(*ci, 0x0021); // battery percentage remaining
+                                if (!val.timestamp.isValid() || val.timestamp.secsTo(now) > 1800)
+                                {
+                                    sensorNode->enableRead(READ_BATTERY);
+                                    sensorNode->setLastRead(READ_BATTERY, d->idleTotalCounter);
+                                    sensorNode->setNextReadTime(READ_BATTERY, d->queryTime);
+                                    d->queryTime = d->queryTime.addSecs(tSpacing);
+                                    processSensors = true;
+                                }
                             }
                         }
                     }
