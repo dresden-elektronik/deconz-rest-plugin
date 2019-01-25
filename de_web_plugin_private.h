@@ -531,6 +531,7 @@ struct TaskItem
         colorY = 0;
         colorTemperature = 0;
         transitionTime = DEFAULT_TRANSITION_TIME;
+        onTime = 0;
         sendTime = 0;
         ordered = false;
     }
@@ -562,6 +563,7 @@ struct TaskItem
     qint32 inc; // bri_inc, hue_inc, sat_inc, ct_inc
     QString etag;
     uint16_t transitionTime;
+    uint16_t onTime;
     QTcpSocket *client;
 
     bool autoMode; // true then this is a automode task

@@ -467,6 +467,7 @@ static void copyTaskReq(TaskItem &a, TaskItem &b)
     b.req.setTxOptions(a.req.txOptions());
     b.req.setSendDelay(a.req.sendDelay());
     b.transitionTime = a.transitionTime;
+    b.onTime = a.onTime;
     b.lightNode = a.lightNode;
 }
 
@@ -557,6 +558,15 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             taskRef.transitionTime = tt;
         }
     }
+    if (map.contains("ontime"))
+    {
+        uint ot = map["ontime"].toUInt(&ok);
+
+        if (ok && ot < 0xFFFFUL)
+        {
+            taskRef.onTime = ot;
+        }
+    }
 
     // FIXME temporary workaround to support window_covering
     bool isWindowCoveringDevice = false;
@@ -586,13 +596,22 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             if (isWindowCoveringDevice
             		&& addTaskWindowCovering(task, isOn ? 0x01 /*down*/ : 0x00 /*up*/, 0, 0))
             {
-				QVariantMap rspItem;
-				QVariantMap rspItemState;
-				rspItemState[QString("/lights/%1/state/on").arg(id)] = isOn;
-				rspItem["success"] = rspItemState;
-				rsp.list.append(rspItem);
-				taskToLocalData(task);
+                QVariantMap rspItem;
+                QVariantMap rspItemState;
+                rspItemState[QString("/lights/%1/state/on").arg(id)] = isOn;
+                rspItem["success"] = rspItemState;
+                rsp.list.append(rspItem);
+                taskToLocalData(task);
             } // FIXME end workaround window_covering
+            else if (isOn && taskRef.onTime > 0 && addTaskSetOnOff(task, ONOFF_COMMAND_ON_WITH_TIMED_OFF, taskRef.onTime))
+            {
+                QVariantMap rspItem;
+                QVariantMap rspItemState;
+                rspItemState[QString("/lights/%1/state/on").arg(id)] = isOn;
+                rspItem["success"] = rspItemState;
+                rsp.list.append(rspItem);
+                taskToLocalData(task);
+            }
             else if (hasBri ||
                 // map.contains("transitiontime") || // FIXME: use bri if transitionTime is given
                 addTaskSetOnOff(task, isOn ? ONOFF_COMMAND_ON : ONOFF_COMMAND_OFF, 0)) // onOff task only if no bri or transitionTime is given
