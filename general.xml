@@ -629,6 +629,12 @@
 			<attribute id = "0011" name="On Level" type="u8" range="0x00,0xfe" access="rw" required="o" default="0xfe">
 				<description>The OnLevel attribute determines the value that the CurrentLevel attribute is set to when the OnOff attribute of an On/Off cluster on the same endpoint is set to On. If the OnLevel attribute is not implemented, or is set to 0xff, it has no effect.</description>
 			</attribute>
+      <attribute id = "0012" name="On Transition Time" type="u16" range="0x0000,0xfffe" access="rw" required="o">
+			</attribute>
+      <attribute id = "0013" name="Off Transition Time" type="u16" range="0x0000,0xfffe" access="rw" required="o">
+			</attribute>
+      <attribute id = "0014" name="Default Move Rate" type="u8" range="0x00,0xfe" access="rw" required="o">
+      </attribute>
 			<attribute id="0x4000" name="PowerOn Level" type="u8" access="rw" required="o">
       </attribute>
 			<command id="0x00" dir="recv" name="Move to Level" required="m">
