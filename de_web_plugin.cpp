@@ -13424,7 +13424,7 @@ void DeRestPlugin::idleTimerFired()
                         if (*ci == POWER_CONFIGURATION_CLUSTER_ID)
                         {
                             val = sensorNode->getZclValue(*ci, 0x0021); // battery percentage remaining
-                            if (!val.timestamp.isValid() || val.timestamp.secsTo(now) > 300)
+                            if (!val.timestamp.isValid() || val.timestamp.secsTo(now) > 1800)
                             {
                                 sensorNode->enableRead(READ_BATTERY);
                                 sensorNode->setLastRead(READ_BATTERY, d->idleTotalCounter);
