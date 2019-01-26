@@ -144,6 +144,15 @@
 				<value name="Emergency mains and transfer switch" value="6"></value>
 				<value name="Mains (single phase) with battery backup" value="0x81"></value>
 			</attribute>
+			<attribute id="0x0008" name="Unknown 1" type="enum8" access="r" required="o" >
+				<description>IKEA control outlet specific.</description>
+			</attribute>
+			<attribute id="0x0009" name="Unknown 2" type="enum8" access="r" required="o" >
+				<description>IKEA control outlet specific.</description>
+			</attribute>
+			<attribute id="0x000a" name="IKEA type" type="ostring" access="r" required="o" >
+				<description>IKEA type as printed on the product.</description>
+			</attribute>
 			<attribute id="0x4000" name="SW Build ID" type="cstring" access="r" required="o" range="0,16"></attribute>
 			<attribute id="0xff0d" name="Xiaomi Sensitivity" type="u8" access="rw" required="o" mfcode="0x115f"></attribute>
 			<!-- <attribute id="0xff0d" name="Xiaomi Sensitivity" type="u8" access="rw" required="o" mfcode="0x1037"></attribute> -->
@@ -178,6 +187,7 @@
 			<attribute id="0x0032" name="Usertest" type="bool" default="0" access="rw" required="o" mfcode="0x100b"></attribute>
 			<attribute id="0x0033" name="LED Indication" type="bool" default="0" access="rw" required="o" mfcode="0x100b"></attribute>
 		</attribute-set>
+		<attribute id="0xfffd" name="Cluster Revision" type="u16" default="0" access="rw" required="o"></attribute>
 		<command id="00" dir="recv" name="Reset to Factory Defaults" required="o"></command>
 		</server>
 		<client>
@@ -2487,6 +2497,22 @@ devices can operate on either battery or mains power, and can have a wide variet
 			<client>
 			</client>
 		</cluster>
+
+		<!-- IKEA -->
+		<cluster id="0xfc7c" name="IKEA" mfcode="0x117c">
+			<description>IKEA control outlet cluster.</description>
+			<server>
+				<attribute id="0x0010" name="Unknown 1" type="u8" access="rw" required="m" showas="hex" mfcode="0x117c">
+					<description></description>
+				</attribute>
+				<attribute id="0xfffd" name="Unknown 2" type="u16" required="m" access="rw" showas="hex" mfcode="0x117c">
+					<description></description>
+				</attribute>
+			</server>
+			<client>
+			</client>
+		</cluster>
+
 	</domain>
 
 	<profile id="0104" name="Home Automation" description="This profile defines device descriptions and standard practices for applications needed in a residential or light commercial environment. Installation scenarios range from a single room to an entire home up to 20,000 square feet (approximately 1850m2)." version="1.0" rev="25" icon="ha.png">
