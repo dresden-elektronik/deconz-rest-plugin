@@ -7086,6 +7086,17 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         }
     }
 
+    if (sensorNode->mustRead(READ_BATTERY) && tNow > sensorNode->nextReadTime(READ_BATTERY))
+    {
+        std::vector<uint16_t> attributes;
+        attributes.push_back(0x0021); // battery percentage remaining
+        if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, POWER_CONFIGURATION_CLUSTER_ID, attributes))
+        {
+            sensorNode->clearRead(READ_BATTERY);
+            processed++;
+        }
+    }
+
     return (processed > 0);
 }
 
@@ -13458,6 +13469,22 @@ void DeRestPlugin::idleTimerFired()
                                 sensorNode->setNextReadTime(READ_THERMOSTAT_STATE, d->queryTime);
                                 d->queryTime = d->queryTime.addSecs(tSpacing);
                                 processSensors = true;
+                            }
+                        }
+
+                        if (*ci == POWER_CONFIGURATION_CLUSTER_ID)
+                        {
+                            if (sensorNode->modelId().startsWith(QLatin1String("ICZB-KPD1"))) // iCasa Pulse keypads
+                            {
+                                val = sensorNode->getZclValue(*ci, 0x0021); // battery percentage remaining
+                                if (!val.timestamp.isValid() || val.timestamp.secsTo(now) > 1800)
+                                {
+                                    sensorNode->enableRead(READ_BATTERY);
+                                    sensorNode->setLastRead(READ_BATTERY, d->idleTotalCounter);
+                                    sensorNode->setNextReadTime(READ_BATTERY, d->queryTime);
+                                    d->queryTime = d->queryTime.addSecs(tSpacing);
+                                    processSensors = true;
+                                }
                             }
                         }
                     }

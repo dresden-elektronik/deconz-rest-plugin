@@ -2095,7 +2095,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                     {
                         continue;
                     }
-                    if (item->lastSet().isValid() && (gwWebSocketNotifyAll || (item->lastChanged().isValid() && item->lastChanged() >= sensor->lastStatePush)))
+                    if (item->lastSet().isValid() && (gwWebSocketNotifyAll || (item->lastChanged().isValid() && item->lastChanged() >= sensor->lastConfigPush)))
                     {
                         config[key] = item->toVariant();
                     }
