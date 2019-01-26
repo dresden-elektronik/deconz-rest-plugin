@@ -4074,6 +4074,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             item->setValue(310); // Sensor will be configured to report every 5 minutes
         }
+        else if (modelId.startsWith(QLatin1String("lumi.sensor_motion"))) // reporting under motion varies between 60 - 90 seconds
+        {
+            item->setValue(90);
+        }
         else
         {
             item->setValue(60); // default 60 seconds

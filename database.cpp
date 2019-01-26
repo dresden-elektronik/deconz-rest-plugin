@@ -3213,6 +3213,18 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
         }
 
+        if (sensor.modelId().startsWith(QLatin1String("lumi.sensor_motion")))
+        {
+            // reporting under motion varies between 60 - 90 seconds
+            ResourceItem *item = sensor.item(RConfigDuration);
+            DBG_Assert(item);
+            if (item && item->toNumber() < 90)
+            {
+                item->setValue(90);
+                sensor.setNeedSaveDatabase(true);
+            }
+        }
+
         // check for older setups with multiple ZHASwitch sensors per device
         if (sensor.manufacturer() == QLatin1String("ubisys") && sensor.type() == QLatin1String("ZHASwitch"))
         {
