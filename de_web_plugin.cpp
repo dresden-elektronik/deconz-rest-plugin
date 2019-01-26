@@ -1551,7 +1551,8 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             lightNode.setNeedSaveDatabase(true);
         }
 
-        if (checkMacVendor(node->address(), VENDOR_OSRAM))
+        if (checkMacVendor(node->address(), VENDOR_OSRAM) &&
+            (node->nodeDescriptor().manufacturerCode() == VENDOR_OSRAM || node->nodeDescriptor().manufacturerCode() == VENDOR_OSRAM_STACK))
         {
             if (lightNode.manufacturer() != QLatin1String("OSRAM"))
             {
