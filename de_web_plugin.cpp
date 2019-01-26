@@ -2844,7 +2844,8 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                             if (item && (item->toNumber() == (S_BUTTON_1 + S_BUTTON_ACTION_INITIAL_PRESS) ||
                                          item->toNumber() == (S_BUTTON_1 + S_BUTTON_ACTION_HOLD)))
                             {
-                                if (item->lastSet().msecsTo(now) > 400) // over 400 ms since initial press? -> long release
+                                if (item->toNumber() == (S_BUTTON_1 + S_BUTTON_ACTION_HOLD) || // hold already triggered -> long release
+                                    item->lastSet().msecsTo(now) > 400) // over 400 ms since initial press? -> long release
                                 {
                                     ok = false; // force long release button event
                                 }
