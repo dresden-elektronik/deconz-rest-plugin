@@ -1364,11 +1364,10 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         lightNode.setNode(nullptr);
         lightNode.item(RStateReachable)->setValue(true);
 
-        // new light node
-        // if (searchLightsState != SearchLightsActive)
-        // {
-        //     return;
-        // }
+        Q_Q(DeRestPlugin);
+        lightNode.setNode(const_cast<deCONZ::Node*>(node));
+        lightNode.address() = node->address();
+        lightNode.setManufacturerCode(node->nodeDescriptor().manufacturerCode());
 
         if (!i->inClusters().isEmpty())
         {
@@ -1499,11 +1498,6 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         {
             continue;
         }
-
-        Q_Q(DeRestPlugin);
-        lightNode.setNode(const_cast<deCONZ::Node*>(node));
-        lightNode.address() = node->address();
-        lightNode.setManufacturerCode(node->nodeDescriptor().manufacturerCode());
 
         QString uid = generateUniqueId(lightNode.address().ext(), lightNode.haEndpoint().endpoint(), 0);
         lightNode.setUniqueId(uid);

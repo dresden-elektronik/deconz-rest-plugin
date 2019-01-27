@@ -345,7 +345,12 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
 
                 if (i->id() == LEVEL_CLUSTER_ID)
                 {
-                    addItem(DataTypeUInt8, RStateBri);
+                    if (manufacturerCode() == VENDOR_IKEA && endpoint.deviceId() == DEV_ID_Z30_ONOFF_PLUGIN_UNIT) // IKEA Tradfri control outlet
+                    { } // skip state.bri not supported
+                    else
+                    {
+                        addItem(DataTypeUInt8, RStateBri);
+                    }
                 }
                 else if (i->id() == COLOR_CLUSTER_ID)
                 {
