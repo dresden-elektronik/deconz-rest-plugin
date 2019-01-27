@@ -839,7 +839,7 @@ bool DeRestPluginPrivate::checkActions(QVariantList actionsList, ApiResponse &rs
         }
 
         //no dublicate addresses allowed
-        const char *resources[] = { "groups", "lights", "schedules", "sensors", 0 };
+        const char *resources[] = { "groups", "lights", "schedules", "sensors", "rules", nullptr };
 
         for (int i = 0; ; i++)
         {
@@ -1559,6 +1559,14 @@ void DeRestPluginPrivate::triggerRule(Rule &rule)
         else if (path[2] == QLatin1String("config"))
         {
             if (handleConfigFullApi(req, rsp) == REQ_NOT_HANDLED)
+            {
+                return;
+            }
+            triggered = true;
+        }
+        else if (path[2] == QLatin1String("rules"))
+        {
+            if (handleRulesApi(req, rsp) == REQ_NOT_HANDLED)
             {
                 return;
             }
