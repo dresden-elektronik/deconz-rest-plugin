@@ -13159,7 +13159,7 @@ void DeRestPlugin::idleTimerFired()
                 LightNode *lightNode = &d->nodes[d->lightIter];
                 d->lightIter++;
 
-                if (!lightNode->isAvailable() || !lightNode->lastRx().isValid() || !lightNode->node())
+                if (!lightNode->isAvailable() || !lightNode->lastRx().isValid() || !lightNode->node() || lightNode->state() != LightNode::StateNormal)
                 {
                     continue;
                 }
@@ -13173,8 +13173,10 @@ void DeRestPlugin::idleTimerFired()
                     }
                 }
 
-                // workaround for Xiaomi lights and smart plugs with multiple endpoints but only one basic cluster
-                if (lightNode->manufacturerCode() == VENDOR_115F && (lightNode->modelId().isEmpty() || lightNode->item(RAttrSwVersion)->toString().isEmpty()))
+                // workaround for lights and smart plugs with multiple endpoints but only one basic cluster
+                if ((lightNode->manufacturerCode() == VENDOR_115F || // Xiaomi
+                     (lightNode->address().ext() & macPrefixMask) == tiMacPrefix) // GLEDOPTO
+                    && (lightNode->modelId().isEmpty() || lightNode->manufacturer().isEmpty() || lightNode->item(RAttrSwVersion)->toString().isEmpty()))
                 {
                     for (const auto &l : d->nodes)
                     {
@@ -13186,6 +13188,13 @@ void DeRestPlugin::idleTimerFired()
                         if (lightNode->modelId().isEmpty() && !l.modelId().isEmpty())
                         {
                             lightNode->setModelId(l.modelId());
+                            lightNode->setNeedSaveDatabase(true);
+                            d->queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
+                        }
+
+                        if (lightNode->manufacturer().isEmpty() && !l.manufacturer().isEmpty())
+                        {
+                            lightNode->setManufacturerName(l.manufacturer());
                             lightNode->setNeedSaveDatabase(true);
                             d->queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
                         }
