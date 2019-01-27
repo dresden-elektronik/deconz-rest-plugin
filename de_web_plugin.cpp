@@ -3181,16 +3181,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             QList<deCONZ::ZclCluster>::const_iterator cend = i->inClusters().constEnd();
             for (; ci != cend; ++ci)
             {
-                if ((ci->id() & 0xfff0) == 0x0400)
-                {
-                    if (modelId == QLatin1String("lumi.plug"))
-                    {
-                        // prevent creation of some sensor clusters for Xiaomi plug
-                        // 0x0400, 0x0402, 0x0403, 0x0405, 0x0406
-                        continue;
-                    }
-                }
-
                 switch (ci->id())
                 {
                 case BASIC_CLUSTER_ID:
@@ -3917,6 +3907,15 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
 {
     DBG_Assert(node);
     if (!node)
+    {
+        return;
+    }
+
+    // Xiaomi plug might contain invalid sensor clusters
+    // prevent creation of related sensors for clusters like 0x0400, 0x0402, 0x0403, 0x0405, 0x0406
+    // https://github.com/dresden-elektronik/deconz-rest-plugin/issues/1094
+    if (modelId == QLatin1String("lumi.plug") &&
+       !(type == QLatin1String("ZHAConsumption") || type == QLatin1String("ZHAPower")))
     {
         return;
     }
