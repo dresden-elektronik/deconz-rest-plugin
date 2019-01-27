@@ -411,7 +411,7 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
         case VENDOR_PHILIPS:
             return prefix == philipsMacPrefix;
         case VENDOR_PHYSICAL:
-            return stMacPrefix;
+            return prefix == stMacPrefix;
         case VENDOR_SI_LABS:
             return prefix == silabsMacPrefix ||
                    prefix == energyMiMacPrefix ||
