@@ -89,17 +89,9 @@ function addUser() {
 	curl --noproxy '*' -s -o /dev/null -d "$json" -X POST http://127.0.0.1:${DECONZ_PORT}/api
 }
 
-# $1 = key, $2 = value
-function writeInDB {
-	local RC=1
-	while [ $RC -ne 0 ]; do
-		sqlite3 $ZLLDB "replace into config2 (key, value) values('$1', '$2')" &> /dev/null
-		RC=$?
-		if [ $RC -ne 0 ]; then
-			[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}Error setting $1 to $2 in db"
-			sleep 2
-		fi
-	done
+# $1 = value
+function putHomebridgeUpdated {
+	curl --noproxy '*' -s -o /dev/null -d "{\"homebridge\":\"$1\"}" -X PUT http://127.0.0.1:${DECONZ_PORT}/api/$OWN_PID/config/homebridge/updated
 }
 
 function checkNewDevices() {
@@ -233,7 +225,7 @@ function checkHomebridge {
 		# homebridge-hue apikey exists
 		if [ -z $(echo $HOMEBRIDGE_AUTH | grep deconz) ]; then
 			if [[ "$HOMEBRIDGE" != "not-managed" ]]; then
-				writeInDB "homebridge" "not-managed"
+				putHomebridgeUpdated "not-managed"
 			fi
 			[[ $LOG_INFO ]] && echo "${LOG_INFO}existing homebridge hue auth found"
         fi
@@ -298,7 +290,7 @@ function checkHomebridge {
 		[[ $LOG_INFO ]] && echo "${LOG_INFO}check inet connectivity"
 
 		if [[ "$HOMEBRIDGE" != "installing" ]]; then
-			writeInDB "homebridge" "installing"
+			putHomebridgeUpdated "installing"
 		fi
 
 		curl --head --connect-timeout 20 -k https://www.phoscon.de &> /dev/null
@@ -310,7 +302,7 @@ function checkHomebridge {
 			else
 				[[ $LOG_WARN ]] && echo "${LOG_WARN}no internet connection. Abort homebridge installation."
 				if [[ "$HOMEBRIDGE" != "install-error" ]]; then
-					writeInDB "homebridge" "install-error"
+					putHomebridgeUpdated "install-error"
 				fi
 				return
 			fi
@@ -324,14 +316,14 @@ function checkHomebridge {
 				if [ $? -ne 0 ]; then
 					[[ $LOG_WARN ]] && echo "${LOG_WARN}could not install nodejs"
 					if [[ "$HOMEBRIDGE" != "install-error" ]]; then
-						writeInDB "homebridge" "install-error"
+						putHomebridgeUpdated "install-error"
 					fi
 					return
 				fi
 			else
 				[[ $LOG_WARN ]] && echo "${LOG_WARN}could not download node setup."
 				if [[ "$HOMEBRIDGE" != "install-error" ]]; then
-					writeInDB "homebridge" "install-error"
+					putHomebridgeUpdated "install-error"
 				fi
 				return
 			fi
@@ -343,14 +335,14 @@ function checkHomebridge {
 					if [ $? -ne 0 ]; then
 						[[ $LOG_WARN ]] && echo "${LOG_WARN}could not install nodejs"
 						if [[ "$HOMEBRIDGE" != "install-error" ]]; then
-							writeInDB "homebridge" "install-error"
+							putHomebridgeUpdated "install-error"
 						fi
 						return
 					fi
 				else
 					[[ $LOG_WARN ]] && echo "${LOG_WARN}could not download node setup."
 					if [[ "$HOMEBRIDGE" != "install-error" ]]; then
-						writeInDB "homebridge" "install-error"
+						putHomebridgeUpdated "install-error"
 					fi
 					return
 				fi
@@ -368,7 +360,7 @@ function checkHomebridge {
 			if [ $? -ne 0 ]; then
 				[[ $LOG_WARN ]] && echo "${LOG_WARN}could not install npm"
 				if [[ "$HOMEBRIDGE" != "install-error" ]]; then
-					writeInDB "homebridge" "install-error"
+					putHomebridgeUpdated "install-error"
 				fi
 				return
 			fi
@@ -382,14 +374,14 @@ function checkHomebridge {
 				if [ $? -ne 0 ]; then
 					[[ $LOG_WARN ]] && echo "${LOG_WARN}could not install homebridge"
 					if [[ "$HOMEBRIDGE" != "install-error" ]]; then
-						writeInDB "homebridge" "install-error"
+						putHomebridgeUpdated "install-error"
 					fi
 					return
 				fi
 			else
 				[[ $LOG_WARN ]] && echo "${LOG_WARN}could not update npm"
 				if [[ "$HOMEBRIDGE" != "install-error" ]]; then
-					writeInDB "homebridge" "install-error"
+					putHomebridgeUpdated "install-error"
 				fi
 				return
 			fi
@@ -401,7 +393,7 @@ function checkHomebridge {
 			if [ $? -ne 0 ]; then
 				[[ $LOG_WARN ]] && echo "${LOG_WARN}could not install homebridge hue"
 				if [[ "$HOMEBRIDGE" != "install-error" ]]; then
-					writeInDB "homebridge" "install-error"
+					putHomebridgeUpdated "install-error"
 				fi
 				return
 			fi
@@ -425,7 +417,7 @@ function checkHomebridge {
 		if [ -z "$(cat /home/$MAINUSER/.homebridge/config.json | grep "Phoscon Homebridge")" ]; then
 			# set to not-managed only if homebridge is not set up by phoscon
 			if [[ "$HOMEBRIDGE" != "not-managed" ]]; then
-				writeInDB "homebridge" "not-managed"
+				putHomebridgeUpdated "not-managed"
 			fi
 		else
 			# config created by deCONZ - check if apikey is still correct
@@ -501,7 +493,7 @@ function checkHomebridge {
 	if [ -z "$process" ]; then
 		[[ $LOG_INFO ]] && echo "${LOG_INFO}starting homebridge"
 		if [[ "$HOMEBRIDGE" != "managed" ]]; then
-			writeInDB "homebridge" "managed"
+			putHomebridgeUpdated "managed"
 		fi
 		homebridge -U /home/$MAINUSER/.homebridge &
 	fi

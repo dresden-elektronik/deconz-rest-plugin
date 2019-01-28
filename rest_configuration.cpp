@@ -2977,6 +2977,95 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
     return REQ_READY_SEND;
 }
 
+/*! PUT /api/config/homebridge/updated (wifi service notifications)
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::putHomebridgeUpdated(const ApiRequest &req, ApiResponse &rsp)
+{
+    QHostAddress localHost(QHostAddress::LocalHost);
+    rsp.httpStatus = HttpStatusForbidden;
+
+    if (req.sock->peerAddress() != localHost)
+    {
+        rsp.list.append(errorToMap(ERR_UNAUTHORIZED_USER, "/" + req.path.join("/"), "unauthorized user"));
+        return REQ_READY_SEND;
+    }
+
+    pid_t pid = req.path[1].toInt();
+    if (gwWifiPID != pid)
+    {
+        gwWifiPID = pid;
+    }
+
+    rsp.httpStatus = HttpStatusOk;
+
+    if (req.content.isEmpty())
+    {
+        return REQ_READY_SEND;
+    }
+
+    // TODO forward events
+    bool ok;
+    QVariant var = Json::parse(req.content, ok);
+    QVariantMap map = var.toMap();
+
+    if (!ok || map.isEmpty())
+    {
+        return REQ_READY_SEND;
+    }
+
+    QString homebridge;
+
+    if (map.contains("homebridge"))
+    {
+        homebridge = map["homebridge"].toString();
+    }
+
+    bool changed = false;
+
+    if (homebridge == QLatin1String("not-managed"))
+    {
+        if (gwHomebridge != homebridge)
+        {
+            gwHomebridge = homebridge;
+            changed = true;
+        }
+    }
+    else if (homebridge == QLatin1String("managed"))
+    {
+        if (gwHomebridge != homebridge)
+        {
+            gwHomebridge = homebridge;
+            changed = true;
+        }
+    }
+    else if (homebridge == QLatin1String("installing"))
+    {
+        if (gwHomebridge != homebridge)
+        {
+            gwHomebridge = homebridge;
+            changed = true;
+        }
+    }
+    else if (homebridge == QLatin1String("install-error"))
+    {
+        if (gwHomebridge != homebridge)
+        {
+            gwHomebridge = homebridge;
+            changed = true;
+        }
+    }
+
+    if (changed)
+    {
+        queSaveDb(DB_CONFIG | DB_SYNC, DB_SHORT_SAVE_DELAY);
+    }
+
+    DBG_Printf(DBG_HTTP, "homebridge: %s\n", qPrintable(req.content));
+    return REQ_READY_SEND;
+}
+
 /*! POST /api/<apikey>/config/wifiscan
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
