@@ -330,10 +330,23 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
         }
     }
 
+    if (manufacturerCode() == VENDOR_115F && endpoint.deviceId() == DEV_ID_HA_COLOR_DIMMABLE_LIGHT)
+    {
+        // https://github.com/dresden-elektronik/deconz-rest-plugin/issues/1057
+        // The Xiaomi Aqara TW (ZNLDP12LM) light is, has wrong device type in simple descriptor
+        // we will treat it as color temperature light once the modelid is known
+        if (modelId().isEmpty())
+        {
+            return; // wait until known: Xiaomi lumi.light.aqcn02
+        }
+
+        isInitialized = item(RStateColorMode) != nullptr;
+    }
 
     // initial setup
     if (!isInitialized)
     {
+        quint16 deviceId = haEndpoint().deviceId();
         QString ltype = QLatin1String("Unknown");
 
         {
@@ -342,7 +355,6 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
 
             for (; i != end; ++i)
             {
-
                 if (i->id() == LEVEL_CLUSTER_ID)
                 {
                     if (manufacturerCode() == VENDOR_IKEA && endpoint.deviceId() == DEV_ID_Z30_ONOFF_PLUGIN_UNIT) // IKEA Tradfri control outlet
@@ -356,7 +368,13 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 {
                     addItem(DataTypeString, RStateColorMode)->setValue(QVariant("hs"));
 
-                    switch (haEndpoint().deviceId())
+                    if (modelId() == QLatin1String("lumi.light.aqcn02"))
+                    {
+                        // correct wrong device id
+                        deviceId = DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT;
+                    }
+
+                    switch (deviceId)
                     {
                     case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:
                     case DEV_ID_Z30_EXTENDED_COLOR_LIGHT:
@@ -368,8 +386,8 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                         addItem(DataTypeUInt16, RConfigCtMax);
                         addItem(DataTypeUInt16, RStateCt);
 
-                        if (haEndpoint().deviceId() == DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT ||
-                            haEndpoint().deviceId() == DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT)
+                        if (deviceId == DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT ||
+                            deviceId == DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT)
                         {
                             item(RStateColorMode)->setValue(QVariant("ct")); // note due addItem() calls, pointer is different here
                         }
@@ -380,7 +398,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                         break;
                     }
 
-                    switch (haEndpoint().deviceId())
+                    switch (deviceId)
                     {
                     case DEV_ID_ZLL_COLOR_LIGHT:
                     case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:
@@ -440,7 +458,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
 
         if (haEndpoint().profileId() == HA_PROFILE_ID)
         {
-            switch(haEndpoint().deviceId())
+            switch (deviceId)
             {
             //case DEV_ID_ZLL_DIMMABLE_LIGHT:   break; // clash with on/off light
             case DEV_ID_HA_ONOFF_LIGHT:
@@ -475,7 +493,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
         }
         else if (haEndpoint().profileId() == ZLL_PROFILE_ID)
         {
-            switch(haEndpoint().deviceId())
+            switch (deviceId)
             {
             case DEV_ID_ZLL_ONOFF_LIGHT:             ltype = QLatin1String("On/Off light"); break;
             case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:       ltype = QLatin1String("On/Off plug-in unit"); break;

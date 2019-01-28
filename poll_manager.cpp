@@ -267,8 +267,13 @@ void PollManager::pollTimerFired()
         clusterId = COLOR_CLUSTER_ID;
         item = r->item(RConfigColorCapabilities);
 
-        if ((!item || item->toNumber() <= 0) && lightNode->haEndpoint().profileId() != HA_PROFILE_ID)
+        if ((!item || item->toNumber() <= 0) && (lightNode->haEndpoint().profileId() != HA_PROFILE_ID || lightNode->manufacturerCode() == VENDOR_115F))
         {
+            if (item && lightNode->modelId() == QLatin1String("lumi.light.aqcn02"))
+            {
+                item->setValue(0x0010); // color capabilities are not supported, set here
+            }
+
             attributes.push_back(0x0008); // color mode
             attributes.push_back(0x4001); // enhanced color mode
             attributes.push_back(0x400a); // color capabilities
