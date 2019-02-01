@@ -3382,7 +3382,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         // only use IAS Zone cluster on endpoint 0x01 for Centralite motion sensors
                     }
-                    if (node->nodeDescriptor().manufacturerCode() == VENDOR_NYCE)
+                    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_NYCE)
                     {
                         // only use IAS Zone cluster on endpoint 0x01 for NYCE motion sensors
                     }
