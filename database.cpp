@@ -3079,9 +3079,16 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeInt16, RConfigOffset);
             item->setValue(0);
             sensor.addItem(DataTypeInt16, RConfigHeating);    // Heating set point
-            sensor.addItem(DataTypeBool, RConfigSchedulerOn); // Scheduler state on/off
             sensor.addItem(DataTypeBool, RStateOn);           // Heating on/off
-            sensor.addItem(DataTypeString, RConfigScheduler); // Scheduler setting
+            if (sensor.modelId().startsWith(QLatin1String("SPZB")))
+            {
+                // Eurotronic Spirit
+            }
+            else
+            {
+                sensor.addItem(DataTypeBool, RConfigSchedulerOn); // Scheduler state on/off
+                sensor.addItem(DataTypeString, RConfigScheduler); // Scheduler setting
+            }
         }
 
         if (sensor.modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch

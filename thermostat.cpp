@@ -170,6 +170,17 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 }
                 break;
 
+            case 0x0008:  // Pi Heating Demand
+                item = sensor->item(RStateOn);
+                if (item)
+                {
+                    item->setValue(attr.numericValue().u8 > 0);
+                    Event e(RSensors, RStateOn, sensor->id(), item);
+                    enqueueEvent(e);
+                    sensor->setZclValue(updateType, THERMOSTAT_CLUSTER_ID, 0x0008, attr.numericValue());
+                }
+                break;
+
             case 0x0010: // Local Temperature Calibration (offset in 0.1 °C steps, from -2,5 °C to +2,5 °C)
                 item = sensor->item(RConfigOffset);
                 if (item)
@@ -213,9 +224,31 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 break;
 
             // manufacturerspecific reported by Eurotronic SPZB0001
-            case 0x4002: // U8 (0x20): value 0x00
-            case 0x4003: // S16 (0x29): 2300
-            case 0x4008: // U24 (0x22): 0x000001
+            // https://eurotronic.org/wp-content/uploads/2019/01/Spirit_ZigBee_BAL_web_DE_view_V9.pdf
+            case 0x4003: // Current temperature set point
+            {   // this will be reported when manually changing the temperature
+                if (sensor->modelId().startsWith(QLatin1String("SPZB")))
+                {
+                    item = sensor->item(RConfigHeating);
+                    if (item)
+                    {
+                        item->setValue(attr.numericValue().s16);
+                        Event e(RSensors, RConfigHeating, sensor->id(), item);
+                        enqueueEvent(e);
+
+                        if (item->toNumber() != item->toNumberPrevious())
+                        {
+                            sensor->setNeedSaveDatabase(true);
+                        }
+                    }
+                }
+            }
+                break;
+
+            case 0x4000: // enum8 (0x30): value 0x02, TRV mode
+            case 0x4001: // U8 (0x20): value 0x00, valve position
+            case 0x4002: // U8 (0x20): value 0x00, errors
+            case 0x4008: // U24 (0x22): 0x000001, host flags
                 {
                     if (zclFrame.manufacturerCode() == VENDOR_JENNIC)
                     {
