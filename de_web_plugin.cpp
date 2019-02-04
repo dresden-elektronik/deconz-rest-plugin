@@ -240,7 +240,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     db = 0;
     saveDatabaseItems = 0;
     saveDatabaseIdleTotalCounter = 0;
-    dbZclValueMaxAge = 60 * 60; // 1 hour
+    dbZclValueMaxAge = 0; // default disable
     sqliteDatabaseName = dataPath + QLatin1String("/zll.db");
 
     idleLimit = 0;
