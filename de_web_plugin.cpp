@@ -131,7 +131,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NYCE, "3043", emberMacPrefix }, // NYCE ceiling motion sensor
     { VENDOR_PHILIPS, "RWL020", philipsMacPrefix }, // Hue dimmer switch
     { VENDOR_PHILIPS, "RWL021", philipsMacPrefix }, // Hue dimmer switch
-    { VENDOR_PHILIPS, "SML001", philipsMacPrefix }, // Hue motion sensor
+    { VENDOR_PHILIPS, "SML00", philipsMacPrefix }, // Hue motion sensor
     { VENDOR_JENNIC, "lumi.sensor_ht", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.weather", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_magnet", jennicMacPrefix },
@@ -4280,7 +4280,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.fingerPrint().inClusters.push_back(VENDOR_CLUSTER_ID);
             }
         }
-        else if (modelId == QLatin1String("SML001")) // Hue motion sensor
+        else if (modelId.startsWith(QLatin1String("SML00"))) // Hue motion sensor
         {
             if (type == QLatin1String("ZHASwitch"))
             {
@@ -12585,7 +12585,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 return;
             }
         }
-        else if (sensor->modelId() == QLatin1String("SML001")) // Hue motion sensor
+        else if (sensor->modelId().startsWith(QLatin1String("SML00"))) // Hue motion sensor
         {
             std::vector<uint16_t> attributes;
             const NodeValue &sensitivity = sensor->getZclValue(OCCUPANCY_SENSING_CLUSTER_ID, 0x0030);
@@ -14943,7 +14943,7 @@ void DeRestPluginPrivate::pushSensorInfoToCore(Sensor *sensor)
     { } // use name from light
     else if (sensor->type() == QLatin1String("ZHAConsumption") || sensor->type() == QLatin1String("ZHAPower"))
     { } // use name from light
-    else if (sensor->modelId() == QLatin1String("SML001") && sensor->type() != QLatin1String("ZHAPresence"))
+    else if (sensor->modelId().startsWith(QLatin1String("SML00")) && sensor->type() != QLatin1String("ZHAPresence"))
     { } // use name from ZHAPresence sensor only
     else if (sensor->modelId() == QLatin1String("WarningDevice") && sensor->type() == QLatin1String("ZHAAlarm"))
     { } // use name from light
