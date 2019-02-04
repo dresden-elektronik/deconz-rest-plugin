@@ -15032,10 +15032,6 @@ void DeRestPluginPrivate::pollNextDevice()
         DBG_Printf(DBG_INFO_L2, "poll node %s\n", qPrintable(restNode->uniqueId()));
         pollManager->poll(restNode);
     }
-    else
-    {
-        QTimer::singleShot(500, this, SLOT(pollNextDevice()));
-    }
 }
 
 /*! Request to disconnect from network.
