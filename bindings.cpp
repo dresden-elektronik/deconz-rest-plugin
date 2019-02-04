@@ -820,7 +820,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
 
         const Sensor *sensor = static_cast<Sensor *>(bt.restNode);
-        if (sensor && sensor->modelId() == QLatin1String("SML001")) // Hue motion sensor
+        if (sensor && sensor->modelId().startsWith(QLatin1String("SML00"))) // Hue motion sensor
         {
             if (bt.restNode->getZclValue(bt.binding.clusterId, 0x0030).clusterId != bt.binding.clusterId)
             {
@@ -904,7 +904,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
         rq.dataType = deCONZ::Zcl8BitUint;
         rq.attributeId = 0x0021;   // battery percentage remaining
-        if (sensor && sensor->modelId() == QLatin1String("SML001")) // Hue motion sensor
+        if (sensor && sensor->modelId().startsWith(QLatin1String("SML00"))) // Hue motion sensor
         {
             rq.minInterval = 7200;       // value used by Hue bridge
             rq.maxInterval = 7200;       // value used by Hue bridge
@@ -1125,7 +1125,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
 
         // only process for presence sensor: don't issue configuration for temperature and illuminance sensors
-        // TODO check if just used for SML001 sensor or also hue dimmer switch?
+        // TODO check if just used for hue motion sensor or also hue dimmer switch?
         if (sensor->type() != QLatin1String("ZHAPresence"))
         {
             return false;
@@ -1418,7 +1418,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("3011") ||
         sensor->modelId() == QLatin1String("3043") ||
         // Philips
-        sensor->modelId() == QLatin1String("SML001") ||
+        sensor->modelId().startsWith(QLatin1String("SML00")) ||
         sensor->modelId().startsWith(QLatin1String("RWL02")) ||
         // ubisys
         sensor->modelId().startsWith(QLatin1String("C4")) ||
@@ -1539,7 +1539,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         }
         else if (*i == POWER_CONFIGURATION_CLUSTER_ID)
         {
-            if (sensor->modelId() == QLatin1String("SML001") && sensor->type() != QLatin1String("ZHAPresence"))
+            if (sensor->modelId().startsWith(QLatin1String("SML00")) && sensor->type() != QLatin1String("ZHAPresence"))
             {
                 continue; // process only once
             }
@@ -1582,7 +1582,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         }
         else if (*i == BASIC_CLUSTER_ID)
         {
-            if (sensor->modelId() == QLatin1String("SML001") && // Hue motion sensor
+            if (sensor->modelId().startsWith(QLatin1String("SML00")) && // Hue motion sensor
                 sensor->type() == QLatin1String("ZHAPresence"))
             {
                 val = sensor->getZclValue(*i, 0x0032); // usertest

@@ -1116,7 +1116,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             offsetUpdated = true;
                             offset += item->toNumber();
                         }
-                        else if (rid.suffix == RConfigDelay && sensor->modelId() == QLatin1String("SML001")) // Hue motion sensor
+                        else if (rid.suffix == RConfigDelay && sensor->modelId().startsWith(QLatin1String("SML00"))) // Hue motion sensor
                         {
                             pendingMask |= R_PENDING_DELAY;
                             sensor->enableRead(WRITE_DELAY);
@@ -1957,7 +1957,7 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
             map["manufacturername"] = "Philips";
             map["modelid"] = "RWL021";
         }
-        // mimic Hue motions sensor
+        // mimic Hue motion sensor
         else if (false)
         {
             map["manufacturername"] = "Philips";

@@ -2794,7 +2794,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
         if (sensor.type().endsWith(QLatin1String("Switch")))
         {
-            if (sensor.modelId() == QLatin1String("SML001")) // Hue motion sensor
+            if (sensor.modelId().startsWith(QLatin1String("SML00"))) // Hue motion sensor
             {
                 // not supported yet, created by older versions
                 // ignore for now
@@ -2887,7 +2887,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = clusterId ? clusterId : OCCUPANCY_SENSING_CLUSTER_ID;
                 if (sensor.modelId().startsWith(QLatin1String("FLS")) ||
-                    sensor.modelId().startsWith(QLatin1String("SML001")))
+                    sensor.modelId().startsWith(QLatin1String("SML00")))
                 {
                     // TODO write and recover min/max to db
                     deCONZ::NumericUnion dummy;
@@ -2916,7 +2916,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             item = sensor.addItem(DataTypeBool, RStatePresence);
             item->setValue(false);
-            if (sensor.modelId() == QLatin1String("SML001")) // Hue motion sensor
+            if (sensor.modelId().startsWith(QLatin1String("SML00"))) // Hue motion sensor
             {
                 item = sensor.addItem(DataTypeUInt16, RConfigDelay);
                 item->setValue(0);
@@ -3111,7 +3111,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 sensor.setNeedSaveDatabase(true);
             }
         }
-        else if (sensor.modelId() == QLatin1String("SML001")) // Hue motion sensor
+        else if (sensor.modelId().startsWith(QLatin1String("SML00"))) // Hue motion sensor
         {
             if (!sensor.fingerPrint().hasInCluster(BASIC_CLUSTER_ID))
             {
