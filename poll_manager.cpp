@@ -116,7 +116,7 @@ void PollManager::poll(RestNodeBase *restNode, const QDateTime &tStart)
 
     if (!timer->isActive())
     {
-        timer->start(1);
+        timer->start(100);
     }
 }
 
@@ -165,6 +165,14 @@ void PollManager::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
  */
 void PollManager::pollTimerFired()
 {
+    if (pollState == StateDone)
+    {
+        pollState = StateIdle;
+        timer->start(50);
+        emit done();
+        return;
+    }
+
     if (pollState == StateWait)
     {
         DBG_Printf(DBG_INFO, "timeout on poll APS confirm\n");
@@ -175,7 +183,8 @@ void PollManager::pollTimerFired()
 
     if (items.empty())
     {
-        emit done();
+        pollState = StateDone;
+        timer->start(50);
         return;
     }
 

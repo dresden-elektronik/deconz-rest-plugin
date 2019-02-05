@@ -124,6 +124,9 @@ void DeRestPluginPrivate::cleanUpDb()
         "   WHERE modelid like 'RWL02%' "
         "   AND type = 'ZHAPresence'",
 
+        // cleanup invalid sensor resource for Centralite motion sensor
+        "DELETE FROM sensors WHERE modelid = 'Motion Sensor-A' AND uniqueid LIKE '%02-0406'",
+
         // delete duplicates in device_descriptors
         //"DELETE FROM device_descriptors WHERE rowid NOT IN"
         //" (SELECT max(rowid) FROM device_descriptors GROUP BY device_id,type,endpoint)",
@@ -2714,7 +2717,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             else if (strcmp(colname[i], "deletedState") == 0)
             {
-                if (val == "deleted")
+                if (val == QLatin1String("deleted"))
                 {
                     sensor.setDeletedState(Sensor::StateDeleted);
                     return 0;
@@ -3079,9 +3082,16 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeInt16, RConfigOffset);
             item->setValue(0);
             sensor.addItem(DataTypeInt16, RConfigHeating);    // Heating set point
-            sensor.addItem(DataTypeBool, RConfigSchedulerOn); // Scheduler state on/off
             sensor.addItem(DataTypeBool, RStateOn);           // Heating on/off
-            sensor.addItem(DataTypeString, RConfigScheduler); // Scheduler setting
+            if (sensor.modelId().startsWith(QLatin1String("SPZB")))
+            {
+                // Eurotronic Spirit
+            }
+            else
+            {
+                sensor.addItem(DataTypeBool, RConfigSchedulerOn); // Scheduler state on/off
+                sensor.addItem(DataTypeString, RConfigScheduler); // Scheduler setting
+            }
         }
 
         if (sensor.modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch

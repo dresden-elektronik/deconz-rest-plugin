@@ -47,7 +47,8 @@ class PollManager : public QObject
 public:
     enum PollState {
         StateIdle,
-        StateWait
+        StateWait,
+        StateDone
     };
     explicit PollManager(QObject *parent = 0);
     void poll(RestNodeBase *restNode, const QDateTime &tStart = QDateTime());

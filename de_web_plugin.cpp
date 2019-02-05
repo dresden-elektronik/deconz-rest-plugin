@@ -241,7 +241,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     db = 0;
     saveDatabaseItems = 0;
     saveDatabaseIdleTotalCounter = 0;
-    dbZclValueMaxAge = 60 * 60; // 1 hour
+    dbZclValueMaxAge = 0; // default disable
     sqliteDatabaseName = dataPath + QLatin1String("/zll.db");
 
     idleLimit = 0;
@@ -3383,7 +3383,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         // only use IAS Zone cluster on endpoint 0x01 for Centralite motion sensors
                     }
-                    if (node->nodeDescriptor().manufacturerCode() == VENDOR_NYCE)
+                    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_NYCE)
                     {
                         // only use IAS Zone cluster on endpoint 0x01 for NYCE motion sensors
                     }
@@ -4182,9 +4182,16 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         item = sensorNode.addItem(DataTypeInt16, RConfigOffset);
         item->setValue(0);
         sensorNode.addItem(DataTypeInt16, RConfigHeating);    // Heating set point
-        sensorNode.addItem(DataTypeBool, RConfigSchedulerOn); // Scheduler state on/off
         sensorNode.addItem(DataTypeBool, RStateOn);           // Heating on/off
-        sensorNode.addItem(DataTypeString, RConfigScheduler); // Scheduler setting
+        if (modelId.startsWith(QLatin1String("SPZB")))
+        {
+            // Eurotronic Spirit
+        }
+        else
+        {
+            sensorNode.addItem(DataTypeBool, RConfigSchedulerOn); // Scheduler state on/off
+            sensorNode.addItem(DataTypeString, RConfigScheduler); // Scheduler setting
+        }
     }
 
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_DDEL)
@@ -13471,7 +13478,11 @@ void DeRestPlugin::idleTimerFired()
                         {
                             val = sensorNode->getZclValue(*ci, 0x0029); // heating state
 
-                            if (!val.timestamp.isValid() || val.timestamp.secsTo(now) > 600)
+                            if (sensorNode->modelId().startsWith("SPZB")) // Eurotronic Spirit
+                            {
+                                // supports reporting, no need to read attributes
+                            }
+                            else if (!val.timestamp.isValid() || val.timestamp.secsTo(now) > 600)
                             {
                                 sensorNode->enableRead(READ_THERMOSTAT_STATE);
                                 sensorNode->setLastRead(READ_THERMOSTAT_STATE, d->idleTotalCounter);
@@ -15021,10 +15032,6 @@ void DeRestPluginPrivate::pollNextDevice()
     {
         DBG_Printf(DBG_INFO_L2, "poll node %s\n", qPrintable(restNode->uniqueId()));
         pollManager->poll(restNode);
-    }
-    else
-    {
-        QTimer::singleShot(500, this, SLOT(pollNextDevice()));
     }
 }
 
