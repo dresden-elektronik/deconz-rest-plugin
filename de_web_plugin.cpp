@@ -1527,7 +1527,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
         ResourceItem *reachable = lightNode.item(RStateReachable);
         DBG_Assert(reachable);
-        if (reachable)
+        if (reachable && !reachable->toBool()) //  might have been set to false after reload
         {
             reachable->setValue(!node->isZombie() && lightNode.lastRx().isValid());
         }

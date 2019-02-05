@@ -2234,7 +2234,7 @@ static int sqliteLoadLightNodeCallback(void *user, int ncols, char **colval , ch
             }
             else if (strcmp(colname[i], "state") == 0)
             {
-                if (val == "deleted")
+                if (val == QLatin1String("deleted"))
                 {
                     lightNode->setState(LightNode::StateDeleted);
                 }
