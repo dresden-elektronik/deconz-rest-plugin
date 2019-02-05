@@ -169,6 +169,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_OSRAM_STACK, "WATER_", heimanMacPrefix }, // Heiman water sensor
     { VENDOR_LGE, "LG IP65 HMS", emberMacPrefix },
     { VENDOR_EMBER, "SmartPlug", emberMacPrefix }, // Heiman smart plug
+    { VENDOR_120B, "SmartPlug", emberMacPrefix }, // Heiman smart plug
     { VENDOR_120B, "Smoke", emberMacPrefix }, // Heiman fire sensor - newer model
     { VENDOR_120B, "WarningDevice", emberMacPrefix }, // Heiman siren
     { VENDOR_LUTRON, "LZL4BWHL01", lutronMacPrefix }, // Lutron LZL-4B-WH-L01 Connected Bulb Remote
