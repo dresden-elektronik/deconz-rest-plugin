@@ -156,6 +156,20 @@ void PollManager::apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf)
 
     DBG_Printf(DBG_INFO_L2, "Poll APS confirm %u status: 0x%02X\n", conf.id(), conf.status());
 
+    if (!items.empty() && conf.status() != deCONZ::ApsSuccessStatus)
+    {
+        PollItem &pitem = items.front();
+
+        for (auto &i : pitem.items)
+        {
+            if (i)
+            {
+                DBG_Printf(DBG_INFO_L2, "\t drop item %s\n", i);
+                i = nullptr; // clear
+            }
+        }
+    }
+
     pollState = StateIdle;
     timer->stop();
     timer->start(1);
