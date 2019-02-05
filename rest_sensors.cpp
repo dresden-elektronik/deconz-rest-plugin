@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2013-2019 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -324,7 +324,7 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
         sensor.setId(QString::number(getFreeSensorId()));
         closeDb();
 
-        sensor.setName(map["name"].toString());
+        sensor.setName(map["name"].toString().trimmed());
         sensor.setManufacturer(map["manufacturername"].toString());
         sensor.setModelId(map["modelid"].toString());
         sensor.setUniqueId(map["uniqueid"].toString());
@@ -906,7 +906,7 @@ int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
 
     if (map.contains("name")) // optional
     {
-        name = map["name"].toString();
+        name = map["name"].toString().trimmed();
 
         if ((map["name"].type() == QVariant::String) && !(name.isEmpty()) && (name.size() <= MAX_SENSOR_NAME_LENGTH))
         {

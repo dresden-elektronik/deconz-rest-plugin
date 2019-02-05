@@ -263,7 +263,7 @@ int DeRestPluginPrivate::createGroup(const ApiRequest &req, ApiResponse &rsp)
     // name
     if (map.contains("name"))
     {
-        QString name = map["name"].toString();
+        QString name = map["name"].toString().trimmed();
 
         if (map["name"].type() == QVariant::String && !name.isEmpty())
         {
@@ -469,7 +469,7 @@ int DeRestPluginPrivate::setGroupAttributes(const ApiRequest &req, ApiResponse &
     // name
     if (map.contains("name"))
     {
-        QString name = map["name"].toString();
+        QString name = map["name"].toString().trimmed();
 
         if (map["name"].type() == QVariant::String)
         {
@@ -1996,7 +1996,7 @@ int DeRestPluginPrivate::createScene(const ApiRequest &req, ApiResponse &rsp)
     // name
     if (map.contains("name")) // required
     {
-        QString name = map["name"].toString();
+        QString name = map["name"].toString().trimmed();
 
         if (map["name"].type() == QVariant::String)
         {
@@ -2375,7 +2375,7 @@ int DeRestPluginPrivate::setSceneAttributes(const ApiRequest &req, ApiResponse &
     // name
     if (map.contains("name")) // optional
     {
-        name = map["name"].toString();
+        name = map["name"].toString().trimmed();
 
         if (map["name"].type() == QVariant::String)
         {
