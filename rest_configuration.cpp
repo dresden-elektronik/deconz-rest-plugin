@@ -2028,9 +2028,13 @@ int DeRestPluginPrivate::exportConfig(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::importConfig(const ApiRequest &req, ApiResponse &rsp)
 {
-    Q_UNUSED(req);
+
     if (importConfiguration())
     {
+        openDb();
+        saveApiKey(req.apikey());
+        closeDb();
+
         rsp.httpStatus = HttpStatusOk;
         QVariantMap rspItem;
         QVariantMap rspItemState;

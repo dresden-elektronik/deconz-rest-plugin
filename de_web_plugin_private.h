@@ -1299,6 +1299,7 @@ public:
     int getFreeLightId();
     int getFreeSensorId();
     void saveDb();
+    void saveApiKey(QString apikey);
     void closeDb();
     void queSaveDb(int items, int msec);
     void updateZigBeeConfigDb();

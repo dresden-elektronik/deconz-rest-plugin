@@ -3715,6 +3715,47 @@ int DeRestPluginPrivate::getFreeSensorId()
     return id;
 }
 
+/*! Saves the current auth with apikey to the database.
+ */
+void DeRestPluginPrivate::saveApiKey(QString apikey)
+{
+    int rc;
+    char *errmsg;
+
+    std::vector<ApiAuth>::iterator i = apiAuths.begin();
+    std::vector<ApiAuth>::iterator end = apiAuths.end();
+
+    for (; i != end; ++i)
+    {
+        if (i->apikey == apikey)
+        {
+            DBG_Assert(i->createDate.timeSpec() == Qt::UTC);
+            DBG_Assert(i->lastUseDate.timeSpec() == Qt::UTC);
+
+            QString sql = QString(QLatin1String("REPLACE INTO auth (apikey, devicetype, createdate, lastusedate, useragent) VALUES ('%1', '%2', '%3', '%4', '%5')"))
+                    .arg(i->apikey)
+                    .arg(i->devicetype)
+                    .arg(i->createDate.toString("yyyy-MM-ddTHH:mm:ss"))
+                    .arg(i->lastUseDate.toString("yyyy-MM-ddTHH:mm:ss"))
+                    .arg(i->useragent);
+
+            DBG_Printf(DBG_INFO_L2, "DB sql exec %s\n", qPrintable(sql));
+            errmsg = NULL;
+            rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
+
+            if (rc != SQLITE_OK)
+            {
+                if (errmsg)
+                {
+                    DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                    sqlite3_free(errmsg);
+                }
+            }
+            return;
+        }
+    }
+}
+
 /*! Saves all nodes, groups and scenes to the database.
  */
 void DeRestPluginPrivate::saveDb()
