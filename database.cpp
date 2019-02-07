@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2019 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -2234,7 +2234,7 @@ static int sqliteLoadLightNodeCallback(void *user, int ncols, char **colval , ch
             }
             else if (strcmp(colname[i], "state") == 0)
             {
-                if (val == "deleted")
+                if (val == QLatin1String("deleted"))
                 {
                     lightNode->setState(LightNode::StateDeleted);
                 }
@@ -3715,6 +3715,47 @@ int DeRestPluginPrivate::getFreeSensorId()
     return id;
 }
 
+/*! Saves the current auth with apikey to the database.
+ */
+void DeRestPluginPrivate::saveApiKey(QString apikey)
+{
+    int rc;
+    char *errmsg;
+
+    std::vector<ApiAuth>::iterator i = apiAuths.begin();
+    std::vector<ApiAuth>::iterator end = apiAuths.end();
+
+    for (; i != end; ++i)
+    {
+        if (i->apikey == apikey)
+        {
+            DBG_Assert(i->createDate.timeSpec() == Qt::UTC);
+            DBG_Assert(i->lastUseDate.timeSpec() == Qt::UTC);
+
+            QString sql = QString(QLatin1String("REPLACE INTO auth (apikey, devicetype, createdate, lastusedate, useragent) VALUES ('%1', '%2', '%3', '%4', '%5')"))
+                    .arg(i->apikey)
+                    .arg(i->devicetype)
+                    .arg(i->createDate.toString("yyyy-MM-ddTHH:mm:ss"))
+                    .arg(i->lastUseDate.toString("yyyy-MM-ddTHH:mm:ss"))
+                    .arg(i->useragent);
+
+            DBG_Printf(DBG_INFO_L2, "DB sql exec %s\n", qPrintable(sql));
+            errmsg = NULL;
+            rc = sqlite3_exec(db, sql.toUtf8().constData(), NULL, NULL, &errmsg);
+
+            if (rc != SQLITE_OK)
+            {
+                if (errmsg)
+                {
+                    DBG_Printf(DBG_ERROR, "DB sqlite3_exec failed: %s, error: %s\n", qPrintable(sql), errmsg);
+                    sqlite3_free(errmsg);
+                }
+            }
+            return;
+        }
+    }
+}
+
 /*! Saves all nodes, groups and scenes to the database.
  */
 void DeRestPluginPrivate::saveDb()
@@ -4709,6 +4750,63 @@ void DeRestPluginPrivate::getLastZigBeeConfigDb(QString &out)
             sqlite3_free(errmsg);
         }
     }
+}
+
+/*! Returns a list of all Zigbee network configurations. */
+void DeRestPluginPrivate::getZigbeeConfigDb(QVariantList &out)
+{
+    openDb();
+
+    DBG_Assert(db);
+    if (!db)
+    {
+        return;
+    }
+
+    int rc;
+    sqlite3_stmt *res = nullptr;
+    const char * sql = "SELECT rowid, conf FROM zbconf";
+
+    rc = sqlite3_prepare_v2(db, sql, -1, &res, nullptr);
+    DBG_Assert(res);
+    DBG_Assert(rc == SQLITE_OK);
+
+    while (1)
+    {
+        rc = sqlite3_step(res);
+        DBG_Assert(rc == SQLITE_ROW);
+        if (rc != SQLITE_ROW)
+        {
+            break;
+        }
+
+        int rowid = sqlite3_column_int(res, 0);
+        const char* conf = reinterpret_cast<const char*>(sqlite3_column_text(res, 1));
+        const auto size = sqlite3_column_bytes(res, 1);
+
+        if (!conf || size <= 100 || size > 2048)
+        {
+            continue;
+        }
+
+        QVariantMap map = Json::parse(QLatin1String(conf)).toMap();
+
+        if (map.isEmpty())
+        {
+            continue;
+        }
+
+        map["id"] = rowid;
+
+        out.push_back(map);
+
+        DBG_Printf(DBG_INFO, "ZB rowid %d, conf: %s\n", rowid, conf);
+    }
+
+    rc = sqlite3_finalize(res);
+    DBG_Assert(rc == SQLITE_OK);
+
+    closeDb();
 }
 
 /*! Put working ZigBee configuration in database for later recovery or fail safe operations.

@@ -1311,7 +1311,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
             DBG_Assert(reachable);
             bool avail = !node->isZombie() && lightNode2->lastRx().isValid();
-            if (reachable->toBool() != avail)
+            if (!reachable->toBool() && avail)
             {
                 // the node existed before
                 // refresh all with new values
@@ -1345,7 +1345,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
                     queryTime = queryTime.addSecs(1);
 
-                    //lightNode2->setLastRead(idleTotalCounter);
+                    lightNode2->setNeedSaveDatabase(true);
                     updateEtag(lightNode2->etag);
                 }
             }
@@ -1527,9 +1527,12 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
         ResourceItem *reachable = lightNode.item(RStateReachable);
         DBG_Assert(reachable);
-        if (reachable)
+        if (reachable) //  might have been set to false after reload
         {
-            reachable->setValue(!node->isZombie() && lightNode.lastRx().isValid());
+            if (!reachable->toBool())
+            {
+                reachable->setValue(!node->isZombie() && lightNode.lastRx().isValid());
+            }
         }
 
         if (lightNode.id().isEmpty())
@@ -1682,32 +1685,40 @@ void DeRestPluginPrivate::nodeZombieStateChanged(const deCONZ::Node *node)
 
         for (; i != end; ++i)
         {
-            if (i->address().ext() == node->address().ext())
+            if (i->state() != LightNode::StateNormal)
             {
-                if (i->node() != node)
+                continue;
+            }
+
+            if (i->address().ext() != node->address().ext())
+            {
+                continue;
+            }
+
+            if (i->node() != node)
+            {
+                i->setNode(const_cast<deCONZ::Node*>(node));
+                DBG_Printf(DBG_INFO, "LightNode %s set node %s\n", qPrintable(i->id()), qPrintable(node->address().toStringExt()));
+            }
+
+            ResourceItem *item = i->item(RStateReachable);
+            DBG_Assert(item);
+            if (item && (item->toBool() != available || !item->lastSet().isValid()))
+            {
+                if (available && node->endpoints().end() == std::find(node->endpoints().begin(),
+                                                                      node->endpoints().end(),
+                                                                      i->haEndpoint().endpoint()))
                 {
-                    i->setNode(const_cast<deCONZ::Node*>(node));
-                    DBG_Printf(DBG_INFO, "LightNode %s set node %s\n", qPrintable(i->id()), qPrintable(node->address().toStringExt()));
+                    available = false;
                 }
 
-                ResourceItem *item = i->item(RStateReachable);
-                DBG_Assert(item != 0);
-                if (item && (item->toBool() != available || !item->lastSet().isValid()))
+                if (item && item->toBool() != available)
                 {
-                    if (available && node->endpoints().end() == std::find(node->endpoints().begin(),
-                                                                          node->endpoints().end(),
-                                                                          i->haEndpoint().endpoint()))
-                    {
-                        available = false;
-                    }
-
-                    if (item && item->toBool() != available)
-                    {
-                        item->setValue(available);
-                        updateLightEtag(&*i);
-                        Event e(RLights, RStateReachable, i->id(), item);
-                        enqueueEvent(e);
-                    }
+                    i->setNeedSaveDatabase(true);
+                    item->setValue(available);
+                    updateLightEtag(&*i);
+                    Event e(RLights, RStateReachable, i->id(), item);
+                    enqueueEvent(e);
                 }
             }
         }
@@ -1749,7 +1760,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
 {
     if (!event.node())
     {
-        return 0;
+        return nullptr;
     }
 
     bool updated = false;
@@ -1758,7 +1769,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
     if (!lightNode)
     {
         // was no relevant node
-        return 0;
+        return nullptr;
     }
 
     if (lightNode->node() != event.node())
@@ -1767,9 +1778,8 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
         DBG_Printf(DBG_INFO, "LightNode %s set node %s\n", qPrintable(lightNode->id()), qPrintable(event.node()->address().toStringExt()));
     }
 
-    lightNode->rx();
-
     ResourceItem *reachable = lightNode->item(RStateReachable);
+    DBG_Assert(reachable);
     if (reachable->toBool())
     {
         if ((event.node()->state() == deCONZ::FailureState) || event.node()->isZombie())
@@ -1789,6 +1799,17 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
             enqueueEvent(e);
             updated = true;
         }
+    }
+
+    if (lightNode->isAvailable())
+    {
+        lightNode->rx();
+    }
+
+    if (updated)
+    {
+        lightNode->setNeedSaveDatabase(true);
+        queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
     }
 
     // filter

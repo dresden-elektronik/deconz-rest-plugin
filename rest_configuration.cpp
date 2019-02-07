@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2018 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2013-2019 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -614,6 +614,11 @@ int DeRestPluginPrivate::handleConfigFullApi(const ApiRequest &req, ApiResponse 
     else if ((req.path.size() == 5) && (req.hdr.method() == "PUT") && (req.path[2] == "config") && (req.path[3] == "wifi") && (req.path[4] == "restore"))
     {
         return restoreWifiConfig(req, rsp);
+    }
+    // GET /api/config/zigbee
+    else if ((req.path.size() == 4) && (req.hdr.method() == QLatin1String("GET")) && (req.path[2] == QLatin1String("config")) && (req.path[3] == QLatin1String("zigbee")))
+    {
+        return getZigbeeConfig(req, rsp);
     }
     // PUT /api/<apikey>/config/homebridge/reset
     else if ((req.path.size() == 5) && (req.hdr.method() == "PUT") && (req.path[2] == "config") && (req.path[3] == "homebridge") && (req.path[4] == "reset"))
@@ -1276,6 +1281,19 @@ int DeRestPluginPrivate::getBasicConfig(const ApiRequest &req, ApiResponse &rsp)
 
     rsp.httpStatus = HttpStatusOk;
     rsp.etag = gwConfigEtag;
+    return REQ_READY_SEND;
+}
+
+/*! GET /api/config/zigbee
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::getZigbeeConfig(const ApiRequest &req, ApiResponse &rsp)
+{
+    getZigbeeConfigDb(rsp.list);
+
+    rsp.httpStatus = HttpStatusOk;
+    //rsp.etag = gwConfigEtag;
     return REQ_READY_SEND;
 }
 
@@ -2028,9 +2046,13 @@ int DeRestPluginPrivate::exportConfig(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::importConfig(const ApiRequest &req, ApiResponse &rsp)
 {
-    Q_UNUSED(req);
+
     if (importConfiguration())
     {
+        openDb();
+        saveApiKey(req.apikey());
+        closeDb();
+
         rsp.httpStatus = HttpStatusOk;
         QVariantMap rspItem;
         QVariantMap rspItemState;

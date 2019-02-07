@@ -790,6 +790,7 @@ public:
     int getFullState(const ApiRequest &req, ApiResponse &rsp);
     int getConfig(const ApiRequest &req, ApiResponse &rsp);
     int getBasicConfig(const ApiRequest &req, ApiResponse &rsp);
+    int getZigbeeConfig(const ApiRequest &req, ApiResponse &rsp);
     int getChallenge(const ApiRequest &req, ApiResponse &rsp);
     int modifyConfig(const ApiRequest &req, ApiResponse &rsp);
     int deleteUser(const ApiRequest &req, ApiResponse &rsp);
@@ -1299,10 +1300,12 @@ public:
     int getFreeLightId();
     int getFreeSensorId();
     void saveDb();
+    void saveApiKey(QString apikey);
     void closeDb();
     void queSaveDb(int items, int msec);
     void updateZigBeeConfigDb();
     void getLastZigBeeConfigDb(QString &out);
+    void getZigbeeConfigDb(QVariantList &out);
 
     void checkConsistency();
 

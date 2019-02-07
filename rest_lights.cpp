@@ -1433,7 +1433,7 @@ int DeRestPluginPrivate::setLightAttributes(const ApiRequest &req, ApiResponse &
     // name
     if (map.contains("name"))
     {
-        QString name = map["name"].toString();
+        QString name = map["name"].toString().trimmed();
 
         if (name.size() <= 32)
         {
