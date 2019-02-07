@@ -3063,7 +3063,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             sensor.addItem(DataTypeBool, RConfigConfigured);
             item = sensor.addItem(DataTypeInt8, RConfigSunriseOffset);
             item->setValue(30);
-            item =sensor.addItem(DataTypeInt8, RConfigSunsetOffset);
+            item = sensor.addItem(DataTypeInt8, RConfigSunsetOffset);
             item->setValue(-30);
             sensor.addItem(DataTypeString, RConfigLat);
             sensor.addItem(DataTypeString, RConfigLong);
@@ -3081,11 +3081,13 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item->setValue(0);
             item = sensor.addItem(DataTypeInt16, RConfigOffset);
             item->setValue(0);
-            sensor.addItem(DataTypeInt16, RConfigHeating);    // Heating set point
+            sensor.addItem(DataTypeInt16, RConfigHeatSetpoint);    // Heating set point
             sensor.addItem(DataTypeBool, RStateOn);           // Heating on/off
-            if (sensor.modelId().startsWith(QLatin1String("SPZB")))
+            if (sensor.modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
             {
-                // Eurotronic Spirit
+                sensor.addItem(DataTypeUInt8, RStateValve);
+                item = sensor.addItem(DataTypeBool, RConfigLocked);
+                item->setValue(false);
             }
             else
             {

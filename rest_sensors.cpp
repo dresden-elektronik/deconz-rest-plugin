@@ -1305,8 +1305,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 if (rid.suffix == RConfigOffset)
                 {
                     bool ok;
-                    int offset = map[pi.key()].toUInt(&ok);
-                    if (ok && addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0010, deCONZ::Zcl8BitInt, offset))
+                    int offset = round(map[pi.key()].toUInt(&ok) / 10.0);
+                    if (ok && addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0010, deCONZ::Zcl8BitInt, offset))
                     {
                         rspItemState[QString("set %1").arg(rid.suffix)] = offset;
                         rspItem["success"] = rspItemState;
@@ -1338,7 +1338,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     bool onoff = map[pi.key()].toBool();
                     uint8_t onoffAttr = onoff ? 0x01 : 0x00;
 
-                    if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0025, deCONZ::Zcl8BitBitMap, onoffAttr))
+                    if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0025, deCONZ::Zcl8BitBitMap, onoffAttr))
                     {
                         updated = true;
                     }
@@ -1349,12 +1349,20 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         return REQ_READY_SEND;
                     }
                 }
-                else if (rid.suffix == RConfigHeating)
+                else if (rid.suffix == RConfigHeatSetpoint)
                 {
                     bool ok;
-                    int16_t heatsetpoint =map[pi.key()].toUInt(&ok);
+                    int16_t heatsetpoint = map[pi.key()].toUInt(&ok);
+                    uint16_t mfrCode = 0;
+                    uint16_t attrId = 0x0012;
 
-                    if (ok && addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0012, deCONZ::Zcl16BitInt, heatsetpoint))
+                    if (sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
+                    {
+                        mfrCode = VENDOR_JENNIC;
+                        attrId = 0x4003;
+                    }
+
+                    if (ok && addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, mfrCode, attrId, deCONZ::Zcl16BitInt, heatsetpoint))
                     {
                         updated = true;
                     }
@@ -1363,6 +1371,34 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         rsp.list.append(errorToMap(ERR_INVALID_VALUE,
                                                    QString("/sensors/%1/%2").arg(id).arg(rid.suffix),
                                                    QString("could not set attribute value=%1").arg(map[pi.key()].toString())));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
+                    }
+                }
+                else if (rid.suffix == RConfigLocked && sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit)
+                {
+                    bool locked = map[pi.key()].toBool();
+                    const NodeValue &val = sensor->getZclValue(THERMOSTAT_CLUSTER_ID, 0x4008);
+                    quint32 hostFlags = val.value.u32;
+
+                    if (locked)
+                    {
+                        hostFlags |= 0x000080;
+                    }
+                    else
+                    {
+                        hostFlags &= 0xffff7f;
+                    }
+
+                    if (ok && addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_JENNIC, 0x4008, deCONZ::Zcl24BitUint, hostFlags))
+                    {
+                        updated = true;
+                    }
+                    else
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE,
+                                               QString("/sensors/%1/%2").arg(id).arg(rid.suffix),
+                                               QString("could not set attribute value=%1").arg(map[pi.key()].toString())));
                         rsp.httpStatus = HttpStatusBadRequest;
                         return REQ_READY_SEND;
                     }

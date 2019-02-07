@@ -4202,11 +4202,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         sensorNode.addItem(DataTypeInt16, RStateTemperature);
         item = sensorNode.addItem(DataTypeInt16, RConfigOffset);
         item->setValue(0);
-        sensorNode.addItem(DataTypeInt16, RConfigHeating);    // Heating set point
+        sensorNode.addItem(DataTypeInt16, RConfigHeatSetpoint);    // Heating set point
         sensorNode.addItem(DataTypeBool, RStateOn);           // Heating on/off
-        if (modelId.startsWith(QLatin1String("SPZB")))
+        if (modelId.startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
         {
-            // Eurotronic Spirit
+            sensorNode.addItem(DataTypeUInt8, RStateValve);
+            item = sensorNode.addItem(DataTypeBool, RConfigLocked);
+            item->setValue(false);
         }
         else
         {

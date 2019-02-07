@@ -125,6 +125,9 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
     {
         const NodeValue::UpdateType updateType = isReadAttr ? NodeValue::UpdateByZclRead : NodeValue::UpdateByZclReport;
 
+        bool configUpdated = false;
+        bool stateUpdated = false;
+
         while (!stream.atEnd())
         {
             quint16 attrId;
@@ -159,108 +162,193 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
             switch (attrId)
             {
             case 0x0000: // Local Temperature
+            {
+                qint16 temperature = attr.numericValue().s16;
                 item = sensor->item(RStateTemperature);
                 if (item)
                 {
-                    item->setValue(attr.numericValue().s16);
-                    sensor->updateStateTimestamp();
-                    Event e(RSensors, RStateTemperature, sensor->id(), item);
-                    enqueueEvent(e);
-                    sensor->setZclValue(updateType, THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+                    if (updateType == NodeValue::UpdateByZclReport)
+                    {
+                        stateUpdated = true;
+                    }
+                    if (item->toNumber() != temperature)
+                    {
+                        item->setValue(temperature);
+                        enqueueEvent(Event(RSensors, RStateTemperature, sensor->id(), item));
+                        stateUpdated = true;
+                    }
                 }
+                sensor->setZclValue(updateType, THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
                 break;
 
             case 0x0008:  // Pi Heating Demand
-                item = sensor->item(RStateOn);
-                if (item)
+            {
+                if (sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
                 {
-                    item->setValue(attr.numericValue().u8 > 0);
-                    Event e(RSensors, RStateOn, sensor->id(), item);
-                    enqueueEvent(e);
-                    sensor->setZclValue(updateType, THERMOSTAT_CLUSTER_ID, 0x0008, attr.numericValue());
+                    quint8 valve = attr.numericValue().u8;
+                    bool on = valve > 0;
+                    item = sensor->item(RStateOn);
+                    if (item)
+                    {
+                        if (updateType == NodeValue::UpdateByZclReport)
+                        {
+                            stateUpdated = true;
+                        }
+                        if (item->toBool() != on)
+                        {
+                            item->setValue(on);
+                            enqueueEvent(Event(RSensors, RStateOn, sensor->id(), item));
+                            stateUpdated = true;
+                        }
+                    }
+                    item = sensor->item(RStateValve);
+                    if (item && item->toNumber() != valve)
+                    {
+                        item->setValue(valve);
+                        enqueueEvent(Event(RSensors, RStateValve, sensor->id(), item));
+                        stateUpdated = true;
+                    }
                 }
+                sensor->setZclValue(updateType, THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
                 break;
 
             case 0x0010: // Local Temperature Calibration (offset in 0.1 °C steps, from -2,5 °C to +2,5 °C)
+            {
+                qint8 config = attr.numericValue().s8 * 10;
                 item = sensor->item(RConfigOffset);
-                if (item)
+                if (item && item->toNumber() != config)
                 {
-                    item->setValue(attr.numericValue().s8);
-                    Event e(RSensors, RConfigOffset, sensor->id(), item);
-                    enqueueEvent(e);
+                    item->setValue(config);
+                    enqueueEvent(Event(RSensors, RConfigOffset, sensor->id(), item));
+                    configUpdated = true;
                 }
+                sensor->setZclValue(updateType, THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
                 break;
 
             case 0x0012: // Occupied Heating Setpoint
-                item = sensor->item(RConfigHeating);
-                if (item)
+            {
+                if (sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
                 {
-                    item->setValue(attr.numericValue().s16);
-                    Event e(RSensors, RConfigHeating, sensor->id(), item);
-                    enqueueEvent(e);
+                    // Use 0x4003 instead.
                 }
+                else
+                {
+                    qint16 heatSetpoint = attr.numericValue().s16;
+                    item = sensor->item(RConfigHeatSetpoint);
+                    if (item && item->toNumber() != heatSetpoint)
+                    {
+                        item->setValue(heatSetpoint);
+                        enqueueEvent(Event(RSensors, RConfigHeatSetpoint, sensor->id(), item));
+                        configUpdated = true;
+                    }
+                }
+                sensor->setZclValue(updateType, THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
                 break;
 
             case 0x0025:  // Thermostat Programming Operation Mode, default 0 (bit#0 = disable/enable Scheduler)
+            {
+                bool on = attr.bitmap() & 0x01 ? true : false;
                 item = sensor->item(RConfigSchedulerOn);
-                if (item)
+                if (item && item->toBool() != on)
                 {
-                    bool onoff = attr.bitmap() & 0x01 ? true : false;
-                    item->setValue(onoff);
-                    Event e(RSensors, RConfigSchedulerOn, sensor->id(), item);
-                    enqueueEvent(e);
+                    item->setValue(on);
+                    enqueueEvent(Event(RSensors, RConfigSchedulerOn, sensor->id(), item));
+                    configUpdated = true;
+
                 }
+                sensor->setZclValue(updateType, THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
                 break;
 
             case 0x0029:  // Thermostat Running State (bit0=Heat State On/Off, bit1=Cool State On/Off)
+            {
+                bool on = attr.bitmap() > 0;
                 item = sensor->item(RStateOn);
-                if (item)
+                if (item && item->toBool() != on)
                 {
-                    item->setValue(attr.bitmap() > 0);
-                    Event e(RSensors, RStateOn, sensor->id(), item);
-                    enqueueEvent(e);
-                    sensor->setZclValue(updateType, THERMOSTAT_CLUSTER_ID, 0x0029, attr.numericValue());
+                    item->setValue(on);
+                    enqueueEvent(Event(RSensors, RStateOn, sensor->id(), item));
+                    configUpdated = true;
                 }
+                sensor->setZclValue(updateType, THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
                 break;
 
             // manufacturerspecific reported by Eurotronic SPZB0001
             // https://eurotronic.org/wp-content/uploads/2019/01/Spirit_ZigBee_BAL_web_DE_view_V9.pdf
-            case 0x4003: // Current temperature set point
-            {   // this will be reported when manually changing the temperature
-                if (sensor->modelId().startsWith(QLatin1String("SPZB")))
-                {
-                    item = sensor->item(RConfigHeating);
-                    if (item)
-                    {
-                        item->setValue(attr.numericValue().s16);
-                        Event e(RSensors, RConfigHeating, sensor->id(), item);
-                        enqueueEvent(e);
-
-                        if (item->toNumber() != item->toNumberPrevious())
-                        {
-                            sensor->setNeedSaveDatabase(true);
-                        }
-                    }
-                }
-            }
-                break;
-
             case 0x4000: // enum8 (0x30): value 0x02, TRV mode
             case 0x4001: // U8 (0x20): value 0x00, valve position
             case 0x4002: // U8 (0x20): value 0x00, errors
-            case 0x4008: // U24 (0x22): 0x000001, host flags
+            {
+                if (zclFrame.manufacturerCode() == VENDOR_JENNIC)
                 {
-                    if (zclFrame.manufacturerCode() == VENDOR_JENNIC)
-                    {
 
+                }
+            }
+                sensor->setZclValue(updateType, THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+                break;
+
+            case 0x4003: // Current temperature set point
+            {   // this will be reported when manually changing the temperature
+                if (zclFrame.manufacturerCode() == VENDOR_JENNIC && sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
+                {
+                    qint16 heatSetpoint = attr.numericValue().s16;
+                    item = sensor->item(RConfigHeatSetpoint);
+                    if (item)
+                    {
+                        if (updateType == NodeValue::UpdateByZclReport)
+                        {
+                            stateUpdated = true;
+                        }
+                        if (item->toNumber() != heatSetpoint)
+                        {
+                            item->setValue(heatSetpoint);
+                            enqueueEvent(Event(RSensors, RConfigHeatSetpoint, sensor->id(), item));
+                            stateUpdated = true;
+                        }
                     }
                 }
+                sensor->setZclValue(updateType, THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
+                break;
+
+            case 0x4008: // U24 (0x22): 0x000001, host flags; 0x000080 = childlock
+            {
+                if (zclFrame.manufacturerCode() == VENDOR_JENNIC && sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
+                {
+                    quint32 hostFlags = attr.numericValue().u32;
+                    bool locked = hostFlags & 0x000080;
+                    item = sensor->item(RConfigLocked);
+                    if (item && item->toBool() != locked)
+                    {
+                        item->setValue(locked);
+                        enqueueEvent(Event(RSensors, RConfigLocked, sensor->id(), item));
+                        configUpdated = true;
+                    }
+                }
+                sensor->setZclValue(updateType, THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
                 break;
 
             default:
                 break;
             }
+        }
 
+        if (stateUpdated)
+        {
+            sensor->updateStateTimestamp();
+            enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
+        }
+
+        if (configUpdated || stateUpdated)
+        {
+            updateEtag(sensor->etag);
+            updateEtag(gwConfigEtag);
             sensor->setNeedSaveDatabase(true);
             queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
         }
@@ -581,7 +669,7 @@ void DeRestPluginPrivate::addTaskThermostatGetScheduleTimer()
    \return true - on success
            false - on error
  */
-bool DeRestPluginPrivate::addTaskThermostatReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t attrId, uint8_t attrType, uint16_t attrValue)
+bool DeRestPluginPrivate::addTaskThermostatReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t mfrCode, uint16_t attrId, uint8_t attrType, uint32_t attrValue)
 {
     if (readOrWriteCmd != deCONZ::ZclReadAttributesId && readOrWriteCmd != deCONZ::ZclWriteAttributesId)
     {
@@ -600,6 +688,11 @@ bool DeRestPluginPrivate::addTaskThermostatReadWriteAttribute(TaskItem &task, ui
     task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
             deCONZ::ZclFCDirectionClientToServer |
             deCONZ::ZclFCDisableDefaultResponse);
+    if (mfrCode != 0x0000)
+    {
+        task.zclFrame.setFrameControl(task.zclFrame.frameControl() | deCONZ::ZclFCManufacturerSpecific);
+        task.zclFrame.setManufacturerCode(mfrCode);
+    }
 
     // payload
     QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
@@ -617,6 +710,12 @@ bool DeRestPluginPrivate::addTaskThermostatReadWriteAttribute(TaskItem &task, ui
         else if (attrType == deCONZ::Zcl16BitInt || attrType == deCONZ::Zcl16BitBitMap)
         {
             stream << (quint16) attrValue;
+        }
+        else if (attrType == deCONZ::Zcl24BitUint)
+        {
+            stream << (qint8) (attrValue & 0xFF);
+            stream << (qint8) ((attrValue >> 8) & 0xFF);
+            stream << (qint8) ((attrValue >> 16) & 0xFF);
         }
         else
         {
