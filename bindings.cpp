@@ -869,36 +869,40 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
         if (sensor && sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
         {
-            rq.dataType = deCONZ::Zcl16BitInt;
-            rq.attributeId = 0x0000;        // Local Temperature
-            rq.minInterval = 10;            // value from TEMPERATURE_MEASUREMENT_CLUSTER_ID
-            rq.maxInterval = 600;           // recommended value
-            rq.reportableChange16bit = 20;  // value from TEMPERATURE_MEASUREMENT_CLUSTER_ID
+            // Device sends malformed Reporting Configuration Response
+            // Use factory default reporting configuration
 
-            ConfigureReportingRequest rq2;
-            rq2.dataType = deCONZ::Zcl8BitUint;
-            rq2.attributeId = 0x0008;        // Pi Heating Demand (valve position %)
-            rq2.minInterval = 10;            // value from TEMPERATURE_MEASUREMENT_CLUSTER_ID
-            rq2.maxInterval = 600;           // recommended value
-            rq2.reportableChange8bit = 1;    // recommended value
-
-            ConfigureReportingRequest rq3;
-            rq3.dataType = deCONZ::Zcl16BitInt;
-            rq3.attributeId = 0x4003;        // Current Temperature Set point
-            rq3.minInterval = 10;            // value from TEMPERATURE_MEASUREMENT_CLUSTER_ID
-            rq3.maxInterval = 600;           // recommended value
-            rq3.reportableChange16bit = 50;  // recommended value
-            rq3.manufacturerCode = VENDOR_JENNIC;
-
-            ConfigureReportingRequest rq4;
-            rq4.dataType = deCONZ::Zcl24BitUint;
-            rq4.attributeId = 0x4008;        // Host Flags
-            rq4.minInterval = 10;            // value from TEMPERATURE_MEASUREMENT_CLUSTER_ID
-            rq4.maxInterval = 600;           // recommended value
-            rq4.reportableChange24bit = 1;   // recommended value
-            rq4.manufacturerCode = VENDOR_JENNIC;
-
-            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
+            // rq.dataType = deCONZ::Zcl16BitInt;
+            // rq.attributeId = 0x0000;        // Local Temperature
+            // rq.minInterval = 10;            // value from TEMPERATURE_MEASUREMENT_CLUSTER_ID
+            // rq.maxInterval = 600;           // recommended value
+            // rq.reportableChange16bit = 20;  // value from TEMPERATURE_MEASUREMENT_CLUSTER_ID
+            //
+            // ConfigureReportingRequest rq2;
+            // rq2.dataType = deCONZ::Zcl8BitUint;
+            // rq2.attributeId = 0x0008;        // Pi Heating Demand (valve position %)
+            // rq2.minInterval = 10;            // value from TEMPERATURE_MEASUREMENT_CLUSTER_ID
+            // rq2.maxInterval = 600;           // recommended value
+            // rq2.reportableChange8bit = 1;    // recommended value
+            //
+            // ConfigureReportingRequest rq3;
+            // rq3.dataType = deCONZ::Zcl16BitInt;
+            // rq3.attributeId = 0x4003;        // Current Temperature Set point
+            // rq3.minInterval = 10;            // value from TEMPERATURE_MEASUREMENT_CLUSTER_ID
+            // rq3.maxInterval = 600;           // recommended value
+            // rq3.reportableChange16bit = 50;  // recommended value
+            // rq3.manufacturerCode = VENDOR_JENNIC;
+            //
+            // ConfigureReportingRequest rq4;
+            // rq4.dataType = deCONZ::Zcl24BitUint;
+            // rq4.attributeId = 0x4008;        // Host Flags
+            // rq4.minInterval = 10;            // value from TEMPERATURE_MEASUREMENT_CLUSTER_ID
+            // rq4.maxInterval = 600;           // recommended value
+            // rq4.reportableChange24bit = 1;   // recommended value
+            // rq4.manufacturerCode = VENDOR_JENNIC;
+            //
+            // return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
+            return false;
         }
         else
         {
@@ -972,9 +976,13 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
         else if (sensor && sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
         {
-            rq.minInterval = 43200;      // recommended value
-            rq.maxInterval = 43200;      // recommended value
-            rq.reportableChange8bit = 0; // recommended value
+            // Use factory default reporting configuration
+            // Device sends malformed Reporting Configuration Response
+
+            // rq.minInterval = 43200;      // recommended value
+            // rq.maxInterval = 43200;      // recommended value
+            // rq.reportableChange8bit = 0; // recommended value
+            return false;
         }
         else
         {
