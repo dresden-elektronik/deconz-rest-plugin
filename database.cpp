@@ -914,7 +914,10 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
         return 0;
     }
 
-    DBG_Printf(DBG_INFO_L2, "Load config from db.\n");
+    if (colval[0] && colval[1] && DBG_IsEnabled(DBG_INFO_L2))
+    {
+        DBG_Printf(DBG_INFO_L2, "Load config %s: %s from db.\n", colval[0], colval[1]);
+    }
 
     bool ok;
     DeRestPluginPrivate *d = static_cast<DeRestPluginPrivate*>(user);
