@@ -5008,6 +5008,12 @@ void DeRestPluginPrivate::saveDatabaseTimerFired()
         }
     }
 
+    if (permitJoinFlag) // don't save database while joining devices
+    {
+        databaseTimer->start(DB_SHORT_SAVE_DELAY);
+        return;
+    }
+
     if (saveDatabaseItems & DB_NOSAVE)
     {
         databaseTimer->start(DB_SHORT_SAVE_DELAY);
