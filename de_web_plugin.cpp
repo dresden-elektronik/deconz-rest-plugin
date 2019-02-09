@@ -2146,9 +2146,9 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             Event e(RLights, RStateBri, lightNode->id(), item);
                             enqueueEvent(e);
                             updated = true;
+                            pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
                         }
                         lightNode->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
-                        pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
                         break;
                     }
                 }
@@ -2175,6 +2175,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             Event e(RLights, RStateOn, lightNode->id(), item);
                             enqueueEvent(e);
                             updated = true;
+                            pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
                         }
                         else
                         {
@@ -2189,7 +2190,6 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             }
                         }
                         lightNode->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
-                        pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
                         break;
                     }
                 }
@@ -2283,6 +2283,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             Event e(RLights, RStateBri, lightNode->id(), item);
                             enqueueEvent(e);
                             updated = true;
+                            pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().real);
                         }
                         bool on = level > 0;
                         item = lightNode->item(RStateOn);
@@ -2295,7 +2296,6 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             updated = true;
                         }
                         lightNode->setZclValue(updateType, event.clusterId(), 0x0055, ia->numericValue());
-                        pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().real);
                         break;
                     }
                 }
@@ -12261,6 +12261,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         QString dateCode;
         quint16 iasZoneType = 0;
         bool swBuildIdAvailable = false;
+        bool dateCodeAvailable = false;
         quint8 thermostatClusterEndpoint = 0;
 
         if (sensor)
@@ -12297,6 +12298,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                         else if (attr.id() == 0x0006 && dateCode.isEmpty())
                         {
                             dateCode = attr.toString();
+                            dateCodeAvailable = attr.isAvailable(); // might become false after first read
                         }
                         else if (attr.id() == 0x4000 && swBuildId.isEmpty())
                         {
@@ -12387,7 +12389,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         }
 
         // manufacturer, model id, sw build id
-        if (!sensor || modelId.isEmpty() || manufacturer.isEmpty() || (swBuildId.isEmpty() && dateCode.isEmpty()))
+        if (!sensor || modelId.isEmpty() || manufacturer.isEmpty() || (swBuildId.isEmpty() && dateCode.isEmpty() && (dateCodeAvailable || swBuildIdAvailable)))
         {
             if (!modelId.isEmpty() && !isDeviceSupported(node, modelId))
             {

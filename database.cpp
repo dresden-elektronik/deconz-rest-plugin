@@ -131,6 +131,9 @@ void DeRestPluginPrivate::cleanUpDb()
         //"DELETE FROM device_descriptors WHERE rowid NOT IN"
         //" (SELECT max(rowid) FROM device_descriptors GROUP BY device_id,type,endpoint)",
 
+        // change old default value of zcl data store, from 1 hour to disabled
+        "UPDATE config2 SET value = 0 WHERE key = 'zclvaluemaxage' AND value = 3600",
+
         nullptr
     };
 
@@ -673,6 +676,11 @@ void DeRestPluginPrivate::pushZdpDescriptorDb(quint64 extAddress, quint8 endpoin
   */
 void DeRestPluginPrivate::pushZclValueDb(quint64 extAddress, quint8 endpoint, quint16 clusterId, quint16 attributeId, qint64 data)
 {
+    if (dbZclValueMaxAge <= 0)
+    {
+        return; // zcl value datastore disabled
+    }
+
     /*
 
     select mac, printf('0x%04X', cluster), data, datetime(zcl_values.timestamp,'unixepoch','localtime')
@@ -906,7 +914,10 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
         return 0;
     }
 
-    DBG_Printf(DBG_INFO_L2, "Load config from db.\n");
+    if (colval[0] && colval[1] && DBG_IsEnabled(DBG_INFO_L2))
+    {
+        DBG_Printf(DBG_INFO_L2, "Load config %s: %s from db.\n", colval[0], colval[1]);
+    }
 
     bool ok;
     DeRestPluginPrivate *d = static_cast<DeRestPluginPrivate*>(user);
@@ -4995,6 +5006,12 @@ void DeRestPluginPrivate::saveDatabaseTimerFired()
             databaseTimer->start(DB_SHORT_SAVE_DELAY);
             return;
         }
+    }
+
+    if (permitJoinFlag) // don't save database while joining devices
+    {
+        databaseTimer->start(DB_SHORT_SAVE_DELAY);
+        return;
     }
 
     if (saveDatabaseItems & DB_NOSAVE)
