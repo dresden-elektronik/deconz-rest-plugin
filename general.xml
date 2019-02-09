@@ -1114,6 +1114,31 @@ Data Request rate.</description>
 			<description></description>
 			<!-- TODO -->
 		</cluster>
+    <cluster id="0100" name="Shade Configuration">
+      <description>The shade configuration cluster provides an interface for reading information about a shade, and configuring its open and closed limits.</description>
+      <client>
+      </client>
+      <server>
+        <attribute-set id="00" description="Shade Information Attribute Set">
+          <attribute id="0x0000" name="Physical Closed Limit" type="u16" access="r" required="o"></attribute>
+          <attribute id="0x0001" name="MotorStepSize" type="u8" access="r" required="o"></attribute>
+          <attribute id="0x0002" name="Status" type="bmp8" access="rw" required="m">
+            <value name="Shade operational" value="0"></value>
+            <value name="Shade adjusting" value="1"></value>
+            <value name="Shade direction" value="1"></value>
+            <value name="Direction Reversed" value="1"></value>
+          </attribute>
+        </attribute-set>
+        <attribute-set id="10" description="Shade Settings Attribute Set">
+          <attribute id="0x0010" name="Closed Limit" type="u16" access="rw" range="0x0001,0xfffe" default="0x0001" required="m"></attribute>
+          <attribute id="0x0011" name="Mode" type="enum8" access="rw" default="0x00" required="m">
+            <value name="Normal" value="0x00"></value>
+            <value name="Configure" value="0x01"></value>
+            <value name="Invalid" value="0xff"></value>
+          </attribute>
+        </attribute-set>
+      </server>
+    </cluster>
     <cluster id="0101" name="Door Lock">
       <description>The door lock cluster provides an interface to a generic way to secure a door.</description>
       <client>
