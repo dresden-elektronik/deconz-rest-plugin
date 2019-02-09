@@ -12261,6 +12261,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         QString dateCode;
         quint16 iasZoneType = 0;
         bool swBuildIdAvailable = false;
+        bool dateCodeAvailable = false;
         quint8 thermostatClusterEndpoint = 0;
 
         if (sensor)
@@ -12297,6 +12298,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                         else if (attr.id() == 0x0006 && dateCode.isEmpty())
                         {
                             dateCode = attr.toString();
+                            dateCodeAvailable = attr.isAvailable(); // might become false after first read
                         }
                         else if (attr.id() == 0x4000 && swBuildId.isEmpty())
                         {
@@ -12387,7 +12389,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         }
 
         // manufacturer, model id, sw build id
-        if (!sensor || modelId.isEmpty() || manufacturer.isEmpty() || (swBuildId.isEmpty() && dateCode.isEmpty()))
+        if (!sensor || modelId.isEmpty() || manufacturer.isEmpty() || (swBuildId.isEmpty() && dateCode.isEmpty() && (dateCodeAvailable || swBuildIdAvailable)))
         {
             if (!modelId.isEmpty() && !isDeviceSupported(node, modelId))
             {
