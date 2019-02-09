@@ -1125,8 +1125,8 @@ Data Request rate.</description>
           <attribute id="0x0002" name="Status" type="bmp8" access="rw" required="m">
             <value name="Shade operational" value="0"></value>
             <value name="Shade adjusting" value="1"></value>
-            <value name="Shade direction" value="1"></value>
-            <value name="Direction Reversed" value="1"></value>
+            <value name="Shade direction" value="2"></value>
+            <value name="Direction Reversed" value="3"></value>
           </attribute>
         </attribute-set>
         <attribute-set id="10" description="Shade Settings Attribute Set">
