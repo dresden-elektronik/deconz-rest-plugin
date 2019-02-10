@@ -3097,7 +3097,13 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (sensor.modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
             {
                 sensor.addItem(DataTypeUInt8, RStateValve);
+                item = sensor.addItem(DataTypeBool, RConfigBoost);
+                item->setValue(false);
+                item = sensor.addItem(DataTypeBool, RConfigDisplayFlipped);
+                item->setValue(false);
                 item = sensor.addItem(DataTypeBool, RConfigLocked);
+                item->setValue(false);
+                item = sensor.addItem(DataTypeBool, RConfigOff);
                 item->setValue(false);
             }
             else

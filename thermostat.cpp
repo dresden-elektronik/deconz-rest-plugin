@@ -316,17 +316,41 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
             }
                 break;
 
-            case 0x4008: // U24 (0x22): 0x000001, host flags; 0x000080 = childlock
+            case 0x4008: // U24 (0x22): 0x000001, host flags
             {
                 if (zclFrame.manufacturerCode() == VENDOR_JENNIC && sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
                 {
                     quint32 hostFlags = attr.numericValue().u32;
+                    bool flipped = hostFlags & 0x000002;
+                    bool boost = hostFlags & 0x000004;
+                    bool off = hostFlags & 0x000010;
                     bool locked = hostFlags & 0x000080;
+                    item = sensor->item(RConfigBoost);
+                    if (item && item->toBool() != boost)
+                    {
+                        item->setValue(boost);
+                        enqueueEvent(Event(RSensors, RConfigBoost, sensor->id(), item));
+                        configUpdated = true;
+                    }
+                    item = sensor->item(RConfigDisplayFlipped);
+                    if (item && item->toBool() != flipped)
+                    {
+                        item->setValue(flipped);
+                        enqueueEvent(Event(RSensors, RConfigDisplayFlipped, sensor->id(), item));
+                        configUpdated = true;
+                    }
                     item = sensor->item(RConfigLocked);
                     if (item && item->toBool() != locked)
                     {
                         item->setValue(locked);
                         enqueueEvent(Event(RSensors, RConfigLocked, sensor->id(), item));
+                        configUpdated = true;
+                    }
+                    item = sensor->item(RConfigOff);
+                    if (item && item->toBool() != off)
+                    {
+                        item->setValue(off);
+                        enqueueEvent(Event(RSensors, RConfigOff, sensor->id(), item));
                         configUpdated = true;
                     }
                 }

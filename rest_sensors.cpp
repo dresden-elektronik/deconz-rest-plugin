@@ -977,6 +977,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     Sensor *sensor = id.length() < MIN_UNIQUEID_LENGTH ? getSensorNodeForId(id) : getSensorNodeForUniqueId(id);
     bool ok;
     bool updated = false;
+    quint32 hostFlags = 0;
     bool offsetUpdated = false;
     qint16 offset = 0;
     bool tholdUpdated = false;
@@ -1305,7 +1306,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 if (rid.suffix == RConfigOffset)
                 {
                     bool ok;
-                    int offset = round(map[pi.key()].toUInt(&ok) / 10.0);
+                    int offset = round(map[pi.key()].toInt(&ok) / 10.0);
                     if (ok && addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0010, deCONZ::Zcl8BitInt, offset))
                     {
                         rspItemState[QString("set %1").arg(rid.suffix)] = offset;
@@ -1375,32 +1376,66 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         return REQ_READY_SEND;
                     }
                 }
-                else if (rid.suffix == RConfigLocked && sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit)
+                else if ((rid.suffix == RConfigBoost || RConfigDisplayFlipped || rid.suffix == RConfigLocked || rid.suffix == RConfigOff)
+                         && sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit)
                 {
-                    bool locked = map[pi.key()].toBool();
-                    const NodeValue &val = sensor->getZclValue(THERMOSTAT_CLUSTER_ID, 0x4008);
-                    quint32 hostFlags = val.value.u32;
-
-                    if (locked)
+                    if (hostFlags == 0)
                     {
-                        hostFlags |= 0x000080;
-                    }
-                    else
-                    {
-                        hostFlags &= 0xffff7f;
+                        const NodeValue &val = sensor->getZclValue(THERMOSTAT_CLUSTER_ID, 0x4008);
+                        hostFlags = val.value.u32;
                     }
 
-                    if (ok && addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_JENNIC, 0x4008, deCONZ::Zcl24BitUint, hostFlags))
+                    // Host Flags bits:
+                    // 0x000002: display flipped
+                    // 0x000004: boost mode
+                    // 0x000010: disable off mode
+                    // 0x000020: enable off mode
+                    // 0x000080: child lock
+
+                    if (rid.suffix == RConfigBoost)
                     {
-                        updated = true;
+                        if (map[pi.key()].toBool())
+                        {
+                            hostFlags |= 0x000014; // set boost, set disable off
+                        }
+                        else
+                        {
+                            hostFlags &= 0xffffeb; // clear boost, clear disable off
+                        }
                     }
-                    else
+                    else if (rid.suffix == RConfigDisplayFlipped)
                     {
-                        rsp.list.append(errorToMap(ERR_INVALID_VALUE,
-                                               QString("/sensors/%1/%2").arg(id).arg(rid.suffix),
-                                               QString("could not set attribute value=%1").arg(map[pi.key()].toString())));
-                        rsp.httpStatus = HttpStatusBadRequest;
-                        return REQ_READY_SEND;
+                        if (map[pi.key()].toBool())
+                        {
+                            hostFlags |= 0x000002; // set flipped
+                        }
+                        else
+                        {
+                            hostFlags &= 0xffffed; // clear flipped, clear disable off
+                        }
+                    }
+                    else if (rid.suffix == RConfigLocked)
+                    {
+                        if (map[pi.key()].toBool())
+                        {
+                            hostFlags |= 0x000080; // set locked
+                        }
+                        else
+                        {
+                            hostFlags &= 0xffff6f; // clear locked, clear disable off
+                        }
+                    }
+                    else if (rid.suffix == RConfigOff)
+                    {
+                        if (map[pi.key()].toBool())
+                        {
+                            hostFlags |= 0x000020; // set enable off
+                            hostFlags &= 0xffffeb; // clear boost, clear disable off
+                        }
+                        else
+                        {
+                            hostFlags |= 0x000010; // set disable off
+                        }
                     }
                 }
             }
@@ -1413,6 +1448,23 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
             rsp.httpStatus = HttpStatusBadRequest;
             return REQ_READY_SEND;
         }
+    }
+
+    if (hostFlags != 0 && sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit)
+    {
+        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_JENNIC, 0x4008, deCONZ::Zcl24BitUint, hostFlags))
+        {
+            updated = true;
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE,
+                                   QString("/sensors/%1/config").arg(id),
+                                   QString("could not set host flags to %1").arg(QString::number(hostFlags))));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+
     }
 
     if (tholdUpdated)
