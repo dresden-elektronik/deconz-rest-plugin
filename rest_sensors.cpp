@@ -2179,7 +2179,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                 {
                     const char *key = item->descriptor().suffix + 7;
 
-                    if (rid.suffix == RConfigPending)
+                    if (rid.suffix == RConfigPending || rid.suffix == RConfigHostFlags)
                     {
                         continue;
                     }
