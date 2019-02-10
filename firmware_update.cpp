@@ -160,6 +160,7 @@ void DeRestPluginPrivate::updateFirmwareWaitFinished()
         apsCtrl->setParameter(deCONZ::ParamFirmwareUpdateActive, deCONZ::FirmwareUpdateIdle);
         fwUpdateState = FW_Idle;
         fwUpdateTimer->start(FW_IDLE_TIMEOUT);
+        updateEtag(gwConfigEtag);
     }
     else // recheck
     {
