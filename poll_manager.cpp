@@ -84,7 +84,15 @@ void PollManager::poll(RestNodeBase *restNode, const QDateTime &tStart)
         const ResourceItem *item = r->itemForIndex(i);
         const char *suffix = item ? item->descriptor().suffix : nullptr;
 
-        if (suffix == RStateOn ||
+        if (plugin->permitJoinFlag)
+        {
+            // limit queries during joining
+            if (suffix == RAttrModelId || suffix == RAttrSwVersion)
+            {
+                pitem.items.push_back(suffix);
+            }
+        }
+        else if (suffix == RStateOn ||
             suffix == RStateBri ||
             suffix == RStateColorMode ||
             (suffix == RStateConsumption && sensor && sensor->type() == QLatin1String("ZHAConsumption")) ||
