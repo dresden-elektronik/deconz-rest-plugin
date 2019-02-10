@@ -793,6 +793,9 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
     rq.zclSeqNum = zclSeq++; // to match in configure reporting response handler
 
+    LightNode *lightNode = dynamic_cast<LightNode *>(bt.restNode);
+    const quint16 manufacturerCode = lightNode ? lightNode->manufacturerCode() : 0;
+
     if (bt.binding.clusterId == OCCUPANCY_SENSING_CLUSTER_ID)
     {
         // add values if not already present
@@ -1070,6 +1073,11 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.minInterval = 5;
             rq.maxInterval = 3600;
         }
+        else if (manufacturerCode == VENDOR_IKEA)
+        {
+            rq.minInterval = 0; // same as IKEA gateway
+            rq.maxInterval = 0; // same as IKEA gateway
+        }
         else // default configuration
         {
             rq.minInterval = 1;
@@ -1173,6 +1181,13 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 180;
             rq.reportableChange8bit = 5;
         }
+        else if (manufacturerCode ==  VENDOR_IKEA)
+        {
+            // same as IKEA gateway
+            rq.minInterval = 1;
+            rq.maxInterval = 0;
+            rq.reportableChange8bit = 0;
+        }
         else // default configuration
         {
             rq.minInterval = 1;
@@ -1208,6 +1223,22 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq4.attributeId = 0x0008; // color mode
         rq4.minInterval = 1;
         rq4.maxInterval = 300;
+
+        if (manufacturerCode == VENDOR_IKEA)
+        {
+            // same as IKEA gateway
+            rq.minInterval = 0;
+            rq.maxInterval = 0;
+            rq.reportableChange16bit = 0;
+            rq2.minInterval = 0;
+            rq2.maxInterval = 0;
+            rq2.reportableChange16bit = 0;
+            rq3.minInterval = 0;
+            rq3.maxInterval = 0;
+            rq3.reportableChange16bit = 0;
+            rq4.minInterval = 0;
+            rq4.maxInterval = 0;
+        }
 
         return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
     }

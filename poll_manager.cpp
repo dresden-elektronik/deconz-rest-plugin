@@ -452,14 +452,18 @@ void PollManager::pollTimerFired()
     for (quint16 attrId : attributes)
     {
         // force polling after node becomes reachable, since reporting might not be active
-        if (dtReachable < reportWaitTime)
-        {
-            break;
-        }
+//        if (dtReachable < reportWaitTime)
+//        {
+//            break;
+//        }
 
         NodeValue &val = restNode->getZclValue(clusterId, attrId);
 
-        if (val.timestampLastReport.isValid() && val.timestampLastReport.secsTo(now) < reportWaitTime)
+        if (lightNode && lightNode->manufacturerCode() == VENDOR_IKEA && val.timestamp.isValid())
+        {
+            fresh++; // rely on reporting for ikea lights
+        }
+        else if (val.timestampLastReport.isValid() && val.timestampLastReport.secsTo(now) < reportWaitTime)
         {
             fresh++;
         }

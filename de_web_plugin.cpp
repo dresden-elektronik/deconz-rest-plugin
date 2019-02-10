@@ -1607,7 +1607,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 lightNode.setLastRead(item, idleTotalCounter);
             }
         }
-        lightNode.setLastAttributeReportBind(idleTotalCounter);
+        lightNode.setLastAttributeReportBind(0);
         queryTime = queryTime.addSecs(1);
 
         DBG_Printf(DBG_INFO, "LightNode %u: %s added\n", lightNode.id().toUInt(), qPrintable(lightNode.name()));
@@ -5562,6 +5562,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             else if (ia->id() == 0x0006) // Date code as fallback for sw build id
                             {
                                 QString str = ia->toString().simplified();
+
                                 if (!i->swVersion().isEmpty() && !i->modelId().startsWith(QLatin1String("lumi.")))
                                 {
                                     // check
@@ -11296,8 +11297,7 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
             continue;
         }
 
-        deCONZ::Node *node = i->node();
-        if (node && (i->address().ext() == ext))
+        if (i->address().ext() == ext)
         {
             i->rx();
 
@@ -11308,6 +11308,8 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
                 val.timestampLastReport = QDateTime();
                 val.timestampLastConfigured = QDateTime();
             }
+
+            i->setLastAttributeReportBind(0);
 
             std::vector<RecoverOnOff>::iterator rc = recoverOnOff.begin();
             std::vector<RecoverOnOff>::iterator rcend = recoverOnOff.end();
@@ -11349,7 +11351,8 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
                 }
             }
 
-            if (node->endpoints().end() == std::find(node->endpoints().begin(),
+            deCONZ::Node *node = i->node();
+            if (node && node->endpoints().end() == std::find(node->endpoints().begin(),
                                                      node->endpoints().end(),
                                                      i->haEndpoint().endpoint()))
             {
@@ -13328,9 +13331,9 @@ void DeRestPlugin::idleTimerFired()
                 }
 
                 // don't query low priority items when OTA is busy or sensor search is active
-                if (d->otauLastBusyTimeDelta() > OTA_LOW_PRIORITY_TIME || d->permitJoinFlag)
+                if (d->otauLastBusyTimeDelta() > OTA_LOW_PRIORITY_TIME && !d->permitJoinFlag)
                 {
-                    if (lightNode->lastAttributeReportBind() < (d->idleTotalCounter - IDLE_ATTR_REPORT_BIND_LIMIT))
+                    if (lightNode->lastAttributeReportBind() < (d->idleTotalCounter - IDLE_ATTR_REPORT_BIND_LIMIT) || lightNode->lastAttributeReportBind() == 0)
                     {
                         d->checkLightBindingsForAttributeReporting(lightNode);
                         if (lightNode->mustRead(READ_BINDING_TABLE))
