@@ -76,7 +76,6 @@ const char *RStateY = "state/y";
 
 const char *RConfigAlert = "config/alert";
 const char *RConfigBattery = "config/battery";
-const char *RConfigBoost = "config/boost";
 const char *RConfigColorCapabilities = "config/colorcapabilities";
 const char *RConfigCtMin = "config/ctmin";
 const char *RConfigCtMax = "config/ctmax";
@@ -86,6 +85,7 @@ const char *RConfigDisplayFlipped = "config/displayflipped";
 const char *RConfigDuration = "config/duration";
 const char *RConfigGroup = "config/group";
 const char *RConfigHeatSetpoint = "config/heatsetpoint";
+const char *RConfigHostFlags = "config/hostflags";
 const char *RConfigId = "config/id";
 const char *RConfigLat = "config/lat";
 const char *RConfigLedIndication = "config/ledindication";
@@ -94,7 +94,6 @@ const char *RConfigLocked = "config/locked";
 const char *RConfigLong = "config/long";
 const char *RConfigLevelMin = "config/levelmin";
 const char *RConfigMode = "config/mode";
-const char *RConfigOff = "config/off";
 const char *RConfigOffset = "config/offset";
 const char *RConfigOn = "config/on";
 const char *RConfigPending = "config/pending";
@@ -193,7 +192,6 @@ void initResourceDescriptors()
 
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigAlert));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigBattery, 0, 100));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigBoost));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigColorCapabilities));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigCtMin));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigCtMax));
@@ -203,6 +201,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigDuration));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigGroup));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RConfigHeatSetpoint, 500, 3000));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, RConfigHostFlags));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, RConfigId));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigLat));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigLedIndication));
@@ -211,7 +210,6 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigLong));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigLevelMin));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigMode));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigOff));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RConfigOffset, -500, 500));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigOn));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigPending));

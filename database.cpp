@@ -3097,14 +3097,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (sensor.modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
             {
                 sensor.addItem(DataTypeUInt8, RStateValve);
-                item = sensor.addItem(DataTypeBool, RConfigBoost);
-                item->setValue(false);
-                item = sensor.addItem(DataTypeBool, RConfigDisplayFlipped);
-                item->setValue(false);
-                item = sensor.addItem(DataTypeBool, RConfigLocked);
-                item->setValue(false);
-                item = sensor.addItem(DataTypeBool, RConfigOff);
-                item->setValue(false);
+                sensor.addItem(DataTypeUInt32, RConfigHostFlags); // hidden
+                sensor.addItem(DataTypeBool, RConfigDisplayFlipped);
+                sensor.addItem(DataTypeBool, RConfigLocked);
+                sensor.addItem(DataTypeString, RConfigMode);
             }
             else
             {
@@ -3232,32 +3228,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         if (configCol >= 0)
         {
             sensor.jsonToConfig(QLatin1String(colval[configCol]));
-
-            if (sensor.modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
-            {
-                quint32 hostFlags = 0x000001; // always set
-                item = sensor.item(RConfigDisplayFlipped);
-                if (item && item->toBool())
-                {
-                    hostFlags |= 0x000002;
-                }
-                item = sensor.item(RConfigBoost);
-                if (item && item->toBool())
-                {
-                    hostFlags |= 0x000004;
-                }
-                item = sensor.item(RConfigOff);
-                {
-                    hostFlags |= 0x000010;
-                }
-                item = sensor.item(RConfigLocked);
-                {
-                    hostFlags |= 0x000080;
-                }
-                deCONZ::NumericUnion dummy;
-                dummy.u32 = hostFlags;
-                sensor.setZclValue(NodeValue::UpdateInvalid, THERMOSTAT_CLUSTER_ID, 0x4008, dummy);
-            }
         }
 
         {

@@ -322,15 +322,14 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 {
                     quint32 hostFlags = attr.numericValue().u32;
                     bool flipped = hostFlags & 0x000002;
-                    bool boost = hostFlags & 0x000004;
-                    bool off = hostFlags & 0x000010;
+                    QString mode = hostFlags & 0x000010 ? "off" : hostFlags & 0x000004 ? "heat" : "auto";
                     bool locked = hostFlags & 0x000080;
-                    item = sensor->item(RConfigBoost);
-                    if (item && item->toBool() != boost)
+                    item = sensor->item(RConfigHostFlags);
+                    if (item && item->toNumber() != hostFlags)
                     {
-                        item->setValue(boost);
-                        enqueueEvent(Event(RSensors, RConfigBoost, sensor->id(), item));
-                        configUpdated = true;
+                        item->setValue(hostFlags);
+                        // Hidden attribute - no event
+                        configUpdated = true; // but do save database
                     }
                     item = sensor->item(RConfigDisplayFlipped);
                     if (item && item->toBool() != flipped)
@@ -346,11 +345,11 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                         enqueueEvent(Event(RSensors, RConfigLocked, sensor->id(), item));
                         configUpdated = true;
                     }
-                    item = sensor->item(RConfigOff);
-                    if (item && item->toBool() != off)
+                    item = sensor->item(RConfigMode);
+                    if (item && item->toString() != mode)
                     {
-                        item->setValue(off);
-                        enqueueEvent(Event(RSensors, RConfigOff, sensor->id(), item));
+                        item->setValue(mode);
+                        enqueueEvent(Event(RSensors, RConfigMode, sensor->id(), item));
                         configUpdated = true;
                     }
                 }

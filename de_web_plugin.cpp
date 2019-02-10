@@ -4207,14 +4207,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         if (modelId.startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
         {
             sensorNode.addItem(DataTypeUInt8, RStateValve);
-            item = sensorNode.addItem(DataTypeBool, RConfigBoost);
-            item->setValue(false);
-            item = sensorNode.addItem(DataTypeBool, RConfigDisplayFlipped);
-            item->setValue(false);
-            item = sensorNode.addItem(DataTypeBool, RConfigLocked);
-            item->setValue(false);
-            item = sensorNode.addItem(DataTypeBool, RConfigOff);
-            item->setValue(false);
+            sensorNode.addItem(DataTypeUInt32, RConfigHostFlags); // hidden
+            sensorNode.addItem(DataTypeBool, RConfigDisplayFlipped);
+            sensorNode.addItem(DataTypeBool, RConfigLocked);
+            sensorNode.addItem(DataTypeString, RConfigMode);
         }
         else
         {
