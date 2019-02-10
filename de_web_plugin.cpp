@@ -5034,10 +5034,14 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             }
                             else if (ia->id() == 0x0020) // battery voltage
                             {
-                                if (!i->modelId().startsWith(QLatin1String("tagv4"))) // SmartThings Arrival sensor
+                                if (i->modelId().startsWith(QLatin1String("tagv4")) || // SmartThings Arrival sensor
+                                    i->modelId() == QLatin1String("Motion Sensor-A"))
+                                {  }
+                                else
                                 {
                                     continue;
                                 }
+
 
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
@@ -5067,12 +5071,12 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     if      (bat > 100) { bat = 100; }
                                     else if (bat <= 0)  { bat = 1; } // ?
 
-                                    if (item->toNumber() != bat)
+                                    if (item->toNumber() != static_cast<quint8>(bat))
                                     {
                                         i->setNeedSaveDatabase(true);
                                         queSaveDb(DB_SENSORS, DB_HUGE_SAVE_DELAY);
                                     }
-                                    item->setValue(bat);
+                                    item->setValue(static_cast<quint8>(bat));
                                     Event e(RSensors, RConfigBattery, i->id(), item);
                                     enqueueEvent(e);
                                 }
@@ -8241,7 +8245,8 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
             checkMacVendor(ind.srcAddress(), VENDOR_IKEA) ||
             checkMacVendor(ind.srcAddress(), VENDOR_OSRAM_STACK) ||
             checkMacVendor(ind.srcAddress(), VENDOR_JENNIC) ||
-            checkMacVendor(ind.srcAddress(), VENDOR_SI_LABS))
+            checkMacVendor(ind.srcAddress(), VENDOR_SI_LABS) ||
+            checkMacVendor(ind.srcAddress(), VENDOR_CENTRALITE))
     {
         // these sensors tend to mac data poll after report
         checkReporting = true;
@@ -8268,7 +8273,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
             }
 
             if (sensor.node() &&
-                sensor.lastAttributeReportBind() < (idleTotalCounter - BUTTON_ATTR_REPORT_BIND_LIMIT))
+                ((sensor.lastAttributeReportBind() < (idleTotalCounter - BUTTON_ATTR_REPORT_BIND_LIMIT)) || sensor.lastAttributeReportBind() == 0))
             {
                 sensor.setLastAttributeReportBind(idleTotalCounter);
                 checkSensorBindingsForAttributeReporting(&sensor);

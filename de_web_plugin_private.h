@@ -182,6 +182,8 @@
 #define UBISYS_DEVICE_SETUP_CLUSTER_ID        0xFC00
 #define XAL_CLUSTER_ID                        0xFCCE
 
+#define IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID  0x0002
+
 #define GREEN_POWER_ENDPOINT 0xf2
 
 #define ONOFF_COMMAND_OFF     0x00

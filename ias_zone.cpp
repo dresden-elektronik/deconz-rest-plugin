@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2019 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -61,24 +61,43 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
         }
     }
 
-    if (!zclFrame.isClusterCommand())
+    quint16 attrId = 0;
+    quint16 zoneStatus = 0; // might be reported or received via CMD_STATUS_CHANGE_NOTIFICATION
+
+    if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReportAttributesId)
     {
-        return;
+        quint16 a;
+        quint8 dataType;
+
+        stream >> a;
+        stream >> dataType;
+
+        if (a == IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID && dataType == deCONZ::Zcl16BitBitMap)
+        {
+            attrId = a; // mark as reported
+            stream >> zoneStatus;
+        }
+
+        if (stream.status() == QDataStream::ReadPastEnd)
+        {
+            return; // sanity
+        }
     }
 
-    if (zclFrame.commandId() == CMD_STATUS_CHANGE_NOTIFICATION)
+    if ((zclFrame.commandId() == CMD_STATUS_CHANGE_NOTIFICATION && zclFrame.isClusterCommand()) || attrId == IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID)
     {
-        quint16 zoneStatus;
-        quint8 extendedStatus;
-        quint8 zoneId;
-        quint16 delay;
 
-        stream >> zoneStatus;
-        stream >> extendedStatus; // reserved, set to 0
-        stream >> zoneId;
-        stream >> delay;
-
-        DBG_Printf(DBG_ZCL, "IAS Zone Status Change, status: 0x%04X, zoneId: %u, delay: %u\n", zoneStatus, zoneId, delay);
+        if (zclFrame.commandId() == CMD_STATUS_CHANGE_NOTIFICATION)
+        {
+            quint8 extendedStatus;
+            quint8 zoneId;
+            quint16 delay;
+            stream >> zoneStatus;
+            stream >> extendedStatus; // reserved, set to 0
+            stream >> zoneId;
+            stream >> delay;
+            DBG_Printf(DBG_ZCL, "IAS Zone Status Change, status: 0x%04X, zoneId: %u, delay: %u\n", zoneStatus, zoneId, delay);
+        }
 
         Sensor *sensor = nullptr;
 
@@ -113,7 +132,7 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
             return;
         }
 
-        const char *attr = 0;
+        const char *attr = nullptr;
         if (sensor->type() == QLatin1String("ZHAAlarm"))
         {
             attr = RStateAlarm;
@@ -143,7 +162,7 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
             attr = RStateWater;
         }
 
-        ResourceItem *item = 0;
+        ResourceItem *item = nullptr;
         if (attr)
         {
             item = sensor->item(attr);
@@ -179,7 +198,7 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
 
             deCONZ::NumericUnion num = {0};
             num.u16 = zoneStatus;
-            sensor->setZclValue(NodeValue::UpdateByZclReport, IAS_ZONE_CLUSTER_ID, 0x0000, num);
+            sensor->setZclValue(NodeValue::UpdateByZclReport, IAS_ZONE_CLUSTER_ID, IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID, num);
 
             item2 = sensor->item(RConfigReachable);
             if (item2 && !item2->toBool())
@@ -190,8 +209,14 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
 
             if (alarm && item->descriptor().suffix == RStatePresence)
             {   // prepare to automatically set presence to false
+                NodeValue &val = sensor->getZclValue(IAS_ZONE_CLUSTER_ID, IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID);
+
                 item2 = sensor->item(RConfigDuration);
-                if (item2 && item2->toNumber() > 0)
+                if (val.maxInterval > 0)
+                {
+                    sensor->durationDue = item->lastSet().addSecs(val.maxInterval);
+                }
+                else if (item2 && item2->toNumber() > 0)
                 {
                     sensor->durationDue = item->lastSet().addSecs(item2->toNumber());
                 }
@@ -199,7 +224,7 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
         }
 
     }
-    else if (zclFrame.commandId() == CMD_ZONE_ENROLL_REQUEST)
+    else if (zclFrame.commandId() == CMD_ZONE_ENROLL_REQUEST && zclFrame.isClusterCommand())
     {
         quint16 zoneType;
         quint16 manufacturer;

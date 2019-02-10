@@ -845,6 +845,41 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
         return processed > 0;
     }
+    else if (bt.binding.clusterId == IAS_ZONE_CLUSTER_ID)
+    {
+        // zone status reporting only supported by some devices
+        if (bt.restNode->node()->nodeDescriptor().manufacturerCode() != VENDOR_CENTRALITE)
+        {
+            return false;
+        }
+
+        // add values if not already present
+        deCONZ::NumericUnion dummy;
+        dummy.u64 = 0;
+        if (bt.restNode->getZclValue(bt.binding.clusterId, IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID).clusterId != bt.binding.clusterId)
+        {
+            bt.restNode->setZclValue(NodeValue::UpdateInvalid, bt.binding.clusterId, IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID, dummy);
+        }
+        NodeValue &val = bt.restNode->getZclValue(bt.binding.clusterId, IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID);
+        val.minInterval = 1;
+        val.maxInterval = 300;
+
+        const Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
+        const ResourceItem *item = sensor ? sensor->item(RConfigDuration) : nullptr;
+
+        if (item && item->toNumber() > 15 && item->toNumber() <= UINT16_MAX)
+        {
+            val.maxInterval = static_cast<quint16>(item->toNumber());
+            val.maxInterval -= 5; // report before going presence: false
+        }
+
+        rq.dataType = deCONZ::Zcl16BitBitMap;
+        rq.attributeId = IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID;
+        rq.minInterval = val.minInterval;
+        rq.maxInterval = val.maxInterval;
+        rq.reportableChange16bit = 0xffff;
+        return sendConfigureReportingRequest(bt, {rq});
+    }
     else if (bt.binding.clusterId == ILLUMINANCE_MEASUREMENT_CLUSTER_ID)
     {
         rq.dataType = deCONZ::Zcl16BitUint;
@@ -966,6 +1001,13 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.minInterval = 300;
             rq.maxInterval = 1800;
             rq.reportableChange8bit = 0xFF;
+        }
+        else if (sensor && sensor->modelId() == QLatin1String("Motion Sensor-A"))
+        {
+            rq.attributeId = 0x0020;   // battery voltage
+            rq.minInterval = 3600;
+            rq.maxInterval = 3600;
+            rq.reportableChange8bit = 0;
         }
         else if (sensor && sensor->modelId().startsWith(QLatin1String("tagv4")))
         {
@@ -1359,6 +1401,12 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
                     bindingExists = true;
                     break;
                 }
+
+                if (val.timestampLastConfigured.isValid() && val.timestampLastConfigured.secsTo(now) < (60 * 60))
+                {
+                    bindingExists = true;
+                    break;
+                }
             }
 
             // support only XAL on/off cluster for now
@@ -1588,6 +1636,10 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         }
         else if (*i == OCCUPANCY_SENSING_CLUSTER_ID)
         {
+            if (sensor->modelId() == QLatin1String("Motion Sensor-A"))
+            {
+                continue; // use ias zone cluster
+            }
             val = sensor->getZclValue(*i, 0x0000); // occupied state
         }
         else if (*i == POWER_CONFIGURATION_CLUSTER_ID)
@@ -1600,6 +1652,10 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             if (sensor->manufacturer().startsWith(QLatin1String("Climax")))
             {
                 val = sensor->getZclValue(*i, 0x0035); // battery alarm mask
+            }
+            else if (sensor->modelId() == QLatin1String("Motion Sensor-A"))
+            {
+                val = sensor->getZclValue(*i, 0x0020); // battery voltage
             }
             else
             {
@@ -1624,7 +1680,18 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         }
         else if (*i == IAS_ZONE_CLUSTER_ID)
         {
-            val = sensor->getZclValue(*i, 0x0000); // zone status
+            val = sensor->getZclValue(*i, IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID); // zone status
+
+            if (sensor->manufacturer() == QLatin1String("CentraLite"))
+            {
+                const ResourceItem *item = sensor->item(RConfigDuration);
+                // update max reporting interval according to config.duration
+                if (item && item->toNumber() > 15 && item->toNumber() <= UINT16_MAX)
+                {
+                    val.maxInterval = static_cast<quint16>(item->toNumber());
+                    val.maxInterval -= 5; // report before going presence: false
+                }
+            }
         }
         else if (*i == VENDOR_CLUSTER_ID)
         {
