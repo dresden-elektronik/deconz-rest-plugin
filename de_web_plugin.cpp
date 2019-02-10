@@ -14741,6 +14741,12 @@ bool DeRestPluginPrivate::importConfiguration()
 
             apsCtrl->setParameter(deCONZ::ParamHAEndpoint, endpoint1);
             apsCtrl->setParameter(deCONZ::ParamHAEndpoint, endpoint2);
+
+            if (gwZigbeeChannel != curChannel)
+            {
+                gwZigbeeChannel = curChannel;
+                saveDatabaseItems |= DB_CONFIG;
+            }
         }
     }
 
@@ -15170,6 +15176,10 @@ void DeRestPluginPrivate::reconnectNetwork()
     {
         DBG_Printf(DBG_INFO, "reconnect network done\n");
         // restart deCONZ to apply changes and reload database
+        if (reconnectTimer)
+        {
+            reconnectTimer->stop();
+        }
         qApp->exit(APP_RET_RESTART_APP);
         return;
     }

@@ -620,6 +620,11 @@ int DeRestPluginPrivate::handleConfigFullApi(const ApiRequest &req, ApiResponse 
     {
         return getZigbeeConfig(req, rsp);
     }
+    // PUT /api/config/zigbee/<id>
+    else if ((req.path.size() == 5) && (req.hdr.method() == QLatin1String("PUT")) && (req.path[2] == QLatin1String("config")) && (req.path[3] == QLatin1String("zigbee")))
+    {
+        return putZigbeeConfig(req, rsp);
+    }
     // PUT /api/<apikey>/config/homebridge/reset
     else if ((req.path.size() == 5) && (req.hdr.method() == "PUT") && (req.path[2] == "config") && (req.path[3] == "homebridge") && (req.path[4] == "reset"))
     {
@@ -1290,10 +1295,169 @@ int DeRestPluginPrivate::getBasicConfig(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::getZigbeeConfig(const ApiRequest &req, ApiResponse &rsp)
 {
+    Q_UNUSED(req);
+
     getZigbeeConfigDb(rsp.list);
 
     rsp.httpStatus = HttpStatusOk;
     //rsp.etag = gwConfigEtag;
+    return REQ_READY_SEND;
+}
+
+/*! PUT /api/config/zigbee/<id>
+
+    Activates a certain known zigbee configuration.
+
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::putZigbeeConfig(const ApiRequest &req, ApiResponse &rsp)
+{
+    getZigbeeConfigDb(rsp.list);
+
+    QVariantMap cfg;
+    const QString id = req.path[4];
+    for (const QVariant &c : rsp.list)
+    {
+        if (c.toMap().value(QLatin1String("id")) == id)
+        {
+            cfg = c.toMap();
+            break;
+        }
+    }
+
+    const std::vector<const char*> requiredFields = {
+        "deviceType", "panId", "extPanId", "apsUseExtPanId", "macAddress", "staticNwkAddress",
+        "nwkAddress", "curChannel", "tcAddress", "networkKey", "nwkUpdateId"
+    };
+
+    bool ok = true;
+
+    for (const auto *key : requiredFields)
+    {
+        if (!cfg.contains(QLatin1String(key)))
+        {
+            ok = false;
+            break;
+        }
+    }
+
+    if (!ok)
+    {
+        rsp.httpStatus = HttpStatusNotFound;
+        return REQ_READY_SEND;
+    }
+
+    quint8 deviceType = ok ? cfg["deviceType"].toUInt(&ok) : 0;
+    if (ok && deviceType != deCONZ::Coordinator) { ok = false; } // only coordinator supported currently
+
+    quint16 panId =  ok ? cfg["panId"].toString().toUShort(&ok, 16) : 0;
+    if (ok && panId == 0) { ok = false; }
+
+    quint64 extPanId =  ok ? cfg["extPanId"].toString().toULongLong(&ok, 16) : 0;
+    if (ok && extPanId == 0) { ok = false; }
+
+    quint64 apsUseExtPanId = ok ? cfg["apsUseExtPanId"].toString().toULongLong(&ok, 16) : 1;
+    if (ok && apsUseExtPanId != 0) { ok = false; } // must be zero
+
+    quint64 curMacAddress = apsCtrl->getParameter(deCONZ::ParamMacAddress);
+    quint64 macAddress =  ok ? cfg["macAddress"].toString().toULongLong(&ok, 16) : 0;
+    if (ok && macAddress == 0) { ok = false; }
+
+    quint8 staticNwkAddress = cfg["staticNwkAddress"].toBool() ? 1 : 0;
+    quint16 nwkAddress = cfg["nwkAddress"].toString().toUInt(&ok, 16);
+    if (ok && nwkAddress != 0x0000) { ok = false; } // coordinator
+
+    //map["channelMask"] = channelMask;
+    quint8 curChannel = ok ? cfg["curChannel"].toUInt(&ok) : 0;
+    if (ok && (curChannel < 11 || curChannel > 26)) { ok = false; }
+
+    quint8 securityMode = 3; // High - No Master but TC Link key
+
+    quint64 tcAddress =  ok ? cfg["tcAddress"].toString().toULongLong(&ok, 16) : 0;
+    if (ok && tcAddress != macAddress)
+    {
+        tcAddress = macAddress; // auto correct
+    }
+    QByteArray nwkKey = QByteArray::fromHex(cfg["networkKey"].toByteArray());
+
+    cfg["tcLinkKey"] = QLatin1String("5a6967426565416c6c69616e63653039"); // HA default TC link key
+
+    QByteArray tcLinkKey = QByteArray::fromHex(cfg["tcLinkKey"].toByteArray());
+
+    quint8 nwkUpdateId = ok ? cfg["nwkUpdateId"].toUInt(&ok) : 0;
+
+    if (!ok)
+    {
+        rsp.httpStatus = HttpStatusNotFound;
+        return REQ_READY_SEND;
+    }
+
+    apsCtrl->setParameter(deCONZ::ParamDeviceType, deviceType);
+    apsCtrl->setParameter(deCONZ::ParamPredefinedPanId, 1);
+    apsCtrl->setParameter(deCONZ::ParamPANID, panId);
+    apsCtrl->setParameter(deCONZ::ParamExtendedPANID, extPanId);
+    apsCtrl->setParameter(deCONZ::ParamApsUseExtendedPANID, apsUseExtPanId);
+    if (curMacAddress != macAddress)
+    {
+        apsCtrl->setParameter(deCONZ::ParamCustomMacAddress, 1);
+    }
+    apsCtrl->setParameter(deCONZ::ParamMacAddress, macAddress);
+    apsCtrl->setParameter(deCONZ::ParamStaticNwkAddress, staticNwkAddress);
+    apsCtrl->setParameter(deCONZ::ParamNwkAddress, nwkAddress);
+
+    // channelMask
+    apsCtrl->setParameter(deCONZ::ParamCurrentChannel, curChannel);
+    apsCtrl->setParameter(deCONZ::ParamSecurityMode, securityMode);
+    apsCtrl->setParameter(deCONZ::ParamTrustCenterAddress, tcAddress);
+    apsCtrl->setParameter(deCONZ::ParamNetworkKey, nwkKey);
+    apsCtrl->setParameter(deCONZ::ParamTrustCenterLinkKey, tcLinkKey);
+    apsCtrl->setParameter(deCONZ::ParamNetworkUpdateId, nwkUpdateId);
+
+    // HA endpoint
+    QVariantMap endpoint1;
+    endpoint1["endpoint"] = QLatin1String("0x01");
+    endpoint1["profileId"] = QLatin1String("0x0104");
+    endpoint1["deviceId"] = QLatin1String("0x05");
+    endpoint1["deviceVersion"] = QLatin1String("0x01");
+    endpoint1["inClusters"] = QVariantList({ "0x0019", "0x000A"});
+    endpoint1["outClusters"] = QVariantList({ "0x0500"});
+    endpoint1["index"] = static_cast<double>(0);
+
+    // green power endpoint
+    QVariantMap endpoint2;
+    endpoint2["endpoint"] = QLatin1String("0xf2");
+    endpoint2["profileId"] = QLatin1String("0xA1E0");
+    endpoint2["deviceId"] = QLatin1String("0x0064");
+    endpoint2["deviceVersion"] = QLatin1String("0x01");
+    endpoint2["inClusters"] = QVariantList();
+    endpoint2["outClusters"] = QVariantList({ "0x0021"});
+    endpoint2["index"] = static_cast<double>(1);
+
+    apsCtrl->setParameter(deCONZ::ParamHAEndpoint, endpoint1);
+    apsCtrl->setParameter(deCONZ::ParamHAEndpoint, endpoint2);
+
+    QTimer::singleShot(SET_ENDPOINTCONFIG_DURATION, this, SLOT(restartAppTimerFired()));
+
+    if (gwZigbeeChannel != curChannel)
+    {
+        gwZigbeeChannel = curChannel;
+        saveDatabaseItems |= DB_CONFIG;
+    }
+    updateZigBeeConfigDb(); // put new entry in database as latest valid configuration
+
+    QVariantMap rspItem;
+    QVariantMap rspItemState;
+
+    rsp.list.clear();
+
+    rspItemState[QString("/config/zigbee/%1").arg(id)] = "restoring";
+    rspItem["success"] = rspItemState;
+
+    rsp.list.append(rspItem);
+
+    rsp.httpStatus = HttpStatusOk;
+
     return REQ_READY_SEND;
 }
 

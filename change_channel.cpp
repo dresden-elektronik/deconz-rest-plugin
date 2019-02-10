@@ -486,7 +486,8 @@ void DeRestPluginPrivate::networkWatchdogTimerFired()
 
     if (needCheck)
     {
-        startChannelChange(gwZigbeeChannel);
+        //startChannelChange(gwZigbeeChannel);
+        DBG_Printf(DBG_INFO, "Skip automatic channel change, TODO warn user\n");
     }
 }
 

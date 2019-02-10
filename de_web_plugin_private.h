@@ -793,6 +793,7 @@ public:
     int getConfig(const ApiRequest &req, ApiResponse &rsp);
     int getBasicConfig(const ApiRequest &req, ApiResponse &rsp);
     int getZigbeeConfig(const ApiRequest &req, ApiResponse &rsp);
+    int putZigbeeConfig(const ApiRequest &req, ApiResponse &rsp);
     int getChallenge(const ApiRequest &req, ApiResponse &rsp);
     int modifyConfig(const ApiRequest &req, ApiResponse &rsp);
     int deleteUser(const ApiRequest &req, ApiResponse &rsp);
