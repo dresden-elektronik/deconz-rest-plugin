@@ -1099,6 +1099,9 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (item->setValue(val))
                 {
+                    // TODO: Fix bug
+                    // This event happens too early, e.g. when setting config.mode to an invalid value,
+                    // the event is already issued before the error message is given.
                     rspItemState[QString("/sensors/%1/config/%2").arg(id).arg(pi.key())] = val;
                     rspItem["success"] = rspItemState;
                     Event e(RSensors, rid.suffix, id, item);
