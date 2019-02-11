@@ -1034,7 +1034,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
             {
                 // changing battery or reachable of zigbee sensors is not allowed, trigger error
             }
-            else if (rid.suffix == RConfigPending || rid.suffix == RConfigSensitivityMax)
+            else if (rid.suffix == RConfigPending || rid.suffix == RConfigSensitivityMax || rid.suffix == RConfigHostFlags)
             {
                 // pending and sensitivitymax are read-only
             }
@@ -1099,6 +1099,9 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (item->setValue(val))
                 {
+                    // TODO: Fix bug
+                    // This event happens too early, e.g. when setting config.mode to an invalid value,
+                    // the event is already issued before the error message is given.
                     rspItemState[QString("/sensors/%1/config/%2").arg(id).arg(pi.key())] = val;
                     rspItem["success"] = rspItemState;
                     Event e(RSensors, rid.suffix, id, item);
@@ -1376,34 +1379,16 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         return REQ_READY_SEND;
                     }
                 }
-                else if ((rid.suffix == RConfigBoost || RConfigDisplayFlipped || rid.suffix == RConfigLocked || rid.suffix == RConfigOff)
+                else if ((rid.suffix == RConfigDisplayFlipped || rid.suffix == RConfigLocked || rid.suffix == RConfigMode)
                          && sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit)
                 {
                     if (hostFlags == 0)
                     {
-                        const NodeValue &val = sensor->getZclValue(THERMOSTAT_CLUSTER_ID, 0x4008);
-                        hostFlags = val.value.u32;
+                        ResourceItem *item = sensor->item(RConfigHostFlags);
+                        hostFlags = item->toNumber();
                     }
 
-                    // Host Flags bits:
-                    // 0x000002: display flipped
-                    // 0x000004: boost mode
-                    // 0x000010: disable off mode
-                    // 0x000020: enable off mode
-                    // 0x000080: child lock
-
-                    if (rid.suffix == RConfigBoost)
-                    {
-                        if (map[pi.key()].toBool())
-                        {
-                            hostFlags |= 0x000014; // set boost, set disable off
-                        }
-                        else
-                        {
-                            hostFlags &= 0xffffeb; // clear boost, clear disable off
-                        }
-                    }
-                    else if (rid.suffix == RConfigDisplayFlipped)
+                    if (rid.suffix == RConfigDisplayFlipped)
                     {
                         if (map[pi.key()].toBool())
                         {
@@ -1425,16 +1410,29 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             hostFlags &= 0xffff6f; // clear locked, clear disable off
                         }
                     }
-                    else if (rid.suffix == RConfigOff)
+                    else if (rid.suffix == RConfigMode)
                     {
-                        if (map[pi.key()].toBool())
+                        QString mode = map[pi.key()].toString();
+                        if (mode == "off")
                         {
                             hostFlags |= 0x000020; // set enable off
                             hostFlags &= 0xffffeb; // clear boost, clear disable off
                         }
+                        else if (mode == "heat")
+                        {
+                            hostFlags |= 0x000014; // set boost, set disable off
+                        }
+                        else if (mode == "auto")
+                        {
+                            hostFlags &= 0xfffffb; // clear boost
+                            hostFlags |= 0x000010; // set disable off
+                        }
                         else
                         {
-                            hostFlags |= 0x000010; // set disable off
+                            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()),
+                                                       QString("invalid value, %1, for parameter %2").arg(mode).arg(pi.key())));
+                            rsp.httpStatus = HttpStatusBadRequest;
+                            return REQ_READY_SEND;
                         }
                     }
                 }
@@ -1458,9 +1456,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
         }
         else
         {
-            rsp.list.append(errorToMap(ERR_INVALID_VALUE,
-                                   QString("/sensors/%1/config").arg(id),
-                                   QString("could not set host flags to %1").arg(QString::number(hostFlags))));
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/hostflags"), QString("could not set attribute")));
             rsp.httpStatus = HttpStatusBadRequest;
             return REQ_READY_SEND;
         }
@@ -1932,6 +1928,10 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
         {
             continue; //  don't return due privacy reasons
         }
+        if (rid.suffix == RConfigHostFlags)
+        {
+            continue; // hidden
+        }
 
         if (rid.suffix == RConfigReachable &&
             sensor->type().startsWith(QLatin1String("ZGP")))
@@ -2179,7 +2179,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                 {
                     const char *key = item->descriptor().suffix + 7;
 
-                    if (rid.suffix == RConfigPending)
+                    if (rid.suffix == RConfigPending || rid.suffix == RConfigHostFlags)
                     {
                         continue;
                     }
