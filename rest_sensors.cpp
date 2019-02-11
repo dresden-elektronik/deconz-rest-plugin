@@ -1364,6 +1364,24 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     {
                         mfrCode = VENDOR_JENNIC;
                         attrId = 0x4003;
+
+                        // Setting the heat setpoint disables off/boost modes,
+			// but this is not reported back by the thermostat.
+			// Hence, the off/boost flags will be removed here to reflect the actual operating state.
+                        if (hostFlags == 0)
+                        {
+                            const NodeValue &val = sensor->getZclValue(THERMOSTAT_CLUSTER_ID, 0x4008);
+                            hostFlags = val.value.u32;
+                        }
+
+			hostFlags &= 0xffffeb;
+
+                        ResourceItem *configModeItem = sensor->item(RConfigMode);
+                        if (configModeItem && configModeItem->setValue( QString::fromUtf8("auto") ))
+                        {
+                            Event e(RSensors, RConfigMode, sensor->id(), item);
+                            enqueueEvent(e);
+                        }
                     }
 
                     if (ok && addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, mfrCode, attrId, deCONZ::Zcl16BitInt, heatsetpoint))
