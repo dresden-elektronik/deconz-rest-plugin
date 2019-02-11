@@ -1370,19 +1370,12 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 			// Hence, the off/boost flags will be removed here to reflect the actual operating state.
                         if (hostFlags == 0)
                         {
-                            const NodeValue &val = sensor->getZclValue(THERMOSTAT_CLUSTER_ID, 0x4008);
-                            hostFlags = val.value.u32;
+                            ResourceItem *item = sensor->item(RConfigHostFlags);
+                            hostFlags = item->toNumber();
                         }
 
                         hostFlags &= ~0x04; // clear `boost` flag
                         hostFlags |=  0x10; // set `disable off` flag
-
-                        ResourceItem *configModeItem = sensor->item(RConfigMode);
-                        if (configModeItem && configModeItem->setValue( QString::fromUtf8("auto") ))
-                        {
-                            Event e(RSensors, RConfigMode, sensor->id(), item);
-                            enqueueEvent(e);
-                        }
                     }
 
                     if (ok && addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, mfrCode, attrId, deCONZ::Zcl16BitInt, heatsetpoint))
