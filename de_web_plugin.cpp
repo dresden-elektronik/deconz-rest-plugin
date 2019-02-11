@@ -12092,7 +12092,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             return;
         }
 
-        DBG_Printf(DBG_INFO, "MAC poll fastEnddeviceProbe() 0x%016llX\n", macPoll, sc->address.ext());
+        DBG_Printf(DBG_INFO, "MAC poll fastEnddeviceProbe() 0x%016llX\n", sc->address.ext());
     }
 #else
 //    bool macPoll = false;
