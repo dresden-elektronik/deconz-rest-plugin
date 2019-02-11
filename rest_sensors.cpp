@@ -1374,7 +1374,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             hostFlags = val.value.u32;
                         }
 
-			hostFlags &= 0xffffeb;
+			// clear `set off` (0x10) and `boost` (0x04) flags
+			hostFlags &= ~(0x10 | 0x04);
 
                         ResourceItem *configModeItem = sensor->item(RConfigMode);
                         if (configModeItem && configModeItem->setValue( QString::fromUtf8("auto") ))
