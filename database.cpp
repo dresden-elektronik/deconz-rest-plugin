@@ -3714,8 +3714,8 @@ int DeRestPluginPrivate::getFreeSensorId()
         }
     }
 
-    int id = 1;
-    while (1)
+    int id = sensors.empty() ? 1 : static_cast<int>(sensors.size()); // 'append' only
+    while (id < 10000)
     {
         std::vector<int>::iterator result = std::find(sensorIds.begin(), sensorIds.end(), id);
 
