@@ -2536,7 +2536,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
         fastProbeAddr.setNwk(nwk);
         if (!fastProbeTimer->isActive())
         {
-            fastProbeTimer->start(100);
+            fastProbeTimer->start(900);
         }
 
         fastProbeIndications.clear();
