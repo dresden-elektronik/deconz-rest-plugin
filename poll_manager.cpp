@@ -251,7 +251,7 @@ void PollManager::pollTimerFired()
         return;
     }
 
-    const auto dtReachable = item->lastSet().secsTo(now);
+    //const auto dtReachable = item->lastSet().secsTo(now);
 
     quint16 clusterId = 0xffff; // invalid
     std::vector<quint16> attributes;
@@ -298,7 +298,7 @@ void PollManager::pollTimerFired()
         clusterId = COLOR_CLUSTER_ID;
         item = r->item(RConfigColorCapabilities);
 
-        if ((!item || item->toNumber() <= 0) && (lightNode->haEndpoint().profileId() != HA_PROFILE_ID || lightNode->manufacturerCode() == VENDOR_115F))
+        if ((!item || item->toNumber() <= 0) && (lightNode->haEndpoint().profileId() != HA_PROFILE_ID || lightNode->manufacturerCode() == VENDOR_115F ||  lightNode->manufacturerCode() == VENDOR_MUELLER))
         {
             if (item && lightNode->modelId() == QLatin1String("lumi.light.aqcn02"))
             {
