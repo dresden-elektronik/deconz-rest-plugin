@@ -3446,7 +3446,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
-                    else if (modelId == QLatin1String("lumi.plug"))
+                    else if (modelId == QLatin1String("lumi.plug") || modelId.startsWith(QLatin1String("lumi.ctrl_ln1")))
                     {
                         if (i->endpoint() == 0x02)
                         {
@@ -3457,7 +3457,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                             fpConsumptionSensor.inClusters.push_back(ci->id());
                         }
                     }
-                    else if (modelId.startsWith(QLatin1String("lumi.ctrl_ln")))
+                    else if (modelId.startsWith(QLatin1String("lumi.ctrl_ln2")))
                     {
                         if (i->endpoint() == 0x03)
                         {
