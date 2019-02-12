@@ -402,6 +402,26 @@ void DeRestPluginPrivate::initWiFi()
     return;
 #endif
 
+    QList<QNetworkInterface> ifaces = QNetworkInterface::allInterfaces();
+    QList<QNetworkInterface>::Iterator i = ifaces.begin();
+    QList<QNetworkInterface>::Iterator end = ifaces.end();
+
+    bool wlan0 = false;
+    // only show wifi if wlan0 interface is found
+    for (; i != end; ++i)
+    {
+        if (i->name() == QLatin1String("wlan0"))
+        {
+            wlan0 = true;
+        }
+    }
+
+    if (!wlan0)
+    {
+        gwWifi = QLatin1String("not-available");
+        return;
+    }
+
     // only configure for official image
     if (gwSdImageVersion.isEmpty())
     {
