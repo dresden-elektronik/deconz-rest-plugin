@@ -128,6 +128,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_INSTA, "WS_4f_J_1", instaMacPrefix },
     { VENDOR_INSTA, "WS_3f_G_1", instaMacPrefix },
     { VENDOR_NYCE, "3011", emberMacPrefix }, // NYCE door/window sensor
+    { VENDOR_NYCE, "3014", emberMacPrefix }, // NYCE garage door/tilt sensor
     { VENDOR_NYCE, "3043", emberMacPrefix }, // NYCE ceiling motion sensor
     { VENDOR_PHILIPS, "RWL020", philipsMacPrefix }, // Hue dimmer switch
     { VENDOR_PHILIPS, "RWL021", philipsMacPrefix }, // Hue dimmer switch
