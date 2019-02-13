@@ -601,7 +601,7 @@ int DeRestPluginPrivate::handleConfigLocalApi(const ApiRequest &req, ApiResponse
     // PUT /api/<localuser>/config/homebridge/updated
     else if ((req.path.size() == 5) && (req.hdr.method() == QLatin1String("PUT")) && (req.path[2] == QLatin1String("config")) && (req.path[3] == QLatin1String("homebridge")) && (req.path[4] == QLatin1String("updated")))
     {
-        return putWifiUpdated(req, rsp);
+        return putHomebridgeUpdated(req, rsp);
     }
     // PUT /api/<localuser>/config/wifi/scanresult
     else if ((req.path.size() == 5) && (req.hdr.method() == QLatin1String("PUT")) && (req.path[2] == QLatin1String("config")) && (req.path[3] == QLatin1String("wifi")) && (req.path[4] == QLatin1String("scanresult")))
