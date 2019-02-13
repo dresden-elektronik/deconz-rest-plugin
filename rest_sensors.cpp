@@ -1621,10 +1621,19 @@ int DeRestPluginPrivate::changeSensorState(const ApiRequest &req, ApiResponse &r
 
     for (; pi != pend; ++pi)
     {
-        ResourceItem *item = 0;
+        ResourceItem *item = nullptr;
         ResourceItemDescriptor rid;
-        if (isClip && getResourceItemDescriptor(QString("state/%1").arg(pi.key()), rid))
+        if (getResourceItemDescriptor(QString("state/%1").arg(pi.key()), rid))
         {
+            if (rid.suffix == RStateButtonEvent)
+            {
+                // allow modify physical switch buttonevent via api
+            }
+            else if (!isClip)
+            {
+                continue;
+            }
+
             if (rid.suffix != RStateLux && rid.suffix != RStateDark && rid.suffix != RStateDaylight)
             {
                 item = sensor->item(rid.suffix);
