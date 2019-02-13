@@ -2,6 +2,7 @@
 
 ZLLDB=""
 MAINUSER=$(getent passwd 1000 | cut -d: -f1)
+OWN_PID=$$
 DECONZ_CONF_DIR="/home/$MAINUSER/.local/share"
 DECONZ_PORT=
 BRIDGEID=

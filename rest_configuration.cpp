@@ -3264,10 +3264,11 @@ int DeRestPluginPrivate::putHomebridgeUpdated(const ApiRequest &req, ApiResponse
 
     if (changed)
     {
+        updateEtag(gwConfigEtag);
         queSaveDb(DB_CONFIG | DB_SYNC, DB_SHORT_SAVE_DELAY);
     }
 
-    DBG_Printf(DBG_HTTP, "homebridge: %s\n", qPrintable(req.content));
+    DBG_Printf(DBG_INFO, "homebridge: %s\n", qPrintable(req.content));
     return REQ_READY_SEND;
 }
 
