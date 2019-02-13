@@ -598,6 +598,11 @@ int DeRestPluginPrivate::handleConfigLocalApi(const ApiRequest &req, ApiResponse
     {
         return putWifiUpdated(req, rsp);
     }
+    // PUT /api/<localuser>/config/homebridge/updated
+    else if ((req.path.size() == 5) && (req.hdr.method() == QLatin1String("PUT")) && (req.path[2] == QLatin1String("config")) && (req.path[3] == QLatin1String("homebridge")) && (req.path[4] == QLatin1String("updated")))
+    {
+        return putWifiUpdated(req, rsp);
+    }
     // PUT /api/<localuser>/config/wifi/scanresult
     else if ((req.path.size() == 5) && (req.hdr.method() == QLatin1String("PUT")) && (req.path[2] == QLatin1String("config")) && (req.path[3] == QLatin1String("wifi")) && (req.path[4] == QLatin1String("scanresult")))
     {
@@ -3183,7 +3188,7 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
     return REQ_READY_SEND;
 }
 
-/*! PUT /api/config/homebridge/updated (wifi service notifications)
+/*! PUT /api/config/homebridge/updated
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
@@ -3196,12 +3201,6 @@ int DeRestPluginPrivate::putHomebridgeUpdated(const ApiRequest &req, ApiResponse
     {
         rsp.list.append(errorToMap(ERR_UNAUTHORIZED_USER, "/" + req.path.join("/"), "unauthorized user"));
         return REQ_READY_SEND;
-    }
-
-    pid_t pid = req.path[1].toInt();
-    if (gwWifiPID != pid)
-    {
-        gwWifiPID = pid;
     }
 
     rsp.httpStatus = HttpStatusOk;

@@ -218,7 +218,7 @@ function checkHomebridge {
 			sleep 2
 		fi
 	done
-	if [[ $HOMEBRIDGE_AUTH == "" ]]; then
+	if [[ -z $HOMEBRIDGE_AUTH ]]; then
 		# generate a new deconz apikey for homebridge-hue
 		addUser
 	else
@@ -310,7 +310,7 @@ function checkHomebridge {
 
 		# install nodejs if not installed or if version < 8
 		if [[ $node_installed = false ]]; then
-			curl -sL https://deb.nodesource.com/setup_8.x | bash -
+			curl -sL https://deb.nodesource.com/setup_10.x | bash -
 			if [ $? -eq 0 ]; then
 				apt-get install -y nodejs
 				if [ $? -ne 0 ]; then
