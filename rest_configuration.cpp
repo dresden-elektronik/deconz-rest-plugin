@@ -3221,43 +3221,53 @@ int DeRestPluginPrivate::putHomebridgeUpdated(const ApiRequest &req, ApiResponse
     }
 
     QString homebridge;
+    QString homebridgePin;
+    bool changed = false;
 
     if (map.contains("homebridge"))
     {
-        homebridge = map["homebridge"].toString();
+        homebridge = map["homebridge"].toString();  
+
+        if (homebridge == QLatin1String("not-managed"))
+        {
+            if (gwHomebridge != homebridge)
+            {
+                gwHomebridge = homebridge;
+                changed = true;
+            }
+        }
+        else if (homebridge == QLatin1String("managed"))
+        {
+            if (gwHomebridge != homebridge)
+            {
+                gwHomebridge = homebridge;
+                changed = true;
+            }
+        }
+        else if (homebridge == QLatin1String("installing"))
+        {
+            if (gwHomebridge != homebridge)
+            {
+                gwHomebridge = homebridge;
+                changed = true;
+            }
+        }
+        else if (homebridge == QLatin1String("install-error"))
+        {
+            if (gwHomebridge != homebridge)
+            {
+                gwHomebridge = homebridge;
+                changed = true;
+            }
+        }
     }
 
-    bool changed = false;
-
-    if (homebridge == QLatin1String("not-managed"))
+    if (map.contains("homebridgepin"))
     {
-        if (gwHomebridge != homebridge)
+        homebridgePin = map["homebridgepin"].toString();
+        if (gwHomebridgePin != homebridgePin)
         {
-            gwHomebridge = homebridge;
-            changed = true;
-        }
-    }
-    else if (homebridge == QLatin1String("managed"))
-    {
-        if (gwHomebridge != homebridge)
-        {
-            gwHomebridge = homebridge;
-            changed = true;
-        }
-    }
-    else if (homebridge == QLatin1String("installing"))
-    {
-        if (gwHomebridge != homebridge)
-        {
-            gwHomebridge = homebridge;
-            changed = true;
-        }
-    }
-    else if (homebridge == QLatin1String("install-error"))
-    {
-        if (gwHomebridge != homebridge)
-        {
-            gwHomebridge = homebridge;
+            gwHomebridgePin = homebridgePin;
             changed = true;
         }
     }
