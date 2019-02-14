@@ -366,7 +366,14 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 }
                 else if (i->id() == COLOR_CLUSTER_ID)
                 {
-                    addItem(DataTypeString, RStateColorMode)->setValue(QVariant("hs"));
+                    if (manufacturerCode() == VENDOR_NONE && deviceId == DEV_ID_ZLL_DIMMABLE_LIGHT)
+                    {
+                        // GLEDOPTO GL-C-009 advertises non-functional color cluster
+                    }
+                    else
+                    {
+                        addItem(DataTypeString, RStateColorMode)->setValue(QVariant("hs"));
+                    }
 
                     if (modelId() == QLatin1String("lumi.light.aqcn02"))
                     {
