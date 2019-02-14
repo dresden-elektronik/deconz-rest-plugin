@@ -1955,94 +1955,90 @@ void DeRestPluginPrivate::loadSensorDataFromDb(Sensor *sensor, QVariantList &ls,
     const RMap rmap[] = {
         // Item, clusterId, attributeId
         { RStatePresence, 0x0406, 0x0000 },
+        { RStatePresence, 0x0500, 0x0000 },
         { RStateLightLevel, 0x0400, 0x0000 },
         { RStateTemperature, 0x0402, 0x0000 },
         { RStateHumidity, 0x0405, 0x0000 },
         { RStateOpen, 0x0006, 0x0000 },
+        { RStateOpen, 0x0500, 0x0000 },
         { nullptr, 0, 0 }
     };
 
-    for (int i  = 0; i < sensor->itemCount(); i++)
+    const RMap *r = rmap;
+
+    while (r->item)
     {
-        ResourceItem *item = sensor->itemForIndex(i);
-        const RMap *found = nullptr;
-        const RMap *r = rmap;
-
-        while (!found && r->item)
+        for (int i  = 0; i < sensor->itemCount(); i++)
         {
-            if (r->item == item->descriptor().suffix)
+            ResourceItem *item = sensor->itemForIndex(static_cast<size_t>(i));
+
+            if (r->item != item->descriptor().suffix)
             {
-              found = r;
-              break;
+                continue;
             }
-            r++;
-        }
 
-        if (!found)
-        {
-            continue;
-        }
+            const char *sql = "SELECT data,timestamp FROM sensor_device_value_view "
+                              "WHERE sensor_id = ?1 AND timestamp > ?2 AND cluster_id = ?3 limit ?4";
 
-        const char *sql = "SELECT data,timestamp FROM sensor_device_value_view "
-                          "WHERE sensor_id = ?1 AND timestamp > ?2 AND cluster_id = ?3 limit ?4";
+            int rc;
+            int sid = sensor->id().toInt();
+            sqlite3_stmt *res = nullptr;
 
-        int rc;
-        int sid = sensor->id().toInt();
-        sqlite3_stmt *res = nullptr;
-
-        rc = sqlite3_prepare_v2(db, sql, -1, &res, 0);
-        DBG_Assert(res != nullptr);
-        DBG_Assert(rc == SQLITE_OK);
-
-        if (rc == SQLITE_OK)
-        {
-            rc = sqlite3_bind_int(res, 1, sid);
+            rc = sqlite3_prepare_v2(db, sql, -1, &res, nullptr);
+            DBG_Assert(res != nullptr);
             DBG_Assert(rc == SQLITE_OK);
-        }
 
-        if (rc == SQLITE_OK)
-        {
-            rc = sqlite3_bind_int(res, 2, fromTime);
-            DBG_Assert(rc == SQLITE_OK);
-        }
-
-        if (rc == SQLITE_OK)
-        {
-            rc = sqlite3_bind_int(res, 3, found->clusterId);
-            DBG_Assert(rc == SQLITE_OK);
-        }
-
-        if (rc == SQLITE_OK)
-        {
-            rc = sqlite3_bind_int(res, 4, max);
-            DBG_Assert(rc == SQLITE_OK);
-        }
-
-        if (rc != SQLITE_OK)
-        {
-            if (res)
+            if (rc == SQLITE_OK)
             {
-                rc = sqlite3_finalize(res);
+                rc = sqlite3_bind_int(res, 1, sid);
                 DBG_Assert(rc == SQLITE_OK);
             }
-            continue;
+
+            if (rc == SQLITE_OK)
+            {
+                rc = sqlite3_bind_int64(res, 2, fromTime);
+                DBG_Assert(rc == SQLITE_OK);
+            }
+
+            if (rc == SQLITE_OK)
+            {
+                rc = sqlite3_bind_int(res, 3, r->clusterId);
+                DBG_Assert(rc == SQLITE_OK);
+            }
+
+            if (rc == SQLITE_OK)
+            {
+                rc = sqlite3_bind_int(res, 4, max);
+                DBG_Assert(rc == SQLITE_OK);
+            }
+
+            if (rc != SQLITE_OK)
+            {
+                if (res)
+                {
+                    rc = sqlite3_finalize(res);
+                    DBG_Assert(rc == SQLITE_OK);
+                }
+                continue;
+            }
+
+            while (sqlite3_step(res) == SQLITE_ROW)
+            {
+                QVariantMap map;
+                qint64 val = sqlite3_column_int64(res, 0);
+                qint64 timestamp = sqlite3_column_int64(res, 1);
+
+                QDateTime dateTime;
+                dateTime.setMSecsSinceEpoch(timestamp * 1000);
+                map[item->descriptor().suffix] = val;
+                map["t"] = dateTime.toString(QLatin1String("yyyy-MM-ddTHH:mm:ss"));
+                ls.append(map);
+            }
+
+            rc = sqlite3_finalize(res);
+            DBG_Assert(rc == SQLITE_OK);
         }
-
-        while (sqlite3_step(res) == SQLITE_ROW)
-        {
-            QVariantMap map;
-            qint64 val = sqlite3_column_int64(res, 0);
-            qint64 timestamp = sqlite3_column_int64(res, 1);
-
-            QDateTime dateTime;
-            dateTime.setMSecsSinceEpoch(timestamp * 1000);
-            map[item->descriptor().suffix] = val;
-            map["t"] = dateTime.toString(QLatin1String("yyyy-MM-ddTHH:mm:ss"));
-            ls.append(map);
-        }
-
-        rc = sqlite3_finalize(res);
-        DBG_Assert(rc == SQLITE_OK);
+        r++;
     }
 }
 
