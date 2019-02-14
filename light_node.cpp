@@ -383,7 +383,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                     {
                         addItem(DataTypeUInt16, RConfigColorCapabilities);
                         addItem(DataTypeUInt16, RConfigCtMin);
-                        addItem(DataTypeUInt16, RConfigCtMax);
+                        addItem(DataTypeUInt16, RConfigCtMax)->setValue(65535);
                         addItem(DataTypeUInt16, RStateCt);
 
                         if (deviceId == DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT ||
