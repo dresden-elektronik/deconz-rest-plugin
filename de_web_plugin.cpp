@@ -10882,17 +10882,22 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
     }
 
     bool dark = true;
-    Group *group = 0;
+    Group *group = nullptr;
 
     if (ind.dstAddressMode() == deCONZ::ApsGroupAddress)
     {
         group = getGroupForId(ind.dstAddress().group());
     }
 
-    if (zclFrame.commandId() == 0x42) // on with timed off
+    if (zclFrame.commandId() == ONOFF_COMMAND_ON_WITH_TIMED_OFF)
     {
         for (Sensor &s : sensors)
         {
+            if (s.deletedState() != Sensor::StateNormal)
+            {
+                continue;
+            }
+
             if ((s.address().hasExt() && s.address().ext() == ind.srcAddress().ext()) ||
                 (s.address().hasNwk() && s.address().nwk() == ind.srcAddress().nwk()))
             {
@@ -10901,7 +10906,7 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
                      continue;
                 }
                 ResourceItem *item;
-                quint64 delay = 0;
+                qint64 delay = 0;
 
                 if (s.modelId() == QLatin1String("TRADFRI motion sensor") && zclFrame.payload().size() >= 3)
                 {
@@ -10950,6 +10955,8 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
                     Event e(RSensors, RStatePresence, s.id(), item);
                     enqueueEvent(e);
                     enqueueEvent(Event(RSensors, RStateLastUpdated, s.id()));
+
+                    pushZclValueDb(s.address().ext(), s.fingerPrint().endpoint, OCCUPANCY_SENSING_CLUSTER_ID, 0x0000, 1);
                 }
                 item = s.item(RConfigDuration);
                 if (item && item->toNumber() > 0)

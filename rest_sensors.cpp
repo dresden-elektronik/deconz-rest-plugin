@@ -2425,8 +2425,13 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
                     Event e(RSensors, RStatePresence, sensor->id(), item);
                     enqueueEvent(e);
                     enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
-                    for (const quint16 clusterId : sensor->fingerPrint().inClusters)
+                    for (quint16 clusterId : sensor->fingerPrint().inClusters)
                     {
+                        if (sensor->modelId().startsWith(QLatin1String("TRADFRI")))
+                        {
+                            clusterId = OCCUPANCY_SENSING_CLUSTER_ID; // workaround
+                        }
+
                         if (clusterId == IAS_ZONE_CLUSTER_ID || clusterId == OCCUPANCY_SENSING_CLUSTER_ID)
                         {
                             pushZclValueDb(sensor->address().ext(), sensor->fingerPrint().endpoint, clusterId, 0x0000, 0);
