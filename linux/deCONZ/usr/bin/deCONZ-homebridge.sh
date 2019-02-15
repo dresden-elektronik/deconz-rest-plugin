@@ -236,12 +236,11 @@ function checkHomebridge {
 			local p=$(cat /home/$MAINUSER/.homebridge/config.json | grep "pin" | cut -d'"' -f4)
 			local pin="${p:0:3}${p:4:2}${p:7:3}"
 			# write pin from config.json in db
-				putHomebridgeUpdated "homebridgepin" "$pin"
+			putHomebridgeUpdated "homebridgepin" "$pin"
 		else
 			# or create new pin and write it in db
-				local pin=$((10000 + RANDOM % 99999))$((10000 + RANDOM % 99999))
-				putHomebridgeUpdated "homebridgepin" "$pin"
-			done
+			local pin=$((1000 + RANDOM % 9999))$((1000 + RANDOM % 9999))
+			putHomebridgeUpdated "homebridgepin" "$pin"
 		fi
 	fi
 
