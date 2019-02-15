@@ -1,0 +1,10 @@
+[Unit]
+Description=deCONZ: ZigBee gateway -- homebridge install Service
+
+[Service]
+ExecStart=/usr/bin/deCONZ-homebridge-install.sh
+Restart=on-failure
+StartLimitInterval=600
+
+[Install]
+WantedBy=multi-user.target

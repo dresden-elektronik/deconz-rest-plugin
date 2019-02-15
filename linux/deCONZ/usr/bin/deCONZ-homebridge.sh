@@ -143,17 +143,15 @@ function checkNewDevices() {
 
 function checkHomebridge {
 
-	local PROXY_ADDRESS=""
-	local PROXY_PORT=""
 	local HOMEBRIDGE=""
 	local IP_ADDRESS=""
 	local HOMEBRIDGE_PIN=""
 
 	## get database config
-	params=( [0]="homebridge" [1]="proxyaddress" [2]="proxyport" [3]="ipaddress" [4]="homebridge-pin")
+	params=( [0]="homebridge" [1]="ipaddress" [2]="homebridge-pin")
 	values=()
 
-	for i in {0..4}; do
+	for i in {0..2}; do
 		param=${params[$i]}
 		RC=1
 		while [ $RC -ne 0 ]; do
@@ -176,22 +174,24 @@ function checkHomebridge {
 		[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}missing parameter 'homebridge'"
 		return
 	fi
-	if [ -z "${values[3]}" ]; then
+	if [ -z "${values[1]}" ]; then
 		[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}missing parameter 'ipaddress'"
 		return
 	fi
 
 	HOMEBRIDGE="${values[0]}" # disabled | managed | not-managed | reset
-	PROXY_ADDRESS="${values[1]}"
-	PROXY_PORT="${values[2]}"
-	IP_ADDRESS="${values[3]}"
-	HOMEBRIDGE_PIN="${values[4]}"
+	IP_ADDRESS="${values[1]}"
+	HOMEBRIDGE_PIN="${values[2]}"
 
 	if [[ "$HOMEBRIDGE" == "disabled" ]]; then
 		systemctl -q is-active homebridge
 		if [ $? -eq 0 ]; then
 			systemctl stop homebridge
 			systemctl disable homebridge
+		fi
+		systemctl -q is-active deconz-homebridge-install
+		if [ $? -eq 0 ]; then
+			systemctl stop deconz-homebridge-install
 		fi
 		pkill homebridge
 		return
@@ -244,12 +244,24 @@ function checkHomebridge {
 		fi
 	fi
 
+	if [[ "$HOMEBRIDGE" != "disabled" && "$HOMEBRIDGE" != "not-managed" ]]; then
+		systemctl -q is-active deconz-homebridge-install
+		if [ $? -ne 0 ]; then
+			systemctl restart deconz-homebridge-install
+		fi
+	fi
+
 	## check installed components
 	hb_installed=false
 	hb_hue_installed=false
 	node_installed=false
 	npm_installed=false
 	node_ver=""
+
+	which npm &> /dev/null
+	if [ $? -eq 0 ]; then
+		npm_installed=true
+	fi
 
 	which homebridge &> /dev/null
 	if [ $? -eq 0 ]; then
@@ -272,127 +284,12 @@ function checkHomebridge {
 		[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG} nodejs ver. $node_ver"
 	fi
 
-	if [[ $hb_installed = false || $hb_hue_installed = false || $node_installed = false ]]; then
-		[[ $LOG_INFO ]] && echo "${LOG_INFO}check inet connectivity"
-
-		if [[ "$HOMEBRIDGE" != "installing" ]]; then
-			putHomebridgeUpdated "homebridge" "installing"
-		fi
-
-		curl --head --connect-timeout 20 -k https://www.phoscon.de &> /dev/null
-		if [ $? -ne 0 ]; then
-			if [[ ! -z "$PROXY_ADDRESS" && ! -z "$PROXY_PORT" && "$PROXY_ADDRESS" != "none" ]]; then
-				export http_proxy="http://${PROXY_ADDRESS}:${PROXY_PORT}"
-				export https_proxy="http://${PROXY_ADDRESS}:${PROXY_PORT}"
-				[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}set proxy: ${PROXY_ADDRESS}:${PROXY_PORT}"
-			else
-				[[ $LOG_WARN ]] && echo "${LOG_WARN}no internet connection. Abort homebridge installation."
-				if [[ "$HOMEBRIDGE" != "install-error" ]]; then
-					putHomebridgeUpdated "homebridge" "install-error"
-				fi
-				return
-			fi
-		fi
-
-		# install nodejs if not installed or if version < 10
-		if [[ $node_installed = false ]]; then
-		# example for getting it worked on rpi1 and 0
-		# if armv6
-			#wget node 8.12.0
-			#cp -R to /usr/local
-			#PATH=usr/local/bin/
-			#link nodejs to node
-		# else
-			curl -sL https://deb.nodesource.com/setup_10.x | bash -
-			if [ $? -eq 0 ]; then
-				apt-get install -y nodejs
-				if [ $? -ne 0 ]; then
-					[[ $LOG_WARN ]] && echo "${LOG_WARN}could not install nodejs"
-					if [[ "$HOMEBRIDGE" != "install-error" ]]; then
-						putHomebridgeUpdated "homebridge" "install-error"
-					fi
-					return
-				fi
-			else
-				[[ $LOG_WARN ]] && echo "${LOG_WARN}could not download node setup."
-				if [[ "$HOMEBRIDGE" != "install-error" ]]; then
-					putHomebridgeUpdated "homebridge" "install-error"
-				fi
-				return
-			fi
-		# fi
-		else
-		    if [ $node_ver -lt 8 ]; then
-			    curl -sL https://deb.nodesource.com/setup_8.x | bash -
-				if [ $? -eq 0 ]; then
-					apt-get install -y nodejs
-					if [ $? -ne 0 ]; then
-						[[ $LOG_WARN ]] && echo "${LOG_WARN}could not install nodejs"
-						if [[ "$HOMEBRIDGE" != "install-error" ]]; then
-							putHomebridgeUpdated "homebridge" "install-error"
-						fi
-						return
-					fi
-				else
-					[[ $LOG_WARN ]] && echo "${LOG_WARN}could not download node setup."
-					if [[ "$HOMEBRIDGE" != "install-error" ]]; then
-						putHomebridgeUpdated "homebridge" "install-error"
-					fi
-					return
-				fi
-		    fi
-		fi
-
-		# install npm if not installed
-		which npm
-		if [ $? -eq 0 ]; then
-			npm_installed=true
-		fi
-
-		if [[ $npm_installed = false ]]; then
-			apt-get install -y npm
-			if [ $? -ne 0 ]; then
-				[[ $LOG_WARN ]] && echo "${LOG_WARN}could not install npm"
-				if [[ "$HOMEBRIDGE" != "install-error" ]]; then
-					putHomebridgeUpdated "homebridge" "install-error"
-				fi
-				return
-			fi
-		fi
-
-		# install homebridge if not installed
-		if [[ $hb_installed = false ]]; then
-			npm -g install npm@latest
-			if [ $? -eq 0 ]; then
-				npm -g install homebridge --unsafe-perm
-				if [ $? -ne 0 ]; then
-					[[ $LOG_WARN ]] && echo "${LOG_WARN}could not install homebridge"
-					if [[ "$HOMEBRIDGE" != "install-error" ]]; then
-						putHomebridgeUpdated "homebridge" "install-error"
-					fi
-					return
-				fi
-			else
-				[[ $LOG_WARN ]] && echo "${LOG_WARN}could not update npm"
-				if [[ "$HOMEBRIDGE" != "install-error" ]]; then
-					putHomebridgeUpdated "homebridge" "install-error"
-				fi
-				return
-			fi
-		fi
-
-		# install homebridge-hue if not installed
-		if [[ $hb_hue_installed = false ]]; then
-			npm -g install homebridge-hue
-			if [ $? -ne 0 ]; then
-				[[ $LOG_WARN ]] && echo "${LOG_WARN}could not install homebridge hue"
-				if [[ "$HOMEBRIDGE" != "install-error" ]]; then
-					putHomebridgeUpdated "homebridge" "install-error"
-				fi
-				return
-			fi
-		fi
+	if [[ $hb_installed = false || $hb_hue_installed = false || $node_installed = false || $npm_installed = false ]]; then
+		[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}Not everything installed yet. Waiting..."
+		return
 	fi
+
+	sleep 5
 
 	RC=1
 	while [ $RC -ne 0 ]; do
