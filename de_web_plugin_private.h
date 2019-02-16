@@ -268,6 +268,7 @@
 #define VENDOR_INSTA        0x117A
 #define VENDOR_IKEA         0x117C
 #define VENDOR_BUSCH_JAEGER 0x112E
+#define VENDOR_119C         0x119C // Used by Sinope
 #define VENDOR_PAULMANN     0x119D
 #define VENDOR_120B         0x120B // Used by Heiman
 #define VENDOR_MUELLER      0x121B // Used by Mueller Licht

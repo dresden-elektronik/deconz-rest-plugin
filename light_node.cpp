@@ -482,6 +482,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
             case DEV_ID_Z30_DIMMABLE_PLUGIN_UNIT: ltype = QLatin1String("Dimmable plug-in unit"); break;
             case DEV_ID_HA_DIMMABLE_LIGHT:        ltype = QLatin1String("Dimmable light"); break;
             case DEV_ID_HA_COLOR_DIMMABLE_LIGHT:  ltype = QLatin1String("Color dimmable light"); break;
+            case DEV_ID_HA_DIMMER_SWITCH:         ltype = QLatin1String("Dimmer switch"); break;
             case DEV_ID_ZLL_ONOFF_LIGHT:          ltype = QLatin1String("On/Off light"); break;
             case DEV_ID_SMART_PLUG:               ltype = QLatin1String("Smart plug"); break;
             case DEV_ID_ZLL_COLOR_LIGHT:             ltype = QLatin1String("Color light"); break;
