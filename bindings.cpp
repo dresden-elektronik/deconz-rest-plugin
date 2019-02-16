@@ -1380,6 +1380,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturerCode() == VENDOR_XAL)
         {
         }
+        else if (lightNode->manufacturerCode() == VENDOR_119C)
+        {
+        }
         else if (lightNode->modelId() == QLatin1String("SP 120"))
         {
         }
