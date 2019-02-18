@@ -15055,10 +15055,16 @@ void DeRestPluginPrivate::pollNextDevice()
 
     RestNodeBase *restNode = nullptr;
 
-    if (!pollNodes.empty())
+    while (!pollNodes.empty())
     {
         restNode = pollNodes.front();
         pollNodes.pop_front();
+
+        DBG_Assert(restNode);
+        if (restNode && restNode->isAvailable())
+        {
+            break;
+        }
     }
 
     if (pollNodes.empty()) // TODO time based
