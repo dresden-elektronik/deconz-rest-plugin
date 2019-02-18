@@ -260,7 +260,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     gwWebSocketNotifyAll = true;
 
     // preallocate memory to get consistent pointers
-    nodes.reserve(150);
+    nodes.reserve(300);
     sensors.reserve(150);
 
     fastProbeTimer = new QTimer(this);
@@ -15055,10 +15055,16 @@ void DeRestPluginPrivate::pollNextDevice()
 
     RestNodeBase *restNode = nullptr;
 
-    if (!pollNodes.empty())
+    while (!pollNodes.empty())
     {
         restNode = pollNodes.front();
         pollNodes.pop_front();
+
+        DBG_Assert(restNode);
+        if (restNode && restNode->isAvailable())
+        {
+            break;
+        }
     }
 
     if (pollNodes.empty()) // TODO time based

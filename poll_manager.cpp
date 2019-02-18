@@ -206,7 +206,7 @@ void PollManager::pollTimerFired()
     if (items.empty())
     {
         pollState = StateDone;
-        timer->start(50);
+        timer->start(500);
         return;
     }
 
