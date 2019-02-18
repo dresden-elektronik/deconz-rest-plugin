@@ -260,7 +260,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     gwWebSocketNotifyAll = true;
 
     // preallocate memory to get consistent pointers
-    nodes.reserve(150);
+    nodes.reserve(300);
     sensors.reserve(150);
 
     fastProbeTimer = new QTimer(this);
