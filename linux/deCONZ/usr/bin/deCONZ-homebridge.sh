@@ -222,13 +222,24 @@ function checkHomebridge {
 	if [[ -z $HOMEBRIDGE_AUTH ]]; then
 		# generate a new deconz apikey for homebridge-hue
 		addUser
+		if [[ "$HOMEBRIDGE" != "managed" ]]; then
+			putHomebridgeUpdated "homebridge" "managed"
+			HOMEBRIDGE="managed"
+		fi
 	else
 		# homebridge-hue apikey exists
 		if [ -z $(echo $HOMEBRIDGE_AUTH | grep deconz) ]; then
+			# homebridge-hue apikey is not made by this script
 			if [[ "$HOMEBRIDGE" != "not-managed" ]]; then
 				putHomebridgeUpdated "homebridge" "not-managed"
+				HOMEBRIDGE="not-managed"
 			fi
 			[[ $LOG_INFO ]] && echo "${LOG_INFO}existing homebridge hue auth found"
+		else
+			if [[ "$HOMEBRIDGE" != "managed" ]]; then
+				putHomebridgeUpdated "homebridge" "managed"
+				HOMEBRIDGE="managed"
+			fi
         fi
 	fi
 	if [[ -z "$HOMEBRIDGE_PIN" ]]; then
