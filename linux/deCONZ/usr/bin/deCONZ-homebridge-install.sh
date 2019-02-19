@@ -1,7 +1,7 @@
 #!/bin/bash
 
 TIMEOUT=0
-LOG_LEVEL=4
+LOG_LEVEL=3
 ZLLDB=""
 OWN_PID=$$
 MAINUSER=$(getent passwd 1000 | cut -d: -f1)
@@ -228,8 +228,70 @@ function installHomebridge {
 	fi
 }
 
+function checkUpdate {
+
+	[[ $LOG_INFO ]] && echo "${LOG_INFO}check for homebridge updates"
+	hb_version=""
+	hb_hue_version=""
+
+	hb_version=$(homebridge --version)
+	if [ -f "/usr/lib/node_modules/homebridge-hue/package.json" ]; then
+		hb_hue_version=$(cat /usr/lib/node_modules/homebridge-hue/package.json | grep \"version\": | cut -d'"' -f 4)
+		if [[ ! "$hb_hue_version" =~ "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" ]]
+			hb_hue_version=""
+		fi
+	fi
+	#TODO: check node vesion
+	#TODO: check npm version
+
+	latest_hb_version=$(npm show homebridge version)
+	if [ $? -ne 0 ]; then
+		[[ $LOG_WARN ]] && echo "${LOG_WARN}could not query latest homebridge version"
+		return
+	fi
+
+	latest_hb_hue_version=$(npm show homebridge-hue version)
+	if [ $? -ne 0 ]; then
+		[[ $LOG_WARN ]] && echo "${LOG_WARN}could not query latest homebridge-hue version"
+		return
+	fi
+
+	# update homebridge and npm
+	if [[ "$hb_version" != "$latest_hb_version" ]]; then
+		[[ $LOG_INFO ]] && echo "${LOG_INFO}installed homebridge version: $hb_version - latest: $latest_hb_version"
+		[[ $LOG_INFO ]] && echo "${LOG_INFO}update homebridge"
+
+		npm -g install npm@latest
+		if [ $? -eq 0 ]; then
+			npm -g install homebridge --unsafe-perm
+			if [ $? -ne 0 ]; then
+				[[ $LOG_WARN ]] && echo "${LOG_WARN}could not update homebridge"
+			else
+				putHomebridgeUpdated "homebridge" "updated"
+			fi
+		else
+			[[ $LOG_WARN ]] && echo "${LOG_WARN}could not update npm"
+		fi
+	fi
+
+	# update homebridge hue
+	if [[ "$hb_hue_version" != "" && "$hb_hue_version" != "$latest_hb_hue_version" ]]; then
+		[[ $LOG_INFO ]] && echo "${LOG_INFO}installed homebridge-hue version: $hb_version - latest: $latest_hb_version"
+		[[ $LOG_INFO ]] && echo "${LOG_INFO}update homebridge-hue"
+
+		npm -g install homebridge-hue
+		if [ $? -ne 0 ]; then
+			[[ $LOG_WARN ]] && echo "${LOG_WARN}could not update homebridge hue"
+		else
+			putHomebridgeUpdated "homebridge" "updated"
+		fi
+	fi
+}
+
 # break loop on SIGUSR1
 trap 'TIMEOUT=0' SIGUSR1
+
+COUNTER=0
 
 while [ 1 ]
 do
@@ -250,4 +312,11 @@ do
 	[[ -z "$DECONZ_PORT" ]] && continue
 
     installHomebridge
+
+    COUNTER=$((COUNTER + 1))
+	if [ $COUNTER -ge 60 ]; then
+		# check for updates every hour
+		COUNTER=0
+		checkUpdate
+	fi
 done

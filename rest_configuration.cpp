@@ -3262,6 +3262,15 @@ int DeRestPluginPrivate::putHomebridgeUpdated(const ApiRequest &req, ApiResponse
         }
     }
 
+    else if (homebridge == QLatin1String("updated"))
+    {
+        if (gwHomebridge != homebridge)
+        {
+            gwHomebridge = homebridge;
+            changed = true;
+        }
+    }
+
     if (map.contains("homebridgepin"))
     {
         homebridgePin = map["homebridgepin"].toString();

@@ -209,6 +209,11 @@ function checkHomebridge {
 		rm -rf /home/$MAINUSER/.homebridge/config.json
 	fi
 
+	if [[ "$HOMEBRIDGE" == "updated" ]]; then
+		pkill homebridge
+		sleep 5
+	fi
+
 	## check if apikey already exist or create a new apikey for homebridge apps
 	RC=1
 	while [ $RC -ne 0 ]; do
@@ -236,7 +241,7 @@ function checkHomebridge {
 			fi
 			[[ $LOG_INFO ]] && echo "${LOG_INFO}existing homebridge hue auth found"
 		else
-			if [[ "$HOMEBRIDGE" != "managed" ]]; then
+			if [[ "$HOMEBRIDGE" != "managed" && "$HOMEBRIDGE" != "installing" && "$HOMEBRIDGE" != "install-error" ]]; then
 				putHomebridgeUpdated "homebridge" "managed"
 				HOMEBRIDGE="managed"
 			fi
