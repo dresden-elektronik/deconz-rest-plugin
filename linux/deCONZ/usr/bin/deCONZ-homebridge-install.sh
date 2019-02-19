@@ -234,10 +234,22 @@ function checkUpdate {
 	hb_version=""
 	hb_hue_version=""
 
+	curl --head --connect-timeout 20 -k https://www.npmjs.com/ &> /dev/null
+	if [ $? -ne 0 ]; then
+		if [[ ! -z "$PROXY_ADDRESS" && ! -z "$PROXY_PORT" && "$PROXY_ADDRESS" != "none" ]]; then
+			export http_proxy="http://${PROXY_ADDRESS}:${PROXY_PORT}"
+			export https_proxy="http://${PROXY_ADDRESS}:${PROXY_PORT}"
+			[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}set proxy: ${PROXY_ADDRESS}:${PROXY_PORT}"
+		else
+			[[ $LOG_WARN ]] && echo "${LOG_WARN}no internet connection. Abort update check."
+			return
+		fi
+	fi
+
 	hb_version=$(homebridge --version)
 	if [ -f "/usr/lib/node_modules/homebridge-hue/package.json" ]; then
 		hb_hue_version=$(cat /usr/lib/node_modules/homebridge-hue/package.json | grep \"version\": | cut -d'"' -f 4)
-		if [[ ! "$hb_hue_version" =~ "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" ]]
+		if [[ ! "$hb_hue_version" =~ "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" ]]; then
 			hb_hue_version=""
 		fi
 	fi
