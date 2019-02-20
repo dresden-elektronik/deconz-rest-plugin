@@ -248,8 +248,8 @@ function checkUpdate {
 
 	hb_version=$(homebridge --version)
 	if [ -f "/usr/lib/node_modules/homebridge-hue/package.json" ]; then
-		hb_hue_version=$(cat /usr/lib/node_modules/homebridge-hue/package.json | grep \"version\": | cut -d'"' -f 4)
-		if [[ ! "$hb_hue_version" =~ "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" ]]; then
+		hb_hue_version=$(cat /usr/lib/node_modules/homebridge-hue/package.json | grep \"version\": | cut -d'"' -f 4 | tr -d '[:space:]')
+		if [[ ! $hb_hue_version =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
 			hb_hue_version=""
 		fi
 	fi
@@ -288,7 +288,7 @@ function checkUpdate {
 
 	# update homebridge hue
 	if [[ "$hb_hue_version" != "" && "$hb_hue_version" != "$latest_hb_hue_version" ]]; then
-		[[ $LOG_INFO ]] && echo "${LOG_INFO}installed homebridge-hue version: $hb_version - latest: $latest_hb_version"
+		[[ $LOG_INFO ]] && echo "${LOG_INFO}installed homebridge-hue version: $hb_hue_version - latest: $latest_hb_hue_version"
 		[[ $LOG_INFO ]] && echo "${LOG_INFO}update homebridge-hue"
 
 		npm -g install homebridge-hue
