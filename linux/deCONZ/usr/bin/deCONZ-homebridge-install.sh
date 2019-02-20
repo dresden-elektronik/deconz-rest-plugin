@@ -8,6 +8,9 @@ MAINUSER=$(getent passwd 1000 | cut -d: -f1)
 DECONZ_CONF_DIR="/home/$MAINUSER/.local/share"
 DECONZ_PORT=
 
+PROXY_ADDRESS=""
+PROXY_PORT=""
+
 LOG_EMERG=
 LOG_ALERT=
 LOG_CRIT=
@@ -68,9 +71,6 @@ function init {
 }
 
 function installHomebridge {
-
-	local PROXY_ADDRESS=""
-	local PROXY_PORT=""
 
 	## get database config
 	params=( [0]="proxyaddress" [1]="proxyport" )
