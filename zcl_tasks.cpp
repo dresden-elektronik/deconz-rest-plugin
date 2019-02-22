@@ -909,7 +909,7 @@ bool DeRestPluginPrivate::addTaskTriggerEffect(TaskItem &task, uint8_t effectIde
         stream.setByteOrder(QDataStream::LittleEndian);
 
         stream << task.effectIdentifier;
-        stream << 0x00; // default effectVariant
+        stream << (uint8_t) 0x00; // default effectVariant
     }
 
     { // ZCL frame
