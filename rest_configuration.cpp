@@ -406,17 +406,24 @@ void DeRestPluginPrivate::initWiFi()
     QList<QNetworkInterface>::Iterator i = ifaces.begin();
     QList<QNetworkInterface>::Iterator end = ifaces.end();
 
-    bool wlan0 = false;
+    bool wifiAvailable = false;
     // only show wifi if wlan0 interface is found
     for (; i != end; ++i)
     {
         if (i->name() == QLatin1String("wlan0"))
         {
-            wlan0 = true;
+            wifiAvailable = true;
         }
     }
+    // or rpi3 is used
+    // 3A+ = 9020e0; 3B+ = a020d3; 3B(Embest) = a22082; 3B(Sony UK) = a02082; 3B(Sony Jp) = a32082; 3B(Stadium) = a52082;
+    if (piRevision == "9020e0" || piRevision == "a020d3" || piRevision == "a22082" ||
+        piRevision == "a02082" || piRevision == "a32082" || piRevision == "a52082")
+    {
+        wifiAvailable = true;
+    }
 
-    if (!wlan0)
+    if (!wifiAvailable)
     {
         gwWifi = QLatin1String("not-available");
         return;
