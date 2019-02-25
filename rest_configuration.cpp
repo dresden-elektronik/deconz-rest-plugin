@@ -2906,13 +2906,27 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
 
         if (!workingpw.isEmpty() && gwWifiWorkingPw != workingpw)
         {
-            gwWifiWorkingPw = workingpw;
+            if (gwWifi == "not-configured")
+            {
+                gwWifiWorkingPw = QString();
+            }
+            else
+            {
+                gwWifiWorkingPw = workingpw;
+            }
             changed = true;
         }
 
         if (!wifipw.isEmpty() && gwWifiPw != wifipw)
         {
-            gwWifiPw = wifipw;
+            if (gwWifi == "not-configured")
+            {
+                gwWifiPw = QString();
+            }
+            else
+            {
+                gwWifiPw = wifipw;
+            }
             changed = true;
         }
 
@@ -2943,7 +2957,14 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
             }
             if (!workingpw.isEmpty() && gwWifiBackupPw != workingpw)
             {
-                gwWifiBackupPw = workingpw;
+                if (gwWifi == "not-configured")
+                {
+                    gwWifiBackupPw = QString();
+                }
+                else
+                {
+                    gwWifiBackupPw = workingpw;
+                }
                 changed = true;
             }
         }
