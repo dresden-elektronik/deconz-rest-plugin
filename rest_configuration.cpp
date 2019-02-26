@@ -2882,6 +2882,9 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
         QString wifiname;
         QString wifitype;
         QString wifi;
+        QString wifipwenc;
+        QString workingpwenc;
+        QString wifibackuppwenc;
 
         if (map.contains("workingtype")) { workingtype = map["workingtype"].toString(); }
         if (map.contains("workingname")) { workingname = map["workingname"].toString(); }
@@ -2890,6 +2893,9 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
         if (map.contains("wifiname")) { wifiname = map["wifiname"].toString(); }
         if (map.contains("wifitype")) { wifitype = map["wifitype"].toString(); }
         if (map.contains("wifi")) { wifi = map["wifi"].toString(); }
+        if (map.contains("wifipwenc")) { wifipwenc = map["wifipwenc"].toString(); }
+        if (map.contains("workingpwenc")) { workingpwenc = map["workingpwenc"].toString(); }
+        if (map.contains("wifibackuppwenc")) { wifipwenc = map["wifibackuppwenc"].toString(); }
 
         bool changed = false;
         if (!workingtype.isEmpty() && gwWifiWorkingType != workingtype)
@@ -2967,6 +2973,48 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
                 }
                 changed = true;
             }
+        }
+
+        if (!wifipwenc.isEmpty() && gwWifiPwEnc != wifipwenc)
+        {
+            if (gwWifi == "not-configured")
+            {
+                gwWifiPwEnc = QString();
+            }
+            else
+            {
+                gwWifiPwEnc = wifipwenc;
+                gwWifiPw = QString();
+            }
+            changed = true;
+        }
+
+        if (!workingpwenc.isEmpty() && gwWifiWorkingPwEnc != workingpwenc)
+        {
+            if (gwWifi == "not-configured")
+            {
+                gwWifiWorkingPwEnc = QString();
+            }
+            else
+            {
+                gwWifiWorkingPwEnc = workingpwenc;
+                gwWifiWorkingPw = QString();
+            }
+            changed = true;
+        }
+
+        if (!wifibackuppwenc.isEmpty() && gwWifiBackupPwEnc != wifibackuppwenc)
+        {
+            if (gwWifi == "not-configured")
+            {
+                gwWifiBackupPwEnc = QString();
+            }
+            else
+            {
+                gwWifiBackupPwEnc = wifibackuppwenc;
+                gwWifiBackupPw = QString();
+            }
+            changed = true;
         }
 
         if (changed)
