@@ -3158,19 +3158,19 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
         }
 
         bool changed = false;
-        if (gwWifiName != "undefined")
+        if (gwWifiName != "invalid")
         {
-            gwWifiName = "undefined";
+            gwWifiName = "invalid";
             changed = true;
         }
-        if (gwWifiPw != "undefined")
+        if (gwWifiPw != "invalid")
         {
-            gwWifiPw = "undefined";
+            gwWifiPw = "invalid";
             changed = true;
         }
-        if (gwWifiType != "undefined")
+        if (gwWifiType != "invalid")
         {
-            gwWifiType = "undefined";
+            gwWifiType = "invalid";
             changed = true;
         }
         gwWifiWorkingName = QString();
@@ -3194,19 +3194,19 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
         }
 
         bool changed = false;
-        if (gwWifiName != "undefined")
+        if (gwWifiName != "invalid")
         {
-            gwWifiName = "undefined";
+            gwWifiName = "invalid";
             changed = true;
         }
-        if (gwWifiPw != "undefined")
+        if (gwWifiPw != "invalid")
         {
-            gwWifiPw = "undefined";
+            gwWifiPw = "invalid";
             changed = true;
         }
-        if (gwWifiType != "undefined")
+        if (gwWifiType != "invalid")
         {
-            gwWifiType = "undefined";
+            gwWifiType = "invalid";
             changed = true;
         }
         gwWifiWorkingName = QString();
