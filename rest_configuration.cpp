@@ -2895,7 +2895,7 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
         if (map.contains("wifi")) { wifi = map["wifi"].toString(); }
         if (map.contains("wifipwenc")) { wifipwenc = map["wifipwenc"].toString(); }
         if (map.contains("workingpwenc")) { workingpwenc = map["workingpwenc"].toString(); }
-        if (map.contains("wifibackuppwenc")) { wifipwenc = map["wifibackuppwenc"].toString(); }
+        if (map.contains("wifibackuppwenc")) { wifibackuppwenc = map["wifibackuppwenc"].toString(); }
 
         bool changed = false;
         if (!workingtype.isEmpty() && gwWifiWorkingType != workingtype)
