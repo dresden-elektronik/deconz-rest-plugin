@@ -2954,6 +2954,25 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
             changed = true;
         }
 
+        if (wifi == "not-configured")
+        {
+            if (!gwWifiPw.isEmpty())
+            {
+                gwWifiPw = QString();
+                changed = true;
+            }
+            if (!gwWifiWorkingPw.isEmpty())
+            {
+                gwWifiWorkingPw = QString();
+                changed = true;
+            }
+            if (!gwWifiBackupPw.isEmpty())
+            {
+                gwWifiBackupPw = QString();
+                changed = true;
+            }
+        }
+
         if (workingtype == "accesspoint")
         {
             if (!workingname.isEmpty() && gwWifiBackupName != workingname)
