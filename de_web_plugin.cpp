@@ -184,6 +184,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_VISONIC, "MCT-340", emberMacPrefix }, // Visonic MCT-340 E temperature/motion
     { VENDOR_1224, "ICZB-KPD1", emberMacPrefix }, // iCasa keypad
     { VENDOR_JENNIC, "SPZB0001", jennicMacPrefix }, // Eurotronic thermostat
+    { VENDOR_NONE, "RES001", tiMacPrefix }, // Hubitat environment sensor, see #1308
     { 0, nullptr, 0 }
 };
 
