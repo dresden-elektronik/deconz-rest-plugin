@@ -1412,10 +1412,14 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                         if (hasServerOnOff)
                         {
                             if (checkMacVendor(node->address(), VENDOR_JENNIC) &&
+                                // prevent false positives like Immax IM-Z3.0-DIM which has only two endpoints (0x01)
+                                // lumi.ctrl_neutral1 and lumi.ctrl_neutral2 have more 5 endpoints
+                                node->simpleDescriptors().size() > 5  &&
                                 node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC && i->endpoint() != 0x02 && i->endpoint() != 0x03)
                             {
                                 // TODO better filter for lumi. devices (i->deviceId(), modelid?)
-                                // blacklist switch endpoints for lumi.ctrl_neutral1 and lumi.ctrl_neutral1
+                                // blacklist switch endpoints for lumi.ctrl_neutral1 and lumi.ctrl_neutral2
+                                DBG_Printf(DBG_INFO, "Skip load endpoint 0x%02X for 0x%016llX (expect: lumi.ctrl_neutral1 / lumi.ctrl_neutral2)\n", i->endpoint(), node->address().ext());
                             }
                             else
                             {
