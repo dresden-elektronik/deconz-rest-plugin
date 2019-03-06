@@ -399,9 +399,8 @@ function checkHomebridge {
 	process=$(ps -ax | grep " homebridge$")
 	if [ -z "$process" ]; then
 		[[ $LOG_INFO ]] && echo "${LOG_INFO}starting homebridge"
-		if [[ "$HOMEBRIDGE" != "managed" ]]; then
-			putHomebridgeUpdated "homebridge" "managed"
-		fi
+		putHomebridgeUpdated "homebridge" "managed"
+
 		homebridge -U /home/$MAINUSER/.homebridge &
 	fi
 
