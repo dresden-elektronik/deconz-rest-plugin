@@ -187,7 +187,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 if (sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
                 {
                     quint8 valve = attr.numericValue().u8;
-                    bool on = valve > 0;
+                    bool on = valve > 3;
                     item = sensor->item(RStateOn);
                     if (item)
                     {
