@@ -209,6 +209,11 @@ function checkHomebridge {
 		rm -rf /home/$MAINUSER/.homebridge/config.json
 	fi
 
+	if [[ "$HOMEBRIDGE" == "updated" ]]; then
+		pkill homebridge
+		sleep 5
+	fi
+
 	## check if apikey already exist or create a new apikey for homebridge apps
 	RC=1
 	while [ $RC -ne 0 ]; do
@@ -222,13 +227,24 @@ function checkHomebridge {
 	if [[ -z $HOMEBRIDGE_AUTH ]]; then
 		# generate a new deconz apikey for homebridge-hue
 		addUser
+		if [[ "$HOMEBRIDGE" != "managed" ]]; then
+			putHomebridgeUpdated "homebridge" "managed"
+			HOMEBRIDGE="managed"
+		fi
 	else
 		# homebridge-hue apikey exists
 		if [ -z $(echo $HOMEBRIDGE_AUTH | grep deconz) ]; then
+			# homebridge-hue apikey is not made by this script
 			if [[ "$HOMEBRIDGE" != "not-managed" ]]; then
 				putHomebridgeUpdated "homebridge" "not-managed"
+				HOMEBRIDGE="not-managed"
 			fi
 			[[ $LOG_INFO ]] && echo "${LOG_INFO}existing homebridge hue auth found"
+		else
+			if [[ "$HOMEBRIDGE" != "managed" && "$HOMEBRIDGE" != "installing" && "$HOMEBRIDGE" != "install-error" ]]; then
+				putHomebridgeUpdated "homebridge" "managed"
+				HOMEBRIDGE="managed"
+			fi
         fi
 	fi
 	if [[ -z "$HOMEBRIDGE_PIN" ]]; then
@@ -383,9 +399,8 @@ function checkHomebridge {
 	process=$(ps -ax | grep " homebridge$")
 	if [ -z "$process" ]; then
 		[[ $LOG_INFO ]] && echo "${LOG_INFO}starting homebridge"
-		if [[ "$HOMEBRIDGE" != "managed" ]]; then
-			putHomebridgeUpdated "homebridge" "managed"
-		fi
+		putHomebridgeUpdated "homebridge" "managed"
+
 		homebridge -U /home/$MAINUSER/.homebridge &
 	fi
 

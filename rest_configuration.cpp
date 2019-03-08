@@ -406,17 +406,24 @@ void DeRestPluginPrivate::initWiFi()
     QList<QNetworkInterface>::Iterator i = ifaces.begin();
     QList<QNetworkInterface>::Iterator end = ifaces.end();
 
-    bool wlan0 = false;
+    bool wifiAvailable = false;
     // only show wifi if wlan0 interface is found
     for (; i != end; ++i)
     {
         if (i->name() == QLatin1String("wlan0"))
         {
-            wlan0 = true;
+            wifiAvailable = true;
         }
     }
+    // or rpi3 is used
+    // 3A+ = 9020e0; 3B+ = a020d3; 3B(Embest) = a22082; 3B(Sony UK) = a02082; 3B(Sony Jp) = a32082; 3B(Stadium) = a52082;
+    if (piRevision == "9020e0" || piRevision == "a020d3" || piRevision == "a22082" ||
+        piRevision == "a02082" || piRevision == "a32082" || piRevision == "a52082")
+    {
+        wifiAvailable = true;
+    }
 
-    if (!wlan0)
+    if (!wifiAvailable)
     {
         gwWifi = QLatin1String("not-available");
         return;
@@ -2875,6 +2882,9 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
         QString wifiname;
         QString wifitype;
         QString wifi;
+        QString wifipwenc;
+        QString workingpwenc;
+        QString wifibackuppwenc;
 
         if (map.contains("workingtype")) { workingtype = map["workingtype"].toString(); }
         if (map.contains("workingname")) { workingname = map["workingname"].toString(); }
@@ -2883,6 +2893,9 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
         if (map.contains("wifiname")) { wifiname = map["wifiname"].toString(); }
         if (map.contains("wifitype")) { wifitype = map["wifitype"].toString(); }
         if (map.contains("wifi")) { wifi = map["wifi"].toString(); }
+        if (map.contains("wifipwenc")) { wifipwenc = map["wifipwenc"].toString(); }
+        if (map.contains("workingpwenc")) { workingpwenc = map["workingpwenc"].toString(); }
+        if (map.contains("wifibackuppwenc")) { wifibackuppwenc = map["wifibackuppwenc"].toString(); }
 
         bool changed = false;
         if (!workingtype.isEmpty() && gwWifiWorkingType != workingtype)
@@ -2899,13 +2912,27 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
 
         if (!workingpw.isEmpty() && gwWifiWorkingPw != workingpw)
         {
-            gwWifiWorkingPw = workingpw;
+            if (gwWifi == "not-configured")
+            {
+                gwWifiWorkingPw = QString();
+            }
+            else
+            {
+                gwWifiWorkingPw = workingpw;
+            }
             changed = true;
         }
 
         if (!wifipw.isEmpty() && gwWifiPw != wifipw)
         {
-            gwWifiPw = wifipw;
+            if (gwWifi == "not-configured")
+            {
+                gwWifiPw = QString();
+            }
+            else
+            {
+                gwWifiPw = wifipw;
+            }
             changed = true;
         }
 
@@ -2927,6 +2954,25 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
             changed = true;
         }
 
+        if (wifi == "not-configured")
+        {
+            if (!gwWifiPw.isEmpty())
+            {
+                gwWifiPw = QString();
+                changed = true;
+            }
+            if (!gwWifiWorkingPw.isEmpty())
+            {
+                gwWifiWorkingPw = QString();
+                changed = true;
+            }
+            if (!gwWifiBackupPw.isEmpty())
+            {
+                gwWifiBackupPw = QString();
+                changed = true;
+            }
+        }
+
         if (workingtype == "accesspoint")
         {
             if (!workingname.isEmpty() && gwWifiBackupName != workingname)
@@ -2936,9 +2982,58 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
             }
             if (!workingpw.isEmpty() && gwWifiBackupPw != workingpw)
             {
-                gwWifiBackupPw = workingpw;
+                if (gwWifi == "not-configured")
+                {
+                    gwWifiBackupPw = QString();
+                }
+                else
+                {
+                    gwWifiBackupPw = workingpw;
+                }
                 changed = true;
             }
+        }
+
+        if (!wifipwenc.isEmpty() && gwWifiPwEnc != wifipwenc)
+        {
+            if (gwWifi == "not-configured")
+            {
+                gwWifiPwEnc = QString();
+            }
+            else
+            {
+                gwWifiPwEnc = wifipwenc;
+                gwWifiPw = QString();
+            }
+            changed = true;
+        }
+
+        if (!workingpwenc.isEmpty() && gwWifiWorkingPwEnc != workingpwenc)
+        {
+            if (gwWifi == "not-configured")
+            {
+                gwWifiWorkingPwEnc = QString();
+            }
+            else
+            {
+                gwWifiWorkingPwEnc = workingpwenc;
+                gwWifiWorkingPw = QString();
+            }
+            changed = true;
+        }
+
+        if (!wifibackuppwenc.isEmpty() && gwWifiBackupPwEnc != wifibackuppwenc)
+        {
+            if (gwWifi == "not-configured")
+            {
+                gwWifiBackupPwEnc = QString();
+            }
+            else
+            {
+                gwWifiBackupPwEnc = wifibackuppwenc;
+                gwWifiBackupPw = QString();
+            }
+            changed = true;
         }
 
         if (changed)
@@ -3063,19 +3158,19 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
         }
 
         bool changed = false;
-        if (gwWifiName != "undefined")
+        if (gwWifiName != "invalid")
         {
-            gwWifiName = "undefined";
+            gwWifiName = "invalid";
             changed = true;
         }
-        if (gwWifiPw != "undefined")
+        if (gwWifiPw != "invalid")
         {
-            gwWifiPw = "undefined";
+            gwWifiPw = "invalid";
             changed = true;
         }
-        if (gwWifiType != "undefined")
+        if (gwWifiType != "invalid")
         {
-            gwWifiType = "undefined";
+            gwWifiType = "invalid";
             changed = true;
         }
         gwWifiWorkingName = QString();
@@ -3099,19 +3194,19 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
         }
 
         bool changed = false;
-        if (gwWifiName != "undefined")
+        if (gwWifiName != "invalid")
         {
-            gwWifiName = "undefined";
+            gwWifiName = "invalid";
             changed = true;
         }
-        if (gwWifiPw != "undefined")
+        if (gwWifiPw != "invalid")
         {
-            gwWifiPw = "undefined";
+            gwWifiPw = "invalid";
             changed = true;
         }
-        if (gwWifiType != "undefined")
+        if (gwWifiType != "invalid")
         {
-            gwWifiType = "undefined";
+            gwWifiType = "invalid";
             changed = true;
         }
         gwWifiWorkingName = QString();
@@ -3260,6 +3355,15 @@ int DeRestPluginPrivate::putHomebridgeUpdated(const ApiRequest &req, ApiResponse
                 changed = true;
             }
         }
+        else if (homebridge == QLatin1String("updated"))
+        {
+            if (gwHomebridge != homebridge)
+            {
+                gwHomebridge = homebridge;
+                changed = true;
+            }
+        }
+
     }
 
     if (map.contains("homebridgepin"))

@@ -1142,6 +1142,30 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
             d->gwWifiPw = val;
         }
     }
+    else if (strcmp(colval[0], "wifipwenc") == 0)
+    {
+        if (!val.isEmpty())
+        {
+            //d->gwConfig["wifipwenc"] = val;
+            d->gwWifiPwEnc = val;
+        }
+    }
+    else if (strcmp(colval[0], "workingpwenc") == 0)
+    {
+        if (!val.isEmpty())
+        {
+            //d->gwConfig["workingpwenc"] = val;
+            d->gwWifiWorkingPwEnc = val;
+        }
+    }
+    else if (strcmp(colval[0], "wifibackuppwenc") == 0)
+    {
+        if (!val.isEmpty())
+        {
+            //d->gwConfig["wifibackuppwenc"] = val;
+            d->gwWifiBackupPwEnc = val;
+        }
+    }
     else if (strcmp(colval[0], "wifibackuppw") == 0)
     {
         if (!val.isEmpty())
@@ -3931,6 +3955,9 @@ void DeRestPluginPrivate::saveDb()
         gwConfig["workingname"] = gwWifiWorkingName;
         gwConfig["wificlientpw"] = gwWifiClientPw;
         gwConfig["wifipw"] = gwWifiPw;
+        gwConfig["wifipwenc"] = gwWifiPwEnc;
+        gwConfig["workingpwenc"] = gwWifiWorkingPwEnc;
+        gwConfig["wifibackuppwenc"] = gwWifiBackupPwEnc;
         gwConfig["wifiip"] = gwWifiIp;
         gwConfig["wifipageactive"] = gwWifiPageActive;
         gwConfig["wifibackupname"] = gwWifiBackupName;

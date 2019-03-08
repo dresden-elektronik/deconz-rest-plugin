@@ -1374,11 +1374,14 @@ public:
     QString gwWifiWorkingType;
     QString gwWifiWorkingName;
     QString gwWifiWorkingPw;
+    QString gwWifiWorkingPwEnc;
     QString gwWifiClientName;
     QString gwWifiChannel;
     QString gwWifiIp;
     QString gwWifiPw;
+    QString gwWifiPwEnc;
     QString gwWifiBackupPw;
+    QString gwWifiBackupPwEnc;
     QString gwWifiClientPw;
     //QString gwWifiApPw;
     pid_t gwWifiPID;
