@@ -450,20 +450,11 @@ void DeRestPluginPrivate::handleZclConfigureReportingResponseIndication(const de
         QDataStream stream(zclFrame.payload());
         stream.setByteOrder(QDataStream::LittleEndian);
 
-        while (!stream.atEnd())
+        if (zclFrame.payload().size() == 1)
         {
+            // Response contains a single status for all attributes
             quint8 status;
-            quint8 direction;
-            quint16 attrId;
             stream >> status;
-            if (stream.status() == QDataStream::ReadPastEnd)
-            {
-                break;
-            }
-
-            // optional fields
-            stream >> direction;
-            stream >> attrId;
 
             for (NodeValue &val : restNode->zclValues())
             {
@@ -471,15 +462,37 @@ void DeRestPluginPrivate::handleZclConfigureReportingResponseIndication(const de
                 {
                     continue;
                 }
-
-                if (val.minInterval == 0 && val.maxInterval == 0)
-                {
-                    continue;
-                }
-
                 DBG_Printf(DBG_INFO, "ZCL configure reporting rsp seq: %u 0x%016llX for cluster 0x%04X attr 0x%04X status 0x%02X\n", zclFrame.sequenceNumber(), ind.srcAddress().ext(), ind.clusterId(), val.attributeId, status);
+
                 // mark as succefully configured
-                val.timestampLastConfigured = now;
+                if ((val.minInterval != 0 || val.maxInterval != 0) && status == deCONZ::ZclSuccessStatus)
+                {
+                    val.timestampLastConfigured = now;
+                }
+            }
+            break;
+        }
+        while (!stream.atEnd())
+        {
+            // Response contains status per attribute
+            quint8 status;
+            quint8 direction;
+            quint16 attrId;
+
+            stream >> status;
+            stream >> direction;
+            stream >> attrId;
+
+            NodeValue &val = restNode->getZclValue(ind.clusterId(), attrId);
+            if (val.zclSeqNum == zclFrame.sequenceNumber())
+            {
+                DBG_Printf(DBG_INFO, "ZCL configure reporting rsp seq: %u 0x%016llX for cluster 0x%04X attr 0x%04X status 0x%02X\n", zclFrame.sequenceNumber(), ind.srcAddress().ext(), ind.clusterId(), val.attributeId, status);
+
+                if ((val.minInterval != 0 || val.maxInterval != 0) && status == deCONZ::ZclSuccessStatus)
+                {
+                    // mark as succefully configured
+                    val.timestampLastConfigured = now;
+                }
             }
         }
     }
@@ -631,6 +644,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt, const s
         return false;
     }
 
+    const quint8 zclSeqNum = zclSeq++; // to match in configure reporting response handler
     LightNode *lightNode = dynamic_cast<LightNode*>(bt.restNode);
     QDateTime now = QDateTime::currentDateTime();
     std::vector<ConfigureReportingRequest> out;
@@ -655,6 +669,9 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt, const s
                     // and prevent further bind requests before reports arrive
                     val.timestampLastReport = QDateTime::currentDateTime();
                 }
+                val.zclSeqNum = zclSeqNum;
+                val.minInterval = rq.minInterval;
+                val.maxInterval = rq.maxInterval;
                 out.push_back(rq);
             }
         }
@@ -670,6 +687,9 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt, const s
             deCONZ::NumericUnion dummy;
             dummy.u64 = 0;
             bt.restNode->setZclValue(NodeValue::UpdateByZclReport, bt.binding.clusterId, rq.attributeId, dummy);
+            val.zclSeqNum = zclSeqNum;
+            val.minInterval = rq.minInterval;
+            val.maxInterval = rq.maxInterval;
             out.push_back(rq);
         }
     }
@@ -692,7 +712,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt, const s
     apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
 
     deCONZ::ZclFrame zclFrame;
-    zclFrame.setSequenceNumber(requests.front().zclSeqNum);
+    zclFrame.setSequenceNumber(zclSeqNum);
     zclFrame.setCommandId(deCONZ::ZclConfigureReportingId);
 
     if (requests.front().manufacturerCode)
@@ -745,7 +765,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt, const s
                 stream << (qint8) 0x00;
                 stream << (qint8) 0x00;
             }
-            DBG_Printf(DBG_INFO_L2, "configure reporting for 0x%016llX, attribute 0x%04X/0x%04X\n", bt.restNode->address().ext(), bt.binding.clusterId, rq.attributeId);
+            DBG_Printf(DBG_INFO_L2, "configure reporting rq seq %u for 0x%016llX, attribute 0x%04X/0x%04X\n", zclSeqNum, bt.restNode->address().ext(), bt.binding.clusterId, rq.attributeId);
         }
     }
 
@@ -791,8 +811,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     const QDateTime now = QDateTime::currentDateTime();
     ConfigureReportingRequest rq;
 
-    rq.zclSeqNum = zclSeq++; // to match in configure reporting response handler
-
     LightNode *lightNode = dynamic_cast<LightNode *>(bt.restNode);
     const quint16 manufacturerCode = lightNode ? lightNode->manufacturerCode() : 0;
 
@@ -806,15 +824,10 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             bt.restNode->setZclValue(NodeValue::UpdateInvalid, bt.binding.clusterId, 0x0000, dummy);
         }
 
-        NodeValue &val = bt.restNode->getZclValue(bt.binding.clusterId, 0x0000);
-        val.zclSeqNum = rq.zclSeqNum;
-
         rq.dataType = deCONZ::Zcl8BitBitMap;
         rq.attributeId = 0x0000; // occupancy
-        val.minInterval = 1;     // value used by Hue bridge
-        val.maxInterval = 300;   // value used by Hue bridge
-        rq.minInterval = val.minInterval;
-        rq.maxInterval = val.maxInterval;
+        rq.minInterval = 1;     // value used by Hue bridge
+        rq.maxInterval = 300;   // value used by Hue bridge
 
         int processed = 0;
         if (sendConfigureReportingRequest(bt, {rq}))
@@ -830,13 +843,10 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                 bt.restNode->setZclValue(NodeValue::UpdateInvalid, bt.binding.clusterId, 0x0030, dummy);
             }
             ConfigureReportingRequest rq2;
-            NodeValue &val2 = bt.restNode->getZclValue(bt.binding.clusterId, 0x0030);
             rq2.dataType = deCONZ::Zcl8BitUint;
             rq2.attributeId = 0x0030;     // sensitivity
-            val2.minInterval = 5;         // value used by Hue bridge
-            val2.maxInterval = 7200;      // value used by Hue bridge
-            rq2.minInterval = val2.minInterval;
-            rq2.maxInterval = val2.maxInterval;
+            rq2.minInterval = 5;         // value used by Hue bridge
+            rq2.maxInterval = 7200;      // value used by Hue bridge
             rq2.reportableChange8bit = 1;  // value used by Hue bridge
             rq2.manufacturerCode = VENDOR_PHILIPS;
 
@@ -863,23 +873,20 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         {
             bt.restNode->setZclValue(NodeValue::UpdateInvalid, bt.binding.clusterId, IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID, dummy);
         }
-        NodeValue &val = bt.restNode->getZclValue(bt.binding.clusterId, IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID);
-        val.minInterval = 1;
-        val.maxInterval = 300;
+        rq.minInterval = 1;
+        rq.maxInterval = 300;
 
         const Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
         const ResourceItem *item = sensor ? sensor->item(RConfigDuration) : nullptr;
 
         if (item && item->toNumber() > 15 && item->toNumber() <= UINT16_MAX)
         {
-            val.maxInterval = static_cast<quint16>(item->toNumber());
-            val.maxInterval -= 5; // report before going presence: false
+            rq.maxInterval = static_cast<quint16>(item->toNumber());
+            rq.maxInterval -= 5; // report before going presence: false
         }
 
         rq.dataType = deCONZ::Zcl16BitBitMap;
         rq.attributeId = IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID;
-        rq.minInterval = val.minInterval;
-        rq.maxInterval = val.maxInterval;
         rq.reportableChange16bit = 0xffff;
         return sendConfigureReportingRequest(bt, {rq});
     }
@@ -907,40 +914,51 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
         if (sensor && sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
         {
-            // Device sends malformed Reporting Configuration Response
-            // Use factory default reporting configuration
+            rq.dataType = deCONZ::Zcl16BitInt;
+            rq.attributeId = 0x0000;        // Local Temperature
+            rq.minInterval = 1;             // report changes every second
+            rq.maxInterval = 600;           // recommended value
+            rq.reportableChange16bit = 20;  // value from TEMPERATURE_MEASUREMENT_CLUSTER_ID
 
-            // rq.dataType = deCONZ::Zcl16BitInt;
-            // rq.attributeId = 0x0000;        // Local Temperature
-            // rq.minInterval = 10;            // value from TEMPERATURE_MEASUREMENT_CLUSTER_ID
-            // rq.maxInterval = 600;           // recommended value
-            // rq.reportableChange16bit = 20;  // value from TEMPERATURE_MEASUREMENT_CLUSTER_ID
-            //
-            // ConfigureReportingRequest rq2;
-            // rq2.dataType = deCONZ::Zcl8BitUint;
-            // rq2.attributeId = 0x0008;        // Pi Heating Demand (valve position %)
-            // rq2.minInterval = 10;            // value from TEMPERATURE_MEASUREMENT_CLUSTER_ID
-            // rq2.maxInterval = 600;           // recommended value
-            // rq2.reportableChange8bit = 1;    // recommended value
-            //
-            // ConfigureReportingRequest rq3;
-            // rq3.dataType = deCONZ::Zcl16BitInt;
-            // rq3.attributeId = 0x4003;        // Current Temperature Set point
-            // rq3.minInterval = 10;            // value from TEMPERATURE_MEASUREMENT_CLUSTER_ID
-            // rq3.maxInterval = 600;           // recommended value
-            // rq3.reportableChange16bit = 50;  // recommended value
-            // rq3.manufacturerCode = VENDOR_JENNIC;
-            //
-            // ConfigureReportingRequest rq4;
-            // rq4.dataType = deCONZ::Zcl24BitUint;
-            // rq4.attributeId = 0x4008;        // Host Flags
-            // rq4.minInterval = 10;            // value from TEMPERATURE_MEASUREMENT_CLUSTER_ID
-            // rq4.maxInterval = 600;           // recommended value
-            // rq4.reportableChange24bit = 1;   // recommended value
-            // rq4.manufacturerCode = VENDOR_JENNIC;
-            //
-            // return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
-            return false;
+            ConfigureReportingRequest rq2;
+            rq2.dataType = deCONZ::Zcl8BitUint;
+            rq2.attributeId = 0x0008;        // Pi Heating Demand (valve position %)
+            rq2.minInterval = 1;             // report changes every second
+            rq2.maxInterval = 600;           // recommended value
+            rq2.reportableChange8bit = 1;    // recommended value
+
+            ConfigureReportingRequest rq3;
+            rq3.dataType = deCONZ::Zcl16BitInt;
+            rq3.attributeId = 0x0012;        // Occupied Heating Setpoint - unused
+            rq3.minInterval = 65535;         // disable
+            rq3.maxInterval = 65535;         // disable
+            rq3.reportableChange16bit = 0;   // disable
+
+            ConfigureReportingRequest rq4;
+            rq4.dataType = deCONZ::Zcl16BitInt;
+            rq4.attributeId = 0x0014;        // Unoccupied Heating Setpoint - unused
+            rq4.minInterval = 65535;         // disable
+            rq4.maxInterval = 65535;         // disable
+            rq4.reportableChange16bit = 0;   // disable
+
+            ConfigureReportingRequest rq5;
+            rq5.dataType = deCONZ::Zcl16BitInt;
+            rq5.attributeId = 0x4003;        // Current Temperature Set point
+            rq5.minInterval = 1;             // report changes every second
+            rq5.maxInterval = 600;           // recommended value
+            rq5.reportableChange16bit = 50;  // recommended value
+            rq5.manufacturerCode = VENDOR_JENNIC;
+
+            ConfigureReportingRequest rq6;
+            rq6.dataType = deCONZ::Zcl24BitUint;
+            rq6.attributeId = 0x4008;        // Host Flags
+            rq6.minInterval = 1;             // report changes every second
+            rq6.maxInterval = 600;           // recommended value
+            rq6.reportableChange24bit = 1;   // recommended value
+            rq6.manufacturerCode = VENDOR_JENNIC;
+
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4}) ||
+                   sendConfigureReportingRequest(bt, {rq5, rq6});
         }
         else
         {
@@ -1021,13 +1039,9 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
         else if (sensor && sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
         {
-            // Use factory default reporting configuration
-            // Device sends malformed Reporting Configuration Response
-
-            // rq.minInterval = 43200;      // recommended value
-            // rq.maxInterval = 43200;      // recommended value
-            // rq.reportableChange8bit = 0; // recommended value
-            return false;
+            rq.minInterval = 7200;       // same as Hue motion sensor
+            rq.maxInterval = 7200;       // same as Hue motion sensor
+            rq.reportableChange8bit = 0; // same as Hue motion sensor
         }
         else
         {
@@ -1045,10 +1059,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
 
         NodeValue &val = bt.restNode->getZclValue(POWER_CONFIGURATION_CLUSTER_ID, rq.attributeId);
-        val.zclSeqNum = rq.zclSeqNum;
-
-        val.minInterval = rq.minInterval;
-        val.maxInterval = rq.maxInterval;
 
         if (val.timestampLastReport.isValid() && (val.timestampLastReport.secsTo(now) < val.maxInterval * 1.5))
         {
@@ -1272,10 +1282,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
         NodeValue &val = bt.restNode->getZclValue(BASIC_CLUSTER_ID, 0x0032);
 
-        val.zclSeqNum = rq.zclSeqNum;
-        val.minInterval = 5;
-        val.maxInterval = 7200;
-
         if (val.timestampLastReport.isValid() && (val.timestampLastReport.secsTo(now) < val.maxInterval * 1.5))
         {
             return false;
@@ -1289,21 +1295,16 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
         rq.dataType = deCONZ::ZclBoolean;
         rq.attributeId = 0x0032; // usertest
-        rq.minInterval = val.minInterval;   // value used by Hue bridge
-        rq.maxInterval = val.maxInterval;   // value used by Hue bridge
+        rq.minInterval = 5;   // value used by Hue bridge
+        rq.maxInterval = 7200;   // value used by Hue bridge
         rq.manufacturerCode = VENDOR_PHILIPS;
-
-        NodeValue &val2 = bt.restNode->getZclValue(BASIC_CLUSTER_ID, 0x0033);
-        val2.zclSeqNum = rq.zclSeqNum;
-        val2.minInterval = 5;
-        val2.maxInterval = 7200;
 
         ConfigureReportingRequest rq2;
         rq2 = ConfigureReportingRequest();
         rq2.dataType = deCONZ::ZclBoolean;
         rq2.attributeId = 0x0033; // ledindication
-        rq2.minInterval = val2.minInterval; // value used by Hue bridge
-        rq2.maxInterval = val2.maxInterval; // value used by Hue bridge
+        rq2.minInterval = 5; // value used by Hue bridge
+        rq2.maxInterval = 7200; // value used by Hue bridge
         rq2.manufacturerCode = VENDOR_PHILIPS;
 
         return sendConfigureReportingRequest(bt, {rq, rq2});
