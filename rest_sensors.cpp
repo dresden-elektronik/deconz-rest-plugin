@@ -1938,6 +1938,9 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
     }
 
     QVariantMap state;
+    const ResourceItem *ix = nullptr;
+    const ResourceItem *iy = nullptr;
+    const ResourceItem *iz = nullptr;
     QVariantMap config;
 
     for (int i = 0; i < sensor->itemCount(); i++)
@@ -2001,9 +2004,31 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
                 state[key] = QLatin1String("none");
                 continue;
             }
-
-            state[key] = item->toVariant();
+            if (rid.suffix == RStateOrientationX)
+            {
+                ix = item;
+            }
+            else if (rid.suffix == RStateOrientationY)
+            {
+                iy = item;
+            }
+            else if (rid.suffix == RStateOrientationZ)
+            {
+                iz = item;
+            }
+            else
+            {
+                state[key] = item->toVariant();
+            }
         }
+    }
+    if (ix && iy && iz)
+    {
+        QVariantList orientation;
+        orientation.append(ix->toNumber());
+        orientation.append(iy->toNumber());
+        orientation.append(iz->toNumber());
+        state["orientation"] = orientation;
     }
 
     //sensor

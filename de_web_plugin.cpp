@@ -3522,6 +3522,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     if (modelId.startsWith(QLatin1String("lumi.vibration"))) // lumi.vibration
                     {
                         fpSwitch.inClusters.push_back(DOOR_LOCK_CLUSTER_ID);
+                        fpVibrationSensor.inClusters.push_back(DOOR_LOCK_CLUSTER_ID);
                     }
                 }
                     break;
@@ -3839,7 +3840,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         }
 
         // ZHAVibration
-        if (fpVibrationSensor.hasInCluster(IAS_ZONE_CLUSTER_ID))
+        if (fpVibrationSensor.hasInCluster(IAS_ZONE_CLUSTER_ID) ||
+            fpVibrationSensor.hasInCluster(DOOR_LOCK_CLUSTER_ID))
         {
             fpVibrationSensor.endpoint = i->endpoint();
             fpVibrationSensor.deviceId = i->deviceId();
@@ -4154,6 +4156,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = IAS_ZONE_CLUSTER_ID;
         }
+        else if (sensorNode.fingerPrint().hasInCluster(DOOR_LOCK_CLUSTER_ID))
+        {
+            clusterId = DOOR_LOCK_CLUSTER_ID;
+        }
         item = sensorNode.addItem(DataTypeBool, RStateVibration);
         item->setValue(false);
     }
@@ -4396,10 +4402,18 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             //sensorNode.addItem(DataTypeInt16, RConfigOffset);
         }
 
-        if (sensorNode.modelId() == QLatin1String("lumi.vibration.aq1"))
+        if (sensorNode.modelId().startsWith(QLatin1String("lumi.vibration")))
         {
-            // low: 0x15, medium: 0x0B, high: 0x01
             ResourceItem *item = nullptr;
+            if (sensorNode.type() == QLatin1String("ZHAVibration"))
+            {
+                item = sensorNode.addItem(DataTypeInt16, RStateOrientationX);
+                item = sensorNode.addItem(DataTypeInt16, RStateOrientationY);
+                item = sensorNode.addItem(DataTypeInt16, RStateOrientationZ);
+                item = sensorNode.addItem(DataTypeUInt16, RStateTiltAngle);
+                item = sensorNode.addItem(DataTypeUInt16, RStateVibrationStrength);
+            }
+            // low: 0x15, medium: 0x0B, high: 0x01
             item = sensorNode.addItem(DataTypeUInt8, RConfigSensitivity);
             item = sensorNode.addItem(DataTypeUInt8, RConfigSensitivityMax);
             item->setValue(0x15); // low
@@ -4899,6 +4913,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             case BINARY_INPUT_CLUSTER_ID:
             case METERING_CLUSTER_ID:
             case ELECTRICAL_MEASUREMENT_CLUSTER_ID:
+            case DOOR_LOCK_CLUSTER_ID:
                 break;
 
             case VENDOR_CLUSTER_ID:
@@ -5639,7 +5654,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 updateSensorEtag(&*i);
                             }
-                            else if (ia->id() == 0xff0d && i->modelId() == QLatin1String("lumi.vibration.aq1")) // sensitivity
+                            else if (ia->id() == 0xff0d && i->modelId().startsWith(QLatin1String("lumi.vibration"))) // sensitivity
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
@@ -6047,6 +6062,142 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     item->setValue(current); // in mA
                                     enqueueEvent(Event(RSensors, RStateCurrent, i->id(), item));
                                     updated = true;
+                                }
+                            }
+                        }
+                        if (updated)
+                        {
+                            i->updateStateTimestamp();
+                            i->setNeedSaveDatabase(true);
+                            enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
+                            updateSensorEtag(&*i);
+                        }
+                    }
+                    else if (event.clusterId() == DOOR_LOCK_CLUSTER_ID) {
+                        bool updated = false;
+                        for (;ia != enda; ++ia)
+                        {
+                            if (std::find(event.attributeIds().begin(),
+                                          event.attributeIds().end(),
+                                          ia->id()) == event.attributeIds().end())
+                            {
+                                continue;
+                            }
+
+                            if (i->modelId().startsWith(QLatin1String("lumi.vibration")) && i->type() == QLatin1String("ZHAVibration"))
+                            {
+                                if (ia->id() == 0x0055) // u16: event type
+                                {
+                                    if (updateType != NodeValue::UpdateInvalid)
+                                    {
+                                        i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                        pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u16);
+                                    }
+                                    const quint16 value = ia->numericValue().u16;
+                                    DBG_Printf(DBG_INFO, "0x%016llX: 0x0101/0x0055: event: %d\n", event.node()->address().ext(), value);
+
+                                    if (value == 0x0001) // vibration
+                                    {
+                                        ResourceItem *item = i->item(RStateVibration);
+                                        if (item)
+                                        {
+                                            item->setValue(true);
+                                            enqueueEvent(Event(RSensors, RStateVibration, i->id(), item));
+                                            i->durationDue = item->lastSet().addSecs(65);
+                                            updated = true;
+                                        }
+                                    }
+                                    else if (value == 0x002) // tilted
+                                    {
+                                        // tiltangle is set through 0x0503 attribute
+                                    }
+                                    else if (value == 0x003) // dropped
+                                    {
+                                        ResourceItem *item = i->item(RStateTiltAngle);
+                                        if (item)
+                                        {
+                                            item->setValue(360);
+                                            enqueueEvent(Event(RSensors, RStateTiltAngle, i->id(), item));
+                                            updated = true;
+                                        }
+                                    }
+                                }
+                                else if (ia->id() == 0x0503) // u16: tilt angle
+                                {
+                                    if (updateType != NodeValue::UpdateInvalid)
+                                    {
+                                        i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                        pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u16);
+                                    }
+                                    const quint16 value = ia->numericValue().u16;
+                                    DBG_Printf(DBG_INFO, "0x%016llX: 0x0101/0x0503: tilt angle: %d°\n", event.node()->address().ext(), value);
+                                    ResourceItem *item = i->item(RStateTiltAngle);
+                                    if (item)
+                                    {
+                                        item->setValue(value);
+                                        enqueueEvent(Event(RSensors, RStateTiltAngle, i->id(), item));
+                                        updated = true;
+                                    }
+                                }
+                                else if (ia->id() == 0x0505) // u32: vibration strength
+                                {
+                                    if (updateType != NodeValue::UpdateInvalid)
+                                    {
+                                        i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                        pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u16);
+                                    }
+
+                                    const quint32 value = ia->numericValue().u32;
+                                    const quint16 strength = (value >> 16) & 0xffff;
+                                    DBG_Printf(DBG_INFO, "0x%016llX: 0x0101/0x0505: vibration strength: %d\n", event.node()->address().ext(), strength);
+                                    ResourceItem *item = i->item(RStateVibrationStrength);
+                                    if (item)
+                                    {
+                                        item->setValue(strength);
+                                        enqueueEvent(Event(RSensors, RStateVibrationStrength, i->id(), item));
+                                        updated = true;
+                                    }
+                                }
+                                else if (ia->id() == 0x0508) // u48: orientation
+                                {
+                                    if (updateType != NodeValue::UpdateInvalid)
+                                    {
+                                        i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                        pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u16);
+                                    }
+                                    const quint64 value = ia->numericValue().u64;
+                                    const qint16 x = value & 0xffff;
+                                    const qint16 y = (value >> 16) & 0xffff;
+                                    const qint16 z = (value >> 32) & 0xffff;
+                                    DBG_Printf(DBG_INFO, "0x%016llX: 0x0101/0x0508: raw orientation: 0x%016llx (%d, %d, %d)\n", event.node()->address().ext(), value, x, y, z);
+                                    const qreal X = 0.0 + x;
+                                    const qreal Y = 0.0 + y;
+                                    const qreal Z = 0.0 + z;
+                                    const quint16 angleX = round(qAtan(X / qSqrt(Z * Z + Y * Y)) * 180 / M_PI);
+                                    const quint16 angleY = round(qAtan(Y / qSqrt(X * X + Z * Z)) * 180 / M_PI);
+                                    const quint16 angleZ = round(qAtan(Z / qSqrt(X * X + Y * Y)) * 180 / M_PI);
+                                    DBG_Printf(DBG_INFO, "0x%016llX: 0x0101/0x0508: orientation: (%d°, %d°, %d°)\n", event.node()->address().ext(), angleX, angleY, angleZ);
+                                    ResourceItem *item = i->item(RStateOrientationX);
+                                    if (item)
+                                    {
+                                        item->setValue(x);
+                                        enqueueEvent(Event(RSensors, RStateOrientationX, i->id(), item));
+                                        updated = true;
+                                    }
+                                    item = i->item(RStateOrientationY);
+                                    if (item)
+                                    {
+                                        item->setValue(y);
+                                        enqueueEvent(Event(RSensors, RStateOrientationY, i->id(), item));
+                                        updated = true;
+                                    }
+                                    item = i->item(RStateOrientationZ);
+                                    if (item)
+                                    {
+                                        item->setValue(z);
+                                        enqueueEvent(Event(RSensors, RStateOrientationZ, i->id(), item));
+                                        updated = true;
+                                    }
                                 }
                             }
                         }
@@ -8881,7 +9032,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     }
 
     ResourceItem *item = r->item(RAttrModelId);
-    if (item && item->toString() == QLatin1String("lumi.vibration.aq1"))
+    if (item && item->toString().startsWith(QLatin1String("lumi.vibration")))
     {
         item = r->item(RConfigSensitivity);
         ResourceItem *item2 = r->item(RConfigPending);
@@ -9607,6 +9758,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         case ELECTRICAL_MEASUREMENT_CLUSTER_ID:
         case VENDOR_CLUSTER_ID:
         case WINDOW_COVERING_CLUSTER_ID:
+        case DOOR_LOCK_CLUSTER_ID:
             {
                 addSensorNode(event.node(), &event);
                 updateSensorNode(event);

@@ -3029,8 +3029,20 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = clusterId ? clusterId : IAS_ZONE_CLUSTER_ID;
             }
+            else if (sensor.fingerPrint().hasInCluster(DOOR_LOCK_CLUSTER_ID))
+            {
+                clusterId = clusterId ? clusterId : DOOR_LOCK_CLUSTER_ID;
+            }
             item = sensor.addItem(DataTypeBool, RStateVibration);
             item->setValue(false);
+            if (sensor.modelId().startsWith(QLatin1String("lumi.vibration")))
+            {
+                item = sensor.addItem(DataTypeInt16, RStateOrientationX);
+                item = sensor.addItem(DataTypeInt16, RStateOrientationY);
+                item = sensor.addItem(DataTypeInt16, RStateOrientationZ);
+                item = sensor.addItem(DataTypeUInt16, RStateTiltAngle);
+                item = sensor.addItem(DataTypeUInt16, RStateVibrationStrength);
+            }
         }
         else if (sensor.type().endsWith(QLatin1String("Water")))
         {
@@ -3188,7 +3200,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 //item->setValue(100); // wait for report
             }
 
-            if (sensor.modelId() == QLatin1String("lumi.vibration.aq1"))
+            if (sensor.modelId().startsWith(QLatin1String("lumi.vibration")))
             {
                 // low: 0x15, medium: 0x0B, high: 0x01
                 item = sensor.addItem(DataTypeUInt8, RConfigSensitivity);
