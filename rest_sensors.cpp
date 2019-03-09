@@ -2454,6 +2454,18 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
                         enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
                     }
                 }
+                else if (!item && sensor->modelId() == QLatin1String("lumi.vibration.aq1") && sensor->type() == QLatin1String("ZHAVibration"))
+                {
+                    item = sensor->item(RStateVibration);
+                    if (item && item->toBool())
+                    {
+                        DBG_Printf(DBG_INFO, "sensor %s (%s): disable vibration\n", qPrintable(sensor->id()), qPrintable(sensor->modelId()));
+                        item->setValue(false);
+                        sensor->updateStateTimestamp();
+                        enqueueEvent(Event(RSensors, RStatePresence, sensor->id(), item));
+                        enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
+                    }
+                }
 
                 sensor->durationDue = QDateTime();
             }
