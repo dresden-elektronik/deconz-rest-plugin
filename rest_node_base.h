@@ -28,7 +28,8 @@ public:
         clusterId(0),
         attributeId(0),
         minInterval(0),
-        maxInterval(0)
+        maxInterval(0),
+        zclSeqNum(0)
     {
         value.u64 = 0;
     }

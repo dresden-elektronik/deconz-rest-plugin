@@ -11608,6 +11608,14 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
                     }
                 }
 
+                // clear to speedup polling
+                for (NodeValue &val : si->zclValues())
+                {
+                    val.timestamp = QDateTime();
+                    val.timestampLastReport = QDateTime();
+                    val.timestampLastConfigured = QDateTime();
+                }
+
                 addSensorNode(si->node()); // check if somethings needs to be updated
             }
         }

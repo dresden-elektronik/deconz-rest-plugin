@@ -447,6 +447,8 @@ void DeRestPluginPrivate::handleZclConfigureReportingResponseIndication(const de
             continue;
         }
 
+        DBG_Assert(zclFrame.sequenceNumber() != 0);
+
         QDataStream stream(zclFrame.payload());
         stream.setByteOrder(QDataStream::LittleEndian);
 
@@ -462,16 +464,24 @@ void DeRestPluginPrivate::handleZclConfigureReportingResponseIndication(const de
                 {
                     continue;
                 }
+
+                if (val.clusterId != ind.clusterId())
+                {
+                    continue;
+                }
+
                 DBG_Printf(DBG_INFO, "ZCL configure reporting rsp seq: %u 0x%016llX for cluster 0x%04X attr 0x%04X status 0x%02X\n", zclFrame.sequenceNumber(), ind.srcAddress().ext(), ind.clusterId(), val.attributeId, status);
 
                 // mark as succefully configured
-                if ((val.minInterval != 0 || val.maxInterval != 0) && status == deCONZ::ZclSuccessStatus)
+                if (status == deCONZ::ZclSuccessStatus)
                 {
                     val.timestampLastConfigured = now;
+                    val.zclSeqNum = 0; // clear
                 }
             }
             break;
         }
+
         while (!stream.atEnd())
         {
             // Response contains status per attribute
@@ -484,14 +494,15 @@ void DeRestPluginPrivate::handleZclConfigureReportingResponseIndication(const de
             stream >> attrId;
 
             NodeValue &val = restNode->getZclValue(ind.clusterId(), attrId);
-            if (val.zclSeqNum == zclFrame.sequenceNumber())
+            if (val.zclSeqNum == zclFrame.sequenceNumber() && val.clusterId == ind.clusterId())
             {
                 DBG_Printf(DBG_INFO, "ZCL configure reporting rsp seq: %u 0x%016llX for cluster 0x%04X attr 0x%04X status 0x%02X\n", zclFrame.sequenceNumber(), ind.srcAddress().ext(), ind.clusterId(), val.attributeId, status);
 
-                if ((val.minInterval != 0 || val.maxInterval != 0) && status == deCONZ::ZclSuccessStatus)
+                if (status == deCONZ::ZclSuccessStatus)
                 {
                     // mark as succefully configured
                     val.timestampLastConfigured = now;
+                    val.zclSeqNum = 0; // clear
                 }
             }
         }
@@ -644,7 +655,12 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt, const s
         return false;
     }
 
-    const quint8 zclSeqNum = zclSeq++; // to match in configure reporting response handler
+    zclSeq++;
+    if (zclSeq == 0) // don't use zero, simplify matching
+    {
+        zclSeq = 1;
+    }
+    const quint8 zclSeqNum = zclSeq; // to match in configure reporting response handler
     LightNode *lightNode = dynamic_cast<LightNode*>(bt.restNode);
     QDateTime now = QDateTime::currentDateTime();
     std::vector<ConfigureReportingRequest> out;
@@ -1426,18 +1442,20 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
             bool bindingExists = false;
             for (const NodeValue &val : lightNode->zclValues())
             {
-                if (val.clusterId != i->id() || !val.timestampLastReport.isValid())
+                if (val.clusterId != i->id())
                 {
                     continue;
                 }
 
-                if (val.timestampLastReport.secsTo(now) < (10 * 60))
+                quint16 maxInterval = val.maxInterval > 0 && val.maxInterval < 65535 ? val.maxInterval : (10 * 60);
+
+                if (val.timestampLastReport.isValid() && val.timestampLastReport.secsTo(now) < (maxInterval * 1.2))
                 {
                     bindingExists = true;
                     break;
                 }
 
-                if (val.timestampLastConfigured.isValid() && val.timestampLastConfigured.secsTo(now) < (60 * 60))
+                if (val.timestampLastConfigured.isValid())
                 {
                     bindingExists = true;
                     break;
