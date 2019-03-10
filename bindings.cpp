@@ -1325,6 +1325,36 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
         return sendConfigureReportingRequest(bt, {rq, rq2});
     }
+    else if (bt.binding.clusterId == BASIC_CLUSTER_ID && manufacturerCode == VENDOR_IKEA && lightNode)
+    {
+        deCONZ::NumericUnion dummy;
+        dummy.u64 = 0;
+        // 'sw build id' value if not already present
+        if (bt.restNode->getZclValue(BASIC_CLUSTER_ID, 0x4000).attributeId != 0x4000)
+        {
+            bt.restNode->setZclValue(NodeValue::UpdateInvalid, BASIC_CLUSTER_ID, 0x4000, dummy);
+        }
+
+        NodeValue &val = bt.restNode->getZclValue(BASIC_CLUSTER_ID, 0x4000);
+
+        if (val.timestampLastReport.isValid() && (val.timestampLastReport.secsTo(now) < val.maxInterval * 1.5))
+        {
+            return false;
+        }
+
+        // already configured? wait for report ...
+        if (val.timestampLastConfigured.isValid() && (val.timestampLastConfigured.secsTo(now) < val.maxInterval * 1.5))
+        {
+            return false;
+        }
+
+        rq.dataType = deCONZ::ZclCharacterString;
+        rq.attributeId = 0x4000; // sw build id
+        rq.minInterval = 0;   // value used by IKEA gateway
+        rq.maxInterval = 1800;   // value used by IKEA gateway
+
+        return sendConfigureReportingRequest(bt, {rq});
+    }
     else if (bt.binding.clusterId == VENDOR_CLUSTER_ID)
     {
         Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
@@ -1435,6 +1465,7 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
     {
         switch (i->id())
         {
+        case BASIC_CLUSTER_ID:
         case ONOFF_CLUSTER_ID:
         case LEVEL_CLUSTER_ID:
         case COLOR_CLUSTER_ID:
@@ -1460,6 +1491,12 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
                     bindingExists = true;
                     break;
                 }
+            }
+
+            // only IKEA lights should report basic cluster attributes
+            if (lightNode->manufacturerCode() != VENDOR_IKEA && i->id() == BASIC_CLUSTER_ID)
+            {
+                continue;
             }
 
             // support only XAL on/off cluster for now
