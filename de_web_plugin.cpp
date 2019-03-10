@@ -2258,6 +2258,9 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         QString str = ia->toString();
                         ResourceItem *item = lightNode->item(RAttrSwVersion);
 
+                        deCONZ::NumericUnion dummy;
+                        lightNode->setZclValue(updateType, event.clusterId(), ia->id(), dummy);
+
                         if (item && !str.isEmpty() && str != item->toString())
                         {
                             item->setValue(str);
