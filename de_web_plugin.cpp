@@ -6169,32 +6169,32 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     const qint16 x = value & 0xffff;
                                     const qint16 y = (value >> 16) & 0xffff;
                                     const qint16 z = (value >> 32) & 0xffff;
-                                    DBG_Printf(DBG_INFO, "0x%016llX: 0x0101/0x0508: raw orientation: 0x%016llx (%d, %d, %d)\n", event.node()->address().ext(), value, x, y, z);
+                                    DBG_Printf(DBG_INFO, "0x%016llX: 0x0101/0x0508: raw orientation: 0x%012llx (%d, %d, %d)\n", event.node()->address().ext(), value, x, y, z);
                                     const qreal X = 0.0 + x;
                                     const qreal Y = 0.0 + y;
                                     const qreal Z = 0.0 + z;
-                                    const quint16 angleX = round(qAtan(X / qSqrt(Z * Z + Y * Y)) * 180 / M_PI);
-                                    const quint16 angleY = round(qAtan(Y / qSqrt(X * X + Z * Z)) * 180 / M_PI);
-                                    const quint16 angleZ = round(qAtan(Z / qSqrt(X * X + Y * Y)) * 180 / M_PI);
+                                    const qint16 angleX = round(qAtan(X / qSqrt(Z * Z + Y * Y)) * 180 / M_PI);
+                                    const qint16 angleY = round(qAtan(Y / qSqrt(X * X + Z * Z)) * 180 / M_PI);
+                                    const qint16 angleZ = round(qAtan(Z / qSqrt(X * X + Y * Y)) * 180 / M_PI);
                                     DBG_Printf(DBG_INFO, "0x%016llX: 0x0101/0x0508: orientation: (%d°, %d°, %d°)\n", event.node()->address().ext(), angleX, angleY, angleZ);
                                     ResourceItem *item = i->item(RStateOrientationX);
                                     if (item)
                                     {
-                                        item->setValue(x);
+                                        item->setValue(angleX);
                                         enqueueEvent(Event(RSensors, RStateOrientationX, i->id(), item));
                                         updated = true;
                                     }
                                     item = i->item(RStateOrientationY);
                                     if (item)
                                     {
-                                        item->setValue(y);
+                                        item->setValue(angleY);
                                         enqueueEvent(Event(RSensors, RStateOrientationY, i->id(), item));
                                         updated = true;
                                     }
                                     item = i->item(RStateOrientationZ);
                                     if (item)
                                     {
-                                        item->setValue(z);
+                                        item->setValue(angleZ);
                                         enqueueEvent(Event(RSensors, RStateOrientationZ, i->id(), item));
                                         updated = true;
                                     }
