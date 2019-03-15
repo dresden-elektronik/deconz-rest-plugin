@@ -266,8 +266,8 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
             colorY = 65279;
         }
         // x = CurrentX / 65536 (CurrentX in the range 0 to 65279 inclusive)
-        const double x = colorX / 65535.0; // normalize to 0 .. 1
-        const double y = colorY / 65535.0; // normalize to 0 .. 1
+        const double x = round(colorX / 6.5535) / 10000.0; // normalize to 0 .. 1
+        const double y = round(colorY / 6.5535) / 10000.0; // normalize to 0 .. 1
         xy.append(x);
         xy.append(y);
         state["xy"] = xy;
@@ -1973,6 +1973,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
     {
         return;
     }
+    const QDateTime now = QDateTime::currentDateTime();
 
     // push state updates through websocket
     if (strncmp(e.what(), "state/", 6) == 0)
@@ -1980,6 +1981,14 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
         ResourceItem *item = lightNode->item(e.what());
         if (item)
         {
+
+            if (lightNode->lastStatePush.isValid() && item->lastSet() < lightNode->lastStatePush)
+            {
+                DBG_Printf(DBG_INFO_L2, "discard light state push for %s: %s (already pushed)\n", qPrintable(e.id()), e.what());
+                webSocketServer->flush(); // force transmit send buffer
+                return; // already pushed
+            }
+
             QVariantMap map;
             map["t"] = QLatin1String("event");
             map["e"] = QLatin1String("changed");
@@ -1987,10 +1996,52 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
             map["id"] = e.id();
             map["uniqueid"] = lightNode->uniqueId();
             QVariantMap state;
-            state[e.what() + 6] = item->toVariant();
-            map["state"] = state;
+            ResourceItem *ix = nullptr;
+            ResourceItem *iy = nullptr;
+            QVariantList xy;
 
-            webSocketServer->broadcastTextMessage(Json::serialize(map));
+            for (int i = 0; i < lightNode->itemCount(); i++)
+            {
+                item = lightNode->itemForIndex(i);
+                const ResourceItemDescriptor &rid = item->descriptor();
+
+                if (strncmp(rid.suffix, "state/", 6) == 0)
+                {
+                    const char *key = item->descriptor().suffix + 6;
+
+                    if (rid.suffix == RStateX)
+                    {
+                        ix = item;
+                    }
+                    else if (rid.suffix == RStateY)
+                    {
+                        iy = item;
+                    }
+                    else if (item->lastSet().isValid() && (gwWebSocketNotifyAll || (item->lastChanged().isValid() && item->lastChanged() >= lightNode->lastStatePush)))
+                    {
+                        state[key] = item->toVariant();
+                    }
+                }
+            }
+
+            if (ix && ix->lastSet().isValid() && iy && iy->lastSet().isValid())
+            {
+                if (gwWebSocketNotifyAll ||
+                    (ix->lastChanged().isValid() && ix->lastChanged() >= lightNode->lastStatePush) ||
+                    (iy->lastChanged().isValid() && iy->lastChanged() >= lightNode->lastStatePush))
+                  {
+                      xy.append(round(ix->toNumber() / 6.5535) / 10000.0);
+                      xy.append(round(iy->toNumber() / 6.5535) / 10000.0);
+                      state["xy"] = xy;
+                  }
+            }
+
+            if (!state.isEmpty())
+            {
+                map["state"] = state;
+                webSocketServer->broadcastTextMessage(Json::serialize(map));
+                lightNode->lastStatePush = now;
+            }
 
             if ((e.what() == RStateOn || e.what() == RStateReachable) && !lightNode->groups().empty())
             {

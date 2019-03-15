@@ -16,13 +16,15 @@
 #include <QTime>
 #include <vector>
 #include "resource.h"
+#include "rest_node_base.h"
 #include "scene.h"
 
 /*! \class Group
 
     Represents the group state of lights.
  */
-class Group : public Resource
+class Group : public Resource,
+              public RestNodeBase
 {
 public:
     enum State

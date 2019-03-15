@@ -2156,8 +2156,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                 globalLastMotion = item->lastSet(); // remember
             }
 
-            if (sensor->lastStatePush.isValid() &&
-            item->lastSet() < sensor->lastStatePush)
+            if (sensor->lastStatePush.isValid() && item->lastSet() < sensor->lastStatePush)
             {
                 DBG_Printf(DBG_INFO_L2, "discard sensor state push for %s: %s (already pushed)\n", qPrintable(e.id()), e.what());
                 webSocketServer->flush(); // force transmit send buffer

@@ -3336,6 +3336,7 @@ void DeRestPluginPrivate::handleGroupEvent(const Event &e)
     {
         return;
     }
+    const QDateTime now = QDateTime::currentDateTime();
 
     if (e.what() == REventCheckGroupAnyOn)
     {
@@ -3388,16 +3389,43 @@ void DeRestPluginPrivate::handleGroupEvent(const Event &e)
         ResourceItem *item = group->item(e.what());
         if (item)
         {
+            if (group->lastStatePush.isValid() && item->lastSet() < group->lastStatePush)
+            {
+                DBG_Printf(DBG_INFO_L2, "discard group state push for %s: %s (already pushed)\n", qPrintable(e.id()), e.what());
+                webSocketServer->flush(); // force transmit send buffer
+                return; // already pushed
+            }
+
             QVariantMap map;
             map["t"] = QLatin1String("event");
             map["e"] = QLatin1String("changed");
             map["r"] = QLatin1String("groups");
             map["id"] = group->id();
             QVariantMap state;
-            state[e.what() + 6] = item->toVariant();
-            map["state"] = state;
 
-            webSocketServer->broadcastTextMessage(Json::serialize(map));
+            for (int i = 0; i < group->itemCount(); i++)
+            {
+                item = group->itemForIndex(i);
+                const ResourceItemDescriptor &rid = item->descriptor();
+
+                if (strncmp(rid.suffix, "state/", 6) == 0)
+                {
+                    const char *key = item->descriptor().suffix + 6;
+
+                    if (item->lastSet().isValid() && (gwWebSocketNotifyAll || (item->lastChanged().isValid() && item->lastChanged() >= group->lastStatePush)))
+                    {
+                        state[key] = item->toVariant();
+                    }
+                }
+
+            }
+
+            if (!state.isEmpty())
+            {
+                map["state"] = state;
+                webSocketServer->broadcastTextMessage(Json::serialize(map));
+                group->lastStatePush = now;
+            }
         }
     }
     else if (strncmp(e.what(), "attr/", 5) == 0)
