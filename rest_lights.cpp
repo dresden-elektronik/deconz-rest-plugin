@@ -2017,8 +2017,9 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                     {
                         iy = item;
                     }
-                    else if (item->lastSet().isValid() && (gwWebSocketNotifyAll || (item->lastChanged().isValid() && item->lastChanged() >= lightNode->lastStatePush)))
+                    /* else */ if (item->lastSet().isValid() && (gwWebSocketNotifyAll || (item->lastChanged().isValid() && item->lastChanged() >= lightNode->lastStatePush)))
                     {
+                        // for now include x and y attribytes for backwards compatibility
                         state[key] = item->toVariant();
                     }
                 }
