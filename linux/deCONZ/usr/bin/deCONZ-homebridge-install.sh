@@ -10,6 +10,7 @@ DECONZ_PORT=
 
 PROXY_ADDRESS=""
 PROXY_PORT=""
+AUTO_UPDATE=false #auto update active status
 
 LOG_EMERG=
 LOG_ALERT=
@@ -73,10 +74,10 @@ function init {
 function installHomebridge {
 
 	## get database config
-	params=( [0]="proxyaddress" [1]="proxyport" )
+	params=( [0]="proxyaddress" [1]="proxyport" [2]="homebridgeupdate" )
 	values=()
 
-	for i in {0..1}; do
+	for i in {0..2}; do
 		param=${params[$i]}
 		RC=1
 		while [ $RC -ne 0 ]; do
@@ -96,6 +97,7 @@ function installHomebridge {
 
 	PROXY_ADDRESS="${values[0]}"
 	PROXY_PORT="${values[1]}"
+	AUTO_UPDATE="${values[2]}"
 
 	## check installed components
 	hb_installed=false
@@ -230,6 +232,10 @@ function installHomebridge {
 
 function checkUpdate {
 
+	if [[ $AUTO_UPDATE = false ]]; then
+		return
+	fi
+
 	[[ $LOG_INFO ]] && echo "${LOG_INFO}check for homebridge updates"
 	hb_version=""
 	hb_hue_version=""
@@ -252,6 +258,7 @@ function checkUpdate {
 		if [[ ! $hb_hue_version =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
 			hb_hue_version=""
 		fi
+		putHomebridgeUpdated "homebridgeversion" "$hb_hue_version"
 	fi
 	#TODO: check node vesion
 	#TODO: check npm version
@@ -296,6 +303,7 @@ function checkUpdate {
 			[[ $LOG_WARN ]] && echo "${LOG_WARN}could not update homebridge hue"
 		else
 			putHomebridgeUpdated "homebridge" "updated"
+			putHomebridgeUpdated "homebridgeversion" "$latest_hb_hue_version"			
 		fi
 	fi
 }

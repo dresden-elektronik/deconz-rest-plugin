@@ -73,6 +73,8 @@ void DeRestPluginPrivate::initConfig()
     //gwWifiApPw = "";
     gwWifiPageActive = false;
     gwHomebridge = QLatin1String("not-managed");
+    gwHomebridgeVersion = QString();
+    gwHomebridgeUpdate = false;
     gwHomebridgePin = QString();
     gwRgbwDisplay = "1";
     gwTimeFormat = "12h";
@@ -1765,6 +1767,29 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         rsp.list.append(rspItem);
     }
 
+    if (map.contains("homebridgeupdate")) // optional
+    {
+        bool homebridgeUpdate = map["homebridgeupdate"].toBool();
+
+        if (map["homebridgeupdate"].type() != QVariant::Bool)
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/homebridgeupdate"), QString("invalid value, %1, for parameter, homebridgeupdate").arg(map["homebridgeupdate"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+
+        if (gwHomebridgeUpdate != homebridgeUpdate)
+        {
+            gwHomebridgeUpdate = homebridgeUpdate;
+            queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
+        }
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState["/config/homebridgeupdate"] = homebridgeUpdate;
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+    }
+
     if (map.contains("discovery")) // optional
     {
         bool discovery = map["discovery"].toBool();
@@ -3317,6 +3342,8 @@ int DeRestPluginPrivate::putHomebridgeUpdated(const ApiRequest &req, ApiResponse
 
     QString homebridge;
     QString homebridgePin;
+    QString homebridgeVersion;
+    bool homebridgeUpdate;
     bool changed = false;
 
     if (map.contains("homebridge"))
@@ -3372,6 +3399,16 @@ int DeRestPluginPrivate::putHomebridgeUpdated(const ApiRequest &req, ApiResponse
         if (gwHomebridgePin != homebridgePin)
         {
             gwHomebridgePin = homebridgePin;
+            changed = true;
+        }
+    }
+
+    if (map.contains("homebridgeversion"))
+    {
+        homebridgeVersion = map["homebridgeversion"].toString();
+        if (gwHomebridgeVersion != homebridgeVersion)
+        {
+            gwHomebridgeVersion = homebridgeVersion;
             changed = true;
         }
     }

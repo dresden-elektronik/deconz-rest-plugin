@@ -1250,6 +1250,30 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
             d->gwHomebridge = val;
         }
     }
+    else if (strcmp(colval[0], "homebridgeversion") == 0)
+    {
+        if (!val.isEmpty())
+        {
+            d->gwConfig["homebridgeversion"] = val;
+            d->gwHomebridgeVersion = val;
+        }
+    }
+    else if (strcmp(colval[0], "homebridgeupdate") == 0)
+    {
+        if (!val.isEmpty())
+        {
+            if (val == "true")
+            {
+                d->gwConfig["homebridgeupdate"] = true;
+                d->gwHomebridgeUpdate = true;
+            }
+            else
+            {
+                d->gwConfig["homebridgeupdate"] = false;
+                d->gwHomebridgeUpdate = false;
+            }
+        }
+    }
     else if (strcmp(colval[0], "homebridge-pin") == 0)
     {
         if (!val.isEmpty())
@@ -3952,6 +3976,8 @@ void DeRestPluginPrivate::saveDb()
         gwConfig["gwusername"] = gwAdminUserName;
         gwConfig["gwpassword"] = gwAdminPasswordHash;
         gwConfig["homebridge"] = gwHomebridge;
+        gwConfig["homebridgeversion"] = gwHomebridgeVersion;
+        gwConfig["homebridgeupdate"] = gwHomebridgeUpdate;
         gwConfig["homebridge-pin"] = gwHomebridgePin;
         gwConfig["updatechannel"] = gwUpdateChannel;
         gwConfig["swupdatestate"] = gwSwUpdateState;

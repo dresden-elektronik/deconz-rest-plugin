@@ -1398,6 +1398,8 @@ public:
     QString gwNetMask;
     QString gwHomebridge;
     QString gwHomebridgePin;
+    QString gwHomebridgeVersion;
+    bool gwHomebridgeUpdate;
     QString gwName;
     bool gwLANBridgeId;
     QString gwBridgeId;
