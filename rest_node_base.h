@@ -88,8 +88,6 @@ public:
     const QDateTime &lastRx() const;
     void rx();
 
-    QDateTime lastStatePush;
-
 private:
     deCONZ::Node *m_node;
     deCONZ::Address m_addr;
