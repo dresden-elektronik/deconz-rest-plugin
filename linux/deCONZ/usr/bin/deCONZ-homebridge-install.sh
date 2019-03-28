@@ -105,6 +105,7 @@ function installHomebridge {
 	node_installed=false
 	npm_installed=false
 	node_ver=""
+	hb_hue_version=""
 
 	which homebridge &> /dev/null
 	if [ $? -eq 0 ]; then
@@ -115,6 +116,14 @@ function installHomebridge {
 			if [ -d "$i/homebridge-hue" ]; then
 				# homebridge-hue installation found
 				hb_hue_installed=true
+
+				if [ -f "$i/homebridge-hue/package.json" ]; then
+					hb_hue_version=$(cat $i/homebridge-hue/package.json | grep \"version\": | cut -d'"' -f 4 | tr -d '[:space:]')
+					if [[ ! $hb_hue_version =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+						hb_hue_version=""
+					fi
+					putHomebridgeUpdated "homebridgeversion" "$hb_hue_version"
+				fi
 			fi
 		done
 	fi
