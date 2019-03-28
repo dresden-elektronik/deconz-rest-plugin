@@ -946,6 +946,8 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         map["wifi"] = gwWifi;
         map["homebridge"] = gwHomebridge;
         map["homebridgepin"] = gwHomebridgePin;
+        map["homebridgeversion"] = gwHomebridgeVersion;
+        map["homebridgeupdate"] = gwHomebridgeUpdate;
 #else
         map["wifi"] = QLatin1String("not-available");
         map["homebridge"] = QLatin1String("not-available");
