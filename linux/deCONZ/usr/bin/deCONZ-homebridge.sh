@@ -255,7 +255,7 @@ function checkHomebridge {
 			putHomebridgeUpdated "homebridgepin" "$pin"
 		else
 			# or create new pin and write it in db
-			local pin=$((1000 + RANDOM % 9999))$((1000 + RANDOM % 9999))
+			local pin=$((1000 + RANDOM % 8999))$((1000 + RANDOM % 8999))
 			putHomebridgeUpdated "homebridgepin" "$pin"
 		fi
 	fi
