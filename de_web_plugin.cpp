@@ -6057,7 +6057,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     }
                                     else if (i->modelId() == QLatin1String("SmartPlug")) // Heiman
                                     {
-                                        current *= 100; // 0.01A -> mA
+                                        current *= 10; // 0.01A -> mA
                                     }
                                     else
                                     {
