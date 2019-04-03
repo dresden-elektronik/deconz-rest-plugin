@@ -1941,6 +1941,7 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
     const ResourceItem *ix = nullptr;
     const ResourceItem *iy = nullptr;
     const ResourceItem *iz = nullptr;
+    QVariantList orientation;
     QVariantMap config;
 
     for (int i = 0; i < sensor->itemCount(); i++)
@@ -2024,7 +2025,6 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
     }
     if (ix && iy && iz)
     {
-        QVariantList orientation;
         orientation.append(ix->toNumber());
         orientation.append(iy->toNumber());
         orientation.append(iz->toNumber());
@@ -2156,8 +2156,7 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                 globalLastMotion = item->lastSet(); // remember
             }
 
-            if (sensor->lastStatePush.isValid() &&
-            item->lastSet() < sensor->lastStatePush)
+            if (sensor->lastStatePush.isValid() && item->lastSet() < sensor->lastStatePush)
             {
                 DBG_Printf(DBG_INFO_L2, "discard sensor state push for %s: %s (already pushed)\n", qPrintable(e.id()), e.what());
                 webSocketServer->flush(); // force transmit send buffer
@@ -2171,6 +2170,10 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             map["id"] = e.id();
             map["uniqueid"] = sensor->uniqueId();
             QVariantMap state;
+            ResourceItem *ix = nullptr;
+            ResourceItem *iy = nullptr;
+            ResourceItem *iz = nullptr;
+            QVariantList orientation;
 
             for (int i = 0; i < sensor->itemCount(); i++)
             {
@@ -2181,10 +2184,36 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                 {
                     const char *key = item->descriptor().suffix + 6;
 
-                    if (item->lastSet().isValid() && (gwWebSocketNotifyAll || rid.suffix == RStateButtonEvent || (item->lastChanged().isValid() && item->lastChanged() >= sensor->lastStatePush)))
+                    if (rid.suffix == RStateOrientationX)
+                    {
+                        ix = item;
+                    }
+                    else if (rid.suffix == RStateOrientationY)
+                    {
+                        iy = item;
+                    }
+                    else if (rid.suffix == RStateOrientationZ)
+                    {
+                        iz = item;
+                    }
+                    else if (item->lastSet().isValid() && (gwWebSocketNotifyAll || rid.suffix == RStateButtonEvent || (item->lastChanged().isValid() && item->lastChanged() >= sensor->lastStatePush)))
                     {
                         state[key] = item->toVariant();
                     }
+                }
+            }
+
+            if (ix && ix->lastSet().isValid() && iy && iy->lastSet().isValid() && iz && iz->lastSet().isValid())
+            {
+                if (gwWebSocketNotifyAll ||
+                    (ix->lastChanged().isValid() && ix->lastChanged() >= sensor->lastStatePush) ||
+                    (iy->lastChanged().isValid() && iy->lastChanged() >= sensor->lastStatePush) ||
+                    (iz->lastChanged().isValid() && iz->lastChanged() >= sensor->lastStatePush))
+                {
+                    orientation.append(ix->toNumber());
+                    orientation.append(iy->toNumber());
+                    orientation.append(iz->toNumber());
+                    state["orientation"] = orientation;
                 }
             }
 
