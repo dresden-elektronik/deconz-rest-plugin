@@ -3345,7 +3345,6 @@ int DeRestPluginPrivate::putHomebridgeUpdated(const ApiRequest &req, ApiResponse
     QString homebridge;
     QString homebridgePin;
     QString homebridgeVersion;
-    bool homebridgeUpdate;
     bool changed = false;
 
     if (map.contains("homebridge"))
