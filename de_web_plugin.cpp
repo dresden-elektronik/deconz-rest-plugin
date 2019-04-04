@@ -3527,7 +3527,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 {
                     if (modelId.startsWith(QLatin1String("lumi.vibration"))) // lumi.vibration
                     {
-                        fpSwitch.inClusters.push_back(DOOR_LOCK_CLUSTER_ID);
+                        // fpSwitch.inClusters.push_back(DOOR_LOCK_CLUSTER_ID);
                         fpVibrationSensor.inClusters.push_back(DOOR_LOCK_CLUSTER_ID);
                     }
                 }
