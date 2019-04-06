@@ -5931,7 +5931,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 quint64 consumption = ia->numericValue().u64;
                                 ResourceItem *item = i->item(RStateConsumption);
 
-                                if (i->modelId() == QLatin1String("SmartPlug")) // Heiman
+                                if (i->modelId() == QLatin1String("SmartPlug") || // Heiman
+                                    i->modelId().startsWith("PSMP5_")) // Climax
                                 {
                                     consumption += 5; consumption /= 10; // 0.1 Wh -> Wh
                                 }
@@ -5959,7 +5960,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 ResourceItem *item = i->item(RStatePower);
 
                                 if (i->modelId() == QLatin1String("SmartPlug") || // Heiman
-                                    i->modelId() == QLatin1String("902010/25")) // Bitron
+                                    i->modelId() == QLatin1String("902010/25") || // Bitron
+                                    i->modelId().startsWith("PSMP5_")) // Climax
                                 {
                                     power += 5; power /= 10; // 0.1 W -> W
                                 }
