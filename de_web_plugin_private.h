@@ -262,7 +262,6 @@
 #define VENDOR_LUTRON       0x1144
 #define VENDOR_KEEN_HOME    0x115B
 #define VENDOR_115F         0x115F // Used by Xiaomi Aqara
-#define VENDOR_1234         0x1234 // Used by Xiaomi Mi
 #define VENDOR_INNR         0x1166
 #define VENDOR_INNR2        0x1168
 #define VENDOR_INSTA        0x117A
@@ -274,6 +273,8 @@
 #define VENDOR_MUELLER      0x121B // Used by Mueller Licht
 #define VENDOR_1224         0x1224 // Used by iCasa keypads
 #define VENDOR_XAL          0x122A
+#define VENDOR_1233         0x1233 // Used by Third Reality
+#define VENDOR_1234         0x1234 // Used by Xiaomi Mi
 #define VENDOR_SAMJIN       0x1241
 #define VENDOR_OSRAM_STACK  0xBBAA
 
