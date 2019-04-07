@@ -310,7 +310,8 @@
 // Firmware version related (32-bit field)
 #define FW_PLATFORM_MASK          0x0000FF00UL
 #define FW_PLATFORM_DERFUSB23E0X  0x00000300UL
-#define FW_PLATFORM_RPI           0x00000500UL
+#define FW_PLATFORM_AVR           0x00000500UL
+#define FW_PLATFORM_R21           0x00000700UL
 
 // schedules
 #define SCHEDULE_CHECK_PERIOD 1000

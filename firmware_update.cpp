@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2019 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -23,12 +23,13 @@
 #define FW_IDLE_TIMEOUT_LONG (240 * 1000)
 #define FW_WAIT_USER_TIMEOUT (120 * 1000)
 #define FW_ONLY_AVR_BOOTLOADER 1
+#define FW_ONLY_R21_BOOTLOADER 2
 
 /*! Inits the firmware update manager.
  */
 void DeRestPluginPrivate::initFirmwareUpdate()
 {
-    fwProcess = 0;
+    fwProcess = nullptr;
     fwUpdateState = FW_Idle;
 
     Q_ASSERT(apsCtrl);
@@ -146,14 +147,14 @@ void DeRestPluginPrivate::updateFirmwareWaitFinished()
             }
 
             fwProcess->deleteLater();
-            fwProcess = 0;
+            fwProcess = nullptr;
         }
     }
 
     // done
-    if (fwProcess == 0)
+    if (fwProcess == nullptr)
     {
-        gwFirmwareVersion == QLatin1String("0x00000000"); // force reread
+        gwFirmwareVersion = QLatin1String("0x00000000"); // force reread
         fwUpdateStartedByUser = false;
         gwFirmwareNeedUpdate = false;
         updateEtag(gwConfigEtag);
@@ -321,11 +322,22 @@ void DeRestPluginPrivate::queryFirmwareVersion()
         }
     }
 
+    const quint8 devConnected = apsCtrl->getParameter(deCONZ::ParamDeviceConnected);
+    const quint32 fwVersion = apsCtrl->getParameter(deCONZ::ParamFirmwareVersion);
+
     // does the update file exist?
+    // todo if the fwVersion is 0, make a guess on which firmware file to select based on device enumerator
     QString fileName;
-    if (fwUpdateFile.isEmpty())
+    if (fwUpdateFile.isEmpty() && fwVersion > 0)
     {
-        fileName.sprintf("deCONZ_Rpi_0x%08x.bin.GCF", GW_MIN_RPI_FW_VERSION);
+        if (((fwVersion & FW_PLATFORM_MASK) == FW_PLATFORM_AVR) || fwVersion == FW_ONLY_AVR_BOOTLOADER)
+        {
+            fileName.sprintf("deCONZ_Rpi_0x%08x.bin.GCF", GW_MIN_AVR_FW_VERSION);
+        }
+        else if (((fwVersion & FW_PLATFORM_MASK) == FW_PLATFORM_R21) || fwVersion == FW_ONLY_R21_BOOTLOADER)
+        {
+            fileName.sprintf("deCONZ_ConBeeII_0x%08x.bin.GCF", GW_MIN_R21_FW_VERSION);
+        }
 
         // search in different locations
         std::vector<QString> paths;
@@ -362,19 +374,16 @@ void DeRestPluginPrivate::queryFirmwareVersion()
         return;
     }
 
-    uint8_t devConnected = apsCtrl->getParameter(deCONZ::ParamDeviceConnected);
-    uint32_t fwVersion = apsCtrl->getParameter(deCONZ::ParamFirmwareVersion);
-
     Q_ASSERT(!gwFirmwareNeedUpdate);
 
     if (devConnected == 0 || fwVersion == 0)
     {
         // if even after some time no firmware was detected
         // ASSUME that a device is present and reachable but might not have firmware installed
-//        if (getUptime() >= FW_WAIT_UPDATE_READY)
+        if (getUptime() >= FW_WAIT_UPDATE_READY)
         {
             QString str;
-            str.sprintf("0x%08x", GW_MIN_RPI_FW_VERSION);
+            str.sprintf("0x%08x", GW_MIN_AVR_FW_VERSION);
 
             gwFirmwareVersion = "0x00000000"; // unknown
             gwFirmwareVersionUpdate = str;
@@ -409,15 +418,15 @@ void DeRestPluginPrivate::queryFirmwareVersion()
 
         // if the device is detected check that the firmware version is >= min version
         // if fwVersion is FW_ONLY_AVR_BOOTLOADER, there might be no firmware at all, but update is possible
-        if (((fwVersion & FW_PLATFORM_MASK) == FW_PLATFORM_RPI) || fwVersion == FW_ONLY_AVR_BOOTLOADER)
+        if (((fwVersion & FW_PLATFORM_MASK) == FW_PLATFORM_AVR) || fwVersion == FW_ONLY_AVR_BOOTLOADER)
         {
-            if (fwVersion < GW_MIN_RPI_FW_VERSION)
+            if (fwVersion < GW_MIN_AVR_FW_VERSION)
             {
-                gwFirmwareVersionUpdate.sprintf("0x%08x", GW_MIN_RPI_FW_VERSION);
+                gwFirmwareVersionUpdate.sprintf("0x%08x", GW_MIN_AVR_FW_VERSION);
                 gwFirmwareNeedUpdate = true;
                 updateEtag(gwConfigEtag);
 
-                DBG_Printf(DBG_INFO, "GW firmware version shall be updated to: 0x%08x\n", GW_MIN_RPI_FW_VERSION);
+                DBG_Printf(DBG_INFO, "GW firmware version shall be updated to: 0x%08x\n", GW_MIN_AVR_FW_VERSION);
                 fwUpdateState = FW_WaitUserConfirm;
                 fwUpdateTimer->start(FW_WAIT_USER_TIMEOUT);
                 apsCtrl->setParameter(deCONZ::ParamFirmwareUpdateActive, deCONZ::FirmwareUpdateReadyToStart);
@@ -435,7 +444,46 @@ void DeRestPluginPrivate::queryFirmwareVersion()
                     autoUpdate = true;
                 }
 
-                if (autoUpdate && fwVersion <= GW_AUTO_UPDATE_FW_VERSION)
+                if (autoUpdate && fwVersion <= GW_AUTO_UPDATE_AVR_FW_VERSION)
+                {
+                    DBG_Printf(DBG_INFO, "GW firmware start auto update\n");
+                    startUpdateFirmware();
+                }
+
+                return;
+            }
+            else
+            {
+                DBG_Printf(DBG_INFO, "GW firmware version is up to date: 0x%08x\n", fwVersion);
+                fwUpdateState = FW_Idle;
+                fwUpdateTimer->start(FW_IDLE_TIMEOUT_LONG);
+                return;
+            }
+        }
+
+        // adapted from above AVR handling
+        if (((fwVersion & FW_PLATFORM_MASK) == FW_PLATFORM_R21) || fwVersion == FW_ONLY_R21_BOOTLOADER)
+        {
+            if (fwVersion < GW_MIN_R21_FW_VERSION)
+            {
+                gwFirmwareVersionUpdate.sprintf("0x%08x", GW_MIN_R21_FW_VERSION);
+                gwFirmwareNeedUpdate = true;
+                updateEtag(gwConfigEtag);
+
+                DBG_Printf(DBG_INFO, "GW firmware version shall be updated to: 0x%08x\n", GW_MIN_R21_FW_VERSION);
+                fwUpdateState = FW_WaitUserConfirm;
+                fwUpdateTimer->start(FW_WAIT_USER_TIMEOUT);
+                apsCtrl->setParameter(deCONZ::ParamFirmwareUpdateActive, deCONZ::FirmwareUpdateReadyToStart);
+
+                bool autoUpdate = false;
+
+                // auto update factory fresh devices with too old or no firmware
+                if (fwVersion == FW_ONLY_R21_BOOTLOADER)
+                {
+                    autoUpdate = true;
+                }
+
+                if (autoUpdate && fwVersion <= GW_AUTO_UPDATE_R21_FW_VERSION)
                 {
                     DBG_Printf(DBG_INFO, "GW firmware start auto update\n");
                     startUpdateFirmware();
@@ -479,23 +527,46 @@ void DeRestPluginPrivate::checkFirmwareDevices()
 
     int raspBeeCount = 0;
     int usbDongleCount = 0;
+    const quint8 devConnected = apsCtrl->getParameter(deCONZ::ParamDeviceConnected);
     QString ttyPath;
     QString serialNumber;
+
+#if DECONZ_LIB_VERSION >= 0x010A00
+    ttyPath = apsCtrl->getParameter(deCONZ::ParamDevicePath);
+#endif
 
     for (; i != end; ++i)
     {
         if (i->friendlyName.contains(QLatin1String("ConBee")))
         {
             usbDongleCount++;
-            serialNumber = i->serialNumber;
+            if (ttyPath.isEmpty())
+            {
+                ttyPath = i->path;
+            }
         }
         else if (i->friendlyName.contains(QLatin1String("RaspBee")))
         {
             raspBeeCount = 1;
-            ttyPath = i->path;
+            if (ttyPath.isEmpty())
+            {
+                ttyPath = i->path;
+            }
+        }
+
+        if (ttyPath == i->path)
+        {
+            serialNumber = i->serialNumber;
         }
     }
 
+#if DECONZ_LIB_VERSION >= 0x010A00
+    if (devConnected > 0 && !ttyPath.isEmpty())
+    {
+        fwProcessArgs << "-d" << ttyPath; // GCFFlasher >= 3.x
+    }
+    else
+#endif
     if (usbDongleCount > 1)
     {
         DBG_Printf(DBG_INFO_L2, "GW firmware update too many USB devices connected, abort\n");
