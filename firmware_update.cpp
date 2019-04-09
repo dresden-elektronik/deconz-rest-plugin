@@ -478,7 +478,7 @@ void DeRestPluginPrivate::queryFirmwareVersion()
                 bool autoUpdate = false;
 
                 // auto update factory fresh devices with too old or no firmware
-                if (fwVersion == FW_ONLY_R21_BOOTLOADER)
+                if (fwVersion == FW_ONLY_R21_BOOTLOADER || (fwVersion > 0 && fwVersion <= GW_AUTO_UPDATE_R21_FW_VERSION))
                 {
                     autoUpdate = true;
                 }
@@ -488,7 +488,6 @@ void DeRestPluginPrivate::queryFirmwareVersion()
                     DBG_Printf(DBG_INFO, "GW firmware start auto update\n");
                     startUpdateFirmware();
                 }
-
                 return;
             }
             else
