@@ -1465,6 +1465,7 @@ public:
     QProcess *zipProcess;
     QProcess *archProcess;
     QStringList fwProcessArgs;
+    QString fwDeviceName;
 
     std::deque<RestNodeBase*> pollNodes;
     PollManager *pollManager;

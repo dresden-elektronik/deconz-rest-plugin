@@ -74,23 +74,45 @@ void DeRestPluginPrivate::updateFirmware()
         return;
     }
 
+    bool needSudo = true;
+
+    if (fwDeviceName == QLatin1String("ConBee II"))
+    {
+        needSudo = false;
+    }
+
+    QString bin;
     QString gcfFlasherBin = qApp->applicationDirPath() + "/GCFFlasher";
 #ifdef Q_OS_WIN
     gcfFlasherBin.append(".exe");
-    QString bin = gcfFlasherBin;
+    bin = gcfFlasherBin;
 #elif defined(Q_OS_LINUX) && !defined(ARCH_ARM) // on x86 linux
-    QString bin = "pkexec";
-    gcfFlasherBin = "/usr/bin/GCFFlasher_internal";
-    fwProcessArgs.prepend(gcfFlasherBin);
+    if (!needSudo)
+    {
+        bin = QLatin1String("/usr/bin/GCFFlasher_internal.bin");
+    }
+    else
+    {
+        bin = QLatin1String("pkexec");
+        gcfFlasherBin = QLatin1String("/usr/bin/GCFFlasher_internal");
+        fwProcessArgs.prepend(gcfFlasherBin);
+    }
 #elif defined(Q_OS_OSX)
     // TODO
     // /usr/bin/osascript -e 'do shell script "make install" with administrator privileges'
-    QString bin = "sudo";
+    bin = "sudo";
     fwProcessArgs.prepend(gcfFlasherBin);
 #else // on RPi a normal sudo is ok since we don't need password there
-    QString bin = "sudo";
-    gcfFlasherBin = "/usr/bin/GCFFlasher_internal";
-    fwProcessArgs.prepend(gcfFlasherBin);
+    if (!needSudo)
+    {
+        bin = QLatin1String("/usr/bin/GCFFlasher_internal.bin");
+    }
+    else
+    {
+        bin = QLatin1String("sudo");
+        gcfFlasherBin = QLatin1String("/usr/bin/GCFFlasher_internal");
+        fwProcessArgs.prepend(gcfFlasherBin);
+    }
 #endif
 
     if (!fwProcess)
@@ -323,7 +345,17 @@ void DeRestPluginPrivate::queryFirmwareVersion()
     }
 
     const quint8 devConnected = apsCtrl->getParameter(deCONZ::ParamDeviceConnected);
-    const quint32 fwVersion = apsCtrl->getParameter(deCONZ::ParamFirmwareVersion);
+    quint32 fwVersion = apsCtrl->getParameter(deCONZ::ParamFirmwareVersion);
+
+#if DECONZ_LIB_VERSION >= 0x010A00
+    if (fwUpdateFile.isEmpty() && fwVersion == 0 && idleTotalCounter > (IDLE_READ_LIMIT + 10))
+    {
+        if (fwDeviceName == QLatin1String("ConBee II"))
+        {
+            fwVersion = FW_ONLY_R21_BOOTLOADER;
+        }
+    }
+#endif
 
     // does the update file exist?
     // todo if the fwVersion is 0, make a guess on which firmware file to select based on device enumerator
@@ -482,7 +514,7 @@ void DeRestPluginPrivate::queryFirmwareVersion()
                 {
                     // TODO needs to be testet
                 }
-                else if (fwVersion == FW_ONLY_R21_BOOTLOADER || (fwVersion > 0 && fwVersion <= GW_AUTO_UPDATE_R21_FW_VERSION))
+                else if (fwVersion > FW_ONLY_R21_BOOTLOADER && fwVersion <= GW_AUTO_UPDATE_R21_FW_VERSION)
                 {
                     autoUpdate = true;
                 }
@@ -560,13 +592,14 @@ void DeRestPluginPrivate::checkFirmwareDevices()
         if (ttyPath == i->path)
         {
             serialNumber = i->serialNumber;
+            fwDeviceName = i->friendlyName;
         }
     }
 
 #if DECONZ_LIB_VERSION >= 0x010A00
     if (devConnected > 0 && !ttyPath.isEmpty())
     {
-        fwProcessArgs << "-d" << ttyPath; // GCFFlasher >= 3.x
+        fwProcessArgs << "-d" << ttyPath << "-t" << "30"; // GCFFlasher >= 3.x
     }
     else
 #endif
