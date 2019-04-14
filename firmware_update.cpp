@@ -600,6 +600,10 @@ void DeRestPluginPrivate::checkFirmwareDevices()
     if (devConnected > 0 && !ttyPath.isEmpty())
     {
         fwProcessArgs << "-d" << ttyPath << "-t" << "30"; // GCFFlasher >= 3.x
+        if (!serialNumber.isEmpty())
+        {
+            fwProcessArgs << "-s" << serialNumber; // GCFFlasher >= 3.2
+        }
     }
     else
 #endif
@@ -613,7 +617,7 @@ void DeRestPluginPrivate::checkFirmwareDevices()
 #ifndef Q_OS_WIN // windows does append characters  to the serial number for some reason 'A' (TODO)
         if (!serialNumber.isEmpty())
         {
-            fwProcessArgs << "-sn" << serialNumber;
+            fwProcessArgs << "-s" << serialNumber;
         }
         else
 #endif
