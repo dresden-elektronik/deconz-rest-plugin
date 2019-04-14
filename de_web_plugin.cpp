@@ -3401,6 +3401,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                                         {
                                             // ignore for ZHAAlarm
                                         }
+                                        else if (modelId.startsWith(QLatin1String("lumi.sensor_motion")))
+                                        {
+                                            // ignore for ZHAAlarm
+                                        }
                                         else
                                         {
                                             fpAlarmSensor.inClusters.push_back(ci->id());

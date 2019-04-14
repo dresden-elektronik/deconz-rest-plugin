@@ -127,6 +127,9 @@ void DeRestPluginPrivate::cleanUpDb()
         // cleanup invalid sensor resource for Centralite motion sensor
         "DELETE FROM sensors WHERE modelid = 'Motion Sensor-A' AND uniqueid LIKE '%02-0406'",
 
+        // cleanup invalid ZHAAlarm resource for Xiaomi motion sensor
+        "DELETE from sensors WHERE type = 'ZHAAlarm' AND modelid LIKE 'lumi.sensor_motion%'",
+
         // delete duplicates in device_descriptors
         //"DELETE FROM device_descriptors WHERE rowid NOT IN"
         //" (SELECT max(rowid) FROM device_descriptors GROUP BY device_id,type,endpoint)",
