@@ -3,7 +3,7 @@ Introduction
 
 The [deCONZ](http://www.dresden-elektronik.de/funktechnik/products/software/pc/deconz?L=1) REST plugin provides a REST-API to access Zigbee 3.0 (Z30), Zigbee Home Automation (ZHA) and Zigbee Light Link (ZLL) lights, switches and sensors like the dresden elektronik [Wireless Light Control](http://www.dresden-elektronik.de/funktechnik/solutions/wireless-light-control) system, Xiaomi Aqara, IKEA TRÅDFRI and Philips Hue.
 
-As hardware the [RaspBee](https://www.dresden-elektronik.de/raspbee?L=1&ref=gh) Zigbee Shield for Raspberry Pi, a [ConBee](https://www.dresden-elektronik.de/conbee?L=1&ref=gh) or [ConBee&nbsp;II](https://phoscon.de/conbee2?ref=gh) USB-dongle is used to communicate with the Zigbee devices.
+As hardware the [RaspBee](https://phoscon.de/raspbee?ref=gh) Zigbee Shield for Raspberry Pi, a [ConBee](https://phoscon.de/conbee?ref=gh) or [ConBee&nbsp;II](https://phoscon.de/conbee2?ref=gh) USB-dongle is used to communicate with the Zigbee devices.
 
 To learn more about the REST-API itself please visit the [REST-API Documentation](http://dresden-elektronik.github.io/deconz-rest-doc/) page.
 
@@ -143,8 +143,8 @@ Hardware requirements
 ---------------------
 
 * Raspberry Pi 1, 2 or 3
-* [RaspBee](http://www.dresden-elektronik.de/funktechnik/solutions/wireless-light-control/raspbee?L=1&ref=gh) Zigbee Shield for Raspberry Pi
-* [ConBee](https://www.dresden-elektronik.de/funktechnik/solutions/wireless-light-control/conbee/?L=1&ref=gh) USB-dongle for Raspberry Pi and PC
+* [RaspBee](https://phoscon.de/raspbee?ref=gh) Zigbee Shield for Raspberry Pi
+* [ConBee](https://phoscon.de/conbee?ref=gh) USB-dongle for Raspberry Pi and PC
 * [ConBee&nbsp;II](https://phoscon.de/conbee2?ref=gh) USB-dongle for Raspberry Pi and PC
 
 3rd party libraries
