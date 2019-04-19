@@ -101,6 +101,7 @@
 #define DEV_ID_LEVEL_CONTROLLABLE_OUTPUT    0x0003 // Level controllable output
 #define DEV_ID_RANGE_EXTENDER               0x0008 // Range extender
 #define DEV_ID_MAINS_POWER_OUTLET           0x0009 // Mains power outlet
+#define DEV_ID_FAN                          0x000e // Fan (used by Hamption Bay fan module)
 #define DEV_ID_SMART_PLUG                   0x0051 // Smart plug
 // HA lighting devices
 #define DEV_ID_HA_ONOFF_LIGHT               0x0100 // On/Off light
@@ -165,6 +166,7 @@
 #define DOOR_LOCK_CLUSTER_ID                  0x0101
 #define WINDOW_COVERING_CLUSTER_ID            0x0102
 #define THERMOSTAT_CLUSTER_ID                 0x0201
+#define FAN_CONTROL_CLUSTER_ID                0x0202
 #define COLOR_CLUSTER_ID                      0x0300
 #define ILLUMINANCE_MEASUREMENT_CLUSTER_ID    0x0400
 #define ILLUMINANCE_LEVEL_SENSING_CLUSTER_ID  0x0401

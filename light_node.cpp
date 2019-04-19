@@ -460,6 +460,9 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 	if (hasLift) { addItem(DataTypeUInt8, RStateBri);}
                 	if (hasTilt) { addItem(DataTypeUInt8, RStateSat);}
                 }
+                else if (i->id() == FAN_CONTROL_CLUSTER_ID) {
+                    addItem(DataTypeUInt8, RStateSpeed);
+                }
             }
         }
 
@@ -495,6 +498,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
             case DEV_ID_IAS_WARNING_DEVICE:          removeItem(RStateOn);
                                                      ltype = QLatin1String("Warning device"); break;
             case DEV_ID_HA_WINDOW_COVERING_DEVICE:   ltype = QLatin1String("Window covering device"); break;
+            case DEV_ID_FAN:                         ltype = QLatin1String("Fan"); break;
             default:
                 break;
             }
