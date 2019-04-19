@@ -82,6 +82,7 @@ extern const char *RStatePressure;
 extern const char *RStatePower;
 extern const char *RStateReachable;
 extern const char *RStateSat;
+extern const char *RStateSpeed;
 extern const char *RStateStatus;
 extern const char *RStateTampered;
 extern const char *RStateTemperature;

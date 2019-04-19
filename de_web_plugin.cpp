@@ -1386,6 +1386,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 case DEV_ID_Z30_EXTENDED_COLOR_LIGHT:
                 case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT:
                 case DEV_ID_HA_WINDOW_COVERING_DEVICE:
+                case DEV_ID_FAN:
                 {
                     if (hasServerOnOff)
                     {
@@ -1871,6 +1872,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
             case DEV_ID_ZLL_ONOFF_SENSOR:
             case DEV_ID_XIAOMI_SMART_PLUG:
             case DEV_ID_IAS_WARNING_DEVICE:
+            case DEV_ID_FAN:
                 break;
 
             default:
@@ -2314,6 +2316,27 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         break;
                     }
                 }
+            }
+            else if (ic->id() == FAN_CONTROL_CLUSTER_ID && (event.clusterId() == FAN_CONTROL_CLUSTER_ID))
+            {
+                std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
+                std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
+                for (;ia != enda; ++ia)
+                {
+                    if (ia->id() == 0x0000) // Fan Mode
+                    {
+                        uint8_t mode = ia->numericValue().u8;
+                        ResourceItem *item = lightNode->item(RStateSpeed);
+                        if (item && item->toNumber() != mode)
+                        {
+                            item->setValue(mode);
+                            enqueueEvent(Event(RLights, RStateSpeed, lightNode->id(), item));
+                            lightNode->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
+                            updated = true;
+                        }
+                    }
+                }
+
             }
         }
 
@@ -6814,6 +6837,7 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
         case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:
         case DEV_ID_ZLL_ONOFF_SENSOR:
         case DEV_ID_HA_WINDOW_COVERING_DEVICE:
+        case DEV_ID_FAN:
             break;
 
         default:
@@ -9796,6 +9820,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         case COLOR_CLUSTER_ID:
         case ANALOG_OUTPUT_CLUSTER_ID: // lumi.curtain
         case WINDOW_COVERING_CLUSTER_ID:  // FIXME ubisys J1 is not a light
+        case FAN_CONTROL_CLUSTER_ID:
             {
                 updateLightNode(event);
             }
