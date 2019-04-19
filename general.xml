@@ -1496,8 +1496,27 @@ Note: It does not clear or delete previous weekly schedule programming configura
 			</client>
 		</cluster>
 		<cluster id="0202" name="Fan Control">
-			<description>333</description>
-			<!-- TODO -->
+			<description>This cluster specifies an interface to control the speed of a fan as part of a heating / cooling system.</description>
+			<server>
+				<attribute id="0x0000" name="Fan Mode" type="enum8" access="rw" default="0x05" required="m">
+					<value name="Off" value="0x00"></value>
+					<value name="Low" value="0x01"></value>
+					<value name="Medium" value="0x02"></value>
+					<value name="High" value="0x03"></value>
+					<value name="On" value="0x04"></value>
+					<value name="Auto" value="0x05"></value>
+					<value name="Smart" value="0x06"></value>
+				</attribute>
+				<attribute id="0x0001" name="Fan Mode Sequence" type="enum8" access="rw" default="0x02" required="m">
+					<value name="Low/Med/High" value="0x00"></value>
+					<value name="Low/High" value="0x01"></value>
+					<value name="Low/Med/High/Auto" value="0x02"></value>
+					<value name="Low/High/Auto" value="0x03"></value>
+					<value name="On/Auto" value="0x04"></value>
+				</attribute>
+			</server>
+			<client>
+			</client>
 		</cluster>
 		<cluster id="0203" name="Dehumidification Control">
 			<description>dfdf</description>
