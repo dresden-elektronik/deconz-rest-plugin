@@ -78,6 +78,7 @@ const quint64 deMacPrefix         = 0x00212e0000000000ULL;
 const quint64 keenhomeMacPrefix   = 0x0022a30000000000ULL;
 const quint64 heimanMacPrefix     = 0x0050430000000000ULL;
 const quint64 stMacPrefix         = 0x24fd5b0000000000ULL;
+const quint64 samjinMacPrefix     = 0x286d970000000000ULL;
 const quint64 osramMacPrefix      = 0x8418260000000000ULL;
 const quint64 silabsMacPrefix     = 0x90fd9f0000000000ULL;
 const quint64 energyMiMacPrefix   = 0xd0cf5e0000000000ULL;
@@ -133,6 +134,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_PHILIPS, "RWL020", philipsMacPrefix }, // Hue dimmer switch
     { VENDOR_PHILIPS, "RWL021", philipsMacPrefix }, // Hue dimmer switch
     { VENDOR_PHILIPS, "SML00", philipsMacPrefix }, // Hue motion sensor
+    { VENDOR_SAMJIN, "motion", samjinMacPrefix }, // Smarthings GP-U999SJVLBAA (Samjin) Motion Sensor
     { VENDOR_JENNIC, "lumi.sensor_ht", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.weather", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_magnet", jennicMacPrefix },
@@ -4482,6 +4484,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
 
         item = sensorNode.addItem(DataTypeString, RConfigAlert);
         item->setValue(R_ALERT_DEFAULT);
+    }
+    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_SAMJIN)
+    {
+        sensorNode.setManufacturer("Samjin");
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_INNR)
     {
