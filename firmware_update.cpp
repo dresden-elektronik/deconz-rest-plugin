@@ -412,7 +412,11 @@ void DeRestPluginPrivate::queryFirmwareVersion()
     {
         // if even after some time no firmware was detected
         // ASSUME that a device is present and reachable but might not have firmware installed
-        if (getUptime() >= FW_WAIT_UPDATE_READY)
+        if (gwDeviceName == QLatin1String("ConBee II"))
+        {
+            // ignore
+        }
+        else if (getUptime() >= FW_WAIT_UPDATE_READY)
         {
             QString str;
             str.sprintf("0x%08x", GW_MIN_AVR_FW_VERSION);
