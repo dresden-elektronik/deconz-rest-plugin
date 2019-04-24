@@ -1441,6 +1441,7 @@ public:
     QString gwUpdateChannel;
     int gwGroupSendDelay;
     uint gwZigbeeChannel;
+    uint16_t gwGroup0;
     QVariantMap gwConfig;
     QString gwSensorsEtag;
     QString gwLightsEtag;

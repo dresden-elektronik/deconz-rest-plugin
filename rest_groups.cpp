@@ -137,7 +137,7 @@ int DeRestPluginPrivate::getAllGroups(const ApiRequest &req, ApiResponse &rsp)
             continue;
         }
 
-        if (i->address() != 0) // don't return special group 0
+        if (i->address() != gwGroup0) // don't return special group 0
         {
             QVariantMap mnode;
             groupToMap(req, &(*i), mnode);
@@ -750,18 +750,8 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     rsp.httpStatus = HttpStatusOk;
 
     // set destination parameters
-    if (id == "0")
-    {
-        // use a broadcast
-        taskRef.req.dstAddress().setNwk(deCONZ::BroadcastRouters);
-        taskRef.req.dstAddress().setGroup(0); // taskToLocal() needs this
-        taskRef.req.setDstAddressMode(deCONZ::ApsNwkAddress);
-    }
-    else
-    {
-        taskRef.req.dstAddress().setGroup(group->address());
-        taskRef.req.setDstAddressMode(deCONZ::ApsGroupAddress);
-    }
+    taskRef.req.dstAddress().setGroup(group->address());
+    taskRef.req.setDstAddressMode(deCONZ::ApsGroupAddress);
     taskRef.req.setDstEndpoint(0xFF); // broadcast endpoint
     taskRef.req.setSrcEndpoint(getSrcEndpoint(0, taskRef.req));
 
@@ -1729,7 +1719,7 @@ int DeRestPluginPrivate::deleteGroup(const ApiRequest &req, ApiResponse &rsp)
 
     userActivity();
 
-    if (!group || (group->state() == Group::StateDeleted))
+    if (!group || (group->state() == Group::StateDeleted) || (group->address() == gwGroup0))
     {
         rsp.httpStatus = HttpStatusNotFound;
         rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/groups/%1").arg(id), QString("resource, /groups/%1, not available").arg(id)));

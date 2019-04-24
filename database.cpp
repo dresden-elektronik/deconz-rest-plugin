@@ -1040,6 +1040,18 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
             }
         }
     }
+    else if (strcmp(colval[0], "group0") == 0)
+    {
+        if (!val.isEmpty())
+        {
+            uint group0 = val.toUInt(&ok);
+            if (ok && (group0 <= 65535))
+            {
+                d->gwGroup0 = group0;
+                d->gwConfig["group0"] = (uint16_t)group0;
+            }
+        }
+    }
     else if (strcmp(colval[0], "updatechannel") == 0)
     {
         if ((val == "stable") || (val == "alpha") || (val == "beta"))
@@ -3993,6 +4005,7 @@ void DeRestPluginPrivate::saveDb()
         gwConfig["announceurl"] = gwAnnounceUrl;
         gwConfig["groupdelay"] = gwGroupSendDelay;
         gwConfig["zigbeechannel"] = gwZigbeeChannel;
+        gwConfig["group0"] = gwGroup0;
         gwConfig["gwusername"] = gwAdminUserName;
         gwConfig["gwpassword"] = gwAdminPasswordHash;
         gwConfig["homebridge"] = gwHomebridge;
