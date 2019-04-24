@@ -325,10 +325,31 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     }
 
     // create default group
-    Group group;
-    group.setAddress(0);
-    group.setName("All");
-    groups.push_back(group);
+    if (gwGroup0 == 0) { // get new id and replace old group0 and get new id
+        for (uint16_t i = 0xFFF0; i > 0; i--) // 0 and larger than 0xfff7 is not valid for Osram Lightify
+        {
+            Group* group = getGroupForId(i);
+            if (!group) {
+                gwGroup0 = i;
+                // delete old group 0
+                Group* group = getGroupForId(0);
+                if (group) 
+                {
+                    group->setState(Group::StateDeleted);
+                }
+                queSaveDb(DB_CONFIG | DB_GROUPS, DB_LONG_SAVE_DELAY);
+                break;
+            }
+        }
+    }
+    Group* group = getGroupForId(gwGroup0);
+    if (!group) { // new default group
+        Group group;
+        group.setAddress(gwGroup0);
+        group.setName("All");
+        groups.push_back(group);
+        queSaveDb(DB_GROUPS, DB_LONG_SAVE_DELAY);
+    }
 
     connect(apsCtrl, SIGNAL(apsdeDataConfirm(const deCONZ::ApsDataConfirm&)),
             this, SLOT(apsdeDataConfirm(const deCONZ::ApsDataConfirm&)));
@@ -1599,6 +1620,16 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
             if (!lightNode.modelId().isEmpty())
             { q->nodeUpdated(lightNode.address().ext(), QLatin1String("modelid"), lightNode.modelId()); }
+        }
+
+        // add light node to default group
+        GroupInfo *groupInfo = getGroupInfo(&lightNode, gwGroup0);
+        if (!groupInfo)
+        {
+            groupInfo = createGroupInfo(&lightNode, gwGroup0);
+            lightNode.setNeedSaveDatabase(true);
+            groupInfo->actions &= ~GroupInfo::ActionRemoveFromGroup; // sanity
+            groupInfo->actions |= GroupInfo::ActionAddToGroup;
         }
 
         // force reading attributes
@@ -6513,12 +6544,14 @@ Sensor *DeRestPluginPrivate::getSensorNodeForId(const QString &id)
  */
 Group *DeRestPluginPrivate::getGroupForId(uint16_t id)
 {
+    uint16_t gid = id ? id : gwGroup0;
+
     std::vector<Group>::iterator i = groups.begin();
     std::vector<Group>::iterator end = groups.end();
 
     for (; i != end; ++i)
     {
-        if (i->address() == id)
+        if (i->address() == gid)
         {
             return &(*i);
         }
@@ -6592,13 +6625,17 @@ Group *DeRestPluginPrivate::getGroupForId(const QString &id)
         DBG_Printf(DBG_INFO, "Get group for id error: invalid group id %s\n", qPrintable(id));
         return 0;
     }
+    if (gid == 0)
+    {
+        gid = gwGroup0;
+    }
 
     std::vector<Group>::iterator i = groups.begin();
     std::vector<Group>::iterator end = groups.end();
 
     for (; i != end; ++i)
     {
-        if (i->id() == id)
+        if (i->address() == gid)
         {
             return &(*i);
         }
@@ -7821,10 +7858,6 @@ bool DeRestPluginPrivate::isLightNodeInGroup(const LightNode *lightNode, uint16_
 
     if (lightNode)
     {
-        if (groupId == 0)
-        {
-            return true; // global group
-        }
         std::vector<GroupInfo>::const_iterator i = lightNode->groups().begin();
         std::vector<GroupInfo>::const_iterator end = lightNode->groups().end();
 
@@ -11886,7 +11919,7 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
         for (; i != end; ++i)
         {
             LightNode *lightNode = &(*i);
-            if (isLightNodeInGroup(lightNode, task.req.dstAddress().group()) || group->id() == "0")
+            if (isLightNodeInGroup(lightNode, task.req.dstAddress().group()))
             {
                 pushNodes.push_back(lightNode);
             }
@@ -11919,21 +11952,6 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
     case TaskSendOnOffToggle:
         updateEtag(group->etag);
         group->setIsOn(task.onOff);
-
-        if (!task.lightNode && group->id() == "0")
-        {
-            std::vector<Group>::iterator g = groups.begin();
-            std::vector<Group>::iterator gend = groups.end();
-
-            for (; g != gend; ++g)
-            {
-                if (g->state() != Group::StateDeleted && g->state() != Group::StateDeleteFromDB)
-                {
-                    updateEtag(g->etag);
-                    g->setIsOn(task.onOff);
-                }
-            }
-        }
 
         break;
 

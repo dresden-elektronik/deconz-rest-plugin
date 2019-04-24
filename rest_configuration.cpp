@@ -79,6 +79,7 @@ void DeRestPluginPrivate::initConfig()
     gwRgbwDisplay = "1";
     gwTimeFormat = "12h";
     gwZigbeeChannel = 0;
+    gwGroup0 = 0;
     gwName = GW_DEFAULT_NAME;
     gwUpdateVersion = GW_SW_VERSION; // will be replaced by discovery handler
     {
