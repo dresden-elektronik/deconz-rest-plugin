@@ -1147,6 +1147,28 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
+    // scenes
+    {
+        std::vector<Group>::const_iterator g = groups.begin();
+        std::vector<Group>::const_iterator g_end = groups.end();
+
+        for (; g != g_end; ++g)
+        {
+            std::vector<Scene>::const_iterator s = g->scenes.begin();
+            std::vector<Scene>::const_iterator s_end = g->scenes.end();
+
+            for (; s != s_end; ++s)
+            {
+                // ignore deleted groups
+                if (s->state() == Scene::StateDeleted)
+                {
+                    continue;
+                }
+                scenesMap[s->id()] = s->map();
+            }
+        }
+    }
+
     // schedules
     {
         std::vector<Schedule>::const_iterator i = schedules.begin();
@@ -1213,10 +1235,6 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
                 rulesMap[i->id()] = map;
             }
         }
-    }
-
-    // scenes
-    {
     }
 
     configToMap(req, configMap);

@@ -6560,6 +6560,30 @@ Group *DeRestPluginPrivate::getGroupForId(uint16_t id)
     return 0;
 }
 
+/*! Returns a Sensor for its given \p id or 0 if not found.
+ */
+Scene* DeRestPluginPrivate::getSceneForId(const QString &id)
+{
+    std::vector<Group>::iterator g = groups.begin();
+    std::vector<Group>::iterator g_end = groups.end();
+
+    for (; g != g_end; ++g)
+    {
+        std::vector<Scene>::iterator s = g->scenes.begin();
+        std::vector<Scene>::iterator s_end = g->scenes.end();
+
+        for (; s != s_end; ++s)
+        {
+            if (s->state() == Scene::StateNormal && s->id() == id)
+            {
+                return &(*s);
+            }
+        }
+    }
+
+    return nullptr;
+}
+
 /*! Returns a Scene for a given group id and Scene id or 0 if not found.
  */
 Scene *DeRestPluginPrivate::getSceneForId(uint16_t gid, uint8_t sid)

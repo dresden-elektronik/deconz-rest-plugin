@@ -863,7 +863,7 @@ public:
 
     // REST API groups > scenes
     int createScene(const ApiRequest &req, ApiResponse &rsp);
-    int getAllScenes(const ApiRequest &req, ApiResponse &rsp);
+    int getAllScenes_(const ApiRequest &req, ApiResponse &rsp);
     int getSceneAttributes(const ApiRequest &req, ApiResponse &rsp);
     int setSceneAttributes(const ApiRequest &req, ApiResponse &rsp);
     int storeScene(const ApiRequest &req, ApiResponse &rsp);
@@ -933,7 +933,9 @@ public:
     bool checkConditions(QVariantList conditionsList, ApiResponse &rsp);
 
     // REST API scenes
-    int handleScenesApi(const ApiRequest &req, ApiResponse &rsp);
+    int handleScenesApi(const ApiRequest& req, ApiResponse& rsp);
+    int getAllScenes(const ApiRequest& req, ApiResponse& rsp);
+    int getScene(const ApiRequest& req, ApiResponse& rsp);
 
     // REST API info
     int handleInfoApi(const ApiRequest &req, ApiResponse &rsp);
@@ -1161,6 +1163,7 @@ public:
     Group *getGroupForId(uint16_t id);
     Group *getGroupForId(const QString &id);
     bool deleteOldGroupOfSwitch(Sensor *sensor, quint16 newGroupId);
+    Scene *getSceneForId(const QString &id);
     Scene *getSceneForId(uint16_t gid, uint8_t sid);
     GroupInfo *getGroupInfo(LightNode *lightNode, uint16_t id);
     GroupInfo *createGroupInfo(LightNode *lightNode, uint16_t id);
@@ -1186,7 +1189,7 @@ public:
     void setSceneName(Group *group, uint8_t sceneId, const QString &name);
     bool storeScene(Group *group, uint8_t sceneId);
     bool modifyScene(Group *group, uint8_t sceneId);
-    bool removeScene(Group *group, Scene* sceneId);
+    bool removeScene(Group *group, Scene *scene);
     bool callScene(Group *group, uint8_t sceneId);
     bool removeAllScenes(Group *group);
     void storeRecoverOnOffBri(LightNode *lightNode);

@@ -68,7 +68,7 @@ int DeRestPluginPrivate::handleGroupsApi(const ApiRequest &req, ApiResponse &rsp
     // GET /api/<apikey>/groups/<group_id>/scenes
     else if ((req.path.size() == 5) && (req.hdr.method() == "GET")  && (req.path[4] == "scenes"))
     {
-        return getAllScenes(req, rsp);
+        return getAllScenes_(req, rsp);
     }
     // GET /api/<apikey>/groups/<group_id>/scenes/<scene_id>
     else if ((req.path.size() == 6) && (req.hdr.method() == "GET")  && (req.path[4] == "scenes"))
@@ -2201,7 +2201,7 @@ int DeRestPluginPrivate::createScene(const ApiRequest &req, ApiResponse &rsp)
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
-int DeRestPluginPrivate::getAllScenes(const ApiRequest &req, ApiResponse &rsp)
+int DeRestPluginPrivate::getAllScenes_(const ApiRequest &req, ApiResponse &rsp)
 {
     QString id = req.path[3];
     Group *group = getGroupForId(id);
