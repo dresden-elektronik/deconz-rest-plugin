@@ -6573,7 +6573,7 @@ Scene *DeRestPluginPrivate::getSceneForId(uint16_t gid, uint8_t sid)
 
         for (; i != end; ++i)
         {
-            if (i->id == sid)
+            if (i->sid() == sid)
             {
                 return &(*i);
             }
@@ -7888,7 +7888,7 @@ void DeRestPluginPrivate::deleteLightFromScenes(QString lightId, uint16_t groupI
 
         for (; i != end; ++i)
         {
-            i->deleteLight(lightId);
+            i->removeLight(lightId);
 
             // send remove scene request to lightNode
             if (isLightNodeInGroup(lightNode, group->address()))
@@ -7897,9 +7897,9 @@ void DeRestPluginPrivate::deleteLightFromScenes(QString lightId, uint16_t groupI
 
                 std::vector<uint8_t> &v = groupInfo->removeScenes;
 
-                if (std::find(v.begin(), v.end(), i->id) == v.end())
+                if (std::find(v.begin(), v.end(), i->sid()) == v.end())
                 {
-                    groupInfo->removeScenes.push_back(i->id);
+                    groupInfo->removeScenes.push_back(i->sid());
                 }
             }
         }
@@ -8063,9 +8063,9 @@ void DeRestPluginPrivate::foundScene(LightNode *lightNode, Group *group, uint8_t
 
     for (; i != end; ++i)
     {
-        if (i->id == sceneId)
+        if (i->sid() == sceneId)
         {
-            if (i->state == Scene::StateDeleted && group->m_deviceMemberships.size() == 0) // don't touch scenes from switch
+            if (i->state() == Scene::StateDeleted && group->m_deviceMemberships.size() == 0) // don't touch scenes from switch
             {
                 GroupInfo *groupInfo = getGroupInfo(lightNode, group->address());
 
@@ -8086,16 +8086,10 @@ void DeRestPluginPrivate::foundScene(LightNode *lightNode, Group *group, uint8_t
 
     DBG_Printf(DBG_INFO, "0x%016llX found scene 0x%02X for group 0x%04X\n", lightNode->address().ext(), sceneId, group->address());
 
-    Scene scene;
-    scene.groupAddress = group->address();
-    scene.id = sceneId;
+    Scene scene(group->address(), sceneId, group->address() == gwGroup0 ? Scene::LightScene : Scene::GroupScene);
     openDb();
     loadSceneFromDb(&scene);
     closeDb();
-    if (scene.name.isEmpty())
-    {
-        scene.name.sprintf("Scene %u", sceneId);
-    }
     group->scenes.push_back(scene);
     updateGroupEtag(group);
     updateEtag(gwConfigEtag);
@@ -8119,9 +8113,9 @@ void DeRestPluginPrivate::setSceneName(Group *group, uint8_t sceneId, const QStr
 
     for (; i != end; ++i)
     {
-        if (i->id == sceneId)
+        if (i->sid() == sceneId)
         {
-            i->name = name;
+            i->name(name);
             queSaveDb(DB_SCENES, DB_SHORT_SAVE_DELAY);
             updateEtag(group->etag);
             break;
@@ -8155,7 +8149,7 @@ bool DeRestPluginPrivate::storeScene(Group *group, uint8_t sceneId)
         task.req.setSrcEndpoint(0x01);
 
         // add or replace empty scene, needed to set transition time
-        if (!addTaskAddEmptyScene(task, group->address(), scene->id, scene->transitiontime()))
+        if (!addTaskAddEmptyScene(task, group->address(), scene->sid(), scene->transitiontime()))
         {
             return false;
         }
@@ -8169,7 +8163,7 @@ bool DeRestPluginPrivate::storeScene(Group *group, uint8_t sceneId)
         task.req.setDstEndpoint(0xff);
         task.req.setSrcEndpoint(0x01);
 
-        if (!addTaskStoreScene(task, group->address(), scene->id))
+        if (!addTaskStoreScene(task, group->address(), scene->sid()))
         {
             return false;
         }
@@ -8254,46 +8248,32 @@ bool DeRestPluginPrivate::modifyScene(Group *group, uint8_t sceneId)
 
 /*! Sends a remove scene request to a group.
  */
-bool DeRestPluginPrivate::removeScene(Group *group, uint8_t sceneId)
+bool DeRestPluginPrivate::removeScene(Group *group, Scene *scene)
 {
     DBG_Assert(group != 0);
 
-    if (!group)
+    if (!group || !scene || group->address() != scene->gid())
     {
         return false;
     }
 
+    scene->state(Scene::StateDeleted);
+    updateEtag(group->etag);
+    updateEtag(gwConfigEtag);
+
+    for (const LightState& state : scene->lights())
     {
-        std::vector<Scene>::iterator i = group->scenes.begin();
-        std::vector<Scene>::iterator end = group->scenes.end();
-
-        for (; i != end; ++i)
+        LightNode* l = getLightNodeForId(state.lid());
+        if (l)
         {
-            if (i->id == sceneId)
+            GroupInfo *groupInfo = getGroupInfo(l, scene->gid());
+            if (groupInfo)
             {
-                i->state = Scene::StateDeleted;
-                updateEtag(group->etag);
-                updateEtag(gwConfigEtag);
-                break;
-            }
-        }
-    }
-
-    std::vector<LightNode>::iterator i = nodes.begin();
-    std::vector<LightNode>::iterator end = nodes.end();
-    for (; i != end; ++i)
-    {
-        LightNode *lightNode = &(*i);
-        // note: we queue removing of scene even if node is not available
-        if (isLightNodeInGroup(lightNode, group->address()))
-        {
-            GroupInfo *groupInfo = getGroupInfo(lightNode, group->address());
-
-            std::vector<uint8_t> &v = groupInfo->removeScenes;
-
-            if (std::find(v.begin(), v.end(), sceneId) == v.end())
-            {
-                groupInfo->removeScenes.push_back(sceneId);
+                std::vector<uint8_t> &v = groupInfo->removeScenes;
+                if (std::find(v.begin(), v.end(), scene->sid()) == v.end())
+                {
+                    groupInfo->removeScenes.push_back(scene->sid());
+                }
             }
         }
     }
@@ -10006,7 +9986,7 @@ void DeRestPluginPrivate::processGroupTasks()
                         if (ls->lid() == task.lightNode->id())
                         {
                             needRead = true;
-                            if (readSceneAttributes(task.lightNode, i->id, scene->id))
+                            if (readSceneAttributes(task.lightNode, i->id, scene->sid()))
                             {
                                 return;
                             }
@@ -10289,31 +10269,31 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
 
                 for (; i != end; ++i)
                 {
-                    if (i->state != Scene::StateNormal)
+                    if (i->state() != Scene::StateNormal)
                     {
                         continue;
                     }
 
-                    if (std::find(scenes.begin(), scenes.end(), i->id) != scenes.end())
+                    if (std::find(scenes.begin(), scenes.end(), i->sid()) != scenes.end())
                     {
                         continue; // exists
                     }
 
-                    std::vector<LightState>::iterator st = i->lights().begin();
-                    std::vector<LightState>::iterator stend = i->lights().end();
+                    std::vector<LightState>::const_iterator st = i->lights().begin();
+                    std::vector<LightState>::const_iterator stend = i->lights().end();
 
                     for (; st != stend; ++st)
                     {
                         if (st->lid() == lightNode->id())
                         {
-                            DBG_Printf(DBG_INFO, "0x%016llX restore scene 0x%02X in group 0x%04X\n", lightNode->address().ext(), i->id, groupId);
+                            DBG_Printf(DBG_INFO, "0x%016llX restore scene 0x%02X in group 0x%04X\n", lightNode->address().ext(), i->sid(), groupId);
 
                             std::vector<uint8_t> &v = groupInfo->modifyScenes;
 
-                            if (std::find(v.begin(), v.end(), i->id) == v.end())
+                            if (std::find(v.begin(), v.end(), i->sid()) == v.end())
                             {
-                                DBG_Printf(DBG_INFO, "0x%016llX start modify scene, groupId 0x%04X, scene 0x%02X\n", lightNode->address().ext(), groupInfo->id, i->id);
-                                groupInfo->modifyScenes.push_back(i->id);
+                                DBG_Printf(DBG_INFO, "0x%016llX start modify scene, groupId 0x%04X, scene 0x%02X\n", lightNode->address().ext(), groupInfo->id, i->sid());
+                                groupInfo->modifyScenes.push_back(i->sid());
                             }
                         }
                     }
@@ -10372,65 +10352,60 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                         {
                             bool foundLightstate = false;
 
-                            std::vector<LightState>::iterator li = scene->lights().begin();
-                            std::vector<LightState>::iterator lend = scene->lights().end();
-                            for (; li != lend; ++li)
+                            LightState* li = scene->getLight(lightNode->id());
+                            if (li)
                             {
-                                if (li->lid() == lightNode->id())
+                                ResourceItem *item = lightNode->item(RStateOn);
+                                DBG_Assert(item != 0);
+                                if (item)
                                 {
-                                    ResourceItem *item = lightNode->item(RStateOn);
-                                    DBG_Assert(item != 0);
-                                    if (item)
-                                    {
-                                        li->setOn(item->toBool());
-                                    }
-                                    item = lightNode->item(RStateBri);
-                                    if (item)
-                                    {
-                                        li->setBri(item->toNumber());
-                                    }
-                                    item = lightNode->item(RStateColorMode);
-                                    if (item)
-                                    {
-                                        li->setColorMode(item->toString());
-                                        if (item->toString() == QLatin1String("xy") || item->toString() == QLatin1String("hs"))
-                                        {
-                                            item = lightNode->item(RStateX);
-                                            if (item)
-                                            {
-                                                li->setX(item->toNumber());
-                                            }
-                                            item = lightNode->item(RStateY);
-                                            if (item)
-                                            {
-                                                li->setY(item->toNumber());
-                                            }
-                                            item = lightNode->item(RStateHue);
-                                            if (item)
-                                            {
-                                                li->setEnhancedHue(item->toNumber());
-                                            }
-                                            item = lightNode->item(RStateSat);
-                                            if (item)
-                                            {
-                                                li->setSaturation(item->toNumber());
-                                            }
-                                        }
-                                        else if (item->toString() == QLatin1String("ct"))
-                                        {
-                                            item = lightNode->item(RStateCt);
-                                            DBG_Assert(item != 0);
-                                            if (item)
-                                            {
-                                                li->setColorTemperature(item->toNumber());
-                                            }
-                                        }
-                                        li->setColorloopActive(lightNode->isColorLoopActive());
-                                        li->setColorloopTime(lightNode->colorLoopSpeed());
-                                    }
-                                    foundLightstate = true;
-                                    break;
+                                    li->setOn(item->toBool());
                                 }
+                                item = lightNode->item(RStateBri);
+                                if (item)
+                                {
+                                    li->setBri(item->toNumber());
+                                }
+                                item = lightNode->item(RStateColorMode);
+                                if (item)
+                                {
+                                    li->setColorMode(item->toString());
+                                    if (item->toString() == QLatin1String("xy") || item->toString() == QLatin1String("hs"))
+                                    {
+                                        item = lightNode->item(RStateX);
+                                        if (item)
+                                        {
+                                            li->setX(item->toNumber());
+                                        }
+                                        item = lightNode->item(RStateY);
+                                        if (item)
+                                        {
+                                            li->setY(item->toNumber());
+                                        }
+                                        item = lightNode->item(RStateHue);
+                                        if (item)
+                                        {
+                                            li->setEnhancedHue(item->toNumber());
+                                        }
+                                        item = lightNode->item(RStateSat);
+                                        if (item)
+                                        {
+                                            li->setSaturation(item->toNumber());
+                                        }
+                                    }
+                                    else if (item->toString() == QLatin1String("ct"))
+                                    {
+                                        item = lightNode->item(RStateCt);
+                                        DBG_Assert(item != 0);
+                                        if (item)
+                                        {
+                                            li->setColorTemperature(item->toNumber());
+                                        }
+                                    }
+                                    li->setColorloopActive(lightNode->isColorLoopActive());
+                                    li->setColorloopTime(lightNode->colorLoopSpeed());
+                                }
+                                foundLightstate = true;
                             }
 
                             if (!foundLightstate)
@@ -10487,7 +10462,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                                     state.setColorloopActive(lightNode->isColorLoopActive());
                                     state.setColorloopTime(lightNode->colorLoopSpeed());
                                 }
-                                scene->addLightState(state);
+                                scene->addLight(state);
 
                                 // only change capacity and count when creating a new scene
                                 uint8_t sceneCapacity = lightNode->sceneCapacity();
@@ -10561,7 +10536,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                             {
                                 if (li->lid() == lightNode->id())
                                 {
-                                    scene->deleteLight(lightNode->id());
+                                    scene->removeLight(lightNode->id());
                                     break;
                                 }
                             }
@@ -10759,20 +10734,9 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
 
             if (scene)
             {
-                LightState *lightState = 0;
-                std::vector<LightState>::iterator i = scene->lights().begin();
-                std::vector<LightState>::iterator end = scene->lights().end();
+                LightState *lightState = scene->getLight(lightNode->id());
 
-                for (; i != end; ++i)
-                {
-                    if (i->lid() == lightNode->id())
-                    {
-                        lightState = &*i;
-                        break;
-                    }
-                }
-
-                if (scene->state == Scene::StateDeleted)
+                if (scene->state() == Scene::StateDeleted)
                 {
                     // TODO
                 }
@@ -10825,12 +10789,12 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                         lightState->tVerified.start();
                         queSaveDb(DB_SCENES, DB_LONG_SAVE_DELAY);
 
-                        DBG_Printf(DBG_INFO_L2, "done reading scene scid=%u for %s\n", scene->id, qPrintable(lightNode->name()));
+                        DBG_Printf(DBG_INFO_L2, "done reading scene scid=%u for %s\n", scene->sid(), qPrintable(lightNode->name()));
                     }
 
                     if (needModify)
                     {
-                        if (!scene->externalMaster)
+                        if (!scene->externalMaster())
                         {
                             // TODO trigger add scene command to update scene
                         }
@@ -10879,7 +10843,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                         newLightState.setEnhancedHue(ehue);
                         newLightState.setSaturation(sat);
                     }
-                    scene->addLightState(newLightState);
+                    scene->addLight(newLightState);
                     queSaveDb(DB_SCENES, DB_LONG_SAVE_DELAY);
                 }
             }
@@ -10930,11 +10894,9 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
 
             if (!scene && group && group->state() == Group::StateNormal)
             {
-                Scene s;
-                s.groupAddress = groupId;
-                s.id = sceneId;
-                s.externalMaster = true;
-                s.name.sprintf("Scene %u", sceneId);
+                Scene s(groupId, sceneId, groupId == gwGroup0 ? Scene::LightScene : Scene::GroupScene);
+                s.externalMaster(true);
+                s.name(QString("Scene %u").arg(sceneId));
                 group->scenes.push_back(s);
                 updateGroupEtag(group);
                 queSaveDb(DB_SCENES, DB_SHORT_SAVE_DELAY);
