@@ -27,6 +27,7 @@
 #include "resource.h"
 #include "rest_node_base.h"
 #include "light_node.h"
+#include "light_state.h"
 #include "group.h"
 #include "group_info.h"
 #include "scene.h"

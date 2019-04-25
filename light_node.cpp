@@ -14,17 +14,16 @@
  */
 LightNode::LightNode() :
     Resource(RLights),
-   m_state(StateNormal),
-   m_resetRetryCount(0),
-   m_zdpResetSeq(0),
-   m_groupCapacity(0),
-   m_manufacturerCode(0),
-   m_otauClusterId(0), // unknown
-   m_colorLoopActive(false),
-   m_colorLoopSpeed(0),
-   m_groupCount(0),
-   m_sceneCapacity(16)
-
+    m_state(StateNormal),
+    m_resetRetryCount(0),
+    m_zdpResetSeq(0),
+    m_groupCapacity(0),
+    m_manufacturerCode(0),
+    m_otauClusterId(0), // unknown
+    m_colorLoopActive(false),
+    m_colorLoopSpeed(0),
+    m_groupCount(0),
+    m_sceneCapacity(16)
 {
     // add common items
     addItem(DataTypeBool, RStateOn);
@@ -643,4 +642,65 @@ QString LightNode::resourceItemsToJson()
     }
 
     return Json::serialize(map);
+}
+
+/*! Transfers light state into LightState. */
+LightState LightNode::lightstate() const
+{
+    LightState state;
+    state.setLightId(id());
+    const ResourceItem *i = item(RStateOn);
+    if (i)
+    {
+        state.setOn(i->toBool());
+    }
+    i = item(RStateBri);
+    if (i)
+    {
+        state.setBri(qMin((quint16)i->toNumber(), (quint16)254));
+    }
+    i = item(RStateColorMode);
+    if (i)
+    {
+        if (i->toString() == QLatin1String("xy") || i->toString() == QLatin1String("hs"))
+        {
+            i = item(RStateX);
+            if (i)
+            {
+                state.setX(i->toNumber());
+            }
+            i = item(RStateY);
+            if (i)
+            {
+                state.setY(i->toNumber());
+            }
+            i = item(RStateHue);
+            if (i)
+            {
+                state.setEnhancedHue(i->toNumber());
+            }
+            i = item(RStateSat);
+            if (i)
+            {
+                state.setSaturation(i->toNumber());
+            }
+        }
+        else if (i->toString() == QLatin1String("ct"))
+        {
+            i = item(RStateCt);
+            DBG_Assert(i != 0);
+            if (i)
+            {
+                state.setColorTemperature(i->toNumber());
+            }
+        }
+        state.setColorloopActive(isColorLoopActive());
+        state.setColorloopTime(colorLoopSpeed());
+        state.setColorMode(colorMode());
+    }
+    else
+    {
+        state.setColorMode(QLatin1String("none"));
+    }
+    return state;
 }

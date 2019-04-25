@@ -99,6 +99,7 @@ HEADERS  = bindings.h \
            group_info.h \
            json.h \
            light_node.h \
+           light_state.h \
            poll_manager.h \
            resource.h \
            resourcelinks.h \
@@ -132,6 +133,7 @@ SOURCES  = authorisation.cpp \
            ias_zone.cpp \
            json.cpp \
            light_node.cpp \
+           light_state.cpp \
            poll_manager.cpp \
            resource.cpp \
            resourcelinks.cpp \

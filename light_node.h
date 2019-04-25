@@ -16,6 +16,7 @@
 #include "resource.h"
 #include "rest_node_base.h"
 #include "group_info.h"
+#include "light_state.h"
 
 /*! \class LightNode
 
@@ -74,6 +75,8 @@ public:
     QString resourceItemsToJson();
 
     QString etag;
+
+    LightState lightstate() const;
 
 private:
     State m_state;
