@@ -1210,18 +1210,11 @@ bool DeRestPluginPrivate::addTaskAddScene(TaskItem &task, uint16_t groupId, uint
 
     for ( ;i != end; ++i)
     {
-        if (i->id == sceneId && i->state != Scene::StateDeleted)
+        if (i->sid() == sceneId && i->state() != Scene::StateDeleted)
         {
-            std::vector<LightState>::iterator l = i->lights().begin();
-            std::vector<LightState>::iterator lend = i->lights().end();
-
-            for ( ;l != lend; ++l)
+            LightState* l = i->getLight(lightId);
+            if (l)
             {
-                if (l->lid() != lightId)
-                {
-                    continue;
-                }
-
                 task.taskType = TaskAddScene;
 
                 task.req.setClusterId(SCENE_CLUSTER_ID);
