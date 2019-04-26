@@ -862,14 +862,14 @@ public:
     Group *addGroup();
 
     // REST API groups > scenes
-    int createScene(const ApiRequest &req, ApiResponse &rsp);
+    int createScene_(const ApiRequest &req, ApiResponse &rsp);
     int getAllScenes_(const ApiRequest &req, ApiResponse &rsp);
     int getSceneAttributes(const ApiRequest &req, ApiResponse &rsp);
     int setSceneAttributes(const ApiRequest &req, ApiResponse &rsp);
     int storeScene(const ApiRequest &req, ApiResponse &rsp);
     int recallScene(const ApiRequest &req, ApiResponse &rsp);
     int modifyScene(const ApiRequest &req, ApiResponse &rsp);
-    int deleteScene(const ApiRequest &req, ApiResponse &rsp);
+    int deleteScene_(const ApiRequest &req, ApiResponse &rsp);
 
     bool groupToMap(const ApiRequest &req, const Group *group, QVariantMap &map);
 
@@ -934,8 +934,10 @@ public:
 
     // REST API scenes
     int handleScenesApi(const ApiRequest& req, ApiResponse& rsp);
+    int createScene(const ApiRequest& req, ApiResponse& rsp);
     int getAllScenes(const ApiRequest& req, ApiResponse& rsp);
     int getScene(const ApiRequest& req, ApiResponse& rsp);
+    int deleteScene(const ApiRequest& req, ApiResponse& rsp);
 
     // REST API info
     int handleInfoApi(const ApiRequest &req, ApiResponse &rsp);

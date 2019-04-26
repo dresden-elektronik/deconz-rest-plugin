@@ -63,7 +63,7 @@ int DeRestPluginPrivate::handleGroupsApi(const ApiRequest &req, ApiResponse &rsp
     // POST /api/<apikey>/groups/<group_id>/scenes
     else if ((req.path.size() == 5) && (req.hdr.method() == "POST")  && (req.path[4] == "scenes"))
     {
-        return createScene(req, rsp);
+        return createScene_(req, rsp);
     }
     // GET /api/<apikey>/groups/<group_id>/scenes
     else if ((req.path.size() == 5) && (req.hdr.method() == "GET")  && (req.path[4] == "scenes"))
@@ -98,7 +98,7 @@ int DeRestPluginPrivate::handleGroupsApi(const ApiRequest &req, ApiResponse &rsp
     // DELETE /api/<apikey>/groups/<group_id>/scenes/<scene_id>
     else if ((req.path.size() == 6) && (req.hdr.method() == "DELETE")  && (req.path[4] == "scenes"))
     {
-        return deleteScene(req, rsp);
+        return deleteScene_(req, rsp);
     }
 
     return REQ_NOT_HANDLED;
@@ -1946,7 +1946,7 @@ bool DeRestPluginPrivate::groupToMap(const ApiRequest &req, const Group *group, 
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
-int DeRestPluginPrivate::createScene(const ApiRequest &req, ApiResponse &rsp)
+int DeRestPluginPrivate::createScene_(const ApiRequest &req, ApiResponse &rsp)
 {
     bool ok;
     QVariantMap rspItem;
@@ -3219,7 +3219,7 @@ int DeRestPluginPrivate::modifyScene(const ApiRequest &req, ApiResponse &rsp)
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
-int DeRestPluginPrivate::deleteScene(const ApiRequest &req, ApiResponse &rsp)
+int DeRestPluginPrivate::deleteScene_(const ApiRequest &req, ApiResponse &rsp)
 {
     bool ok;
     QVariantMap rspItem;
