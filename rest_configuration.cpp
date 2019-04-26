@@ -2998,6 +2998,21 @@ int DeRestPluginPrivate::putWifiUpdated(const ApiRequest &req, ApiResponse &rsp)
                 gwWifiBackupPw = QString();
                 changed = true;
             }
+            if (!gwWifiPwEnc.isEmpty())
+            {
+                gwWifiPwEnc = QString();
+                changed = true;
+            }
+            if (!gwWifiWorkingPwEnc.isEmpty())
+            {
+                gwWifiWorkingPwEnc = QString();
+                changed = true;
+            }
+            if (!gwWifiBackupPwEnc.isEmpty())
+            {
+                gwWifiBackupPwEnc = QString();
+                changed = true;
+            }
         }
 
         if (workingtype == "accesspoint")
