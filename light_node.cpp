@@ -360,6 +360,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                     if ((manufacturerCode() == VENDOR_IKEA && endpoint.deviceId() == DEV_ID_Z30_ONOFF_PLUGIN_UNIT) || // IKEA Tradfri control outlet
                         (manufacturerCode() == VENDOR_INNR && endpoint.deviceId() == DEV_ID_ZLL_ONOFF_PLUGIN_UNIT)) // innr SP120 smart plug
                     { } // skip state.bri not supported
+                    else
                     {
                         addItem(DataTypeUInt8, RStateBri);
                     }
