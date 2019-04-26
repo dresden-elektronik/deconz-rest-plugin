@@ -88,12 +88,12 @@ int DeRestPluginPrivate::handleGroupsApi(const ApiRequest &req, ApiResponse &rsp
     // PUT /api/<apikey>/groups/<group_id>/scenes/<scene_id>/recall
     else if ((req.path.size() == 7) && (req.hdr.method() == "PUT")  && (req.path[4] == "scenes") && (req.path[6] == "recall"))
     {
-        return recallScene(req, rsp);
+        return recallScene_(req, rsp);
     }
     // PUT, PATCH /api/<apikey>/groups/<group_id>/scenes/<scene_id>/lights/<light_id>/state
     else if ((req.path.size() == 9) && (req.hdr.method() == "PUT" || req.hdr.method() == "PATCH")  && (req.path[4] == "scenes") && (req.path[6] == "lights"))
     {
-        return modifyScene(req, rsp);
+        return modifyScene_(req, rsp);
     }
     // DELETE /api/<apikey>/groups/<group_id>/scenes/<scene_id>
     else if ((req.path.size() == 6) && (req.hdr.method() == "DELETE")  && (req.path[4] == "scenes"))
@@ -780,6 +780,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     bool hasAlert = map.contains("alert");
     bool hasToggle = map.contains("toggle");
     bool hasWrap = map.contains("wrap");
+    bool hasScene = map.contains("scene");
 
     bool on = false;
     uint bri = 0;
@@ -788,6 +789,25 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     double x = 0;
     double y = 0;
     uint ct = 0;
+
+    // Hue api way of recalling a scene
+    if (hasScene)
+    {
+        QString sid = map["scene"].toString();
+        Scene* scene = getSceneForId(sid);
+        if (!scene || !recallScene(group, scene))
+        {
+            rsp.httpStatus = HttpStatusServiceUnavailable;
+            rsp.list.append(errorToMap(ERR_BRIDGE_BUSY, "/" + req.path.mid(2).join("/"), QString("gateway busy")));
+            return REQ_READY_SEND;
+        }
+
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState[QString("/groups/%1/action/scene").arg(id)] = sid;
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+    }
 
     // transition time
     if (map.contains("transitiontime"))
@@ -2663,7 +2683,7 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
-int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
+int DeRestPluginPrivate::recallScene_(const ApiRequest &req, ApiResponse &rsp)
 {
     bool ok;
     QVariantMap rspItem;
@@ -2764,201 +2784,13 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    bool groupOn = false;
-    std::vector<LightState>::const_iterator ls = scene->lights().begin();
-    std::vector<LightState>::const_iterator lsend = scene->lights().end();
-
-    for (; ls != lsend; ++ls)
-    {
-        LightNode *lightNode = getLightNodeForId(ls->lid());
-
-        if (lightNode && lightNode->isAvailable() && lightNode->state() == LightNode::StateNormal)
-        {
-            if (ls->on())
-            {
-                groupOn = true;
-            }
-
-            if (lightNode->hasColor())
-            {
-                if (!ls->colorloopActive() && lightNode->isColorLoopActive() != ls->colorloopActive())
-                {
-                    //stop colorloop if scene was saved without colorloop (Osram don't stop colorloop if another scene is called)
-                    TaskItem task2;
-                    task2.lightNode = lightNode;
-                    task2.req.dstAddress() = task2.lightNode->address();
-                    task2.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
-                    task2.req.setDstEndpoint(task2.lightNode->haEndpoint().endpoint());
-                    task2.req.setSrcEndpoint(getSrcEndpoint(task2.lightNode, task2.req));
-                    task2.req.setDstAddressMode(deCONZ::ApsExtAddress);
-
-                    lightNode->setColorLoopActive(false);
-                    addTaskSetColorLoop(task2, false, 15);
-                    updateLightEtag(lightNode);
-                }
-            }
-
-        }
-    }
-
-    if (!callScene(group, sceneId))
+    ok = recallScene(group, scene);
+    if (!ok)
     {
         rsp.httpStatus = HttpStatusServiceUnavailable;
         rsp.list.append(errorToMap(ERR_BRIDGE_BUSY, QString("/groups/%1/scenes/%2").arg(gid).arg(sid), QString("gateway busy")));
         return REQ_READY_SEND;
     }
-
-    {
-        QString scid = QString::number(sceneId);
-        ResourceItem *item = group->item(RActionScene);
-        if (item && item->toString() != scid)
-        {
-            item->setValue(scid);
-            updateGroupEtag(group);
-            Event e(RGroups, RActionScene, group->id(), item);
-            enqueueEvent(e);
-        }
-    }
-
-    bool groupOnChanged = false;
-    bool groupBriChanged = false;
-    bool groupHueSatChanged = false;
-    bool groupCtChanged = false;
-    bool groupColorModeChanged = false;
-
-    //turn on colorloop if scene was saved with colorloop (FLS don't save colorloop at device)
-    ls = scene->lights().begin();
-    lsend = scene->lights().end();
-
-    for (; ls != lsend; ++ls)
-    {
-        LightNode *lightNode = getLightNodeForId(ls->lid());
-
-        if (lightNode && lightNode->isAvailable() && lightNode->state() == LightNode::StateNormal)
-        {
-            bool changed = false;
-
-            if (lightNode->hasColor() && ls->colorloopActive() && lightNode->isColorLoopActive() != ls->colorloopActive())
-            {
-                TaskItem task2;
-                task2.lightNode = lightNode;
-                task2.req.dstAddress() = task2.lightNode->address();
-                task2.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
-                task2.req.setDstEndpoint(task2.lightNode->haEndpoint().endpoint());
-                task2.req.setSrcEndpoint(getSrcEndpoint(task2.lightNode, task2.req));
-                task2.req.setDstAddressMode(deCONZ::ApsExtAddress);
-
-                lightNode->setColorLoopActive(true);
-                lightNode->setColorLoopSpeed(ls->colorloopTime());
-                addTaskSetColorLoop(task2, true, ls->colorloopTime());
-                changed = true;
-            }
-
-// #if 0 // TODO let pollManger handle updates
-            ResourceItem *item = lightNode->item(RStateOn);
-            if (item && item->toBool() != ls->on())
-            {
-                item->setValue(ls->on());
-                Event e(RLights, RStateOn, lightNode->id(), item);
-                enqueueEvent(e);
-                changed = true;
-                groupOnChanged = true;
-            }
-
-            item = lightNode->item(RStateBri);
-            if (item && ls->bri() != item->toNumber())
-            {
-                item->setValue(ls->bri());
-                Event e(RLights, RStateBri, lightNode->id(), item);
-                enqueueEvent(e);
-                changed = true;
-                groupBriChanged = true;
-            }
-
-            item = lightNode->item(RStateColorMode);
-            if (item)
-            {
-                if (ls->colorMode() != item->toString())
-                {
-                    item->setValue(ls->colorMode());
-                    Event e(RLights, RStateColorMode, lightNode->id());
-                    enqueueEvent(e);
-                    changed = true;
-                    groupColorModeChanged = true;
-                }
-
-                if (ls->colorMode() == QLatin1String("xy"))
-                {
-                    item = lightNode->item(RStateX);
-                    if (item && ls->x() != item->toNumber())
-                    {
-                        item->setValue(ls->x());
-                        Event e(RLights, RStateX, lightNode->id(), item);
-                        enqueueEvent(e);
-                        changed = true;
-                    }
-                    item = lightNode->item(RStateY);
-                    if (item && ls->y() != item->toNumber())
-                    {
-                        item->setValue(ls->y());
-                        Event e(RLights, RStateY, lightNode->id(), item);
-                        enqueueEvent(e);
-                        changed = true;
-                    }
-                }
-                else if(ls->colorMode() == QLatin1String("ct"))
-                {
-                    item = lightNode->item(RStateCt);
-                    if (item && ls->colorTemperature() != item->toNumber())
-                    {
-                        item->setValue(ls->colorTemperature());
-                        Event e(RLights, RStateCt, lightNode->id(), item);
-                        enqueueEvent(e);
-                        changed = true;
-                        groupCtChanged = true;
-                    }
-                }
-                else if (ls->colorMode() == QLatin1String("hs"))
-                {
-                    item = lightNode->item(RStateHue);
-                    if (item && ls->enhancedHue() != item->toNumber())
-                    {
-                        item->setValue(ls->enhancedHue());
-                        Event e(RLights, RStateHue, lightNode->id(), item);
-                        enqueueEvent(e);
-                        changed = true;
-                        groupHueSatChanged = true;
-                    }
-
-                    item = lightNode->item(RStateSat);
-                    if (item && ls->saturation() != item->toNumber())
-                    {
-                        item->setValue(ls->saturation());
-                        Event e(RLights, RStateSat, lightNode->id(), item);
-                        enqueueEvent(e);
-                        changed = true;
-                        groupHueSatChanged = true;
-                    }
-                }
-            }
-// #endif
-            if (changed)
-            {
-                updateLightEtag(lightNode);
-            }
-        }
-    }
-    if (groupOnChanged || groupBriChanged || groupHueSatChanged || groupCtChanged || groupColorModeChanged)
-    {
-        if (groupOn && !group->isOn())
-        {
-            group->setIsOn(true);
-            updateGroupEtag(group);
-        }
-        // recalc other group parameter in webapp
-    }
-
-    updateEtag(gwConfigEtag);
 
     rspItemState["id"] = sid;
     rspItem["success"] = rspItemState;
@@ -2974,7 +2806,7 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
  */
-int DeRestPluginPrivate::modifyScene(const ApiRequest &req, ApiResponse &rsp)
+int DeRestPluginPrivate::modifyScene_(const ApiRequest &req, ApiResponse &rsp)
 {
     bool ok;
     QVariantMap rspItem;

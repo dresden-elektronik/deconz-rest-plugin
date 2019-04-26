@@ -867,8 +867,8 @@ public:
     int getSceneAttributes(const ApiRequest &req, ApiResponse &rsp);
     int setSceneAttributes(const ApiRequest &req, ApiResponse &rsp);
     int storeScene(const ApiRequest &req, ApiResponse &rsp);
-    int recallScene(const ApiRequest &req, ApiResponse &rsp);
-    int modifyScene(const ApiRequest &req, ApiResponse &rsp);
+    int recallScene_(const ApiRequest &req, ApiResponse &rsp);
+    int modifyScene_(const ApiRequest &req, ApiResponse &rsp);
     int deleteScene_(const ApiRequest &req, ApiResponse &rsp);
 
     bool groupToMap(const ApiRequest &req, const Group *group, QVariantMap &map);
@@ -937,7 +937,11 @@ public:
     int createScene(const ApiRequest& req, ApiResponse& rsp);
     int getAllScenes(const ApiRequest& req, ApiResponse& rsp);
     int getScene(const ApiRequest& req, ApiResponse& rsp);
+    int modifyScene(const ApiRequest& req, ApiResponse& rsp);
+    int modifySceneLightState(const ApiRequest& req, ApiResponse& rsp);
     int deleteScene(const ApiRequest& req, ApiResponse& rsp);
+    bool modifyLightState(const QString& resource, ApiResponse& rsp, const QString& lid, const QVariantMap& map, Scene* scene);
+    bool recallScene(Group* group, const Scene* scene);
 
     // REST API info
     int handleInfoApi(const ApiRequest &req, ApiResponse &rsp);

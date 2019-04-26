@@ -10371,8 +10371,10 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                     if (status == 0x00)
                     {
                         Scene *scene = getSceneForId(groupId, sceneId);
+                        std::vector<uint8_t> &v = groupInfo->modifyScenes; // don't update scene if still needs to be modified
+                        std::vector<uint8_t>::iterator i = std::find(v.begin(), v.end(), sceneId);
 
-                        if (scene)
+                        if (scene && (i == v.end()))
                         {
                             LightState state = lightNode->lightstate();
                             LightState* l = scene->getLight(lightNode->id());
