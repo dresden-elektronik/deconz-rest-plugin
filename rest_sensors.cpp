@@ -2510,13 +2510,23 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
                 }
                 else if (!item && sensor->modelId() == QLatin1String("lumi.vibration.aq1") && sensor->type() == QLatin1String("ZHAVibration"))
                 {
+                    //Set tiltangle to 0 by defaut but without QueueEvent
+                    item = sensor->item(RStateTiltAngle);
+                    if (item && item->toNumber() != 0)
+                    {
+                        DBG_Printf(DBG_INFO, "sensor %s (%s): reset tiltangle\n", qPrintable(sensor->id()), qPrintable(sensor->modelId()));
+                        item->setValue(0);
+                        //enqueueEvent(Event(RSensors, RStateTiltAngle, sensor->id(), item));
+                        //enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
+                    }
+                    
                     item = sensor->item(RStateVibration);
                     if (item && item->toBool())
                     {
                         DBG_Printf(DBG_INFO, "sensor %s (%s): disable vibration\n", qPrintable(sensor->id()), qPrintable(sensor->modelId()));
                         item->setValue(false);
                         sensor->updateStateTimestamp();
-                        enqueueEvent(Event(RSensors, RStatePresence, sensor->id(), item));
+                        enqueueEvent(Event(RSensors, RStateVibration, sensor->id(), item));
                         enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
                     }
                 }
