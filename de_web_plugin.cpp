@@ -6134,7 +6134,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (item)
                                 {
                                     item->setValue(0);
-                                    enqueueEvent(Event(RSensors, RStateTiltAngle, i->id(), item));
+                                    //enqueueEvent(Event(RSensors, RStateTiltAngle, i->id(), item));
                                 }
                                 
                                 if (ia->id() == 0x0055) // u16: event type
