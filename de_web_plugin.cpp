@@ -6138,6 +6138,13 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     const quint16 value = ia->numericValue().u16;
                                     DBG_Printf(DBG_INFO, "0x%016llX: 0x0101/0x0055: event: %d\n", event.node()->address().ext(), value);
 
+                                    //Set tiltangle to 0 by defaut, but without queueEvent
+                                    ResourceItem *item = i->item(RStateTiltAngle);
+                                    if (item)
+                                    {
+                                        item->setValue(0);
+                                    }
+
                                     if (value == 0x0001) // vibration
                                     {
                                         ResourceItem *item = i->item(RStateVibration);
