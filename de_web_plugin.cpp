@@ -10289,7 +10289,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
     if (zclFrame.isDefaultResponse())
     {
     }
-    else if (zclFrame.commandId() == 0x06) // Get scene membership response
+    else if (zclFrame.commandId() == 0x06 && zclFrame.frameControl() & deCONZ::ZclFCDirectionServerToClient) // Get scene membership response
     {
         if (zclFrame.payload().size() < 4)
         {
@@ -10566,7 +10566,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
             }
         }
     }
-    else if (zclFrame.commandId() == 0x02) // Remove scene response
+    else if (zclFrame.commandId() == 0x02 && zclFrame.frameControl() & deCONZ::ZclFCDirectionServerToClient) // Remove scene response
     {
         if (zclFrame.payload().size() < 4)
         {
@@ -10641,7 +10641,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
             }
         }
     }
-    else if (zclFrame.commandId() == 0x00 || zclFrame.commandId() == 0x40) // Add scene response | Enhanced add scene response
+    else if ((zclFrame.commandId() == 0x00 || zclFrame.commandId() == 0x40) && zclFrame.frameControl() & deCONZ::ZclFCDirectionServerToClient) // Add scene response | Enhanced add scene response
     {
         if (zclFrame.payload().size() < 4)
         {
@@ -10687,7 +10687,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
             }
         }
     }
-    else if (zclFrame.commandId() == 0x01 || zclFrame.commandId() == 0x41) // View scene response || Enhanced view scene response
+    else if ((zclFrame.commandId() == 0x01 || zclFrame.commandId() == 0x41) && zclFrame.frameControl() & deCONZ::ZclFCDirectionServerToClient) // View scene response || Enhanced view scene response
     {
         if (zclFrame.payload().size() < 4)
         {
