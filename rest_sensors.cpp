@@ -2508,6 +2508,24 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
                         enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
                     }
                 }
+                else if (sensor->modelId() == QLatin1String("FOHSWITCH"))
+                {
+                    // Friends of Hue switch
+                    // generate artificial hold event
+                    item = sensor->item(RStateButtonEvent);
+                    quint32 btn = item ? static_cast<quint32>(item->toNumber()) : 0;
+                    const quint32 action = btn & 0x03;
+                    if (btn >= S_BUTTON_1 && btn <= S_BUTTON_6 && action == S_BUTTON_ACTION_INITIAL_PRESS)
+                    {
+                        btn &= ~0x03;
+                        item->setValue(btn + S_BUTTON_ACTION_HOLD);
+                        DBG_Printf(DBG_INFO, "FoH switch button %d Hold\n", item->toNumber());
+                        sensor->updateStateTimestamp();
+                        Event e(RSensors, RStateButtonEvent, sensor->id(), item);
+                        enqueueEvent(e);
+                        enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
+                    }
+                }
                 else if (!item && sensor->modelId() == QLatin1String("lumi.vibration.aq1") && sensor->type() == QLatin1String("ZHAVibration"))
                 {
                     item = sensor->item(RStateVibration);

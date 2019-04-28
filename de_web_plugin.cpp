@@ -817,17 +817,97 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
 
      */
 
+    /*
+        Friends of Hue switch
+
+        A0 B0
+        A1 B1
+
+        DeviceId 0x02 (On/Off Switch)
+
+
+             A0,B0 Press    0x64 Press   2 of 2
+             A0,B0 Release  0x65 Release 2 of 2
+
+        A0 0x10 Press   Scene0      B0 0x13 Press   Scene 3
+        A0 0x14 Release Scene4      B0 0x17 Release Scene 7
+
+        A1 0x11 Press   Scene1      B1 0x12 Press   Scene 2
+        A1 0x15 Release Scene5      B1 0x16 Release Scene 6
+
+             A1,B1 Press    0x62 Press   1 of 2
+             A1,B1 Release  0x63 Release 1 of 2
+
+     */
+
     Sensor *sensor = getSensorNodeForAddress(ind.gpdSrcId());
-    ResourceItem *item = sensor ? sensor->item(RStateButtonEvent) : 0;
+    ResourceItem *item = sensor ? sensor->item(RStateButtonEvent) : nullptr;
 
     if (!sensor || !item || sensor->deletedState() == Sensor::StateDeleted)
     {
         return;
     }
+    quint32 btn = ind.gpdCommandId();
+    if (sensor->modelId() == QLatin1String("FOHSWITCH"))
+    {
+        const quint32 buttonMap[] = {
+            0x10, S_BUTTON_1,
+            0x11, S_BUTTON_2,
+            0x12, S_BUTTON_4,
+            0x13, S_BUTTON_3,
+            0x14, S_BUTTON_1,
+            0x15, S_BUTTON_2,
+            0x16, S_BUTTON_4,
+            0x17, S_BUTTON_3,
+            0x62, S_BUTTON_6,
+            0x63, S_BUTTON_6,
+            0x64, S_BUTTON_5,
+            0x65, S_BUTTON_5,
+            0
+        };
+
+        quint32 btnMapped = 0;
+        for (int i = 0; buttonMap[i] != 0; i += 2)
+        {
+            if (buttonMap[i] == btn)
+            {
+                btnMapped = buttonMap[i + 1];
+                break;
+            }
+        }
+
+        const QDateTime now = QDateTime::currentDateTime();
+        if (btnMapped == 0)
+        {
+            // not found
+        }
+        else if (btn == 0x10 || btn == 0x11 || btn == 0x13 || btn == 0x12 || btn == 0x64 || btn == 0x62)
+        {
+            sensor->durationDue = now.addMSecs(500); // enable generation of x001 (hold)
+            checkSensorsTimer->start(CHECK_SENSOR_FAST_INTERVAL);
+            btn = btnMapped + S_BUTTON_ACTION_INITIAL_PRESS;
+        }
+        else if (btn == 0x14 || btn == 0x15 || btn == 0x17 || btn == 0x16 || btn == 0x63 || btn == 0x65)
+        {
+            sensor->durationDue = QDateTime(); // disable generation of x001 (hold)
+            btn = buttonMap[btn & 0x0f];
+            const quint32 action = item->toNumber() & 0x03; // last action
+
+            if (action == S_BUTTON_ACTION_HOLD || // hold already triggered -> long release
+                item->lastSet().msecsTo(now) > 400) // over 400 ms since initial press? -> long release
+            {
+                btn = btnMapped + S_BUTTON_ACTION_LONG_RELEASED;
+            }
+            else
+            {
+                btn = btnMapped + S_BUTTON_ACTION_SHORT_RELEASED;
+            }
+        }
+    }
 
     updateSensorEtag(sensor);
     sensor->updateStateTimestamp();
-    item->setValue(ind.gpdCommandId());
+    item->setValue(btn);
 
     Event e(RSensors, RStateButtonEvent, sensor->id(), item);
     enqueueEvent(e);
@@ -923,22 +1003,22 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
         // 0x02               GPD DeviceID
         // 0x81               Options (MAC Sequence number, extended options field)
         // 0xF2               Extended Options Field: (Key Type: Individual, out of the box GPD key, GPD Key Present, GPD Key Encryption, GPD Outgoing present)
-        // 0/16 Security Key  GPD Key
-        // 0/4  u32           GPD Key MIC
-        // 0/4  u32           GPD outgoing counter
+        // 16 Security Key  GPD Key
+        // 4  u32           GPD Key MIC
+        // 4  u32           GPD outgoing counter
 
         // Vimar (Friends of Hue) 4 button 03906
-        // Note 1: Niko and Busch-Jaeger Friends of Hue switches may use the same module?
-        // Note 2: Which modelid does Hue bridge use for Friends of Hue switches?
+        // Note 1: Niko and Busch-Jaeger Friends of Hue switches use the same module.
+        // Note 2: Hue bridge uses modelid FOHSWITCH for Friends of Hue switches.
         // 0x02               GPD DeviceID
-        // 0xC5               Options (MAC Sequence number, application information present, extended options field)
+        // 0xC5               Options (MAC Sequence number, application information present, fixed location, extended options field)
         // 0xF2               Extended Options Field: (Key Type: Individual, out of the box GPD key, GPD Key Present, GPD Key Encryption, GPD Outgoing present)
         // 16   Security Key  GPD Key
         // 4    u32           GPD Key MIC
         // 4    u32           GPD outgoing counter
         // 0x04               ApplicationInformation (GPD commands are present)
         // ManufacturerSpecific (18 byte)
-        // Number of GPD commands (1 byte): 0x11
+        // Number of GPD commands (1 byte): 0x11 (17)
         // GPD CommandID list (17 byte): 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x22, 0x60, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68
 
         // Illumra (ZBT-S1AWH and ZBT-S2AWH)
@@ -1018,14 +1098,13 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             stream >> gpdOutgoingCounter;
         }
 
-
         SensorFingerprint fp;
         fp.endpoint = GREEN_POWER_ENDPOINT;
         fp.deviceId = gpdDeviceId;
         fp.profileId = GP_PROFILE_ID;
         fp.outClusters.push_back(GREEN_POWER_CLUSTER_ID);
 
-        Sensor *sensor = getSensorNodeForFingerPrint(ind.gpdSrcId(), fp, "ZGPSwitch");
+        Sensor *sensor = getSensorNodeForFingerPrint(ind.gpdSrcId(), fp, QLatin1String("ZGPSwitch"));
 
         if (searchSensorsState == SearchSensorsActive)
         {
@@ -1045,12 +1124,18 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
 
             // create new sensor
             Sensor sensorNode;
+            sensorNode.setType("ZGPSwitch");
 
-            if (gpdDeviceId == deCONZ::GpDeviceIdOnOffSwitch)
+            if (gpdDeviceId == deCONZ::GpDeviceIdOnOffSwitch && options.byte == 0x81)
             {
-                sensorNode.setType("ZGPSwitch");
                 sensorNode.setModelId("ZGPSWITCH");
                 sensorNode.setManufacturer("Philips");
+                sensorNode.setSwVersion("1.0");
+            }
+            else if (gpdDeviceId == deCONZ::GpDeviceIdOnOffSwitch && options.byte == 0xc5 && ind.payload().size() == 46)
+            {
+                sensorNode.setModelId("FOHSWITCH");
+                sensorNode.setManufacturer("PhilipsFoH");
                 sensorNode.setSwVersion("1.0");
             }
             else
