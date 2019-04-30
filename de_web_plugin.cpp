@@ -5165,7 +5165,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     int bat = ia->numericValue().u8 / 2;
 
-                                    if (i->modelId().startsWith("TRADFRI") || i->modelId().startsWith("ICZB-KPD1"))
+                                    if (i->modelId().startsWith(QLatin1String("TRADFRI")) || // IKEA
+                                        i->modelId().startsWith(QLatin1String("ICZB-KPD1")) || // iCasa keypads
+                                        i->modelId().startsWith(QLatin1String("SV01-"))) // Keen Home vent
                                     {
                                         bat = ia->numericValue().u8;
                                     }
