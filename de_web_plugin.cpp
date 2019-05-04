@@ -79,6 +79,7 @@ const quint64 keenhomeMacPrefix   = 0x0022a30000000000ULL;
 const quint64 heimanMacPrefix     = 0x0050430000000000ULL;
 const quint64 stMacPrefix         = 0x24fd5b0000000000ULL;
 const quint64 samjinMacPrefix     = 0x286d970000000000ULL;
+const quint64 sinopeMacPrefix     = 0x500b910000000000ULL;
 const quint64 osramMacPrefix      = 0x8418260000000000ULL;
 const quint64 silabsMacPrefix     = 0x90fd9f0000000000ULL;
 const quint64 energyMiMacPrefix   = 0xd0cf5e0000000000ULL;
@@ -190,6 +191,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_1224, "ICZB-KPD1", emberMacPrefix }, // iCasa keypad
     { VENDOR_JENNIC, "SPZB0001", jennicMacPrefix }, // Eurotronic thermostat
     { VENDOR_NONE, "RES001", tiMacPrefix }, // Hubitat environment sensor, see #1308
+    { VENDOR_119C, "WL4200S", sinopeMacPrefix}, // Sinope water sensor
     { 0, nullptr, 0 }
 };
 
@@ -3373,6 +3375,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpFireSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
                     }
+					          else if (node->nodeDescriptor().manufacturerCode() == VENDOR_119C &&
+						                 modelId.startsWith(QLatin1String("WL4200S")))
+					          {
+						            fpWaterSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
+					          }
                 }
                     break;
 
@@ -3476,7 +3483,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         fpFireSensor.inClusters.push_back(ci->id());
                     }
                     else if (modelId.startsWith(QLatin1String("WATER_")) ||           // Heiman water sensor
-                             modelId.startsWith(QLatin1String("lumi.sensor_wleak")))  // Xiaomi Aqara flood sensor
+                             modelId.startsWith(QLatin1String("lumi.sensor_wleak")) ||   // Xiaomi Aqara flood sensor
+							               modelId.startsWith(QLatin1String("WL4200S"))) // Sinope Water Leak detector
                     {
                         fpWaterSensor.inClusters.push_back(ci->id());
                     }
@@ -4395,6 +4403,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             sensorNode.setManufacturer("OSRAM");
         }
     }
+	  else if ((node->nodeDescriptor().manufacturerCode() == VENDOR_119C)) {
+		    sensorNode.setManufacturer("Sinope");
+	  }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_UBISYS)
     {
         sensorNode.setManufacturer("ubisys");
