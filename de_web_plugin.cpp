@@ -14610,7 +14610,7 @@ QString DeRestPluginPrivate::generateUniqueId(quint64 extAddress, quint8 endpoin
     } a;
     a.mac = extAddress;
 
-    if (clusterId != 0)
+    if (clusterId != 0 && endpoint != 0xf2)
     {
         uid.sprintf("%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x-%02x-%04x",
                     a.bytes[7], a.bytes[6], a.bytes[5], a.bytes[4],
