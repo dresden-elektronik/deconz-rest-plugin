@@ -927,6 +927,7 @@ public:
     void indexRuleTriggers(Rule &rule);
     void triggerRule(Rule &rule);
     bool ruleToMap(const Rule *rule, QVariantMap &map);
+    int handleWebHook(const RuleAction &action);
 
     bool checkActions(QVariantList actionsList, ApiResponse &rsp);
     bool checkConditions(QVariantList conditionsList, ApiResponse &rsp);
@@ -1029,6 +1030,7 @@ public Q_SLOTS:
     void verifyRuleBindingsTimerFired();
     void indexRulesTriggers();
     void fastRuleCheckTimerFired();
+    void webhookFinishedRequest(QNetworkReply *reply);
     void daylightTimerFired();
     void handleRuleEvent(const Event &e);
     bool queueBindingTask(const BindingTask &bindingTask);
@@ -1488,6 +1490,9 @@ public:
     // schedules
     QTimer *scheduleTimer;
     std::vector<Schedule> schedules;
+
+    // webhooks
+    QNetworkAccessManager *webhookManager = nullptr;
 
     // internet discovery
     QNetworkAccessManager *inetDiscoveryManager;

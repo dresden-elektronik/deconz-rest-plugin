@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2019 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -12,6 +12,8 @@
 #include <QVariantMap>
 #include <QRegExp>
 #include <QStringBuilder>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "json.h"
@@ -843,6 +845,11 @@ bool DeRestPluginPrivate::checkActions(QVariantList actionsList, ApiResponse &rs
 
         for (int i = 0; ; i++)
         {
+            if (address.startsWith(QLatin1String("http"))) // webhook http/https
+            {
+                break; // supported
+            }
+
             if (!resources[i])
             {
                 rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString(address),
@@ -1513,8 +1520,20 @@ void DeRestPluginPrivate::triggerRule(Rule &rule)
 
     for (; ai != aend; ++ai)
     {
-        if (ai->method() != QLatin1String("PUT"))
+        // check webhook
+        if (ai->address().startsWith(QLatin1String("http")))
+        {
+            if (handleWebHook(*ai) == REQ_NOT_HANDLED)
+            {
+                return;
+            }
+            triggered = true;
+            continue;
+        }
+
+        if (ai->method() != QLatin1String("PUT") && ai->method() != QLatin1String("POST"))
             return;
+
 
         QStringList path = ai->address().split(QChar('/'), QString::SkipEmptyParts);
 
@@ -1527,7 +1546,7 @@ void DeRestPluginPrivate::triggerRule(Rule &rule)
         path.prepend(rule.owner()); // apikey
         path.prepend(QLatin1String("api")); // api
 
-        ApiRequest req(hdr, path, NULL, ai->body());
+        ApiRequest req(hdr, path, nullptr, ai->body());
         ApiResponse rsp;
         rsp.httpStatus = HttpStatusServiceUnavailable;
 
@@ -1593,6 +1612,33 @@ void DeRestPluginPrivate::triggerRule(Rule &rule)
         updateEtag(gwConfigEtag);
         queSaveDb(DB_RULES, DB_HUGE_SAVE_DELAY);
     }
+}
+
+/*! Sends a HTTP request aka webhook based on a rule action.
+    \param action - the action holding the request details
+ */
+int DeRestPluginPrivate::handleWebHook(const RuleAction &action)
+{
+    QNetworkRequest req(QUrl(action.address()));
+
+    if (webhookManager->sendCustomRequest(req, action.method().toUtf8(), action.body().toUtf8()) != nullptr)
+    {
+        return REQ_READY_SEND;
+    }
+
+    return REQ_NOT_HANDLED;
+}
+
+/*! Handler for finished webhooks.
+  */
+void DeRestPluginPrivate::webhookFinishedRequest(QNetworkReply *reply)
+{
+    if (!reply)
+    {
+        return;
+    }
+
+    reply->deleteLater();
 }
 
 /*! Verifies that rule bindings are valid. */

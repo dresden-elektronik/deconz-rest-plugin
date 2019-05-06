@@ -292,6 +292,10 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     gwAnnounceUrl = "http://dresden-light.appspot.com/discover";
     inetDiscoveryManager = 0;
 
+    webhookManager = new QNetworkAccessManager(this);
+    connect(webhookManager, SIGNAL(finished(QNetworkReply*)),
+            this, SLOT(webhookFinishedRequest(QNetworkReply*)));
+
     // lights
     searchLightsState = SearchLightsIdle;
     searchLightsTimeout = 0;
