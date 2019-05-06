@@ -1499,12 +1499,6 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
                 continue;
             }
 
-            // support only XAL on/off cluster for now
-            if (lightNode->manufacturerCode() == VENDOR_XAL && i->id() != ONOFF_CLUSTER_ID)
-            {
-                continue;
-            }
-
             BindingTask bt;
             if (checkMacVendor(lightNode->address(), VENDOR_DDEL))
             {

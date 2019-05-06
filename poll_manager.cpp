@@ -298,7 +298,7 @@ void PollManager::pollTimerFired()
         clusterId = COLOR_CLUSTER_ID;
         item = r->item(RConfigColorCapabilities);
 
-        if ((!item || item->toNumber() <= 0) && (lightNode->haEndpoint().profileId() != HA_PROFILE_ID || lightNode->manufacturerCode() == VENDOR_115F ||  lightNode->manufacturerCode() == VENDOR_MUELLER))
+        if ((!item || item->toNumber() <= 0) && (lightNode->haEndpoint().profileId() == ZLL_PROFILE_ID || lightNode->manufacturerCode() == VENDOR_115F || lightNode->manufacturerCode() == VENDOR_MUELLER || lightNode->manufacturerCode() == VENDOR_XAL))
         {
             if (item && lightNode->modelId() == QLatin1String("lumi.light.aqcn02"))
             {
@@ -458,6 +458,7 @@ void PollManager::pollTimerFired()
 
     size_t fresh = 0;
     const int reportWaitTime = 360;
+    const int reportWaitTimeXAL = 60 * 30;
     for (quint16 attrId : attributes)
     {
         // force polling after node becomes reachable, since reporting might not be active
@@ -475,6 +476,10 @@ void PollManager::pollTimerFired()
         else if (val.timestampLastReport.isValid() && val.timestampLastReport.secsTo(now) < reportWaitTime)
         {
             fresh++;
+        }
+        else if (lightNode && lightNode->manufacturerCode() == VENDOR_XAL && val.timestamp.isValid() && val.timestamp.secsTo(now) < reportWaitTimeXAL)
+        {
+            fresh++; // rely on reporting for XAL lights
         }
     }
 
