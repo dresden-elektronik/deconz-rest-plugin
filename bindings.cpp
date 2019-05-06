@@ -1648,8 +1648,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("902010")) ||
         // LG
         sensor->modelId() == QLatin1String("LG IP65 HMS") ||
-		// Sinope
-		sensor->modelId() == QLatin1String("WL4200S"))
+        // Sinope
+        sensor->modelId() == QLatin1String("WL4200S"))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||
