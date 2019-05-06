@@ -3375,11 +3375,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpFireSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
                     }
-					          else if (node->nodeDescriptor().manufacturerCode() == VENDOR_119C &&
-						                 modelId.startsWith(QLatin1String("WL4200S")))
-					          {
-						            fpWaterSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
-					          }
+                    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_119C &&
+                             modelId.startsWith(QLatin1String("WL4200S")))
+                    {
+                        fpWaterSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
+                    }
                 }
                     break;
 
@@ -3483,8 +3483,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         fpFireSensor.inClusters.push_back(ci->id());
                     }
                     else if (modelId.startsWith(QLatin1String("WATER_")) ||           // Heiman water sensor
-                             modelId.startsWith(QLatin1String("lumi.sensor_wleak")) ||   // Xiaomi Aqara flood sensor
-							               modelId.startsWith(QLatin1String("WL4200S"))) // Sinope Water Leak detector
+                             modelId.startsWith(QLatin1String("lumi.sensor_wleak")) || // Xiaomi Aqara flood sensor
+                             modelId.startsWith(QLatin1String("WL4200S")))            // Sinope Water Leak detector
                     {
                         fpWaterSensor.inClusters.push_back(ci->id());
                     }
@@ -4403,9 +4403,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             sensorNode.setManufacturer("OSRAM");
         }
     }
-	  else if ((node->nodeDescriptor().manufacturerCode() == VENDOR_119C)) {
-		    sensorNode.setManufacturer("Sinope");
-	  }
+    else if ((node->nodeDescriptor().manufacturerCode() == VENDOR_119C)) 
+    {
+        sensorNode.setManufacturer("Sinope");
+    }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_UBISYS)
     {
         sensorNode.setManufacturer("ubisys");
