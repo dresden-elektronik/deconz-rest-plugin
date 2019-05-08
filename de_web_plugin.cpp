@@ -152,6 +152,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "lumi.vibration", jennicMacPrefix }, // Xiaomi Aqara vibration/shock sensor
     { VENDOR_JENNIC, "lumi.sensor_wleak", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_smoke", jennicMacPrefix },
+    { VENDOR_JENNIC, "lumi.relay.c", jennicMacPrefix }, // Xiaomi Aqara LLKZMK11LM
     { VENDOR_115F, "lumi.plug", jennicMacPrefix }, // Xiaomi smart plug (router)
     { VENDOR_115F, "lumi.ctrl_ln", jennicMacPrefix}, // Xiaomi Wall Switch (router)
     // { VENDOR_115F, "lumi.curtain", jennicMacPrefix}, // Xiaomi curtain controller (router) - exposed only as light
@@ -175,6 +176,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_120B, "SmartPlug", emberMacPrefix }, // Heiman smart plug
     { VENDOR_120B, "GAS", emberMacPrefix }, // Heiman gas sensor - newer model
     { VENDOR_120B, "Smoke", emberMacPrefix }, // Heiman fire sensor - newer model
+    { VENDOR_120B, "Water", emberMacPrefix }, // Heiman water sensor - newer model
     { VENDOR_120B, "WarningDevice", emberMacPrefix }, // Heiman siren
     { VENDOR_LUTRON, "LZL4BWHL01", lutronMacPrefix }, // Lutron LZL-4B-WH-L01 Connected Bulb Remote
     { VENDOR_KEEN_HOME , "SV01-", keenhomeMacPrefix}, // Keen Home Vent
@@ -3601,6 +3603,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                             fpConsumptionSensor.inClusters.push_back(ci->id());
                         }
                     }
+                    else if (modelId.startsWith(QLatin1String("lumi.relay.c")))
+                    {
+                        fpConsumptionSensor.inClusters.push_back(ci->id());
+                    }
                 }
                     break;
 
@@ -5169,7 +5175,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     int bat = ia->numericValue().u8 / 2;
 
-                                    if (i->modelId().startsWith("TRADFRI") || i->modelId().startsWith("ICZB-KPD1"))
+                                    if (i->modelId().startsWith(QLatin1String("TRADFRI")) || // IKEA
+                                        i->modelId().startsWith(QLatin1String("ICZB-KPD1")) || // iCasa keypads
+                                        i->modelId().startsWith(QLatin1String("SV01-"))) // Keen Home vent
                                     {
                                         bat = ia->numericValue().u8;
                                     }
@@ -13526,7 +13534,7 @@ void DeRestPlugin::idleTimerFired()
                 }
 
                 // workaround for lights and smart plugs with multiple endpoints but only one basic cluster
-                if ((lightNode->manufacturerCode() == VENDOR_115F || // Xiaomi
+                if ((lightNode->manufacturerCode() == VENDOR_JENNIC || lightNode->manufacturerCode() == VENDOR_115F || // Xiaomi
                      (lightNode->address().ext() & macPrefixMask) == tiMacPrefix) // GLEDOPTO
                     && (lightNode->modelId().isEmpty() || lightNode->manufacturer().isEmpty() || lightNode->item(RAttrSwVersion)->toString().isEmpty()))
                 {
@@ -14607,7 +14615,7 @@ QString DeRestPluginPrivate::generateUniqueId(quint64 extAddress, quint8 endpoin
     } a;
     a.mac = extAddress;
 
-    if (clusterId != 0)
+    if (clusterId != 0 && endpoint != 0xf2)
     {
         uid.sprintf("%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x-%02x-%04x",
                     a.bytes[7], a.bytes[6], a.bytes[5], a.bytes[4],

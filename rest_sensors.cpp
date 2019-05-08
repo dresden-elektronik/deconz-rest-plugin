@@ -2534,7 +2534,7 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
                         DBG_Printf(DBG_INFO, "sensor %s (%s): disable vibration\n", qPrintable(sensor->id()), qPrintable(sensor->modelId()));
                         item->setValue(false);
                         sensor->updateStateTimestamp();
-                        enqueueEvent(Event(RSensors, RStatePresence, sensor->id(), item));
+                        enqueueEvent(Event(RSensors, RStateVibration, sensor->id(), item));
                         enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
                     }
                 }
