@@ -3,10 +3,12 @@
 TIMEOUT=0
 LOG_LEVEL=3
 ZLLDB=""
+SQL_RESULT=
 OWN_PID=$$
 MAINUSER=$(getent passwd 1000 | cut -d: -f1)
 DECONZ_CONF_DIR="/home/$MAINUSER/.local/share"
 DECONZ_PORT=
+RC=1
 
 PROXY_ADDRESS=""
 PROXY_PORT=""
@@ -20,6 +22,7 @@ LOG_WARN=
 LOG_NOTICE=
 LOG_INFO=
 LOG_DEBUG=
+LOG_SQL=
 
 [[ $LOG_LEVEL -ge 0 ]] && LOG_EMERG="<0>"
 [[ $LOG_LEVEL -ge 1 ]] && LOG_ALERT="<1>"
@@ -29,10 +32,31 @@ LOG_DEBUG=
 [[ $LOG_LEVEL -ge 5 ]] && LOG_NOTICE="<5>"
 [[ $LOG_LEVEL -ge 6 ]] && LOG_INFO="<6>"
 [[ $LOG_LEVEL -ge 7 ]] && LOG_DEBUG="<7>"
+[[ $LOG_LEVEL -ge 8 ]] && LOG_SQL="<8>"
 
 # $1 = key $2 = value
 function putHomebridgeUpdated {
 	curl --noproxy '*' -s -o /dev/null -d "{\"$1\":\"$2\"}" -X PUT http://127.0.0.1:${DECONZ_PORT}/api/$OWN_PID/config/homebridge/updated
+}
+
+# $1 = queryString
+function sqliteSelect() {
+    if [[ -z "$ZLLDB" ]] || [[ ! -f "$ZLLDB" ]]; then
+        [[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}database not found"
+        ZLLDB=""
+        return
+    fi
+    [[ $LOG_SQL ]] && echo "SQLITE3 $1"
+
+    RC=1
+    while [ $RC -ne 0 ]; do
+        SQL_RESULT=$(sqlite3 $ZLLDB "$1")
+        RC=$?
+        if [ $RC -ne 0 ]; then
+            sleep 3
+        fi
+        [[ $LOG_SQL ]] && echo "$SQL_RESULT"
+    done
 }
 
 function init {
@@ -61,10 +85,8 @@ function init {
 	fi
 
 	# get deCONZ REST-API port
-	local value=$(sqlite3 $ZLLDB "select value from config2 where key=\"port\"")
-	if [ $? -ne 0 ]; then
-		return
-	fi
+	sqliteSelect "select value from config2 where key=\"port\""
+	local value="$SQL_RESULT"
 
 	if [[ -n $value ]]; then
 		DECONZ_PORT=$value
@@ -79,15 +101,9 @@ function installHomebridge {
 
 	for i in {0..2}; do
 		param=${params[$i]}
-		RC=1
-		while [ $RC -ne 0 ]; do
-			value=$(sqlite3 $ZLLDB "select value from config2 where key=\"${param}\"")
-			RC=$?
-			if [ $RC -ne 0 ]; then
-				[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}Error reading parameter ${param} from db"
-				sleep 2
-			fi
-		done
+
+		sqliteSelect "select value from config2 where key=\"${param}\""
+		value="$SQL_RESULT"
 
 		# basic check for non empty
 		if [[ ! -z "$value" ]]; then
