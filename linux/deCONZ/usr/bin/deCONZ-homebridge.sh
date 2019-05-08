@@ -8,7 +8,6 @@ DECONZ_CONF_DIR="/home/$MAINUSER/.local/share"
 DECONZ_PORT=
 BRIDGEID=
 LAST_MAX_TIMESTAMP=0
-RC=1		# return code of function calls
 TIMEOUT=0      # main loop iteration timeout, can be controlled by SIGUSR1
 LOG_LEVEL=3
 
@@ -41,15 +40,11 @@ function sqliteSelect() {
     fi
     [[ $LOG_SQL ]] && echo "SQLITE3 $1"
 
-    RC=1
-    while [ $RC -ne 0 ]; do
-        SQL_RESULT=$(sqlite3 $ZLLDB "$1")
-        RC=$?
-        if [ $RC -ne 0 ]; then
-            sleep 3
-        fi
-        [[ $LOG_SQL ]] && echo "$SQL_RESULT"
-    done
+    SQL_RESULT=$(sqlite3 $ZLLDB "$1")
+    if [ $? -ne 0 ]; then
+    	SQL_RESULT="error"
+	fi
+    [[ $LOG_SQL ]] && echo "$SQL_RESULT"
 }
 
 function init {
@@ -82,7 +77,7 @@ function init {
 	# get deCONZ REST-API port
 	sqliteSelect "select value from config2 where key=\"port\""
 	local value="$SQL_RESULT"
-	if [ $? -ne 0 ]; then
+	if [ -z $value ] || [[ $value == "error" ]]; then
 		[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}no deCONZ port found in database"
 		return
 	fi
@@ -95,7 +90,7 @@ function init {
 	# get bridgeid
 	sqliteSelect "select value from config2 where key=\"bridgeid\""
 	local value="$SQL_RESULT"
-	if [ $? -ne 0 ]; then
+	if [ -z $value ] || [[ $value == "error" ]]; then
 		[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}no bridgeid found in database"
 		return
 	fi
@@ -130,7 +125,7 @@ function checkNewDevices() {
 		sqliteSelect "select timestamp from devices order by timestamp DESC limit 1"
 		max_timestamp="$SQL_RESULT"
 
-		if [ -z $max_timestamp ]; then
+		if [ -z $max_timestamp ] || [[ $max_timestamp == "error" ]]; then
 			[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}timestamp from db is empty - skip check for new devices"
 			return
 		fi
@@ -174,13 +169,19 @@ function checkHomebridge {
 		param=${params[$i]}
 
 		sqliteSelect "select value from config2 where key=\"${param}\""
-		value="$SQL_RESULT"
+		value="$SQL_RESULT"			
 
 		# basic check for non empty
 		if [[ ! -z "$value" ]]; then
 			values[$i]=$(echo $value | cut -d'|' -f2)
 		fi
 	done
+
+	# any database errors?
+	if [[ "${values[0]}" == "error" ]] || [[ "${values[1]}" == "error" ]] || [[ "${values[2]}" == "error" ]]; then
+		TIMEOUT=10
+		return
+	fi
 
 	## all parameters found and valid?
 	if [ -z "${values[0]}" ]; then
@@ -229,6 +230,12 @@ function checkHomebridge {
 
 	## check if apikey already exist or create a new apikey for homebridge apps
 	sqliteSelect "select * from auth where devicetype like 'homebridge-hue#%' limit 1"
+	
+	if [[ "$SQL_RESULT" == "error" ]]; then
+		TIMEOUT=5
+		return
+	fi
+
 	local HOMEBRIDGE_AUTH="$SQL_RESULT"
 
 	if [[ -z $HOMEBRIDGE_AUTH ]]; then
@@ -315,6 +322,12 @@ function checkHomebridge {
 	sleep 5
 
 	sqliteSelect "select apikey from auth where devicetype like 'homebridge-hue#%' limit 1"
+
+	if [[ "$SQL_RESULT" == "error" ]]; then
+		TIMEOUT=5
+		return
+	fi
+
 	APIKEY="$SQL_RESULT"
 
 	# create config file if not exists
@@ -353,6 +366,12 @@ function checkHomebridge {
 		fi
 	else
 		sqliteSelect "select value from config2 where key='homebridge-pin'"
+
+		if [[ "$SQL_RESULT" == "error" ]]; then
+			TIMEOUT=5
+			return
+		fi
+	
 		HOMEBRIDGE_PIN="$SQL_RESULT"
 
 		if [ -z "$HOMEBRIDGE_PIN" ]; then

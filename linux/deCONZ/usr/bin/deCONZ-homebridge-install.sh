@@ -8,7 +8,6 @@ OWN_PID=$$
 MAINUSER=$(getent passwd 1000 | cut -d: -f1)
 DECONZ_CONF_DIR="/home/$MAINUSER/.local/share"
 DECONZ_PORT=
-RC=1
 
 PROXY_ADDRESS=""
 PROXY_PORT=""
@@ -48,15 +47,11 @@ function sqliteSelect() {
     fi
     [[ $LOG_SQL ]] && echo "SQLITE3 $1"
 
-    RC=1
-    while [ $RC -ne 0 ]; do
-        SQL_RESULT=$(sqlite3 $ZLLDB "$1")
-        RC=$?
-        if [ $RC -ne 0 ]; then
-            sleep 3
-        fi
-        [[ $LOG_SQL ]] && echo "$SQL_RESULT"
-    done
+    SQL_RESULT=$(sqlite3 $ZLLDB "$1")
+    if [ $? -ne 0 ]; then
+    	SQL_RESULT=
+	fi
+    [[ $LOG_SQL ]] && echo "$SQL_RESULT"
 }
 
 function init {
@@ -257,7 +252,7 @@ function installHomebridge {
 
 function checkUpdate {
 
-	if [[ $AUTO_UPDATE = false ]]; then
+	if [[ $AUTO_UPDATE = false ]] || [ -z $AUTO_UPDATE ]; then
 		return
 	fi
 
