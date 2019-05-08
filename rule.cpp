@@ -335,10 +335,10 @@ const QString &RuleAction::address() const
  */
 void RuleAction::setMethod(const QString &method)
 {
-    DBG_Assert((method == "POST") || (method == "PUT") || (method == "DELETE") || (method == "BIND"));
-    if (!((method == "POST") || (method == "PUT") || (method == "DELETE") || (method == "BIND")))
+    DBG_Assert(method == "POST" || method == "PUT" || method == "DELETE" || method == "BIND" || method == "GET");
+    if (!(method == "POST" || method == "PUT" || method == "DELETE" || method == "BIND" || method == "GET"))
     {
-        DBG_Printf(DBG_INFO, "actions method must be either POST, PUT, BIND or DELETE\n");
+        DBG_Printf(DBG_INFO, "actions method must be either GET, POST, PUT, BIND or DELETE\n");
         return;
     }
     m_method = method;

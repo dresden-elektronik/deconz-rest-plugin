@@ -480,9 +480,10 @@ int DeRestPluginPrivate::createRule(const ApiRequest &req, ApiResponse &rsp)
                 for (; ai != aend; ++ai)
                 {
                     RuleAction newAction;
-                    newAction.setAddress(ai->toMap()["address"].toString());
-                    newAction.setBody(Json::serialize(ai->toMap()["body"].toMap()));
-                    newAction.setMethod(ai->toMap()["method"].toString());
+                    const QVariantMap m = ai->toMap();
+                    newAction.setAddress(m["address"].toString());
+                    newAction.setBody(Json::serialize(m["body"].toMap()));
+                    newAction.setMethod(m["method"].toString());
                     actions.push_back(newAction);
                 }
 
@@ -864,7 +865,7 @@ bool DeRestPluginPrivate::checkActions(QVariantList actionsList, ApiResponse &rs
         }
 
         //check methods
-        if(!((method == QLatin1String("PUT")) || (method == QLatin1String("POST")) || (method == QLatin1String("DELETE")) || (method == QLatin1String("BIND"))))
+        if(!(method == QLatin1String("PUT") || method == QLatin1String("POST") || method == QLatin1String("DELETE") || method == QLatin1String("BIND") || method == QLatin1String("GET")))
         {
             rsp.list.append(errorToMap(ERR_INVALID_VALUE , QString("rules/method"), QString("invalid value, %1, for parameter, method").arg(method)));
             return false;
@@ -1636,6 +1637,22 @@ void DeRestPluginPrivate::webhookFinishedRequest(QNetworkReply *reply)
     if (!reply)
     {
         return;
+    }
+
+    DBG_Printf(DBG_INFO, "Webhook finished: %s (code: %d)\n", qPrintable(reply->url().toString()), reply->error());
+
+    if (DBG_IsEnabled(DBG_HTTP))
+    {
+        for (const auto &hdr : reply->rawHeaderPairs())
+        {
+            DBG_Printf(DBG_HTTP, "%s: %s\n", qPrintable(hdr.first), qPrintable(hdr.second));
+        }
+
+        QByteArray data = reply->readAll();
+        if (!data.isEmpty())
+        {
+            DBG_Printf(DBG_HTTP, "%s\n", qPrintable(data));
+        }
     }
 
     reply->deleteLater();
