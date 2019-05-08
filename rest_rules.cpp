@@ -12,8 +12,6 @@
 #include <QVariantMap>
 #include <QRegExp>
 #include <QStringBuilder>
-#include <QFile>
-#include <QProcess>
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "json.h"
@@ -841,7 +839,7 @@ bool DeRestPluginPrivate::checkActions(QVariantList actionsList, ApiResponse &rs
         }
 
         //no dublicate addresses allowed
-        const char *resources[] = { "groups", "lights", "schedules", "sensors", "rules", "script", nullptr };
+        const char *resources[] = { "groups", "lights", "schedules", "sensors", "rules", nullptr };
 
         for (int i = 0; ; i++)
         {
@@ -1570,33 +1568,6 @@ void DeRestPluginPrivate::triggerRule(Rule &rule)
         {
             if (handleRulesApi(req, rsp) == REQ_NOT_HANDLED)
             {
-                return;
-            }
-            triggered = true;
-        }
-        else if (path[2] == QLatin1String("script"))
-        {
-            QString homeDir = deCONZ::getStorageLocation(deCONZ::HomeLocation);
-            QString script = homeDir + QString("/deconz_rule_action.sh");
-            if (QFile::exists(script))
-            {
-                QStringList arguments;
-                arguments << rule.id() << rule.name() << ai->body();
-
-                QStringList urlargs = ai->address().split(QChar('/'), QString::SkipEmptyParts);
-                urlargs.removeFirst();
-
-                arguments = arguments + urlargs;
-
-                QObject *parent = nullptr;
-                QProcess *scriptProcess = new QProcess(parent);
-                scriptProcess->start(script, arguments);
-
-                rsp.httpStatus = HttpStatusOk;
-            }
-            else
-            {
-                DBG_Printf(DBG_INFO, "script rule action requires script: %s\n", qPrintable(script));
                 return;
             }
             triggered = true;
