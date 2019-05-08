@@ -327,7 +327,15 @@ function checkHomebridge {
 				putHomebridgeUpdated "homebridge" "not-managed"
 			fi
 		else
-			# config created by deCONZ - check if apikey is still correct
+			# config created by deCONZ - check if bridgeid is present
+			if [ -z "$(cat /home/$MAINUSER/.homebridge/config.json | grep "$BRIDGEID")" ]; then
+				# bridgeid not found - update config
+				[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}update bridgeid in config file with $BRIDGEID"
+				local line="$(grep -n users /home/$MAINUSER/.homebridge/config.json | cut -d: -f 1)"
+				line=$((line + 1))
+				sed -i "${line}s/.*/    \"${BRIDGEID}\": \"$APIKEY\"/" /home/$MAINUSER/.homebridge/config.json
+			fi
+			# check if apikey is still correct
 			if [ -z "$(cat /home/$MAINUSER/.homebridge/config.json | grep "$APIKEY")" ]; then
 				# apikey not found - update config
 				[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}update apikey in config file with $APIKEY"
@@ -338,6 +346,9 @@ function checkHomebridge {
 				# bridgeid has faulty value replace it with correct value from db
 				[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}update bridgeid in config file with ${BRIDGEID}"
 				sed -i "/\"00000000/c\    \"${BRIDGEID}\": \"$APIKEY\"" /home/$MAINUSER/.homebridge/config.json
+			fi
+			if [[ "$HOMEBRIDGE" != "managed" ]]; then
+				putHomebridgeUpdated "homebridge" "managed"
 			fi
 		fi
 	else
