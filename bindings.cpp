@@ -508,6 +508,17 @@ void DeRestPluginPrivate::handleZclConfigureReportingResponseIndication(const de
         }
     }
 
+    if (searchSensorsState == SearchSensorsActive && fastProbeAddr.hasExt() && bindingQueue.empty())
+    {
+        for (auto &s : sensors)
+        {
+            if (s.address().ext() == fastProbeAddr.ext())
+            {
+                checkSensorBindingsForAttributeReporting(&s);
+            }
+        }
+    }
+
     bindingTimer->start(0); // fast process of next request
 }
 
