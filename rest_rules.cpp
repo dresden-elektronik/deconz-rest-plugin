@@ -1622,7 +1622,7 @@ int DeRestPluginPrivate::handleWebHook(const RuleAction &action)
 {
     QNetworkRequest req(QUrl(action.address()));
 
-    if (webhookManager->sendCustomRequest(req, action.method().toUtf8(), action.body().toUtf8()) != nullptr)
+    if (webhookManager->sendCustomRequest(req, qPrintable(action.method()), qPrintable(action.body())) != nullptr)
     {
         return REQ_READY_SEND;
     }
