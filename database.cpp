@@ -3060,6 +3060,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = clusterId ? clusterId : DOOR_LOCK_CLUSTER_ID;
             }
+            else if (sensor.fingerPrint().hasInCluster(SAMJIN_CLUSTER_ID))
+            {
+                clusterId = clusterId ? clusterId : SAMJIN_CLUSTER_ID;
+            }
             item = sensor.addItem(DataTypeBool, RStateVibration);
             item->setValue(false);
             if (sensor.modelId().startsWith(QLatin1String("lumi.vibration")))
@@ -3069,6 +3073,12 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 item = sensor.addItem(DataTypeInt16, RStateOrientationZ);
                 item = sensor.addItem(DataTypeUInt16, RStateTiltAngle);
                 item = sensor.addItem(DataTypeUInt16, RStateVibrationStrength);
+            }
+            else  if (sensor.modelId() == QLatin1String("multi") && sensor.manufacturer() == QLatin1String("Samjin"))
+            {
+                item = sensor.addItem(DataTypeInt16, RStateOrientationX);
+                item = sensor.addItem(DataTypeInt16, RStateOrientationY);
+                item = sensor.addItem(DataTypeInt16, RStateOrientationZ);
             }
         }
         else if (sensor.type().endsWith(QLatin1String("Water")))
@@ -3255,10 +3265,17 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
         if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
         {
-            item = sensor.addItem(DataTypeBool, RStateLowBattery);
-            item->setValue(false);
-            item = sensor.addItem(DataTypeBool, RStateTampered);
-            item->setValue(false);
+            if (sensor.modelId() == QLatin1String("multi") && sensor.manufacturer() == QLatin1String("Samjin"))
+            {
+                // no support for some IAS Zone flags
+            }
+            else
+            {
+                item = sensor.addItem(DataTypeBool, RStateLowBattery);
+                item->setValue(false);
+                item = sensor.addItem(DataTypeBool, RStateTampered);
+                item->setValue(false);
+            }
         }
 
         if (sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))

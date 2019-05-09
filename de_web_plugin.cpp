@@ -3667,6 +3667,15 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 }
                     break;
 
+                case SAMJIN_CLUSTER_ID:
+                {
+                    if (modelId == QLatin1String("multi")) // Samjin Multipurpose sensor
+                    {
+                        fpVibrationSensor.inClusters.push_back(SAMJIN_CLUSTER_ID);
+                    }
+                }
+                    break;
+
                 case METERING_CLUSTER_ID:
                 {
                     fpConsumptionSensor.inClusters.push_back(ci->id());
@@ -3981,6 +3990,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
         // ZHAVibration
         if (fpVibrationSensor.hasInCluster(IAS_ZONE_CLUSTER_ID) ||
+            fpVibrationSensor.hasInCluster(SAMJIN_CLUSTER_ID) ||
             fpVibrationSensor.hasInCluster(DOOR_LOCK_CLUSTER_ID))
         {
             fpVibrationSensor.endpoint = i->endpoint();
@@ -4300,6 +4310,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = DOOR_LOCK_CLUSTER_ID;
         }
+        else if (sensorNode.fingerPrint().hasInCluster(SAMJIN_CLUSTER_ID))
+        {
+            clusterId = SAMJIN_CLUSTER_ID;
+        }
         item = sensorNode.addItem(DataTypeBool, RStateVibration);
         item->setValue(false);
     }
@@ -4596,6 +4610,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_SAMJIN)
     {
         sensorNode.setManufacturer("Samjin");
+
+        if (sensorNode.type() == QLatin1String("ZHAVibration"))
+        {
+            item = sensorNode.addItem(DataTypeInt16, RStateOrientationX);
+            item = sensorNode.addItem(DataTypeInt16, RStateOrientationY);
+            item = sensorNode.addItem(DataTypeInt16, RStateOrientationZ);
+        }
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_INNR)
     {
@@ -4626,10 +4647,17 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
 
     if (clusterId == IAS_ZONE_CLUSTER_ID)
     {
-        item = sensorNode.addItem(DataTypeBool, RStateLowBattery);
-        item->setValue(false);
-        item = sensorNode.addItem(DataTypeBool, RStateTampered);
-        item->setValue(false);
+        if (modelId == QLatin1String("multi") && sensorNode.manufacturer() == QLatin1String("Samjin"))
+        {
+            // no support for some IAS flags
+        }
+        else
+        {
+            item = sensorNode.addItem(DataTypeBool, RStateLowBattery);
+            item->setValue(false);
+            item = sensorNode.addItem(DataTypeBool, RStateTampered);
+            item->setValue(false);
+        }
     }
 
     QString uid = generateUniqueId(sensorNode.address().ext(), sensorNode.fingerPrint().endpoint, clusterId);
@@ -5062,6 +5090,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             case METERING_CLUSTER_ID:
             case ELECTRICAL_MEASUREMENT_CLUSTER_ID:
             case DOOR_LOCK_CLUSTER_ID:
+            case SAMJIN_CLUSTER_ID:
                 break;
 
             case VENDOR_CLUSTER_ID:
@@ -5660,6 +5689,102 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 }
 
                                 updateSensorEtag(&*i);
+                            }
+                        }
+                    }
+                    else if (event.clusterId() == SAMJIN_CLUSTER_ID)
+                    {
+                        for (;ia != enda; ++ia)
+                        {
+                            if (std::find(event.attributeIds().begin(),
+                                          event.attributeIds().end(),
+                                          ia->id()) == event.attributeIds().end())
+                            {
+                                continue;
+                            }
+
+                            if (ia->id() == 0x0012 || ia->id() == 0x0013 || ia->id() == 0x0014) // accelerate
+                            {
+                                ResourceItem *item = i->item(RStateVibration);
+                                if (item)
+                                {
+                                    item->setValue(true);
+                                    enqueueEvent(Event(RSensors, RStateVibration, i->id(), item));
+                                    i->durationDue = item->lastSet().addSecs(65);
+                                }
+                            }
+
+                            if (ia->id() == 0x0012) // accelerate x
+                            {
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().s16);
+                                }
+
+                                ResourceItem *item = i->item(RStateOrientationX);
+
+                                if (item)
+                                {
+                                    item->setValue(ia->numericValue().s16);
+
+                                    if (item->lastSet() == item->lastChanged())
+                                    {
+                                        Event e(RSensors, item->descriptor().suffix, i->id(), item);
+                                        enqueueEvent(e);
+                                    }
+                                    i->setNeedSaveDatabase(true);
+                                    i->updateStateTimestamp();
+                                    enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
+                                }
+                            }
+                            else if (ia->id() == 0x0013) // accelerate y
+                            {
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().s16);
+                                }
+
+                                ResourceItem *item = i->item(RStateOrientationY);
+
+                                if (item)
+                                {
+                                    item->setValue(ia->numericValue().s16);
+
+                                    if (item->lastSet() == item->lastChanged())
+                                    {
+                                        Event e(RSensors, item->descriptor().suffix, i->id(), item);
+                                        enqueueEvent(e);
+                                    }
+                                    i->setNeedSaveDatabase(true);
+                                    i->updateStateTimestamp();
+                                    enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
+                                }
+                            }
+                            else if (ia->id() == 0x0014) // accelerate z
+                            {
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().s16);
+                                }
+
+                                ResourceItem *item = i->item(RStateOrientationZ);
+
+                                if (item)
+                                {
+                                    item->setValue(ia->numericValue().s16);
+
+                                    if (item->lastSet() == item->lastChanged())
+                                    {
+                                        Event e(RSensors, item->descriptor().suffix, i->id(), item);
+                                        enqueueEvent(e);
+                                    }
+                                    i->setNeedSaveDatabase(true);
+                                    i->updateStateTimestamp();
+                                    enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
+                                }
                             }
                         }
                     }
@@ -9913,6 +10038,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         case VENDOR_CLUSTER_ID:
         case WINDOW_COVERING_CLUSTER_ID:
         case DOOR_LOCK_CLUSTER_ID:
+        case SAMJIN_CLUSTER_ID:
             {
                 addSensorNode(event.node(), &event);
                 updateSensorNode(event);

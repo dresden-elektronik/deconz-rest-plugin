@@ -182,6 +182,7 @@
 #define DE_CLUSTER_ID                         0xFC00
 #define VENDOR_CLUSTER_ID                     0xFC00
 #define UBISYS_DEVICE_SETUP_CLUSTER_ID        0xFC00
+#define SAMJIN_CLUSTER_ID                     0xFC02
 #define XAL_CLUSTER_ID                        0xFCCE
 
 #define IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID  0x0002
@@ -367,6 +368,7 @@ extern const quint64 osramMacPrefix;
 extern const quint64 philipsMacPrefix;
 extern const quint64 sinopeMacPrefix;
 extern const quint64 stMacPrefix;
+extern const quint64 samjinMacPrefix;
 extern const quint64 tiMacPrefix;
 extern const quint64 ubisysMacPrefix;
 extern const quint64 xalMacPrefix;
@@ -433,6 +435,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == emberMacPrefix;
         case VENDOR_XAL:
             return prefix == xalMacPrefix;
+        case VENDOR_SAMJIN:
+            return prefix == samjinMacPrefix;
         default:
             return false;
     }

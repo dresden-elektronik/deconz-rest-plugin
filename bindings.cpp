@@ -1279,6 +1279,43 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
         return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
     }
+    else if (bt.binding.clusterId == SAMJIN_CLUSTER_ID && checkMacVendor(bt.restNode->address(), VENDOR_SAMJIN))
+    {
+        Sensor *sensor = dynamic_cast<Sensor*>(bt.restNode);
+        if (!sensor)
+        {
+            return false;
+        }
+
+        // based on https://github.com/SmartThingsCommunity/SmartThingsPublic/blob/master/devicetypes/smartthings/smartsense-multi-sensor.src/smartsense-multi-sensor.groovy
+        if (sensor->type() == QLatin1String("ZHAVibration") && sensor->modelId() == QLatin1String("multi"))
+        {
+            rq.dataType = deCONZ::Zcl16BitInt;
+            rq.attributeId = 0x0012; // acceleration x
+            rq.minInterval = 1;
+            rq.maxInterval = 3600;
+            rq.reportableChange16bit = 1;
+            rq.manufacturerCode = VENDOR_SAMJIN;
+
+            ConfigureReportingRequest rq2;
+            rq2.dataType = deCONZ::Zcl16BitInt;
+            rq2.attributeId = 0x0013; // acceleration y
+            rq2.minInterval = 1;
+            rq2.maxInterval = 3600;
+            rq2.reportableChange16bit = 1;
+            rq2.manufacturerCode = VENDOR_SAMJIN;
+
+            ConfigureReportingRequest rq3;
+            rq3.dataType = deCONZ::Zcl16BitInt;
+            rq3.attributeId = 0x0014; // acceleration z
+            rq3.minInterval = 1;
+            rq3.maxInterval = 3600;
+            rq3.reportableChange16bit = 1;
+            rq3.manufacturerCode = VENDOR_SAMJIN;
+
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq3});
+        }
+    }
     else if (bt.binding.clusterId == BASIC_CLUSTER_ID && checkMacVendor(bt.restNode->address(), VENDOR_PHILIPS))
     {
         Sensor *sensor = dynamic_cast<Sensor*>(bt.restNode);
@@ -1841,6 +1878,17 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         {
             val = sensor->getZclValue(*i, 0x0000); // Local temperature
         }
+        else if (*i == SAMJIN_CLUSTER_ID)
+        {
+            if (sensor->modelId() == QLatin1String("multi"))
+            {
+                val = sensor->getZclValue(*i, 0x0012); // Acceleration X
+            }
+            else
+            {
+                continue;
+            }
+        }
 
         quint16 maxInterval = (val.maxInterval > 0) ? (val.maxInterval * 3 / 2) : (60 * 45);
 
@@ -1891,6 +1939,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         case BASIC_CLUSTER_ID:
         case BINARY_INPUT_CLUSTER_ID:
         case THERMOSTAT_CLUSTER_ID:
+        case SAMJIN_CLUSTER_ID:
         {
             DBG_Printf(DBG_INFO_L2, "0x%016llX (%s) create binding for attribute reporting of cluster 0x%04X on endpoint 0x%02X\n",
                        sensor->address().ext(), qPrintable(sensor->modelId()), (*i), srcEndpoint);
