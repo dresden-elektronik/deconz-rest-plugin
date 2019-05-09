@@ -77,12 +77,12 @@ function init {
 	# get deCONZ REST-API port
 	sqliteSelect "select value from config2 where key=\"port\""
 	local value="$SQL_RESULT"
-	if [ -z $value ] || [[ $value == "error" ]]; then
+	if [ -z "$value" ] || [[ "$value" == "error" ]]; then
 		[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}no deCONZ port found in database"
 		return
 	fi
 
-	if [[ -n $value ]]; then
+	if [[ -n "$value" ]]; then
 		DECONZ_PORT=$value
 		[[ $LOG_INFO ]] && echo "${LOG_INFO}use deCONZ port $DECONZ_PORT"
 	fi
@@ -90,12 +90,12 @@ function init {
 	# get bridgeid
 	sqliteSelect "select value from config2 where key=\"bridgeid\""
 	local value="$SQL_RESULT"
-	if [ -z $value ] || [[ $value == "error" ]]; then
+	if [ -z "$value" ] || [[ "$value" == "error" ]]; then
 		[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}no bridgeid found in database"
 		return
 	fi
 
-	if [[ -n $value ]]; then
+	if [[ -n "$value" ]]; then
 		if [[ ! "$value" == 00212E* ]]; then
 			[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}no valid bridge id"
 		    return
@@ -125,7 +125,7 @@ function checkNewDevices() {
 		sqliteSelect "select timestamp from devices order by timestamp DESC limit 1"
 		max_timestamp="$SQL_RESULT"
 
-		if [ -z $max_timestamp ] || [[ $max_timestamp == "error" ]]; then
+		if [ -z "$max_timestamp" ] || [[ "$max_timestamp" == "error" ]]; then
 			[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}timestamp from db is empty - skip check for new devices"
 			return
 		fi
@@ -238,7 +238,7 @@ function checkHomebridge {
 
 	local HOMEBRIDGE_AUTH="$SQL_RESULT"
 
-	if [[ -z $HOMEBRIDGE_AUTH ]]; then
+	if [[ -z "$HOMEBRIDGE_AUTH" ]]; then
 		# generate a new deconz apikey for homebridge-hue
 		addUser
 		if [[ "$HOMEBRIDGE" != "managed" ]]; then

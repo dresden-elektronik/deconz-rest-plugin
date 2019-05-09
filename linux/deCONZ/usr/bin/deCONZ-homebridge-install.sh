@@ -83,7 +83,7 @@ function init {
 	sqliteSelect "select value from config2 where key=\"port\""
 	local value="$SQL_RESULT"
 
-	if [[ -n $value ]]; then
+	if [[ -n "$value" ]]; then
 		DECONZ_PORT=$value
 	fi
 }
