@@ -2572,6 +2572,19 @@ devices can operate on either battery or mains power, and can have a wide variet
 			</client>
 		</cluster>
 
+		<!-- Samjin -->
+		<cluster id="0xfc02" name="Samjin" mfcode="0x1241">
+			<description>Attributes and commands.</description>
+			<server>
+				<attribute id="0x0000" name="Unknown" type="u8" mfcode="0x1241" default="0" access="r" required="m"> </attribute>
+				<attribute id="0x0012" name="Acceleration X" type="s16" mfcode="0x1241" default="0" access="r" required="m"> </attribute>
+				<attribute id="0x0013" name="Acceleration Y" type="s16" mfcode="0x1241" default="0" access="r" required="m"> </attribute>
+				<attribute id="0x0014" name="Acceleration Z" type="s16" mfcode="0x1241" default="0" access="r" required="m"> </attribute>
+			</server>
+			<client>
+			</client>
+		</cluster>
+
 		<!-- IKEA -->
 		<cluster id="0xfc7c" name="IKEA" mfcode="0x117c">
 			<description>IKEA control outlet cluster.</description>

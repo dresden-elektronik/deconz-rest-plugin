@@ -1638,6 +1638,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // SmartThings
         sensor->modelId().startsWith(QLatin1String("tagv4")) ||
         (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("motion")) ||
+        (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("multi")) ||
         // Bitron
         sensor->modelId().startsWith(QLatin1String("902010")) ||
         // LG
