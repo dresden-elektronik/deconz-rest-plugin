@@ -888,7 +888,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     else if (bt.binding.clusterId == IAS_ZONE_CLUSTER_ID)
     {
         // zone status reporting only supported by some devices
-        if (bt.restNode->node()->nodeDescriptor().manufacturerCode() != VENDOR_CENTRALITE)
+        if (bt.restNode->node()->nodeDescriptor().manufacturerCode() != VENDOR_CENTRALITE &&
+            bt.restNode->node()->nodeDescriptor().manufacturerCode() != VENDOR_SAMJIN)
         {
             return false;
         }
@@ -1687,6 +1688,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("tagv4")) ||
         (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("motion")) ||
         (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("multi")) ||
+        (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("water")) ||
         // Bitron
         sensor->modelId().startsWith(QLatin1String("902010")) ||
         // LG

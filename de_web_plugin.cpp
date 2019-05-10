@@ -137,6 +137,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_PHILIPS, "SML00", philipsMacPrefix }, // Hue motion sensor
     { VENDOR_SAMJIN, "motion", samjinMacPrefix }, // Smarthings GP-U999SJVLBAA (Samjin) Motion Sensor
     { VENDOR_SAMJIN, "multi", samjinMacPrefix }, // Smarthings (Samjin) Multipurpose Sensor
+    { VENDOR_SAMJIN, "water", samjinMacPrefix }, // Smarthings (Samjin) Water Sensor
     { VENDOR_JENNIC, "lumi.sensor_ht", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.weather", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_magnet", jennicMacPrefix },
@@ -4647,7 +4648,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
 
     if (clusterId == IAS_ZONE_CLUSTER_ID)
     {
-        if (modelId == QLatin1String("multi") && sensorNode.manufacturer() == QLatin1String("Samjin"))
+        if ((modelId == QLatin1String("multi") && sensorNode.manufacturer() == QLatin1String("Samjin")) ||
+            (modelId == QLatin1String("water") && sensorNode.manufacturer() == QLatin1String("Samjin")))
         {
             // no support for some IAS flags
         }
@@ -12853,6 +12855,12 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         if (sensor && sensor->deletedState() != Sensor::StateNormal)
         {
             sensor = nullptr; // force query
+        }
+
+        if (node->nodeDescriptor().manufacturerCode() == VENDOR_SAMJIN)
+        {
+            swBuildIdAvailable = false; // empty string
+            dateCodeAvailable = false; // unsupported attribute
         }
 
         // manufacturer, model id, sw build id
