@@ -8,6 +8,7 @@
  *
  */
 
+#include <QBuffer>
 #include <QString>
 #include <QVariantMap>
 #include <QRegExp>
@@ -1622,7 +1623,10 @@ int DeRestPluginPrivate::handleWebHook(const RuleAction &action)
 {
     QNetworkRequest req(QUrl(action.address()));
 
-    if (webhookManager->sendCustomRequest(req, qPrintable(action.method()), qPrintable(action.body())) != nullptr)
+    QBuffer data;
+    data.setData(action.body().toUtf8());
+
+    if (webhookManager->sendCustomRequest(req, action.method().toLatin1(), &data) != nullptr)
     {
         return REQ_READY_SEND;
     }
