@@ -12981,7 +12981,26 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         }
         else if (iasZoneType != 0)
         {
-            ResourceItem *item = sensor->item(RConfigPending);
+            ResourceItem *item = nullptr;
+            // the RConfigPending pending item might be in another sensor resource
+            for (auto &s: sensors)
+            {
+                if (fastProbeAddr.ext() != s.address().ext() || s.deletedState() != Sensor::StateNormal)
+                {
+                    continue;
+                }
+
+                if (s.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
+                {
+                    item = s.item(RConfigPending);
+                }
+
+                if (item)
+                {
+                    break;
+                }
+            }
+
             if (item && (item->toNumber() & R_PENDING_WRITE_CIE_ADDRESS))
             {
                 // write CIE address needed for some IAS Zone devices
