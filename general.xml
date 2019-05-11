@@ -1103,8 +1103,24 @@ Data Request rate.</description>
 				<attribute id="0x0006" name="Fast Poll Timeout Max" type="u16" default="0" access="r" required="o"></attribute>
 
 				<command id="0x00" dir="send" name="Check-in" required="m">
-					<description></description>
+					<description>The Poll Control Cluster server sends out a Check-in command to the devices to which it is paired based on
+the server‘s Check-inInterval attribute. It does this to find out if any of the Poll Control Cluster Clients with
+which it is paired are interested in having it enter fast poll mode so that it can be managed. This request is sent
+out based on either the Check-inInterval, or the next Check-in value in the Fast Poll Stop Request generated
+by the Poll Control Cluster Client.</description>
 					<payload></payload>
+				</command>
+				<command id="0x02" dir="recv" name="Set Long Poll Interval" required="o">
+					<description>Sets the Read Only LongPollInterval attribute.</description>
+					<payload>
+						<attribute id="0x0000" type="u32" showas="hex" name="New Long Poll Interval" required="m"></attribute>
+					</payload>
+				</command>
+				<command id="0x03" dir="recv" name="Set Short Poll Interval" required="o">
+					<description>Sets the Read Only ShortPollInterval attribute.</description>
+					<payload>
+						<attribute id="0x0000" type="u16" showas="hex" name="New Short Poll Interval" required="m"></attribute>
+					</payload>
 				</command>
 			</server>
 		</cluster>
