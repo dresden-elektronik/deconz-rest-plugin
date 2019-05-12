@@ -108,6 +108,11 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
                 continue;
             }
 
+            if (!s.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID) && !s.fingerPrint().hasInCluster(IAS_WD_CLUSTER_ID))
+            {
+                continue;
+            }
+
             if (s.type() != QLatin1String("ZHAAlarm") &&
                 s.type() != QLatin1String("ZHACarbonMonoxide") &&
                 s.type() != QLatin1String("ZHAFire") &&
