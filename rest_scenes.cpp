@@ -100,7 +100,7 @@ int DeRestPluginPrivate::createScene(const ApiRequest& req, ApiResponse& rsp)
         available[QLatin1String("id")] = static_cast<uint>(QVariant::String);
         available[QLatin1String("name")] = static_cast<uint>(QVariant::String);
         available[QLatin1String("type")] = static_cast<uint>(QVariant::String);
-        available[QLatin1String("group")] = static_cast<uint>(QVariant::Double);
+        available[QLatin1String("group")] = static_cast<uint>(QVariant::String);
         available[QLatin1String("lights")] = static_cast<uint>(QVariant::List);
         available[QLatin1String("recycle")] = static_cast<uint>(QVariant::Bool);
         available[QLatin1String("appdata")] = static_cast<uint>(QVariant::Map);
@@ -255,27 +255,6 @@ int DeRestPluginPrivate::createScene(const ApiRequest& req, ApiResponse& rsp)
         queSaveDb(DB_SCENES, DB_LONG_SAVE_DELAY);
 
     }
-    if (gid != 0) // groupscene
-    {
-        if (!storeScene(group, scene.sid()))
-        {
-            rsp.list.append(errorToMap(ERR_BRIDGE_BUSY, resource + QString("/%1").arg(id), QLatin1String("gateway busy")));
-            rsp.httpStatus = HttpStatusServiceUnavailable;
-            return REQ_READY_SEND;
-        }
-    }
-    else
-    {
-        for (LightNode* light : lights)
-        {
-            GroupInfo *groupInfo = getGroupInfo(light, scene.gid());
-            std::vector<uint8_t> &v = groupInfo->addScenes;
-            if (std::find(v.begin(), v.end(), scene.sid()) == v.end())
-            {
-                groupInfo->addScenes.push_back(scene.sid());
-            }
-        }
-    }
 
     // recycle
     if (req.hdr.method() == QLatin1String("PUT"))
@@ -302,6 +281,28 @@ int DeRestPluginPrivate::createScene(const ApiRequest& req, ApiResponse& rsp)
     group->scenes.push_back(scene);
     updateGroupEtag(group);
     queSaveDb(DB_SCENES, DB_SHORT_SAVE_DELAY);
+
+    if (gid != 0) // groupscene
+    {
+        if (!storeScene(group, scene.sid()))
+        {
+            rsp.list.append(errorToMap(ERR_BRIDGE_BUSY, resource + QString("/%1").arg(id), QLatin1String("gateway busy")));
+            rsp.httpStatus = HttpStatusServiceUnavailable;
+            return REQ_READY_SEND;
+        }
+    }
+    else
+    {
+        for (LightNode* light : lights)
+        {
+            GroupInfo *groupInfo = getGroupInfo(light, scene.gid());
+            std::vector<uint8_t> &v = groupInfo->addScenes;
+            if (std::find(v.begin(), v.end(), scene.sid()) == v.end())
+            {
+                groupInfo->addScenes.push_back(scene.sid());
+            }
+        }
+    }
 
     QVariantMap rspItem;
     QVariantMap rspItemState;

@@ -10825,6 +10825,13 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                 DBG_Printf(DBG_INFO, "create scene %u from rx-command\n", sceneId);
             }
         }
+        else
+        {
+            if (!scene) { // check if it was a groupcast for a LightScene
+                Group* group2 = getGroupForId(gwGroup0);
+                scene = group2 ? group2->getScene(sceneId) : 0;
+            }
+        }
 
         if (group && (group->state() == Group::StateNormal) && scene)
         {

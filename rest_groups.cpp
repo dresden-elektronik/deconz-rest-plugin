@@ -795,7 +795,11 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     {
         QString sid = map["scene"].toString();
         Scene* scene = getSceneForId(sid);
-        if (!scene || !recallScene(group, scene))
+        if (scene->gid() != gwGroup0) // Hue App quirk, it also calls a groupscene with group 0 
+        {
+            group = getGroupForId(scene->gid());
+        } 
+        if (!group || (group->state() != Group::StateNormal) || !scene || !recallScene(group, scene))
         {
             rsp.httpStatus = HttpStatusServiceUnavailable;
             rsp.list.append(errorToMap(ERR_BRIDGE_BUSY, "/" + req.path.mid(2).join("/"), QString("gateway busy")));
