@@ -375,7 +375,7 @@ extern const quint64 xalMacPrefix;
 
 inline bool checkMacVendor(quint64 addr, quint16 vendor)
 {
-    quint64 prefix = addr & macPrefixMask;
+    const quint64 prefix = addr & macPrefixMask;
     switch (vendor) {
         case VENDOR_115F:
             return prefix == jennicMacPrefix;

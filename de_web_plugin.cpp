@@ -4772,10 +4772,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                     }
 
                     // replay Xiaomi special report
-                    if (zclFrame.manufacturerCode() != 0)
-                    {
-                        handleZclAttributeReportIndicationXiaomiSpecial(ind, zclFrame);
-                    }
+                    handleZclAttributeReportIndicationXiaomiSpecial(ind, zclFrame);
                 }
             }
         }
@@ -8725,7 +8722,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
         }
     }
 
-    if (zclFrame.isProfileWideCommand() && ind.clusterId() == BASIC_CLUSTER_ID && zclFrame.manufacturerCode() != 0)
+    if (zclFrame.isProfileWideCommand() && ind.clusterId() == BASIC_CLUSTER_ID && checkMacVendor(ind.srcAddress().ext(), VENDOR_115F))
     {
         handleZclAttributeReportIndicationXiaomiSpecial(ind, zclFrame);
     }
