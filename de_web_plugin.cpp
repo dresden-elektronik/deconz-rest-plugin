@@ -9417,7 +9417,7 @@ bool DeRestPluginPrivate::addTask(const TaskItem &task)
         }
     }
 
-    const uint MaxTasks = 20;
+    const uint MaxTasks = 50;
 
     std::list<TaskItem>::iterator i = tasks.begin();
     std::list<TaskItem>::iterator end = tasks.end();

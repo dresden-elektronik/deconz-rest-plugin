@@ -79,7 +79,7 @@ int DeRestPluginPrivate::createScene(const ApiRequest& req, ApiResponse& rsp)
 
     if (!isInNetwork())
     {
-        rsp.list.append(errorToMap(ERR_NOT_CONNECTED, resource, QLatin1String("Not connected")));
+        rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, resource, QString("Internal error, %1").arg(ERR_NOT_CONNECTED)));
         rsp.httpStatus = HttpStatusServiceUnavailable;
         return REQ_READY_SEND;
     }
@@ -186,7 +186,7 @@ int DeRestPluginPrivate::createScene(const ApiRequest& req, ApiResponse& rsp)
     Scene *s = getSceneForId(id);
     if (s && s->state() == Scene::StateNormal)
     {
-        rsp.list.append(errorToMap(ERR_DUPLICATE_EXIST, resource + QString("/%1").arg(id), QString("resource, /scenes/%1, already exists").arg(id)));
+        rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, resource + QString("/%1").arg(id), QString("Internal error, %1").arg(ERR_DUPLICATE_EXIST)));
         rsp.httpStatus = HttpStatusBadRequest;
         return REQ_READY_SEND;
     }
@@ -286,7 +286,7 @@ int DeRestPluginPrivate::createScene(const ApiRequest& req, ApiResponse& rsp)
     {
         if (!storeScene(group, scene.sid()))
         {
-            rsp.list.append(errorToMap(ERR_BRIDGE_BUSY, resource + QString("/%1").arg(id), QLatin1String("gateway busy")));
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, resource + QString("/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
             rsp.httpStatus = HttpStatusServiceUnavailable;
             return REQ_READY_SEND;
         }
@@ -394,7 +394,7 @@ int DeRestPluginPrivate::modifyScene(const ApiRequest& req, ApiResponse& rsp)
 
     if (!isInNetwork())
     {
-        rsp.list.append(errorToMap(ERR_NOT_CONNECTED, resource, QLatin1String("Not connected")));
+        rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, resource, QString("Internal error, %1").arg(ERR_NOT_CONNECTED)));
         rsp.httpStatus = HttpStatusServiceUnavailable;
         return REQ_READY_SEND;
     }
@@ -462,7 +462,7 @@ int DeRestPluginPrivate::modifyScene(const ApiRequest& req, ApiResponse& rsp)
     Group* group = getGroupForId(scene->gid());
     if (!group || (group->state() != Group::StateNormal))
     {
-        rsp.list.append(errorToMap(ERR_BRIDGE_BUSY, resource, QString("gateway busy")));
+        rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, resource, QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
         rsp.httpStatus = HttpStatusServiceUnavailable;
         return REQ_READY_SEND;
     }
@@ -653,7 +653,7 @@ int DeRestPluginPrivate::modifySceneLightState(const ApiRequest& req, ApiRespons
 
     if (!isInNetwork())
     {
-        rsp.list.append(errorToMap(ERR_NOT_CONNECTED, resource, "Not connected"));
+        rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, resource, QString("Internal error, %1").arg(ERR_NOT_CONNECTED)));
         rsp.httpStatus = HttpStatusServiceUnavailable;
         return REQ_READY_SEND;
     }
@@ -697,7 +697,7 @@ int DeRestPluginPrivate::deleteScene(const ApiRequest& req, ApiResponse& rsp)
 
     if (!isInNetwork())
     {
-        rsp.list.append(errorToMap(ERR_NOT_CONNECTED, resource, QLatin1String("Not connected")));
+        rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, resource, QString("Internal error, %1").arg(ERR_NOT_CONNECTED)));
         rsp.httpStatus = HttpStatusServiceUnavailable;
         return REQ_READY_SEND;
     }
@@ -720,7 +720,7 @@ int DeRestPluginPrivate::deleteScene(const ApiRequest& req, ApiResponse& rsp)
 
     if (!removeScene(group, scene))
     {
-        rsp.list.append(errorToMap(ERR_NOT_CONNECTED, resource, "gateway busy"));
+        rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, resource, QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
         rsp.httpStatus = HttpStatusServiceUnavailable;
         return REQ_READY_SEND;
     }
@@ -1058,7 +1058,7 @@ bool DeRestPluginPrivate::modifyLightState(const QString& resource, ApiResponse&
                 }
             }
         } else {
-            rsp.list.append(errorToMap(ERR_BRIDGE_BUSY, resource, "gateway busy"));
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, resource, QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
             rsp.httpStatus = HttpStatusServiceUnavailable;
             return false;
         }
