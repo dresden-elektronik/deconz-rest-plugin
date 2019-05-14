@@ -162,6 +162,7 @@
 #define BINARY_INPUT_CLUSTER_ID               0x000F
 #define MULTISTATE_INPUT_CLUSTER_ID           0x0012
 #define OTAU_CLUSTER_ID                       0x0019
+#define POLL_CONTROL_CLUSTER_ID               0x0020
 #define GREEN_POWER_CLUSTER_ID                0x0021
 #define DOOR_LOCK_CLUSTER_ID                  0x0101
 #define WINDOW_COVERING_CLUSTER_ID            0x0102
@@ -1024,6 +1025,7 @@ public Q_SLOTS:
     bool sendConfigureReportingRequest(BindingTask &bt, const std::vector<ConfigureReportingRequest> &requests);
     bool sendConfigureReportingRequest(BindingTask &bt);
     void checkLightBindingsForAttributeReporting(LightNode *lightNode);
+    bool checkPollControlClusterTask(Sensor *sensor);
     bool checkSensorBindingsForAttributeReporting(Sensor *sensor);
     bool checkSensorBindingsForClientClusters(Sensor *sensor);
     void checkSensorGroup(Sensor *sensor);

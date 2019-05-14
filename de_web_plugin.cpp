@@ -4618,6 +4618,12 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             item = sensorNode.addItem(DataTypeInt16, RStateOrientationY);
             item = sensorNode.addItem(DataTypeInt16, RStateOrientationZ);
         }
+
+        if (fingerPrint.hasInCluster(IAS_ZONE_CLUSTER_ID)) // POLL_CONTROL_CLUSTER_ID
+        {
+            item = sensorNode.addItem(DataTypeUInt8, RConfigPending);
+            item->setValue(item->toNumber() | R_PENDING_WRITE_POLL_CHECKIN_INTERVAL | R_PENDING_SET_LONG_POLL_INTERVAL);
+        }
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_INNR)
     {
@@ -4725,7 +4731,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             else if (*ci == IAS_ZONE_CLUSTER_ID)
             {
                 item = sensorNode.addItem(DataTypeUInt8, RConfigPending);
-                item->setValue(R_PENDING_WRITE_CIE_ADDRESS | R_PENDING_ENROLL_RESPONSE);
+                item->setValue(item->toNumber() | R_PENDING_WRITE_CIE_ADDRESS | R_PENDING_ENROLL_RESPONSE);
             }
         }
     }
@@ -8660,6 +8666,87 @@ void DeRestPluginPrivate::handleXalClusterIndication(const deCONZ::ApsDataIndica
     }
 }
 
+/*! Checks open tasks for poll control cluster
+    \return true - when a binding request got queued.
+ */
+bool DeRestPluginPrivate::checkPollControlClusterTask(Sensor *sensor)
+{
+    if (!sensor)
+    {
+        return false;
+    }
+
+    if (searchSensorsState == SearchSensorsActive)
+    {
+        // defer this until other items have been processed
+        return false;
+    }
+
+    ResourceItem *item = sensor->item(RConfigPending);
+    if (!item)
+    {
+        return false;
+    }
+
+    if (item && (item->toNumber() & R_PENDING_WRITE_POLL_CHECKIN_INTERVAL))
+    {
+        // write poll control checkin interval
+        deCONZ::ZclAttribute attr(0x0000, deCONZ::Zcl32BitUint, QLatin1String("Check-in interval"), deCONZ::ZclReadWrite, false);
+        attr.setValue(static_cast<quint64>(14400)); // 1 hour in 0.25 seconds
+
+        DBG_Printf(DBG_INFO, "Write poll cluster check-in interval for 0x%016llx\n", sensor->address().ext());
+
+        if (writeAttribute(sensor, sensor->fingerPrint().endpoint, POLL_CONTROL_CLUSTER_ID, attr, 0))
+        {
+            // mark done
+            item->setValue(item->toNumber() & ~R_PENDING_WRITE_POLL_CHECKIN_INTERVAL);
+            return true;
+        }
+    }
+
+    if (item->toNumber() & R_PENDING_SET_LONG_POLL_INTERVAL)
+    {
+        deCONZ::ApsDataRequest apsReq;
+        deCONZ::ZclFrame zclFrame;
+
+         // ZDP Header
+         apsReq.dstAddress() = sensor->address();
+         apsReq.setDstAddressMode(deCONZ::ApsExtAddress);
+         apsReq.setDstEndpoint(sensor->fingerPrint().endpoint);
+         apsReq.setSrcEndpoint(endpoint());
+         apsReq.setProfileId(HA_PROFILE_ID);
+         apsReq.setRadius(0);
+         apsReq.setClusterId(POLL_CONTROL_CLUSTER_ID);
+         apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+
+         deCONZ::ZclFrame outZclFrame;
+         outZclFrame.setSequenceNumber(zclFrame.sequenceNumber());
+         outZclFrame.setCommandId(0x02); // set long poll interval
+         outZclFrame.setFrameControl(deCONZ::ZclFCClusterCommand | deCONZ::ZclFCDirectionClientToServer);
+
+         { // ZCL payload
+             QDataStream stream(&outZclFrame.payload(), QIODevice::WriteOnly);
+             stream.setByteOrder(QDataStream::LittleEndian);
+             const quint32 longPollInterval = 4 * 60 * 15; // 15 minutes in quarter seconds
+             stream << longPollInterval;
+         }
+
+         { // ZCL frame
+             QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
+             stream.setByteOrder(QDataStream::LittleEndian);
+             outZclFrame.writeToStream(stream);
+         }
+
+         if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+         {
+             item->setValue(item->toNumber() & ~R_PENDING_SET_LONG_POLL_INTERVAL);
+             return true;
+         }
+    }
+
+    return false;
+}
+
 /*! Handle incoming ZCL attribute report commands.
  */
 void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
@@ -8697,7 +8784,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
     {
         for (Sensor &sensor : sensors)
         {
-            if (sensor.deletedState() != Sensor::StateNormal)
+            if (sensor.deletedState() != Sensor::StateNormal || !sensor.node())
             {
                 continue;
             }
@@ -8719,6 +8806,8 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
                 sensor.setLastAttributeReportBind(idleTotalCounter);
                 checkSensorBindingsForAttributeReporting(&sensor);
             }
+
+            checkPollControlClusterTask(&sensor);
         }
     }
 
