@@ -1623,11 +1623,20 @@ int DeRestPluginPrivate::handleWebHook(const RuleAction &action)
 {
     QNetworkRequest req(QUrl(action.address()));
 
-    QBuffer data;
-    data.setData(action.body().toUtf8());
-
-    if (webhookManager->sendCustomRequest(req, action.method().toLatin1(), &data) != nullptr)
+    QBuffer *data = new QBuffer(this);
+    DBG_Assert(data);
+    if (!data)
     {
+        return REQ_NOT_HANDLED;
+    }
+
+    data->setData(action.body().toUtf8());
+
+    QNetworkReply *reply = webhookManager->sendCustomRequest(req, action.method().toLatin1(), data);
+    DBG_Assert(reply);
+    if (reply)
+    {
+        reply->setProperty("buf", QVariant::fromValue(data));
         return REQ_READY_SEND;
     }
 
@@ -1641,6 +1650,12 @@ void DeRestPluginPrivate::webhookFinishedRequest(QNetworkReply *reply)
     if (!reply)
     {
         return;
+    }
+
+    if (reply->property("buf").canConvert<QBuffer*>())
+    {
+        QBuffer *buf  = reply->property("buf").value<QBuffer*>();
+        buf->deleteLater();
     }
 
     DBG_Printf(DBG_INFO, "Webhook finished: %s (code: %d)\n", qPrintable(reply->url().toString()), reply->error());
