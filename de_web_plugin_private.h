@@ -284,12 +284,24 @@
 
 #define ANNOUNCE_INTERVAL 10 // minutes default announce interval
 
+#define MAX_NODES 200
+#define MAX_SENSORS 1000
+#define MAX_GROUPS 100
+#define MAX_SCENES 100
+#define MAX_LIGHTSTATES 1000
+#define MAX_SCHEDULES 500
+#define MAX_RULES 500
+#define MAX_CONDITIONS 1000
+#define MAX_ACTIONS 1000
+#define MAX_RESOURCELINKS 100
+#define MAX_STREAMING 0
+#define MAX_CHANNELS 50
+
 #define MAX_GROUP_SEND_DELAY 5000 // ms between to requests to the same group
 #define GROUP_SEND_DELAY 50 // default ms between to requests to the same group
 #define MAX_TASKS_PER_NODE 2
 #define MAX_BACKGROUND_TASKS 5
 
-#define MAX_SENSORS 1000
 #define MAX_RULE_ILLUMINANCE_VALUE_AGE_MS (1000 * 60 * 20) // 20 minutes
 
 // string lengths

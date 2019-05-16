@@ -36,11 +36,6 @@ int DeRestPluginPrivate::getInfoTimezones(const ApiRequest &req, ApiResponse &rs
 {
     Q_UNUSED(req);
 
-    // QByteArrayList tzs = getTimezones();
-    // foreach (QByteArray tz, tzs)
-    // {
-    //     rsp.list.append(QVariant(tz));
-    // }
     rsp.list = getTimezones();
 
     rsp.httpStatus = HttpStatusOk;
