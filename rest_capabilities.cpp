@@ -34,32 +34,32 @@ int DeRestPluginPrivate::handleCapabilitiesApi(const ApiRequest &req, ApiRespons
  */
 int DeRestPluginPrivate::getCapabilities(const ApiRequest &req, ApiResponse &rsp)
 {
-    Q_UNUSED(req);
+    Q_UNUSED(req)
 
     QVariantMap lightsMap;
-    lightsMap[QLatin1String("available")] = MAX_NODES - nodes.size();
+    lightsMap[QLatin1String("available")] = static_cast<double>(MAX_NODES - nodes.size());
     lightsMap[QLatin1String("total")] = MAX_NODES;
     rsp.map[QLatin1String("lights")] = lightsMap;
 
     QVariantMap sensorsMap;
-    sensorsMap[QLatin1String("available")] = MAX_SENSORS - sensors.size();
+    sensorsMap[QLatin1String("available")] = static_cast<double>(MAX_SENSORS - sensors.size());
     sensorsMap[QLatin1String("total")] = MAX_SENSORS;
     QVariantMap clipMap;
-    clipMap[QLatin1String("available")] = MAX_SENSORS - sensors.size();
+    clipMap[QLatin1String("available")] = static_cast<double>(MAX_SENSORS - sensors.size());
     clipMap[QLatin1String("total")] = MAX_SENSORS;
     sensorsMap[QLatin1String("clip")] = clipMap;
     QVariantMap zllMap;
-    zllMap[QLatin1String("available")] = MAX_NODES - nodes.size();
+    zllMap[QLatin1String("available")] = static_cast<double>(MAX_NODES - nodes.size());
     zllMap[QLatin1String("total")] = MAX_NODES;
     sensorsMap[QLatin1String("zll")] = zllMap;
     QVariantMap zgpMap;
-    zgpMap[QLatin1String("available")] = MAX_NODES - nodes.size();
+    zgpMap[QLatin1String("available")] = static_cast<double>(MAX_NODES - nodes.size());
     zgpMap[QLatin1String("total")] = MAX_NODES;
     sensorsMap[QLatin1String("zgp")] = zgpMap;
     rsp.map[QLatin1String("sensors")] = sensorsMap;
 
     QVariantMap groupsMap;
-    groupsMap[QLatin1String("available")] = MAX_GROUPS - groups.size();
+    groupsMap[QLatin1String("available")] = static_cast<double>(MAX_GROUPS - groups.size());
     groupsMap[QLatin1String("total")] = MAX_GROUPS;
     rsp.map[QLatin1String("groups")] = groupsMap;
 
@@ -89,7 +89,7 @@ int DeRestPluginPrivate::getCapabilities(const ApiRequest &req, ApiResponse &rsp
     rsp.map[QLatin1String("scenes")] = scenesMap;
 
     QVariantMap schedulesMap;
-    schedulesMap[QLatin1String("available")] = MAX_SCHEDULES - schedules.size();
+    schedulesMap[QLatin1String("available")] = static_cast<double>(MAX_SCHEDULES - schedules.size());
     schedulesMap[QLatin1String("total")] = MAX_SCHEDULES;
     rsp.map[QLatin1String("schedules")] = schedulesMap;
 
@@ -105,7 +105,7 @@ int DeRestPluginPrivate::getCapabilities(const ApiRequest &req, ApiResponse &rsp
             actions_size += r->actions().size();
         }
     }
-    rulesMap[QLatin1String("available")] = MAX_RULES - rules.size();
+    rulesMap[QLatin1String("available")] = static_cast<double>(MAX_RULES - rules.size());
     rulesMap[QLatin1String("total")] = MAX_RULES;
     QVariantMap conditionsMap;
     conditionsMap[QLatin1String("available")] = MAX_CONDITIONS - conditions_size;
@@ -118,7 +118,7 @@ int DeRestPluginPrivate::getCapabilities(const ApiRequest &req, ApiResponse &rsp
     rsp.map[QLatin1String("rules")] = rulesMap;
 
     QVariantMap resourcelinksMap;
-    resourcelinksMap[QLatin1String("available")] = MAX_RESOURCELINKS - resourcelinks.size();
+    resourcelinksMap[QLatin1String("available")] = static_cast<double>(MAX_RESOURCELINKS - resourcelinks.size());
     resourcelinksMap[QLatin1String("total")] = MAX_RESOURCELINKS;
     rsp.map[QLatin1String("resourcelinks")] = resourcelinksMap;
 
