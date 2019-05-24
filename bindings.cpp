@@ -1491,7 +1491,7 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->modelId() == QLatin1String("NL08-0800")) // Nanoleaf Ivy
         {
         }
-        else if (lightNode->modelId() == QLatin1String("ICZB-IW11D")) // iCasa Dimmer
+        else if (lightNode->modelId().startsWith(QLatin1String("ICZB-"))) // iCasa Dimmer and Switch
         {
         }
         else

@@ -248,7 +248,7 @@
 // http://cgit.osmocom.org/wireshark/plain/epan/dissectors/packet-zbee.h
 #define VENDOR_NONE         0x0000
 #define VENDOR_EMBER        0x1002
-#define VENDOR_PHILIPS      0x100B
+#define VENDOR_PHILIPS      0x100B // Also used by iCasa routers
 #define VENDOR_VISONIC      0x1011
 #define VENDOR_ATMEL        0x1014
 #define VENDOR_LGE          0x102E
