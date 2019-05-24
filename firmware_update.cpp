@@ -523,11 +523,11 @@ void DeRestPluginPrivate::queryFirmwareVersion()
                     autoUpdate = true;
                 }
 
-                if (autoUpdate && fwVersion <= GW_AUTO_UPDATE_R21_FW_VERSION)
-                {
-                    DBG_Printf(DBG_INFO, "GW firmware start auto update\n");
-                    startUpdateFirmware();
-                }
+//                if (autoUpdate && fwVersion <= GW_AUTO_UPDATE_R21_FW_VERSION)
+//                {
+//                    DBG_Printf(DBG_INFO, "GW firmware start auto update\n");
+//                    startUpdateFirmware();
+//                }
                 return;
             }
             else
