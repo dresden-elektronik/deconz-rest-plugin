@@ -235,6 +235,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (item->descriptor().suffix == RStateSat) { state["sat"] = (double)item->toNumber(); }
         else if (item->descriptor().suffix == RStateCt) { state["ct"] = (double)item->toNumber(); }
         else if (item->descriptor().suffix == RStateColorMode) { state["colormode"] = item->toString(); }
+        else if (item->descriptor().suffix == RStateSpeed) { state["speed"] = item->toNumber(); }
         else if (item->descriptor().suffix == RStateX) { ix = item; }
         else if (item->descriptor().suffix == RStateY) { iy = item; }
         else if (item->descriptor().suffix == RStateReachable) { state["reachable"] = item->toBool(); }
