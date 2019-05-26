@@ -1234,6 +1234,15 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
         return sendConfigureReportingRequest(bt, {rq});
     }
+    else if (bt.binding.clusterId == FAN_CONTROL_CLUSTER_ID)
+    {
+        rq.dataType = deCONZ::Zcl8BitEnum;
+        rq.attributeId = 0x0000; // fan speed
+        rq.minInterval = 1;
+        rq.maxInterval = 300;
+
+        return sendConfigureReportingRequest(bt, {rq});
+    }
     else if (bt.binding.clusterId == COLOR_CLUSTER_ID)
     {
         rq.dataType = deCONZ::Zcl16BitUint;
@@ -1518,6 +1527,7 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         case ONOFF_CLUSTER_ID:
         case LEVEL_CLUSTER_ID:
         case COLOR_CLUSTER_ID:
+        case FAN_CONTROL_CLUSTER_ID:
         {
             bool bindingExists = false;
             for (const NodeValue &val : lightNode->zclValues())
