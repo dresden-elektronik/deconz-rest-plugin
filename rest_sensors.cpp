@@ -300,7 +300,7 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
 
     for (; pi != pend; ++pi)
     {
-        if(!((pi.key() == "name") || (pi.key() == "modelid") || (pi.key() == "swversion") || (pi.key() == "type")  || (pi.key() == "uniqueid")  || (pi.key() == "manufacturername")  || (pi.key() == "state")  || (pi.key() == "config")))
+        if(!((pi.key() == "name") || (pi.key() == "modelid") || (pi.key() == "swversion") || (pi.key() == "type")  || (pi.key() == "uniqueid")  || (pi.key() == "manufacturername")  || (pi.key() == "state")  || (pi.key() == "config")  || (pi.key() == "recycle")))
         {
             rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%2").arg(pi.key()), QString("parameter, %1, not available").arg(pi.key())));
             rsp.httpStatus = HttpStatusBadRequest;
@@ -892,11 +892,6 @@ int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
         error = true;
         rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/state"), QString("parameter, state, not modifiable")));
     }
-    if (map.contains("config"))
-    {
-        error = true;
-        rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/config"), QString("parameter, config, not modifiable")));
-    }
 
     if (error)
     {
@@ -961,6 +956,15 @@ int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
             rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/mode").arg(id), QString("invalid value, %1, for parameter, /sensors/%2/mode").arg((int)mode).arg(id)));
             rsp.httpStatus = HttpStatusBadRequest;
         }
+    }
+
+    if (map.contains("config")) // optional
+    {
+        QStringList path = req.path;
+        path.append(QLatin1String("config"));
+        QString content = Json::serialize(map[QLatin1String("config")].toMap());
+        ApiRequest req2(req.hdr, path, NULL, content);
+        return changeSensorConfig(req2, rsp);
     }
 
     return REQ_READY_SEND;
