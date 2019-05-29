@@ -162,6 +162,7 @@ int DeRestPluginPrivate::createResourcelinks(const ApiRequest &req, ApiResponse 
         QVariantMap available;
         available["name"] = static_cast<uint>(QVariant::String);
         available["description"] = static_cast<uint>(QVariant::String);
+        available["type"] = static_cast<uint>(QVariant::String);
         available["classid"] = static_cast<uint>(QVariant::Double);
         available["links"] = static_cast<uint>(QVariant::List);
         available["recycle"] = static_cast<uint>(QVariant::Bool);

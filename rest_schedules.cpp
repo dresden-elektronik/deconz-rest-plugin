@@ -713,7 +713,7 @@ bool DeRestPluginPrivate::jsonToSchedule(const QString &jsonString, Schedule &sc
     }
 
     // check required parameters
-    if (!(map.contains("command") && map.contains("time")))
+    if (!(map.contains("command") && (map.contains("time") || map.contains("localtime"))))
     {
         if (rsp)
         {
