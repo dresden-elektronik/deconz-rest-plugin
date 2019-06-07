@@ -9348,6 +9348,16 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 // don't update Mija devices
                 // e.g. lumi.sensor_motion always reports 1
             }
+            else if (sensor.modelId().startsWith(QLatin1String("lumi.sensor_motion")))
+            {
+                // don't update Motion sensor state.
+                // Imcompatibility with delay feature, and not really usefull
+               sensor.updateStateTimestamp();
+               enqueueEvent(Event(RSensors, RStateLastUpdated, sensor.id()));
+               updated = true;
+            }
+            else if (sensor.modelId().startsWith(QLatin1String("lumi.sensor_wleak")))
+            {
             else if (sensor.modelId().startsWith(QLatin1String("lumi.sensor_wleak")))
             {
                // only update state timestamp assuming last known value is valid
