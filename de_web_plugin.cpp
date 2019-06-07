@@ -9363,8 +9363,6 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             }
             else if (sensor.modelId().startsWith(QLatin1String("lumi.sensor_wleak")))
             {
-            else if (sensor.modelId().startsWith(QLatin1String("lumi.sensor_wleak")))
-            {
                // only update state timestamp assuming last known value is valid
                 sensor.updateStateTimestamp();
                 enqueueEvent(Event(RSensors, RStateLastUpdated, sensor.id()));
