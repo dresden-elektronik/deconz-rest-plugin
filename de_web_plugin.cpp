@@ -179,6 +179,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_120B, "SmartPlug", emberMacPrefix }, // Heiman smart plug
     { VENDOR_120B, "GAS", emberMacPrefix }, // Heiman gas sensor - newer model
     { VENDOR_120B, "Smoke", emberMacPrefix }, // Heiman fire sensor - newer model
+    { VENDOR_120B, "COSensor", emberMacPrefix }, // Heiman CO sensor - newer model
     { VENDOR_120B, "Water", emberMacPrefix }, // Heiman water sensor - newer model
     { VENDOR_120B, "WarningDevice", emberMacPrefix }, // Heiman siren
     { VENDOR_LUTRON, "LZL4BWHL01", lutronMacPrefix }, // Lutron LZL-4B-WH-L01 Connected Bulb Remote
@@ -3467,7 +3468,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case IAS_ZONE_CLUSTER_ID:
                 {
-                    if (modelId.startsWith(QLatin1String("CO_")))                     // Heiman CO sensor
+                    if (modelId.startsWith(QLatin1String("CO_")) ||                   // Heiman CO sensor
+                        modelId.startsWith(QLatin1String("COSensor")))                // Heiman CO sensor (newer model)
                     {
                         fpCarbonMonoxideSensor.inClusters.push_back(ci->id());
                     }
@@ -3482,7 +3484,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         fpPresenceSensor.inClusters.push_back(ci->id());
                     }
                     else if (modelId.startsWith(QLatin1String("GAS_")) ||             // Heiman gas sensor
+                             modelId.startsWith(QLatin1String("Gas")) ||              // Heiman gas sensor (newer model)
                              modelId.startsWith(QLatin1String("SMOK_")) ||            // Heiman fire sensor
+                             modelId.startsWith(QLatin1String("Smoke")) ||            // Heiman fire sensor (newer model)
                              modelId.startsWith(QLatin1String("902010/24")) ||        // Bitron smoke detector
                              modelId.startsWith(QLatin1String("lumi.sensor_smoke")))  // Xiaomi Mi smoke sensor
                     {
@@ -3490,6 +3494,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         fpFireSensor.inClusters.push_back(ci->id());
                     }
                     else if (modelId.startsWith(QLatin1String("WATER_")) ||           // Heiman water sensor
+                             modelId.startsWith(QLatin1String("Water")) ||            // Heiman water sensor (newer model)
                              modelId.startsWith(QLatin1String("lumi.sensor_wleak")) || // Xiaomi Aqara flood sensor
                              modelId.startsWith(QLatin1String("WL4200S")))            // Sinope Water Leak detector
                     {
