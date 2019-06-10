@@ -47,6 +47,12 @@ int RestDevices::handleApi(const ApiRequest &req, ApiResponse &rsp)
     {
         return getDevice(req, rsp);
     }
+    // PUT /api/<apikey>/devices/<uniqueid>/installcode
+    else if ((req.path.size() == 5) && (req.hdr.method() == QLatin1String("PUT")) && (req.path[4] == QLatin1String("installcode")))
+    {
+        return putDeviceInstallCode(req, rsp);
+    }
+
 
     return REQ_NOT_HANDLED;
 }
@@ -75,11 +81,6 @@ int RestDevices::getAllDevices(const ApiRequest &req, ApiResponse &rsp)
 int RestDevices::getDevice(const ApiRequest &req, ApiResponse &rsp)
 {
     DBG_Assert(req.path.size() == 4);
-
-    if (req.path.size() != 4)
-    {
-        return REQ_NOT_HANDLED;
-    }
 
     const QString &uniqueid = req.path[3];
 
@@ -131,6 +132,62 @@ int RestDevices::getDevice(const ApiRequest &req, ApiResponse &rsp)
     if (!manufacturer.isEmpty()) { rsp.map["manufacturername"] = manufacturer; }
     if (!modelid.isEmpty()) { rsp.map["modelid"] = modelid; }
     if (!swversion.isEmpty()) { rsp.map["swversion"] = swversion; }
+
+    return REQ_READY_SEND;
+}
+
+/*! PUT /api/<apikey>/devices/<uniqueid>/installcode
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+
+    Adds an Zigbee 3.0 Install Code for a device to let it securely join.
+    Unstable API to experiment: don't use in production!
+ */
+int RestDevices::putDeviceInstallCode(const ApiRequest &req, ApiResponse &rsp)
+{
+    DBG_Assert(req.path.size() == 5);
+
+    bool ok;
+    const QString &uniqueid = req.path[3];
+
+    QVariant var = Json::parse(req.content, ok);
+    QVariantMap map = var.toMap();
+
+    if (!ok || map.isEmpty())
+    {
+        rsp.list.append(plugin->errorToMap(ERR_INVALID_JSON, QString("/devices/%1/installcode").arg(uniqueid), QString("body contains invalid JSON")));
+        rsp.httpStatus = HttpStatusBadRequest;
+        return REQ_READY_SEND;
+    }
+
+    // installcode
+    if (map.contains("installcode"))
+    {
+        QString installCode = map["installcode"].toString().trimmed();
+
+        if (map["installcode"].type() == QVariant::String && !installCode.isEmpty())
+        {
+            // TODO process install code
+
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState["installcode"] = installCode;
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+            rsp.httpStatus = HttpStatusOk;
+            return REQ_READY_SEND;
+        }
+        else
+        {
+            rsp.list.append(plugin->errorToMap(ERR_INVALID_VALUE, QString("/groups"), QString("invalid value, %1, for parameter, installcode").arg(installCode)));
+            rsp.httpStatus = HttpStatusBadRequest;
+        }
+    }
+    else
+    {
+        rsp.list.append(plugin->errorToMap(ERR_MISSING_PARAMETER, QString("/devices/%1/installcode").arg(uniqueid), QString("missing parameters in body")));
+        rsp.httpStatus = HttpStatusBadRequest;
+    }
 
     return REQ_READY_SEND;
 }
