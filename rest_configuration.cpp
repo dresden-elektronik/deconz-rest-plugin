@@ -79,6 +79,7 @@ void DeRestPluginPrivate::initConfig()
     gwRgbwDisplay = "1";
     gwTimeFormat = "12h";
     gwZigbeeChannel = 0;
+    gwGroup0 = 0;
     gwName = GW_DEFAULT_NAME;
     gwUpdateVersion = GW_SW_VERSION; // will be replaced by discovery handler
     {
@@ -1135,7 +1136,7 @@ int DeRestPluginPrivate::getFullState(const ApiRequest &req, ApiResponse &rsp)
                 continue;
             }
 
-            if (i->id() != "0")
+            if (i->address() != gwGroup0) // don't return special group 0
             {
                 QVariantMap map;
                 if (groupToMap(req, &(*i), map))

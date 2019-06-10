@@ -33,6 +33,7 @@ public:
 private:
     int getAllDevices(const ApiRequest &req, ApiResponse &rsp);
     int getDevice(const ApiRequest &req, ApiResponse &rsp);
+    int putDeviceInstallCode(const ApiRequest &req, ApiResponse &rsp);
 
     DeRestPluginPrivate *plugin;
 };
