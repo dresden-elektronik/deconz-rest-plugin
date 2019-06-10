@@ -1045,10 +1045,10 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
         if (!val.isEmpty())
         {
             uint group0 = val.toUInt(&ok);
-            if (ok && (group0 <= 65535))
+            if (ok && group0 > 0 && group0 <= 0xfff7) // 0 and larger than 0xfff7 is not valid for Osram Lightify
             {
-                d->gwGroup0 = group0;
-                d->gwConfig["group0"] = (uint16_t)group0;
+                d->gwGroup0 = static_cast<quint16>(group0);
+                d->gwConfig["group0"] = group0;
             }
         }
     }

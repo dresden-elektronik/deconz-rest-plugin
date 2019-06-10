@@ -336,11 +336,14 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     }
 
     // create default group
-    if (gwGroup0 == 0) { // get new id and replace old group0 and get new id
+    if (gwGroup0 == 0)
+    {
+        // get new id and replace old group0 and get new id
         for (uint16_t i = 0xFFF0; i > 0; i--) // 0 and larger than 0xfff7 is not valid for Osram Lightify
         {
             Group* group = getGroupForId(i);
-            if (!group) {
+            if (!group)
+            {
                 gwGroup0 = i;
                 // delete old group 0
                 Group* group = getGroupForId(0);
@@ -353,8 +356,11 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
             }
         }
     }
+
     Group* group = getGroupForId(gwGroup0);
-    if (!group) { // new default group
+    if (!group)
+    {
+        // new default group
         Group group;
         group.setAddress(gwGroup0);
         group.setName("All");
