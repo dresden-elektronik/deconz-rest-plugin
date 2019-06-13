@@ -1793,6 +1793,8 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
         return;
     }
 
+    ResourceItem *item = nullptr;
+
     if (lightNode->modelId() == QLatin1String("LIGHTIFY A19 RGBW"))
     {
         if (lightNode->item(RConfigColorCapabilities) != nullptr)
@@ -1823,6 +1825,11 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
         lightNode->addItem(DataTypeString, RStateColorMode)->setValue(QVariant("ct"));
         lightNode->removeItem(RStateHue);
         lightNode->removeItem(RStateSat);
+
+        item = lightNode->item(RStateX);
+        if (item) { item->setIsPublic(false); }
+        item = lightNode->item(RStateY);
+        if (item) { item->setIsPublic(false); }
     }
     else if (lightNode->manufacturerCode() == VENDOR_LEDVANCE && lightNode->modelId() == QLatin1String("RT TW"))
     {
@@ -1839,6 +1846,11 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
         lightNode->addItem(DataTypeString, RStateColorMode)->setValue(QVariant("ct"));
         lightNode->removeItem(RStateHue);
         lightNode->removeItem(RStateSat);
+
+        item = lightNode->item(RStateX);
+        if (item) { item->setIsPublic(false); }
+        item = lightNode->item(RStateY);
+        if (item) { item->setIsPublic(false); }
     }
 }
 

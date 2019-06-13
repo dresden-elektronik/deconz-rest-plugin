@@ -93,6 +93,7 @@ void LightNode::setManufacturerCode(uint16_t code)
         case VENDOR_INNR2:   name = QLatin1String("innr"); break;
         case VENDOR_INSTA:   name = QLatin1String("Insta"); break;
         case VENDOR_PHILIPS: name = QLatin1String("Philips"); break;
+        case VENDOR_LEDVANCE: name = QLatin1String("LEDVANCE"); break;
         case VENDOR_OSRAM_STACK: // fall through
         case VENDOR_OSRAM:   name = QLatin1String("OSRAM"); break;
         case VENDOR_UBISYS:  name = QLatin1String("ubisys"); break;
