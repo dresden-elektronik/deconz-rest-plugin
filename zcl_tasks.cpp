@@ -356,9 +356,6 @@ bool DeRestPluginPrivate::addTaskSetColorTemperature(TaskItem &task, uint16_t ct
         return ret;
     }
 
-    task.taskType = TaskSetColorTemperature;
-    task.colorTemperature = ct;
-
     if (task.lightNode)
     {
         ResourceItem *ctMin = task.lightNode->item(RConfigCtMin);
@@ -400,7 +397,12 @@ bool DeRestPluginPrivate::addTaskSetColorTemperature(TaskItem &task, uint16_t ct
             else if (yr > 1) { yr = 1; }
             return addTaskSetXyColor(task, xr, yr);
         }
+
+        DBG_Printf(DBG_INFO, "send move to color temperature %u to 0x%016llX\n", ct, task.lightNode->address().ext());
     }
+
+    task.taskType = TaskSetColorTemperature;
+    task.colorTemperature = ct;
 
     task.req.setClusterId(COLOR_CLUSTER_ID);
     task.req.setProfileId(HA_PROFILE_ID);
