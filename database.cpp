@@ -2287,6 +2287,7 @@ static int sqliteLoadLightNodeCallback(void *user, int ncols, char **colval , ch
                     lightNode->setModelId(val);
                     lightNode->item(RAttrModelId)->setValue(val);
                     lightNode->clearRead(READ_MODEL_ID);
+                    cb->d->setLightNodeStaticCapabilities(lightNode);
                 }
             }
             else if (strcmp(colname[i], "manufacturername") == 0)
@@ -2295,6 +2296,7 @@ static int sqliteLoadLightNodeCallback(void *user, int ncols, char **colval , ch
                 {
                     lightNode->setManufacturerName(val);
                     lightNode->clearRead(READ_VENDOR_NAME);
+                    cb->d->setLightNodeStaticCapabilities(lightNode);
                 }
             }
             else if (strcmp(colname[i], "swbuildid") == 0)

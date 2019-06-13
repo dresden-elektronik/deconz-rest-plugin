@@ -1650,6 +1650,8 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         loadLightNodeFromDb(&lightNode);
         closeDb();
 
+        setLightNodeStaticCapabilities(&lightNode);
+
         DBG_Assert(lightNode.state() != LightNode::StateDeleted);
 
         if (lightNode.manufacturerCode() == VENDOR_115F)
@@ -1777,6 +1779,66 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         {
             queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
         }
+    }
+}
+
+/*! Adds known static values to a lightnode.
+    \param lightNode - the LightNode to update
+ */
+void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
+{
+    DBG_Assert(lightNode);
+    if (!lightNode)
+    {
+        return;
+    }
+
+    if (lightNode->modelId() == QLatin1String("LIGHTIFY A19 RGBW"))
+    {
+        if (lightNode->item(RConfigColorCapabilities) != nullptr)
+        {
+            return; // already initialized
+        }
+        lightNode->addItem(DataTypeUInt16, RStateCt);
+        // the light doesn't provide ctmin, ctmax and color capabilities attributes
+        // however it supports the 'Move To Color Temperature' command and Color Temperature attribute
+        lightNode->addItem(DataTypeUInt16, RConfigCtMin)->setValue(152);
+        lightNode->addItem(DataTypeUInt16, RConfigCtMax)->setValue(689);
+        // hue, saturation, color mode, xy, ct
+        lightNode->addItem(DataTypeUInt16, RConfigColorCapabilities)->setValue(0x0001 | 0x0008 | 0x0010);
+    }
+    else if (lightNode->modelId() == QLatin1String("LIGHTIFY A19 Tunable White"))
+    {
+        if (lightNode->item(RConfigColorCapabilities) != nullptr)
+        {
+            return; // already initialized
+        }
+        lightNode->addItem(DataTypeUInt16, RStateCt);
+        // the light doesn't provide ctmin, ctmax and color capabilities attributes
+        // however it supports the 'Move To Color Temperature' command and Color Temperature attribute
+        lightNode->addItem(DataTypeUInt16, RConfigCtMin)->setValue(153);
+        lightNode->addItem(DataTypeUInt16, RConfigCtMax)->setValue(370);
+        // color mode, xy, ct
+        lightNode->addItem(DataTypeUInt16, RConfigColorCapabilities)->setValue(0x0008 | 0x0010);
+        lightNode->addItem(DataTypeString, RStateColorMode)->setValue(QVariant("ct"));
+        lightNode->removeItem(RStateHue);
+        lightNode->removeItem(RStateSat);
+    }
+    else if (lightNode->manufacturerCode() == VENDOR_LEDVANCE && lightNode->modelId() == QLatin1String("RT TW"))
+    {
+        if (lightNode->item(RConfigColorCapabilities) != nullptr)
+        {
+            return; // already initialized
+        }
+        lightNode->addItem(DataTypeUInt16, RStateCt);
+        // the light supports the 'Move To Color Temperature' command and Color Temperature attribute
+        lightNode->addItem(DataTypeUInt16, RConfigCtMin)->setValue(153);
+        lightNode->addItem(DataTypeUInt16, RConfigCtMax)->setValue(370);
+        // ct
+        lightNode->addItem(DataTypeUInt16, RConfigColorCapabilities)->setValue(0x0010);
+        lightNode->addItem(DataTypeString, RStateColorMode)->setValue(QVariant("ct"));
+        lightNode->removeItem(RStateHue);
+        lightNode->removeItem(RStateSat);
     }
 }
 
@@ -2192,6 +2254,13 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         }
 
                         uint8_t cm = ia->numericValue().u8;
+
+                        if (lightNode->modelId() == QLatin1String("LIGHTIFY A19 Tunable White"))
+                        {
+                            // the light sometimes reports hue and saturation, but only ct makes sense
+                            cm = 2;
+                        }
+
                         {
                             ResourceItem *item = lightNode->item(RConfigColorCapabilities);
                             if (item && item->toNumber() > 0)
@@ -2370,6 +2439,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             lightNode->setNeedSaveDatabase(true);
                             queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
                             updated = true;
+                            setLightNodeStaticCapabilities(lightNode);
                         }
                     }
                     else if (ia->id() == 0x0005) // Model identifier
@@ -2383,6 +2453,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             lightNode->setNeedSaveDatabase(true);
                             queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
                             updated = true;
+                            setLightNodeStaticCapabilities(lightNode);
                         }
                     }
                     else if (ia->id() == 0x0006) // Date code

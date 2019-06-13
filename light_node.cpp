@@ -514,7 +514,6 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
             default:
                 break;
             }
-
         }
         else if (haEndpoint().profileId() == ZLL_PROFILE_ID)
         {

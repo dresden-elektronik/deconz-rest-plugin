@@ -540,7 +540,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
     {
         ResourceItem *item = taskRef.lightNode->item(RStateOn);
-        DBG_Assert(item != 0);
+        DBG_Assert(item != nullptr);
         isOn = item ? item->toBool() : false;
     }
 

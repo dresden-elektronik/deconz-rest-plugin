@@ -298,7 +298,7 @@ void PollManager::pollTimerFired()
         clusterId = COLOR_CLUSTER_ID;
         item = r->item(RConfigColorCapabilities);
 
-        if ((!item || item->toNumber() <= 0) && (lightNode->haEndpoint().profileId() == ZLL_PROFILE_ID || lightNode->manufacturerCode() == VENDOR_115F || lightNode->manufacturerCode() == VENDOR_MUELLER || lightNode->manufacturerCode() == VENDOR_XAL))
+        if ((!item || item->toNumber() <= 0) && (lightNode->haEndpoint().profileId() == ZLL_PROFILE_ID || lightNode->manufacturerCode() == VENDOR_115F || lightNode->manufacturerCode() == VENDOR_MUELLER || lightNode->manufacturerCode() == VENDOR_XAL || lightNode->manufacturerCode() == VENDOR_LEDVANCE))
         {
             if (item && lightNode->modelId() == QLatin1String("lumi.light.aqcn02"))
             {
@@ -320,7 +320,7 @@ void PollManager::pollTimerFired()
             {
                 // e.g. OSRAM US version
                 // DEV_ID_HA_COLOR_DIMMABLE_LIGHT
-                cap  = (0x0001 | 0x0008); // hue, saturation, color mode, xy
+                cap  = (0x0001 | 0x0008 | 0x0010); // hue, saturation, color mode, xy, ct
             }
 
             toCheck.push_back(0x0008); // color mode

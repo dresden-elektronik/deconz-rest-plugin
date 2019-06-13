@@ -271,6 +271,7 @@
 #define VENDOR_INSTA        0x117A
 #define VENDOR_IKEA         0x117C
 #define VENDOR_BUSCH_JAEGER 0x112E
+#define VENDOR_LEDVANCE     0x1189
 #define VENDOR_119C         0x119C // Used by Sinope
 #define VENDOR_PAULMANN     0x119D
 #define VENDOR_120B         0x120B // Used by Heiman
@@ -1157,6 +1158,7 @@ public:
     qint64 getUptime();
     void handleMacDataRequest(const deCONZ::NodeEvent &event);
     void addLightNode(const deCONZ::Node *node);
+    void setLightNodeStaticCapabilities(LightNode *lightNode);
     void updatedLightNodeEndpoint(const deCONZ::NodeEvent &event);
     void nodeZombieStateChanged(const deCONZ::Node *node);
     LightNode *updateLightNode(const deCONZ::NodeEvent &event);
