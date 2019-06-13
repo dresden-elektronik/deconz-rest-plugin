@@ -306,6 +306,7 @@ ResourceItem &ResourceItem::operator=(const ResourceItem &other)
     m_num = other.m_num;
     m_numPrev = other.m_numPrev;
     m_rid = other.m_rid;
+    m_isPublic = other.m_isPublic;
     m_lastSet = other.lastSet();
     m_lastChanged = other.lastChanged();
     m_rulesInvolved = other.rulesInvolved();
@@ -592,6 +593,18 @@ void ResourceItem::inRule(int ruleHandle)
 const std::vector<int> ResourceItem::rulesInvolved() const
 {
     return m_rulesInvolved;
+}
+
+/*! Returns true if the item should be available in the public api. */
+bool ResourceItem::isPublic() const
+{
+    return m_isPublic;
+}
+
+/*! Sets an item should be available in the public api. */
+void ResourceItem::setIsPublic(bool isPublic)
+{
+    m_isPublic = isPublic;
 }
 
 Resource::Resource(const char *prefix) :

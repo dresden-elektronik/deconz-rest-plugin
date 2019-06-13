@@ -226,14 +226,19 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
 
     for (int i = 0; i < lightNode->itemCount(); i++)
     {
-        const ResourceItem *item = lightNode->itemForIndex(i);
+        const ResourceItem *item = lightNode->itemForIndex(static_cast<size_t>(i));
         DBG_Assert(item);
 
+        if (!item->isPublic())
+        {
+            continue;
+        }
+
         if      (item->descriptor().suffix == RStateOn) { state["on"] = item->toBool(); }
-        else if (item->descriptor().suffix == RStateBri) { state["bri"] = (double)item->toNumber(); }
-        else if (item->descriptor().suffix == RStateHue) { state["hue"] = (double)item->toNumber(); }
-        else if (item->descriptor().suffix == RStateSat) { state["sat"] = (double)item->toNumber(); }
-        else if (item->descriptor().suffix == RStateCt) { state["ct"] = (double)item->toNumber(); }
+        else if (item->descriptor().suffix == RStateBri) { state["bri"] = static_cast<double>(item->toNumber()); }
+        else if (item->descriptor().suffix == RStateHue) { state["hue"] = static_cast<double>(item->toNumber()); }
+        else if (item->descriptor().suffix == RStateSat) { state["sat"] = static_cast<double>(item->toNumber()); }
+        else if (item->descriptor().suffix == RStateCt) { state["ct"] = static_cast<double>(item->toNumber()); }
         else if (item->descriptor().suffix == RStateColorMode) { state["colormode"] = item->toString(); }
         else if (item->descriptor().suffix == RStateSpeed) { state["speed"] = item->toNumber(); }
         else if (item->descriptor().suffix == RStateX) { ix = item; }
