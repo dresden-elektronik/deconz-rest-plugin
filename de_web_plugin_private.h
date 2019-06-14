@@ -251,6 +251,7 @@
 #define VENDOR_PHILIPS      0x100B // Also used by iCasa routers
 #define VENDOR_VISONIC      0x1011
 #define VENDOR_ATMEL        0x1014
+#define VENDOR_DEVELCO      0x1015
 #define VENDOR_LGE          0x102E
 #define VENDOR_JENNIC       0x1037 // Used by Xiaomi, Trust, Eurotronic
 #define VENDOR_CENTRALITE   0x104E

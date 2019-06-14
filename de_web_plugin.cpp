@@ -72,6 +72,7 @@ const quint64 tiMacPrefix         = 0x00124b0000000000ULL;
 const quint64 netvoxMacPrefix     = 0x00137a0000000000ULL;
 const quint64 boschMacPrefix      = 0x00155f0000000000ULL;
 const quint64 jennicMacPrefix     = 0x00158d0000000000ULL;
+const quint64 develcoMacPrefix    = 0x0015bc0000000000ULL;
 const quint64 philipsMacPrefix    = 0x0017880000000000ULL;
 const quint64 ubisysMacPrefix     = 0x001fee0000000000ULL;
 const quint64 deMacPrefix         = 0x00212e0000000000ULL;
@@ -195,6 +196,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "SPZB0001", jennicMacPrefix }, // Eurotronic thermostat
     { VENDOR_NONE, "RES001", tiMacPrefix }, // Hubitat environment sensor, see #1308
     { VENDOR_119C, "WL4200S", sinopeMacPrefix}, // Sinope water sensor
+    { VENDOR_DEVELCO, "SMSZB-120", develcoMacPrefix }, // Develco smoke sensor
     { 0, nullptr, 0 }
 };
 
