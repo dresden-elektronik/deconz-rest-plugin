@@ -1399,6 +1399,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         bool hasServerOnOff = false;
         bool hasServerLevel = false;
         bool hasServerColor = false;
+        bool hasIASWDCluster = false;
 
         for (int c = 0; c < i->inClusters().size(); c++)
         {
@@ -1406,6 +1407,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             else if (i->inClusters()[c].id() == LEVEL_CLUSTER_ID) { hasServerLevel = true; }
             else if (i->inClusters()[c].id() == COLOR_CLUSTER_ID) { hasServerColor = true; }
             else if (i->inClusters()[c].id() == WINDOW_COVERING_CLUSTER_ID) { hasServerOnOff = true; }
+            else if (i->inClusters()[c].id() == IAS_WD_CLUSTER_ID) { hasIASWDCluster = true; }
         }
 
         // check if node already exist
@@ -1590,6 +1592,15 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                         {
                             // Xiaomi wall switch lumi.ctrl_neutral1, lumi.ctrl_neutral2
                             // TODO exclude endpoint 0x03 for lumi.ctrl_neutral1
+                            lightNode.setHaEndpoint(*i);
+                        }
+                    }
+                    break;
+
+                case DEV_ID_IAS_ZONE:
+                    {
+                        if (hasIASWDCluster)
+                        {
                             lightNode.setHaEndpoint(*i);
                         }
                     }
@@ -2078,6 +2089,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
             case DEV_ID_HA_WINDOW_COVERING_DEVICE:
             case DEV_ID_ZLL_ONOFF_SENSOR:
             case DEV_ID_XIAOMI_SMART_PLUG:
+            case DEV_ID_IAS_ZONE:
             case DEV_ID_IAS_WARNING_DEVICE:
             case DEV_ID_FAN:
                 break;
