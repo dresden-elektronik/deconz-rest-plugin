@@ -476,6 +476,11 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 else if (i->id() == FAN_CONTROL_CLUSTER_ID) {
                     addItem(DataTypeUInt8, RStateSpeed);
                 }
+                else if (i->id() == IAS_WD_CLUSTER_ID)
+                {
+                    removeItem(RStateOn);
+                    ltype = QLatin1String("Warning device");
+                }
             }
         }
 
