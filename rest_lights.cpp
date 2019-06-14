@@ -1295,7 +1295,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
         bool isSmokeDetector = false;
         if (taskRef.lightNode->modelId() == QLatin1String("902010/24")  // Bitron Smoke Detector with siren
-                )
+                || taskRef.lightNode->modelId() == QLatin1String("SMSZB-120"))  // Develco smoke sensor
         {
             isSmokeDetector = true;
             taskRef.lightNode->rx();  // otherwise device is marked as zombie and task is dropped
