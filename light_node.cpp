@@ -478,8 +478,12 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 }
                 else if (i->id() == IAS_WD_CLUSTER_ID)
                 {
-                    removeItem(RStateOn);
-                    ltype = QLatin1String("Warning device");
+                    if (    modelId() == QLatin1String("902010/24") ||   // Bitron Smoke Detector with siren
+                            modelId() == QLatin1String("SMSZB-120"))     // Develco Smoke Alarm with siren
+                    {
+                        removeItem(RStateOn);
+                        ltype = QLatin1String("Warning device");
+                    }
                 }
             }
         }
