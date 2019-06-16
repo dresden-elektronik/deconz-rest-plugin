@@ -2258,9 +2258,9 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
 
                         uint8_t cm = ia->numericValue().u8;
 
-                        if (lightNode->modelId() == QLatin1String("LIGHTIFY A19 Tunable White"))
+                        if (lightNode->item(RStateHue) == nullptr && lightNode->item(RStateCt) != nullptr)
                         {
-                            // the light sometimes reports hue and saturation, but only ct makes sense
+                            // OSRAM/LEDVANCE tunable white lights sometimes report hue and saturation, but only ct makes sense
                             cm = 2;
                         }
 
@@ -2268,7 +2268,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             ResourceItem *item = lightNode->item(RConfigColorCapabilities);
                             if (item && item->toNumber() > 0)
                             {
-                                quint16 cap = item->toNumber();
+                                const auto cap = item->toNumber();
                                 if (cap == 0x0010 && cm != 2) // color temperature only light
                                 {
                                     cm = 2; // fix unsupported color modes (IKEA ct light)
