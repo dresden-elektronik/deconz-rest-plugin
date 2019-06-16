@@ -1809,40 +1809,31 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
         // hue, saturation, color mode, xy, ct
         lightNode->addItem(DataTypeUInt16, RConfigColorCapabilities)->setValue(0x0001 | 0x0008 | 0x0010);
     }
-    else if (lightNode->modelId() == QLatin1String("LIGHTIFY A19 Tunable White"))
+    else if (lightNode->modelId() == QLatin1String("LIGHTIFY A19 Tunable White") ||
+             lightNode->modelId() == QLatin1String("LIGHTIFY Conv Under Cabinet TW") ||
+             lightNode->modelId() == QLatin1String("LIGHTIFY Under Cabinet TW") ||
+             lightNode->modelId() == QLatin1String("LIGHTIFY BR Tunable White") ||
+             lightNode->modelId() == QLatin1String("LIGHTIFY RT Tunable White") ||
+             lightNode->modelId() == QLatin1String("LIGHTIFY Edge-lit Flushmount TW") ||
+             lightNode->modelId() == QLatin1String("LIGHTIFY Surface TW") ||
+             lightNode->modelId() == QLatin1String("A19 TW 10 year") ||
+             lightNode->modelId() == QLatin1String("Classic B40 TW - LIGHTIFY") ||
+             lightNode->modelId() == QLatin1String("Classic A60 TW") ||
+             (lightNode->manufacturerCode() == VENDOR_LEDVANCE && lightNode->modelId() == QLatin1String("BR30 TW")) ||
+             (lightNode->manufacturerCode() == VENDOR_LEDVANCE && lightNode->modelId() == QLatin1String("MR16 TW")) ||
+             (lightNode->manufacturerCode() == VENDOR_LEDVANCE && lightNode->modelId() == QLatin1String("RT TW")))
     {
         if (lightNode->item(RConfigColorCapabilities) != nullptr)
         {
             return; // already initialized
         }
         lightNode->addItem(DataTypeUInt16, RStateCt);
-        // the light doesn't provide ctmin, ctmax and color capabilities attributes
-        // however it supports the 'Move To Color Temperature' command and Color Temperature attribute
-        lightNode->addItem(DataTypeUInt16, RConfigCtMin)->setValue(153);
-        lightNode->addItem(DataTypeUInt16, RConfigCtMax)->setValue(370);
+        // these lights don't provide ctmin, ctmax and color capabilities attributes
+        // however they support the 'Move To Color Temperature' command and Color Temperature attribute
+        lightNode->addItem(DataTypeUInt16, RConfigCtMin)->setValue(153); // 6500K
+        lightNode->addItem(DataTypeUInt16, RConfigCtMax)->setValue(370); // 2700K
         // color mode, xy, ct
         lightNode->addItem(DataTypeUInt16, RConfigColorCapabilities)->setValue(0x0008 | 0x0010);
-        lightNode->addItem(DataTypeString, RStateColorMode)->setValue(QVariant("ct"));
-        lightNode->removeItem(RStateHue);
-        lightNode->removeItem(RStateSat);
-
-        item = lightNode->item(RStateX);
-        if (item) { item->setIsPublic(false); }
-        item = lightNode->item(RStateY);
-        if (item) { item->setIsPublic(false); }
-    }
-    else if (lightNode->manufacturerCode() == VENDOR_LEDVANCE && lightNode->modelId() == QLatin1String("RT TW"))
-    {
-        if (lightNode->item(RConfigColorCapabilities) != nullptr)
-        {
-            return; // already initialized
-        }
-        lightNode->addItem(DataTypeUInt16, RStateCt);
-        // the light supports the 'Move To Color Temperature' command and Color Temperature attribute
-        lightNode->addItem(DataTypeUInt16, RConfigCtMin)->setValue(153);
-        lightNode->addItem(DataTypeUInt16, RConfigCtMax)->setValue(370);
-        // ct
-        lightNode->addItem(DataTypeUInt16, RConfigColorCapabilities)->setValue(0x0010);
         lightNode->addItem(DataTypeString, RStateColorMode)->setValue(QVariant("ct"));
         lightNode->removeItem(RStateHue);
         lightNode->removeItem(RStateSat);
