@@ -1683,13 +1683,13 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Eurotronic
         sensor->modelId() == QLatin1String("SPZB0001") ||
         // Heiman
+        // I don't think the IAS Zone sensor need to be listed here?
         sensor->modelId().startsWith(QLatin1String("SmartPlug")) ||
         sensor->modelId().startsWith(QLatin1String("CO_")) ||
         sensor->modelId().startsWith(QLatin1String("DOOR_")) ||
         sensor->modelId().startsWith(QLatin1String("PIR_")) ||
         sensor->modelId().startsWith(QLatin1String("GAS_")) ||
-        sensor->modelId().startsWith(QLatin1String("TH-H_")) ||
-        sensor->modelId().startsWith(QLatin1String("TH-T_")) ||
+        sensor->modelId().startsWith(QLatin1String("TH-")) ||
         sensor->modelId().startsWith(QLatin1String("SMOK_")) ||
         sensor->modelId().startsWith(QLatin1String("WATER_")) ||
         // Nimbus
