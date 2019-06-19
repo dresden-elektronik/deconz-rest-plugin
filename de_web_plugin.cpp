@@ -179,7 +179,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_120B, "GAS", emberMacPrefix }, // Heiman gas sensor - newer model
     { VENDOR_120B, "Smoke", emberMacPrefix }, // Heiman fire sensor - newer model
     { VENDOR_120B, "COSensor", emberMacPrefix }, // Heiman CO sensor - newer model
-    { VENDOR_120B, "TH-", emberMacPrefex }, // Heiman temperature/humidity sensor - newer model
+    { VENDOR_120B, "TH-", emberMacPrefix }, // Heiman temperature/humidity sensor - newer model
     { VENDOR_120B, "Water", emberMacPrefix }, // Heiman water sensor - newer model
     { VENDOR_120B, "WarningDevice", emberMacPrefix }, // Heiman siren
     { VENDOR_LUTRON, "LZL4BWHL01", lutronMacPrefix }, // Lutron LZL-4B-WH-L01 Connected Bulb Remote
