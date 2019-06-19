@@ -1950,8 +1950,14 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
 
     for (int i = 0; i < sensor->itemCount(); i++)
     {
-        const ResourceItem *item = sensor->itemForIndex(i);
+        const ResourceItem *item = sensor->itemForIndex(static_cast<size_t>(i));
+        DBG_Assert(item);
         const ResourceItemDescriptor &rid = item->descriptor();
+
+        if (!item->isPublic())
+        {
+            continue;
+        }
 
         if (rid.suffix == RConfigLat || rid.suffix == RConfigLong)
         {
@@ -1974,7 +1980,7 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
             if (rid.suffix == RConfigPending)
             {
                 QVariantList pending;
-                uint8_t value = item->toNumber();
+                auto value = item->toNumber();
 
                 if (value & R_PENDING_DELAY)
                 {

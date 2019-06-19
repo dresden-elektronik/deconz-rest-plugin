@@ -213,13 +213,16 @@ public:
     void setTimeStamps(const QDateTime &t);
     void inRule(int ruleHandle);
     const std::vector<int> rulesInvolved() const;
+    bool isPublic() const;
+    void setIsPublic(bool isPublic);
 
 private:
     ResourceItem() = delete;
 
-    qint64 m_num;
-    qint64 m_numPrev;
-    QString *m_str;
+    bool m_isPublic = true;
+    qint64 m_num = 0;
+    qint64 m_numPrev = 0;
+    QString *m_str = nullptr;
     ResourceItemDescriptor m_rid;
     QDateTime m_lastSet;
     QDateTime m_lastChanged;

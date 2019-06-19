@@ -1650,6 +1650,8 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         loadLightNodeFromDb(&lightNode);
         closeDb();
 
+        setLightNodeStaticCapabilities(&lightNode);
+
         DBG_Assert(lightNode.state() != LightNode::StateDeleted);
 
         if (lightNode.manufacturerCode() == VENDOR_115F)
@@ -1777,6 +1779,69 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         {
             queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
         }
+    }
+}
+
+/*! Adds known static values to a lightnode.
+    \param lightNode - the LightNode to update
+ */
+void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
+{
+    DBG_Assert(lightNode);
+    if (!lightNode)
+    {
+        return;
+    }
+
+    ResourceItem *item = nullptr;
+
+    if (lightNode->modelId() == QLatin1String("LIGHTIFY A19 RGBW"))
+    {
+        if (lightNode->item(RConfigColorCapabilities) != nullptr)
+        {
+            return; // already initialized
+        }
+        lightNode->addItem(DataTypeUInt16, RStateCt);
+        // the light doesn't provide ctmin, ctmax and color capabilities attributes
+        // however it supports the 'Move To Color Temperature' command and Color Temperature attribute
+        lightNode->addItem(DataTypeUInt16, RConfigCtMin)->setValue(152);
+        lightNode->addItem(DataTypeUInt16, RConfigCtMax)->setValue(689);
+        // hue, saturation, color mode, xy, ct
+        lightNode->addItem(DataTypeUInt16, RConfigColorCapabilities)->setValue(0x0001 | 0x0008 | 0x0010);
+    }
+    else if (lightNode->modelId() == QLatin1String("LIGHTIFY A19 Tunable White") ||
+             lightNode->modelId() == QLatin1String("LIGHTIFY Conv Under Cabinet TW") ||
+             lightNode->modelId() == QLatin1String("LIGHTIFY Under Cabinet TW") ||
+             lightNode->modelId() == QLatin1String("LIGHTIFY BR Tunable White") ||
+             lightNode->modelId() == QLatin1String("LIGHTIFY RT Tunable White") ||
+             lightNode->modelId() == QLatin1String("LIGHTIFY Edge-lit Flushmount TW") ||
+             lightNode->modelId() == QLatin1String("LIGHTIFY Surface TW") ||
+             lightNode->modelId() == QLatin1String("A19 TW 10 year") ||
+             lightNode->modelId() == QLatin1String("Classic B40 TW - LIGHTIFY") ||
+             lightNode->modelId() == QLatin1String("Classic A60 TW") ||
+             (lightNode->manufacturerCode() == VENDOR_LEDVANCE && lightNode->modelId() == QLatin1String("BR30 TW")) ||
+             (lightNode->manufacturerCode() == VENDOR_LEDVANCE && lightNode->modelId() == QLatin1String("MR16 TW")) ||
+             (lightNode->manufacturerCode() == VENDOR_LEDVANCE && lightNode->modelId() == QLatin1String("RT TW")))
+    {
+        if (lightNode->item(RConfigColorCapabilities) != nullptr)
+        {
+            return; // already initialized
+        }
+        lightNode->addItem(DataTypeUInt16, RStateCt);
+        // these lights don't provide ctmin, ctmax and color capabilities attributes
+        // however they support the 'Move To Color Temperature' command and Color Temperature attribute
+        lightNode->addItem(DataTypeUInt16, RConfigCtMin)->setValue(153); // 6500K
+        lightNode->addItem(DataTypeUInt16, RConfigCtMax)->setValue(370); // 2700K
+        // color mode, xy, ct
+        lightNode->addItem(DataTypeUInt16, RConfigColorCapabilities)->setValue(0x0008 | 0x0010);
+        lightNode->addItem(DataTypeString, RStateColorMode)->setValue(QVariant("ct"));
+        lightNode->removeItem(RStateHue);
+        lightNode->removeItem(RStateSat);
+
+        item = lightNode->item(RStateX);
+        if (item) { item->setIsPublic(false); }
+        item = lightNode->item(RStateY);
+        if (item) { item->setIsPublic(false); }
     }
 }
 
@@ -2192,11 +2257,18 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         }
 
                         uint8_t cm = ia->numericValue().u8;
+
+                        if (lightNode->item(RStateHue) == nullptr && lightNode->item(RStateCt) != nullptr)
+                        {
+                            // OSRAM/LEDVANCE tunable white lights sometimes report hue and saturation, but only ct makes sense
+                            cm = 2;
+                        }
+
                         {
                             ResourceItem *item = lightNode->item(RConfigColorCapabilities);
                             if (item && item->toNumber() > 0)
                             {
-                                quint16 cap = item->toNumber();
+                                const auto cap = item->toNumber();
                                 if (cap == 0x0010 && cm != 2) // color temperature only light
                                 {
                                     cm = 2; // fix unsupported color modes (IKEA ct light)
@@ -2370,6 +2442,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             lightNode->setNeedSaveDatabase(true);
                             queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
                             updated = true;
+                            setLightNodeStaticCapabilities(lightNode);
                         }
                     }
                     else if (ia->id() == 0x0005) // Model identifier
@@ -2383,6 +2456,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             lightNode->setNeedSaveDatabase(true);
                             queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
                             updated = true;
+                            setLightNodeStaticCapabilities(lightNode);
                         }
                     }
                     else if (ia->id() == 0x0006) // Date code

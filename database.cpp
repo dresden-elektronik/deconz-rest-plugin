@@ -23,6 +23,12 @@ static const char *pragmaPageCount = "PRAGMA page_count";
 static const char *pragmaPageSize = "PRAGMA page_size";
 static const char *pragmaFreeListCount = "PRAGMA freelist_count";
 
+struct DB_Callback {
+  DeRestPluginPrivate *d = nullptr;
+  LightNode *lightNode = nullptr;
+  Sensor *sensorNode = nullptr;
+};
+
 /******************************************************************************
                     Local prototypes
 ******************************************************************************/
@@ -2226,14 +2232,19 @@ void DeRestPluginPrivate::loadLightDataFromDb(LightNode *lightNode, QVariantList
  */
 static int sqliteLoadLightNodeCallback(void *user, int ncols, char **colval , char **colname)
 {
-    DBG_Assert(user != 0);
+    DBG_Assert(user);
 
     if (!user || (ncols <= 0))
     {
         return 0;
     }
 
-    LightNode *lightNode = static_cast<LightNode*>(user);
+    DB_Callback *cb = static_cast<DB_Callback*>(user);
+    LightNode *lightNode = cb->lightNode;
+
+    DBG_Assert(cb);
+    DBG_Assert(cb->d);
+    DBG_Assert(lightNode);
 
     QString id;
     QString name;
@@ -2276,6 +2287,7 @@ static int sqliteLoadLightNodeCallback(void *user, int ncols, char **colval , ch
                     lightNode->setModelId(val);
                     lightNode->item(RAttrModelId)->setValue(val);
                     lightNode->clearRead(READ_MODEL_ID);
+                    cb->d->setLightNodeStaticCapabilities(lightNode);
                 }
             }
             else if (strcmp(colname[i], "manufacturername") == 0)
@@ -2284,6 +2296,7 @@ static int sqliteLoadLightNodeCallback(void *user, int ncols, char **colval , ch
                 {
                     lightNode->setManufacturerName(val);
                     lightNode->clearRead(READ_VENDOR_NAME);
+                    cb->d->setLightNodeStaticCapabilities(lightNode);
                 }
             }
             else if (strcmp(colname[i], "swbuildid") == 0)
@@ -2373,10 +2386,10 @@ static int sqliteLoadLightNodeCallback(void *user, int ncols, char **colval , ch
 void DeRestPluginPrivate::loadLightNodeFromDb(LightNode *lightNode)
 {
     int rc;
-    char *errmsg = 0;
+    char *errmsg = nullptr;
 
-    DBG_Assert(db != 0);
-    DBG_Assert(lightNode != 0);
+    DBG_Assert(db != nullptr);
+    DBG_Assert(lightNode != nullptr);
 
     if (!db || !lightNode)
     {
@@ -2387,7 +2400,12 @@ void DeRestPluginPrivate::loadLightNodeFromDb(LightNode *lightNode)
     QString sql = QString("SELECT * FROM nodes WHERE mac='%1' COLLATE NOCASE AND state != 'deleted'").arg(lightNode->uniqueId());
 
     DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
-    rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadLightNodeCallback, lightNode, &errmsg);
+
+    DB_Callback cb;
+    cb.d = this;
+    cb.lightNode = lightNode;
+
+    rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadLightNodeCallback, &cb, &errmsg);
 
     if (rc != SQLITE_OK)
     {
@@ -2404,7 +2422,7 @@ void DeRestPluginPrivate::loadLightNodeFromDb(LightNode *lightNode)
         sql = QString("SELECT * FROM nodes WHERE mac='%1' COLLATE NOCASE AND state != 'deleted'").arg(lightNode->address().toStringExt());
 
         DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
-        rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadLightNodeCallback, lightNode, &errmsg);
+        rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadLightNodeCallback, &cb, &errmsg);
 
         if (rc != SQLITE_OK)
         {
