@@ -171,8 +171,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_OSRAM_STACK, "DOOR_", heimanMacPrefix }, // Heiman door/window sensor
     { VENDOR_OSRAM_STACK, "PIR_", heimanMacPrefix }, // Heiman motion sensor
     { VENDOR_OSRAM_STACK, "GAS_", heimanMacPrefix }, // Heiman gas sensor - older model
-    { VENDOR_OSRAM_STACK, "TH-H_", heimanMacPrefix }, // Heiman temperature/humidity sensor
-    { VENDOR_OSRAM_STACK, "TH-T_", heimanMacPrefix }, // Heiman temperature/humidity sensor
+    { VENDOR_OSRAM_STACK, "TH-", heimanMacPrefix }, // Heiman temperature/humidity sensor
     { VENDOR_OSRAM_STACK, "SMOK_", heimanMacPrefix }, // Heiman fire sensor - older model
     { VENDOR_OSRAM_STACK, "WATER_", heimanMacPrefix }, // Heiman water sensor
     { VENDOR_LGE, "LG IP65 HMS", emberMacPrefix },
@@ -181,6 +180,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_120B, "GAS", emberMacPrefix }, // Heiman gas sensor - newer model
     { VENDOR_120B, "Smoke", emberMacPrefix }, // Heiman fire sensor - newer model
     { VENDOR_120B, "COSensor", emberMacPrefix }, // Heiman CO sensor - newer model
+    { VENDOR_120B, "TH-", emberMacPrefix }, // Heiman temperature/humidity sensor - newer model
     { VENDOR_120B, "Water", emberMacPrefix }, // Heiman water sensor - newer model
     { VENDOR_120B, "WarningDevice", emberMacPrefix }, // Heiman siren
     { VENDOR_LUTRON, "LZL4BWHL01", lutronMacPrefix }, // Lutron LZL-4B-WH-L01 Connected Bulb Remote
@@ -4550,8 +4550,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             modelId.startsWith(QLatin1String("DOOR_")) || // Heiman door/window sensor
             modelId.startsWith(QLatin1String("PIR_")) ||  // Heiman motion sensor
             modelId.startsWith(QLatin1String("GAS_")) ||  // Heiman conbustable gas sensor
-            modelId.startsWith(QLatin1String("TH-H_")) || // Heiman temperature/humidity sensor
-            modelId.startsWith(QLatin1String("TH-T_")) || // Heiman temperature/humidity sensor
+            modelId.startsWith(QLatin1String("TH-")) || // Heiman temperature/humidity sensor
             modelId.startsWith(QLatin1String("SMOK_")) || // Heiman fire sensor
             modelId.startsWith(QLatin1String("WATER_")))  // Heiman water sensor
         {
