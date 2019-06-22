@@ -72,6 +72,7 @@ const quint64 tiMacPrefix         = 0x00124b0000000000ULL;
 const quint64 netvoxMacPrefix     = 0x00137a0000000000ULL;
 const quint64 boschMacPrefix      = 0x00155f0000000000ULL;
 const quint64 jennicMacPrefix     = 0x00158d0000000000ULL;
+const quint64 develcoMacPrefix    = 0x0015bc0000000000ULL;
 const quint64 philipsMacPrefix    = 0x0017880000000000ULL;
 const quint64 ubisysMacPrefix     = 0x001fee0000000000ULL;
 const quint64 deMacPrefix         = 0x00212e0000000000ULL;
@@ -195,6 +196,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "SPZB0001", jennicMacPrefix }, // Eurotronic thermostat
     { VENDOR_NONE, "RES001", tiMacPrefix }, // Hubitat environment sensor, see #1308
     { VENDOR_119C, "WL4200S", sinopeMacPrefix}, // Sinope water sensor
+    { VENDOR_DEVELCO, "SMSZB-120", develcoMacPrefix }, // Develco smoke sensor
     { 0, nullptr, 0 }
 };
 
@@ -336,31 +338,38 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     }
 
     // create default group
+    // get new id
     if (gwGroup0 == 0)
     {
-        // get new id and replace old group0 and get new id
         for (uint16_t i = 0xFFF0; i > 0; i--) // 0 and larger than 0xfff7 is not valid for Osram Lightify
         {
             Group* group = getGroupForId(i);
             if (!group)
             {
                 gwGroup0 = i;
-                // delete old group 0
-                Group* group = getGroupForId(0);
-                if (group)
-                {
-                    group->setState(Group::StateDeleted);
-                }
+                break;
+            }
+        }
+    }
+
+    // delete old group 0
+    if (gwGroup0 != 0)
+    {
+        for (Group& group : groups)
+        {
+            if (group.address() == 0 && !(group.state() == Group::StateDeleted || group.state() == Group::StateDeleteFromDB))
+            {
+                group.setState(Group::StateDeleted);
                 queSaveDb(DB_CONFIG | DB_GROUPS, DB_LONG_SAVE_DELAY);
                 break;
             }
         }
     }
 
+    // create new group 0
     Group* group = getGroupForId(gwGroup0);
     if (!group)
     {
-        // new default group
         Group group;
         group.setAddress(gwGroup0);
         group.setName("All");
@@ -1375,6 +1384,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC || // Xiaomi lumi.ctrl_neutral1, lumi.ctrl_neutral2
         node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER || // atsmart Z6-03 switch
         node->nodeDescriptor().manufacturerCode() == VENDOR_NONE || // Climax Siren
+        node->nodeDescriptor().manufacturerCode() == VENDOR_DEVELCO || // Develco Smoke sensor with siren
         node->nodeDescriptor().manufacturerCode() == VENDOR_1233) // Third Reality smart light switch
     {
         // whitelist
@@ -1392,6 +1402,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         bool hasServerOnOff = false;
         bool hasServerLevel = false;
         bool hasServerColor = false;
+        bool hasIASWDCluster = false;
 
         for (int c = 0; c < i->inClusters().size(); c++)
         {
@@ -1399,6 +1410,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             else if (i->inClusters()[c].id() == LEVEL_CLUSTER_ID) { hasServerLevel = true; }
             else if (i->inClusters()[c].id() == COLOR_CLUSTER_ID) { hasServerColor = true; }
             else if (i->inClusters()[c].id() == WINDOW_COVERING_CLUSTER_ID) { hasServerOnOff = true; }
+            else if (i->inClusters()[c].id() == IAS_WD_CLUSTER_ID) { hasIASWDCluster = true; }
         }
 
         // check if node already exist
@@ -1583,6 +1595,15 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                         {
                             // Xiaomi wall switch lumi.ctrl_neutral1, lumi.ctrl_neutral2
                             // TODO exclude endpoint 0x03 for lumi.ctrl_neutral1
+                            lightNode.setHaEndpoint(*i);
+                        }
+                    }
+                    break;
+
+                case DEV_ID_IAS_ZONE:
+                    {
+                        if (hasIASWDCluster)
+                        {
                             lightNode.setHaEndpoint(*i);
                         }
                     }
@@ -2071,6 +2092,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
             case DEV_ID_HA_WINDOW_COVERING_DEVICE:
             case DEV_ID_ZLL_ONOFF_SENSOR:
             case DEV_ID_XIAOMI_SMART_PLUG:
+            case DEV_ID_IAS_ZONE:
             case DEV_ID_IAS_WARNING_DEVICE:
             case DEV_ID_FAN:
                 break;

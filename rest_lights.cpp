@@ -1293,6 +1293,14 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         QString alert = map["alert"].toString();
         bool isWarningDevice = taskRef.lightNode->type() == QLatin1String("Warning device");
 
+        bool isSmokeDetector = false;
+        if (taskRef.lightNode->modelId() == QLatin1String("902010/24")  // Bitron Smoke Detector with siren
+                || taskRef.lightNode->modelId() == QLatin1String("SMSZB-120"))  // Develco smoke sensor
+        {
+            isSmokeDetector = true;
+            taskRef.lightNode->rx();  // otherwise device is marked as zombie and task is dropped
+        }
+
         if (alert == "none")
         {
             if (isWarningDevice)
@@ -1309,7 +1317,13 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
         else if (alert == "select")
         {
-            if (isWarningDevice)
+            if (isWarningDevice && isSmokeDetector)
+            {
+                task.taskType = TaskWarning;
+                task.options = 0x12; // Warning mode 2 (fire), strobe
+                task.duration = 1;
+            }
+            else if (isWarningDevice)
             {
                 task.taskType = TaskWarning;
                 task.options = 0x14; // Warning mode 1 (burglar), Strobe
@@ -1323,7 +1337,13 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
         else if (alert == "lselect")
         {
-            if (isWarningDevice)
+            if (isWarningDevice && isSmokeDetector)
+            {
+                task.taskType = TaskWarning;
+                task.options = 0x12; // Warning mode 2 (fire), strobe
+                task.duration = 300;
+            }
+            else if (isWarningDevice)
             {
                 task.taskType = TaskWarning;
                 task.options = 0x14; // Warning mode 1 (burglar), Strobe
