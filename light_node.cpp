@@ -351,7 +351,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
         {
             return; // wait until known
         }
-        isInitialized = type() != nullptr;
+        isInitialized = type().length() > 0;
     }
 
     // initial setup
