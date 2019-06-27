@@ -931,8 +931,16 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     {
         rq.dataType = deCONZ::Zcl16BitInt;
         rq.attributeId = 0x0000;       // measured value
-        rq.minInterval = 10;           // value used by Hue bridge
-        rq.maxInterval = 300;          // value used by Hue bridge
+        if (sensor && sensor->modelId().startsWith(QLatin1String("SMSZB-120")))
+        {
+            rq.minInterval = 60;
+            rq.maxInterval = 600;
+        }
+        else
+        {
+            rq.minInterval = 10;           // value used by Hue bridge
+            rq.maxInterval = 300;          // value used by Hue bridge
+        }
         rq.reportableChange16bit = 20; // value used by Hue bridge
         return sendConfigureReportingRequest(bt, {rq});
     }
@@ -1063,6 +1071,13 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.attributeId = 0x0020;   // battery voltage
             rq.minInterval = 3600;
             rq.maxInterval = 3600;
+            rq.reportableChange8bit = 0;
+        }
+        else if (sensor && sensor->modelId().startsWith(QLatin1String("SMSZB-120")))
+        {
+            rq.attributeId = 0x0020;   // battery voltage
+            rq.minInterval = 300;
+            rq.maxInterval = 300;
             rq.reportableChange8bit = 0;
         }
         else if (sensor && sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
@@ -1503,6 +1518,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->modelId().startsWith(QLatin1String("ICZB-"))) // iCasa Dimmer and Switch
         {
         }
+        else if (lightNode->modelId().startsWith(QLatin1String("SMSZB-120"))) // Develco smoke sensor
+        {
+        }
         else
         {
             return;
@@ -1527,6 +1545,7 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         case ONOFF_CLUSTER_ID:
         case LEVEL_CLUSTER_ID:
         case COLOR_CLUSTER_ID:
+        case IAS_ZONE_CLUSTER_ID:
         case FAN_CONTROL_CLUSTER_ID:
         {
             bool bindingExists = false;
@@ -1701,6 +1720,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("water")) ||
         // Bitron
         sensor->modelId().startsWith(QLatin1String("902010")) ||
+        // Develco
+        sensor->modelId().startsWith(QLatin1String("SMSZB-120")) ||
         // LG
         sensor->modelId() == QLatin1String("LG IP65 HMS") ||
         // Sinope
