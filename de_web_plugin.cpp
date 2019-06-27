@@ -4326,6 +4326,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             clusterId = MULTISTATE_INPUT_CLUSTER_ID;
         }
         sensorNode.addItem(DataTypeInt32, RStateButtonEvent);
+
+        if (modelId.startsWith(QLatin1String("lumi.sensor_cube")))
+        {
+            sensorNode.addItem(DataTypeInt32, RStateGesture);
+        }
     }
     else if (sensorNode.type().endsWith(QLatin1String("LightLevel")))
     {
@@ -6196,6 +6201,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 }
 
                                 qint32 buttonevent = -1;
+                                qint32 gesture = -1; //
                                 ResourceItem *item = i->item(RStateButtonEvent);
                                 int rawValue = ia->numericValue().u16;
 
@@ -6205,13 +6211,17 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     static const int sideMap[] = {1, 3, 5, 6, 4, 2};
                                     int side = sideMap[rawValue & 0x0007];
                                     int previousSide = sideMap[(rawValue & 0x0038) >> 3];
-                                         if (rawValue == 0x0002) { buttonevent = 7000; }                       // wakeup
-                                    else if (rawValue == 0x0000) { buttonevent = 7007; }                       // shake
-                                    else if (rawValue == 0x0003) { buttonevent = 7008; }                       // drop
-                                    else if (rawValue & 0x0040)  { buttonevent = side * 1000 + previousSide; } // flip 90°
-                                    else if (rawValue & 0x0080)  { buttonevent = side * 1000 + 7 - side; }     // flip 180°
-                                    else if (rawValue & 0x0100)  { buttonevent = side * 1000; }                // push
-                                    else if (rawValue & 0x0200)  { buttonevent = side * 1000 + side; }         // double tap
+                                         if (rawValue == 0x0002) { buttonevent = 7000; }                          // wakeup
+                                    else if (rawValue == 0x0000) { buttonevent = 7007; gesture = GESTURE_SHAKE; } // shake
+                                    else if (rawValue == 0x0003) { buttonevent = 7008; gesture = GESTURE_DROP; }  // drop
+                                    else if (rawValue & 0x0040)  { buttonevent = side * 1000 + previousSide;      // flip 90°
+                                                                   gesture = GESTURE_FLIP_90; }
+                                    else if (rawValue & 0x0080)  { buttonevent = side * 1000 + 7 - side;          // flip 180°
+                                                                   gesture = GESTURE_FLIP_180; }
+                                    else if (rawValue & 0x0100)  { buttonevent = side * 1000;                     // push
+                                                                   gesture = GESTURE_PUSH; }
+                                    else if (rawValue & 0x0200)  { buttonevent = side * 1000 + side;              // double tap
+                                                                   gesture = GESTURE_DOUBLE_TAP; }
                                 }
                                 else if (i->modelId() == QLatin1String("lumi.sensor_switch.aq3"))
                                 {
@@ -6262,6 +6272,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         }
                                     }
                                 }
+
                                 if (item && buttonevent != -1)
                                 {
                                     item->setValue(buttonevent);
@@ -6269,6 +6280,20 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->setNeedSaveDatabase(true);
                                     Event e(RSensors, RStateButtonEvent, i->id(), item);
                                     enqueueEvent(e);
+                                }
+
+                                item = (gesture != -1) ? i->item(RStateGesture) : nullptr;
+                                if (item && gesture != -1)
+                                {
+                                    item->setValue(gesture);
+                                    i->updateStateTimestamp();
+                                    i->setNeedSaveDatabase(true);
+                                    Event e(RSensors, RStateGesture, i->id(), item);
+                                    enqueueEvent(e);
+                                }
+
+                                if (gesture != -1 || buttonevent != -1) // something was updated
+                                {
                                     enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
                                 }
 

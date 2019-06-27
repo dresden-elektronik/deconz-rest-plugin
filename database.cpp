@@ -2917,6 +2917,11 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             item = sensor.addItem(DataTypeInt32, RStateButtonEvent);
             item->setValue(0);
+
+            if (sensor.modelId().startsWith(QLatin1String("lumi.sensor_cube")))
+            {
+                sensor.addItem(DataTypeInt32, RStateGesture);
+            }
         }
         else if (sensor.type().endsWith(QLatin1String("LightLevel")))
         {
