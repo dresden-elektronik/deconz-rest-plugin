@@ -3621,6 +3621,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("SMOK_")) ||            // Heiman fire sensor
                              modelId.startsWith(QLatin1String("Smoke")) ||            // Heiman fire sensor (newer model)
                              modelId.startsWith(QLatin1String("902010/24")) ||        // Bitron smoke detector
+                             modelId.startsWith(QLatin1String("SMSZB-120")) ||        // Develco smoke detector
                              modelId.startsWith(QLatin1String("lumi.sensor_smoke")))  // Xiaomi Mi smoke sensor
                     {
                         // Gas sensor detects combustable gas, so fire is more appropriate than CO.
@@ -4782,6 +4783,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_NYCE)
     {
         sensorNode.setManufacturer("NYCE");
+    }
+    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_DEVELCO)
+    {
+        sensorNode.setManufacturer("Develco");
     }
 
     if (sensorNode.manufacturer().isEmpty() && !manufacturer.isEmpty())
