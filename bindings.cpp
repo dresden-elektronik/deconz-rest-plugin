@@ -1503,7 +1503,10 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->modelId().startsWith(QLatin1String("ICZB-"))) // iCasa Dimmer and Switch
         {
         }
-        else
+		else if (lightNode->modelId() == QLatin1String("SPLZB-131"))
+		{
+		}
+		else
         {
             return;
         }
@@ -1704,8 +1707,10 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // LG
         sensor->modelId() == QLatin1String("LG IP65 HMS") ||
         // Sinope
-        sensor->modelId() == QLatin1String("WL4200S"))
-    {
+        sensor->modelId() == QLatin1String("WL4200S") ||
+		// Develco
+		sensor->modelId() == QLatin1String("SPLZB-131"))
+	{
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||
             sensor->node()->nodeDescriptor().manufacturerCode() != VENDOR_DDEL)
