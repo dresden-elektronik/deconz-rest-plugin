@@ -4791,7 +4791,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_DEVELCO)
     {
-        sensorNode.setManufacturer("Develco");
+        sensorNode.setManufacturer("Develco Products A/S");
     }
 
     if (sensorNode.manufacturer().isEmpty() && !manufacturer.isEmpty())
