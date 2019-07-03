@@ -60,8 +60,17 @@ QT             += network
 INCLUDEPATH    += ../.. \
                   ../../common
 
-GIT_COMMIT = $$system("git rev-list HEAD --max-count=1")
-GIT_COMMIT_DATE = $$system("git show -s --format=%ct HEAD")
+# TAG is specified by auto build system
+# this is needed since non head versions which are checkedout and build
+# will have a revision different to HEAD
+GIT_TAG=$$(TAG)
+
+isEmpty(GIT_TAG) {
+    GIT_TAG=HEAD # default
+}
+
+GIT_COMMIT = $$system("git rev-list $$GIT_TAG --max-count=1")
+GIT_COMMIT_DATE = $$system("git show -s --format=%ct $$GIT_TAG")
 
 # Version Major.Minor.Build
 # Important: don't change the format of this line since it's parsed by scripts!
