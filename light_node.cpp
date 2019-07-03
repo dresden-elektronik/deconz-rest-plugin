@@ -101,7 +101,7 @@ void LightNode::setManufacturerCode(uint16_t code)
         case VENDOR_EMBER:   // fall through
         case VENDOR_120B:    name = QLatin1String("Heiman"); break;
         case VENDOR_KEEN_HOME: name = QLatin1String("Keen Home Inc"); break;
-        case VENDOR_DEVELCO: name = QLatin1String("Develco"); break;
+        case VENDOR_DEVELCO: name = QLatin1String("Develco Products A/S"); break;
         default:
             name = QLatin1String("Unknown");
             break;
