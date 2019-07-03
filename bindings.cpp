@@ -931,16 +931,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     {
         rq.dataType = deCONZ::Zcl16BitInt;
         rq.attributeId = 0x0000;       // measured value
-        if (sensor && sensor->modelId().startsWith(QLatin1String("SMSZB-120")))
-        {
-            rq.minInterval = 60;
-            rq.maxInterval = 600;
-        }
-        else
-        {
-            rq.minInterval = 10;           // value used by Hue bridge
-            rq.maxInterval = 300;          // value used by Hue bridge
-        }
+        rq.minInterval = 10;           // value used by Hue bridge
+        rq.maxInterval = 300;          // value used by Hue bridge
         rq.reportableChange16bit = 20; // value used by Hue bridge
         return sendConfigureReportingRequest(bt, {rq});
     }
@@ -1076,8 +1068,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         else if (sensor && sensor->modelId().startsWith(QLatin1String("SMSZB-120")))
         {
             rq.attributeId = 0x0020;   // battery voltage
-            rq.minInterval = 300;
-            rq.maxInterval = 300;
+            rq.minInterval = 43200;
+            rq.maxInterval = 43200;
             rq.reportableChange8bit = 0;
         }
         else if (sensor && sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
@@ -1823,7 +1815,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             {
                 val = sensor->getZclValue(*i, 0x0035); // battery alarm mask
             }
-            else if (sensor->modelId() == QLatin1String("Motion Sensor-A"))
+            else if (sensor->modelId() == QLatin1String("Motion Sensor-A") || sensor->modelId() == QLatin1String("SMSZB-120"))
             {
                 val = sensor->getZclValue(*i, 0x0020); // battery voltage
             }
