@@ -133,7 +133,7 @@ function installHomebridge {
 		hb_installed=true
 
 		# look for homebridge-hue installation
-		hb_hue_version=$(npm list -g homebridge-hue | grep homebridge-hue | cut -d@ -f2)
+		hb_hue_version=$(npm list -g homebridge-hue | grep homebridge-hue | cut -d@ -f2 | xargs)
 		if [ -n "$hb_hue_version" ]; then
 			# homebridge-hue installation found
 			hb_hue_installed=true
@@ -268,8 +268,8 @@ function checkUpdate {
 		fi
 	fi
 
-	hb_version=$(npm list -g homebridge | grep homebridge | cut -d@ -f2)
-	hb_hue_version=$(npm list -g homebridge-hue | grep homebridge-hue | cut -d@ -f2)
+	hb_version=$(npm list -g homebridge | grep homebridge | cut -d@ -f2 | xargs)
+	hb_hue_version=$(npm list -g homebridge-hue | grep homebridge-hue | cut -d@ -f2 | xargs)
 	putHomebridgeUpdated "homebridgeversion" "$hb_hue_version"
 	npm_version=$(npm --version)
 	node_version=$(node --version | cut -dv -f2) # strip the v
@@ -333,7 +333,7 @@ function checkUpdate {
 			[[ $LOG_WARN ]] && echo "${LOG_WARN}could not update homebridge hue"
 		else
 			putHomebridgeUpdated "homebridge" "updated"
-			putHomebridgeUpdated "homebridgeversion" "$latest_hb_hue_version"			
+			putHomebridgeUpdated "homebridgeversion" "$UPDATE_VERSION_HB_HUE"
 		fi
 	fi
 }
