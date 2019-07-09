@@ -1432,6 +1432,7 @@ public:
     QString gwHomebridge;
     QString gwHomebridgePin;
     QString gwHomebridgeVersion;
+    QString gwHomebridgeUpdateVersion;
     bool gwHomebridgeUpdate;
     QString gwName;
     bool gwLANBridgeId;

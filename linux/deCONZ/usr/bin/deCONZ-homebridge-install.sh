@@ -133,11 +133,10 @@ function installHomebridge {
 		hb_installed=true
 
 		# look for homebridge-hue installation
-		npm list -g homebridge-hue &> /dev/null
-		if [ $? -eq 0 ]; then
+		hb_hue_version=$(npm list -g homebridge-hue | grep homebridge-hue | cut -d@ -f2)
+		if [ -n "$hb_hue_version" ]; then
 			# homebridge-hue installation found
 			hb_hue_installed=true
-			hb_hue_version=$(npm list -g homebridge-hue | grep homebridge-hue | cut -d@ -f2)
 			putHomebridgeUpdated "homebridgeversion" "$hb_hue_version"
 		fi	
 	fi
@@ -241,6 +240,8 @@ function installHomebridge {
 	if [[ -n $(npm list -g homebridge-lib | grep empty) ]]; then
 		npm -g install homebridge-lib@"$UPDATE_VERSION_HB_LIB"
 	fi
+
+	putHomebridgeUpdated "homebridgeupdateversion" "$UPDATE_VERSION_HB_HUE"
 }
 
 function checkUpdate {
@@ -354,7 +355,7 @@ do
 		TIMEOUT=$((TIMEOUT - 1))
 	done
 
-	TIMEOUT=300 # 5 minutes
+	TIMEOUT=600 # 10 minutes
 
 	[[ -z "$ZLLDB" ]] && continue
 	[[ ! -f "$ZLLDB" ]] && continue
@@ -363,7 +364,7 @@ do
     installHomebridge
 
     COUNTER=$((COUNTER + 1))
-	if [ $COUNTER -ge 12 ]; then
+	if [ $COUNTER -ge 6 ]; then
 		# check for updates every hour
 		COUNTER=0
 		checkUpdate
