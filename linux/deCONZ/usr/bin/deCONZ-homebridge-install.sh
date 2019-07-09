@@ -2,6 +2,7 @@
 
 UPDATE_VERSION_HB="0.4.50"
 UPDATE_VERSION_HB_HUE="0.11.28"
+UPDATE_VERSION_HB_LIB="4.2.8"
 UPDATE_VERSION_NPM="6.9.0"
 UPDATE_VERSION_NODE="10.16.0"
 # use install name to install the specific node version via apt. Retrieve it via: apt-cache policy nodejs
@@ -132,7 +133,7 @@ function installHomebridge {
 		hb_installed=true
 
 		# look for homebridge-hue installation
-		npm list -g homebridge-hue
+		npm list -g homebridge-hue &> /dev/null
 		if [ $? -eq 0 ]; then
 			# homebridge-hue installation found
 			hb_hue_installed=true
@@ -227,13 +228,18 @@ function installHomebridge {
 
 		# install homebridge-hue if not installed
 		if [[ $hb_hue_installed = false ]]; then
-			npm -g install homebridge-lib homebridge-hue@"$UPDATE_VERSION_HB_HUE"
+			npm -g install homebridge-lib@"$UPDATE_VERSION_HB_LIB" homebridge-hue@"$UPDATE_VERSION_HB_HUE"
 			if [ $? -ne 0 ]; then
 				[[ $LOG_WARN ]] && echo "${LOG_WARN}could not install homebridge hue"
 				putHomebridgeUpdated "homebridge" "install-error"
 				return
 			fi
 		fi
+	fi
+
+	# fix missing homebridge-lib
+	if [[ -n $(npm list -g homebridge-lib | grep empty) ]]; then
+		npm -g install homebridge-lib@"$UPDATE_VERSION_HB_LIB"
 	fi
 }
 
@@ -321,7 +327,7 @@ function checkUpdate {
 		[[ $LOG_INFO ]] && echo "${LOG_INFO}installed homebridge-hue version: $hb_hue_version - latest: $UPDATE_VERSION_HB_HUE"
 		[[ $LOG_INFO ]] && echo "${LOG_INFO}update homebridge-hue"
 
-		npm -g install homebridge-lib homebridge-hue@"$UPDATE_VERSION_HB_HUE"
+		npm -g install homebridge-lib@"$UPDATE_VERSION_HB_LIB" homebridge-hue@"$UPDATE_VERSION_HB_HUE"
 		if [ $? -ne 0 ]; then
 			[[ $LOG_WARN ]] && echo "${LOG_WARN}could not update homebridge hue"
 		else
@@ -348,7 +354,7 @@ do
 		TIMEOUT=$((TIMEOUT - 1))
 	done
 
-	TIMEOUT=60
+	TIMEOUT=300 # 5 minutes
 
 	[[ -z "$ZLLDB" ]] && continue
 	[[ ! -f "$ZLLDB" ]] && continue
@@ -357,7 +363,7 @@ do
     installHomebridge
 
     COUNTER=$((COUNTER + 1))
-	if [ $COUNTER -ge 60 ]; then
+	if [ $COUNTER -ge 12 ]; then
 		# check for updates every hour
 		COUNTER=0
 		checkUpdate
