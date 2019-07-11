@@ -340,6 +340,7 @@ function checkHomebridge {
 				putHomebridgeUpdated "homebridge" "not-managed"
 			fi
 		else
+			local updated=false
 			# config created by deCONZ - check if bridgeid is present
 			if [ -z "$(cat /home/$MAINUSER/.homebridge/config.json | grep "$BRIDGEID")" ]; then
 				# bridgeid not found - update config
@@ -347,20 +348,33 @@ function checkHomebridge {
 				local line="$(grep -n users /home/$MAINUSER/.homebridge/config.json | cut -d: -f 1)"
 				line=$((line + 1))
 				sed -i "${line}s/.*/    \"${BRIDGEID}\": \"$APIKEY\"/" /home/$MAINUSER/.homebridge/config.json
+				updated=true
 			fi
 			# check if apikey is still correct
 			if [ -z "$(cat /home/$MAINUSER/.homebridge/config.json | grep "$APIKEY")" ]; then
 				# apikey not found - update config
 				[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}update apikey in config file with $APIKEY"
 				sed -i "/\"${BRIDGEID}\":/c\    \"${BRIDGEID}\": \"$APIKEY\"" /home/$MAINUSER/.homebridge/config.json
+				updated=true
 			fi
 			# check if bridgeid is correct
 			if [ -n "$(cat /home/$MAINUSER/.homebridge/config.json | grep "00000000")" ]; then
 				# bridgeid has faulty value replace it with correct value from db
 				[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}update bridgeid in config file with ${BRIDGEID}"
 				sed -i "/\"00000000/c\    \"${BRIDGEID}\": \"$APIKEY\"" /home/$MAINUSER/.homebridge/config.json
+				updated=true
 			fi
-			if [[ "$HOMEBRIDGE" != "managed" ]]; then
+			# check if pin is still correct
+			local HB_PIN="${HOMEBRIDGE_PIN:0:3}-${HOMEBRIDGE_PIN:3:2}-${HOMEBRIDGE_PIN:5:3}"
+			if [ -z "$(cat /home/$MAINUSER/.homebridge/config.json | grep "$HB_PIN")" ]; then
+				# pin not found - update config
+				[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}update pin in config file with $HOMEBRIDGE_PIN"
+				sed -i "/\"pin\":/c\    \"pin\": \"${HB_PIN}\"" /home/$MAINUSER/.homebridge/config.json
+				updated=true
+			fi
+			if [[ $updated = true ]]; then
+				putHomebridgeUpdated "homebridge" "updated"
+			else
 				putHomebridgeUpdated "homebridge" "managed"
 			fi
 		fi

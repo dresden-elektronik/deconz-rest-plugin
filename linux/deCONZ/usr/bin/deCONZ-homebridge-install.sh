@@ -2,7 +2,7 @@
 
 UPDATE_VERSION_HB="0.4.50"
 UPDATE_VERSION_HB_HUE="0.11.28"
-UPDATE_VERSION_HB_LIB="4.2.8"
+UPDATE_VERSION_HB_LIB="4.2.7"
 UPDATE_VERSION_NPM="6.9.0"
 UPDATE_VERSION_NODE="10.16.0"
 # use install name to install the specific node version via apt. Retrieve it via: apt-cache policy nodejs
