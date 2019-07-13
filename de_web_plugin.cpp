@@ -197,6 +197,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "RES001", tiMacPrefix }, // Hubitat environment sensor, see #1308
     { VENDOR_119C, "WL4200S", sinopeMacPrefix}, // Sinope water sensor
     { VENDOR_DEVELCO, "SMSZB-120", develcoMacPrefix }, // Develco smoke sensor
+    { VENDOR_DEVELCO, "ZHMS101", develcoMacPrefix }, // Develco magnetic switch
     { 0, nullptr, 0 }
 };
 
