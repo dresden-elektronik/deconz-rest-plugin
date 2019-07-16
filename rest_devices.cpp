@@ -12,6 +12,7 @@
 #include <QTcpSocket>
 #include <QUrlQuery>
 #include <QVariantMap>
+#include <QProcess>
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "json.h"
@@ -169,9 +170,62 @@ int RestDevices::putDeviceInstallCode(const ApiRequest &req, ApiResponse &rsp)
         {
             // TODO process install code
 
+            // MAC: f8f005fffff2b37a
+            // IC: 07E2EE0C820EFE0C0C21742E0A037C07
+            // CRC-16 7AC5
+
+            QProcess cli;
+            cli.start("hashing-cli", QStringList() << "-i" << installCode);
+            if (!cli.waitForStarted(2000))
+            {
+                rsp.list.append(plugin->errorToMap(ERR_INTERNAL_ERROR, QString("/devices"), QString("internal error, %1, occured").arg(cli.error())));
+                rsp.httpStatus = HttpStatusServiceUnavailable;
+                return REQ_READY_SEND;
+            }
+
+            if (!cli.waitForFinished(2000))
+            {
+                rsp.list.append(plugin->errorToMap(ERR_INTERNAL_ERROR, QString("/devices"), QString("internal error, %1, occured").arg(cli.error())));
+                rsp.httpStatus = HttpStatusServiceUnavailable;
+                return REQ_READY_SEND;
+            }
+
+            QByteArray mmoHash;
+            while (!cli.atEnd())
+            {
+                const QByteArray result = cli.readLine();
+                if (result.contains("Hash Result:"))
+                {
+                    const auto ls = result.split(':');
+                    DBG_Assert(ls.size() == 2);
+                    if (ls.size() == 2)
+                    {
+                        mmoHash = ls[1].trimmed();
+                        break;
+                    }
+                }
+            }
+
+            if (mmoHash.isEmpty())
+            {
+                rsp.list.append(plugin->errorToMap(ERR_INTERNAL_ERROR, QLatin1String("/devices"), QLatin1String("internal error, failed to calc mmo hash, occured")));
+                rsp.httpStatus = HttpStatusServiceUnavailable;
+                return REQ_READY_SEND;
+            }
+
+#if DECONZ_LIB_VERSION >= 0x010B00
+            QVariantMap m;
+            m["mac"] = uniqueid.toULongLong(&ok, 16);
+            m["key"] = mmoHash;
+            if (ok && mmoHash.size() == 32)
+            {
+                ok = deCONZ::ApsController::instance()->setParameter(deCONZ::ParamLinkKey, m);
+            }
+#endif
             QVariantMap rspItem;
             QVariantMap rspItemState;
             rspItemState["installcode"] = installCode;
+            rspItemState["mmohash"] = mmoHash;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
             rsp.httpStatus = HttpStatusOk;
@@ -179,7 +233,7 @@ int RestDevices::putDeviceInstallCode(const ApiRequest &req, ApiResponse &rsp)
         }
         else
         {
-            rsp.list.append(plugin->errorToMap(ERR_INVALID_VALUE, QString("/groups"), QString("invalid value, %1, for parameter, installcode").arg(installCode)));
+            rsp.list.append(plugin->errorToMap(ERR_INVALID_VALUE, QString("/devices"), QString("invalid value, %1, for parameter, installcode").arg(installCode)));
             rsp.httpStatus = HttpStatusBadRequest;
         }
     }

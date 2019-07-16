@@ -1279,6 +1279,14 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
             d->gwHomebridgeVersion = val;
         }
     }
+    else if (strcmp(colval[0], "homebridgeupdateversion") == 0)
+    {
+        if (!val.isEmpty())
+        {
+            d->gwConfig["homebridgeupdateversion"] = val;
+            d->gwHomebridgeUpdateVersion = val;
+        }
+    }
     else if (strcmp(colval[0], "homebridgeupdate") == 0)
     {
         if (!val.isEmpty())
@@ -2917,6 +2925,11 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             item = sensor.addItem(DataTypeInt32, RStateButtonEvent);
             item->setValue(0);
+
+            if (sensor.modelId().startsWith(QLatin1String("lumi.sensor_cube")))
+            {
+                sensor.addItem(DataTypeInt32, RStateGesture);
+            }
         }
         else if (sensor.type().endsWith(QLatin1String("LightLevel")))
         {
@@ -4028,6 +4041,7 @@ void DeRestPluginPrivate::saveDb()
         gwConfig["gwpassword"] = gwAdminPasswordHash;
         gwConfig["homebridge"] = gwHomebridge;
         gwConfig["homebridgeversion"] = gwHomebridgeVersion;
+        gwConfig["homebridgeupdateversion"] = gwHomebridgeUpdateVersion;
         gwConfig["homebridgeupdate"] = gwHomebridgeUpdate;
         gwConfig["homebridge-pin"] = gwHomebridgePin;
         gwConfig["updatechannel"] = gwUpdateChannel;
