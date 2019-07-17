@@ -1070,8 +1070,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                            sensor->modelId().startsWith(QLatin1String("ZHMS101"))))     // Wattle (Develco) magnetic sensor
         {
             rq.attributeId = 0x0020;   // battery voltage
-            rq.minInterval = 300;
-            rq.maxInterval = 43200;
+            rq.minInterval = 43200;    // according to technical manual
+            rq.maxInterval = 43200;    // according to technical manual
             rq.reportableChange8bit = 0;
         }
         else if (sensor && sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
