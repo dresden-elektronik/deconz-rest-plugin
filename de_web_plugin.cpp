@@ -6450,7 +6450,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 if (item && voltage != 65535)
                                 {
-                                    if (i->modelId() == QLatin1String("SmartPlug")) // Heiman
+									if (i->modelId() == QLatin1String("SmartPlug") || // Heiman
+										i->modelId() == QLatin1String("SPLZB-131")) // Develco
                                     {
                                         voltage += 50; voltage /= 100; // 0.01V -> V
                                     }
