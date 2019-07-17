@@ -196,8 +196,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "SPZB0001", jennicMacPrefix }, // Eurotronic thermostat
     { VENDOR_NONE, "RES001", tiMacPrefix }, // Hubitat environment sensor, see #1308
     { VENDOR_119C, "WL4200S", sinopeMacPrefix}, // Sinope water sensor
-	{ VENDOR_DEVELCO, "SMSZB-120", develcoMacPrefix }, // Develco smoke sensor
-	{ VENDOR_DEVELCO, "SPLZB-131", develcoMacPrefix }, // Develco smart plug
+    { VENDOR_DEVELCO, "SMSZB-120", develcoMacPrefix }, // Develco smoke sensor
+    { VENDOR_DEVELCO, "SPLZB-131", develcoMacPrefix }, // Develco smart plug
     { 0, nullptr, 0 }
 };
 
@@ -6480,8 +6480,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 if (item && voltage != 65535)
                                 {
-									if (i->modelId() == QLatin1String("SmartPlug") || // Heiman
-										i->modelId() == QLatin1String("SPLZB-131")) // Develco
+                                    if (i->modelId() == QLatin1String("SmartPlug") || // Heiman
+                                        i->modelId() == QLatin1String("SPLZB-131")) // Develco
                                     {
                                         voltage += 50; voltage /= 100; // 0.01V -> V
                                     }
@@ -8950,8 +8950,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
             checkMacVendor(ind.srcAddress(), VENDOR_OSRAM_STACK) ||
             checkMacVendor(ind.srcAddress(), VENDOR_JENNIC) ||
             checkMacVendor(ind.srcAddress(), VENDOR_SI_LABS) ||
-            checkMacVendor(ind.srcAddress(), VENDOR_CENTRALITE) ||
-            checkMacVendor(ind.srcAddress(), VENDOR_DEVELCO))
+            checkMacVendor(ind.srcAddress(), VENDOR_CENTRALITE))
     {
         // these sensors tend to mac data poll after report
         checkReporting = true;

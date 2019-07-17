@@ -1513,11 +1513,10 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->modelId().startsWith(QLatin1String("SMSZB-120"))) // Develco smoke sensor
         {
         }
+        else if (lightNode->modelId() == QLatin1String("SPLZB-131"))
+        {
+        }
         else
-		else if (lightNode->modelId() == QLatin1String("SPLZB-131"))
-		{
-		}
-		else
         {
             return;
         }
@@ -1722,9 +1721,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("LG IP65 HMS") ||
         // Sinope
         sensor->modelId() == QLatin1String("WL4200S") ||
-		// Develco
-		sensor->modelId() == QLatin1String("SPLZB-131"))
-	{
+        // Develco
+        sensor->modelId() == QLatin1String("SPLZB-131"))
+    {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||
             sensor->node()->nodeDescriptor().manufacturerCode() != VENDOR_DDEL)
