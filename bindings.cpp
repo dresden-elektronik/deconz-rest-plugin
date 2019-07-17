@@ -1065,6 +1065,13 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 3600;
             rq.reportableChange8bit = 0;
         }
+        else if (sensor && sensor->modelId().startsWith(QLatin1String("SMSZB-120")))
+        {
+            rq.attributeId = 0x0020;   // battery voltage
+            rq.minInterval = 43200;
+            rq.maxInterval = 43200;
+            rq.reportableChange8bit = 0;
+        }
         else if (sensor && sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
         {
             rq.minInterval = 7200;       // same as Hue motion sensor
@@ -1503,6 +1510,10 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->modelId().startsWith(QLatin1String("ICZB-"))) // iCasa Dimmer and Switch
         {
         }
+        else if (lightNode->modelId().startsWith(QLatin1String("SMSZB-120"))) // Develco smoke sensor
+        {
+        }
+        else
 		else if (lightNode->modelId() == QLatin1String("SPLZB-131"))
 		{
 		}
@@ -1530,6 +1541,7 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         case ONOFF_CLUSTER_ID:
         case LEVEL_CLUSTER_ID:
         case COLOR_CLUSTER_ID:
+        case IAS_ZONE_CLUSTER_ID:
         case FAN_CONTROL_CLUSTER_ID:
         {
             bool bindingExists = false;
@@ -1704,6 +1716,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("water")) ||
         // Bitron
         sensor->modelId().startsWith(QLatin1String("902010")) ||
+        // Develco
+        sensor->modelId().startsWith(QLatin1String("SMSZB-120")) ||
         // LG
         sensor->modelId() == QLatin1String("LG IP65 HMS") ||
         // Sinope
@@ -1807,7 +1821,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             {
                 val = sensor->getZclValue(*i, 0x0035); // battery alarm mask
             }
-            else if (sensor->modelId() == QLatin1String("Motion Sensor-A"))
+            else if (sensor->modelId() == QLatin1String("Motion Sensor-A") || sensor->modelId() == QLatin1String("SMSZB-120"))
             {
                 val = sensor->getZclValue(*i, 0x0020); // battery voltage
             }

@@ -434,6 +434,7 @@ void PollManager::pollTimerFired()
                 lightNode->manufacturerCode() == VENDOR_EMBER ||
                 lightNode->manufacturerCode() == VENDOR_120B ||
                 lightNode->manufacturerCode() == VENDOR_115F ||
+                lightNode->manufacturerCode() == VENDOR_DEVELCO ||
                 lightNode->manufacturer().startsWith(QLatin1String("Climax")) ||
                 lightNode->manufacturer() == QLatin1String("SZ"))
             {

@@ -31,6 +31,13 @@
 #define S_BUTTON_ACTION_TILT            9
 #define S_BUTTON_ACTION_MANY_PRESS      10
 
+#define GESTURE_SHAKE           1
+#define GESTURE_DROP            2
+#define GESTURE_FLIP_90         3
+#define GESTURE_FLIP_180        4
+#define GESTURE_PUSH            5
+#define GESTURE_DOUBLE_TAP      6
+
 #define S_BUTTON_1   1000
 #define S_BUTTON_2   2000
 #define S_BUTTON_3   3000

@@ -74,6 +74,7 @@ void DeRestPluginPrivate::initConfig()
     gwWifiPageActive = false;
     gwHomebridge = QLatin1String("not-managed");
     gwHomebridgeVersion = QString();
+    gwHomebridgeUpdateVersion = QString();
     gwHomebridgeUpdate = false;
     gwHomebridgePin = QString();
     gwRgbwDisplay = "1";
@@ -948,6 +949,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         map["homebridge"] = gwHomebridge;
         map["homebridgepin"] = gwHomebridgePin;
         map["homebridgeversion"] = gwHomebridgeVersion;
+        map["homebridgeupdateversion"] = gwHomebridgeUpdateVersion;
         map["homebridgeupdate"] = gwHomebridgeUpdate;
 #else
         map["wifi"] = QLatin1String("not-available");
@@ -3361,6 +3363,7 @@ int DeRestPluginPrivate::putHomebridgeUpdated(const ApiRequest &req, ApiResponse
     QString homebridge;
     QString homebridgePin;
     QString homebridgeVersion;
+    QString homebridgeUpdateVersion;
     bool changed = false;
 
     if (map.contains("homebridge"))
@@ -3426,6 +3429,16 @@ int DeRestPluginPrivate::putHomebridgeUpdated(const ApiRequest &req, ApiResponse
         if (gwHomebridgeVersion != homebridgeVersion)
         {
             gwHomebridgeVersion = homebridgeVersion;
+            changed = true;
+        }
+    }
+
+    if (map.contains("homebridgeupdateversion"))
+    {
+        homebridgeUpdateVersion = map["homebridgeupdateversion"].toString();
+        if (gwHomebridgeUpdateVersion != homebridgeUpdateVersion)
+        {
+            gwHomebridgeUpdateVersion = homebridgeUpdateVersion;
             changed = true;
         }
     }

@@ -101,6 +101,7 @@ void LightNode::setManufacturerCode(uint16_t code)
         case VENDOR_EMBER:   // fall through
         case VENDOR_120B:    name = QLatin1String("Heiman"); break;
         case VENDOR_KEEN_HOME: name = QLatin1String("Keen Home Inc"); break;
+        case VENDOR_DEVELCO: name = QLatin1String("Develco Products A/S"); break;
         default:
             name = QLatin1String("Unknown");
             break;
@@ -344,16 +345,6 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
         isInitialized = item(RStateColorMode) != nullptr;
     }
 
-    if (manufacturerCode() == VENDOR_PHILIPS && endpoint.deviceId() == DEV_ID_HA_ONOFF_LIGHT)
-    {
-        // This could be an iCasa in-wall switch
-        if (modelId().isEmpty())
-        {
-            return; // wait until known
-        }
-        isInitialized = type().length() > 0;
-    }
-
     // initial setup
     if (!isInitialized)
     {
@@ -370,7 +361,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 {
                     if ((manufacturerCode() == VENDOR_IKEA && endpoint.deviceId() == DEV_ID_Z30_ONOFF_PLUGIN_UNIT) || // IKEA Tradfri control outlet
                         (manufacturerCode() == VENDOR_INNR && endpoint.deviceId() == DEV_ID_ZLL_ONOFF_PLUGIN_UNIT) || // innr SP120 smart plug
-                        (modelId() == QLatin1String("ICZB-IW11SW"))) // iCasa in-wall switch
+                        (manufacturerCode() == VENDOR_PHILIPS && endpoint.deviceId() == DEV_ID_HA_ONOFF_LIGHT && endpoint.profileId() == HA_PROFILE_ID)) // iCasa in-wall switch
                     { } // skip state.bri not supported
                     else
                     {
@@ -517,6 +508,8 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
             case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT: ltype = QLatin1String("Color temperature light"); break;
             case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT: ltype = QLatin1String("Color temperature light"); break;
             case DEV_ID_XIAOMI_SMART_PLUG:           ltype = QLatin1String("Smart plug"); break;
+            case DEV_ID_IAS_ZONE:                    removeItem(RStateOn);
+                                                     ltype = QLatin1String("Warning device"); break;
             case DEV_ID_IAS_WARNING_DEVICE:          removeItem(RStateOn);
                                                      ltype = QLatin1String("Warning device"); break;
             case DEV_ID_HA_WINDOW_COVERING_DEVICE:   ltype = QLatin1String("Window covering device"); break;

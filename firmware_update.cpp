@@ -22,8 +22,6 @@
 #define FW_WAIT_UPDATE_READY (2) //s
 #define FW_IDLE_TIMEOUT_LONG (240 * 1000)
 #define FW_WAIT_USER_TIMEOUT (120 * 1000)
-#define FW_ONLY_AVR_BOOTLOADER 1
-#define FW_ONLY_R21_BOOTLOADER 2
 
 /*! Inits the firmware update manager.
  */
@@ -412,9 +410,11 @@ void DeRestPluginPrivate::queryFirmwareVersion()
     {
         // if even after some time no firmware was detected
         // ASSUME that a device is present and reachable but might not have firmware installed
-        if (gwDeviceName == QLatin1String("ConBee II"))
+        if (fwDeviceName == QLatin1String("ConBee II"))
         {
             // ignore
+            fwUpdateState = FW_Idle;
+            fwUpdateTimer->start(FW_IDLE_TIMEOUT_LONG);
         }
         else if (getUptime() >= FW_WAIT_UPDATE_READY)
         {

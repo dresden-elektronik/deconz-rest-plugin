@@ -51,6 +51,7 @@ const char *RStateDaylight = "state/daylight";
 const char *RStateEffect = "state/effect";
 const char *RStateFire = "state/fire";
 const char *RStateFlag = "state/flag";
+const char *RStateGesture = "state/gesture";
 const char *RStateHue = "state/hue";
 const char *RStateHumidity = "state/humidity";
 const char *RStateLastUpdated = "state/lastupdated";
@@ -172,6 +173,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateEffect));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateFire));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateFlag));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt32, RStateGesture));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateHue));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateHumidity, 0, 10000));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RStateLastUpdated));

@@ -453,9 +453,9 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == xalMacPrefix;
         case VENDOR_SAMJIN:
             return prefix == samjinMacPrefix;
-		case VENDOR_DEVELCO:
-			return prefix == develcoMacPrefix;
-		default:
+        case VENDOR_DEVELCO:
+            return prefix == develcoMacPrefix;
+        default:
             return false;
     }
 }
@@ -1432,6 +1432,7 @@ public:
     QString gwHomebridge;
     QString gwHomebridgePin;
     QString gwHomebridgeVersion;
+    QString gwHomebridgeUpdateVersion;
     bool gwHomebridgeUpdate;
     QString gwName;
     bool gwLANBridgeId;
