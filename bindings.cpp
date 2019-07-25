@@ -1822,7 +1822,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             else if (sensor->modelId() == QLatin1String("Motion Sensor-A") ||
                      sensor->modelId() == QLatin1String("SMSZB-120") ||
                      sensor->modelId() == QLatin1String("WISZB-120") ||
-                     sensor->modelId().startsWith(QLatin1String("ZHMS101"))
+                     sensor->modelId().startsWith(QLatin1String("ZHMS101")))
             {
                 val = sensor->getZclValue(*i, 0x0020); // battery voltage
             }
