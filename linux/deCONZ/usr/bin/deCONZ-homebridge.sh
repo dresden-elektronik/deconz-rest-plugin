@@ -5,6 +5,7 @@ SQL_RESULT=
 MAINUSER=$(getent passwd 1000 | cut -d: -f1)
 OWN_PID=$$
 DECONZ_CONF_DIR="/home/$MAINUSER/.local/share"
+DECONZ_DATA_DIR=""
 DECONZ_PORT=
 BRIDGEID=
 LAST_MAX_TIMESTAMP=0
@@ -60,6 +61,8 @@ function init {
 	for i in "${drs[@]}"; do
 		if [ -f "${DECONZ_CONF_DIR}/$i" ]; then
 			ZLLDB="${DECONZ_CONF_DIR}/$i"
+			DECONZ_DATA_DIR="/home/$MAINUSER/.local/share/${i::-7}"
+            [[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}deconz data dir: $DECONZ_DATA_DIR"
 			break
 		fi
 	done
@@ -372,6 +375,24 @@ function checkHomebridge {
 				sed -i "/\"pin\":/c\    \"pin\": \"${HB_PIN}\"" /home/$MAINUSER/.homebridge/config.json
 				updated=true
 			fi
+			## check for backuped homebridge data copy it to persist dir and restart homebridge
+			for filename in $DECONZ_DATA_DIR/*; do
+			   if [ -f "$filename" ]; then
+		            file="${filename##*/}"
+		            if [[ "$file" == AccessoryInfo* ]]; then
+		                [[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}found backup of accessoryInfo - copy it to homebridge persist dir"
+		                mkdir -p "/home/pi/.homebridge/persist"
+		                mv "$DECONZ_DATA_DIR/$file" "/home/pi/.homebridge/persist/$file"
+						updated=true
+		            fi
+		            if [[ "$file" == IdentifierCache* ]]; then
+		                [[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}found backup of IdentifierCache - copy it to homebridge persist dir"
+		                mkdir -p "/home/pi/.homebridge/persist"
+		                mv "$DECONZ_DATA_DIR/$file" "/home/pi/.homebridge/persist/$file"
+		                updated=true
+		            fi
+			   fi
+			done
 			if [[ $updated = true ]]; then
 				putHomebridgeUpdated "homebridge" "updated"
 			else
@@ -425,6 +446,24 @@ function checkHomebridge {
 
 		chown $MAINUSER /home/$MAINUSER/.homebridge/config.json
 	fi
+
+	## check for backuped homebridge data before homebridge starts
+	for filename in $DECONZ_DATA_DIR/*; do
+	   if [ -f "$filename" ]; then
+            file="${filename##*/}"
+            if [[ "$file" == AccessoryInfo* ]]; then
+                [[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}found accessoryInfo - copy it to homebridge persist dir"
+                mkdir -p "/home/pi/.homebridge/persist"
+                mv "$DECONZ_DATA_DIR/$file" "/home/pi/.homebridge/persist/$file"
+
+            fi
+            if [[ "$file" == IdentifierCache* ]]; then
+                [[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}found IdentifierCache - copy it to homebridge persist dir"
+                mkdir -p "/home/pi/.homebridge/persist"
+                mv "$DECONZ_DATA_DIR/$file" "/home/pi/.homebridge/persist/$file"
+            fi
+	   fi
+	done
 
 	## start homebridge
 	systemctl -q is-active homebridge
