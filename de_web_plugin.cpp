@@ -15242,7 +15242,7 @@ bool DeRestPluginPrivate::exportConfiguration()
                 FirstFileName = files.at(0);
                 DBG_Printf(DBG_INFO, "copy file: %s to backup directory\n", qPrintable(FirstFileName));
                 QFile accessoryFile(homebridgePersistPath + "/" + FirstFileName);
-                if (!accessoryFile.copy(appPath + "/" + FirstFileName))
+                if (!accessoryFile.copy(path + "/" + FirstFileName))
                 {
                     DBG_Printf(DBG_INFO, "copy file: %s failed. Do not include it in backup\n", qPrintable(FirstFileName));
                     FirstFileName = "";
@@ -15255,7 +15255,7 @@ bool DeRestPluginPrivate::exportConfiguration()
                 SecondFileName = files.at(1);
                 DBG_Printf(DBG_INFO, "copy file: %s to backup directory\n", qPrintable(SecondFileName));
                 QFile IdentifierFile(homebridgePersistPath + "/" + SecondFileName);
-                if (!IdentifierFile.copy(appPath + "/" + SecondFileName))
+                if (!IdentifierFile.copy(path + "/" + SecondFileName))
                 {
                     DBG_Printf(DBG_INFO, "copy file: %s failed. Do not include it in backup\n", qPrintable(SecondFileName));
                     SecondFileName = "";
