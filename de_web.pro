@@ -93,8 +93,6 @@ DEFINES += GW_MIN_DERFUSB23E0X_FW_VERSION=0x22030300
 
 DEFINES += GW_DEFAULT_NAME=\\\"Phoscon-GW\\\"
 
-QMAKE_CXXFLAGS += -Wno-attributes
-
 HEADERS  = bindings.h \
            connectivity.h \
            colorspace.h \
