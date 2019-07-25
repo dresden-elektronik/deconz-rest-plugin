@@ -14,6 +14,7 @@ unix:contains(QMAKE_HOST.arch, armv7l) {
 }
 
 QMAKE_CXXFLAGS += -Wno-attributes \
+                  -Wno-psabi \
                   -Wall
 
 CONFIG(debug, debug|release) {
