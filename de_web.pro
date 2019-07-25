@@ -64,7 +64,7 @@ INCLUDEPATH    += ../.. \
 # TAG is specified by auto build system
 # this is needed since non head versions which are checkedout and build
 # will have a revision different to HEAD
-GIT_TAG=$$(TAG)
+GIT_TAG=$$TAG
 
 isEmpty(GIT_TAG) {
     GIT_TAG=HEAD # default
@@ -78,7 +78,7 @@ GIT_COMMIT_DATE = $$system("git show -s --format=%ct $$GIT_TAG")
 DEFINES += GW_SW_VERSION=\\\"2.05.66\\\"
 DEFINES += GW_SW_DATE=$$GIT_COMMIT_DATE
 DEFINES += GW_API_VERSION=\\\"1.16.0\\\"
-DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\" \
+DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\"
 
 # Minimum version of the RaspBee firmware
 # which shall be used in order to support all features for this software release (case sensitive)
