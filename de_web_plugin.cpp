@@ -15431,42 +15431,6 @@ bool DeRestPluginPrivate::importConfiguration()
         DBG_Printf(DBG_INFO, "%s\n", qPrintable(zipProcess->readAllStandardOutput()));
         zipProcess->deleteLater();
         zipProcess = nullptr;
-
-#ifdef Q_OS_LINUX
-        // copy imported homebridge files to homebridge dir
-        const QString homebridgePersistPath = "/home/pi/.homebridge/persist"; // TODO: get mainuser
-
-        QString FirstFileName ="";
-        QString SecondFileName ="";
-
-        QDir dir(path);
-        QStringList files = dir.entryList(filters);
-
-        if (files.size() > 0)
-        {
-            FirstFileName = files.at(0);
-            DBG_Printf(DBG_INFO, "copy file: %s to homebridge directory\n", qPrintable(FirstFileName));
-            QFile accessoryFile(path + "/" + FirstFileName);
-            if (!accessoryFile.copy(homebridgePersistPath + "/" + FirstFileName))
-            {
-                DBG_Printf(DBG_INFO, "copy file: %s failed. import homebridge backup failed.\n", qPrintable(FirstFileName));
-                FirstFileName = "";
-                return false;
-            }
-        }
-        if (files.size() > 1)
-        {
-            SecondFileName = files.at(1);
-            DBG_Printf(DBG_INFO, "copy file: %s to homebridge directory\n", qPrintable(SecondFileName));
-            QFile IdentifierFile(path + "/" + SecondFileName);
-            if (!IdentifierFile.copy(homebridgePersistPath + "/" + SecondFileName))
-            {
-                DBG_Printf(DBG_INFO, "copy file: %s failed. import homebridge backup failed.\n", qPrintable(SecondFileName));
-                SecondFileName = "";
-                return false;
-            }
-        }
-#endif
     }
 
     bool ok = false;
