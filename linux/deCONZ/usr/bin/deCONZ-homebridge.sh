@@ -375,24 +375,6 @@ function checkHomebridge {
 				sed -i "/\"pin\":/c\    \"pin\": \"${HB_PIN}\"" /home/$MAINUSER/.homebridge/config.json
 				updated=true
 			fi
-			## check for backuped homebridge data copy it to persist dir and restart homebridge
-			for filename in $DECONZ_DATA_DIR/*; do
-			   if [ -f "$filename" ]; then
-		            file="${filename##*/}"
-		            if [[ "$file" == AccessoryInfo* ]]; then
-		                [[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}found backup of accessoryInfo - copy it to homebridge persist dir"
-		                mkdir -p "/home/pi/.homebridge/persist"
-		                mv "$DECONZ_DATA_DIR/$file" "/home/pi/.homebridge/persist/$file"
-						updated=true
-		            fi
-		            if [[ "$file" == IdentifierCache* ]]; then
-		                [[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}found backup of IdentifierCache - copy it to homebridge persist dir"
-		                mkdir -p "/home/pi/.homebridge/persist"
-		                mv "$DECONZ_DATA_DIR/$file" "/home/pi/.homebridge/persist/$file"
-		                updated=true
-		            fi
-			   fi
-			done
 			if [[ $updated = true ]]; then
 				putHomebridgeUpdated "homebridge" "updated"
 			else
@@ -448,21 +430,23 @@ function checkHomebridge {
 	fi
 
 	## check for backuped homebridge data before homebridge starts
+	local restart=false
 	for filename in $DECONZ_DATA_DIR/*; do
-	   if [ -f "$filename" ]; then
+	    if [ -f "$filename" ]; then
             file="${filename##*/}"
             if [[ "$file" == AccessoryInfo* ]]; then
                 [[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}found accessoryInfo - copy it to homebridge persist dir"
                 mkdir -p "/home/pi/.homebridge/persist"
                 mv "$DECONZ_DATA_DIR/$file" "/home/pi/.homebridge/persist/$file"
-
+                restart=true
             fi
             if [[ "$file" == IdentifierCache* ]]; then
                 [[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}found IdentifierCache - copy it to homebridge persist dir"
                 mkdir -p "/home/pi/.homebridge/persist"
                 mv "$DECONZ_DATA_DIR/$file" "/home/pi/.homebridge/persist/$file"
+                restart=true
             fi
-	   fi
+	    fi
 	done
 
 	## start homebridge
@@ -471,6 +455,11 @@ function checkHomebridge {
 		[[ $LOG_INFO ]] && echo "${LOG_INFO}another homebridge service is already running"
 		return
 	fi
+
+	if [[ $restart = true ]]; then
+        pkill homebridge
+        sleep 5
+    fi
 
 	process=$(ps -ax | grep " homebridge$")
 	if [ -z "$process" ]; then
