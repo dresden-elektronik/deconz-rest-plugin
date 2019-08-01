@@ -198,6 +198,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "RES001", tiMacPrefix }, // Hubitat environment sensor, see #1308
     { VENDOR_119C, "WL4200S", sinopeMacPrefix}, // Sinope water sensor
     { VENDOR_DEVELCO, "SMSZB-120", develcoMacPrefix }, // Develco smoke sensor
+    { VENDOR_NONE, "RICI01", tiMacPrefix}, // LifeControl smart plug
     { 0, nullptr, 0 }
 };
 
@@ -6462,6 +6463,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         power = power == 28000 ? 0 : power / 10;
                                     }
+                                    else if (i->modelId() == QLatin1String("RICI01")) //LifeControl Smart Plug
+                                    {
+                                        power /= 10; // 0.1W -> W
+                                    }
                                     item->setValue(power); // in W
                                     enqueueEvent(Event(RSensors, RStatePower, i->id(), item));
                                     updated = true;
@@ -6483,6 +6488,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     if (i->modelId() == QLatin1String("SmartPlug")) // Heiman
                                     {
                                         voltage += 50; voltage /= 100; // 0.01V -> V
+                                    }
+                                    else if (i->modelId() == QLatin1String("RICI01")) //LifeControl Smart Plug
+                                    {
+                                        voltage /= 10; // 0.1V -> V
                                     }
                                     item->setValue(voltage); // in V
                                     enqueueEvent(Event(RSensors, RStateVoltage, i->id(), item));
@@ -6509,6 +6518,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     else if (i->modelId() == QLatin1String("SmartPlug")) // Heiman
                                     {
                                         current *= 10; // 0.01A -> mA
+                                    }
+                                    else if (i->modelId() == QLatin1String("RICI01")) //LifeControl Smart Plug
+                                    {
+                                        current /=1000; // uA -> mA
                                     }
                                     else
                                     {

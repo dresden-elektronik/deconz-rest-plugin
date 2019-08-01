@@ -1513,6 +1513,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->modelId().startsWith(QLatin1String("SMSZB-120"))) // Develco smoke sensor
         {
         }
+        else if (lightNode->modelId().startsWith(QLatin1String("RICI01"))) //LifeControl SmartPlug
+        {
+        }
         else
         {
             return;
@@ -1717,7 +1720,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // LG
         sensor->modelId() == QLatin1String("LG IP65 HMS") ||
         // Sinope
-        sensor->modelId() == QLatin1String("WL4200S"))
+        sensor->modelId() == QLatin1String("WL4200S") ||
+        //LifeControl SmartPlug
+        sensor->modelID() == QLatin1String("RICI01"))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||
