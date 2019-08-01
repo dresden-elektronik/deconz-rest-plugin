@@ -6521,7 +6521,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     }
                                     else if (i->modelId() == QLatin1String("RICI01")) //LifeControl Smart Plug
                                     {
-                                        current /=1000; // uA -> mA
+                                        current /= 1000; // uA -> mA
                                     }
                                     else
                                     {
