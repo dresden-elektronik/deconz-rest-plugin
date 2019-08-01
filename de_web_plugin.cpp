@@ -6388,6 +6388,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     consumption *= 10; // 0.01 kWh = 10 Wh -> Wh
                                 }
+                                else if (i->modelId() == QLatin1String("RICI01")) // LifeControl smart plug
+                                {
+                                    consumption /= 1000; // 0.001 Wh -> Wh
+                                }
 
                                 if (item)
                                 {
