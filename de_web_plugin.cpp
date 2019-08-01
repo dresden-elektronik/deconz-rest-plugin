@@ -91,34 +91,6 @@ const quint64 lutronMacPrefix     = 0xffff000000000000ULL;
 
 struct SupportedDevice {
     quint16 vendorId;
-    const char *modelId;
-    quint64 mac;
-};
-
-static const SupportedDevice supportedDevices[] = {
-    { VENDOR_BUSCH_JAEGER, "RB01", bjeMacPrefix },
-    { VENDOR_BUSCH_JAEGER, "RM01", bjeMacPrefix },
-    { VENDOR_BOSCH, "ISW-ZDL1-WP11G", boschMacPrefix },
-    { VENDOR_BOSCH, "ISW-ZPR1-WP13", boschMacPrefix },
-    { VENDOR_CENTRALITE, "Motion Sensor-A", emberMacPrefix },
-    { VENDOR_CENTRALITE, "3321-S", emberMacPrefix }, // Centralite multipurpose sensor
-    { VENDOR_CENTRALITE, "3325-S", emberMacPrefix }, // Centralite motion sensor
-//    { VENDOR_CENTRALITE, "3326-L", emberMacPrefix }, // Iris motion sensor
-    { VENDOR_CENTRALITE, "3328-G", emberMacPrefix }, // Centralite micro motion sensor
-    { VENDOR_NONE, "LM_",  tiMacPrefix },
-    { VENDOR_NONE, "LMHT_", tiMacPrefix },
-    { VENDOR_NONE, "IR_", tiMacPrefix },
-    { VENDOR_NONE, "DC_", tiMacPrefix },
-    { VENDOR_NONE, "BX_", tiMacPrefix }, // Climax siren
-    { VENDOR_NONE, "PSMD_", tiMacPrefix }, // Climax smart plug
-    { VENDOR_NONE, "PSMP5_", tiMacPrefix }, // Climax smart plug
-    { VENDOR_NONE, "OJB-IR715-Z", tiMacPrefix },
-    { VENDOR_NONE, "902010/21", tiMacPrefix }, // Bitron: door/window sensor
-    { VENDOR_NONE, "902010/22", tiMacPrefix }, // Bitron: motion sensor
-    { VENDOR_NONE, "902010/24", tiMacPrefix }, // Bitron: smoke detector
-    { VENDOR_NONE, "902010/25", tiMacPrefix }, // Bitron: smart plug
-    { VENDOR_BITRON, "902010/32", emberMacPrefix }, // Bitron: thermostat
-    { VENDOR_DDEL, "Lighting Switch", deMacPrefix },
     { VENDOR_DDEL, "Scene Switch", deMacPrefix },
     { VENDOR_DDEL, "FLS-NB1", deMacPrefix },
     { VENDOR_DDEL, "FLS-NB2", deMacPrefix },
