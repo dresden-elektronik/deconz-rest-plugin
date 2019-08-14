@@ -436,14 +436,14 @@ function checkHomebridge {
             file="${filename##*/}"
             if [[ "$file" == AccessoryInfo* ]]; then
                 [[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}found accessoryInfo - copy it to homebridge persist dir"
-                mkdir -p "/home/pi/.homebridge/persist"
-                mv "$DECONZ_DATA_DIR/$file" "/home/pi/.homebridge/persist/$file"
+                mkdir -p "/home/$MAINUSER/.homebridge/persist"
+                mv "$DECONZ_DATA_DIR/$file" "/home/$MAINUSER/.homebridge/persist/$file"
                 restart=true
             fi
             if [[ "$file" == IdentifierCache* ]]; then
                 [[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}found IdentifierCache - copy it to homebridge persist dir"
-                mkdir -p "/home/pi/.homebridge/persist"
-                mv "$DECONZ_DATA_DIR/$file" "/home/pi/.homebridge/persist/$file"
+                mkdir -p "/home/$MAINUSER/.homebridge/persist"
+                mv "$DECONZ_DATA_DIR/$file" "/home/$MAINUSER/.homebridge/persist/$file"
                 restart=true
             fi
 	    fi
