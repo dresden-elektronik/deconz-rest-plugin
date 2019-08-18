@@ -1065,11 +1065,13 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 3600;
             rq.reportableChange8bit = 0;
         }
-        else if (sensor && sensor->modelId().startsWith(QLatin1String("SMSZB-120")))
+        else if (sensor && (sensor->modelId().startsWith(QLatin1String("SMSZB-120")) || // Develco smoke sensor
+                           sensor->modelId().startsWith(QLatin1String("WISZB-120")) ||  // Develco window sensor
+                           sensor->modelId().startsWith(QLatin1String("ZHMS101"))))     // Wattle (Develco) magnetic sensor
         {
             rq.attributeId = 0x0020;   // battery voltage
-            rq.minInterval = 43200;
-            rq.maxInterval = 43200;
+            rq.minInterval = 43200;    // according to technical manual
+            rq.maxInterval = 43200;    // according to technical manual
             rq.reportableChange8bit = 0;
         }
         else if (sensor && sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
@@ -1713,7 +1715,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Bitron
         sensor->modelId().startsWith(QLatin1String("902010")) ||
         // Develco
-        sensor->modelId().startsWith(QLatin1String("SMSZB-120")) ||
+        sensor->modelId().startsWith(QLatin1String("SMSZB-120")) || // smoke sensor
+        sensor->modelId().startsWith(QLatin1String("WISZB-120")) || // window sensor
+        sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||   // Wattle (Develco) magnetic sensor
         // LG
         sensor->modelId() == QLatin1String("LG IP65 HMS") ||
         // Sinope
@@ -1815,7 +1819,10 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             {
                 val = sensor->getZclValue(*i, 0x0035); // battery alarm mask
             }
-            else if (sensor->modelId() == QLatin1String("Motion Sensor-A") || sensor->modelId() == QLatin1String("SMSZB-120"))
+            else if (sensor->modelId() == QLatin1String("Motion Sensor-A") ||
+                     sensor->modelId() == QLatin1String("SMSZB-120") ||
+                     sensor->modelId() == QLatin1String("WISZB-120") ||
+                     sensor->modelId().startsWith(QLatin1String("ZHMS101")))
             {
                 val = sensor->getZclValue(*i, 0x0020); // battery voltage
             }
