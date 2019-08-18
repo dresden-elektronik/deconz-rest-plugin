@@ -88,6 +88,7 @@ const quint64 energyMiMacPrefix   = 0xd0cf5e0000000000ULL;
 const quint64 bjeMacPrefix        = 0xd85def0000000000ULL;
 const quint64 xalMacPrefix        = 0xf8f0050000000000ULL;
 const quint64 lutronMacPrefix     = 0xffff000000000000ULL;
+const quint64 konkeMacPrefix      = 0x086bd70000000000ULL;
 
 struct SupportedDevice {
     quint16 vendorId;
@@ -198,6 +199,12 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "RES001", tiMacPrefix }, // Hubitat environment sensor, see #1308
     { VENDOR_119C, "WL4200S", sinopeMacPrefix}, // Sinope water sensor
     { VENDOR_DEVELCO, "SMSZB-120", develcoMacPrefix }, // Develco smoke sensor
+    { VENDOR_DEVELCO, "SPLZB-131", develcoMacPrefix }, // Develco smart plug
+    { VENDOR_DEVELCO, "WISZB-120", develcoMacPrefix }, // Develco window sensor
+    { VENDOR_DEVELCO, "ZHMS101", develcoMacPrefix }, // Wattle (Develco) magnetic sensor
+    { VENDOR_EMBER, "3AFE14010402000D", konkeMacPrefix }, // Konke Kit Pro-BS Motion Sensor
+    { VENDOR_EMBER, "3AFE140103020000", konkeMacPrefix }, // Konke Kit Pro-FT Temp Humidity Sensor
+    { VENDOR_EMBER, "3AFE130104020015", konkeMacPrefix }, // Konke Kit Pro-Door Entry Sensor
     { VENDOR_NONE, "RICI01", tiMacPrefix}, // LifeControl smart plug
     { 0, nullptr, 0 }
 };
@@ -3609,11 +3616,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         fpCarbonMonoxideSensor.inClusters.push_back(ci->id());
                     }
                     else if (modelId.startsWith(QLatin1String("DOOR_")) ||            // Heiman door/window sensor
+                             modelId == QLatin1String("3AFE130104020015") ||          // Konke door/window sensor
                              modelId.startsWith(QLatin1String("902010/21")))          // Bitron door/window sensor
                     {
                         fpOpenCloseSensor.inClusters.push_back(ci->id());
                     }
                     else if (modelId.startsWith(QLatin1String("PIR_")) ||             // Heiman motion sensor
+                             modelId == QLatin1String("3AFE14010402000D") ||          // Konke motion sensor
                              modelId.startsWith(QLatin1String("902010/22")))          // Bitron motion sensor
                     {
                         fpPresenceSensor.inClusters.push_back(ci->id());
@@ -6489,7 +6498,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 if (item && voltage != 65535)
                                 {
-                                    if (i->modelId() == QLatin1String("SmartPlug")) // Heiman
+                                    if (i->modelId() == QLatin1String("SmartPlug") || // Heiman
+                                        i->modelId() == QLatin1String("SPLZB-131")) // Develco
                                     {
                                         voltage += 50; voltage /= 100; // 0.01V -> V
                                     }
@@ -15375,6 +15385,33 @@ bool DeRestPluginPrivate::importConfiguration()
             }
         }
     }
+
+#ifdef Q_OS_LINUX
+    // clean up old homebridge backup files
+    QStringList filters;
+    filters << "AccessoryInfo*";
+    filters << "IdentifierCache*";
+
+     QDir appDir(path);
+     QStringList files = appDir.entryList(filters);
+
+     for (QString f : files)
+     {
+         const QString filePath = path + "/" + f;
+         if (QFile::exists(filePath))
+         {
+             if (QFile::remove(filePath))
+             {
+                 DBG_Printf(DBG_INFO, "backup: removed temporary homebridge file %s\n", qPrintable(filePath));
+             }
+             else
+             {
+                 DBG_Printf(DBG_ERROR, "backup: failed to remove temporary homebridge file %s\n", qPrintable(filePath));
+                 return false;
+             }
+         }
+     }
+ #endif
 
     if (QFile::exists(path + QLatin1String("/deCONZ.tar.gz")))
     {
