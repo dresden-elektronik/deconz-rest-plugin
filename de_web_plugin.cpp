@@ -23,6 +23,7 @@
 #include <QUrl>
 #include <QCryptographicHash>
 #include <QFile>
+#include <QDir>
 #include <QProcess>
 #include <QSettings>
 #include <queue>
@@ -198,6 +199,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_119C, "WL4200S", sinopeMacPrefix}, // Sinope water sensor
     { VENDOR_DEVELCO, "SMSZB-120", develcoMacPrefix }, // Develco smoke sensor
     { VENDOR_DEVELCO, "SPLZB-131", develcoMacPrefix }, // Develco smart plug
+    { VENDOR_DEVELCO, "WISZB-120", develcoMacPrefix }, // Develco window sensor
+    { VENDOR_DEVELCO, "ZHMS101", develcoMacPrefix }, // Wattle (Develco) magnetic sensor
     { 0, nullptr, 0 }
 };
 
@@ -15200,8 +15203,72 @@ bool DeRestPluginPrivate::exportConfiguration()
         args.append(path + "/session.default");
         archProcess->start(cmd, args);
 #endif
+
 #ifdef Q_OS_LINUX
-        archProcess->start("tar -cf " + path + "/deCONZ.tar -C " + path + " deCONZ.conf zll.db session.default");
+        // clean up old homebridge backup files
+        QStringList filters;
+        filters << "AccessoryInfo*";
+        filters << "IdentifierCache*";
+
+         QDir appDir(path);
+         QStringList files = appDir.entryList(filters);
+
+         for (QString f : files)
+         {
+             const QString filePath = path + "/" + f;
+             if (QFile::exists(filePath))
+             {
+                 if (QFile::remove(filePath))
+                 {
+                     DBG_Printf(DBG_INFO, "backup: removed temporary homebridge file %s\n", qPrintable(filePath));
+                 }
+                 else
+                 {
+                     DBG_Printf(DBG_ERROR, "backup: failed to remove temporary homebridge file %s\n", qPrintable(filePath));
+                     return false;
+                 }
+             }
+         }
+
+        // backup homebridge files
+        const QString homebridgePersistPath = "/home/pi/.homebridge/persist"; // TODO: get mainuser
+
+        QString FirstFileName ="";
+        QString SecondFileName ="";
+
+        QDir dir(homebridgePersistPath);
+        if (dir.exists())
+        {
+            QStringList files = dir.entryList(filters);
+
+            if (files.size() > 0)
+            {
+                FirstFileName = files.at(0);
+                DBG_Printf(DBG_INFO, "copy file: %s to backup directory\n", qPrintable(FirstFileName));
+                QFile accessoryFile(homebridgePersistPath + "/" + FirstFileName);
+                if (!accessoryFile.copy(path + "/" + FirstFileName))
+                {
+                    DBG_Printf(DBG_INFO, "copy file: %s failed. Do not include it in backup\n", qPrintable(FirstFileName));
+                    FirstFileName = "";
+                    return false;
+                }
+
+            }
+            if (files.size() > 1)
+            {
+                SecondFileName = files.at(1);
+                DBG_Printf(DBG_INFO, "copy file: %s to backup directory\n", qPrintable(SecondFileName));
+                QFile IdentifierFile(homebridgePersistPath + "/" + SecondFileName);
+                if (!IdentifierFile.copy(path + "/" + SecondFileName))
+                {
+                    DBG_Printf(DBG_INFO, "copy file: %s failed. Do not include it in backup\n", qPrintable(SecondFileName));
+                    SecondFileName = "";
+                    return false;
+                }
+            }
+        }
+
+        archProcess->start("tar -cf " + path + "/deCONZ.tar -C " + path + " deCONZ.conf zll.db session.default " + FirstFileName + " " + SecondFileName);
 #endif
         archProcess->waitForFinished(EXT_PROCESS_TIMEOUT);
         DBG_Printf(DBG_INFO, "%s\n", qPrintable(archProcess->readAllStandardOutput()));
@@ -15295,6 +15362,33 @@ bool DeRestPluginPrivate::importConfiguration()
             }
         }
     }
+
+#ifdef Q_OS_LINUX
+    // clean up old homebridge backup files
+    QStringList filters;
+    filters << "AccessoryInfo*";
+    filters << "IdentifierCache*";
+
+     QDir appDir(path);
+     QStringList files = appDir.entryList(filters);
+
+     for (QString f : files)
+     {
+         const QString filePath = path + "/" + f;
+         if (QFile::exists(filePath))
+         {
+             if (QFile::remove(filePath))
+             {
+                 DBG_Printf(DBG_INFO, "backup: removed temporary homebridge file %s\n", qPrintable(filePath));
+             }
+             else
+             {
+                 DBG_Printf(DBG_ERROR, "backup: failed to remove temporary homebridge file %s\n", qPrintable(filePath));
+                 return false;
+             }
+         }
+     }
+ #endif
 
     if (QFile::exists(path + QLatin1String("/deCONZ.tar.gz")))
     {

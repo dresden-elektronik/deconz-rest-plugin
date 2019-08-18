@@ -5,6 +5,7 @@ SQL_RESULT=
 MAINUSER=$(getent passwd 1000 | cut -d: -f1)
 OWN_PID=$$
 DECONZ_CONF_DIR="/home/$MAINUSER/.local/share"
+DECONZ_DATA_DIR=""
 DECONZ_PORT=
 BRIDGEID=
 LAST_MAX_TIMESTAMP=0
@@ -60,6 +61,8 @@ function init {
 	for i in "${drs[@]}"; do
 		if [ -f "${DECONZ_CONF_DIR}/$i" ]; then
 			ZLLDB="${DECONZ_CONF_DIR}/$i"
+			DECONZ_DATA_DIR="/home/$MAINUSER/.local/share/${i::-7}"
+            [[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}deconz data dir: $DECONZ_DATA_DIR"
 			break
 		fi
 	done
@@ -426,12 +429,37 @@ function checkHomebridge {
 		chown $MAINUSER /home/$MAINUSER/.homebridge/config.json
 	fi
 
+	## check for backuped homebridge data before homebridge starts
+	local restart=false
+	for filename in $DECONZ_DATA_DIR/*; do
+	    if [ -f "$filename" ]; then
+            file="${filename##*/}"
+            if [[ "$file" == AccessoryInfo* ]]; then
+                [[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}found accessoryInfo - copy it to homebridge persist dir"
+                mkdir -p "/home/$MAINUSER/.homebridge/persist"
+                mv "$DECONZ_DATA_DIR/$file" "/home/$MAINUSER/.homebridge/persist/$file"
+                restart=true
+            fi
+            if [[ "$file" == IdentifierCache* ]]; then
+                [[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}found IdentifierCache - copy it to homebridge persist dir"
+                mkdir -p "/home/$MAINUSER/.homebridge/persist"
+                mv "$DECONZ_DATA_DIR/$file" "/home/$MAINUSER/.homebridge/persist/$file"
+                restart=true
+            fi
+	    fi
+	done
+
 	## start homebridge
 	systemctl -q is-active homebridge
 	if [ $? -eq 0 ]; then
 		[[ $LOG_INFO ]] && echo "${LOG_INFO}another homebridge service is already running"
 		return
 	fi
+
+	if [[ $restart = true ]]; then
+        pkill homebridge
+        sleep 5
+    fi
 
 	process=$(ps -ax | grep " homebridge$")
 	if [ -z "$process" ]; then

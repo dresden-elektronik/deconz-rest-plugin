@@ -14,6 +14,7 @@ unix:contains(QMAKE_HOST.arch, armv7l) {
 }
 
 QMAKE_CXXFLAGS += -Wno-attributes \
+                  -Wno-psabi \
                   -Wall
 
 CONFIG(debug, debug|release) {
@@ -63,7 +64,7 @@ INCLUDEPATH    += ../.. \
 # TAG is specified by auto build system
 # this is needed since non head versions which are checkedout and build
 # will have a revision different to HEAD
-GIT_TAG=$$(TAG)
+GIT_TAG=$$TAG
 
 isEmpty(GIT_TAG) {
     GIT_TAG=HEAD # default
@@ -77,7 +78,7 @@ GIT_COMMIT_DATE = $$system("git show -s --format=%ct $$GIT_TAG")
 DEFINES += GW_SW_VERSION=\\\"2.05.66\\\"
 DEFINES += GW_SW_DATE=$$GIT_COMMIT_DATE
 DEFINES += GW_API_VERSION=\\\"1.16.0\\\"
-DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\" \
+DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\"
 
 # Minimum version of the RaspBee firmware
 # which shall be used in order to support all features for this software release (case sensitive)
@@ -91,8 +92,6 @@ DEFINES += GW_MIN_R21_FW_VERSION=0x26490700
 DEFINES += GW_MIN_DERFUSB23E0X_FW_VERSION=0x22030300
 
 DEFINES += GW_DEFAULT_NAME=\\\"Phoscon-GW\\\"
-
-QMAKE_CXXFLAGS += -Wno-attributes
 
 HEADERS  = bindings.h \
            connectivity.h \
