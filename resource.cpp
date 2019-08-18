@@ -625,6 +625,13 @@ Resource::Resource(const Resource &other)
     m_rItems = other.m_rItems;
 }
 
+Resource &Resource::operator=(const Resource &other)
+{
+    m_prefix = other.m_prefix;
+    m_rItems = other.m_rItems;
+    return *this;
+}
+
 const char *Resource::prefix() const
 {
     return m_prefix;
