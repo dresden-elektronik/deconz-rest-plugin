@@ -1734,7 +1734,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Sinope
         sensor->modelId() == QLatin1String("WL4200S") ||
         //LifeControl smart plug
-        sensor->modelID() == QLatin1String("RICI01"))
+        sensor->modelId() == QLatin1String("RICI01"))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||
