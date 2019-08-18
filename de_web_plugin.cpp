@@ -199,6 +199,9 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "RES001", tiMacPrefix }, // Hubitat environment sensor, see #1308
     { VENDOR_119C, "WL4200S", sinopeMacPrefix}, // Sinope water sensor
     { VENDOR_DEVELCO, "SMSZB-120", develcoMacPrefix }, // Develco smoke sensor
+    { VENDOR_DEVELCO, "SPLZB-131", develcoMacPrefix }, // Develco smart plug
+    { VENDOR_DEVELCO, "WISZB-120", develcoMacPrefix }, // Develco window sensor
+    { VENDOR_DEVELCO, "ZHMS101", develcoMacPrefix }, // Wattle (Develco) magnetic sensor
     { VENDOR_EMBER, "3AFE14010402000D", konkeMacPrefix }, // Konke Kit Pro-BS Motion Sensor
     { VENDOR_EMBER, "3AFE140103020000", konkeMacPrefix }, // Konke Kit Pro-FT Temp Humidity Sensor
     { VENDOR_EMBER, "3AFE130104020015", konkeMacPrefix }, // Konke Kit Pro-Door Entry Sensor
@@ -6486,7 +6489,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 if (item && voltage != 65535)
                                 {
-                                    if (i->modelId() == QLatin1String("SmartPlug")) // Heiman
+                                    if (i->modelId() == QLatin1String("SmartPlug") || // Heiman
+                                        i->modelId() == QLatin1String("SPLZB-131")) // Develco
                                     {
                                         voltage += 50; voltage /= 100; // 0.01V -> V
                                     }
@@ -15364,6 +15368,33 @@ bool DeRestPluginPrivate::importConfiguration()
             }
         }
     }
+
+#ifdef Q_OS_LINUX
+    // clean up old homebridge backup files
+    QStringList filters;
+    filters << "AccessoryInfo*";
+    filters << "IdentifierCache*";
+
+     QDir appDir(path);
+     QStringList files = appDir.entryList(filters);
+
+     for (QString f : files)
+     {
+         const QString filePath = path + "/" + f;
+         if (QFile::exists(filePath))
+         {
+             if (QFile::remove(filePath))
+             {
+                 DBG_Printf(DBG_INFO, "backup: removed temporary homebridge file %s\n", qPrintable(filePath));
+             }
+             else
+             {
+                 DBG_Printf(DBG_ERROR, "backup: failed to remove temporary homebridge file %s\n", qPrintable(filePath));
+                 return false;
+             }
+         }
+     }
+ #endif
 
     if (QFile::exists(path + QLatin1String("/deCONZ.tar.gz")))
     {
