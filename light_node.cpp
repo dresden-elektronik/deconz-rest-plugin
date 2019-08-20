@@ -370,9 +370,11 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 }
                 else if (i->id() == COLOR_CLUSTER_ID)
                 {
-                    if (manufacturerCode() == VENDOR_NONE && deviceId == DEV_ID_ZLL_DIMMABLE_LIGHT)
+                    if ((manufacturerCode() == VENDOR_NONE && deviceId == DEV_ID_ZLL_DIMMABLE_LIGHT) ||
+                        (manufacturerCode() == VENDOR_NONE && deviceId == DEV_ID_LEVEL_CONTROL_SWITCH))
                     {
                         // GLEDOPTO GL-C-009 advertises non-functional color cluster
+                        // ORVIBO T10D1ZW in-wall dimmer does the same
                     }
                     else
                     {
@@ -490,6 +492,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 else                               { ltype = QLatin1String("Dimmable light"); }
             }
                 break;
+            case DEV_ID_LEVEL_CONTROL_SWITCH:        ltype = QLatin1String("Level control switch"); break;
             case DEV_ID_ONOFF_OUTPUT:                ltype = QLatin1String("On/Off output"); break;
             case DEV_ID_LEVEL_CONTROLLABLE_OUTPUT:   ltype = QLatin1String("Level controllable output"); break;
             case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:       ltype = QLatin1String("On/Off plug-in unit"); break;

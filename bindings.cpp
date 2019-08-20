@@ -1521,6 +1521,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->modelId() == QLatin1String("SPLZB-131"))
         {
         }
+        else if (lightNode->manufacturer() == QString("欧瑞博") || lightNode->manufacturer() == QLatin1String("ORVIBO"))
+        {
+        }
         else
         {
             return;
@@ -1734,7 +1737,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Sinope
         sensor->modelId() == QLatin1String("WL4200S") ||
         //LifeControl smart plug
-        sensor->modelId() == QLatin1String("RICI01"))
+        sensor->modelId() == QLatin1String("RICI01"))||
+        // ORVIBO
+        sensor->modelId().startsWith(QLatin1String("SN10ZW")))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||
