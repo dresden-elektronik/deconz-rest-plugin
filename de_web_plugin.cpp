@@ -210,6 +210,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBER, "3AFE130104020015", konkeMacPrefix }, // Konke Kit Pro-Door Entry Sensor
     { VENDOR_NONE, "RICI01", tiMacPrefix}, // LifeControl smart plug
     { VENDOR_JENNIC, "SN10ZW", jennicMacPrefix }, // ORVIBO motion sensor
+    { VENDOR_OSRAM_STACK, "SF20", heimanMacPrefix }, // ORVIBO (Heiman) smoke sensor
     { 0, nullptr, 0 }
 };
 
@@ -3567,6 +3568,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                                 {
                                     modelId = QLatin1String("SN10ZW motion sensor");
                                 }
+                                else if (modelId == QLatin1String("b5db59bfd81e4f1f95dc57fdbba17931"))
+                                {
+                                    modelId = QLatin1String("SF20 smoke sensor");
+                                }
                             }
                         }
                     }
@@ -3697,6 +3702,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("Smoke")) ||            // Heiman fire sensor (newer model)
                              modelId.startsWith(QLatin1String("902010/24")) ||        // Bitron smoke detector
                              modelId.startsWith(QLatin1String("SMSZB-120")) ||        // Develco smoke detector
+                             modelId.startsWith(QLatin1String("SF20")) ||             // ORVIBO (Heiman) smoke sensor
                              modelId.startsWith(QLatin1String("lumi.sensor_smoke")))  // Xiaomi Mi smoke sensor
                     {
                         // Gas sensor detects combustable gas, so fire is more appropriate than CO.
@@ -6054,6 +6060,17 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                             else
                                             {
                                                 str = QLatin1String("SN10ZW motion sensor");
+                                            }
+                                        }
+                                        else if (str == QLatin1String("b5db59bfd81e4f1f95dc57fdbba17931"))
+                                        {
+                                            if (i->modelId().startsWith(QLatin1String("SF20")))
+                                            {
+                                                continue; // skip if already replaced
+                                            }
+                                            else
+                                            {
+                                                str = QLatin1String("SF20 smoke sensor");
                                             }
                                         }
                                         i->setModelId(str);
