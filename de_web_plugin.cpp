@@ -6152,20 +6152,22 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 if (i->modelId().startsWith(QLatin1String("lumi.sensor_cube")))
                                 {
-                                    qint32 buttonevent = ia->numericValue().real * 100;
+                                    const qint32 buttonevent = static_cast<qint32>(ia->numericValue().real * 100);
                                     ResourceItem *item = i->item(RStateButtonEvent);
+                                    ResourceItem *item2 = i->item(RStateGesture);
 
-                                    if (item)
+                                    DBG_Assert(item && item2);
+                                    if (item && item2)
                                     {
                                         item->setValue(buttonevent);
+                                        item2->setValue(buttonevent > 0 ? GESTURE_ROTATE_CLOCKWISE : GESTURE_ROTATE_COUNTER_CLOCKWISE);
                                         i->updateStateTimestamp();
                                         i->setNeedSaveDatabase(true);
-                                        Event e(RSensors, RStateButtonEvent, i->id(), item);
-                                        enqueueEvent(e);
+                                        enqueueEvent(Event(RSensors, RStateButtonEvent, i->id(), item));
+                                        enqueueEvent(Event(RSensors, RStateGesture, i->id(), item2));
                                         enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
+                                        updateSensorEtag(&*i);
                                     }
-
-                                    updateSensorEtag(&*i);
                                 }
                                 else if (i->modelId() == QLatin1String("lumi.plug") ||
                                          i->modelId().startsWith(QLatin1String("lumi.ctrl_")))
