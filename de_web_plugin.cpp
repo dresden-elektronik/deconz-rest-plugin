@@ -128,6 +128,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_IKEA, "TRADFRI motion sensor", ikeaMacPrefix },
     { VENDOR_IKEA, "TRADFRI wireless dimmer", ikeaMacPrefix },
     { VENDOR_IKEA, "TRADFRI on/off switch", ikeaMacPrefix },
+    { VENDOR_IKEA, "TRADFRI open/close remote", ikeaMacPrefix },
     // { VENDOR_IKEA, "FYRTUR", ikeaMacPrefix }, // smart blind - exposed only as light
     // { VENDOR_IKEA, "KADRILJ", ikeaMacPrefix }, // smart blind - exposed only as light
     { VENDOR_INSTA, "Remote", instaMacPrefix },
