@@ -23,6 +23,7 @@
 #include <QUrl>
 #include <QCryptographicHash>
 #include <QFile>
+#include <QDir>
 #include <QProcess>
 #include <QSettings>
 #include <queue>
@@ -87,6 +88,7 @@ const quint64 energyMiMacPrefix   = 0xd0cf5e0000000000ULL;
 const quint64 bjeMacPrefix        = 0xd85def0000000000ULL;
 const quint64 xalMacPrefix        = 0xf8f0050000000000ULL;
 const quint64 lutronMacPrefix     = 0xffff000000000000ULL;
+const quint64 konkeMacPrefix      = 0x086bd70000000000ULL;
 
 struct SupportedDevice {
     quint16 vendorId;
@@ -200,6 +202,13 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "RES001", tiMacPrefix }, // Hubitat environment sensor, see #1308
     { VENDOR_119C, "WL4200S", sinopeMacPrefix}, // Sinope water sensor
     { VENDOR_DEVELCO, "SMSZB-120", develcoMacPrefix }, // Develco smoke sensor
+    { VENDOR_DEVELCO, "SPLZB-131", develcoMacPrefix }, // Develco smart plug
+    { VENDOR_DEVELCO, "WISZB-120", develcoMacPrefix }, // Develco window sensor
+    { VENDOR_DEVELCO, "ZHMS101", develcoMacPrefix }, // Wattle (Develco) magnetic sensor
+    { VENDOR_EMBER, "3AFE14010402000D", konkeMacPrefix }, // Konke Kit Pro-BS Motion Sensor
+    { VENDOR_EMBER, "3AFE140103020000", konkeMacPrefix }, // Konke Kit Pro-FT Temp Humidity Sensor
+    { VENDOR_EMBER, "3AFE130104020015", konkeMacPrefix }, // Konke Kit Pro-Door Entry Sensor
+    { VENDOR_NONE, "RICI01", tiMacPrefix}, // LifeControl smart plug
     { 0, nullptr, 0 }
 };
 
@@ -3611,11 +3620,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         fpCarbonMonoxideSensor.inClusters.push_back(ci->id());
                     }
                     else if (modelId.startsWith(QLatin1String("DOOR_")) ||            // Heiman door/window sensor
+                             modelId == QLatin1String("3AFE130104020015") ||          // Konke door/window sensor
                              modelId.startsWith(QLatin1String("902010/21")))          // Bitron door/window sensor
                     {
                         fpOpenCloseSensor.inClusters.push_back(ci->id());
                     }
                     else if (modelId.startsWith(QLatin1String("PIR_")) ||             // Heiman motion sensor
+                             modelId == QLatin1String("3AFE14010402000D") ||          // Konke motion sensor
                              modelId.startsWith(QLatin1String("902010/22")))          // Bitron motion sensor
                     {
                         fpPresenceSensor.inClusters.push_back(ci->id());
@@ -6145,20 +6156,22 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 if (i->modelId().startsWith(QLatin1String("lumi.sensor_cube")))
                                 {
-                                    qint32 buttonevent = ia->numericValue().real * 100;
+                                    const qint32 buttonevent = static_cast<qint32>(ia->numericValue().real * 100);
                                     ResourceItem *item = i->item(RStateButtonEvent);
+                                    ResourceItem *item2 = i->item(RStateGesture);
 
-                                    if (item)
+                                    DBG_Assert(item && item2);
+                                    if (item && item2)
                                     {
                                         item->setValue(buttonevent);
+                                        item2->setValue(buttonevent > 0 ? GESTURE_ROTATE_CLOCKWISE : GESTURE_ROTATE_COUNTER_CLOCKWISE);
                                         i->updateStateTimestamp();
                                         i->setNeedSaveDatabase(true);
-                                        Event e(RSensors, RStateButtonEvent, i->id(), item);
-                                        enqueueEvent(e);
+                                        enqueueEvent(Event(RSensors, RStateButtonEvent, i->id(), item));
+                                        enqueueEvent(Event(RSensors, RStateGesture, i->id(), item2));
                                         enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
+                                        updateSensorEtag(&*i);
                                     }
-
-                                    updateSensorEtag(&*i);
                                 }
                                 else if (i->modelId() == QLatin1String("lumi.plug") ||
                                          i->modelId().startsWith(QLatin1String("lumi.ctrl_")))
@@ -6390,6 +6403,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     consumption *= 10; // 0.01 kWh = 10 Wh -> Wh
                                 }
+                                else if (i->modelId() == QLatin1String("RICI01")) // LifeControl smart plug
+                                {
+                                    consumption /= 1000; // 0.001 Wh -> Wh
+                                }
 
                                 if (item)
                                 {
@@ -6465,6 +6482,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         power = power == 28000 ? 0 : power / 10;
                                     }
+                                    else if (i->modelId() == QLatin1String("RICI01")) //LifeControl Smart Plug
+                                    {
+                                        power /= 10; // 0.1W -> W
+                                    }
                                     item->setValue(power); // in W
                                     enqueueEvent(Event(RSensors, RStatePower, i->id(), item));
                                     updated = true;
@@ -6483,9 +6504,14 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 if (item && voltage != 65535)
                                 {
-                                    if (i->modelId() == QLatin1String("SmartPlug")) // Heiman
+                                    if (i->modelId() == QLatin1String("SmartPlug") || // Heiman
+                                        i->modelId() == QLatin1String("SPLZB-131")) // Develco
                                     {
                                         voltage += 50; voltage /= 100; // 0.01V -> V
+                                    }
+                                    else if (i->modelId() == QLatin1String("RICI01")) //LifeControl Smart Plug
+                                    {
+                                        voltage /= 10; // 0.1V -> V
                                     }
                                     item->setValue(voltage); // in V
                                     enqueueEvent(Event(RSensors, RStateVoltage, i->id(), item));
@@ -6512,6 +6538,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     else if (i->modelId() == QLatin1String("SmartPlug")) // Heiman
                                     {
                                         current *= 10; // 0.01A -> mA
+                                    }
+                                    else if (i->modelId() == QLatin1String("RICI01")) //LifeControl Smart Plug
+                                    {
+                                        current /= 1000; // uA -> mA
                                     }
                                     else
                                     {
@@ -15202,8 +15232,72 @@ bool DeRestPluginPrivate::exportConfiguration()
         args.append(path + "/session.default");
         archProcess->start(cmd, args);
 #endif
+
 #ifdef Q_OS_LINUX
-        archProcess->start("tar -cf " + path + "/deCONZ.tar -C " + path + " deCONZ.conf zll.db session.default");
+        // clean up old homebridge backup files
+        QStringList filters;
+        filters << "AccessoryInfo*";
+        filters << "IdentifierCache*";
+
+         QDir appDir(path);
+         QStringList files = appDir.entryList(filters);
+
+         for (QString f : files)
+         {
+             const QString filePath = path + "/" + f;
+             if (QFile::exists(filePath))
+             {
+                 if (QFile::remove(filePath))
+                 {
+                     DBG_Printf(DBG_INFO, "backup: removed temporary homebridge file %s\n", qPrintable(filePath));
+                 }
+                 else
+                 {
+                     DBG_Printf(DBG_ERROR, "backup: failed to remove temporary homebridge file %s\n", qPrintable(filePath));
+                     return false;
+                 }
+             }
+         }
+
+        // backup homebridge files
+        const QString homebridgePersistPath = "/home/pi/.homebridge/persist"; // TODO: get mainuser
+
+        QString FirstFileName ="";
+        QString SecondFileName ="";
+
+        QDir dir(homebridgePersistPath);
+        if (dir.exists())
+        {
+            QStringList files = dir.entryList(filters);
+
+            if (files.size() > 0)
+            {
+                FirstFileName = files.at(0);
+                DBG_Printf(DBG_INFO, "copy file: %s to backup directory\n", qPrintable(FirstFileName));
+                QFile accessoryFile(homebridgePersistPath + "/" + FirstFileName);
+                if (!accessoryFile.copy(path + "/" + FirstFileName))
+                {
+                    DBG_Printf(DBG_INFO, "copy file: %s failed. Do not include it in backup\n", qPrintable(FirstFileName));
+                    FirstFileName = "";
+                    return false;
+                }
+
+            }
+            if (files.size() > 1)
+            {
+                SecondFileName = files.at(1);
+                DBG_Printf(DBG_INFO, "copy file: %s to backup directory\n", qPrintable(SecondFileName));
+                QFile IdentifierFile(homebridgePersistPath + "/" + SecondFileName);
+                if (!IdentifierFile.copy(path + "/" + SecondFileName))
+                {
+                    DBG_Printf(DBG_INFO, "copy file: %s failed. Do not include it in backup\n", qPrintable(SecondFileName));
+                    SecondFileName = "";
+                    return false;
+                }
+            }
+        }
+
+        archProcess->start("tar -cf " + path + "/deCONZ.tar -C " + path + " deCONZ.conf zll.db session.default " + FirstFileName + " " + SecondFileName);
 #endif
         archProcess->waitForFinished(EXT_PROCESS_TIMEOUT);
         DBG_Printf(DBG_INFO, "%s\n", qPrintable(archProcess->readAllStandardOutput()));
@@ -15297,6 +15391,33 @@ bool DeRestPluginPrivate::importConfiguration()
             }
         }
     }
+
+#ifdef Q_OS_LINUX
+    // clean up old homebridge backup files
+    QStringList filters;
+    filters << "AccessoryInfo*";
+    filters << "IdentifierCache*";
+
+     QDir appDir(path);
+     QStringList files = appDir.entryList(filters);
+
+     for (QString f : files)
+     {
+         const QString filePath = path + "/" + f;
+         if (QFile::exists(filePath))
+         {
+             if (QFile::remove(filePath))
+             {
+                 DBG_Printf(DBG_INFO, "backup: removed temporary homebridge file %s\n", qPrintable(filePath));
+             }
+             else
+             {
+                 DBG_Printf(DBG_ERROR, "backup: failed to remove temporary homebridge file %s\n", qPrintable(filePath));
+                 return false;
+             }
+         }
+     }
+ #endif
 
     if (QFile::exists(path + QLatin1String("/deCONZ.tar.gz")))
     {

@@ -2,6 +2,7 @@
 
 UPDATE_VERSION_HB="0.4.50"
 UPDATE_VERSION_HB_HUE="0.11.28"
+UPDATE_VERSION_HB_LIB="4.2.7"
 UPDATE_VERSION_NPM="6.9.0"
 UPDATE_VERSION_NODE="10.16.0"
 # use install name to install the specific node version via apt. Retrieve it via: apt-cache policy nodejs
@@ -132,11 +133,10 @@ function installHomebridge {
 		hb_installed=true
 
 		# look for homebridge-hue installation
-		npm list -g homebridge-hue
-		if [ $? -eq 0 ]; then
+		hb_hue_version=$(npm list -g homebridge-hue | grep homebridge-hue | cut -d@ -f2 | xargs)
+		if [ -n "$hb_hue_version" ]; then
 			# homebridge-hue installation found
 			hb_hue_installed=true
-			hb_hue_version=$(npm list -g homebridge-hue | grep homebridge-hue | cut -d@ -f2)
 			putHomebridgeUpdated "homebridgeversion" "$hb_hue_version"
 		fi	
 	fi
@@ -227,7 +227,7 @@ function installHomebridge {
 
 		# install homebridge-hue if not installed
 		if [[ $hb_hue_installed = false ]]; then
-			npm -g install homebridge-lib homebridge-hue@"$UPDATE_VERSION_HB_HUE"
+			npm -g install homebridge-lib@"$UPDATE_VERSION_HB_LIB" homebridge-hue@"$UPDATE_VERSION_HB_HUE"
 			if [ $? -ne 0 ]; then
 				[[ $LOG_WARN ]] && echo "${LOG_WARN}could not install homebridge hue"
 				putHomebridgeUpdated "homebridge" "install-error"
@@ -235,6 +235,13 @@ function installHomebridge {
 			fi
 		fi
 	fi
+
+	# fix missing homebridge-lib
+	if [[ -n $(npm list -g homebridge-lib | grep empty) ]]; then
+		npm -g install homebridge-lib@"$UPDATE_VERSION_HB_LIB"
+	fi
+
+	putHomebridgeUpdated "homebridgeupdateversion" "$UPDATE_VERSION_HB_HUE"
 }
 
 function checkUpdate {
@@ -261,8 +268,8 @@ function checkUpdate {
 		fi
 	fi
 
-	hb_version=$(npm list -g homebridge | grep homebridge | cut -d@ -f2)
-	hb_hue_version=$(npm list -g homebridge-hue | grep homebridge-hue | cut -d@ -f2)
+	hb_version=$(npm list -g homebridge | grep homebridge | cut -d@ -f2 | xargs)
+	hb_hue_version=$(npm list -g homebridge-hue | grep homebridge-hue | cut -d@ -f2 | xargs)
 	putHomebridgeUpdated "homebridgeversion" "$hb_hue_version"
 	npm_version=$(npm --version)
 	node_version=$(node --version | cut -dv -f2) # strip the v
@@ -321,12 +328,12 @@ function checkUpdate {
 		[[ $LOG_INFO ]] && echo "${LOG_INFO}installed homebridge-hue version: $hb_hue_version - latest: $UPDATE_VERSION_HB_HUE"
 		[[ $LOG_INFO ]] && echo "${LOG_INFO}update homebridge-hue"
 
-		npm -g install homebridge-lib homebridge-hue@"$UPDATE_VERSION_HB_HUE"
+		npm -g install homebridge-lib@"$UPDATE_VERSION_HB_LIB" homebridge-hue@"$UPDATE_VERSION_HB_HUE"
 		if [ $? -ne 0 ]; then
 			[[ $LOG_WARN ]] && echo "${LOG_WARN}could not update homebridge hue"
 		else
 			putHomebridgeUpdated "homebridge" "updated"
-			putHomebridgeUpdated "homebridgeversion" "$latest_hb_hue_version"			
+			putHomebridgeUpdated "homebridgeversion" "$UPDATE_VERSION_HB_HUE"
 		fi
 	fi
 }
@@ -348,7 +355,7 @@ do
 		TIMEOUT=$((TIMEOUT - 1))
 	done
 
-	TIMEOUT=60
+	TIMEOUT=600 # 10 minutes
 
 	[[ -z "$ZLLDB" ]] && continue
 	[[ ! -f "$ZLLDB" ]] && continue
@@ -357,7 +364,7 @@ do
     installHomebridge
 
     COUNTER=$((COUNTER + 1))
-	if [ $COUNTER -ge 60 ]; then
+	if [ $COUNTER -ge 6 ]; then
 		# check for updates every hour
 		COUNTER=0
 		checkUpdate

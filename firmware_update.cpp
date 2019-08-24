@@ -511,7 +511,7 @@ void DeRestPluginPrivate::queryFirmwareVersion()
                 fwUpdateTimer->start(FW_WAIT_USER_TIMEOUT);
                 apsCtrl->setParameter(deCONZ::ParamFirmwareUpdateActive, deCONZ::FirmwareUpdateReadyToStart);
 
-                bool autoUpdate = false;
+//                bool autoUpdate = false; // TODO refactor when R21 bootloader v2 arrives
 
                 // auto update factory fresh devices with too old or no firmware
                 if (gwRunMode.startsWith(QLatin1String("docker")))
@@ -520,7 +520,7 @@ void DeRestPluginPrivate::queryFirmwareVersion()
                 }
                 else if (fwVersion > FW_ONLY_R21_BOOTLOADER && fwVersion <= GW_AUTO_UPDATE_R21_FW_VERSION)
                 {
-                    autoUpdate = true;
+//                    autoUpdate = true;
                 }
 
 //                if (autoUpdate && fwVersion <= GW_AUTO_UPDATE_R21_FW_VERSION)

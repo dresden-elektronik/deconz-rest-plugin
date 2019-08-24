@@ -5,6 +5,7 @@ SQL_RESULT=
 MAINUSER=$(getent passwd 1000 | cut -d: -f1)
 OWN_PID=$$
 DECONZ_CONF_DIR="/home/$MAINUSER/.local/share"
+DECONZ_DATA_DIR=""
 DECONZ_PORT=
 BRIDGEID=
 LAST_MAX_TIMESTAMP=0
@@ -60,6 +61,8 @@ function init {
 	for i in "${drs[@]}"; do
 		if [ -f "${DECONZ_CONF_DIR}/$i" ]; then
 			ZLLDB="${DECONZ_CONF_DIR}/$i"
+			DECONZ_DATA_DIR="/home/$MAINUSER/.local/share/${i::-7}"
+            [[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}deconz data dir: $DECONZ_DATA_DIR"
 			break
 		fi
 	done
@@ -340,6 +343,7 @@ function checkHomebridge {
 				putHomebridgeUpdated "homebridge" "not-managed"
 			fi
 		else
+			local updated=false
 			# config created by deCONZ - check if bridgeid is present
 			if [ -z "$(cat /home/$MAINUSER/.homebridge/config.json | grep "$BRIDGEID")" ]; then
 				# bridgeid not found - update config
@@ -347,20 +351,33 @@ function checkHomebridge {
 				local line="$(grep -n users /home/$MAINUSER/.homebridge/config.json | cut -d: -f 1)"
 				line=$((line + 1))
 				sed -i "${line}s/.*/    \"${BRIDGEID}\": \"$APIKEY\"/" /home/$MAINUSER/.homebridge/config.json
+				updated=true
 			fi
 			# check if apikey is still correct
 			if [ -z "$(cat /home/$MAINUSER/.homebridge/config.json | grep "$APIKEY")" ]; then
 				# apikey not found - update config
 				[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}update apikey in config file with $APIKEY"
 				sed -i "/\"${BRIDGEID}\":/c\    \"${BRIDGEID}\": \"$APIKEY\"" /home/$MAINUSER/.homebridge/config.json
+				updated=true
 			fi
 			# check if bridgeid is correct
 			if [ -n "$(cat /home/$MAINUSER/.homebridge/config.json | grep "00000000")" ]; then
 				# bridgeid has faulty value replace it with correct value from db
 				[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}update bridgeid in config file with ${BRIDGEID}"
 				sed -i "/\"00000000/c\    \"${BRIDGEID}\": \"$APIKEY\"" /home/$MAINUSER/.homebridge/config.json
+				updated=true
 			fi
-			if [[ "$HOMEBRIDGE" != "managed" ]]; then
+			# check if pin is still correct
+			local HB_PIN="${HOMEBRIDGE_PIN:0:3}-${HOMEBRIDGE_PIN:3:2}-${HOMEBRIDGE_PIN:5:3}"
+			if [ -z "$(cat /home/$MAINUSER/.homebridge/config.json | grep "$HB_PIN")" ]; then
+				# pin not found - update config
+				[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}update pin in config file with $HOMEBRIDGE_PIN"
+				sed -i "/\"pin\":/c\    \"pin\": \"${HB_PIN}\"" /home/$MAINUSER/.homebridge/config.json
+				updated=true
+			fi
+			if [[ $updated = true ]]; then
+				putHomebridgeUpdated "homebridge" "updated"
+			else
 				putHomebridgeUpdated "homebridge" "managed"
 			fi
 		fi
@@ -412,12 +429,37 @@ function checkHomebridge {
 		chown $MAINUSER /home/$MAINUSER/.homebridge/config.json
 	fi
 
+	## check for backuped homebridge data before homebridge starts
+	local restart=false
+	for filename in $DECONZ_DATA_DIR/*; do
+	    if [ -f "$filename" ]; then
+            file="${filename##*/}"
+            if [[ "$file" == AccessoryInfo* ]]; then
+                [[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}found accessoryInfo - copy it to homebridge persist dir"
+                mkdir -p "/home/$MAINUSER/.homebridge/persist"
+                mv "$DECONZ_DATA_DIR/$file" "/home/$MAINUSER/.homebridge/persist/$file"
+                restart=true
+            fi
+            if [[ "$file" == IdentifierCache* ]]; then
+                [[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}found IdentifierCache - copy it to homebridge persist dir"
+                mkdir -p "/home/$MAINUSER/.homebridge/persist"
+                mv "$DECONZ_DATA_DIR/$file" "/home/$MAINUSER/.homebridge/persist/$file"
+                restart=true
+            fi
+	    fi
+	done
+
 	## start homebridge
 	systemctl -q is-active homebridge
 	if [ $? -eq 0 ]; then
 		[[ $LOG_INFO ]] && echo "${LOG_INFO}another homebridge service is already running"
 		return
 	fi
+
+	if [[ $restart = true ]]; then
+        pkill homebridge
+        sleep 5
+    fi
 
 	process=$(ps -ax | grep " homebridge$")
 	if [ -z "$process" ]; then
