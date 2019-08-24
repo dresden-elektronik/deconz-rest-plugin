@@ -2767,6 +2767,10 @@ devices can operate on either battery or mains power, and can have a wide variet
 			<device id="0202" name="Window Covering Device">
 			<description></description>
 		</device>
+		</device>
+			<device id="0203" name="Window Covering Controller">
+			<description></description>
+		</device>
 		<!-- HVAC -->
 		<device id="0300" name="Heating/Cooling Unit">
 			<description></description>
