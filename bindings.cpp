@@ -2296,7 +2296,9 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
             return;
         }
     }
-    else if (sensor->modelId() == QLatin1String("TRADFRI on/off switch"))
+    else if (sensor->modelId() == QLatin1String("TRADFRI on/off switch") ||
+             sensor->modelId() == QLatin1String("TRADFRI open/close remote") ||
+             sensor->modelId() == QLatin1String("TRADFRI motion sensor"))
     {
 
     }
