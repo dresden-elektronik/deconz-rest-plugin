@@ -3039,7 +3039,9 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             sensor->setMode(Sensor::ModeDimmer);
         }
     }
-    else if (sensor->modelId() == QLatin1String("TRADFRI on/off switch"))
+    else if (sensor->modelId() == QLatin1String("TRADFRI on/off switch") ||
+             sensor->modelId() == QLatin1String("TRADFRI open/close remote") ||
+             sensor->modelId() == QLatin1String("TRADFRI motion sensor"))
     {
         checkReporting = true;
 
@@ -3054,10 +3056,10 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             }
         }
     }
-    else if (sensor->modelId() == QLatin1String("TRADFRI motion sensor"))
-    {
-        checkReporting = true;
-    }
+    // else if (sensor->modelId() == QLatin1String("TRADFRI motion sensor"))
+    // {
+    //     checkReporting = true;
+    // }
     else if (sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
     {
         checkReporting = true;
@@ -3291,6 +3293,23 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 {
                     sensor->previousDirection = 0xFF;
                     ok = true;
+                }
+            }
+            else if (ind.clusterId() == WINDOW_COVERING_CLUSTER_ID)
+            {
+                ok = false;
+                if (zclFrame.commandId() == 0x00 || zclFrame.commandId() == 0x01) // Open, Close
+                {
+                    sensor->previousDirection = zclFrame.commandId();
+                    ok = true;
+                }
+                else if (zclFrame.commandId() == 0x02) // Stop
+                {
+                    if (buttonMap->zclParam0 == sensor->previousDirection)
+                    {
+                        sensor->previousDirection = 0xFF;
+                        ok = true;
+                    }
                 }
             }
             else if (ind.clusterId() == COLOR_CLUSTER_ID &&
