@@ -209,6 +209,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBER, "3AFE140103020000", konkeMacPrefix }, // Konke Kit Pro-FT Temp Humidity Sensor
     { VENDOR_EMBER, "3AFE130104020015", konkeMacPrefix }, // Konke Kit Pro-Door Entry Sensor
     { VENDOR_NONE, "RICI01", tiMacPrefix}, // LifeControl smart plug
+    { VENDOR_JENNIC, "SN10ZW", jennicMacPrefix }, // ORVIBO motion sensor
+    { VENDOR_OSRAM_STACK, "SF20", heimanMacPrefix }, // ORVIBO (Heiman) smoke sensor
     { 0, nullptr, 0 }
 };
 
@@ -1547,6 +1549,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
                 case DEV_ID_MAINS_POWER_OUTLET:
                 case DEV_ID_HA_ONOFF_LIGHT:
+                case DEV_ID_LEVEL_CONTROL_SWITCH:
                 case DEV_ID_ONOFF_OUTPUT:
                 case DEV_ID_LEVEL_CONTROLLABLE_OUTPUT:
                 case DEV_ID_HA_DIMMABLE_LIGHT:
@@ -1758,6 +1761,24 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
             if (!lightNode.modelId().isEmpty())
             { q->nodeUpdated(lightNode.address().ext(), QLatin1String("modelid"), lightNode.modelId()); }
+        }
+
+        // "translate" ORVIBO vendor name
+        if (lightNode.manufacturer() == QString("欧瑞博"))
+        {
+            lightNode.setManufacturerName(QLatin1String("ORVIBO"));
+            lightNode.setNeedSaveDatabase(true);
+        }
+        // replace ORVIBO model IDs
+        if (lightNode.modelId() == QLatin1String("abb71ca5fe1846f185cfbda554046cce"))
+        {
+            lightNode.setModelId(QLatin1String("T10D1ZW dimmer"));
+            lightNode.setNeedSaveDatabase(true);
+        }
+        else if (lightNode.modelId() == QLatin1String("545df2981b704114945f6df1c780515a"))
+        {
+            lightNode.setModelId(QLatin1String("T10W1ZW switch"));
+            lightNode.setNeedSaveDatabase(true);
         }
 
         // add light node to default group
@@ -2097,6 +2118,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
             case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:
             case DEV_ID_Z30_DIMMABLE_PLUGIN_UNIT:
             case DEV_ID_HA_ONOFF_LIGHT:
+            case DEV_ID_LEVEL_CONTROL_SWITCH:
             case DEV_ID_ONOFF_OUTPUT:
             case DEV_ID_LEVEL_CONTROLLABLE_OUTPUT:
             case DEV_ID_ZLL_ONOFF_LIGHT:
@@ -2473,6 +2495,17 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         QString str = ia->toString();
                         if (!str.isEmpty() && str != lightNode->manufacturer())
                         {
+                            if (str == QString("欧瑞博"))
+                            {
+                                if (lightNode->manufacturer() == QLatin1String("ORVIBO"))
+                                {
+                                    continue; // skip if already 'translated'
+                                }
+                                else
+                                {
+                                    str = QLatin1String("ORVIBO");
+                                }
+                            }
                             lightNode->setManufacturerName(str);
                             lightNode->setNeedSaveDatabase(true);
                             queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
@@ -2486,6 +2519,28 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         ResourceItem *item = lightNode->item(RAttrModelId);
                         if (item && !str.isEmpty() && str != item->toString())
                         {
+                            if (str == QLatin1String("abb71ca5fe1846f185cfbda554046cce"))
+                            {
+                                if (lightNode->modelId().startsWith(QLatin1String("T10D1ZW")))
+                                {
+                                    continue; // skip if already replaced
+                                }
+                                else
+                                {
+                                    str = QLatin1String("T10D1ZW dimmer");
+                                }
+                            }
+                            else if (str == QLatin1String("545df2981b704114945f6df1c780515a"))
+                            {
+                                if (lightNode->modelId().startsWith(QLatin1String("T10W1ZW")))
+                                {
+                                    continue; // skip if already replaced
+                                }
+                                else
+                                {
+                                    str = QLatin1String("T10W1ZW switch");
+                                }
+                            }
                             lightNode->setModelId(str);
                             item->setValue(str);
                             lightNode->setNeedSaveDatabase(true);
@@ -3508,6 +3563,15 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                             else if (modelId.isEmpty() && j->id() == 0x0005) // model id
                             {
                                 modelId = j->toString().trimmed();
+                                // replace ORVIBO model ID
+                                if (modelId == QLatin1String("895a2d80097f4ae2b2d40500d5e03dcc"))
+                                {
+                                    modelId = QLatin1String("SN10ZW motion sensor");
+                                }
+                                else if (modelId == QLatin1String("b5db59bfd81e4f1f95dc57fdbba17931"))
+                                {
+                                    modelId = QLatin1String("SF20 smoke sensor");
+                                }
                             }
                         }
                     }
@@ -3627,7 +3691,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     }
                     else if (modelId.startsWith(QLatin1String("PIR_")) ||             // Heiman motion sensor
                              modelId == QLatin1String("3AFE14010402000D") ||          // Konke motion sensor
-                             modelId.startsWith(QLatin1String("902010/22")))          // Bitron motion sensor
+                             modelId.startsWith(QLatin1String("902010/22")) ||        // Bitron motion sensor
+                             modelId.startsWith(QLatin1String("SN10ZW")))             // ORVIBO motion sensor
                     {
                         fpPresenceSensor.inClusters.push_back(ci->id());
                     }
@@ -3637,6 +3702,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("Smoke")) ||            // Heiman fire sensor (newer model)
                              modelId.startsWith(QLatin1String("902010/24")) ||        // Bitron smoke detector
                              modelId.startsWith(QLatin1String("SMSZB-120")) ||        // Develco smoke detector
+                             modelId.startsWith(QLatin1String("SF20")) ||             // ORVIBO (Heiman) smoke sensor
                              modelId.startsWith(QLatin1String("lumi.sensor_smoke")))  // Xiaomi Mi smoke sensor
                     {
                         // Gas sensor detects combustable gas, so fire is more appropriate than CO.
@@ -5985,6 +6051,28 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     if (i->modelId() != str)
                                     {
+                                        if (str == QLatin1String("895a2d80097f4ae2b2d40500d5e03dcc"))
+                                        {
+                                            if (i->modelId().startsWith(QLatin1String("SN10ZW")))
+                                            {
+                                                continue; // skip if already replaced
+                                            }
+                                            else
+                                            {
+                                                str = QLatin1String("SN10ZW motion sensor");
+                                            }
+                                        }
+                                        else if (str == QLatin1String("b5db59bfd81e4f1f95dc57fdbba17931"))
+                                        {
+                                            if (i->modelId().startsWith(QLatin1String("SF20")))
+                                            {
+                                                continue; // skip if already replaced
+                                            }
+                                            else
+                                            {
+                                                str = QLatin1String("SF20 smoke sensor");
+                                            }
+                                        }
                                         i->setModelId(str);
                                         i->setNeedSaveDatabase(true);
                                         checkInstaModelId(&*i);
@@ -7285,6 +7373,7 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
         //case DEV_ID_ZLL_DIMMABLE_LIGHT: // same as DEV_ID_HA_ONOFF_LIGHT
         case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:
         case DEV_ID_Z30_DIMMABLE_PLUGIN_UNIT:
+        case DEV_ID_LEVEL_CONTROL_SWITCH:
             //fall through
 
         case DEV_ID_MAINS_POWER_OUTLET:
