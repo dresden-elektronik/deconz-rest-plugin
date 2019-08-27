@@ -139,6 +139,8 @@ static const Sensor::ButtonMap ikeaOnOffMap[] = {
     { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 1,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD, "Move down" },
     { Sensor::ModeScenes,           0x01, 0x0008, 0x07, 0,    S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop (with on/off)" },
     { Sensor::ModeScenes,           0x01, 0x0008, 0x07, 1,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop" },
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
 static const Sensor::ButtonMap ikeaOpenCloseMap[] = {
@@ -147,6 +149,8 @@ static const Sensor::ButtonMap ikeaOpenCloseMap[] = {
     { Sensor::ModeScenes,           0x01, 0x0102, 0x02, 0,    S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop" },
     { Sensor::ModeScenes,           0x01, 0x0102, 0x01, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Close" },
     { Sensor::ModeScenes,           0x01, 0x0102, 0x02, 1,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop" },
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
 static const Sensor::ButtonMap ikeaRemoteMap[] = {
@@ -1010,11 +1014,11 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         }
         else if (manufacturer.startsWith(QLatin1String("IKEA")))
         {
-            if      (modelid.contains(QLatin1String("remote"))) { m_buttonMap = ikeaRemoteMap; }
-            else if (modelid.contains(QLatin1String("motion"))) { m_buttonMap = ikeaMotionSensorMap; }
-            else if (modelid.contains(QLatin1String("dimmer"))) { m_buttonMap = ikeaDimmerMap; }
-            else if (modelid.contains(QLatin1String("on/off"))) { m_buttonMap = ikeaOnOffMap; }
-            else if (modelid.contains(QLatin1String("open/close"))) { m_buttonMap = ikeaOpenCloseMap; }
+            if      (modelid.startsWith(QLatin1String("TRADFRI remote control"))) { m_buttonMap = ikeaRemoteMap; }
+            else if (modelid.startsWith(QLatin1String("TRADFRI motion sensor"))) { m_buttonMap = ikeaMotionSensorMap; }
+            else if (modelid.startsWith(QLatin1String("TRADFRI wireless dimmer"))) { m_buttonMap = ikeaDimmerMap; }
+            else if (modelid.startsWith(QLatin1String("TRADFRI on/off switch"))) { m_buttonMap = ikeaOnOffMap; }
+            else if (modelid.startsWith(QLatin1String("TRADFRI open/close remote"))) { m_buttonMap = ikeaOpenCloseMap; }
         }
         else if (manufacturer == QLatin1String("ubisys"))
         {

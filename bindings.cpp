@@ -2149,6 +2149,19 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         clusters.push_back(ONOFF_CLUSTER_ID);
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
+    // IKEA Trådfri open/close remote
+    else if (sensor->modelId().startsWith(QLatin1String("TRADFRI open/close remote")))
+    {
+        clusters.push_back(WINDOW_COVERING_CLUSTER_ID);
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+    }
+    // IKEA Trådfri motion sensor
+    else if (sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")))
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+    }
     else if (sensor->modelId().startsWith(QLatin1String("D1")))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
@@ -2307,9 +2320,9 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
             return;
         }
     }
-    else if (sensor->modelId() == QLatin1String("TRADFRI on/off switch") ||
-             sensor->modelId() == QLatin1String("TRADFRI open/close remote") ||
-             sensor->modelId() == QLatin1String("TRADFRI motion sensor"))
+    else if (sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")) ||
+             sensor->modelId().startsWith(QLatin1String("TRADFRI open/close remote")) ||
+             sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")))
     {
 
     }
