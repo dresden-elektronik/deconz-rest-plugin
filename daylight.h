@@ -29,9 +29,9 @@
 struct DL_Result {
     const char *name;
     int weight;
-    quint64 msecsSinceEpoch;
+    qint64 msecsSinceEpoch;
 };
 
-void getDaylightTimes(quint64 msecSinceEpoch, double lat, double lng, std::vector<DL_Result> &result);
+void getDaylightTimes(qint64 msecSinceEpoch, double lat, double lng, std::vector<DL_Result> &result);
 
 #endif // DAYLIGHT_H

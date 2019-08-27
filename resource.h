@@ -85,6 +85,8 @@ extern const char *RStateReachable;
 extern const char *RStateSat;
 extern const char *RStateSpeed;
 extern const char *RStateStatus;
+extern const char *RStateSunrise;
+extern const char *RStateSunset;
 extern const char *RStateTampered;
 extern const char *RStateTemperature;
 extern const char *RStateTiltAngle;

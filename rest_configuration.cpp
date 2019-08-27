@@ -3493,7 +3493,7 @@ int DeRestPluginPrivate::resetHomebridge(const ApiRequest &req, ApiResponse &rsp
 void DeRestPluginPrivate::daylightTimerFired()
 {
     Sensor *sensor = getSensorNodeForId(daylightSensorId);
-    DBG_Assert(sensor != 0);
+    DBG_Assert(sensor != nullptr);
     if (!sensor)
     {
         return;
@@ -3543,6 +3543,24 @@ void DeRestPluginPrivate::daylightTimerFired()
         }
     }
 
+    struct DL_MapEntry {
+        const char *state;
+        ResourceItem * stateItem;
+        const char *offset;
+        int weight;
+    };
+
+    std::vector<DL_MapEntry> dlmap = {
+        { RStateSunrise, nullptr, RConfigSunriseOffset, DL_SUNRISE_START },
+        { RStateSunset, nullptr, RConfigSunsetOffset, DL_SUNSET_END }
+    };
+
+    for (auto &e : dlmap)
+    {
+        e.stateItem = sensor->addItem(DataTypeTime, e.state);
+        DBG_Assert(e.stateItem);
+    }
+
     ResourceItem *daylight = sensor->item(RStateDaylight);
     ResourceItem *dark = sensor->item(RStateDark);
     ResourceItem *status = sensor->item(RStateStatus);
@@ -3554,17 +3572,17 @@ void DeRestPluginPrivate::daylightTimerFired()
         return;
     }
 
-    std::vector<DL_Result> daylightTimes;
+    daylightTimes.clear();
 
-    quint64 nowMs = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    const qint64 nowMs = QDateTime::currentDateTime().toMSecsSinceEpoch();
     getDaylightTimes(nowMs, lat, lng, daylightTimes);
 
-    const char *curName = 0;
+    const char *curName = nullptr;
     int cur = 0;
-    quint64 sunrise = 0;
-    quint64 sunset = 0;
-    quint64 dawn = 0;
-    quint64 dusk = 0;
+    qint64 sunrise = 0;
+    qint64 sunset = 0;
+    qint64 dawn = 0;
+    qint64 dusk = 0;
 
     for (const DL_Result &r : daylightTimes)
     {
@@ -3580,6 +3598,15 @@ void DeRestPluginPrivate::daylightTimerFired()
         else if (r.weight == DL_SUNSET_END)     { sunset = r.msecsSinceEpoch; }
         else if (r.weight == DL_DAWN)           { dawn = r.msecsSinceEpoch; }
         else if (r.weight == DL_DUSK)           { dusk = r.msecsSinceEpoch; }
+
+        const auto k = std::find_if(dlmap.begin(), dlmap.end(), [r](const DL_MapEntry &e) { return e.weight == r.weight; });
+        if (k != dlmap.end() && k->stateItem)
+        {
+            if (k->stateItem->toNumber() != r.msecsSinceEpoch)
+            {
+                k->stateItem->setValue(r.msecsSinceEpoch);
+            }
+        }
     }
 
     bool dl = false;

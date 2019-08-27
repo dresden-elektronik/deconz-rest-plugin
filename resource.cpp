@@ -70,6 +70,8 @@ const char *RStateReachable = "state/reachable";
 const char *RStateSat = "state/sat";
 const char *RStateSpeed = "state/speed";
 const char *RStateStatus = "state/status";
+const char *RStateSunrise = "state/sunrise";
+const char *RStateSunset = "state/sunset";
 const char *RStateTampered = "state/tampered";
 const char *RStateTemperature = "state/temperature";
 const char *RStateTiltAngle = "state/tiltangle";
@@ -193,6 +195,8 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RActionScene));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RStateSpeed, 0, 6));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt32, RStateStatus));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RStateSunrise));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RStateSunset));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateTampered));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RStateTemperature, -27315, 32767));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateTiltAngle));

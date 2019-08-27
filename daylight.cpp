@@ -67,7 +67,7 @@ struct TimePin {
 
 // calculates sun times for a given date and latitude/longitude
 
-void getDaylightTimes(quint64 msecSinceEpoch, double lat, double lng,  std::vector<DL_Result> &result)
+void getDaylightTimes(qint64 msecSinceEpoch, double lat, double lng,  std::vector<DL_Result> &result)
 {
     std::vector<TimePin> times;
     // sun times configuration (angle, morning name, evening name)
@@ -94,8 +94,8 @@ void getDaylightTimes(quint64 msecSinceEpoch, double lat, double lng,  std::vect
         Jset, Jrise;
 
 
-    result.push_back({"solarNoon", DL_SOLAR_NOON, (quint64)fromJulian(Jnoon)});
-    result.push_back({"nadir", DL_NADIR, (quint64)fromJulian(Jnoon - 0.5)});
+    result.push_back({"solarNoon", DL_SOLAR_NOON, (qint64)fromJulian(Jnoon)});
+    result.push_back({"nadir", DL_NADIR, (qint64)fromJulian(Jnoon - 0.5)});
 
     for (const TimePin &time : times)
     {
@@ -103,8 +103,8 @@ void getDaylightTimes(quint64 msecSinceEpoch, double lat, double lng,  std::vect
         Jset = getSetJ(time.offset * rad, lw, phi, dec, n, M, L);
         Jrise = Jnoon - (Jset - Jnoon);
 
-        result.push_back({time.first, time.firstWeight, (quint64)fromJulian(Jrise)});
-        result.push_back({time.second, time.secondWeight, (quint64)fromJulian(Jset)});
+        result.push_back({time.first, time.firstWeight, (qint64)fromJulian(Jrise)});
+        result.push_back({time.second, time.secondWeight, (qint64)fromJulian(Jset)});
     }
 
     std::sort(result.begin(), result.end(),
