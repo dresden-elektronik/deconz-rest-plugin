@@ -3039,9 +3039,9 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             sensor->setMode(Sensor::ModeDimmer);
         }
     }
-    else if (sensor->modelId() == QLatin1String("TRADFRI on/off switch") ||
-             sensor->modelId() == QLatin1String("TRADFRI open/close remote") ||
-             sensor->modelId() == QLatin1String("TRADFRI motion sensor"))
+    else if (sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")) ||
+             sensor->modelId().startsWith(QLatin1String("TRADFRI open/close remote")) ||
+             sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")))
     {
         checkReporting = true;
 
@@ -3460,7 +3460,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 #endif
 
     quint8 pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(0);
-    DBG_Printf(DBG_INFO, "no button handler for: %s ep: 0x%02X cl: 0x%04X cmd: 0x%02X pl[0]: 0%02X\n",
+    DBG_Printf(DBG_INFO, "no button handler for: %s ep: 0x%02X cl: 0x%04X cmd: 0x%02X pl[0]: 0x%02X\n",
                  qPrintable(sensor->modelId()), ind.srcEndpoint(), ind.clusterId(), zclFrame.commandId(), pl0);
 }
 
@@ -13547,7 +13547,9 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 queryTime = queryTime.addSecs(1);
             }
         }
-        else if (sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")))
+        else if (sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")) ||
+                 sensor->modelId().startsWith(QLatin1String("TRADFRI open/close remote")) ||
+                 sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")))
         {
             checkSensorGroup(sensor);
 
