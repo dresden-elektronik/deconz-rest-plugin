@@ -3489,17 +3489,22 @@ int DeRestPluginPrivate::resetHomebridge(const ApiRequest &req, ApiResponse &rsp
     return REQ_READY_SEND;
 }
 
-/* Check daylight state */
-void DeRestPluginPrivate::daylightTimerFired()
+/*! Checks that the daylight sensor is configured properly.
+    Also sets the uniqueid of the sensor if needed.
+    \return true if the sensor is configured and \p lat and \p lng are written
+ */
+bool DeRestPluginPrivate::checkDaylightSensorConfiguration(Sensor *sensor, const QString &gwBridgeId, double *lat, double *lng)
 {
-    Sensor *sensor = getSensorNodeForId(daylightSensorId);
     DBG_Assert(sensor != nullptr);
-    if (!sensor)
+    DBG_Assert(lat != nullptr);
+    DBG_Assert(lng != nullptr);
+    if (!sensor || !lat || !lng)
     {
-        return;
+        return false;
     }
 
-    {
+    {   // TODO the following code is excecuted on every iteration and rather expensive
+
         // check uniqueid
         // note: might change if device is changed
         ResourceItem *item = sensor->item(RAttrUniqueId);
@@ -3517,30 +3522,40 @@ void DeRestPluginPrivate::daylightTimerFired()
         }
     }
 
-    double lat = NAN;
-    double lng = NAN;
     ResourceItem *configured = sensor->item(RConfigConfigured);
+    DBG_Assert(configured != nullptr);
     if (!configured || !configured->toBool())
     {
-        return;
+        return false;
     }
 
-    {
-        ResourceItem *ilat = sensor->item(RConfigLat);
-        ResourceItem *ilng = sensor->item(RConfigLong);
-        if (!ilat || !ilng)
-        {
-            return;
-        }
+    ResourceItem *ilat = sensor->item(RConfigLat);
+    ResourceItem *ilng = sensor->item(RConfigLong);
 
-        bool ok1;
-        bool ok2;
-        lat = ilat->toString().toDouble(&ok1);
-        lng = ilng->toString().toDouble(&ok2);
-        if (!ok1 || !ok2)
-        {
-            return;
-        }
+    bool ok1 = false;
+    bool ok2 = false;
+    *lat = ilat ? ilat->toString().toDouble(&ok1) : NAN;
+    *lng = ilng ? ilng->toString().toDouble(&ok2) : NAN;
+    if (ok1 && ok2)
+    {
+        return true;
+    }
+
+    DBG_Printf(DBG_INFO, "The daylight sensor seems to be configured with invalid values\n");
+    // TODO should configured be set to false?
+    return false;
+}
+
+/* Check daylight state */
+void DeRestPluginPrivate::daylightTimerFired()
+{
+    double lat = NAN;
+    double lng = NAN;
+    Sensor *sensor = getSensorNodeForId(daylightSensorId);
+
+    if (!checkDaylightSensorConfiguration(sensor, gwBridgeId, &lat, &lng))
+    {
+        return;
     }
 
     struct DL_MapEntry {
@@ -3555,7 +3570,7 @@ void DeRestPluginPrivate::daylightTimerFired()
         { RStateSunset, nullptr, RConfigSunsetOffset, DL_SUNSET_END }
     };
 
-    // dynamically add state items if not already existing
+    // dynamically add state items to daylight sensor if not already existing
     for (auto &e : dlmap)
     {
         e.stateItem = sensor->addItem(DataTypeTime, e.state);

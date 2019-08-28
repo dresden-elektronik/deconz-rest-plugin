@@ -1059,6 +1059,7 @@ public Q_SLOTS:
     void fastRuleCheckTimerFired();
     void webhookFinishedRequest(QNetworkReply *reply);
     void daylightTimerFired();
+    bool checkDaylightSensorConfiguration(Sensor *sensor, const QString &gwBridgeId, double *lat, double *lng);
     void handleRuleEvent(const Event &e);
     bool queueBindingTask(const BindingTask &bindingTask);
     void restartAppTimerFired();
