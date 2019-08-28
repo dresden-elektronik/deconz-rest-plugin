@@ -6510,6 +6510,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     consumption *= 10; // 0.01 kWh = 10 Wh -> Wh
                                 }
+                                else if (i->modelId() == QLatin1String("RICI01")) // LifeControl smart plug
+                                {
+                                     // Already in Wh
+                                }
                                 
                                 if (item)
                                 {
@@ -6641,7 +6645,11 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     else if (i->modelId() == QLatin1String("SmartPlug")) // Heiman
                                     {
                                         current *= 10; // 0.01A -> mA
-                                    }                                    
+                                    } 
+                                    else if (i->modelId() == QLatin1String("RICI01")) //LifeControl Smart Plug
+                                    {
+                                        // already in mA
+                                    }                                   
                                     else
                                     {
                                         current *= 1000; // A -> mA
