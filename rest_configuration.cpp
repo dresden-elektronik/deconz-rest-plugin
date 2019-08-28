@@ -3555,6 +3555,7 @@ void DeRestPluginPrivate::daylightTimerFired()
         { RStateSunset, nullptr, RConfigSunsetOffset, DL_SUNSET_END }
     };
 
+    // dynamically add state items if not already existing
     for (auto &e : dlmap)
     {
         e.stateItem = sensor->addItem(DataTypeTime, e.state);
@@ -3577,8 +3578,8 @@ void DeRestPluginPrivate::daylightTimerFired()
     const qint64 nowMs = QDateTime::currentDateTime().toMSecsSinceEpoch();
     getDaylightTimes(nowMs, lat, lng, daylightTimes);
 
-    const char *curName = nullptr;
-    int cur = 0;
+    const char *curDayPhaseName = nullptr;
+    int curDayPhase = 0;
     qint64 sunrise = 0;
     qint64 sunset = 0;
     qint64 dawn = 0;
@@ -3590,8 +3591,8 @@ void DeRestPluginPrivate::daylightTimerFired()
 
         if (r.msecsSinceEpoch <= nowMs)
         {
-            curName = r.name;
-            cur = r.weight;
+            curDayPhaseName = r.name;
+            curDayPhase = r.weight;
         }
 
         if      (r.weight == DL_SUNRISE_START)  { sunrise = r.msecsSinceEpoch; }
@@ -3609,7 +3610,7 @@ void DeRestPluginPrivate::daylightTimerFired()
         }
     }
 
-    bool dl = false;
+    bool isDaylight = false;
     if (sunrise > 0 && sunset > 0)
     {
         sunrise += (sunriseOffset->toNumber() * 60 * 1000);
@@ -3617,11 +3618,11 @@ void DeRestPluginPrivate::daylightTimerFired()
 
         if (nowMs > sunrise && nowMs < sunset)
         {
-            dl = true;
+            isDaylight = true;
         }
     }
 
-    bool dk = true;
+    bool isDark = true;
     if (dawn > 0 && dusk > 0)
     {
         dawn += (sunriseOffset->toNumber() * 60 * 1000);
@@ -3629,31 +3630,31 @@ void DeRestPluginPrivate::daylightTimerFired()
 
         if (nowMs > dawn && nowMs < dusk)
         {
-            dk = false;
+            isDark = false;
         }
     }
 
     bool updated = false;
 
-    if (!daylight->lastSet().isValid() || daylight->toBool() != dl)
+    if (!daylight->lastSet().isValid() || daylight->toBool() != isDaylight)
     {
-        daylight->setValue(dl);
+        daylight->setValue(isDaylight);
         Event e(RSensors, RStateDaylight, sensor->id(), daylight);
         enqueueEvent(e);
         updated = true;
     }
 
-    if (!dark->lastSet().isValid() || dark->toBool() != dk)
+    if (!dark->lastSet().isValid() || dark->toBool() != isDark)
     {
-        dark->setValue(dk);
+        dark->setValue(isDark);
         Event e(RSensors, RStateDark, sensor->id(), dark);
         enqueueEvent(e);
         updated = true;
     }
 
-    if (cur && cur != status->toNumber())
+    if (curDayPhase && curDayPhase != status->toNumber())
     {
-        status->setValue(cur);
+        status->setValue(curDayPhase);
         Event e(RSensors, RStateStatus, sensor->id(), status);
         enqueueEvent(e);
         updated = true;
@@ -3667,9 +3668,9 @@ void DeRestPluginPrivate::daylightTimerFired()
         saveDatabaseItems |= DB_SENSORS;
     }
 
-    if (curName)
+    if (curDayPhaseName)
     {
-        DBG_Printf(DBG_INFO_L2, "Daylight now: %s, status: %d, daylight: %d, dark: %d\n", curName, cur, dl, dk);
+        DBG_Printf(DBG_INFO_L2, "Daylight now: %s, status: %d, daylight: %d, dark: %d\n", curDayPhaseName, curDayPhase, isDaylight, isDark);
     }
 }
 
