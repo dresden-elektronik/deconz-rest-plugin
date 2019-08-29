@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 """
 Snipped to dowload current IKEA ZLL OTA files into ~/otau
-Requires python 2.7, not compatible with python 3.
+compatible with python 3.
 """
 
 import os
 import json
 import urllib
+import urllib.request
 
-f = urllib.urlopen("http://fw.ota.homesmart.ikea.net/feed/version_info.json")
+f = urllib.request.urlopen("http://fw.ota.homesmart.ikea.net/feed/version_info.json")
 data = f.read()
 
 arr = json.loads(data)
@@ -26,10 +27,11 @@ for i in arr:
 		path = '%s/%s' % (otapath, fname)
 
 		if not os.path.isfile(path):
-			urllib.urlretrieve(url, path)
+			urllib.request.urlretrieve(url, path)
 			print(path)
 		else:
 		    print('%s already exists' % fname)
+
 
 
 
