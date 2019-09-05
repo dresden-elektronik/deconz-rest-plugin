@@ -266,8 +266,8 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
 
     bool ok;
     QVariant var = Json::parse(req.content, ok);
-    QVariantMap map = var.toMap();
-    QString type = map["type"].toString();
+    const QVariantMap map = var.toMap();
+    const QString type = map["type"].toString();
     Sensor sensor;
 
     if (!ok)
@@ -295,14 +295,13 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
     }
 
     //check invalid parameter
-    QVariantMap::const_iterator pi = map.begin();
-    QVariantMap::const_iterator pend = map.end();
+    const QStringList allowedAttributes = { "name", "modelid", "swversion", "type", "uniqueid", "manufacturername", "state", "config", "recycle" };
 
-    for (; pi != pend; ++pi)
+    for (const QString &attr : map.keys())
     {
-        if(!((pi.key() == "name") || (pi.key() == "modelid") || (pi.key() == "swversion") || (pi.key() == "type")  || (pi.key() == "uniqueid")  || (pi.key() == "manufacturername")  || (pi.key() == "state")  || (pi.key() == "config")  || (pi.key() == "recycle")))
+        if (!allowedAttributes.contains(attr))
         {
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%2").arg(pi.key()), QString("parameter, %1, not available").arg(pi.key())));
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%2").arg(attr), QString("parameter, %1, not available").arg(attr)));
             rsp.httpStatus = HttpStatusBadRequest;
             return REQ_READY_SEND;
         }
