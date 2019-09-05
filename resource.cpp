@@ -57,6 +57,7 @@ const char *RStateHumidity = "state/humidity";
 const char *RStateLastUpdated = "state/lastupdated";
 const char *RStateLightLevel = "state/lightlevel";
 const char *RStateLowBattery = "state/lowbattery";
+const char *RStateLocaltime = "state/localtime";
 const char *RStateLux = "state/lux";
 const char *RStateOn = "state/on";
 const char *RStateOpen = "state/open";
@@ -181,6 +182,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RStateLastUpdated));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateLightLevel, 0, 0xfffe));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateLowBattery));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RStateLocaltime));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, RStateLux));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateOn));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateOpen));

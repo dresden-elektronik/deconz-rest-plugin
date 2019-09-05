@@ -72,6 +72,7 @@ extern const char *RStateHumidity;
 extern const char *RStateLastUpdated;
 extern const char *RStateLightLevel;
 extern const char *RStateLowBattery;
+extern const char *RStateLocaltime;
 extern const char *RStateLux;
 extern const char *RStateOn;
 extern const char *RStateOpen;
