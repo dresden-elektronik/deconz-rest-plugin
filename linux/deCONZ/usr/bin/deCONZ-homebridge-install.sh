@@ -1,12 +1,12 @@
 #!/bin/bash
 
 UPDATE_VERSION_HB="0.4.50"
-UPDATE_VERSION_HB_HUE="0.11.28"
-UPDATE_VERSION_HB_LIB="4.2.7"
+UPDATE_VERSION_HB_HUE="0.11.37"
+UPDATE_VERSION_HB_LIB="4.4.4"
 UPDATE_VERSION_NPM="6.9.0"
-UPDATE_VERSION_NODE="10.16.0"
+UPDATE_VERSION_NODE="10.16.3"
 # use install name to install the specific node version via apt. Retrieve it via: apt-cache policy nodejs
-UPDATE_VERSION_NODE_INSTALL_NAME="10.16.0-1nodesource1"
+UPDATE_VERSION_NODE_INSTALL_NAME="10.16.3-1nodesource1"
 # when increasing major version of node adjust downoload link
 NODE_DOWNLOAD_LINK="https://deb.nodesource.com/setup_10.x"
 
@@ -232,6 +232,8 @@ function installHomebridge {
 				[[ $LOG_WARN ]] && echo "${LOG_WARN}could not install homebridge hue"
 				putHomebridgeUpdated "homebridge" "install-error"
 				return
+			else
+				putHomebridgeUpdated "homebridgeversion" "$UPDATE_VERSION_HB_HUE"
 			fi
 		fi
 	fi
