@@ -874,15 +874,6 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     basicConfigToMap(map);
     map["ipaddress"] = gwIPAddress;
     map["netmask"] = gwNetMask;
-    if (gwDeviceName.isEmpty())
-    {
-        gwDeviceName = apsCtrl->getParameter(deCONZ::ParamDeviceName);
-    }
-
-    if (!gwDeviceName.isEmpty())
-    {
-        map["devicename"] = gwDeviceName;
-    }
 
     std::vector<ApiAuth>::const_iterator i = apiAuths.begin();
     std::vector<ApiAuth>::const_iterator end = apiAuths.end();
@@ -1073,6 +1064,16 @@ void DeRestPluginPrivate::basicConfigToMap(QVariantMap &map)
     map["replacesbridgeid"] = QVariant();
     map["modelid"] = QLatin1String("deCONZ");
     map["starterkitid"] = QLatin1String("");
+
+    if (gwDeviceName.isEmpty())
+    {
+        gwDeviceName = apsCtrl->getParameter(deCONZ::ParamDeviceName);
+    }
+
+    if (!gwDeviceName.isEmpty())
+    {
+        map["devicename"] = gwDeviceName;
+    }
 }
 
 /*! GET /api/<apikey>
