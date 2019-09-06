@@ -31,6 +31,7 @@
 #define S_BUTTON_ACTION_TILT            9
 #define S_BUTTON_ACTION_MANY_PRESS      10
 
+#define GESTURE_NONE                     0
 #define GESTURE_SHAKE                    1
 #define GESTURE_DROP                     2
 #define GESTURE_FLIP_90                  3

@@ -6340,7 +6340,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     static const int sideMap[] = {1, 3, 5, 6, 4, 2};
                                     int side = sideMap[rawValue & 0x0007];
                                     int previousSide = sideMap[(rawValue & 0x0038) >> 3];
-                                         if (rawValue == 0x0002) { buttonevent = 7000; }                          // wakeup
+                                         if (rawValue == 0x0002) { buttonevent = 7000; gesture = GESTURE_NONE; }  // wakeup
                                     else if (rawValue == 0x0000) { buttonevent = 7007; gesture = GESTURE_SHAKE; } // shake
                                     else if (rawValue == 0x0003) { buttonevent = 7008; gesture = GESTURE_DROP; }  // drop
                                     else if (rawValue & 0x0040)  { buttonevent = side * 1000 + previousSide;      // flip 90°
