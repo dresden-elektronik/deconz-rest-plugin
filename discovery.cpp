@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2019 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -159,13 +159,17 @@ bool DeRestPluginPrivate::setInternetDiscoveryInterval(int minutes)
     }
 
     inetDiscoveryTimer->stop();
+    if (gwAnnounceInterval != minutes)
+    {
+        DBG_Printf(DBG_INFO, "discovery updated announce interval to %d minutes\n", minutes);
+    }
+
     gwAnnounceInterval = minutes;
 
     if (gwAnnounceInterval > 0)
     {
         int msec = 1000 * 60 * gwAnnounceInterval;
         inetDiscoveryTimer->start(msec);
-        DBG_Printf(DBG_INFO, "discovery updated announce interval to %d minutes\n", minutes);
     }
     return true;
 }
@@ -262,6 +266,11 @@ void DeRestPluginPrivate::internetDiscoveryFinishedRequest(QNetworkReply *reply)
 
             QNetworkProxy proxy(QNetworkProxy::HttpProxy, gwProxyAddress, gwProxyPort);
             inetDiscoveryManager->setProxy(proxy);
+        }
+
+        if (gwAnnounceVital < -10) // try alternative path
+        {
+            gwAnnounceUrl = QLatin1String("https://phoscon.de/discover");
         }
     }
 
@@ -379,6 +388,15 @@ void DeRestPluginPrivate::internetDiscoveryExtractVersionInfo(QNetworkReply *rep
     else
     {
         DBG_Printf(DBG_ERROR, "discovery reply doesn't contain valid version info\n");
+    }
+
+    if (map.contains("interval") && (map["interval"].type() == QVariant::Double))
+    {
+        const int interval = map["interval"].toInt(&ok);
+        if (ok && interval >= 0 && interval != gwAnnounceInterval)
+        {
+            setInternetDiscoveryInterval(interval);
+        }
     }
 }
 

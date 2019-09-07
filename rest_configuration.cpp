@@ -874,15 +874,6 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     basicConfigToMap(map);
     map["ipaddress"] = gwIPAddress;
     map["netmask"] = gwNetMask;
-    if (gwDeviceName.isEmpty())
-    {
-        gwDeviceName = apsCtrl->getParameter(deCONZ::ParamDeviceName);
-    }
-
-    if (!gwDeviceName.isEmpty())
-    {
-        map["devicename"] = gwDeviceName;
-    }
 
     std::vector<ApiAuth>::const_iterator i = apiAuths.begin();
     std::vector<ApiAuth>::const_iterator end = apiAuths.end();
@@ -1073,6 +1064,16 @@ void DeRestPluginPrivate::basicConfigToMap(QVariantMap &map)
     map["replacesbridgeid"] = QVariant();
     map["modelid"] = QLatin1String("deCONZ");
     map["starterkitid"] = QLatin1String("");
+
+    if (gwDeviceName.isEmpty())
+    {
+        gwDeviceName = apsCtrl->getParameter(deCONZ::ParamDeviceName);
+    }
+
+    if (!gwDeviceName.isEmpty())
+    {
+        map["devicename"] = gwDeviceName;
+    }
 }
 
 /*! GET /api/<apikey>
@@ -3489,17 +3490,22 @@ int DeRestPluginPrivate::resetHomebridge(const ApiRequest &req, ApiResponse &rsp
     return REQ_READY_SEND;
 }
 
-/* Check daylight state */
-void DeRestPluginPrivate::daylightTimerFired()
+/*! Checks that the daylight sensor is configured properly.
+    Also sets the uniqueid of the sensor if needed.
+    \return true if the sensor is configured and \p lat and \p lng are written
+ */
+bool DeRestPluginPrivate::checkDaylightSensorConfiguration(Sensor *sensor, const QString &gwBridgeId, double *lat, double *lng)
 {
-    Sensor *sensor = getSensorNodeForId(daylightSensorId);
-    DBG_Assert(sensor != 0);
-    if (!sensor)
+    DBG_Assert(sensor != nullptr);
+    DBG_Assert(lat != nullptr);
+    DBG_Assert(lng != nullptr);
+    if (!sensor || !lat || !lng)
     {
-        return;
+        return false;
     }
 
-    {
+    {   // TODO the following code is excecuted on every iteration and rather expensive
+
         // check uniqueid
         // note: might change if device is changed
         ResourceItem *item = sensor->item(RAttrUniqueId);
@@ -3517,30 +3523,59 @@ void DeRestPluginPrivate::daylightTimerFired()
         }
     }
 
+    ResourceItem *configured = sensor->item(RConfigConfigured);
+    DBG_Assert(configured != nullptr);
+    if (!configured || !configured->toBool())
+    {
+        return false;
+    }
+
+    ResourceItem *ilat = sensor->item(RConfigLat);
+    ResourceItem *ilng = sensor->item(RConfigLong);
+
+    bool ok1 = false;
+    bool ok2 = false;
+    *lat = ilat ? ilat->toString().toDouble(&ok1) : NAN;
+    *lng = ilng ? ilng->toString().toDouble(&ok2) : NAN;
+    if (ok1 && ok2)
+    {
+        return true;
+    }
+
+    DBG_Printf(DBG_INFO, "The daylight sensor seems to be configured with invalid values\n");
+    // TODO should configured be set to false?
+    return false;
+}
+
+/* Check daylight state */
+void DeRestPluginPrivate::daylightTimerFired()
+{
     double lat = NAN;
     double lng = NAN;
-    ResourceItem *configured = sensor->item(RConfigConfigured);
-    if (!configured || !configured->toBool())
+    Sensor *sensor = getSensorNodeForId(daylightSensorId);
+
+    if (!checkDaylightSensorConfiguration(sensor, gwBridgeId, &lat, &lng))
     {
         return;
     }
 
-    {
-        ResourceItem *ilat = sensor->item(RConfigLat);
-        ResourceItem *ilng = sensor->item(RConfigLong);
-        if (!ilat || !ilng)
-        {
-            return;
-        }
+    struct DL_MapEntry {
+        const char *state;
+        ResourceItem * stateItem;
+        const char *offset;
+        int weight;
+    };
 
-        bool ok1;
-        bool ok2;
-        lat = ilat->toString().toDouble(&ok1);
-        lng = ilng->toString().toDouble(&ok2);
-        if (!ok1 || !ok2)
-        {
-            return;
-        }
+    std::vector<DL_MapEntry> dlmap = {
+        { RStateSunrise, nullptr, RConfigSunriseOffset, DL_SUNRISE_START },
+        { RStateSunset, nullptr, RConfigSunsetOffset, DL_SUNSET_END }
+    };
+
+    // dynamically add state items to daylight sensor if not already existing
+    for (auto &e : dlmap)
+    {
+        e.stateItem = sensor->addItem(DataTypeTime, e.state);
+        DBG_Assert(e.stateItem);
     }
 
     ResourceItem *daylight = sensor->item(RStateDaylight);
@@ -3554,17 +3589,17 @@ void DeRestPluginPrivate::daylightTimerFired()
         return;
     }
 
-    std::vector<DL_Result> daylightTimes;
+    daylightTimes.clear();
 
-    quint64 nowMs = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    const qint64 nowMs = QDateTime::currentDateTime().toMSecsSinceEpoch();
     getDaylightTimes(nowMs, lat, lng, daylightTimes);
 
-    const char *curName = 0;
-    int cur = 0;
-    quint64 sunrise = 0;
-    quint64 sunset = 0;
-    quint64 dawn = 0;
-    quint64 dusk = 0;
+    const char *curDayPhaseName = nullptr;
+    int curDayPhase = 0;
+    qint64 sunrise = 0;
+    qint64 sunset = 0;
+    qint64 dawn = 0;
+    qint64 dusk = 0;
 
     for (const DL_Result &r : daylightTimes)
     {
@@ -3572,17 +3607,26 @@ void DeRestPluginPrivate::daylightTimerFired()
 
         if (r.msecsSinceEpoch <= nowMs)
         {
-            curName = r.name;
-            cur = r.weight;
+            curDayPhaseName = r.name;
+            curDayPhase = r.weight;
         }
 
         if      (r.weight == DL_SUNRISE_START)  { sunrise = r.msecsSinceEpoch; }
         else if (r.weight == DL_SUNSET_END)     { sunset = r.msecsSinceEpoch; }
         else if (r.weight == DL_DAWN)           { dawn = r.msecsSinceEpoch; }
         else if (r.weight == DL_DUSK)           { dusk = r.msecsSinceEpoch; }
+
+        const auto k = std::find_if(dlmap.begin(), dlmap.end(), [r](const DL_MapEntry &e) { return e.weight == r.weight; });
+        if (k != dlmap.end() && k->stateItem)
+        {
+            if (k->stateItem->toNumber() != r.msecsSinceEpoch)
+            {
+                k->stateItem->setValue(r.msecsSinceEpoch);
+            }
+        }
     }
 
-    bool dl = false;
+    bool isDaylight = false;
     if (sunrise > 0 && sunset > 0)
     {
         sunrise += (sunriseOffset->toNumber() * 60 * 1000);
@@ -3590,11 +3634,11 @@ void DeRestPluginPrivate::daylightTimerFired()
 
         if (nowMs > sunrise && nowMs < sunset)
         {
-            dl = true;
+            isDaylight = true;
         }
     }
 
-    bool dk = true;
+    bool isDark = true;
     if (dawn > 0 && dusk > 0)
     {
         dawn += (sunriseOffset->toNumber() * 60 * 1000);
@@ -3602,31 +3646,31 @@ void DeRestPluginPrivate::daylightTimerFired()
 
         if (nowMs > dawn && nowMs < dusk)
         {
-            dk = false;
+            isDark = false;
         }
     }
 
     bool updated = false;
 
-    if (!daylight->lastSet().isValid() || daylight->toBool() != dl)
+    if (!daylight->lastSet().isValid() || daylight->toBool() != isDaylight)
     {
-        daylight->setValue(dl);
+        daylight->setValue(isDaylight);
         Event e(RSensors, RStateDaylight, sensor->id(), daylight);
         enqueueEvent(e);
         updated = true;
     }
 
-    if (!dark->lastSet().isValid() || dark->toBool() != dk)
+    if (!dark->lastSet().isValid() || dark->toBool() != isDark)
     {
-        dark->setValue(dk);
+        dark->setValue(isDark);
         Event e(RSensors, RStateDark, sensor->id(), dark);
         enqueueEvent(e);
         updated = true;
     }
 
-    if (cur && cur != status->toNumber())
+    if (curDayPhase && curDayPhase != status->toNumber())
     {
-        status->setValue(cur);
+        status->setValue(curDayPhase);
         Event e(RSensors, RStateStatus, sensor->id(), status);
         enqueueEvent(e);
         updated = true;
@@ -3640,9 +3684,9 @@ void DeRestPluginPrivate::daylightTimerFired()
         saveDatabaseItems |= DB_SENSORS;
     }
 
-    if (curName)
+    if (curDayPhaseName)
     {
-        DBG_Printf(DBG_INFO_L2, "Daylight now: %s, status: %d, daylight: %d, dark: %d\n", curName, cur, dl, dk);
+        DBG_Printf(DBG_INFO_L2, "Daylight now: %s, status: %d, daylight: %d, dark: %d\n", curDayPhaseName, curDayPhase, isDaylight, isDark);
     }
 }
 

@@ -6340,7 +6340,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     static const int sideMap[] = {1, 3, 5, 6, 4, 2};
                                     int side = sideMap[rawValue & 0x0007];
                                     int previousSide = sideMap[(rawValue & 0x0038) >> 3];
-                                         if (rawValue == 0x0002) { buttonevent = 7000; }                          // wakeup
+                                         if (rawValue == 0x0002) { buttonevent = 7000; gesture = GESTURE_NONE; }  // wakeup
                                     else if (rawValue == 0x0000) { buttonevent = 7007; gesture = GESTURE_SHAKE; } // shake
                                     else if (rawValue == 0x0003) { buttonevent = 7008; gesture = GESTURE_DROP; }  // drop
                                     else if (rawValue & 0x0040)  { buttonevent = side * 1000 + previousSide;      // flip 90°
@@ -6512,9 +6512,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 }
                                 else if (i->modelId() == QLatin1String("RICI01")) // LifeControl smart plug
                                 {
-                                    consumption /= 1000; // 0.001 Wh -> Wh
+                                    // Already in Wh
                                 }
-
+                                
                                 if (item)
                                 {
                                     item->setValue(consumption); // in Wh (0.001 kWh)
@@ -6648,7 +6648,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     }
                                     else if (i->modelId() == QLatin1String("RICI01")) //LifeControl Smart Plug
                                     {
-                                        current /= 1000; // uA -> mA
+                                        // already in mA
                                     }
                                     else
                                     {

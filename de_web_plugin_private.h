@@ -23,6 +23,7 @@
 #include <sqlite3.h>
 #include <deconz.h>
 #include "resource.h"
+#include "daylight.h"
 #include "event.h"
 #include "resource.h"
 #include "rest_node_base.h"
@@ -1058,6 +1059,7 @@ public Q_SLOTS:
     void fastRuleCheckTimerFired();
     void webhookFinishedRequest(QNetworkReply *reply);
     void daylightTimerFired();
+    bool checkDaylightSensorConfiguration(Sensor *sensor, const QString &gwBridgeId, double *lat, double *lng);
     void handleRuleEvent(const Event &e);
     bool queueBindingTask(const BindingTask &bindingTask);
     void restartAppTimerFired();
@@ -1743,6 +1745,7 @@ public:
     std::vector<LightNode> nodes;
     std::vector<Rule> rules;
     QString daylightSensorId;
+    std::vector<DL_Result> daylightTimes;
     std::vector<Sensor> sensors;
     std::list<TaskItem> tasks;
     std::list<TaskItem> runningTasks;
