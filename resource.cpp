@@ -39,6 +39,7 @@ const char *RStateAlarm = "state/alarm";
 const char *RStateAlert = "state/alert";
 const char *RStateAllOn = "state/all_on";
 const char *RStateAnyOn = "state/any_on";
+const char *RStateBattery = "state/battery";
 const char *RStateBri = "state/bri";
 const char *RStateButtonEvent = "state/buttonevent";
 const char *RStateCarbonMonoxide = "state/carbonmonoxide";
@@ -164,6 +165,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateAlert));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateAllOn));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateAnyOn));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RStateBattery, 0, 100));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RStateBri));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt32, RStateButtonEvent));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateCarbonMonoxide));
