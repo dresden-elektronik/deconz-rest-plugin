@@ -331,6 +331,7 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
         sensor.setType(type);
 
         if      (type == QLatin1String("CLIPAlarm")) { item = sensor.addItem(DataTypeBool, RStateAlarm); item->setValue(false); }
+        else if (type == QLatin1String("CLIPBattery")) { item = sensor.addItem(DataTypeUInt8, RStateBattery); item->setValue(100); }
         else if (type == QLatin1String("CLIPCarbonMonoxide")) { item = sensor.addItem(DataTypeBool, RStateCarbonMonoxide); item->setValue(false); }
         else if (type == QLatin1String("CLIPConsumption")) { item = sensor.addItem(DataTypeUInt64, RStateConsumption); item->setValue(0); }
         else if (type == QLatin1String("CLIPDaylightOffset")) { item = sensor.addItem(DataTypeInt16, RConfigOffset); item->setValue(0);
@@ -371,7 +372,7 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
         {
             //check invalid parameter
             const QVariantMap state = map["state"].toMap();
-            const QStringList allowedKeys = { "alarm", "buttonevent", "carbonmonoxide", "consumption", "current", "fire", "flag", "humidity", "lightlevel", "localtime", "lowbattery",
+            const QStringList allowedKeys = { "alarm", "battery", "buttonevent", "carbonmonoxide", "consumption", "current", "fire", "flag", "humidity", "lightlevel", "localtime", "lowbattery",
                                               "open", "presence", "pressure", "power", "status", "tampered", "temperature", "vibration", "voltage", "water" };
 
             const QStringList optionalKeys = { "lowbattery", "tampered" };
