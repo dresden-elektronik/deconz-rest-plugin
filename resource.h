@@ -54,6 +54,7 @@ extern const char *RStateAlarm;
 extern const char *RStateAlert;
 extern const char *RStateAllOn;
 extern const char *RStateAnyOn;
+extern const char *RStateBattery;
 extern const char *RStateBri;
 extern const char *RStateButtonEvent;
 extern const char *RStateCarbonMonoxide;
