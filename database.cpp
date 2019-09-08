@@ -3220,6 +3220,15 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 sensor.addItem(DataTypeString, RConfigScheduler); // Scheduler setting
             }
         }
+        else if (sensor.type().endsWith(QLatin1String("Battery")))
+        {
+            if (sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
+            {
+                clusterId = POWER_CONFIGURATION_CLUSTER_ID;
+            }
+            item = sensor.addItem(DataTypeUInt8, RStateBattery);
+            item->setValue(100);
+        }
 
         if (sensor.modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
         {
@@ -3274,7 +3283,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         {
             if (!sensor.modelId().startsWith(QLatin1String("lumi.ctrl_")) &&
                 sensor.modelId() != QLatin1String("lumi.plug") &&
-                sensor.modelId() != QLatin1String("lumi.curtain"))
+                sensor.modelId() != QLatin1String("lumi.curtain") &&
+                !sensor.type().endsWith(QLatin1String("Battery")))
             {
                 item = sensor.addItem(DataTypeUInt8, RConfigBattery);
                 //item->setValue(100); // wait for report
@@ -3329,10 +3339,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 item = sensor.addItem(DataTypeBool, RStateLowBattery);
                 // don't set value -> null until reported
             }
-            else
+            else if (!sensor.type().endsWith(QLatin1String("Battery")))
             {
                 item = sensor.addItem(DataTypeUInt8, RConfigBattery);
-                item->setValue(100);
+                // item->setValue(100);
             }
         }
 
