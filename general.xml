@@ -2612,6 +2612,17 @@ devices can operate on either battery or mains power, and can have a wide variet
 			<client>
 			</client>
 		</cluster>
+		
+		<!-- LEDVANCE -->
+		<cluster id="0xfc01" name="LEDVANCE" mfcode="0x1189">
+			<description>LEDVANCE manufacturer-specific cluster to set power-on defaults.</description>
+			<server>
+				<command id="0x01" dir="recv" name="Store Power-On Defaults" required="o">
+				</command>
+			</server>
+			<client>
+			</client>
+		</cluster>
 
 		<!-- IKEA -->
 		<cluster id="0xfc7c" name="IKEA" mfcode="0x117c">
