@@ -1874,10 +1874,17 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
              lightNode->modelId() == QLatin1String("A19 TW 10 year") ||
              lightNode->modelId() == QLatin1String("Classic B40 TW - LIGHTIFY") ||
              lightNode->modelId() == QLatin1String("Classic A60 TW") ||
+             (lightNode->manufacturerCode() == VENDOR_LEDVANCE && lightNode->modelId() == QLatin1String("Down Light TW")) ||
              (lightNode->manufacturerCode() == VENDOR_LEDVANCE && lightNode->modelId() == QLatin1String("BR30 TW")) ||
              (lightNode->manufacturerCode() == VENDOR_LEDVANCE && lightNode->modelId() == QLatin1String("MR16 TW")) ||
              (lightNode->manufacturerCode() == VENDOR_LEDVANCE && lightNode->modelId() == QLatin1String("RT TW")))
     {
+        item = lightNode->item(RAttrType);
+        if (item && item->toString() == QLatin1String("Color dimmable light")) // some TW lights wrongly report as dimmable
+        {
+            item->setValue(QVariant("Color temperature light"));
+        }
+
         if (lightNode->item(RConfigColorCapabilities) != nullptr)
         {
             return; // already initialized
