@@ -278,7 +278,7 @@
 #define VENDOR_PAULMANN     0x119D
 #define VENDOR_120B         0x120B // Used by Heiman
 #define VENDOR_MUELLER      0x121B // Used by Mueller Licht
-#define VENDOR_1224         0x1224 // Used by iCasa keypads
+#define VENDOR_SUNRICHER    0x1224 // Used by iCasa keypads
 #define VENDOR_XAL          0x122A
 #define VENDOR_1233         0x1233 // Used by Third Reality
 #define VENDOR_1234         0x1234 // Used by Xiaomi Mi
@@ -400,7 +400,7 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == sinopeMacPrefix;
         case VENDOR_120B:
             return prefix == emberMacPrefix;
-        case VENDOR_1224:
+        case VENDOR_SUNRICHER:
             return prefix == emberMacPrefix;
         case VENDOR_BITRON:
             return prefix == tiMacPrefix;

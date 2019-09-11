@@ -197,7 +197,9 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "ZYCT-202", jennicMacPrefix }, // Trust remote control ZYCT-202
     { VENDOR_INNR, "RC 110", jennicMacPrefix }, // innr remote RC 110
     { VENDOR_VISONIC, "MCT-340", emberMacPrefix }, // Visonic MCT-340 E temperature/motion
-    { VENDOR_1224, "ICZB-KPD1", emberMacPrefix }, // iCasa keypad
+    { VENDOR_SUNRICHER, "ICZB-KPD1", emberMacPrefix }, // iCasa keypad
+    { VENDOR_SUNRICHER, "ZGRC-KEY", emberMacPrefix }, // Sunricher wireless CCT remote
+    { VENDOR_SUNRICHER, "ZG2833K", emberMacPrefix }, // Sunricher remote controller
     { VENDOR_JENNIC, "SPZB0001", jennicMacPrefix }, // Eurotronic thermostat
     { VENDOR_NONE, "RES001", tiMacPrefix }, // Hubitat environment sensor, see #1308
     { VENDOR_119C, "WL4200S", sinopeMacPrefix}, // Sinope water sensor
@@ -3320,7 +3322,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 }
             }
             else if (ind.clusterId() == COLOR_CLUSTER_ID &&
-                     (zclFrame.commandId() == 0x4b && zclFrame.payload().size() >= 7) )  // move to color temperature
+                     (zclFrame.commandId() == 0x4b && zclFrame.payload().size() >= 7) )  // move color temperature
             {
                 ok = false;
                 // u8 move mode
@@ -3353,6 +3355,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     }
                     ok = true;
                 }
+
             }
 
             if (ok)
@@ -5502,6 +5505,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("FYRTUR")) || // IKEA
                                         i->modelId().startsWith(QLatin1String("KADRILJ")) || // IKEA
                                         i->modelId().startsWith(QLatin1String("ICZB-KPD1")) || // iCasa keypads
+                                        i->modelId().startsWith(QLatin1String("ZGRC-KEY")) || //  Sunricher wireless CCT remote
+                                        i->modelId().startsWith(QLatin1String("ZG2833K")) || // Sunricher remote controller
                                         i->modelId().startsWith(QLatin1String("SV01-"))) // Keen Home vent
                                     {
                                         bat = ia->numericValue().u8;
@@ -5533,6 +5538,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                     if (i->modelId().startsWith(QLatin1String("TRADFRI")) || // IKEA
                                         i->modelId().startsWith(QLatin1String("ICZB-KPD1")) || // iCasa keypads
+                                        i->modelId().startsWith(QLatin1String("ZGRC-KEY")) || //  Sunricher wireless CCT remote
+                                        i->modelId().startsWith(QLatin1String("ZG2833K")) || // Sunricher remote controller
                                         i->modelId().startsWith(QLatin1String("SV01-"))) // Keen Home vent
                                     {
                                         bat = ia->numericValue().u8;
@@ -14465,21 +14472,6 @@ void DeRestPlugin::idleTimerFired()
                             }
                         }
 
-                        // if (*ci == POWER_CONFIGURATION_CLUSTER_ID)
-                        // {
-                        //     if (sensorNode->modelId().startsWith(QLatin1String("ICZB-KPD1"))) // iCasa Pulse keypads
-                        //     {
-                        //         val = sensorNode->getZclValue(*ci, 0x0021); // battery percentage remaining
-                        //         if (!val.timestamp.isValid() || val.timestamp.secsTo(now) > 1800)
-                        //         {
-                        //             sensorNode->enableRead(READ_BATTERY);
-                        //             sensorNode->setLastRead(READ_BATTERY, d->idleTotalCounter);
-                        //             sensorNode->setNextReadTime(READ_BATTERY, d->queryTime);
-                        //             d->queryTime = d->queryTime.addSecs(tSpacing);
-                        //             processSensors = true;
-                        //         }
-                        //     }
-                        // }
                     }
 
                     DBG_Printf(DBG_INFO_L2, "Force read attributes for SensorNode %s\n", qPrintable(sensorNode->name()));
