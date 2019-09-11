@@ -500,6 +500,64 @@ static const Sensor::ButtonMap icasaKeypadMap[] = {
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
+static const Sensor::ButtonMap sunricherCCTMap[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    // Off button
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x01, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+    // On button
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x00, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
+    // Dim button
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x05, 0,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD, "Move up (with on/off)" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x07, 0,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x05, 1,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD, "Move down (with on/off)" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x07, 1,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // C/W button
+    { Sensor::ModeScenes,           0x01, 0x0300, 0x0a, 0,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Move to color temperature" },
+    { Sensor::ModeScenes,           0x01, 0x0300, 0x4b, 0x013C, S_BUTTON_4 + S_BUTTON_ACTION_HOLD, "Move color temperature up" },
+    { Sensor::ModeScenes,           0x01, 0x0300, 0x4b, 0x033C, S_BUTTON_4 + S_BUTTON_ACTION_HOLD, "Move color temperature down" },
+    { Sensor::ModeScenes,           0x01, 0x0300, 0x47, 0,    S_BUTTON_4 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_" },
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
+};
+
+static const Sensor::ButtonMap sunricherMap[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    // 1st On button
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x01, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x05, 0,    S_BUTTON_1 + S_BUTTON_ACTION_HOLD, "Move up (with on/off)" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x07, 0,    S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // 1st Off button
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x00, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x05, 1,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD, "Move down (with on/off)" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x07, 1,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // 2nd On button
+    { Sensor::ModeScenes,           0x02, 0x0006, 0x01, 0,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+    { Sensor::ModeScenes,           0x02, 0x0008, 0x05, 0,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD, "Move up (with on/off)" },
+    { Sensor::ModeScenes,           0x02, 0x0008, 0x07, 0,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // 2nd Off button
+    { Sensor::ModeScenes,           0x02, 0x0006, 0x00, 0,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
+    { Sensor::ModeScenes,           0x02, 0x0008, 0x05, 1,    S_BUTTON_4 + S_BUTTON_ACTION_HOLD, "Move down (with on/off)" },
+    { Sensor::ModeScenes,           0x02, 0x0008, 0x07, 1,    S_BUTTON_4 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // 3rd On button
+    { Sensor::ModeScenes,           0x03, 0x0006, 0x01, 0,    S_BUTTON_5 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+    { Sensor::ModeScenes,           0x03, 0x0008, 0x05, 0,    S_BUTTON_5 + S_BUTTON_ACTION_HOLD, "Move up (with on/off)" },
+    { Sensor::ModeScenes,           0x03, 0x0008, 0x07, 0,    S_BUTTON_5 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // 3rd Off button
+    { Sensor::ModeScenes,           0x03, 0x0006, 0x00, 0,    S_BUTTON_6 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
+    { Sensor::ModeScenes,           0x03, 0x0008, 0x05, 1,    S_BUTTON_6 + S_BUTTON_ACTION_HOLD, "Move down (with on/off)" },
+    { Sensor::ModeScenes,           0x03, 0x0008, 0x07, 1,    S_BUTTON_6 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // 4th On button
+    { Sensor::ModeScenes,           0x04, 0x0006, 0x01, 0,    S_BUTTON_7 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+    { Sensor::ModeScenes,           0x04, 0x0008, 0x05, 0,    S_BUTTON_7 + S_BUTTON_ACTION_HOLD, "Move up (with on/off)" },
+    { Sensor::ModeScenes,           0x04, 0x0008, 0x07, 0,    S_BUTTON_7 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // 4th Off button
+    { Sensor::ModeScenes,           0x04, 0x0006, 0x00, 0,    S_BUTTON_8 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
+    { Sensor::ModeScenes,           0x04, 0x0008, 0x05, 1,    S_BUTTON_8 + S_BUTTON_ACTION_HOLD, "Move down (with on/off)" },
+    { Sensor::ModeScenes,           0x04, 0x0008, 0x07, 1,    S_BUTTON_8 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
+};
+
 /*! Returns a fingerprint as JSON string. */
 QString SensorFingerprint::toString() const
 {
@@ -1048,6 +1106,11 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         else if (manufacturer == QLatin1String("icasa"))
         {
             if      (modelid.startsWith(QLatin1String("ICZB-KPD1"))) { m_buttonMap = icasaKeypadMap; }
+        }
+        else if (manufacturer == QLatin1String("Sunricher"))
+        {
+            if      (modelid.startsWith(QLatin1String("ZGRC-KEY"))) { m_buttonMap = sunricherCCTMap; }
+            else if (modelid.startsWith(QLatin1String("ZG2833K"))) { m_buttonMap = sunricherMap; }
         }
     }
 
