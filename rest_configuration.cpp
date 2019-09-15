@@ -3535,8 +3535,8 @@ bool DeRestPluginPrivate::checkDaylightSensorConfiguration(Sensor *sensor, const
 
     bool ok1 = false;
     bool ok2 = false;
-    *lat = ilat ? ilat->toString().toDouble(&ok1) : NAN;
-    *lng = ilng ? ilng->toString().toDouble(&ok2) : NAN;
+    *lat = ilat ? ilat->toString().toDouble(&ok1) : nan("");
+    *lng = ilng ? ilng->toString().toDouble(&ok2) : nan("");
     if (ok1 && ok2)
     {
         return true;
@@ -3550,8 +3550,8 @@ bool DeRestPluginPrivate::checkDaylightSensorConfiguration(Sensor *sensor, const
 /* Check daylight state */
 void DeRestPluginPrivate::daylightTimerFired()
 {
-    double lat = NAN;
-    double lng = NAN;
+    double lat = nan("");
+    double lng = nan("");
     Sensor *sensor = getSensorNodeForId(daylightSensorId);
 
     if (!checkDaylightSensorConfiguration(sensor, gwBridgeId, &lat, &lng))
