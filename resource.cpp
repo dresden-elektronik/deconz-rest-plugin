@@ -360,7 +360,7 @@ const QString &ResourceItem::toString() const
     {
         if (m_str)
         {
-            if (m_rid.suffix == RStateLastUpdated)
+            if (m_rid.suffix == RStateLastUpdated || m_rid.suffix == RStateSunrise || m_rid.suffix == RStateSunset)
             {
                 QDateTime dt;
                 dt.setOffsetFromUtc(0);
