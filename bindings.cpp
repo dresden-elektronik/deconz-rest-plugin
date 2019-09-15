@@ -1733,6 +1733,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("FLS-NB")) ||
         // SmartThings
         sensor->modelId().startsWith(QLatin1String("tagv4")) ||
+        (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("button")) ||
         (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("motion")) ||
         (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("multi")) ||
         (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("water")) ||

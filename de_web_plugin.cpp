@@ -144,6 +144,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SAMJIN, "motion", samjinMacPrefix }, // Smarthings GP-U999SJVLBAA (Samjin) Motion Sensor
     { VENDOR_SAMJIN, "multi", samjinMacPrefix }, // Smarthings (Samjin) Multipurpose Sensor
     { VENDOR_SAMJIN, "water", samjinMacPrefix }, // Smarthings (Samjin) Water Sensor
+    { VENDOR_SAMJIN, "button", samjinMacPrefix }, // Smarthings (Samjin) Button
     { VENDOR_JENNIC, "lumi.sensor_ht", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.weather", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_magnet", jennicMacPrefix },
@@ -595,11 +596,25 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
         handleIndicationSearchSensors(ind, zclFrame);
 
-        if (ind.dstAddressMode() == deCONZ::ApsGroupAddress || ind.clusterId() == VENDOR_CLUSTER_ID ||
+        if (ind.dstAddressMode() == deCONZ::ApsGroupAddress || ind.clusterId() == VENDOR_CLUSTER_ID || ind.clusterId() == IAS_ZONE_CLUSTER_ID ||
             !(zclFrame.frameControl() & deCONZ::ZclFCDirectionServerToClient) ||
             (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReportAttributesId))
         {
             Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
+
+            if (sensorNode && ind.clusterId() == IAS_ZONE_CLUSTER_ID && sensorNode->type() != QLatin1String("ZHASwitch"))
+            {
+                sensorNode = nullptr;
+                auto it = std::find_if(sensors.begin(), sensors.end(), [&ind](const Sensor &s) {
+                    return s.address().ext() == ind.srcAddress().ext() && s.type() == QLatin1String("ZHASwitch");
+                });
+
+                if (it != sensors.end())
+                {
+                    sensorNode = &*it;
+                }
+            }
+
             if (!sensorNode)
             {
                 // No sensorNode found for endpoint - check for multiple endpoints mapped to the same resource
@@ -3243,6 +3258,15 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     ok = true;
                 }
             }
+            else if (ind.clusterId() == IAS_ZONE_CLUSTER_ID)
+            {
+                ok = false;
+                // following works for Samjin button
+                if (zclFrame.payload().size() == 6 && buttonMap->zclParam0 == zclFrame.payload().at(0))
+                {
+                    ok = true;
+                }
+            }
             else if (ind.clusterId() == SCENE_CLUSTER_ID &&
                      sensor->modelId().startsWith(QLatin1String("TRADFRI"))) // IKEA non-standard scene
             {
@@ -3748,6 +3772,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpAlarmSensor.inClusters.push_back(ci->id());
                     }
+                    else if (manufacturer == QLatin1String("Samjin") && modelId == QLatin1String("button"))
+                    {
+                        fpSwitch.inClusters.push_back(ci->id());
+                    }
                     else if (!modelId.isEmpty())
                     {
                         for (const deCONZ::ZclAttribute &attr : ci->attributes())
@@ -4042,6 +4070,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             fpSwitch.hasInCluster(ANALOG_INPUT_CLUSTER_ID) ||
             fpSwitch.hasInCluster(MULTISTATE_INPUT_CLUSTER_ID) ||
             fpSwitch.hasInCluster(DOOR_LOCK_CLUSTER_ID) ||
+            fpSwitch.hasInCluster(IAS_ZONE_CLUSTER_ID) ||
             !fpSwitch.outClusters.empty())
         {
             fpSwitch.endpoint = i->endpoint();
@@ -4453,6 +4482,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         else if (sensorNode.fingerPrint().hasInCluster(MULTISTATE_INPUT_CLUSTER_ID))
         {
             clusterId = MULTISTATE_INPUT_CLUSTER_ID;
+        }
+        else if (sensorNode.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
+        {
+            clusterId = IAS_ZONE_CLUSTER_ID;
         }
         sensorNode.addItem(DataTypeInt32, RStateButtonEvent);
 
@@ -4942,7 +4975,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
 
     if (clusterId == IAS_ZONE_CLUSTER_ID)
     {
-        if ((modelId == QLatin1String("multi") && sensorNode.manufacturer() == QLatin1String("Samjin")) ||
+        if ((modelId == QLatin1String("button") && sensorNode.manufacturer() == QLatin1String("Samjin")) ||
+            (modelId == QLatin1String("multi") && sensorNode.manufacturer() == QLatin1String("Samjin")) ||
             (modelId == QLatin1String("water") && sensorNode.manufacturer() == QLatin1String("Samjin")))
         {
             // no support for some IAS flags
@@ -13252,8 +13286,8 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                     {
                         if (attr.id() == 0x0001 && attr.numericValue().u64 != 0) // Zone type
                         {
-                            DBG_Assert(attr.numericValue().u64 <= UINT8_MAX);
-                            iasZoneType = static_cast<quint8>(attr.numericValue().u64);
+                            DBG_Assert(attr.numericValue().u64 <= UINT16_MAX);
+                            iasZoneType = static_cast<quint16>(attr.numericValue().u64);
                         }
                     }
                     else if (cl.id() == THERMOSTAT_CLUSTER_ID)

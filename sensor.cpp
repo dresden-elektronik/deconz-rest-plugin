@@ -500,6 +500,17 @@ static const Sensor::ButtonMap icasaKeypadMap[] = {
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
+static const Sensor::ButtonMap samjinButtonMap[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    // First button
+    { Sensor::ModeScenes,           0x01, 0x0500, 0x00, 0x01,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Single press" },
+    { Sensor::ModeScenes,           0x01, 0x0500, 0x00, 0x02,    S_BUTTON_1 + S_BUTTON_ACTION_DOUBLE_PRESS, "Double press" },
+    { Sensor::ModeScenes,           0x01, 0x0500, 0x00, 0x03,    S_BUTTON_1 + S_BUTTON_ACTION_HOLD, "Hold" },
+
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
+};
+
 static const Sensor::ButtonMap sunricherCCTMap[] = {
 //    mode                          ep    cluster cmd   param button                                       name
     // Off button
@@ -1106,6 +1117,10 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         else if (manufacturer == QLatin1String("icasa"))
         {
             if      (modelid.startsWith(QLatin1String("ICZB-KPD1"))) { m_buttonMap = icasaKeypadMap; }
+        }
+        else if (manufacturer == QLatin1String("Samjin"))
+        {
+            if (modelid == QLatin1String("button")) { m_buttonMap = samjinButtonMap; }
         }
         else if (manufacturer == QLatin1String("Sunricher"))
         {

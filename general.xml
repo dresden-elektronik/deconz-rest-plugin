@@ -2114,6 +2114,7 @@ Note: It does not clear or delete previous weekly schedule programming configura
 						<value name="Standard Warning Device" value="0x0225"></value>
 						<value name="Glass break sensor" value="0x0226"></value>
 						<value name="Security repeater" value="0x0229"></value>
+						<value name="Manufacturer specific" value="0x8000"></value>
 						<value name="Invalid Zone Type" value="0xffff"></value>
 					</attribute>
 					<attribute id="0x0002" type="bmp16" name="Zone Status" access="r" required="m">
