@@ -7134,6 +7134,11 @@ Sensor *DeRestPluginPrivate::getSensorNodeForFingerPrint(quint64 extAddr, const 
  */
 Sensor *DeRestPluginPrivate::getSensorNodeForUniqueId(const QString &uniqueId)
 {
+    if (uniqueId.isEmpty())
+    {
+        return nullptr;
+    }
+
     for (Sensor &s : sensors)
     {
         if (s.deletedState() == Sensor::StateNormal && s.uniqueId() == uniqueId)
