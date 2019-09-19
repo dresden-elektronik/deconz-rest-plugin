@@ -1752,7 +1752,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("RICI01") ||
         // ORVIBO
         sensor->modelId().startsWith(QLatin1String("SN10ZW")) ||
-        sensor->modelId().startsWith(QLatin1String("SF20")))
+        sensor->modelId().startsWith(QLatin1String("SF2")))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||
