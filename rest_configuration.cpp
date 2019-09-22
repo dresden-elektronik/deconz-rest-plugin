@@ -745,7 +745,13 @@ int DeRestPluginPrivate::createUser(const ApiRequest &req, ApiResponse &rsp)
 
     if (!gwLinkButton)
     {
-        if (gwAllowLocal && req.sock->peerAddress() == localHost)
+        QString host = req.hdr.value(QLatin1String("Host"));
+        if (host.indexOf(':') > 0)
+        {
+            host = host.split(':')[0];
+        }
+
+        if (gwAllowLocal && req.sock->peerAddress() == localHost && (host == QLatin1String("127.0.0.1") || host == QLatin1String("localhost")))
         {
             // proceed
         }
