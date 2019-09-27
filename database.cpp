@@ -3268,7 +3268,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeBool, RConfigUsertest);
             item->setValue(false);
         }
-        else if (sensor.modelId().startsWith(QLatin1String("TRADFRI")))
+        else if (sensor.modelId().startsWith(QLatin1String("TRADFRI")) ||
+                 sensor.modelId().startsWith(QLatin1String("SYMFONISK")))
         {
             // support power configuration cluster for IKEA devices
             if (!sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
