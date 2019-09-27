@@ -206,6 +206,22 @@ static const Sensor::ButtonMap ikeaMotionSensorMap[] = {
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
+static const Sensor::ButtonMap ikeaSoundControllerMap[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    // press
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x02, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Toggle" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 0,    S_BUTTON_1 + S_BUTTON_ACTION_DOUBLE_PRESS, "Step Up" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 1,    S_BUTTON_1 + S_BUTTON_ACTION_TREBLE_PRESS, "Step Down" },
+    // turn counter clockwise
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 1,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD, "Move Down" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 1,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED, "Stop" },
+    // turn clockwise
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 0,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD, "Move Up" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 0,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED, "Stop" },
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
+};
+
 static const Sensor::ButtonMap trustZYCT202SwitchMap[] = {
 //    mode                          ep    cluster cmd   param button                                       name
     { Sensor::ModeScenes,           0x01, 0x0006, 0x01, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
@@ -1088,6 +1104,7 @@ const Sensor::ButtonMap *Sensor::buttonMap()
             else if (modelid.startsWith(QLatin1String("TRADFRI wireless dimmer"))) { m_buttonMap = ikeaDimmerMap; }
             else if (modelid.startsWith(QLatin1String("TRADFRI on/off switch"))) { m_buttonMap = ikeaOnOffMap; }
             else if (modelid.startsWith(QLatin1String("TRADFRI open/close remote"))) { m_buttonMap = ikeaOpenCloseMap; }
+            else if (modelid.startsWith(QLatin1String("SYMFONISK"))) { m_buttonMap = ikeaSoundControllerMap; }
         }
         else if (manufacturer == QLatin1String("ubisys"))
         {

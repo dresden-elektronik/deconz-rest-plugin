@@ -79,6 +79,8 @@ const quint64 ubisysMacPrefix     = 0x001fee0000000000ULL;
 const quint64 deMacPrefix         = 0x00212e0000000000ULL;
 const quint64 keenhomeMacPrefix   = 0x0022a30000000000ULL;
 const quint64 heimanMacPrefix     = 0x0050430000000000ULL;
+const quint64 konkeMacPrefix      = 0x086bd70000000000ULL;
+const quint64 ikea2MacPrefix      = 0x14b4570000000000ULL;
 const quint64 stMacPrefix         = 0x24fd5b0000000000ULL;
 const quint64 samjinMacPrefix     = 0x286d970000000000ULL;
 const quint64 sinopeMacPrefix     = 0x500b910000000000ULL;
@@ -88,7 +90,6 @@ const quint64 energyMiMacPrefix   = 0xd0cf5e0000000000ULL;
 const quint64 bjeMacPrefix        = 0xd85def0000000000ULL;
 const quint64 xalMacPrefix        = 0xf8f0050000000000ULL;
 const quint64 lutronMacPrefix     = 0xffff000000000000ULL;
-const quint64 konkeMacPrefix      = 0x086bd70000000000ULL;
 
 struct SupportedDevice {
     quint16 vendorId;
@@ -131,6 +132,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_IKEA, "TRADFRI open/close remote", ikeaMacPrefix },
     { VENDOR_IKEA, "FYRTUR", ikeaMacPrefix }, // smart blind
     { VENDOR_IKEA, "KADRILJ", ikeaMacPrefix }, // smart blind
+    { VENDOR_IKEA, "SYMFONISK", ikea2MacPrefix }, // sound controller
     { VENDOR_INSTA, "Remote", instaMacPrefix },
     { VENDOR_INSTA, "HS_4f_GJ_1", instaMacPrefix },
     { VENDOR_INSTA, "WS_4f_J_1", instaMacPrefix },
@@ -3065,7 +3067,8 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     }
     else if (sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")) ||
              sensor->modelId().startsWith(QLatin1String("TRADFRI open/close remote")) ||
-             sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")))
+             sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")) ||
+             sensor->modelId().startsWith(QLatin1String("SYMFONISK")))
     {
         checkReporting = true;
 
@@ -3080,10 +3083,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             }
         }
     }
-    // else if (sensor->modelId() == QLatin1String("TRADFRI motion sensor"))
-    // {
-    //     checkReporting = true;
-    // }
     else if (sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
     {
         checkReporting = true;
@@ -5542,6 +5541,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     if (i->modelId().startsWith(QLatin1String("TRADFRI")) || // IKEA
                                         i->modelId().startsWith(QLatin1String("FYRTUR")) || // IKEA
                                         i->modelId().startsWith(QLatin1String("KADRILJ")) || // IKEA
+                                        i->modelId().startsWith(QLatin1String("SYMFONISK")) || // IKEA
                                         i->modelId().startsWith(QLatin1String("ICZB-KPD1")) || // iCasa keypads
                                         i->modelId().startsWith(QLatin1String("ZGRC-KEY")) || //  Sunricher wireless CCT remote
                                         i->modelId().startsWith(QLatin1String("ZG2833K")) || // Sunricher remote controller
@@ -5575,6 +5575,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     int bat = ia->numericValue().u8 / 2;
 
                                     if (i->modelId().startsWith(QLatin1String("TRADFRI")) || // IKEA
+                                        i->modelId().startsWith(QLatin1String("SYMFONISK")) || // IKEA
                                         i->modelId().startsWith(QLatin1String("ICZB-KPD1")) || // iCasa keypads
                                         i->modelId().startsWith(QLatin1String("ZGRC-KEY")) || //  Sunricher wireless CCT remote
                                         i->modelId().startsWith(QLatin1String("ZG2833K")) || // Sunricher remote controller
@@ -13667,7 +13668,8 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         }
         else if (sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")) ||
                  sensor->modelId().startsWith(QLatin1String("TRADFRI open/close remote")) ||
-                 sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")))
+                 sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")) ||
+                 sensor->modelId().startsWith(QLatin1String("SYMFONISK")))
         {
             checkSensorGroup(sensor);
 

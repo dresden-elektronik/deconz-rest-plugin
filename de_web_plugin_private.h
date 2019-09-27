@@ -373,6 +373,7 @@ extern const quint64 emberMacPrefix;
 extern const quint64 energyMiMacPrefix;
 extern const quint64 heimanMacPrefix;
 extern const quint64 ikeaMacPrefix;
+extern const quint64 ikea2MacPrefix;
 extern const quint64 silabsMacPrefix;
 extern const quint64 instaMacPrefix;
 extern const quint64 boschMacPrefix;

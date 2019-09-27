@@ -1705,6 +1705,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("S2")) ||
         // IKEA
         sensor->modelId().startsWith(QLatin1String("TRADFRI")) ||
+        sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
         // Keen Home
         sensor->modelId().startsWith(QLatin1String("SV01-")) ||
         // Trust ZPIR-8000
@@ -2163,6 +2164,13 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         clusters.push_back(LEVEL_CLUSTER_ID);
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
+    // IKEA SYMFONISK sound controller
+    else if (sensor->modelId().startsWith(QLatin1String("SYMFONISK")))
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+    }
     else if (sensor->modelId().startsWith(QLatin1String("D1")))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
@@ -2323,7 +2331,8 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
     }
     else if (sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")) ||
              sensor->modelId().startsWith(QLatin1String("TRADFRI open/close remote")) ||
-             sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")))
+             sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")) ||
+             sensor->modelId().startsWith(QLatin1String("SYMFONISK")))
     {
 
     }
