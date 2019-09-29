@@ -1617,6 +1617,15 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                     }
                     break;
 
+                case DEV_ID_RANGE_EXTENDER:
+                    {
+                        if (node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA)
+                        {
+                            lightNode.setHaEndpoint(*i);
+                        }
+                    }
+                    break;
+
                 case DEV_ID_XIAOMI_SMART_PLUG:
                     {
                         if (node->nodeDescriptor().manufacturerCode() == VENDOR_115F &&
@@ -2140,6 +2149,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
             case DEV_ID_HA_DIMMABLE_LIGHT:
             case DEV_ID_HA_ONOFF_LIGHT_SWITCH:
             case DEV_ID_HA_DIMMER_SWITCH:
+            case DEV_ID_RANGE_EXTENDER:
             //case DEV_ID_ZLL_DIMMABLE_LIGHT: // same as DEV_ID_HA_ONOFF_LIGHT
             case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:
             case DEV_ID_Z30_DIMMABLE_PLUGIN_UNIT:
