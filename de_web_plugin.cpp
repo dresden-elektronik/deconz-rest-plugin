@@ -1776,7 +1776,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         else
         {
             if (lightNode.name().isEmpty())
-                lightNode.setName(QString("Light %1").arg(lightNode.id()));
+                lightNode.setName(QString("%1 %2").arg(lightNode.type()).arg(lightNode.id()));
 
             if (!lightNode.name().isEmpty())
             { q->nodeUpdated(lightNode.address().ext(), QLatin1String("name"), lightNode.name()); }
