@@ -284,6 +284,7 @@
 #define VENDOR_1234         0x1234 // Used by Xiaomi Mi
 #define VENDOR_SAMJIN       0x1241
 #define VENDOR_OSRAM_STACK  0xBBAA
+#define VENDOR_LEGRAND      0x1021
 
 #define ANNOUNCE_INTERVAL 10 // minutes default announce interval
 
@@ -390,6 +391,7 @@ extern const quint64 tiMacPrefix;
 extern const quint64 ubisysMacPrefix;
 extern const quint64 xalMacPrefix;
 extern const quint64 develcoMacPrefix;
+extern const quint64 legrandMacPrefix;
 
 inline bool checkMacVendor(quint64 addr, quint16 vendor)
 {
@@ -457,6 +459,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == samjinMacPrefix;
         case VENDOR_DEVELCO:
             return prefix == develcoMacPrefix;
+        case VENDOR_LEGRAND:
+            return prefix == legrandMacPrefix;
         default:
             return false;
     }
