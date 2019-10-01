@@ -1,4 +1,4 @@
-/*
+   /*
  * Copyright (c) 2017-2019 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
@@ -90,6 +90,7 @@ const quint64 energyMiMacPrefix   = 0xd0cf5e0000000000ULL;
 const quint64 bjeMacPrefix        = 0xd85def0000000000ULL;
 const quint64 xalMacPrefix        = 0xf8f0050000000000ULL;
 const quint64 lutronMacPrefix     = 0xffff000000000000ULL;
+const quint64 legrandMacPrefix    = 0x0004740000000000ULL;
 
 struct SupportedDevice {
     quint16 vendorId;
@@ -216,6 +217,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "RICI01", tiMacPrefix}, // LifeControl smart plug
     { VENDOR_JENNIC, "SN10ZW", jennicMacPrefix }, // ORVIBO motion sensor
     { VENDOR_OSRAM_STACK, "SF2", heimanMacPrefix }, // ORVIBO (Heiman) smoke sensor
+    { VENDOR_LEGRAND, "plug.Celiane.Legrand", legrandMacPrefix }, // Legrand Plug
     { 0, nullptr, 0 }
 };
 
