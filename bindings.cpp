@@ -1534,6 +1534,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturer() == QString("欧瑞博") || lightNode->manufacturer() == QLatin1String("ORVIBO"))
         {
         }
+        else if (lightNode->manufacturerCode() == VENDOR_LEGRAND) // Legrand switch and plug
+        {
+        }
         else
         {
             return;
@@ -1754,6 +1757,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("WL4200S") ||
         //LifeControl smart plug
         sensor->modelId() == QLatin1String("RICI01") ||
+        //Legrand Plug
+        sensor->modelId() == QLatin1String("plug.Celiane.Legrand") ||
         // ORVIBO
         sensor->modelId().startsWith(QLatin1String("SN10ZW")) ||
         sensor->modelId().startsWith(QLatin1String("SF2")))
