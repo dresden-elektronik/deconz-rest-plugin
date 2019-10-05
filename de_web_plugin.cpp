@@ -3097,6 +3097,10 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     {
         checkReporting = true;
     }
+    else if (sensor->modelId().startsWith(QLatin1String("RC 110"))) // innr remote
+    {
+        checkClientCluster = true;
+    }
     else if (ind.dstAddressMode() == deCONZ::ApsGroupAddress)
     {
         if (sensor->mode() == Sensor::ModeTwoGroups) // only supported for DE Lighting Switch
@@ -13726,6 +13730,11 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                     queueBindingTask(bindingTask);
                 }
             }
+        }
+        else if (sensor->modelId().startsWith(QLatin1String("RC 110"))) // innr Remote
+        {
+            checkSensorGroup(sensor);
+            checkSensorBindingsForClientClusters(sensor);
         }
 
         for (auto &s : sensors)
