@@ -1755,7 +1755,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         //LifeControl smart plug
         sensor->modelId() == QLatin1String("RICI01") ||
         //Legrand Plug
-        sensor->modelId() == QLatin1String("plug.Celiane.Legrand") ||
+        sensor->modelId() == QLatin1String("Connected outlet") ||
         // ORVIBO
         sensor->modelId().startsWith(QLatin1String("SN10ZW")) ||
         sensor->modelId().startsWith(QLatin1String("SF2")))
