@@ -1018,6 +1018,7 @@ public Q_SLOTS:
     void gpDataIndication(const deCONZ::GpDataIndication &ind);
     void gpProcessButtonEvent(const deCONZ::GpDataIndication &ind);
     void configurationChanged();
+    void networkStateChangeRequest(bool shouldConnect);
     int taskCountForAddress(const deCONZ::Address &address);
     void processTasks();
     void processGroupTasks();
@@ -1614,14 +1615,15 @@ public:
     uint8_t channelChangeApsRequestId;
 
     // generic network reconnect state machine
-    enum networkReconnectState
+    enum NetworkReconnectState
     {
         DisconnectingNetwork,
-        ReconnectNetwork
+        ReconnectNetwork,
+        MaintainNetwork
     };
 
-    QTimer *reconnectTimer;
-    networkReconnectState networkState;
+    QTimer *reconnectTimer = nullptr;
+    NetworkReconnectState networkState = MaintainNetwork;
     int networkDisconnectAttempts;
     int networkReconnectAttempts;
     bool networkConnectedBefore;

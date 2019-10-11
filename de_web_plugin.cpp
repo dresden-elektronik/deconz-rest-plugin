@@ -14152,6 +14152,12 @@ void DeRestPlugin::idleTimerFired()
 
     if (!d->isInNetwork())
     {
+        // automatically try reconnect network
+        if (d->networkState == DeRestPluginPrivate::MaintainNetwork && d->gwRfConnectedExpected)
+        {
+            d->networkConnectedBefore = d->gwRfConnectedExpected;
+            d->startReconnectNetwork(RECONNECT_CHECK_DELAY);
+        }
         return;
     }
 
@@ -16037,11 +16043,6 @@ void DeRestPluginPrivate::pollDatabaseWifiTimerFired()
 
 void DeRestPluginPrivate::restartAppTimerFired()
 {
-    reconnectTimer = new QTimer(this);
-    reconnectTimer->setSingleShot(true);
-    connect(reconnectTimer, SIGNAL(timeout()),
-            this, SLOT(reconnectTimerFired()));
-
     // deCONZ will be restarted after reconnect
     genericDisconnectNetwork();
 }
@@ -16182,7 +16183,7 @@ void DeRestPluginPrivate::pollNextDevice()
  */
 void DeRestPluginPrivate::genericDisconnectNetwork()
 {
-    DBG_Assert(apsCtrl != 0);
+    DBG_Assert(apsCtrl != nullptr);
 
     if (!apsCtrl)
     {
@@ -16225,7 +16226,7 @@ void DeRestPluginPrivate::checkNetworkDisconnected()
         }
         else
         {
-            DBG_Assert(apsCtrl != 0);
+            DBG_Assert(apsCtrl != nullptr);
             if (apsCtrl)
             {
                 DBG_Printf(DBG_INFO, "disconnect from network failed, try again\n");
@@ -16244,6 +16245,14 @@ void DeRestPluginPrivate::checkNetworkDisconnected()
  */
 void DeRestPluginPrivate::startReconnectNetwork(int delay)
 {
+    if (!reconnectTimer)
+    {
+        reconnectTimer = new QTimer(this);
+        reconnectTimer->setSingleShot(true);
+        connect(reconnectTimer, SIGNAL(timeout()),
+                this, SLOT(reconnectTimerFired()));
+    }
+
     networkState = ReconnectNetwork;
     DBG_Printf(DBG_INFO_L2, "networkState: CC_ReconnectNetwork\n");
     networkReconnectAttempts = NETWORK_ATTEMPS;
@@ -16309,7 +16318,8 @@ void DeRestPluginPrivate::reconnectNetwork()
     }
     else
     {
-        DBG_Printf(DBG_INFO, "reconnect network failed\n");
+        DBG_Printf(DBG_INFO, "reconnect network failed, try later\n");
+        networkState = MaintainNetwork;
     }
 }
 

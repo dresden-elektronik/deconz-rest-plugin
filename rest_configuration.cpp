@@ -231,6 +231,11 @@ void DeRestPluginPrivate::initConfig()
 
     connect(deCONZ::ApsController::instance(), &deCONZ::ApsController::configurationChanged,
             this, &DeRestPluginPrivate::configurationChanged);
+
+#if DECONZ_LIB_VERSION >= 0x010C00
+    connect(deCONZ::ApsController::instance(), &deCONZ::ApsController::networkStateChangeRequest,
+            this, &DeRestPluginPrivate::networkStateChangeRequest);
+#endif
 }
 
 /*! Init timezone. */
@@ -550,6 +555,17 @@ void DeRestPluginPrivate::configurationChanged()
     if (update)
     {
         updateZigBeeConfigDb();
+        queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
+    }
+}
+
+/*! Network state change request received from deCONZ core (e.g. Join/Leave clicked)
+ */
+void DeRestPluginPrivate::networkStateChangeRequest(bool shouldConnect)
+{
+    if (gwRfConnectedExpected != shouldConnect)
+    {
+        gwRfConnectedExpected = shouldConnect;
         queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
     }
 }
