@@ -493,6 +493,13 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
 
         if (haEndpoint().profileId() == HA_PROFILE_ID)
         {
+
+            if (modelId() == QLatin1String("Shutter switch with neutral"))
+            {
+                // correct wrong device id for legrand, the window suhtter command is see as plug
+                deviceId = DEV_ID_HA_WINDOW_COVERING_DEVICE;
+            }
+
             switch (deviceId)
             {
             //case DEV_ID_ZLL_DIMMABLE_LIGHT:   break; // clash with on/off light
