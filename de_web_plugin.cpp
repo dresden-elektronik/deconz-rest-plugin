@@ -4686,7 +4686,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = ELECTRICAL_MEASUREMENT_CLUSTER_ID;
             item = sensorNode.addItem(DataTypeInt16, RStatePower);
-            if (!modelId.startsWith(QLatin1String("Plug"))) // OSRAM
+            if ( (!modelId.startsWith(QLatin1String("Plug"))) && (node->nodeDescriptor().manufacturerCode() != VENDOR_LEGRAND) ) // OSRAM and Legrand plug don't have theses options
             {
                 item = sensorNode.addItem(DataTypeUInt16, RStateVoltage);
                 item = sensorNode.addItem(DataTypeUInt16, RStateCurrent);
