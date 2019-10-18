@@ -963,7 +963,8 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
     }
     else if (strcmp(colval[0], "rfconnect") == 0)
     {
-        if (!val.isEmpty())
+        // only reload from database if auto reconnect is disabled
+        if (!val.isEmpty() && deCONZ::appArgumentNumeric("--auto-connect", 1) == 0)
         {
             int conn = val.toInt(&ok);
             if (ok && ((conn == 0) || (conn == 1)))
