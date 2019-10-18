@@ -217,7 +217,10 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "RICI01", tiMacPrefix}, // LifeControl smart plug
     { VENDOR_JENNIC, "SN10ZW", jennicMacPrefix }, // ORVIBO motion sensor
     { VENDOR_OSRAM_STACK, "SF2", heimanMacPrefix }, // ORVIBO (Heiman) smoke sensor
+    { VENDOR_LEGRAND, "Dimmer switch w/o neutral", legrandMacPrefix }, // Legrand Dimmer switch wired
     { VENDOR_LEGRAND, "Connected outlet", legrandMacPrefix }, // Legrand Plug
+    { VENDOR_LEGRAND, "Shutter switch with neutral", legrandMacPrefix }, // Legrand Shutter switch
+    { VENDOR_LEGRAND, "Cable outlet", legrandMacPrefix }, // Legrand Cable outlet
     { 0, nullptr, 0 }
 };
 
