@@ -516,6 +516,47 @@ static const Sensor::ButtonMap icasaKeypadMap[] = {
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
+static const Sensor::ButtonMap icasaRemoteMap[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    // Off 1 button
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x00, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x05, 1,    S_BUTTON_1 + S_BUTTON_ACTION_HOLD, "Move down (with on/off)" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x07, 1,    S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // On 1 button
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x01, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x05, 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD, "Move up (with on/off)" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x07, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // Scene buttons
+    { Sensor::ModeScenes,           0x01, 0x0005, 0x05, 1,    S_BUTTON_9 + S_BUTTON_ACTION_SHORT_RELEASED, "Recall scene 1" },
+    { Sensor::ModeScenes,           0x01, 0x0005, 0x05, 2,    10000 + S_BUTTON_ACTION_SHORT_RELEASED, "Recall scene 2" },
+    // Off 2 button
+    { Sensor::ModeScenes,           0x02, 0x0006, 0x00, 0,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
+    { Sensor::ModeScenes,           0x02, 0x0008, 0x05, 1,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD, "Move down (with on/off)" },
+    { Sensor::ModeScenes,           0x02, 0x0008, 0x07, 1,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // On 2 button
+    { Sensor::ModeScenes,           0x02, 0x0006, 0x01, 0,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+    { Sensor::ModeScenes,           0x02, 0x0008, 0x05, 0,    S_BUTTON_4 + S_BUTTON_ACTION_HOLD, "Move up (with on/off)" },
+    { Sensor::ModeScenes,           0x02, 0x0008, 0x07, 0,    S_BUTTON_4 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // Off 3 button
+    { Sensor::ModeScenes,           0x03, 0x0006, 0x00, 0,    S_BUTTON_5 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
+    { Sensor::ModeScenes,           0x03, 0x0008, 0x05, 1,    S_BUTTON_5 + S_BUTTON_ACTION_HOLD, "Move down (with on/off)" },
+    { Sensor::ModeScenes,           0x03, 0x0008, 0x07, 1,    S_BUTTON_5 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // On 3 button
+    { Sensor::ModeScenes,           0x03, 0x0006, 0x01, 0,    S_BUTTON_6 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+    { Sensor::ModeScenes,           0x03, 0x0008, 0x05, 0,    S_BUTTON_6 + S_BUTTON_ACTION_HOLD, "Move up (with on/off)" },
+    { Sensor::ModeScenes,           0x03, 0x0008, 0x07, 0,    S_BUTTON_6 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // Off 4 button
+    { Sensor::ModeScenes,           0x04, 0x0006, 0x00, 0,    S_BUTTON_7 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
+    { Sensor::ModeScenes,           0x04, 0x0008, 0x05, 1,    S_BUTTON_7 + S_BUTTON_ACTION_HOLD, "Move down (with on/off)" },
+    { Sensor::ModeScenes,           0x04, 0x0008, 0x07, 1,    S_BUTTON_7 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // On 4 button
+    { Sensor::ModeScenes,           0x04, 0x0006, 0x01, 0,    S_BUTTON_8 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+    { Sensor::ModeScenes,           0x04, 0x0008, 0x05, 0,    S_BUTTON_8 + S_BUTTON_ACTION_HOLD, "Move up (with on/off)" },
+    { Sensor::ModeScenes,           0x04, 0x0008, 0x07, 0,    S_BUTTON_8 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
+};
+
 static const Sensor::ButtonMap samjinButtonMap[] = {
 //    mode                          ep    cluster cmd   param button                                       name
     // First button
@@ -1134,6 +1175,7 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         else if (manufacturer == QLatin1String("icasa"))
         {
             if      (modelid.startsWith(QLatin1String("ICZB-KPD1"))) { m_buttonMap = icasaKeypadMap; }
+            else if (modelid.startsWith(QLatin1String("ICZB-RM"))) { m_buttonMap = icasaRemoteMap; }
         }
         else if (manufacturer == QLatin1String("Samjin"))
         {

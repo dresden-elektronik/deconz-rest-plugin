@@ -1712,6 +1712,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("VMS_ADUROLIGHT")) ||
         // Trust ZMST-808
         sensor->modelId().startsWith(QLatin1String("CSW_ADUROLIGHT")) ||
+        // iCasa
+        sensor->modelId() == QLatin1String("ICZB-RM") ||
         // innr
         sensor->modelId() == QLatin1String("SP 120") ||
         sensor->modelId().startsWith(QLatin1String("RC 110")) ||
@@ -2176,6 +2178,13 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+    }
+    else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM")))
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+        clusters.push_back(SCENE_CLUSTER_ID);
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
     else if (sensor->modelId().startsWith(QLatin1String("D1")))
