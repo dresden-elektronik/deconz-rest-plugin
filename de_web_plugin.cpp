@@ -9491,8 +9491,15 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x64 && dataType == deCONZ::Zcl16BitInt)
         {
-            DBG_Printf(DBG_INFO, "\t64 temperature %d\n", int(s16));
-            temperature = s16;
+            if (int(s16) == -10000)
+            {
+                DBG_Printf(DBG_INFO, "\t64 temperature %d (ignored)\n", int(s16));
+            }
+            else
+            {
+                DBG_Printf(DBG_INFO, "\t64 temperature %d\n", int(s16));
+                temperature = s16;
+            }
         }
         else if (tag == 0x65 && dataType == deCONZ::ZclBoolean) // lumi.ctrl_ln2 endpoint 02
         {
