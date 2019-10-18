@@ -346,7 +346,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
     }
     
     //Same problem for legrand, need modelId to correct a device ID (shutter using plug id)
-    if (manufacturerCode() == VENDOR_LEGRAND && endpoint.deviceId() == DEV_ID_ZLL_ONOFF_PLUGIN_UNIT)
+    if (manufacturerCode() == VENDOR_LEGRAND && endpoint.deviceId() == DEV_ID_Z30_ONOFF_PLUGIN_UNIT)
     {
         if (modelId().isEmpty())
         {
