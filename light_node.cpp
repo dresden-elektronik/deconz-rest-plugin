@@ -345,8 +345,8 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
         isInitialized = item(RStateColorMode) != nullptr;
     }
     
-    //Same problem for legrand, need modelId to correct a device ID
-    if (manufacturerCode() == VENDOR_LEGRAND && endpoint.deviceId() == DEV_ID_LEVEL_CONTROL_SWITCH)
+    //Same problem for legrand, need modelId to correct a device ID (shutter using plug id)
+    if (manufacturerCode() == VENDOR_LEGRAND && endpoint.deviceId() == DEV_ID_ZLL_ONOFF_PLUGIN_UNIT)
     {
         if (modelId().isEmpty())
         {
