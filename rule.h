@@ -167,6 +167,7 @@ public:
     enum Operator
     {
         OpEqual,
+        OpNotEqual,
         OpGreaterThan,
         OpLowerThan,
         OpDx,
