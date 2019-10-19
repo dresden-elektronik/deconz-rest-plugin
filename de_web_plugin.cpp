@@ -5738,6 +5738,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 if (item)
                                 {
+                                    if (temp == -10000 && i->modelId().startsWith(QLatin1String("lumi.weather")))
+                                    {
+                                        continue;
+                                    }
                                     ResourceItem *item2 = i->item(RConfigOffset);
                                     if (item2 && item2->toNumber() != 0)
                                     {
