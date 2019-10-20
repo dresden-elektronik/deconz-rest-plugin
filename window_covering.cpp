@@ -170,6 +170,13 @@ void DeRestPluginPrivate::handleWindowCoveringClusterIndication(const deCONZ::Ap
 
     				// also change on-state if bri changes to/from 0
     				bool on = (attrValue > 0 ? true : false) ;
+    				
+    				//Reverse it for Legrand
+    				if (lightNode->modelId() == QLatin1String("Shutter switch with neutral"))
+    				{
+						on = !on;
+					}
+    				
     				ResourceItem *itemOn = lightNode->item(RStateOn);
     				if (itemOn && itemOn->toBool() != on)
     				{
