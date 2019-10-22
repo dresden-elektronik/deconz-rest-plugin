@@ -1534,6 +1534,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturer() == QString("欧瑞博") || lightNode->manufacturer() == QLatin1String("ORVIBO"))
         {
         }
+        else if (lightNode->manufacturerCode() == VENDOR_LEGRAND) // Legrand switch and plug
+        {
+        }
         else
         {
             return;
@@ -1712,6 +1715,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("VMS_ADUROLIGHT")) ||
         // Trust ZMST-808
         sensor->modelId().startsWith(QLatin1String("CSW_ADUROLIGHT")) ||
+        // iCasa
+        sensor->modelId() == QLatin1String("ICZB-RM") ||
         // innr
         sensor->modelId() == QLatin1String("SP 120") ||
         sensor->modelId().startsWith(QLatin1String("RC 110")) ||
@@ -1752,6 +1757,14 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("WL4200S") ||
         //LifeControl smart plug
         sensor->modelId() == QLatin1String("RICI01") ||
+        //Legrand Plug
+        sensor->modelId() == QLatin1String("Connected outlet") ||
+        //Legrand shutter switch
+        sensor->modelId() == QLatin1String("Shutter switch with neutral") ||
+        //Legrand dimmer wired
+        sensor->modelId() == QLatin1String("Dimmer switch w/o neutral") ||
+        //Legrand Cable outlet
+        sensor->modelId() == QLatin1String("Cable outlet") ||
         // ORVIBO
         sensor->modelId().startsWith(QLatin1String("SN10ZW")) ||
         sensor->modelId().startsWith(QLatin1String("SF2")))
@@ -2176,6 +2189,13 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+    }
+    else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM")))
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+        clusters.push_back(SCENE_CLUSTER_ID);
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
     else if (sensor->modelId().startsWith(QLatin1String("D1")))

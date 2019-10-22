@@ -313,6 +313,7 @@ const deCONZ::SimpleDescriptor &LightNode::haEndpoint() const
  */
 void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
 {
+	bool isWindowCovering = false;
     bool isInitialized = m_haEndpoint.isValid();
     m_haEndpoint = endpoint;
 
@@ -434,6 +435,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 	QList<deCONZ::ZclCluster>::const_iterator ic = haEndpoint().inClusters().constBegin();
                 	std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
                 	std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
+                	isWindowCovering = true;
                 	bool hasLift = true; // set default to lift
                 	bool hasTilt = false;
                 	for (;ia != enda; ++ia)
@@ -493,6 +495,14 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
 
         if (haEndpoint().profileId() == HA_PROFILE_ID)
         {
+
+            if ((manufacturerCode() == VENDOR_LEGRAND) && isWindowCovering)
+            {
+                // correct wrong device id for legrand, the window suhtter command is see as plug
+                // DEV_ID_Z30_ONOFF_PLUGIN_UNIT
+                deviceId = DEV_ID_HA_WINDOW_COVERING_DEVICE;
+            }
+            
             switch (deviceId)
             {
             //case DEV_ID_ZLL_DIMMABLE_LIGHT:   break; // clash with on/off light

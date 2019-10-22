@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Snipped to dowload current IKEA ZLL OTA files into ~/otau
+Snipped to download current IKEA ZLL OTA files into ~/otau
 compatible with python 3.
 """
 
