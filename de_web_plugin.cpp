@@ -5740,7 +5740,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                     {
                         for (;ia != enda; ++ia)
                         {
-                            if (ia -> id() == 0x0000) // temperature (0.01 °C)
+                            if (ia->id() == 0x0000) // temperature (0.01 °C)
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
@@ -5769,7 +5769,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 updateSensorEtag(&*i);
                             }
 
-                            else if (i->modelId().startsWith(QLatin1String("VOC_Sensor")) && ia->id() == 0x0001) // LifeCOntrol MCLH-08 relative humidity
+                            else if (i->modelId().startsWith(QLatin1String("VOC_Sensor")) && ia->id() == 0x0001) // LifeControl MCLH-08 relative humidity
                             {
                                 // humidity sensor values are transferred via temperature cluster 0x0001 attribute
                                 // see: https://github.com/dresden-elektronik/deconz-rest-plugin/pull/1964
