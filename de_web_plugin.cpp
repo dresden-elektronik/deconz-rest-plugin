@@ -3881,7 +3881,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case TEMPERATURE_MEASUREMENT_CLUSTER_ID:
                 {
-                    if (modelId.startsWith(QLatin1String("VOC_Sensor") && i->endpoint() == 0x01)
+                    if (modelId.startsWith(QLatin1String("VOC_Sensor")) && i->endpoint() == 0x01)
                     {
                         fpHumiditySensor.inClusters.push_back(ci->id());
                     }
@@ -3894,7 +3894,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case RELATIVE_HUMIDITY_CLUSTER_ID:
                 {
-                    if (modelId.startsWith(QLatin1String("VOC_Sensor"))
+                    if (modelId.startsWith(QLatin1String("VOC_Sensor")))
                     {
                         // Ignore RELATIVE HUMIDITY CLUSTER
                     }
@@ -4017,7 +4017,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case THERMOSTAT_CLUSTER_ID:
                 {
-                    if (modelId.startsWith(QLatin1String("VOC_Sensor"))
+                    if (modelId.startsWith(QLatin1String("VOC_Sensor")))
                     {
                         // Ignore THERMOSTAT CLUSTER
                     }
@@ -5784,7 +5784,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 updateSensorEtag(&*i);
                             }
-
                             else if (i->modelId().startsWith(QLatin1String("VOC_Sensor")) && ia->id() == 0x0001) // LifeControl MCLH-08 relative humidity
                             {
                                 // humidity sensor values are transferred via temperature cluster 0x0001 attribute
@@ -5804,7 +5803,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     ResourceItem *item2 = i->item(RConfigOffset);
                                     if (item2 && item2->toNumber() != 0)
                                     {
-                                        qint16 _humidity = humidity + item2->toNumber();
+                                        int _humidity = humidity + static_cast<int>(item2->toNumber());
                                         humidity = _humidity < 0 ? 0 : _humidity > 10000 ? 10000 : _humidity;
                                     }
                                     item->setValue(humidity);
@@ -5816,7 +5815,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 }
 
                                 updateSensorEtag(&*i);
-                            }                         
+                            }
                         }
                     }
                     else if (event.clusterId() == RELATIVE_HUMIDITY_CLUSTER_ID)
