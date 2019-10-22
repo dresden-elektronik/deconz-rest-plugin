@@ -217,6 +217,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBER, "3AFE140103020000", konkeMacPrefix }, // Konke Kit Pro-FT Temp Humidity Sensor
     { VENDOR_EMBER, "3AFE130104020015", konkeMacPrefix }, // Konke Kit Pro-Door Entry Sensor
     { VENDOR_NONE, "RICI01", tiMacPrefix}, // LifeControl smart plug
+    { VENDOR_JENNIC, "VOC_Sensor", jennicMacPrefix}, //LifeControl Enviroment sensor
     { VENDOR_JENNIC, "SN10ZW", jennicMacPrefix }, // ORVIBO motion sensor
     { VENDOR_OSRAM_STACK, "SF2", heimanMacPrefix }, // ORVIBO (Heiman) smoke sensor
     { VENDOR_LEGRAND, "Dimmer switch w/o neutral", legrandMacPrefix }, // Legrand Dimmer switch wired
@@ -3880,13 +3881,27 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case TEMPERATURE_MEASUREMENT_CLUSTER_ID:
                 {
-                    fpTemperatureSensor.inClusters.push_back(ci->id());
+                    if (modelId.startsWith(QLatin1String("VOC_Sensor") && i->endpoint() == 0x01)
+                    {
+                        fpHumiditySensor.inClusters.push_back(ci->id());
+                    }
+                    else
+                    {
+                        fpTemperatureSensor.inClusters.push_back(ci->id());
+                    }
                 }
                     break;
 
                 case RELATIVE_HUMIDITY_CLUSTER_ID:
                 {
-                    fpHumiditySensor.inClusters.push_back(ci->id());
+                    if (modelId.startsWith(QLatin1String("VOC_Sensor"))
+                    {
+                        // Ignore RELATIVE HUMIDITY CLUSTER
+                    }
+                    else
+                    {
+                        fpHumiditySensor.inClusters.push_back(ci->id());
+                    }
                 }
                     break;
 
@@ -4002,7 +4017,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case THERMOSTAT_CLUSTER_ID:
                 {
-                    fpThermostatSensor.inClusters.push_back(ci->id());
+                    if (modelId.startsWith(QLatin1String("VOC_Sensor"))
+                    {
+                        // Ignore THERMOSTAT CLUSTER
+                    }
+                    else
+                    {
+                        fpThermostatSensor.inClusters.push_back(ci->id());
+                    }
                 }
                     break;
 
@@ -5762,6 +5784,39 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 updateSensorEtag(&*i);
                             }
+
+                            else if (i->modelId().startsWith(QLatin1String("VOC_Sensor")) && ia->id() == 0x0001) // LifeControl MCLH-08 relative humidity
+                            {
+                                // humidity sensor values are transferred via temperature cluster 0x0001 attribute
+                                // see: https://github.com/dresden-elektronik/deconz-rest-plugin/pull/1964
+
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.clusterId(), 0x0001, ia->numericValue());
+                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u16);
+                                }
+
+                                int humidity = ia->numericValue().u16;
+                                ResourceItem *item = i->item(RStateHumidity);
+
+                                if (item)
+                                {
+                                    ResourceItem *item2 = i->item(RConfigOffset);
+                                    if (item2 && item2->toNumber() != 0)
+                                    {
+                                        qint16 _humidity = humidity + item2->toNumber();
+                                        humidity = _humidity < 0 ? 0 : _humidity > 10000 ? 10000 : _humidity;
+                                    }
+                                    item->setValue(humidity);
+                                    i->updateStateTimestamp();
+                                    i->setNeedSaveDatabase(true);
+                                    Event e(RSensors, RStateHumidity, i->id(), item);
+                                    enqueueEvent(e);
+                                    enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
+                                }
+
+                                updateSensorEtag(&*i);
+                            }                         
                         }
                     }
                     else if (event.clusterId() == RELATIVE_HUMIDITY_CLUSTER_ID)

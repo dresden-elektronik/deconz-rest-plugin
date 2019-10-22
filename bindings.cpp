@@ -1757,6 +1757,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("WL4200S") ||
         //LifeControl smart plug
         sensor->modelId() == QLatin1String("RICI01") ||
+        //LifeControl enviroment sensor
+        sensor->modelId() == QLatin1String("VOC_Sensor") ||
         //Legrand Plug
         sensor->modelId() == QLatin1String("Connected outlet") ||
         //Legrand shutter switch
@@ -2233,6 +2235,14 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(0x02);
         srcEndpoints.push_back(0x03);
         srcEndpoints.push_back(0x04);
+        sensor->setMgmtBindSupported(true);
+    }
+    // LifeControl Enviroment Sensor
+    else if (sensor->modelId().startsWith(QLatin1String("VOC_Sensor")))
+    {
+        clusters.push_back(TEMPERATURE_MEASUREMENT_CLUSTER_ID);
+        srcEndpoints.push_back(0x00);
+        srcEndpoints.push_back(0x01);
         sensor->setMgmtBindSupported(true);
     }
     else
