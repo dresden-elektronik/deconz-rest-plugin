@@ -3869,16 +3869,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case TEMPERATURE_MEASUREMENT_CLUSTER_ID:
                 {
-                    if (modelId.startsWith(QLatin1String("VOC_Sensor"))
+                    if (modelId.startsWith(QLatin1String("VOC_Sensor") && i->endpoint() == 0x01)
                     {
-                       if (i->endpoint() == 0x00)
-                       {
-                           fpTemperatureSensor.inClusters.push_back(ci->id());
-                       }
-                       else if (i->endpoint() == 0x01)
-                       {
-                           fpHumiditySensor.inClusters.push_back(ci->id());
-                       }
+                        fpHumiditySensor.inClusters.push_back(ci->id());
                     }
                     else
                     {
@@ -5747,99 +5740,67 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                     {
                         for (;ia != enda; ++ia)
                         {
-                            if (i->modelId().startsWith(QLatin1String("VOC_Sensor")))
+                            if (ia -> id() == 0x0000) // temperature (0.01 °C)
                             {
-                                if (ia->id() == 0x0000) // temperature (0.01 °C)
+                                if (updateType != NodeValue::UpdateInvalid)
                                 {
-                                    if (updateType != NodeValue::UpdateInvalid)
-                                    {
-                                        i->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
-                                        pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().s16);
-                                    }
-
-                                    int temp = ia->numericValue().s16;
-                                    ResourceItem *item = i->item(RStateTemperature);
-
-                                    if (item)
-                                    {
-                                        ResourceItem *item2 = i->item(RConfigOffset);
-                                        if (item2 && item2->toNumber() != 0)
-                                        {
-                                            temp += item2->toNumber();
-                                        }
-                                        item->setValue(temp);
-                                        i->updateStateTimestamp();
-                                        i->setNeedSaveDatabase(true);
-                                        Event e(RSensors, RStateTemperature, i->id(), item);
-                                        enqueueEvent(e);
-                                        enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
-                                    }
-
-                                    updateSensorEtag(&*i);
+                                    i->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
+                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().s16);
                                 }
 
-                                if(ia->id() == 0x0001) //// relative humidity
+                                int temp = ia->numericValue().s16;
+                                ResourceItem *item = i->item(RStateTemperature);
+
+                                if (item)
                                 {
-                                    if (updateType != NodeValue::UpdateInvalid)
+                                    ResourceItem *item2 = i->item(RConfigOffset);
+                                    if (item2 && item2->toNumber() != 0)
                                     {
-                                        i->setZclValue(updateType, event.clusterId(), 0x0001, ia->numericValue());
-                                        pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u16);
+                                        temp += item2->toNumber();
                                     }
-
-                                    int humidity = ia->numericValue().u16;
-                                    ResourceItem *item = i->item(RStateHumidity);
-
-                                    if (item)
-                                    {
-                                        ResourceItem *item2 = i->item(RConfigOffset);
-                                        if (item2 && item2->toNumber() != 0)
-                                        {
-                                            qint16 _humidity = humidity + item2->toNumber();
-                                            humidity = _humidity < 0 ? 0 : _humidity > 10000 ? 10000 : _humidity;
-                                        }
-                                        item->setValue(humidity);
-                                        i->updateStateTimestamp();
-                                        i->setNeedSaveDatabase(true);
-                                        Event e(RSensors, RStateHumidity, i->id(), item);
-                                        enqueueEvent(e);
-                                        enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
-                                    }
-
-                                    updateSensorEtag(&*i);
+                                    item->setValue(temp);
+                                    i->updateStateTimestamp();
+                                    i->setNeedSaveDatabase(true);
+                                    Event e(RSensors, RStateTemperature, i->id(), item);
+                                    enqueueEvent(e);
+                                    enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
                                 }
-                                
+
+                                updateSensorEtag(&*i);
                             }
-                            else
+
+                            else if (i->modelId().startsWith(QLatin1String("VOC_Sensor")) && ia->id() == 0x0001) // LifeCOntrol MCLH-08 relative humidity
                             {
-                                if (ia->id() == 0x0000) // temperature (0.01 °C)
+                                // humidity sensor values are transferred via temperature cluster 0x0001 attribute
+                                // see: https://github.com/dresden-elektronik/deconz-rest-plugin/pull/1964
+
+                                if (updateType != NodeValue::UpdateInvalid)
                                 {
-                                    if (updateType != NodeValue::UpdateInvalid)
-                                    {
-                                        i->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
-                                        pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().s16);
-                                    }
-
-                                    int temp = ia->numericValue().s16;
-                                    ResourceItem *item = i->item(RStateTemperature);
-
-                                    if (item)
-                                    {
-                                        ResourceItem *item2 = i->item(RConfigOffset);
-                                        if (item2 && item2->toNumber() != 0)
-                                        {
-                                            temp += item2->toNumber();
-                                        }
-                                        item->setValue(temp);
-                                        i->updateStateTimestamp();
-                                        i->setNeedSaveDatabase(true);
-                                        Event e(RSensors, RStateTemperature, i->id(), item);
-                                        enqueueEvent(e);
-                                        enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
-                                    }
-
-                                    updateSensorEtag(&*i);
+                                    i->setZclValue(updateType, event.clusterId(), 0x0001, ia->numericValue());
+                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u16);
                                 }
-                            }                          
+
+                                int humidity = ia->numericValue().u16;
+                                ResourceItem *item = i->item(RStateHumidity);
+
+                                if (item)
+                                {
+                                    ResourceItem *item2 = i->item(RConfigOffset);
+                                    if (item2 && item2->toNumber() != 0)
+                                    {
+                                        qint16 _humidity = humidity + item2->toNumber();
+                                        humidity = _humidity < 0 ? 0 : _humidity > 10000 ? 10000 : _humidity;
+                                    }
+                                    item->setValue(humidity);
+                                    i->updateStateTimestamp();
+                                    i->setNeedSaveDatabase(true);
+                                    Event e(RSensors, RStateHumidity, i->id(), item);
+                                    enqueueEvent(e);
+                                    enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
+                                }
+
+                                updateSensorEtag(&*i);
+                            }                         
                         }
                     }
                     else if (event.clusterId() == RELATIVE_HUMIDITY_CLUSTER_ID)
