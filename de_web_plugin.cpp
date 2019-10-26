@@ -209,6 +209,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "SPZB0001", jennicMacPrefix }, // Eurotronic thermostat
     { VENDOR_NONE, "RES001", tiMacPrefix }, // Hubitat environment sensor, see #1308
     { VENDOR_119C, "WL4200S", sinopeMacPrefix}, // Sinope water sensor
+    { VENDOR_119C, "TH1300ZB", sinopeMacPrefix }, // Sinope Thermostat
     { VENDOR_DEVELCO, "SMSZB-120", develcoMacPrefix }, // Develco smoke sensor
     { VENDOR_DEVELCO, "SPLZB-131", develcoMacPrefix }, // Develco smart plug
     { VENDOR_DEVELCO, "WISZB-120", develcoMacPrefix }, // Develco window sensor
