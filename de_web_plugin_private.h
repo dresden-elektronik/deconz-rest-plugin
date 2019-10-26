@@ -266,6 +266,7 @@
 #define VENDOR_BOSCH        0x1133
 #define VENDOR_DDEL         0x1135
 #define VENDOR_LUTRON       0x1144
+#define VENDOR_ZEN          0x1158
 #define VENDOR_KEEN_HOME    0x115B
 #define VENDOR_115F         0x115F // Used by Xiaomi Aqara
 #define VENDOR_INNR         0x1166
