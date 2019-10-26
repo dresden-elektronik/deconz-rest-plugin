@@ -212,6 +212,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_119C, "WL4200S", sinopeMacPrefix}, // Sinope water sensor
     { VENDOR_119C, "TH1300ZB", sinopeMacPrefix }, // Sinope Thermostat
     { VENDOR_ZEN, "Zen-01", zenMacPrefix }, // Zen Thermostat
+    { VENDOR_C2DF, "3157100-E", emberMacPrefix }, // Centralite Thermostat
     { VENDOR_DEVELCO, "SMSZB-120", develcoMacPrefix }, // Develco smoke sensor
     { VENDOR_DEVELCO, "SPLZB-131", develcoMacPrefix }, // Develco smart plug
     { VENDOR_DEVELCO, "WISZB-120", develcoMacPrefix }, // Develco window sensor
