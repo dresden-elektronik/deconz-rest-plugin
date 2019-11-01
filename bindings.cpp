@@ -1067,6 +1067,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
         else if (sensor && (sensor->modelId().startsWith(QLatin1String("SMSZB-120")) || // Develco smoke sensor
                            sensor->modelId().startsWith(QLatin1String("WISZB-120")) ||  // Develco window sensor
+                           sensor->modelId().startsWith(QLatin1String("FLSZB-110")) ||  // Develco water leak sensor
                            sensor->modelId().startsWith(QLatin1String("ZHMS101"))))     // Wattle (Develco) magnetic sensor
         {
             rq.attributeId = 0x0020;   // battery voltage
@@ -1522,7 +1523,7 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->modelId().startsWith(QLatin1String("ICZB-"))) // iCasa Dimmer and Switch
         {
         }
-        else if (lightNode->modelId().startsWith(QLatin1String("SMSZB-120"))) // Develco smoke sensor
+        else if (lightNode->manufacturer().startsWith(QLatin1String("Develco"))) // Develco devices
         {
         }
         else if (lightNode->modelId().startsWith(QLatin1String("RICI01"))) // LifeControl smart plug
@@ -1752,6 +1753,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Develco
         sensor->modelId().startsWith(QLatin1String("SMSZB-120")) || // smoke sensor
         sensor->modelId().startsWith(QLatin1String("WISZB-120")) || // window sensor
+        sensor->modelId().startsWith(QLatin1String("FLSZB-110")) || // water leak sensor
+        sensor->modelId().startsWith(QLatin1String("MOSZB-130")) || // motion sensor
         sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||   // Wattle (Develco) magnetic sensor
         sensor->modelId() == QLatin1String("SPLZB-131") ||
         // LG
@@ -1875,6 +1878,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             else if (sensor->modelId() == QLatin1String("Motion Sensor-A") ||
                      sensor->modelId() == QLatin1String("SMSZB-120") ||
                      sensor->modelId() == QLatin1String("WISZB-120") ||
+                     sensor->modelId() == QLatin1String("FLSZB-110") ||
                      sensor->modelId().startsWith(QLatin1String("ZHMS101")))
             {
                 val = sensor->getZclValue(*i, 0x0020); // battery voltage
