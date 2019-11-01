@@ -313,6 +313,7 @@ const deCONZ::SimpleDescriptor &LightNode::haEndpoint() const
  */
 void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
 {
+	bool isWindowCovering = false;
     bool isInitialized = m_haEndpoint.isValid();
     m_haEndpoint = endpoint;
 
@@ -361,6 +362,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 {
                     if ((manufacturerCode() == VENDOR_IKEA && endpoint.deviceId() == DEV_ID_Z30_ONOFF_PLUGIN_UNIT) || // IKEA Tradfri control outlet
                         (manufacturerCode() == VENDOR_INNR && endpoint.deviceId() == DEV_ID_ZLL_ONOFF_PLUGIN_UNIT) || // innr SP120 smart plug
+                        (manufacturerCode() == VENDOR_INNR && endpoint.deviceId() == DEV_ID_Z30_ONOFF_PLUGIN_UNIT) || // innr ZigBee 3.0 smart plugs (SP2xx)
                         (manufacturerCode() == VENDOR_PHILIPS && endpoint.deviceId() == DEV_ID_HA_ONOFF_LIGHT && endpoint.profileId() == HA_PROFILE_ID)) // iCasa in-wall switch
                     { } // skip state.bri not supported
                     else
@@ -370,9 +372,11 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 }
                 else if (i->id() == COLOR_CLUSTER_ID)
                 {
-                    if (manufacturerCode() == VENDOR_NONE && deviceId == DEV_ID_ZLL_DIMMABLE_LIGHT)
+                    if ((manufacturerCode() == VENDOR_NONE && deviceId == DEV_ID_ZLL_DIMMABLE_LIGHT) ||
+                        (manufacturerCode() == VENDOR_NONE && deviceId == DEV_ID_LEVEL_CONTROL_SWITCH))
                     {
                         // GLEDOPTO GL-C-009 advertises non-functional color cluster
+                        // ORVIBO T10D1ZW in-wall dimmer does the same
                     }
                     else
                     {
@@ -431,6 +435,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 	QList<deCONZ::ZclCluster>::const_iterator ic = haEndpoint().inClusters().constBegin();
                 	std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
                 	std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
+                	isWindowCovering = true;
                 	bool hasLift = true; // set default to lift
                 	bool hasTilt = false;
                 	for (;ia != enda; ++ia)
@@ -476,11 +481,28 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                         ltype = QLatin1String("Warning device");
                     }
                 }
+                else if (i->id() == IDENTIFY_CLUSTER_ID)
+                {
+                    if (manufacturerCode() == VENDOR_IKEA && deviceId == DEV_ID_RANGE_EXTENDER)
+                    {
+                        // the repeater has no on/off cluster but an led which supports identify
+                        removeItem(RStateOn);
+                        ltype = QLatin1String("Range extender");
+                    }
+                }
             }
         }
 
         if (haEndpoint().profileId() == HA_PROFILE_ID)
         {
+
+            if ((manufacturerCode() == VENDOR_LEGRAND) && isWindowCovering)
+            {
+                // correct wrong device id for legrand, the window suhtter command is see as plug
+                // DEV_ID_Z30_ONOFF_PLUGIN_UNIT
+                deviceId = DEV_ID_HA_WINDOW_COVERING_DEVICE;
+            }
+            
             switch (deviceId)
             {
             //case DEV_ID_ZLL_DIMMABLE_LIGHT:   break; // clash with on/off light
@@ -490,6 +512,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 else                               { ltype = QLatin1String("Dimmable light"); }
             }
                 break;
+            case DEV_ID_LEVEL_CONTROL_SWITCH:        ltype = QLatin1String("Level control switch"); break;
             case DEV_ID_ONOFF_OUTPUT:                ltype = QLatin1String("On/Off output"); break;
             case DEV_ID_LEVEL_CONTROLLABLE_OUTPUT:   ltype = QLatin1String("Level controllable output"); break;
             case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:       ltype = QLatin1String("On/Off plug-in unit"); break;

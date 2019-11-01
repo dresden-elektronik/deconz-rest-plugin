@@ -963,7 +963,8 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
     }
     else if (strcmp(colval[0], "rfconnect") == 0)
     {
-        if (!val.isEmpty())
+        // only reload from database if auto reconnect is disabled
+        if (!val.isEmpty() && deCONZ::appArgumentNumeric("--auto-connect", 1) == 0)
         {
             int conn = val.toInt(&ok);
             if (ok && ((conn == 0) || (conn == 1)))
@@ -3220,6 +3221,15 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 sensor.addItem(DataTypeString, RConfigScheduler); // Scheduler setting
             }
         }
+        else if (sensor.type().endsWith(QLatin1String("Battery")))
+        {
+            if (sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
+            {
+                clusterId = POWER_CONFIGURATION_CLUSTER_ID;
+            }
+            item = sensor.addItem(DataTypeUInt8, RStateBattery);
+            item->setValue(100);
+        }
 
         if (sensor.modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
         {
@@ -3259,7 +3269,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeBool, RConfigUsertest);
             item->setValue(false);
         }
-        else if (sensor.modelId().startsWith(QLatin1String("TRADFRI")))
+        else if (sensor.modelId().startsWith(QLatin1String("TRADFRI")) ||
+                 sensor.modelId().startsWith(QLatin1String("SYMFONISK")))
         {
             // support power configuration cluster for IKEA devices
             if (!sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
@@ -3274,7 +3285,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         {
             if (!sensor.modelId().startsWith(QLatin1String("lumi.ctrl_")) &&
                 sensor.modelId() != QLatin1String("lumi.plug") &&
-                sensor.modelId() != QLatin1String("lumi.curtain"))
+                sensor.modelId() != QLatin1String("lumi.curtain") &&
+                !sensor.type().endsWith(QLatin1String("Battery")))
             {
                 item = sensor.addItem(DataTypeUInt8, RConfigBattery);
                 //item->setValue(100); // wait for report
@@ -3329,10 +3341,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 item = sensor.addItem(DataTypeBool, RStateLowBattery);
                 // don't set value -> null until reported
             }
-            else
+            else if (!sensor.type().endsWith(QLatin1String("Battery")))
             {
                 item = sensor.addItem(DataTypeUInt8, RConfigBattery);
-                item->setValue(100);
+                // item->setValue(100);
             }
         }
 

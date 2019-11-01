@@ -266,8 +266,8 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
 
     bool ok;
     QVariant var = Json::parse(req.content, ok);
-    QVariantMap map = var.toMap();
-    QString type = map["type"].toString();
+    const QVariantMap map = var.toMap();
+    const QString type = map["type"].toString();
     Sensor sensor;
 
     if (!ok)
@@ -295,14 +295,13 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
     }
 
     //check invalid parameter
-    QVariantMap::const_iterator pi = map.begin();
-    QVariantMap::const_iterator pend = map.end();
+    const QStringList allowedAttributes = { "name", "modelid", "swversion", "type", "uniqueid", "manufacturername", "state", "config", "recycle" };
 
-    for (; pi != pend; ++pi)
+    for (const QString &attr : map.keys())
     {
-        if(!((pi.key() == "name") || (pi.key() == "modelid") || (pi.key() == "swversion") || (pi.key() == "type")  || (pi.key() == "uniqueid")  || (pi.key() == "manufacturername")  || (pi.key() == "state")  || (pi.key() == "config")  || (pi.key() == "recycle")))
+        if (!allowedAttributes.contains(attr))
         {
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%2").arg(pi.key()), QString("parameter, %1, not available").arg(pi.key())));
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%2").arg(attr), QString("parameter, %1, not available").arg(attr)));
             rsp.httpStatus = HttpStatusBadRequest;
             return REQ_READY_SEND;
         }
@@ -315,7 +314,7 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-        ResourceItem *item;
+        ResourceItem *item = nullptr;
         QVariantMap rspItem;
         QVariantMap rspItemState;
 
@@ -331,9 +330,20 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
         sensor.setSwVersion(map["swversion"].toString());
         sensor.setType(type);
 
+        if (getSensorNodeForUniqueId(sensor.uniqueId()))
+        {
+            rsp.list.append(errorToMap(ERR_DUPLICATE_EXIST, QString("/sensors"), QString("sensor with uniqueid, %1, already exists").arg(sensor.uniqueId())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+
         if      (type == QLatin1String("CLIPAlarm")) { item = sensor.addItem(DataTypeBool, RStateAlarm); item->setValue(false); }
+        else if (type == QLatin1String("CLIPBattery")) { item = sensor.addItem(DataTypeUInt8, RStateBattery); item->setValue(100); }
         else if (type == QLatin1String("CLIPCarbonMonoxide")) { item = sensor.addItem(DataTypeBool, RStateCarbonMonoxide); item->setValue(false); }
         else if (type == QLatin1String("CLIPConsumption")) { item = sensor.addItem(DataTypeUInt64, RStateConsumption); item->setValue(0); }
+        else if (type == QLatin1String("CLIPDaylightOffset")) { item = sensor.addItem(DataTypeInt16, RConfigOffset); item->setValue(0);
+                                                                item = sensor.addItem(DataTypeString, RConfigMode);
+                                                                item = sensor.addItem(DataTypeTime, RStateLocaltime); }
         else if (type == QLatin1String("CLIPFire")) { item = sensor.addItem(DataTypeBool, RStateFire); item->setValue(false); }
         else if (type == QLatin1String("CLIPGenericFlag")) { item = sensor.addItem(DataTypeBool, RStateFlag); item->setValue(false); }
         else if (type == QLatin1String("CLIPGenericStatus")) { item = sensor.addItem(DataTypeInt32, RStateStatus); item->setValue(0); }
@@ -367,349 +377,48 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
         //setState optional
         if (map.contains("state"))
         {
-            QVariantMap state = map["state"].toMap();
-
             //check invalid parameter
-            QVariantMap::const_iterator pi = state.begin();
-            QVariantMap::const_iterator pend = state.end();
+            const QVariantMap state = map["state"].toMap();
+            const QStringList allowedKeys = { "alarm", "battery", "buttonevent", "carbonmonoxide", "consumption", "current", "fire", "flag", "humidity", "lightlevel", "localtime", "lowbattery",
+                                              "open", "presence", "pressure", "power", "status", "tampered", "temperature", "vibration", "voltage", "water" };
 
-            for (; pi != pend; ++pi)
+            const QStringList optionalKeys = { "lowbattery", "tampered" };
+
+            for  (const auto &key : state.keys())
             {
-                if(!((pi.key() == "buttonevent") || (pi.key() == "flag") || (pi.key() == "status") || (pi.key() == "presence")  || (pi.key() == "open")  || (pi.key() == "lightlevel") || (pi.key() == "temperature")  || (pi.key() == "humidity")))
+                if (!allowedKeys.contains(key))
                 {
-                    rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%2").arg(pi.key()), QString("parameter, %1, not available").arg(pi.key())));
+                    rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%2").arg(key), QString("parameter, %1, not available").arg(key)));
                     rsp.httpStatus = HttpStatusBadRequest;
                     return REQ_READY_SEND;
                 }
-            }
 
-            if (state.contains("buttonevent"))
-            {
-                item = sensor.item(RStateButtonEvent);
+                ResourceItemDescriptor rid;
+                item = nullptr;
+                if (getResourceItemDescriptor(QString("state/%1").arg(key), rid))
+                {
+                    item = sensor.item(rid.suffix);
+
+                    if (!item && optionalKeys.contains(key))
+                    {
+                        item = sensor.addItem(rid.type, rid.suffix);
+                    }
+                }
+
                 if (!item)
                 {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors"), QString("parameter, buttonevent, not available")));
+                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors"), QString("parameter, %1, not available").arg(key)));
                     rsp.httpStatus = HttpStatusBadRequest;
                     return REQ_READY_SEND;
                 }
 
-                if (!item->setValue(state["buttonevent"]))
+                if (!item->setValue(state.value(key)))
                 {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter buttonevent").arg(state["buttonevent"].toString())));
+                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter %2").arg(state.value(key).toString()).arg(key)));
                     rsp.httpStatus = HttpStatusBadRequest;
                     return REQ_READY_SEND;
                 }
             }
-            if (state.contains("flag"))
-            {
-                item = sensor.item(RStateFlag);
-                if (!item)
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors"), QString("parameter, flag, not available")));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-
-                if (!item->setValue(state["flag"]))
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter flag").arg(state["flag"].toString())));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-            }
-            if (state.contains("status"))
-            {
-                item = sensor.item(RStateStatus);
-                if (!item)
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors"), QString("parameter, status, not available")));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-
-                if (!item->setValue(state["status"]))
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter status").arg(state["status"].toString())));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-            }
-            if (state.contains("presence"))
-            {
-                item = sensor.item(RStatePresence);
-                if (!item)
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors"), QString("parameter, presence, not available")));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-
-                if (!item->setValue(state["presence"]))
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter presence").arg(state["presence"].toString())));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-            }
-            if (state.contains("open"))
-            {
-                item = sensor.item(RStateOpen);
-                if (!item)
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors"), QString("parameter, open, not available")));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-
-                if (!item->setValue(state["open"]))
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter open").arg(state["open"].toString())));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-            }
-            if (state.contains("lightlevel"))
-            {
-                item = sensor.item(RStateLightLevel);
-                if (!item)
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors"), QString("parameter, lightlevel, not available")));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-
-                if (!item->setValue(state["lightlevel"]))
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter lightlevel").arg(state["lightlevel"].toString())));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-            }
-            if (state.contains("temperature"))
-            {
-                item = sensor.item(RStateTemperature);
-                if (!item)
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors"), QString("parameter, temperature, not available")));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-
-                if (!item->setValue(state["temperature"]))
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter temperature").arg(state["temperature"].toString())));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-            }
-            if (state.contains("humidity"))
-            {
-                item = sensor.item(RStateHumidity);
-                if (!item)
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors"), QString("parameter, humidity, not available")));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-
-                if (!item->setValue(state["humidity"]))
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter humidity").arg(state["humidity"].toString())));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-            }
-            if (state.contains("pressure"))
-            {
-                item = sensor.item(RStatePressure);
-                if (!item)
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors"), QString("parameter, pressure, not available")));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-
-                if (!item->setValue(state["pressure"]))
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter pressure").arg(state["pressure"].toString())));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-            }
-            if (state.contains("alarm"))
-            {
-                item = sensor.item(RStateAlarm);
-                if (!item)
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors"), QString("parameter, alarm, not available")));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-
-                if (!item->setValue(state["alarm"]))
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter alarm").arg(state["alarm"].toString())));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-            }
-            if (state.contains("carbonmonoxide"))
-            {
-                item = sensor.item(RStateCarbonMonoxide);
-                if (!item)
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors"), QString("parameter, carbonmonoxide, not available")));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-
-                if (!item->setValue(state["carbonmonoxide"]))
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter carbonmonoxide").arg(state["carbonmonoxide"].toString())));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-            }
-            if (state.contains("fire"))
-            {
-                item = sensor.item(RStateFire);
-                if (!item)
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors"), QString("parameter, fire, not available")));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-
-                if (!item->setValue(state["fire"]))
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter fire").arg(state["fire"].toString())));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-            }
-            if (state.contains("vibration"))
-            {
-                item = sensor.item(RStateVibration);
-                if (!item)
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors"), QString("parameter, vibration, not available")));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-
-                if (!item->setValue(state["vibration"]))
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter vibration").arg(state["vibration"].toString())));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-            }
-            if (state.contains("water"))
-            {
-                item = sensor.item(RStateWater);
-                if (!item)
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors"), QString("parameter, water, not available")));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-
-                if (!item->setValue(state["water"]))
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter water").arg(state["water"].toString())));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-            }
-            if (state.contains("lowbattery"))
-            {
-                item = sensor.addItem(DataTypeBool, RStateLowBattery);
-                if (!item->setValue(state["lowbattery"]))
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter lowbattery").arg(state["lowbattery"].toString())));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-            }
-            if (state.contains("tampered"))
-            {
-                item = sensor.addItem(DataTypeBool, RStateTampered);
-                if (!item->setValue(state["tampered"]))
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter tampered").arg(state["tampered"].toString())));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-            }
-            if (state.contains("consumption"))
-            {
-                item = sensor.item(RStateConsumption);
-                if (!item)
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors"), QString("parameter, consumption, not available")));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-
-                if (!item->setValue(state["consumption"]))
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter consumption").arg(state["consumption"].toString())));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-            }
-            if (state.contains("power"))
-            {
-                item = sensor.item(RStatePower);
-                if (!item)
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors"), QString("parameter, power, not available")));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-
-                if (!item->setValue(state["power"]))
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter power").arg(state["power"].toString())));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-            }
-            if (state.contains("voltage"))
-            {
-                item = sensor.item(RStateVoltage);
-                if (!item)
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors"), QString("parameter, voltage, not available")));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-
-                if (!item->setValue(state["voltage"]))
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter voltage").arg(state["voltage"].toString())));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-            }
-            if (state.contains("current"))
-            {
-                item = sensor.item(RStateCurrent);
-                if (!item)
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors"), QString("parameter, current, not available")));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-
-                if (!item->setValue(state["current"]))
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/state"), QString("invalid value, %1, for parameter current").arg(state["current"].toString())));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-            }
-
         }
 
         item = sensor.item(RConfigOn);
@@ -721,77 +430,42 @@ int DeRestPluginPrivate::createSensor(const ApiRequest &req, ApiResponse &rsp)
         //setConfig optional
         if (map.contains("config"))
         {
-            QVariantMap config = map["config"].toMap();
-
             //check invalid parameter
-            QVariantMap::const_iterator pi = config.begin();
-            QVariantMap::const_iterator pend = config.end();
+            const QVariantMap config = map["config"].toMap();
+            const QStringList allowedKeys = { "battery", "duration", "delay", "mode", "offset", "on", "reachable", "url" };
+            const QStringList optionalKeys = { "battery", "url" };
 
-            for (; pi != pend; ++pi)
+            for  (const auto &key : config.keys())
             {
-                if(!((pi.key() == "offset") || (pi.key() == "on") || (pi.key() == "reachable") || (pi.key() == "url") || (pi.key() == "battery") || (pi.key() == "duration") || (pi.key() == "delay")))
+                if (!allowedKeys.contains(key))
                 {
-                    rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%2").arg(pi.key()), QString("parameter, %1, not available").arg(pi.key())));
+                    rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%2").arg(key), QString("parameter, %1, not available").arg(key)));
                     rsp.httpStatus = HttpStatusBadRequest;
                     return REQ_READY_SEND;
                 }
-            }
 
-            if (config.contains("offset"))
-            {
-                item = sensor.addItem(DataTypeInt16, RConfigOffset);
-
-                if (!item || !item->setValue(config["offset"]))
+                ResourceItemDescriptor rid;
+                item = nullptr;
+                if (getResourceItemDescriptor(QString("config/%1").arg(key), rid))
                 {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/config"), QString("invalid value, %1, for parameter offset").arg(config["offset"].toString())));
+                    item = sensor.item(rid.suffix);
+
+                    if (!item && optionalKeys.contains(key))
+                    {
+                        item = sensor.addItem(rid.type, rid.suffix);
+                    }
+                }
+
+                if (!item)
+                {
+                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors"), QString("parameter, %1, not available").arg(key)));
                     rsp.httpStatus = HttpStatusBadRequest;
                     return REQ_READY_SEND;
                 }
-            }
-            if (config.contains("on"))
-            {
-                item = sensor.item(RConfigOn);
-                item->setValue(config["on"]);
-            }
-            if (config.contains("reachable"))
-            {
-                item = sensor.addItem(DataTypeBool, RConfigReachable);
-                item->setValue(config["reachable"]);
-            }
-            if (config.contains("url"))
-            {
-                item = sensor.addItem(DataTypeString, RConfigUrl);
-                item->setValue(config["url"]);
-            }
-            if (config.contains("battery"))
-            {
-                item = sensor.addItem(DataTypeUInt8, RConfigBattery);
 
-                if (!item || !item->setValue(config["battery"]))
+                if (!item->setValue(config.value(key)))
                 {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/config"), QString("invalid value, %1, for parameter battery").arg(config["battery"].toString())));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-            }
-            if (config.contains("duration"))
-            {
-                item = sensor.item(RConfigDuration);
-
-                if (!item || !item->setValue(config["duration"]))
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/config"), QString("invalid value, %1, for parameter duration").arg(config["duration"].toString())));
-                    rsp.httpStatus = HttpStatusBadRequest;
-                    return REQ_READY_SEND;
-                }
-            }
-            if (config.contains("delay"))
-            {
-                item = sensor.item(RConfigDelay);
-
-                if (!item || !item->setValue(config["delay"]))
-                {
-                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/config"), QString("invalid value, %1, for parameter delay").arg(config["delay"].toString())));
+                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/config"), QString("invalid value, %1, for parameter %2").arg(config.value(key).toString()).arg(key)));
                     rsp.httpStatus = HttpStatusBadRequest;
                     return REQ_READY_SEND;
                 }

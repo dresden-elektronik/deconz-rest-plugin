@@ -1243,6 +1243,16 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
         return sendConfigureReportingRequest(bt, {rq});
     }
+    else if (bt.binding.clusterId == WINDOW_COVERING_CLUSTER_ID)
+    {
+        rq.dataType = deCONZ::Zcl8BitUint;
+        rq.attributeId = 0x0008; // Current Position Lift Percentage
+        rq.minInterval = 1;
+        rq.maxInterval = 300;
+        rq.reportableChange8bit = 1;
+
+        return sendConfigureReportingRequest(bt, {rq});
+    }
     else if (bt.binding.clusterId == FAN_CONTROL_CLUSTER_ID)
     {
         rq.dataType = deCONZ::Zcl8BitEnum;
@@ -1515,6 +1525,18 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->modelId().startsWith(QLatin1String("SMSZB-120"))) // Develco smoke sensor
         {
         }
+        else if (lightNode->modelId().startsWith(QLatin1String("RICI01"))) // LifeControl smart plug
+        {
+        }
+        else if (lightNode->modelId() == QLatin1String("SPLZB-131"))
+        {
+        }
+        else if (lightNode->manufacturer() == QString("欧瑞博") || lightNode->manufacturer() == QLatin1String("ORVIBO"))
+        {
+        }
+        else if (lightNode->manufacturerCode() == VENDOR_LEGRAND) // Legrand switch and plug
+        {
+        }
         else
         {
             return;
@@ -1539,6 +1561,7 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         case ONOFF_CLUSTER_ID:
         case LEVEL_CLUSTER_ID:
         case COLOR_CLUSTER_ID:
+        case WINDOW_COVERING_CLUSTER_ID:
         case IAS_ZONE_CLUSTER_ID:
         case FAN_CONTROL_CLUSTER_ID:
         {
@@ -1685,14 +1708,18 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("S2")) ||
         // IKEA
         sensor->modelId().startsWith(QLatin1String("TRADFRI")) ||
+        sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
         // Keen Home
         sensor->modelId().startsWith(QLatin1String("SV01-")) ||
         // Trust ZPIR-8000
         sensor->modelId().startsWith(QLatin1String("VMS_ADUROLIGHT")) ||
         // Trust ZMST-808
         sensor->modelId().startsWith(QLatin1String("CSW_ADUROLIGHT")) ||
+        // iCasa
+        sensor->modelId() == QLatin1String("ICZB-RM") ||
         // innr
         sensor->modelId() == QLatin1String("SP 120") ||
+        sensor->modelId().startsWith(QLatin1String("RC 110")) ||
         // Eurotronic
         sensor->modelId() == QLatin1String("SPZB0001") ||
         // Heiman
@@ -1705,10 +1732,15 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("TH-")) ||
         sensor->modelId().startsWith(QLatin1String("SMOK_")) ||
         sensor->modelId().startsWith(QLatin1String("WATER_")) ||
+        // Konke
+        sensor->modelId() == QLatin1String("3AFE140103020000") ||
+        sensor->modelId() == QLatin1String("3AFE130104020015") ||
+        sensor->modelId() == QLatin1String("3AFE14010402000D") ||
         // Nimbus
         sensor->modelId().startsWith(QLatin1String("FLS-NB")) ||
         // SmartThings
         sensor->modelId().startsWith(QLatin1String("tagv4")) ||
+        (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("button")) ||
         (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("motion")) ||
         (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("multi")) ||
         (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("water")) ||
@@ -1718,10 +1750,26 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("SMSZB-120")) || // smoke sensor
         sensor->modelId().startsWith(QLatin1String("WISZB-120")) || // window sensor
         sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||   // Wattle (Develco) magnetic sensor
+        sensor->modelId() == QLatin1String("SPLZB-131") ||
         // LG
         sensor->modelId() == QLatin1String("LG IP65 HMS") ||
         // Sinope
-        sensor->modelId() == QLatin1String("WL4200S"))
+        sensor->modelId() == QLatin1String("WL4200S") ||
+        //LifeControl smart plug
+        sensor->modelId() == QLatin1String("RICI01") ||
+        //LifeControl enviroment sensor
+        sensor->modelId() == QLatin1String("VOC_Sensor") ||
+        //Legrand Plug
+        sensor->modelId() == QLatin1String("Connected outlet") ||
+        //Legrand shutter switch
+        sensor->modelId() == QLatin1String("Shutter switch with neutral") ||
+        //Legrand dimmer wired
+        sensor->modelId() == QLatin1String("Dimmer switch w/o neutral") ||
+        //Legrand Cable outlet
+        sensor->modelId() == QLatin1String("Cable outlet") ||
+        // ORVIBO
+        sensor->modelId().startsWith(QLatin1String("SN10ZW")) ||
+        sensor->modelId().startsWith(QLatin1String("SF2")))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||
@@ -2119,6 +2167,39 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         clusters.push_back(ONOFF_CLUSTER_ID);
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
+    // IKEA Trådfri open/close remote
+    else if (sensor->modelId().startsWith(QLatin1String("TRADFRI open/close remote")))
+    {
+        clusters.push_back(WINDOW_COVERING_CLUSTER_ID);
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+    }
+    // IKEA Trådfri motion sensor
+    else if (sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")))
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+    }
+    // IKEA SYMFONISK sound controller
+    else if (sensor->modelId().startsWith(QLatin1String("SYMFONISK")))
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+    }
+    else if (sensor->modelId().startsWith(QLatin1String("RC 110")))
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+    }
+    else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM")))
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+        clusters.push_back(SCENE_CLUSTER_ID);
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+    }
     else if (sensor->modelId().startsWith(QLatin1String("D1")))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
@@ -2154,6 +2235,14 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(0x02);
         srcEndpoints.push_back(0x03);
         srcEndpoints.push_back(0x04);
+        sensor->setMgmtBindSupported(true);
+    }
+    // LifeControl Enviroment Sensor
+    else if (sensor->modelId().startsWith(QLatin1String("VOC_Sensor")))
+    {
+        clusters.push_back(TEMPERATURE_MEASUREMENT_CLUSTER_ID);
+        srcEndpoints.push_back(0x00);
+        srcEndpoints.push_back(0x01);
         sensor->setMgmtBindSupported(true);
     }
     else
@@ -2277,7 +2366,11 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
             return;
         }
     }
-    else if (sensor->modelId() == QLatin1String("TRADFRI on/off switch"))
+    else if (sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")) ||
+             sensor->modelId().startsWith(QLatin1String("TRADFRI open/close remote")) ||
+             sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")) ||
+             sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
+             sensor->modelId().startsWith(QLatin1String("RC 110"))) // innr remote
     {
 
     }

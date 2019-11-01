@@ -23,6 +23,7 @@
 #include <sqlite3.h>
 #include <deconz.h>
 #include "resource.h"
+#include "daylight.h"
 #include "event.h"
 #include "resource.h"
 #include "rest_node_base.h"
@@ -277,12 +278,13 @@
 #define VENDOR_PAULMANN     0x119D
 #define VENDOR_120B         0x120B // Used by Heiman
 #define VENDOR_MUELLER      0x121B // Used by Mueller Licht
-#define VENDOR_1224         0x1224 // Used by iCasa keypads
+#define VENDOR_SUNRICHER    0x1224 // Used by iCasa keypads
 #define VENDOR_XAL          0x122A
 #define VENDOR_1233         0x1233 // Used by Third Reality
 #define VENDOR_1234         0x1234 // Used by Xiaomi Mi
 #define VENDOR_SAMJIN       0x1241
 #define VENDOR_OSRAM_STACK  0xBBAA
+#define VENDOR_LEGRAND      0x1021
 
 #define ANNOUNCE_INTERVAL 10 // minutes default announce interval
 
@@ -372,6 +374,7 @@ extern const quint64 emberMacPrefix;
 extern const quint64 energyMiMacPrefix;
 extern const quint64 heimanMacPrefix;
 extern const quint64 ikeaMacPrefix;
+extern const quint64 ikea2MacPrefix;
 extern const quint64 silabsMacPrefix;
 extern const quint64 instaMacPrefix;
 extern const quint64 boschMacPrefix;
@@ -388,6 +391,7 @@ extern const quint64 tiMacPrefix;
 extern const quint64 ubisysMacPrefix;
 extern const quint64 xalMacPrefix;
 extern const quint64 develcoMacPrefix;
+extern const quint64 legrandMacPrefix;
 
 inline bool checkMacVendor(quint64 addr, quint16 vendor)
 {
@@ -399,7 +403,7 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == sinopeMacPrefix;
         case VENDOR_120B:
             return prefix == emberMacPrefix;
-        case VENDOR_1224:
+        case VENDOR_SUNRICHER:
             return prefix == emberMacPrefix;
         case VENDOR_BITRON:
             return prefix == tiMacPrefix;
@@ -455,6 +459,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == samjinMacPrefix;
         case VENDOR_DEVELCO:
             return prefix == develcoMacPrefix;
+        case VENDOR_LEGRAND:
+            return prefix == legrandMacPrefix;
         default:
             return false;
     }
@@ -1016,6 +1022,7 @@ public Q_SLOTS:
     void gpDataIndication(const deCONZ::GpDataIndication &ind);
     void gpProcessButtonEvent(const deCONZ::GpDataIndication &ind);
     void configurationChanged();
+    void networkStateChangeRequest(bool shouldConnect);
     int taskCountForAddress(const deCONZ::Address &address);
     void processTasks();
     void processGroupTasks();
@@ -1058,6 +1065,7 @@ public Q_SLOTS:
     void fastRuleCheckTimerFired();
     void webhookFinishedRequest(QNetworkReply *reply);
     void daylightTimerFired();
+    bool checkDaylightSensorConfiguration(Sensor *sensor, const QString &gwBridgeId, double *lat, double *lng);
     void handleRuleEvent(const Event &e);
     bool queueBindingTask(const BindingTask &bindingTask);
     void restartAppTimerFired();
@@ -1611,14 +1619,15 @@ public:
     uint8_t channelChangeApsRequestId;
 
     // generic network reconnect state machine
-    enum networkReconnectState
+    enum NetworkReconnectState
     {
         DisconnectingNetwork,
-        ReconnectNetwork
+        ReconnectNetwork,
+        MaintainNetwork
     };
 
-    QTimer *reconnectTimer;
-    networkReconnectState networkState;
+    QTimer *reconnectTimer = nullptr;
+    NetworkReconnectState networkState = MaintainNetwork;
     int networkDisconnectAttempts;
     int networkReconnectAttempts;
     bool networkConnectedBefore;
@@ -1743,6 +1752,7 @@ public:
     std::vector<LightNode> nodes;
     std::vector<Rule> rules;
     QString daylightSensorId;
+    std::vector<DL_Result> daylightTimes;
     std::vector<Sensor> sensors;
     std::list<TaskItem> tasks;
     std::list<TaskItem> runningTasks;

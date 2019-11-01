@@ -39,6 +39,7 @@ const char *RStateAlarm = "state/alarm";
 const char *RStateAlert = "state/alert";
 const char *RStateAllOn = "state/all_on";
 const char *RStateAnyOn = "state/any_on";
+const char *RStateBattery = "state/battery";
 const char *RStateBri = "state/bri";
 const char *RStateButtonEvent = "state/buttonevent";
 const char *RStateCarbonMonoxide = "state/carbonmonoxide";
@@ -57,6 +58,7 @@ const char *RStateHumidity = "state/humidity";
 const char *RStateLastUpdated = "state/lastupdated";
 const char *RStateLightLevel = "state/lightlevel";
 const char *RStateLowBattery = "state/lowbattery";
+const char *RStateLocaltime = "state/localtime";
 const char *RStateLux = "state/lux";
 const char *RStateOn = "state/on";
 const char *RStateOpen = "state/open";
@@ -70,6 +72,8 @@ const char *RStateReachable = "state/reachable";
 const char *RStateSat = "state/sat";
 const char *RStateSpeed = "state/speed";
 const char *RStateStatus = "state/status";
+const char *RStateSunrise = "state/sunrise";
+const char *RStateSunset = "state/sunset";
 const char *RStateTampered = "state/tampered";
 const char *RStateTemperature = "state/temperature";
 const char *RStateTiltAngle = "state/tiltangle";
@@ -161,6 +165,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateAlert));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateAllOn));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateAnyOn));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RStateBattery, 0, 100));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RStateBri));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt32, RStateButtonEvent));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateCarbonMonoxide));
@@ -179,6 +184,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RStateLastUpdated));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateLightLevel, 0, 0xfffe));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateLowBattery));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RStateLocaltime));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, RStateLux));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateOn));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateOpen));
@@ -193,6 +199,8 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RActionScene));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RStateSpeed, 0, 6));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt32, RStateStatus));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RStateSunrise));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RStateSunset));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateTampered));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RStateTemperature, -27315, 32767));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateTiltAngle));
@@ -224,7 +232,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigLong));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigLevelMin));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigMode));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RConfigOffset, -500, 500));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RConfigOffset, INT16_MIN, INT16_MAX));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigOn));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigPending));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, RConfigPowerup));
@@ -352,7 +360,7 @@ const QString &ResourceItem::toString() const
     {
         if (m_str)
         {
-            if (m_rid.suffix == RStateLastUpdated)
+            if (m_rid.suffix == RStateLastUpdated || m_rid.suffix == RStateSunrise || m_rid.suffix == RStateSunset)
             {
                 QDateTime dt;
                 dt.setOffsetFromUtc(0);
@@ -623,6 +631,13 @@ Resource::Resource(const Resource &other)
 {
     m_prefix = other.m_prefix;
     m_rItems = other.m_rItems;
+}
+
+Resource &Resource::operator=(const Resource &other)
+{
+    m_prefix = other.m_prefix;
+    m_rItems = other.m_rItems;
+    return *this;
 }
 
 const char *Resource::prefix() const

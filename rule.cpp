@@ -436,6 +436,7 @@ RuleCondition::RuleCondition(const QVariantMap &map) :
                                                          : RInvalidSuffix;
 
     if (m_operator == QLatin1String("eq")) { m_op = OpEqual; }
+    else if (m_operator == QLatin1String("ne")) { m_op = OpNotEqual; }
     else if (m_operator == QLatin1String("gt")) { m_op = OpGreaterThan; }
     else if (m_operator == QLatin1String("lt")) { m_op = OpLowerThan; }
     else if (m_operator == QLatin1String("dx")) { m_op = OpDx; }
@@ -500,7 +501,7 @@ RuleCondition::RuleCondition(const QVariantMap &map) :
         {
             m_value = m_value.toBool();
         }
-        else if (m_op == OpEqual || m_op == OpGreaterThan || m_op == OpLowerThan)
+        else if (m_op == OpEqual || m_op == OpNotEqual || m_op == OpGreaterThan || m_op == OpLowerThan)
         {
             int num = str.toInt(&ok);
             if (ok)
@@ -548,10 +549,10 @@ const QString &RuleCondition::address() const
  */
 void RuleCondition::setOperator(const QString &aOperator)
 {
-    DBG_Assert((aOperator == "eq") || (aOperator == "gt") || (aOperator == "lt") || (aOperator == "dx"));
-    if (!((aOperator == "eq") || (aOperator == "gt") || (aOperator == "lt") || (aOperator == "dx")))
+    DBG_Assert((aOperator == "eq") || (aOperator == "ne") || (aOperator == "gt") || (aOperator == "lt") || (aOperator == "dx"));
+    if (!((aOperator == "eq") || (aOperator == "ne") || (aOperator == "gt") || (aOperator == "lt") || (aOperator == "dx")))
     {
-        DBG_Printf(DBG_INFO, "actions operator must be either 'eq', 'gt', 'lt' or 'dx'\n");
+        DBG_Printf(DBG_INFO, "actions operator must be either 'eq', 'ne', 'gt', 'lt' or 'dx'\n");
         return;
     }
 

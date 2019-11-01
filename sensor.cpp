@@ -139,6 +139,18 @@ static const Sensor::ButtonMap ikeaOnOffMap[] = {
     { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 1,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD, "Move down" },
     { Sensor::ModeScenes,           0x01, 0x0008, 0x07, 0,    S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop (with on/off)" },
     { Sensor::ModeScenes,           0x01, 0x0008, 0x07, 1,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop" },
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
+};
+
+static const Sensor::ButtonMap ikeaOpenCloseMap[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    { Sensor::ModeScenes,           0x01, 0x0102, 0x00, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Open" },
+    { Sensor::ModeScenes,           0x01, 0x0102, 0x02, 0,    S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop" },
+    { Sensor::ModeScenes,           0x01, 0x0102, 0x01, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Close" },
+    { Sensor::ModeScenes,           0x01, 0x0102, 0x02, 1,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop" },
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
 static const Sensor::ButtonMap ikeaRemoteMap[] = {
@@ -190,6 +202,22 @@ static const Sensor::ButtonMap ikeaMotionSensorMap[] = {
 // presence event
     { Sensor::ModeScenes,           0x01, 0x0006, 0x42, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "On with timed off" },
 
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
+};
+
+static const Sensor::ButtonMap ikeaSoundControllerMap[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    // press
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x02, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Toggle" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 0,    S_BUTTON_1 + S_BUTTON_ACTION_DOUBLE_PRESS, "Step Up" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 1,    S_BUTTON_1 + S_BUTTON_ACTION_TREBLE_PRESS, "Step Down" },
+    // turn counter clockwise
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 1,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD, "Move Down" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 1,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED, "Stop" },
+    // turn clockwise
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 0,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD, "Move Up" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 0,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED, "Stop" },
     // end
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
@@ -484,6 +512,116 @@ static const Sensor::ButtonMap icasaKeypadMap[] = {
     { Sensor::ModeScenes,           0x01, 0x0005, 0x05, 4,    S_BUTTON_6 + S_BUTTON_ACTION_SHORT_RELEASED, "Recall scene 4" },
     { Sensor::ModeScenes,           0x01, 0x0005, 0x05, 5,    S_BUTTON_7 + S_BUTTON_ACTION_SHORT_RELEASED, "Recall scene 5" },
     { Sensor::ModeScenes,           0x01, 0x0005, 0x05, 6,    S_BUTTON_8 + S_BUTTON_ACTION_SHORT_RELEASED, "Recall scene 6" },
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
+};
+
+static const Sensor::ButtonMap icasaRemoteMap[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    // Off 1 button
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x00, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x05, 1,    S_BUTTON_1 + S_BUTTON_ACTION_HOLD, "Move down (with on/off)" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x07, 1,    S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // On 1 button
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x01, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x05, 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD, "Move up (with on/off)" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x07, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // Scene buttons
+    { Sensor::ModeScenes,           0x01, 0x0005, 0x05, 1,    S_BUTTON_9 + S_BUTTON_ACTION_SHORT_RELEASED, "Recall scene 1" },
+    { Sensor::ModeScenes,           0x01, 0x0005, 0x05, 2,    10000 + S_BUTTON_ACTION_SHORT_RELEASED, "Recall scene 2" },
+    // Off 2 button
+    { Sensor::ModeScenes,           0x02, 0x0006, 0x00, 0,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
+    { Sensor::ModeScenes,           0x02, 0x0008, 0x05, 1,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD, "Move down (with on/off)" },
+    { Sensor::ModeScenes,           0x02, 0x0008, 0x07, 1,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // On 2 button
+    { Sensor::ModeScenes,           0x02, 0x0006, 0x01, 0,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+    { Sensor::ModeScenes,           0x02, 0x0008, 0x05, 0,    S_BUTTON_4 + S_BUTTON_ACTION_HOLD, "Move up (with on/off)" },
+    { Sensor::ModeScenes,           0x02, 0x0008, 0x07, 0,    S_BUTTON_4 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // Off 3 button
+    { Sensor::ModeScenes,           0x03, 0x0006, 0x00, 0,    S_BUTTON_5 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
+    { Sensor::ModeScenes,           0x03, 0x0008, 0x05, 1,    S_BUTTON_5 + S_BUTTON_ACTION_HOLD, "Move down (with on/off)" },
+    { Sensor::ModeScenes,           0x03, 0x0008, 0x07, 1,    S_BUTTON_5 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // On 3 button
+    { Sensor::ModeScenes,           0x03, 0x0006, 0x01, 0,    S_BUTTON_6 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+    { Sensor::ModeScenes,           0x03, 0x0008, 0x05, 0,    S_BUTTON_6 + S_BUTTON_ACTION_HOLD, "Move up (with on/off)" },
+    { Sensor::ModeScenes,           0x03, 0x0008, 0x07, 0,    S_BUTTON_6 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // Off 4 button
+    { Sensor::ModeScenes,           0x04, 0x0006, 0x00, 0,    S_BUTTON_7 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
+    { Sensor::ModeScenes,           0x04, 0x0008, 0x05, 1,    S_BUTTON_7 + S_BUTTON_ACTION_HOLD, "Move down (with on/off)" },
+    { Sensor::ModeScenes,           0x04, 0x0008, 0x07, 1,    S_BUTTON_7 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // On 4 button
+    { Sensor::ModeScenes,           0x04, 0x0006, 0x01, 0,    S_BUTTON_8 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+    { Sensor::ModeScenes,           0x04, 0x0008, 0x05, 0,    S_BUTTON_8 + S_BUTTON_ACTION_HOLD, "Move up (with on/off)" },
+    { Sensor::ModeScenes,           0x04, 0x0008, 0x07, 0,    S_BUTTON_8 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
+};
+
+static const Sensor::ButtonMap samjinButtonMap[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    // First button
+    { Sensor::ModeScenes,           0x01, 0x0500, 0x00, 0x01,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Single press" },
+    { Sensor::ModeScenes,           0x01, 0x0500, 0x00, 0x02,    S_BUTTON_1 + S_BUTTON_ACTION_DOUBLE_PRESS, "Double press" },
+    { Sensor::ModeScenes,           0x01, 0x0500, 0x00, 0x03,    S_BUTTON_1 + S_BUTTON_ACTION_HOLD, "Hold" },
+
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
+};
+
+static const Sensor::ButtonMap sunricherCCTMap[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    // Off button
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x01, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+    // On button
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x00, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
+    // Dim button
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x05, 0,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD, "Move up (with on/off)" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x07, 0,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x05, 1,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD, "Move down (with on/off)" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x07, 1,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // C/W button
+    { Sensor::ModeScenes,           0x01, 0x0300, 0x0a, 0,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Move to color temperature" },
+    { Sensor::ModeScenes,           0x01, 0x0300, 0x4b, 0x013C, S_BUTTON_4 + S_BUTTON_ACTION_HOLD, "Move color temperature up" },
+    { Sensor::ModeScenes,           0x01, 0x0300, 0x4b, 0x033C, S_BUTTON_4 + S_BUTTON_ACTION_HOLD, "Move color temperature down" },
+    { Sensor::ModeScenes,           0x01, 0x0300, 0x47, 0,    S_BUTTON_4 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_" },
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
+};
+
+static const Sensor::ButtonMap sunricherMap[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    // 1st On button
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x01, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x05, 0,    S_BUTTON_1 + S_BUTTON_ACTION_HOLD, "Move up (with on/off)" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x07, 0,    S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // 1st Off button
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x00, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x05, 1,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD, "Move down (with on/off)" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x07, 1,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // 2nd On button
+    { Sensor::ModeScenes,           0x02, 0x0006, 0x01, 0,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+    { Sensor::ModeScenes,           0x02, 0x0008, 0x05, 0,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD, "Move up (with on/off)" },
+    { Sensor::ModeScenes,           0x02, 0x0008, 0x07, 0,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // 2nd Off button
+    { Sensor::ModeScenes,           0x02, 0x0006, 0x00, 0,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
+    { Sensor::ModeScenes,           0x02, 0x0008, 0x05, 1,    S_BUTTON_4 + S_BUTTON_ACTION_HOLD, "Move down (with on/off)" },
+    { Sensor::ModeScenes,           0x02, 0x0008, 0x07, 1,    S_BUTTON_4 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // 3rd On button
+    { Sensor::ModeScenes,           0x03, 0x0006, 0x01, 0,    S_BUTTON_5 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+    { Sensor::ModeScenes,           0x03, 0x0008, 0x05, 0,    S_BUTTON_5 + S_BUTTON_ACTION_HOLD, "Move up (with on/off)" },
+    { Sensor::ModeScenes,           0x03, 0x0008, 0x07, 0,    S_BUTTON_5 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // 3rd Off button
+    { Sensor::ModeScenes,           0x03, 0x0006, 0x00, 0,    S_BUTTON_6 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
+    { Sensor::ModeScenes,           0x03, 0x0008, 0x05, 1,    S_BUTTON_6 + S_BUTTON_ACTION_HOLD, "Move down (with on/off)" },
+    { Sensor::ModeScenes,           0x03, 0x0008, 0x07, 1,    S_BUTTON_6 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // 4th On button
+    { Sensor::ModeScenes,           0x04, 0x0006, 0x01, 0,    S_BUTTON_7 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+    { Sensor::ModeScenes,           0x04, 0x0008, 0x05, 0,    S_BUTTON_7 + S_BUTTON_ACTION_HOLD, "Move up (with on/off)" },
+    { Sensor::ModeScenes,           0x04, 0x0008, 0x07, 0,    S_BUTTON_7 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // 4th Off button
+    { Sensor::ModeScenes,           0x04, 0x0006, 0x00, 0,    S_BUTTON_8 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
+    { Sensor::ModeScenes,           0x04, 0x0008, 0x05, 1,    S_BUTTON_8 + S_BUTTON_ACTION_HOLD, "Move down (with on/off)" },
+    { Sensor::ModeScenes,           0x04, 0x0008, 0x07, 1,    S_BUTTON_8 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
     // end
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
@@ -1002,10 +1140,12 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         }
         else if (manufacturer.startsWith(QLatin1String("IKEA")))
         {
-            if      (modelid.contains(QLatin1String("remote"))) { m_buttonMap = ikeaRemoteMap; }
-            else if (modelid.contains(QLatin1String("motion"))) { m_buttonMap = ikeaMotionSensorMap; }
-            else if (modelid.contains(QLatin1String("dimmer"))) { m_buttonMap = ikeaDimmerMap; }
-            else if (modelid.contains(QLatin1String("on/off"))) { m_buttonMap = ikeaOnOffMap; }
+            if      (modelid.startsWith(QLatin1String("TRADFRI remote control"))) { m_buttonMap = ikeaRemoteMap; }
+            else if (modelid.startsWith(QLatin1String("TRADFRI motion sensor"))) { m_buttonMap = ikeaMotionSensorMap; }
+            else if (modelid.startsWith(QLatin1String("TRADFRI wireless dimmer"))) { m_buttonMap = ikeaDimmerMap; }
+            else if (modelid.startsWith(QLatin1String("TRADFRI on/off switch"))) { m_buttonMap = ikeaOnOffMap; }
+            else if (modelid.startsWith(QLatin1String("TRADFRI open/close remote"))) { m_buttonMap = ikeaOpenCloseMap; }
+            else if (modelid.startsWith(QLatin1String("SYMFONISK"))) { m_buttonMap = ikeaSoundControllerMap; }
         }
         else if (manufacturer == QLatin1String("ubisys"))
         {
@@ -1035,6 +1175,16 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         else if (manufacturer == QLatin1String("icasa"))
         {
             if      (modelid.startsWith(QLatin1String("ICZB-KPD1"))) { m_buttonMap = icasaKeypadMap; }
+            else if (modelid.startsWith(QLatin1String("ICZB-RM"))) { m_buttonMap = icasaRemoteMap; }
+        }
+        else if (manufacturer == QLatin1String("Samjin"))
+        {
+            if (modelid == QLatin1String("button")) { m_buttonMap = samjinButtonMap; }
+        }
+        else if (manufacturer == QLatin1String("Sunricher"))
+        {
+            if      (modelid.startsWith(QLatin1String("ZGRC-KEY"))) { m_buttonMap = sunricherCCTMap; }
+            else if (modelid.startsWith(QLatin1String("ZG2833K"))) { m_buttonMap = sunricherMap; }
         }
     }
 

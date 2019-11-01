@@ -1291,6 +1291,18 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
                 return false; // item was not changed
             }
         }
+        else if (c->op() == RuleCondition::OpNotEqual)
+        {
+            if (c->numericValue() == item->toNumber())
+            {
+                return false;
+            }
+
+            if (item == eItem && e.num() == e.numPrevious())
+            {
+                return false; // item was not changed
+            }
+        }
         else if (c->op() == RuleCondition::OpGreaterThan)
         {
             if (item->toNumber() <= c->numericValue())
