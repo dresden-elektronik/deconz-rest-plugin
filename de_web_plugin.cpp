@@ -212,6 +212,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_DEVELCO, "SMSZB-120", develcoMacPrefix }, // Develco smoke sensor
     { VENDOR_DEVELCO, "SPLZB-131", develcoMacPrefix }, // Develco smart plug
     { VENDOR_DEVELCO, "WISZB-120", develcoMacPrefix }, // Develco window sensor
+    { VENDOR_DEVELCO, "MOSZB-130", develcoMacPrefix }, // Develco motion sensor
+    { VENDOR_DEVELCO, "FLSZB-110", develcoMacPrefix }, // Develco water leak sensor
     { VENDOR_DEVELCO, "ZHMS101", develcoMacPrefix }, // Wattle (Develco) magnetic sensor
     { VENDOR_EMBER, "3AFE14010402000D", konkeMacPrefix }, // Konke Kit Pro-BS Motion Sensor
     { VENDOR_EMBER, "3AFE140103020000", konkeMacPrefix }, // Konke Kit Pro-FT Temp Humidity Sensor
@@ -3768,14 +3770,17 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     }
                     else if (modelId.startsWith(QLatin1String("DOOR_")) ||            // Heiman door/window sensor
                              modelId == QLatin1String("3AFE130104020015") ||          // Konke door/window sensor
-                             modelId.startsWith(QLatin1String("902010/21")))          // Bitron door/window sensor
+                             modelId.startsWith(QLatin1String("902010/21")) ||        // Bitron door/window sensor
+                             modelId.startsWith(QLatin1String("WISZB-120")) ||        // Develco door/window sensor
+                             modelId.startsWith(QLatin1String("ZHMS101")))            // Wattle (Develco) door/window sensor
                     {
                         fpOpenCloseSensor.inClusters.push_back(ci->id());
                     }
                     else if (modelId.startsWith(QLatin1String("PIR_")) ||             // Heiman motion sensor
                              modelId == QLatin1String("3AFE14010402000D") ||          // Konke motion sensor
                              modelId.startsWith(QLatin1String("902010/22")) ||        // Bitron motion sensor
-                             modelId.startsWith(QLatin1String("SN10ZW")))             // ORVIBO motion sensor
+                             modelId.startsWith(QLatin1String("SN10ZW")) ||           // ORVIBO motion sensor
+                             modelId.startsWith(QLatin1String("MOSZB-130")))          // Develco motion sensor
                     {
                         fpPresenceSensor.inClusters.push_back(ci->id());
                     }
@@ -3794,7 +3799,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     else if (modelId.startsWith(QLatin1String("WATER_")) ||           // Heiman water sensor
                              modelId.startsWith(QLatin1String("Water")) ||            // Heiman water sensor (newer model)
                              modelId.startsWith(QLatin1String("lumi.sensor_wleak")) || // Xiaomi Aqara flood sensor
-                             modelId.startsWith(QLatin1String("WL4200S")))            // Sinope Water Leak detector
+                             modelId.startsWith(QLatin1String("WL4200S")) ||          // Sinope Water Leak detector
+                             modelId.startsWith(QLatin1String("FLSZB-110")))          // Develco Water Leak detector
                     {
                         fpWaterSensor.inClusters.push_back(ci->id());
                     }
