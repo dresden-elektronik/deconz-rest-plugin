@@ -132,6 +132,9 @@ bool DeRestPluginPrivate::readBindingTable(RestNodeBase *node, quint8 startIndex
     else if (r && r->item(RAttrModelId)->toString().startsWith(QLatin1String("FLS-")))
     {
     }
+    else if (checkMacVendor(node->address(), VENDOR_NETVOX))
+    {
+    }
     else
     {
         node->clearRead(READ_BINDING_TABLE);
@@ -1774,7 +1777,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("SN10ZW")) ||
         sensor->modelId().startsWith(QLatin1String("SF2")) ||
         // Netvox
-        sensor->modelId() == QLatin1String("Z809AE3R"))
+        sensor->modelId().startsWith(QLatin1String("Z809A")))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||

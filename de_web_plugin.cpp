@@ -224,7 +224,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_LEGRAND, "Connected outlet", legrandMacPrefix }, // Legrand Plug
     { VENDOR_LEGRAND, "Shutter switch with neutral", legrandMacPrefix }, // Legrand Shutter switch
     { VENDOR_LEGRAND, "Cable outlet", legrandMacPrefix }, // Legrand Cable outlet
-    { VENDOR_NETVOX, "Z809AE34R", netvoxMacPrefix }, // Netvox smartplug
+    { VENDOR_NETVOX, "Z809AE3R", netvoxMacPrefix }, // Netvox smartplug
     { 0, nullptr, 0 }
 };
 
