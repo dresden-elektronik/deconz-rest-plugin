@@ -132,9 +132,6 @@ bool DeRestPluginPrivate::readBindingTable(RestNodeBase *node, quint8 startIndex
     else if (r && r->item(RAttrModelId)->toString().startsWith(QLatin1String("FLS-")))
     {
     }
-    else if (checkMacVendor(node->address(), VENDOR_NETVOX))
-    {
-    }
     else
     {
         node->clearRead(READ_BINDING_TABLE);
