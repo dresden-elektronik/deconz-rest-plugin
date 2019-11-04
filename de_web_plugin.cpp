@@ -951,6 +951,7 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
             0x63, S_BUTTON_6,
             0x64, S_BUTTON_5,
             0x65, S_BUTTON_5,
+            0x68, S_BUTTON_7,
             0
         };
 
@@ -990,6 +991,11 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
             {
                 btn = btnMapped + S_BUTTON_ACTION_SHORT_RELEASED;
             }
+        }
+        else if (btn == 0x68) // aka ShortPress2Of2
+        {
+            // finish commissioning by pressing button 2000 and 3000 simultaneously
+            btn = btnMapped + S_BUTTON_ACTION_SHORT_RELEASED;
         }
     }
 
@@ -1073,6 +1079,9 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
     case deCONZ::GpCommandIdRelease1Of2:
     case deCONZ::GpCommandIdPress2Of2:
     case deCONZ::GpCommandIdRelease2Of2:
+    case deCONZ::GpCommandIdShortPress1Of1:
+    case deCONZ::GpCommandIdShortPress1Of2:
+    case deCONZ::GpCommandIdShortPress2Of2:
     {
         gpProcessButtonEvent(ind);
     }
@@ -1295,6 +1304,9 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
         break;
 
     default:
+    {
+        DBG_Printf(DBG_INFO, "GP unhandled command gpdsrcid %u: gpdcmdid: 0x%02X\n", ind.gpdSrcId(), ind.gpdCommandId());
+    }
         break;
     }
 }
