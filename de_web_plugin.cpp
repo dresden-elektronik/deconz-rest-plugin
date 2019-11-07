@@ -952,6 +952,7 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
             0x64, S_BUTTON_5,
             0x65, S_BUTTON_5,
             0x68, S_BUTTON_7,
+            0xe0, S_BUTTON_7,
             0
         };
 
@@ -996,6 +997,10 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
         {
             // finish commissioning by pressing button 2000 and 3000 simultaneously
             btn = btnMapped + S_BUTTON_ACTION_SHORT_RELEASED;
+        }
+        else if (btn == 0xe0) // aka commissioning
+        {
+            btn = btnMapped + S_BUTTON_ACTION_LONG_RELEASED;
         }
     }
 
@@ -1279,6 +1284,7 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             queSaveDb(DB_SENSORS , DB_SHORT_SAVE_DELAY);
 
             indexRulesTriggers();
+            gpProcessButtonEvent(ind);
         }
         else if (sensor && sensor->deletedState() == Sensor::StateDeleted)
         {
@@ -1294,6 +1300,15 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
                 Event e(RSensors, REventAdded, sensor->id());
                 enqueueEvent(e);
                 queSaveDb(DB_SENSORS , DB_SHORT_SAVE_DELAY);
+
+                gpProcessButtonEvent(ind);
+            }
+        }
+        else if (sensor && sensor->deletedState() == Sensor::StateNormal)
+        {
+            if (searchSensorsState == SearchSensorsActive)
+            {
+                gpProcessButtonEvent(ind);
             }
         }
         else
