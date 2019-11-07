@@ -1,14 +1,14 @@
 #!/bin/bash
 
 UPDATE_VERSION_HB="0.4.50"
-UPDATE_VERSION_HB_HUE="0.11.41"
-UPDATE_VERSION_HB_LIB="4.4.6"
+UPDATE_VERSION_HB_HUE="0.11.42"
+UPDATE_VERSION_HB_LIB="4.4.7"
 UPDATE_VERSION_NPM="6.9.0"
-UPDATE_VERSION_NODE="10.16.3"
+UPDATE_VERSION_NODE="12.13.0"
 # use install name to install the specific node version via apt. Retrieve it via: apt-cache policy nodejs
-UPDATE_VERSION_NODE_INSTALL_NAME="10.16.3-1nodesource1"
+# UPDATE_VERSION_NODE_INSTALL_NAME="10.16.3-1nodesource1"
 # when increasing major version of node adjust downoload link
-NODE_DOWNLOAD_LINK="https://deb.nodesource.com/setup_10.x"
+NODE_DOWNLOAD_LINK="https://deb.nodesource.com/setup_12.x"
 
 TIMEOUT=0
 LOG_LEVEL=3
@@ -177,7 +177,7 @@ function installHomebridge {
 		# else
 			curl -sL "$NODE_DOWNLOAD_LINK" | bash -
 			if [ $? -eq 0 ]; then
-				apt-get install -y nodejs="$UPDATE_VERSION_NODE_INSTALL_NAME"
+				apt-get install -y nodejs
 				if [ $? -ne 0 ]; then
 					[[ $LOG_WARN ]] && echo "${LOG_WARN}could not install nodejs"
 					putHomebridgeUpdated "homebridge" "install-error"
@@ -194,7 +194,7 @@ function installHomebridge {
 			if [ $? -eq 0 ]; then
 			    curl -sL "$NODE_DOWNLOAD_LINK" | bash -
 				if [ $? -eq 0 ]; then
-					apt-get install -y nodejs="$UPDATE_VERSION_NODE_INSTALL_NAME"
+					apt-get install -y nodejs
 					if [ $? -ne 0 ]; then
 						[[ $LOG_WARN ]] && echo "${LOG_WARN}could not install nodejs"
 							putHomebridgeUpdated "homebridge" "install-error"
