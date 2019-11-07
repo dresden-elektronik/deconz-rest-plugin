@@ -264,6 +264,8 @@ void DeRestPluginPrivate::initTimezone()
         if (getenv("TZ") != gwTimezone)
         {
             setenv("TZ", qPrintable(gwTimezone), 1);
+            //also set zoneinfo on RPI
+            symlink("/usr/share/zoneinfo/" + timezone, "/etc/localtime");
         }
     }
     tzset();
@@ -1959,6 +1961,9 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 #ifdef ARCH_ARM
             int rc = setenv("TZ", qPrintable(timezone), 1);
             tzset();
+
+            //also set zoneinfo on RPI
+            symlink("/usr/share/zoneinfo/" + timezone, "/etc/localtime");
 
             if (rc != 0)
             {
