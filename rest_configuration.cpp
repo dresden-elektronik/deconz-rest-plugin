@@ -265,7 +265,10 @@ void DeRestPluginPrivate::initTimezone()
         {
             setenv("TZ", qPrintable(gwTimezone), 1);
             //also set zoneinfo on RPI
-            symlink("/usr/share/zoneinfo/" + timezone, "/etc/localtime");
+            char param1[100];
+            strcpy(param1, "/usr/share/zoneinfo/");
+            strcpy(param1, qPrintable(gwTimezone));
+            symlink(param1, "/etc/localtime");
         }
     }
     tzset();
@@ -1963,7 +1966,10 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
             tzset();
 
             //also set zoneinfo on RPI
-            symlink("/usr/share/zoneinfo/" + timezone, "/etc/localtime");
+            char param1[100];
+            strcpy(param1, "/usr/share/zoneinfo/");
+            strcpy(param1, qPrintable(timezone));
+            symlink(param1, "/etc/localtime");
 
             if (rc != 0)
             {
