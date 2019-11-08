@@ -286,7 +286,7 @@ function checkUpdate {
 
 		curl -sL "$NODE_DOWNLOAD_LINK" | bash -
 		if [ $? -eq 0 ]; then
-			apt-get install -y nodejs="$UPDATE_VERSION_NODE_INSTALL_NAME"
+			apt-get install -y nodejs
 			if [ $? -ne 0 ]; then
 				[[ $LOG_WARN ]] && echo "${LOG_WARN}could not update nodejs"
 				return
