@@ -622,6 +622,25 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 // map.contains("transitiontime") || // FIXME: use bri if transitionTime is given
                 addTaskSetOnOff(task, isOn ? ONOFF_COMMAND_ON : ONOFF_COMMAND_OFF, 0)) // onOff task only if no bri or transitionTime is given
             {
+                // GLEDOPTO "W" (1 channel) version 1.0.3 does not honor "with on/off" in
+                // a "Move to level (with on/off)" command.
+                // Workaround by sending ONOFF_COMMAND and a LEVEL_COMMAND:
+                if (task.lightNode
+                        && task.lightNode->modelId() == QLatin1String("GL-C-009")
+                        && task.lightNode->swBuildId().startsWith(QLatin1String("1.0")))
+                {
+                    if (hasBri ||
+                        // map.contains("transitiontime") || // FIXME: use bri if transitionTime is given
+                        false)
+                    {
+                        // In case of turning off, the ONOFF_COMMAND should be send after the
+                        // LEVEL_COMMAND (which is far below). Since it pretty works this way,
+                        // it seems not worth the effort to handle the turning-of case separately.
+                        TaskItem task2;
+                        copyTaskReq(taskRef, task2);
+                        addTaskSetOnOff(task2, isOn ? ONOFF_COMMAND_ON : ONOFF_COMMAND_OFF, 0);
+                    }
+                }
                 QVariantMap rspItem;
                 QVariantMap rspItemState;
                 rspItemState[QString("/lights/%1/state/on").arg(id)] = isOn;
