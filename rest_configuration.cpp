@@ -46,7 +46,7 @@ void DeRestPluginPrivate::initConfig()
 {
     QString dataPath = deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation);
 
-    pollDatabaseWifiTimer = 0;
+    pollDatabaseWifiTimer = nullptr;
 
     // default configuration
     gwWifiLastUpdated = 0;
@@ -95,7 +95,7 @@ void DeRestPluginPrivate::initConfig()
     gwFirmwareVersionUpdate = "";
     gwMAC = "38:60:77:7c:53:18";
     gwIPAddress = "127.0.0.1";
-    gwPort = (apsCtrl ? apsCtrl->getParameter(deCONZ::ParamHttpPort) : deCONZ::appArgumentNumeric("--http-port", 80));
+    gwPort = (apsCtrl ? apsCtrl->getParameter(deCONZ::ParamHttpPort) : static_cast<quint16>(deCONZ::appArgumentNumeric("--http-port", 80)));
     gwNetMask = "255.0.0.0";
     gwLANBridgeId = (deCONZ::appArgumentNumeric("--lan-bridgeid", 0) == 1);
     gwBridgeId = "0000000000000000";
@@ -212,7 +212,7 @@ void DeRestPluginPrivate::initConfig()
         QHttpRequestHeader hdr;
         QStringList path;
         QString content;
-        ApiRequest dummyReq(hdr, path, 0, content);
+        ApiRequest dummyReq(hdr, path, nullptr, content);
         dummyReq.version = ApiVersion_1_DDEL;
         configToMap(dummyReq, gwConfig);
     }
@@ -221,7 +221,7 @@ void DeRestPluginPrivate::initConfig()
     gwProxyAddress = "none";
 
     timeManagerState = TM_Init;
-    ntpqProcess = 0;
+    ntpqProcess = nullptr;
     QTimer::singleShot(2000, this, SLOT(timeManagerTimerFired()));
 
     pollSwUpdateStateTimer = new QTimer(this);
@@ -847,7 +847,7 @@ int DeRestPluginPrivate::createUser(const ApiRequest &req, ApiResponse &rsp)
             // create a random key (used only if not provided)
             for (int i = 0; i < 5; i++)
             {
-                uint8_t rnd = (uint8_t)qrand();
+                quint8 rnd = qrand() & 0xFF;
                 QString frac;
                 frac.sprintf("%02X", rnd);
                 auth.apikey.append(frac);
@@ -918,11 +918,11 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
 
     if (req.apiVersion() == ApiVersion_1_DDEL)
     {
-        map["permitjoin"] = (double)gwPermitJoinDuration;
-        map["permitjoinfull"] = (double)gwPermitJoinResend;
+        map["permitjoin"] = static_cast<double>(gwPermitJoinDuration);
+        map["permitjoinfull"] = static_cast<double>(gwPermitJoinResend);
         map["otauactive"] = isOtauActive();
         map["otaustate"] = (isOtauBusy() ? "busy" : (isOtauActive() ? "idle" : "off"));
-        map["groupdelay"] = (double)gwGroupSendDelay;
+        map["groupdelay"] = static_cast<double>(gwGroupSendDelay);
         map["discovery"] = (gwAnnounceInterval > 0);
         map["updatechannel"] = gwUpdateChannel;
         map["fwneedupdate"] = gwFirmwareNeedUpdate;
@@ -946,11 +946,11 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         }
 
         map["announceurl"] = gwAnnounceUrl;
-        map["announceinterval"] = (double)gwAnnounceInterval;
+        map["announceinterval"] = static_cast<double>(gwAnnounceInterval);
         map["swversion"] = QLatin1String(GW_SW_VERSION);
         map["swcommit"] = QLatin1String(GIT_COMMMIT);
         swupdate["version"] = gwUpdateVersion;
-        swupdate["updatestate"] = (double)0;
+        swupdate["updatestate"] = static_cast<double>(0);
         swupdate["url"] = "";
         swupdate["text"] = "";
         swupdate["notify"] = false;
@@ -978,7 +978,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         map["wifiname"] = gwWifiName;
         map["wificlientname"] = gwWifiClientName;
         map["wifichannel"] = gwWifiChannel;
-        map["wifimgmt"] = (double)gwWifiMgmt;
+        map["wifimgmt"] = static_cast<double>(gwWifiMgmt);
         map["wifiip"] = gwWifiIp;
 //        map["wifiappw"] = gwWifiPw;
 //        map["wifiappw"] = QString(); // TODO add secured transfer via PKI
@@ -996,7 +996,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         devicetypes["lights"] = QVariantList();
         devicetypes["sensors"] = QVariantList();
         swupdate["devicetypes"] = devicetypes;
-        swupdate["updatestate"] = (double)0;
+        swupdate["updatestate"] = static_cast<double>(0);
         swupdate["checkforupdate"] = false;
         swupdate["url"] = "";
         swupdate["text"] = "";
@@ -1038,7 +1038,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     }
     else
     {
-        map["zigbeechannel"] = (double)gwZigbeeChannel;
+        map["zigbeechannel"] = static_cast<double>(gwZigbeeChannel);
     }
 
     if (gwConfig.contains(QLatin1String("ntp")))
@@ -1048,7 +1048,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
 
     map["dhcp"] = true; // dummy
     map["proxyaddress"] = gwProxyAddress;
-    map["proxyport"] = (double)gwProxyPort;
+    map["proxyport"] = static_cast<double>(gwProxyPort);
     map["UTC"] = datetime.toString(QLatin1String("yyyy-MM-ddTHH:mm:ss")); // ISO 8601
     map["localtime"] = localtime.toString(QLatin1String("yyyy-MM-ddTHH:mm:ss")); // ISO 8601
     map["timezone"] = gwTimezone;
@@ -1057,7 +1057,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     map["whitelist"] = whitelist;
     map["linkbutton"] = gwLinkButton;
     map["portalservices"] = false;
-    map["websocketport"] = (double)gwConfig["websocketport"].toUInt();
+    map["websocketport"] = static_cast<double>(gwConfig["websocketport"].toUInt());
     map["websocketnotifyall"] = gwWebSocketNotifyAll;
 
     QStringList ipv4 = gwIPAddress.split(".");
@@ -1334,7 +1334,7 @@ int DeRestPluginPrivate::getBasicConfig(const ApiRequest &req, ApiResponse &rsp)
             QVariantList ls;
             for (const Gateway *gw : gateways)
             {
-                DBG_Assert(gw != 0);
+                DBG_Assert(gw);
                 if (gw)
                 {
                     QVariantMap g;
@@ -1362,7 +1362,7 @@ int DeRestPluginPrivate::getBasicConfig(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::getZigbeeConfig(const ApiRequest &req, ApiResponse &rsp)
 {
-    Q_UNUSED(req);
+    Q_UNUSED(req)
 
     getZigbeeConfigDb(rsp.list);
 
@@ -1535,7 +1535,7 @@ int DeRestPluginPrivate::putZigbeeConfig(const ApiRequest &req, ApiResponse &rsp
  */
 int DeRestPluginPrivate::getChallenge(const ApiRequest &req, ApiResponse &rsp)
 {
-    Q_UNUSED(req);
+    Q_UNUSED(req)
     QDateTime now = QDateTime::currentDateTime();
 
     if (!apsCtrl || (gwLastChallenge.isValid() && gwLastChallenge.secsTo(now) < 5))
@@ -1545,7 +1545,7 @@ int DeRestPluginPrivate::getChallenge(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
-    qsrand(time(0));
+    qsrand(static_cast<uint>(time(nullptr)));
     QByteArray challange;
 
     for (int i = 0; i < 64; i++)
@@ -1572,7 +1572,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
     QVariant var = Json::parse(req.content, ok);
     QVariantMap map = var.toMap();
 
-    DBG_Assert(apsCtrl != 0);
+    DBG_Assert(apsCtrl);
 
     if (!apsCtrl)
     {
@@ -1721,7 +1721,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
         QVariantMap rspItem;
         QVariantMap rspItemState;
-        rspItemState["/config/permitjoin"] = (double)seconds;
+        rspItemState["/config/permitjoin"] = static_cast<double>(seconds);
         rspItem["success"] = rspItemState;
         rsp.list.append(rspItem);
     }
@@ -1745,7 +1745,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
         QVariantMap rspItem;
         QVariantMap rspItemState;
-        rspItemState["/config/groupdelay"] = (double)milliseconds;
+        rspItemState["/config/groupdelay"] = static_cast<double>(milliseconds);
         rspItem["success"] = rspItemState;
         rsp.list.append(rspItem);
     }
@@ -1885,7 +1885,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
         QVariantMap rspItem;
         QVariantMap rspItemState;
-        rspItemState["/config/unlock"] = (double)seconds;
+        rspItemState["/config/unlock"] = static_cast<double>(seconds);
         rspItem["success"] = rspItemState;
         rsp.list.append(rspItem);
     }
@@ -1913,7 +1913,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
 
         QVariantMap rspItem;
         QVariantMap rspItemState;
-        rspItemState["/config/zigbeechannel"] = (uint)zigbeechannel;
+        rspItemState["/config/zigbeechannel"] = static_cast<double>(zigbeechannel);
         rspItem["success"] = rspItemState;
         rsp.list.append(rspItem);
     }
@@ -1932,14 +1932,14 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         if (gwNetworkOpenDuration != seconds)
         {
             DBG_Printf(DBG_INFO, "set gwNetworkOpenDuration to: %u\n", seconds);
-            gwNetworkOpenDuration = seconds;
+            gwNetworkOpenDuration = static_cast<quint16>(seconds);
             changed = true;
             queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
         }
 
         QVariantMap rspItem;
         QVariantMap rspItemState;
-        rspItemState["/config/networkopenduration"] = (double)seconds;
+        rspItemState["/config/networkopenduration"] = static_cast<double>(seconds);
         rspItem["success"] = rspItemState;
         rsp.list.append(rspItem);
     }
@@ -2146,7 +2146,7 @@ int DeRestPluginPrivate::deleteUser(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::updateSoftware(const ApiRequest &req, ApiResponse &rsp)
 {
-    Q_UNUSED(req);
+    Q_UNUSED(req)
     rsp.httpStatus = HttpStatusOk;
     QVariantMap rspItem;
     QVariantMap rspItemState;
@@ -2173,7 +2173,7 @@ int DeRestPluginPrivate::updateSoftware(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::restartGateway(const ApiRequest &req, ApiResponse &rsp)
 {
-    Q_UNUSED(req);
+    Q_UNUSED(req)
     rsp.httpStatus = HttpStatusOk;
     QVariantMap rspItem;
     QVariantMap rspItemState;
@@ -2202,7 +2202,7 @@ int DeRestPluginPrivate::restartGateway(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::restartApp(const ApiRequest &req, ApiResponse &rsp)
 {
-    Q_UNUSED(req);
+    Q_UNUSED(req)
     rsp.httpStatus = HttpStatusOk;
     QVariantMap rspItem;
     QVariantMap rspItemState;
@@ -2229,7 +2229,7 @@ int DeRestPluginPrivate::restartApp(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::shutDownGateway(const ApiRequest &req, ApiResponse &rsp)
 {
-    Q_UNUSED(req);
+    Q_UNUSED(req)
     rsp.httpStatus = HttpStatusOk;
     QVariantMap rspItem;
     QVariantMap rspItemState;
@@ -2258,7 +2258,7 @@ int DeRestPluginPrivate::shutDownGateway(const ApiRequest &req, ApiResponse &rsp
  */
 int DeRestPluginPrivate::updateFirmware(const ApiRequest &req, ApiResponse &rsp)
 {
-    Q_UNUSED(req);
+    Q_UNUSED(req)
     if (startUpdateFirmware())
     {
         rsp.httpStatus = HttpStatusOk;
@@ -2282,7 +2282,7 @@ int DeRestPluginPrivate::updateFirmware(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::exportConfig(const ApiRequest &req, ApiResponse &rsp)
 {
-    Q_UNUSED(req);
+    Q_UNUSED(req)
     if (exportConfiguration())
     {
         rsp.httpStatus = HttpStatusOk;
@@ -2584,7 +2584,7 @@ void DeRestPluginPrivate::checkRfConnectState()
  */
 int DeRestPluginPrivate::getWifiState(const ApiRequest &req, ApiResponse &rsp)
 {
-    Q_UNUSED(req);
+    Q_UNUSED(req)
 
     rsp.map["wifi"] = gwWifi;
     rsp.map["wifitype"] = gwWifiType;
@@ -2776,7 +2776,7 @@ int DeRestPluginPrivate::configureWifi(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::restoreWifiConfig(const ApiRequest &req, ApiResponse &rsp)
 {
-    Q_UNUSED(req);
+    Q_UNUSED(req)
 
     rsp.httpStatus = HttpStatusOk;
     QVariantMap rspItem;
@@ -3493,8 +3493,7 @@ int DeRestPluginPrivate::putHomebridgeUpdated(const ApiRequest &req, ApiResponse
  */
 int DeRestPluginPrivate::scanWifiNetworks(const ApiRequest &req, ApiResponse &rsp)
 {
-    Q_UNUSED(req);
-    Q_UNUSED(rsp);
+    Q_UNUSED(req)
 
     QVariantMap cells;
     rsp.map["cells"] = cells;
@@ -3508,7 +3507,7 @@ int DeRestPluginPrivate::scanWifiNetworks(const ApiRequest &req, ApiResponse &rs
  */
 int DeRestPluginPrivate::resetHomebridge(const ApiRequest &req, ApiResponse &rsp)
 {
-    Q_UNUSED(req);
+    Q_UNUSED(req)
 
     rsp.httpStatus = HttpStatusOk;
 #ifdef ARCH_ARM
@@ -3729,7 +3728,7 @@ void DeRestPluginPrivate::timeManagerTimerFired()
 {
     if (timeManagerState == TM_Init)
     {
-        DBG_Assert(ntpqProcess == 0);
+        DBG_Assert(ntpqProcess == nullptr);
         timeManagerState = TM_WaitNtpq;
         ntpqProcess = new QProcess(this);
         connect(ntpqProcess, SIGNAL(finished(int)), this, SLOT(ntpqFinished()));
@@ -3754,7 +3753,7 @@ void DeRestPluginPrivate::wifiPageActiveTimerFired()
  */
 void DeRestPluginPrivate::ntpqFinished()
 {
-    DBG_Assert(ntpqProcess != 0);
+    DBG_Assert(ntpqProcess);
     DBG_Assert(timeManagerState == TM_WaitNtpq);
     if (timeManagerState == TM_WaitNtpq && ntpqProcess)
     {
@@ -3784,6 +3783,6 @@ void DeRestPluginPrivate::ntpqFinished()
         }
 
         ntpqProcess->deleteLater();
-        ntpqProcess = 0;
+        ntpqProcess = nullptr;
     }
 }
