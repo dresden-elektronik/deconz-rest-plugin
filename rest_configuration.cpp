@@ -1922,7 +1922,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
     {
         int seconds = map["networkopenduration"].toInt(&ok);
 
-        if (!ok)
+        if (!ok || seconds < 0 || seconds > UINT16_MAX)
         {
             rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/networkopenduration"), QString("invalid value, %1, for parameter, networkopenduration").arg(map["networkopenduration"].toString())));
             rsp.httpStatus = HttpStatusBadRequest;
