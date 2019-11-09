@@ -1504,6 +1504,7 @@ int DeRestPluginPrivate::putZigbeeConfig(const ApiRequest &req, ApiResponse &rsp
     apsCtrl->setParameter(deCONZ::ParamHAEndpoint, endpoint1);
     apsCtrl->setParameter(deCONZ::ParamHAEndpoint, endpoint2);
 
+    needRestartApp = true;
     QTimer::singleShot(SET_ENDPOINTCONFIG_DURATION, this, SLOT(restartAppTimerFired()));
 
     if (gwZigbeeChannel != curChannel)
