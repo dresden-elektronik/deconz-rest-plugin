@@ -16396,7 +16396,11 @@ void DeRestPluginPrivate::reconnectNetwork()
         {
             reconnectTimer->stop();
         }
-        qApp->exit(APP_RET_RESTART_APP);
+
+        if (needRestartApp)
+        {
+            qApp->exit(APP_RET_RESTART_APP);
+        }
         return;
     }
 

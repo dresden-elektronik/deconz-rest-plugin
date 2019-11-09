@@ -1631,6 +1631,7 @@ public:
     int networkDisconnectAttempts;
     int networkReconnectAttempts;
     bool networkConnectedBefore;
+    bool needRestartApp = false;
 
     // delete device state machine
     enum ResetDeviceState

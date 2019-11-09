@@ -2320,6 +2320,7 @@ int DeRestPluginPrivate::importConfig(const ApiRequest &req, ApiResponse &rsp)
         rspItem["success"] = rspItemState;
         rsp.list.append(rspItem);
 
+        needRestartApp = true;
         QTimer *restartTimer = new QTimer(this);
         restartTimer->setSingleShot(true);
         connect(restartTimer, SIGNAL(timeout()),
@@ -2388,6 +2389,7 @@ int DeRestPluginPrivate::resetConfig(const ApiRequest &req, ApiResponse &rsp)
         //wait some seconds that deCONZ can finish Enpoint config,
         //then restart app to apply network config (only on raspbee gw)
 
+        needRestartApp = true;
         QTimer *restartTimer = new QTimer(this);
         restartTimer->setSingleShot(true);
         connect(restartTimer, SIGNAL(timeout()),
