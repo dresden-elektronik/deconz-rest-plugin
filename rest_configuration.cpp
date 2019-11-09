@@ -410,12 +410,11 @@ void DeRestPluginPrivate::initNetworkInfo()
 /*! Init WiFi parameters if necessary. */
 void DeRestPluginPrivate::initWiFi()
 {
-    bool retry = false;
 #if !defined(ARCH_ARMV6) && !defined (ARCH_ARMV7)
     gwWifi = QLatin1String("not-available");
     return;
-#endif
-
+#else
+    bool retry = false;
     QList<QNetworkInterface> ifaces = QNetworkInterface::allInterfaces();
     QList<QNetworkInterface>::Iterator i = ifaces.begin();
     QList<QNetworkInterface>::Iterator end = ifaces.end();
@@ -526,6 +525,7 @@ void DeRestPluginPrivate::initWiFi()
     }
 
     queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
+#endif // ARCH_ARMV6, ARCH_ARMV7
 }
 
 /*! Handle deCONZ::ApsController::configurationChanged() event.
