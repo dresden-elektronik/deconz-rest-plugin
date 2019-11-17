@@ -73,11 +73,11 @@ GatewayScanner::GatewayScanner(QObject *parent) :
 
 GatewayScanner::~GatewayScanner()
 {
-    Q_ASSERT(d_ptr != 0);
+    Q_ASSERT(d_ptr != nullptr);
     if (d_ptr)
     {
         delete d_ptr;
-        d_ptr = 0;
+        d_ptr = nullptr;
     }
 }
 
@@ -92,7 +92,7 @@ void GatewayScanner::queryGateway(const QString &url)
 {
     Q_D(GatewayScanner);
 
-    if (!isRunning() && d->reply == 0)
+    if (!isRunning() && d->reply == nullptr)
     {
         d->reply = d->manager->get(QNetworkRequest(url));
         QObject::connect(d->reply, SIGNAL(error(QNetworkReply::NetworkError)),
@@ -182,13 +182,13 @@ void GatewayScannerPrivate::processReply()
     }
 
     //DBG_Printf(DBG_INFO, "GW: %s %s, %s, %s\n", qPrintable(url.host()), qPrintable(name), qPrintable(modelid), qPrintable(bridgeid));
-    q->foundGateway(host, url.port(80), bridgeid, name);
+    q->foundGateway(host, static_cast<quint16>(url.port(80)), bridgeid, name);
 }
 
 void GatewayScanner::onError(QNetworkReply::NetworkError code)
 {
     Q_D(GatewayScanner);
-    Q_UNUSED(code);
+    Q_UNUSED(code)
 
     if (!d->timer->isActive())
     {
@@ -280,7 +280,7 @@ void GatewayScannerPrivate::handleEvent(ScanEvent event)
             QNetworkReply *r = reply;
             if (reply)
             {
-                reply = 0;
+                reply = nullptr;
                 if (r->isRunning())
                 {
                     r->abort();
