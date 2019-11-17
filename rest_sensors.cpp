@@ -2311,6 +2311,9 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
         else if (checkMacVendor(ext, VENDOR_BOSCH))
         { // macCapabilities == 0
         }
+        else if (checkMacVendor(ext, VENDOR_DEVELCO))
+        { // macCapabilities == 0
+        }
         else if (macCapabilities & deCONZ::MacDeviceIsFFD)
         {
             return;
