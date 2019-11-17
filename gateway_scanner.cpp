@@ -129,6 +129,7 @@ void GatewayScanner::requestFinished(QNetworkReply *reply)
     {
         d->handleEvent(EventGotReply);
     }
+    reply->deleteLater();
 }
 
 void GatewayScannerPrivate::processReply()
@@ -139,8 +140,7 @@ void GatewayScannerPrivate::processReply()
     }
 
     QNetworkReply *r = reply;
-    reply = 0;
-    r->deleteLater();
+    reply = nullptr;
 
     int code = r->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
 
@@ -189,6 +189,8 @@ void GatewayScanner::onError(QNetworkReply::NetworkError code)
 {
     Q_D(GatewayScanner);
     Q_UNUSED(code)
+
+    sender()->deleteLater();
 
     if (!d->timer->isActive())
     {
