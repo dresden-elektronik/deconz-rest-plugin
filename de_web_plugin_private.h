@@ -266,6 +266,7 @@
 #define VENDOR_BOSCH        0x1133
 #define VENDOR_DDEL         0x1135
 #define VENDOR_LUTRON       0x1144
+#define VENDOR_ZEN          0x1158
 #define VENDOR_KEEN_HOME    0x115B
 #define VENDOR_115F         0x115F // Used by Xiaomi Aqara
 #define VENDOR_INNR         0x1166
@@ -285,6 +286,7 @@
 #define VENDOR_SAMJIN       0x1241
 #define VENDOR_OSRAM_STACK  0xBBAA
 #define VENDOR_LEGRAND      0x1021
+#define VENDOR_C2DF         0xC2DF
 
 #define ANNOUNCE_INTERVAL 10 // minutes default announce interval
 
