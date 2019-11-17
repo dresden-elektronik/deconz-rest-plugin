@@ -276,7 +276,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     gwScanner = new GatewayScanner(this);
     connect(gwScanner, SIGNAL(foundGateway(QHostAddress,quint16,QString,QString)),
             this, SLOT(foundGateway(QHostAddress,quint16,QString,QString)));
-    gwScanner->startScan();
+//    gwScanner->startScan();
 
     QString dataPath = deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation);
     db = 0;

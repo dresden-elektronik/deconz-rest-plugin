@@ -104,6 +104,7 @@ void GatewayScanner::startScan()
 {
     Q_D(GatewayScanner);
 
+    // TODO fix: GLib-ERROR **: Creating pipes for GWakeup: Too many open files
     if (d->state == StateInit)
     {
         d->startScanTimer(1, ActionProcess);
@@ -290,7 +291,7 @@ void GatewayScannerPrivate::handleEvent(ScanEvent event)
                 r->deleteLater();
             }
             host++;
-            startScanTimer(1, ActionProcess);
+            startScanTimer(1000, ActionProcess);
         }
         else if (event == EventGotReply)
         {
@@ -359,5 +360,5 @@ void GatewayScannerPrivate::queryNextIp()
     QObject::connect(reply, SIGNAL(error(QNetworkReply::NetworkError)),
             manager->parent(), SLOT(onError(QNetworkReply::NetworkError)));
 
-    startScanTimer(100, EventTimeout);
+    startScanTimer(1000, EventTimeout);
 }
