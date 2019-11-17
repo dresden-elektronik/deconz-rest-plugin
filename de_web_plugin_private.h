@@ -258,6 +258,7 @@
 #define VENDOR_CENTRALITE   0x104E
 #define VENDOR_SI_LABS      0x1049
 #define VENDOR_BITRON       0x1071
+#define VENDOR_NETVOX       0x109F
 #define VENDOR_NYCE         0x10B9
 #define VENDOR_UBISYS       0x10F2
 #define VENDOR_BEGA         0x1105
@@ -463,6 +464,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == develcoMacPrefix;
         case VENDOR_LEGRAND:
             return prefix == legrandMacPrefix;
+        case VENDOR_NETVOX:
+            return prefix == netvoxMacPrefix;
         default:
             return false;
     }

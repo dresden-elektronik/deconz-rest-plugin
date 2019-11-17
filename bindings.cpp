@@ -1537,6 +1537,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturerCode() == VENDOR_LEGRAND) // Legrand switch and plug
         {
         }
+        else if (lightNode->manufacturerCode() == VENDOR_NETVOX) // Netvox smart plug
+        {
+        }
         else
         {
             return;
@@ -1769,7 +1772,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("Cable outlet") ||
         // ORVIBO
         sensor->modelId().startsWith(QLatin1String("SN10ZW")) ||
-        sensor->modelId().startsWith(QLatin1String("SF2")))
+        sensor->modelId().startsWith(QLatin1String("SF2")) ||
+        // Netvox
+        sensor->modelId().startsWith(QLatin1String("Z809A")))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||
