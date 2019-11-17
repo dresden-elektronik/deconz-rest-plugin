@@ -73,11 +73,11 @@ GatewayScanner::GatewayScanner(QObject *parent) :
 
 GatewayScanner::~GatewayScanner()
 {
-    Q_ASSERT(d_ptr != 0);
+    Q_ASSERT(d_ptr != nullptr);
     if (d_ptr)
     {
         delete d_ptr;
-        d_ptr = 0;
+        d_ptr = nullptr;
     }
 }
 
@@ -92,7 +92,7 @@ void GatewayScanner::queryGateway(const QString &url)
 {
     Q_D(GatewayScanner);
 
-    if (!isRunning() && d->reply == 0)
+    if (!isRunning() && d->reply == nullptr)
     {
         d->reply = d->manager->get(QNetworkRequest(url));
         QObject::connect(d->reply, SIGNAL(error(QNetworkReply::NetworkError)),
@@ -104,6 +104,7 @@ void GatewayScanner::startScan()
 {
     Q_D(GatewayScanner);
 
+    // TODO fix: GLib-ERROR **: Creating pipes for GWakeup: Too many open files
     if (d->state == StateInit)
     {
         d->startScanTimer(1, ActionProcess);
@@ -129,6 +130,7 @@ void GatewayScanner::requestFinished(QNetworkReply *reply)
     {
         d->handleEvent(EventGotReply);
     }
+    reply->deleteLater();
 }
 
 void GatewayScannerPrivate::processReply()
@@ -139,8 +141,7 @@ void GatewayScannerPrivate::processReply()
     }
 
     QNetworkReply *r = reply;
-    reply = 0;
-    r->deleteLater();
+    reply = nullptr;
 
     int code = r->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
 
@@ -182,13 +183,15 @@ void GatewayScannerPrivate::processReply()
     }
 
     //DBG_Printf(DBG_INFO, "GW: %s %s, %s, %s\n", qPrintable(url.host()), qPrintable(name), qPrintable(modelid), qPrintable(bridgeid));
-    q->foundGateway(host, url.port(80), bridgeid, name);
+    q->foundGateway(host, static_cast<quint16>(url.port(80)), bridgeid, name);
 }
 
 void GatewayScanner::onError(QNetworkReply::NetworkError code)
 {
     Q_D(GatewayScanner);
-    Q_UNUSED(code);
+    Q_UNUSED(code)
+
+    sender()->deleteLater();
 
     if (!d->timer->isActive())
     {
@@ -280,7 +283,7 @@ void GatewayScannerPrivate::handleEvent(ScanEvent event)
             QNetworkReply *r = reply;
             if (reply)
             {
-                reply = 0;
+                reply = nullptr;
                 if (r->isRunning())
                 {
                     r->abort();
@@ -288,7 +291,7 @@ void GatewayScannerPrivate::handleEvent(ScanEvent event)
                 r->deleteLater();
             }
             host++;
-            startScanTimer(1, ActionProcess);
+            startScanTimer(1000, ActionProcess);
         }
         else if (event == EventGotReply)
         {
@@ -357,5 +360,5 @@ void GatewayScannerPrivate::queryNextIp()
     QObject::connect(reply, SIGNAL(error(QNetworkReply::NetworkError)),
             manager->parent(), SLOT(onError(QNetworkReply::NetworkError)));
 
-    startScanTimer(100, EventTimeout);
+    startScanTimer(1000, EventTimeout);
 }

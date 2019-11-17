@@ -78,6 +78,7 @@ const quint64 philipsMacPrefix    = 0x0017880000000000ULL;
 const quint64 ubisysMacPrefix     = 0x001fee0000000000ULL;
 const quint64 deMacPrefix         = 0x00212e0000000000ULL;
 const quint64 keenhomeMacPrefix   = 0x0022a30000000000ULL;
+const quint64 zenMacPrefix        = 0x0024460000000000ULL;
 const quint64 heimanMacPrefix     = 0x0050430000000000ULL;
 const quint64 konkeMacPrefix      = 0x086bd70000000000ULL;
 const quint64 ikea2MacPrefix      = 0x14b4570000000000ULL;
@@ -209,6 +210,10 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "SPZB0001", jennicMacPrefix }, // Eurotronic thermostat
     { VENDOR_NONE, "RES001", tiMacPrefix }, // Hubitat environment sensor, see #1308
     { VENDOR_119C, "WL4200S", sinopeMacPrefix}, // Sinope water sensor
+    { VENDOR_119C, "TH1300ZB", sinopeMacPrefix }, // Sinope Thermostat
+    { VENDOR_ZEN, "Zen-01", zenMacPrefix }, // Zen Thermostat
+    { VENDOR_C2DF, "3157100-E", emberMacPrefix }, // Centralite Thermostat
+    { VENDOR_EMBER, "Super TR", emberMacPrefix }, // Elko Thermostat
     { VENDOR_DEVELCO, "SMSZB-120", develcoMacPrefix }, // Develco smoke sensor
     { VENDOR_DEVELCO, "SPLZB-131", develcoMacPrefix }, // Develco smart plug
     { VENDOR_DEVELCO, "WISZB-120", develcoMacPrefix }, // Develco window sensor
@@ -226,6 +231,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_LEGRAND, "Connected outlet", legrandMacPrefix }, // Legrand Plug
     { VENDOR_LEGRAND, "Shutter switch with neutral", legrandMacPrefix }, // Legrand Shutter switch
     { VENDOR_LEGRAND, "Cable outlet", legrandMacPrefix }, // Legrand Cable outlet
+    { VENDOR_NETVOX, "Z809AE3R", netvoxMacPrefix }, // Netvox smartplug
     { 0, nullptr, 0 }
 };
 
@@ -278,7 +284,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     gwScanner = new GatewayScanner(this);
     connect(gwScanner, SIGNAL(foundGateway(QHostAddress,quint16,QString,QString)),
             this, SLOT(foundGateway(QHostAddress,quint16,QString,QString)));
-    gwScanner->startScan();
+//    gwScanner->startScan();
 
     QString dataPath = deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation);
     db = 0;
@@ -953,6 +959,8 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
             0x63, S_BUTTON_6,
             0x64, S_BUTTON_5,
             0x65, S_BUTTON_5,
+            0x68, S_BUTTON_7,
+            0xe0, S_BUTTON_7,
             0
         };
 
@@ -992,6 +1000,15 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
             {
                 btn = btnMapped + S_BUTTON_ACTION_SHORT_RELEASED;
             }
+        }
+        else if (btn == 0x68) // aka ShortPress2Of2
+        {
+            // finish commissioning by pressing button 2000 and 3000 simultaneously
+            btn = btnMapped + S_BUTTON_ACTION_SHORT_RELEASED;
+        }
+        else if (btn == 0xe0) // aka commissioning
+        {
+            btn = btnMapped + S_BUTTON_ACTION_LONG_RELEASED;
         }
     }
 
@@ -1075,6 +1092,9 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
     case deCONZ::GpCommandIdRelease1Of2:
     case deCONZ::GpCommandIdPress2Of2:
     case deCONZ::GpCommandIdRelease2Of2:
+    case deCONZ::GpCommandIdShortPress1Of1:
+    case deCONZ::GpCommandIdShortPress1Of2:
+    case deCONZ::GpCommandIdShortPress2Of2:
     {
         gpProcessButtonEvent(ind);
     }
@@ -1272,6 +1292,7 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             queSaveDb(DB_SENSORS , DB_SHORT_SAVE_DELAY);
 
             indexRulesTriggers();
+            gpProcessButtonEvent(ind);
         }
         else if (sensor && sensor->deletedState() == Sensor::StateDeleted)
         {
@@ -1287,6 +1308,15 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
                 Event e(RSensors, REventAdded, sensor->id());
                 enqueueEvent(e);
                 queSaveDb(DB_SENSORS , DB_SHORT_SAVE_DELAY);
+
+                gpProcessButtonEvent(ind);
+            }
+        }
+        else if (sensor && sensor->deletedState() == Sensor::StateNormal)
+        {
+            if (searchSensorsState == SearchSensorsActive)
+            {
+                gpProcessButtonEvent(ind);
             }
         }
         else
@@ -1297,6 +1327,9 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
         break;
 
     default:
+    {
+        DBG_Printf(DBG_INFO, "GP unhandled command gpdsrcid %u: gpdcmdid: 0x%02X\n", ind.gpdSrcId(), ind.gpdCommandId());
+    }
         break;
     }
 }
@@ -16375,7 +16408,11 @@ void DeRestPluginPrivate::reconnectNetwork()
         {
             reconnectTimer->stop();
         }
-        qApp->exit(APP_RET_RESTART_APP);
+
+        if (needRestartApp)
+        {
+            qApp->exit(APP_RET_RESTART_APP);
+        }
         return;
     }
 

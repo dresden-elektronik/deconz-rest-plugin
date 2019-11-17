@@ -234,7 +234,7 @@ void DeRestPluginPrivate::internetDiscoveryFinishedRequest(QNetworkReply *reply)
             gwAnnounceVital = 0;
         }
         gwAnnounceVital++;
-        DBG_Printf(DBG_INFO, "Announced to internet\n");
+        DBG_Printf(DBG_INFO, "Announced to internet %s\n", qPrintable(gwAnnounceUrl));
         internetDiscoveryExtractGeo(reply);
 #ifdef ARCH_ARM
         // currently this is only supported for the RaspBee Gateway

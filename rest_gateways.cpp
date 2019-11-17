@@ -80,7 +80,7 @@ int DeRestPluginPrivate::getAllGateways(const ApiRequest &req, ApiResponse &rsp)
     // user is on the gateway page, run scanner in background
     if (!gwScanner->isRunning())
     {
-        gwScanner->startScan();
+//        gwScanner->startScan();
     }
 
     if (rsp.map.isEmpty())

@@ -1,7 +1,7 @@
 Introduction
 ============
 
-The [deCONZ](http://www.dresden-elektronik.de/funktechnik/products/software/pc/deconz?L=1) REST plugin provides a REST-API to access Zigbee 3.0 (Z30), Zigbee Home Automation (ZHA) and Zigbee Light Link (ZLL) lights, switches and sensors from Xiaomi Aqara, IKEA TRÅDFRI, Philips Hue, innr, Samsung and many more vendors.
+The deCONZ REST plugin provides a REST-API to access Zigbee 3.0 (Z30), Zigbee Home Automation (ZHA) and Zigbee Light Link (ZLL) lights, switches and sensors from Xiaomi Aqara, IKEA TRÅDFRI, Philips Hue, innr, Samsung and many more vendors.
 
 A list of supported Zigbee devices can be found on the [Supported Devices](https://github.com/dresden-elektronik/deconz-rest-plugin/wiki/Supported-Devices) page.
 
@@ -12,8 +12,8 @@ To learn more about the REST-API itself please visit the [REST-API Documentation
 ### Phoscon App
 The Phoscon App is browser based and supports lights, sensors and switches. For more information and screenshots check out:
 
-* [Phoscon App Documentation](https://phoscon.de/app/doc?ref=gh)
-* [Phoscon App Description](https://www.dresden-elektronik.de/funktechnik/solutions/wireless-light-control/phoscon-app?L=1&ref=gh)
+[Phoscon App Documentation](https://phoscon.de/app/doc?ref=gh)
+
 
 Installation
 ============
@@ -66,9 +66,9 @@ Precompiled deCONZ packages for manual installation
 
 The deCONZ application packages are available for the following platforms and contain the main application and the pre-compiled REST-API plugin.
 
-* Windows  https://www.dresden-elektronik.de/deconz/win/
-* Raspbian https://www.dresden-elektronik.de/deconz/raspbian/beta/
-* Ubuntu 64-bit https://www.dresden-elektronik.de/deconz/ubuntu/beta/
+* Windows  http://deconz.dresden-elektronik.de/win/
+* Raspbian http://deconz.dresden-elektronik.de/raspbian/beta/
+* Ubuntu 64-bit http://deconz.dresden-elektronik.de/ubuntu/beta/
 
 Headless support for Linux
 --------------------------
