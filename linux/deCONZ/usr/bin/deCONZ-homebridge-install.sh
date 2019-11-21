@@ -166,6 +166,17 @@ function installHomebridge {
 			fi
 		fi
 
+		# check correct timezone
+		sysTimezone = $(timedatectl | grep zone | cut -d':' -f2 | cut -d '(' -f1 | xargs)
+		[[ $LOG_DEBUG ]] && echo "System TZ: $sysTimezone"
+		dbTimezone = $(sqliteSelect "select value from config2 where key=\"port\"")
+		[[ $LOG_DEBUG ]] && echo "TZ from db: $dbTimezone"
+
+		if [[ "$sysTimezone" != "$dbTimezone" ]]; then
+			[[ $LOG_DEBUG ]] && echo "Setting sys timezone to db timezone"
+			timedatectl set-timezone "$dbTimezone"
+		fi
+
 		# install nodejs if not installed
 		if [[ $node_installed = false ]]; then
 		# example for getting it worked on rpi1 and 0
@@ -268,6 +279,17 @@ function checkUpdate {
 			[[ $LOG_WARN ]] && echo "${LOG_WARN}no internet connection. Abort update check."
 			return
 		fi
+	fi
+
+	# check correct timezone
+	sysTimezone = $(timedatectl | grep zone | cut -d':' -f2 | cut -d '(' -f1 | xargs)
+	[[ $LOG_DEBUG ]] && echo "System TZ: $sysTimezone"
+	dbTimezone = $(sqliteSelect "select value from config2 where key=\"port\"")
+	[[ $LOG_DEBUG ]] && echo "TZ from db: $dbTimezone"
+
+	if [[ "$sysTimezone" != "$dbTimezone" ]]; then
+		[[ $LOG_DEBUG ]] && echo "Setting sys timezone to db timezone"
+		timedatectl set-timezone "$dbTimezone"
 	fi
 
 	hb_version=$(npm list -g homebridge | grep homebridge | cut -d@ -f2 | xargs)
