@@ -15652,7 +15652,15 @@ bool DeRestPluginPrivate::exportConfiguration()
             }
         }
 
-        archProcess->start("tar -cf " + path + "/deCONZ.tar -C " + path + " deCONZ.conf zll.db session.default " + FirstFileName + " " + SecondFileName);
+        // add homebridge-install logfiles to archive
+        QString logfilesDirectories = "";
+        QDir homebridgeInstallLogDir(path + "/homebridge-install-logiles");
+        if (homebridgeInstallLogDir.exists())
+        {
+            logfilesDirectories += QLatin1String("homebridge-install-logiles");
+        }
+
+        archProcess->start("tar -cf " + path + "/deCONZ.tar -C " + path + " deCONZ.conf zll.db session.default " + FirstFileName + " " + SecondFileName + " " + logfilesDirectories);
 #endif
         archProcess->waitForFinished(EXT_PROCESS_TIMEOUT);
         DBG_Printf(DBG_INFO, "%s\n", qPrintable(archProcess->readAllStandardOutput()));
