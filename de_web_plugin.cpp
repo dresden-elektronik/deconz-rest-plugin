@@ -15654,10 +15654,10 @@ bool DeRestPluginPrivate::exportConfiguration()
 
         // add homebridge-install logfiles to archive
         QString logfilesDirectories = "";
-        QDir homebridgeInstallLogDir(path + "/homebridge-install-logiles");
+        QDir homebridgeInstallLogDir(path + "/homebridge-install-logfiles");
         if (homebridgeInstallLogDir.exists())
         {
-            logfilesDirectories += QLatin1String("homebridge-install-logiles");
+            logfilesDirectories += QLatin1String("homebridge-install-logfiles");
         }
 
         archProcess->start("tar -cf " + path + "/deCONZ.tar -C " + path + " deCONZ.conf zll.db session.default " + FirstFileName + " " + SecondFileName + " " + logfilesDirectories);
