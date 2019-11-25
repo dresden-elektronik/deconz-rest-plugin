@@ -299,7 +299,7 @@ function checkUpdate {
 	# delete old Log files
 	if [ $(ls -1 "${LOG_DIR}" | wc -l) -gt 3 ]; then
 		oldest=$(ls "${LOG_DIR}" -t | tail -n1)
-		rm -f "$oldest"
+		rm -f "${LOG_DIR}/$oldest"
     fi
 
 	if [[ $AUTO_UPDATE = false ]] || [ -z $AUTO_UPDATE ]; then
