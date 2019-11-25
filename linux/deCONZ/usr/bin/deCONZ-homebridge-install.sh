@@ -196,7 +196,7 @@ function installHomebridge {
 		sysTimezone = $(timedatectl | grep zone | cut -d':' -f2 | cut -d '(' -f1 | xargs)
 		[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG} System TZ: $sysTimezone"
 		echo "System TZ: $sysTimezone" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
-		dbTimezone = $(sqliteSelect "select value from config2 where key=\"port\"")
+		dbTimezone = $(sqliteSelect "select value from config2 where key=\"timezone\"")
 		[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG} TZ from db: $dbTimezone"
 		echo "TZ from db: $dbTimezone" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
 
@@ -332,7 +332,7 @@ function checkUpdate {
 	sysTimezone = $(timedatectl | grep zone | cut -d':' -f2 | cut -d '(' -f1 | xargs)
 	[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG} System TZ: $sysTimezone"
 	echo "System TZ: $sysTimezone" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
-	dbTimezone = $(sqliteSelect "select value from config2 where key=\"port\"")
+	dbTimezone = $(sqliteSelect "select value from config2 where key=\"timezone\"")
 	[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG} TZ from db: $dbTimezone"
 	echo "TZ from db: $dbTimezone" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
 
