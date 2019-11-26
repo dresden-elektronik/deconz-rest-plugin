@@ -44,9 +44,56 @@ LOG_SQL=
 [[ $LOG_LEVEL -ge 7 ]] && LOG_DEBUG="<7>"
 [[ $LOG_LEVEL -ge 8 ]] && LOG_SQL="<8>"
 
+LOG_VER_NODEJS=
+LOG_VER_NPM=
+LOG_VER_HOMEBRIDGE=
+LOG_VER_HOMEBRIDGE_HUE=
+LOGFILE_DATE=
+
 # $1 = key $2 = value
 function putHomebridgeUpdated {
 	curl --noproxy '*' -s -o /dev/null -d "{\"$1\":\"$2\"}" -X PUT http://127.0.0.1:${DECONZ_PORT}/api/$OWN_PID/config/homebridge/updated
+}
+
+# $1 = application $2 = version
+function logInstallVersion {
+
+	if [[ "$LOGFILE_DATE" != $(date +%Y-%m-%d) ]]; then
+		LOGFILE_DATE=$(date +%Y-%m-%d)
+		echo "Logging started $(date +%Y-%m-%dT%H:%M:%S)" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
+		echo "-----------------------------------" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
+		echo "UPDATE_VERSION_HB = $UPDATE_VERSION_HB" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
+		echo "UPDATE_VERSION_HB_HUE = $UPDATE_VERSION_HB_HUE" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
+		echo "UPDATE_VERSION_HB_LIB = $UPDATE_VERSION_HB_LIB" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
+		echo "UPDATE_VERSION_NPM = $UPDATE_VERSION_NPM" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
+		echo "UPDATE_VERSION_NODE = $UPDATE_VERSION_NODE" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
+	fi
+
+	if [[ "$1" = "nodejs" ]]; then
+		if [[ "$LOG_VER_NODEJS" != "$2" ]]; then
+			[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG} $1 installed version $2"
+			echo "$1 installed version $2" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
+			LOG_VER_NODEJS="$2"
+		fi
+	elif [[ "$1" = "npm" ]]; then
+		if [[ "$LOG_VER_NPM" != "$2" ]]; then
+			[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG} $1 installed version $2"
+			echo "$1 installed version $2" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
+			LOG_VER_NPM="$2"
+		fi
+	elif [[ "$1" = "homebridge" ]]; then
+		if [[ "$LOG_VER_HOMEBRIDGE" != "$2" ]]; then
+			[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG} $1 installed version $2"
+			echo "$1 installed version $2" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
+			LOG_VER_HOMEBRIDGE="$2"
+		fi
+	elif [[ "$1" = "homebridgeHue" ]]; then
+		if [[ "$LOG_VER_HOMEBRIDGE_HUE" != "$2" ]]; then
+			[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG} $1 installed version $2"
+			echo "$1 installed version $2" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
+			LOG_VER_HOMEBRIDGE_HUE="$2"
+		fi
+	fi
 }
 
 # $1 = queryString
@@ -103,14 +150,6 @@ function init {
 	if [ ! -d "$LOG_DIR" ]; then
 		mkdir "$LOG_DIR"
 	fi
-
-	echo "Logging started $(date +%Y-%m-%dT%H:%M:%S)" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
-	echo "-----------------------------------" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
-	echo "UPDATE_VERSION_HB = $UPDATE_VERSION_HB" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
-	echo "UPDATE_VERSION_HB_HUE = $UPDATE_VERSION_HB_HUE" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
-	echo "UPDATE_VERSION_HB_LIB = $UPDATE_VERSION_HB_LIB" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
-	echo "UPDATE_VERSION_NPM = $UPDATE_VERSION_NPM" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
-	echo "UPDATE_VERSION_NODE = $UPDATE_VERSION_NODE" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
 }
 
 function installHomebridge {
@@ -143,37 +182,44 @@ function installHomebridge {
 	node_ver=""
 	hb_hue_version=""
 
-	which homebridge >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+	which homebridge &> /dev/null
 	if [ $? -eq 0 ]; then
 		hb_installed=true
-		echo "homebridge installed version $(homebridge --version)" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+		logInstallVersion "homebridge" "$(homebridge --version)"
 		# look for homebridge-hue installation
 		hb_hue_version=$(npm list -g homebridge-hue | grep homebridge-hue | cut -d@ -f2 | xargs)
 		if [ -n "$hb_hue_version" ]; then
 			# homebridge-hue installation found
 			hb_hue_installed=true
-			echo "found existing homebridge-hue installation $hb_hue_version" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+			logInstallVersion "homebridgeHue" "$hb_hue_version"
 			putHomebridgeUpdated "homebridgeversion" "$hb_hue_version"
 		else
-			echo "homebridge-hue not installed" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+			logInstallVersion "homebridgeHue" "not-installed"
 		fi
 	else
-		echo "homebridge not installed" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+		logInstallVersion "homebridge" "not-installed"
 	fi
 
-	which nodejs >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+	which nodejs &> /dev/null
 	if [ $? -eq 0 ]; then
 		node_installed=true
 		node_ver=$(node --version | cut -dv -f2) # strip the v
-		[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG} nodejs installed version $node_ver"
-		echo "nodejs installed version $node_ver" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+		logInstallVersion "nodejs" "$node_ver"
 	else
-		echo "nodejs not installed" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+		logInstallVersion "nodejs" "not-installed"
+	fi
+
+	which npm &> /dev/null
+	if [ $? -eq 0 ]; then
+		npm_ver=$(npm --version)
+		logInstallVersion "npm" "$npm_ver"
+	else
+		logInstallVersion "npm" "not-installed"
 	fi
 
 	if [[ $hb_installed = false || $hb_hue_installed = false || $node_installed = false ]]; then
 		[[ $LOG_INFO ]] && echo "${LOG_INFO}check inet connectivity"
-		echo "check inet connectivity" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+		echo "check inet connectivity" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 
 		putHomebridgeUpdated "homebridge" "installing"
 
@@ -183,10 +229,10 @@ function installHomebridge {
 				export http_proxy="http://${PROXY_ADDRESS}:${PROXY_PORT}"
 				export https_proxy="http://${PROXY_ADDRESS}:${PROXY_PORT}"
 				[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}set proxy: ${PROXY_ADDRESS}:${PROXY_PORT}"
-				echo "set proxy: ${PROXY_ADDRESS}:${PROXY_PORT}" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+				echo "set proxy: ${PROXY_ADDRESS}:${PROXY_PORT}" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 			else
 				[[ $LOG_WARN ]] && echo "${LOG_WARN}no internet connection. Abort homebridge installation."
-				echo "no internet connection. Abort homebridge installation." >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+				echo "no internet connection. Abort homebridge installation." >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 				putHomebridgeUpdated "homebridge" "install-error"
 				return
 			fi
@@ -195,14 +241,14 @@ function installHomebridge {
 		# check correct timezone
 		sysTimezone=$(timedatectl | grep zone | cut -d':' -f2 | cut -d '(' -f1 | xargs)
 		[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG} System TZ: $sysTimezone"
-		echo "System TZ: $sysTimezone" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+		echo "System TZ: $sysTimezone" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 		dbTimezone=$(sqliteSelect "select value from config2 where key=\"timezone\"")
 		[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG} TZ from db: $dbTimezone"
-		echo "TZ from db: $dbTimezone" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+		echo "TZ from db: $dbTimezone" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 
 		if [[ "$sysTimezone" != "$dbTimezone" ]]; then
 			[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG} Setting sys timezone to db timezone"
-			echo "Setting sys timezone to db timezone" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+			echo "Setting sys timezone to db timezone" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 			timedatectl set-timezone "$dbTimezone"
 		fi
 
@@ -217,36 +263,36 @@ function installHomebridge {
 		# else
 			curl -sL "$NODE_DOWNLOAD_LINK" | bash -
 			if [ $? -eq 0 ]; then
-				apt-get install -y nodejs | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+				apt-get install -y nodejs | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 				if [ $? -ne 0 ]; then
 					[[ $LOG_WARN ]] && echo "${LOG_WARN}could not install nodejs"
-					echo "could not install nodejs" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+					echo "could not install nodejs" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 					putHomebridgeUpdated "homebridge" "install-error"
 					return
 				fi
 			else
 				[[ $LOG_WARN ]] && echo "${LOG_WARN}could not download node setup."
-				echo "could not download node setup." >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+				echo "could not download node setup." >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 				putHomebridgeUpdated "homebridge" "install-error"
 				return
 			fi
 		# fi
 		else
-			echo "compare installed node version $node_ver to update version $UPDATE_VERSION_NODE" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+			echo "compare installed node version $node_ver to update version $UPDATE_VERSION_NODE" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 		    dpkg --compare-versions "$node_ver" lt "$UPDATE_VERSION_NODE"
 			if [ $? -eq 0 ]; then
 			    curl -sL "$NODE_DOWNLOAD_LINK" | bash -
 				if [ $? -eq 0 ]; then
-					apt-get install -y nodejs | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+					apt-get install -y nodejs | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 					if [ $? -ne 0 ]; then
 						[[ $LOG_WARN ]] && echo "${LOG_WARN}could not install nodejs"
-							echo "could not install nodejs" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+							echo "could not install nodejs" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 							putHomebridgeUpdated "homebridge" "install-error"
 						return
 					fi
 				else
 					[[ $LOG_WARN ]] && echo "${LOG_WARN}could not download node setup."
-					echo "could not download node setup." >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+					echo "could not download node setup." >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 					putHomebridgeUpdated "homebridge" "install-error"
 					return
 				fi
@@ -255,18 +301,18 @@ function installHomebridge {
 
 		# install homebridge if not installed
 		if [[ $hb_installed = false ]]; then
-			npm -g install npm@"$UPDATE_VERSION_NPM" | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+			npm -g install npm@"$UPDATE_VERSION_NPM" | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 			if [ $? -eq 0 ]; then
-				npm -g install homebridge@"$UPDATE_VERSION_HB" | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+				npm -g install homebridge@"$UPDATE_VERSION_HB" | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 				if [ $? -ne 0 ]; then
 					[[ $LOG_WARN ]] && echo "${LOG_WARN}could not install homebridge"
-					echo "could not install homebridge" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+					echo "could not install homebridge" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 					putHomebridgeUpdated "homebridge" "install-error"
 					return
 				fi
 			else
 				[[ $LOG_WARN ]] && echo "${LOG_WARN}could not update npm"
-				echo "could not update npm" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+				echo "could not update npm" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 				putHomebridgeUpdated "homebridge" "install-error"
 				return
 			fi
@@ -274,10 +320,10 @@ function installHomebridge {
 
 		# install homebridge-hue if not installed
 		if [[ $hb_hue_installed = false ]]; then
-			npm -g install homebridge-lib@"$UPDATE_VERSION_HB_LIB" homebridge-hue@"$UPDATE_VERSION_HB_HUE" | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+			npm -g install homebridge-lib@"$UPDATE_VERSION_HB_LIB" homebridge-hue@"$UPDATE_VERSION_HB_HUE" | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 			if [ $? -ne 0 ]; then
 				[[ $LOG_WARN ]] && echo "${LOG_WARN}could not install homebridge hue"
-				echo "could not install homebridge hue" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+				echo "could not install homebridge hue" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 				putHomebridgeUpdated "homebridge" "install-error"
 				return
 			else
@@ -288,7 +334,7 @@ function installHomebridge {
 
 	# fix missing homebridge-lib
 	if [[ -n $(npm list -g homebridge-lib | grep empty) ]]; then
-		npm -g install homebridge-lib@"$UPDATE_VERSION_HB_LIB" | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+		npm -g install homebridge-lib@"$UPDATE_VERSION_HB_LIB" | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 	fi
 
 	putHomebridgeUpdated "homebridgeupdateversion" "$UPDATE_VERSION_HB_HUE"
@@ -297,18 +343,18 @@ function installHomebridge {
 function checkUpdate {
 
 	# delete old Log files
-	if [ $(ls -1 "${LOG_DIR}" | wc -l) -gt 3 ]; then
+	if [ $(ls -1 "${LOG_DIR}" | wc -l) -gt 10 ]; then
 		oldest=$(ls "${LOG_DIR}" -t | tail -n1)
 		rm -f "${LOG_DIR}/$oldest"
     fi
 
 	if [[ $AUTO_UPDATE = false ]] || [ -z $AUTO_UPDATE ]; then
-		echo "check for updates is deactivated" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+		echo "check for updates is deactivated" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 		return
 	fi
 
 	[[ $LOG_INFO ]] && echo "${LOG_INFO}check for homebridge updates"
-	echo "check for homebridge updates" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+	echo "check for homebridge updates" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 	hb_version=""
 	hb_hue_version=""
 	node_version=""
@@ -320,10 +366,10 @@ function checkUpdate {
 			export http_proxy="http://${PROXY_ADDRESS}:${PROXY_PORT}"
 			export https_proxy="http://${PROXY_ADDRESS}:${PROXY_PORT}"
 			[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG}set proxy: ${PROXY_ADDRESS}:${PROXY_PORT}"
-			echo "set proxy: ${PROXY_ADDRESS}:${PROXY_PORT}" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+			echo "set proxy: ${PROXY_ADDRESS}:${PROXY_PORT}" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 		else
 			[[ $LOG_WARN ]] && echo "${LOG_WARN}no internet connection. Abort update check."
-			echo "no internet connection. Abort update check." >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+			echo "no internet connection. Abort update check." >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 			return
 		fi
 	fi
@@ -331,14 +377,14 @@ function checkUpdate {
 	# check correct timezone
 	sysTimezone=$(timedatectl | grep zone | cut -d':' -f2 | cut -d '(' -f1 | xargs)
 	[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG} System TZ: $sysTimezone"
-	echo "System TZ: $sysTimezone" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+	echo "System TZ: $sysTimezone" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 	dbTimezone=$(sqliteSelect "select value from config2 where key=\"timezone\"")
 	[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG} TZ from db: $dbTimezone"
-	echo "TZ from db: $dbTimezone" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+	echo "TZ from db: $dbTimezone" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 
 	if [[ "$sysTimezone" != "$dbTimezone" ]]; then
 		[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG} Setting sys timezone to db timezone"
-		echo "${LOG_DEBUG} Setting sys timezone to db timezone" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+		echo "${LOG_DEBUG} Setting sys timezone to db timezone" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 		timedatectl set-timezone "$dbTimezone"
 	fi
 
@@ -354,21 +400,21 @@ function checkUpdate {
 	dpkg --compare-versions "$node_version" lt "$UPDATE_VERSION_NODE"
 	if [ $? -eq 0 ]; then
 		[[ $LOG_INFO ]] && echo "${LOG_INFO}installed node version: $node_version - latest supported: $UPDATE_VERSION_NODE"
-		echo "installed node version: $node_version - latest supported: $UPDATE_VERSION_NODE" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+		echo "installed node version: $node_version - latest supported: $UPDATE_VERSION_NODE" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 		[[ $LOG_INFO ]] && echo "${LOG_INFO}update nodejs"
-		echo "update nodejs" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+		echo "update nodejs" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 
 		curl -sL "$NODE_DOWNLOAD_LINK" | bash -
 		if [ $? -eq 0 ]; then
-			apt-get install -y nodejs | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+			apt-get install -y nodejs | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 			if [ $? -ne 0 ]; then
 				[[ $LOG_WARN ]] && echo "${LOG_WARN}could not update nodejs"
-				echo "could not update nodejs" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+				echo "could not update nodejs" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 				return
 			fi
 		else
 			[[ $LOG_WARN ]] && echo "${LOG_WARN}could not download node setup."
-			echo "could not download node setup." >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+			echo "could not download node setup." >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 			return
 		fi
 	fi
@@ -377,14 +423,14 @@ function checkUpdate {
 	dpkg --compare-versions "$npm_version" lt "$UPDATE_VERSION_NPM"
 	if [ $? -eq 0 ]; then
 		[[ $LOG_INFO ]] && echo "${LOG_INFO}installed npm version: $npm_version - latest: $UPDATE_VERSION_NPM"
-		echo "installed npm version: $npm_version - latest: $UPDATE_VERSION_NPM" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+		echo "installed npm version: $npm_version - latest: $UPDATE_VERSION_NPM" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 		[[ $LOG_INFO ]] && echo "${LOG_INFO}update npm"
-		echo "update npm" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+		echo "update npm" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 
-		npm -g install npm@"$UPDATE_VERSION_NPM" | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+		npm -g install npm@"$UPDATE_VERSION_NPM" | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 		if [ $? -ne 0 ]; then
 			[[ $LOG_WARN ]] && echo "${LOG_WARN}could not update npm"
-			echo "could not update npm" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+			echo "could not update npm" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 			return
 		fi
 	fi
@@ -393,14 +439,14 @@ function checkUpdate {
 	dpkg --compare-versions "$hb_version" lt "$UPDATE_VERSION_HB"
 	if [ $? -eq 0 ]; then
 		[[ $LOG_INFO ]] && echo "${LOG_INFO}installed homebridge version: $hb_version - latest: $UPDATE_VERSION_HB"
-		echo "installed homebridge version: $hb_version - latest: $UPDATE_VERSION_HB" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+		echo "installed homebridge version: $hb_version - latest: $UPDATE_VERSION_HB" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 		[[ $LOG_INFO ]] && echo "${LOG_INFO}update homebridge"
-		echo "update homebridge" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+		echo "update homebridge" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 
-		npm -g install homebridge@"$UPDATE_VERSION_HB" | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+		npm -g install homebridge@"$UPDATE_VERSION_HB" | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 		if [ $? -ne 0 ]; then
 			[[ $LOG_WARN ]] && echo "${LOG_WARN}could not update homebridge"
-			echo "could not update homebridge" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+			echo "could not update homebridge" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 			return
 		fi
 
@@ -410,14 +456,14 @@ function checkUpdate {
 	dpkg --compare-versions "$hb_hue_version" lt "$UPDATE_VERSION_HB_HUE"
 	if [ $? -eq 0 ]; then
 		[[ $LOG_INFO ]] && echo "${LOG_INFO}installed homebridge-hue version: $hb_hue_version - latest: $UPDATE_VERSION_HB_HUE"
-		echo "installed homebridge-hue version: $hb_hue_version - latest: $UPDATE_VERSION_HB_HUE" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+		echo "installed homebridge-hue version: $hb_hue_version - latest: $UPDATE_VERSION_HB_HUE" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 		[[ $LOG_INFO ]] && echo "${LOG_INFO}update homebridge-hue"
-		echo "update homebridge-hue" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+		echo "update homebridge-hue" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 
-		npm -g install homebridge-lib@"$UPDATE_VERSION_HB_LIB" homebridge-hue@"$UPDATE_VERSION_HB_HUE" | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+		npm -g install homebridge-lib@"$UPDATE_VERSION_HB_LIB" homebridge-hue@"$UPDATE_VERSION_HB_HUE" | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 		if [ $? -ne 0 ]; then
 			[[ $LOG_WARN ]] && echo "${LOG_WARN}could not update homebridge hue"
-			echo "could not update homebridge hue" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$(date +%Y-%m-%d)"
+			echo "could not update homebridge hue" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 		else
 			putHomebridgeUpdated "homebridge" "updated"
 			putHomebridgeUpdated "homebridgeversion" "$UPDATE_VERSION_HB_HUE"
