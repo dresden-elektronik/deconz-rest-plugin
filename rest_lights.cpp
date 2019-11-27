@@ -622,12 +622,14 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 // map.contains("transitiontime") || // FIXME: use bri if transitionTime is given
                 addTaskSetOnOff(task, isOn ? ONOFF_COMMAND_ON : ONOFF_COMMAND_OFF, 0)) // onOff task only if no bri or transitionTime is given
             {
-                // GLEDOPTO "W" (1 channel) version 1.0.3 does not honor "with on/off" in
-                // a "Move to level (with on/off)" command.
+                // GLEDOPTO "W" (1 channel) "GL-C-009" version 1.0.3
+                // GLEDOPTO "RGB/WW/CW" (5 channel) "GL-C-008" version 1.0.3
+                // do not honor "with on/off" in a "Move to level (with on/off)" command.
                 // Workaround by sending ONOFF_COMMAND and a LEVEL_COMMAND:
                 if (task.lightNode
-                        && task.lightNode->modelId() == QLatin1String("GL-C-009")
-                        && task.lightNode->swBuildId().startsWith(QLatin1String("1.0")))
+                    && (task.lightNode->modelId() == QLatin1String("GL-C-008") ||
+                        task.lightNode->modelId() == QLatin1String("GL-C-009"))
+                    && task.lightNode->swBuildId().startsWith(QLatin1String("1.0")))
                 {
                     if (hasBri ||
                         // map.contains("transitiontime") || // FIXME: use bri if transitionTime is given
