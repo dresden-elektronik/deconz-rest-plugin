@@ -4992,6 +4992,10 @@ void DeRestPluginPrivate::updateZigBeeConfigDb()
     QString conf;
     getLastZigBeeConfigDb(conf);
 
+    /*
+     * NO. Must not skip saving configuration simply because there were no incoming reports yet.
+     * It could happen that no other device even exist. Config data is too important as make
+     * saving it depend on existance of other devices.
     QDateTime now = QDateTime::currentDateTime();
     if (conf.isEmpty()) // initial
     {}
@@ -4999,6 +5003,7 @@ void DeRestPluginPrivate::updateZigBeeConfigDb()
     {
         return;
     }
+     */
 
     uint8_t deviceType = apsCtrl->getParameter(deCONZ::ParamDeviceType);
     uint16_t panId = apsCtrl->getParameter(deCONZ::ParamPANID);
@@ -5081,6 +5086,13 @@ void DeRestPluginPrivate::updateZigBeeConfigDb()
         return;
     }
 
+    // If database is not already open, open it temporarily:
+    bool wasOpen = db != nullptr;
+    if (!wasOpen)
+        openDb();
+
+    DBG_Assert(db != nullptr);
+    if (db)
     {
         QString sql = QString(QLatin1String("INSERT INTO zbconf (conf) VALUES ('%1')")).arg(curConf);
 
@@ -5097,6 +5109,9 @@ void DeRestPluginPrivate::updateZigBeeConfigDb()
             }
         }
     }
+
+    if (!wasOpen)
+        closeDb();
 }
 
 /*! Checks various data for consistency.
