@@ -215,6 +215,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_C2DF, "3157100-E", emberMacPrefix }, // Centralite Thermostat
     { VENDOR_EMBER, "Super TR", emberMacPrefix }, // Elko Thermostat
     { VENDOR_DEVELCO, "SMSZB-120", develcoMacPrefix }, // Develco smoke sensor
+    { VENDOR_DEVELCO, "HESZB-120", develcoMacPrefix }, // Develco heat sensor
     { VENDOR_DEVELCO, "SPLZB-131", develcoMacPrefix }, // Develco smart plug
     { VENDOR_DEVELCO, "WISZB-120", develcoMacPrefix }, // Develco window sensor
     { VENDOR_DEVELCO, "MOSZB-130", develcoMacPrefix }, // Develco motion sensor
@@ -3823,6 +3824,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("Smoke")) ||            // Heiman fire sensor (newer model)
                              modelId.startsWith(QLatin1String("902010/24")) ||        // Bitron smoke detector
                              modelId.startsWith(QLatin1String("SMSZB-120")) ||        // Develco smoke detector
+                             modelId.startsWith(QLatin1String("HESZB-120")) ||        // Develco heat detector
                              modelId.startsWith(QLatin1String("SF2")) ||              // ORVIBO (Heiman) smoke sensor
                              modelId.startsWith(QLatin1String("lumi.sensor_smoke")))  // Xiaomi Mi smoke sensor
                     {
