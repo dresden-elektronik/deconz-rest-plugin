@@ -1066,6 +1066,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.reportableChange8bit = 0;
         }
         else if (sensor && (sensor->modelId().startsWith(QLatin1String("SMSZB-120")) || // Develco smoke sensor
+                           sensor->modelId().startsWith(QLatin1String("HESZB-120")) || // Develco heat sensor
                            sensor->modelId().startsWith(QLatin1String("WISZB-120")) ||  // Develco window sensor
                            sensor->modelId().startsWith(QLatin1String("FLSZB-110")) ||  // Develco water leak sensor
                            sensor->modelId().startsWith(QLatin1String("ZHMS101"))))     // Wattle (Develco) magnetic sensor
@@ -1752,6 +1753,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("902010")) ||
         // Develco
         sensor->modelId().startsWith(QLatin1String("SMSZB-120")) || // smoke sensor
+        sensor->modelId().startsWith(QLatin1String("HESZB-120")) || // heat sensor
         sensor->modelId().startsWith(QLatin1String("WISZB-120")) || // window sensor
         sensor->modelId().startsWith(QLatin1String("FLSZB-110")) || // water leak sensor
         sensor->modelId().startsWith(QLatin1String("MOSZB-130")) || // motion sensor
@@ -1877,6 +1879,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             }
             else if (sensor->modelId() == QLatin1String("Motion Sensor-A") ||
                      sensor->modelId() == QLatin1String("SMSZB-120") ||
+                     sensor->modelId() == QLatin1String("HESZB-120") ||
                      sensor->modelId() == QLatin1String("WISZB-120") ||
                      sensor->modelId() == QLatin1String("FLSZB-110") ||
                      sensor->modelId().startsWith(QLatin1String("ZHMS101")))
