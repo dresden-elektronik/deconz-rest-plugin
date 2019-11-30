@@ -129,6 +129,9 @@ bool DeRestPluginPrivate::readBindingTable(RestNodeBase *node, quint8 startIndex
     else if (checkMacVendor(node->address(), VENDOR_UBISYS))
     {
     }
+    else if (checkMacVendor(node->address(), VENDOR_DEVELCO))
+    {
+    }
     else if (r && r->item(RAttrModelId)->toString().startsWith(QLatin1String("FLS-")))
     {
     }
