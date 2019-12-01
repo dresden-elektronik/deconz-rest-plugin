@@ -838,8 +838,10 @@ various characteristics of that measurement.</description>
 		<description>The Binary Input (Basic) cluster provides an interface for reading the value of a binary measurement and accessing various characteristics of that measurement. The cluster is typically used to implement a sensor that measures a two-state physical quantity.
 		</description>
 		<server>
+			<attribute id="0x001c" name="Description" type="cstring" access="rw" required="o"></attribute>
 			<attribute id="0x0051" name="Out of Service" type="bool" default="0" access="rw" required="m"></attribute>
 			<attribute id="0x0055" name="Present Value" type="bool" default="0" access="rw" required="m"></attribute>
+			<attribute id="0x0067" name="Reliabillity" type="enum8" default="0" access="r" required="o"></attribute>
 			<attribute id="0x006F" name="Status Flags" type="bmp8" default="0" access="r" required="m">
 				<value name="In Alarm" value="0x01"></value>
 				<value name="Fault" value="0x02"></value>
