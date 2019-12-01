@@ -923,11 +923,23 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     }
     else if (bt.binding.clusterId == ILLUMINANCE_MEASUREMENT_CLUSTER_ID)
     {
+        Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
+        
         rq.dataType = deCONZ::Zcl16BitUint;
         rq.attributeId = 0x0000;         // measured value
-        rq.minInterval = 5;              // value used by Hue bridge
-        rq.maxInterval = 300;            // value used by Hue bridge
-        rq.reportableChange16bit = 2000; // value used by Hue bridge
+        
+        if (sensor && sensor->modelId().startsWith(QLatin1String("MOSZB-130"))) // Develco motion sensor
+        {
+            rq.minInterval = 0;
+            rq.maxInterval = 600;
+            rq.reportableChange16bit = 0xFFFF;
+        }
+        else
+        {        
+            rq.minInterval = 5;              // value used by Hue bridge
+            rq.maxInterval = 300;            // value used by Hue bridge
+            rq.reportableChange16bit = 2000; // value used by Hue bridge
+        }
         return sendConfigureReportingRequest(bt, {rq});
     }
     else if (bt.binding.clusterId == TEMPERATURE_MEASUREMENT_CLUSTER_ID)
