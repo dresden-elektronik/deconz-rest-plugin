@@ -233,6 +233,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_LEGRAND, "Connected outlet", legrandMacPrefix }, // Legrand Plug
     { VENDOR_LEGRAND, "Shutter switch with neutral", legrandMacPrefix }, // Legrand Shutter switch
     { VENDOR_LEGRAND, "Cable outlet", legrandMacPrefix }, // Legrand Cable outlet
+    { VENDOR_LEGRAND, "Remote switch", legrandMacPrefix }, // Legrand wireless switch
     { VENDOR_NETVOX, "Z809AE3R", netvoxMacPrefix }, // Netvox smartplug
     { 0, nullptr, 0 }
 };
@@ -3138,6 +3139,11 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             }
         }
     }
+    else if (sensor->modelId() == QLatin1String("Remote switch")) // legrand switch
+    {
+        checkReporting = true;
+        checkClientCluster = true;
+    }
     else if (sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
     {
         checkReporting = true;
@@ -4036,6 +4042,12 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 }
                     break;
 
+                case LEGRAND_CONTROL_CLUSTER_ID:
+                {
+                    fpThermostatSensor.inClusters.push_back(LEGRAND_CONTROL_CLUSTER_ID);
+                }
+                    break;
+
                 case SAMJIN_CLUSTER_ID:
                 {
                     if (modelId == QLatin1String("multi")) // Samjin Multipurpose sensor
@@ -4442,7 +4454,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         }
 
         // ZHAThermostat
-        if (fpThermostatSensor.hasInCluster(THERMOSTAT_CLUSTER_ID))
+        if (fpThermostatSensor.hasInCluster(THERMOSTAT_CLUSTER_ID) ||
+        fpThermostatSensor.hasInCluster(LEGRAND_CONTROL_CLUSTER_ID))
         {
             fpThermostatSensor.endpoint = i->endpoint();
             fpThermostatSensor.deviceId = i->deviceId();
@@ -4771,23 +4784,32 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = THERMOSTAT_CLUSTER_ID;
         }
-        sensorNode.addItem(DataTypeInt16, RStateTemperature);
-        item = sensorNode.addItem(DataTypeInt16, RConfigOffset);
-        item->setValue(0);
-        sensorNode.addItem(DataTypeInt16, RConfigHeatSetpoint);    // Heating set point
-        sensorNode.addItem(DataTypeBool, RStateOn);           // Heating on/off
-        if (modelId.startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
+        //Only for legrand cluster, add only mode field.
+        if (sensorNode.fingerPrint().hasInCluster(LEGRAND_CONTROL_CLUSTER_ID))
         {
-            sensorNode.addItem(DataTypeUInt8, RStateValve);
-            sensorNode.addItem(DataTypeUInt32, RConfigHostFlags); // hidden
-            sensorNode.addItem(DataTypeBool, RConfigDisplayFlipped);
-            sensorNode.addItem(DataTypeBool, RConfigLocked);
+            clusterId = LEGRAND_CONTROL_CLUSTER_ID;
             sensorNode.addItem(DataTypeString, RConfigMode);
         }
         else
         {
-            sensorNode.addItem(DataTypeBool, RConfigSchedulerOn); // Scheduler state on/off
-            sensorNode.addItem(DataTypeString, RConfigScheduler); // Scheduler setting
+            sensorNode.addItem(DataTypeInt16, RStateTemperature);
+            item = sensorNode.addItem(DataTypeInt16, RConfigOffset);
+            item->setValue(0);
+            sensorNode.addItem(DataTypeInt16, RConfigHeatSetpoint);    // Heating set point
+            sensorNode.addItem(DataTypeBool, RStateOn);           // Heating on/off
+            if (modelId.startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
+            {
+                sensorNode.addItem(DataTypeUInt8, RStateValve);
+                sensorNode.addItem(DataTypeUInt32, RConfigHostFlags); // hidden
+                sensorNode.addItem(DataTypeBool, RConfigDisplayFlipped);
+                sensorNode.addItem(DataTypeBool, RConfigLocked);
+                sensorNode.addItem(DataTypeString, RConfigMode);
+            }
+            else
+            {
+                sensorNode.addItem(DataTypeBool, RConfigSchedulerOn); // Scheduler state on/off
+                sensorNode.addItem(DataTypeString, RConfigScheduler); // Scheduler setting
+            }
         }
     }
     else if (sensorNode.type().endsWith(QLatin1String("Battery")))
@@ -5147,6 +5169,22 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             {
                 item = sensorNode.addItem(DataTypeUInt8, RConfigPending);
                 item->setValue(item->toNumber() | R_PENDING_WRITE_CIE_ADDRESS | R_PENDING_ENROLL_RESPONSE);
+            }
+            else if (*ci == POWER_CONFIGURATION_CLUSTER_ID)
+            {
+                //This device make a Rejoin every time, you trigger it, it's the only moment where you can read attribute.
+                if (sensorNode.modelId() == QLatin1String("Remote switch") )
+                {
+                    //Ask for battery but only every day max
+                    //int diff = idleTotalCounter - sensorNode.lastRead(READ_BATTERY);
+                    //if (diff > 24 * 3600)
+                    {
+                        sensorNode.setNextReadTime(READ_BATTERY, queryTime);
+                        sensorNode.setLastRead(READ_BATTERY, idleTotalCounter);
+                        sensorNode.enableRead(READ_BATTERY);
+                        queryTime = queryTime.addSecs(1);
+                    }
+                }
             }
         }
     }
@@ -5614,6 +5652,11 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 continue;
                             }
+                            
+                            if (i->mustRead(READ_BATTERY))
+                            {
+                                i->clearRead(READ_BATTERY);
+                            }
 
                             if (ia->id() == 0x0021) // battery percentage remaining
                             {
@@ -5689,7 +5732,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             else if (ia->id() == 0x0020) // battery voltage
                             {
                                 if (i->modelId().startsWith(QLatin1String("tagv4")) || // SmartThings Arrival sensor
-                                    i->modelId() == QLatin1String("Motion Sensor-A"))
+                                    i->modelId() == QLatin1String("Remote switch") || //Legrand switch
+                                    i->modelId() == QLatin1String("Motion Sensor-A") )
                                 {  }
                                 else
                                 {
@@ -8132,16 +8176,27 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         }
     }
 
-    // if (sensorNode->mustRead(READ_BATTERY) && tNow > sensorNode->nextReadTime(READ_BATTERY))
-    // {
-    //     std::vector<uint16_t> attributes;
-    //     attributes.push_back(0x0021); // battery percentage remaining
-    //     if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, POWER_CONFIGURATION_CLUSTER_ID, attributes))
-    //     {
-    //         sensorNode->clearRead(READ_BATTERY);
-    //         processed++;
-    //     }
-    // }
+    //if (sensorNode->mustRead(READ_MODE_CONFIG) && tNow > sensorNode->nextReadTime(READ_MODE_CONFIG))
+    //{
+    //    std::vector<uint16_t> attributes;
+    //    attributes.push_back(0x0000); // heating regulation mode
+    //    if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, LEGRAND_CONTROL_CLUSTER_ID, attributes))
+    //    {
+    //        sensorNode->clearRead(READ_MODE_CONFIG);
+    //        processed++;
+    //    }
+    //}
+ 
+    if (sensorNode->mustRead(READ_BATTERY) && tNow > sensorNode->nextReadTime(READ_BATTERY))
+    {
+        std::vector<uint16_t> attributes;
+        attributes.push_back(0x0020); // battery level
+        if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, POWER_CONFIGURATION_CLUSTER_ID, attributes))
+        {
+            sensorNode->clearRead(READ_BATTERY);
+            processed++;
+        }
+    }
 
     return (processed > 0);
 }
@@ -13856,6 +13911,11 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             checkSensorBindingsForClientClusters(sensor);
         }
         else if (sensor->modelId().startsWith(QLatin1String("RC 110"))) // innr Remote
+        {
+            checkSensorGroup(sensor);
+            checkSensorBindingsForClientClusters(sensor);
+        }
+        else if (sensor->modelId() == QLatin1String("Remote switch"))// Legrand switch
         {
             checkSensorGroup(sensor);
             checkSensorBindingsForClientClusters(sensor);

@@ -711,6 +711,18 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 {
                     moveToPct = 100 - moveToPct;
                 }
+                //Legrand invert bri and don't support other value than 0
+                if (taskRef.lightNode->modelId() == QLatin1String("Shutter switch with neutral"))
+                {
+					if (bri == 0)
+					{
+						moveToPct = 254;
+					}
+					else
+					{
+						moveToPct = 0;
+					}
+                }
         		if (addTaskWindowCovering(task, 0x05 /*move to Lift Percent*/, 0, moveToPct))
         		{
         			QVariantMap rspItem;

@@ -850,6 +850,31 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     		}
                     		rspItem["success"] = rspItemState;
                     	}
+ 
+                        else if (sensor->modelId() == QLatin1String("Cable outlet"))
+                        {
+                            QString mode_set = map[pi.key()].toString();
+                            quint64 mode = 10;
+                            if (mode_set == "confort") { mode = 0x00; }
+                            else if (mode_set == "confort-1") { mode = 0x01; }
+                            else if (mode_set == "confort-2") { mode = 0x02; }
+                            else if (mode_set == "eco") { mode = 0x03; }
+                            else if (mode_set == "hors gel") { mode = 0x04; }
+                            else if (mode_set == "off") { mode = 0x05; }
+                            else
+                            {
+                                rspItemState[QString("error unknow mode for %1").arg(sensor->modelId())] = val;
+                            }
+                            
+                            if (mode < 10)
+                            {
+                                if (!addTaskControlModeCmd(task, 0x00, mode))
+                                {
+                                    rspItemState[QString("error sending command for %1").arg(sensor->modelId())] = val;
+                                }
+                            }
+                            rspItem["success"] = rspItemState;
+                        }
                     }
 
                     if (rid.suffix == RConfigWindowCoveringType)

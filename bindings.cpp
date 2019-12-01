@@ -1791,6 +1791,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("Dimmer switch w/o neutral") ||
         //Legrand Cable outlet
         sensor->modelId() == QLatin1String("Cable outlet") ||
+        //Legrand wireless switch
+        sensor->modelId() == QLatin1String("Remote switch") ||
         // ORVIBO
         sensor->modelId().startsWith(QLatin1String("SN10ZW")) ||
         sensor->modelId().startsWith(QLatin1String("SF2")) ||
@@ -1888,7 +1890,11 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             {
                 continue; // process only once
             }
-
+            if (sensor->modelId() == QLatin1String("Remote switch") )
+            {
+                //This device don't support report attribute
+                continue;
+            }
             if (sensor->manufacturer().startsWith(QLatin1String("Climax")))
             {
                 val = sensor->getZclValue(*i, 0x0035); // battery alarm mask
@@ -1899,6 +1905,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                      sensor->modelId() == QLatin1String("WISZB-120") ||
                      sensor->modelId() == QLatin1String("MOSZB-130") ||
                      sensor->modelId() == QLatin1String("FLSZB-110") ||
+		             sensor->modelId() == QLatin1String("Remote switch") ||
                      sensor->modelId().startsWith(QLatin1String("ZHMS101")))
             {
                 val = sensor->getZclValue(*i, 0x0020); // battery voltage
@@ -2216,6 +2223,13 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         clusters.push_back(LEVEL_CLUSTER_ID);
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
+    // LEGRAND Remote switch
+    else if (sensor->modelId() == QLatin1String("Remote switch"))
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+    }
     else if (sensor->modelId().startsWith(QLatin1String("RC 110")))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
@@ -2402,6 +2416,10 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
              sensor->modelId().startsWith(QLatin1String("RC 110"))) // innr remote
     {
 
+    }
+    else if (sensor->modelId() == QLatin1String("Remote switch"))
+    {
+        //Make group but without uniqueid
     }
     else if (sensor->modelId() == QLatin1String("RB01") ||
              sensor->modelId() == QLatin1String("RM01"))
