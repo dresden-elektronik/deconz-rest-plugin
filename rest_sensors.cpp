@@ -1034,7 +1034,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigHeatSetpoint)
                 {
-                    bool ok;
                     int16_t heatsetpoint = map[pi.key()].toUInt(&ok);
                     uint16_t mfrCode = 0;
                     uint16_t attrId = 0x0012;
@@ -1044,9 +1043,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         mfrCode = VENDOR_JENNIC;
                         attrId = 0x4003;
 
-                        // Setting the heat setpoint disables off/boost modes,
-			// but this is not reported back by the thermostat.
-			// Hence, the off/boost flags will be removed here to reflect the actual operating state.
+                        // Setting the heat setpoint disables off/boost modes, but this is not reported back by the thermostat.
+			                  // Hence, the off/boost flags will be removed here to reflect the actual operating state.
                         if (hostFlags == 0)
                         {
                             ResourceItem *item = sensor->item(RConfigHostFlags);
@@ -1057,7 +1055,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         hostFlags |=  0x10; // set `disable off` flag
                     }
 
-                    if (ok && addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, mfrCode, attrId, deCONZ::Zcl16BitInt, heatsetpoint))
+                    if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, mfrCode, attrId, deCONZ::Zcl16BitInt, heatsetpoint))
                     {
                         updated = true;
                     }
