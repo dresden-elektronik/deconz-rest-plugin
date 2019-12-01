@@ -501,6 +501,10 @@ RuleCondition::RuleCondition(const QVariantMap &map) :
         {
             m_value = m_value.toBool();
         }
+        else if ((m_op == OpGreaterThan || m_op == OpLowerThan) && m_suffix == RStateLocaltime && str == QLatin1String("/config/localtime"))
+        {
+            m_value = str;
+        }
         else if (m_op == OpEqual || m_op == OpNotEqual || m_op == OpGreaterThan || m_op == OpLowerThan)
         {
             int num = str.toInt(&ok);

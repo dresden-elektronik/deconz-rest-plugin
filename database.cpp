@@ -3230,6 +3230,12 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeUInt8, RStateBattery);
             item->setValue(100);
         }
+        else if (sensor.type() == QLatin1String("CLIPDaylightOffset"))
+        {
+            sensor.addItem(DataTypeInt16, RConfigOffset);
+            sensor.addItem(DataTypeString, RConfigMode);
+            sensor.addItem(DataTypeTime, RStateLocaltime);
+        }
 
         if (sensor.modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
         {

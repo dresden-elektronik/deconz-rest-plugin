@@ -67,7 +67,7 @@ int DeRestPluginPrivate::handleRulesApi(const ApiRequest &req, ApiResponse &rsp)
  */
 int DeRestPluginPrivate::getAllRules(const ApiRequest &req, ApiResponse &rsp)
 {
-    Q_UNUSED(req);
+    Q_UNUSED(req)
     rsp.httpStatus = HttpStatusOk;
 
     std::vector<Rule>::const_iterator i = rules.begin();
@@ -137,7 +137,7 @@ int DeRestPluginPrivate::getAllRules(const ApiRequest &req, ApiResponse &rsp)
         rule["status"] = i->status();
         rule["conditions"] = conditions;
         rule["actions"] = actions;
-        rule["periodic"] = (double)i->triggerPeriodic();
+        rule["periodic"] = static_cast<double>(i->triggerPeriodic());
 
         QString etag = i->etag;
         etag.remove('"'); // no quotes allowed in string
@@ -325,7 +325,7 @@ int DeRestPluginPrivate::getRule(const ApiRequest &req, ApiResponse &rsp)
     rsp.map["status"] = rule->status();
     rsp.map["conditions"] = conditions;
     rsp.map["actions"] = actions;
-    rsp.map["periodic"] = (double)rule->triggerPeriodic();
+    rsp.map["periodic"] = static_cast<double>(rule->triggerPeriodic());
 
     QString etag = rule->etag;
     etag.remove('"'); // no quotes allowed in string
@@ -898,8 +898,8 @@ bool DeRestPluginPrivate::checkConditions(QVariantList conditionsList, ApiRespon
     {
         RuleCondition cond(ci->toMap());
 
-        Resource *resource = (cond.op() != RuleCondition::OpUnknown) ? getResource(cond.resource(), cond.id()) : 0;
-        ResourceItem *item = resource ? resource->item(cond.suffix()) : 0;
+        Resource *resource = (cond.op() != RuleCondition::OpUnknown) ? getResource(cond.resource(), cond.id()) : nullptr;
+        ResourceItem *item = resource ? resource->item(cond.suffix()) : nullptr;
 
         if (!resource || !item)
         {
@@ -988,7 +988,7 @@ void DeRestPluginPrivate::queueCheckRuleBindings(const Rule &rule)
     quint8 srcEndpoint = 0;
     BindingTask bindingTask;
     bindingTask.state = BindingTask::StateCheck;
-    Sensor *sensorNode = 0;
+    Sensor *sensorNode = nullptr;
 
     Q_Q(DeRestPlugin);
     if (!q->pluginActive())
@@ -1044,9 +1044,9 @@ void DeRestPluginPrivate::queueCheckRuleBindings(const Rule &rule)
                     }
 
                     bool ok = false;
-                    quint16 ep = i->value().toUInt(&ok);
+                    uint ep = i->value().toUInt(&ok);
 
-                    if (ok)
+                    if (ok && ep <= 255)
                     {
                         const std::vector<quint8> &activeEndpoints = sensorNode->node()->endpoints();
 
@@ -1056,7 +1056,7 @@ void DeRestPluginPrivate::queueCheckRuleBindings(const Rule &rule)
                             if (ep == activeEndpoints[i])
                             {
                                 srcAddress = sensorNode->address().ext();
-                                srcEndpoint = ep;
+                                srcEndpoint = static_cast<quint8>(ep);
                                 if (!sensorNode->mustRead(READ_BINDING_TABLE))
                                 {
                                     sensorNode->enableRead(READ_BINDING_TABLE);
@@ -1076,7 +1076,7 @@ void DeRestPluginPrivate::queueCheckRuleBindings(const Rule &rule)
                 }
                 else
                 {
-                    void *n = 0;
+                    void *n = nullptr;
                     uint avail = false;
 
                     if (sensorNode)
@@ -1249,7 +1249,7 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
     for (; c != cend; ++c)
     {
         Resource *resource = getResource(c->resource(), c->id());
-        ResourceItem *item = resource ? resource->item(c->suffix()) : 0;
+        ResourceItem *item = resource ? resource->item(c->suffix()) : nullptr;
 
         if (!resource || !item)
         {
@@ -1301,6 +1301,22 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
             if (item == eItem && e.num() == e.numPrevious())
             {
                 return false; // item was not changed
+            }
+        }
+        else if (c->op() == RuleCondition::OpGreaterThan && item->descriptor().suffix == RStateLocaltime && eItem->descriptor().suffix == RConfigLocalTime)
+        {
+            const QDateTime t1 = QDateTime::fromMSecsSinceEpoch(item->toNumber());
+            if (now.time() < t1.time())
+            {
+                return false;
+            }
+        }
+        else if (c->op() == RuleCondition::OpLowerThan && item->descriptor().suffix == RStateLocaltime && eItem->descriptor().suffix == RConfigLocalTime)
+        {
+            const QDateTime t1 = QDateTime::fromMSecsSinceEpoch(item->toNumber());
+            if (now.time() > t1.time())
+            {
+                return false;
             }
         }
         else if (c->op() == RuleCondition::OpGreaterThan)
@@ -1445,14 +1461,14 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
  */
 void DeRestPluginPrivate::indexRuleTriggers(Rule &rule)
 {
-    ResourceItem *itemDx = 0;
-    ResourceItem *itemDdx = 0;
+    ResourceItem *itemDx = nullptr;
+    ResourceItem *itemDdx = nullptr;
     std::vector<ResourceItem*> items;
 
     for (const RuleCondition &c : rule.conditions())
     {
         Resource *resource = getResource(c.resource(), c.id());
-        ResourceItem *item = resource ? resource->item(c.suffix()) : 0;
+        ResourceItem *item = resource ? resource->item(c.suffix()) : nullptr;
 
         if (!resource || !item)
         {
@@ -1473,14 +1489,14 @@ void DeRestPluginPrivate::indexRuleTriggers(Rule &rule)
 
         if (c.op() == RuleCondition::OpDx)
         {
-            DBG_Assert(itemDx == 0);
-            DBG_Assert(itemDdx == 0);
+            DBG_Assert(itemDx == nullptr);
+            DBG_Assert(itemDdx == nullptr);
             itemDx = item;
         }
         else if (c.op() == RuleCondition::OpDdx)
         {
-            DBG_Assert(itemDx == 0);
-            DBG_Assert(itemDdx == 0);
+            DBG_Assert(itemDx == nullptr);
+            DBG_Assert(itemDdx == nullptr);
             itemDdx = item;
         }
         else if (c.op() == RuleCondition::OpStable) { }
@@ -1499,9 +1515,9 @@ void DeRestPluginPrivate::indexRuleTriggers(Rule &rule)
     else if (itemDdx)
     {
         Resource *r = getResource(RConfig);
-        itemDdx = r ? r->item(RConfigLocalTime) : 0;
-        DBG_Assert(r != 0);
-        DBG_Assert(itemDdx != 0);
+        itemDdx = r ? r->item(RConfigLocalTime) : nullptr;
+        DBG_Assert(r != nullptr);
+        DBG_Assert(itemDdx != nullptr);
         items.clear();
         if (itemDdx)
         {
@@ -1794,7 +1810,7 @@ void DeRestPluginPrivate::fastRuleCheckTimerFired()
 void DeRestPluginPrivate::handleRuleEvent(const Event &e)
 {
     Resource *resource = getResource(e.resource(), e.id());
-    ResourceItem *item = resource ? resource->item(e.what()) : 0;
+    ResourceItem *item = resource ? resource->item(e.what()) : nullptr;
 
     if (!resource || !item || item->rulesInvolved().empty())
     {
