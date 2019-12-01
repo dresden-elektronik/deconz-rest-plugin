@@ -1071,6 +1071,7 @@ public Q_SLOTS:
     void webhookFinishedRequest(QNetworkReply *reply);
     void daylightTimerFired();
     bool checkDaylightSensorConfiguration(Sensor *sensor, const QString &gwBridgeId, double *lat, double *lng);
+    size_t calcDaylightOffsets(Sensor *daylightSensor, size_t iter);
     void handleRuleEvent(const Event &e);
     bool queueBindingTask(const BindingTask &bindingTask);
     void restartAppTimerFired();
@@ -1758,6 +1759,7 @@ public:
     std::vector<LightNode> nodes;
     std::vector<Rule> rules;
     QString daylightSensorId;
+    size_t daylightOffsetIter = 0;
     std::vector<DL_Result> daylightTimes;
     std::vector<Sensor> sensors;
     std::list<TaskItem> tasks;

@@ -734,6 +734,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 {
                     offset -= item->toNumber();
                 }
+
                 if (rid.suffix == RConfigAlert)
                 {
                     if (val == "none")

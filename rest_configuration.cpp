@@ -3582,6 +3582,70 @@ bool DeRestPluginPrivate::checkDaylightSensorConfiguration(Sensor *sensor, const
     return false;
 }
 
+size_t DeRestPluginPrivate::calcDaylightOffsets(Sensor *daylightSensor, size_t iter)
+{
+    if (!daylightSensor)
+    {
+        return iter;
+    }
+
+    if (iter >= sensors.size())
+    {
+        iter = 0;
+    }
+
+    ResourceItem *sunrise = daylightSensor->item(RStateSunrise);
+    ResourceItem *sunset = daylightSensor->item(RStateSunset);
+    if (!sunrise || !sunset)
+    {
+        return iter;
+    }
+
+    for (;iter < sensors.size(); iter++)
+    {
+        Sensor &s = sensors[iter];
+
+        if (s.type() != QLatin1String("CLIPDaylightOffset"))
+        {
+            continue;
+        }
+
+        ResourceItem *mode = s.item(RConfigMode);
+        ResourceItem *offset = s.item(RConfigOffset);
+        ResourceItem *localTime = s.item(RStateLocaltime);
+
+        if (!mode || !offset || !localTime)
+        {
+            continue;
+        }
+
+        qint64 tref = -1;
+
+        if (mode->toString() == QLatin1String("sunrise"))
+        {
+            tref = sunrise->toNumber() + offset->toNumber() * 60 * 1000;
+
+        }
+        else if (mode->toString() == QLatin1String("sunset"))
+        {
+            tref = sunset->toNumber() + offset->toNumber() * 60 * 1000;
+        }
+
+        if (tref != localTime->toNumber())
+        {
+            localTime->setValue(tref);
+            s.updateStateTimestamp();
+            enqueueEvent(Event(RSensors, RStateLastUpdated, s.id()));
+            s.setNeedSaveDatabase(true);
+            saveDatabaseItems |= DB_SENSORS;
+            iter++;
+            break;
+        }
+    }
+
+    return iter;
+}
+
 /* Check daylight state */
 void DeRestPluginPrivate::daylightTimerFired()
 {
@@ -3718,6 +3782,8 @@ void DeRestPluginPrivate::daylightTimerFired()
         sensor->setNeedSaveDatabase(true);
         saveDatabaseItems |= DB_SENSORS;
     }
+
+    daylightOffsetIter = calcDaylightOffsets(sensor, daylightOffsetIter);
 
     if (curDayPhaseName)
     {
