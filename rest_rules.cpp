@@ -1303,7 +1303,7 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
                 return false; // item was not changed
             }
         }
-        else if (c->op() == RuleCondition::OpGreaterThan && item->descriptor().suffix == RStateLocaltime && eItem->descriptor().suffix == RConfigLocalTime)
+        else if (c->op() == RuleCondition::OpGreaterThan && item->descriptor().suffix == RStateLocaltime)
         {
             const QDateTime t1 = QDateTime::fromMSecsSinceEpoch(item->toNumber());
             if (now.time() < t1.time())
@@ -1311,7 +1311,7 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
                 return false;
             }
         }
-        else if (c->op() == RuleCondition::OpLowerThan && item->descriptor().suffix == RStateLocaltime && eItem->descriptor().suffix == RConfigLocalTime)
+        else if (c->op() == RuleCondition::OpLowerThan && item->descriptor().suffix == RStateLocaltime)
         {
             const QDateTime t1 = QDateTime::fromMSecsSinceEpoch(item->toNumber());
             if (now.time() > t1.time())
