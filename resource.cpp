@@ -588,7 +588,7 @@ QVariant ResourceItem::toVariant() const
 /*! Marks the resource item as involved in a rule. */
 void ResourceItem::inRule(int ruleHandle)
 {
-    for (quint16 handle : m_rulesInvolved)
+    for (int handle : m_rulesInvolved)
     {
         if (handle == ruleHandle)
         {
