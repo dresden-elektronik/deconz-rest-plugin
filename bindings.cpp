@@ -1790,6 +1790,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("FLSZB-110")) || // water leak sensor
         sensor->modelId().startsWith(QLatin1String("MOSZB-130")) || // motion sensor
         sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||   // Wattle (Develco) magnetic sensor
+        sensor->modelId().startsWith(QLatin1String("EMIZB-132")) || // EMI Norwegian HAN
         sensor->modelId() == QLatin1String("SPLZB-131") ||
         // LG
         sensor->modelId() == QLatin1String("LG IP65 HMS") ||
