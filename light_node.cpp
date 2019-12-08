@@ -90,7 +90,7 @@ void LightNode::setManufacturerCode(uint16_t code)
         case VENDOR_BEGA:    name = QLatin1String("BEGA"); break;
         case VENDOR_IKEA:    name = QLatin1String("IKEA of Sweden"); break;
         case VENDOR_INNR:    name = QLatin1String("innr"); break;
-        case VENDOR_INNR2:   name = QLatin1String("innr"); break;
+        case VENDOR_LDS:     name = QLatin1String("LDS"); break;
         case VENDOR_INSTA:   name = QLatin1String("Insta"); break;
         case VENDOR_PHILIPS: name = QLatin1String("Philips"); break;
         case VENDOR_LEDVANCE: name = QLatin1String("LEDVANCE"); break;
