@@ -3210,26 +3210,26 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             }
             else
             {
-				item = sensor.addItem(DataTypeInt16, RStateTemperature);
-				item->setValue(0);
-				item = sensor.addItem(DataTypeInt16, RConfigOffset);
-				item->setValue(0);
-				sensor.addItem(DataTypeInt16, RConfigHeatSetpoint);    // Heating set point
-				sensor.addItem(DataTypeBool, RStateOn);           // Heating on/off
-				if (sensor.modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
-				{
-					sensor.addItem(DataTypeUInt8, RStateValve);
-					sensor.addItem(DataTypeUInt32, RConfigHostFlags); // hidden
-					sensor.addItem(DataTypeBool, RConfigDisplayFlipped);
-					sensor.addItem(DataTypeBool, RConfigLocked);
-					sensor.addItem(DataTypeString, RConfigMode);
-				}
-				else
-				{
-					sensor.addItem(DataTypeBool, RConfigSchedulerOn); // Scheduler state on/off
-					sensor.addItem(DataTypeString, RConfigScheduler); // Scheduler setting
-				}
-		    }
+                item = sensor.addItem(DataTypeInt16, RStateTemperature);
+                item->setValue(0);
+                item = sensor.addItem(DataTypeInt16, RConfigOffset);
+                item->setValue(0);
+                sensor.addItem(DataTypeInt16, RConfigHeatSetpoint);    // Heating set point
+                sensor.addItem(DataTypeBool, RStateOn);           // Heating on/off
+                if (sensor.modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
+                {
+                    sensor.addItem(DataTypeUInt8, RStateValve);
+                    sensor.addItem(DataTypeUInt32, RConfigHostFlags); // hidden
+                    sensor.addItem(DataTypeBool, RConfigDisplayFlipped);
+                    sensor.addItem(DataTypeBool, RConfigLocked);
+                    sensor.addItem(DataTypeString, RConfigMode);
+                }
+                else
+                {
+                    sensor.addItem(DataTypeBool, RConfigSchedulerOn); // Scheduler state on/off
+                    sensor.addItem(DataTypeString, RConfigScheduler); // Scheduler setting
+                }
+            }
         }
         else if (sensor.type().endsWith(QLatin1String("Battery")))
         {
@@ -3415,18 +3415,18 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             ResourceItem *itemWindowCovering = 0;
             if (isWindowCovering)
             {
-            	itemWindowCovering = sensor.addItem(DataTypeUInt8, RConfigWindowCoveringType);
+                itemWindowCovering = sensor.addItem(DataTypeUInt8, RConfigWindowCoveringType);
             }
 
             if (configCol >= 0)
             {
-            	sensor.jsonToConfig(QLatin1String(colval[configCol])); // needed again otherwise item isEmpty
+                sensor.jsonToConfig(QLatin1String(colval[configCol])); // needed again otherwise item isEmpty
             }
 
             if (isWindowCovering)
             {
-            	int val = itemWindowCovering->toNumber(); // prevent null value
-            	itemWindowCovering->setValue(val);
+                int val = itemWindowCovering->toNumber(); // prevent null value
+                itemWindowCovering->setValue(val);
             }
 
             if (item->toString().isEmpty() || !supportedModes.contains(item->toString()))
