@@ -4045,7 +4045,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case LEGRAND_CONTROL_CLUSTER_ID:
                 {
-                    if (sensorNode.modelId() == QLatin1String("Cable outlet"))
+                    if (modelId == QLatin1String("Cable outlet"))
                     {
                         fpThermostatSensor.inClusters.push_back(LEGRAND_CONTROL_CLUSTER_ID);
                     }
@@ -4459,7 +4459,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
         // ZHAThermostat
         if (fpThermostatSensor.hasInCluster(THERMOSTAT_CLUSTER_ID) ||
-        ( fpThermostatSensor.hasInCluster(LEGRAND_CONTROL_CLUSTER_ID) && (sensorNode.modelId() == QLatin1String("Cable outlet")) ) )
+           (fpThermostatSensor.hasInCluster(LEGRAND_CONTROL_CLUSTER_ID) && modelId == QLatin1String("Cable outlet")))
         {
             fpThermostatSensor.endpoint = i->endpoint();
             fpThermostatSensor.deviceId = i->deviceId();

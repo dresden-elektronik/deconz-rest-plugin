@@ -3204,7 +3204,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             
             //only for legrand cluster. Add only mode field.
             if ( (sensor.fingerPrint().hasInCluster(LEGRAND_CONTROL_CLUSTER_ID)) &&
-                 (sensorNode.modelId() == QLatin1String("Cable outlet") ) )
+                 (sensor.modelId() == QLatin1String("Cable outlet") ) )
             {
                 clusterId = LEGRAND_CONTROL_CLUSTER_ID;
                 sensor.addItem(DataTypeString, RConfigMode);
