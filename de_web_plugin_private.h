@@ -273,7 +273,7 @@
 #define VENDOR_KEEN_HOME    0x115B
 #define VENDOR_115F         0x115F // Used by Xiaomi Aqara
 #define VENDOR_INNR         0x1166
-#define VENDOR_INNR2        0x1168
+#define VENDOR_LDS          0x1168 // Used by Samsung SmartPlug 2019
 #define VENDOR_INSTA        0x117A
 #define VENDOR_IKEA         0x117C
 #define VENDOR_BUSCH_JAEGER 0x112E
@@ -397,6 +397,7 @@ extern const quint64 ubisysMacPrefix;
 extern const quint64 xalMacPrefix;
 extern const quint64 develcoMacPrefix;
 extern const quint64 legrandMacPrefix;
+extern const quint64 silabs2MacPrefix;
 
 inline bool checkMacVendor(quint64 addr, quint16 vendor)
 {
@@ -428,8 +429,9 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
                    prefix == energyMiMacPrefix ||
                    prefix == emberMacPrefix;
         case VENDOR_INNR:
-        case VENDOR_INNR2:
-            return prefix == jennicMacPrefix;
+        case VENDOR_LDS:
+            return prefix == jennicMacPrefix ||
+                   prefix == silabs2MacPrefix;
         case VENDOR_INSTA:
             return prefix == instaMacPrefix;
         case VENDOR_JENNIC:
