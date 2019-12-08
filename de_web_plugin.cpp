@@ -4044,7 +4044,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case LEGRAND_CONTROL_CLUSTER_ID:
                 {
-                    fpThermostatSensor.inClusters.push_back(LEGRAND_CONTROL_CLUSTER_ID);
+                    if (sensorNode.modelId() == QLatin1String("Cable outlet"))
+                    {
+                        fpThermostatSensor.inClusters.push_back(LEGRAND_CONTROL_CLUSTER_ID);
+                    }
                 }
                     break;
 
@@ -4455,7 +4458,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
         // ZHAThermostat
         if (fpThermostatSensor.hasInCluster(THERMOSTAT_CLUSTER_ID) ||
-        fpThermostatSensor.hasInCluster(LEGRAND_CONTROL_CLUSTER_ID))
+        ( fpThermostatSensor.hasInCluster(LEGRAND_CONTROL_CLUSTER_ID) && (sensorNode.modelId() == QLatin1String("Cable outlet")) ) )
         {
             fpThermostatSensor.endpoint = i->endpoint();
             fpThermostatSensor.deviceId = i->deviceId();
@@ -4785,7 +4788,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             clusterId = THERMOSTAT_CLUSTER_ID;
         }
         //Only for legrand cluster, add only mode field.
-        if (sensorNode.fingerPrint().hasInCluster(LEGRAND_CONTROL_CLUSTER_ID))
+        if ((sensorNode.fingerPrint().hasInCluster(LEGRAND_CONTROL_CLUSTER_ID)) && (sensorNode.modelId() == QLatin1String("Cable outlet") ) )
         {
             clusterId = LEGRAND_CONTROL_CLUSTER_ID;
             sensorNode.addItem(DataTypeString, RConfigMode);
