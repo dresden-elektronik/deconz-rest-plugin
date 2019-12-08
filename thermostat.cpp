@@ -755,3 +755,47 @@ bool DeRestPluginPrivate::addTaskThermostatReadWriteAttribute(TaskItem &task, ui
 
     return addTask(task);
 }
+
+/*! Adds a control mode command task to the queue. Used by Legrand
+
+   \param task - the task item
+   \param cmdId - 0x00 set heating mode
+   \param mode
+   \return true - on success
+           false - on error
+ */
+bool DeRestPluginPrivate::addTaskControlModeCmd(TaskItem &task, uint8_t cmdId, int8_t mode)
+{
+    task.taskType = TaskThermostat;
+
+    task.req.setClusterId(LEGRAND_CONTROL_CLUSTER_ID);
+    task.req.setProfileId(HA_PROFILE_ID);
+
+    task.zclFrame.payload().clear();
+    task.zclFrame.setSequenceNumber(zclSeq++);
+    task.zclFrame.setCommandId(cmdId);
+    task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
+            deCONZ::ZclFCDirectionClientToServer);
+
+    // payload
+    QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
+    stream.setByteOrder(QDataStream::LittleEndian);
+
+    if (cmdId == 0x00)
+    {
+        stream << (qint8) mode;
+    }
+    else
+    {
+        return false;
+    }
+
+    { // ZCL frame
+        task.req.asdu().clear(); // cleanup old request data if there is any
+        QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        task.zclFrame.writeToStream(stream);
+    }
+
+    return addTask(task);
+}

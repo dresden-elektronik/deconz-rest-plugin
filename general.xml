@@ -2561,18 +2561,58 @@ devices can operate on either battery or mains power, and can have a wide variet
 
 		<!-- Legrand -->
 		<cluster id="0xfc01" name="Legrand - Specific clusters" mfcode="1021">
-			<description>Legrand Specific clusters.</description>
+			<description>Legrand Classic Specific clusters, used by all devices. But take care they are device specific.
+			
+> Dimmer switch without neutral : Option 1 = Dimmer on/off.
+> Cable outlet : Option 1 = Fil pilote on/off.
+			</description>
 			<server>
-				<attribute id="0x0000" name="Dimmer" type="dat16" default="0x0101" access="rw" required="m" showas="hex">
-					<description>0100 = Dimmer Off, 0101 = Dimmer On</description>
+				<attribute id="0x0000" type="dat16" name="Option 1" default="0x0101" access="rw" required="m" showas="hex">
+					<description>Choose correctly according to your device Dimmer OR fil pilote.
+Dimmer > Off=0100 - On=0101
+Fil pilote > Off=0001 - On=0002</description>
 				</attribute>
-				<attribute id="0x0001" type="bool" name="LED" required="m" access="rw" default="0">
-					<description>Enable LED in dark</description>
+				<attribute id="0x0001" type="bool" name="Option 2" required="m" access="rw" default="0">
+					<description>Option 1</description>
+				</attribute>
+				<attribute id="0x0002" type="bool" name="Option 3" required="m" access="rw" default="0">
+					<description>Option 2</description>
 				</attribute>
 			</server>
 			<client>
 			</client>
 		</cluster>
+		<cluster id="0xfc40" name="Legrand - Specific clusters 2" mfcode="1021">
+			<description>Legrand Specific clusters, Used by cable outlet.</description>
+			<server>
+				
+			<command id="00" dir="recv" name="Unknow" required="m">
+				<description>Set fil pilote mode</description>
+				<payload>
+					<attribute id="0x0000" type="enum8" name="Mode" required="m" default="0x00">
+						<value name="Confort" value="0x00"></value>
+						<value name="Confort -1" value="0x01"></value>
+						<value name="Confort -2" value="0x02"></value>
+						<value name="Eco" value="0x03"></value>
+						<value name="Hors-Gel" value="0x04"></value>
+						<value name="Off" value="0x05"></value>
+					</attribute>
+				</payload>
+			</command>
+			
+			<attribute id="0x0000" type="enum8" name="Mode" default="0x00" access="r" required="m">
+				<description>Heating mode</description>
+					<value name="Confort" value="0x00"></value>
+					<value name="Confort -1" value="0x01"></value>
+					<value name="Confort -2" value="0x02"></value>
+					<value name="Eco" value="0x03"></value>
+					<value name="Hors-Gel" value="0x04"></value>
+					<value name="Off" value="0x05"></value>
+			</attribute>
+			</server>
+			<client>
+			</client>
+                </cluster>
 
 		<!-- ubisys -->
 		<cluster id="0xfc00" name="Device Setup" mfcode="0x10f2">

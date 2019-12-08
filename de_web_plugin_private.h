@@ -185,6 +185,7 @@
 #define VENDOR_CLUSTER_ID                     0xFC00
 #define UBISYS_DEVICE_SETUP_CLUSTER_ID        0xFC00
 #define SAMJIN_CLUSTER_ID                     0xFC02
+#define LEGRAND_CONTROL_CLUSTER_ID            0xFC40
 #define XAL_CLUSTER_ID                        0xFCCE
 
 #define IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID  0x0002
@@ -232,8 +233,9 @@
 #define READ_BINDING_TABLE     (1 << 9)
 #define READ_OCCUPANCY_CONFIG  (1 << 10)
 #define READ_GROUP_IDENTIFIERS (1 << 12)
+#define READ_MODE_CONFIG       (1 << 13)
 #define READ_THERMOSTAT_STATE  (1 << 17)
-// #define READ_BATTERY           (1 << 18)
+#define READ_BATTERY           (1 << 18)
 
 #define READ_MODEL_ID_INTERVAL   (60 * 60) // s
 #define READ_SWBUILD_ID_INTERVAL (60 * 60) // s
@@ -1272,6 +1274,7 @@ public:
     bool addTaskThermostatCmd(TaskItem &task, uint8_t cmd, int8_t setpoint, const QString &schedule, uint8_t daysToReturn);
     bool addTaskThermostatSetAndGetSchedule(TaskItem &task, const QString &sched);
     bool addTaskThermostatReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t mfrCode, uint16_t attrId, uint8_t attrType, uint32_t attrValue);
+    bool addTaskControlModeCmd(TaskItem &task, uint8_t cmdId, int8_t mode);
     void handleGroupClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleSceneClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleOnOffClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
