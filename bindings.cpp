@@ -593,7 +593,15 @@ bool DeRestPluginPrivate::sendBindRequest(BindingTask &bt)
 
         if (!s.node() || s.node()->nodeDescriptor().isNull())
         {
-            return false; // needs to be known
+            //whitelist sensors which don't seem to have a valid node descriptor
+            //This is a workaround currently only required for Develco smoke sensor
+            if (s.modelId().startsWith(QLatin1String("SMSZB-120")))
+            {
+            }
+            else
+            {
+                return false; // needs to be known
+            }
         }
 
         if (s.node()->nodeDescriptor().receiverOnWhenIdle())
@@ -1695,7 +1703,15 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
 
     if (sensor->node()->nodeDescriptor().isNull())
     {
-        return false;
+        //whitelist sensors which don't seem to have a valid node descriptor
+        //This is a workaround currently only required for Develco smoke sensor
+        if (sensor->modelId().startsWith(QLatin1String("SMSZB-120")))
+        {
+        }
+        else
+        {
+            return false;
+        }
     }
 
     if (sensor->deletedState() != Sensor::StateNormal)
@@ -1774,6 +1790,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("FLSZB-110")) || // water leak sensor
         sensor->modelId().startsWith(QLatin1String("MOSZB-130")) || // motion sensor
         sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||   // Wattle (Develco) magnetic sensor
+        sensor->modelId().startsWith(QLatin1String("EMIZB-132")) || // EMI Norwegian HAN
         sensor->modelId() == QLatin1String("SPLZB-131") ||
         // LG
         sensor->modelId() == QLatin1String("LG IP65 HMS") ||
