@@ -3461,6 +3461,16 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 }
 
             }
+            else if (ind.clusterId() == COLOR_CLUSTER_ID && 
+                     (zclFrame.commandId() == 0x4c))  // Aqara Opple hold
+            {
+                ok = false;
+                if (zclFrame.payload().size() >= 1 && buttonMap->zclParam0 == zclFrame.payload().at(0)) // direction
+                {
+                    sensor->previousDirection = zclFrame.payload().at(0);
+                    ok = true;
+                }
+            }
 
             if (ok)
             {
