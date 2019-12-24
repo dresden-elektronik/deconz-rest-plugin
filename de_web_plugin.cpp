@@ -93,6 +93,7 @@ const quint64 bjeMacPrefix        = 0xd85def0000000000ULL;
 const quint64 xalMacPrefix        = 0xf8f0050000000000ULL;
 const quint64 lutronMacPrefix     = 0xffff000000000000ULL;
 const quint64 legrandMacPrefix    = 0x0004740000000000ULL;
+const quint64 aqaraOppleMacPrefix = 0x04cf8c0000000000ULL;
 
 struct SupportedDevice {
     quint16 vendorId;
@@ -170,6 +171,9 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "lumi.relay.c", jennicMacPrefix }, // Xiaomi Aqara LLKZMK11LM
     { VENDOR_115F, "lumi.plug", jennicMacPrefix }, // Xiaomi smart plug (router)
     { VENDOR_115F, "lumi.ctrl_ln", jennicMacPrefix}, // Xiaomi Wall Switch (router)
+    { VENDOR_115F, "lumi.remote.b286opcn01", aqaraOppleMacPrefix }, // Xiaomi Aqara Opple WXCJKG11LM
+    { VENDOR_115F, "lumi.remote.b486opcn01", aqaraOppleMacPrefix }, // Xiaomi Aqara Opple WXCJKG12LM
+    { VENDOR_115F, "lumi.remote.b686opcn01", aqaraOppleMacPrefix }, // Xiaomi Aqara Opple WXCJKG13LM
     // { VENDOR_115F, "lumi.curtain", jennicMacPrefix}, // Xiaomi curtain controller (router) - exposed only as light
     { VENDOR_UBISYS, "C4", ubisysMacPrefix },
     { VENDOR_UBISYS, "D1", ubisysMacPrefix },
@@ -3166,6 +3170,12 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             updateSensorEtag(sensor);
         }
     }
+    else if (sensor->modelId().contains(QLatin1String("86opcn01"))) // Aqara Opple
+    {
+        checkReporting = true;
+        checkClientCluster = true;
+        checkSensorGroup(sensor);
+    }
 
     if (ind.dstAddressMode() == deCONZ::ApsGroupAddress && ind.dstAddress().group() != 0)
     {
@@ -3791,6 +3801,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         fpSwitch.inClusters.push_back(ci->id());
                     }
                     else if (modelId == QLatin1String("lumi.remote.b1acn01"))
+                    {
+                        fpSwitch.inClusters.push_back(ci->id());
+                    }
+                    else if (modelId.contains(QLatin1String("86opcn01")))
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
@@ -5737,7 +5751,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 if (i->modelId().startsWith(QLatin1String("tagv4")) || // SmartThings Arrival sensor
                                     i->modelId() == QLatin1String("Remote switch") || //Legrand switch
-                                    i->modelId() == QLatin1String("Motion Sensor-A") )
+                                    i->modelId() == QLatin1String("Motion Sensor-A") || 
+                                    i->modelId().contains(QLatin1String("86opcn01"))) //Aqara Opple
                                 {  }
                                 else
                                 {
