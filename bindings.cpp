@@ -1566,6 +1566,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturerCode() == VENDOR_NETVOX) // Netvox smart plug
         {
         }
+	else if (lightNode->modelId().contains(QLatin1String("86opcn01"))) // Aqara Opple
+        {
+        }
         else
         {
             return;
@@ -1814,7 +1817,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("SN10ZW")) ||
         sensor->modelId().startsWith(QLatin1String("SF2")) ||
         // Netvox
-        sensor->modelId().startsWith(QLatin1String("Z809A")))
+        sensor->modelId().startsWith(QLatin1String("Z809A")) ||
+        // Aqara Opple
+        sensor->modelId().contains(QLatin1String("86opcn01")))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||
@@ -1922,8 +1927,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                      sensor->modelId() == QLatin1String("WISZB-120") ||
                      sensor->modelId() == QLatin1String("MOSZB-130") ||
                      sensor->modelId() == QLatin1String("FLSZB-110") ||
-		             sensor->modelId() == QLatin1String("Remote switch") ||
-                     sensor->modelId().startsWith(QLatin1String("ZHMS101")))
+		     sensor->modelId() == QLatin1String("Remote switch") ||
+                     sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||
+		     sensor->modelId().contains(QLatin1String("86opcn01"))) // Aqara Opple
             {
                 val = sensor->getZclValue(*i, 0x0020); // battery voltage
             }
@@ -2305,6 +2311,14 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(0x01);
         sensor->setMgmtBindSupported(true);
     }
+    // Aqara Opple
+    else if (sensor->modelId().contains(QLatin1String("86opcn01")))
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+        clusters.push_back(COLOR_CLUSTER_ID);
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+    }
     else
     {
         return false;
@@ -2437,6 +2451,11 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
     else if (sensor->modelId() == QLatin1String("Remote switch"))
     {
         //Make group but without uniqueid
+    }
+    else if (sensor->modelId().contains(QLatin1String("86opcn01"))) // Aqara Opple
+    {
+        //Make group but without uniqueid
+        //Aqara Opple Switches need a group or else they will control all the lights
     }
     else if (sensor->modelId() == QLatin1String("RB01") ||
              sensor->modelId() == QLatin1String("RM01"))
