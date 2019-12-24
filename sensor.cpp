@@ -639,6 +639,66 @@ static const Sensor::ButtonMap legrandSwitchRemote[] = {
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
+static const Sensor::ButtonMap aqaraOpple2Map[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    // First button Off
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x00, 0,    S_BUTTON_1 + S_BUTTON_ACTION_INITIAL_PRESS, "Off press" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 1,    S_BUTTON_1 + S_BUTTON_ACTION_DOUBLE_PRESS, "Off double press" },
+    { Sensor::ModeScenes,           0x01, 0x0300, 0x4c, 1,    S_BUTTON_1 + S_BUTTON_ACTION_HOLD, "Off hold" },
+	
+    // First button On
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x01, 0,    S_BUTTON_2 + S_BUTTON_ACTION_INITIAL_PRESS, "On press" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 0,    S_BUTTON_2 + S_BUTTON_ACTION_DOUBLE_PRESS, "On double press" },
+    { Sensor::ModeScenes,           0x01, 0x0300, 0x4c, 3,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD, "On hold" },
+
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
+};
+
+static const Sensor::ButtonMap aqaraOpple4Map[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    // First button Off
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x00, 0,    S_BUTTON_1 + S_BUTTON_ACTION_INITIAL_PRESS, "Off top press" },
+    // First button On
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x01, 0,    S_BUTTON_2 + S_BUTTON_ACTION_INITIAL_PRESS, "On top press" },
+    // Third button Off
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 1,    S_BUTTON_3 + S_BUTTON_ACTION_INITIAL_PRESS, "Off bottom press" },
+    { Sensor::ModeScenes,           0x01, 0x0300, 0x4c, 1,    S_BUTTON_3 + S_BUTTON_ACTION_DOUBLE_PRESS, "Off bottom bouble press" },
+    // Fourth button On
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 0,    S_BUTTON_4 + S_BUTTON_ACTION_INITIAL_PRESS, "On bottom press" },
+    { Sensor::ModeScenes,           0x01, 0x0300, 0x4c, 3,    S_BUTTON_4 + S_BUTTON_ACTION_DOUBLE_PRESS, "On bottom double press" },
+
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
+};
+
+static const Sensor::ButtonMap aqaraOpple6Map[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    // First button Off
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x00, 0,    S_BUTTON_1 + S_BUTTON_ACTION_INITIAL_PRESS, "Off top press" },
+    // First button On
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x01, 0,    S_BUTTON_2 + S_BUTTON_ACTION_INITIAL_PRESS, "On top press" },
+	// Third button Off
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 1,    S_BUTTON_3 + S_BUTTON_ACTION_INITIAL_PRESS, "Off middle press" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 1,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD, "Off middle hold" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 0,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED, "Off middle hold stop" },
+    // Fourth button On
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 0,    S_BUTTON_4 + S_BUTTON_ACTION_INITIAL_PRESS, "On middle press" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 0,    S_BUTTON_4 + S_BUTTON_ACTION_HOLD, "On middle hold" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 0,    S_BUTTON_4 + S_BUTTON_ACTION_LONG_RELEASED, "On middle hold stop" },
+    // Fifth button Off
+    { Sensor::ModeScenes,           0x01, 0x0300, 0x4c, 1,    S_BUTTON_5 + S_BUTTON_ACTION_DOUBLE_PRESS, "Off bottom press" },
+    { Sensor::ModeScenes,           0x01, 0x0300, 0x4b, 1,    S_BUTTON_5 + S_BUTTON_ACTION_HOLD, "Off bottom hold" },
+    { Sensor::ModeScenes,           0x01, 0x0300, 0x4b, 0,    S_BUTTON_5 + S_BUTTON_ACTION_LONG_RELEASED, "Off bottom hold stop" },
+    // Sixt button On
+    { Sensor::ModeScenes,           0x01, 0x0300, 0x4c, 3,    S_BUTTON_6 + S_BUTTON_ACTION_DOUBLE_PRESS, "On bottom press" },
+    { Sensor::ModeScenes,           0x01, 0x0300, 0x4b, 3,    S_BUTTON_6 + S_BUTTON_ACTION_HOLD, "On bottom hold" },
+    { Sensor::ModeScenes,           0x01, 0x0300, 0x4b, 0,    S_BUTTON_6 + S_BUTTON_ACTION_LONG_RELEASED, "On bottom hold stop" },
+
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
+};
+
 /*! Returns a fingerprint as JSON string. */
 QString SensorFingerprint::toString() const
 {
@@ -1172,6 +1232,9 @@ const Sensor::ButtonMap *Sensor::buttonMap()
             if      (modelid == QLatin1String("lumi.sensor_switch"))      { m_buttonMap = xiaomiSwitchMap; }
             else if (modelid == QLatin1String("lumi.sensor_switch.aq2"))  { m_buttonMap = xiaomiSwitchAq2Map; }
             else if (modelid.startsWith(QLatin1String("lumi.vibration"))) { m_buttonMap = xiaomiVibrationMap; }
+			else if (modelid == QLatin1String("lumi.remote.b286opcn01"))  { m_buttonMap = aqaraOpple2Map; }
+			else if (modelid == QLatin1String("lumi.remote.b486opcn01"))  { m_buttonMap = aqaraOpple4Map; }
+			else if (modelid == QLatin1String("lumi.remote.b686opcn01"))  { m_buttonMap = aqaraOpple6Map; }
         }
         else if (manufacturer == QLatin1String("Lutron"))
         {
