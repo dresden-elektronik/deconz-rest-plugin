@@ -3804,7 +3804,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
-                    else if (modelId.contains(QLatin1String("86opcn01")))
+                    else if (modelId.contains(QLatin1String("86opcn01"))) // Aqara Opple
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
