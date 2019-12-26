@@ -1372,7 +1372,8 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
             }
 
             QDateTime dt = item->lastChanged().addSecs(c->seconds());
-            if (now.secsTo(dt) != 0)
+            qint64 delta = now.msecsTo(dt);
+            if (delta < -500 || delta >= 500)
             {
                 return false;
             }
@@ -1820,6 +1821,10 @@ void DeRestPluginPrivate::handleRuleEvent(const Event &e)
     if (!e.id().isEmpty())
     {
         DBG_Printf(DBG_INFO, "rule event: %s/%s %s num (%d -> %d)\n", e.resource(), qPrintable(e.id()), e.what(), e.numPrevious(), e.num());
+    }
+    else
+    {
+        DBG_Printf(DBG_INFO_L2, "rule event: %s %s\n", e.resource(), e.what());
     }
 
     QElapsedTimer t;
