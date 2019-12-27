@@ -1566,7 +1566,7 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturerCode() == VENDOR_NETVOX) // Netvox smart plug
         {
         }
-	else if (lightNode->modelId().contains(QLatin1String("86opcn01"))) // Aqara Opple
+        else if (lightNode->modelId().contains(QLatin1String("86opcn01"))) // Aqara Opple
         {
         }
         else
@@ -1927,9 +1927,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                      sensor->modelId() == QLatin1String("WISZB-120") ||
                      sensor->modelId() == QLatin1String("MOSZB-130") ||
                      sensor->modelId() == QLatin1String("FLSZB-110") ||
-		     sensor->modelId() == QLatin1String("Remote switch") ||
+		       sensor->modelId() == QLatin1String("Remote switch") ||
                      sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||
-		     sensor->modelId().contains(QLatin1String("86opcn01"))) // Aqara Opple
+		       sensor->modelId().contains(QLatin1String("86opcn01"))) // Aqara Opple
             {
                 val = sensor->getZclValue(*i, 0x0020); // battery voltage
             }
