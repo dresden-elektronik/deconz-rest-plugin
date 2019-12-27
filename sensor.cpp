@@ -663,7 +663,7 @@ static const Sensor::ButtonMap aqaraOpple4Map[] = {
     { Sensor::ModeScenes,           0x01, 0x0006, 0x01, 0,    S_BUTTON_2 + S_BUTTON_ACTION_INITIAL_PRESS, "On top press" },
     // Third button Off
     { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 1,    S_BUTTON_3 + S_BUTTON_ACTION_INITIAL_PRESS, "Off bottom press" },
-    { Sensor::ModeScenes,           0x01, 0x0300, 0x4c, 1,    S_BUTTON_3 + S_BUTTON_ACTION_DOUBLE_PRESS, "Off bottom bouble press" },
+    { Sensor::ModeScenes,           0x01, 0x0300, 0x4c, 1,    S_BUTTON_3 + S_BUTTON_ACTION_DOUBLE_PRESS, "Off bottom double press" },
     // Fourth button On
     { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 0,    S_BUTTON_4 + S_BUTTON_ACTION_INITIAL_PRESS, "On bottom press" },
     { Sensor::ModeScenes,           0x01, 0x0300, 0x4c, 3,    S_BUTTON_4 + S_BUTTON_ACTION_DOUBLE_PRESS, "On bottom double press" },
@@ -678,7 +678,7 @@ static const Sensor::ButtonMap aqaraOpple6Map[] = {
     { Sensor::ModeScenes,           0x01, 0x0006, 0x00, 0,    S_BUTTON_1 + S_BUTTON_ACTION_INITIAL_PRESS, "Off top press" },
     // First button On
     { Sensor::ModeScenes,           0x01, 0x0006, 0x01, 0,    S_BUTTON_2 + S_BUTTON_ACTION_INITIAL_PRESS, "On top press" },
-	// Third button Off
+    // Third button Off
     { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 1,    S_BUTTON_3 + S_BUTTON_ACTION_INITIAL_PRESS, "Off middle press" },
     { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 1,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD, "Off middle hold" },
     { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 0,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED, "Off middle hold stop" },
@@ -1232,9 +1232,9 @@ const Sensor::ButtonMap *Sensor::buttonMap()
             if      (modelid == QLatin1String("lumi.sensor_switch"))      { m_buttonMap = xiaomiSwitchMap; }
             else if (modelid == QLatin1String("lumi.sensor_switch.aq2"))  { m_buttonMap = xiaomiSwitchAq2Map; }
             else if (modelid.startsWith(QLatin1String("lumi.vibration"))) { m_buttonMap = xiaomiVibrationMap; }
-			else if (modelid == QLatin1String("lumi.remote.b286opcn01"))  { m_buttonMap = aqaraOpple2Map; }
-			else if (modelid == QLatin1String("lumi.remote.b486opcn01"))  { m_buttonMap = aqaraOpple4Map; }
-			else if (modelid == QLatin1String("lumi.remote.b686opcn01"))  { m_buttonMap = aqaraOpple6Map; }
+            else if (modelid == QLatin1String("lumi.remote.b286opcn01"))  { m_buttonMap = aqaraOpple2Map; }
+            else if (modelid == QLatin1String("lumi.remote.b486opcn01"))  { m_buttonMap = aqaraOpple4Map; }
+            else if (modelid == QLatin1String("lumi.remote.b686opcn01"))  { m_buttonMap = aqaraOpple6Map; }
         }
         else if (manufacturer == QLatin1String("Lutron"))
         {
