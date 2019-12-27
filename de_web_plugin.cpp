@@ -3461,8 +3461,8 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 }
 
             }
-            else if (ind.clusterId() == COLOR_CLUSTER_ID && 
-                     (zclFrame.commandId() == 0x4c))  // Aqara Opple hold
+            else if (ind.clusterId() == COLOR_CLUSTER_ID &&
+                    (zclFrame.commandId() == 0x4c && sensor->modelId().contains(QLatin1String("86opcn01"))))  // Aqara Opple hold
             {
                 ok = false;
                 if (zclFrame.payload().size() >= 1 && buttonMap->zclParam0 == zclFrame.payload().at(0)) // direction
@@ -13945,6 +13945,11 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             checkSensorBindingsForClientClusters(sensor);
         }
         else if (sensor->modelId() == QLatin1String("Remote switch"))// Legrand switch
+        {
+            checkSensorGroup(sensor);
+            checkSensorBindingsForClientClusters(sensor);
+        }
+        else if (sensor->modelId().contains(QLatin1String("86opcn01"))) // Aqara Opple
         {
             checkSensorGroup(sensor);
             checkSensorBindingsForClientClusters(sensor);
