@@ -952,11 +952,29 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     }
     else if (bt.binding.clusterId == TEMPERATURE_MEASUREMENT_CLUSTER_ID)
     {
+        Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
+		
         rq.dataType = deCONZ::Zcl16BitInt;
         rq.attributeId = 0x0000;       // measured value
-        rq.minInterval = 10;           // value used by Hue bridge
-        rq.maxInterval = 300;          // value used by Hue bridge
-        rq.reportableChange16bit = 20; // value used by Hue bridge
+
+        if (sensor && (sensor->modelId().startsWith(QLatin1String("SMSZB-120")) ||   // Develco smoke sensor
+                        sensor->modelId().startsWith(QLatin1String("HESZB-120")) ||  // Develco heat sensor
+                        sensor->modelId().startsWith(QLatin1String("MOSZB-130")) ||  // Develco motion sensor
+                        sensor->modelId().startsWith(QLatin1String("WISZB-120")) ||  // Develco window sensor
+                        sensor->modelId().startsWith(QLatin1String("FLSZB-110")) ||  // Develco water leak sensor
+                        sensor->modelId().startsWith(QLatin1String("ZHMS101"))))     // Wattle (Develco) magnetic sensor
+        {
+            rq.minInterval = 60;           // according to technical manual
+            rq.maxInterval = 600;          // according to technical manual
+            rq.reportableChange16bit = 10; // according to technical manual
+        }
+        else
+        {
+            rq.minInterval = 10;           // value used by Hue bridge
+            rq.maxInterval = 300;          // value used by Hue bridge
+            rq.reportableChange16bit = 20; // value used by Hue bridge
+        }	
+
         return sendConfigureReportingRequest(bt, {rq});
     }
     else if (bt.binding.clusterId == THERMOSTAT_CLUSTER_ID)
@@ -1089,7 +1107,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.reportableChange8bit = 0;
         }
         else if (sensor && (sensor->modelId().startsWith(QLatin1String("SMSZB-120")) || // Develco smoke sensor
-                           sensor->modelId().startsWith(QLatin1String("HESZB-120")) || // Develco heat sensor
+                           sensor->modelId().startsWith(QLatin1String("HESZB-120")) ||  // Develco heat sensor
                            sensor->modelId().startsWith(QLatin1String("MOSZB-130")) ||  // Develco motion sensor
                            sensor->modelId().startsWith(QLatin1String("WISZB-120")) ||  // Develco window sensor
                            sensor->modelId().startsWith(QLatin1String("FLSZB-110")) ||  // Develco water leak sensor
