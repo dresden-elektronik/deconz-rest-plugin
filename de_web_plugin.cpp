@@ -129,6 +129,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_DDEL, "FLS-NB2", deMacPrefix },
     { VENDOR_IKEA, "TRADFRI remote control", ikeaMacPrefix },
     { VENDOR_IKEA, "TRADFRI remote control", silabsMacPrefix },
+    { VENDOR_IKEA, "TRADFRI remote control", silabs2MacPrefix },
     { VENDOR_IKEA, "TRADFRI motion sensor", ikeaMacPrefix },
     { VENDOR_IKEA, "TRADFRI wireless dimmer", ikeaMacPrefix },
     { VENDOR_IKEA, "TRADFRI on/off switch", ikeaMacPrefix },
@@ -237,7 +238,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_LEGRAND, "Remote switch", legrandMacPrefix }, // Legrand wireless switch
     { VENDOR_NETVOX, "Z809AE3R", netvoxMacPrefix }, // Netvox smartplug
     { VENDOR_LDS, "ZB-ONOFFPlug-D0005", silabs2MacPrefix }, // Samsung SmartPlug 2019 (7A-PL-Z-J3)
-	{ VENDOR_PHYSICAL, "outletv4", stMacPrefix }, // Samsung SmartThings plug (IM6001-OTP)
+    { VENDOR_PHYSICAL, "outletv4", stMacPrefix }, // Samsung SmartThings plug (IM6001-OTP)
     { 0, nullptr, 0 }
 };
 
