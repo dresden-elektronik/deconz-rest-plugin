@@ -237,6 +237,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_LEGRAND, "Remote switch", legrandMacPrefix }, // Legrand wireless switch
     { VENDOR_NETVOX, "Z809AE3R", netvoxMacPrefix }, // Netvox smartplug
     { VENDOR_LDS, "ZB-ONOFFPlug-D0005", silabs2MacPrefix }, // Samsung SmartPlug 2019 (7A-PL-Z-J3)
+	{ VENDOR_PHYSICAL, "outletv4", stMacPrefix }, // Samsung SmartThings plug (IM6001-OTP)
     { 0, nullptr, 0 }
 };
 
@@ -6879,7 +6880,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         power = power == 28000 ? 0 : power / 10;
                                     }
-                                    else if (i->modelId() == QLatin1String("RICI01")) //LifeControl Smart Plug
+                                    else if (i->modelId() == QLatin1String("RICI01") || // LifeControl Smart Plug
+                                            i->modelId() == QLatin1String("outletv4"))  // Samsung SmartThings IM6001-OTP
                                     {
                                         power /= 10; // 0.1W -> W
                                     }
@@ -6906,7 +6908,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         voltage += 50; voltage /= 100; // 0.01V -> V
                                     }
-                                    else if (i->modelId() == QLatin1String("RICI01")) //LifeControl Smart Plug
+                                    else if (i->modelId() == QLatin1String("RICI01") || // LifeControl Smart Plug
+                                            i->modelId() == QLatin1String("outletv4"))  // Samsung SmartThings IM6001-OTP
                                     {
                                         voltage /= 10; // 0.1V -> V
                                     }
@@ -6928,7 +6931,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 if (item && current != 65535)
                                 {
-                                    if (i->modelId() == QLatin1String("SP 120")) // innr
+                                    if (i->modelId() == QLatin1String("SP 120") || // innr
+                                        i->modelId() == QLatin1String("outletv4"))  // Samsung SmartThings IM6001-OTP
                                     {
                                         // already in mA
                                     }
