@@ -183,7 +183,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "Z716A", netvoxMacPrefix },
     // { VENDOR_OSRAM_STACK, "Plug", osramMacPrefix }, // OSRAM plug - exposed only as light
     { VENDOR_OSRAM_STACK, "CO_", heimanMacPrefix }, // Heiman CO sensor
-    { VENDOR_OSRAM_STACK, "DOOR_", heimanMacPrefix }, // Heiman door/window sensor
+    { VENDOR_OSRAM_STACK, "DOOR_", heimanMacPrefix }, // Heiman door/window sensor - older model
     { VENDOR_OSRAM_STACK, "PIR_", heimanMacPrefix }, // Heiman motion sensor
     { VENDOR_OSRAM_STACK, "GAS_", heimanMacPrefix }, // Heiman gas sensor - older model
     { VENDOR_OSRAM_STACK, "TH-", heimanMacPrefix }, // Heiman temperature/humidity sensor
@@ -197,6 +197,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_120B, "COSensor", emberMacPrefix }, // Heiman CO sensor - newer model
     { VENDOR_120B, "TH-", emberMacPrefix }, // Heiman temperature/humidity sensor - newer model
     { VENDOR_120B, "Water", emberMacPrefix }, // Heiman water sensor - newer model
+    { VENDOR_120B, "Door", emberMacPrefix }, // Heiman door/window sensor - newer model
     { VENDOR_120B, "WarningDevice", emberMacPrefix }, // Heiman siren
     { VENDOR_LUTRON, "LZL4BWHL01", lutronMacPrefix }, // Lutron LZL-4B-WH-L01 Connected Bulb Remote
     { VENDOR_KEEN_HOME , "SV01-", keenhomeMacPrefix}, // Keen Home Vent
@@ -3833,6 +3834,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         fpCarbonMonoxideSensor.inClusters.push_back(ci->id());
                     }
                     else if (modelId.startsWith(QLatin1String("DOOR_")) ||            // Heiman door/window sensor
+                             modelId.startsWith(QLatin1String("Door")) ||             // Heiman door/window sensor (newer model)
                              modelId == QLatin1String("3AFE130104020015") ||          // Konke door/window sensor
                              modelId.startsWith(QLatin1String("902010/21")) ||        // Bitron door/window sensor
                              modelId.startsWith(QLatin1String("WISZB-120")) ||        // Develco door/window sensor
