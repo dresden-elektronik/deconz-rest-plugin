@@ -3322,7 +3322,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 sensor.modelId() != QLatin1String("lumi.sensor_switch") &&
                 !sensor.modelId().contains(QLatin1String("weather")) &&
                 !sensor.modelId().startsWith(QLatin1String("lumi.sensor_ht")) &&
-                sensor.modelId().contains(QLatin1String("86opcn01")) == false) // exclude Aqara Opple
+                !sensor.modelId().contains(QLatin1String("86opcn01"))) // exclude Aqara Opple
             {
                 item = sensor.addItem(DataTypeInt16, RConfigTemperature);
                 item->setValue(0);
