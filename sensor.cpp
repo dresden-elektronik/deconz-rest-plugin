@@ -681,17 +681,17 @@ static const Sensor::ButtonMap aqaraOpple6Map[] = {
     // Third button Off
     { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 1,    S_BUTTON_3 + S_BUTTON_ACTION_INITIAL_PRESS, "Off middle press" },
     { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 1,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD, "Off middle hold" },
-    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 0,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED, "Off middle hold stop" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 1,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED, "Off middle hold stop" },
     // Fourth button On
     { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 0,    S_BUTTON_4 + S_BUTTON_ACTION_INITIAL_PRESS, "On middle press" },
     { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 0,    S_BUTTON_4 + S_BUTTON_ACTION_HOLD, "On middle hold" },
     { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 0,    S_BUTTON_4 + S_BUTTON_ACTION_LONG_RELEASED, "On middle hold stop" },
     // Fifth button Off
-    { Sensor::ModeScenes,           0x01, 0x0300, 0x4c, 1,    S_BUTTON_5 + S_BUTTON_ACTION_DOUBLE_PRESS, "Off bottom press" },
+    { Sensor::ModeScenes,           0x01, 0x0300, 0x4c, 1,    S_BUTTON_5 + S_BUTTON_ACTION_INITIAL_PRESS, "Off bottom press" },
     { Sensor::ModeScenes,           0x01, 0x0300, 0x4b, 1,    S_BUTTON_5 + S_BUTTON_ACTION_HOLD, "Off bottom hold" },
     { Sensor::ModeScenes,           0x01, 0x0300, 0x4b, 0,    S_BUTTON_5 + S_BUTTON_ACTION_LONG_RELEASED, "Off bottom hold stop" },
-    // Sixt button On
-    { Sensor::ModeScenes,           0x01, 0x0300, 0x4c, 3,    S_BUTTON_6 + S_BUTTON_ACTION_DOUBLE_PRESS, "On bottom press" },
+    // Sixth button On
+    { Sensor::ModeScenes,           0x01, 0x0300, 0x4c, 3,    S_BUTTON_6 + S_BUTTON_ACTION_INITIAL_PRESS, "On bottom press" },
     { Sensor::ModeScenes,           0x01, 0x0300, 0x4b, 3,    S_BUTTON_6 + S_BUTTON_ACTION_HOLD, "On bottom hold" },
     { Sensor::ModeScenes,           0x01, 0x0300, 0x4b, 0,    S_BUTTON_6 + S_BUTTON_ACTION_LONG_RELEASED, "On bottom hold stop" },
 
