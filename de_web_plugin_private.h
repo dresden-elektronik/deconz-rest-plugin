@@ -398,13 +398,15 @@ extern const quint64 xalMacPrefix;
 extern const quint64 develcoMacPrefix;
 extern const quint64 legrandMacPrefix;
 extern const quint64 silabs2MacPrefix;
+extern const quint64 xiaomiMacPrefix;
 
 inline bool checkMacVendor(quint64 addr, quint16 vendor)
 {
     const quint64 prefix = addr & macPrefixMask;
     switch (vendor) {
         case VENDOR_115F:
-            return prefix == jennicMacPrefix;
+            return prefix == jennicMacPrefix ||
+                   prefix == xiaomiMacPrefix;
         case VENDOR_119C:
             return prefix == sinopeMacPrefix;
         case VENDOR_120B:
