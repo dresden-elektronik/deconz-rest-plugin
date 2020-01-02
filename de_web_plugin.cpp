@@ -3426,7 +3426,8 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 }
             }
             else if (ind.clusterId() == COLOR_CLUSTER_ID &&
-                     (zclFrame.commandId() == 0x4b && zclFrame.payload().size() >= 7) )  // move color temperature
+                     (zclFrame.commandId() == 0x4b && zclFrame.payload().size() >= 7) && // move color temperature 
+                     !sensor->modelId().contains(QLatin1String("86opcn01")))  // do not use this for Aqara Opple switches, they are missing the additional payload
             {
                 ok = false;
                 // u8 move mode
@@ -3462,8 +3463,9 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
             }
             else if (ind.clusterId() == COLOR_CLUSTER_ID &&
-                    (zclFrame.commandId() == 0x4c && sensor->modelId().contains(QLatin1String("86opcn01"))))  // Aqara Opple hold
+                    ((zclFrame.commandId() == 0x4c || zclFrame.commandId() == 0x4b) && sensor->modelId().contains(QLatin1String("86opcn01"))))  // Aqara Opple hold
             {
+                // currently there is an issue detecting the release of the bottom Off button on the 6 button switch, it gets detected as bottom On button release
                 ok = false;
                 if (zclFrame.payload().size() >= 1 && buttonMap->zclParam0 == zclFrame.payload().at(0)) // direction
                 {
