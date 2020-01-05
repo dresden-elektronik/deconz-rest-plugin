@@ -3816,10 +3816,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
-                    else if (modelId.contains(QLatin1String("86opcn01"))) // Aqara Opple
-                    {
-                        fpSwitch.inClusters.push_back(ci->id());
-                    }
                 }
                     break;
 
@@ -5017,7 +5013,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         if (!sensorNode.item(RStateTemperature) &&
             sensorNode.modelId() != QLatin1String("lumi.sensor_switch") &&
             !sensorNode.modelId().contains(QLatin1String("weather")) &&
-            !sensorNode.modelId().startsWith(QLatin1String("lumi.sensor_ht")))
+            !sensorNode.modelId().startsWith(QLatin1String("lumi.sensor_ht")) &&
+            !sensorNode.modelId().contains(QLatin1String("86opcn01"))) // exclude Aqara Opple
         {
             sensorNode.addItem(DataTypeInt16, RConfigTemperature);
             //sensorNode.addItem(DataTypeInt16, RConfigOffset);
