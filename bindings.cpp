@@ -1566,9 +1566,6 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturerCode() == VENDOR_NETVOX) // Netvox smart plug
         {
         }
-        else if (lightNode->modelId().contains(QLatin1String("86opcn01"))) // Aqara Opple
-        {
-        }
         else
         {
             return;
