@@ -2076,7 +2076,7 @@ Note: It does not clear or delete previous weekly schedule programming configura
 				<attribute id="0x0905" name="RMS Voltage" type="u16" access="r" required="o" default="0xFFFF"></attribute>
 				<attribute id="0x0908" name="RMS Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
 			</attribute-set>
-			<attribute-set id="0x09" description="AC (Phase C) Measurements">
+			<attribute-set id="0x0a" description="AC (Phase C) Measurements">
 				<attribute id="0x0a05" name="RMS Voltage" type="u16" access="r" required="o" default="0xFFFF"></attribute>
 				<attribute id="0x0a08" name="RMS Current" type="u16" access="r" required="o" default="0xFFFF"></attribute>
 			</attribute-set>
