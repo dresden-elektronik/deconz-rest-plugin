@@ -228,6 +228,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_DEVELCO, "EMIZB-132", develcoMacPrefix }, // Develco EMI Norwegian HAN
     { VENDOR_DEVELCO, "ZHMS101", develcoMacPrefix }, // Wattle (Develco) magnetic sensor
     { VENDOR_EMBER, "3AFE14010402000D", konkeMacPrefix }, // Konke Kit Pro-BS Motion Sensor
+    { VENDOR_KONKE, "3AFE28010402000D", ikea2MacPrefix }, // Konke Kit Pro-BS Motion Sensor ver.2
     { VENDOR_EMBER, "3AFE140103020000", konkeMacPrefix }, // Konke Kit Pro-FT Temp Humidity Sensor
     { VENDOR_EMBER, "3AFE130104020015", konkeMacPrefix }, // Konke Kit Pro-Door Entry Sensor
     { VENDOR_NONE, "RICI01", tiMacPrefix}, // LifeControl smart plug
@@ -3844,6 +3845,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     }
                     else if (modelId.startsWith(QLatin1String("PIR_")) ||             // Heiman motion sensor
                              modelId == QLatin1String("3AFE14010402000D") ||          // Konke motion sensor
+                             modelId == QLatin1String("3AFE28010402000D") ||          // Konke motion sensor ver.2
                              modelId.startsWith(QLatin1String("902010/22")) ||        // Bitron motion sensor
                              modelId.startsWith(QLatin1String("SN10ZW")) ||           // ORVIBO motion sensor
                              modelId.startsWith(QLatin1String("MOSZB-130")))          // Develco motion sensor
@@ -5681,7 +5683,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 continue;
                             }
-                            
+
                             if (i->mustRead(READ_BATTERY))
                             {
                                 i->clearRead(READ_BATTERY);
@@ -8216,7 +8218,7 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
     //        processed++;
     //    }
     //}
- 
+
     if (sensorNode->mustRead(READ_BATTERY) && tNow > sensorNode->nextReadTime(READ_BATTERY))
     {
         std::vector<uint16_t> attributes;
