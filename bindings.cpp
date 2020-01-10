@@ -593,9 +593,11 @@ bool DeRestPluginPrivate::sendBindRequest(BindingTask &bt)
 
         if (!s.node() || s.node()->nodeDescriptor().isNull())
         {
-            //whitelist sensors which don't seem to have a valid node descriptor
-            //This is a workaround currently only required for Develco smoke sensor
-            if (s.modelId().startsWith(QLatin1String("SMSZB-120")))
+            // Whitelist sensors which don't seem to have a valid node descriptor.
+            // This is a workaround currently only required for Develco smoke sensor
+            // and potentially Bosch motion sensor
+            if (s.modelId().startsWith(QLatin1String("SMSZB-120")) ||    // Develco smoke sensor
+                s.modelId().startsWith(QLatin1String("ISW-ZPR1-WP13")))  // Bosch motion sensor
             {
             }
             else
@@ -1724,9 +1726,11 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
 
     if (sensor->node()->nodeDescriptor().isNull())
     {
-        //whitelist sensors which don't seem to have a valid node descriptor
-        //This is a workaround currently only required for Develco smoke sensor
-        if (sensor->modelId().startsWith(QLatin1String("SMSZB-120")))
+        // Whitelist sensors which don't seem to have a valid node descriptor.
+        // This is a workaround currently only required for Develco smoke sensor
+        // and potentially Bosch motion sensor
+        if (sensor->modelId().startsWith(QLatin1String("SMSZB-120")) ||   // Develco smoke sensor
+            sensor->modelId().startsWith(QLatin1String("ISW-ZPR1-WP13"))) // Bosch motion sensor
         {
         }
         else
@@ -1840,6 +1844,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("ZB-ONOFFPlug-D0005")))
         // Aurora
         sensor->modelId().startsWith(QLatin1String("DoubleSocket50AU")))
+        // Bosch
+        sensor->modelId().startsWith(QLatin1String("ISW-ZPR1-WP13")))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||
