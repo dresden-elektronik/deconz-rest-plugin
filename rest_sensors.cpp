@@ -2340,7 +2340,13 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
         }
         else if (macCapabilities & deCONZ::MacDeviceIsFFD)
         {
-            return;
+            if (checkMacVendor(ext, VENDOR_LDS))
+            { //  Fix to allow Samsung SmartThings plug sensors to be created (7A-PL-Z-J3, modelId ZB-ONOFFPlug-D0005)
+            }
+            else
+            {
+                return;
+            }
         }
         else if (macCapabilities == 0)
         {
