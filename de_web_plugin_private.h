@@ -417,7 +417,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
         case VENDOR_BITRON:
             return prefix == tiMacPrefix;
         case VENDOR_BOSCH:
-            return prefix == boschMacPrefix;
+            return prefix == boschMacPrefix ||
+            return prefix == emberMacPrefix;
         case VENDOR_BUSCH_JAEGER:
             return prefix == bjeMacPrefix;
         case VENDOR_CENTRALITE:

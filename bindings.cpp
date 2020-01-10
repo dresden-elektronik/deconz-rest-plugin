@@ -1092,7 +1092,9 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 1800;
             rq.reportableChange8bit = 0xFF;
         }
-        else if (sensor && sensor->modelId() == QLatin1String("Motion Sensor-A"))
+        else if (sensor && (sensor->modelId() == QLatin1String("Motion Sensor-A") ||
+                            sensor->modelId() == QLatin1String("tagv4") ||
+                            sensor->modelId() == QLatin1String("RFDL-ZB-MS")))
         {
             rq.attributeId = 0x0020;   // battery voltage
             rq.minInterval = 3600;
