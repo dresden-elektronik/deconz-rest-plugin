@@ -242,6 +242,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_LDS, "ZB-ONOFFPlug-D0005", silabs2MacPrefix }, // Samsung SmartPlug 2019 (7A-PL-Z-J3)
     { VENDOR_PHYSICAL, "outletv4", stMacPrefix }, // Samsung SmartThings plug (IM6001-OTP)
     { VENDOR_NONE, "RH3052", emberMacPrefix }, // Lupus small zigbee temperature sensor
+    { VENDOR_AURORA, "DoubleSocket50AU", jennicMacPrefix }, // Aurora AOne Double Socket UK
     { 0, nullptr, 0 }
 };
 
@@ -6935,8 +6936,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 if (item && current != 65535)
                                 {
-                                    if (i->modelId() == QLatin1String("SP 120") || // innr
-                                        i->modelId() == QLatin1String("outletv4"))  // Samsung SmartThings IM6001-OTP
+                                    if (i->modelId() == QLatin1String("SP 120") ||          // innr
+                                        i->modelId() == QLatin1String("outletv4") ||        // Samsung SmartThings IM6001-OTP
+                                        i->modelId() == QLatin1String("DoubleSocket50AU"))  // Aurora
                                     {
                                         // already in mA
                                     }

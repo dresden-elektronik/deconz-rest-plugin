@@ -1246,7 +1246,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq3.attributeId = 0x0508; // RMS Current
         rq3.minInterval = 1;
         rq3.maxInterval = 300;
-        if (sensor && sensor->modelId() == QLatin1String("SP 120")) // innr
+        if (sensor && (sensor->modelId() == QLatin1String("SP 120") ||           // innr
+                       sensor->modelId() == QLatin1String("DoubleSocket50AU")))  // Aurora
         {
             rq3.reportableChange16bit = 100; // 0.1 A
         }
@@ -1835,6 +1836,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("Z809A")) ||
         // Samsung SmartPlug 2019
         sensor->modelId().startsWith(QLatin1String("ZB-ONOFFPlug-D0005")))
+        // Aurora
+        sensor->modelId().startsWith(QLatin1String("DoubleSocket50AU")))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||

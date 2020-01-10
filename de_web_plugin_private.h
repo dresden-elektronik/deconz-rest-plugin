@@ -282,6 +282,7 @@
 #define VENDOR_PAULMANN     0x119D
 #define VENDOR_120B         0x120B // Used by Heiman
 #define VENDOR_MUELLER      0x121B // Used by Mueller Licht
+#define VENDOR_AURORA       0x121C // Used by Aurora Aone
 #define VENDOR_SUNRICHER    0x1224 // Used by iCasa keypads
 #define VENDOR_XAL          0x122A
 #define VENDOR_1233         0x1233 // Used by Third Reality
@@ -473,6 +474,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == legrandMacPrefix;
         case VENDOR_NETVOX:
             return prefix == netvoxMacPrefix;
+        case VENDOR_AURORA:
+            return prefix == jennicMacPrefix;
         default:
             return false;
     }
