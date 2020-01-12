@@ -1841,9 +1841,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Netvox
         sensor->modelId().startsWith(QLatin1String("Z809A")) ||
         // Samsung SmartPlug 2019
-        sensor->modelId().startsWith(QLatin1String("ZB-ONOFFPlug-D0005")))
+        sensor->modelId().startsWith(QLatin1String("ZB-ONOFFPlug-D0005")) ||
         // Aurora
-        sensor->modelId().startsWith(QLatin1String("DoubleSocket50AU")))
+        sensor->modelId().startsWith(QLatin1String("DoubleSocket50AU")) ||
         // Bosch
         sensor->modelId().startsWith(QLatin1String("ISW-ZPR1-WP13")))
     {
