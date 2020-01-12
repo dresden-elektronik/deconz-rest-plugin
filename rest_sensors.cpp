@@ -2371,7 +2371,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
             if (i->address.ext() == ext || i->address.nwk() == nwk)
             {
                 i->waitIndicationClusterId = 0xffff;
-                i->timeout = QTime();
+                i->timeout.invalidate();
                 i->address = deCONZ::Address(); // clear
             }
         }
@@ -2417,7 +2417,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
                 if (ind.clusterId() == i->waitIndicationClusterId && i->timeout.isValid())
                 {
                     DBG_Printf(DBG_INFO, "ZDP indication search sensors 0x%016llX (0x%04X) clear timeout on cluster 0x%04X\n", ind.srcAddress().ext(), ind.srcAddress().nwk(), ind.clusterId());
-                    i->timeout = QTime();
+                    i->timeout.invalidate();
                     i->waitIndicationClusterId = 0xffff;
                 }
 
@@ -2520,7 +2520,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
             if (ind.clusterId() == sc->waitIndicationClusterId && sc->timeout.isValid())
             {
                 DBG_Printf(DBG_INFO, "Clear fast probe timeout for cluster 0x%04X, 0x%016llX\n", ind.clusterId(), ind.srcAddress().ext());
-                sc->timeout = QTime();
+                sc->timeout.invalidate();
                 sc->waitIndicationClusterId = 0xffff;
             }
         }

@@ -2644,7 +2644,7 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
 
         if (req.sock != nullptr)
         {
-            ls->tVerified = QTime(); // invalidate, trigger verify or add
+            ls->tVerified.invalidate(); // invalidate, trigger verify or add
         }
     }
 

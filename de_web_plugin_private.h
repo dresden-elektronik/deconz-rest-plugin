@@ -1384,7 +1384,7 @@ public:
     GatewayScanner *gwScanner;
 
     // authorisation
-    QTime apiAuthSaveDatabaseTime;
+    QElapsedTimer apiAuthSaveDatabaseTime;
     size_t apiAuthCurrent;
     std::vector<ApiAuth> apiAuths;
     QString gwAdminUserName;
@@ -1708,7 +1708,7 @@ public:
         }
         deCONZ::Address address;
         quint8 macCapabilities;
-        QTime timeout;
+        QElapsedTimer timeout;
         quint16 waitIndicationClusterId;
         std::vector<quint8> endpoints;
         std::vector<SensorCommand> rxCommands;
