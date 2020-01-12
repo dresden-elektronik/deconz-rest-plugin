@@ -4762,7 +4762,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = METERING_CLUSTER_ID;
             item = sensorNode.addItem(DataTypeUInt64, RStateConsumption);
-            if (modelId != QLatin1String("SP 120"))
+            if ((modelId != QLatin1String("SP 120")) && (modelId != QLatin1String("ZB-ONOFFPlug-D0005")))
             {
                 item = sensorNode.addItem(DataTypeInt16, RStatePower);
             }
@@ -4779,7 +4779,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = ELECTRICAL_MEASUREMENT_CLUSTER_ID;
             item = sensorNode.addItem(DataTypeInt16, RStatePower);
-            if ( (!modelId.startsWith(QLatin1String("Plug"))) && (node->nodeDescriptor().manufacturerCode() != VENDOR_LEGRAND) ) // OSRAM and Legrand plug don't have theses options
+            if ( (!modelId.startsWith(QLatin1String("Plug"))) &&
+                 (!modelId.startsWith(QLatin1String("ZB-ONOFFPlug-D0005"))) &&
+                 (node->nodeDescriptor().manufacturerCode() != VENDOR_LEGRAND) ) // OSRAM and Legrand plug don't have theses options
             {
                 item = sensorNode.addItem(DataTypeUInt16, RStateVoltage);
                 item = sensorNode.addItem(DataTypeUInt16, RStateCurrent);
