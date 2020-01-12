@@ -2096,7 +2096,7 @@ int DeRestPluginPrivate::createScene(const ApiRequest &req, ApiResponse &rsp)
 
     if (scene.name.isEmpty())
     {
-        scene.name.sprintf("Scene %u", scene.id);
+        scene.name = QString::asprintf("Scene %u", scene.id);
     }
 
     std::vector<LightNode>::iterator ni = nodes.begin();
@@ -2644,7 +2644,7 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
 
         if (req.sock != nullptr)
         {
-            ls->tVerified = QTime(); // invalidate, trigger verify or add
+            ls->tVerified.invalidate(); // invalidate, trigger verify or add
         }
     }
 

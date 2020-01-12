@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2020 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -1846,6 +1846,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("DoubleSocket50AU")) ||
         // Bosch
         sensor->modelId().startsWith(QLatin1String("ISW-ZPR1-WP13")))
+        // Aqara Opple
+        sensor->modelId().contains(QLatin1String("86opcn01")))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||
@@ -1953,8 +1955,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                      sensor->modelId() == QLatin1String("WISZB-120") ||
                      sensor->modelId() == QLatin1String("MOSZB-130") ||
                      sensor->modelId() == QLatin1String("FLSZB-110") ||
-		             sensor->modelId() == QLatin1String("Remote switch") ||
-                     sensor->modelId().startsWith(QLatin1String("ZHMS101")))
+		       sensor->modelId() == QLatin1String("Remote switch") ||
+                     sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||
+		       sensor->modelId().contains(QLatin1String("86opcn01"))) // Aqara Opple
             {
                 val = sensor->getZclValue(*i, 0x0020); // battery voltage
             }
@@ -2336,6 +2339,14 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(0x01);
         sensor->setMgmtBindSupported(true);
     }
+    // Aqara Opple
+    else if (sensor->modelId().contains(QLatin1String("86opcn01")))
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+        clusters.push_back(COLOR_CLUSTER_ID);
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+    }
     else
     {
         return false;
@@ -2468,6 +2479,11 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
     else if (sensor->modelId() == QLatin1String("Remote switch"))
     {
         //Make group but without uniqueid
+    }
+    else if (sensor->modelId().contains(QLatin1String("86opcn01"))) // Aqara Opple
+    {
+        //Make group but without uniqueid
+        //Aqara Opple Switches need a group or else they will control all the lights
     }
     else if (sensor->modelId() == QLatin1String("RB01") ||
              sensor->modelId() == QLatin1String("RM01"))

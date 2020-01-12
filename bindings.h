@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2020 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -10,6 +10,8 @@
 
 #ifndef BINDINGS_H
 #define BINDINGS_H
+
+#include <QElapsedTimer>
 
 /*! \class Binding
 
@@ -80,7 +82,7 @@ public:
     State state; //!< State of query
     quint8 index; //!< Current read index
     bool isEndDevice; //!< True if node is an end-device
-    QTime time; //!< State timeout reference
+    QElapsedTimer time; //!< State timeout reference
     deCONZ::ApsDataRequest apsReq; //!< The APS request to match APS confirm.id
 };
 
