@@ -1845,7 +1845,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Aurora
         sensor->modelId().startsWith(QLatin1String("DoubleSocket50AU")) ||
         // Bosch
-        sensor->modelId().startsWith(QLatin1String("ISW-ZPR1-WP13")))
+        sensor->modelId().startsWith(QLatin1String("ISW-ZPR1-WP13")) ||
         // Aqara Opple
         sensor->modelId().contains(QLatin1String("86opcn01")))
     {
