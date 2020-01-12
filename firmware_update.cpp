@@ -259,7 +259,7 @@ void DeRestPluginPrivate::firmwareUpdateTimerFired()
 
             if (devConnected && fwVersion)
             {
-                gwFirmwareVersion.sprintf("0x%08x", fwVersion);
+                gwFirmwareVersion.asprintf("0x%08x", fwVersion);
                 gwConfig["fwversion"] = gwFirmwareVersion;
                 updateEtag(gwConfigEtag);
             }
@@ -362,11 +362,11 @@ void DeRestPluginPrivate::queryFirmwareVersion()
     {
         if (((fwVersion & FW_PLATFORM_MASK) == FW_PLATFORM_AVR) || fwVersion == FW_ONLY_AVR_BOOTLOADER)
         {
-            fileName.sprintf("deCONZ_Rpi_0x%08x.bin.GCF", GW_MIN_AVR_FW_VERSION);
+            fileName.asprintf("deCONZ_Rpi_0x%08x.bin.GCF", GW_MIN_AVR_FW_VERSION);
         }
         else if (((fwVersion & FW_PLATFORM_MASK) == FW_PLATFORM_R21) || fwVersion == FW_ONLY_R21_BOOTLOADER)
         {
-            fileName.sprintf("deCONZ_ConBeeII_0x%08x.bin.GCF", GW_MIN_R21_FW_VERSION);
+            fileName.asprintf("deCONZ_ConBeeII_0x%08x.bin.GCF", GW_MIN_R21_FW_VERSION);
         }
 
         // search in different locations
@@ -419,7 +419,7 @@ void DeRestPluginPrivate::queryFirmwareVersion()
         else if (getUptime() >= FW_WAIT_UPDATE_READY)
         {
             QString str;
-            str.sprintf("0x%08x", GW_MIN_AVR_FW_VERSION);
+            str.asprintf("0x%08x", GW_MIN_AVR_FW_VERSION);
 
             gwFirmwareVersion = "0x00000000"; // unknown
             gwFirmwareVersionUpdate = str;
@@ -441,7 +441,7 @@ void DeRestPluginPrivate::queryFirmwareVersion()
     else if (devConnected || fwVersion == FW_ONLY_AVR_BOOTLOADER)
     {
         QString str;
-        str.sprintf("0x%08x", fwVersion);
+        str.asprintf("0x%08x", fwVersion);
 
         if (gwFirmwareVersion != str)
         {
@@ -458,7 +458,7 @@ void DeRestPluginPrivate::queryFirmwareVersion()
         {
             if (fwVersion < GW_MIN_AVR_FW_VERSION)
             {
-                gwFirmwareVersionUpdate.sprintf("0x%08x", GW_MIN_AVR_FW_VERSION);
+                gwFirmwareVersionUpdate.asprintf("0x%08x", GW_MIN_AVR_FW_VERSION);
                 gwFirmwareNeedUpdate = true;
                 updateEtag(gwConfigEtag);
 
@@ -502,7 +502,7 @@ void DeRestPluginPrivate::queryFirmwareVersion()
         {
             if (fwVersion < GW_MIN_R21_FW_VERSION)
             {
-                gwFirmwareVersionUpdate.sprintf("0x%08x", GW_MIN_R21_FW_VERSION);
+                gwFirmwareVersionUpdate.asprintf("0x%08x", GW_MIN_R21_FW_VERSION);
                 gwFirmwareNeedUpdate = true;
                 updateEtag(gwConfigEtag);
 

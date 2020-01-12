@@ -8949,7 +8949,7 @@ void DeRestPluginPrivate::foundScene(LightNode *lightNode, Group *group, uint8_t
     closeDb();
     if (scene.name.isEmpty())
     {
-        scene.name.sprintf("Scene %u", sceneId);
+        scene.name.asprintf("Scene %u", sceneId);
     }
     group->scenes.push_back(scene);
     updateGroupEtag(group);
@@ -11888,7 +11888,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                 s.groupAddress = groupId;
                 s.id = sceneId;
                 s.externalMaster = true;
-                s.name.sprintf("Scene %u", sceneId);
+                s.name.asprintf("Scene %u", sceneId);
                 group->scenes.push_back(s);
                 updateGroupEtag(group);
                 queSaveDb(DB_SCENES, DB_SHORT_SAVE_DELAY);
@@ -14355,7 +14355,7 @@ void DeRestPlugin::idleTimerFired()
         }
         if (!(d->gwLANBridgeId) && d->gwDeviceAddress.hasExt())
         {
-            d->gwBridgeId.sprintf("%016llX", (quint64)d->gwDeviceAddress.ext());
+            d->gwBridgeId.asprintf("%016llX", (quint64)d->gwDeviceAddress.ext());
             if (!d->gwConfig.contains("bridgeid") || d->gwConfig["bridgeid"] != d->gwBridgeId)
             {
                 DBG_Printf(DBG_INFO, "Set bridgeid to %s\n", qPrintable(d->gwBridgeId));
@@ -15531,21 +15531,21 @@ QString DeRestPluginPrivate::generateUniqueId(quint64 extAddress, quint8 endpoin
 
     if (clusterId != 0 && endpoint != 0xf2)
     {
-        uid.sprintf("%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x-%02x-%04x",
+        uid.asprintf("%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x-%02x-%04x",
                     a.bytes[7], a.bytes[6], a.bytes[5], a.bytes[4],
                     a.bytes[3], a.bytes[2], a.bytes[1], a.bytes[0],
                     endpoint, clusterId);
     }
     else if (endpoint != 0)
     {
-        uid.sprintf("%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x-%02x",
+        uid.asprintf("%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x-%02x",
                     a.bytes[7], a.bytes[6], a.bytes[5], a.bytes[4],
                     a.bytes[3], a.bytes[2], a.bytes[1], a.bytes[0],
                     endpoint);
     }
     else
     {
-        uid.sprintf("%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
+        uid.asprintf("%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
                     a.bytes[7], a.bytes[6], a.bytes[5], a.bytes[4],
                     a.bytes[3], a.bytes[2], a.bytes[1], a.bytes[0]);
     }

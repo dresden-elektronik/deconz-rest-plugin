@@ -251,7 +251,7 @@ bool DeRestPluginPrivate::setDbUserVersion(int userVersion)
     DBG_Printf(DBG_INFO, "DB write sqlite user_version %d\n", userVersion);
 
     QString sql;
-    sql.sprintf("PRAGMA user_version = %d", userVersion);
+    sql.asprintf("PRAGMA user_version = %d", userVersion);
 
     errmsg = NULL;
     rc = sqlite3_exec(db, qPrintable(sql), NULL, NULL, &errmsg);
@@ -2528,7 +2528,7 @@ void DeRestPluginPrivate::loadGroupFromDb(Group *group)
     }
 
     QString gid;
-    gid.sprintf("0x%04X", group->address());
+    gid.asprintf("0x%04X", group->address());
 
     QString sql = QString("SELECT * FROM groups WHERE gid='%1'").arg(gid);
 
@@ -2596,7 +2596,7 @@ void DeRestPluginPrivate::loadSceneFromDb(Scene *scene)
     }
 
     QString gsid; // unique key
-    gsid.sprintf("0x%04X%02X", scene->groupAddress, scene->id);
+    gsid.asprintf("0x%04X%02X", scene->groupAddress, scene->id);
 
     QString sql = QString("SELECT * FROM scenes WHERE gsid='%1'").arg(gsid);
 
@@ -4390,7 +4390,7 @@ void DeRestPluginPrivate::saveDb()
         for (; i != end; ++i)
         {
             QString gid;
-            gid.sprintf("0x%04X", i->address());
+            gid.asprintf("0x%04X", i->address());
 
             if (i->state() == Group::StateDeleted)
             {
@@ -4475,10 +4475,10 @@ void DeRestPluginPrivate::saveDb()
                 for (; si != send; ++si)
                 {
                     QString gsid; // unique key
-                    gsid.sprintf("0x%04X%02X", i->address(), si->id);
+                    gsid.asprintf("0x%04X%02X", i->address(), si->id);
 
                     QString sid;
-                    sid.sprintf("0x%02X", si->id);
+                    sid.asprintf("0x%02X", si->id);
 
                     QString lights = Scene::lightsToString(si->lights());
                     QString sql;

@@ -346,7 +346,7 @@ void GatewayScannerPrivate::queryNextIp()
     }
 
     QString url;
-    url.sprintf("http://%u.%u.%u.%u:%u/api/config",
+    url.asprintf("http://%u.%u.%u.%u:%u/api/config",
                 ((scanIp >> 24) & 0xff),
                 ((scanIp >> 16) & 0xff),
                 ((scanIp >> 8) & 0xff),

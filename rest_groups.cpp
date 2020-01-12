@@ -2096,7 +2096,7 @@ int DeRestPluginPrivate::createScene(const ApiRequest &req, ApiResponse &rsp)
 
     if (scene.name.isEmpty())
     {
-        scene.name.sprintf("Scene %u", scene.id);
+        scene.name.asprintf("Scene %u", scene.id);
     }
 
     std::vector<LightNode>::iterator ni = nodes.begin();

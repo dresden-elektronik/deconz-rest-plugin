@@ -463,13 +463,13 @@ void GatewayPrivate::handleEventStateOffline(GW_Event event)
         QString url;
         if (!apikey.isEmpty())
         {
-            url.sprintf("http://%s:%u/api/%s/config",
+            url.asprintf("http://%s:%u/api/%s/config",
                         qPrintable(address.toString()), port, qPrintable(apikey));
 
         }
         else
         {
-            url.sprintf("http://%s:%u/api/config", qPrintable(address.toString()), port);
+            url.asprintf("http://%s:%u/api/config", qPrintable(address.toString()), port);
         }
 
         reply = manager->get(QNetworkRequest(url));
@@ -542,7 +542,7 @@ void GatewayPrivate::handleEventStateNotAuthorized(GW_Event event)
 
         // try to create user account
         QString url;
-        url.sprintf("http://%s:%u/api/", qPrintable(address.toString()), port);
+        url.asprintf("http://%s:%u/api/", qPrintable(address.toString()), port);
 
         QVariantMap map;
         map[QLatin1String("devicetype")] = QLatin1String("x-gw");
@@ -613,7 +613,7 @@ void GatewayPrivate::handleEventStateConnected(GW_Event event)
         if (commands.empty())
         {
             QString url;
-            url.sprintf("http://%s:%u/api/%s/groups",
+            url.asprintf("http://%s:%u/api/%s/groups",
                         qPrintable(address.toString()), port, qPrintable(apikey));
 
             pings++;
@@ -637,12 +637,12 @@ void GatewayPrivate::handleEventStateConnected(GW_Event event)
                         if (uuid.startsWith(PHILIPS_MAC_PREFIX))  // cascade gateway is Hue bridge
                         {
                             QString scene;
-                            scene.sprintf("g%us%u", cmd.groupId, cmd.param.sceneId);
+                            scene.asprintf("g%us%u", cmd.groupId, cmd.param.sceneId);
                             map[QLatin1String("scene")] = scene;
                         }
                         else
                         {
-                            url.sprintf("http://%s:%u/api/%s/groups/%u/scenes/%u/recall",
+                            url.asprintf("http://%s:%u/api/%s/groups/%u/scenes/%u/recall",
                                         qPrintable(address.toString()), port, qPrintable(apikey), cmd.groupId, cmd.param.sceneId);
                         }
                         break;
@@ -751,7 +751,7 @@ void GatewayPrivate::handleEventStateConnected(GW_Event event)
 
             if (url.isEmpty())
             {
-                url.sprintf("http://%s:%u/api/%s/groups/%u/action",
+                url.asprintf("http://%s:%u/api/%s/groups/%u/action",
                             qPrintable(address.toString()), port, qPrintable(apikey), cmd.groupId);
             }
 
