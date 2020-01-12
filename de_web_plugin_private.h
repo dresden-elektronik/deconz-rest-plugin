@@ -292,7 +292,7 @@
 #define VENDOR_120B         0x120B // Used by Heiman
 #define VENDOR_MUELLER      0x121B // Used by Mueller Licht
 #define VENDOR_AURORA       0x121C // Used by Aurora Aone
-#define VENDOR_SHENZHEN     0x2224 // Used by iCasa keypads
+#define VENDOR_SHENZHEN     0x1224 // Used by iCasa keypads
 #define VENDOR_SUNRICHER    0x1224 // wrong name?
 #define VENDOR_XAL          0x122A
 #define VENDOR_THIRD_REALITY 0x1233
