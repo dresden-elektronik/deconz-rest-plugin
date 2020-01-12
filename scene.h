@@ -14,7 +14,7 @@
 #include <stdint.h>
 #include <QString>
 #include <vector>
-#include <QTime>
+#include <QElapsedTimer>
 #include "json.h"
 
 class LightState;
@@ -98,7 +98,7 @@ public:
     bool needRead() const { return m_needRead; }
     void setNeedRead(bool needRead);
 
-    QTime tVerified;
+    QElapsedTimer tVerified;
 
 private:
     QString m_lid;

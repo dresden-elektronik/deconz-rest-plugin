@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2020 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -288,6 +288,7 @@
 #define VENDOR_1233         0x1233 // Used by Third Reality
 #define VENDOR_1234         0x1234 // Used by Xiaomi Mi
 #define VENDOR_SAMJIN       0x1241
+#define VENDOR_KONKE        0x1268
 #define VENDOR_OSRAM_STACK  0xBBAA
 #define VENDOR_LEGRAND      0x1021
 #define VENDOR_C2DF         0xC2DF
@@ -1390,7 +1391,7 @@ public:
     GatewayScanner *gwScanner;
 
     // authorisation
-    QTime apiAuthSaveDatabaseTime;
+    QElapsedTimer apiAuthSaveDatabaseTime;
     size_t apiAuthCurrent;
     std::vector<ApiAuth> apiAuths;
     QString gwAdminUserName;
@@ -1714,7 +1715,7 @@ public:
         }
         deCONZ::Address address;
         quint8 macCapabilities;
-        QTime timeout;
+        QElapsedTimer timeout;
         quint16 waitIndicationClusterId;
         std::vector<quint8> endpoints;
         std::vector<SensorCommand> rxCommands;

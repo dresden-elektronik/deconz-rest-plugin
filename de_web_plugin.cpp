@@ -1,5 +1,5 @@
  /*
- * Copyright (c) 2017-2019 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2020 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -174,6 +174,9 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_115F, "lumi.plug", jennicMacPrefix }, // Xiaomi smart plug (router)
     { VENDOR_115F, "lumi.ctrl_ln", jennicMacPrefix}, // Xiaomi Wall Switch (router)
     { VENDOR_115F, "lumi.plug.maeu01", xiaomiMacPrefix}, // Xiaomi Aqara outlet
+    { VENDOR_115F, "lumi.remote.b286opcn01", xiaomiMacPrefix }, // Xiaomi Aqara Opple WXCJKG11LM
+    { VENDOR_115F, "lumi.remote.b486opcn01", xiaomiMacPrefix }, // Xiaomi Aqara Opple WXCJKG12LM
+    { VENDOR_115F, "lumi.remote.b686opcn01", xiaomiMacPrefix }, // Xiaomi Aqara Opple WXCJKG13LM
     // { VENDOR_115F, "lumi.curtain", jennicMacPrefix}, // Xiaomi curtain controller (router) - exposed only as light
     { VENDOR_UBISYS, "C4", ubisysMacPrefix },
     { VENDOR_UBISYS, "D1", ubisysMacPrefix },
@@ -183,7 +186,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "Z716A", netvoxMacPrefix },
     // { VENDOR_OSRAM_STACK, "Plug", osramMacPrefix }, // OSRAM plug - exposed only as light
     { VENDOR_OSRAM_STACK, "CO_", heimanMacPrefix }, // Heiman CO sensor
-    { VENDOR_OSRAM_STACK, "DOOR_", heimanMacPrefix }, // Heiman door/window sensor
+    { VENDOR_OSRAM_STACK, "DOOR_", heimanMacPrefix }, // Heiman door/window sensor - older model
     { VENDOR_OSRAM_STACK, "PIR_", heimanMacPrefix }, // Heiman motion sensor
     { VENDOR_OSRAM_STACK, "GAS_", heimanMacPrefix }, // Heiman gas sensor - older model
     { VENDOR_OSRAM_STACK, "TH-", heimanMacPrefix }, // Heiman temperature/humidity sensor
@@ -197,6 +200,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_120B, "COSensor", emberMacPrefix }, // Heiman CO sensor - newer model
     { VENDOR_120B, "TH-", emberMacPrefix }, // Heiman temperature/humidity sensor - newer model
     { VENDOR_120B, "Water", emberMacPrefix }, // Heiman water sensor - newer model
+    { VENDOR_120B, "Door", emberMacPrefix }, // Heiman door/window sensor - newer model
     { VENDOR_120B, "WarningDevice", emberMacPrefix }, // Heiman siren
     { VENDOR_LUTRON, "LZL4BWHL01", lutronMacPrefix }, // Lutron LZL-4B-WH-L01 Connected Bulb Remote
     { VENDOR_KEEN_HOME , "SV01-", keenhomeMacPrefix}, // Keen Home Vent
@@ -227,6 +231,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_DEVELCO, "EMIZB-132", develcoMacPrefix }, // Develco EMI Norwegian HAN
     { VENDOR_DEVELCO, "ZHMS101", develcoMacPrefix }, // Wattle (Develco) magnetic sensor
     { VENDOR_EMBER, "3AFE14010402000D", konkeMacPrefix }, // Konke Kit Pro-BS Motion Sensor
+    { VENDOR_KONKE, "3AFE28010402000D", ikea2MacPrefix }, // Konke Kit Pro-BS Motion Sensor ver.2
     { VENDOR_EMBER, "3AFE140103020000", konkeMacPrefix }, // Konke Kit Pro-FT Temp Humidity Sensor
     { VENDOR_EMBER, "3AFE130104020015", konkeMacPrefix }, // Konke Kit Pro-Door Entry Sensor
     { VENDOR_NONE, "RICI01", tiMacPrefix}, // LifeControl smart plug
@@ -3175,6 +3180,12 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             updateSensorEtag(sensor);
         }
     }
+    else if (sensor->modelId().contains(QLatin1String("86opcn01"))) // Aqara Opple
+    {
+        checkReporting = true;
+        checkClientCluster = true;
+        checkSensorGroup(sensor);
+    }
 
     if (ind.dstAddressMode() == deCONZ::ApsGroupAddress && ind.dstAddress().group() != 0)
     {
@@ -3425,7 +3436,8 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 }
             }
             else if (ind.clusterId() == COLOR_CLUSTER_ID &&
-                     (zclFrame.commandId() == 0x4b && zclFrame.payload().size() >= 7) )  // move color temperature
+                     (zclFrame.commandId() == 0x4b && zclFrame.payload().size() >= 7) && // move color temperature 
+                     !sensor->modelId().contains(QLatin1String("86opcn01")))  // do not use this for Aqara Opple switches, they are missing the additional payload
             {
                 ok = false;
                 // u8 move mode
@@ -3459,6 +3471,17 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     ok = true;
                 }
 
+            }
+            else if (ind.clusterId() == COLOR_CLUSTER_ID &&
+                    ((zclFrame.commandId() == 0x4c || zclFrame.commandId() == 0x4b) && sensor->modelId().contains(QLatin1String("86opcn01"))))  // Aqara Opple hold
+            {
+                // currently there is an issue detecting the release of the bottom Off button on the 6 button switch, it gets detected as bottom On button release
+                ok = false;
+                if (zclFrame.payload().size() >= 1 && buttonMap->zclParam0 == zclFrame.payload().at(0)) // direction
+                {
+                    sensor->previousDirection = zclFrame.payload().at(0);
+                    ok = true;
+                }
             }
 
             if (ok)
@@ -3820,6 +3843,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         fpCarbonMonoxideSensor.inClusters.push_back(ci->id());
                     }
                     else if (modelId.startsWith(QLatin1String("DOOR_")) ||            // Heiman door/window sensor
+                             modelId.startsWith(QLatin1String("Door")) ||             // Heiman door/window sensor (newer model)
                              modelId == QLatin1String("3AFE130104020015") ||          // Konke door/window sensor
                              modelId.startsWith(QLatin1String("902010/21")) ||        // Bitron door/window sensor
                              modelId.startsWith(QLatin1String("WISZB-120")) ||        // Develco door/window sensor
@@ -3829,6 +3853,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     }
                     else if (modelId.startsWith(QLatin1String("PIR_")) ||             // Heiman motion sensor
                              modelId == QLatin1String("3AFE14010402000D") ||          // Konke motion sensor
+                             modelId == QLatin1String("3AFE28010402000D") ||          // Konke motion sensor ver.2
                              modelId.startsWith(QLatin1String("902010/22")) ||        // Bitron motion sensor
                              modelId.startsWith(QLatin1String("SN10ZW")) ||           // ORVIBO motion sensor
                              modelId.startsWith(QLatin1String("MOSZB-130")))          // Develco motion sensor
@@ -5000,7 +5025,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         if (!sensorNode.item(RStateTemperature) &&
             sensorNode.modelId() != QLatin1String("lumi.sensor_switch") &&
             !sensorNode.modelId().contains(QLatin1String("weather")) &&
-            !sensorNode.modelId().startsWith(QLatin1String("lumi.sensor_ht")))
+            !sensorNode.modelId().startsWith(QLatin1String("lumi.sensor_ht")) &&
+            !sensorNode.modelId().contains(QLatin1String("86opcn01"))) // exclude Aqara Opple
         {
             sensorNode.addItem(DataTypeInt16, RConfigTemperature);
             //sensorNode.addItem(DataTypeInt16, RConfigOffset);
@@ -5665,7 +5691,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 continue;
                             }
-                            
+
                             if (i->mustRead(READ_BATTERY))
                             {
                                 i->clearRead(READ_BATTERY);
@@ -5746,7 +5772,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 if (i->modelId().startsWith(QLatin1String("tagv4")) || // SmartThings Arrival sensor
                                     i->modelId() == QLatin1String("Remote switch") || //Legrand switch
-                                    i->modelId() == QLatin1String("Motion Sensor-A") )
+                                    i->modelId() == QLatin1String("Motion Sensor-A") || 
+                                    i->modelId().contains(QLatin1String("86opcn01"))) //Aqara Opple
                                 {  }
                                 else
                                 {
@@ -8203,7 +8230,7 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
     //        processed++;
     //    }
     //}
- 
+
     if (sensorNode->mustRead(READ_BATTERY) && tNow > sensorNode->nextReadTime(READ_BATTERY))
     {
         std::vector<uint16_t> attributes;
@@ -8934,7 +8961,7 @@ void DeRestPluginPrivate::foundScene(LightNode *lightNode, Group *group, uint8_t
     closeDb();
     if (scene.name.isEmpty())
     {
-        scene.name.sprintf("Scene %u", sceneId);
+        scene.name = QString::asprintf("Scene %u", sceneId);
     }
     group->scenes.push_back(scene);
     updateGroupEtag(group);
@@ -11873,7 +11900,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                 s.groupAddress = groupId;
                 s.id = sceneId;
                 s.externalMaster = true;
-                s.name.sprintf("Scene %u", sceneId);
+                s.name = QString::asprintf("Scene %u", sceneId);
                 group->scenes.push_back(s);
                 updateGroupEtag(group);
                 queSaveDb(DB_SCENES, DB_SHORT_SAVE_DELAY);
@@ -13937,6 +13964,11 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             checkSensorGroup(sensor);
             checkSensorBindingsForClientClusters(sensor);
         }
+        else if (sensor->modelId().contains(QLatin1String("86opcn01"))) // Aqara Opple
+        {
+            checkSensorGroup(sensor);
+            checkSensorBindingsForClientClusters(sensor);
+        }
 
         for (auto &s : sensors)
         {
@@ -14335,7 +14367,7 @@ void DeRestPlugin::idleTimerFired()
         }
         if (!(d->gwLANBridgeId) && d->gwDeviceAddress.hasExt())
         {
-            d->gwBridgeId.sprintf("%016llX", (quint64)d->gwDeviceAddress.ext());
+            d->gwBridgeId = QString::asprintf("%016llX", (quint64)d->gwDeviceAddress.ext());
             if (!d->gwConfig.contains("bridgeid") || d->gwConfig["bridgeid"] != d->gwBridgeId)
             {
                 DBG_Printf(DBG_INFO, "Set bridgeid to %s\n", qPrintable(d->gwBridgeId));
@@ -15501,7 +15533,6 @@ uint8_t DeRestPluginPrivate::endpoint()
 
 QString DeRestPluginPrivate::generateUniqueId(quint64 extAddress, quint8 endpoint, quint16 clusterId)
 {
-    QString uid;
     union _a
     {
         quint8 bytes[8];
@@ -15511,25 +15542,24 @@ QString DeRestPluginPrivate::generateUniqueId(quint64 extAddress, quint8 endpoin
 
     if (clusterId != 0 && endpoint != 0xf2)
     {
-        uid.sprintf("%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x-%02x-%04x",
+         return QString::asprintf("%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x-%02x-%04x",
                     a.bytes[7], a.bytes[6], a.bytes[5], a.bytes[4],
                     a.bytes[3], a.bytes[2], a.bytes[1], a.bytes[0],
                     endpoint, clusterId);
     }
     else if (endpoint != 0)
     {
-        uid.sprintf("%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x-%02x",
+        return  QString::asprintf("%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x-%02x",
                     a.bytes[7], a.bytes[6], a.bytes[5], a.bytes[4],
                     a.bytes[3], a.bytes[2], a.bytes[1], a.bytes[0],
                     endpoint);
     }
     else
     {
-        uid.sprintf("%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
+        return  QString::asprintf("%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
                     a.bytes[7], a.bytes[6], a.bytes[5], a.bytes[4],
                     a.bytes[3], a.bytes[2], a.bytes[1], a.bytes[0]);
     }
-    return uid;
 }
 
 /*! Returns the name of this plugin.

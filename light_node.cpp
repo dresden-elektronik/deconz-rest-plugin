@@ -516,6 +516,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
             case DEV_ID_LEVEL_CONTROL_SWITCH:        ltype = QLatin1String("Level control switch"); break;
             case DEV_ID_ONOFF_OUTPUT:                ltype = QLatin1String("On/Off output"); break;
             case DEV_ID_LEVEL_CONTROLLABLE_OUTPUT:   ltype = QLatin1String("Level controllable output"); break;
+            case DEV_ID_MAINS_POWER_OUTLET:          ltype = QLatin1String("On/Off plug-in unit"); break;
             case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:       ltype = QLatin1String("On/Off plug-in unit"); break;
             case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:       ltype = QLatin1String("On/Off plug-in unit"); break;
             case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:    ltype = QLatin1String("Dimmable plug-in unit"); break;
