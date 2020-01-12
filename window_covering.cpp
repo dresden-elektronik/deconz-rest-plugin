@@ -152,12 +152,12 @@ void DeRestPluginPrivate::handleWindowCoveringClusterIndication(const deCONZ::Ap
 
     		if (attrid == 0x0008) // current CurrentPositionLiftPercentage 0-100
     		{
-			//Reverse it for Xiaomi curtain and Legrand switch
+			    //Reverse it for Xiaomi curtain and Legrand switch
     			if (lightNode->modelId().startsWith(QLatin1String("lumi.curtain")) || (lightNode->modelId() == QLatin1String("Shutter switch with neutral")))
     			{
     				attrValue = 100 - attrValue;
     			}
-    			uint8_t level = attrValue * 255 / 100;
+    			uint8_t level = attrValue * 254 / 100;
     			numericValue.u8 = level;
     			ResourceItem *item = lightNode->item(RStateBri);
     			if (item && item->toNumber() != level)
@@ -171,7 +171,7 @@ void DeRestPluginPrivate::handleWindowCoveringClusterIndication(const deCONZ::Ap
 
     				// also change on-state if bri changes to/from 0
     				bool on = (attrValue > 0 ? true : false) ;
-    				
+
     				ResourceItem *itemOn = lightNode->item(RStateOn);
     				if (itemOn && itemOn->toBool() != on)
     				{
@@ -186,7 +186,7 @@ void DeRestPluginPrivate::handleWindowCoveringClusterIndication(const deCONZ::Ap
     		}
     		else if (attrid == 0x0009) // current CurrentPositionTiltPercentage 0-100
     		{
-    			uint8_t sat = attrValue * 255 / 100;
+    			uint8_t sat = attrValue * 254 / 100;
     			numericValue.u8 = sat;
     			ResourceItem *item = lightNode->item(RStateSat);
     			if (item && item->toNumber() != sat)
