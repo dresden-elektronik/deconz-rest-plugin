@@ -164,6 +164,7 @@ SOURCES  = authorisation.cpp \
            sensor.cpp \
            thermostat.cpp \
            time.cpp \
+           basic.cpp \
            reset_device.cpp \
            rest_userparameter.cpp \
            zcl_tasks.cpp \
