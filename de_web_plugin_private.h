@@ -427,7 +427,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
         case VENDOR_CENTRALITE:
             return prefix == emberMacPrefix;
         case VENDOR_EMBER:
-            return prefix == emberMacPrefix;
+            return prefix == emberMacPrefix ||
+                   prefix == konkeMacPrefix;
         case VENDOR_DDEL:
             return prefix == deMacPrefix;
         case VENDOR_IKEA:

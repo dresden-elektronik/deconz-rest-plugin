@@ -248,7 +248,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NETVOX, "Z809AE3R", netvoxMacPrefix }, // Netvox smartplug
     { VENDOR_LDS, "ZB-ONOFFPlug-D0005", silabs2MacPrefix }, // Samsung SmartPlug 2019 (7A-PL-Z-J3)
     { VENDOR_PHYSICAL, "outletv4", stMacPrefix }, // Samsung SmartThings plug (IM6001-OTP)
-    { VENDOR_NONE, "RH3052", emberMacPrefix }, // Lupus small zigbee temperature sensor
+    { VENDOR_EMBER, "RH3040", konkeMacPrefix }, // Tuyatec motion sensor
+    { VENDOR_NONE, "RH3052", emberMacPrefix }, // Tuyatec temperature sensor
     { VENDOR_AURORA, "DoubleSocket50AU", jennicMacPrefix }, // Aurora AOne Double Socket UK
     { VENDOR_COMPUTIME, "SP600", computimeMacPrefix }, // Salus smart plug
     { 0, nullptr, 0 }
