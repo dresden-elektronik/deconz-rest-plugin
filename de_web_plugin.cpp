@@ -622,6 +622,10 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
         case THERMOSTAT_CLUSTER_ID:
             handleThermostatClusterIndication(ind, zclFrame);
             break;
+            
+        case BASIC_CLUSTER_ID:
+            handleBasicClusterIndication(ind, zclFrame);
+            break;
 
         default:
         {
