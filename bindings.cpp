@@ -1847,7 +1847,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Bosch
         sensor->modelId().startsWith(QLatin1String("ISW-ZPR1-WP13")) ||
         // Aqara Opple
-        sensor->modelId().contains(QLatin1String("86opcn01")))
+        sensor->modelId().contains(QLatin1String("86opcn01")) ||
+        // Salus
+        sensor->modelId().contains(QLatin1String("SP600")))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||
@@ -1955,9 +1957,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                      sensor->modelId() == QLatin1String("WISZB-120") ||
                      sensor->modelId() == QLatin1String("MOSZB-130") ||
                      sensor->modelId() == QLatin1String("FLSZB-110") ||
-		       sensor->modelId() == QLatin1String("Remote switch") ||
+		             sensor->modelId() == QLatin1String("Remote switch") ||
                      sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||
-		       sensor->modelId().contains(QLatin1String("86opcn01"))) // Aqara Opple
+		             sensor->modelId().contains(QLatin1String("86opcn01"))) // Aqara Opple
             {
                 val = sensor->getZclValue(*i, 0x0020); // battery voltage
             }

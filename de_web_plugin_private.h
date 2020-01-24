@@ -260,6 +260,7 @@
 #define VENDOR_CENTRALITE   0x104E
 #define VENDOR_SI_LABS      0x1049
 #define VENDOR_BITRON       0x1071
+#define VENDOR_COMPUTIME    0x1078
 #define VENDOR_NETVOX       0x109F
 #define VENDOR_NYCE         0x10B9
 #define VENDOR_UBISYS       0x10F2
@@ -401,6 +402,7 @@ extern const quint64 develcoMacPrefix;
 extern const quint64 legrandMacPrefix;
 extern const quint64 silabs2MacPrefix;
 extern const quint64 xiaomiMacPrefix;
+extern const quint64 computimeMacPrefix;
 
 inline bool checkMacVendor(quint64 addr, quint16 vendor)
 {
@@ -478,6 +480,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == netvoxMacPrefix;
         case VENDOR_AURORA:
             return prefix == jennicMacPrefix;
+        case VENDOR_COMPUTIME:
+            return prefix == computimeMacPrefix;
         default:
             return false;
     }
