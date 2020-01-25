@@ -1212,9 +1212,10 @@ void DeRestPluginPrivate::queueCheckRuleBindings(const Rule &rule)
     \param e - the trigger event
     \param eResource - the event resource
     \param eItem - the event resource item
+    \param now - the current date/time to check the rule against
     \return true if rule can be triggered
  */
-bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eResource, ResourceItem *eItem)
+bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eResource, ResourceItem *eItem, QDateTime now)
 {
     if (!apsCtrl || !eItem || !eResource || (apsCtrl->networkState() != deCONZ::InNetwork))
     {
@@ -1230,8 +1231,6 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
     {
         return false;
     }
-
-    const QDateTime now = QDateTime::currentDateTime();
 
     if (rule.triggerPeriodic() > 0)
     {
@@ -1812,6 +1811,10 @@ void DeRestPluginPrivate::handleRuleEvent(const Event &e)
 {
     Resource *resource = getResource(e.resource(), e.id());
     ResourceItem *item = resource ? resource->item(e.what()) : nullptr;
+    const ResourceItem *localTime = config.item(RConfigLocalTime);
+    const QDateTime now = localTime
+      ? QDateTime::fromMSecsSinceEpoch(localTime->toNumber())
+      : QDateTime::currentDateTime();
 
     if (!resource || !item || item->rulesInvolved().empty())
     {
@@ -1820,15 +1823,16 @@ void DeRestPluginPrivate::handleRuleEvent(const Event &e)
 
     if (!e.id().isEmpty())
     {
-        DBG_Printf(DBG_INFO, "rule event: %s/%s %s num (%d -> %d)\n", e.resource(), qPrintable(e.id()), e.what(), e.numPrevious(), e.num());
+        DBG_Printf(DBG_INFO, "rule event at %s: %s/%s/%s: %d -> %d\n", qPrintable(now.toString("hh:mm:ss.zzz")), e.resource(), qPrintable(e.id()), e.what(), e.numPrevious(), e.num());
     }
     else
     {
-        DBG_Printf(DBG_INFO_L2, "rule event: %s %s\n", e.resource(), e.what());
+        DBG_Printf(DBG_INFO_L2, "rule event at %s: /%s\n", qPrintable(now.toString("hh:mm:ss.zzz")), e.what());
     }
 
-    QElapsedTimer t;
-    t.start();
+
+    // QElapsedTimer t;
+    // t.start();
     std::vector<size_t> rulesToTrigger;
     for (int handle : item->rulesInvolved())
     {
@@ -1839,7 +1843,7 @@ void DeRestPluginPrivate::handleRuleEvent(const Event &e)
                 continue;
             }
 
-            if (evaluateRule(rules[i], e, resource, item))
+            if (evaluateRule(rules[i], e, resource, item, now))
             {
                 rulesToTrigger.push_back(i);
             }
@@ -1855,9 +1859,9 @@ void DeRestPluginPrivate::handleRuleEvent(const Event &e)
         }
     }
 
-    //int dt = t.elapsed();
-    //if  (dt > 0)
-    //{
-        //DBG_Printf(DBG_INFO_L2, "trigger rule events took %d ms\n", dt);
-    //}
+    // int dt = t.elapsed();
+    // if (dt > 0)
+    // {
+    //     DBG_Printf(DBG_INFO_L2, "trigger rule events took %d ms\n", dt);
+    // }
 }

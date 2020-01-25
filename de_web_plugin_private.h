@@ -983,7 +983,7 @@ public:
     int updateRule(const ApiRequest &req, ApiResponse &rsp);
     int deleteRule(const ApiRequest &req, ApiResponse &rsp);
     void queueCheckRuleBindings(const Rule &rule);
-    bool evaluateRule(Rule &rule, const Event &e, Resource *eResource, ResourceItem *eItem);
+    bool evaluateRule(Rule &rule, const Event &e, Resource *eResource, ResourceItem *eItem, QDateTime now);
     void indexRuleTriggers(Rule &rule);
     void triggerRule(Rule &rule);
     bool ruleToMap(const Rule *rule, QVariantMap &map);
