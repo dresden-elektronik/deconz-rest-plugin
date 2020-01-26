@@ -403,6 +403,7 @@ extern const quint64 legrandMacPrefix;
 extern const quint64 silabs2MacPrefix;
 extern const quint64 xiaomiMacPrefix;
 extern const quint64 computimeMacPrefix;
+extern const quint64 konkeMacPrefix;
 
 inline bool checkMacVendor(quint64 addr, quint16 vendor)
 {
