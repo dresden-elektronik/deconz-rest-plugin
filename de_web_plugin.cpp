@@ -8755,7 +8755,7 @@ void DeRestPluginPrivate::deleteLightFromScenes(QString lightId, uint16_t groupI
 
         for (; i != end; ++i)
         {
-            i->removeLight(lightId);
+            i->removeLightState(lightId);
 
             // send remove scene request to lightNode
             if (isLightNodeInGroup(lightNode, group->address()))
@@ -9128,7 +9128,7 @@ bool DeRestPluginPrivate::removeScene(Group *group, Scene *scene)
     updateEtag(group->etag);
     updateEtag(gwConfigEtag);
 
-    for (const LightState& state : scene->lights())
+    for (const LightState& state : scene->lightStates())
     {
         LightNode* l = getLightNodeForId(state.lid());
         if (l)
@@ -10938,9 +10938,9 @@ void DeRestPluginPrivate::processGroupTasks()
 
                 if (scene)
                 {
-                    //const std::vector<LightState> &lights() const;
-                    std::vector<LightState>::const_iterator ls = scene->lights().begin();
-                    std::vector<LightState>::const_iterator lsend = scene->lights().end();
+                    //const std::vector<LightState> &lightStates() const;
+                    std::vector<LightState>::const_iterator ls = scene->lightStates().begin();
+                    std::vector<LightState>::const_iterator lsend = scene->lightStates().end();
 
                     for (; ls != lsend; ++ls)
                     {
@@ -11245,8 +11245,8 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                         continue; // exists
                     }
 
-                    std::vector<LightState>::const_iterator st = i->lights().begin();
-                    std::vector<LightState>::const_iterator stend = i->lights().end();
+                    std::vector<LightState>::const_iterator st = i->lightStates().begin();
+                    std::vector<LightState>::const_iterator stend = i->lightStates().end();
 
                     for (; st != stend; ++st)
                     {
@@ -11318,7 +11318,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                         {
                             bool foundLightstate = false;
 
-                            LightState* li = scene->getLight(lightNode->id());
+                            LightState* li = scene->getLightState(lightNode->id());
                             if (li)
                             {
                                 ResourceItem *item = lightNode->item(RStateOn);
@@ -11428,7 +11428,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                                     state.setColorloopActive(lightNode->isColorLoopActive());
                                     state.setColorloopTime(lightNode->colorLoopSpeed());
                                 }
-                                scene->addLight(state);
+                                scene->addLightState(state);
 
                                 // only change capacity and count when creating a new scene
                                 uint8_t sceneCapacity = lightNode->sceneCapacity();
@@ -11496,13 +11496,13 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
 
                         if (scene)
                         {
-                            std::vector<LightState>::const_iterator li = scene->lights().begin();
-                            std::vector<LightState>::const_iterator lend = scene->lights().end();
+                            std::vector<LightState>::const_iterator li = scene->lightStates().begin();
+                            std::vector<LightState>::const_iterator lend = scene->lightStates().end();
                             for (; li != lend; ++li)
                             {
                                 if (li->lid() == lightNode->id())
                                 {
-                                    scene->removeLight(lightNode->id());
+                                    scene->removeLightState(lightNode->id());
                                     break;
                                 }
                             }
@@ -11700,7 +11700,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
 
             if (scene)
             {
-                LightState *lightState = scene->getLight(lightNode->id());
+                LightState *lightState = scene->getLightState(lightNode->id());
 
                 if (scene->state() == Scene::StateDeleted)
                 {
@@ -11809,7 +11809,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                         newLightState.setEnhancedHue(ehue);
                         newLightState.setSaturation(sat);
                     }
-                    scene->addLight(newLightState);
+                    scene->addLightState(newLightState);
                     queSaveDb(DB_SCENES, DB_LONG_SAVE_DELAY);
                 }
             }
@@ -11872,8 +11872,8 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
 
         if (group && (group->state() == Group::StateNormal) && scene)
         {
-            std::vector<LightState>::const_iterator ls = scene->lights().begin();
-            std::vector<LightState>::const_iterator lsend = scene->lights().end();
+            std::vector<LightState>::const_iterator ls = scene->lightStates().begin();
+            std::vector<LightState>::const_iterator lsend = scene->lightStates().end();
 
             pollManager->delay(1500);
             for (; ls != lsend; ++ls)

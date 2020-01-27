@@ -53,10 +53,10 @@ public:
     const QString& name() const;
     void name(const QString& name);
 
-    const std::vector<LightState>& lights() const;
-    void addLight(const LightState& light);
-    bool removeLight(const QString& lid);
-    LightState* getLight(const QString& lid);
+    const std::vector<LightState>& lightStates() const;
+    void addLightState(const LightState& state);
+    bool removeLightState(const QString& lid);
+    LightState* getLightState(const QString& lid);
 
     // deCONZ only
     uint16_t transitiontime() const;
@@ -87,7 +87,7 @@ private:
     uint16_t m_gid;
     uint8_t m_sid;
     QString m_name;
-    std::vector<LightState> m_lights;
+    std::vector<LightState> m_lightstates;
 
     uint16_t m_transitiontime;
 

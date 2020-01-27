@@ -111,31 +111,31 @@ void Scene::name(const QString& name)
 
 /*! Returns the lightstates of the scene.
  */
-const std::vector<LightState> &Scene::lights() const
+const std::vector<LightState> &Scene::lightStates() const
 {
-    return m_lights;
+    return m_lightstates;
 }
 
 /*! Adds a light to the lightstates of the scene.
     \param light the light that should be added
  */
-void Scene::addLight(const LightState& light)
+void Scene::addLightState(const LightState& state)
 {
-    m_lights.push_back(light);
+    m_lightstates.push_back(state);
 }
 
 /*! Removes a light from the lightstates of the scene if present.
     \param lid the light id that should be removed
     \return true if light was found and removed
  */
-bool Scene::removeLight(const QString& lid)
+bool Scene::removeLightState(const QString& lid)
 {
     int position = 0;
-    for (LightState& l : m_lights)
+    for (LightState& l : m_lightstates)
     {
         if (l.lid() == lid)
         {
-            m_lights.erase(m_lights.begin() + position);
+            m_lightstates.erase(m_lightstates.begin() + position);
             return true;
         }
         position++;
@@ -147,9 +147,9 @@ bool Scene::removeLight(const QString& lid)
     \param lid the light id
     \return the light state or 0 if not found
  */
-LightState* Scene::getLight(const QString& lid)
+LightState* Scene::getLightState(const QString& lid)
 {
-    for (LightState& l : m_lights)
+    for (LightState& l : m_lightstates)
     {
         if (l.lid() == lid)
         {
@@ -282,8 +282,8 @@ QVariantMap Scene::map() const
     }
 
     QVariantList lights;
-    std::vector<LightState>::const_iterator i = m_lights.begin();
-    std::vector<LightState>::const_iterator i_end = m_lights.end();
+    std::vector<LightState>::const_iterator i = m_lightstates.begin();
+    std::vector<LightState>::const_iterator i_end = m_lightstates.end();
     for (; i != i_end; ++i)
     {
         lights.append(i->lid());

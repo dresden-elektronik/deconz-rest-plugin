@@ -1972,7 +1972,7 @@ static int sqliteLoadAllScenesCallback(void *user, int ncols, char **colval , ch
                     QString lid = l_map[QLatin1String("lid")].toString();
                     state.setLightId(lid);
                     state.map(l_map);
-                    scene.addLight(state);
+                    scene.addLightState(state);
                 }
 
                 scene.recycle(recycle);
@@ -2760,7 +2760,7 @@ static int sqliteLoadSceneCallback(void *user, int ncols, char **colval , char *
             QString lid = l_map[QLatin1String("lid")].toString();
             state.setLightId(lid);
             state.map(l_map);
-            scene->addLight(state);
+            scene->addLightState(state);
         }
 
         scene->recycle(recycle);
@@ -4673,7 +4673,7 @@ void DeRestPluginPrivate::saveDb()
                     else
                     {
                         QVariantList ls;
-                        for (const LightState& l : si->lights())
+                        for (const LightState& l : si->lightStates())
                         {
                             ls.append(l.map());
                         }

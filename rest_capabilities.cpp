@@ -76,7 +76,7 @@ int DeRestPluginPrivate::getCapabilities(const ApiRequest &req, ApiResponse &rsp
             std::vector<Scene>::const_iterator s_end = g->scenes.end();
             for (; s != s_end; ++s)
             {
-                lightstates_size += s->lights().size();
+                lightstates_size += s->lightStates().size();
             }
         }
     }

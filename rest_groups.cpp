@@ -1931,7 +1931,7 @@ bool DeRestPluginPrivate::groupToMap(const ApiRequest &req, const Group *group, 
             scene["id"] = sid;
             scene["name"] = si->name();
             scene["transitiontime"] = si->transitiontime();
-            scene["lightcount"] = (double)si->lights().size();
+            scene["lightcount"] = (double)si->lightStates().size();
 
             scenes.append(scene);
         }
@@ -2173,7 +2173,7 @@ int DeRestPluginPrivate::createScene(const ApiRequest &req, ApiResponse &rsp)
                 state.setColorMode(QLatin1String("none"));
             }
 
-            scene.addLight(state);
+            scene.addLightState(state);
             queSaveDb(DB_SCENES, DB_LONG_SAVE_DELAY);
         }
     }
@@ -2226,8 +2226,8 @@ int DeRestPluginPrivate::getAllScenes(const ApiRequest &req, ApiResponse &rsp)
             scene["name"] = i->name();
 
             QVariantList lights;
-            std::vector<LightState>::const_iterator l = i->lights().begin();
-            std::vector<LightState>::const_iterator lend = i->lights().end();
+            std::vector<LightState>::const_iterator l = i->lightStates().begin();
+            std::vector<LightState>::const_iterator lend = i->lightStates().end();
             for (; l != lend; ++l)
             {
                 lights.append(l->lid());
@@ -2278,8 +2278,8 @@ int DeRestPluginPrivate::getSceneAttributes(const ApiRequest &req, ApiResponse &
             if ((i->sid() == sceneId) && (i->state() == Scene::StateNormal))
             {
                 QVariantList lights;
-                std::vector<LightState>::const_iterator l = i->lights().begin();
-                std::vector<LightState>::const_iterator lend = i->lights().end();
+                std::vector<LightState>::const_iterator l = i->lightStates().begin();
+                std::vector<LightState>::const_iterator lend = i->lightStates().end();
                 for (; l != lend; ++l)
                 {
                     QVariantMap lstate;
@@ -2522,7 +2522,7 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
         }
 
         bool needModify = false;
-        LightState *ls = scene->getLight(lightNode->id());
+        LightState *ls = scene->getLightState(lightNode->id());
 
         if (!ls)
         {
@@ -2534,8 +2534,8 @@ int DeRestPluginPrivate::storeScene(const ApiRequest &req, ApiResponse &rsp)
                 rsp.list.append(errorToMap(ERR_DEVICE_SCENES_TABLE_FULL, QString("/groups/%1/scenes/lights/%2").arg(gid).arg(lightNode->id()), QString("Could not set scene for %1. Scene capacity of the device is reached.").arg(qPrintable(lightNode->name()))));
             }*/
 
-            scene->addLight(lsnew);
-            ls = scene->getLight(lightNode->id());
+            scene->addLightState(lsnew);
+            ls = scene->getLightState(lightNode->id());
             needModify = true;
         }
 
@@ -2765,8 +2765,8 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
     }
 
     bool groupOn = false;
-    std::vector<LightState>::const_iterator ls = scene->lights().begin();
-    std::vector<LightState>::const_iterator lsend = scene->lights().end();
+    std::vector<LightState>::const_iterator ls = scene->lightStates().begin();
+    std::vector<LightState>::const_iterator lsend = scene->lightStates().end();
 
     for (; ls != lsend; ++ls)
     {
@@ -2827,8 +2827,8 @@ int DeRestPluginPrivate::recallScene(const ApiRequest &req, ApiResponse &rsp)
     bool groupColorModeChanged = false;
 
     //turn on colorloop if scene was saved with colorloop (FLS don't save colorloop at device)
-    ls = scene->lights().begin();
-    lsend = scene->lights().end();
+    ls = scene->lightStates().begin();
+    lsend = scene->lightStates().end();
 
     for (; ls != lsend; ++ls)
     {
@@ -3129,7 +3129,7 @@ int DeRestPluginPrivate::modifyScene(const ApiRequest &req, ApiResponse &rsp)
         if (QString::number(i->sid()) == sid && i->state() != Scene::StateDeleted)
         {
             foundScene = true;
-            LightState* l = i->getLight(lid);
+            LightState* l = i->getLightState(lid);
             if (l)
             {
                     if (hasOn)

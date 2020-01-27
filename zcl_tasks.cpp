@@ -1212,7 +1212,7 @@ bool DeRestPluginPrivate::addTaskAddScene(TaskItem &task, uint16_t groupId, uint
     {
         if (i->sid() == sceneId && i->state() != Scene::StateDeleted)
         {
-            LightState* l = i->getLight(lightId);
+            LightState* l = i->getLightState(lightId);
             if (l)
             {
                 task.taskType = TaskAddScene;
