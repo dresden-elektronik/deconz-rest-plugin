@@ -1,7 +1,7 @@
 /*
  * basic.cpp
  *
- * Full implementation of Basic cluster server.
+ * Implementation of Basic cluster server.
  * Send ZCL attribute response to read request on Basic Cluster attributes.
  *
  * 0x0000 ZCL Version    / Just to test
@@ -21,7 +21,7 @@ void DeRestPluginPrivate::handleBasicClusterIndication(const deCONZ::ApsDataIndi
 {
     if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReadAttributesId)
     {
-    	sendBasicClusterResponse(ind, zclFrame);
+        sendBasicClusterResponse(ind, zclFrame);
     }
 }
 
@@ -47,12 +47,13 @@ void DeRestPluginPrivate::sendBasicClusterResponse(const deCONZ::ApsDataIndicati
     outZclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
                                 deCONZ::ZclFCDirectionServerToClient |
                                 deCONZ::ZclFCDisableDefaultResponse);
-                                
-    //Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);                          
-    if (true)
+
+    //is there manufacture field in the request, if yes add it.
+    if (zclFrame.frameControl() & deCONZ::ZclFCManufacturerSpecific) 
     {
+        quint16 manucode = zclFrame.manufacturerCode();
         outZclFrame.setFrameControl(outZclFrame.frameControl() | deCONZ::ZclFCManufacturerSpecific);
-        outZclFrame.setManufacturerCode(0x1021);
+        outZclFrame.setManufacturerCode(manucode);
     }
 
     { // payload
@@ -66,31 +67,31 @@ void DeRestPluginPrivate::sendBasicClusterResponse(const deCONZ::ApsDataIndicati
 
         while (!instream.atEnd())
         {
-        	instream >> attr;
-        	stream << attr;
+            instream >> attr;
+            stream << attr;
 
-        	switch(attr)
-        	{
-        	case 0x0000:
-        	    //ZCL version
-        		stream << code;
-        		stream << (quint8) deCONZ::Zcl8BitUint;
-        		stream << 0x02;
-        		break;
+            switch(attr)
+            {
+            case 0x0000:
+                //ZCL version
+                stream << code;
+                stream << (quint8) deCONZ::Zcl8BitUint;
+                stream << 0x02;
+                break;
 
-        	case 0xF000:
-        	    //Legrand attribute used for pairing
-        		stream << code;
-        		stream << (quint8) deCONZ::Zcl32BitUint;
-        		stream << 0x000000d5;
-        		break;
+            case 0xF000:
+                //Legrand attribute used for pairing
+                stream << code;
+                stream << (quint8) deCONZ::Zcl32BitUint;
+                stream << 0x000000d5;
+                break;
 
-        	default:
-        	{
-        		stream << (quint8) 0x86;  // unsupported_attribute
-        	}
-        	break;
-        	}
+            default:
+            {
+                stream << (quint8) 0x86;  // unsupported_attribute
+            }
+            break;
+            }
         }
     }
 
