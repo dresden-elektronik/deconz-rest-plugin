@@ -6943,7 +6943,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (item && voltage != 65535)
                                 {
                                     if (i->modelId() == QLatin1String("SmartPlug") || // Heiman
-                                        i->modelId() == QLatin1String("SPLZB-131")) // Develco
+                                        i->modelId() == QLatin1String("SPLZB-131"))   // Develco
                                     {
                                         voltage += 50; voltage /= 100; // 0.01V -> V
                                     }
@@ -6970,19 +6970,17 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 if (item && current != 65535)
                                 {
-                                    if (i->modelId() == QLatin1String("SP 120") ||          // innr
-                                        i->modelId() == QLatin1String("outletv4") ||        // Samsung SmartThings IM6001-OTP
-                                        i->modelId() == QLatin1String("DoubleSocket50AU"))  // Aurora
+                                    if (i->modelId() == QLatin1String("SP 120") ||            // innr
+                                        i->modelId() == QLatin1String("outletv4") ||          // Samsung SmartThings IM6001-OTP
+                                        i->modelId() == QLatin1String("DoubleSocket50AU") ||  // Aurora
+                                        i->modelId() == QLatin1String("RICI01"))              // LifeControl Smart Plug
                                     {
                                         // already in mA
                                     }
-                                    else if (i->modelId() == QLatin1String("SmartPlug")) // Heiman
+                                    else if (i->modelId() == QLatin1String("SmartPlug") || // Heiman
+                                             i->modelId() == QLatin1String("EMIZB-132"))   // Develco EMI Norwegian HAN
                                     {
                                         current *= 10; // 0.01A -> mA
-                                    }
-                                    else if (i->modelId() == QLatin1String("RICI01")) //LifeControl Smart Plug
-                                    {
-                                        // already in mA
                                     }
                                     else
                                     {

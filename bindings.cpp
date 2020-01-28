@@ -597,6 +597,7 @@ bool DeRestPluginPrivate::sendBindRequest(BindingTask &bt)
             // This is a workaround currently only required for Develco smoke sensor
             // and potentially Bosch motion sensor
             if (s.modelId().startsWith(QLatin1String("SMSZB-120")) ||    // Develco smoke sensor
+                s.modelId().startsWith(QLatin1String("EMIZB-132")) ||    // Develco EMI Norwegian HAN
                 s.modelId().startsWith(QLatin1String("ISW-ZPR1-WP13")))  // Bosch motion sensor
             {
             }
@@ -1255,7 +1256,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         {
             rq3.reportableChange16bit = 100; // 0.1 A
         }
-        else if (sensor && sensor->modelId() == QLatin1String("SmartPlug")) // Heiman
+        else if (sensor && sensor->modelId() == QLatin1String("SmartPlug") || // Heiman
+                 sensor && sensor->modelId() == QLatin1String("EMIZB-132"))   // Develco
         {
             rq3.reportableChange16bit = 10; // 0.1 A
         }
@@ -1730,6 +1732,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // This is a workaround currently only required for Develco smoke sensor
         // and potentially Bosch motion sensor
         if (sensor->modelId().startsWith(QLatin1String("SMSZB-120")) ||   // Develco smoke sensor
+            sensor->modelId().startsWith(QLatin1String("EMIZB-132")) ||   // Develco EMI Norwegian HAN
             sensor->modelId().startsWith(QLatin1String("ISW-ZPR1-WP13"))) // Bosch motion sensor
         {
         }
