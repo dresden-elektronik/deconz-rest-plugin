@@ -1256,8 +1256,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         {
             rq3.reportableChange16bit = 100; // 0.1 A
         }
-        else if (sensor && sensor->modelId() == QLatin1String("SmartPlug") || // Heiman
-                 sensor && sensor->modelId() == QLatin1String("EMIZB-132"))   // Develco
+        else if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") ||  // Heiman
+                            sensor->modelId() == QLatin1String("EMIZB-132")))   // Develco
         {
             rq3.reportableChange16bit = 10; // 0.1 A
         }
