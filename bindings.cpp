@@ -1104,13 +1104,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 3600;
             rq.reportableChange8bit = 0;
         }
-        else if (sensor && sensor->modelId().startsWith(QLatin1String("tagv4")))
-        {
-            rq.attributeId = 0x0020;   // battery voltage
-            rq.minInterval = 3600;
-            rq.maxInterval = 3600;
-            rq.reportableChange8bit = 0;
-        }
         else if (sensor && (sensor->modelId().startsWith(QLatin1String("SMSZB-120")) || // Develco smoke sensor
                            sensor->modelId().startsWith(QLatin1String("HESZB-120")) ||  // Develco heat sensor
                            sensor->modelId().startsWith(QLatin1String("MOSZB-130")) ||  // Develco motion sensor
