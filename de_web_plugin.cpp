@@ -4843,6 +4843,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.addItem(DataTypeBool, RConfigLocked);
                 sensorNode.addItem(DataTypeString, RConfigMode);
             }
+            else if (modelId == QLatin1String("Zen-01"))
+            {
+            }
             else
             {
                 sensorNode.addItem(DataTypeBool, RConfigSchedulerOn); // Scheduler state on/off
@@ -5772,6 +5775,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 if (i->modelId().startsWith(QLatin1String("tagv4")) || // SmartThings Arrival sensor
                                     i->modelId() == QLatin1String("Remote switch") || //Legrand switch
+                                    i->modelId() == QLatin1String("Zen-01") || // Zen thermostat
                                     i->modelId() == QLatin1String("Motion Sensor-A") || 
                                     i->modelId().contains(QLatin1String("86opcn01"))) //Aqara Opple
                                 {  }
@@ -5797,9 +5801,16 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (item)
                                 {
                                     int battery = ia->numericValue().u8; // in 0.1 V
-                                    const float vmin = 20; // TODO: check - I've seen 24
-                                    const float vmax = 30; // TODO: check - I've seen 29
+                                    float vmin = 20; // TODO: check - I've seen 24
+                                    float vmax = 30; // TODO: check - I've seen 29
                                     float bat = battery;
+
+                                    if (i->modelId() == QLatin1String("Zen-01"))
+                                    {
+                                        // 4x LR6 AA 1.5 V
+                                        vmin = 36; // according to attribute 0x0036
+                                        vmax = 60;
+                                    }
 
                                     if      (bat > vmax) { bat = vmax; }
                                     else if (bat < vmin) { bat = vmin; }
