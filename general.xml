@@ -45,9 +45,9 @@
 		<datatype id="30" name="8-bit enumeration" shortname="enum8" length="1" inval="ff" ad="D"></datatype>
 		<datatype id="31" name="16-bit enumeration" shortname="enum16" length="2" inval="ffff" ad="D"></datatype>
 		<!-- Floating point -->
-		<datatype id="38" name="Semi-precicion" shortname="semi" length="2" inval="nan" ad="A"></datatype>
-		<datatype id="39" name="Single precicion" shortname="float" length="4" inval="nan" ad="A"></datatype>
-		<datatype id="3a" name="Double precicion" shortname="double" length="8" inval="nan" ad="A"></datatype>
+		<datatype id="38" name="Semi-precision" shortname="semi" length="2" inval="nan" ad="A"></datatype>
+		<datatype id="39" name="Single precision" shortname="float" length="4" inval="nan" ad="A"></datatype>
+		<datatype id="3a" name="Double precision" shortname="double" length="8" inval="nan" ad="A"></datatype>
 		<!-- String -->
 		<!-- oN, defined in first N octets -->
 		<datatype id="41" name="Octed string" shortname="ostring" length="o1" inval="ff" ad="D"></datatype>
