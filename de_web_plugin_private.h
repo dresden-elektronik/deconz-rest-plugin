@@ -252,8 +252,7 @@
 #define VENDOR_NONE         0x0000
 #define VENDOR_EMBER        0x1002
 #define VENDOR_PHILIPS      0x100B // Also used by iCasa routers
-#define VENDOR_VISIONIC     0x1011
-#define VENDOR_VISONIC      0x1011 // spelling error?
+#define VENDOR_VISONIC      0x1011
 #define VENDOR_ATMEL        0x1014
 #define VENDOR_DEVELCO      0x1015
 #define VENDOR_VANTAGE      0x1021
@@ -264,7 +263,8 @@
 #define VENDOR_CENTRALITE   0x104E // wrong name?
 #define VENDOR_SI_LABS      0x1049
 #define VENDOR_4_NOKS       0x1071
-#define VENDOR_BITRON       0x1071 // wrong name?
+#define VENDOR_BITRON       0x1071 // branded
+#define VENDOR_COMPUTIME    0x1078
 #define VENDOR_NETVOX       0x109F
 #define VENDOR_NYCE         0x10B9
 #define VENDOR_UBISYS       0x10F2
@@ -277,7 +277,7 @@
 #define VENDOR_LUTRON       0x1144
 #define VENDOR_ZEN          0x1158
 #define VENDOR_KEEN_HOME    0x115B
-#define VENDOR_LUMI         0x115F
+#define VENDOR_XIAOMI       0x115F
 #define VENDOR_115F         0x115F // Used by Xiaomi Aqara
 #define VENDOR_INNR         0x1166
 #define VENDOR_LDS          0x1168 // Used by Samsung SmartPlug 2019
@@ -287,13 +287,13 @@
 #define VENDOR_SINOPE       0x119C
 #define VENDOR_119C         0x119C // Used by Sinope
 #define VENDOR_JIUZHOU      0x119D
-#define VENDOR_PAULMANN     0x119D // wrong name?
+#define VENDOR_PAULMANN     0x119D // branded
 #define VENDOR_HEIMAN       0x120B
 #define VENDOR_120B         0x120B // Used by Heiman
 #define VENDOR_MUELLER      0x121B // Used by Mueller Licht
 #define VENDOR_AURORA       0x121C // Used by Aurora Aone
 #define VENDOR_SHENZHEN     0x1224 // Used by iCasa keypads
-#define VENDOR_SUNRICHER    0x1224 // wrong name?
+#define VENDOR_SUNRICHER    0x1224 // white label used by iCasa, Illuminize ...
 #define VENDOR_XAL          0x122A
 #define VENDOR_THIRD_REALITY 0x1233
 #define VENDOR_1233         0x1233 // Used by Third Reality
@@ -301,9 +301,8 @@
 #define VENDOR_1234         0x1234 // Used by Xiaomi Mi
 #define VENDOR_SAMJIN       0x1241
 #define VENDOR_KONKE        0x1268
-
-#define VENDOR_C2DF         0xC2DF
 #define VENDOR_OSRAM_STACK  0xBBAA
+#define VENDOR_C2DF         0xC2DF
 
 #define ANNOUNCE_INTERVAL 10 // minutes default announce interval
 
@@ -413,6 +412,8 @@ extern const quint64 develcoMacPrefix;
 extern const quint64 legrandMacPrefix;
 extern const quint64 silabs2MacPrefix;
 extern const quint64 xiaomiMacPrefix;
+extern const quint64 computimeMacPrefix;
+extern const quint64 konkeMacPrefix;
 
 inline bool checkMacVendor(quint64 addr, quint16 vendor)
 {
@@ -424,7 +425,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
         case VENDOR_119C:
             return prefix == sinopeMacPrefix;
         case VENDOR_120B:
-            return prefix == emberMacPrefix;
+            return prefix == emberMacPrefix ||
+                   prefix == jennicMacPrefix;
         case VENDOR_SUNRICHER:
             return prefix == emberMacPrefix;
         case VENDOR_BITRON:
@@ -437,7 +439,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
         case VENDOR_CENTRALITE:
             return prefix == emberMacPrefix;
         case VENDOR_EMBER:
-            return prefix == emberMacPrefix;
+            return prefix == emberMacPrefix ||
+                   prefix == konkeMacPrefix;
         case VENDOR_DDEL:
             return prefix == deMacPrefix;
         case VENDOR_IKEA:
@@ -490,6 +493,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == netvoxMacPrefix;
         case VENDOR_AURORA:
             return prefix == jennicMacPrefix;
+        case VENDOR_COMPUTIME:
+            return prefix == computimeMacPrefix;
         default:
             return false;
     }

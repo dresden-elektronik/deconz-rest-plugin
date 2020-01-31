@@ -75,6 +75,7 @@ const quint64 boschMacPrefix      = 0x00155f0000000000ULL;
 const quint64 jennicMacPrefix     = 0x00158d0000000000ULL;
 const quint64 develcoMacPrefix    = 0x0015bc0000000000ULL;
 const quint64 philipsMacPrefix    = 0x0017880000000000ULL;
+const quint64 computimeMacPrefix  = 0x001e5e0000000000ULL;
 const quint64 ubisysMacPrefix     = 0x001fee0000000000ULL;
 const quint64 deMacPrefix         = 0x00212e0000000000ULL;
 const quint64 keenhomeMacPrefix   = 0x0022a30000000000ULL;
@@ -177,6 +178,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_115F, "lumi.remote.b286opcn01", xiaomiMacPrefix }, // Xiaomi Aqara Opple WXCJKG11LM
     { VENDOR_115F, "lumi.remote.b486opcn01", xiaomiMacPrefix }, // Xiaomi Aqara Opple WXCJKG12LM
     { VENDOR_115F, "lumi.remote.b686opcn01", xiaomiMacPrefix }, // Xiaomi Aqara Opple WXCJKG13LM
+    { VENDOR_XIAOMI, "lumi.sen_ill.mgl01", xiaomiMacPrefix }, // Xiaomi ZB3.0 light sensor
     // { VENDOR_115F, "lumi.curtain", jennicMacPrefix}, // Xiaomi curtain controller (router) - exposed only as light
     { VENDOR_UBISYS, "C4", ubisysMacPrefix },
     { VENDOR_UBISYS, "D1", ubisysMacPrefix },
@@ -202,6 +204,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_120B, "Water", emberMacPrefix }, // Heiman water sensor - newer model
     { VENDOR_120B, "Door", emberMacPrefix }, // Heiman door/window sensor - newer model
     { VENDOR_120B, "WarningDevice", emberMacPrefix }, // Heiman siren
+    { VENDOR_120B, "Smoke", jennicMacPrefix }, // Heiman fire sensor - newer model
     { VENDOR_LUTRON, "LZL4BWHL01", lutronMacPrefix }, // Lutron LZL-4B-WH-L01 Connected Bulb Remote
     { VENDOR_KEEN_HOME , "SV01-", keenhomeMacPrefix}, // Keen Home Vent
     { VENDOR_INNR, "SP 120", jennicMacPrefix}, // innr smart plug
@@ -247,8 +250,10 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NETVOX, "Z809AE3R", netvoxMacPrefix }, // Netvox smartplug
     { VENDOR_LDS, "ZB-ONOFFPlug-D0005", silabs2MacPrefix }, // Samsung SmartPlug 2019 (7A-PL-Z-J3)
     { VENDOR_PHYSICAL, "outletv4", stMacPrefix }, // Samsung SmartThings plug (IM6001-OTP)
-    { VENDOR_NONE, "RH3052", emberMacPrefix }, // Lupus small zigbee temperature sensor
+    { VENDOR_EMBER, "RH3040", konkeMacPrefix }, // Tuyatec motion sensor
+    { VENDOR_NONE, "RH3052", emberMacPrefix }, // Tuyatec temperature sensor
     { VENDOR_AURORA, "DoubleSocket50AU", jennicMacPrefix }, // Aurora AOne Double Socket UK
+    { VENDOR_COMPUTIME, "SP600", computimeMacPrefix }, // Salus smart plug
     { 0, nullptr, 0 }
 };
 
@@ -4792,7 +4797,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = METERING_CLUSTER_ID;
             item = sensorNode.addItem(DataTypeUInt64, RStateConsumption);
-            if (modelId != QLatin1String("SP 120"))
+            if ((modelId != QLatin1String("SP 120")) && (modelId != QLatin1String("ZB-ONOFFPlug-D0005")))
             {
                 item = sensorNode.addItem(DataTypeInt16, RStatePower);
             }
@@ -4809,7 +4814,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = ELECTRICAL_MEASUREMENT_CLUSTER_ID;
             item = sensorNode.addItem(DataTypeInt16, RStatePower);
-            if ( (!modelId.startsWith(QLatin1String("Plug"))) && (node->nodeDescriptor().manufacturerCode() != VENDOR_LEGRAND) ) // OSRAM and Legrand plug don't have theses options
+            if ( (!modelId.startsWith(QLatin1String("Plug"))) &&
+                 (!modelId.startsWith(QLatin1String("ZB-ONOFFPlug-D0005"))) &&
+                 (node->nodeDescriptor().manufacturerCode() != VENDOR_LEGRAND) ) // OSRAM and Legrand plug don't have theses options
             {
                 item = sensorNode.addItem(DataTypeUInt16, RStateVoltage);
                 item = sensorNode.addItem(DataTypeUInt16, RStateCurrent);
@@ -6953,7 +6960,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (item && voltage != 65535)
                                 {
                                     if (i->modelId() == QLatin1String("SmartPlug") || // Heiman
-                                        i->modelId() == QLatin1String("SPLZB-131")) // Develco
+                                        i->modelId() == QLatin1String("SPLZB-131"))   // Develco
                                     {
                                         voltage += 50; voltage /= 100; // 0.01V -> V
                                     }
@@ -6980,19 +6987,17 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 if (item && current != 65535)
                                 {
-                                    if (i->modelId() == QLatin1String("SP 120") ||          // innr
-                                        i->modelId() == QLatin1String("outletv4") ||        // Samsung SmartThings IM6001-OTP
-                                        i->modelId() == QLatin1String("DoubleSocket50AU"))  // Aurora
+                                    if (i->modelId() == QLatin1String("SP 120") ||            // innr
+                                        i->modelId() == QLatin1String("outletv4") ||          // Samsung SmartThings IM6001-OTP
+                                        i->modelId() == QLatin1String("DoubleSocket50AU") ||  // Aurora
+                                        i->modelId() == QLatin1String("RICI01"))              // LifeControl Smart Plug
                                     {
                                         // already in mA
                                     }
-                                    else if (i->modelId() == QLatin1String("SmartPlug")) // Heiman
+                                    else if (i->modelId() == QLatin1String("SmartPlug") || // Heiman
+                                             i->modelId() == QLatin1String("EMIZB-132"))   // Develco EMI Norwegian HAN
                                     {
                                         current *= 10; // 0.01A -> mA
-                                    }
-                                    else if (i->modelId() == QLatin1String("RICI01")) //LifeControl Smart Plug
-                                    {
-                                        // already in mA
                                     }
                                     else
                                     {

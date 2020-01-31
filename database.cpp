@@ -3137,7 +3137,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (sensor.fingerPrint().hasInCluster(METERING_CLUSTER_ID))
             {
                 clusterId = clusterId ? clusterId : METERING_CLUSTER_ID;
-                if (sensor.modelId() != QLatin1String("SP 120"))
+                if ((sensor.modelId() != QLatin1String("SP 120")) && 
+                    (sensor.modelId() != QLatin1String("ZB-ONOFFPlug-D0005")))
                 {
                     item = sensor.addItem(DataTypeInt16, RStatePower);
                     item->setValue(0);
@@ -3162,6 +3163,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     return 0;
                     // hasVoltage = false;
                 }
+                else if (sensor.modelId() == QLatin1String("ZB-ONOFFPlug-D0005"))
+                {
+                    hasVoltage = false;
+                }					
             }
             else if (sensor.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))
             {
