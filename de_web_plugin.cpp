@@ -1475,6 +1475,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
     }
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_KEEN_HOME || // Keen Home Vent
         node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC || // Xiaomi lumi.ctrl_neutral1, lumi.ctrl_neutral2
+        node->nodeDescriptor().manufacturerCode() == VENDOR_115F || // Xiaomi lumi.curtain.hagl04
         node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER || // atsmart Z6-03 switch
         node->nodeDescriptor().manufacturerCode() == VENDOR_NONE || // Climax Siren
         node->nodeDescriptor().manufacturerCode() == VENDOR_DEVELCO || // Develco Smoke sensor with siren
@@ -3436,7 +3437,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 }
             }
             else if (ind.clusterId() == COLOR_CLUSTER_ID &&
-                     (zclFrame.commandId() == 0x4b && zclFrame.payload().size() >= 7) && // move color temperature 
+                     (zclFrame.commandId() == 0x4b && zclFrame.payload().size() >= 7) && // move color temperature
                      !sensor->modelId().contains(QLatin1String("86opcn01")))  // do not use this for Aqara Opple switches, they are missing the additional payload
             {
                 ok = false;
@@ -5020,7 +5021,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         sensorNode.setManufacturer("LUMI");
         if (!sensorNode.modelId().startsWith(QLatin1String("lumi.ctrl_")) &&
             sensorNode.modelId() != QLatin1String("lumi.plug") &&
-            !sensorNode.modelId().startsWith(QLatin1String("lumi.curtain")))
+            sensorNode.modelId() != QLatin1String("lumi.curtain"))
         {
             sensorNode.addItem(DataTypeUInt8, RConfigBattery);
         }
