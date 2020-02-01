@@ -1192,7 +1192,12 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
         else if (!hasEffectColorLoop && (hue != UINT_MAX) && (sat != UINT_MAX))
         {
+            // need the real given hue value between 0-65535
+            uint hue2 = map["hue"].toUInt(&ok);
             // need 8 bit hue
+            
+            //acid115: not needed for Hsv2Rgb
+            /*
             qreal f = (qreal)hue / 182.04444;
 
             f /= 360.0;
@@ -1203,12 +1208,14 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             }
 
             hue = f * 254.0;
+            */
+            //acid115: end
 
-            DBG_Printf(DBG_INFO, "hue: %u, sat: %u\n", hue, sat);
+            DBG_Printf(DBG_INFO, "hue: %u, sat: %u\n", hue2, sat);
 
             double r, g, b;
             double x, y;
-            double h = ((360.0 / 65535.0) * hue);
+            double h = ((360.0 / 65535.0) * hue2);
             double s = sat / 254.0;
             double v = 1.0;
 
@@ -1222,13 +1229,55 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
             TaskItem task;
             copyTaskReq(taskRef, task);
-            DBG_Printf(DBG_INFO, "x: %f, y: %f\n", x, y);
-            task.lightNode->setColorXY(static_cast<quint16>(x * 65535.0), static_cast<quint16>(y * 65535.0));
+            
+            //correction for color yellow and Ikea Bulb
+	    	if (task.lightNode->manufacturerCode() == VENDOR_IKEA && 
+	    		req.mode == ApiModeEcho && 
+	    		hue == 42)
+	    	{
+	    		//real yellow
+                x = 0.4495;
+                y = 0.5222;
+	    	} 
 
-            if (!addTaskSetHueAndSaturation(task, hue, sat))
+            DBG_Printf(DBG_INFO, "x: %f, y: %f\n", x, y);
+
+            task.lightNode->setColorXY(static_cast<quint16>(x * 65535.0), static_cast<quint16>(y * 65535.0));
+           
+	        //set hue and sat values in the rest interface for state as given from amazon echo 
+	        //to confirm the values have been set
+	        if (task.lightNode->manufacturerCode() == VENDOR_IKEA && 
+	    		req.mode == ApiModeEcho)
+	    	{
+
+	            ResourceItem *item = task.lightNode->item(RStateSat);
+	            if (item)
+	            {
+	                item->setValue(map["sat"]);
+	                Event e(RLights, RStateSat, task.lightNode->id(), item);
+	                enqueueEvent(e);
+	            }
+	            item = task.lightNode->item(RStateHue);
+		    	if (item)
+	            {
+	                item->setValue(map["hue"]);
+	                Event e(RLights, RStateHue, task.lightNode->id(), item);
+	                enqueueEvent(e);
+	            }
+	            //for ikea setXyColor
+	            if (!addTaskSetXyColor(task, x, y))
+            	{
+                	DBG_Printf(DBG_INFO, "can't send task set hue and saturation\n");
+            	}
+
+            } else 
             {
-                DBG_Printf(DBG_INFO, "can't send task set hue and saturation\n");
+            	if (!addTaskSetHueAndSaturation(task, hue, sat))
+            	{
+                	DBG_Printf(DBG_INFO, "can't send task set hue and saturation\n");
+            	}
             }
+            
         }
         else
         {
@@ -1283,7 +1332,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     if (hasCt)
     {
         uint16_t ct = map["ct"].toUInt(&ok);
-
+        
         if (!isOn)
         {
             rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1").arg(id), QString("parameter, /lights/%1/ct, is not modifiable. Device is set to off.").arg(id)));
@@ -1292,6 +1341,12 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         {
             TaskItem task;
             copyTaskReq(taskRef, task);
+            //correct ikea ct 
+        	if (task.lightNode->manufacturerCode() == VENDOR_IKEA && 
+	    		req.mode == ApiModeEcho )
+	   		{	
+				ct += 65;
+	 		}
             if (hasXy || hasEffectColorLoop ||
                 addTaskSetColorTemperature(task, ct)) // will only be evaluated if no xy and color loop is set
             {
@@ -1304,6 +1359,20 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 {
                     taskToLocalData(task); // get through reading
                 }
+                //set the ct in rest interface state to confirm the value change for amazon echo
+                if (task.lightNode->manufacturerCode() == VENDOR_IKEA && 
+	    			req.mode == ApiModeEcho )
+	    		{
+	                //set CT back to api
+	                ResourceItem *item = taskRef.lightNode->item(RStateCt);
+	                if (item)
+	                {
+	                 item->setValue(map["ct"]);
+	                 Event e(RLights, RStateCt, task.lightNode->id(), item);
+	                 enqueueEvent(e);
+	                }
+                }
+
             }
             else
             {
