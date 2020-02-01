@@ -2365,7 +2365,12 @@ devices can operate on either battery or mains power, and can have a wide variet
 				<attribute id="0303" name="Summation Formatting" type="bmp8" access="r" required="m">
 					<value name="Number Digits Right" description="Number of Digets to the right of the Decimal Point" value="0,2"></value>
 					<value name="Number Digits Left" description="Number of Digets to the left of the Decimal Point" value="3,6"></value>
-					<value name="Surpress Leading Zeros" value="7"></value>
+					<value name="Suppress Leading Zeros" value="7"></value>
+				</attribute>
+				<attribute id="0304" name="Demand Formatting" type="bmp8" access="r" required="o">
+					<value name="Number Digits Right" description="Number of Digets to the right of the Decimal Point" value="0,2"></value>
+					<value name="Number Digits Left" description="Number of Digets to the left of the Decimal Point" value="3,6"></value>
+					<value name="Suppress Leading Zeros" value="7"></value>
 				</attribute>
 				<!-- TODO -->
 				<attribute id="0306" name="Metering Device Type" type="enum8" access="r" required="m">
