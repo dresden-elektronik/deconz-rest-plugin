@@ -3228,6 +3228,9 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeBool, RConfigLocked);
                     sensor.addItem(DataTypeString, RConfigMode);
                 }
+                else if (sensor.modelId() == QLatin1String("Zen-01"))
+                {
+                }
                 else
                 {
                     sensor.addItem(DataTypeBool, RConfigSchedulerOn); // Scheduler state on/off

@@ -1032,6 +1032,37 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4}) ||
                    sendConfigureReportingRequest(bt, {rq5, rq6});
         }
+        else if (sensor && sensor->modelId() == QLatin1String("Zen-01")) // Zen
+        {
+            rq.dataType = deCONZ::Zcl16BitInt;
+            rq.attributeId = 0x0000;        // Local Temperature
+            rq.minInterval = 1;             // report changes every second
+            rq.maxInterval = 600;           // recommended value
+            rq.reportableChange16bit = 20;  // value from TEMPERATURE_MEASUREMENT_CLUSTER_ID
+
+            ConfigureReportingRequest rq2;
+            rq2.dataType = deCONZ::Zcl16BitInt;
+            rq2.attributeId = 0x0011;        // Occupied cooling setpoint
+            rq2.minInterval = 1;             // report changes every second
+            rq2.maxInterval = 600;
+            rq2.reportableChange16bit = 50;
+
+            ConfigureReportingRequest rq3;
+            rq3.dataType = deCONZ::Zcl16BitInt;
+            rq3.attributeId = 0x0012;        // Occupied heating setpoint
+            rq3.minInterval = 1;
+            rq3.maxInterval = 600;
+            rq3.reportableChange16bit = 50;
+
+            ConfigureReportingRequest rq4;
+            rq4.dataType = deCONZ::Zcl16BitBitMap;
+            rq4.attributeId = 0x0029;        // Thermostat running state
+            rq4.minInterval = 1;
+            rq4.maxInterval = 600;
+            rq4.reportableChange16bit = 0xffff;
+
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
+        }
         else
         {
             rq.dataType = deCONZ::Zcl16BitInt;
@@ -1098,6 +1129,13 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         else if (sensor && (sensor->modelId() == QLatin1String("Motion Sensor-A") ||
                             sensor->modelId() == QLatin1String("tagv4") ||
                             sensor->modelId() == QLatin1String("RFDL-ZB-MS")))
+        {
+            rq.attributeId = 0x0020;   // battery voltage
+            rq.minInterval = 3600;
+            rq.maxInterval = 3600;
+            rq.reportableChange8bit = 0;
+        }
+        else if (sensor && sensor->modelId() == QLatin1String("Zen-01"))
         {
             rq.attributeId = 0x0020;   // battery voltage
             rq.minInterval = 3600;
@@ -1845,7 +1883,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Aqara Opple
         sensor->modelId().contains(QLatin1String("86opcn01")) ||
         // Salus
-        sensor->modelId().contains(QLatin1String("SP600")))
+        sensor->modelId().contains(QLatin1String("SP600")) ||
+        // Zen
+        sensor->modelId().contains(QLatin1String("Zen-01")))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||
@@ -1953,9 +1993,10 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                      sensor->modelId() == QLatin1String("WISZB-120") ||
                      sensor->modelId() == QLatin1String("MOSZB-130") ||
                      sensor->modelId() == QLatin1String("FLSZB-110") ||
-		             sensor->modelId() == QLatin1String("Remote switch") ||
+                     sensor->modelId() == QLatin1String("Zen-01") ||
+                     sensor->modelId() == QLatin1String("Remote switch") ||
                      sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||
-		             sensor->modelId().contains(QLatin1String("86opcn01"))) // Aqara Opple
+                     sensor->modelId().contains(QLatin1String("86opcn01"))) // Aqara Opple
             {
                 val = sensor->getZclValue(*i, 0x0020); // battery voltage
             }

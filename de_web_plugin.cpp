@@ -627,6 +627,10 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
         case THERMOSTAT_CLUSTER_ID:
             handleThermostatClusterIndication(ind, zclFrame);
             break;
+            
+        case BASIC_CLUSTER_ID:
+            handleBasicClusterIndication(ind, zclFrame);
+            break;
 
         default:
         {
@@ -1480,6 +1484,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
     }
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_KEEN_HOME || // Keen Home Vent
         node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC || // Xiaomi lumi.ctrl_neutral1, lumi.ctrl_neutral2
+        node->nodeDescriptor().manufacturerCode() == VENDOR_115F || // Xiaomi lumi.curtain.hagl04
         node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER || // atsmart Z6-03 switch
         node->nodeDescriptor().manufacturerCode() == VENDOR_NONE || // Climax Siren
         node->nodeDescriptor().manufacturerCode() == VENDOR_DEVELCO || // Develco Smoke sensor with siren
@@ -3441,7 +3446,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 }
             }
             else if (ind.clusterId() == COLOR_CLUSTER_ID &&
-                     (zclFrame.commandId() == 0x4b && zclFrame.payload().size() >= 7) && // move color temperature 
+                     (zclFrame.commandId() == 0x4b && zclFrame.payload().size() >= 7) && // move color temperature
                      !sensor->modelId().contains(QLatin1String("86opcn01")))  // do not use this for Aqara Opple switches, they are missing the additional payload
             {
                 ok = false;
@@ -4850,6 +4855,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.addItem(DataTypeBool, RConfigLocked);
                 sensorNode.addItem(DataTypeString, RConfigMode);
             }
+            else if (modelId == QLatin1String("Zen-01"))
+            {
+            }
             else
             {
                 sensorNode.addItem(DataTypeBool, RConfigSchedulerOn); // Scheduler state on/off
@@ -5024,7 +5032,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         sensorNode.setManufacturer("LUMI");
         if (!sensorNode.modelId().startsWith(QLatin1String("lumi.ctrl_")) &&
             sensorNode.modelId() != QLatin1String("lumi.plug") &&
-            !sensorNode.modelId().startsWith(QLatin1String("lumi.curtain")))
+            sensorNode.modelId() != QLatin1String("lumi.curtain"))
         {
             sensorNode.addItem(DataTypeUInt8, RConfigBattery);
         }
@@ -5779,6 +5787,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 if (i->modelId().startsWith(QLatin1String("tagv4")) || // SmartThings Arrival sensor
                                     i->modelId() == QLatin1String("Remote switch") || //Legrand switch
+                                    i->modelId() == QLatin1String("Zen-01") || // Zen thermostat
                                     i->modelId() == QLatin1String("Motion Sensor-A") || 
                                     i->modelId().contains(QLatin1String("86opcn01"))) //Aqara Opple
                                 {  }
@@ -5804,9 +5813,16 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (item)
                                 {
                                     int battery = ia->numericValue().u8; // in 0.1 V
-                                    const float vmin = 20; // TODO: check - I've seen 24
-                                    const float vmax = 30; // TODO: check - I've seen 29
+                                    float vmin = 20; // TODO: check - I've seen 24
+                                    float vmax = 30; // TODO: check - I've seen 29
                                     float bat = battery;
+
+                                    if (i->modelId() == QLatin1String("Zen-01"))
+                                    {
+                                        // 4x LR6 AA 1.5 V
+                                        vmin = 36; // according to attribute 0x0036
+                                        vmax = 60;
+                                    }
 
                                     if      (bat > vmax) { bat = vmax; }
                                     else if (bat < vmin) { bat = vmin; }
