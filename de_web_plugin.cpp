@@ -4010,7 +4010,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
-                    else if (modelId == QLatin1String("lumi.plug") || modelId.startsWith(QLatin1String("lumi.ctrl_ln1")))
+                    else if (modelId.startsWith(QLatin1String("lumi.plug")) || modelId.startsWith(QLatin1String("lumi.ctrl_ln1")))
                     {
                         if (i->endpoint() == 0x02)
                         {
@@ -4552,7 +4552,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     // Xiaomi plug might contain invalid sensor clusters
     // prevent creation of related sensors for clusters like 0x0400, 0x0402, 0x0403, 0x0405, 0x0406
     // https://github.com/dresden-elektronik/deconz-rest-plugin/issues/1094
-    if (modelId == QLatin1String("lumi.plug") &&
+    if (modelId.startsWith(QLatin1String("lumi.plug")) &&
        !(type == QLatin1String("ZHAConsumption") || type == QLatin1String("ZHAPower")))
     {
         return;
@@ -5031,7 +5031,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     {
         sensorNode.setManufacturer("LUMI");
         if (!sensorNode.modelId().startsWith(QLatin1String("lumi.ctrl_")) &&
-            sensorNode.modelId() != QLatin1String("lumi.plug") &&
+            !sensorNode.modelId().startsWith(QLatin1String("lumi.plug")) &&
             sensorNode.modelId() != QLatin1String("lumi.curtain"))
         {
             sensorNode.addItem(DataTypeUInt8, RConfigBattery);
@@ -6627,7 +6627,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         updateSensorEtag(&*i);
                                     }
                                 }
-                                else if (i->modelId() == QLatin1String("lumi.plug") ||
+                                else if (i->modelId().startsWith(QLatin1String("lumi.plug")) ||
                                          i->modelId().startsWith(QLatin1String("lumi.ctrl_")))
                                 {
                                     if (i->type() == QLatin1String("ZHAPower"))
