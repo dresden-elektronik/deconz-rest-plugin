@@ -6647,7 +6647,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     }
                                     else if (i->type() == QLatin1String("ZHAConsumption"))
                                     {
-                                        qint64 consumption = ia->numericValue().real * 1000;
+                                        quint64 consumption = ia->numericValue().real * 1000;
                                         ResourceItem *item = i->item(RStateConsumption);
 
                                         if (item)
