@@ -1350,16 +1350,12 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
         else if (alert == "select")
         {
-            if (isWarningDevice && isSmokeDetector)
+            if (isWarningDevice)
             {
                 task.taskType = TaskWarning;
-                task.options = 0x12; // Warning mode 2 (fire), strobe
-                task.duration = 1;
-            }
-            else if (isWarningDevice)
-            {
-                task.taskType = TaskWarning;
-                task.options = 0x14; // Warning mode 1 (burglar), Strobe
+                task.options = isSmokeDetector
+                  ? 0x12  // Warning mode 2 (fire), Strobe
+                  : 0x14; // Warning mode 1 (burglar), Strobe
                 task.duration = 1;
             }
             else
@@ -1370,22 +1366,18 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
         else if (alert == "lselect")
         {
-            if (isWarningDevice && isSmokeDetector)
+            if (isWarningDevice)
             {
                 task.taskType = TaskWarning;
-                task.options = 0x12; // Warning mode 2 (fire), strobe
-                task.duration = 300;
-            }
-            else if (isWarningDevice)
-            {
-                task.taskType = TaskWarning;
-                task.options = 0x14; // Warning mode 1 (burglar), Strobe
-                task.duration = 300;
+                task.options = isSmokeDetector
+                  ? 0x12  // Warning mode 2 (fire), Strobe
+                  : 0x14; // Warning mode 1 (burglar), Strobe
+                task.duration = taskRef.onTime > 0 ? taskRef.onTime : 300;
             }
             else
             {
                 task.taskType = TaskIdentify;
-                task.identifyTime = 15;   // Default for Philips Hue bridge
+                task.identifyTime = taskRef.onTime > 0 ? taskRef.onTime : 15; // Default for Philips Hue bridge
             }
         }
         else if (alert == "blink")
@@ -1394,7 +1386,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             {
                 task.taskType = TaskWarning;
                 task.options = 0x04; // Warning mode 0 (no warning), Strobe
-                task.duration = 300;
+                task.duration = taskRef.onTime > 0 ? taskRef.onTime : 300;
             }
             else
             {
