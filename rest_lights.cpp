@@ -1233,11 +1233,11 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             //correction for color yellow and Ikea Bulb
 	    	if (task.lightNode->manufacturerCode() == VENDOR_IKEA && 
 	    		req.mode == ApiModeEcho && 
-	    		hue == 42)
+	    		hue2 == 10923)
 	    	{
 	    		//real yellow
-                x = 0.4495;
-                y = 0.5222;
+                x = 0.5068;
+                y = 0.4715;
 	    	} 
 
             DBG_Printf(DBG_INFO, "x: %f, y: %f\n", x, y);
