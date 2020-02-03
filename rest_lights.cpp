@@ -1230,7 +1230,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             TaskItem task;
             copyTaskReq(taskRef, task);
             
-            //correction for color yellow and Ikea Bulb
+            //correction for color yellow and Ikea ColorBulb 
 	    	if (task.lightNode->manufacturerCode() == VENDOR_IKEA && 
 	    		req.mode == ApiModeEcho && 
 	    		hue2 == 10923)
