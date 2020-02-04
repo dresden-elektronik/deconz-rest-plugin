@@ -5785,11 +5785,16 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             }
                             else if (ia->id() == 0x0020) // battery voltage
                             {
-                                if (i->modelId().startsWith(QLatin1String("tagv4")) || // SmartThings Arrival sensor
-                                    i->modelId() == QLatin1String("Remote switch") || //Legrand switch
-                                    i->modelId() == QLatin1String("Zen-01") || // Zen thermostat
-                                    i->modelId() == QLatin1String("Motion Sensor-A") || 
-                                    i->modelId().contains(QLatin1String("86opcn01"))) //Aqara Opple
+                                if (i->modelId().startsWith(QLatin1String("tagv4")) ||   // SmartThings Arrival sensor
+                                    i->modelId() == QLatin1String("Remote switch") ||    // Legrand switch
+                                    i->modelId() == QLatin1String("Zen-01") ||           // Zen thermostat
+                                    i->modelId() == QLatin1String("Motion Sensor-A") ||  // Osram motion sensor
+                                    i->modelId().contains(QLatin1String("86opcn01")) ||  // Aqara Opple
+                                    i->modelId().contains(QLatin1String("SMSZB-120")) || // Develco smoke sensor
+                                    i->modelId().contains(QLatin1String("HESZB-120")) || // Develco heat sensor
+                                    i->modelId().contains(QLatin1String("MOSZB-130")) || // Develco motion sensor
+                                    i->modelId().contains(QLatin1String("FLSZB-110")) || // Develco water leak sensor
+                                    i->modelId().contains(QLatin1String("ZHMS101")))     // Wattle (Develco) magnetic sensor
                                 {  }
                                 else
                                 {
