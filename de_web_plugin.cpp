@@ -209,6 +209,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_KEEN_HOME , "SV01-", keenhomeMacPrefix}, // Keen Home Vent
     { VENDOR_INNR, "SP 120", jennicMacPrefix}, // innr smart plug
     { VENDOR_PHYSICAL, "tagv4", stMacPrefix}, // SmartThings Arrival sensor
+    { VENDOR_PHYSICAL, "motionv4", stMacPrefix}, // SmartThings motion sensor
     { VENDOR_JENNIC, "VMS_ADUROLIGHT", jennicMacPrefix }, // Trust motion sensor ZPIR-8000
     { VENDOR_JENNIC, "CSW_ADUROLIGHT", jennicMacPrefix }, // Trust contact sensor ZMST-808
     { VENDOR_JENNIC, "ZYCT-202", jennicMacPrefix }, // Trust remote control ZYCT-202
@@ -5786,6 +5787,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             else if (ia->id() == 0x0020) // battery voltage
                             {
                                 if (i->modelId().startsWith(QLatin1String("tagv4")) ||   // SmartThings Arrival sensor
+                                    i->modelId().startsWith(QLatin1String("motionv4")) ||// SmartThings motion sensor
                                     i->modelId() == QLatin1String("Remote switch") ||    // Legrand switch
                                     i->modelId() == QLatin1String("Zen-01") ||           // Zen thermostat
                                     i->modelId() == QLatin1String("Motion Sensor-A") ||  // Osram motion sensor

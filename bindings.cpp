@@ -1128,6 +1128,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
         else if (sensor && (sensor->modelId() == QLatin1String("Motion Sensor-A") ||
                             sensor->modelId() == QLatin1String("tagv4") ||
+                            sensor->modelId() == QLatin1String("motionv4") ||
                             sensor->modelId() == QLatin1String("RFDL-ZB-MS")))
         {
             rq.attributeId = 0x0020;   // battery voltage
@@ -1836,6 +1837,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("FLS-NB")) ||
         // SmartThings
         sensor->modelId().startsWith(QLatin1String("tagv4")) ||
+        sensor->modelId().startsWith(QLatin1String("motionv4")) ||
         (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("button")) ||
         (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("motion")) ||
         (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("multi")) ||
