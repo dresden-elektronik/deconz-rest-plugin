@@ -2792,59 +2792,82 @@ Fil pilote > Off=0001 - On=0002</description>
 
 	<devices>
 		<!-- Generic -->
-		<device id="0000" name="On/Off Switch" description="" icon="dev-on-off-switch.png">
+		<device id="0x0000" name="On/Off Switch" description="" icon="dev-on-off-switch.png">
 		</device>
-		<device id="0001" name="Level Control Switch">
+		<device id="0x0001" name="Level Control Switch">
 			<description></description>
 		</device>
-		<device id="0002" name="On/Off Output">
+		<device id="0x0002" name="On/Off Output">
 			<description></description>
 		</device>
-		<device id="0003" name="Level Controllable Output">
+		<device id="0x0003" name="Level Controllable Output">
 			<description></description>
 		</device>
-		<device id="0004" name="Scene Selector">
+		<device id="0x0004" name="Scene Selector">
 			<description></description>
 		</device>
-		<device id="0005" name="Configuration Tool" description="" icon="dev-configuration-tool.png">
-		</device>
-		<device id="0006" name="Remote Control">
+		<device id="0x0005" name="Configuration Tool" description="" icon="dev-configuration-tool.png">
 			<description></description>
 		</device>
-		<device id="0007" name="Combined Interface" description="" icon="dev-combined-interface.svg">
-		</device>
-		<device id="0008" name="Range Extender" icon="dev-range-extender.png">
+		<device id="0x0006" name="Remote Control">
 			<description></description>
 		</device>
-		<device id="0009" name="Mains Power Outlet">
+		<device id="0x0007" name="Combined Interface" description="" icon="dev-combined-interface.svg">
 			<description></description>
 		</device>
-    <device id="0x000a" name="Door lock">
-      <description></description>
-    </device>
+		<device id="0x0008" name="Range Extender" icon="dev-range-extender.png">
+			<description></description>
+		</device>
+		<device id="0x0009" name="Mains Power Outlet">
+			<description></description>
+		</device>
+		<device id="0x000a" name="Door Lock">
+			<description></description>
+		</device>
+		<device id="0x000b" name="Door Lock Controller">
+			<description></description>
+		</device>
+		<device id="0x000c" name="Simple Sensor">
+			<description></description>
+		</device>
+		<device id="0x000d" name="Consumption Awareness Device">
+			<description></description>
+		</device>
+		<device id="0x0050" name="Home Gateway">
+			<description></description>
+		</device>
+		<device id="0x0051" name="Smart Plug">
+			<description></description>
+		</device>
+		<device id="0x0052" name="White Goods">
+			<description></description>
+		</device>
+		<device id="0x0053" name="Meter Interface">
+			<description></description>
+		</device>
 		<!-- Lighting -->
-		<device id="0100" name="On/Off Light" icon="dev-on-off-light.png">
+		<device id="0x0100" name="On/Off Light" icon="dev-on-off-light.png">
 			<description></description>
 		</device>
-		<device id="0101" name="Dimmable Light" icon="dev-on-off-light.png">
+		<device id="0x0101" name="Dimmable Light" icon="dev-on-off-light.png">
 			<description></description>
 		</device>
-		<device id="0102" name="Color Dimmable Light" icon="dev-on-off-light.png">
+		<device id="0x0102" name="Color Dimmable Light" icon="dev-on-off-light.png">
 			<description></description>
 		</device>
-		<device id="0103" name="On/Off Light Switch" icon="dev-on-off-switch.png">
+		<device id="0x0103" name="On/Off Light Switch" icon="dev-on-off-switch.png">
 			<description></description>
 		</device>
-		<device id="0104" name="Dimmer Switch">
+		<device id="0x0104" name="Dimmer Switch">
 			<description></description>
 		</device>
-		<device id="0105" name="Color Dimmer Switch">
+		<device id="0x0105" name="Color Dimmer Switch">
 			<description></description>
 		</device>
-		<device id="0106" name="Light Sensor" icon="dev-light-sensor.png">
+		<device id="0x0106" name="Light Sensor" icon="dev-light-sensor.png">
 			<description></description>
 		</device>
-		<device id="0107" name="Occupancy Sensor" icon="dev-occupancy-sensor.png">
+		<device id="0x0107" name="Occupancy Sensor" icon="dev-occupancy-sensor.png">
 			<description></description>
 		</device>
 		<device id="0x0108" name="On/off ballast" icon="dev-on-off-light.png">
@@ -2870,71 +2893,76 @@ Fil pilote > Off=0001 - On=0002</description>
 		</device>
 
 		<!-- Closures -->
-		<device id="0200" name="Shade">
+		<device id="0x0200" name="Shade">
 			<description></description>
 		</device>
-		<device id="0201" name="Shade Controller">
+		<device id="0x0201" name="Shade Controller">
 			<description></description>
 		</device>
-		<device id="0202" name="Window Covering Device">
+		<device id="0x0202" name="Window Covering Device">
 			<description></description>
 		</device>
-		<device id="0203" name="Window Covering Controller">
+		<device id="0x0203" name="Window Covering Controller">
 			<description></description>
 		</device>
 		<!-- HVAC -->
-		<device id="0300" name="Heating/Cooling Unit">
+		<device id="0x0300" name="Heating/Cooling Unit">
 			<description></description>
 		</device>
-		<device id="0301" name="Thermostat" description="" icon="dev-thermostat.png">
-		</device>
-		<device id="0302" name="Temperature Sensor" icon="dev-temperature-sensor.png">
+		<device id="0x0301" name="Thermostat" description="" icon="dev-thermostat.png">
 			<description></description>
 		</device>
-		<device id="0303" name="Pump">
+		<device id="0x0302" name="Temperature Sensor" icon="dev-temperature-sensor.png">
 			<description></description>
 		</device>
-		<device id="0304" name="Pump Controller">
+		<device id="0x0303" name="Pump">
 			<description></description>
 		</device>
-		<device id="0305" name="Pressure Sensor">
+		<device id="0x0304" name="Pump Controller">
 			<description></description>
 		</device>
-		<device id="0306" name="Flow Sensor">
+		<device id="0x0305" name="Pressure Sensor">
+			<description></description>
+		</device>
+		<device id="0x0306" name="Flow Sensor">
+			<description></description>
+		</device>
+		<device id="0x0307" name="Mini Split AC">
 			<description></description>
 		</device>
 		<!-- Intruder Alarm Systems -->
-		<device id="0400" name="IAS Control and Indicating Equipment">
+		<device id="0x0400" name="IAS Control and Indicating Equipment">
 			<description></description>
 		</device>
-		<device id="0401" name="IAS Ancillary Control Equipment">
+		<device id="0x0401" name="IAS Ancillary Control Equipment">
 			<description></description>
 		</device>
-		<device id="0402" name="IAS Zone">
+		<device id="0x0402" name="IAS Zone">
 			<description></description>
 		</device>
-		<device id="0403" name="IAS Warning Device">
+		<device id="0x0403" name="IAS Warning Device">
 			<description></description>
 		</device>
 		<!-- Smart Energy -->
-		<device id="0500" name="Energy Service Portal">
+		<device id="0x0500" name="Energy Service Portal">
 			<description></description>
 		</device>
-		<device id="0501" name="Metering Device">
+		<device id="0x0501" name="Metering Device">
 			<description></description>
 		</device>
-		<device id="0502" name="In-Premise Display">
+		<device id="0x0502" name="In-Premise Display">
 			<description></description>
 		</device>
-		<device id="0503" name="Programmable Communicating Thermostat (PCT)" description="" icon="dev-prog-thermostat.png">
-		</device>
-		<device id="0504" name="Load Control Device">
+		<device id="0x0503" name="Programmable Communicating Thermostat (PCT)" description="" icon="dev-prog-thermostat.png">
 			<description></description>
 		</device>
-		<device id="0505" name="Smart Appliance">
+		<device id="0x0504" name="Load Control Device">
 			<description></description>
 		</device>
-		<device id="0506" name="Prepayment Terminal">
+		<device id="0x0505" name="Smart Appliance">
+			<description></description>
+		</device>
+		<device id="0x0506" name="Prepayment Terminal">
 			<description></description>
 		</device>
 		<device id="0x0507" name="Device Management">
