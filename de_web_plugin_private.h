@@ -115,6 +115,7 @@
 
 // Other HA devices
 #define DEV_ID_HA_WINDOW_COVERING_DEVICE    0x0202 // Window Covering Device
+#define DEV_ID_HA_WINDOW_COVERING_CONTROLLER 0x0203 // Window Covering Controller
 //
 #define DEV_ID_IAS_ZONE                     0x0402 // IAS Zone
 #define DEV_ID_IAS_WARNING_DEVICE           0x0403 // IAS Warning Device
@@ -414,6 +415,7 @@ extern const quint64 silabs2MacPrefix;
 extern const quint64 xiaomiMacPrefix;
 extern const quint64 computimeMacPrefix;
 extern const quint64 konkeMacPrefix;
+extern const quint64 sunricherMacPrefix;
 
 inline bool checkMacVendor(quint64 addr, quint16 vendor)
 {
@@ -428,7 +430,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == emberMacPrefix ||
                    prefix == jennicMacPrefix;
         case VENDOR_SUNRICHER:
-            return prefix == emberMacPrefix;
+            return prefix == emberMacPrefix ||
+                   prefix == sunricherMacPrefix;
         case VENDOR_BITRON:
             return prefix == tiMacPrefix;
         case VENDOR_BOSCH:
