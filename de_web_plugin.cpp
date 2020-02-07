@@ -627,7 +627,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
         case THERMOSTAT_CLUSTER_ID:
             handleThermostatClusterIndication(ind, zclFrame);
             break;
-            
+
         case BASIC_CLUSTER_ID:
             handleBasicClusterIndication(ind, zclFrame);
             break;
@@ -2702,7 +2702,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                 {
                     if (ia->id() == 0x0055) // Present Value
                     {
-                        uint8_t level = 255 * (100 - ia->numericValue().real) / 100;
+                        uint8_t level = 254 * (100 - ia->numericValue().real) / 100;
                         ResourceItem *item = lightNode->item(RStateBri);
                         if (item && item->toNumber() != level)
                         {
@@ -5788,7 +5788,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (i->modelId().startsWith(QLatin1String("tagv4")) || // SmartThings Arrival sensor
                                     i->modelId() == QLatin1String("Remote switch") || //Legrand switch
                                     i->modelId() == QLatin1String("Zen-01") || // Zen thermostat
-                                    i->modelId() == QLatin1String("Motion Sensor-A") || 
+                                    i->modelId() == QLatin1String("Motion Sensor-A") ||
                                     i->modelId().contains(QLatin1String("86opcn01"))) //Aqara Opple
                                 {  }
                                 else
@@ -9853,7 +9853,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             item = lightNode.item(RStateBri);
             if (item)
             {
-                const uint bri = currentPositionLift * 255 / 100;
+                const uint bri = currentPositionLift * 254 / 100;
                 item->setValue(bri);
                 enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
                 value = bri != 0;
