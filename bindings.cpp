@@ -1106,7 +1106,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
         rq.dataType = deCONZ::Zcl8BitUint;
         rq.attributeId = 0x0021;   // battery percentage remaining
-        if (sensor && sensor->modelId().startsWith(QLatin1String("SML00"))) // Hue motion sensor
+        if (sensor && (sensor->modelId().startsWith(QLatin1String("SML00")) || // Hue motion sensor
+                       sensor->modelId().startsWith(QLatin1String("SPZB"))))   // Eurotronic Spirit
         {
             rq.minInterval = 7200;       // value used by Hue bridge
             rq.maxInterval = 7200;       // value used by Hue bridge
@@ -1128,14 +1129,9 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
         else if (sensor && (sensor->modelId() == QLatin1String("Motion Sensor-A") ||
                             sensor->modelId() == QLatin1String("tagv4") ||
-                            sensor->modelId() == QLatin1String("RFDL-ZB-MS")))
-        {
-            rq.attributeId = 0x0020;   // battery voltage
-            rq.minInterval = 3600;
-            rq.maxInterval = 3600;
-            rq.reportableChange8bit = 0;
-        }
-        else if (sensor && sensor->modelId() == QLatin1String("Zen-01"))
+                            sensor->modelId() == QLatin1String("motionv4") ||
+                            sensor->modelId() == QLatin1String("RFDL-ZB-MS") ||
+                            sensor->modelId() == QLatin1String("Zen-01")))
         {
             rq.attributeId = 0x0020;   // battery voltage
             rq.minInterval = 3600;
@@ -1153,12 +1149,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.minInterval = 43200;    // according to technical manual
             rq.maxInterval = 43200;    // according to technical manual
             rq.reportableChange8bit = 0;
-        }
-        else if (sensor && sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
-        {
-            rq.minInterval = 7200;       // same as Hue motion sensor
-            rq.maxInterval = 7200;       // same as Hue motion sensor
-            rq.reportableChange8bit = 0; // same as Hue motion sensor
         }
         else
         {
@@ -1836,6 +1826,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("FLS-NB")) ||
         // SmartThings
         sensor->modelId().startsWith(QLatin1String("tagv4")) ||
+        sensor->modelId().startsWith(QLatin1String("motionv4")) ||
         (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("button")) ||
         (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("motion")) ||
         (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("multi")) ||

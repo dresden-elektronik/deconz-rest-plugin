@@ -209,6 +209,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_KEEN_HOME , "SV01-", keenhomeMacPrefix}, // Keen Home Vent
     { VENDOR_INNR, "SP 120", jennicMacPrefix}, // innr smart plug
     { VENDOR_PHYSICAL, "tagv4", stMacPrefix}, // SmartThings Arrival sensor
+    { VENDOR_PHYSICAL, "motionv4", stMacPrefix}, // SmartThings motion sensor
     { VENDOR_JENNIC, "VMS_ADUROLIGHT", jennicMacPrefix }, // Trust motion sensor ZPIR-8000
     { VENDOR_JENNIC, "CSW_ADUROLIGHT", jennicMacPrefix }, // Trust contact sensor ZMST-808
     { VENDOR_JENNIC, "ZYCT-202", jennicMacPrefix }, // Trust remote control ZYCT-202
@@ -4010,7 +4011,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
-                    else if (modelId == QLatin1String("lumi.plug") || modelId.startsWith(QLatin1String("lumi.ctrl_ln1")))
+                    else if (modelId.startsWith(QLatin1String("lumi.plug")) || modelId.startsWith(QLatin1String("lumi.ctrl_ln1")))
                     {
                         if (i->endpoint() == 0x02)
                         {
@@ -4552,7 +4553,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     // Xiaomi plug might contain invalid sensor clusters
     // prevent creation of related sensors for clusters like 0x0400, 0x0402, 0x0403, 0x0405, 0x0406
     // https://github.com/dresden-elektronik/deconz-rest-plugin/issues/1094
-    if (modelId == QLatin1String("lumi.plug") &&
+    if (modelId.startsWith(QLatin1String("lumi.plug")) &&
        !(type == QLatin1String("ZHAConsumption") || type == QLatin1String("ZHAPower")))
     {
         return;
@@ -5031,7 +5032,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     {
         sensorNode.setManufacturer("LUMI");
         if (!sensorNode.modelId().startsWith(QLatin1String("lumi.ctrl_")) &&
-            sensorNode.modelId() != QLatin1String("lumi.plug") &&
+            !sensorNode.modelId().startsWith(QLatin1String("lumi.plug")) &&
             sensorNode.modelId() != QLatin1String("lumi.curtain"))
         {
             sensorNode.addItem(DataTypeUInt8, RConfigBattery);
@@ -5785,11 +5786,18 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             }
                             else if (ia->id() == 0x0020) // battery voltage
                             {
-                                if (i->modelId().startsWith(QLatin1String("tagv4")) || // SmartThings Arrival sensor
-                                    i->modelId() == QLatin1String("Remote switch") || //Legrand switch
-                                    i->modelId() == QLatin1String("Zen-01") || // Zen thermostat
-                                    i->modelId() == QLatin1String("Motion Sensor-A") ||
-                                    i->modelId().contains(QLatin1String("86opcn01"))) //Aqara Opple
+                                if (i->modelId().startsWith(QLatin1String("tagv4")) ||   // SmartThings Arrival sensor
+                                    i->modelId().startsWith(QLatin1String("motionv4")) ||// SmartThings motion sensor
+                                    i->modelId() == QLatin1String("Remote switch") ||    // Legrand switch
+                                    i->modelId() == QLatin1String("Zen-01") ||           // Zen thermostat
+                                    i->modelId() == QLatin1String("Motion Sensor-A") ||  // Osram motion sensor
+                                    i->modelId().contains(QLatin1String("86opcn01")) ||  // Aqara Opple
+                                    i->modelId().contains(QLatin1String("SMSZB-120")) || // Develco smoke sensor
+                                    i->modelId().contains(QLatin1String("HESZB-120")) || // Develco heat sensor
+                                    i->modelId().contains(QLatin1String("MOSZB-130")) || // Develco motion sensor
+                                    i->modelId().contains(QLatin1String("WISZB-120")) || // Develco window sensor
+                                    i->modelId().contains(QLatin1String("FLSZB-110")) || // Develco water leak sensor
+                                    i->modelId().contains(QLatin1String("ZHMS101")))     // Wattle (Develco) magnetic sensor
                                 {  }
                                 else
                                 {
@@ -6627,7 +6635,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         updateSensorEtag(&*i);
                                     }
                                 }
-                                else if (i->modelId() == QLatin1String("lumi.plug") ||
+                                else if (i->modelId().startsWith(QLatin1String("lumi.plug")) ||
                                          i->modelId().startsWith(QLatin1String("lumi.ctrl_")))
                                 {
                                     if (i->type() == QLatin1String("ZHAPower"))
@@ -6647,7 +6655,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     }
                                     else if (i->type() == QLatin1String("ZHAConsumption"))
                                     {
-                                        qint64 consumption = ia->numericValue().real * 1000;
+                                        quint64 consumption = ia->numericValue().real * 1000;
                                         ResourceItem *item = i->item(RStateConsumption);
 
                                         if (item)
