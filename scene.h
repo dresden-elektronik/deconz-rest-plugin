@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2019 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -15,6 +15,7 @@
 #include <QString>
 #include <vector>
 #include <QElapsedTimer>
+#include <QDateTime>
 #include "json.h"
 
 class LightState;
@@ -32,30 +33,71 @@ public:
         StateNormal,
         StateDeleted
     };
+    enum Type
+    {
+        LightScene,
+        GroupScene
+    };
 
-    Scene();
-    State state;
-    bool externalMaster;
-    uint16_t groupAddress;
-    uint8_t id;
-    QString name;
+    Scene(const uint16_t gid, const uint8_t sid, const Type type);
+    void init(const QString& id, const QString& owner, const QDateTime& lastupdated, const uint16_t version);
 
-    const uint16_t &transitiontime() const;
-    void setTransitiontime(const uint16_t &transitiontime);
+    const State& state() const;
+    void state(const State& state);
+    bool externalMaster() const;
+    void externalMaster(const bool externalMaster);
 
-    std::vector<LightState> &lights();
-    const std::vector<LightState> &lights() const;
-    void setLights(const std::vector<LightState> &lights);
-    void addLightState(const LightState &light);
-    bool deleteLight(const QString &lid);
-    LightState *getLightState(const QString &lid);
+    const QString& id() const;
+    uint16_t gid() const;
+    uint8_t sid() const;
+    const QString& name() const;
+    void name(const QString& name);
 
-    static QString lightsToString(const std::vector<LightState> &lights);
-    static std::vector<LightState> jsonToLights(const QString &json);
+    const std::vector<LightState>& lightStates() const;
+    void addLightState(const LightState& state);
+    bool removeLightState(const QString& lid);
+    LightState* getLightState(const QString& lid);
+
+    // deCONZ only
+    uint16_t transitiontime() const;
+    void transitiontime(const uint16_t transitiontime);
+
+    // Hue only
+    const QString& owner() const;
+    bool recycle() const;
+    void recycle(const bool recycle);
+    bool locked() const;
+    void locked(const bool locked);
+    const QVariantMap& appdata() const;
+    void appdata(const QVariantMap& appdata);
+    const QString& picture() const;
+    void picture(const QString& picture);
+    const QDateTime& lastupdated() const;
+    void lastupdated(const bool lastupdated);
+    uint16_t version() const;
+
+    QVariantMap map() const;
 
 private:
+    State m_state;
+    Type m_type;
+    bool m_externalMaster;
+
+    QString m_id;
+    uint16_t m_gid;
+    uint8_t m_sid;
+    QString m_name;
+    std::vector<LightState> m_lightstates;
+
     uint16_t m_transitiontime;
-    std::vector<LightState> m_lights;
+
+    QString m_owner;
+    bool m_recycle;
+    bool m_locked;
+    QVariantMap m_appdata;
+    QString m_picture;
+    QDateTime m_lastupdated;
+    uint16_t m_version;
 };
 
 
@@ -99,6 +141,9 @@ public:
     void setNeedRead(bool needRead);
 
     QElapsedTimer tVerified;
+
+    QVariantMap map() const;
+    void map(QVariantMap& map);
 
 private:
     QString m_lid;

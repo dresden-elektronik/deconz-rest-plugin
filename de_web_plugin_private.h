@@ -1257,7 +1257,7 @@ public:
     void setSceneName(Group *group, uint8_t sceneId, const QString &name);
     bool storeScene(Group *group, uint8_t sceneId);
     bool modifyScene(Group *group, uint8_t sceneId);
-    bool removeScene(Group *group, uint8_t sceneId);
+    bool removeScene(Group *group, Scene* scene);
     bool callScene(Group *group, uint8_t sceneId);
     bool removeAllScenes(Group *group);
     void storeRecoverOnOffBri(LightNode *lightNode);
@@ -1358,6 +1358,7 @@ public:
     bool upgradeDbToUserVersion1();
     bool upgradeDbToUserVersion2();
     bool upgradeDbToUserVersion6();
+    bool upgradeDbToUserVersion7();
     void refreshDeviceDb(const deCONZ::Address &addr);
     void pushZdpDescriptorDb(quint64 extAddress, quint8 endpoint, quint16 type, const QByteArray &data);
     void pushZclValueDb(quint64 extAddress, quint8 endpoint, quint16 clusterId, quint16 attributeId, qint64 data);

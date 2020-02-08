@@ -96,6 +96,10 @@ void DeRestPluginPrivate::checkDbUserVersion()
     }
     else if (userVersion == 6)
     {
+        updated = upgradeDbToUserVersion7();
+    }
+    else if (userVersion == 7)
+    {
         // latest version
     }
     else
@@ -425,6 +429,45 @@ bool DeRestPluginPrivate::upgradeDbToUserVersion6()
     }
 
     return setDbUserVersion(6);
+}
+
+/*! Upgrades database to user_version 7. */
+bool DeRestPluginPrivate::upgradeDbToUserVersion7()
+{
+    int rc;
+    char *errmsg;
+
+    DBG_Printf(DBG_INFO, "DB upgrade to user_version 7\n");
+
+    // create tables
+    const char *sql[] = {
+        "ALTER TABLE scenes ADD COLUMN owner TEXT",
+        "ALTER TABLE scenes ADD COLUMN recycle BOOLEAN",
+        "ALTER TABLE scenes ADD COLUMN locked BOOLEAN",
+        "ALTER TABLE scenes ADD COLUMN appdata TEXT",
+        "ALTER TABLE scenes ADD COLUMN picture TEXT",
+        "ALTER TABLE scenes ADD COLUMN lastupdated TEXT",
+        "ALTER TABLE scenes ADD COLUMN version INT",
+        nullptr
+    };
+
+    for (int i = 0; sql[i] != nullptr; i++)
+    {
+        errmsg = nullptr;
+        rc = sqlite3_exec(db, sql[i], nullptr, nullptr, &errmsg);
+
+        if (rc != SQLITE_OK)
+        {
+            if (errmsg)
+            {
+                DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d)\n", sql[i], errmsg, rc);
+                sqlite3_free(errmsg);
+            }
+            return false;
+        }
+    }
+
+    return setDbUserVersion(7);
 }
 
 /*! Puts a new top level device entry in the db (mac address) or refreshes nwk address.
@@ -1825,8 +1868,19 @@ static int sqliteLoadAllScenesCallback(void *user, int ncols, char **colval , ch
     bool ok;
     bool ok1;
     bool ok2;
-    Scene scene;
-    DeRestPluginPrivate *d = static_cast<DeRestPluginPrivate*>(user);
+    QString id;
+    uint16_t gid = 0;
+    uint8_t sid = 0;
+    QString name;
+    uint16_t transitiontime = 4;
+    QString lights;
+    QString owner;
+    bool recycle = false;
+    bool locked = false;
+    QVariantMap appdata;
+    QString picture;
+    QDateTime lastupdated;
+    uint16_t version = 2;
 
     for (int i = 0; i < ncols; i++)
     {
@@ -1836,41 +1890,95 @@ static int sqliteLoadAllScenesCallback(void *user, int ncols, char **colval , ch
 
             DBG_Printf(DBG_INFO_L2, "Sqlite scene: %s = %s\n", colname[i], qPrintable(val));
 
-            if (strcmp(colname[i], "gid") == 0)
+            if (strcmp(colname[i], "gsid") == 0)
             {
-                scene.groupAddress = val.toUInt(&ok1, 16);
+                id = val;
+            }
+            else if (strcmp(colname[i], "gid") == 0)
+            {
+                gid = val.toUInt(&ok1);
             }
             else if (strcmp(colname[i], "sid") == 0)
             {
-                scene.id = val.toUInt(&ok2, 16);
+                sid = val.toUInt(&ok2);
             }
             else if (strcmp(colname[i], "name") == 0)
             {
-                scene.name = val;
+                name = val;
             }
             else if (strcmp(colname[i], "transitiontime") == 0)
             {
-                scene.setTransitiontime(val.toUInt(&ok));
+                transitiontime = val.toUInt(&ok);
             }
             else if (strcmp(colname[i], "lights") == 0)
             {
-                scene.setLights(Scene::jsonToLights(val));
+                lights = val;
+            }
+            else if (strcmp(colname[i], "owner") == 0)
+            {
+                owner = val;
+            }
+            else if (strcmp(colname[i], "recycle") == 0)
+            {
+                recycle = (val.toUInt(&ok) != 0);
+            }
+            else if (strcmp(colname[i], "locked") == 0)
+            {
+                locked = (val.toUInt(&ok) != 0);
+            }
+            else if (strcmp(colname[i], "appdata") == 0)
+            {
+                QVariant var = Json::parse(val, ok);
+                appdata = var.toMap();
+            }
+            else if (strcmp(colname[i], "picture") == 0)
+            {
+                picture = val;
+            }
+            else if (strcmp(colname[i], "lastupdated") == 0)
+            {
+                lastupdated = QDateTime::fromString(val, "yyyy-MM-ddTHH:mm:ss"); // ISO 8601
+            }
+            else if (strcmp(colname[i], "version") == 0)
+            {
+                version = val.toUInt(&ok);
             }
         }
     }
 
     if (ok1 && ok2)
     {
-        DBG_Printf(DBG_INFO_L2, "DB found scene sid: 0x%02X, gid: 0x%04X\n", scene.id, scene.groupAddress);
+        DBG_Printf(DBG_INFO_L2, "DB found scene id: %s, sid: 0x%02X, gid: 0x%04X\n", qPrintable(id), sid, gid);
 
-        Group *g = d->getGroupForId(scene.groupAddress);
+        DeRestPluginPrivate *d = static_cast<DeRestPluginPrivate*>(user);
+        Group *g = d->getGroupForId(gid);
         if (g)
         {
             // append scene to group if not already known
-            Scene *s = d->getSceneForId(scene.groupAddress,scene.id);
+            Scene *s = d->getSceneForId(gid, sid);
             if (!s)
             {
                 // append scene to group if not already known
+                Scene scene(gid, sid, gid == d->gwGroup0 ? Scene::LightScene : Scene::GroupScene);
+                scene.init(id, owner, lastupdated, version);
+                scene.name(name);
+                scene.transitiontime(transitiontime);
+
+                QVariantList ls = Json::parse(lights).toList();
+                for (QVariant l : ls)
+                {
+                    LightState state;
+                    QVariantMap l_map = l.toMap();
+                    QString lid = l_map[QLatin1String("lid")].toString();
+                    state.setLightId(lid);
+                    state.map(l_map);
+                    scene.addLightState(state);
+                }
+
+                scene.recycle(recycle);
+                scene.locked(locked);
+                scene.appdata(appdata);
+                scene.picture(picture);
                 d->updateEtag(g->etag);
                 g->scenes.push_back(scene);
             }
@@ -2556,23 +2664,109 @@ static int sqliteLoadSceneCallback(void *user, int ncols, char **colval , char *
 
     Scene *scene = static_cast<Scene*>(user);
 
-    for (int i = 0; i < ncols; i++) {
+    bool ok;
+    bool ok1;
+    bool ok2;
+    QString id;
+    uint16_t gid = scene->gid();
+    uint8_t sid = scene->sid();
+    QString name;
+    uint16_t transitiontime = 4;
+    QString lights;
+    QString owner;
+    bool recycle = false;
+    bool locked = false;
+    QVariantMap appdata;
+    QString picture;
+    QDateTime lastupdated;
+    uint16_t version = 2;
+
+    for (int i = 0; i < ncols; i++)
+    {
         if (colval[i] && (colval[i][0] != '\0'))
         {
-            if (strcmp(colname[i], "name") == 0)
+            QString val = QString::fromUtf8(colval[i]);
+
+            DBG_Printf(DBG_INFO_L2, "Sqlite scene: %s = %s\n", colname[i], qPrintable(val));
+
+            if (strcmp(colname[i], "gsid") == 0)
             {
-                scene->name = QString::fromUtf8(colval[i]);
+                id = val;
             }
-            if (strcmp(colname[i], "transitiontime") == 0)
+            else if (strcmp(colname[i], "gid") == 0)
             {
-                QString tt = QString::fromUtf8(colval[i]);
-                scene->setTransitiontime(tt.toUInt());
+                gid = val.toUInt(&ok1);
             }
-            if (strcmp(colname[i], "lights") == 0)
+            else if (strcmp(colname[i], "sid") == 0)
             {
-                scene->setLights(Scene::jsonToLights(colval[i]));
+                sid = val.toUInt(&ok2);
+            }
+            else if (strcmp(colname[i], "name") == 0)
+            {
+                name = val;
+            }
+            else if (strcmp(colname[i], "transitiontime") == 0)
+            {
+                transitiontime = val.toUInt(&ok);
+            }
+            else if (strcmp(colname[i], "lights") == 0)
+            {
+                lights = val;
+            }
+            else if (strcmp(colname[i], "owner") == 0)
+            {
+                owner = val;
+            }
+            else if (strcmp(colname[i], "recycle") == 0)
+            {
+                recycle = (val.toUInt(&ok) != 0);
+            }
+            else if (strcmp(colname[i], "locked") == 0)
+            {
+                locked = (val.toUInt(&ok) != 0);
+            }
+            else if (strcmp(colname[i], "appdata") == 0)
+            {
+                QVariant var = Json::parse(val, ok);
+                appdata = var.toMap();
+            }
+            else if (strcmp(colname[i], "picture") == 0)
+            {
+                picture = val;
+            }
+            else if (strcmp(colname[i], "lastupdated") == 0)
+            {
+                lastupdated = QDateTime::fromString(val, "yyyy-MM-ddTHH:mm:ss"); // ISO 8601
+            }
+            else if (strcmp(colname[i], "version") == 0)
+            {
+                version = val.toUInt(&ok);
             }
         }
+    }
+
+    if (ok1 && ok2 && gid == scene->gid() && sid == scene->sid())
+    {
+        DBG_Printf(DBG_INFO_L2, "DB found scene id: %s, sid: 0x%02X, gid: 0x%04X\n", id, sid, gid);
+        scene->init(id, owner, lastupdated, version);
+        scene->name(name);
+        scene->transitiontime(transitiontime);
+
+        QVariantList ls = Json::parse(lights).toList();
+        for (QVariant l : ls)
+        {
+            LightState state;
+            QVariantMap l_map = l.toMap();
+            QString lid = l_map[QLatin1String("lid")].toString();
+            state.setLightId(lid);
+            state.map(l_map);
+            scene->addLightState(state);
+        }
+
+        scene->recycle(recycle);
+        scene->locked(locked);
+        scene->appdata(appdata);
+        scene->picture(picture);
     }
 
     return 0;
@@ -2593,10 +2787,7 @@ void DeRestPluginPrivate::loadSceneFromDb(Scene *scene)
         return;
     }
 
-    QString gsid; // unique key
-    gsid = QString::asprintf("0x%04X%02X", scene->groupAddress, scene->id);
-
-    QString sql = QString("SELECT * FROM scenes WHERE gsid='%1'").arg(gsid);
+    QString sql = QString("SELECT * FROM scenes WHERE gid='%1' AND sid='%2'").arg(scene->gid()).arg(scene->sid());
 
     DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
     rc = sqlite3_exec(db, qPrintable(sql), sqliteLoadSceneCallback, scene, &errmsg);
@@ -4480,29 +4671,38 @@ void DeRestPluginPrivate::saveDb()
 
                 for (; si != send; ++si)
                 {
-                    QString gsid; // unique key
-                    gsid = QString::asprintf("0x%04X%02X", i->address(), si->id);
-
-                    QString sid;
-                    sid = QString::asprintf("0x%02X", si->id);
-
-                    QString lights = Scene::lightsToString(si->lights());
                     QString sql;
 
-                    if (si->state == Scene::StateDeleted)
+                    if (si->state() == Scene::StateDeleted)
                     {
                         // delete scene from db (if exist)
-                        sql = QString(QLatin1String("DELETE FROM scenes WHERE gsid='%1'")).arg(gsid);
+                        sql = QString(QLatin1String("DELETE FROM scenes WHERE gid='%1' AND sid='%2'")).arg(si->gid()).arg(si->sid());
                     }
                     else
                     {
-                        sql = QString(QLatin1String("REPLACE INTO scenes (gsid, gid, sid, name, transitiontime, lights) VALUES ('%1', '%2', '%3', '%4', '%5', '%6')"))
-                            .arg(gsid)
-                            .arg(gid)
-                            .arg(sid)
-                            .arg(si->name)
+                        QVariantList ls;
+                        for (const LightState& l : si->lightStates())
+                        {
+                            ls.append(l.map());
+                        }
+                        QString lights = Json::serialize(ls);
+                        QString appdata = Json::serialize(si->appdata());
+                        QString lastupdated = si->lastupdated().toString("yyyy-MM-ddTHH:mm:ss");
+
+                        sql = QString(QLatin1String("REPLACE INTO scenes (gsid, gid, sid, name, transitiontime, lights, owner, recycle, locked, appdata, picture, lastupdated, version) VALUES ('%1', '%2', '%3', '%4', '%5', '%6', '%7', '%8', '%9', '%10', '%11', '%12', '%13')"))
+                            .arg(si->id())
+                            .arg(si->gid())
+                            .arg(si->sid())
+                            .arg(si->name())
                             .arg(si->transitiontime())
-                            .arg(lights);
+                            .arg(lights)
+                            .arg(si->owner())
+                            .arg(si->recycle())
+                            .arg(si->locked())
+                            .arg(appdata)
+                            .arg(si->picture())
+                            .arg(lastupdated)
+                            .arg(si->version());
                     }
                     DBG_Printf(DBG_INFO_L2, "DB sql exec %s\n", qPrintable(sql));
                     errmsg = NULL;

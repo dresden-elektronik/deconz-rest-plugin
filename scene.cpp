@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2019 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -10,81 +10,132 @@
 #include <QStringBuilder>
 #include "scene.h"
 
+
 /*! Constructor.
  */
-Scene::Scene() :
-    state(StateNormal),
-    externalMaster(false),
-    groupAddress(0),
-    id(0),
-    m_transitiontime(0)
+Scene::Scene(const uint16_t gid, const uint8_t sid, const Type type) :
+    m_state(StateNormal),
+    m_type(type),
+    m_externalMaster(false),
+    m_gid(gid),
+    m_sid(sid),
+    m_transitiontime(0),
+    m_owner(QLatin1String("")),
+    m_recycle(false),
+    m_locked(false),
+    m_appdata(QVariantMap()),
+    m_picture(QLatin1String("")),
+    m_version(2)
 {
+    m_id.sprintf("0x%04X%02X", gid, sid);
+    m_name = "Scene " + m_id;
 }
 
-/*! Returns the transitiontime of the scene.
+/*! Initializer.
  */
-const uint16_t &Scene::transitiontime() const
+void Scene::init(const QString& id, const QString& owner, const QDateTime& lastupdated, const uint16_t version)
 {
-    return m_transitiontime;
+    m_id = id;
+    m_owner = owner;
+    m_lastupdated = lastupdated;
+    m_version = version;
+    m_name = "Scene " + m_id;
 }
 
-/*! Sets the transitiontime of the scene.
-    \param transitiontime the transitiontime of the scene
+/*! Returns the state of the scene.
  */
-void Scene::setTransitiontime(const uint16_t &transitiontime)
+const Scene::State& Scene::state() const
 {
-    m_transitiontime = transitiontime;
+    return m_state;
 }
 
-/*! Returns the lights of the scene.
+/*! Sets the state of the scene.
+    \param state the state of the scene
  */
-std::vector<LightState> &Scene::lights()
+void Scene::state(const State& state)
 {
-    return m_lights;
+    m_state = state;
 }
 
-/*! Returns the lights of the scene.
+
+/*! Returns the external master state of the scene.
  */
-const std::vector<LightState> &Scene::lights() const
+bool Scene::externalMaster() const
 {
-    return m_lights;
+    return m_externalMaster;
 }
 
-/*! Sets the lights of the scene.
-    \param lights the lights of the scene
+/*! Sets the external master state of the scene.
+    \param bool the external master state of the scene
  */
-void Scene::setLights(const std::vector<LightState> &lights)
+void Scene::externalMaster(const bool externalMaster)
 {
-    m_lights = lights;
+    m_externalMaster = externalMaster;
 }
 
-/*! Adds a light to the lights of the scene.
+/*! Returns the id of the scene.
+ */
+const QString& Scene::id() const
+{
+    return m_id;
+}
+
+/*! Returns the group id of the scene.
+ */
+uint16_t Scene::gid() const
+{
+    return m_gid;
+}
+
+/*! Returns the scene id of the scene.
+ */
+uint8_t Scene::sid() const
+{
+    return m_sid;
+}
+
+/*! Returns the name of the scene.
+ */
+const QString& Scene::name() const
+{
+    return m_name;
+}
+
+/*! Sets the name of the scene.
+    \param name the name of the scene
+ */
+void Scene::name(const QString& name)
+{
+    m_name = name;
+}
+
+/*! Returns the lightstates of the scene.
+ */
+const std::vector<LightState> &Scene::lightStates() const
+{
+    return m_lightstates;
+}
+
+/*! Adds a light to the lightstates of the scene.
     \param light the light that should be added
  */
-void Scene::addLightState(const LightState &light)
+void Scene::addLightState(const LightState& state)
 {
-    m_lights.push_back(light);
+    m_lightstates.push_back(state);
 }
 
-/*! removes a light from the lights of the scene if present.
-    \param lid the lightId that should be removed
+/*! Removes a light from the lightstates of the scene if present.
+    \param lid the light id that should be removed
     \return true if light was found and removed
  */
-bool Scene::deleteLight(const QString &lid)
+bool Scene::removeLightState(const QString& lid)
 {
-    std::vector<LightState>::const_iterator l = m_lights.begin();
-    std::vector<LightState>::const_iterator lend = m_lights.end();
     int position = 0;
-    for (; l != lend; ++l)
+    for (LightState& l : m_lightstates)
     {
-        if (l->lid() == lid)
+        if (l.lid() == lid)
         {
-            m_lights.erase(m_lights.begin() + position);
-            // delete scene if it contains no lights
-            if (m_lights.size() == 0)
-            {
-                state = Scene::StateDeleted;
-            }
+            m_lightstates.erase(m_lightstates.begin() + position);
             return true;
         }
         position++;
@@ -92,144 +143,161 @@ bool Scene::deleteLight(const QString &lid)
     return false;
 }
 
-/*! Returns light satte for given light id of the scene if present.
-    \param lid the lightId
+/*! Get the light for the given light id of the scene if present.
+    \param lid the light id
     \return the light state or 0 if not found
  */
-LightState *Scene::getLightState(const QString &lid)
+LightState* Scene::getLightState(const QString& lid)
 {
-    std::vector<LightState>::iterator i = m_lights.begin();
-    std::vector<LightState>::iterator end = m_lights.end();
-
-    for (; i != end; ++i)
+    for (LightState& l : m_lightstates)
     {
-        if (i->lid() == lid)
+        if (l.lid() == lid)
         {
-           return &*i;
+            return &l;
         }
     }
     return 0;
 }
 
-/*! Transfers lights of the scene into JSONString.
-    \param lights vector<LightState>
+/*! Returns the transitiontime of the scene.
  */
-QString Scene::lightsToString(const std::vector<LightState> &lights)
+uint16_t Scene::transitiontime() const
 {
-    std::vector<LightState>::const_iterator i = lights.begin();
-    std::vector<LightState>::const_iterator i_end = lights.end();
-    QVariantList ls;
-
-    for (; i != i_end; ++i)
-    {
-        QVariantMap map;
-        map[QLatin1String("lid")] = i->lid();
-        map[QLatin1String("on")] = i->on();
-        map[QLatin1String("bri")] = (double)i->bri();
-        map[QLatin1String("tt")] = (double)i->transitionTime();
-        map[QLatin1String("cm")] = i->colorMode();
-
-        if (i->colorMode() != QLatin1String("none"))
-        {
-            map[QLatin1String("x")] = (double)i->x();
-            map[QLatin1String("y")] = (double)i->y();
-
-            if (i->colorMode() == QLatin1String("hs"))
-            {
-                map[QLatin1String("ehue")] = (double)i->enhancedHue();
-                map[QLatin1String("sat")] = (double)i->saturation();
-            }
-            else if (i->colorMode() == QLatin1String("ct"))
-            {
-                map[QLatin1String("ct")] = (double)i->colorTemperature();
-            }
-
-            map[QLatin1String("cl")] = i->colorloopActive();
-            map[QLatin1String("clTime")] = (double)i->colorloopTime();
-        }
-
-        ls.append(map);
-    }
-
-    return Json::serialize(ls);
+    return m_transitiontime;
 }
 
-std::vector<LightState> Scene::jsonToLights(const QString &json)
+/*! Sets the transitiontime of the scene.
+    \param transitiontime the transitiontime of the scene
+ */
+void Scene::transitiontime(const uint16_t transitiontime)
 {
-    bool ok;
-    QVariantList var = Json::parse(json, ok).toList();
-    QVariantMap map;
-    std::vector<LightState> lights;
+    m_transitiontime = transitiontime;
+}
 
-    QVariantList::const_iterator i = var.begin();
-    QVariantList::const_iterator i_end = var.end();
+/*! Returns the owner id of the scene.
+ */
+const QString& Scene::owner() const
+{
+    return m_owner;
+}
 
-    if (!ok)
+/*! Returns the recycle state of the scene.
+ */
+bool Scene::recycle() const
+{
+    return m_recycle;
+}
+
+/*! Sets the recycle state of the scene.
+    \param bool the recycle state of the scene
+ */
+void Scene::recycle(const bool recycle)
+{
+    m_recycle = recycle;
+}
+
+/*! Returns the locked state of the scene.
+ */
+bool Scene::locked() const
+{
+    return m_locked;
+}
+
+/*! Sets the locked state of the scene.
+    \param bool the locked state of the scene
+ */
+void Scene::locked(const bool locked)
+{
+    m_locked = locked;
+}
+
+/*! Returns the appdata of the scene.
+ */
+const QVariantMap& Scene::appdata() const
+{
+    return m_appdata;
+}
+
+/*! Sets the appdata of the scene.
+    \param appdata the appdata of the scene
+ */
+void Scene::appdata(const QVariantMap& appdata)
+{
+    m_appdata = appdata;
+}
+
+/*! Returns the picture id of the scene.
+ */
+const QString& Scene::picture() const
+{
+    return m_picture;
+}
+
+/*! Sets the picture id of the scene.
+    \param picture the picture id of the scene
+ */
+void Scene::picture(const QString& picture)
+{
+    m_picture = picture;
+}
+
+/*! Returns the lastupdated date of the scene.
+ */
+const QDateTime& Scene::lastupdated() const
+{
+    return m_lastupdated;
+}
+
+/*! Update the lastupdated state.
+ */
+void Scene::lastupdated(const bool lastupdated)
+{
+    if (lastupdated)
     {
-        return lights;
+        m_lastupdated = QDateTime::currentDateTimeUtc();
+    }
+}
+
+/*! Returns the version of the scene.
+ */
+uint16_t Scene::version() const
+{
+    return m_version;
+}
+
+/*! Put all parameters in a map for later json serialization.
+    \return map
+ */
+QVariantMap Scene::map() const
+{
+    QVariantMap map;
+
+    map[QLatin1String("name")] = m_name;
+    if (m_type == LightScene) {
+        map[QLatin1String("type")] = QLatin1String("LightScene");
+    }
+    else {
+        map[QLatin1String("type")] = QLatin1String("GroupScene");
+        map[QLatin1String("group")] = QString::number(m_gid);
     }
 
+    QVariantList lights;
+    std::vector<LightState>::const_iterator i = m_lightstates.begin();
+    std::vector<LightState>::const_iterator i_end = m_lightstates.end();
     for (; i != i_end; ++i)
     {
-        LightState state;
-        map = i->toMap();
-        state.setLightId(map[QLatin1String("lid")].toString());
-        state.setOn(map[QLatin1String("on")].toBool());
-        state.setBri(map[QLatin1String("bri")].toUInt());
-        state.setTransitionTime(map[QLatin1String("tt")].toUInt());
-
-        if (map.contains(QLatin1String("x")) && map.contains(QLatin1String("y")))
-        {
-            state.setX(map[QLatin1String("x")].toUInt());
-            state.setY(map[QLatin1String("y")].toUInt());
-
-            if (!map.contains(QLatin1String("cm")))
-            {
-                state.setColorMode(QLatin1String("xy")); // backward compatibility
-            }
-        }
-
-        if (map.contains(QLatin1String("cl")) && map.contains(QLatin1String("clTime")))
-        {
-            state.setColorloopActive(map[QLatin1String("cl")].toBool());
-            state.setColorloopTime(map[QLatin1String("clTime")].toUInt());
-        }
-
-        if (map.contains(QLatin1String("cm")))
-        {
-            QString colorMode = map[QLatin1String("cm")].toString();
-            if (!colorMode.isEmpty())
-            {
-                state.setColorMode(colorMode);
-            }
-        }
-
-        if (state.colorMode() == QLatin1String("ct") && map.contains(QLatin1String("ct")))
-        {
-            quint16 ct = map[QLatin1String("ct")].toUInt(&ok);
-            if (ok)
-            {
-                state.setColorTemperature(ct);
-            }
-        }
-        else if (state.colorMode() == QLatin1String("hs") && map.contains(QLatin1String("ehue")) && map.contains(QLatin1String("sat")))
-        {
-            quint16 ehue = map[QLatin1String("ehue")].toUInt(&ok);
-            if (ok)
-            {
-                quint16 sat = map[QLatin1String("sat")].toUInt(&ok);
-                if (ok)
-                {
-                    state.setEnhancedHue(ehue);
-                    state.setSaturation(sat);
-                }
-            }
-        }
-
-        lights.push_back(state);
+        lights.append(i->lid());
     }
+    map[QLatin1String("lights")] = lights;
 
-    return lights;
+    map[QLatin1String("appdata")] = m_appdata;
+    map[QLatin1String("picture")] = m_picture;
+    map[QLatin1String("owner")] = m_owner;
+    map[QLatin1String("locked")] = m_locked;
+    map[QLatin1String("recycle")] = m_recycle;
+    map[QLatin1String("lastupdated")] = m_lastupdated.toString(QLatin1String("yyyy-MM-ddTHH:mm:ss"));
+    map[QLatin1String("version")] = m_version;
+    return map;
 }
 
 
@@ -458,4 +526,104 @@ void LightState::setTransitionTime(uint16_t transitiontime)
 void LightState::setNeedRead(bool needRead)
 {
     m_needRead = needRead;
+}
+
+/*! Put all parameters in a map for later json serialization.
+    \return map
+ */
+QVariantMap LightState::map() const
+{
+    QVariantMap map;
+    map[QLatin1String("lid")] = lid(); // deCONZ
+    map[QLatin1String("on")] = on();
+    map[QLatin1String("bri")] = bri();
+    map[QLatin1String("cm")] = colorMode(); // deCONZ
+    if (colorMode() != QLatin1String("none"))
+    {
+        if (colorMode() == QLatin1String("hs"))
+        {
+            map[QLatin1String("hue")] = enhancedHue(); // Hue
+            map[QLatin1String("ehue")] = enhancedHue(); // deCONZ
+            map[QLatin1String("sat")] = saturation();
+        }
+        QVariantList xy;
+        double dx = x() / 65535.0;
+        double dy = y() / 65535.0;
+        if      (dx < 0) { dx = 0; }
+        else if (dx > 1) { dx = 1; }
+        if      (dy < 0) { dy = 0; }
+        else if (dy > 1) { dy = 1; }
+        xy.append(dx);
+        xy.append(dy);
+        map[QLatin1String("xy")] = xy; // Hue
+        map[QLatin1String("x")] = x(); // deCONZ
+        map[QLatin1String("y")] = y(); // deCONZ
+        map[QLatin1String("ct")] = colorTemperature();
+        map[QLatin1String("effect")] = colorloopActive() ? "colorloop" : "none"; // Hue
+        map[QLatin1String("cl")] = colorloopActive(); // deCONZ
+        map[QLatin1String("clTime")] = colorloopTime(); // deCONZ
+    }
+    map[QLatin1String("transitiontime")] = transitionTime();
+
+    return map;
+}
+
+/*! Sets the transitiontime of the scene.
+    \param transitiontime the transitiontime of the scene
+ */
+void LightState::map(QVariantMap& map)
+{
+    setLightId(map[QLatin1String("lid")].toString());
+    setOn(map[QLatin1String("on")].toBool());
+    setBri(map[QLatin1String("bri")].toUInt());
+    setTransitionTime(map[QLatin1String("tt")].toUInt());
+
+    if (map.contains(QLatin1String("x")) && map.contains(QLatin1String("y")))
+    {
+        setX(map[QLatin1String("x")].toUInt());
+        setY(map[QLatin1String("y")].toUInt());
+
+        if (!map.contains(QLatin1String("cm")))
+        {
+            setColorMode(QLatin1String("xy")); // backward compatibility
+        }
+    }
+
+    if (map.contains(QLatin1String("cl")) && map.contains(QLatin1String("clTime")))
+    {
+        setColorloopActive(map[QLatin1String("cl")].toBool());
+        setColorloopTime(map[QLatin1String("clTime")].toUInt());
+    }
+
+    if (map.contains(QLatin1String("cm")))
+    {
+        QString colorMode = map[QLatin1String("cm")].toString();
+        if (!colorMode.isEmpty())
+        {
+            setColorMode(colorMode);
+        }
+    }
+
+    bool ok;
+    if (colorMode() == QLatin1String("ct") && map.contains(QLatin1String("ct")))
+    {
+        quint16 ct = map[QLatin1String("ct")].toUInt(&ok);
+        if (ok)
+        {
+            setColorTemperature(ct);
+        }
+    }
+    else if (colorMode() == QLatin1String("hs") && map.contains(QLatin1String("ehue")) && map.contains(QLatin1String("sat")))
+    {
+        quint16 ehue = map[QLatin1String("ehue")].toUInt(&ok);
+        if (ok)
+        {
+            quint16 sat = map[QLatin1String("sat")].toUInt(&ok);
+            if (ok)
+            {
+                setEnhancedHue(ehue);
+                setSaturation(sat);
+            }
+        }
+    }
 }
