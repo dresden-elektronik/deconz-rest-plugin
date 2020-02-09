@@ -2593,8 +2593,9 @@ void DeRestPluginPrivate::loadSceneFromDb(Scene *scene)
         return;
     }
 
-    QString gsid; // unique key
-    gsid = QString::asprintf("0x%04X%02X", scene->groupAddress, scene->id);
+    QString gsid = "0x" + QString("%1%2")
+                       .arg(scene->groupAddress, 4, 16, QLatin1Char('0'))
+                       .arg(scene->id, 2, 16, QLatin1Char('0')).toUpper(); // unique key
 
     QString sql = QString("SELECT * FROM scenes WHERE gsid='%1'").arg(gsid);
 
@@ -4395,8 +4396,7 @@ void DeRestPluginPrivate::saveDb()
 
         for (; i != end; ++i)
         {
-            QString gid;
-            gid = QString::asprintf("0x%04X", i->address());
+            QString gid = "0x" + QString("%1").arg(i->address(), 4, 16, QLatin1Char('0')).toUpper();
 
             if (i->state() == Group::StateDeleted)
             {
@@ -4480,11 +4480,11 @@ void DeRestPluginPrivate::saveDb()
 
                 for (; si != send; ++si)
                 {
-                    QString gsid; // unique key
-                    gsid = QString::asprintf("0x%04X%02X", i->address(), si->id);
+                    QString gsid = "0x" + QString("%1%2")
+                       .arg(i->address(), 4, 16, QLatin1Char('0'))
+                       .arg(si->id, 2, 16, QLatin1Char('0')).toUpper(); // unique key
 
-                    QString sid;
-                    sid = QString::asprintf("0x%02X", si->id);
+                    QString sid = "0x" + QString("%1").arg(si->id, 2, 16, QLatin1Char('0')).toUpper();
 
                     QString lights = Scene::lightsToString(si->lights());
                     QString sql;

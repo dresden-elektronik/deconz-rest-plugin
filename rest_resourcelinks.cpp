@@ -193,12 +193,12 @@ int DeRestPluginPrivate::createResourcelinks(const ApiRequest &req, ApiResponse 
 
     // generate id
     int id = 1;
-    rl.id = QString::asprintf("%d", id);
+    rl.id.setNum(id);
     while (std::find_if(resourcelinks.begin(), resourcelinks.end(),
                         [&rl](Resourcelinks &rl2) { return rl2.id == rl.id; }) != resourcelinks.end())
     {
         id++;
-        rl.id = QString::asprintf("%d", id);
+        rl.id.setNum(id);
     }
 
     rl.setNeedSaveDatabase(true);
