@@ -1880,7 +1880,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Zen
         sensor->modelId().contains(QLatin1String("Zen-01")) ||
         // eCozy
-        sensor->modelId().contains(QLatin1String("Thermostat")))
+        sensor->modelId() == QLatin1String("Thermostat") ||
+        // Stelpro
+        sensor->modelId().contains(QLatin1String("ST218")))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||

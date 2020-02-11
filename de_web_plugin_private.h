@@ -283,6 +283,7 @@
 #define VENDOR_LDS          0x1168 // Used by Samsung SmartPlug 2019
 #define VENDOR_INSTA        0x117A
 #define VENDOR_IKEA         0x117C
+#define VENDOR_STELPRO      0x1185
 #define VENDOR_LEDVANCE     0x1189
 #define VENDOR_SINOPE       0x119C
 #define VENDOR_119C         0x119C // Used by Sinope
@@ -477,6 +478,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == silabsMacPrefix ||
                    prefix == energyMiMacPrefix ||
                    prefix == ikeaMacPrefix; // belongs to SiLabs
+        case VENDOR_STELPRO:
+            return prefix == xalMacPrefix;
         case VENDOR_UBISYS:
             return prefix == ubisysMacPrefix;
         case VENDOR_VISONIC:
