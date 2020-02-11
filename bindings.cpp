@@ -1107,7 +1107,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.dataType = deCONZ::Zcl8BitUint;
         rq.attributeId = 0x0021;   // battery percentage remaining
         if (sensor && (sensor->modelId().startsWith(QLatin1String("SML00")) || // Hue motion sensor
-                       sensor->modelId().startsWith(QLatin1String("SPZB")))    // Eurotronic Spirit
+                       sensor->modelId().startsWith(QLatin1String("SPZB"))))   // Eurotronic Spirit
         {
             rq.minInterval = 7200;       // value used by Hue bridge
             rq.maxInterval = 7200;       // value used by Hue bridge
