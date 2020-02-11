@@ -5800,7 +5800,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId().contains(QLatin1String("MOSZB-130")) || // Develco motion sensor
                                     i->modelId().contains(QLatin1String("WISZB-120")) || // Develco window sensor
                                     i->modelId().contains(QLatin1String("FLSZB-110")) || // Develco water leak sensor
-                                    i->modelId().contains(QLatin1String("ZHMS101")))     // Wattle (Develco) magnetic sensor
+                                    i->modelId().contains(QLatin1String("ZHMS101")) ||   // Wattle (Develco) magnetic sensor
+                                    i->modelId().contains(QLatin1String("RFDL-ZB-MS")))  // Bosch motion sensor
                                 {  }
                                 else
                                 {
