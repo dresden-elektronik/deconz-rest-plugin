@@ -1870,13 +1870,17 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Aurora
         sensor->modelId().startsWith(QLatin1String("DoubleSocket50AU")) ||
         // Bosch
+        sensor->modelId().startsWith(QLatin1String("ISW-ZDL1-WP11G")) ||
         sensor->modelId().startsWith(QLatin1String("ISW-ZPR1-WP13")) ||
+        sensor->modelId().startsWith(QLatin1String("RFDL-ZB-MS")) ||
         // Aqara Opple
         sensor->modelId().contains(QLatin1String("86opcn01")) ||
         // Salus
         sensor->modelId().contains(QLatin1String("SP600")) ||
         // Zen
-        sensor->modelId().contains(QLatin1String("Zen-01")))
+        sensor->modelId().contains(QLatin1String("Zen-01")) ||
+        // eCozy
+        sensor->modelId().contains(QLatin1String("Thermostat")))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||
