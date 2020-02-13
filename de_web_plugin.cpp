@@ -206,6 +206,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_120B, "WarningDevice", emberMacPrefix }, // Heiman siren
     { VENDOR_120B, "Smoke", jennicMacPrefix }, // Heiman fire sensor - newer model
     { VENDOR_LUTRON, "LZL4BWHL01", lutronMacPrefix }, // Lutron LZL-4B-WH-L01 Connected Bulb Remote
+    { VENDOR_LUTRON, "Z3-1BRL", lutronMacPrefix }, // Lutron Aurora Friends-of-Hue dimmer
     { VENDOR_KEEN_HOME , "SV01-", keenhomeMacPrefix}, // Keen Home Vent
     { VENDOR_INNR, "SP 120", jennicMacPrefix}, // innr smart plug
     { VENDOR_PHYSICAL, "tagv4", stMacPrefix}, // SmartThings Arrival sensor
@@ -609,8 +610,16 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             handleIasZoneClusterIndication(ind, zclFrame);
             break;
 
-        case DE_CLUSTER_ID:
-            handleDEClusterIndication(ind, zclFrame);
+        case VENDOR_CLUSTER_ID:
+        // case DE_CLUSTER_ID:
+            if (zclFrame.manufacturerCode() == VENDOR_PHILIPS)
+            {
+                handlePhilipsClusterIndication(ind, zclFrame);
+            }
+            else // Shouldn't we check for DE manufacturer code?
+            {
+                handleDEClusterIndication(ind, zclFrame);
+            }
             break;
 
         case XAL_CLUSTER_ID:
@@ -3170,7 +3179,8 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         checkReporting = true;
         checkClientCluster = true;
     }
-    else if (sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
+    else if (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
+             sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer switch
     {
         checkReporting = true;
     }
@@ -3390,17 +3400,28 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     }
                 }
             }
-            else if (ind.clusterId() == VENDOR_CLUSTER_ID && zclFrame.manufacturerCode() == VENDOR_PHILIPS && zclFrame.commandId() == 0x00) // Philips dimmer switch non-standard
+            else if (ind.clusterId() == LEVEL_CLUSTER_ID && zclFrame.commandId() == 0x04 && // move to level (with on/off)
+                     sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer
             {
                 ok = false;
-                if (zclFrame.payload().size() >= 8)
+                if (zclFrame.payload().size() >= 2)
                 {
-                    deCONZ::NumericUnion val = {0};
-                    val.u8 = zclFrame.payload().at(0) << 4 /*button*/ | zclFrame.payload().at(4); // action
-                    if (buttonMap->zclParam0 == val.u8)
+                    uint8_t level = zclFrame.payload().at(0);
+                    uint8_t tt = zclFrame.payload().at(1);
+                    if (tt == 7) // button pressed
                     {
-                        ok = true;
-                        sensor->setZclValue(NodeValue::UpdateByZclReport, VENDOR_CLUSTER_ID, 0x0000, val);
+                        ok = buttonMap->zclParam0 == 0; // Toggle
+                    }
+                    else if (tt == 2) // dial turned
+                    {
+                        if      (sensor->previousDirection < level) ok = buttonMap->zclParam0 == 1; // DimUp
+                        else if (sensor->previousDirection > level) ok = buttonMap->zclParam0 == 2; // DimDown
+                        else if (level == 0xFF)                     ok = buttonMap->zclParam0 == 1; // DimUp
+                        else if (level == 2)                        ok = buttonMap->zclParam0 == 2; // DimDown
+                    }
+                    if (ok)
+                    {
+                        sensor->previousDirection = level;
                     }
                 }
             }
@@ -3571,7 +3592,8 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
 #if 0
     // check if hue dimmer switch is configured
-    if (sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
+    if (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
+        sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer switch
     {
         bool ok = true;
         // attribute reporting for power configuration cluster should fire every 5 minutes
@@ -4647,6 +4669,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         if (modelId.startsWith(QLatin1String("lumi.sensor_cube")))
         {
             sensorNode.addItem(DataTypeInt32, RStateGesture);
+        }
+        else if (modelId.startsWith(QLatin1String("RWL02"))) // || modelId.startsWith(QLatin1String("Z3-1BRL")))
+        {
+            sensorNode.addItem(DataTypeUInt16, RStateEventDuration);
         }
     }
     else if (sensorNode.type().endsWith(QLatin1String("LightLevel")))
@@ -12290,6 +12316,89 @@ void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deC
     }
 }
 
+/*! Handle packets related to the Philips 0xFC00 cluster.
+    \param ind the APS level data indication containing the ZCL packet
+    \param zclFrame the actual ZCL frame which holds the scene cluster reponse
+ */
+void DeRestPluginPrivate::handlePhilipsClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
+{
+    if (zclFrame.isDefaultResponse() || zclFrame.manufacturerCode() != VENDOR_PHILIPS || zclFrame.commandId() != 0x00)
+    {
+        return;
+    }
+
+    Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
+
+    if (!sensorNode)
+    {
+        return;
+    }
+
+    /* Philips Hue dimmer switch and Lutron Aurora Friends-of-Hue dimmer send following payload:
+       For buttonevents: 0b00 00 30 0e 21 dddd
+       For rotaryevents: 1400 01 30 0e 29 rrrr 21 dddd 29 rrrr 21 dddd 29 rrrr 21 dddd
+       Where b is the button; e is the event; dddd is the duration and rrrr is the rotation.
+     */
+
+    if (zclFrame.payload().size() >= 5)
+    {
+        QDataStream stream(zclFrame.payload());
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        uint16_t button;
+        uint8_t buttonType;
+        uint8_t dataType;
+        uint8_t event = 0xFF;
+        int16_t rotation = -0x7FFF;
+        uint16_t duration = 0xFFFF;
+
+        stream >> button;
+        stream >> buttonType;
+        stream >> dataType;
+        if (dataType == deCONZ::Zcl8BitEnum)
+        {
+            stream >> event;
+            while (!stream.atEnd())
+            {
+                stream >> dataType;
+                if      (dataType == deCONZ::Zcl16BitInt)  stream >> rotation;
+                else if (dataType == deCONZ::Zcl16BitUint) stream >> duration;
+                else                                       break;
+            }
+            if (buttonType == 0 && event != 0xFF && duration != 0xFFFF)
+            {
+                button *= 1000;
+                button += event;
+                ResourceItem *item = sensorNode->item(RStateButtonEvent);
+                if (item)
+                {
+                    updateSensorEtag(sensorNode);
+                    sensorNode->updateStateTimestamp();
+                    item->setValue(button);
+                    Event e(RSensors, RStateButtonEvent, sensorNode->id(), item);
+                    enqueueEvent(e);
+                    ResourceItem *item = sensorNode->item(RStateEventDuration);
+                    if (item)
+                    {
+                        item->setValue(duration);
+                        Event e(RSensors, RStateEventDuration, sensorNode->id(), item);
+                        enqueueEvent(e);
+                    }
+                    enqueueEvent(Event(RSensors, RStateLastUpdated, sensorNode->id()));
+                }
+            }
+            else if (buttonType == 1 && event != 0xFF && rotation != -0x7FFF && duration != 0xFFFF)
+            {
+                DBG_Printf(DBG_INFO_L2, "%s: Philips cluster command: rotaryevent: %d, expectedrotation: %d, expectedeventduration: %d\n", qPrintable(sensorNode->address().toStringExt()), event, rotation, duration);
+            }
+            else
+            {
+                DBG_Printf(DBG_INFO_L2, "%s: Philips cluster command: %s\n", qPrintable(sensorNode->address().toStringExt()), qPrintable(zclFrame.payload()));
+            }
+        }
+    }
+}
+
 /*! Handle packets related to the ZCL Commissioning cluster.
     \param task the task which belongs to this response
     \param ind the APS level data indication containing the ZCL packet
@@ -12315,7 +12424,8 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
             if ((ind.srcAddress().hasExt() && ind.srcAddress().ext() == s.address().ext()) ||
                 (ind.srcAddress().hasNwk() && ind.srcAddress().nwk() == s.address().nwk()))
             {
-                if (s.modelId().startsWith(QLatin1String("RWL02")))
+                if (s.modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
+                    s.modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer switch
                 {
                     sensorNode = &s;
                 }
@@ -13848,7 +13958,9 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 }
             }
         }
-        else if (sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
+        else if (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
+                 sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer switch
+
         {
             NodeValue val = sensor->getZclValue(VENDOR_CLUSTER_ID, 0x0000);
             if (!val.isValid())
