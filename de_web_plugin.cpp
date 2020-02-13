@@ -9016,7 +9016,7 @@ void DeRestPluginPrivate::foundScene(LightNode *lightNode, Group *group, uint8_t
     closeDb();
     if (scene.name.isEmpty())
     {
-        scene.name = QString::asprintf("Scene %u", sceneId);
+        scene.name = tr("Scene %u").arg(sceneId);
     }
     group->scenes.push_back(scene);
     updateGroupEtag(group);
@@ -11955,7 +11955,7 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                 s.groupAddress = groupId;
                 s.id = sceneId;
                 s.externalMaster = true;
-                s.name = QString::asprintf("Scene %u", sceneId);
+                s.name = tr("Scene %u").arg(sceneId);
                 group->scenes.push_back(s);
                 updateGroupEtag(group);
                 queSaveDb(DB_SCENES, DB_SHORT_SAVE_DELAY);
@@ -14508,7 +14508,7 @@ void DeRestPlugin::idleTimerFired()
         }
         if (!(d->gwLANBridgeId) && d->gwDeviceAddress.hasExt())
         {
-            d->gwBridgeId = QString::asprintf("%016llX", (quint64)d->gwDeviceAddress.ext());
+            d->gwBridgeId = QString("%1").arg(static_cast<qulonglong>(d->gwDeviceAddress.ext()), 16, 16, QLatin1Char('0')).toUpper();
             if (!d->gwConfig.contains("bridgeid") || d->gwConfig["bridgeid"] != d->gwBridgeId)
             {
                 DBG_Printf(DBG_INFO, "Set bridgeid to %s\n", qPrintable(d->gwBridgeId));
@@ -15680,27 +15680,41 @@ QString DeRestPluginPrivate::generateUniqueId(quint64 extAddress, quint8 endpoin
         quint64 mac;
     } a;
     a.mac = extAddress;
+    int ret = -1;
+    char buf[64];
 
     if (clusterId != 0 && endpoint != 0xf2)
     {
-         return QString::asprintf("%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x-%02x-%04x",
+        ret = snprintf(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x-%02x-%04x",
                     a.bytes[7], a.bytes[6], a.bytes[5], a.bytes[4],
                     a.bytes[3], a.bytes[2], a.bytes[1], a.bytes[0],
                     endpoint, clusterId);
+
     }
     else if (endpoint != 0)
     {
-        return  QString::asprintf("%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x-%02x",
+        ret = snprintf(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x-%02x",
                     a.bytes[7], a.bytes[6], a.bytes[5], a.bytes[4],
                     a.bytes[3], a.bytes[2], a.bytes[1], a.bytes[0],
                     endpoint);
     }
     else
     {
-        return  QString::asprintf("%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
+        ret = snprintf(buf, sizeof(buf), "%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
                     a.bytes[7], a.bytes[6], a.bytes[5], a.bytes[4],
                     a.bytes[3], a.bytes[2], a.bytes[1], a.bytes[0]);
     }
+    Q_ASSERT(ret > 0);
+    Q_ASSERT(static_cast<size_t>(ret) < sizeof(buf));
+
+    if (ret < 0 || static_cast<size_t>(ret) >= sizeof(buf))
+    {
+        DBG_Printf(DBG_ERROR, "failed to generate uuid, buffer too small\n");
+        Q_ASSERT(0);
+        return QString();
+    }
+
+    return QString::fromLatin1(buf);
 }
 
 /*! Returns the name of this plugin.
