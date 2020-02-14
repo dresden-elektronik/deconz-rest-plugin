@@ -1560,8 +1560,28 @@ Note: It does not clear or delete previous weekly schedule programming configura
 			<!-- TODO -->
 		</cluster>
 		<cluster id="0204" name="Thermostat User Interface Configuration">
-			<description>sdfsdf</description>
-			<!-- TODO -->
+			<description>This cluster provides an interface to allow configuration of the user interface for a thermostat, or a thermostat
+controller device, that supports a keypad and LCD screen.</description>
+			<server>
+				<attribute id="0x0000" name="Temperature Display Mode" type="enum8" access="rw" range="0x00,0x01" default="0x00" required="m">
+					<value name="Temperature in °C" value="0x00"></value>
+					<value name="Temperature in °F" value="0x01"></value>
+				</attribute>
+				<attribute id="0x0001" name="Keypad Lockout" type="enum8" access="rw" range="0x00,0x05" default="0x00" required="m">
+					<value name="No lockout" value="0x00"></value>
+					<value name="Level 1 lockout" value="0x01"></value>
+					<value name="Level 2 lockout" value="0x02"></value>
+					<value name="Level 3 lockout" value="0x03"></value>
+					<value name="Level 4 lockout" value="0x04"></value>
+					<value name="Level 5 lockout" value="0x05"></value>
+				</attribute>
+				<attribute id="0x0002" name="Schedule Programming Visibility" type="enum8" access="rw"  range="0x00,0x01" default="0x00" required="o">
+					<value name="Local schedule programming enabled" value="0x00"></value>
+					<value name="Local schedule programming disabled" value="0x01"></value>
+				</attribute>
+			</server>
+			<client>
+			</client>
 		</cluster>
 		<cluster id="0xde42" name="DE Debug">
 		<description>Attributes and commands for debugging purposes.</description>

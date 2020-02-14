@@ -66,6 +66,7 @@ static uint MaxGroupTasks = 4;
 
 const quint64 macPrefixMask       = 0xffffff0000000000ULL;
 
+const quint64 legrandMacPrefix    = 0x0004740000000000ULL;
 const quint64 ikeaMacPrefix       = 0x000b570000000000ULL;
 const quint64 emberMacPrefix      = 0x000d6f0000000000ULL;
 const quint64 instaMacPrefix      = 0x000f170000000000ULL;
@@ -81,11 +82,13 @@ const quint64 deMacPrefix         = 0x00212e0000000000ULL;
 const quint64 keenhomeMacPrefix   = 0x0022a30000000000ULL;
 const quint64 zenMacPrefix        = 0x0024460000000000ULL;
 const quint64 heimanMacPrefix     = 0x0050430000000000ULL;
+const quint64 xiaomiMacPrefix     = 0x04cf8c0000000000ULL;
 const quint64 konkeMacPrefix      = 0x086bd70000000000ULL;
 const quint64 ikea2MacPrefix      = 0x14b4570000000000ULL;
 const quint64 stMacPrefix         = 0x24fd5b0000000000ULL;
 const quint64 samjinMacPrefix     = 0x286d970000000000ULL;
 const quint64 sinopeMacPrefix     = 0x500b910000000000ULL;
+const quint64 ecozyMacPrefix      = 0x70b3d50000000000ULL;
 const quint64 osramMacPrefix      = 0x8418260000000000ULL;
 const quint64 silabsMacPrefix     = 0x90fd9f0000000000ULL;
 const quint64 silabs2MacPrefix    = 0xcccccc0000000000ULL;
@@ -93,8 +96,6 @@ const quint64 energyMiMacPrefix   = 0xd0cf5e0000000000ULL;
 const quint64 bjeMacPrefix        = 0xd85def0000000000ULL;
 const quint64 xalMacPrefix        = 0xf8f0050000000000ULL;
 const quint64 lutronMacPrefix     = 0xffff000000000000ULL;
-const quint64 legrandMacPrefix    = 0x0004740000000000ULL;
-const quint64 xiaomiMacPrefix     = 0x04cf8c0000000000ULL;
 
 struct SupportedDevice {
     quint16 vendorId;
@@ -226,6 +227,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_ZEN, "Zen-01", zenMacPrefix }, // Zen Thermostat
     { VENDOR_C2DF, "3157100-E", emberMacPrefix }, // Centralite Thermostat
     { VENDOR_EMBER, "Super TR", emberMacPrefix }, // Elko Thermostat
+    { VENDOR_ATMEL, "Thermostat", ecozyMacPrefix }, // eCozy Thermostat
+    { VENDOR_STELPRO, "ST218", xalMacPrefix }, // Stelpro Thermostat
     { VENDOR_DEVELCO, "SMSZB-120", develcoMacPrefix }, // Develco smoke sensor
     { VENDOR_DEVELCO, "HESZB-120", develcoMacPrefix }, // Develco heat sensor
     { VENDOR_DEVELCO, "SPLZB-131", develcoMacPrefix }, // Develco smart plug
@@ -5790,6 +5793,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId().startsWith(QLatin1String("motionv4")) ||// SmartThings motion sensor
                                     i->modelId() == QLatin1String("Remote switch") ||    // Legrand switch
                                     i->modelId() == QLatin1String("Zen-01") ||           // Zen thermostat
+                                    i->modelId() == QLatin1String("Thermostat") ||       // eCozy thermostat
                                     i->modelId() == QLatin1String("Motion Sensor-A") ||  // Osram motion sensor
                                     i->modelId().contains(QLatin1String("86opcn01")) ||  // Aqara Opple
                                     i->modelId().contains(QLatin1String("SMSZB-120")) || // Develco smoke sensor
@@ -5797,7 +5801,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId().contains(QLatin1String("MOSZB-130")) || // Develco motion sensor
                                     i->modelId().contains(QLatin1String("WISZB-120")) || // Develco window sensor
                                     i->modelId().contains(QLatin1String("FLSZB-110")) || // Develco water leak sensor
-                                    i->modelId().contains(QLatin1String("ZHMS101")))     // Wattle (Develco) magnetic sensor
+                                    i->modelId().contains(QLatin1String("ZHMS101")) ||   // Wattle (Develco) magnetic sensor
+                                    i->modelId().contains(QLatin1String("RFDL-ZB-MS")))  // Bosch motion sensor
                                 {  }
                                 else
                                 {
