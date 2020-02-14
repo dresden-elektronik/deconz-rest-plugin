@@ -172,14 +172,14 @@ static const Sensor::ButtonMap ikeaSoundControllerMap[] = {
 //    mode                          ep    cluster cmd   param button                                       name
     // press
     { Sensor::ModeScenes,           0x01, 0x0006, 0x02, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Toggle" },
-    { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 0,    S_BUTTON_1 + S_BUTTON_ACTION_DOUBLE_PRESS, "Step Up" },
-    { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 1,    S_BUTTON_1 + S_BUTTON_ACTION_TREBLE_PRESS, "Step Down" },
-    // turn counter clockwise
-    { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 1,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD, "Move Down" },
-    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 1,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED, "Stop" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 0,    S_BUTTON_1 + S_BUTTON_ACTION_DOUBLE_PRESS,   "Step Up" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 1,    S_BUTTON_1 + S_BUTTON_ACTION_TREBLE_PRESS,   "Step Down" },
     // turn clockwise
-    { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 0,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD, "Move Up" },
-    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 0,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED, "Stop" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "Move Up" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop" },
+    // turn counter clockwise
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 1,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD,           "Move Down" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 1,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop" },
     // end
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
