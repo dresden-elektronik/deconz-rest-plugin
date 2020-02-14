@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2020 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -416,12 +416,10 @@ void DeRestPluginPrivate::queryFirmwareVersion()
             fwUpdateState = FW_Idle;
             fwUpdateTimer->start(FW_IDLE_TIMEOUT_LONG);
         }
-        else if (getUptime() >= FW_WAIT_UPDATE_READY)
+        else if (getUptime() >= FW_WAIT_UPDATE_READY && fwDeviceName == QLatin1String("RaspBee"))
         {
-            QString str = QString("0x%1").arg(GW_MIN_AVR_FW_VERSION, 8, 16, QLatin1Char('0'));
-
             gwFirmwareVersion = QLatin1String("0x00000000"); // unknown
-            gwFirmwareVersionUpdate = str;
+            gwFirmwareVersionUpdate = QString("0x%1").arg(GW_MIN_AVR_FW_VERSION, 8, 16, QLatin1Char('0'));
             gwConfig["fwversion"] = gwFirmwareVersion;
             gwFirmwareNeedUpdate = true;
             updateEtag(gwConfigEtag);
@@ -496,7 +494,7 @@ void DeRestPluginPrivate::queryFirmwareVersion()
         }
 
         // adapted from above AVR handling
-        if (((fwVersion & FW_PLATFORM_MASK) == FW_PLATFORM_R21) || fwVersion == FW_ONLY_R21_BOOTLOADER)
+        if (((fwVersion & FW_PLATFORM_MASK) == FW_PLATFORM_R21) /*|| fwVersion == FW_ONLY_R21_BOOTLOADER*/)
         {
             if (fwVersion < GW_MIN_R21_FW_VERSION)
             {
