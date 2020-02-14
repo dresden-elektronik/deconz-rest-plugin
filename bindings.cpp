@@ -935,10 +935,10 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     else if (bt.binding.clusterId == ILLUMINANCE_MEASUREMENT_CLUSTER_ID)
     {
         Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
-        
+
         rq.dataType = deCONZ::Zcl16BitUint;
         rq.attributeId = 0x0000;         // measured value
-        
+
         if (sensor && sensor->modelId().startsWith(QLatin1String("MOSZB-130"))) // Develco motion sensor
         {
             rq.minInterval = 0;
@@ -946,7 +946,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.reportableChange16bit = 0xFFFF;
         }
         else
-        {        
+        {
             rq.minInterval = 5;              // value used by Hue bridge
             rq.maxInterval = 300;            // value used by Hue bridge
             rq.reportableChange16bit = 2000; // value used by Hue bridge
@@ -956,7 +956,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     else if (bt.binding.clusterId == TEMPERATURE_MEASUREMENT_CLUSTER_ID)
     {
         Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
-		
+
         rq.dataType = deCONZ::Zcl16BitInt;
         rq.attributeId = 0x0000;       // measured value
 
@@ -976,7 +976,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.minInterval = 10;           // value used by Hue bridge
             rq.maxInterval = 300;          // value used by Hue bridge
             rq.reportableChange16bit = 20; // value used by Hue bridge
-        }	
+        }
 
         return sendConfigureReportingRequest(bt, {rq});
     }
@@ -1118,6 +1118,12 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.minInterval = 300;        // value used by Hue bridge
             rq.maxInterval = 300;        // value used by Hue bridge
             rq.reportableChange8bit = 0; // value used by Hue bridge
+        }
+        else if (sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer switch
+        {
+            rq.minInterval = 900;        // value used by Hue bridge
+            rq.maxInterval = 900;        // value used by Hue bridge
+            rq.reportableChange8bit = 4; // value used by Hue bridge
         }
         else if (sensor && sensor->manufacturer().startsWith(QLatin1String("Climax")))
         {
@@ -1508,7 +1514,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     {
         Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
 
-        if (sensor && sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
+        if (sensor && (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
+                       sensor->modelId().startsWith(QLatin1String("Z3-1BRL")))) // Lutron Aurora Friends-of-Hue dimmer switch
         {
             deCONZ::NumericUnion val;
             val.u64 = 0;
@@ -1787,6 +1794,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Philips
         sensor->modelId().startsWith(QLatin1String("SML00")) ||
         sensor->modelId().startsWith(QLatin1String("RWL02")) ||
+        // Lutron Aurora Friends-of-Hue dimmer switch
+        sensor->modelId().startsWith(QLatin1String("Z3-1BRL")) ||
         // ubisys
         sensor->modelId().startsWith(QLatin1String("C4")) ||
         sensor->modelId().startsWith(QLatin1String("D1")) ||
@@ -2035,7 +2044,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         }
         else if (*i == VENDOR_CLUSTER_ID)
         {
-            if (sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
+            if (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
+                sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer switch
             {
                 val = sensor->getZclValue(*i, 0x0000); // button event
             }

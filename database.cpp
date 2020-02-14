@@ -2930,6 +2930,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 sensor.addItem(DataTypeInt32, RStateGesture);
             }
+            else if (sensor.modelId().startsWith(QLatin1String("RWL02"))) // || sensor.modelId().startsWith(QLatin1String("Z3-1BRL")))
+            {
+                sensor.addItem(DataTypeUInt16, RStateEventDuration);
+            }
         }
         else if (sensor.type().endsWith(QLatin1String("LightLevel")))
         {
@@ -3138,7 +3142,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (sensor.fingerPrint().hasInCluster(METERING_CLUSTER_ID))
             {
                 clusterId = clusterId ? clusterId : METERING_CLUSTER_ID;
-                if ((sensor.modelId() != QLatin1String("SP 120")) && 
+                if ((sensor.modelId() != QLatin1String("SP 120")) &&
                     (sensor.modelId() != QLatin1String("ZB-ONOFFPlug-D0005")))
                 {
                     item = sensor.addItem(DataTypeInt16, RStatePower);
@@ -3167,7 +3171,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 else if (sensor.modelId() == QLatin1String("ZB-ONOFFPlug-D0005"))
                 {
                     hasVoltage = false;
-                }					
+                }
             }
             else if (sensor.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))
             {
@@ -3205,7 +3209,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = THERMOSTAT_CLUSTER_ID;
             }
-            
+
             //only for legrand cluster. Add only mode field.
             if ( (sensor.fingerPrint().hasInCluster(LEGRAND_CONTROL_CLUSTER_ID)) &&
                  (sensor.modelId() == QLatin1String("Cable outlet") ) )
