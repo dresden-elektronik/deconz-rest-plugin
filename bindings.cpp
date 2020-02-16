@@ -1859,16 +1859,13 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("RICI01") ||
         //LifeControl enviroment sensor
         sensor->modelId() == QLatin1String("VOC_Sensor") ||
-        //Legrand Plug
-        sensor->modelId() == QLatin1String("Connected outlet") ||
-        //Legrand shutter switch
-        sensor->modelId() == QLatin1String("Shutter switch with neutral") ||
-        //Legrand dimmer wired
-        sensor->modelId() == QLatin1String("Dimmer switch w/o neutral") ||
-        //Legrand Cable outlet
-        sensor->modelId() == QLatin1String("Cable outlet") ||
-        //Legrand wireless switch
-        sensor->modelId() == QLatin1String("Remote switch") ||
+        //Legrand
+        sensor->modelId() == QLatin1String("Connected outlet") || //Legrand Plug
+        sensor->modelId() == QLatin1String("Shutter switch with neutral") || //Legrand shutter switch
+        sensor->modelId() == QLatin1String("Dimmer switch w/o neutral") || //Legrand dimmer wired
+        sensor->modelId() == QLatin1String("Cable outlet") || //Legrand Cable outlet
+        sensor->modelId() == QLatin1String("Remote switch") || //Legrand wireless switch
+		sensor->modelId() == QLatin1String("DIN power consumption module") || //Legrand DIN power consumption module
         // ORVIBO
         sensor->modelId().startsWith(QLatin1String("SN10ZW")) ||
         sensor->modelId().startsWith(QLatin1String("SF2")) ||
