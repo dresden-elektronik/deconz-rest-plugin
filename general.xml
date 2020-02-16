@@ -1131,6 +1131,10 @@ out based on either the Check-inInterval, or the next Check-in value in the Fast
 by the Poll Control Cluster Client.</description>
 					<payload></payload>
 				</command>
+				<command id="0x01" dir="send" name="Stop" required="m">
+				    <description>send Fast Poll Stop</description>
+					<payload></payload>
+				</command>
 				<command id="0x02" dir="recv" name="Set Long Poll Interval" required="o">
 					<description>Sets the Read Only LongPollInterval attribute.</description>
 					<payload>

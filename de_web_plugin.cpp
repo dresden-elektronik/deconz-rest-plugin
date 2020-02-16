@@ -252,6 +252,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_LEGRAND, "Shutter switch with neutral", legrandMacPrefix }, // Legrand Shutter switch
     { VENDOR_LEGRAND, "Cable outlet", legrandMacPrefix }, // Legrand Cable outlet
     { VENDOR_LEGRAND, "Remote switch", legrandMacPrefix }, // Legrand wireless switch
+    { VENDOR_LEGRAND, "Shutters central remote switch", legrandMacPrefix }, // Legrand wireless shutter switch (battery)
     { VENDOR_NETVOX, "Z809AE3R", netvoxMacPrefix }, // Netvox smartplug
     { VENDOR_LDS, "ZB-ONOFFPlug-D0005", silabs2MacPrefix }, // Samsung SmartPlug 2019 (7A-PL-Z-J3)
     { VENDOR_PHYSICAL, "outletv4", stMacPrefix }, // Samsung SmartThings plug (IM6001-OTP)
@@ -3182,6 +3183,11 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         checkReporting = true;
         checkClientCluster = true;
     }
+    else if (sensor->modelId() == QLatin1String("Shutters central remote switch")) // legrand shutter switch
+    {
+        checkReporting = true;
+        checkClientCluster = true;
+    }
     else if (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
              sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer switch
     {
@@ -4651,6 +4657,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = ONOFF_CLUSTER_ID;
         }
+        else if (sensorNode.fingerPrint().hasInCluster(WINDOW_COVERING_CLUSTER_ID) ||
+                 sensorNode.fingerPrint().hasOutCluster(WINDOW_COVERING_CLUSTER_ID))
+        {
+            clusterId = WINDOW_COVERING_CLUSTER_ID;
+        }
         else if (sensorNode.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))
         {
             clusterId = ANALOG_INPUT_CLUSTER_ID;
@@ -5257,7 +5268,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             else if (*ci == POWER_CONFIGURATION_CLUSTER_ID)
             {
                 //This device make a Rejoin every time, you trigger it, it's the only moment where you can read attribute.
-                if (sensorNode.modelId() == QLatin1String("Remote switch") )
+                if (sensorNode.modelId() == QLatin1String("Remote switch") || sensorNode.modelId() == QLatin1String("Shutters central remote switch") )
                 {
                     //Ask for battery but only every day max
                     //int diff = idleTotalCounter - sensorNode.lastRead(READ_BATTERY);
@@ -5818,6 +5829,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (i->modelId().startsWith(QLatin1String("tagv4")) ||   // SmartThings Arrival sensor
                                     i->modelId().startsWith(QLatin1String("motionv4")) ||// SmartThings motion sensor
                                     i->modelId() == QLatin1String("Remote switch") ||    // Legrand switch
+                                    i->modelId() == QLatin1String("Shutters central remote switch") || //Legrand shutter switch
                                     i->modelId() == QLatin1String("Zen-01") ||           // Zen thermostat
                                     i->modelId() == QLatin1String("Thermostat") ||       // eCozy thermostat
                                     i->modelId() == QLatin1String("Motion Sensor-A") ||  // Osram motion sensor
@@ -14111,6 +14123,11 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             checkSensorBindingsForClientClusters(sensor);
         }
         else if (sensor->modelId().contains(QLatin1String("86opcn01"))) // Aqara Opple
+        {
+            checkSensorGroup(sensor);
+            checkSensorBindingsForClientClusters(sensor);
+        }
+        else if (sensor->modelId() == QLatin1String("Shutters central remote switch"))// Legrand switch
         {
             checkSensorGroup(sensor);
             checkSensorBindingsForClientClusters(sensor);
