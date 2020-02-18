@@ -173,14 +173,14 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "lumi.sensor_wleak", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_smoke", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.relay.c", jennicMacPrefix }, // Xiaomi Aqara LLKZMK11LM
-    { VENDOR_115F, "lumi.plug", jennicMacPrefix }, // Xiaomi smart plug (router)
-    { VENDOR_115F, "lumi.ctrl_ln", jennicMacPrefix}, // Xiaomi Wall Switch (router)
-    { VENDOR_115F, "lumi.plug.maeu01", xiaomiMacPrefix}, // Xiaomi Aqara outlet
-    { VENDOR_115F, "lumi.remote.b286opcn01", xiaomiMacPrefix }, // Xiaomi Aqara Opple WXCJKG11LM
-    { VENDOR_115F, "lumi.remote.b486opcn01", xiaomiMacPrefix }, // Xiaomi Aqara Opple WXCJKG12LM
-    { VENDOR_115F, "lumi.remote.b686opcn01", xiaomiMacPrefix }, // Xiaomi Aqara Opple WXCJKG13LM
+    { VENDOR_XIAOMI, "lumi.plug", jennicMacPrefix }, // Xiaomi smart plug (router)
+    { VENDOR_XIAOMI, "lumi.ctrl_ln", jennicMacPrefix}, // Xiaomi Wall Switch (router)
+    { VENDOR_XIAOMI, "lumi.plug.maeu01", xiaomiMacPrefix}, // Xiaomi Aqara outlet
+    { VENDOR_XIAOMI, "lumi.remote.b286opcn01", xiaomiMacPrefix }, // Xiaomi Aqara Opple WXCJKG11LM
+    { VENDOR_XIAOMI, "lumi.remote.b486opcn01", xiaomiMacPrefix }, // Xiaomi Aqara Opple WXCJKG12LM
+    { VENDOR_XIAOMI, "lumi.remote.b686opcn01", xiaomiMacPrefix }, // Xiaomi Aqara Opple WXCJKG13LM
     { VENDOR_XIAOMI, "lumi.sen_ill.mgl01", xiaomiMacPrefix }, // Xiaomi ZB3.0 light sensor
-    // { VENDOR_115F, "lumi.curtain", jennicMacPrefix}, // Xiaomi curtain controller (router) - exposed only as light
+    // { VENDOR_XIAOMI, "lumi.curtain", jennicMacPrefix}, // Xiaomi curtain controller (router) - exposed only as light
     { VENDOR_UBISYS, "C4", ubisysMacPrefix },
     { VENDOR_UBISYS, "D1", ubisysMacPrefix },
     { VENDOR_UBISYS, "J1", ubisysMacPrefix },
@@ -197,15 +197,15 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_OSRAM_STACK, "WATER_", heimanMacPrefix }, // Heiman water sensor
     { VENDOR_LGE, "LG IP65 HMS", emberMacPrefix },
     { VENDOR_EMBER, "SmartPlug", emberMacPrefix }, // Heiman smart plug
-    { VENDOR_120B, "SmartPlug", emberMacPrefix }, // Heiman smart plug
-    { VENDOR_120B, "GAS", emberMacPrefix }, // Heiman gas sensor - newer model
-    { VENDOR_120B, "Smoke", emberMacPrefix }, // Heiman fire sensor - newer model
-    { VENDOR_120B, "COSensor", emberMacPrefix }, // Heiman CO sensor - newer model
-    { VENDOR_120B, "TH-", emberMacPrefix }, // Heiman temperature/humidity sensor - newer model
-    { VENDOR_120B, "Water", emberMacPrefix }, // Heiman water sensor - newer model
-    { VENDOR_120B, "Door", emberMacPrefix }, // Heiman door/window sensor - newer model
-    { VENDOR_120B, "WarningDevice", emberMacPrefix }, // Heiman siren
-    { VENDOR_120B, "Smoke", jennicMacPrefix }, // Heiman fire sensor - newer model
+    { VENDOR_HEIMAN, "SmartPlug", emberMacPrefix }, // Heiman smart plug
+    { VENDOR_HEIMAN, "GAS", emberMacPrefix }, // Heiman gas sensor - newer model
+    { VENDOR_HEIMAN, "Smoke", emberMacPrefix }, // Heiman fire sensor - newer model
+    { VENDOR_HEIMAN, "COSensor", emberMacPrefix }, // Heiman CO sensor - newer model
+    { VENDOR_HEIMAN, "TH-", emberMacPrefix }, // Heiman temperature/humidity sensor - newer model
+    { VENDOR_HEIMAN, "Water", emberMacPrefix }, // Heiman water sensor - newer model
+    { VENDOR_HEIMAN, "Door", emberMacPrefix }, // Heiman door/window sensor - newer model
+    { VENDOR_HEIMAN, "WarningDevice", emberMacPrefix }, // Heiman siren
+    { VENDOR_HEIMAN, "Smoke", jennicMacPrefix }, // Heiman fire sensor - newer model
     { VENDOR_LUTRON, "LZL4BWHL01", lutronMacPrefix }, // Lutron LZL-4B-WH-L01 Connected Bulb Remote
     { VENDOR_LUTRON, "Z3-1BRL", lutronMacPrefix }, // Lutron Aurora Friends-of-Hue dimmer
     { VENDOR_KEEN_HOME , "SV01-", keenhomeMacPrefix}, // Keen Home Vent
@@ -223,8 +223,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SUNRICHER, "ZG2833K", emberMacPrefix }, // Sunricher remote controller
     { VENDOR_JENNIC, "SPZB0001", jennicMacPrefix }, // Eurotronic thermostat
     { VENDOR_NONE, "RES001", tiMacPrefix }, // Hubitat environment sensor, see #1308
-    { VENDOR_119C, "WL4200S", sinopeMacPrefix}, // Sinope water sensor
-    { VENDOR_119C, "TH1300ZB", sinopeMacPrefix }, // Sinope Thermostat
+    { VENDOR_SINOPE, "WL4200S", sinopeMacPrefix}, // Sinope water sensor
+    { VENDOR_SINOPE, "TH1300ZB", sinopeMacPrefix }, // Sinope Thermostat
     { VENDOR_ZEN, "Zen-01", zenMacPrefix }, // Zen Thermostat
     { VENDOR_C2DF, "3157100-E", emberMacPrefix }, // Centralite Thermostat
     { VENDOR_EMBER, "Super TR", emberMacPrefix }, // Elko Thermostat
@@ -246,7 +246,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "VOC_Sensor", jennicMacPrefix}, //LifeControl Enviroment sensor
     { VENDOR_JENNIC, "SN10ZW", jennicMacPrefix }, // ORVIBO motion sensor
     { VENDOR_OSRAM_STACK, "SF20", heimanMacPrefix }, // ORVIBO SF20 smoke sensor
-    { VENDOR_120B, "SF21", emberMacPrefix }, // ORVIBO SF21 smoke sensor
+    { VENDOR_HEIMAN, "SF21", emberMacPrefix }, // ORVIBO SF21 smoke sensor
     { VENDOR_LEGRAND, "Dimmer switch w/o neutral", legrandMacPrefix }, // Legrand Dimmer switch wired
     { VENDOR_LEGRAND, "Connected outlet", legrandMacPrefix }, // Legrand Plug
     { VENDOR_LEGRAND, "Shutter switch with neutral", legrandMacPrefix }, // Legrand Shutter switch
@@ -1498,13 +1498,13 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
     }
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_KEEN_HOME || // Keen Home Vent
         node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC || // Xiaomi lumi.ctrl_neutral1, lumi.ctrl_neutral2
-        node->nodeDescriptor().manufacturerCode() == VENDOR_115F || // Xiaomi lumi.curtain.hagl04
+        node->nodeDescriptor().manufacturerCode() == VENDOR_XIAOMI || // Xiaomi lumi.curtain.hagl04
         node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER || // atsmart Z6-03 switch
         node->nodeDescriptor().manufacturerCode() == VENDOR_NONE || // Climax Siren
         node->nodeDescriptor().manufacturerCode() == VENDOR_DEVELCO || // Develco Smoke sensor with siren
         node->nodeDescriptor().manufacturerCode() == VENDOR_LDS || // Samsung SmartPlug 2019
         node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA || // IKEA FYRTUR and KADRILJ smart binds
-        node->nodeDescriptor().manufacturerCode() == VENDOR_1233) // Third Reality smart light switch
+        node->nodeDescriptor().manufacturerCode() == VENDOR_THIRD_REALITY) // Third Reality smart light switch
     {
         // whitelist
     }
@@ -1711,9 +1711,20 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                     }
                     break;
 
+                case DEV_ID_CONFIGURATION_TOOL:
+                    {
+                        // To prevent creating a resource for the gateway itself, add condition:
+                        // node()->address().ext() != gwDeviceAddress.ext()
+                        if (node->nodeDescriptor().manufacturerCode() == VENDOR_DDEL)
+                        {
+                            lightNode.setHaEndpoint(*i);
+                        }
+                    }
+                    break;
+
                 case DEV_ID_XIAOMI_SMART_PLUG:
                     {
-                        if (node->nodeDescriptor().manufacturerCode() == VENDOR_115F &&
+                        if (node->nodeDescriptor().manufacturerCode() == VENDOR_XIAOMI &&
                             (i->endpoint() == 0x01 || i->endpoint() == 0x02) && hasServerOnOff)
                         {
                             // Xiaomi lumi.plug and wall switch lumi.ctrl_ln1.aq2, lumi.ctrl_ln2.aq2
@@ -1780,6 +1791,22 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 }
             }
         }
+        else if (i->profileId() == MAXSTREAM_PROFILE_ID)
+        {
+            switch (i->deviceId())
+            {
+            case DEV_ID_LEVEL_CONTROL_SWITCH:
+            {
+                if (i->endpoint() == 0xe6)
+                {
+                    lightNode.setHaEndpoint(*i);
+                }
+            }
+                break;
+            default:
+                break;
+            }
+        }
 
         if (!lightNode.haEndpoint().isValid())
         {
@@ -1789,7 +1816,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         QString uid = generateUniqueId(lightNode.address().ext(), lightNode.haEndpoint().endpoint(), 0);
         lightNode.setUniqueId(uid);
 
-        if (checkMacVendor(node->address(), VENDOR_DDEL))
+        if (checkMacVendor(node->address(), VENDOR_DDEL) && i->deviceId() != DEV_ID_CONFIGURATION_TOOL)
         {
             ResourceItem *item = lightNode.addItem(DataTypeUInt32, RConfigPowerup);
             DBG_Assert(item != 0);
@@ -1804,13 +1831,20 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
         DBG_Assert(lightNode.state() != LightNode::StateDeleted);
 
-        if (lightNode.manufacturerCode() == VENDOR_115F)
+        if (lightNode.manufacturerCode() == VENDOR_XIAOMI)
         {
             if (lightNode.manufacturer() != QLatin1String("LUMI"))
             {
                 lightNode.setManufacturerName(QLatin1String("LUMI"));
                 lightNode.setNeedSaveDatabase(true);
             }
+        }
+
+        if (lightNode.manufacturerCode() == VENDOR_MAXSTREAM)
+        {
+            lightNode.setManufacturerName(QLatin1String("Digi"));
+            lightNode.setModelId(QLatin1String("XBee"));
+            lightNode.setNeedSaveDatabase(true);
         }
 
         ResourceItem *reachable = lightNode.item(RStateReachable);
@@ -2235,6 +2269,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
             case DEV_ID_HA_ONOFF_LIGHT_SWITCH:
             case DEV_ID_HA_DIMMER_SWITCH:
             case DEV_ID_RANGE_EXTENDER:
+            case DEV_ID_CONFIGURATION_TOOL:
             //case DEV_ID_ZLL_DIMMABLE_LIGHT: // same as DEV_ID_HA_ONOFF_LIGHT
             case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:
             case DEV_ID_Z30_DIMMABLE_PLUGIN_UNIT:
@@ -3795,7 +3830,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpFireSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
                     }
-                    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_119C &&
+                    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_SINOPE &&
                              modelId.startsWith(QLatin1String("WL4200S")))
                     {
                         fpWaterSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
@@ -4945,7 +4980,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             sensorNode.setManufacturer("OSRAM");
         }
     }
-    else if ((node->nodeDescriptor().manufacturerCode() == VENDOR_119C))
+    else if ((node->nodeDescriptor().manufacturerCode() == VENDOR_SINOPE))
     {
         sensorNode.setManufacturer("Sinope");
     }
@@ -5107,7 +5142,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         }
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER ||
-             node->nodeDescriptor().manufacturerCode() == VENDOR_120B)
+             node->nodeDescriptor().manufacturerCode() == VENDOR_HEIMAN)
     {
         sensorNode.setManufacturer("Heiman");
     }
@@ -8027,7 +8062,7 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         return false;
     }
 
-    if (!nd.receiverOnWhenIdle() && (nd.manufacturerCode() == VENDOR_115F || sensorNode->modelId().startsWith(QLatin1String("lumi."))))
+    if (!nd.receiverOnWhenIdle() && (nd.manufacturerCode() == VENDOR_XIAOMI || sensorNode->modelId().startsWith(QLatin1String("lumi."))))
     {
         // don't talk to sleeping Xiaomi devices here
         return false;
@@ -9543,7 +9578,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
         }
     }
 
-    if (zclFrame.isProfileWideCommand() && ind.clusterId() == BASIC_CLUSTER_ID && checkMacVendor(ind.srcAddress().ext(), VENDOR_115F))
+    if (zclFrame.isProfileWideCommand() && ind.clusterId() == BASIC_CLUSTER_ID && checkMacVendor(ind.srcAddress().ext(), VENDOR_XIAOMI))
     {
         handleZclAttributeReportIndicationXiaomiSpecial(ind, zclFrame);
     }
@@ -10154,7 +10189,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         DBG_Assert(item);
         if (!item->lastSet().isValid() || item2->toNumber() == 0)
         {
-            if (readAttributes(restNodePending, ind.srcEndpoint(), BASIC_CLUSTER_ID, { 0xff0d }, VENDOR_115F))
+            if (readAttributes(restNodePending, ind.srcEndpoint(), BASIC_CLUSTER_ID, { 0xff0d }, VENDOR_XIAOMI))
             {
                 return;
             }
@@ -10165,7 +10200,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             {
                 deCONZ::ZclAttribute attr(0xff0d, deCONZ::Zcl8BitUint, "sensitivity", deCONZ::ZclReadWrite, true);
                 attr.setValue(static_cast<quint64>(item->toNumber()));
-                if (writeAttribute(restNodePending, ind.srcEndpoint(), BASIC_CLUSTER_ID, attr, VENDOR_115F))
+                if (writeAttribute(restNodePending, ind.srcEndpoint(), BASIC_CLUSTER_ID, attr, VENDOR_XIAOMI))
                 {
                     item2->setValue(item2->toNumber() & ~R_PENDING_SENSITIVITY);
                     return;
@@ -10725,6 +10760,11 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
     switch (event.event())
     {
     case deCONZ::NodeEvent::NodeSelected:
+        if (event.node()->address().ext() == gwDeviceAddress.ext())
+        {
+            // Dirty hack since no NodeAdded event is fired for the gateway device
+            addLightNode(event.node());
+        }
         break;
 
     case deCONZ::NodeEvent::NodeDeselected:
@@ -14638,7 +14678,7 @@ void DeRestPlugin::idleTimerFired()
                 }
 
                 // workaround for lights and smart plugs with multiple endpoints but only one basic cluster
-                if ((lightNode->manufacturerCode() == VENDOR_JENNIC || lightNode->manufacturerCode() == VENDOR_115F || // Xiaomi
+                if ((lightNode->manufacturerCode() == VENDOR_JENNIC || lightNode->manufacturerCode() == VENDOR_XIAOMI || // Xiaomi
                      (lightNode->address().ext() & macPrefixMask) == tiMacPrefix) // GLEDOPTO
                     && (lightNode->modelId().isEmpty() || lightNode->manufacturer().isEmpty() || lightNode->item(RAttrSwVersion)->toString().isEmpty()))
                 {

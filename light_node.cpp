@@ -99,7 +99,7 @@ void LightNode::setManufacturerCode(uint16_t code)
         case VENDOR_UBISYS:  name = QLatin1String("ubisys"); break;
         case VENDOR_BUSCH_JAEGER:  name = QLatin1String("Busch-Jaeger"); break;
         case VENDOR_EMBER:   // fall through
-        case VENDOR_120B:    name = QLatin1String("Heiman"); break;
+        case VENDOR_HEIMAN:  name = QLatin1String("Heiman"); break;
         case VENDOR_KEEN_HOME: name = QLatin1String("Keen Home Inc"); break;
         case VENDOR_DEVELCO: name = QLatin1String("Develco Products A/S"); break;
         case VENDOR_NETVOX:   name = QLatin1String("netvox"); break;
@@ -334,7 +334,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
         }
     }
 
-    if (manufacturerCode() == VENDOR_115F && endpoint.deviceId() == DEV_ID_HA_COLOR_DIMMABLE_LIGHT)
+    if (manufacturerCode() == VENDOR_XIAOMI && endpoint.deviceId() == DEV_ID_HA_COLOR_DIMMABLE_LIGHT)
     {
         // https://github.com/dresden-elektronik/deconz-rest-plugin/issues/1057
         // The Xiaomi Aqara TW (ZNLDP12LM) light is, has wrong device type in simple descriptor
@@ -503,7 +503,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 // DEV_ID_Z30_ONOFF_PLUGIN_UNIT
                 deviceId = DEV_ID_HA_WINDOW_COVERING_DEVICE;
             }
-            
+
             switch (deviceId)
             {
             //case DEV_ID_ZLL_DIMMABLE_LIGHT:   break; // clash with on/off light
@@ -539,6 +539,9 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                                                      ltype = QLatin1String("Warning device"); break;
             case DEV_ID_HA_WINDOW_COVERING_DEVICE:   ltype = QLatin1String("Window covering device"); break;
             case DEV_ID_FAN:                         ltype = QLatin1String("Fan"); break;
+            case DEV_ID_CONFIGURATION_TOOL:          removeItem(RStateOn);
+                                                     removeItem(RStateAlert);
+                                                     ltype = QLatin1String("Configuration tool"); break;
             default:
                 break;
             }
@@ -558,6 +561,17 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
             case DEV_ID_Z30_EXTENDED_COLOR_LIGHT:    ltype = QLatin1String("Extended color light"); break;
             case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT: ltype = QLatin1String("Color temperature light"); break;
             case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT: ltype = QLatin1String("Color temperature light"); break;
+            default:
+                break;
+            }
+        }
+        else if (haEndpoint().profileId() == MAXSTREAM_PROFILE_ID)
+        {
+            switch (deviceId)
+            {
+            case DEV_ID_LEVEL_CONTROL_SWITCH:        removeItem(RStateOn);
+                                                     removeItem(RStateAlert);
+                                                     ltype = QLatin1String("Level control switch"); break;
             default:
                 break;
             }
