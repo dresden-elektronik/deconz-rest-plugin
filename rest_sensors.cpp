@@ -850,7 +850,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     		}
                     		rspItem["success"] = rspItemState;
                     	}
- 
+
                         else if (sensor->modelId() == QLatin1String("Cable outlet"))
                         {
                             QString mode_set = map[pi.key()].toString();
@@ -865,7 +865,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             {
                                 rspItemState[QString("error unknow mode for %1").arg(sensor->modelId())] = val;
                             }
-                            
+
                             if (mode < 10)
                             {
                                 if (!addTaskControlModeCmd(task, 0x00, mode))
@@ -2510,7 +2510,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
 
     if (sc && fastProbeAddr.hasExt() && sc->address.ext() == fastProbeAddr.ext())
     {
-        if (zclFrame.manufacturerCode() == VENDOR_115F || zclFrame.manufacturerCode() == VENDOR_1234)
+        if (zclFrame.manufacturerCode() == VENDOR_XIAOMI || zclFrame.manufacturerCode() == VENDOR_DSR)
         {
             DBG_Printf(DBG_INFO, "Remember Xiaomi special for 0x%016llX\n", ind.srcAddress().ext());
             fastProbeIndications.push_back(ind); // remember Xiaomi special report
