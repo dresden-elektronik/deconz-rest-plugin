@@ -3402,7 +3402,7 @@ int DeRestPluginPrivate::putHomebridgeUpdated(const ApiRequest &req, ApiResponse
 
     if (map.contains("homebridge"))
     {
-        homebridge = map["homebridge"].toString();  
+        homebridge = map["homebridge"].toString();
 
         if (homebridge == QLatin1String("not-managed"))
         {
