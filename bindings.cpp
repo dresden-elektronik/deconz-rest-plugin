@@ -1931,7 +1931,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Tuya
         sensor->modelId().contains(QLatin1String("TS0201")) ||
         // Xiaomi
-        sensor->modelId().startsWith(QLatin1String("lumi")))
+        sensor->modelId().startsWith(QLatin1String("lumi")) ||
+        // iris
+        sensor->modelId().startsWith(QLatin1String("1117-S")))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||
@@ -2043,7 +2045,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                      sensor->modelId() == QLatin1String("Remote switch") ||
                      sensor->modelId() == QLatin1String("Shutters central remote switch") ||
                      sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||
-                     sensor->modelId().contains(QLatin1String("86opcn01"))) // Aqara Opple
+                     sensor->modelId().contains(QLatin1String("86opcn01")) || // Aqara Opple
+                     sensor->modelId().contains(QLatin1String("1117-S")))
             {
                 val = sensor->getZclValue(*i, 0x0020); // battery voltage
             }

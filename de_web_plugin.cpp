@@ -267,6 +267,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBER, "TS0201", silabs3MacPrefix }, // Tuya/Blitzwolf temperature and humidity sensor
     { VENDOR_AURORA, "DoubleSocket50AU", jennicMacPrefix }, // Aurora AOne Double Socket UK
     { VENDOR_COMPUTIME, "SP600", computimeMacPrefix }, // Salus smart plug
+    { VENDOR_HANGZHOU_IMAGIC, "1117-S", energyMiMacPrefix }, // iris motion sensor v3
     { 0, nullptr, 0 }
 };
 
@@ -5907,7 +5908,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId().contains(QLatin1String("WISZB-120")) || // Develco window sensor
                                     i->modelId().contains(QLatin1String("FLSZB-110")) || // Develco water leak sensor
                                     i->modelId().contains(QLatin1String("ZHMS101")) ||   // Wattle (Develco) magnetic sensor
-                                    i->modelId().contains(QLatin1String("RFDL-ZB-MS")))  // Bosch motion sensor
+                                    i->modelId().contains(QLatin1String("RFDL-ZB-MS")) ||// Bosch motion sensor
+                                    i->modelId().contains(QLatin1String("1117-S")))  // iris motion sensor
                                 {  }
                                 else
                                 {

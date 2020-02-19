@@ -301,6 +301,7 @@
 #define VENDOR_1233         0x1233 // Used by Third Reality
 #define VENDOR_DSR          0x1234
 #define VENDOR_1234         0x1234 // Used by Xiaomi Mi
+#define VENDOR_HANGZHOU_IMAGIC 0x123B
 #define VENDOR_SAMJIN       0x1241
 #define VENDOR_KONKE        0x1268
 #define VENDOR_OSRAM_STACK  0xBBAA
