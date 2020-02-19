@@ -207,6 +207,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_120B, "Door", emberMacPrefix }, // Heiman door/window sensor - newer model
     { VENDOR_120B, "WarningDevice", emberMacPrefix }, // Heiman siren
     { VENDOR_120B, "Smoke", jennicMacPrefix }, // Heiman fire sensor - newer model
+    { VENDOR_120B, "SKHMP30", jennicMacPrefix }, // GS (Heiman) smart plug
     { VENDOR_LUTRON, "LZL4BWHL01", lutronMacPrefix }, // Lutron LZL-4B-WH-L01 Connected Bulb Remote
     { VENDOR_LUTRON, "Z3-1BRL", lutronMacPrefix }, // Lutron Aurora Friends-of-Hue dimmer
     { VENDOR_KEEN_HOME , "SV01-", keenhomeMacPrefix}, // Keen Home Vent
@@ -6894,8 +6895,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 quint64 consumption = ia->numericValue().u64;
                                 ResourceItem *item = i->item(RStateConsumption);
 
-                                if (i->modelId() == QLatin1String("SmartPlug") || // Heiman
-                                    i->modelId().startsWith(QLatin1String("PSMP5_"))) // Climax
+                                if (i->modelId() == QLatin1String("SmartPlug") ||       // Heiman
+                                    i->modelId().startsWith(QLatin1String("PSMP5_")) || // Climax
+                                    i->modelId().startsWith(QLatin1String("SKHMP30")))  // GS smart plug
                                 {
                                     consumption += 5; consumption /= 10; // 0.1 Wh -> Wh
                                 }
@@ -6926,9 +6928,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 qint32 power = ia->numericValue().s32;
                                 ResourceItem *item = i->item(RStatePower);
 
-                                if (i->modelId() == QLatin1String("SmartPlug") || // Heiman
-                                    i->modelId() == QLatin1String("902010/25") || // Bitron
-                                    i->modelId().startsWith(QLatin1String("PSMP5_"))) // Climax
+                                if (i->modelId() == QLatin1String("SmartPlug") ||       // Heiman
+                                    i->modelId() == QLatin1String("902010/25") ||       // Bitron
+                                    i->modelId().startsWith(QLatin1String("PSMP5_")) || // Climax
+                                    i->modelId().startsWith(QLatin1String("SKHMP30")))  // GS smart plug
                                 {
                                     power += 5; power /= 10; // 0.1 W -> W
                                 }
@@ -6974,7 +6977,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 if (item && power != -32768)
                                 {
-                                    if (i->modelId() == QLatin1String("SmartPlug")) // Heiman
+                                    if (i->modelId() == QLatin1String("SmartPlug") ||      // Heiman
+                                        i->modelId().startsWith(QLatin1String("SKHMP30"))) // GS smart plug
                                     {
                                         power += 5; power /= 10; // 0.1W -> W
                                     }
@@ -7005,8 +7009,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 if (item && voltage != 65535)
                                 {
-                                    if (i->modelId() == QLatin1String("SmartPlug") || // Heiman
-                                        i->modelId() == QLatin1String("SPLZB-131"))   // Develco
+                                    if (i->modelId() == QLatin1String("SmartPlug") ||      // Heiman
+                                        i->modelId() == QLatin1String("SPLZB-131") ||      // Develco
+                                        i->modelId().startsWith(QLatin1String("SKHMP30"))) // GS smart plug
                                     {
                                         voltage += 50; voltage /= 100; // 0.01V -> V
                                     }
@@ -7040,8 +7045,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         // already in mA
                                     }
-                                    else if (i->modelId() == QLatin1String("SmartPlug") || // Heiman
-                                             i->modelId() == QLatin1String("EMIZB-132"))   // Develco EMI Norwegian HAN
+                                    else if (i->modelId() == QLatin1String("SmartPlug") ||      // Heiman
+                                             i->modelId() == QLatin1String("EMIZB-132") ||      // Develco EMI Norwegian HAN
+                                             i->modelId().startsWith(QLatin1String("SKHMP30"))) // GS smart plug
                                     {
                                         current *= 10; // 0.01A -> mA
                                     }
