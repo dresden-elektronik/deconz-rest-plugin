@@ -94,6 +94,7 @@ const quint64 silabsMacPrefix     = 0x90fd9f0000000000ULL;
 const quint64 silabs2MacPrefix    = 0xcccccc0000000000ULL;
 const quint64 energyMiMacPrefix   = 0xd0cf5e0000000000ULL;
 const quint64 bjeMacPrefix        = 0xd85def0000000000ULL;
+const quint64 silabs3MacPrefix    = 0xec1bbd0000000000ULL;
 const quint64 xalMacPrefix        = 0xf8f0050000000000ULL;
 const quint64 lutronMacPrefix     = 0xffff000000000000ULL;
 
@@ -258,6 +259,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_PHYSICAL, "outletv4", stMacPrefix }, // Samsung SmartThings plug (IM6001-OTP)
     { VENDOR_EMBER, "RH3040", konkeMacPrefix }, // Tuyatec motion sensor
     { VENDOR_NONE, "RH3052", emberMacPrefix }, // Tuyatec temperature sensor
+    { VENDOR_EMBER, "TS0201", silabs3MacPrefix }, // Tuya/Blitzwolf temperature and humidity sensor
     { VENDOR_AURORA, "DoubleSocket50AU", jennicMacPrefix }, // Aurora AOne Double Socket UK
     { VENDOR_COMPUTIME, "SP600", computimeMacPrefix }, // Salus smart plug
     { 0, nullptr, 0 }
@@ -5161,6 +5163,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_DEVELCO)
     {
         sensorNode.setManufacturer("Develco Products A/S");
+    }
+    else if (sensorNode.manufacturer().startsWith(QLatin1String("_TYZB01")))
+    {
+        sensorNode.setManufacturer("Tuya");
     }
 
     if (sensorNode.manufacturer().isEmpty() && !manufacturer.isEmpty())

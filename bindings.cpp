@@ -1888,7 +1888,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // eCozy
         sensor->modelId() == QLatin1String("Thermostat") ||
         // Stelpro
-        sensor->modelId().contains(QLatin1String("ST218")))
+        sensor->modelId().contains(QLatin1String("ST218")) ||
+        // Tuya
+        sensor->modelId().contains(QLatin1String("TS0201")))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||

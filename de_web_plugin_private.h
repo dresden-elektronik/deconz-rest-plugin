@@ -395,6 +395,8 @@ extern const quint64 heimanMacPrefix;
 extern const quint64 ikeaMacPrefix;
 extern const quint64 ikea2MacPrefix;
 extern const quint64 silabsMacPrefix;
+extern const quint64 silabs2MacPrefix;
+extern const quint64 silabs3MacPrefix;
 extern const quint64 instaMacPrefix;
 extern const quint64 boschMacPrefix;
 extern const quint64 jennicMacPrefix;
@@ -411,10 +413,10 @@ extern const quint64 ubisysMacPrefix;
 extern const quint64 xalMacPrefix;
 extern const quint64 develcoMacPrefix;
 extern const quint64 legrandMacPrefix;
-extern const quint64 silabs2MacPrefix;
 extern const quint64 xiaomiMacPrefix;
 extern const quint64 computimeMacPrefix;
 extern const quint64 konkeMacPrefix;
+extern const quint64 ecozyMacPrefix;
 
 inline bool checkMacVendor(quint64 addr, quint16 vendor)
 {
@@ -441,7 +443,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == emberMacPrefix;
         case VENDOR_EMBER:
             return prefix == emberMacPrefix ||
-                   prefix == konkeMacPrefix;
+                   prefix == konkeMacPrefix ||
+                   prefix == silabs3MacPrefix;
         case VENDOR_DDEL:
             return prefix == deMacPrefix;
         case VENDOR_IKEA:
