@@ -565,11 +565,11 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 break;
             }
         }
-        else if (haEndpoint().profileId() == MAXSTREAM_PROFILE_ID)
+        else if (haEndpoint().profileId() == DIN_PROFILE_ID)
         {
             switch (deviceId)
             {
-            case DEV_ID_LEVEL_CONTROL_SWITCH:        removeItem(RStateOn);
+            case DEV_ID_DIN_XBEE:                    removeItem(RStateOn);
                                                      removeItem(RStateAlert);
                                                      ltype = QLatin1String("Range extender"); break;
             default:

@@ -95,7 +95,11 @@
 #define DE_OTAU_ENDPOINT             0x50
 #define DE_PROFILE_ID              0xDE00
 
-#define MAXSTREAM_PROFILE_ID                0xC105 // Used by Digi's XBee
+// Digi Drop-In-Networking (DIN) ZigBee Profile, used by the XBee.
+#define DIN_PROFILE_ID                      0xC105 // Digi Drop-In-Networking
+#define DIN_DDO_ENDPOINT                    0xE6   // Digi Device Object endpoint
+#define DIN_DDM_ENDPOINT                    0xE8   // Digi Data Management endpoint
+#define DEV_ID_DIN_XBEE                     0x0001 // Device ID used by the XBee
 
 // Generic devices
 #define DEV_ID_ONOFF_SWITCH                 0x0000 // On/Off switch

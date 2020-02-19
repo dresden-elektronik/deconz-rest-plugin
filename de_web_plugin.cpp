@@ -1793,13 +1793,13 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 }
             }
         }
-        else if (i->profileId() == MAXSTREAM_PROFILE_ID)
+        else if (i->profileId() == DIN_PROFILE_ID)
         {
             switch (i->deviceId())
             {
-            case DEV_ID_LEVEL_CONTROL_SWITCH:
+            case DEV_ID_DIN_XBEE:
             {
-                if (i->endpoint() == 0xe6)
+                if (i->endpoint() == DIN_DDO_ENDPOINT)
                 {
                     lightNode.setHaEndpoint(*i);
                 }
