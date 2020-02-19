@@ -92,6 +92,7 @@ const quint64 ecozyMacPrefix      = 0x70b3d50000000000ULL;
 const quint64 osramMacPrefix      = 0x8418260000000000ULL;
 const quint64 silabsMacPrefix     = 0x90fd9f0000000000ULL;
 const quint64 silabs2MacPrefix    = 0xcccccc0000000000ULL;
+const quint64 silabs3MacPrefix    = 0xec1bbd0000000000ULL;
 const quint64 energyMiMacPrefix   = 0xd0cf5e0000000000ULL;
 const quint64 bjeMacPrefix        = 0xd85def0000000000ULL;
 const quint64 xalMacPrefix        = 0xf8f0050000000000ULL;
@@ -114,6 +115,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_CENTRALITE, "3325-S", emberMacPrefix }, // Centralite motion sensor
 //    { VENDOR_CENTRALITE, "3326-L", emberMacPrefix }, // Iris motion sensor
     { VENDOR_CENTRALITE, "3328-G", emberMacPrefix }, // Centralite micro motion sensor
+    { VENDOR_DDEL, "de_spect", silabs3MacPrefix }, // dresden elektronic spectral sensor
     { VENDOR_NONE, "LM_",  tiMacPrefix },
     { VENDOR_NONE, "LMHT_", tiMacPrefix },
     { VENDOR_NONE, "IR_", tiMacPrefix },
@@ -3734,6 +3736,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         SensorFingerprint fpPowerSensor;
         SensorFingerprint fpPresenceSensor;
         SensorFingerprint fpPressureSensor;
+        SensorFingerprint fpSpectralSensor;
         SensorFingerprint fpSwitch;
         SensorFingerprint fpTemperatureSensor;
         SensorFingerprint fpThermostatSensor;
@@ -4164,6 +4167,19 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 }
                     break;
 
+                case VENDOR_CLUSTER_ID:
+                {
+                    if (node->nodeDescriptor().manufacturerCode() == VENDOR_DDEL && modelId == QLatin1String("de_spect"))
+                    {
+                        if (i->endpoint() <= 0x03)
+                        {
+                            fpSpectralSensor.inClusters.push_back(ci->id());
+                        }
+                    }
+                }
+                    break;
+
+
                 default:
                     break;
                 }
@@ -4535,6 +4551,24 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             }
         }
 
+        // ZHASpectral
+        if (fpSpectralSensor.hasInCluster(VENDOR_CLUSTER_ID))
+        {
+            fpSpectralSensor.endpoint = i->endpoint();
+            fpSpectralSensor.deviceId = i->deviceId();
+            fpSpectralSensor.profileId = i->profileId();
+
+            sensor = getSensorNodeForFingerPrint(node->address().ext(), fpTemperatureSensor, "ZHASpectral");
+            if (!sensor || sensor->deletedState() != Sensor::StateNormal)
+            {
+                addSensorNode(node, fpSpectralSensor, "ZHASpectral", modelId, manufacturer);
+            }
+            else
+            {
+                checkSensorNodeReachable(sensor);
+            }
+        }
+
         // ZHAThermostat
         if (fpThermostatSensor.hasInCluster(THERMOSTAT_CLUSTER_ID) ||
            (fpThermostatSensor.hasInCluster(LEGRAND_CONTROL_CLUSTER_ID) && modelId == QLatin1String("Cable outlet")))
@@ -4705,6 +4739,23 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         item->setValue(R_THOLDDARK_DEFAULT);
         item = sensorNode.addItem(DataTypeUInt16, RConfigTholdOffset);
         item->setValue(R_THOLDOFFSET_DEFAULT);
+    }
+    else if (sensorNode.type().endsWith(QLatin1String("Spectral")))
+    {
+        if (sensorNode.fingerPrint().hasInCluster(VENDOR_CLUSTER_ID))
+        {
+            clusterId = VENDOR_CLUSTER_ID;
+        }
+
+        if (modelId == QLatin1String("de_spect"))
+        {
+            item = sensorNode.item(RConfigOn); // default off
+            item->setValue(false);
+        }
+
+        sensorNode.addItem(DataTypeUInt16, RStateSpectralX);
+        sensorNode.addItem(DataTypeUInt16, RStateSpectralY);
+        sensorNode.addItem(DataTypeUInt16, RStateSpectralZ);
     }
     else if (sensorNode.type().endsWith(QLatin1String("Temperature")))
     {
@@ -4927,7 +4978,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         }
         else if (modelId.startsWith(QLatin1String("FLS-NB")))
         {
-            sensorNode.setManufacturer("nimbus group");;
+            sensorNode.setManufacturer("nimbus group");
         }
     }
     else if ((node->nodeDescriptor().manufacturerCode() == VENDOR_OSRAM_STACK) || (node->nodeDescriptor().manufacturerCode() == VENDOR_OSRAM))
@@ -5652,6 +5703,11 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             {
                 // ubisys device management (UBISYS_DEVICE_SETUP_CLUSTER_ID)
                 if (event.endpoint() == 0xE8 && checkMacVendor(event.node()->address(), VENDOR_UBISYS))
+                {
+                    break;
+                }
+                // dresden elektronik spectral sensor
+                else if (i->modelId() == QLatin1String("de_spect") && checkMacVendor(event.node()->address(), VENDOR_DDEL))
                 {
                     break;
                 }
@@ -7234,6 +7290,68 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 processUbisysC4Configuration(&*i);
                             }
+                        }
+                    }
+                    else if (event.clusterId() == VENDOR_CLUSTER_ID && i->modelId() == QLatin1String("de_spect"))
+                    {
+                        bool updated = false;
+
+                        if (event.endpoint() != i->fingerPrint().endpoint)
+                        {
+                            continue;
+                        }
+
+                        for (;ia != enda; ++ia)
+                        {
+                            if (std::find(event.attributeIds().begin(),
+                                          event.attributeIds().end(),
+                                          ia->id()) == event.attributeIds().end())
+                            {
+                                continue;
+                            }
+
+                            if (updateType != NodeValue::UpdateInvalid)
+                            {
+                                i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
+                            }
+
+                            if (ia->id() == 0x0000 && ia->dataType() == deCONZ::Zcl8BitUint) // sensor enabled / disabled
+                            {
+                                ResourceItem *item = i->item(RConfigOn);
+                                if (item)
+                                {
+                                    bool enabled = ia->numericValue().u8 > 0 ? true : false;
+                                    if (item->toBool() != enabled)
+                                    {
+                                        DBG_Printf(DBG_INFO, "0x%016llX: enabled state (%u) != config.on (%u)\n", event.node()->address().ext(), enabled, item->toBool());
+                                        deCONZ::ZclAttribute attr = *ia;
+                                        attr.setValue(static_cast<quint64>(enabled ? 0 : 1)); // toggle
+                                        writeAttribute(&*i, i->fingerPrint().endpoint, VENDOR_CLUSTER_ID, attr);
+                                        processTasks();
+                                    }
+                                }
+                            }
+                            else if (ia->id() >= 0x0001 && ia->id() <= 0x0003 && ia->dataType() == deCONZ::Zcl16BitUint) // Input actions
+                            {
+                                // 0x0001: X, 0x0002: Y, 0x0003: Z
+                                const char *r[] = { RStateSpectralX, RStateSpectralY, RStateSpectralZ };
+
+                                ResourceItem *item = i->item(r[ia->id() - 1]);
+                                if (item)
+                                {
+                                    item->setValue(ia->numericValue().u16);
+                                    enqueueEvent(Event(RSensors, r[ia->id() - 1], i->id(), item));
+                                    updated = true;
+                                }
+                            }
+                        }
+
+                        if (updated)
+                        {
+                            i->updateStateTimestamp();
+                            i->setNeedSaveDatabase(true);
+                            enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
+                            updateSensorEtag(&*i);
                         }
                     }
                 }
@@ -9507,6 +9625,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
     }
     else if (checkMacVendor(ind.srcAddress(), VENDOR_PHILIPS) ||
              macPrefix == tiMacPrefix ||
+             checkMacVendor(ind.srcAddress(), VENDOR_DDEL) ||
             checkMacVendor(ind.srcAddress(), VENDOR_IKEA) ||
             checkMacVendor(ind.srcAddress(), VENDOR_OSRAM_STACK) ||
             checkMacVendor(ind.srcAddress(), VENDOR_JENNIC) ||

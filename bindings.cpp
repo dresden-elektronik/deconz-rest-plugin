@@ -1528,6 +1528,40 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                 val2.maxInterval = 60 * 60 * 8; // prevent further check for 8 hours
             }
         }
+        else if (sensor && sensor->modelId() == QLatin1String("de_spect")) // dresden elektronik spectral sensor
+        {
+            rq.dataType = deCONZ::Zcl8BitUint;
+            rq.attributeId = 0x0000; // sensor enabled
+            rq.minInterval = 1;
+            rq.maxInterval = 120;
+            rq.reportableChange8bit = 1;
+
+            ConfigureReportingRequest rq2;
+            rq2 = ConfigureReportingRequest();
+            rq2.dataType = deCONZ::Zcl16BitUint;
+            rq2.attributeId = 0x0001; // spectral x
+            rq2.minInterval = 1;
+            rq2.maxInterval = 300;
+            rq2.reportableChange16bit = 200;
+
+            ConfigureReportingRequest rq3;
+            rq3 = ConfigureReportingRequest();
+            rq3.dataType = deCONZ::Zcl16BitUint;
+            rq3.attributeId = 0x0002; // spectral x
+            rq3.minInterval = 1;
+            rq3.maxInterval = 300;
+            rq3.reportableChange16bit = 200;
+
+            ConfigureReportingRequest rq4;
+            rq4 = ConfigureReportingRequest();
+            rq4.dataType = deCONZ::Zcl16BitUint;
+            rq4.attributeId = 0x0003; // spectral x
+            rq4.minInterval = 1;
+            rq4.maxInterval = 300;
+            rq4.reportableChange16bit = 200;
+
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
+        }
     }
     return false;
 }
@@ -1787,6 +1821,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // CentraLite
         sensor->modelId().startsWith(QLatin1String("Motion Sensor-A")) ||
         sensor->modelId().startsWith(QLatin1String("332")) ||
+        // dresden elektronik
+        (sensor->manufacturer() == QLatin1String("dresden elektronik") && sensor->modelId() == QLatin1String("de_spect")) ||
         // NYCE
         sensor->modelId() == QLatin1String("3011") ||
         sensor->modelId() == QLatin1String("3014") ||
@@ -1897,7 +1933,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||
-            sensor->node()->nodeDescriptor().manufacturerCode() != VENDOR_DDEL)
+            (sensor->node()->nodeDescriptor().manufacturerCode() != VENDOR_DDEL))
         {
             sensor->setMgmtBindSupported(false);
         }
@@ -2052,6 +2088,10 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             {
                 val = sensor->getZclValue(*i, 0x0000); // button event
             }
+            if (sensor->modelId() == QLatin1String("de_spect")) // dresden elektronik spectral sensor
+            {
+                val = sensor->getZclValue(*i, 0x0000, sensor->fingerPrint().endpoint); // sensor enabled per endpoint
+            }
         }
         else if (*i == BASIC_CLUSTER_ID)
         {
@@ -2115,7 +2155,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             continue;
         }
 
-        if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() && sensor->lastRx().secsTo(now) > 3)
+        if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() && sensor->lastRx().secsTo(now) > 6)
         {
             DBG_Printf(DBG_INFO, "skip binding for attribute reporting of ep: 0x%02X cluster 0x%04X (end-device might sleep)\n", val.endpoint, *i);
             return false;
