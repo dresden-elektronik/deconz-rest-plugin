@@ -2604,6 +2604,31 @@ devices can operate on either battery or mains power, and can have a wide variet
 	<domain name="Manufacturer Specific" useZcl="true"
 		description="Manufacturer specific clusters.">
 
+		<!-- Dresden Elektronik -->
+		<cluster id="0xfc00" name="Spectral Measurement" mfcode="0x1135">
+			<description>Dresden Elektronik Specific clusters.</description>
+			<server>
+				<attribute id="0x0000" type="u8" name="On" required="m" access="rw" default="0">
+					<description>Enable Sensor </description>
+				</attribute>
+				
+				<attribute id="0x0001" name="X-Value" type="u16" default="0x0000" access="r" required="m" showas="dec">
+					<description>X-Value</description>
+				</attribute>
+				
+				<attribute id="0x0002" name="Y-Value" type="u16" default="0x0000" access="r" required="m" showas="dec">
+					<description>Y-Value</description>
+				</attribute>
+				
+				<attribute id="0x0003" name="Z-Value" type="u16" default="0x0000" access="r" required="m" showas="dec">
+					<description>Z-Value</description>
+				</attribute>
+				
+			</server>
+			<client>
+			</client>
+		</cluster>
+
 		<!-- Legrand -->
 		<cluster id="0xfc01" name="Legrand - Specific clusters" mfcode="1021">
 			<description>Legrand Classic Specific clusters, used by all devices. But take care they are device specific.
