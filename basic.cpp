@@ -32,6 +32,7 @@ void DeRestPluginPrivate::sendBasicClusterResponse(const deCONZ::ApsDataIndicati
 {
     deCONZ::ApsDataRequest req;
     deCONZ::ZclFrame outZclFrame;
+    quint16 manucode = 0xFFFF;
 
     req.setProfileId(ind.profileId());
     req.setClusterId(ind.clusterId());
@@ -50,7 +51,7 @@ void DeRestPluginPrivate::sendBasicClusterResponse(const deCONZ::ApsDataIndicati
     //is there manufacture field in the request, if yes add it.
     if (zclFrame.frameControl() & deCONZ::ZclFCManufacturerSpecific)
     {
-        quint16 manucode = zclFrame.manufacturerCode();
+        manucode = zclFrame.manufacturerCode();
         outZclFrame.setFrameControl(outZclFrame.frameControl() | deCONZ::ZclFCManufacturerSpecific);
         outZclFrame.setManufacturerCode(manucode);
     }
@@ -147,10 +148,16 @@ void DeRestPluginPrivate::sendBasicClusterResponse(const deCONZ::ApsDataIndicati
                 break;
 
             case 0xF000: // Legrand attribute used for pairing
-                // FIXME: check Legrand manufacturer code
-                stream << code;
-                stream << (quint8) deCONZ::Zcl32BitUint;
-                stream << (quint32) 0x000000d5;
+                if (manucode == VENDOR_LEGRAND)
+                {
+                    stream << code;
+                    stream << (quint8) deCONZ::Zcl32BitUint;
+                    stream << (quint32) 0x000000d5;
+                }
+                else
+                {
+                    stream << (quint8) 0x86;  // unsupported_attribute
+                }
                 break;
 
             default:
