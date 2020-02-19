@@ -546,6 +546,12 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     QTimer::singleShot(3000, this, SLOT(initWiFi()));
 
     connect(pollManager, &PollManager::done, this, &DeRestPluginPrivate::pollNextDevice);
+
+    const deCONZ::Node *node;
+    if (apsCtrl && apsCtrl->getNode(0, &node) == 0)
+    {
+        addLightNode(node);
+    }
 }
 
 /*! Deconstructor for pimpl.
@@ -1715,8 +1721,6 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
                 case DEV_ID_CONFIGURATION_TOOL:
                     {
-                        // To prevent creating a resource for the gateway itself, add condition:
-                        // node()->address().ext() != gwDeviceAddress.ext()
                         if (node->nodeDescriptor().manufacturerCode() == VENDOR_DDEL)
                         {
                             lightNode.setHaEndpoint(*i);
@@ -10886,11 +10890,6 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
     switch (event.event())
     {
     case deCONZ::NodeEvent::NodeSelected:
-        if (event.node()->address().ext() == gwDeviceAddress.ext())
-        {
-            // Dirty hack since no NodeAdded event is fired for the gateway device
-            addLightNode(event.node());
-        }
         break;
 
     case deCONZ::NodeEvent::NodeDeselected:
