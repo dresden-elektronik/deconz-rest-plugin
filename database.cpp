@@ -2997,7 +2997,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     // TODO write and recover min/max to db
                     deCONZ::NumericUnion dummy;
                     dummy.u64 = 0;
-                    sensor.setZclValue(NodeValue::UpdateInvalid, clusterId, 0x0000, dummy);
+                    sensor.setZclValue(NodeValue::UpdateInvalid, sensor.fingerPrint().endpoint, clusterId, 0x0000, dummy);
                     NodeValue &val = sensor.getZclValue(clusterId, 0x0000);
                     val.minInterval = 1;     // value used by Hue bridge
                     val.maxInterval = 300;   // value used by Hue bridge

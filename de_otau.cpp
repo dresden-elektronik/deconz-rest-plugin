@@ -94,7 +94,7 @@ void DeRestPluginPrivate::otauDataIndication(const deCONZ::ApsDataIndication &in
             deCONZ::NumericUnion val = {0};
             val.u32 = swVersion;
 
-            lightNode->setZclValue(NodeValue::UpdateByZclRead, OTAU_CLUSTER_ID, OTAU_SWVERSION_ID, val);
+            lightNode->setZclValue(NodeValue::UpdateByZclRead, ind.srcEndpoint(), OTAU_CLUSTER_ID, OTAU_SWVERSION_ID, val);
 
             if (lightNode->swBuildId().isEmpty())
             {

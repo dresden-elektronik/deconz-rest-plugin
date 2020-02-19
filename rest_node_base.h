@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2020 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -25,6 +25,7 @@ public:
 
     NodeValue() :
         updateType(UpdateInvalid),
+        endpoint(0),
         clusterId(0),
         attributeId(0),
         minInterval(0),
@@ -40,6 +41,7 @@ public:
     QDateTime timestampLastReadRequest;
     QDateTime timestampLastConfigured;
     UpdateType updateType;
+    quint8 endpoint;
     quint16 clusterId;
     quint16 attributeId;
     quint16 minInterval;
@@ -80,9 +82,9 @@ public:
     void setLastAttributeReportBind(int lastBind);
     bool mgmtBindSupported() const;
     void setMgmtBindSupported(bool supported);
-    void setZclValue(NodeValue::UpdateType updateType, quint16 clusterId, quint16 attributeId, const deCONZ::NumericUnion &value);
-    const NodeValue &getZclValue(quint16 clusterId, quint16 attributeId) const;
-    NodeValue &getZclValue(quint16 clusterId, quint16 attributeId);
+    void setZclValue(NodeValue::UpdateType updateType, quint8 endpoint, quint16 clusterId, quint16 attributeId, const deCONZ::NumericUnion &value);
+    const NodeValue &getZclValue(quint16 clusterId, quint16 attributeId, quint8 endpoint = 0) const;
+    NodeValue &getZclValue(quint16 clusterId, quint16 attributeId, quint8 endpoint = 0);
     std::vector<NodeValue> &zclValues();
     const std::vector<NodeValue> &zclValues() const;
     const QDateTime &lastRx() const;

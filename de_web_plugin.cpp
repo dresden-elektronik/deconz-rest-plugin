@@ -2320,7 +2320,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         continue;
                     }
 
-                    lightNode->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                    lightNode->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
 
                     if (ia->id() == 0x0000) // current hue
                     {
@@ -2552,7 +2552,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             updated = true;
                             pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
                         }
-                        lightNode->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
+                        lightNode->setZclValue(updateType, event.endpoint(), event.clusterId(), 0x0000, ia->numericValue());
                         break;
                     }
                 }
@@ -2593,7 +2593,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                                 }
                             }
                         }
-                        lightNode->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
+                        lightNode->setZclValue(updateType, event.endpoint(), event.clusterId(), 0x0000, ia->numericValue());
                         break;
                     }
                 }
@@ -2690,7 +2690,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         ResourceItem *item = lightNode->item(RAttrSwVersion);
 
                         deCONZ::NumericUnion dummy;
-                        lightNode->setZclValue(updateType, event.clusterId(), ia->id(), dummy);
+                        lightNode->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), dummy);
 
                         if (item && !str.isEmpty() && str != item->toString())
                         {
@@ -2737,7 +2737,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             enqueueEvent(e);
                             updated = true;
                         }
-                        lightNode->setZclValue(updateType, event.clusterId(), 0x0055, ia->numericValue());
+                        lightNode->setZclValue(updateType, event.endpoint(), event.clusterId(), 0x0055, ia->numericValue());
                         break;
                     }
                 }
@@ -2756,7 +2756,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         {
                             item->setValue(mode);
                             enqueueEvent(Event(RLights, RStateSpeed, lightNode->id(), item));
-                            lightNode->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
+                            lightNode->setZclValue(updateType, event.endpoint(), event.clusterId(), 0x0000, ia->numericValue());
                             updated = true;
                         }
                     }
@@ -5757,7 +5757,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
-                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
                                     pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
                                 }
 
@@ -5850,7 +5850,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
-                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
                                     pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
                                 }
 
@@ -5898,7 +5898,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
-                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
                                     pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
                                 }
 
@@ -5939,7 +5939,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
-                                    i->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), 0x0000, ia->numericValue());
                                     pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u16);
                                 }
 
@@ -5956,7 +5956,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
-                                    i->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), 0x0000, ia->numericValue());
                                     pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().s16);
                                 }
 
@@ -5991,7 +5991,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
-                                    i->setZclValue(updateType, event.clusterId(), 0x0001, ia->numericValue());
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), 0x0001, ia->numericValue());
                                     pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u16);
                                 }
 
@@ -6026,7 +6026,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
-                                    i->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), 0x0000, ia->numericValue());
                                     pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u16);
                                 }
 
@@ -6061,7 +6061,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
-                                    i->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), 0x0000, ia->numericValue());
                                     pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().s16);
                                 }
 
@@ -6097,7 +6097,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
-                                    i->setZclValue(updateType, event.clusterId(), 0x0000, ia->numericValue());
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), 0x0000, ia->numericValue());
                                     pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
                                 }
 
@@ -6142,7 +6142,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
-                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
                                 }
 
                                 quint16 duration = ia->numericValue().u16;
@@ -6190,7 +6190,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
-                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
                                 }
 
                                 quint16 delay = ia->numericValue().u16;
@@ -6210,7 +6210,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
-                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
                                     NodeValue &val = i->getZclValue(event.clusterId(), ia->id());
                                     // allow proper binding checks
                                     if (val.minInterval == 0 || val.maxInterval == 0)
@@ -6237,7 +6237,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
-                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
                                 }
 
                                 quint8 sensitivitymax = ia->numericValue().u8;
@@ -6270,7 +6270,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
-                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
                                     pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
                                 }
 
@@ -6362,7 +6362,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
-                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
                                     pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().s16);
                                 }
 
@@ -6386,7 +6386,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
-                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
                                     pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().s16);
                                 }
 
@@ -6410,7 +6410,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
-                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
                                     pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().s16);
                                 }
 
@@ -6570,7 +6570,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
-                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
                                 }
 
                                 bool usertest = ia->numericValue().u8 == 1;
@@ -6590,7 +6590,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
-                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
                                 }
 
                                 bool ledindication = ia->numericValue().u8 == 1;
@@ -6610,7 +6610,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
-                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
                                 }
 
                                 const quint8 sensitivity = ia->numericValue().u8;
@@ -6656,7 +6656,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
-                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
                                 }
 
                                 if (i->modelId().startsWith(QLatin1String("lumi.sensor_cube")))
@@ -6723,7 +6723,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
-                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
                                     pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u16);
                                 }
 
@@ -6836,7 +6836,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
-                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
                                 }
 
                                 const NodeValue &val = i->getZclValue(event.clusterId(), 0x0055);
@@ -6892,7 +6892,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
-                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
                                     pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u64);
                                 }
 
@@ -6924,7 +6924,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
-                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
                                     pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().s32);
                                 }
 
@@ -6970,7 +6970,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
-                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
                                     pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().s16);
                                 }
 
@@ -7001,7 +7001,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
-                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
                                     pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u16);
                                 }
 
@@ -7029,7 +7029,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
-                                    i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
                                     pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u16);
                                 }
 
@@ -7085,7 +7085,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     if (updateType != NodeValue::UpdateInvalid)
                                     {
-                                        i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                        i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
                                         pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u16);
                                     }
                                     const quint16 value = ia->numericValue().u16;
@@ -7121,7 +7121,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     if (updateType != NodeValue::UpdateInvalid)
                                     {
-                                        i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                        i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
                                         pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u16);
                                     }
                                     const quint16 value = ia->numericValue().u16;
@@ -7138,7 +7138,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     if (updateType != NodeValue::UpdateInvalid)
                                     {
-                                        i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                        i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
                                         pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u16);
                                     }
 
@@ -7157,7 +7157,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     if (updateType != NodeValue::UpdateInvalid)
                                     {
-                                        i->setZclValue(updateType, event.clusterId(), ia->id(), ia->numericValue());
+                                        i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
                                         pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u16);
                                     }
                                     const quint64 value = ia->numericValue().u64;
@@ -8487,7 +8487,7 @@ bool DeRestPluginPrivate::getGroupIdentifiers(RestNodeBase *node, quint8 endpoin
  */
 bool DeRestPluginPrivate::writeAttribute(RestNodeBase *restNode, quint8 endpoint, uint16_t clusterId, const deCONZ::ZclAttribute &attribute, uint16_t manufacturerCode)
 {
-    DBG_Assert(restNode != 0);
+    DBG_Assert(restNode != nullptr);
 
     if (!restNode || !restNode->isAvailable())
     {
@@ -8515,7 +8515,7 @@ bool DeRestPluginPrivate::writeAttribute(RestNodeBase *restNode, quint8 endpoint
                                       deCONZ::ZclFCDirectionClientToServer |
                                       deCONZ::ZclFCDisableDefaultResponse);
         task.zclFrame.setManufacturerCode(manufacturerCode);
-        DBG_Printf(DBG_INFO_L2, "write manufacturer specific attribute of 0x%016llX cluster: 0x%04X: 0x%04X\n", restNode->address().ext(), clusterId, attribute.id());
+        DBG_Printf(DBG_INFO_L2, "write manufacturer specific attribute of 0x%016llX ep: 0x%02X cluster: 0x%04X: 0x%04X\n", restNode->address().ext(), endpoint, clusterId, attribute.id());
     }
     else
     {
@@ -8523,7 +8523,7 @@ bool DeRestPluginPrivate::writeAttribute(RestNodeBase *restNode, quint8 endpoint
                                       deCONZ::ZclFCDirectionClientToServer |
                                       deCONZ::ZclFCDisableDefaultResponse);
 
-        DBG_Printf(DBG_INFO_L2, "write attribute of 0x%016llX cluster: 0x%04X: 0x%04X\n", restNode->address().ext(), clusterId, attribute.id());
+        DBG_Printf(DBG_INFO, "write attribute of 0x%016llX ep: 0x%02X cluster: 0x%04X: 0x%04X\n", restNode->address().ext(), endpoint, clusterId, attribute.id());
     }
 
     { // payload
@@ -8554,7 +8554,7 @@ bool DeRestPluginPrivate::writeAttribute(RestNodeBase *restNode, quint8 endpoint
 
         if (t0.zclFrame.payload() == task.zclFrame.payload())
         {
-            DBG_Printf(DBG_INFO, "discard write attribute of 0x%016llX cluster: 0x%04X: 0x%04X (already in queue)\n", restNode->address().ext(), clusterId, attribute.id());
+            DBG_Printf(DBG_INFO, "discard write attribute of 0x%016llX ep: 0x%02X cluster: 0x%04X: 0x%04X (already in queue)\n", restNode->address().ext(), endpoint, clusterId, attribute.id());
             return false;
         }
     }
@@ -9483,12 +9483,15 @@ bool DeRestPluginPrivate::checkPollControlClusterTask(Sensor *sensor)
  */
 void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
-    Q_UNUSED(zclFrame);
+    Q_UNUSED(zclFrame)
 
     bool checkReporting = false;
     const quint64 macPrefix = ind.srcAddress().ext() & macPrefixMask;
 
-    DBG_Printf(DBG_INFO, "ZCL attribute report 0x%016llX for cluster 0x%04X, ep 0x%02X\n", ind.srcAddress().ext(), ind.clusterId(), ind.srcEndpoint());
+    if (DBG_IsEnabled(DBG_INFO))
+    {
+        DBG_Printf(DBG_INFO, "ZCL attribute report 0x%016llX for cluster: 0x%04X, ep: 0x%02X, frame control: 0x%02X, mfcode: 0x%04X \n", ind.srcAddress().ext(), ind.clusterId(), ind.srcEndpoint(), zclFrame.frameControl(), zclFrame.manufacturerCode());
+    }
 
     if (DBG_IsEnabled(DBG_INFO_L2))
     {
@@ -10609,7 +10612,7 @@ void DeRestPluginPrivate::processTasks()
                     else
                     {
                         //DBG_Printf(DBG_INFO, "request %u send time %d, cluster 0x%04X, onAir %d\n", i->req.id(), j->sendTime, j->req.clusterId(), onAir);
-                        DBG_Printf(DBG_INFO, "delay sending request %u dt %d ms to 0x%016llX, cluster 0x%04X\n", i->req.id(), dt, i->req.dstAddress().ext(), i->req.clusterId());
+                        DBG_Printf(DBG_INFO, "delay sending request %u dt %d ms to 0x%016llX, ep: 0x%02X cluster: 0x%04X onAir: %d\n", i->req.id(), dt, i->req.dstAddress().ext(), i->req.dstEndpoint(), i->req.clusterId(), onAir);
                         ok = false;
                     }
                     break;
@@ -10621,7 +10624,7 @@ void DeRestPluginPrivate::processTasks()
         {
             if (i->req.dstAddressMode() == deCONZ::ApsExtAddress)
             {
-                DBG_Printf(DBG_INFO_L2, "delay sending request %u cluster 0x%04X to %s\n", i->req.id(), i->req.clusterId(), qPrintable(i->req.dstAddress().toStringExt()));
+                DBG_Printf(DBG_INFO_L2, "delay sending request %u ep: 0x%02X cluster 0x%04X to %s onAir %d\n", i->req.id(), i->req.dstEndpoint(), i->req.clusterId(), qPrintable(i->req.dstAddress().toStringExt()), onAir);
             }
             else if (i->req.dstAddressMode() == deCONZ::ApsGroupAddress)
             {
@@ -14004,7 +14007,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 // mark done
                 deCONZ::NumericUnion touchLink;
                 touchLink.u64 = 0x000b;
-                sensor->setZclValue(NodeValue::UpdateByZclRead, BASIC_CLUSTER_ID, 0x0031, touchLink);
+                sensor->setZclValue(NodeValue::UpdateByZclRead, sensor->fingerPrint().endpoint, BASIC_CLUSTER_ID, 0x0031, touchLink);
                 return;
             }
 
