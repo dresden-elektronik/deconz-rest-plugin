@@ -1929,7 +1929,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Stelpro
         sensor->modelId().contains(QLatin1String("ST218")) ||
         // Tuya
-        sensor->modelId().contains(QLatin1String("TS0201")))
+        sensor->modelId().contains(QLatin1String("TS0201")) ||
+        // Xiaomi
+        sensor->modelId().startsWith(QLatin1String("lumi")))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||
