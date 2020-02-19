@@ -102,6 +102,7 @@
 #define DEV_ID_LEVEL_CONTROLLABLE_OUTPUT    0x0003 // Level controllable output
 #define DEV_ID_RANGE_EXTENDER               0x0008 // Range extender
 #define DEV_ID_MAINS_POWER_OUTLET           0x0009 // Mains power outlet
+#define DEV_ID_CONSUMPTION_AWARENESS_DEVICE 0x000d // Consumption awareness device
 #define DEV_ID_FAN                          0x000e // Fan (used by Hamption Bay fan module)
 #define DEV_ID_SMART_PLUG                   0x0051 // Smart plug
 // HA lighting devices
