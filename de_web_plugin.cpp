@@ -3579,8 +3579,10 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     if (checkReporting && sensor->node() &&
         sensor->lastAttributeReportBind() < (idleTotalCounter - BUTTON_ATTR_REPORT_BIND_LIMIT))
     {
-        checkSensorBindingsForAttributeReporting(sensor);
-        sensor->setLastAttributeReportBind(idleTotalCounter);
+        if (checkSensorBindingsForAttributeReporting(sensor))
+        {
+            sensor->setLastAttributeReportBind(idleTotalCounter);
+        }
         if (sensor->mustRead(READ_BINDING_TABLE))
         {
             sensor->setNextReadTime(READ_BINDING_TABLE, queryTime);
@@ -9538,8 +9540,10 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
             if (sensor.node() &&
                 ((sensor.lastAttributeReportBind() < (idleTotalCounter - BUTTON_ATTR_REPORT_BIND_LIMIT)) || sensor.lastAttributeReportBind() == 0))
             {
-                sensor.setLastAttributeReportBind(idleTotalCounter);
-                checkSensorBindingsForAttributeReporting(&sensor);
+                if (checkSensorBindingsForAttributeReporting(&sensor))
+                {
+                    sensor.setLastAttributeReportBind(idleTotalCounter);
+                }
             }
 
             checkPollControlClusterTask(&sensor);
@@ -14960,8 +14964,11 @@ void DeRestPlugin::idleTimerFired()
 
                 if ((d->otauLastBusyTimeDelta() > OTA_LOW_PRIORITY_TIME) && (sensorNode->lastAttributeReportBind() < (d->idleTotalCounter - IDLE_ATTR_REPORT_BIND_LIMIT)))
                 {
-                    d->checkSensorBindingsForAttributeReporting(sensorNode);
-                    sensorNode->setLastAttributeReportBind(d->idleTotalCounter);
+                    if (d->checkSensorBindingsForAttributeReporting(sensorNode))
+                    {
+                        sensorNode->setLastAttributeReportBind(d->idleTotalCounter);
+                    }
+
                     if (sensorNode->mustRead(READ_BINDING_TABLE))
                     {
                         sensorNode->setNextReadTime(READ_BINDING_TABLE, d->queryTime);
