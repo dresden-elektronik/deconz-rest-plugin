@@ -571,7 +571,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
             {
             case DEV_ID_LEVEL_CONTROL_SWITCH:        removeItem(RStateOn);
                                                      removeItem(RStateAlert);
-                                                     ltype = QLatin1String("Level control switch"); break;
+                                                     ltype = QLatin1String("Range extender"); break;
             default:
                 break;
             }
