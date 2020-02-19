@@ -182,7 +182,7 @@ void DeRestPluginPrivate::handleWindowCoveringClusterIndication(const deCONZ::Ap
     					updated = true;
     				}
     			}
-    			lightNode->setZclValue(updateType, WINDOW_COVERING_CLUSTER_ID, 0x0008, numericValue);
+                lightNode->setZclValue(updateType, ind.srcEndpoint(), WINDOW_COVERING_CLUSTER_ID, 0x0008, numericValue);
     		}
     		else if (attrid == 0x0009) // current CurrentPositionTiltPercentage 0-100
     		{
@@ -196,7 +196,7 @@ void DeRestPluginPrivate::handleWindowCoveringClusterIndication(const deCONZ::Ap
     				enqueueEvent(e);
     				updated = true;
     			}
-    			lightNode->setZclValue(updateType, WINDOW_COVERING_CLUSTER_ID, 0x0009, numericValue);
+                lightNode->setZclValue(updateType, ind.srcEndpoint(), WINDOW_COVERING_CLUSTER_ID, 0x0009, numericValue);
     		}
     		else if (attrid == 0x000A)  // read attribute 0x000A OperationalStatus
     		{

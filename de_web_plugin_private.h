@@ -446,7 +446,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
                    prefix == konkeMacPrefix ||
                    prefix == silabs3MacPrefix;
         case VENDOR_DDEL:
-            return prefix == deMacPrefix;
+            return prefix == deMacPrefix ||
+                   prefix == silabs3MacPrefix;
         case VENDOR_IKEA:
             return prefix == ikeaMacPrefix ||
                    prefix == silabsMacPrefix ||
