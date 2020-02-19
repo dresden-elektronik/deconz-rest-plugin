@@ -2839,8 +2839,8 @@ Fil pilote > Off=0001 - On=0002</description>
 		<domain-ref name="Green Power" low_bound="0x0021" />
 	</profile>
 
-	<profile id="0xc105" name="XBee" description="Profile used by Digi's XBee." version="1.0" rev="15" icon="ha.png">
-		<device id="0x0001" name="Range Extender" description="" icon="dev-range-extender.png"></device>
+	<profile id="0xc105" name="Drop-In Networking" description="This profile defines the Digi Drop-In Networking used by the XBee." version="1.0" rev="15" icon="dev-unknown.svg">
+		<device id="0x0001" name="XBee" description="" icon="dev-range-extender.png"></device>
 	</profile>
 
 	<profile id="0xde00" name="dresden elektronik" description="Profile used by dresden elektronik." version="1.0" rev="15" icon="de.png">
