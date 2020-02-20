@@ -6979,10 +6979,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     consumption *= 10; // 0.01 kWh = 10 Wh -> Wh
                                 }
-                                else if (i->modelId() == QLatin1String("RICI01")) // LifeControl smart plug
-                                {
-                                    // Already in Wh
-                                }
 
                                 if (item)
                                 {
@@ -7083,9 +7079,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 if (item && voltage != 65535)
                                 {
-                                    if (i->modelId() == QLatin1String("SmartPlug") ||      // Heiman
-                                        i->modelId() == QLatin1String("SPLZB-131") ||      // Develco
-                                        i->modelId().startsWith(QLatin1String("SKHMP30"))) // GS smart plug
+                                    if (i->modelId() == QLatin1String("SmartPlug") ||         // Heiman
+                                        i->modelId() == QLatin1String("SPLZB-131") ||         // Develco smart plug
+                                        i->modelId().startsWith(QLatin1String("SMRZB-33")) || // Develco smart relay
+                                        i->modelId().startsWith(QLatin1String("SKHMP30")))    // GS smart plug
                                     {
                                         voltage += 50; voltage /= 100; // 0.01V -> V
                                     }
