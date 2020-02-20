@@ -578,7 +578,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     bool isWindowCoveringDevice = false;
     if (taskRef.lightNode->type() == QLatin1String("Window covering device"))
     {
-    	isWindowCoveringDevice = true;
+        isWindowCoveringDevice = true;
     }
 
     // on/off
@@ -600,7 +600,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             copyTaskReq(taskRef, task);
             //FIXME workaround window_convering
             if (isWindowCoveringDevice
-            		&& addTaskWindowCovering(task, isOn ? 0x01 /*down*/ : 0x00 /*up*/, 0, 0))
+                    && addTaskWindowCovering(task, isOn ? 0x01 /*down*/ : 0x00 /*up*/, 0, 0))
             {
                 QVariantMap rspItem;
                 QVariantMap rspItemState;
@@ -683,7 +683,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         //FIXME workaround window_covering
         if (isWindowCoveringDevice)
         {
-        	if ((map["bri"].type() == QVariant::String) && map["bri"].toString() == "stop")
+            if ((map["bri"].type() == QVariant::String) && map["bri"].toString() == "stop")
         	{
         		TaskItem task;
         		copyTaskReq(taskRef, task);
@@ -1244,38 +1244,37 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
             task.lightNode->setColorXY(static_cast<quint16>(x * 65535.0), static_cast<quint16>(y * 65535.0));
            
-	        //set hue and sat values in the rest interface for state as given from amazon echo 
-	        //to confirm the values have been set
-	        if (task.lightNode->manufacturerCode() == VENDOR_IKEA && 
-	    		req.mode == ApiModeEcho)
-	    	{
+            //set hue and sat values in the rest interface for state as given from amazon echo 
+            //to confirm the values have been set
+            if (task.lightNode->manufacturerCode() == VENDOR_IKEA)
+        	{
 
-	            ResourceItem *item = task.lightNode->item(RStateSat);
-	            if (item)
-	            {
-	                item->setValue(map["sat"]);
-	                Event e(RLights, RStateSat, task.lightNode->id(), item);
-	                enqueueEvent(e);
-	            }
-	            item = task.lightNode->item(RStateHue);
-		    	if (item)
-	            {
-	                item->setValue(map["hue"]);
-	                Event e(RLights, RStateHue, task.lightNode->id(), item);
-	                enqueueEvent(e);
-	            }
-	            //for ikea setXyColor
-	            if (!addTaskSetXyColor(task, x, y))
+                ResourceItem *item = task.lightNode->item(RStateSat);
+                if (item)
+                {
+                    item->setValue(map["sat"]);
+                    Event e(RLights, RStateSat, task.lightNode->id(), item);
+                    enqueueEvent(e);
+                }
+                item = task.lightNode->item(RStateHue);
+                if (item)
+                {
+                    item->setValue(map["hue"]);
+                    Event e(RLights, RStateHue, task.lightNode->id(), item);
+                    enqueueEvent(e);
+                }
+                //for ikea setXyColor
+                if (!addTaskSetXyColor(task, x, y))
             	{
                 	DBG_Printf(DBG_INFO, "can't send task set hue and saturation\n");
-            	}
+                }
 
             } else 
             {
-            	if (!addTaskSetHueAndSaturation(task, hue, sat))
-            	{
-                	DBG_Printf(DBG_INFO, "can't send task set hue and saturation\n");
-            	}
+                if (!addTaskSetHueAndSaturation(task, hue, sat))
+                {
+                    DBG_Printf(DBG_INFO, "can't send task set hue and saturation\n");
+                }
             }
             
         }
@@ -1342,11 +1341,11 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             TaskItem task;
             copyTaskReq(taskRef, task);
             //correct ikea ct 
-        	if (task.lightNode->manufacturerCode() == VENDOR_IKEA && 
-	    		req.mode == ApiModeEcho )
-	   		{	
-				ct += 65;
-	 		}
+            if (task.lightNode->manufacturerCode() == VENDOR_IKEA && 
+                req.mode == ApiModeEcho )
+            {    
+                ct += 65;
+            }
             if (hasXy || hasEffectColorLoop ||
                 addTaskSetColorTemperature(task, ct)) // will only be evaluated if no xy and color loop is set
             {
@@ -1361,16 +1360,16 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 }
                 //set the ct in rest interface state to confirm the value change for amazon echo
                 if (task.lightNode->manufacturerCode() == VENDOR_IKEA && 
-	    			req.mode == ApiModeEcho )
-	    		{
-	                //set CT back to api
-	                ResourceItem *item = taskRef.lightNode->item(RStateCt);
-	                if (item)
-	                {
-	                 item->setValue(map["ct"]);
-	                 Event e(RLights, RStateCt, task.lightNode->id(), item);
-	                 enqueueEvent(e);
-	                }
+                    req.mode == ApiModeEcho )
+                {
+                    //set CT back to api
+                    ResourceItem *item = taskRef.lightNode->item(RStateCt);
+                    if (item)
+                    {
+                     item->setValue(map["ct"]);
+                     Event e(RLights, RStateCt, task.lightNode->id(), item);
+                     enqueueEvent(e);
+                    }
                 }
 
             }
