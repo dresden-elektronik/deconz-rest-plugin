@@ -1187,10 +1187,6 @@ const Sensor::ButtonMap *Sensor::buttonMap()
             if      (modelid.endsWith(QLatin1String("_1")))       { m_buttonMap = instaRemoteMap; }
             if      (modelid.contains(QLatin1String("Remote")))   { m_buttonMap = instaRemoteMap; }
         }
-        else if (manufacturer == QLatin1String("Lutron"))
-        {
-            if      (modelid.startsWith(QLatin1String("Z3-1BRL"))) { m_buttonMap = lutronAuroraMap; }
-        }
         else if (manufacturer == QLatin1String("Busch-Jaeger"))
         {
             m_buttonMap = bjeSwitchMap;
@@ -1222,7 +1218,9 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         }
         else if (manufacturer == QLatin1String("Lutron"))
         {
-            if      (modelid.startsWith(QLatin1String("LZL4BWHL")))      { m_buttonMap = lutronLZL4BWHLSwitchMap; }
+            if      (modelid.startsWith(QLatin1String("LZL4BWHL")))       { m_buttonMap = lutronLZL4BWHLSwitchMap; }
+            else if (modelid.startsWith(QLatin1String("Z3-1BRL")))        { m_buttonMap = lutronAuroraMap; }
+
         }
         else if (manufacturer == QLatin1String("Trust"))
         {
