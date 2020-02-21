@@ -268,6 +268,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_AURORA, "DoubleSocket50AU", jennicMacPrefix }, // Aurora AOne Double Socket UK
     { VENDOR_COMPUTIME, "SP600", computimeMacPrefix }, // Salus smart plug
     { VENDOR_HANGZHOU_IMAGIC, "1117-S", energyMiMacPrefix }, // iris motion sensor v3
+    { VENDOR_JENNIC, "113D", jennicMacPrefix }, // iHorn (Huawei) temperature and humidity sensor
     { 0, nullptr, 0 }
 };
 
@@ -5910,7 +5911,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId().contains(QLatin1String("ZHMS101")) ||   // Wattle (Develco) magnetic sensor
                                     i->modelId().contains(QLatin1String("RFDL-ZB-MS")) ||// Bosch motion sensor
                                     i->modelId().contains(QLatin1String("1117-S")) ||    // iris motion sensor
-                                    i->modelId().contains(QLatin1String("lumi.sen_ill")))// Xiaomi ZB3.0 light sensor
+                                    i->modelId().contains(QLatin1String("lumi.sen_ill")) ||// Xiaomi ZB3.0 light sensor
+                                    i->modelId() == QLatin1String("113D"))               // iHorn (Huawei) temperature and humidity sensor
                                 {  }
                                 else
                                 {

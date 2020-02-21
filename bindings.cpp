@@ -1933,7 +1933,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Xiaomi
         sensor->modelId().startsWith(QLatin1String("lumi")) ||
         // iris
-        sensor->modelId().startsWith(QLatin1String("1117-S")))
+        sensor->modelId().startsWith(QLatin1String("1117-S")) ||
+        // iHorn (Huawei)
+        sensor->modelId() == QLatin1String("113D"))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||
@@ -2046,7 +2048,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                      sensor->modelId() == QLatin1String("Shutters central remote switch") ||
                      sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||
                      sensor->modelId().contains(QLatin1String("86opcn01")) || // Aqara Opple
-                     sensor->modelId().contains(QLatin1String("1117-S")))
+                     sensor->modelId().contains(QLatin1String("1117-S")) ||
+                     sensor->modelId() == QLatin1String("113D"))
             {
                 val = sensor->getZclValue(*i, 0x0020); // battery voltage
             }
