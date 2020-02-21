@@ -473,7 +473,7 @@ void DeRestPluginPrivate::handleZclConfigureReportingResponseIndication(const de
                     continue;
                 }
 
-                DBG_Printf(DBG_INFO, "ZCL configure reporting rsp seq: %u 0x%016llX for cluster 0x%04X attr 0x%04X status 0x%02X\n", zclFrame.sequenceNumber(), ind.srcAddress().ext(), ind.clusterId(), val.attributeId, status);
+                DBG_Printf(DBG_INFO, "ZCL configure reporting rsp seq: %u 0x%016llX for ep: 0x%02X cluster: 0x%04X attr: 0x%04X status: 0x%02X\n", zclFrame.sequenceNumber(), ind.srcAddress().ext(), ind.srcEndpoint(), ind.clusterId(), val.attributeId, status);
 
                 // mark as succefully configured
                 if (status == deCONZ::ZclSuccessStatus)
@@ -496,10 +496,10 @@ void DeRestPluginPrivate::handleZclConfigureReportingResponseIndication(const de
             stream >> direction;
             stream >> attrId;
 
-            NodeValue &val = restNode->getZclValue(ind.clusterId(), attrId);
+            NodeValue &val = restNode->getZclValue(ind.clusterId(), attrId, ind.srcEndpoint());
             if (val.zclSeqNum == zclFrame.sequenceNumber() && val.clusterId == ind.clusterId())
             {
-                DBG_Printf(DBG_INFO, "ZCL configure reporting rsp seq: %u 0x%016llX for cluster 0x%04X attr 0x%04X status 0x%02X\n", zclFrame.sequenceNumber(), ind.srcAddress().ext(), ind.clusterId(), val.attributeId, status);
+                DBG_Printf(DBG_INFO, "ZCL configure reporting rsp seq: %u 0x%016llX for ep: 0x%02X cluster: 0x%04X attr: 0x%04X status: 0x%02X\n", zclFrame.sequenceNumber(), ind.srcAddress().ext(), ind.srcEndpoint(), ind.clusterId(), val.attributeId, status);
 
                 if (status == deCONZ::ZclSuccessStatus)
                 {
@@ -550,7 +550,7 @@ void DeRestPluginPrivate::handleBindAndUnbindRspIndication(const deCONZ::ApsData
 
             if (status == deCONZ::ZdpSuccess)
             {
-                DBG_Printf(DBG_INFO, "%s response success for 0x%016llx cluster 0x%04X\n", what, i->binding.srcAddress, i->binding.clusterId);
+                DBG_Printf(DBG_INFO, "%s response success for 0x%016llx ep: 0x%02X cluster: 0x%04X\n", what, i->binding.srcAddress, i->binding.srcEndpoint, i->binding.clusterId);
                 if (ind.clusterId() == ZDP_BIND_RSP_CLID)
                 {
                     if (sendConfigureReportingRequest(*i))
@@ -561,7 +561,7 @@ void DeRestPluginPrivate::handleBindAndUnbindRspIndication(const deCONZ::ApsData
             }
             else
             {
-                DBG_Printf(DBG_INFO, "%s response failed with status 0x%02X for 0x%016llx cluster 0x%04X\n", what, status, i->binding.srcAddress, i->binding.clusterId);
+                DBG_Printf(DBG_INFO, "%s response failed with status 0x%02X for 0x%016llx ep: 0x%02X cluster: 0x%04X\n", what, status, i->binding.srcAddress, i->binding.srcEndpoint, i->binding.clusterId);
             }
 
             i->state = BindingTask::StateFinished;
@@ -692,7 +692,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt, const s
 
     for (const ConfigureReportingRequest &rq : requests)
     {
-        NodeValue &val = bt.restNode->getZclValue(bt.binding.clusterId, rq.attributeId);
+        NodeValue &val = bt.restNode->getZclValue(bt.binding.clusterId, rq.attributeId, bt.binding.srcEndpoint);
         if (val.clusterId == bt.binding.clusterId)
         {
             // value exists
@@ -727,7 +727,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt, const s
             // values doesn't exist, create
             deCONZ::NumericUnion dummy;
             dummy.u64 = 0;
-            bt.restNode->setZclValue(NodeValue::UpdateByZclReport, bt.binding.clusterId, rq.attributeId, dummy);
+            bt.restNode->setZclValue(NodeValue::UpdateByZclReport, bt.binding.srcEndpoint, bt.binding.clusterId, rq.attributeId, dummy);
             val.zclSeqNum = zclSeqNum;
             val.minInterval = rq.minInterval;
             val.maxInterval = rq.maxInterval;
@@ -860,9 +860,9 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         // add values if not already present
         deCONZ::NumericUnion dummy;
         dummy.u64 = 0;
-        if (bt.restNode->getZclValue(bt.binding.clusterId, 0x0000).clusterId != bt.binding.clusterId)
+        if (bt.restNode->getZclValue(bt.binding.clusterId, 0x0000, bt.binding.srcEndpoint).clusterId != bt.binding.clusterId)
         {
-            bt.restNode->setZclValue(NodeValue::UpdateInvalid, bt.binding.clusterId, 0x0000, dummy);
+            bt.restNode->setZclValue(NodeValue::UpdateInvalid, bt.binding.srcEndpoint, bt.binding.clusterId, 0x0000, dummy);
         }
 
         rq.dataType = deCONZ::Zcl8BitBitMap;
@@ -879,9 +879,9 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         const Sensor *sensor = static_cast<Sensor *>(bt.restNode);
         if (sensor && sensor->modelId().startsWith(QLatin1String("SML00"))) // Hue motion sensor
         {
-            if (bt.restNode->getZclValue(bt.binding.clusterId, 0x0030).clusterId != bt.binding.clusterId)
+            if (bt.restNode->getZclValue(bt.binding.clusterId, 0x0030, bt.binding.srcEndpoint).clusterId != bt.binding.clusterId)
             {
-                bt.restNode->setZclValue(NodeValue::UpdateInvalid, bt.binding.clusterId, 0x0030, dummy);
+                bt.restNode->setZclValue(NodeValue::UpdateInvalid, bt.binding.srcEndpoint, bt.binding.clusterId, 0x0030, dummy);
             }
             ConfigureReportingRequest rq2;
             rq2.dataType = deCONZ::Zcl8BitUint;
@@ -911,9 +911,9 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         // add values if not already present
         deCONZ::NumericUnion dummy;
         dummy.u64 = 0;
-        if (bt.restNode->getZclValue(bt.binding.clusterId, IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID).clusterId != bt.binding.clusterId)
+        if (bt.restNode->getZclValue(bt.binding.clusterId, IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID, bt.binding.srcEndpoint).clusterId != bt.binding.clusterId)
         {
-            bt.restNode->setZclValue(NodeValue::UpdateInvalid, bt.binding.clusterId, IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID, dummy);
+            bt.restNode->setZclValue(NodeValue::UpdateInvalid, bt.binding.srcEndpoint, bt.binding.clusterId, IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID, dummy);
         }
         rq.minInterval = 1;
         rq.maxInterval = 300;
@@ -935,10 +935,10 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     else if (bt.binding.clusterId == ILLUMINANCE_MEASUREMENT_CLUSTER_ID)
     {
         Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
-        
+
         rq.dataType = deCONZ::Zcl16BitUint;
         rq.attributeId = 0x0000;         // measured value
-        
+
         if (sensor && sensor->modelId().startsWith(QLatin1String("MOSZB-130"))) // Develco motion sensor
         {
             rq.minInterval = 0;
@@ -946,7 +946,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.reportableChange16bit = 0xFFFF;
         }
         else
-        {        
+        {
             rq.minInterval = 5;              // value used by Hue bridge
             rq.maxInterval = 300;            // value used by Hue bridge
             rq.reportableChange16bit = 2000; // value used by Hue bridge
@@ -956,7 +956,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     else if (bt.binding.clusterId == TEMPERATURE_MEASUREMENT_CLUSTER_ID)
     {
         Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
-		
+
         rq.dataType = deCONZ::Zcl16BitInt;
         rq.attributeId = 0x0000;       // measured value
 
@@ -976,7 +976,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.minInterval = 10;           // value used by Hue bridge
             rq.maxInterval = 300;          // value used by Hue bridge
             rq.reportableChange16bit = 20; // value used by Hue bridge
-        }	
+        }
 
         return sendConfigureReportingRequest(bt, {rq});
     }
@@ -1106,7 +1106,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
         rq.dataType = deCONZ::Zcl8BitUint;
         rq.attributeId = 0x0021;   // battery percentage remaining
-        if (sensor && sensor->modelId().startsWith(QLatin1String("SML00"))) // Hue motion sensor
+        if (sensor && (sensor->modelId().startsWith(QLatin1String("SML00")) || // Hue motion sensor
+                       sensor->modelId().startsWith(QLatin1String("SPZB"))))   // Eurotronic Spirit
         {
             rq.minInterval = 7200;       // value used by Hue bridge
             rq.maxInterval = 7200;       // value used by Hue bridge
@@ -1118,6 +1119,12 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 300;        // value used by Hue bridge
             rq.reportableChange8bit = 0; // value used by Hue bridge
         }
+        else if (sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer switch
+        {
+            rq.minInterval = 900;        // value used by Hue bridge
+            rq.maxInterval = 900;        // value used by Hue bridge
+            rq.reportableChange8bit = 4; // value used by Hue bridge
+        }
         else if (sensor && sensor->manufacturer().startsWith(QLatin1String("Climax")))
         {
             rq.attributeId = 0x0035; // battery alarm mask
@@ -1128,14 +1135,9 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
         else if (sensor && (sensor->modelId() == QLatin1String("Motion Sensor-A") ||
                             sensor->modelId() == QLatin1String("tagv4") ||
-                            sensor->modelId() == QLatin1String("RFDL-ZB-MS")))
-        {
-            rq.attributeId = 0x0020;   // battery voltage
-            rq.minInterval = 3600;
-            rq.maxInterval = 3600;
-            rq.reportableChange8bit = 0;
-        }
-        else if (sensor && sensor->modelId() == QLatin1String("Zen-01"))
+                            sensor->modelId() == QLatin1String("motionv4") ||
+                            sensor->modelId() == QLatin1String("RFDL-ZB-MS") ||
+                            sensor->modelId() == QLatin1String("Zen-01")))
         {
             rq.attributeId = 0x0020;   // battery voltage
             rq.minInterval = 3600;
@@ -1154,12 +1156,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 43200;    // according to technical manual
             rq.reportableChange8bit = 0;
         }
-        else if (sensor && sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
-        {
-            rq.minInterval = 7200;       // same as Hue motion sensor
-            rq.maxInterval = 7200;       // same as Hue motion sensor
-            rq.reportableChange8bit = 0; // same as Hue motion sensor
-        }
         else
         {
             rq.minInterval = 300;
@@ -1170,12 +1166,12 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         // add values if not already present
         deCONZ::NumericUnion dummy;
         dummy.u64 = 0;
-        if (bt.restNode->getZclValue(POWER_CONFIGURATION_CLUSTER_ID, rq.attributeId).attributeId != rq.attributeId)
+        if (bt.restNode->getZclValue(POWER_CONFIGURATION_CLUSTER_ID, rq.attributeId, bt.binding.srcEndpoint).attributeId != rq.attributeId)
         {
-            bt.restNode->setZclValue(NodeValue::UpdateInvalid, POWER_CONFIGURATION_CLUSTER_ID, rq.attributeId, dummy);
+            bt.restNode->setZclValue(NodeValue::UpdateInvalid, bt.binding.srcEndpoint, POWER_CONFIGURATION_CLUSTER_ID, rq.attributeId, dummy);
         }
 
-        NodeValue &val = bt.restNode->getZclValue(POWER_CONFIGURATION_CLUSTER_ID, rq.attributeId);
+        NodeValue &val = bt.restNode->getZclValue(POWER_CONFIGURATION_CLUSTER_ID, rq.attributeId, bt.binding.srcEndpoint);
 
         if (val.timestampLastReport.isValid() && (val.timestampLastReport.secsTo(now) < val.maxInterval * 1.5))
         {
@@ -1445,17 +1441,17 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         deCONZ::NumericUnion dummy;
         dummy.u64 = 0;
         // add usertest value if not already present
-        if (bt.restNode->getZclValue(BASIC_CLUSTER_ID, 0x0032).attributeId != 0x0032)
+        if (bt.restNode->getZclValue(BASIC_CLUSTER_ID, 0x0032, bt.binding.srcEndpoint).attributeId != 0x0032)
         {
-            bt.restNode->setZclValue(NodeValue::UpdateInvalid, BASIC_CLUSTER_ID, 0x0032, dummy);
+            bt.restNode->setZclValue(NodeValue::UpdateInvalid, bt.binding.srcEndpoint, BASIC_CLUSTER_ID, 0x0032, dummy);
         }
         // ledindication value if not already present
-        if (bt.restNode->getZclValue(BASIC_CLUSTER_ID, 0x0033).attributeId != 0x0033)
+        if (bt.restNode->getZclValue(BASIC_CLUSTER_ID, 0x0033, bt.binding.srcEndpoint).attributeId != 0x0033)
         {
-            bt.restNode->setZclValue(NodeValue::UpdateInvalid, BASIC_CLUSTER_ID, 0x0033, dummy);
+            bt.restNode->setZclValue(NodeValue::UpdateInvalid, bt.binding.srcEndpoint, BASIC_CLUSTER_ID, 0x0033, dummy);
         }
 
-        NodeValue &val = bt.restNode->getZclValue(BASIC_CLUSTER_ID, 0x0032);
+        NodeValue &val = bt.restNode->getZclValue(BASIC_CLUSTER_ID, 0x0032, bt.binding.srcEndpoint);
 
         if (val.timestampLastReport.isValid() && (val.timestampLastReport.secsTo(now) < val.maxInterval * 1.5))
         {
@@ -1489,12 +1485,12 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         deCONZ::NumericUnion dummy;
         dummy.u64 = 0;
         // 'sw build id' value if not already present
-        if (bt.restNode->getZclValue(BASIC_CLUSTER_ID, 0x4000).attributeId != 0x4000)
+        if (bt.restNode->getZclValue(BASIC_CLUSTER_ID, 0x4000, bt.binding.srcEndpoint).attributeId != 0x4000)
         {
-            bt.restNode->setZclValue(NodeValue::UpdateInvalid, BASIC_CLUSTER_ID, 0x4000, dummy);
+            bt.restNode->setZclValue(NodeValue::UpdateInvalid, bt.binding.srcEndpoint, BASIC_CLUSTER_ID, 0x4000, dummy);
         }
 
-        NodeValue &val = bt.restNode->getZclValue(BASIC_CLUSTER_ID, 0x4000);
+        NodeValue &val = bt.restNode->getZclValue(BASIC_CLUSTER_ID, 0x4000, bt.binding.srcEndpoint);
 
         if (val.timestampLastReport.isValid() && (val.timestampLastReport.secsTo(now) < val.maxInterval * 1.5))
         {
@@ -1518,18 +1514,53 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     {
         Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
 
-        if (sensor && sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
+        if (sensor && (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
+                       sensor->modelId().startsWith(QLatin1String("Z3-1BRL")))) // Lutron Aurora Friends-of-Hue dimmer switch
         {
             deCONZ::NumericUnion val;
             val.u64 = 0;
 
             // mark button event binding as resolved
-            sensor->setZclValue(NodeValue::UpdateByZclReport, VENDOR_CLUSTER_ID, 0x0000, val);
-            NodeValue &val2 = bt.restNode->getZclValue(VENDOR_CLUSTER_ID, 0x0000);
+            sensor->setZclValue(NodeValue::UpdateByZclReport, bt.binding.srcEndpoint, VENDOR_CLUSTER_ID, 0x0000, val);
+            NodeValue &val2 = bt.restNode->getZclValue(VENDOR_CLUSTER_ID, 0x0000, bt.binding.srcEndpoint);
             if (val2.maxInterval == 0)
             {
                 val2.maxInterval = 60 * 60 * 8; // prevent further check for 8 hours
             }
+        }
+        else if (sensor && sensor->modelId() == QLatin1String("de_spect")) // dresden elektronik spectral sensor
+        {
+            rq.dataType = deCONZ::Zcl8BitUint;
+            rq.attributeId = 0x0000; // sensor enabled
+            rq.minInterval = 1;
+            rq.maxInterval = 120;
+            rq.reportableChange8bit = 1;
+
+            ConfigureReportingRequest rq2;
+            rq2 = ConfigureReportingRequest();
+            rq2.dataType = deCONZ::Zcl16BitUint;
+            rq2.attributeId = 0x0001; // spectral x
+            rq2.minInterval = 1;
+            rq2.maxInterval = 300;
+            rq2.reportableChange16bit = 200;
+
+            ConfigureReportingRequest rq3;
+            rq3 = ConfigureReportingRequest();
+            rq3.dataType = deCONZ::Zcl16BitUint;
+            rq3.attributeId = 0x0002; // spectral x
+            rq3.minInterval = 1;
+            rq3.maxInterval = 300;
+            rq3.reportableChange16bit = 200;
+
+            ConfigureReportingRequest rq4;
+            rq4 = ConfigureReportingRequest();
+            rq4.dataType = deCONZ::Zcl16BitUint;
+            rq4.attributeId = 0x0003; // spectral x
+            rq4.minInterval = 1;
+            rq4.maxInterval = 300;
+            rq4.reportableChange16bit = 200;
+
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
         }
     }
     return false;
@@ -1790,6 +1821,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // CentraLite
         sensor->modelId().startsWith(QLatin1String("Motion Sensor-A")) ||
         sensor->modelId().startsWith(QLatin1String("332")) ||
+        // dresden elektronik
+        (sensor->manufacturer() == QLatin1String("dresden elektronik") && sensor->modelId() == QLatin1String("de_spect")) ||
         // NYCE
         sensor->modelId() == QLatin1String("3011") ||
         sensor->modelId() == QLatin1String("3014") ||
@@ -1797,6 +1830,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Philips
         sensor->modelId().startsWith(QLatin1String("SML00")) ||
         sensor->modelId().startsWith(QLatin1String("RWL02")) ||
+        // Lutron Aurora Friends-of-Hue dimmer switch
+        sensor->modelId().startsWith(QLatin1String("Z3-1BRL")) ||
         // ubisys
         sensor->modelId().startsWith(QLatin1String("C4")) ||
         sensor->modelId().startsWith(QLatin1String("D1")) ||
@@ -1836,6 +1871,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("FLS-NB")) ||
         // SmartThings
         sensor->modelId().startsWith(QLatin1String("tagv4")) ||
+        sensor->modelId().startsWith(QLatin1String("motionv4")) ||
         (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("button")) ||
         (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("motion")) ||
         (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("multi")) ||
@@ -1869,6 +1905,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("Cable outlet") ||
         //Legrand wireless switch
         sensor->modelId() == QLatin1String("Remote switch") ||
+        //Legrand wireless shutter switch
+        sensor->modelId() == QLatin1String("Shutters central remote switch") ||
         // ORVIBO
         sensor->modelId().startsWith(QLatin1String("SN10ZW")) ||
         sensor->modelId().startsWith(QLatin1String("SF2")) ||
@@ -1879,17 +1917,23 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Aurora
         sensor->modelId().startsWith(QLatin1String("DoubleSocket50AU")) ||
         // Bosch
+        sensor->modelId().startsWith(QLatin1String("ISW-ZDL1-WP11G")) ||
         sensor->modelId().startsWith(QLatin1String("ISW-ZPR1-WP13")) ||
+        sensor->modelId().startsWith(QLatin1String("RFDL-ZB-MS")) ||
         // Aqara Opple
         sensor->modelId().contains(QLatin1String("86opcn01")) ||
         // Salus
         sensor->modelId().contains(QLatin1String("SP600")) ||
         // Zen
-        sensor->modelId().contains(QLatin1String("Zen-01")))
+        sensor->modelId().contains(QLatin1String("Zen-01")) ||
+        // eCozy
+        sensor->modelId() == QLatin1String("Thermostat") ||
+        // Stelpro
+        sensor->modelId().contains(QLatin1String("ST218")))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||
-            sensor->node()->nodeDescriptor().manufacturerCode() != VENDOR_DDEL)
+            (sensor->node()->nodeDescriptor().manufacturerCode() != VENDOR_DDEL))
         {
             sensor->setMgmtBindSupported(false);
         }
@@ -1978,7 +2022,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             {
                 continue; // process only once
             }
-            if (sensor->modelId() == QLatin1String("Remote switch") )
+            if (sensor->modelId() == QLatin1String("Remote switch") || sensor->modelId() == QLatin1String("Shutters central remote switch") )
             {
                 //This device don't support report attribute
                 continue;
@@ -1995,6 +2039,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                      sensor->modelId() == QLatin1String("FLSZB-110") ||
                      sensor->modelId() == QLatin1String("Zen-01") ||
                      sensor->modelId() == QLatin1String("Remote switch") ||
+                     sensor->modelId() == QLatin1String("Shutters central remote switch") ||
                      sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||
                      sensor->modelId().contains(QLatin1String("86opcn01"))) // Aqara Opple
             {
@@ -2038,9 +2083,14 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         }
         else if (*i == VENDOR_CLUSTER_ID)
         {
-            if (sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
+            if (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
+                sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer switch
             {
                 val = sensor->getZclValue(*i, 0x0000); // button event
+            }
+            if (sensor->modelId() == QLatin1String("de_spect")) // dresden elektronik spectral sensor
+            {
+                val = sensor->getZclValue(*i, 0x0000, sensor->fingerPrint().endpoint); // sensor enabled per endpoint
             }
         }
         else if (*i == BASIC_CLUSTER_ID)
@@ -2101,13 +2151,13 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         if (val.timestampLastReport.isValid() &&
             val.timestampLastReport.secsTo(now) < maxInterval) // got update in timely manner
         {
-            DBG_Printf(DBG_INFO_L2, "binding for attribute reporting of cluster 0x%04X seems to be active\n", (*i));
+            DBG_Printf(DBG_INFO_L2, "binding for attribute reporting of ep: 0x%02X cluster 0x%04X seems to be active\n", val.endpoint, *i);
             continue;
         }
 
-        if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() && sensor->lastRx().secsTo(now) > 3)
+        if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() && sensor->lastRx().secsTo(now) > 6)
         {
-            DBG_Printf(DBG_INFO, "skip binding for attribute reporting of cluster 0x%04X (end-device might sleep)\n", (*i));
+            DBG_Printf(DBG_INFO, "skip binding for attribute reporting of ep: 0x%02X cluster 0x%04X (end-device might sleep)\n", val.endpoint, *i);
             return false;
         }
 
@@ -2320,6 +2370,12 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         clusters.push_back(LEVEL_CLUSTER_ID);
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
+    // LEGRAND Remote shutter switch
+    else if (sensor->modelId() == QLatin1String("Shutters central remote switch"))
+    {
+        clusters.push_back(WINDOW_COVERING_CLUSTER_ID);
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+    }
     else if (sensor->modelId().startsWith(QLatin1String("RC 110")))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
@@ -2515,7 +2571,8 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
     {
 
     }
-    else if (sensor->modelId() == QLatin1String("Remote switch"))
+    else if (sensor->modelId() == QLatin1String("Remote switch") ||
+	     sensor->modelId() == QLatin1String("Shutters central remote switch"))
     {
         //Make group but without uniqueid
     }

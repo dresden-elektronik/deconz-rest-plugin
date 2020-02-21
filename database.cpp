@@ -2593,8 +2593,9 @@ void DeRestPluginPrivate::loadSceneFromDb(Scene *scene)
         return;
     }
 
-    QString gsid; // unique key
-    gsid = QString::asprintf("0x%04X%02X", scene->groupAddress, scene->id);
+    QString gsid = "0x" + QString("%1%2")
+                       .arg(scene->groupAddress, 4, 16, QLatin1Char('0'))
+                       .arg(scene->id, 2, 16, QLatin1Char('0')).toUpper(); // unique key
 
     QString sql = QString("SELECT * FROM scenes WHERE gsid='%1'").arg(gsid);
 
@@ -2929,6 +2930,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 sensor.addItem(DataTypeInt32, RStateGesture);
             }
+            else if (sensor.modelId().startsWith(QLatin1String("RWL02"))) // || sensor.modelId().startsWith(QLatin1String("Z3-1BRL")))
+            {
+                sensor.addItem(DataTypeUInt16, RStateEventDuration);
+            }
         }
         else if (sensor.type().endsWith(QLatin1String("LightLevel")))
         {
@@ -2959,6 +2964,19 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeInt16, RStateTemperature);
             item->setValue(0);
             item = sensor.addItem(DataTypeInt16, RConfigOffset);
+            item->setValue(0);
+        }
+        else if (sensor.type().endsWith(QLatin1String("Spectral")))
+        {
+            if (sensor.fingerPrint().hasInCluster(VENDOR_CLUSTER_ID))
+            {
+                clusterId = VENDOR_CLUSTER_ID;
+            }
+            item = sensor.addItem(DataTypeUInt16, RStateSpectralX);
+            item->setValue(0);
+            item = sensor.addItem(DataTypeUInt16, RStateSpectralY);
+            item->setValue(0);
+            item = sensor.addItem(DataTypeUInt16, RStateSpectralZ);
             item->setValue(0);
         }
         else if (sensor.type().endsWith(QLatin1String("Humidity")))
@@ -2992,7 +3010,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     // TODO write and recover min/max to db
                     deCONZ::NumericUnion dummy;
                     dummy.u64 = 0;
-                    sensor.setZclValue(NodeValue::UpdateInvalid, clusterId, 0x0000, dummy);
+                    sensor.setZclValue(NodeValue::UpdateInvalid, sensor.fingerPrint().endpoint, clusterId, 0x0000, dummy);
                     NodeValue &val = sensor.getZclValue(clusterId, 0x0000);
                     val.minInterval = 1;     // value used by Hue bridge
                     val.maxInterval = 300;   // value used by Hue bridge
@@ -3137,7 +3155,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (sensor.fingerPrint().hasInCluster(METERING_CLUSTER_ID))
             {
                 clusterId = clusterId ? clusterId : METERING_CLUSTER_ID;
-                if ((sensor.modelId() != QLatin1String("SP 120")) && 
+                if ((sensor.modelId() != QLatin1String("SP 120")) &&
                     (sensor.modelId() != QLatin1String("ZB-ONOFFPlug-D0005")))
                 {
                     item = sensor.addItem(DataTypeInt16, RStatePower);
@@ -3166,7 +3184,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 else if (sensor.modelId() == QLatin1String("ZB-ONOFFPlug-D0005"))
                 {
                     hasVoltage = false;
-                }					
+                }
             }
             else if (sensor.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))
             {
@@ -3204,7 +3222,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = THERMOSTAT_CLUSTER_ID;
             }
-            
+
             //only for legrand cluster. Add only mode field.
             if ( (sensor.fingerPrint().hasInCluster(LEGRAND_CONTROL_CLUSTER_ID)) &&
                  (sensor.modelId() == QLatin1String("Cable outlet") ) )
@@ -4395,8 +4413,7 @@ void DeRestPluginPrivate::saveDb()
 
         for (; i != end; ++i)
         {
-            QString gid;
-            gid = QString::asprintf("0x%04X", i->address());
+            QString gid = "0x" + QString("%1").arg(i->address(), 4, 16, QLatin1Char('0')).toUpper();
 
             if (i->state() == Group::StateDeleted)
             {
@@ -4480,11 +4497,11 @@ void DeRestPluginPrivate::saveDb()
 
                 for (; si != send; ++si)
                 {
-                    QString gsid; // unique key
-                    gsid = QString::asprintf("0x%04X%02X", i->address(), si->id);
+                    QString gsid = "0x" + QString("%1%2")
+                       .arg(i->address(), 4, 16, QLatin1Char('0'))
+                       .arg(si->id, 2, 16, QLatin1Char('0')).toUpper(); // unique key
 
-                    QString sid;
-                    sid = QString::asprintf("0x%02X", si->id);
+                    QString sid = "0x" + QString("%1").arg(si->id, 2, 16, QLatin1Char('0')).toUpper();
 
                     QString lights = Scene::lightsToString(si->lights());
                     QString sql;

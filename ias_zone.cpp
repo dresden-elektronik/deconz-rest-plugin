@@ -203,7 +203,7 @@ void DeRestPluginPrivate::handleIasZoneClusterIndication(const deCONZ::ApsDataIn
 
             deCONZ::NumericUnion num = {0};
             num.u16 = zoneStatus;
-            sensor->setZclValue(NodeValue::UpdateByZclReport, IAS_ZONE_CLUSTER_ID, IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID, num);
+            sensor->setZclValue(NodeValue::UpdateByZclReport, ind.srcEndpoint(), IAS_ZONE_CLUSTER_ID, IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID, num);
 
             item2 = sensor->item(RConfigReachable);
             if (item2 && !item2->toBool())

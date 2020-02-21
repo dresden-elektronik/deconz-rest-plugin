@@ -283,6 +283,7 @@
 #define VENDOR_LDS          0x1168 // Used by Samsung SmartPlug 2019
 #define VENDOR_INSTA        0x117A
 #define VENDOR_IKEA         0x117C
+#define VENDOR_STELPRO      0x1185
 #define VENDOR_LEDVANCE     0x1189
 #define VENDOR_SINOPE       0x119C
 #define VENDOR_119C         0x119C // Used by Sinope
@@ -411,6 +412,7 @@ extern const quint64 xalMacPrefix;
 extern const quint64 develcoMacPrefix;
 extern const quint64 legrandMacPrefix;
 extern const quint64 silabs2MacPrefix;
+extern const quint64 silabs3MacPrefix;
 extern const quint64 xiaomiMacPrefix;
 extern const quint64 computimeMacPrefix;
 extern const quint64 konkeMacPrefix;
@@ -442,7 +444,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == emberMacPrefix ||
                    prefix == konkeMacPrefix;
         case VENDOR_DDEL:
-            return prefix == deMacPrefix;
+            return prefix == deMacPrefix ||
+                   prefix == silabs3MacPrefix;
         case VENDOR_IKEA:
             return prefix == ikeaMacPrefix ||
                    prefix == silabsMacPrefix ||
@@ -477,6 +480,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == silabsMacPrefix ||
                    prefix == energyMiMacPrefix ||
                    prefix == ikeaMacPrefix; // belongs to SiLabs
+        case VENDOR_STELPRO:
+            return prefix == xalMacPrefix;
         case VENDOR_UBISYS:
             return prefix == ubisysMacPrefix;
         case VENDOR_VISONIC:
@@ -1327,6 +1332,7 @@ public:
     void sendTimeClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleBasicClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendBasicClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handlePhilipsClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZclAttributeReportIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZclConfigureReportingResponseIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendZclDefaultResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, quint8 status);

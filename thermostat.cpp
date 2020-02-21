@@ -178,7 +178,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                         stateUpdated = true;
                     }
                 }
-                sensor->setZclValue(updateType, THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
             }
                 break;
 
@@ -210,7 +210,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                         stateUpdated = true;
                     }
                 }
-                sensor->setZclValue(updateType, THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
             }
                 break;
 
@@ -224,7 +224,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                     enqueueEvent(Event(RSensors, RConfigOffset, sensor->id(), item));
                     configUpdated = true;
                 }
-                sensor->setZclValue(updateType, THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
             }
                 break;
 
@@ -245,7 +245,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                         configUpdated = true;
                     }
                 }
-                sensor->setZclValue(updateType, THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
             }
                 break;
 
@@ -260,7 +260,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                     configUpdated = true;
 
                 }
-                sensor->setZclValue(updateType, THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
             }
                 break;
 
@@ -274,7 +274,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                     enqueueEvent(Event(RSensors, RStateOn, sensor->id(), item));
                     configUpdated = true;
                 }
-                sensor->setZclValue(updateType, THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
             }
                 break;
 
@@ -289,7 +289,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 
                 }
             }
-                sensor->setZclValue(updateType, THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
                 break;
 
             case 0x4003: // Current temperature set point
@@ -312,7 +312,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                         }
                     }
                 }
-                sensor->setZclValue(updateType, THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
             }
                 break;
 
@@ -353,7 +353,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                         configUpdated = true;
                     }
                 }
-                sensor->setZclValue(updateType, THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
             }
                 break;
 
