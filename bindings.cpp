@@ -680,12 +680,11 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt, const s
         return false;
     }
 
-    zclSeq++;
     if (zclSeq == 0) // don't use zero, simplify matching
     {
         zclSeq = 1;
     }
-    const quint8 zclSeqNum = zclSeq; // to match in configure reporting response handler
+    const quint8 zclSeqNum = zclSeq++; // to match in configure reporting response handler
     LightNode *lightNode = dynamic_cast<LightNode*>(bt.restNode);
     QDateTime now = QDateTime::currentDateTime();
     std::vector<ConfigureReportingRequest> out;
@@ -1617,7 +1616,7 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturerCode() == VENDOR_XAL)
         {
         }
-        else if (lightNode->manufacturerCode() == VENDOR_119C)
+        else if (lightNode->manufacturerCode() == VENDOR_SINOPE)
         {
         }
         else if (lightNode->modelId() == QLatin1String("SP 120"))
