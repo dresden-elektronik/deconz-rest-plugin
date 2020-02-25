@@ -540,6 +540,9 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                                                       ltype = QLatin1String("Warning device"); break;
             case DEV_ID_HA_WINDOW_COVERING_DEVICE:    ltype = QLatin1String("Window covering device"); break;
             case DEV_ID_FAN:                          ltype = QLatin1String("Fan"); break;
+            case DEV_ID_CONFIGURATION_TOOL:           removeItem(RStateOn);
+                                                      removeItem(RStateAlert);
+                                                      ltype = QLatin1String("Configuration tool"); break;
             default:
                 break;
             }
