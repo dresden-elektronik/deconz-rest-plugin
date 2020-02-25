@@ -280,6 +280,7 @@
 #define VENDOR_BEGA         0x1105
 #define VENDOR_PHYSICAL     0x110A // Used by SmartThings
 #define VENDOR_OSRAM        0x110C
+#define VENDOR_JASCO        0x1124 // Used by GE
 #define VENDOR_BUSCH_JAEGER 0x112E
 #define VENDOR_BOSCH        0x1133
 #define VENDOR_DDEL         0x1135
@@ -391,6 +392,7 @@
 
 extern const quint64 macPrefixMask;
 
+extern const quint64 celMacPrefix;
 extern const quint64 bjeMacPrefix;
 extern const quint64 deMacPrefix;
 extern const quint64 emberMacPrefix;
@@ -458,6 +460,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
                    prefix == silabs2MacPrefix ||
                    prefix == energyMiMacPrefix ||
                    prefix == emberMacPrefix;
+        case VENDOR_JASCO:
+            return prefix == celMacPrefix;
         case VENDOR_INNR:
         case VENDOR_LDS:
             return prefix == jennicMacPrefix ||

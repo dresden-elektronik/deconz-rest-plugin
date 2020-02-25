@@ -1598,6 +1598,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturer() == QLatin1String("LEDVANCE"))
         {
         }
+        else if (lightNode->manufacturerCode() == VENDOR_JASCO)
+        {
+        }
         else if (lightNode->manufacturerCode() == VENDOR_UBISYS)
         {
         }
@@ -1822,6 +1825,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("332")) ||
         // dresden elektronik
         (sensor->manufacturer() == QLatin1String("dresden elektronik") && sensor->modelId() == QLatin1String("de_spect")) ||
+        // GE
+        (sensor->manufacturer() == QLatin1String("Jasco Products") && sensor->modelId() == QLatin1String("45856")) ||
         // NYCE
         sensor->modelId() == QLatin1String("3011") ||
         sensor->modelId() == QLatin1String("3014") ||
@@ -2329,6 +2334,12 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         }
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
         sensor->setMgmtBindSupported(false);
+    }
+    // GE on/off switch 45856GE
+    else if (sensor->manufacturer() == QLatin1String("Jasco Products") && sensor->modelId() == QLatin1String("45856"))
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
     // IKEA Trådfri dimmer
     else if (sensor->modelId() == QLatin1String("TRADFRI wireless dimmer"))
