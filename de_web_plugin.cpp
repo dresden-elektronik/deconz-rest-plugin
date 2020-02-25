@@ -60,8 +60,6 @@ const char *HttpContentJPG         = "image/jpg";
 const char *HttpContentSVG         = "image/svg+xml";
 
 static int checkZclAttributesDelay = 750;
-//static int ReadAttributesLongDelay = 5000;
-//static int ReadAttributesLongerDelay = 60000;
 static uint MaxGroupTasks = 4;
 
 const quint64 macPrefixMask       = 0xffffff0000000000ULL;
@@ -95,7 +93,6 @@ const quint64 silabs2MacPrefix    = 0xcccccc0000000000ULL;
 const quint64 silabs3MacPrefix    = 0xec1bbd0000000000ULL;
 const quint64 energyMiMacPrefix   = 0xd0cf5e0000000000ULL;
 const quint64 bjeMacPrefix        = 0xd85def0000000000ULL;
-const quint64 silabs3MacPrefix    = 0xec1bbd0000000000ULL;
 const quint64 xalMacPrefix        = 0xf8f0050000000000ULL;
 const quint64 lutronMacPrefix     = 0xffff000000000000ULL;
 
@@ -9019,54 +9016,6 @@ void DeRestPluginPrivate::deleteLightFromScenes(QString lightId, uint16_t groupI
         }
     }
 }
-
-#if 0
-/*! Force reading attributes of all nodes in a group.
- */
-void DeRestPluginPrivate::readAllInGroup(Group *group)
-{
-    DBG_Assert(group != 0);
-
-    if (!group)
-    {
-        return;
-    }
-
-    QTime t = QTime::currentTime().addMSecs(ReadAttributesLongerDelay);
-    std::vector<LightNode>::iterator i = nodes.begin();
-    std::vector<LightNode>::iterator end = nodes.end();
-
-    for (; i != end; ++i)
-    {
-        LightNode *lightNode = &(*i);
-        if (isLightNodeInGroup(lightNode, group->address()))
-        {
-            // force reading attributes
-
-            const NodeValue &onOff = lightNode->getZclValue(ONOFF_CLUSTER_ID, 0x0000);
-            const NodeValue &level = lightNode->getZclValue(LEVEL_CLUSTER_ID, 0x0000);
-
-            if (onOff.updateType != NodeValue::UpdateByZclReport)
-            {
-                lightNode->setNextReadTime(READ_ON_OFF, t);
-                lightNode->enableRead(READ_ON_OFF);
-            }
-
-            if (level.updateType != NodeValue::UpdateByZclReport)
-            {
-                lightNode->setNextReadTime(READ_LEVEL, t);
-                lightNode->enableRead(READ_LEVEL);
-            }
-
-            if (lightNode->hasColor())
-            {
-                lightNode->setNextReadTime(READ_COLOR, t);
-                lightNode->enableRead(READ_COLOR);
-            }
-        }
-    }
-}
-#endif
 
 /*! Set on/off attribute for all nodes in a group.
  */
