@@ -112,6 +112,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_CENTRALITE, "Motion Sensor-A", emberMacPrefix },
     { VENDOR_CENTRALITE, "3321-S", emberMacPrefix }, // Centralite multipurpose sensor
     { VENDOR_CENTRALITE, "3325-S", emberMacPrefix }, // Centralite motion sensor
+    { VENDOR_CLS, "3200-S", emberMacPrefix }, // Centralite smart plug / Samsung smart outlet
 //    { VENDOR_CENTRALITE, "3326-L", emberMacPrefix }, // Iris motion sensor
     { VENDOR_CENTRALITE, "3328-G", emberMacPrefix }, // Centralite micro motion sensor
     { VENDOR_DDEL, "de_spect", silabs3MacPrefix }, // dresden elektronic spectral sensor
@@ -7159,7 +7160,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     }
                                     else if (i->modelId() == QLatin1String("SmartPlug") ||      // Heiman
                                              i->modelId() == QLatin1String("EMIZB-132") ||      // Develco EMI Norwegian HAN
-                                             i->modelId().startsWith(QLatin1String("SKHMP30"))) // GS smart plug
+                                             i->modelId().startsWith(QLatin1String("SKHMP30")) || // GS smart plug
+                                             i->modelId().startsWith(QLatin1String("3200-S"))   // Samsung smart outlet
                                     {
                                         current *= 10; // 0.01A -> mA
                                     }
