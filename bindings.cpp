@@ -1267,6 +1267,10 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         {
             rq2.reportableChange16bit = 100; // 1 V
         }
+        else if (sensor && sensor->modelId() == QLatin1String("SZ-ESW01-AU")) // Sercomm / Telstra smart plug
+        {
+            rq2.reportableChange16bit = 125; // 1 V
+        }
         else
         {
             rq2.reportableChange16bit = 1; // 1 V

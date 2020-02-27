@@ -269,6 +269,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_COMPUTIME, "SP600", computimeMacPrefix }, // Salus smart plug
     { VENDOR_HANGZHOU_IMAGIC, "1117-S", energyMiMacPrefix }, // iris motion sensor v3
     { VENDOR_JENNIC, "113D", jennicMacPrefix }, // iHorn (Huawei) temperature and humidity sensor
+    { VENDOR_SERCOMM, "SZ-ESW01", emberMacPrefix }, // Sercomm / Telstra smart plug
     { 0, nullptr, 0 }
 };
 
@@ -7133,6 +7134,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         voltage /= 10; // 0.1V -> V
                                     }
+                                    else if (i->modelId().startsWith(QLatin1String("SZ-ESW01"))) // Sercomm / Telstra smart plug
+                                    {
+                                        voltage /= 125; // -> V
+                                    }
                                     item->setValue(voltage); // in V
                                     enqueueEvent(Event(RSensors, RStateVoltage, i->id(), item));
                                     updated = true;
@@ -7154,14 +7159,15 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     if (i->modelId() == QLatin1String("SP 120") ||            // innr
                                         i->modelId() == QLatin1String("outletv4") ||          // Samsung SmartThings IM6001-OTP
                                         i->modelId() == QLatin1String("DoubleSocket50AU") ||  // Aurora
-                                        i->modelId() == QLatin1String("RICI01"))              // LifeControl Smart Plug
+                                        i->modelId() == QLatin1String("RICI01") ||            // LifeControl Smart Plug
+                                        i->modelId().startsWith(QLatin1String("SZ-ESW01")))   // Sercomm / Telstra smart plug
                                     {
                                         // already in mA
                                     }
                                     else if (i->modelId() == QLatin1String("SmartPlug") ||      // Heiman
                                              i->modelId() == QLatin1String("EMIZB-132") ||      // Develco EMI Norwegian HAN
                                              i->modelId().startsWith(QLatin1String("SKHMP30")) || // GS smart plug
-                                             i->modelId().startsWith(QLatin1String("3200-S"))   // Samsung smart outlet
+                                             i->modelId().startsWith(QLatin1String("3200-S")))   // Samsung smart outlet
                                     {
                                         current *= 10; // 0.01A -> mA
                                     }

@@ -282,6 +282,7 @@
 #define VENDOR_OSRAM        0x110C
 #define VENDOR_JASCO        0x1124 // Used by GE
 #define VENDOR_BUSCH_JAEGER 0x112E
+#define VENDOR_SERCOMM      0x1131
 #define VENDOR_BOSCH        0x1133
 #define VENDOR_DDEL         0x1135
 #define VENDOR_LUTRON       0x1144
