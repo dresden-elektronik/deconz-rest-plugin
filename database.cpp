@@ -2930,7 +2930,9 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 sensor.addItem(DataTypeInt32, RStateGesture);
             }
-            else if (sensor.modelId().startsWith(QLatin1String("RWL02"))) // || sensor.modelId().startsWith(QLatin1String("Z3-1BRL")))
+            else if (sensor.modelId().startsWith(QLatin1String("RWL02")) ||
+                  // sensor.modelId().startsWith(QLatin1String("Z3-1BRL")) ||
+                     sensor.modelId().startsWith(QLatin1String("ROM00")))
             {
                 sensor.addItem(DataTypeUInt16, RStateEventDuration);
             }
@@ -3289,6 +3291,23 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 sensor.setNeedSaveDatabase(true);
             }
         }
+        else if (sensor.modelId().startsWith(QLatin1String("ROM00"))) // Hue smart button
+        {
+            clusterId = VENDOR_CLUSTER_ID;
+            endpoint = 1;
+
+            if (!sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
+            {
+                sensor.fingerPrint().inClusters.push_back(POWER_CONFIGURATION_CLUSTER_ID);
+                sensor.setNeedSaveDatabase(true);
+            }
+
+            if (!sensor.fingerPrint().hasInCluster(VENDOR_CLUSTER_ID)) // for realtime button feedback
+            {
+                sensor.fingerPrint().inClusters.push_back(VENDOR_CLUSTER_ID);
+                sensor.setNeedSaveDatabase(true);
+            }
+        }
         else if (sensor.modelId().startsWith(QLatin1String("SML00"))) // Hue motion sensor
         {
             if (!sensor.fingerPrint().hasInCluster(BASIC_CLUSTER_ID))
@@ -3377,7 +3396,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
         if (sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
         {
-            if (sensor.manufacturer().startsWith(QLatin1String("Climax")))
+            if (sensor.manufacturer().startsWith(QLatin1String("Climax")) ||
+                sensor.modelId().startsWith(QLatin1String("902010/23")))
             {
                 // climax non IAS reports state/lowbattery via battery alarm mask attribute
                 item = sensor.addItem(DataTypeBool, RStateLowBattery);

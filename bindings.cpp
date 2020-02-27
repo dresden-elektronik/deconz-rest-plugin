@@ -1112,7 +1112,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 7200;       // value used by Hue bridge
             rq.reportableChange8bit = 0; // value used by Hue bridge
         }
-        else if (sensor && sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
+        else if (sensor && (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
+                            sensor->modelId().startsWith(QLatin1String("ROM00")))) // Hue smart button
         {
             rq.minInterval = 300;        // value used by Hue bridge
             rq.maxInterval = 300;        // value used by Hue bridge
@@ -1124,7 +1125,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 900;        // value used by Hue bridge
             rq.reportableChange8bit = 4; // value used by Hue bridge
         }
-        else if (sensor && sensor->manufacturer().startsWith(QLatin1String("Climax")))
+        else if (sensor && (sensor->manufacturer().startsWith(QLatin1String("Climax")) ||
+                            sensor->modelId().startsWith(QLatin1String("902010/23"))))
         {
             rq.attributeId = 0x0035; // battery alarm mask
             rq.dataType = deCONZ::Zcl8BitBitMap;
@@ -1533,6 +1535,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
 
         if (sensor && (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
+                       sensor->modelId().startsWith(QLatin1String("ROM00")) || // Hue smart button
                        sensor->modelId().startsWith(QLatin1String("Z3-1BRL")))) // Lutron Aurora Friends-of-Hue dimmer switch
         {
             deCONZ::NumericUnion val;
@@ -1854,6 +1857,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Philips
         sensor->modelId().startsWith(QLatin1String("SML00")) ||
         sensor->modelId().startsWith(QLatin1String("RWL02")) ||
+        sensor->modelId().startsWith(QLatin1String("ROM00")) ||
         // Lutron Aurora Friends-of-Hue dimmer switch
         sensor->modelId().startsWith(QLatin1String("Z3-1BRL")) ||
         // ubisys
@@ -2057,7 +2061,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                 //This device don't support report attribute
                 continue;
             }
-            if (sensor->manufacturer().startsWith(QLatin1String("Climax")))
+            if (sensor->manufacturer().startsWith(QLatin1String("Climax")) ||
+                sensor->modelId().startsWith(QLatin1String("902010/23")))
             {
                 val = sensor->getZclValue(*i, 0x0035); // battery alarm mask
             }
@@ -2116,6 +2121,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         else if (*i == VENDOR_CLUSTER_ID)
         {
             if (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
+                sensor->modelId().startsWith(QLatin1String("ROM00")) || // Hue smart button
                 sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer switch
             {
                 val = sensor->getZclValue(*i, 0x0000); // button event
@@ -2325,7 +2331,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     //quint8 srcEndpoint = sensor->fingerPrint().endpoint;
     std::vector<quint16> clusters;
 
-    if (sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
+    if (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
+        sensor->modelId().startsWith(QLatin1String("ROM00"))) // Hue smart button
     {
         srcEndpoints.push_back(0x01);
         clusters.push_back(ONOFF_CLUSTER_ID);
@@ -2480,6 +2487,13 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         clusters.push_back(COLOR_CLUSTER_ID);
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
+    // Bitron remote control
+    else if (sensor->modelId().startsWith(QLatin1String("902010/23")))
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+    }
     else
     {
         return false;
@@ -2593,7 +2607,8 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
         }
     }
 
-    if (sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
+    if (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
+        sensor->modelId().startsWith(QLatin1String("ROM00"))) // Hue smart button
     {
         if (!group)
         {
