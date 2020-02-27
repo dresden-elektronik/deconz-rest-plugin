@@ -397,8 +397,14 @@ void PollManager::pollTimerFired()
     else if (suffix == RStateConsumption)
     {
         clusterId = METERING_CLUSTER_ID;
-        attributes.push_back(0x0000); // Curent Summation Delivered
-        attributes.push_back(0x0400); // Instantaneous Demand
+        attributes.push_back(0x0000); // Current Summation Delivered
+        item = r->item(RAttrModelId);
+        if (!item->toString().startsWith(QLatin1String("SP 120")) &&  // Attribute is not available
+            !item->toString().startsWith(QLatin1String("lumi.plug.ma")) &&
+            !item->toString().startsWith(QLatin1String("ZB-ONOFFPlug-D0005")))
+        {
+            attributes.push_back(0x0400); // Instantaneous Demand
+        }
     }
     else if (suffix == RStatePower)
     {
