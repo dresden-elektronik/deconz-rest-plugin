@@ -1215,7 +1215,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.attributeId = 0x0000; // Curent Summation Delivered
         rq.minInterval = 1;
         rq.maxInterval = 300;
-        if (sensor && sensor->modelId() == QLatin1String("SmartPlug")) // Heiman
+        if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") || // Heiman
+                       sensor->modelId() == QLatin1String("SKHMP30-I1"))) // GS smart plug
         {
             rq.reportableChange48bit = 10; // 0.001 kWh (1 Wh)
         }
@@ -1230,7 +1231,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq2.minInterval = 1;
         rq2.maxInterval = 300;
         if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") || // Heiman
-                       sensor->modelId() == QLatin1String("902010/25"))) // Bitron
+                       sensor->modelId() == QLatin1String("902010/25") || // Bitron
+                       sensor->modelId() == QLatin1String("SKHMP30-I1"))) // GS smart plug
         {
             rq2.reportableChange24bit = 10; // 1 W
         }
@@ -1249,7 +1251,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.attributeId = 0x050B; // Active power
         rq.minInterval = 1;
         rq.maxInterval = 300;
-        if (sensor && sensor->modelId() == QLatin1String("SmartPlug")) // Heiman
+        if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") || // Heiman
+                       sensor->modelId() == QLatin1String("SKHMP30-I1"))) // GS smart plug
         {
             rq.reportableChange16bit = 10; // 1 W
         }
@@ -1263,7 +1266,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq2.attributeId = 0x0505; // RMS Voltage
         rq2.minInterval = 1;
         rq2.maxInterval = 300;
-        if (sensor && sensor->modelId() == QLatin1String("SmartPlug")) // Heiman
+        if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") || // Heiman
+                       sensor->modelId() == QLatin1String("SKHMP30-I1"))) // GS smart plug
         {
             rq2.reportableChange16bit = 100; // 1 V
         }
@@ -1287,7 +1291,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq3.reportableChange16bit = 100; // 0.1 A
         }
         else if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") ||  // Heiman
-                            sensor->modelId() == QLatin1String("EMIZB-132")))   // Develco
+                            sensor->modelId() == QLatin1String("EMIZB-132") ||  // Develco
+                            sensor->modelId() == QLatin1String("SKHMP30-I1")))  // GS smart plug
         {
             rq3.reportableChange16bit = 10; // 0.1 A
         }
