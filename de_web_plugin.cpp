@@ -5171,7 +5171,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         sensorNode.setManufacturer("LUMI");
         if (!sensorNode.modelId().startsWith(QLatin1String("lumi.ctrl_")) &&
             !sensorNode.modelId().startsWith(QLatin1String("lumi.plug")) &&
-            sensorNode.modelId() != QLatin1String("lumi.curtain"))
+            sensorNode.modelId() != QLatin1String("lumi.curtain") &&
+            !sensor.type().endsWith(QLatin1String("Battery")))
         {
             sensorNode.addItem(DataTypeUInt8, RConfigBattery);
         }
