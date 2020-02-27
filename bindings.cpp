@@ -1823,6 +1823,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // CentraLite
         sensor->modelId().startsWith(QLatin1String("Motion Sensor-A")) ||
         sensor->modelId().startsWith(QLatin1String("332")) ||
+        sensor->modelId().startsWith(QLatin1String("3200-S")) ||
         // dresden elektronik
         (sensor->manufacturer() == QLatin1String("dresden elektronik") && sensor->modelId() == QLatin1String("de_spect")) ||
         // GE
