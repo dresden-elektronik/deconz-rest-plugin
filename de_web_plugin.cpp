@@ -126,6 +126,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "OJB-IR715-Z", tiMacPrefix },
     { VENDOR_NONE, "902010/21", tiMacPrefix }, // Bitron: door/window sensor
     { VENDOR_NONE, "902010/22", tiMacPrefix }, // Bitron: motion sensor
+    { VENDOR_NONE, "902010/23", tiMacPrefix }, // Bitron: remote control
     { VENDOR_NONE, "902010/24", tiMacPrefix }, // Bitron: smoke detector
     { VENDOR_NONE, "902010/25", tiMacPrefix }, // Bitron: smart plug
     { VENDOR_BITRON, "902010/32", emberMacPrefix }, // Bitron: thermostat
@@ -150,8 +151,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NYCE, "3011", emberMacPrefix }, // NYCE door/window sensor
     { VENDOR_NYCE, "3014", emberMacPrefix }, // NYCE garage door/tilt sensor
     { VENDOR_NYCE, "3043", emberMacPrefix }, // NYCE ceiling motion sensor
-    { VENDOR_PHILIPS, "RWL020", philipsMacPrefix }, // Hue dimmer switch
-    { VENDOR_PHILIPS, "RWL021", philipsMacPrefix }, // Hue dimmer switch
+    { VENDOR_PHILIPS, "RWL02", philipsMacPrefix }, // Hue dimmer switch
+    { VENDOR_PHILIPS, "ROM00", philipsMacPrefix }, // Hue smart button
     { VENDOR_PHILIPS, "SML00", philipsMacPrefix }, // Hue motion sensor
     { VENDOR_SAMJIN, "motion", samjinMacPrefix }, // Smarthings GP-U999SJVLBAA (Samjin) Motion Sensor
     { VENDOR_SAMJIN, "multi", samjinMacPrefix }, // Smarthings (Samjin) Multipurpose Sensor
@@ -3236,6 +3237,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         checkClientCluster = true;
     }
     else if (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
+             sensor->modelId().startsWith(QLatin1String("ROM00")) || // Hue smart button
              sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer switch
     {
         checkReporting = true;
@@ -3651,6 +3653,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 #if 0
     // check if hue dimmer switch is configured
     if (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
+        sensor->modelId().startsWith(QLatin1String("ROM00")) || // Hue smart button
         sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer switch
     {
         bool ok = true;
@@ -4715,7 +4718,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
 
     if (sensorNode.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
     {
-        if (manufacturer.startsWith(QLatin1String("Climax")))
+        if (manufacturer.startsWith(QLatin1String("Climax")) ||
+            sensorNode.modelId().startsWith(QLatin1String("902010/23")))
         {
             // climax non IAS reports state/lowbattery via battery alarm mask attribute
             sensorNode.addItem(DataTypeBool, RStateLowBattery);
@@ -4765,7 +4769,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             sensorNode.addItem(DataTypeInt32, RStateGesture);
         }
-        else if (modelId.startsWith(QLatin1String("RWL02"))) // || modelId.startsWith(QLatin1String("Z3-1BRL")))
+        else if (modelId.startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
+              // modelId.startsWith(QLatin1String("Z3-1BRL")) || // Lutron Aurora Firends-of-Hue dimmer switch
+                 modelId.startsWith(QLatin1String("ROM00"))) // Hue smart button
         {
             sensorNode.addItem(DataTypeUInt16, RStateEventDuration);
         }
@@ -5109,6 +5115,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             {   // this cluster is on endpoint 2 and hence not detected
                 sensorNode.fingerPrint().inClusters.push_back(VENDOR_CLUSTER_ID);
             }
+        }
+        else if (modelId.startsWith(QLatin1String("ROM00"))) // Hue smart button)
+        {
+            clusterId = VENDOR_CLUSTER_ID;
         }
         else if (modelId.startsWith(QLatin1String("SML00"))) // Hue motion sensor
         {
@@ -12574,6 +12584,7 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
                 (ind.srcAddress().hasNwk() && ind.srcAddress().nwk() == s.address().nwk()))
             {
                 if (s.modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
+                    s.modelId().startsWith(QLatin1String("ROM00")) || // Hue smart button
                     s.modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer switch
                 {
                     sensorNode = &s;
@@ -14108,6 +14119,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             }
         }
         else if (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
+                 sensor->modelId().startsWith(QLatin1String("ROM00")) || // Hue smart button
                  sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer switch
 
         {
@@ -14239,30 +14251,54 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 }
             }
         }
-        else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM"))) // icasa remote
+        else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM")) || // icasa remote
+                 sensor->modelId().startsWith(QLatin1String("RC 110")) || // innr Remote
+                 sensor->modelId() == QLatin1String("Remote switch") || // Legrand switch
+                 sensor->modelId().contains(QLatin1String("86opcn01")) || // Aqara Opple
+                 sensor->modelId() == QLatin1String("Shutters central remote switch")) // Legrand switch
         {
             checkSensorGroup(sensor);
             checkSensorBindingsForClientClusters(sensor);
         }
-        else if (sensor->modelId().startsWith(QLatin1String("RC 110"))) // innr Remote
+        else if (sensor->modelId().startsWith(QLatin1String("902010/23"))) // Bitron remote control
         {
             checkSensorGroup(sensor);
             checkSensorBindingsForClientClusters(sensor);
-        }
-        else if (sensor->modelId() == QLatin1String("Remote switch"))// Legrand switch
-        {
-            checkSensorGroup(sensor);
-            checkSensorBindingsForClientClusters(sensor);
-        }
-        else if (sensor->modelId().contains(QLatin1String("86opcn01"))) // Aqara Opple
-        {
-            checkSensorGroup(sensor);
-            checkSensorBindingsForClientClusters(sensor);
-        }
-        else if (sensor->modelId() == QLatin1String("Shutters central remote switch"))// Legrand switch
-        {
-            checkSensorGroup(sensor);
-            checkSensorBindingsForClientClusters(sensor);
+
+            ResourceItem *item = sensor->item(RStateButtonEvent);
+
+            if (!item || !item->lastSet().isValid())
+            {
+                BindingTask bindingTask, bindingTask2;
+
+                bindingTask.state = BindingTask::StateIdle;
+                bindingTask.action = BindingTask::ActionBind;
+                bindingTask.restNode = sensor;
+                Binding &bnd = bindingTask.binding;
+                bnd.srcAddress = sensor->address().ext();
+                bnd.dstAddrMode = deCONZ::ApsExtAddress;
+                bnd.srcEndpoint = sensor->fingerPrint().endpoint;
+                bnd.clusterId = ONOFF_CLUSTER_ID;
+                bnd.dstAddress.ext = apsCtrl->getParameter(deCONZ::ParamMacAddress);
+                bnd.dstEndpoint = endpoint();
+
+                bindingTask2.state = BindingTask::StateIdle;
+                bindingTask2.action = BindingTask::ActionBind;
+                bindingTask2.restNode = sensor;
+                Binding &bnd2 = bindingTask2.binding;
+                bnd2.srcAddress = sensor->address().ext();
+                bnd2.dstAddrMode = deCONZ::ApsExtAddress;
+                bnd2.srcEndpoint = sensor->fingerPrint().endpoint;
+                bnd2.clusterId = LEVEL_CLUSTER_ID;
+                bnd2.dstAddress.ext = apsCtrl->getParameter(deCONZ::ParamMacAddress);
+                bnd2.dstEndpoint = endpoint();
+
+                if (bnd.dstEndpoint > 0) // valid gateway endpoint?
+                {
+                    queueBindingTask(bindingTask);
+                    queueBindingTask(bindingTask2);
+                }
+            }
         }
 
         for (auto &s : sensors)
