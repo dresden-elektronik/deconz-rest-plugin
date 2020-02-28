@@ -7099,8 +7099,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         power = power == 28000 ? 0 : power / 10;
                                     }
-                                    else if (i->modelId() == QLatin1String("RICI01") || // LifeControl Smart Plug
-                                            i->modelId() == QLatin1String("outletv4"))  // Samsung SmartThings IM6001-OTP
+                                    else if (i->modelId() == QLatin1String("RICI01") ||   // LifeControl Smart Plug
+                                             i->modelId() == QLatin1String("outletv4") || // Samsung SmartThings IM6001-OTP
+                                             i->modelId().startsWith(QLatin1String("3200-S"))) // Samsung/Centralite smart outlet
                                     {
                                         power /= 10; // 0.1W -> W
                                     }
