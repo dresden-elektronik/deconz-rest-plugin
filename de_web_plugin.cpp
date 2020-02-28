@@ -3202,6 +3202,20 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             sensor->setMode(Sensor::ModeColorTemperature);
             updateSensorEtag(sensor);
         }
+
+        if (sensor->fingerPrint().profileId == HA_PROFILE_ID) // new ZB3 firmware
+        {
+            if (ind.dstAddressMode() == deCONZ::ApsGroupAddress && ind.dstAddress().group() == 0)
+            {
+                checkClientCluster = true;
+                ResourceItem *item = sensor->item(RConfigGroup);
+                if (!item || (item && (item->toString() == QLatin1String("0") || item->toString().isEmpty())))
+                {
+                    // still default group, create unique group and binding
+                    checkSensorGroup(sensor);
+                }
+            }
+        }
     }
     else if (sensor->modelId() == QLatin1String("TRADFRI wireless dimmer"))
     {
@@ -3209,13 +3223,27 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         {
             sensor->setMode(Sensor::ModeDimmer);
         }
+
+        if (sensor->fingerPrint().profileId == HA_PROFILE_ID) // new ZB3 firmware
+        {
+            checkReporting = true;
+            if (ind.dstAddressMode() == deCONZ::ApsGroupAddress && ind.dstAddress().group() == 0)
+            {
+                checkClientCluster = true;
+                ResourceItem *item = sensor->item(RConfigGroup);
+                if (!item || (item && (item->toString() == QLatin1String("0") || item->toString().isEmpty())))
+                {
+                    // still default group, create unique group and binding
+                    checkSensorGroup(sensor);
+                }
+            }
+        }
     }
     else if (sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")) ||
              sensor->modelId().startsWith(QLatin1String("TRADFRI open/close remote")) ||
              sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")) ||
              sensor->modelId().startsWith(QLatin1String("SYMFONISK")))
     {
-        checkReporting = true;
 
         if (ind.dstAddressMode() == deCONZ::ApsGroupAddress && ind.dstAddress().group() == 0)
         {
@@ -14223,23 +14251,8 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 queryTime = queryTime.addSecs(1);
             }
         }
-        else if (sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")) ||
-                 sensor->modelId().startsWith(QLatin1String("TRADFRI open/close remote")) ||
-                 sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")) ||
-                 sensor->modelId().startsWith(QLatin1String("SYMFONISK")))
-        {
-            checkSensorGroup(sensor);
-
-            if (sensor->lastAttributeReportBind() < (idleTotalCounter - IDLE_ATTR_REPORT_BIND_LIMIT_SHORT))
-            {
-                if (checkSensorBindingsForClientClusters(sensor))
-                {
-                    sensor->setLastAttributeReportBind(idleTotalCounter);
-
-                }
-            }
-        }
-        else if (sensor->modelId() == QLatin1String("TRADFRI wireless dimmer")) // IKEA dimmer
+        else if (sensor->modelId() == QLatin1String("TRADFRI wireless dimmer") && // IKEA dimmer
+                 sensor->fingerPrint().profileId == ZLL_PROFILE_ID) // old ZLL firmware
         {
             ResourceItem *item = sensor->item(RConfigGroup);
 
@@ -14271,6 +14284,28 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 if (bnd.dstEndpoint > 0) // valid gateway endpoint?
                 {
                     queueBindingTask(bindingTask);
+                }
+            }
+        }
+        else if (sensor->modelId() == QLatin1String("TRADFRI remote control") && // IKEA remote
+                 sensor->fingerPrint().profileId == ZLL_PROFILE_ID) // old ZLL firmware
+        {
+        }
+        else if (sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")) ||
+                 sensor->modelId().startsWith(QLatin1String("TRADFRI open/close remote")) ||
+                 sensor->modelId().startsWith(QLatin1String("TRADFRI remote control")) ||
+                 sensor->modelId().startsWith(QLatin1String("TRADFRI wireless dimmer")) ||
+                 sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")) ||
+                 sensor->modelId().startsWith(QLatin1String("SYMFONISK")))
+        {
+            checkSensorGroup(sensor);
+
+            if (sensor->lastAttributeReportBind() < (idleTotalCounter - IDLE_ATTR_REPORT_BIND_LIMIT_SHORT))
+            {
+                if (checkSensorBindingsForClientClusters(sensor))
+                {
+                    sensor->setLastAttributeReportBind(idleTotalCounter);
+
                 }
             }
         }
