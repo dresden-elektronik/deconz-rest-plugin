@@ -7130,8 +7130,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         voltage += 50; voltage /= 100; // 0.01V -> V
                                     }
-                                    else if (i->modelId() == QLatin1String("RICI01") || // LifeControl Smart Plug
-                                            i->modelId() == QLatin1String("outletv4"))  // Samsung SmartThings IM6001-OTP
+                                    else if (i->modelId() == QLatin1String("RICI01") ||    // LifeControl Smart Plug
+                                             i->modelId() == QLatin1String("outletv4") ||  // Samsung SmartThings IM6001-OTP
+                                             i->modelId() == QLatin1String("EMIZB-13"))    // Develco EMI
                                     {
                                         voltage /= 10; // 0.1V -> V
                                     }
