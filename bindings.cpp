@@ -2619,7 +2619,10 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
     else if (sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")) ||
              sensor->modelId().startsWith(QLatin1String("TRADFRI open/close remote")) ||
              sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")) ||
+             sensor->modelId().startsWith(QLatin1String("TRADFRI remote control")) ||
+             sensor->modelId().startsWith(QLatin1String("TRADFRI wireless dimmer")) ||
              sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
+             sensor->modelId().startsWith(QLatin1String("902010/23")) || // bitron remote
              sensor->modelId().startsWith(QLatin1String("RC 110"))) // innr remote
     {
 
