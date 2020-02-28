@@ -382,7 +382,7 @@ bool DeRestPluginPrivate::addTaskSetColorTemperature(TaskItem &task, uint16_t ct
         bool useXy = supportsXy && !supportsCt;
         // IKEA lights need to use "xy" because move to color temperature is broken and
         // won't update x,y values resulting in broken scenes.
-        useXy = useXy || task.lightNode->manufacturerCode() == VENDOR_IKEA;
+        //useXy = useXy || task.lightNode->manufacturerCode() == VENDOR_IKEA;
 
         if (useXy)
         {
