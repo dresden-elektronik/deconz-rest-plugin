@@ -3985,8 +3985,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpPresenceSensor.inClusters.push_back(ci->id());
                     }
-                    else if (modelId.startsWith(QLatin1String("GAS_")) ||             // Heiman gas sensor
-                             modelId.startsWith(QLatin1String("Gas")) ||              // Heiman gas sensor (newer model)
+                    else if (modelId.startsWith(QLatin1String("GAS")) ||              // Heiman gas sensor (old and newer model)
                              modelId.startsWith(QLatin1String("SMOK_")) ||            // Heiman fire sensor
                              modelId.startsWith(QLatin1String("Smoke")) ||            // Heiman fire sensor (newer model)
                              modelId.startsWith(QLatin1String("902010/24")) ||        // Bitron smoke detector
