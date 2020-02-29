@@ -1220,6 +1220,10 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         {
             rq.reportableChange48bit = 10; // 0.001 kWh (1 Wh)
         }
+        else if (sensor && (sensor->modelId() == QLatin1String("SZ-ESW01-AU"))) // Sercomm / Telstra smart plug
+        {
+            rq.reportableChange48bit = 1000; // 0.001 kWh (1 Wh)
+        }
         else
         {
             rq.reportableChange48bit = 1; // 0.001 kWh (1 Wh)
@@ -1236,6 +1240,10 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         {
             rq2.reportableChange24bit = 10; // 1 W
         }
+        else if (sensor && (sensor->modelId() == QLatin1String("SZ-ESW01-AU"))) // Sercomm / Telstra smart plug
+        {
+            rq2.reportableChange24bit = 1000; // 1 W
+        }
         else
         {
             rq2.reportableChange24bit = 1; // 1 W
@@ -1251,8 +1259,9 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.attributeId = 0x050B; // Active power
         rq.minInterval = 1;
         rq.maxInterval = 300;
-        if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") || // Heiman
-                       sensor->modelId() == QLatin1String("SKHMP30-I1"))) // GS smart plug
+        if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") ||   // Heiman
+                       sensor->modelId() == QLatin1String("SKHMP30-I1") ||  // GS smart plug
+                       sensor->modelId() == QLatin1String("SZ-ESW01-AU")))  // Sercomm / Telstra smart plug
         {
             rq.reportableChange16bit = 10; // 1 W
         }
@@ -1286,7 +1295,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq3.minInterval = 1;
         rq3.maxInterval = 300;
         if (sensor && (sensor->modelId() == QLatin1String("SP 120") ||           // innr
-                       sensor->modelId() == QLatin1String("DoubleSocket50AU")))  // Aurora
+                       sensor->modelId() == QLatin1String("DoubleSocket50AU") || // Aurora
+                       sensor->modelId() == QLatin1String("SZ-ESW01-AU")))       // Sercomm / Telstra smart plug
         {
             rq3.reportableChange16bit = 100; // 0.1 A
         }
