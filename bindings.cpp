@@ -1217,9 +1217,14 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.attributeId = 0x0000; // Curent Summation Delivered
         rq.minInterval = 1;
         rq.maxInterval = 300;
-        if (sensor && sensor->modelId() == QLatin1String("SmartPlug")) // Heiman
+        if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") || // Heiman
+                       sensor->modelId() == QLatin1String("SKHMP30-I1"))) // GS smart plug
         {
             rq.reportableChange48bit = 10; // 0.001 kWh (1 Wh)
+        }
+        else if (sensor && (sensor->modelId() == QLatin1String("SZ-ESW01-AU"))) // Sercomm / Telstra smart plug
+        {
+            rq.reportableChange48bit = 1000; // 0.001 kWh (1 Wh)
         }
         else
         {
@@ -1232,9 +1237,14 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq2.minInterval = 1;
         rq2.maxInterval = 300;
         if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") || // Heiman
-                       sensor->modelId() == QLatin1String("902010/25"))) // Bitron
+                       sensor->modelId() == QLatin1String("902010/25") || // Bitron
+                       sensor->modelId() == QLatin1String("SKHMP30-I1"))) // GS smart plug
         {
             rq2.reportableChange24bit = 10; // 1 W
+        }
+        else if (sensor && (sensor->modelId() == QLatin1String("SZ-ESW01-AU"))) // Sercomm / Telstra smart plug
+        {
+            rq2.reportableChange24bit = 1000; // 1 W
         }
         else
         {
@@ -1251,7 +1261,9 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.attributeId = 0x050B; // Active power
         rq.minInterval = 1;
         rq.maxInterval = 300;
-        if (sensor && sensor->modelId() == QLatin1String("SmartPlug")) // Heiman
+        if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") ||   // Heiman
+                       sensor->modelId() == QLatin1String("SKHMP30-I1") ||  // GS smart plug
+                       sensor->modelId() == QLatin1String("SZ-ESW01-AU")))  // Sercomm / Telstra smart plug
         {
             rq.reportableChange16bit = 10; // 1 W
         }
@@ -1265,9 +1277,14 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq2.attributeId = 0x0505; // RMS Voltage
         rq2.minInterval = 1;
         rq2.maxInterval = 300;
-        if (sensor && sensor->modelId() == QLatin1String("SmartPlug")) // Heiman
+        if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") || // Heiman
+                       sensor->modelId() == QLatin1String("SKHMP30-I1"))) // GS smart plug
         {
             rq2.reportableChange16bit = 100; // 1 V
+        }
+        else if (sensor && sensor->modelId() == QLatin1String("SZ-ESW01-AU")) // Sercomm / Telstra smart plug
+        {
+            rq2.reportableChange16bit = 125; // 1 V
         }
         else
         {
@@ -1280,12 +1297,14 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq3.minInterval = 1;
         rq3.maxInterval = 300;
         if (sensor && (sensor->modelId() == QLatin1String("SP 120") ||           // innr
-                       sensor->modelId() == QLatin1String("DoubleSocket50AU")))  // Aurora
+                       sensor->modelId() == QLatin1String("DoubleSocket50AU") || // Aurora
+                       sensor->modelId() == QLatin1String("SZ-ESW01-AU")))       // Sercomm / Telstra smart plug
         {
             rq3.reportableChange16bit = 100; // 0.1 A
         }
         else if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") ||  // Heiman
-                            sensor->modelId() == QLatin1String("EMIZB-132")))   // Develco
+                            sensor->modelId() == QLatin1String("EMIZB-132") ||  // Develco
+                            sensor->modelId() == QLatin1String("SKHMP30-I1")))  // GS smart plug
         {
             rq3.reportableChange16bit = 10; // 0.1 A
         }
@@ -1826,6 +1845,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // CentraLite
         sensor->modelId().startsWith(QLatin1String("Motion Sensor-A")) ||
         sensor->modelId().startsWith(QLatin1String("332")) ||
+        sensor->modelId().startsWith(QLatin1String("3200-S")) ||
         // dresden elektronik
         (sensor->manufacturer() == QLatin1String("dresden elektronik") && sensor->modelId() == QLatin1String("de_spect")) ||
         // GE

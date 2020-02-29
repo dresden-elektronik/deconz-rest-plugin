@@ -282,6 +282,7 @@
 #define VENDOR_OSRAM        0x110C
 #define VENDOR_JASCO        0x1124 // Used by GE
 #define VENDOR_BUSCH_JAEGER 0x112E
+#define VENDOR_SERCOMM      0x1131
 #define VENDOR_BOSCH        0x1133
 #define VENDOR_DDEL         0x1135
 #define VENDOR_LUTRON       0x1144
@@ -292,6 +293,7 @@
 #define VENDOR_LDS          0x1168 // Used by Samsung SmartPlug 2019
 #define VENDOR_INSTA        0x117A
 #define VENDOR_IKEA         0x117C
+#define VENDOR_3A_SMART_HOME  0x117E
 #define VENDOR_STELPRO      0x1185
 #define VENDOR_LEDVANCE     0x1189
 #define VENDOR_SINOPE       0x119C

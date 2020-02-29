@@ -112,6 +112,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_CENTRALITE, "Motion Sensor-A", emberMacPrefix },
     { VENDOR_CENTRALITE, "3321-S", emberMacPrefix }, // Centralite multipurpose sensor
     { VENDOR_CENTRALITE, "3325-S", emberMacPrefix }, // Centralite motion sensor
+    { VENDOR_CLS, "3200-S", emberMacPrefix }, // Centralite smart plug / Samsung smart outlet
 //    { VENDOR_CENTRALITE, "3326-L", emberMacPrefix }, // Iris motion sensor
     { VENDOR_CENTRALITE, "3328-G", emberMacPrefix }, // Centralite micro motion sensor
     { VENDOR_DDEL, "de_spect", silabs3MacPrefix }, // dresden elektronic spectral sensor
@@ -269,6 +270,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_COMPUTIME, "SP600", computimeMacPrefix }, // Salus smart plug
     { VENDOR_HANGZHOU_IMAGIC, "1117-S", energyMiMacPrefix }, // iris motion sensor v3
     { VENDOR_JENNIC, "113D", jennicMacPrefix }, // iHorn (Huawei) temperature and humidity sensor
+    { VENDOR_SERCOMM, "SZ-ESW01", emberMacPrefix }, // Sercomm / Telstra smart plug
     { 0, nullptr, 0 }
 };
 
@@ -5209,7 +5211,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         sensorNode.setManufacturer("LUMI");
         if (!sensorNode.modelId().startsWith(QLatin1String("lumi.ctrl_")) &&
             !sensorNode.modelId().startsWith(QLatin1String("lumi.plug")) &&
-            sensorNode.modelId() != QLatin1String("lumi.curtain"))
+            sensorNode.modelId() != QLatin1String("lumi.curtain") &&
+            !sensor.type().endsWith(QLatin1String("Battery")))
         {
             sensorNode.addItem(DataTypeUInt8, RConfigBattery);
         }
@@ -7057,6 +7060,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     consumption *= 10; // 0.01 kWh = 10 Wh -> Wh
                                 }
+                                else if (i->modelId().startsWith(QLatin1String("SZ-ESW01"))) // Sercomm / Telstra smart plug
+                                {
+                                    consumption /= 1000;
+                                }
 
                                 if (item)
                                 {
@@ -7082,6 +7089,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId().startsWith(QLatin1String("SKHMP30")))  // GS smart plug
                                 {
                                     power += 5; power /= 10; // 0.1 W -> W
+                                }
+                                else if (i->modelId().startsWith(QLatin1String("SZ-ESW01"))) // Sercomm / Telstra smart plug
+                                {
+                                    power /= 1000;
                                 }
 
                                 if (item)
@@ -7134,10 +7145,15 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         power = power == 28000 ? 0 : power / 10;
                                     }
-                                    else if (i->modelId() == QLatin1String("RICI01") || // LifeControl Smart Plug
-                                            i->modelId() == QLatin1String("outletv4"))  // Samsung SmartThings IM6001-OTP
+                                    else if (i->modelId() == QLatin1String("RICI01") ||   // LifeControl Smart Plug
+                                             i->modelId() == QLatin1String("outletv4") || // Samsung SmartThings IM6001-OTP
+                                             i->modelId().startsWith(QLatin1String("3200-S"))) // Samsung/Centralite smart outlet
                                     {
                                         power /= 10; // 0.1W -> W
+                                    }
+                                    else if (i->modelId().startsWith(QLatin1String("SZ-ESW01"))) // Sercomm / Telstra smart plug
+                                    {
+                                        power *= 128; power /= 1000;
                                     }
                                     item->setValue(power); // in W
                                     enqueueEvent(Event(RSensors, RStatePower, i->id(), item));
@@ -7164,10 +7180,15 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         voltage += 50; voltage /= 100; // 0.01V -> V
                                     }
-                                    else if (i->modelId() == QLatin1String("RICI01") || // LifeControl Smart Plug
-                                            i->modelId() == QLatin1String("outletv4"))  // Samsung SmartThings IM6001-OTP
+                                    else if (i->modelId() == QLatin1String("RICI01") ||    // LifeControl Smart Plug
+                                             i->modelId() == QLatin1String("outletv4") ||  // Samsung SmartThings IM6001-OTP
+                                             i->modelId() == QLatin1String("EMIZB-13"))    // Develco EMI
                                     {
                                         voltage /= 10; // 0.1V -> V
+                                    }
+                                    else if (i->modelId().startsWith(QLatin1String("SZ-ESW01"))) // Sercomm / Telstra smart plug
+                                    {
+                                        voltage /= 125; // -> V
                                     }
                                     item->setValue(voltage); // in V
                                     enqueueEvent(Event(RSensors, RStateVoltage, i->id(), item));
@@ -7190,13 +7211,15 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     if (i->modelId() == QLatin1String("SP 120") ||            // innr
                                         i->modelId() == QLatin1String("outletv4") ||          // Samsung SmartThings IM6001-OTP
                                         i->modelId() == QLatin1String("DoubleSocket50AU") ||  // Aurora
-                                        i->modelId() == QLatin1String("RICI01"))              // LifeControl Smart Plug
+                                        i->modelId() == QLatin1String("RICI01") ||            // LifeControl Smart Plug
+                                        i->modelId().startsWith(QLatin1String("SZ-ESW01")))   // Sercomm / Telstra smart plug
                                     {
                                         // already in mA
                                     }
                                     else if (i->modelId() == QLatin1String("SmartPlug") ||      // Heiman
                                              i->modelId() == QLatin1String("EMIZB-132") ||      // Develco EMI Norwegian HAN
-                                             i->modelId().startsWith(QLatin1String("SKHMP30"))) // GS smart plug
+                                             i->modelId().startsWith(QLatin1String("SKHMP30")) || // GS smart plug
+                                             i->modelId().startsWith(QLatin1String("3200-S")))   // Samsung smart outlet
                                     {
                                         current *= 10; // 0.01A -> mA
                                     }
