@@ -7022,6 +7022,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     consumption *= 10; // 0.01 kWh = 10 Wh -> Wh
                                 }
+                                else if (i->modelId().startsWith(QLatin1String("SZ-ESW01"))) // Sercomm / Telstra smart plug
+                                {
+                                    consumption /= 1000;
+                                }
 
                                 if (item)
                                 {
@@ -7047,6 +7051,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId().startsWith(QLatin1String("SKHMP30")))  // GS smart plug
                                 {
                                     power += 5; power /= 10; // 0.1 W -> W
+                                }
+                                else if (i->modelId().startsWith(QLatin1String("SZ-ESW01"))) // Sercomm / Telstra smart plug
+                                {
+                                    power /= 1000;
                                 }
 
                                 if (item)
@@ -7104,6 +7112,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                              i->modelId().startsWith(QLatin1String("3200-S"))) // Samsung/Centralite smart outlet
                                     {
                                         power /= 10; // 0.1W -> W
+                                    }
+                                    else if (i->modelId().startsWith(QLatin1String("SZ-ESW01"))) // Sercomm / Telstra smart plug
+                                    {
+                                        power *= 128; power /= 1000;
                                     }
                                     item->setValue(power); // in W
                                     enqueueEvent(Event(RSensors, RStatePower, i->id(), item));
