@@ -91,7 +91,6 @@ const quint64 silabsMacPrefix     = 0x90fd9f0000000000ULL;
 const quint64 silabs2MacPrefix    = 0xcccccc0000000000ULL;
 const quint64 energyMiMacPrefix   = 0xd0cf5e0000000000ULL;
 const quint64 bjeMacPrefix        = 0xd85def0000000000ULL;
-const quint64 sunricherMacPrefix  = 0xec1bbd0000000000ULL;
 const quint64 xalMacPrefix        = 0xf8f0050000000000ULL;
 const quint64 lutronMacPrefix     = 0xffff000000000000ULL;
 const quint64 legrandMacPrefix    = 0x0004740000000000ULL;
@@ -219,7 +218,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SUNRICHER, "ICZB-RM", silabs2MacPrefix }, // iCasa remote
     { VENDOR_SUNRICHER, "ZGRC-KEY", emberMacPrefix }, // Sunricher wireless CCT remote
     { VENDOR_SUNRICHER, "ZG2833K", emberMacPrefix }, // Sunricher remote controller
-    { VENDOR_SUNRICHER, "Motor Controller", sunricherMacPrefix }, // Sunricher window covering controller
     { VENDOR_JENNIC, "SPZB0001", jennicMacPrefix }, // Eurotronic thermostat
     { VENDOR_NONE, "RES001", tiMacPrefix }, // Hubitat environment sensor, see #1308
     { VENDOR_119C, "WL4200S", sinopeMacPrefix}, // Sinope water sensor
