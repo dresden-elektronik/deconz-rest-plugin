@@ -389,13 +389,14 @@ RuleCondition::RuleCondition() :
 {
 }
 
-RuleCondition::RuleCondition(const QVariantMap &map) :
-    m_prefix(nullptr),
-    m_suffix(nullptr),
-    m_num(0),
-    m_weekDays(127) // default all days enabled
+/*! Construncts a RuleCondition from the data given in \p map.
+
+    The RuleCondition::isValid() method should be used to verify
+    the object was constructed sucessfully.
+ */
+RuleCondition::RuleCondition(const QVariantMap &map)
 {
-    bool ok;
+    bool ok = false;
     m_address = map["address"].toString();
     m_operator = map["operator"].toString();
     m_value = map["value"];
@@ -452,7 +453,7 @@ RuleCondition::RuleCondition(const QVariantMap &map) :
     // extract proper datatype
     if (m_value.type() == QVariant::String)
     {
-        QString str = m_value.toString();
+        const QString str = m_value.toString();
 
         if (m_op == OpDdx || m_op == OpStable)
         {
@@ -500,7 +501,7 @@ RuleCondition::RuleCondition(const QVariantMap &map) :
             } else { m_op = OpUnknown; } // mark invalid
         }
         else if (str == QLatin1String("true") ||
-               str == QLatin1String("false"))
+                 str == QLatin1String("false"))
         {
             m_value = m_value.toBool();
         }

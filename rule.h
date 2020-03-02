@@ -208,12 +208,12 @@ private:
     QVariant m_value;
 
     // internal calculated values for faster access
-    const char *m_prefix;
-    const char *m_suffix;
+    const char *m_prefix = nullptr;
+    const char *m_suffix = nullptr;
     QString m_id;
-    Operator m_op;
-    int m_num;
-    quint8 m_weekDays;
+    Operator m_op = OpUnknown;
+    int m_num = 0;
+    quint8 m_weekDays = 127; // default all days enabled
     QTime m_time0;
     QTime m_time1;
 
