@@ -389,7 +389,7 @@ RuleCondition::RuleCondition() :
 {
 }
 
-/*! Construncts a RuleCondition from the data given in \p map.
+/*! Constructs a RuleCondition from the data given in \p map.
 
     The RuleCondition::isValid() method should be used to verify
     the object was constructed sucessfully.
