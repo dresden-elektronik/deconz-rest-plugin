@@ -295,8 +295,11 @@ std::vector<RuleCondition> Rule::jsonToConditions(const QString &json)
 
     for (; i != end; ++i)
     {
-        RuleCondition cond(i->toMap());
-        conditions.push_back(cond);
+        const RuleCondition cond(i->toMap());
+        if (cond.isValid())
+        {
+            conditions.push_back(cond);
+        }
     }
 
     return conditions;

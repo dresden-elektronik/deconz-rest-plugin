@@ -191,6 +191,7 @@ public:
     void setValue(const QVariant &value);
     bool operator==(const RuleCondition &other) const;
 
+    bool isValid() const { return m_op != OpUnknown; }
     Operator op() const;
     const QString id() const;
     int numericValue() const;

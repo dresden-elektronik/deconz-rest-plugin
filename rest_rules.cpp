@@ -505,8 +505,11 @@ int DeRestPluginPrivate::createRule(const ApiRequest &req, ApiResponse &rsp)
 
                 for (; ci != cend; ++ci)
                 {
-                    RuleCondition cond(ci->toMap());
-                    conditions.push_back(cond);
+                    const RuleCondition cond(ci->toMap());
+                    if (cond.isValid())
+                    {
+                        conditions.push_back(cond);
+                    }
                 }
 
                 rule.setConditions(conditions);
@@ -774,8 +777,11 @@ int DeRestPluginPrivate::updateRule(const ApiRequest &req, ApiResponse &rsp)
 
             for (; ci != cend; ++ci)
             {
-                RuleCondition cond(ci->toMap());
-                conditions.push_back(cond);
+                const RuleCondition cond(ci->toMap());
+                if (cond.isValid())
+                {
+                    conditions.push_back(cond);
+                }
             }
             rule->setConditions(conditions);
 
@@ -896,15 +902,14 @@ bool DeRestPluginPrivate::checkConditions(QVariantList conditionsList, ApiRespon
 
     for (; ci != cend; ++ci)
     {
-        RuleCondition cond(ci->toMap());
+        const RuleCondition cond(ci->toMap());
 
-        Resource *resource = (cond.op() != RuleCondition::OpUnknown) ? getResource(cond.resource(), cond.id()) : nullptr;
+        Resource *resource = cond.isValid() ? getResource(cond.resource(), cond.id()) : nullptr;
         ResourceItem *item = resource ? resource->item(cond.suffix()) : nullptr;
 
         if (!resource || !item)
         {
-            rsp.list.append(errorToMap(ERR_CONDITION_ERROR, QString(cond.address()),
-                QString("Condition error")));
+            rsp.list.append(errorToMap(ERR_CONDITION_ERROR, QString(cond.address()), QLatin1String("Condition error")));
             return false;
         }
     }
