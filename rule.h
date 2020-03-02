@@ -201,6 +201,8 @@ public:
     bool weekDayEnabled(const int day) const;
     const char *resource() const;
     const char *suffix() const;
+    const char *valueResource() const;
+    const char *valueSuffix() const;
 
 private:
     QString m_address;
@@ -210,6 +212,8 @@ private:
     // internal calculated values for faster access
     const char *m_prefix = nullptr;
     const char *m_suffix = nullptr;
+    const char *m_valuePrefix = nullptr;
+    const char *m_valueSuffix = nullptr;
     QString m_id;
     Operator m_op = OpUnknown;
     int m_num = 0;

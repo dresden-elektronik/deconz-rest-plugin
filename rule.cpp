@@ -505,9 +505,36 @@ RuleCondition::RuleCondition(const QVariantMap &map)
         {
             m_value = m_value.toBool();
         }
-        else if ((m_op == OpGreaterThan || m_op == OpLowerThan) && m_suffix == RStateLocaltime && str == QLatin1String("/config/localtime"))
+        else if ((m_op == OpGreaterThan || m_op == OpLowerThan) && m_suffix == RStateLocaltime && str.endsWith(QLatin1String("/localtime")))
         {
-            m_value = str;
+            // TODO dynamically referring to other resources in conditions might be useful in general
+
+            // /config/localtime
+            if (str.endsWith(QLatin1String(RConfigLocalTime)))
+            {
+                m_valuePrefix = RConfig;
+                m_valueSuffix = RConfigLocalTime;
+            }
+            // /sensors/51/state/localtime
+            else if (str.startsWith(QLatin1String(RSensors)) && str.endsWith(QLatin1String(RStateLocaltime)))
+            {
+                const QStringList ls = str.split('/', Qt::SkipEmptyParts); // cache resource id
+                // [ "sensors", "51", "state", "localtime" ]
+                if (ls.size() == 4)
+                {
+                    m_valuePrefix = RSensors;
+                    m_valueSuffix = RStateLocaltime;
+                    m_value = ls[1];
+                }
+                else
+                {
+                    m_op = OpUnknown; // invalid
+                }
+            }
+            else
+            {
+                m_op = OpUnknown; // invalid
+            }
         }
         else if (m_op == OpEqual || m_op == OpNotEqual || m_op == OpGreaterThan || m_op == OpLowerThan)
         {
@@ -666,6 +693,22 @@ const char *RuleCondition::resource() const
 const char *RuleCondition::suffix() const
 {
     return m_suffix;
+}
+
+/*! Returns the related Resource prefix like RSensors, RLights, etc. of the value,
+    if value is pointing to another resource. Otherwise \p nullptr is returned.
+ */
+const char *RuleCondition::valueResource() const
+{
+    return m_valuePrefix;
+}
+
+/*! Returns the Resource suffix like RStateButtonevent of the value,
+    if value is pointing to another resource. Otherwise \p nullptr is returned.
+ */
+const char *RuleCondition::valueSuffix() const
+{
+    return m_valueSuffix;
 }
 
 /*! Returns true if two BindingTasks are equal.

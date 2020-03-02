@@ -1255,6 +1255,10 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
         Resource *resource = getResource(c->resource(), c->id());
         ResourceItem *item = resource ? resource->item(c->suffix()) : nullptr;
 
+        // the condition value might refer to another resource
+        Resource *valueResource = c->valueResource() ? getResource(c->valueResource(), c->value().toString()) : nullptr;
+        ResourceItem *valueItem = valueResource ? valueResource->item(c->valueSuffix()) : nullptr;
+
         if (!resource || !item)
         {
             DBG_Printf(DBG_INFO, "rule: %s, resource %s : %s id: %s (cond: %s) not found\n",
@@ -1271,7 +1275,6 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
 
         if (!item->lastSet().isValid()) { return false; }
 
-
         if (resource->prefix() == RSensors)
         {
             // don't trigger rule if sensor is disabled
@@ -1281,7 +1284,6 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
                 return false;
             }
         }
-
 
         if (c->op() == RuleCondition::OpEqual)
         {
@@ -1309,18 +1311,38 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
         }
         else if (c->op() == RuleCondition::OpGreaterThan && item->descriptor().suffix == RStateLocaltime)
         {
-            const QDateTime t1 = QDateTime::fromMSecsSinceEpoch(item->toNumber());
-            if (now.time() < t1.time())
+            if (valueItem && valueItem->descriptor().suffix == RStateLocaltime)
             {
-                return false;
+                if (valueItem->toNumber() < item->toNumber())
+                {
+                    return false;
+                }
+            }
+            else if (valueItem && valueItem->descriptor().suffix == RConfigLocalTime)
+            {
+                const QDateTime t1 = QDateTime::fromMSecsSinceEpoch(item->toNumber());
+                if (now.time() < t1.time())
+                {
+                    return false;
+                }
             }
         }
         else if (c->op() == RuleCondition::OpLowerThan && item->descriptor().suffix == RStateLocaltime)
         {
-            const QDateTime t1 = QDateTime::fromMSecsSinceEpoch(item->toNumber());
-            if (now.time() > t1.time())
+            if (valueItem && valueItem->descriptor().suffix == RStateLocaltime)
             {
-                return false;
+                if (valueItem->toNumber() > item->toNumber())
+                {
+                    return false;
+                }
+            }
+            else if (valueItem && valueItem->descriptor().suffix == RConfigLocalTime)
+            {
+                const QDateTime t1 = QDateTime::fromMSecsSinceEpoch(item->toNumber());
+                if (now.time() > t1.time())
+                {
+                    return false;
+                }
             }
         }
         else if (c->op() == RuleCondition::OpGreaterThan)
