@@ -1946,8 +1946,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("ISW-ZDL1-WP11G")) ||
         sensor->modelId().startsWith(QLatin1String("ISW-ZPR1-WP13")) ||
         sensor->modelId().startsWith(QLatin1String("RFDL-ZB-MS")) ||
-        // Aqara Opple
-        sensor->modelId().contains(QLatin1String("86opcn01")) ||
         // Salus
         sensor->modelId().contains(QLatin1String("SP600")) ||
         // Zen
@@ -2478,14 +2476,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(0x00);
         srcEndpoints.push_back(0x01);
         sensor->setMgmtBindSupported(true);
-    }
-    // Aqara Opple
-    else if (sensor->modelId().contains(QLatin1String("86opcn01")))
-    {
-        clusters.push_back(ONOFF_CLUSTER_ID);
-        clusters.push_back(LEVEL_CLUSTER_ID);
-        clusters.push_back(COLOR_CLUSTER_ID);
-        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
     // Bitron remote control
     else if (sensor->modelId().startsWith(QLatin1String("902010/23")))
