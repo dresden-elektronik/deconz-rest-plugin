@@ -716,6 +716,10 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                     {
                         sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x03);
                     }
+                    else if (sensorNode->modelId().contains(QLatin1String("86opcn01"))) //Aqara Opple enable events from all multistate clusters
+                    {
+                        sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
+                    }
                     // else if (sensorNode->modelId().startsWith("RC 110"))
                     // {
                     //     sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
@@ -3292,8 +3296,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     else if (sensor->modelId().contains(QLatin1String("86opcn01"))) // Aqara Opple
     {
         checkReporting = true;
-        checkClientCluster = true;
-        checkSensorGroup(sensor);
     }
 
     if (ind.dstAddressMode() == deCONZ::ApsGroupAddress && ind.dstAddress().group() != 0)
@@ -3436,7 +3438,8 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                         }
                     }
                 }
-                else if (ind.clusterId() == DOOR_LOCK_CLUSTER_ID && sensor->manufacturer() == QLatin1String("LUMI"))
+                else if ((ind.clusterId() == DOOR_LOCK_CLUSTER_ID && sensor->manufacturer() == QLatin1String("LUMI")) ||
+				                 		 (ind.clusterId() == MULTISTATE_INPUT_CLUSTER_ID && sensor->modelId().contains(QLatin1String("86opcn01")))) // Aqara Opple multistate cluster event handling
                 {
                     ok = false;
                     if (attrId == 0x0055 && dataType == 0x21 && // Xiaomi non-standard attribute
@@ -3556,8 +3559,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 }
             }
             else if (ind.clusterId() == COLOR_CLUSTER_ID &&
-                     (zclFrame.commandId() == 0x4b && zclFrame.payload().size() >= 7) && // move color temperature
-                     !sensor->modelId().contains(QLatin1String("86opcn01")))  // do not use this for Aqara Opple switches, they are missing the additional payload
+                     (zclFrame.commandId() == 0x4b && zclFrame.payload().size() >= 7) )  // move color temperature
             {
                 ok = false;
                 // u8 move mode
@@ -3591,17 +3593,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     ok = true;
                 }
 
-            }
-            else if (ind.clusterId() == COLOR_CLUSTER_ID &&
-                    ((zclFrame.commandId() == 0x4c || zclFrame.commandId() == 0x4b) && sensor->modelId().contains(QLatin1String("86opcn01"))))  // Aqara Opple hold
-            {
-                // currently there is an issue detecting the release of the bottom Off button on the 6 button switch, it gets detected as bottom On button release
-                ok = false;
-                if (zclFrame.payload().size() >= 1 && buttonMap->zclParam0 == zclFrame.payload().at(0)) // direction
-                {
-                    sensor->previousDirection = zclFrame.payload().at(0);
-                    ok = true;
-                }
             }
 
             if (ok)
@@ -3882,6 +3873,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("WL4200S")))
                     {
                         fpWaterSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
+                    }
+                    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_XIAOMI &&
+                             modelId.contains(QLatin1String("86opcn01"))) // Aqara Opple switches
+                    {
+                        fpSwitch.inClusters.push_back(MULTISTATE_INPUT_CLUSTER_ID);
                     }
                 }
                     break;
@@ -4286,7 +4282,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     //         fpSwitch.outClusters.push_back(ci->id());
                     //     }
                     // }
-                    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC)
+                    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC ||
+		                      					modelId.contains(QLatin1String("86opcn01"))) // Aqara Opple prevent client clusters creation
                     {
                         // prevent creation of ZHASwitch, till supported
                     }
@@ -14311,7 +14308,6 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM")) || // icasa remote
                  sensor->modelId().startsWith(QLatin1String("RC 110")) || // innr Remote
                  sensor->modelId() == QLatin1String("Remote switch") || // Legrand switch
-                 sensor->modelId().contains(QLatin1String("86opcn01")) || // Aqara Opple
                  sensor->modelId() == QLatin1String("Shutters central remote switch")) // Legrand switch
         {
             checkSensorGroup(sensor);
@@ -14356,6 +14352,13 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                     queueBindingTask(bindingTask2);
                 }
             }
+        }
+        else if (sensor->modelId().contains(QLatin1String("86opcn01")))  // Aqara Opple
+        {
+             // send the magic word to the Aqara Opple switch
+	            deCONZ::ZclAttribute attr(0x0009, deCONZ::Zcl8BitUint, "mode", deCONZ::ZclReadWrite, false);
+			          attr.setValue((quint64) 1);
+		         		writeAttribute(sensor, sensor->fingerPrint().endpoint, 0xFCC0, attr, VENDOR_XIAOMI);
         }
 
         for (auto &s : sensors)
