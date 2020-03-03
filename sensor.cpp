@@ -611,61 +611,44 @@ static const Sensor::ButtonMap legrandSwitchRemote[] = {
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
-static const Sensor::ButtonMap aqaraOpple2Map[] = {
-//    mode                          ep    cluster cmd   param button                                       name
-    // First button Off
-    { Sensor::ModeScenes,           0x01, 0x0006, 0x00, 0,    S_BUTTON_1 + S_BUTTON_ACTION_INITIAL_PRESS, "Off press" },
-    { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 1,    S_BUTTON_1 + S_BUTTON_ACTION_DOUBLE_PRESS, "Off double press" },
-    { Sensor::ModeScenes,           0x01, 0x0300, 0x4c, 1,    S_BUTTON_1 + S_BUTTON_ACTION_HOLD, "Off hold" },
-
-    // First button On
-    { Sensor::ModeScenes,           0x01, 0x0006, 0x01, 0,    S_BUTTON_2 + S_BUTTON_ACTION_INITIAL_PRESS, "On press" },
-    { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 0,    S_BUTTON_2 + S_BUTTON_ACTION_DOUBLE_PRESS, "On double press" },
-    { Sensor::ModeScenes,           0x01, 0x0300, 0x4c, 3,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD, "On hold" },
-
-    // end
-    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
-};
-
-static const Sensor::ButtonMap aqaraOpple4Map[] = {
-//    mode                          ep    cluster cmd   param button                                       name
-    // First button Off
-    { Sensor::ModeScenes,           0x01, 0x0006, 0x00, 0,    S_BUTTON_1 + S_BUTTON_ACTION_INITIAL_PRESS, "Off top press" },
-    // First button On
-    { Sensor::ModeScenes,           0x01, 0x0006, 0x01, 0,    S_BUTTON_2 + S_BUTTON_ACTION_INITIAL_PRESS, "On top press" },
-    // Third button Off
-    { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 1,    S_BUTTON_3 + S_BUTTON_ACTION_INITIAL_PRESS, "Off bottom press" },
-    { Sensor::ModeScenes,           0x01, 0x0300, 0x4c, 1,    S_BUTTON_3 + S_BUTTON_ACTION_DOUBLE_PRESS, "Off bottom double press" },
-    // Fourth button On
-    { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 0,    S_BUTTON_4 + S_BUTTON_ACTION_INITIAL_PRESS, "On bottom press" },
-    { Sensor::ModeScenes,           0x01, 0x0300, 0x4c, 3,    S_BUTTON_4 + S_BUTTON_ACTION_DOUBLE_PRESS, "On bottom double press" },
-
-    // end
-    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
-};
-
 static const Sensor::ButtonMap aqaraOpple6Map[] = {
 //    mode                          ep    cluster cmd   param button                                       name
     // First button Off
-    { Sensor::ModeScenes,           0x01, 0x0006, 0x00, 0,    S_BUTTON_1 + S_BUTTON_ACTION_INITIAL_PRESS, "Off top press" },
+	{ Sensor::ModeScenes,           0x01, 0x0012 , 0x0a , 0,    S_BUTTON_1 + S_BUTTON_ACTION_HOLD, "Off hold" },
+    { Sensor::ModeScenes,           0x01, 0x0012 , 0x0a , 1,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Off press" },
+	{ Sensor::ModeScenes,           0x01, 0x0012 , 0x0a , 2,    S_BUTTON_1 + S_BUTTON_ACTION_DOUBLE_PRESS, "Off double press" },
+	{ Sensor::ModeScenes,           0x01, 0x0012 , 0x0a , 3,    S_BUTTON_1 + S_BUTTON_ACTION_TREBLE_PRESS, "Off triple press" },
+	{ Sensor::ModeScenes,           0x01, 0x0012 , 0x0a , 255,  S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED, "Off long released" },
     // First button On
-    { Sensor::ModeScenes,           0x01, 0x0006, 0x01, 0,    S_BUTTON_2 + S_BUTTON_ACTION_INITIAL_PRESS, "On top press" },
+	{ Sensor::ModeScenes,           0x02, 0x0012 , 0x0a , 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD, "On hold" },
+    { Sensor::ModeScenes,           0x02, 0x0012 , 0x0a , 1,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "On press" },
+	{ Sensor::ModeScenes,           0x02, 0x0012 , 0x0a , 2,    S_BUTTON_2 + S_BUTTON_ACTION_DOUBLE_PRESS, "On double press" },
+	{ Sensor::ModeScenes,           0x02, 0x0012 , 0x0a , 3,    S_BUTTON_2 + S_BUTTON_ACTION_TREBLE_PRESS, "On triple press" },
+	{ Sensor::ModeScenes,           0x02, 0x0012 , 0x0a , 255,  S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED, "On long released" },
     // Third button Off
-    { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 1,    S_BUTTON_3 + S_BUTTON_ACTION_INITIAL_PRESS, "Off middle press" },
-    { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 1,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD, "Off middle hold" },
-    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 1,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED, "Off middle hold stop" },
+	{ Sensor::ModeScenes,           0x03, 0x0012 , 0x0a , 0,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD, "Dim down hold" },
+    { Sensor::ModeScenes,           0x03, 0x0012 , 0x0a , 1,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "Dim down press" },
+	{ Sensor::ModeScenes,           0x03, 0x0012 , 0x0a , 2,    S_BUTTON_3 + S_BUTTON_ACTION_DOUBLE_PRESS, "Dim down double press" },
+	{ Sensor::ModeScenes,           0x03, 0x0012 , 0x0a , 3,    S_BUTTON_3 + S_BUTTON_ACTION_TREBLE_PRESS, "Dim down triple press" },
+	{ Sensor::ModeScenes,           0x03, 0x0012 , 0x0a , 255,  S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED, "Dim down long released" },
     // Fourth button On
-    { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 0,    S_BUTTON_4 + S_BUTTON_ACTION_INITIAL_PRESS, "On middle press" },
-    { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 0,    S_BUTTON_4 + S_BUTTON_ACTION_HOLD, "On middle hold" },
-    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 0,    S_BUTTON_4 + S_BUTTON_ACTION_LONG_RELEASED, "On middle hold stop" },
+	{ Sensor::ModeScenes,           0x04, 0x0012 , 0x0a , 0,    S_BUTTON_4 + S_BUTTON_ACTION_HOLD, "Dim up hold" },
+    { Sensor::ModeScenes,           0x04, 0x0012 , 0x0a , 1,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Dim up press" },
+	{ Sensor::ModeScenes,           0x04, 0x0012 , 0x0a , 2,    S_BUTTON_4 + S_BUTTON_ACTION_DOUBLE_PRESS, "Dim up double press" },
+	{ Sensor::ModeScenes,           0x04, 0x0012 , 0x0a , 3,    S_BUTTON_4 + S_BUTTON_ACTION_TREBLE_PRESS, "Dim up triple press" },
+	{ Sensor::ModeScenes,           0x04, 0x0012 , 0x0a , 255,  S_BUTTON_4 + S_BUTTON_ACTION_LONG_RELEASED, "Dim up long released" },
     // Fifth button Off
-    { Sensor::ModeScenes,           0x01, 0x0300, 0x4c, 1,    S_BUTTON_5 + S_BUTTON_ACTION_INITIAL_PRESS, "Off bottom press" },
-    { Sensor::ModeScenes,           0x01, 0x0300, 0x4b, 1,    S_BUTTON_5 + S_BUTTON_ACTION_HOLD, "Off bottom hold" },
-    { Sensor::ModeScenes,           0x01, 0x0300, 0x4b, 0,    S_BUTTON_5 + S_BUTTON_ACTION_LONG_RELEASED, "Off bottom hold stop" },
+	{ Sensor::ModeScenes,           0x05, 0x0012 , 0x0a , 0,    S_BUTTON_5 + S_BUTTON_ACTION_HOLD, "Color warm hold" },
+    { Sensor::ModeScenes,           0x05, 0x0012 , 0x0a , 1,    S_BUTTON_5 + S_BUTTON_ACTION_SHORT_RELEASED, "Color warm press" },
+	{ Sensor::ModeScenes,           0x05, 0x0012 , 0x0a , 2,    S_BUTTON_5 + S_BUTTON_ACTION_DOUBLE_PRESS, "Color warm double press" },
+	{ Sensor::ModeScenes,           0x05, 0x0012 , 0x0a , 3,    S_BUTTON_5 + S_BUTTON_ACTION_TREBLE_PRESS, "Color warm triple press" },
+	{ Sensor::ModeScenes,           0x05, 0x0012 , 0x0a , 255,  S_BUTTON_5 + S_BUTTON_ACTION_LONG_RELEASED, "Color warm long released" },
     // Sixth button On
-    { Sensor::ModeScenes,           0x01, 0x0300, 0x4c, 3,    S_BUTTON_6 + S_BUTTON_ACTION_INITIAL_PRESS, "On bottom press" },
-    { Sensor::ModeScenes,           0x01, 0x0300, 0x4b, 3,    S_BUTTON_6 + S_BUTTON_ACTION_HOLD, "On bottom hold" },
-    { Sensor::ModeScenes,           0x01, 0x0300, 0x4b, 0,    S_BUTTON_6 + S_BUTTON_ACTION_LONG_RELEASED, "On bottom hold stop" },
+	{ Sensor::ModeScenes,           0x06, 0x0012 , 0x0a , 0,    S_BUTTON_6 + S_BUTTON_ACTION_HOLD, "Color cold hold" },
+    { Sensor::ModeScenes,           0x06, 0x0012 , 0x0a , 1,    S_BUTTON_6 + S_BUTTON_ACTION_SHORT_RELEASED, "Color cold press" },
+	{ Sensor::ModeScenes,           0x06, 0x0012 , 0x0a , 2,    S_BUTTON_6 + S_BUTTON_ACTION_DOUBLE_PRESS, "Color cold double press" },
+	{ Sensor::ModeScenes,           0x06, 0x0012 , 0x0a , 3,    S_BUTTON_6 + S_BUTTON_ACTION_TREBLE_PRESS, "Color cold triple press" },
+	{ Sensor::ModeScenes,           0x06, 0x0012 , 0x0a , 255,  S_BUTTON_6 + S_BUTTON_ACTION_LONG_RELEASED, "Color cold long released" },
 
     // end
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
@@ -1222,9 +1205,7 @@ const Sensor::ButtonMap *Sensor::buttonMap()
             if      (modelid == QLatin1String("lumi.sensor_switch"))      { m_buttonMap = xiaomiSwitchMap; }
             else if (modelid == QLatin1String("lumi.sensor_switch.aq2"))  { m_buttonMap = xiaomiSwitchAq2Map; }
             else if (modelid.startsWith(QLatin1String("lumi.vibration"))) { m_buttonMap = xiaomiVibrationMap; }
-            else if (modelid == QLatin1String("lumi.remote.b286opcn01"))  { m_buttonMap = aqaraOpple2Map; }
-            else if (modelid == QLatin1String("lumi.remote.b486opcn01"))  { m_buttonMap = aqaraOpple4Map; }
-            else if (modelid == QLatin1String("lumi.remote.b686opcn01"))  { m_buttonMap = aqaraOpple6Map; }
+            else if (modelid.contains(QLatin1String("86opcn01")))  { m_buttonMap = aqaraOpple6Map; }
         }
         else if (manufacturer == QLatin1String("Lutron"))
         {
