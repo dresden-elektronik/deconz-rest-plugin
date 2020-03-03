@@ -2632,11 +2632,6 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
     {
         //Make group but without uniqueid
     }
-    else if (sensor->modelId().contains(QLatin1String("86opcn01"))) // Aqara Opple
-    {
-        //Make group but without uniqueid
-        //Aqara Opple Switches need a group or else they will control all the lights
-    }
     else if (sensor->modelId() == QLatin1String("RB01") ||
              sensor->modelId() == QLatin1String("RM01"))
     {
