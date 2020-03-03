@@ -293,6 +293,7 @@
 #define VENDOR_LDS          0x1168 // Used by Samsung SmartPlug 2019
 #define VENDOR_INSTA        0x117A
 #define VENDOR_IKEA         0x117C
+#define VENDOR_3A_SMART_HOME  0x117E
 #define VENDOR_STELPRO      0x1185
 #define VENDOR_LEDVANCE     0x1189
 #define VENDOR_SINOPE       0x119C
