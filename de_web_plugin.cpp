@@ -3439,7 +3439,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     }
                 }
                 else if ((ind.clusterId() == DOOR_LOCK_CLUSTER_ID && sensor->manufacturer() == QLatin1String("LUMI")) ||
-				                 		 (ind.clusterId() == MULTISTATE_INPUT_CLUSTER_ID && sensor->modelId().contains(QLatin1String("86opcn01")))) // Aqara Opple multistate cluster event handling
+                         (ind.clusterId() == MULTISTATE_INPUT_CLUSTER_ID && sensor->modelId().contains(QLatin1String("86opcn01")))) // Aqara Opple multistate cluster event handling
                 {
                     ok = false;
                     if (attrId == 0x0055 && dataType == 0x21 && // Xiaomi non-standard attribute
@@ -4283,7 +4283,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     //     }
                     // }
                     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC ||
-		                      					modelId.contains(QLatin1String("86opcn01"))) // Aqara Opple prevent client clusters creation
+                             modelId.contains(QLatin1String("86opcn01"))) // Aqara Opple prevent client clusters creation
                     {
                         // prevent creation of ZHASwitch, till supported
                     }
@@ -14356,9 +14356,9 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         else if (sensor->modelId().contains(QLatin1String("86opcn01")))  // Aqara Opple
         {
              // send the magic word to the Aqara Opple switch
-	            deCONZ::ZclAttribute attr(0x0009, deCONZ::Zcl8BitUint, "mode", deCONZ::ZclReadWrite, false);
-			          attr.setValue((quint64) 1);
-		         		writeAttribute(sensor, sensor->fingerPrint().endpoint, 0xFCC0, attr, VENDOR_XIAOMI);
+             deCONZ::ZclAttribute attr(0x0009, deCONZ::Zcl8BitUint, "mode", deCONZ::ZclReadWrite, false);
+             attr.setValue((quint64) 1);
+             writeAttribute(sensor, sensor->fingerPrint().endpoint, 0xFCC0, attr, VENDOR_XIAOMI);
         }
 
         for (auto &s : sensors)
