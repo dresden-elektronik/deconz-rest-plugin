@@ -4283,7 +4283,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     //     }
                     // }
                     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC ||
-                             modelId.contains(QLatin1String("86opcn01"))) // Aqara Opple prevent client clusters creation
+                             modelId.contains(QLatin1String("86opcn01"))) // Aqara Opple prevent client clusters creation, client clusters aren't used, fpSwitch is created for 0xfc00 cluster.
                     {
                         // prevent creation of ZHASwitch, till supported
                     }
