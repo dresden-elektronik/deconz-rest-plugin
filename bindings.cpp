@@ -1112,14 +1112,19 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 7200;       // value used by Hue bridge
             rq.reportableChange8bit = 0; // value used by Hue bridge
         }
-        else if (sensor && (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
-                            sensor->modelId().startsWith(QLatin1String("ROM00")))) // Hue smart button
+        else if (sensor && sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
         {
             rq.minInterval = 300;        // value used by Hue bridge
             rq.maxInterval = 300;        // value used by Hue bridge
             rq.reportableChange8bit = 0; // value used by Hue bridge
         }
-        else if (sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer switch
+        else if (sensor && sensor->modelId().startsWith(QLatin1String("ROM00"))) // Hue smart button
+        {
+            rq.minInterval = 900;        // value used by Hue bridge
+            rq.maxInterval = 900;        // value used by Hue bridge
+            rq.reportableChange8bit = 2; // value used by Hue bridge
+        }
+        else if (sensor && sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer switch
         {
             rq.minInterval = 900;        // value used by Hue bridge
             rq.maxInterval = 900;        // value used by Hue bridge
