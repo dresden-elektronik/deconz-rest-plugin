@@ -518,7 +518,7 @@ RuleCondition::RuleCondition(const QVariantMap &map)
             // /sensors/51/state/localtime
             else if (str.startsWith(QLatin1String(RSensors)) && str.endsWith(QLatin1String(RStateLocaltime)))
             {
-                const QStringList ls = str.split('/', Qt::SkipEmptyParts); // cache resource id
+                const QStringList ls = str.split('/', QString::SkipEmptyParts); // cache resource id
                 // [ "sensors", "51", "state", "localtime" ]
                 if (ls.size() == 4)
                 {
