@@ -3491,6 +3491,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             else if (ind.clusterId() == LEVEL_CLUSTER_ID && zclFrame.commandId() == 0x04 && // move to level (with on/off)
                      sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer
             {
+                // This code is for handling the button map for the Aurora, until we figure out how to activate the 0xFC00 cluster.
                 ok = false;
                 if (zclFrame.payload().size() >= 2)
                 {
@@ -3679,45 +3680,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     {
         return;
     }
-
-#if 0
-    // check if hue dimmer switch is configured
-    if (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
-        sensor->modelId().startsWith(QLatin1String("ROM00")) || // Hue smart button
-        sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer switch
-    {
-        bool ok = true;
-        // attribute reporting for power configuration cluster should fire every 5 minutes
-        if (idleTotalCounter > (IDLE_READ_LIMIT + 600))
-        {
-            ResourceItem *item = sensor->item(RConfigBattery);
-            if (item && item->lastSet().isValid() && item->toNumber() > 0) // seems to be ok
-            {
-                const NodeValue &val = sensor->getZclValue(POWER_CONFIGURATION_CLUSTER_ID, 0x0021);
-                if (!val.timestampLastReport.isValid())
-                {
-                    ok = false; // not received battery report
-                }
-            }
-            else
-            {
-                ok = false; // not received anything
-            }
-        }
-
-        // is vendor specific cluster bound yet?
-        ResourceItem *item = ok ? sensor->item(RStateButtonEvent) : 0;
-        if (!item || !item->lastSet().isValid() || item->toNumber() < 1000)
-        {
-            ok = false;
-        }
-
-        if (!ok)
-        {
-            checkSensorBindingsForAttributeReporting(sensor);
-        }
-    }
-#endif
 
     quint8 pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(0);
     DBG_Printf(DBG_INFO, "no button handler for: %s ep: 0x%02X cl: 0x%04X cmd: 0x%02X pl[0]: 0x%02X\n",
@@ -4246,7 +4208,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case VENDOR_CLUSTER_ID:
                 {
-                    if (node->nodeDescriptor().manufacturerCode() == VENDOR_DDEL && modelId == QLatin1String("de_spect"))
+                    if (modelId.startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
+                        modelId.startsWith(QLatin1String("ROM00")) || // Hue smart button
+                        modelId.startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora FoH dimmer switch
+                    {
+                        fpSwitch.inClusters.push_back(ci->id());
+                    }
+                    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_DDEL && modelId == QLatin1String("de_spect"))
                     {
                         if (i->endpoint() <= 0x03)
                         {
@@ -4799,9 +4767,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             sensorNode.addItem(DataTypeInt32, RStateGesture);
         }
         else if (modelId.startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
-              // modelId.startsWith(QLatin1String("Z3-1BRL")) || // Lutron Aurora Firends-of-Hue dimmer switch
-                 modelId.startsWith(QLatin1String("ROM00"))) // Hue smart button
+                 modelId.startsWith(QLatin1String("ROM00")) || // Hue smart button
+                 modelId.startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Firends-of-Hue dimmer switch
         {
+            clusterId = VENDOR_CLUSTER_ID;
             sensorNode.addItem(DataTypeUInt16, RStateEventDuration);
         }
     }
@@ -5144,10 +5113,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             {   // this cluster is on endpoint 2 and hence not detected
                 sensorNode.fingerPrint().inClusters.push_back(VENDOR_CLUSTER_ID);
             }
-        }
-        else if (modelId.startsWith(QLatin1String("ROM00"))) // Hue smart button)
-        {
-            clusterId = VENDOR_CLUSTER_ID;
         }
         else if (modelId.startsWith(QLatin1String("SML00"))) // Hue motion sensor
         {
@@ -12623,33 +12588,6 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
 
     if (!sensorNode)
     {
-        for (Sensor &s : sensors)
-        {
-            if (s.deletedState() != Sensor::StateNormal)
-            {
-                continue;
-            }
-
-            if ((ind.srcAddress().hasExt() && ind.srcAddress().ext() == s.address().ext()) ||
-                (ind.srcAddress().hasNwk() && ind.srcAddress().nwk() == s.address().nwk()))
-            {
-                if (s.modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
-                    s.modelId().startsWith(QLatin1String("ROM00")) || // Hue smart button
-                    s.modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer switch
-                {
-                    sensorNode = &s;
-                }
-            }
-
-            if (sensorNode)
-            {
-                break;
-            }
-        }
-    }
-
-    if (!sensorNode)
-    {
         return;
     }
 
@@ -14202,13 +14140,8 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 return;
             }
 
-
-            ResourceItem *item = sensor->item(RConfigGroup);
-            if (!item || !item->lastSet().isValid())
-            {
-                getGroupIdentifiers(sensor, 0x01, 0x00);
-                return;
-            }
+            checkSensorGroup(sensor);
+            checkSensorBindingsForClientClusters(sensor);
         }
         else if (sensor->modelId().startsWith(QLatin1String("SML00"))) // Hue motion sensor
         {

@@ -2337,7 +2337,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     std::vector<quint16> clusters;
 
     if (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
-        sensor->modelId().startsWith(QLatin1String("ROM00"))) // Hue smart button
+        sensor->modelId().startsWith(QLatin1String("ROM00")) || // Hue smart button
+        sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora FoH dimmer switch
     {
         srcEndpoints.push_back(0x01);
         clusters.push_back(ONOFF_CLUSTER_ID);
@@ -2613,22 +2614,16 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
     }
 
     if (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
-        sensor->modelId().startsWith(QLatin1String("ROM00"))) // Hue smart button
-    {
-        if (!group)
-        {
-            getGroupIdentifiers(sensor, 0x01, 0x00);
-            return;
-        }
-    }
-    else if (sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")) ||
-             sensor->modelId().startsWith(QLatin1String("TRADFRI open/close remote")) ||
-             sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")) ||
-             sensor->modelId().startsWith(QLatin1String("TRADFRI remote control")) ||
-             sensor->modelId().startsWith(QLatin1String("TRADFRI wireless dimmer")) ||
-             sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
-             sensor->modelId().startsWith(QLatin1String("902010/23")) || // bitron remote
-             sensor->modelId().startsWith(QLatin1String("RC 110"))) // innr remote
+        sensor->modelId().startsWith(QLatin1String("ROM00")) || // Hue smart button
+        sensor->modelId().startsWith(QLatin1String("Z3-1BRL")) || // Lutron Aurora FoH smart dimmer
+        sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")) ||
+        sensor->modelId().startsWith(QLatin1String("TRADFRI open/close remote")) ||
+        sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")) ||
+        sensor->modelId().startsWith(QLatin1String("TRADFRI remote control")) ||
+        sensor->modelId().startsWith(QLatin1String("TRADFRI wireless dimmer")) ||
+        sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
+        sensor->modelId().startsWith(QLatin1String("902010/23")) || // bitron remote
+        sensor->modelId().startsWith(QLatin1String("RC 110"))) // innr remote
     {
 
     }
