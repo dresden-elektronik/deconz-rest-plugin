@@ -2074,7 +2074,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                      sensor->modelId() == QLatin1String("Remote switch") ||
                      sensor->modelId() == QLatin1String("Shutters central remote switch") ||
                      sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||
-                     sensor->modelId().contains(QLatin1String("86opcn01")) || // Aqara Opple
+                     sensor->modelId().endsWith(QLatin1String("86opcn01")) || // Aqara Opple
                      sensor->modelId().contains(QLatin1String("1117-S")) ||
                      sensor->modelId() == QLatin1String("113D"))
             {
