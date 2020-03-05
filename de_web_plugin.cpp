@@ -716,7 +716,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                     {
                         sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x03);
                     }
-                    else if (sensorNode->modelId().contains(QLatin1String("86opcn01"))) //Aqara Opple enable events from all multistate clusters
+                    else if (sensorNode->modelId().endsWith(QLatin1String("86opcn01"))) //Aqara Opple enable events from all multistate clusters
                     {
                         sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
                     }
@@ -3293,7 +3293,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             updateSensorEtag(sensor);
         }
     }
-    else if (sensor->modelId().contains(QLatin1String("86opcn01"))) // Aqara Opple
+    else if (sensor->modelId().endsWith(QLatin1String("86opcn01"))) // Aqara Opple
     {
         checkReporting = true;
     }
@@ -3439,7 +3439,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     }
                 }
                 else if ((ind.clusterId() == DOOR_LOCK_CLUSTER_ID && sensor->manufacturer() == QLatin1String("LUMI")) ||
-                         (ind.clusterId() == MULTISTATE_INPUT_CLUSTER_ID && sensor->modelId().contains(QLatin1String("86opcn01")))) // Aqara Opple multistate cluster event handling
+                         (ind.clusterId() == MULTISTATE_INPUT_CLUSTER_ID && sensor->modelId().endsWith(QLatin1String("86opcn01")))) // Aqara Opple multistate cluster event handling
                 {
                     ok = false;
                     if (attrId == 0x0055 && dataType == 0x21 && // Xiaomi non-standard attribute
@@ -3875,7 +3875,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         fpWaterSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
                     }
                     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_XIAOMI &&
-                             modelId.contains(QLatin1String("86opcn01"))) // Aqara Opple switches
+                             modelId.endsWith(QLatin1String("86opcn01"))) // Aqara Opple switches
                     {
                         fpSwitch.inClusters.push_back(MULTISTATE_INPUT_CLUSTER_ID);
                     }
@@ -4283,7 +4283,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     //     }
                     // }
                     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC ||
-                             modelId.contains(QLatin1String("86opcn01"))) // Aqara Opple prevent client clusters creation, client clusters aren't used, fpSwitch is created for 0xfc00 cluster.
+                             modelId.endsWith(QLatin1String("86opcn01"))) // Aqara Opple prevent client clusters creation, client clusters aren't used, fpSwitch is created for 0xfc00 cluster.
                     {
                         // prevent creation of ZHASwitch, till supported
                     }
@@ -5217,7 +5217,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             sensorNode.modelId() != QLatin1String("lumi.sensor_switch") &&
             !sensorNode.modelId().contains(QLatin1String("weather")) &&
             !sensorNode.modelId().startsWith(QLatin1String("lumi.sensor_ht")) &&
-            !sensorNode.modelId().contains(QLatin1String("86opcn01"))) // exclude Aqara Opple
+            !sensorNode.modelId().endsWith(QLatin1String("86opcn01"))) // exclude Aqara Opple
         {
             sensorNode.addItem(DataTypeInt16, RConfigTemperature);
             //sensorNode.addItem(DataTypeInt16, RConfigOffset);
@@ -5977,7 +5977,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId() == QLatin1String("Zen-01") ||           // Zen thermostat
                                     i->modelId() == QLatin1String("Thermostat") ||       // eCozy thermostat
                                     i->modelId() == QLatin1String("Motion Sensor-A") ||  // Osram motion sensor
-                                    i->modelId().contains(QLatin1String("86opcn01")) ||  // Aqara Opple
+                                    i->modelId().endsWith(QLatin1String("86opcn01")) ||  // Aqara Opple
                                     i->modelId().contains(QLatin1String("SMSZB-120")) || // Develco smoke sensor
                                     i->modelId().contains(QLatin1String("HESZB-120")) || // Develco heat sensor
                                     i->modelId().contains(QLatin1String("MOSZB-130")) || // Develco motion sensor
@@ -14353,7 +14353,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 }
             }
         }
-        else if (sensor->modelId().contains(QLatin1String("86opcn01")))  // Aqara Opple
+        else if (sensor->modelId().endsWith(QLatin1String("86opcn01")))  // Aqara Opple
         {
              // send the magic word to the Aqara Opple switch
              deCONZ::ZclAttribute attr(0x0009, deCONZ::Zcl8BitUint, "mode", deCONZ::ZclReadWrite, false);
