@@ -1205,7 +1205,7 @@ const Sensor::ButtonMap *Sensor::buttonMap()
             if      (modelid == QLatin1String("lumi.sensor_switch"))      { m_buttonMap = xiaomiSwitchMap; }
             else if (modelid == QLatin1String("lumi.sensor_switch.aq2"))  { m_buttonMap = xiaomiSwitchAq2Map; }
             else if (modelid.startsWith(QLatin1String("lumi.vibration"))) { m_buttonMap = xiaomiVibrationMap; }
-            else if (modelid.contains(QLatin1String("86opcn01")))  { m_buttonMap = aqaraOpple6Map; }
+            else if (modelid.endsWith(QLatin1String("86opcn01")))  { m_buttonMap = aqaraOpple6Map; }
         }
         else if (manufacturer == QLatin1String("Lutron"))
         {
