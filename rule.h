@@ -191,6 +191,7 @@ public:
     void setValue(const QVariant &value);
     bool operator==(const RuleCondition &other) const;
 
+    bool isValid() const { return m_op != OpUnknown; }
     Operator op() const;
     const QString id() const;
     int numericValue() const;
@@ -200,6 +201,8 @@ public:
     bool weekDayEnabled(const int day) const;
     const char *resource() const;
     const char *suffix() const;
+    const char *valueResource() const;
+    const char *valueSuffix() const;
 
 private:
     QString m_address;
@@ -207,12 +210,14 @@ private:
     QVariant m_value;
 
     // internal calculated values for faster access
-    const char *m_prefix;
-    const char *m_suffix;
+    const char *m_prefix = nullptr;
+    const char *m_suffix = nullptr;
+    const char *m_valuePrefix = nullptr;
+    const char *m_valueSuffix = nullptr;
     QString m_id;
-    Operator m_op;
-    int m_num;
-    quint8 m_weekDays;
+    Operator m_op = OpUnknown;
+    int m_num = 0;
+    quint8 m_weekDays = 127; // default all days enabled
     QTime m_time0;
     QTime m_time1;
 
