@@ -3274,7 +3274,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             sensor.addItem(DataTypeTime, RStateLocaltime);
         }
 
-        if (sensor.modelId().startsWith(QLatin1String("Z32"))) // Hue dimmer switch
+        if (sensor.modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
         {
             clusterId = VENDOR_CLUSTER_ID;
             endpoint = 2;
