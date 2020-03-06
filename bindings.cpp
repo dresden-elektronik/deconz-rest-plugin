@@ -1880,7 +1880,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Trust ZMST-808
         sensor->modelId().startsWith(QLatin1String("CSW_ADUROLIGHT")) ||
         // iCasa
-        sensor->modelId() == QLatin1String("ICZB-RM") ||
+        sensor->modelId().startsWith(QLatin1String("ICZB-RM")) ||
         // innr
         sensor->modelId() == QLatin1String("SP 120") ||
         sensor->modelId().startsWith(QLatin1String("RC 110")) ||
@@ -2436,14 +2436,23 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);
-        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+        gids.removeFirst(); // Remote doesn't support bindings on first endpoint.
+        srcEndpoints.push_back(0x03);
+        srcEndpoints.push_back(0x04);
+        srcEndpoints.push_back(0x05);
+        srcEndpoints.push_back(0x06);
+        srcEndpoints.push_back(0x07);
+        srcEndpoints.push_back(0x08);
     }
     else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM")))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);
         clusters.push_back(SCENE_CLUSTER_ID);
-        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+        srcEndpoints.push_back(0x01);
+        srcEndpoints.push_back(0x02);
+        srcEndpoints.push_back(0x03);
+        srcEndpoints.push_back(0x04);
     }
     else if (sensor->modelId().startsWith(QLatin1String("D1")))
     {
@@ -2627,8 +2636,7 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
         sensor->modelId().startsWith(QLatin1String("TRADFRI remote control")) ||
         sensor->modelId().startsWith(QLatin1String("TRADFRI wireless dimmer")) ||
         sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
-        sensor->modelId().startsWith(QLatin1String("902010/23")) || // bitron remote
-        sensor->modelId().startsWith(QLatin1String("RC 110"))) // innr remote
+        sensor->modelId().startsWith(QLatin1String("902010/23"))) // bitron remote
     {
 
     }
@@ -2684,7 +2692,7 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
     }
     else if (!group && item->lastSet().isValid())
     {
-        const QString &gid = item->toString();
+        const QString &gid = item->toString(); //FIXME: handle list of groups
 
         std::vector<Group>::iterator i = groups.begin();
         std::vector<Group>::iterator end = groups.end();
@@ -2728,9 +2736,9 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
 
     }
 
-    if (item->toString() != group->id())
+    if (item->toString() != group->id()) // FIXME: handle list of groups
     {
-        item->setValue(group->id());
+        item->setValue(group->id()); // FIXME: handle list of groups
         sensor->setNeedSaveDatabase(true);
         queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
         Event e(RSensors, RConfigGroup, sensor->id(), item);
@@ -2753,7 +2761,7 @@ void DeRestPluginPrivate::checkOldSensorGroups(Sensor *sensor)
         return;
     }
 
-    const QString &gid = item->toString();
+    QStringList gids = item->toString().split(',', QString::SkipEmptyParts);
 
     {
         std::vector<Group>::iterator i = groups.begin();
@@ -2761,7 +2769,7 @@ void DeRestPluginPrivate::checkOldSensorGroups(Sensor *sensor)
 
         for (; i != end; ++i)
         {
-            if (gid == i->id()) // current group
+            if (gids.contains(i->id())) // current group
             {
                 if (i->state() != Group::StateNormal)
                 {
