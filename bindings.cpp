@@ -2337,11 +2337,16 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     std::vector<quint16> clusters;
 
     if (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
-        sensor->modelId().startsWith(QLatin1String("ROM00")) || // Hue smart button
-        sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora FoH dimmer switch
+        sensor->modelId().startsWith(QLatin1String("ROM00"))) // Hue smart button
+
     {
         srcEndpoints.push_back(0x01);
         clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+    }
+    else if (sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora FoH dimmer switch
+    {
+        srcEndpoints.push_back(0x01);
         clusters.push_back(LEVEL_CLUSTER_ID);
     }
     // Busch-Jaeger
