@@ -527,6 +527,15 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         return REQ_READY_SEND;
     }
 
+    if (taskRef.lightNode->type() == QLatin1String("Window covering device"))
+    {
+        return setWindowCoveringState(req, rsp, taskRef, map);
+    }
+    else if (taskRef.lightNode->type() == QLatin1String("Warning device"))
+    {
+        return setWarningDeviceState(req, rsp, taskRef, map);
+    }
+
     // TODO: check for valid attributes in body
     bool isOn = false;
     bool hasOn = map.contains("on");
@@ -573,9 +582,6 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
-    // FIXME temporary workaround to support window_covering
-    bool isWindowCoveringDevice = taskRef.lightNode->type() == QLatin1String("Window covering device");
-
     // on/off
     if (hasOn)
     {
@@ -593,19 +599,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
             TaskItem task;
             copyTaskReq(taskRef, task);
-            //FIXME workaround window_convering
-            // FIXME handle lumi.curtain.hagl04
-            if (isWindowCoveringDevice
-            		&& addTaskWindowCovering(task, isOn ? 0x01 /*down*/ : 0x00 /*up*/, 0, 0))
-            {
-                QVariantMap rspItem;
-                QVariantMap rspItemState;
-                rspItemState[QString("/lights/%1/state/on").arg(id)] = isOn;
-                rspItem["success"] = rspItemState;
-                rsp.list.append(rspItem);
-                taskToLocalData(task);
-            } // FIXME end workaround window_covering
-            else if (isOn && taskRef.onTime > 0 && addTaskSetOnOff(task, ONOFF_COMMAND_ON_WITH_TIMED_OFF, taskRef.onTime))
+            if (isOn && taskRef.onTime > 0 && addTaskSetOnOff(task, ONOFF_COMMAND_ON_WITH_TIMED_OFF, taskRef.onTime))
             {
                 QVariantMap rspItem;
                 QVariantMap rspItemState;
@@ -676,108 +670,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             }
         }
 
-        //FIXME workaround window_covering
-        if (isWindowCoveringDevice)
-        {
-          	if ((map["bri"].type() == QVariant::String) && map["bri"].toString() == "stop")
-          	{
-            		TaskItem task;
-            		copyTaskReq(taskRef, task);
-            		if (addTaskWindowCovering(task, 0x02 /*stop motion*/, 0, 0))
-            		{
-              			QVariantMap rspItem;
-              			QVariantMap rspItemState;
-              			rspItemState[QString("/groups/%1/action/bri").arg(id)] = map["bri"];
-              			rspItem["success"] = rspItemState;
-              			rsp.list.append(rspItem);
-              			taskToLocalData(task);
-            		}
-            		else
-            		{
-              			rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
-            		}
-          	}
-          	else if (ok && (map["bri"].type() == QVariant::Double) && (bri < 256))
-          	{
-                bool ok = false;
-            		TaskItem task;
-            		copyTaskReq(taskRef, task);
-            		uint8_t moveToPct = 0x00;
-            		moveToPct = bri * 100 / 254;  // Percent 0 - 100 (0x00 - 0x64)
-                if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain")) )
-                {
-                    moveToPct = 100 - moveToPct;
-                }
-                if (taskRef.lightNode->modelId() == QLatin1String("Shutter switch with neutral"))
-                {
-                    // Legrand invert bri and don't support other value than 0
-                    moveToPct = (bri == 0) ? 254 : 0;
-                }
-                if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain"))) // FIXME - used for testing.
-                // if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain.hagl04")))
-                {
-                    float value = moveToPct;
-                    TaskItem task;
-                    copyTaskReq(taskRef, task);
-
-                    // FIXME: The following low-level code is needed because ZclAttribute is broken for ZclSingleFloat.
-
-                    task.taskType = TaskWriteAttribute;
-
-                    task.req.setClusterId(ANALOG_OUTPUT_CLUSTER_ID);
-                    task.req.setProfileId(HA_PROFILE_ID);
-                    task.zclFrame.setSequenceNumber(zclSeq++);
-                    task.zclFrame.setCommandId(deCONZ::ZclWriteAttributesId);
-                    task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
-                                                  deCONZ::ZclFCDirectionClientToServer |
-                                                  deCONZ::ZclFCDisableDefaultResponse);
-
-                    DBG_Printf(DBG_INFO, "write attribute of 0x%016llX ep: 0x%02X cluster: 0x%04X: 0x%04X\n", taskRef.lightNode->address().ext(), taskRef.lightNode->haEndpoint().endpoint(), ANALOG_OUTPUT_CLUSTER_ID, 0x0055);
-
-                    { // payload
-                        QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
-                        stream.setByteOrder(QDataStream::LittleEndian);
-                        stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
-
-                        stream << (quint16) 0x0055;
-                        stream << (quint8) deCONZ::ZclSingleFloat;
-                        stream << value;
-                    }
-
-                    { // ZCL frame
-                        QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
-                        stream.setByteOrder(QDataStream::LittleEndian);
-                        task.zclFrame.writeToStream(stream);
-                    }
-
-                    ok = addTask(task);
-
-                    // FIXME: Use following code once ZclAttribute has been fixed.
-
-                    // deCONZ::ZclAttribute attr(0x0055, deCONZ::ZclSingleFloat, "value", deCONZ::ZclReadWrite, true);
-                    // attr.setValue(QVariant(value));
-                    // ok = writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), ANALOG_OUTPUT_CLUSTER_ID, attr);
-                }
-            		else
-            		{
-                    ok = addTaskWindowCovering(task, 0x05 /*move to Lift Percent*/, 0, moveToPct);
-            		}
-                if (ok)
-                {
-                    QVariantMap rspItem;
-                    QVariantMap rspItemState;
-                    rspItemState[QString("/lights/%1/state/bri").arg(id)] = map["bri"];
-                    rspItem["success"] = rspItemState;
-                    rsp.list.append(rspItem);
-                    taskToLocalData(task);
-                }
-            		else
-            		{
-              			rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
-            		}
-          	}
-        } // FIXME end workaround window_covering
-        else if (!isOn && !hasOn)
+        if (!isOn && !hasOn)
         {
             rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1").arg(id), QString("parameter, /lights/%1/bri, is not modifiable. Device is set to off.").arg(id)));
         }
@@ -988,30 +881,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     {
         uint sat2 = map["sat"].toUInt(&ok);
 
-        //FIXME workaround window_covering
-        if (isWindowCoveringDevice)
-        {
-        	if (ok && (map["sat"].type() == QVariant::Double) && (sat2 < 256))
-        	{
-        		TaskItem task;
-        		copyTaskReq(taskRef, task);
-        		uint8_t moveToPct = 0x00;
-        		moveToPct = sat2 * 100 / 254;  // Percent 0 - 100 (0x00 - 0x64)
-        		if (addTaskWindowCovering(task, 0x08 /*move to Tilt Percent*/, 0, moveToPct))
-        		{
-        			QVariantMap rspItem;
-        			QVariantMap rspItemState;
-        			rspItemState[QString("/lights/%1/state/sat").arg(id)] = map["sat"];
-        			rspItem["success"] = rspItemState;
-        			rsp.list.append(rspItem);
-        		}
-        		else
-        		{
-        			rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
-        		}
-        	}
-        } //FIXME workaround window_covering
-        else if (!isOn)
+        if (!isOn)
         {
             rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1").arg(id), QString("parameter, /lights/%1/sat, is not modifiable. Device is set to off.").arg(id)));
         }
@@ -1167,29 +1037,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         {
             rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("parameter, /lights/%1/bri_inc, is not available.").arg(id)));
         }
-        //FIXME workaround window_covering
-        else if (isWindowCoveringDevice)
-        {
-            if (ok && (map["bri_inc"].type() == QVariant::Double) && (briInc == 0))
-        	{
-        		TaskItem task;
-        		copyTaskReq(taskRef, task);
-        		if (addTaskWindowCovering(task, 0x02 /*stop motion*/, 0, 0))
-        		{
-        			QVariantMap rspItem;
-        			QVariantMap rspItemState;
-        			rspItemState[QString("/lights/%1/state/bri").arg(id)] = item->toNumber();
-        			rspItem["success"] = rspItemState;
-        			rsp.list.append(rspItem);
-        			taskToLocalData(task);
-        		}
-        		else
-        		{
-        			rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
-        		}
-        	}
-        } // FIXME end workaround window_covering
-        else if (!isOn)
+        if (!isOn)
         {
             rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1").arg(id), QString("parameter, /lights/%1/bri, is not modifiable. Device is set to off.").arg(id)));
         }
@@ -1363,97 +1211,48 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         TaskItem task;
         copyTaskReq(taskRef, task);
         QString alert = map["alert"].toString();
-        bool isWarningDevice = taskRef.lightNode->type() == QLatin1String("Warning device");
-
-        bool isSmokeDetector = false;
-        if (taskRef.lightNode->modelId() == QLatin1String("902010/24")  // Bitron Smoke Detector with siren
-                || taskRef.lightNode->modelId() == QLatin1String("SMSZB-120"))  // Develco smoke sensor
-        {
-            isSmokeDetector = true;
-            taskRef.lightNode->rx();  // otherwise device is marked as zombie and task is dropped
-        }
 
         if (alert == "none")
         {
-            if (isWarningDevice)
-            {
-                task.taskType = TaskWarning;
-                task.options = 0x00; // Warning mode 0 (no warning), No strobe
-                task.duration = 0;
-            }
-            else
-            {
-                task.taskType = TaskIdentify;
-                task.identifyTime = 0;
-            }
+            task.taskType = TaskIdentify;
+            task.identifyTime = 0;
         }
         else if (alert == "select")
         {
-            if (isWarningDevice)
-            {
-                task.taskType = TaskWarning;
-                task.options = isSmokeDetector
-                  ? 0x12  // Warning mode 2 (fire), Strobe
-                  : 0x14; // Warning mode 1 (burglar), Strobe
-                task.duration = 1;
-            }
-            else
-            {
-                task.taskType = TaskIdentify;
-                task.identifyTime = 2;    // Hue lights don't react to 1.
-            }
+            task.taskType = TaskIdentify;
+            task.identifyTime = 2;    // Hue lights don't react to 1.
         }
         else if (alert == "lselect")
         {
-            if (isWarningDevice)
-            {
-                task.taskType = TaskWarning;
-                task.options = isSmokeDetector
-                  ? 0x12  // Warning mode 2 (fire), Strobe
-                  : 0x14; // Warning mode 1 (burglar), Strobe
-                task.duration = taskRef.onTime > 0 ? taskRef.onTime : 300;
-            }
-            else
-            {
-                task.taskType = TaskIdentify;
-                task.identifyTime = taskRef.onTime > 0 ? taskRef.onTime : 15; // Default for Philips Hue bridge
-            }
+            task.taskType = TaskIdentify;
+            task.identifyTime = taskRef.onTime > 0 ? taskRef.onTime : 15; // Default for Philips Hue bridge
         }
         else if (alert == "blink")
         {
-            if (isWarningDevice)
-            {
-                task.taskType = TaskWarning;
-                task.options = 0x04; // Warning mode 0 (no warning), Strobe
-                task.duration = taskRef.onTime > 0 ? taskRef.onTime : 300;
-            }
-            else
-            {
-                task.taskType = TaskTriggerEffect;
-                task.effectIdentifier = 0x00;
-            }
+            task.taskType = TaskTriggerEffect;
+            task.effectIdentifier = 0x00;
         }
-        else if (alert == "breathe" && !isWarningDevice)
+        else if (alert == "breathe")
         {
             task.taskType = TaskTriggerEffect;
             task.effectIdentifier = 0x01;
         }
-        else if (alert == "okay" && !isWarningDevice)
+        else if (alert == "okay")
         {
             task.taskType = TaskTriggerEffect;
             task.effectIdentifier = 0x02;
         }
-        else if (alert == "channelchange" && !isWarningDevice)
+        else if (alert == "channelchange")
         {
             task.taskType = TaskTriggerEffect;
             task.effectIdentifier = 0x0b;
         }
-        else if (alert == "finish" && !isWarningDevice)
+        else if (alert == "finish")
         {
             task.taskType = TaskTriggerEffect;
             task.effectIdentifier = 0xfe;
         }
-        else if (alert == "stop" && !isWarningDevice)
+        else if (alert == "stop")
         {
             task.taskType = TaskTriggerEffect;
             task.effectIdentifier = 0xff;
@@ -1468,8 +1267,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         taskToLocalData(task);
 
         if ((task.taskType == TaskIdentify && addTaskIdentify(task, task.identifyTime)) ||
-            (task.taskType == TaskTriggerEffect && addTaskTriggerEffect(task, task.effectIdentifier)) ||
-            (task.taskType == TaskWarning && addTaskWarning(task, task.options, task.duration)))
+            (task.taskType == TaskTriggerEffect && addTaskTriggerEffect(task, task.effectIdentifier)))
         {
             QVariantMap rspItem;
             QVariantMap rspItemState;
@@ -1487,6 +1285,394 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     {
         updateLightEtag(taskRef.lightNode);
         rsp.etag = taskRef.lightNode->etag;
+    }
+
+    processTasks();
+
+    return REQ_READY_SEND;
+}
+
+/*! PUT, PATCH /api/<apikey>/lights/<id>/state for Window covering "lights".
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map)
+{
+    QString id = req.path[3];
+    quint16 cluster = WINDOW_COVERING_CLUSTER_ID;
+    // if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain"))) // FIXME - for testing only.
+    if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain.hagl04")))
+    {
+        cluster = ANALOG_OUTPUT_CLUSTER_ID;
+    }
+
+    bool hasOn = false;
+    bool hasBri = false;
+    bool hasStop = false;
+    bool targetOn = false;
+    quint8 targetLiftPct = 0xFF;
+    quint8 targetTiltPct = 0xFF;
+
+    // Check parameters.
+    QVariantMap::const_iterator k = map.begin();
+    QVariantMap::const_iterator kend = map.end();
+    for (; k != kend; ++k)
+    {
+        QString param = k.key();
+        if (param == "on" && taskRef.lightNode->item(RStateOn))
+        {
+            if (map["on"].type() == QVariant::Bool)
+            {
+                if (cluster == ANALOG_OUTPUT_CLUSTER_ID)
+                {
+                    targetLiftPct = map["on"].toBool() ? 254 : 0;
+                }
+                else
+                {
+                    hasOn = true;
+                    targetOn = map["on"].toBool();
+                }
+            }
+            else
+            {
+                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/state/%2").arg(id).arg(param), QString("invalid value, %1, for parameter, %2").arg(map[param].toString()).arg(param)));
+                rsp.httpStatus = HttpStatusBadRequest;
+                return REQ_READY_SEND;
+            }
+        }
+        else if (param == "bri" && taskRef.lightNode->item(RStateBri))
+        {
+            bool ok = false;
+
+            if (map[param].type() == QVariant::String && map[param].toString() == "stop" && cluster != ANALOG_OUTPUT_CLUSTER_ID)
+            {
+                hasStop = true;
+                ok = true;
+            }
+            else if (map[param].type() == QVariant::Double)
+            {
+                const int bri = map[param].toInt();
+                if (bri >= 0 && bri <= 255)
+                {
+                    hasBri = true;
+                    targetLiftPct = bri * 100 / 254;
+                    ok = true;
+                }
+            }
+            if (!ok)
+            {
+                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/state/%2").arg(id).arg(param), QString("invalid value, %1, for parameter, %2").arg(map[param].toString()).arg(param)));
+                rsp.httpStatus = HttpStatusBadRequest;
+                return REQ_READY_SEND;
+            }
+        }
+        else if (param == "bri_inc" && taskRef.lightNode->item(RStateBri) && cluster != ANALOG_OUTPUT_CLUSTER_ID)
+        {
+            if (map[param].type() == QVariant::Double && map[param].toInt() == 0)
+            {
+                hasStop = true;
+            }
+            else
+            {
+                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/state/%2").arg(id).arg(param), QString("invalid value, %1, for parameter, %2").arg(map[param].toString()).arg(param)));
+                rsp.httpStatus = HttpStatusBadRequest;
+                return REQ_READY_SEND;
+            }
+        }
+        else if (param == "sat" && taskRef.lightNode->item(RStateSat))
+        {
+            bool ok = false;
+
+            if (map[param].type() == QVariant::Double)
+            {
+                const int sat = map[param].toInt();
+                if (sat >= 0 && sat <= 255)
+                {
+                    targetTiltPct = sat * 100 / 254;
+                    ok = true;
+                }
+            }
+            if (!ok)
+            {
+                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/state/%2").arg(id).arg(param), QString("invalid value, %1, for parameter, %2").arg(map[param].toString()).arg(param)));
+                rsp.httpStatus = HttpStatusBadRequest;
+                return REQ_READY_SEND;
+            }
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state/%2").arg(id).arg(param), QString("parameter, %1, not available").arg(param)));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+    }
+
+    if (hasOn && targetOn && targetLiftPct == 0)
+    {
+        // handle {"on": true, "bri": 0}
+        targetLiftPct = 1;
+    }
+
+    // Some devices invert LiftPct.
+    if (targetLiftPct != 0xFF)
+    {
+        if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain")))
+        {
+            targetLiftPct = 100 - targetLiftPct;
+        }
+        else if (taskRef.lightNode->modelId() == QLatin1String("Shutter switch with neutral"))
+        {
+            // Legrand invert bri and don't support other value than 0
+            targetLiftPct = targetLiftPct == 0 ? 254 : 0;
+        }
+    }
+
+    // Send command(s) to device.  Stop trumps LiftPct trumps Open/Close.
+    if (hasStop)
+    {
+        TaskItem task;
+        copyTaskReq(taskRef, task);
+
+        if (addTaskWindowCovering(task, WINDOW_COVERING_COMMAND_STOP, 0, 0))
+        {
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/state/bri_inc").arg(id)] = 0;
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+            // Rely on attribute reporting to update the light state.
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+        }
+    }
+    else if (targetLiftPct != 0xFF)
+    {
+        bool ok;
+        TaskItem task;
+        copyTaskReq(taskRef, task);
+
+        if (cluster == ANALOG_OUTPUT_CLUSTER_ID)
+        {
+            const quint16 attr = 0x0055; // Present value;
+            const quint8 type = deCONZ::ZclSingleFloat;
+            float value = targetLiftPct;
+
+            // FIXME: The following low-level code is needed because ZclAttribute is broken for ZclSingleFloat.
+
+            task.taskType = TaskWriteAttribute;
+
+            task.req.setClusterId(cluster);
+            task.req.setProfileId(HA_PROFILE_ID);
+            task.zclFrame.setSequenceNumber(zclSeq++);
+            task.zclFrame.setCommandId(deCONZ::ZclWriteAttributesId);
+            task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                                          deCONZ::ZclFCDirectionClientToServer |
+                                          deCONZ::ZclFCDisableDefaultResponse);
+
+            DBG_Printf(DBG_INFO, "write attribute of 0x%016llX ep: 0x%02X cluster: 0x%04X: 0x%04X\n", taskRef.lightNode->address().ext(), taskRef.lightNode->haEndpoint().endpoint(), cluster, attr);
+
+            { // payload
+                QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
+                stream.setByteOrder(QDataStream::LittleEndian);
+                stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
+
+                stream << attr;
+                stream << type;
+                stream << value;
+            }
+
+            { // ZCL frame
+                QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
+                stream.setByteOrder(QDataStream::LittleEndian);
+                task.zclFrame.writeToStream(stream);
+            }
+
+            ok = addTask(task);
+
+            // FIXME: Use following code once ZclAttribute has been fixed.
+
+            // deCONZ::ZclAttribute attr(attr, type, "value", deCONZ::ZclReadWrite, true);
+            // attr.setValue(QVariant(value));
+            // ok = writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), cluster, attr);
+        }
+        else
+        {
+            ok = addTaskWindowCovering(task, WINDOW_COVERING_COMMAND_GOTO_LIFT_PCT, 0, targetLiftPct);
+        }
+        if (ok)
+        {
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/state/bri").arg(id)] = hasBri ? map["bri"] : targetOn ? 254 : 0;
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+            // Rely on attribute reporting to update the light state.
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+        }
+    }
+    else if (hasOn)
+    {
+        TaskItem task;
+        copyTaskReq(taskRef, task);
+
+        if (addTaskWindowCovering(task, targetOn ? WINDOW_COVERING_COMMAND_CLOSE : WINDOW_COVERING_COMMAND_OPEN, 0, 0))
+        {
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/state/on").arg(id)] = map["on"];
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+            // Rely on attribute reporting to update the light state.
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+        }
+    }
+
+    // Handle TiltPct independent from Stop - LiftPct - Open/Close.
+    if (targetTiltPct != 0xFF)
+    {
+        TaskItem task;
+        copyTaskReq(taskRef, task);
+
+        if (addTaskWindowCovering(task, WINDOW_COVERING_COMMAND_GOTO_TILT_PCT, 0, targetTiltPct))
+        {
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/state/sat").arg(id)] = map["sat"];
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+            // Rely on attribute reporting to update the light state.
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+        }
+    }
+
+    processTasks();
+
+    return REQ_READY_SEND;
+}
+
+/*! PUT, PATCH /api/<apikey>/lights/<id>/state for Warning device "lights".
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map)
+{
+    QString id = req.path[3];
+    QString alert;
+    quint16 onTime = 0;
+    static const QStringList alertList({ "none", "select", "lselect", "blink" });
+
+    // Check parameters.
+    QVariantMap::const_iterator k = map.begin();
+    QVariantMap::const_iterator kend = map.end();
+    for (; k != kend; ++k)
+    {
+        QString param = k.key();
+
+        if (param == "alert" && taskRef.lightNode->item(RStateAlert))
+        {
+            bool ok = false;
+            if (map[param].type() == QVariant::String)
+            {
+                alert = map[param].toString();
+                ok = alertList.contains(alert);
+            }
+            if (!ok)
+            {
+                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/state/%2").arg(id).arg(param), QString("invalid value, %1, for parameter, %2").arg(map[param].toString()).arg(param)));
+                rsp.httpStatus = HttpStatusBadRequest;
+                return REQ_READY_SEND;
+            }
+        }
+        else if (param == "ontime")
+        {
+            bool ok = false;
+
+            if (map[param].type() == QVariant::Double)
+            {
+                const uint ot = map[param].toUInt(&ok);
+                if (ok && ot > 0 && ot < 0xFFFF) {
+                    onTime = ot;
+                }
+                else
+                {
+                    ok = false;
+                }
+            }
+            if (!ok)
+            {
+                rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/state/%2").arg(id).arg(param), QString("invalid value, %1, for parameter, %2").arg(map[param].toString()).arg(param)));
+                rsp.httpStatus = HttpStatusBadRequest;
+                return REQ_READY_SEND;
+            }
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state/%2").arg(id).arg(param), QString("parameter, %1, not available").arg(param)));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+    }
+
+    bool isSmokeDetector = false;
+    if (taskRef.lightNode->modelId() == QLatin1String("902010/24") || // Bitron Smoke Detector with siren
+        taskRef.lightNode->modelId() == QLatin1String("SMSZB-120")) // Develco smoke sensor
+    {
+        isSmokeDetector = true;
+        taskRef.lightNode->rx(); // otherwise device is marked as zombie and task is dropped
+    }
+
+    TaskItem task;
+    copyTaskReq(taskRef, task);
+    task.taskType = TaskWarning;
+
+    if (alert == "none")
+    {
+        task.options = 0x00; // Warning mode 0 (no warning), No strobe
+        task.duration = 0;
+    }
+    else if (alert == "select")
+    {
+        task.options = isSmokeDetector
+          ? 0x12  // Warning mode 2 (fire), Strobe
+          : 0x14; // Warning mode 1 (burglar), Strobe
+        task.duration = 1;
+    }
+    else if (alert == "lselect")
+    {
+        task.options = isSmokeDetector
+          ? 0x12  // Warning mode 2 (fire), Strobe
+          : 0x14; // Warning mode 1 (burglar), Strobe
+        task.duration = onTime > 0 ? onTime : 300;
+    }
+    else if (alert == "blink")
+    {
+        task.options = 0x04; // Warning mode 0 (no warning), Strobe
+        task.duration = onTime > 0 ? onTime : 300;
+    }
+
+    if (addTaskWarning(task, task.options, task.duration))
+    {
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState[QString("/lights/%1/state/alert").arg(id)] = alert;
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+        // Don't update write-only state.alert.
+    }
+    else
+    {
+        rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
     }
 
     processTasks();
