@@ -1846,6 +1846,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("Motion Sensor-A")) ||
         sensor->modelId().startsWith(QLatin1String("332")) ||
         sensor->modelId().startsWith(QLatin1String("3200-S")) ||
+        sensor->modelId().startsWith(QLatin1String("3305-S")) ||
         // dresden elektronik
         (sensor->manufacturer() == QLatin1String("dresden elektronik") && sensor->modelId() == QLatin1String("de_spect")) ||
         // GE
@@ -1887,10 +1888,15 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("CO_")) ||
         sensor->modelId().startsWith(QLatin1String("DOOR_")) ||
         sensor->modelId().startsWith(QLatin1String("PIR_")) ||
-        sensor->modelId().startsWith(QLatin1String("GAS_")) ||
+        sensor->modelId().startsWith(QLatin1String("GAS")) ||
         sensor->modelId().startsWith(QLatin1String("TH-")) ||
         sensor->modelId().startsWith(QLatin1String("SMOK_")) ||
         sensor->modelId().startsWith(QLatin1String("WATER_")) ||
+        sensor->modelId().startsWith(QLatin1String("Smoke")) ||
+        sensor->modelId().startsWith(QLatin1String("COSensor")) ||
+        sensor->modelId().startsWith(QLatin1String("Water")) ||
+        sensor->modelId().startsWith(QLatin1String("Door")) ||
+        sensor->modelId().startsWith(QLatin1String("WarningDevice")) ||
         sensor->modelId().startsWith(QLatin1String("SKHMP30")) || // GS smart plug
         // Konke
         sensor->modelId() == QLatin1String("3AFE140103020000") ||

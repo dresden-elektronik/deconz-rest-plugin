@@ -1326,8 +1326,11 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         bool isWarningDevice = taskRef.lightNode->type() == QLatin1String("Warning device");
 
         bool isSmokeDetector = false;
-        if (taskRef.lightNode->modelId() == QLatin1String("902010/24")  // Bitron Smoke Detector with siren
-                || taskRef.lightNode->modelId() == QLatin1String("SMSZB-120"))  // Develco smoke sensor
+        // For simplicity, pretend all mentioned Develco devices are smoke sensors
+        if (taskRef.lightNode->modelId() == QLatin1String("902010/24") || // Bitron Smoke Detector with siren
+            taskRef.lightNode->modelId() == QLatin1String("SMSZB-120") || // Develco smoke sensor with siren
+            taskRef.lightNode->modelId() == QLatin1String("HESZB-120") || // Develco heat sensor with siren
+            taskRef.lightNode->modelId() == QLatin1String("FLSZB-110"))   // Develco water leak sensor with siren
         {
             isSmokeDetector = true;
             taskRef.lightNode->rx();  // otherwise device is marked as zombie and task is dropped
