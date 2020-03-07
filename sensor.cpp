@@ -383,6 +383,7 @@ static const Sensor::ButtonMap lutronLZL4BWHLSwitchMap[] = {
 };
 
 static const Sensor::ButtonMap lutronAuroraMap[] = {
+    // Use buttonMap until we can figure out how to activate the 0xFC00 cluster.
 //    mode                          ep    cluster cmd   param button                                       name
     // Special encoding of param handled in code.
     { Sensor::ModeScenes,           0x01, 0x0008, 0x04, 0x00,  S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Toggle" },

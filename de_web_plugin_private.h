@@ -217,6 +217,12 @@
 #define SCENE_COMMAND_IKEA_STEP_CT 0x07
 #define SCENE_COMMAND_IKEA_MOVE_CT 0x08
 #define SCENE_COMMAND_IKEA_STOP_CT 0x09
+#define WINDOW_COVERING_COMMAND_OPEN          0x00
+#define WINDOW_COVERING_COMMAND_CLOSE         0x01
+#define WINDOW_COVERING_COMMAND_STOP          0x02
+#define WINDOW_COVERING_COMMAND_GOTO_LIFT_PCT 0x05
+#define WINDOW_COVERING_COMMAND_GOTO_TILT_PCT 0x08
+
 
 // IAS Zone Types
 #define IAS_ZONE_TYPE_STANDARD_CIE            0x0000
@@ -922,6 +928,8 @@ public:
     int getLightData(const ApiRequest &req, ApiResponse &rsp);
     int getLightState(const ApiRequest &req, ApiResponse &rsp);
     int setLightState(const ApiRequest &req, ApiResponse &rsp);
+    int setWindowCoveringState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
+    int setWarningDeviceState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
     int setLightAttributes(const ApiRequest &req, ApiResponse &rsp);
     int deleteLight(const ApiRequest &req, ApiResponse &rsp);
     int removeAllScenes(const ApiRequest &req, ApiResponse &rsp);
