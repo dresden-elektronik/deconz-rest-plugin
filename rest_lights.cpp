@@ -961,6 +961,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         {
             rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, xy, is not modifiable. Device is set to off.")));
         }
+        else if (taskRef.lightNode->isColorLoopActive())
+        {
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIEABLE, QString("/lights/%1/state").arg(id), QString("parameter, xy, is not modifiable. Colorloop is active.")));
+        }
         else if (addTaskSetXyColor(task, targetX, targetY))
         {
             QVariantMap rspItem;
@@ -984,6 +988,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         {
             rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, ct, is not modifiable. Device is set to off.")));
         }
+        else if (taskRef.lightNode->isColorLoopActive())
+        {
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIEABLE, QString("/lights/%1/state").arg(id), QString("parameter, ct, is not modifiable. Colorloop is active.")));
+        }
         else if (addTaskSetColorTemperature(task, targetCt))
         {
             QVariantMap rspItem;
@@ -1006,6 +1014,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         if (!isOn)
         {
             rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, ct_inc, is not modifiable. Device is set to off.")));
+        }
+        else if (taskRef.lightNode->isColorLoopActive())
+        {
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIEABLE, QString("/lights/%1/state").arg(id), QString("parameter, ct_inc, is not modifiable. Colorloop is active.")));
         }
         else if (addTaskIncColorTemperature(task, targetCtInc))
         {
@@ -1037,6 +1049,18 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, sat, is not modifiable. Device is set to off.")));
             }
         }
+        else if (taskRef.lightNode->isColorLoopActive())
+        {
+            if (hasHue)
+            {
+                rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIEABLE, QString("/lights/%1/state").arg(id), QString("parameter, hue, is not modifiable. Colorloop is active.")));
+            }
+            if (hasSat)
+            {
+                rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIEABLE, QString("/lights/%1/state").arg(id), QString("parameter, sat, is not modifiable. Colorloop is active.")));
+            }
+        }
+
         else if (!hasSat) // only state.hue
         {
             ok = addTaskSetEnhancedHue(task, targetHue);
