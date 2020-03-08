@@ -2855,6 +2855,10 @@ Fil pilote > Off=0001 - On=0002</description>
 		<device id="0x0001" name="Configuration Tool" description="" icon="dev-configuration-tool.png"></device>
 	</profile>
 
+	<profile id="0xc0c9" name="Develco Private Profile" description="Profile used by dresden elektronik." version="1.0" rev="15" icon="dev-unknown.svg">
+		<device id="0x0001" name="Develco Utility" description="Private profile for internal Develco Products use only."></device>
+	</profile>
+
 	<devices>
 		<!-- Generic -->
 		<device id="0x0000" name="On/Off Switch" description="" icon="dev-on-off-switch.png">
