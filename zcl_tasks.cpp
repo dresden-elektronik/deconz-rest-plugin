@@ -797,13 +797,18 @@ bool DeRestPluginPrivate::addTaskSetColorLoop(TaskItem &task, bool colorLoopActi
     task.colorLoop = colorLoopActive;
     task.taskType = TaskSetColorLoop;
 
-    if (task.lightNode && colorLoopActive)
+    if (task.lightNode)
     {
-        if (task.lightNode->colorMode() != QLatin1String("hs"))
+        task.lightNode->setColorLoopActive(colorLoopActive);
+        task.lightNode->setColorLoopSpeed(speed);
+        if (colorLoopActive)
         {
-            task.lightNode->setColorMode(QLatin1String("hs"));
-            Event e(RLights, RStateColorMode, task.lightNode->id());
-            enqueueEvent(e);
+            if (task.lightNode->colorMode() != QLatin1String("xy"))
+            {
+                task.lightNode->setColorMode(QLatin1String("xy"));
+                Event e(RLights, RStateColorMode, task.lightNode->id());
+                enqueueEvent(e);
+            }
         }
     }
 
