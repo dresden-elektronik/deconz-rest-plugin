@@ -10633,7 +10633,8 @@ bool DeRestPluginPrivate::addTask(const TaskItem &task)
     std::list<TaskItem>::iterator i = tasks.begin();
     std::list<TaskItem>::iterator end = tasks.end();
 
-    if ((task.taskType != TaskGetSceneMembership) &&
+    if ((task.taskType != TaskSetLevel) &&
+        (task.taskType != TaskGetSceneMembership) &&
         (task.taskType != TaskGetGroupMembership) &&
         (task.taskType != TaskGetGroupIdentifiers) &&
         (task.taskType != TaskStoreScene) &&
@@ -10657,7 +10658,7 @@ bool DeRestPluginPrivate::addTask(const TaskItem &task)
                     (i->req.asdu().size() ==  task.req.asdu().size()))
 
                 {
-                    DBG_Printf(DBG_INFO, "Replace task %d type %d in queue cluster 0x%04X with newer task of same type. %u runnig tasks\n", task.taskId, task.taskType, task.req.clusterId(), runningTasks.size());
+                    DBG_Printf(DBG_INFO, "Replace task %d type %d in queue cluster 0x%04X with newer task %d of same type. %u runnig tasks\n", i->taskId, task.taskType, task.req.clusterId(), task.taskId, runningTasks.size());
                     *i = task;
                     return true;
                 }
