@@ -96,8 +96,8 @@ bool DeRestPluginPrivate::addTaskMoveLevel(TaskItem &task, bool withOnOff, bool 
  */
 bool DeRestPluginPrivate::addTaskSetOnOff(TaskItem &task, quint8 cmd, quint16 ontime, quint8 flags)
 {
-    DBG_Assert(cmd == ONOFF_COMMAND_ON || cmd == ONOFF_COMMAND_OFF || cmd == ONOFF_COMMAND_TOGGLE || cmd == ONOFF_COMMAND_ON_WITH_TIMED_OFF);
-    if (!(cmd == ONOFF_COMMAND_ON || cmd == ONOFF_COMMAND_OFF || cmd == ONOFF_COMMAND_TOGGLE || cmd == ONOFF_COMMAND_ON_WITH_TIMED_OFF))
+    DBG_Assert(cmd == ONOFF_COMMAND_ON || cmd == ONOFF_COMMAND_OFF || cmd == ONOFF_COMMAND_TOGGLE || cmd == ONOFF_COMMAND_OFF_WITH_EFFECT || cmd == ONOFF_COMMAND_ON_WITH_TIMED_OFF);
+    if (!(cmd == ONOFF_COMMAND_ON || cmd == ONOFF_COMMAND_OFF || cmd == ONOFF_COMMAND_TOGGLE || cmd == ONOFF_COMMAND_OFF_WITH_EFFECT || cmd == ONOFF_COMMAND_ON_WITH_TIMED_OFF))
     {
         return false;
     }
@@ -114,7 +114,16 @@ bool DeRestPluginPrivate::addTaskSetOnOff(TaskItem &task, quint8 cmd, quint16 on
                              deCONZ::ZclFCDirectionClientToServer |
                              deCONZ::ZclFCDisableDefaultResponse);
 
-    if (cmd == ONOFF_COMMAND_ON_WITH_TIMED_OFF)
+    if (cmd == ONOFF_COMMAND_OFF_WITH_EFFECT)
+    {
+        const quint8 effect = 0;
+        const quint8 variant = 0;
+        QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        stream << effect;
+        stream << variant;
+    }
+    else if (cmd == ONOFF_COMMAND_ON_WITH_TIMED_OFF)
     {
         const quint16 offWaitTime = 0;
         QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
