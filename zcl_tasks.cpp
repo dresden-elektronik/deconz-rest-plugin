@@ -803,9 +803,9 @@ bool DeRestPluginPrivate::addTaskSetColorLoop(TaskItem &task, bool colorLoopActi
         task.lightNode->setColorLoopSpeed(speed);
         if (colorLoopActive)
         {
-            if (task.lightNode->colorMode() != QLatin1String("xy"))
+            if (task.lightNode->colorMode() != QLatin1String("hs"))
             {
-                task.lightNode->setColorMode(QLatin1String("xy"));
+                task.lightNode->setColorMode(QLatin1String("hs"));
                 Event e(RLights, RStateColorMode, task.lightNode->id());
                 enqueueEvent(e);
             }
