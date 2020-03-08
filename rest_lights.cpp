@@ -1243,16 +1243,17 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     {
         if (taskRef.lightNode->isColorLoopActive())
         {
-            taskRef.lightNode->setColorLoopSpeed(15);
-            taskRef.lightNode->setColorLoopActive(false);
+            TaskItem task;
+            copyTaskReq(taskRef, task);
+            addTaskSetColorLoop(task, false, colorloopSpeed);
         }
-
-        // send Off_with_effect(0, 0)
 
         TaskItem task;
         copyTaskReq(taskRef, task);
-
-        if (addTaskSetOnOff(task, ONOFF_COMMAND_OFF, 0, 0))
+        const quint8 cmd = taskRef.lightNode->manufacturerCode() == VENDOR_PHILIPS // FIXME: use light capabilities
+            ? ONOFF_COMMAND_OFF_WITH_EFFECT
+            : ONOFF_COMMAND_OFF;
+        if (addTaskSetOnOff(task, cmd, 0, 0))
         {
             QVariantMap rspItem;
             QVariantMap rspItemState;
