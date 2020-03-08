@@ -679,7 +679,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             if (ok && hue >= 0 && hue <= 65535)
             {
                 valueOk = true;
-                targetHue = hue == 65535 ? 65534 : hue;
+                targetHue = hue;
             }
         }
         else if (param == "sat" && taskRef.lightNode->item(RStateHue) && taskRef.lightNode->item(RStateSat))
@@ -709,7 +709,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         {
             paramOk = true;
             const int speed = map[param].toInt(&ok);
-            if (ok && speed > 0 && speed <= 255)
+            if (ok && speed > 0 && speed <= 65535)
             {
                 valueOk = true;
                 hasColorloopSpeed = true;
@@ -833,13 +833,13 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             : ONOFF_COMMAND_ON;
         if (addTaskSetOnOff(task, cmd, taskRef.onTime, 0))
         {
+            taskToLocalData(task);
+            isOn = true;
             QVariantMap rspItem;
             QVariantMap rspItemState;
             rspItemState[QString("/lights/%1/state/on").arg(id)] = true;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
-            taskToLocalData(task);
-            isOn = true;
         }
         else
         {
@@ -859,12 +859,12 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
         else if (addTaskSetBrightness(task, targetBri, false))
         {
+            taskToLocalData(task);
             QVariantMap rspItem;
             QVariantMap rspItemState;
-            rspItemState[QString("/lights/%1/state/bri").arg(id)] = targetBri;
+            rspItemState[QString("/lights/%1/state/bri").arg(id)] = taskRef.lightNode->item(RStateBri)->toNumber();
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
-            taskToLocalData(task);
         }
         else
         {
@@ -895,12 +895,12 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
         else if (addTaskIncBrightness(task, targetBriInc))
         {
+            taskToLocalData(task);
             QVariantMap rspItem;
             QVariantMap rspItemState;
-            rspItemState[QString("/lights/%1/state/bri_inc").arg(id)] = targetBriInc;
+            rspItemState[QString("/lights/%1/state/bri").arg(id)] = taskRef.lightNode->item(RStateBri)->toNumber();
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
-            taskToLocalData(task);
         }
         else
         {
@@ -914,7 +914,11 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         TaskItem task;
         copyTaskReq(taskRef, task);
 
-        if (addTaskSetColorLoop(task, false, colorloopSpeed))
+        if (!isOn)
+        {
+            rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, effect, is not modifiable. Device is set to off.")));
+        }
+        else if (addTaskSetColorLoop(task, false, colorloopSpeed))
         {
             QVariantMap rspItem;
             QVariantMap rspItemState;
@@ -987,12 +991,12 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
         else if (addTaskIncColorTemperature(task, targetCtInc))
         {
+            taskToLocalData(task);
             QVariantMap rspItem;
             QVariantMap rspItemState;
-            rspItemState[QString("/lights/%1/state/ct_inc").arg(id)] = targetCtInc;
+            rspItemState[QString("/lights/%1/state/ct").arg(id)] = taskRef.lightNode->item(RStateCt)->toNumber();
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
-            taskToLocalData(task);
         }
         else
         {
@@ -1006,10 +1010,16 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
         if (!isOn)
         {
-            rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, ct_inc, is not modifiable. Device is set to off.")));
+            if (targetHue != 0xFFFF)
+            {
+                rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, hue, is not modifiable. Device is set to off.")));
+            }
+            if (targetSat != 0xFF)
+            {
+                rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, sat, is not modifiable. Device is set to off.")));
+            }
         }
-
-        if (targetSat == 0xFF) // only state.hue
+        else if (targetSat == 0xFF) // only state.hue
         {
             ok = addTaskSetEnhancedHue(task, targetHue);
         }
@@ -1096,7 +1106,11 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         TaskItem task;
         copyTaskReq(taskRef, task);
 
-        if (addTaskSetColorLoop(task, true, colorloopSpeed))
+        if (!isOn)
+        {
+            rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, effect, is not modifiable. Device is set to off.")));
+        }
+        else if (addTaskSetColorLoop(task, true, colorloopSpeed))
         {
             QVariantMap rspItem;
             QVariantMap rspItemState;
