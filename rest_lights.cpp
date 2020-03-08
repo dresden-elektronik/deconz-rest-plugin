@@ -548,21 +548,29 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     bool isOn = false;
     bool hasOn = false;
     bool targetOn = false;
-    quint8 targetBri = 0xFF;
-    qint16 targetBriInc = -32768;
+    bool hasBri = false;
+    quint8 targetBri = 0;
+    bool hasBriInc = false;
+    qint16 targetBriInc = 0;
     bool hasWrap = false;
     bool wrap = false;
-    double targetX = -1.0;
-    double targetY = -1.0;
-    quint16 targetCt = 0xFFFF;
-    qint16 targetCtInc = -32768;
-    quint16 targetHue = 0xFFFF;
-    quint8 targetSat = 0xFF;
+    bool hasXy = false;
+    double targetX = 0.0;
+    double targetY = 0.0;
+    bool hasCt = false;
+    quint16 targetCt = 0;
+    bool hasCtInc = false;
+    qint16 targetCtInc = 0;
+    bool hasHue = false;
+    quint16 targetHue = 0;
+    bool hasSat = false;
+    quint8 targetSat = 0;
     QString effect;
     bool hasColorloopSpeed = false;
-    quint16 colorloopSpeed = 15;
+    quint16 colorloopSpeed = 25;
     QString alert;
-    quint8 targetSpeed = 0xFF;
+    bool hasSpeed = 0;
+    quint8 targetSpeed = 0;
 
     // Check parameters.
     for (QVariantMap::const_iterator p = map.begin(); p != map.end(); p++)
@@ -588,6 +596,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             if (map[param].type() == QVariant::String && map[param].toString() == "stop") // FIXME deprecate this nonsense
             {
                 valueOk = true;
+                hasBriInc = true;
                 targetBriInc = 0;
             }
             else if (map[param].type() == QVariant::Double)
@@ -596,6 +605,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 if (ok && bri >= 0 && bri <= 255)
                 {
                     valueOk = true;
+                    hasBri = true;
                     targetBri = bri == 255 ? 254 : bri;
                 }
             }
@@ -610,6 +620,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 if (ok && briInc >= -254 && briInc <= 254)
                 {
                     valueOk = true;
+                    hasBriInc = true;
                     targetBriInc = briInc;
                 }
             }
@@ -628,6 +639,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                     if (ok && x >= 0.0 && x <= 1.0 && y >= 0.0 && y <= 1.0)
                     {
                           valueOk = true;
+                          hasXy = true;
                           targetX = x;
                           targetY = y;
                     }
@@ -648,6 +660,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 if (ok && ct >= ctMin && ct <= ctMax)
                 {
                     valueOk = true;
+                    hasCt = true;
                     targetCt = ct;
                 }
             }
@@ -667,6 +680,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 if (ok && ctInc >= -ctRange && ctInc <= ctRange)
                 {
                     valueOk = true;
+                    hasCtInc = true;
                     targetCtInc = ctInc;
                 }
             }
@@ -679,6 +693,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             if (ok && hue >= 0 && hue <= 65535)
             {
                 valueOk = true;
+                hasHue = true;
                 targetHue = hue;
             }
         }
@@ -690,6 +705,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             if (ok && sat >= 0 && sat <= 255)
             {
                 valueOk = true;
+                hasSat = true;
                 targetSat = sat == 255 ? 254 : sat;
             }
         }
@@ -736,6 +752,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 if (ok && speed >= 0 && speed <= 6)
                 {
                     valueOk = true;
+                    hasSpeed = true;
                     targetSpeed = speed;
                 }
             }
@@ -771,6 +788,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             if (map[param].type() == QVariant::Bool)
             {
                 valueOk = true;
+                hasWrap = true;
                 wrap = map[param].toBool();
             }
         }
@@ -789,7 +807,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         rsp.list.append(errorToMap(ERR_MISSING_PARAMETER, QString("/lights/%1/state").arg(id), QString("missing parameter, on or alert, for parameter, ontime")));
         requestOk = false;
     }
-    if (hasWrap && targetBriInc != -32768)
+    if (hasWrap && !hasBriInc)
     {
         rsp.list.append(errorToMap(ERR_MISSING_PARAMETER, QString("/lights/%1/state").arg(id), QString("missing parameter, bri_inc, for parameter, wrap")));
         requestOk = false;
@@ -848,7 +866,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     }
 
     // state.bri trumps state.bri_inc
-    if (targetBri != 0xFF)
+    if (hasBri)
     {
         TaskItem task;
         copyTaskReq(taskRef, task);
@@ -871,7 +889,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/bri").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
         }
     }
-    else if (targetBriInc != -32768)
+    else if (hasBriInc)
     {
         TaskItem task;
         copyTaskReq(taskRef, task);
@@ -934,7 +952,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     }
 
     // state.xy trumps state.ct trumps state.ct_inc trumps state.hue, state.sat
-    if (targetX != -1.0 && targetY != -1.0)
+    if (hasXy)
     {
         TaskItem task;
         copyTaskReq(taskRef, task);
@@ -957,7 +975,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/xy").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
         }
     }
-    else if (targetCt != 0xFFFF)
+    else if (hasCt)
     {
         TaskItem task;
         copyTaskReq(taskRef, task);
@@ -980,7 +998,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/ct").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
         }
     }
-    else if (targetCtInc != -32768)
+    else if (hasCtInc)
     {
         TaskItem task;
         copyTaskReq(taskRef, task);
@@ -1003,27 +1021,27 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/ct_inc").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
         }
     }
-    else if (targetHue != 0xFFFF || targetSat != 0xFF)
+    else if (hasHue || hasSat)
     {
         TaskItem task;
         copyTaskReq(taskRef, task);
 
         if (!isOn)
         {
-            if (targetHue != 0xFFFF)
+            if (hasHue)
             {
                 rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, hue, is not modifiable. Device is set to off.")));
             }
-            if (targetSat != 0xFF)
+            if (hasSat)
             {
                 rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, sat, is not modifiable. Device is set to off.")));
             }
         }
-        else if (targetSat == 0xFF) // only state.hue
+        else if (!hasSat) // only state.hue
         {
             ok = addTaskSetEnhancedHue(task, targetHue);
         }
-        else if (targetHue == 0xFFFF) // only state.sat
+        else if (!hasHue) // only state.sat
         {
             ok = addTaskSetSaturation(task, targetSat);
         }
@@ -1036,8 +1054,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         if (ok)
         {
             // FIXME: do we need this?
-            quint16 hue = targetHue == 0xFFFF ? taskRef.lightNode->item(RStateHue)->toNumber() : targetHue;
-            quint8 sat = targetSat == 0xFF ? taskRef.lightNode->item(RStateHue)->toNumber() : targetSat;
+            quint16 hue = hasHue ? targetHue : taskRef.lightNode->item(RStateHue)->toNumber();
+            quint8 sat = hasSat ? targetSat : taskRef.lightNode->item(RStateSat)->toNumber();
 
             double r, g, b;
             double x, y;
@@ -1076,7 +1094,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             }
             // End FIXME
 
-            if (targetHue != 0xFFFF)
+            if (hasHue)
             {
                 QVariantMap rspItem;
                 QVariantMap rspItemState;
@@ -1084,7 +1102,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 rspItem["success"] = rspItemState;
                 rsp.list.append(rspItem);
             }
-            if (targetSat != 0xFF)
+            if (hasSat)
             {
                 QVariantMap rspItem;
                 QVariantMap rspItemState;
@@ -1194,7 +1212,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     }
 
     // state.speed
-    if (targetSpeed != 0xFF)
+    if (hasSpeed)
     {
         TaskItem task;
         copyTaskReq(taskRef, task);
@@ -1278,11 +1296,12 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     bool requestOk = true;
     bool hasCmd = false;
     bool hasOn = false;
-    bool hasBri = false;
-    bool hasStop = false;
     bool targetOn = false;
-    quint8 targetLiftPct = 0xFF;
-    quint8 targetTiltPct = 0xFF;
+    bool hasLift = false;
+    bool hasStop = false;
+    quint8 targetLiftPct = 0;
+    bool hasTilt = false;
+    quint8 targetTiltPct = 0;
 
     // Check parameters.
     for (QVariantMap::const_iterator p = map.begin(); p != map.end(); p++)
@@ -1299,6 +1318,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
                 valueOk = true;
                 if (cluster == ANALOG_OUTPUT_CLUSTER_ID)
                 {
+                    hasLift = true;
                     targetLiftPct = map["on"].toBool() ? 254 : 0;
                 }
                 else
@@ -1323,7 +1343,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
                 if (ok && bri >= 0 && bri <= 255)
                 {
                     valueOk = true;
-                    hasBri = true;
+                    hasLift = true;
                     targetLiftPct = bri * 100 / 254;
                 }
             }
@@ -1352,6 +1372,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
                 if (ok && sat >= 0 && sat <= 255)
                 {
                     valueOk = true;
+                    hasTilt = true;
                     targetTiltPct = sat * 100 / 254;
                 }
             }
@@ -1385,7 +1406,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     }
 
     // Some devices invert LiftPct.
-    if (targetLiftPct != 0xFF)
+    if (hasLift)
     {
         if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain")))
         {
@@ -1418,7 +1439,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/bri_inc").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
         }
     }
-    else if (targetLiftPct != 0xFF)
+    else if (hasLift)
     {
         bool ok;
         TaskItem task;
@@ -1476,7 +1497,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         {
             QVariantMap rspItem;
             QVariantMap rspItemState;
-            rspItemState[QString("/lights/%1/state/bri").arg(id)] = hasBri ? map["bri"] : targetOn ? 254 : 0;
+            rspItemState[QString("/lights/%1/state/bri").arg(id)] = hasLift ? map["bri"] : targetOn ? 254 : 0;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
             // Rely on attribute reporting to update the light state.
@@ -1507,7 +1528,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     }
 
     // Handle TiltPct independent from Stop - LiftPct - Open/Close.
-    if (targetTiltPct != 0xFF)
+    if (hasTilt)
     {
         TaskItem task;
         copyTaskReq(taskRef, task);
