@@ -269,6 +269,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBER, "TS0201", silabs3MacPrefix }, // Tuya/Blitzwolf temperature and humidity sensor
     { VENDOR_AURORA, "DoubleSocket50AU", jennicMacPrefix }, // Aurora AOne Double Socket UK
     { VENDOR_COMPUTIME, "SP600", computimeMacPrefix }, // Salus smart plug
+    { VENDOR_HANGZHOU_IMAGIC, "1116-S", energyMiMacPrefix }, // iris contact sensor v3
     { VENDOR_HANGZHOU_IMAGIC, "1117-S", energyMiMacPrefix }, // iris motion sensor v3
     { VENDOR_JENNIC, "113D", jennicMacPrefix }, // iHorn (Huawei) temperature and humidity sensor
     { VENDOR_SERCOMM, "SZ-ESW01", emberMacPrefix }, // Sercomm / Telstra smart plug
@@ -5976,6 +5977,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId().contains(QLatin1String("FLSZB-110")) || // Develco water leak sensor
                                     i->modelId().contains(QLatin1String("ZHMS101")) ||   // Wattle (Develco) magnetic sensor
                                     i->modelId().contains(QLatin1String("RFDL-ZB-MS")) ||// Bosch motion sensor
+                                    i->modelId().contains(QLatin1String("1116-S")) ||    // iris contact sensor
                                     i->modelId().contains(QLatin1String("1117-S")) ||    // iris motion sensor
                                     i->modelId().contains(QLatin1String("lumi.sen_ill")) ||// Xiaomi ZB3.0 light sensor
                                     i->modelId() == QLatin1String("113D"))               // iHorn (Huawei) temperature and humidity sensor

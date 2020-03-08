@@ -1976,6 +1976,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Xiaomi
         sensor->modelId().startsWith(QLatin1String("lumi")) ||
         // iris
+        sensor->modelId().startsWith(QLatin1String("1116-S")) ||
         sensor->modelId().startsWith(QLatin1String("1117-S")) ||
         // iHorn (Huawei)
         sensor->modelId() == QLatin1String("113D"))
@@ -2092,6 +2093,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                      sensor->modelId() == QLatin1String("Shutters central remote switch") ||
                      sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||
                      sensor->modelId().endsWith(QLatin1String("86opcn01")) || // Aqara Opple
+                     sensor->modelId().contains(QLatin1String("1116-S")) ||
                      sensor->modelId().contains(QLatin1String("1117-S")) ||
                      sensor->modelId() == QLatin1String("113D"))
             {
