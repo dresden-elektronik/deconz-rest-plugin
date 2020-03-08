@@ -1659,6 +1659,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 case DEV_ID_Z30_EXTENDED_COLOR_LIGHT:
                 case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT:
                 case DEV_ID_HA_WINDOW_COVERING_DEVICE:
+                case DEV_ID_HA_WINDOW_COVERING_CONTROLLER:
                 case DEV_ID_FAN:
                 {
                     if (hasServerOnOff)
@@ -2296,6 +2297,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
             case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:
             case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:
             case DEV_ID_HA_WINDOW_COVERING_DEVICE:
+            case DEV_ID_HA_WINDOW_COVERING_CONTROLLER:
             case DEV_ID_ZLL_ONOFF_SENSOR:
             case DEV_ID_XIAOMI_SMART_PLUG:
             case DEV_ID_IAS_ZONE:
@@ -8028,6 +8030,7 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
         case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:
         case DEV_ID_ZLL_ONOFF_SENSOR:
         case DEV_ID_HA_WINDOW_COVERING_DEVICE:
+        case DEV_ID_HA_WINDOW_COVERING_CONTROLLER:
         case DEV_ID_FAN:
             break;
 
