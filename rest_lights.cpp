@@ -838,7 +838,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         TaskItem task;
         copyTaskReq(taskRef, task);
 
-        if (!isOn && targetBri != 0xFF)
+        if (!isOn && hasBri)
         {
             TaskItem task;
             copyTaskReq(taskRef, task);
@@ -1562,7 +1562,7 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
     bool ok;
     QString id = req.path[3];
 
-    bool requestOk = false;
+    bool requestOk = true;
     bool hasCmd = false;
     QString alert;
     quint16 onTime = 0;
