@@ -443,6 +443,12 @@ void DeRestPluginPrivate::handleZclConfigureReportingResponseIndication(const de
         allNodes.push_back(&l);
     }
 
+    // send DefaultResponse if not disabled
+    if (!(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
+    {
+        sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus);
+    }
+
     for (RestNodeBase * restNode : allNodes)
     {
         if (restNode->address().ext() != ind.srcAddress().ext())
