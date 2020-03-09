@@ -14270,9 +14270,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 }
             }
         }
-        else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM")) || // icasa remote
-                 sensor->modelId().startsWith(QLatin1String("RC 110")) || // innr Remote
-                 sensor->modelId() == QLatin1String("Remote switch") || // Legrand switch
+        else if (sensor->modelId() == QLatin1String("Remote switch") || // Legrand switch
                  sensor->modelId() == QLatin1String("Shutters central remote switch")) // Legrand switch
         {
             checkSensorGroup(sensor);
