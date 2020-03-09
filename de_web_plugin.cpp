@@ -720,13 +720,6 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                     {
                         sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
                     }
-<<<<<<< HEAD
-                    // else if (sensorNode->modelId().startsWith("RC 110"))
-                    // {
-                    //     sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
-                    // }
-=======
->>>>>>> 6d09411ad6487410951338523de2be4014e9f49e
                     else
                     {
                         sensorNode = 0; // not supported
@@ -4274,15 +4267,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpSwitch.outClusters.push_back(ci->id());
                     }
-<<<<<<< HEAD
-                    // else if (modelId.startsWith(QLatin1String("RC 110")))
-                    // {
-                    //     if (i->endpoint() == 0x01) // create sensor only for first endpoint
-                    //     {
-                    //         fpSwitch.outClusters.push_back(ci->id());
-                    //     }
-                    // }
-=======
                     else if (modelId.startsWith(QLatin1String("RC 110")) || // innr RC 110
                              modelId.startsWith(QLatin1String("ICZB-RM"))) // icasa remote
                     {
@@ -4291,7 +4275,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                             fpSwitch.outClusters.push_back(ci->id());
                         }
                     }
->>>>>>> 6d09411ad6487410951338523de2be4014e9f49e
                     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC ||
                              modelId.endsWith(QLatin1String("86opcn01"))) // Aqara Opple prevent client clusters creation, client clusters aren't used, fpSwitch is created for 0xfc00 cluster.
                     {
