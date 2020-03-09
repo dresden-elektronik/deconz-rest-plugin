@@ -112,6 +112,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_CENTRALITE, "Motion Sensor-A", emberMacPrefix },
     { VENDOR_CENTRALITE, "3321-S", emberMacPrefix }, // Centralite multipurpose sensor
     { VENDOR_CENTRALITE, "3325-S", emberMacPrefix }, // Centralite motion sensor
+    { VENDOR_CENTRALITE, "3305-S", emberMacPrefix }, // Centralite motion sensor
     { VENDOR_CLS, "3200-S", emberMacPrefix }, // Centralite smart plug / Samsung smart outlet
 //    { VENDOR_CENTRALITE, "3326-L", emberMacPrefix }, // Iris motion sensor
     { VENDOR_CENTRALITE, "3328-G", emberMacPrefix }, // Centralite micro motion sensor
@@ -700,15 +701,14 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                     {
                         // Hue dimmer switch
                     }
-                    else if (sensorNode->modelId().startsWith("D1"))
-                    {
-                        sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x02);
-                    }
-                    else if (sensorNode->modelId().startsWith("C4"))
+                    else if (sensorNode->modelId().startsWith("C4") || // ubisys
+                             sensorNode->modelId().startsWith("RC 110") || // innr RC 110
+                             sensorNode->modelId().startsWith("ICZB-RM")) // icasa remote
                     {
                         sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
                     }
-                    else if (sensorNode->modelId().startsWith("S1"))
+                    else if (sensorNode->modelId().startsWith("D1") || // ubisys
+                             sensorNode->modelId().startsWith("S1")) // ubisys
                     {
                         sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x02);
                     }
@@ -720,10 +720,13 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                     {
                         sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
                     }
+<<<<<<< HEAD
                     // else if (sensorNode->modelId().startsWith("RC 110"))
                     // {
                     //     sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
                     // }
+=======
+>>>>>>> 6d09411ad6487410951338523de2be4014e9f49e
                     else
                     {
                         sensorNode = 0; // not supported
@@ -1663,6 +1666,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 case DEV_ID_Z30_EXTENDED_COLOR_LIGHT:
                 case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT:
                 case DEV_ID_HA_WINDOW_COVERING_DEVICE:
+                case DEV_ID_HA_WINDOW_COVERING_CONTROLLER:
                 case DEV_ID_FAN:
                 {
                     if (hasServerOnOff)
@@ -2300,6 +2304,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
             case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:
             case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:
             case DEV_ID_HA_WINDOW_COVERING_DEVICE:
+            case DEV_ID_HA_WINDOW_COVERING_CONTROLLER:
             case DEV_ID_ZLL_ONOFF_SENSOR:
             case DEV_ID_XIAOMI_SMART_PLUG:
             case DEV_ID_IAS_ZONE:
@@ -3331,32 +3336,58 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         {
             // TODO
         }
-        // if (sensor->modelId().startsWith("RC 110")) // innr remote
-        // {
-        //     // 7 controller endpoints: 0x01, 0x03, 0x04, ..., 0x08
-        //     if (gids.length() != 7)
-        //     {
-        //         // initialise list of groups: one for each endpoint
-        //         gids = QStringList();
-        //         gids << "0" << "0" << "0" << "0" << "0" << "0" << "0";
-        //     }
-        //
-        //     // check group corresponding to source endpoint
-        //     int i = ind.srcEndpoint();
-        //     i -= i == 1 ? 1 : 2;
-        //     if (gids.value(i) != gid)
-        //     {
-        //         // replace group corresponding to source endpoint
-        //         gids.replace(i, gid);
-        //         item->setValue(gids.join(','));
-        //         sensor->setNeedSaveDatabase(true);
-        //         updateSensorEtag(sensor);
-        //         enqueueEvent(Event(RSensors, RConfigGroup, sensor->id(), item));
-        //     }
-        //
-        //     Event e(RSensors, REventValidGroup, sensor->id());
-        //     enqueueEvent(e);
-        // }
+        if (sensor->modelId().startsWith(QLatin1String("RC 110"))) // innr remote
+        {
+            // 7 controller endpoints: 0x01, 0x03, 0x04, ..., 0x08
+            if (gids.length() != 7)
+            {
+                // initialise list of groups: one for each endpoint
+                gids = QStringList();
+                gids << "0" << "0" << "0" << "0" << "0" << "0" << "0";
+            }
+
+            // check group corresponding to source endpoint
+            int i = ind.srcEndpoint();
+            i -= i == 1 ? 1 : 2;
+            if (gids.value(i) != gid)
+            {
+                // replace group corresponding to source endpoint
+                gids.replace(i, gid);
+                item->setValue(gids.join(','));
+                sensor->setNeedSaveDatabase(true);
+                updateSensorEtag(sensor);
+                enqueueEvent(Event(RSensors, RConfigGroup, sensor->id(), item));
+            }
+
+            Event e(RSensors, REventValidGroup, sensor->id());
+            enqueueEvent(e);
+        }
+        else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM"))) // icasa remote
+        {
+            // 4 controller endpoints: 0x01, 0x02, 0x03, 0x04
+            if (gids.length() != 4)
+            {
+                // initialise list of groups: one for each endpoint
+                gids = QStringList();
+                gids << "0" << "0" << "0" << "0";
+            }
+
+            // check group corresponding to source endpoint
+            int i = ind.srcEndpoint();
+            i -= 1;
+            if (gids.value(i) != gid)
+            {
+                // replace group corresponding to source endpoint
+                gids.replace(i, gid);
+                item->setValue(gids.join(','));
+                sensor->setNeedSaveDatabase(true);
+                updateSensorEtag(sensor);
+                enqueueEvent(Event(RSensors, RConfigGroup, sensor->id(), item));
+            }
+
+            Event e(RSensors, REventValidGroup, sensor->id());
+            enqueueEvent(e);
+        }
         else
         {
             if (!gids.contains(gid))
@@ -3494,6 +3525,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             else if (ind.clusterId() == LEVEL_CLUSTER_ID && zclFrame.commandId() == 0x04 && // move to level (with on/off)
                      sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer
             {
+                // This code is for handling the button map for the Aurora, until we figure out how to activate the 0xFC00 cluster.
                 ok = false;
                 if (zclFrame.payload().size() >= 2)
                 {
@@ -3670,45 +3702,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     {
         return;
     }
-
-#if 0
-    // check if hue dimmer switch is configured
-    if (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
-        sensor->modelId().startsWith(QLatin1String("ROM00")) || // Hue smart button
-        sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer switch
-    {
-        bool ok = true;
-        // attribute reporting for power configuration cluster should fire every 5 minutes
-        if (idleTotalCounter > (IDLE_READ_LIMIT + 600))
-        {
-            ResourceItem *item = sensor->item(RConfigBattery);
-            if (item && item->lastSet().isValid() && item->toNumber() > 0) // seems to be ok
-            {
-                const NodeValue &val = sensor->getZclValue(POWER_CONFIGURATION_CLUSTER_ID, 0x0021);
-                if (!val.timestampLastReport.isValid())
-                {
-                    ok = false; // not received battery report
-                }
-            }
-            else
-            {
-                ok = false; // not received anything
-            }
-        }
-
-        // is vendor specific cluster bound yet?
-        ResourceItem *item = ok ? sensor->item(RStateButtonEvent) : 0;
-        if (!item || !item->lastSet().isValid() || item->toNumber() < 1000)
-        {
-            ok = false;
-        }
-
-        if (!ok)
-        {
-            checkSensorBindingsForAttributeReporting(sensor);
-        }
-    }
-#endif
 
     quint8 pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(0);
     DBG_Printf(DBG_INFO, "no button handler for: %s ep: 0x%02X cl: 0x%04X cmd: 0x%02X pl[0]: 0x%02X\n",
@@ -4242,7 +4235,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case VENDOR_CLUSTER_ID:
                 {
-                    if (node->nodeDescriptor().manufacturerCode() == VENDOR_DDEL && modelId == QLatin1String("de_spect"))
+                    if (modelId.startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
+                        modelId.startsWith(QLatin1String("ROM00")) || // Hue smart button
+                        modelId.startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora FoH dimmer switch
+                    {
+                        fpSwitch.inClusters.push_back(ci->id());
+                    }
+                    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_DDEL && modelId == QLatin1String("de_spect"))
                     {
                         if (i->endpoint() <= 0x03)
                         {
@@ -4275,6 +4274,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpSwitch.outClusters.push_back(ci->id());
                     }
+<<<<<<< HEAD
                     // else if (modelId.startsWith(QLatin1String("RC 110")))
                     // {
                     //     if (i->endpoint() == 0x01) // create sensor only for first endpoint
@@ -4282,6 +4282,16 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     //         fpSwitch.outClusters.push_back(ci->id());
                     //     }
                     // }
+=======
+                    else if (modelId.startsWith(QLatin1String("RC 110")) || // innr RC 110
+                             modelId.startsWith(QLatin1String("ICZB-RM"))) // icasa remote
+                    {
+                        if (i->endpoint() == 0x01) // create sensor only for first endpoint
+                        {
+                            fpSwitch.outClusters.push_back(ci->id());
+                        }
+                    }
+>>>>>>> 6d09411ad6487410951338523de2be4014e9f49e
                     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC ||
                              modelId.endsWith(QLatin1String("86opcn01"))) // Aqara Opple prevent client clusters creation, client clusters aren't used, fpSwitch is created for 0xfc00 cluster.
                     {
@@ -4796,9 +4806,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             sensorNode.addItem(DataTypeInt32, RStateGesture);
         }
         else if (modelId.startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
-              // modelId.startsWith(QLatin1String("Z3-1BRL")) || // Lutron Aurora Firends-of-Hue dimmer switch
-                 modelId.startsWith(QLatin1String("ROM00"))) // Hue smart button
+                 modelId.startsWith(QLatin1String("ROM00")) || // Hue smart button
+                 modelId.startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Firends-of-Hue dimmer switch
         {
+            clusterId = VENDOR_CLUSTER_ID;
             sensorNode.addItem(DataTypeUInt16, RStateEventDuration);
         }
     }
@@ -5141,10 +5152,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             {   // this cluster is on endpoint 2 and hence not detected
                 sensorNode.fingerPrint().inClusters.push_back(VENDOR_CLUSTER_ID);
             }
-        }
-        else if (modelId.startsWith(QLatin1String("ROM00"))) // Hue smart button)
-        {
-            clusterId = VENDOR_CLUSTER_ID;
         }
         else if (modelId.startsWith(QLatin1String("SML00"))) // Hue motion sensor
         {
@@ -5972,6 +5979,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 if (i->modelId().startsWith(QLatin1String("tagv4")) ||   // SmartThings Arrival sensor
                                     i->modelId().startsWith(QLatin1String("motionv4")) ||// SmartThings motion sensor
+                                    i->modelId().startsWith(QLatin1String("3305-S")) ||  // SmartThings 2014 motion sensor
                                     i->modelId() == QLatin1String("Remote switch") ||    // Legrand switch
                                     i->modelId() == QLatin1String("Shutters central remote switch") || //Legrand shutter switch
                                     i->modelId() == QLatin1String("Zen-01") ||           // Zen thermostat
@@ -8039,6 +8047,7 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
         case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:
         case DEV_ID_ZLL_ONOFF_SENSOR:
         case DEV_ID_HA_WINDOW_COVERING_DEVICE:
+        case DEV_ID_HA_WINDOW_COVERING_CONTROLLER:
         case DEV_ID_FAN:
             break;
 
@@ -10914,6 +10923,11 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
     switch (event.event())
     {
     case deCONZ::NodeEvent::NodeSelected:
+        if (event.node()->address().nwk() == 0x0000)
+        {
+            addLightNode(event.node());
+        }
+
         break;
 
     case deCONZ::NodeEvent::NodeDeselected:
@@ -12620,33 +12634,6 @@ void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, c
 
     if (!sensorNode)
     {
-        for (Sensor &s : sensors)
-        {
-            if (s.deletedState() != Sensor::StateNormal)
-            {
-                continue;
-            }
-
-            if ((ind.srcAddress().hasExt() && ind.srcAddress().ext() == s.address().ext()) ||
-                (ind.srcAddress().hasNwk() && ind.srcAddress().nwk() == s.address().nwk()))
-            {
-                if (s.modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
-                    s.modelId().startsWith(QLatin1String("ROM00")) || // Hue smart button
-                    s.modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer switch
-                {
-                    sensorNode = &s;
-                }
-            }
-
-            if (sensorNode)
-            {
-                break;
-            }
-        }
-    }
-
-    if (!sensorNode)
-    {
         return;
     }
 
@@ -14199,13 +14186,8 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 return;
             }
 
-
-            ResourceItem *item = sensor->item(RConfigGroup);
-            if (!item || !item->lastSet().isValid())
-            {
-                getGroupIdentifiers(sensor, 0x01, 0x00);
-                return;
-            }
+            checkSensorGroup(sensor);
+            checkSensorBindingsForClientClusters(sensor);
         }
         else if (sensor->modelId().startsWith(QLatin1String("SML00"))) // Hue motion sensor
         {
@@ -14313,6 +14295,100 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             checkSensorGroup(sensor);
             checkSensorBindingsForClientClusters(sensor);
         }
+        else if (sensor->modelId().startsWith(QLatin1String("RC 110"))) // innr Remote
+        {
+            ResourceItem *item = sensor->item(RConfigGroup);
+            if (!item)
+            {
+                item = sensor->addItem(DataTypeString, RConfigGroup);
+                QStringList gids;
+                QString gid;
+                Group *group;
+
+                for (quint8 endpoint = 0x01; endpoint <= 0x08; endpoint++)
+                {
+                    if (endpoint == 0x02)
+                    {
+                        // No client clusters on endpoint 0x02.
+                        continue;
+                    }
+
+                    group = addGroup();
+                    gid = group->id();
+                    gids << gid;
+                    group->setName(sensor->name());
+                    DBG_Printf(DBG_INFO, "create group %s for sensor %s\n", qPrintable(gid), qPrintable(sensor->id()));
+                    ResourceItem *item2 = group->addItem(DataTypeString, RAttrUniqueId);
+                    DBG_Assert(item2);
+                    if (item2)
+                    {
+                        const QString uid = generateUniqueId(sensor->address().ext(), endpoint, 0);
+                        item2->setValue(uid);
+                    }
+                    if (group->addDeviceMembership(sensor->id()))
+                    {
+                    }
+
+                    if (endpoint == 0x01)
+                    {
+                        // Binding of client clusters doesn't work for endpoint 0x01.
+                        // Need to add the group to the server Groups cluster instead.
+                        TaskItem task;
+
+                        // set destination parameters
+                        task.req.dstAddress() = sensor->address();
+                        task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+                        task.req.setDstEndpoint(sensor->fingerPrint().endpoint);
+                        task.req.setSrcEndpoint(getSrcEndpoint(sensor, task.req));
+                        task.req.setDstAddressMode(deCONZ::ApsExtAddress);
+
+                        addTaskAddToGroup(task, group->id().toInt());
+                    }
+                }
+                item->setValue(gids.join(","));
+                sensor->setNeedSaveDatabase(true);
+                queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+                Event e(RSensors, RConfigGroup, sensor->id(), item);
+                enqueueEvent(e);
+            }
+            checkSensorBindingsForClientClusters(sensor);
+        }
+        else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM"))) // icasa remote
+        {
+            ResourceItem *item = sensor->item(RConfigGroup);
+            if (!item)
+            {
+                item = sensor->addItem(DataTypeString, RConfigGroup);
+                QStringList gids;
+                QString gid;
+                Group *group;
+
+                for (quint8 endpoint = 0x01; endpoint <= 0x04; endpoint++)
+                {
+                    group = addGroup();
+                    gid = group->id();
+                    gids << gid;
+                    group->setName(sensor->name());
+                    DBG_Printf(DBG_INFO, "create group %s for sensor %s\n", qPrintable(gid), qPrintable(sensor->id()));
+                    ResourceItem *item2 = group->addItem(DataTypeString, RAttrUniqueId);
+                    DBG_Assert(item2);
+                    if (item2)
+                    {
+                        const QString uid = generateUniqueId(sensor->address().ext(), endpoint, 0);
+                        item2->setValue(uid);
+                    }
+                    if (group->addDeviceMembership(sensor->id()))
+                    {
+                    }
+                }
+                item->setValue(gids.join(","));
+                sensor->setNeedSaveDatabase(true);
+                queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+                Event e(RSensors, RConfigGroup, sensor->id(), item);
+                enqueueEvent(e);
+            }
+            checkSensorBindingsForClientClusters(sensor);
+        }
         else if (sensor->modelId().startsWith(QLatin1String("902010/23"))) // Bitron remote control
         {
             checkSensorGroup(sensor);
@@ -14322,6 +14398,8 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
 
             if (!item || !item->lastSet().isValid())
             {
+                // Remote uses NWK group multicast, which is not picked up by deCONZ, see #2503.
+                // As workaround, add bindings to the coordinator.
                 BindingTask bindingTask, bindingTask2;
 
                 bindingTask.state = BindingTask::StateIdle;

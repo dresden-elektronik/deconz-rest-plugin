@@ -2056,34 +2056,48 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             return;
         }
 
-        Group *group = getGroupForId(item->toString());
+        QStringList gids = item->toString().split(',', QString::SkipEmptyParts);
 
-        if (group && group->state() != Group::StateNormal)
-        {
-            group->setState(Group::StateNormal);
-            group->setName(sensor->modelId() + QLatin1String(" ") + sensor->id());
-            updateGroupEtag(group);
-            queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
-            DBG_Printf(DBG_INFO, "reanimate group %s\n", qPrintable(group->name()));
-        }
+        for (int j = 0; j < gids.size(); j++) {
+            const QString gid = gids[j];
+            Group *group = getGroupForId(gid);
 
-        if (group && group->addDeviceMembership(sensor->id()))
-        {
-            DBG_Printf(DBG_INFO, "Attached sensor %s to group %s\n", qPrintable(sensor->id()), qPrintable(group->name()));
-            queSaveDb(DB_GROUPS, DB_LONG_SAVE_DELAY);
-            updateGroupEtag(group);
-        }
+            if (group && group->state() != Group::StateNormal)
+            {
+                DBG_Printf(DBG_INFO, "reanimate group %s for sensor %s\n", qPrintable(gid), qPrintable(sensor->id()));
+                group->setState(Group::StateNormal);
+                group->setName(sensor->modelId() + QLatin1String(" ") + sensor->id());
+                updateGroupEtag(group);
+                queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
+            }
 
-        if (!group) // create
-        {
-            Group g;
-            g.setAddress(item->toString().toUInt());
-            g.setName(sensor->modelId() + QLatin1String(" ") + sensor->id());
-            g.addDeviceMembership(sensor->id());
-            groups.push_back(g);
-            updateGroupEtag(&groups.back());
-            queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
-            checkSensorBindingsForClientClusters(sensor);
+            if (group && group->addDeviceMembership(sensor->id()))
+            {
+                DBG_Printf(DBG_INFO, "attach group %s to sensor %s\n", qPrintable(gid), qPrintable(sensor->id()));
+                queSaveDb(DB_GROUPS, DB_LONG_SAVE_DELAY);
+                updateGroupEtag(group);
+            }
+
+            if (!group) // create
+            {
+                DBG_Printf(DBG_INFO, "create group %s for sensor %s\n", qPrintable(gid), qPrintable(sensor->id()));
+                Group g;
+                g.setAddress(gid.toUInt());
+                g.setName(sensor->modelId() + QLatin1String(" ") + sensor->id());
+                g.addDeviceMembership(sensor->id());
+                ResourceItem *item2 = g.addItem(DataTypeString, RAttrUniqueId);
+                DBG_Assert(item2);
+                if (item2)
+                {
+                    // FIXME: use the endpoint from which the group command was sent.
+                    const QString uid = generateUniqueId(sensor->address().ext(), 0, 0);
+                    item2->setValue(uid);
+                }
+                groups.push_back(g);
+                updateGroupEtag(&groups.back());
+                queSaveDb(DB_GROUPS, DB_SHORT_SAVE_DELAY);
+                checkSensorBindingsForClientClusters(sensor);
+            }
         }
     }
 }
@@ -2343,7 +2357,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
             if (checkMacVendor(ext, VENDOR_LDS))
             { //  Fix to allow Samsung SmartThings plug sensors to be created (7A-PL-Z-J3, modelId ZB-ONOFFPlug-D0005)
             }
-            if (checkMacVendor(ext, VENDOR_JASCO))
+            else if (checkMacVendor(ext, VENDOR_JASCO))
             { //  Fix to support GE mains powered switches
             }
             else

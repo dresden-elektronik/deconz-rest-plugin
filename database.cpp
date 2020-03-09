@@ -2931,8 +2931,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 sensor.addItem(DataTypeInt32, RStateGesture);
             }
             else if (sensor.modelId().startsWith(QLatin1String("RWL02")) ||
-                  // sensor.modelId().startsWith(QLatin1String("Z3-1BRL")) ||
-                     sensor.modelId().startsWith(QLatin1String("ROM00")))
+                     sensor.modelId().startsWith(QLatin1String("ROM00")) ||
+                     sensor.modelId().startsWith(QLatin1String("Z3-1BRL")))
             {
                 sensor.addItem(DataTypeUInt16, RStateEventDuration);
             }
