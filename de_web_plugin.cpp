@@ -114,7 +114,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_CENTRALITE, "3325-S", emberMacPrefix }, // Centralite motion sensor
     { VENDOR_CENTRALITE, "3305-S", emberMacPrefix }, // Centralite motion sensor
     { VENDOR_CLS, "3200-S", emberMacPrefix }, // Centralite smart plug / Samsung smart outlet
-//    { VENDOR_CENTRALITE, "3326-L", emberMacPrefix }, // Iris motion sensor
+    { VENDOR_CENTRALITE, "3326-L", emberMacPrefix }, // Iris motion sensor v2
+    { VENDOR_C2DF, "3326-L", emberMacPrefix }, // Iris motion sensor v2
     { VENDOR_CENTRALITE, "3328-G", emberMacPrefix }, // Centralite micro motion sensor
     { VENDOR_DDEL, "de_spect", silabs3MacPrefix }, // dresden elektronic spectral sensor
     { VENDOR_JASCO, "45856", celMacPrefix },
@@ -5970,16 +5971,17 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId() == QLatin1String("Thermostat") ||       // eCozy thermostat
                                     i->modelId() == QLatin1String("Motion Sensor-A") ||  // Osram motion sensor
                                     i->modelId().endsWith(QLatin1String("86opcn01")) ||  // Aqara Opple
-                                    i->modelId().contains(QLatin1String("SMSZB-120")) || // Develco smoke sensor
-                                    i->modelId().contains(QLatin1String("HESZB-120")) || // Develco heat sensor
-                                    i->modelId().contains(QLatin1String("MOSZB-130")) || // Develco motion sensor
-                                    i->modelId().contains(QLatin1String("WISZB-120")) || // Develco window sensor
-                                    i->modelId().contains(QLatin1String("FLSZB-110")) || // Develco water leak sensor
-                                    i->modelId().contains(QLatin1String("ZHMS101")) ||   // Wattle (Develco) magnetic sensor
-                                    i->modelId().contains(QLatin1String("RFDL-ZB-MS")) ||// Bosch motion sensor
-                                    i->modelId().contains(QLatin1String("1116-S")) ||    // iris contact sensor
-                                    i->modelId().contains(QLatin1String("1117-S")) ||    // iris motion sensor
-                                    i->modelId().contains(QLatin1String("lumi.sen_ill")) ||// Xiaomi ZB3.0 light sensor
+                                    i->modelId().startsWith(QLatin1String("SMSZB-120")) || // Develco smoke sensor
+                                    i->modelId().startsWith(QLatin1String("HESZB-120")) || // Develco heat sensor
+                                    i->modelId().startsWith(QLatin1String("MOSZB-130")) || // Develco motion sensor
+                                    i->modelId().startsWith(QLatin1String("WISZB-120")) || // Develco window sensor
+                                    i->modelId().startsWith(QLatin1String("FLSZB-110")) || // Develco water leak sensor
+                                    i->modelId().startsWith(QLatin1String("ZHMS101")) ||   // Wattle (Develco) magnetic sensor
+                                    i->modelId().startsWith(QLatin1String("RFDL-ZB-MS")) ||// Bosch motion sensor
+                                    i->modelId().startsWith(QLatin1String("1116-S")) ||    // iris contact sensor v3
+                                    i->modelId().startsWith(QLatin1String("1117-S")) ||    // iris motion sensor v3
+                                    i->modelId().startsWith(QLatin1String("3326-L")) ||    // iris motion sensor v2
+                                    i->modelId().startsWith(QLatin1String("lumi.sen_ill")) ||// Xiaomi ZB3.0 light sensor
                                     i->modelId() == QLatin1String("113D"))               // iHorn (Huawei) temperature and humidity sensor
                                 {  }
                                 else
