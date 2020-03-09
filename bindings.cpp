@@ -443,6 +443,12 @@ void DeRestPluginPrivate::handleZclConfigureReportingResponseIndication(const de
         allNodes.push_back(&l);
     }
 
+    // send DefaultResponse if not disabled
+    if (!(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
+    {
+        sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus);
+    }
+
     for (RestNodeBase * restNode : allNodes)
     {
         if (restNode->address().ext() != ind.srcAddress().ext())
@@ -1112,14 +1118,19 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 7200;       // value used by Hue bridge
             rq.reportableChange8bit = 0; // value used by Hue bridge
         }
-        else if (sensor && (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
-                            sensor->modelId().startsWith(QLatin1String("ROM00")))) // Hue smart button
+        else if (sensor && sensor->modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
         {
             rq.minInterval = 300;        // value used by Hue bridge
             rq.maxInterval = 300;        // value used by Hue bridge
             rq.reportableChange8bit = 0; // value used by Hue bridge
         }
-        else if (sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer switch
+        else if (sensor && sensor->modelId().startsWith(QLatin1String("ROM00"))) // Hue smart button
+        {
+            rq.minInterval = 900;        // value used by Hue bridge
+            rq.maxInterval = 900;        // value used by Hue bridge
+            rq.reportableChange8bit = 2; // value used by Hue bridge
+        }
+        else if (sensor && sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer switch
         {
             rq.minInterval = 900;        // value used by Hue bridge
             rq.maxInterval = 900;        // value used by Hue bridge
@@ -1846,6 +1857,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("Motion Sensor-A")) ||
         sensor->modelId().startsWith(QLatin1String("332")) ||
         sensor->modelId().startsWith(QLatin1String("3200-S")) ||
+        sensor->modelId().startsWith(QLatin1String("3305-S")) ||
         // dresden elektronik
         (sensor->manufacturer() == QLatin1String("dresden elektronik") && sensor->modelId() == QLatin1String("de_spect")) ||
         // GE
@@ -1875,7 +1887,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Trust ZMST-808
         sensor->modelId().startsWith(QLatin1String("CSW_ADUROLIGHT")) ||
         // iCasa
-        sensor->modelId() == QLatin1String("ICZB-RM") ||
+        sensor->modelId().startsWith(QLatin1String("ICZB-RM")) ||
         // innr
         sensor->modelId() == QLatin1String("SP 120") ||
         sensor->modelId().startsWith(QLatin1String("RC 110")) ||
@@ -1887,10 +1899,15 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("CO_")) ||
         sensor->modelId().startsWith(QLatin1String("DOOR_")) ||
         sensor->modelId().startsWith(QLatin1String("PIR_")) ||
-        sensor->modelId().startsWith(QLatin1String("GAS_")) ||
+        sensor->modelId().startsWith(QLatin1String("GAS")) ||
         sensor->modelId().startsWith(QLatin1String("TH-")) ||
         sensor->modelId().startsWith(QLatin1String("SMOK_")) ||
         sensor->modelId().startsWith(QLatin1String("WATER_")) ||
+        sensor->modelId().startsWith(QLatin1String("Smoke")) ||
+        sensor->modelId().startsWith(QLatin1String("COSensor")) ||
+        sensor->modelId().startsWith(QLatin1String("Water")) ||
+        sensor->modelId().startsWith(QLatin1String("Door")) ||
+        sensor->modelId().startsWith(QLatin1String("WarningDevice")) ||
         sensor->modelId().startsWith(QLatin1String("SKHMP30")) || // GS smart plug
         // Konke
         sensor->modelId() == QLatin1String("3AFE140103020000") ||
@@ -2331,9 +2348,15 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
 
     if (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
         sensor->modelId().startsWith(QLatin1String("ROM00"))) // Hue smart button
+
     {
         srcEndpoints.push_back(0x01);
         clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+    }
+    else if (sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora FoH dimmer switch
+    {
+        srcEndpoints.push_back(0x01);
         clusters.push_back(LEVEL_CLUSTER_ID);
     }
     // Busch-Jaeger
@@ -2423,14 +2446,23 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);
-        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+        gids.removeFirst(); // Remote doesn't support bindings on first endpoint.
+        srcEndpoints.push_back(0x03);
+        srcEndpoints.push_back(0x04);
+        srcEndpoints.push_back(0x05);
+        srcEndpoints.push_back(0x06);
+        srcEndpoints.push_back(0x07);
+        srcEndpoints.push_back(0x08);
     }
     else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM")))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);
         clusters.push_back(SCENE_CLUSTER_ID);
-        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+        srcEndpoints.push_back(0x01);
+        srcEndpoints.push_back(0x02);
+        srcEndpoints.push_back(0x03);
+        srcEndpoints.push_back(0x04);
     }
     else if (sensor->modelId().startsWith(QLatin1String("D1")))
     {
@@ -2598,22 +2630,15 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
     }
 
     if (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
-        sensor->modelId().startsWith(QLatin1String("ROM00"))) // Hue smart button
-    {
-        if (!group)
-        {
-            getGroupIdentifiers(sensor, 0x01, 0x00);
-            return;
-        }
-    }
-    else if (sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")) ||
-             sensor->modelId().startsWith(QLatin1String("TRADFRI open/close remote")) ||
-             sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")) ||
-             sensor->modelId().startsWith(QLatin1String("TRADFRI remote control")) ||
-             sensor->modelId().startsWith(QLatin1String("TRADFRI wireless dimmer")) ||
-             sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
-             sensor->modelId().startsWith(QLatin1String("902010/23")) || // bitron remote
-             sensor->modelId().startsWith(QLatin1String("RC 110"))) // innr remote
+        sensor->modelId().startsWith(QLatin1String("ROM00")) || // Hue smart button
+        sensor->modelId().startsWith(QLatin1String("Z3-1BRL")) || // Lutron Aurora FoH smart dimmer
+        sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")) ||
+        sensor->modelId().startsWith(QLatin1String("TRADFRI open/close remote")) ||
+        sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")) ||
+        sensor->modelId().startsWith(QLatin1String("TRADFRI remote control")) ||
+        sensor->modelId().startsWith(QLatin1String("TRADFRI wireless dimmer")) ||
+        sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
+        sensor->modelId().startsWith(QLatin1String("902010/23"))) // bitron remote
     {
 
     }
@@ -2664,7 +2689,7 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
     }
     else if (!group && item->lastSet().isValid())
     {
-        const QString &gid = item->toString();
+        const QString &gid = item->toString(); //FIXME: handle list of groups
 
         std::vector<Group>::iterator i = groups.begin();
         std::vector<Group>::iterator end = groups.end();
@@ -2708,9 +2733,9 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
 
     }
 
-    if (item->toString() != group->id())
+    if (item->toString() != group->id()) // FIXME: handle list of groups
     {
-        item->setValue(group->id());
+        item->setValue(group->id()); // FIXME: handle list of groups
         sensor->setNeedSaveDatabase(true);
         queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
         Event e(RSensors, RConfigGroup, sensor->id(), item);
@@ -2733,7 +2758,7 @@ void DeRestPluginPrivate::checkOldSensorGroups(Sensor *sensor)
         return;
     }
 
-    const QString &gid = item->toString();
+    QStringList gids = item->toString().split(',', QString::SkipEmptyParts);
 
     {
         std::vector<Group>::iterator i = groups.begin();
@@ -2741,7 +2766,7 @@ void DeRestPluginPrivate::checkOldSensorGroups(Sensor *sensor)
 
         for (; i != end; ++i)
         {
-            if (gid == i->id()) // current group
+            if (gids.contains(i->id())) // current group
             {
                 if (i->state() != Group::StateNormal)
                 {
