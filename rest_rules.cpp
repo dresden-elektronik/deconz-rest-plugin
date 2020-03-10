@@ -1256,7 +1256,7 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
         ResourceItem *item = resource ? resource->item(c->suffix()) : nullptr;
 
         // the condition value might refer to another resource
-        Resource *valueResource = c->valueResource() ? getResource(c->valueResource(), c->value().toString()) : nullptr;
+        Resource *valueResource = c->valueResource() ? getResource(c->valueResource(), c->valueId()) : nullptr;
         ResourceItem *valueItem = valueResource ? valueResource->item(c->valueSuffix()) : nullptr;
 
         if (!resource || !item)

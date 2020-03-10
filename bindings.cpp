@@ -1858,6 +1858,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("332")) ||
         sensor->modelId().startsWith(QLatin1String("3200-S")) ||
         sensor->modelId().startsWith(QLatin1String("3305-S")) ||
+        sensor->modelId().startsWith(QLatin1String("3326-L")) ||
         // dresden elektronik
         (sensor->manufacturer() == QLatin1String("dresden elektronik") && sensor->modelId() == QLatin1String("de_spect")) ||
         // GE
@@ -1976,6 +1977,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Xiaomi
         sensor->modelId().startsWith(QLatin1String("lumi")) ||
         // iris
+        sensor->modelId().startsWith(QLatin1String("1116-S")) ||
         sensor->modelId().startsWith(QLatin1String("1117-S")) ||
         // iHorn (Huawei)
         sensor->modelId() == QLatin1String("113D"))
@@ -2092,7 +2094,10 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                      sensor->modelId() == QLatin1String("Shutters central remote switch") ||
                      sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||
                      sensor->modelId().endsWith(QLatin1String("86opcn01")) || // Aqara Opple
-                     sensor->modelId().contains(QLatin1String("1117-S")) ||
+                     sensor->modelId().startsWith(QLatin1String("1116-S")) ||
+                     sensor->modelId().startsWith(QLatin1String("1117-S")) ||
+                     sensor->modelId().startsWith(QLatin1String("3326-L")) ||
+                     sensor->modelId().startsWith(QLatin1String("3305-S")) ||
                      sensor->modelId() == QLatin1String("113D"))
             {
                 val = sensor->getZclValue(*i, 0x0020); // battery voltage
