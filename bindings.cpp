@@ -1974,6 +1974,10 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().contains(QLatin1String("ST218")) ||
         // Tuya
         sensor->modelId().contains(QLatin1String("TS0201")) ||
+        // Tuyatec
+        sensor->modelId().startsWith(QLatin1String("RH3040")) ||
+        sensor->modelId().startsWith(QLatin1String("RH3001")) ||
+        sensor->modelId().startsWith(QLatin1String("RH3052")) ||
         // Xiaomi
         sensor->modelId().startsWith(QLatin1String("lumi")) ||
         // iris
