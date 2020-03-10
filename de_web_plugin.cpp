@@ -5304,6 +5304,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     {
         sensorNode.setManufacturer("Tuya");
     }
+    else if (sensorNode.manufacturer().startsWith(QLatin1String("TUYATEC")))
+    {
+        sensorNode.setManufacturer("Tuyatec");
+    }
 
     if (sensorNode.manufacturer().isEmpty() && !manufacturer.isEmpty())
     {
