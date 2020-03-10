@@ -193,7 +193,8 @@ public:
 
     bool isValid() const { return m_op != OpUnknown; }
     Operator op() const;
-    const QString id() const;
+    const QString &id() const;
+    const QString &valueId() const;
     int numericValue() const;
     int seconds() const;
     const QTime &time0() const;
@@ -215,6 +216,7 @@ private:
     const char *m_valuePrefix = nullptr;
     const char *m_valueSuffix = nullptr;
     QString m_id;
+    QString m_valueId;
     Operator m_op = OpUnknown;
     int m_num = 0;
     quint8 m_weekDays = 127; // default all days enabled

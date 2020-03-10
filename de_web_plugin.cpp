@@ -14275,7 +14275,6 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             }
         }
         else if (sensor->modelId() == QLatin1String("Remote switch") || // Legrand switch
-                 sensor->modelId().contains(QLatin1String("86opcn01")) || // Aqara Opple
                  sensor->modelId() == QLatin1String("Shutters central remote switch")) // Legrand switch
         {
             checkSensorGroup(sensor);
