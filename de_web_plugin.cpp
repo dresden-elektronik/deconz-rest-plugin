@@ -249,8 +249,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_PHYSICAL, "outletv4", stMacPrefix }, // Samsung SmartThings plug (IM6001-OTP)
     { VENDOR_NONE, "RH3052", emberMacPrefix }, // Lupus small zigbee temperature sensor
     { VENDOR_AURORA, "DoubleSocket50AU", jennicMacPrefix }, // Aurora AOne Double Socket UK
+    { VENDOR_SUNRICHER, "4512702", silabs2MacPrefix }, // Namron 1-ch remote controller
     { VENDOR_SUNRICHER, "4512703", silabs2MacPrefix }, // Namron 4-ch remote controller
-    { VENDOR_SUNRICHER, "4512702", silabs2MacPrefix }, // Namron 4-ch remote controller
     { 0, nullptr, 0 }
 };
 
