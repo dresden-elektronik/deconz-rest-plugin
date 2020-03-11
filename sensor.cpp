@@ -1268,7 +1268,6 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         }
         else if (manufacturer == QLatin1String("Namron AS"))
         {
-            if (modelid.startsWith(QLatin1String("4512702"))) { m_buttonMap = sunricherMap; }
             if (modelid.startsWith(QLatin1String("4512703"))) { m_buttonMap = sunricherMap; }
         }
     }

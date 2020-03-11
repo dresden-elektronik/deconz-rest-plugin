@@ -402,20 +402,10 @@ void PollManager::pollTimerFired()
     }
     else if (suffix == RStatePower)
     {
-        bool NotOnlyPower = true;
         clusterId = ELECTRICAL_MEASUREMENT_CLUSTER_ID;
         attributes.push_back(0x050b); // Active Power
         item = r->item(RAttrModelId);
-        if (!item->toString().startsWith(QLatin1String("Plug"))) //Osram plug
-        {
-            NotOnlyPower = false;
-        }
-        item = r->item(RAttrManufacturerName);
-        if (!item->toString().startsWith(QLatin1String("Legrand")))  // All legrand Devices
-        {
-            NotOnlyPower = false;
-        }
-        if (NotOnlyPower)
+        if (! item->toString().startsWith(QLatin1String("Plug"))) // OSRAM plug
         {
             attributes.push_back(0x0505); // RMS Voltage
             attributes.push_back(0x0508); // RMS Current

@@ -2593,9 +2593,8 @@ void DeRestPluginPrivate::loadSceneFromDb(Scene *scene)
         return;
     }
 
-    QString gsid = "0x" + QString("%1%2")
-                       .arg(scene->groupAddress, 4, 16, QLatin1Char('0'))
-                       .arg(scene->id, 2, 16, QLatin1Char('0')).toUpper(); // unique key
+    QString gsid; // unique key
+    gsid = QString::asprintf("0x%04X%02X", scene->groupAddress, scene->id);
 
     QString sql = QString("SELECT * FROM scenes WHERE gsid='%1'").arg(gsid);
 
@@ -3138,8 +3137,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (sensor.fingerPrint().hasInCluster(METERING_CLUSTER_ID))
             {
                 clusterId = clusterId ? clusterId : METERING_CLUSTER_ID;
-                if ((sensor.modelId() != QLatin1String("SP 120")) && 
-                    (sensor.modelId() != QLatin1String("ZB-ONOFFPlug-D0005")))
+                if (sensor.modelId() != QLatin1String("SP 120"))
                 {
                     item = sensor.addItem(DataTypeInt16, RStatePower);
                     item->setValue(0);
@@ -3164,10 +3162,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     return 0;
                     // hasVoltage = false;
                 }
-                else if (sensor.modelId() == QLatin1String("ZB-ONOFFPlug-D0005"))
-                {
-                    hasVoltage = false;
-                }					
             }
             else if (sensor.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))
             {
@@ -3228,9 +3222,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeBool, RConfigDisplayFlipped);
                     sensor.addItem(DataTypeBool, RConfigLocked);
                     sensor.addItem(DataTypeString, RConfigMode);
-                }
-                else if (sensor.modelId() == QLatin1String("Zen-01"))
-                {
                 }
                 else
                 {
@@ -4396,7 +4387,8 @@ void DeRestPluginPrivate::saveDb()
 
         for (; i != end; ++i)
         {
-            QString gid = "0x" + QString("%1").arg(i->address(), 4, 16, QLatin1Char('0')).toUpper();
+            QString gid;
+            gid = QString::asprintf("0x%04X", i->address());
 
             if (i->state() == Group::StateDeleted)
             {
@@ -4480,11 +4472,11 @@ void DeRestPluginPrivate::saveDb()
 
                 for (; si != send; ++si)
                 {
-                    QString gsid = "0x" + QString("%1%2")
-                       .arg(i->address(), 4, 16, QLatin1Char('0'))
-                       .arg(si->id, 2, 16, QLatin1Char('0')).toUpper(); // unique key
+                    QString gsid; // unique key
+                    gsid = QString::asprintf("0x%04X%02X", i->address(), si->id);
 
-                    QString sid = "0x" + QString("%1").arg(si->id, 2, 16, QLatin1Char('0')).toUpper();
+                    QString sid;
+                    sid = QString::asprintf("0x%02X", si->id);
 
                     QString lights = Scene::lightsToString(si->lights());
                     QString sql;

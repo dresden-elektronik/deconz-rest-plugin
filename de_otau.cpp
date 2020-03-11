@@ -98,7 +98,8 @@ void DeRestPluginPrivate::otauDataIndication(const deCONZ::ApsDataIndication &in
 
             if (lightNode->swBuildId().isEmpty())
             {
-                QString version = "0x" + QString("%1").arg(swVersion, 8, 16, QLatin1Char('0')).toUpper();
+                QString version;
+                version = QString::asprintf("%08X", swVersion);
 
                 lightNode->setSwBuildId(version);
                 lightNode->setNeedSaveDatabase(true);
