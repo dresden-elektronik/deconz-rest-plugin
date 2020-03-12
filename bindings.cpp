@@ -1923,6 +1923,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("motion")) ||
         (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("multi")) ||
         (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("water")) ||
+        (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("outlet")) ||
         // Bitron
         sensor->modelId().startsWith(QLatin1String("902010")) ||
         // Develco
