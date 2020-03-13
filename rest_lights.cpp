@@ -732,6 +732,12 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 colorloopSpeed = speed;
             }
         }
+        else if (param == "colormode" && taskRef.lightNode->item(RStateColorMode)) {
+            paramOk = true;
+            valueOk = true;
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_MODIFIEABLE, QString("/lights/%1/state").arg(id), QString("parameter, %1, is not modifiable.").arg(param)));
+            requestOk = false;
+        }
         else if (param == "alert" && taskRef.lightNode->item(RStateAlert))
         {
             paramOk = true;
