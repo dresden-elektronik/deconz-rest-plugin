@@ -5271,6 +5271,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             item = sensorNode.addItem(DataTypeInt16, RStateOrientationX);
             item = sensorNode.addItem(DataTypeInt16, RStateOrientationY);
             item = sensorNode.addItem(DataTypeInt16, RStateOrientationZ);
+            item = sensorNode.addItem(DataTypeUInt16, RConfigDuration);
+            item->setValue(0);
         }
 
         if (fingerPrint.hasInCluster(IAS_ZONE_CLUSTER_ID)) // POLL_CONTROL_CLUSTER_ID
@@ -6480,6 +6482,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                     }
                     else if (event.clusterId() == SAMJIN_CLUSTER_ID)
                     {
+                        bool updated = false;
+                        bool vibration = false;
+
                         for (;ia != enda; ++ia)
                         {
                             if (std::find(event.attributeIds().begin(),
@@ -6489,16 +6494,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 continue;
                             }
 
-                            if (ia->id() == 0x0012 || ia->id() == 0x0013 || ia->id() == 0x0014) // accelerate
-                            {
-                                ResourceItem *item = i->item(RStateVibration);
-                                if (item)
-                                {
-                                    item->setValue(true);
-                                    enqueueEvent(Event(RSensors, RStateVibration, i->id(), item));
-                                    i->durationDue = item->lastSet().addSecs(65);
-                                }
-                            }
 
                             if (ia->id() == 0x0012) // accelerate x
                             {
@@ -6513,15 +6508,14 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (item)
                                 {
                                     item->setValue(ia->numericValue().s16);
+                                    updated = true;
 
                                     if (item->lastSet() == item->lastChanged())
                                     {
                                         Event e(RSensors, item->descriptor().suffix, i->id(), item);
                                         enqueueEvent(e);
+                                        vibration = true;
                                     }
-                                    i->setNeedSaveDatabase(true);
-                                    i->updateStateTimestamp();
-                                    enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
                                 }
                             }
                             else if (ia->id() == 0x0013) // accelerate y
@@ -6537,15 +6531,14 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (item)
                                 {
                                     item->setValue(ia->numericValue().s16);
+                                    updated = true;
 
                                     if (item->lastSet() == item->lastChanged())
                                     {
                                         Event e(RSensors, item->descriptor().suffix, i->id(), item);
                                         enqueueEvent(e);
+                                        vibration = true;
                                     }
-                                    i->setNeedSaveDatabase(true);
-                                    i->updateStateTimestamp();
-                                    enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
                                 }
                             }
                             else if (ia->id() == 0x0014) // accelerate z
@@ -6561,17 +6554,41 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (item)
                                 {
                                     item->setValue(ia->numericValue().s16);
+                                    updated = true;
 
                                     if (item->lastSet() == item->lastChanged())
                                     {
                                         Event e(RSensors, item->descriptor().suffix, i->id(), item);
                                         enqueueEvent(e);
+                                        vibration = true;
                                     }
-                                    i->setNeedSaveDatabase(true);
-                                    i->updateStateTimestamp();
-                                    enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
                                 }
                             }
+                        }
+
+                        if (updated)
+                        {
+                            if (vibration)
+                            {
+                                {
+                                    ResourceItem *item = i->item(RStateVibration);
+                                    if (item)
+                                    {
+                                        item->setValue(true);
+                                        enqueueEvent(Event(RSensors, RStateVibration, i->id(), item));
+
+                                        // prepare to set vibration to false automatically
+                                        ResourceItem *item2 = i->item(RConfigDuration);
+                                        if (item2 && item2->toNumber() > 0)
+                                        {
+                                          i->durationDue = item->lastSet().addSecs(item2->toNumber());
+                                        }
+                                    }
+                                }
+                            }
+                            i->setNeedSaveDatabase(true);
+                            i->updateStateTimestamp();
+                            enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
                         }
                     }
                     else if (event.clusterId() == BASIC_CLUSTER_ID)
