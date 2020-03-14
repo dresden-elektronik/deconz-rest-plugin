@@ -4112,11 +4112,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     }
                     else if (modelId.startsWith(QLatin1String("lumi.plug")) || modelId.startsWith(QLatin1String("lumi.ctrl_ln1")))
                     {
-                        if (i->endpoint() == 0x02)
+                        if (i->endpoint() == 0x02 || i->endpoint() == 0x15)
                         {
                             fpPowerSensor.inClusters.push_back(ci->id());
                         }
-                        else if (i->endpoint() == 0x03)
+                        else if (i->endpoint() == 0x03 || i->endpoint() == 0x16)
                         {
                             fpConsumptionSensor.inClusters.push_back(ci->id());
                         }

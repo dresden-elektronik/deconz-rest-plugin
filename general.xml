@@ -2786,6 +2786,34 @@ Fil pilote > Off=0001 - On=0002</description>
 			</client>
 		</cluster>
 
+		<!-- LUMI -->
+		<cluster id="0xfcc0" name="Lumi" mfcode="0x115f">
+			<description>Lumi specific attributes.</description>
+			<server>
+				<attribute id="0x00f3" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x00f5" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x00f6" name="Reporting Interval" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x00fa" name="Unknown" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x00fc" name="Unknown" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x00fe" name="Serial Number" type="cstring" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x00ff" name="Unknown (write only)" type="ostring" mfcode="0x115f" access="w" required="m"> </attribute>
+				<attribute id="0x0100" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0200" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0201" name="Unknown" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0202" name="Unknown" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0203" name="Device LED off" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0204" name="Unknown" type="float" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0205" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0206" name="Unknown" type="float" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0207" name="Unknown" type="bool" mfcode="0x115f" access="r" required="m"> </attribute>
+				<attribute id="0x020b" name="Max. Load exceeded at (in W)???" type="float" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0xf000" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0xfffd" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
+			</server>
+			<client>
+			</client>
+		</cluster>
+
 	</domain>
 
 	<profile id="0104" name="Home Automation" description="This profile defines device descriptions and standard practices for applications needed in a residential or light commercial environment. Installation scenarios range from a single room to an entire home up to 20,000 square feet (approximately 1850m2)." version="1.0" rev="25" icon="ha.png">
