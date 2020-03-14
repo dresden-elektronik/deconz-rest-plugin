@@ -505,8 +505,11 @@ int DeRestPluginPrivate::createRule(const ApiRequest &req, ApiResponse &rsp)
 
                 for (; ci != cend; ++ci)
                 {
-                    RuleCondition cond(ci->toMap());
-                    conditions.push_back(cond);
+                    const RuleCondition cond(ci->toMap());
+                    if (cond.isValid())
+                    {
+                        conditions.push_back(cond);
+                    }
                 }
 
                 rule.setConditions(conditions);
@@ -774,8 +777,11 @@ int DeRestPluginPrivate::updateRule(const ApiRequest &req, ApiResponse &rsp)
 
             for (; ci != cend; ++ci)
             {
-                RuleCondition cond(ci->toMap());
-                conditions.push_back(cond);
+                const RuleCondition cond(ci->toMap());
+                if (cond.isValid())
+                {
+                    conditions.push_back(cond);
+                }
             }
             rule->setConditions(conditions);
 
@@ -896,15 +902,14 @@ bool DeRestPluginPrivate::checkConditions(QVariantList conditionsList, ApiRespon
 
     for (; ci != cend; ++ci)
     {
-        RuleCondition cond(ci->toMap());
+        const RuleCondition cond(ci->toMap());
 
-        Resource *resource = (cond.op() != RuleCondition::OpUnknown) ? getResource(cond.resource(), cond.id()) : nullptr;
+        Resource *resource = cond.isValid() ? getResource(cond.resource(), cond.id()) : nullptr;
         ResourceItem *item = resource ? resource->item(cond.suffix()) : nullptr;
 
         if (!resource || !item)
         {
-            rsp.list.append(errorToMap(ERR_CONDITION_ERROR, QString(cond.address()),
-                QString("Condition error")));
+            rsp.list.append(errorToMap(ERR_CONDITION_ERROR, QString(cond.address()), QLatin1String("Condition error")));
             return false;
         }
     }
@@ -1212,9 +1217,10 @@ void DeRestPluginPrivate::queueCheckRuleBindings(const Rule &rule)
     \param e - the trigger event
     \param eResource - the event resource
     \param eItem - the event resource item
+    \param now - the current date/time to check the rule against
     \return true if rule can be triggered
  */
-bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eResource, ResourceItem *eItem)
+bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eResource, ResourceItem *eItem, QDateTime now)
 {
     if (!apsCtrl || !eItem || !eResource || (apsCtrl->networkState() != deCONZ::InNetwork))
     {
@@ -1230,8 +1236,6 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
     {
         return false;
     }
-
-    const QDateTime now = QDateTime::currentDateTime();
 
     if (rule.triggerPeriodic() > 0)
     {
@@ -1251,6 +1255,10 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
         Resource *resource = getResource(c->resource(), c->id());
         ResourceItem *item = resource ? resource->item(c->suffix()) : nullptr;
 
+        // the condition value might refer to another resource
+        Resource *valueResource = c->valueResource() ? getResource(c->valueResource(), c->valueId()) : nullptr;
+        ResourceItem *valueItem = valueResource ? valueResource->item(c->valueSuffix()) : nullptr;
+
         if (!resource || !item)
         {
             DBG_Printf(DBG_INFO, "rule: %s, resource %s : %s id: %s (cond: %s) not found\n",
@@ -1267,7 +1275,6 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
 
         if (!item->lastSet().isValid()) { return false; }
 
-
         if (resource->prefix() == RSensors)
         {
             // don't trigger rule if sensor is disabled
@@ -1277,7 +1284,6 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
                 return false;
             }
         }
-
 
         if (c->op() == RuleCondition::OpEqual)
         {
@@ -1305,18 +1311,38 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
         }
         else if (c->op() == RuleCondition::OpGreaterThan && item->descriptor().suffix == RStateLocaltime)
         {
-            const QDateTime t1 = QDateTime::fromMSecsSinceEpoch(item->toNumber());
-            if (now.time() < t1.time())
+            if (valueItem && valueItem->descriptor().suffix == RStateLocaltime)
             {
-                return false;
+                if (valueItem->toNumber() < item->toNumber())
+                {
+                    return false;
+                }
+            }
+            else if (valueItem && valueItem->descriptor().suffix == RConfigLocalTime)
+            {
+                const QDateTime t1 = QDateTime::fromMSecsSinceEpoch(item->toNumber());
+                if (now.time() < t1.time())
+                {
+                    return false;
+                }
             }
         }
         else if (c->op() == RuleCondition::OpLowerThan && item->descriptor().suffix == RStateLocaltime)
         {
-            const QDateTime t1 = QDateTime::fromMSecsSinceEpoch(item->toNumber());
-            if (now.time() > t1.time())
+            if (valueItem && valueItem->descriptor().suffix == RStateLocaltime)
             {
-                return false;
+                if (valueItem->toNumber() > item->toNumber())
+                {
+                    return false;
+                }
+            }
+            else if (valueItem && valueItem->descriptor().suffix == RConfigLocalTime)
+            {
+                const QDateTime t1 = QDateTime::fromMSecsSinceEpoch(item->toNumber());
+                if (now.time() > t1.time())
+                {
+                    return false;
+                }
             }
         }
         else if (c->op() == RuleCondition::OpGreaterThan)
@@ -1812,6 +1838,10 @@ void DeRestPluginPrivate::handleRuleEvent(const Event &e)
 {
     Resource *resource = getResource(e.resource(), e.id());
     ResourceItem *item = resource ? resource->item(e.what()) : nullptr;
+    const ResourceItem *localTime = config.item(RConfigLocalTime);
+    const QDateTime now = localTime
+      ? QDateTime::fromMSecsSinceEpoch(localTime->toNumber())
+      : QDateTime::currentDateTime();
 
     if (!resource || !item || item->rulesInvolved().empty())
     {
@@ -1820,15 +1850,16 @@ void DeRestPluginPrivate::handleRuleEvent(const Event &e)
 
     if (!e.id().isEmpty())
     {
-        DBG_Printf(DBG_INFO, "rule event: %s/%s %s num (%d -> %d)\n", e.resource(), qPrintable(e.id()), e.what(), e.numPrevious(), e.num());
+        DBG_Printf(DBG_INFO, "rule event at %s: %s/%s/%s: %d -> %d\n", qPrintable(now.toString("hh:mm:ss.zzz")), e.resource(), qPrintable(e.id()), e.what(), e.numPrevious(), e.num());
     }
     else
     {
-        DBG_Printf(DBG_INFO_L2, "rule event: %s %s\n", e.resource(), e.what());
+        DBG_Printf(DBG_INFO_L2, "rule event at %s: /%s\n", qPrintable(now.toString("hh:mm:ss.zzz")), e.what());
     }
 
-    QElapsedTimer t;
-    t.start();
+
+    // QElapsedTimer t;
+    // t.start();
     std::vector<size_t> rulesToTrigger;
     for (int handle : item->rulesInvolved())
     {
@@ -1839,7 +1870,7 @@ void DeRestPluginPrivate::handleRuleEvent(const Event &e)
                 continue;
             }
 
-            if (evaluateRule(rules[i], e, resource, item))
+            if (evaluateRule(rules[i], e, resource, item, now))
             {
                 rulesToTrigger.push_back(i);
             }
@@ -1855,9 +1886,9 @@ void DeRestPluginPrivate::handleRuleEvent(const Event &e)
         }
     }
 
-    //int dt = t.elapsed();
-    //if  (dt > 0)
-    //{
-        //DBG_Printf(DBG_INFO_L2, "trigger rule events took %d ms\n", dt);
-    //}
+    // int dt = t.elapsed();
+    // if (dt > 0)
+    // {
+    //     DBG_Printf(DBG_INFO_L2, "trigger rule events took %d ms\n", dt);
+    // }
 }

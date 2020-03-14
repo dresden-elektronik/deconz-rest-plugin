@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2020 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -99,7 +99,7 @@ void LightNode::setManufacturerCode(uint16_t code)
         case VENDOR_UBISYS:  name = QLatin1String("ubisys"); break;
         case VENDOR_BUSCH_JAEGER:  name = QLatin1String("Busch-Jaeger"); break;
         case VENDOR_EMBER:   // fall through
-        case VENDOR_120B:    name = QLatin1String("Heiman"); break;
+        case VENDOR_HEIMAN:  name = QLatin1String("Heiman"); break;
         case VENDOR_KEEN_HOME: name = QLatin1String("Keen Home Inc"); break;
         case VENDOR_DEVELCO: name = QLatin1String("Develco Products A/S"); break;
         case VENDOR_NETVOX:   name = QLatin1String("netvox"); break;
@@ -334,7 +334,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
         }
     }
 
-    if (manufacturerCode() == VENDOR_115F && endpoint.deviceId() == DEV_ID_HA_COLOR_DIMMABLE_LIGHT)
+    if (manufacturerCode() == VENDOR_XIAOMI && endpoint.deviceId() == DEV_ID_HA_COLOR_DIMMABLE_LIGHT)
     {
         // https://github.com/dresden-elektronik/deconz-rest-plugin/issues/1057
         // The Xiaomi Aqara TW (ZNLDP12LM) light is, has wrong device type in simple descriptor
@@ -364,6 +364,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                     if ((manufacturerCode() == VENDOR_IKEA && endpoint.deviceId() == DEV_ID_Z30_ONOFF_PLUGIN_UNIT) || // IKEA Tradfri control outlet
                         (manufacturerCode() == VENDOR_INNR && endpoint.deviceId() == DEV_ID_ZLL_ONOFF_PLUGIN_UNIT) || // innr SP120 smart plug
                         (manufacturerCode() == VENDOR_INNR && endpoint.deviceId() == DEV_ID_Z30_ONOFF_PLUGIN_UNIT) || // innr ZigBee 3.0 smart plugs (SP2xx)
+                        (manufacturerCode() == VENDOR_3A_SMART_HOME && endpoint.deviceId() == DEV_ID_ZLL_ONOFF_LIGHT) || // 3A in-wall switch
                         (manufacturerCode() == VENDOR_PHILIPS && endpoint.deviceId() == DEV_ID_HA_ONOFF_LIGHT && endpoint.profileId() == HA_PROFILE_ID)) // iCasa in-wall switch
                     { } // skip state.bri not supported
                     else
@@ -475,8 +476,10 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 }
                 else if (i->id() == IAS_WD_CLUSTER_ID)
                 {
-                    if (    modelId() == QLatin1String("902010/24") ||   // Bitron Smoke Detector with siren
-                            modelId() == QLatin1String("SMSZB-120"))     // Develco Smoke Alarm with siren
+                    if (modelId() == QLatin1String("902010/24") ||   // Bitron Smoke Detector with siren
+                        modelId() == QLatin1String("SMSZB-120") ||   // Develco Smoke Alarm with siren
+                        modelId() == QLatin1String("HESZB-120") ||   // Develco heat sensor with siren
+                        modelId() == QLatin1String("FLSZB-110"))     // Develco water leak sensor with siren
                     {
                         removeItem(RStateOn);
                         ltype = QLatin1String("Warning device");
@@ -503,7 +506,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 // DEV_ID_Z30_ONOFF_PLUGIN_UNIT
                 deviceId = DEV_ID_HA_WINDOW_COVERING_DEVICE;
             }
-            
+
             switch (deviceId)
             {
             //case DEV_ID_ZLL_DIMMABLE_LIGHT:   break; // clash with on/off light
@@ -513,32 +516,37 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 else                               { ltype = QLatin1String("Dimmable light"); }
             }
                 break;
-            case DEV_ID_LEVEL_CONTROL_SWITCH:        ltype = QLatin1String("Level control switch"); break;
-            case DEV_ID_ONOFF_OUTPUT:                ltype = QLatin1String("On/Off output"); break;
-            case DEV_ID_LEVEL_CONTROLLABLE_OUTPUT:   ltype = QLatin1String("Level controllable output"); break;
-            case DEV_ID_MAINS_POWER_OUTLET:          ltype = QLatin1String("On/Off plug-in unit"); break;
-            case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:       ltype = QLatin1String("On/Off plug-in unit"); break;
-            case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:       ltype = QLatin1String("On/Off plug-in unit"); break;
-            case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:    ltype = QLatin1String("Dimmable plug-in unit"); break;
-            case DEV_ID_Z30_DIMMABLE_PLUGIN_UNIT:    ltype = QLatin1String("Dimmable plug-in unit"); break;
-            case DEV_ID_HA_DIMMABLE_LIGHT:           ltype = QLatin1String("Dimmable light"); break;
-            case DEV_ID_HA_COLOR_DIMMABLE_LIGHT:     ltype = QLatin1String("Color dimmable light"); break;
-            case DEV_ID_HA_ONOFF_LIGHT_SWITCH:       ltype = QLatin1String("On/Off light switch"); break;
-            case DEV_ID_HA_DIMMER_SWITCH:            ltype = QLatin1String("Dimmer switch"); break;
-            case DEV_ID_ZLL_ONOFF_LIGHT:             ltype = QLatin1String("On/Off light"); break;
-            case DEV_ID_SMART_PLUG:                  ltype = QLatin1String("Smart plug"); break;
-            case DEV_ID_ZLL_COLOR_LIGHT:             ltype = QLatin1String("Color light"); break;
-            case DEV_ID_Z30_EXTENDED_COLOR_LIGHT:    ltype = QLatin1String("Extended color light"); break;
-            case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:    ltype = QLatin1String("Extended color light"); break;
-            case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT: ltype = QLatin1String("Color temperature light"); break;
-            case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT: ltype = QLatin1String("Color temperature light"); break;
-            case DEV_ID_XIAOMI_SMART_PLUG:           ltype = QLatin1String("Smart plug"); break;
-            case DEV_ID_IAS_ZONE:                    removeItem(RStateOn);
-                                                     ltype = QLatin1String("Warning device"); break;
-            case DEV_ID_IAS_WARNING_DEVICE:          removeItem(RStateOn);
-                                                     ltype = QLatin1String("Warning device"); break;
-            case DEV_ID_HA_WINDOW_COVERING_DEVICE:   ltype = QLatin1String("Window covering device"); break;
-            case DEV_ID_FAN:                         ltype = QLatin1String("Fan"); break;
+            case DEV_ID_LEVEL_CONTROL_SWITCH:          ltype = QLatin1String("Level control switch"); break;
+            case DEV_ID_ONOFF_OUTPUT:                  ltype = QLatin1String("On/Off output"); break;
+            case DEV_ID_LEVEL_CONTROLLABLE_OUTPUT:     ltype = QLatin1String("Level controllable output"); break;
+            case DEV_ID_MAINS_POWER_OUTLET:            ltype = QLatin1String("On/Off plug-in unit"); break;
+            case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:         ltype = QLatin1String("On/Off plug-in unit"); break;
+            case DEV_ID_ZLL_ONOFF_PLUGIN_UNIT:         ltype = QLatin1String("On/Off plug-in unit"); break;
+            case DEV_ID_ZLL_DIMMABLE_PLUGIN_UNIT:      ltype = QLatin1String("Dimmable plug-in unit"); break;
+            case DEV_ID_Z30_DIMMABLE_PLUGIN_UNIT:      ltype = QLatin1String("Dimmable plug-in unit"); break;
+            case DEV_ID_HA_DIMMABLE_LIGHT:             ltype = QLatin1String("Dimmable light"); break;
+            case DEV_ID_HA_COLOR_DIMMABLE_LIGHT:       ltype = QLatin1String("Color dimmable light"); break;
+            case DEV_ID_HA_ONOFF_LIGHT_SWITCH:         ltype = QLatin1String("On/Off light switch"); break;
+            case DEV_ID_HA_DIMMER_SWITCH:              ltype = QLatin1String("Dimmer switch"); break;
+            case DEV_ID_ZLL_ONOFF_LIGHT:               ltype = QLatin1String("On/Off light"); break;
+            case DEV_ID_SMART_PLUG:                    ltype = QLatin1String("Smart plug"); break;
+            case DEV_ID_ZLL_COLOR_LIGHT:               ltype = QLatin1String("Color light"); break;
+            case DEV_ID_Z30_EXTENDED_COLOR_LIGHT:      ltype = QLatin1String("Extended color light"); break;
+            case DEV_ID_ZLL_EXTENDED_COLOR_LIGHT:      ltype = QLatin1String("Extended color light"); break;
+            case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT:   ltype = QLatin1String("Color temperature light"); break;
+            case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT:   ltype = QLatin1String("Color temperature light"); break;
+            case DEV_ID_XIAOMI_SMART_PLUG:             ltype = QLatin1String("Smart plug"); break;
+            case DEV_ID_CONSUMPTION_AWARENESS_DEVICE:  ltype = QLatin1String("Consumption awareness device"); break;
+            case DEV_ID_IAS_ZONE:                      removeItem(RStateOn);
+                                                       ltype = QLatin1String("Warning device"); break;
+            case DEV_ID_IAS_WARNING_DEVICE:            removeItem(RStateOn);
+                                                       ltype = QLatin1String("Warning device"); break;
+            case DEV_ID_HA_WINDOW_COVERING_CONTROLLER: ltype = QLatin1String("Window covering controller"); break;
+            case DEV_ID_HA_WINDOW_COVERING_DEVICE:     ltype = QLatin1String("Window covering device"); break;
+            case DEV_ID_FAN:                           ltype = QLatin1String("Fan"); break;
+            case DEV_ID_CONFIGURATION_TOOL:            removeItem(RStateOn);
+                                                       removeItem(RStateAlert);
+                                                       ltype = QLatin1String("Configuration tool"); break;
             default:
                 break;
             }
@@ -558,6 +566,17 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
             case DEV_ID_Z30_EXTENDED_COLOR_LIGHT:    ltype = QLatin1String("Extended color light"); break;
             case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT: ltype = QLatin1String("Color temperature light"); break;
             case DEV_ID_ZLL_COLOR_TEMPERATURE_LIGHT: ltype = QLatin1String("Color temperature light"); break;
+            default:
+                break;
+            }
+        }
+        else if (haEndpoint().profileId() == DIN_PROFILE_ID)
+        {
+            switch (deviceId)
+            {
+            case DEV_ID_DIN_XBEE:                    removeItem(RStateOn);
+                                                     removeItem(RStateAlert);
+                                                     ltype = QLatin1String("Range extender"); break;
             default:
                 break;
             }

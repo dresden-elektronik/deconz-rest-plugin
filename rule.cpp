@@ -295,8 +295,11 @@ std::vector<RuleCondition> Rule::jsonToConditions(const QString &json)
 
     for (; i != end; ++i)
     {
-        RuleCondition cond(i->toMap());
-        conditions.push_back(cond);
+        const RuleCondition cond(i->toMap());
+        if (cond.isValid())
+        {
+            conditions.push_back(cond);
+        }
     }
 
     return conditions;
@@ -386,13 +389,14 @@ RuleCondition::RuleCondition() :
 {
 }
 
-RuleCondition::RuleCondition(const QVariantMap &map) :
-    m_prefix(nullptr),
-    m_suffix(nullptr),
-    m_num(0),
-    m_weekDays(127) // default all days enabled
+/*! Constructs a RuleCondition from the data given in \p map.
+
+    The RuleCondition::isValid() method should be used to verify
+    the object was constructed sucessfully.
+ */
+RuleCondition::RuleCondition(const QVariantMap &map)
 {
-    bool ok;
+    bool ok = false;
     m_address = map["address"].toString();
     m_operator = map["operator"].toString();
     m_value = map["value"];
@@ -449,7 +453,7 @@ RuleCondition::RuleCondition(const QVariantMap &map) :
     // extract proper datatype
     if (m_value.type() == QVariant::String)
     {
-        QString str = m_value.toString();
+        const QString str = m_value.toString();
 
         if (m_op == OpDdx || m_op == OpStable)
         {
@@ -497,13 +501,40 @@ RuleCondition::RuleCondition(const QVariantMap &map) :
             } else { m_op = OpUnknown; } // mark invalid
         }
         else if (str == QLatin1String("true") ||
-               str == QLatin1String("false"))
+                 str == QLatin1String("false"))
         {
             m_value = m_value.toBool();
         }
-        else if ((m_op == OpGreaterThan || m_op == OpLowerThan) && m_suffix == RStateLocaltime && str == QLatin1String("/config/localtime"))
+        else if ((m_op == OpGreaterThan || m_op == OpLowerThan) && m_suffix == RStateLocaltime && str.endsWith(QLatin1String("/localtime")))
         {
-            m_value = str;
+            // TODO dynamically referring to other resources in conditions might be useful in general
+
+            // /config/localtime
+            if (str.endsWith(QLatin1String(RConfigLocalTime)))
+            {
+                m_valuePrefix = RConfig;
+                m_valueSuffix = RConfigLocalTime;
+            }
+            // /sensors/51/state/localtime
+            else if (str.startsWith(QLatin1String(RSensors)) && str.endsWith(QLatin1String(RStateLocaltime)))
+            {
+                const QStringList ls = str.split('/', QString::SkipEmptyParts); // cache resource id
+                // [ "sensors", "51", "state", "localtime" ]
+                if (ls.size() == 4)
+                {
+                    m_valuePrefix = RSensors;
+                    m_valueSuffix = RStateLocaltime;
+                    m_valueId = ls[1];
+                }
+                else
+                {
+                    m_op = OpUnknown; // invalid
+                }
+            }
+            else
+            {
+                m_op = OpUnknown; // invalid
+            }
         }
         else if (m_op == OpEqual || m_op == OpNotEqual || m_op == OpGreaterThan || m_op == OpLowerThan)
         {
@@ -604,9 +635,16 @@ RuleCondition::Operator RuleCondition::op() const
 
 /*! Returns resource id of address.
  */
-const QString RuleCondition::id() const
+const QString &RuleCondition::id() const
 {
     return m_id;
+}
+
+/*! Returns resource id of address given in a value.
+ */
+const QString &RuleCondition::valueId() const
+{
+    return m_valueId;
 }
 
 /*! Returns value as int (for numeric and bool types).
@@ -662,6 +700,22 @@ const char *RuleCondition::resource() const
 const char *RuleCondition::suffix() const
 {
     return m_suffix;
+}
+
+/*! Returns the related Resource prefix like RSensors, RLights, etc. of the value,
+    if value is pointing to another resource. Otherwise \p nullptr is returned.
+ */
+const char *RuleCondition::valueResource() const
+{
+    return m_valuePrefix;
+}
+
+/*! Returns the Resource suffix like RStateButtonevent of the value,
+    if value is pointing to another resource. Otherwise \p nullptr is returned.
+ */
+const char *RuleCondition::valueSuffix() const
+{
+    return m_valueSuffix;
 }
 
 /*! Returns true if two BindingTasks are equal.

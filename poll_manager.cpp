@@ -277,7 +277,7 @@ void PollManager::pollTimerFired()
 
     if (suffix == RStateOn)
     {
-        if (lightNode && lightNode->manufacturerCode() != VENDOR_115F) // reports
+        if (lightNode && lightNode->manufacturerCode() != VENDOR_XIAOMI) // reports
         {
             clusterId = ONOFF_CLUSTER_ID;
             attributes.push_back(0x0000); // onOff
@@ -298,7 +298,7 @@ void PollManager::pollTimerFired()
         clusterId = COLOR_CLUSTER_ID;
         item = r->item(RConfigColorCapabilities);
 
-        if ((!item || item->toNumber() <= 0) && (lightNode->haEndpoint().profileId() == ZLL_PROFILE_ID || lightNode->manufacturerCode() == VENDOR_115F || lightNode->manufacturerCode() == VENDOR_MUELLER || lightNode->manufacturerCode() == VENDOR_XAL || lightNode->manufacturerCode() == VENDOR_LEDVANCE))
+        if ((!item || item->toNumber() <= 0) && (lightNode->haEndpoint().profileId() == ZLL_PROFILE_ID || lightNode->manufacturerCode() == VENDOR_XIAOMI || lightNode->manufacturerCode() == VENDOR_MUELLER || lightNode->manufacturerCode() == VENDOR_XAL || lightNode->manufacturerCode() == VENDOR_LEDVANCE))
         {
             if (item && lightNode->modelId() == QLatin1String("lumi.light.aqcn02"))
             {
@@ -397,15 +397,31 @@ void PollManager::pollTimerFired()
     else if (suffix == RStateConsumption)
     {
         clusterId = METERING_CLUSTER_ID;
-        attributes.push_back(0x0000); // Curent Summation Delivered
-        attributes.push_back(0x0400); // Instantaneous Demand
+        attributes.push_back(0x0000); // Current Summation Delivered
+        item = r->item(RAttrModelId);
+        if (!item->toString().startsWith(QLatin1String("SP 120")) &&  // Attribute is not available
+            !item->toString().startsWith(QLatin1String("lumi.plug.ma")) &&
+            !item->toString().startsWith(QLatin1String("ZB-ONOFFPlug-D0005")))
+        {
+            attributes.push_back(0x0400); // Instantaneous Demand
+        }
     }
     else if (suffix == RStatePower)
     {
+        bool NotOnlyPower = true;
         clusterId = ELECTRICAL_MEASUREMENT_CLUSTER_ID;
         attributes.push_back(0x050b); // Active Power
         item = r->item(RAttrModelId);
-        if (! item->toString().startsWith(QLatin1String("Plug"))) // OSRAM plug
+        if (!item->toString().startsWith(QLatin1String("Plug"))) //Osram plug
+        {
+            NotOnlyPower = false;
+        }
+        item = r->item(RAttrManufacturerName);
+        if (!item->toString().startsWith(QLatin1String("Legrand")))  // All legrand Devices
+        {
+            NotOnlyPower = false;
+        }
+        if (NotOnlyPower)
         {
             attributes.push_back(0x0505); // RMS Voltage
             attributes.push_back(0x0508); // RMS Current
@@ -432,8 +448,8 @@ void PollManager::pollTimerFired()
 
             if (lightNode->manufacturerCode() == VENDOR_UBISYS ||
                 lightNode->manufacturerCode() == VENDOR_EMBER ||
-                lightNode->manufacturerCode() == VENDOR_120B ||
-                lightNode->manufacturerCode() == VENDOR_115F ||
+                lightNode->manufacturerCode() == VENDOR_HEIMAN ||
+                lightNode->manufacturerCode() == VENDOR_XIAOMI ||
                 lightNode->manufacturerCode() == VENDOR_DEVELCO ||
                 lightNode->manufacturer().startsWith(QLatin1String("Climax")) ||
                 lightNode->manufacturer() == QLatin1String("SZ"))

@@ -265,7 +265,7 @@ void RestNodeBase::setMgmtBindSupported(bool supported)
     \param attributeId - the attribute id of the value
     \param value - the value data
  */
-void RestNodeBase::setZclValue(NodeValue::UpdateType updateType, quint16 clusterId, quint16 attributeId, const deCONZ::NumericUnion &value)
+void RestNodeBase::setZclValue(NodeValue::UpdateType updateType, quint8 endpoint, quint16 clusterId, quint16 attributeId, const deCONZ::NumericUnion &value)
 {
     QDateTime now = QDateTime::currentDateTime();
     std::vector<NodeValue>::iterator i = m_values.begin();
@@ -273,19 +273,23 @@ void RestNodeBase::setZclValue(NodeValue::UpdateType updateType, quint16 cluster
 
     for (; i != end; ++i)
     {
-        if (i->clusterId == clusterId &&
+        if (i->endpoint == endpoint &&
+            i->clusterId == clusterId &&
             i->attributeId == attributeId)
         {
             i->updateType = updateType;
             i->value = value;
-            int dt = i->timestamp.secsTo(now);
             i->timestamp = now;
 
             if (updateType == NodeValue::UpdateByZclReport)
             {
                 i->timestampLastReport = now;
             }
-            DBG_Printf(DBG_INFO_L2, "update ZCL value 0x%04X/0x%04X for 0x%016llX after %d s\n", clusterId, attributeId, address().ext(), dt);
+
+            if (DBG_IsEnabled(DBG_INFO_L2))
+            {
+                DBG_Printf(DBG_INFO_L2, "update ZCL value 0x%04X/0x%04X for ep: 0x%02X 0x%016llX after %lld s\n", endpoint, clusterId, attributeId, address().ext(), i->timestamp.secsTo(now));
+            }
             return;
         }
     }
@@ -296,12 +300,13 @@ void RestNodeBase::setZclValue(NodeValue::UpdateType updateType, quint16 cluster
     {
         val.timestampLastReport = now;
     }
+    val.endpoint = endpoint;
     val.clusterId = clusterId;
     val.attributeId = attributeId;
     val.updateType = updateType;
     val.value = value;
 
-    DBG_Printf(DBG_INFO_L2, "added ZCL value 0x%04X/0x%04X for 0x%016llX\n", clusterId, attributeId, address().ext());
+    DBG_Printf(DBG_INFO_L2, "added ZCL value 0x%04X/0x%04X for ep: 0x%02X 0x%016llX\n", clusterId, attributeId, endpoint, address().ext());
 
     m_values.push_back(val);
 }
@@ -311,14 +316,20 @@ void RestNodeBase::setZclValue(NodeValue::UpdateType updateType, quint16 cluster
     If the value couldn't be found the NodeValue::timestamp field holds a invalid QTime.
     \param clusterId - the cluster id of the value
     \param attributeId - the attribute id of the value
+    \param endpoint - the endpoint of the value, optional: 0 means no check
  */
-const NodeValue &RestNodeBase::getZclValue(quint16 clusterId, quint16 attributeId) const
+const NodeValue &RestNodeBase::getZclValue(quint16 clusterId, quint16 attributeId, quint8 endpoint) const
 {
     std::vector<NodeValue>::const_iterator i = m_values.begin();
     std::vector<NodeValue>::const_iterator end = m_values.end();
 
     for (; i != end; ++i)
     {
+        if (endpoint > 0 && i->endpoint != endpoint)
+        {
+            continue;
+        }
+
         if (i->clusterId == clusterId &&
             i->attributeId == attributeId)
         {
@@ -334,14 +345,20 @@ const NodeValue &RestNodeBase::getZclValue(quint16 clusterId, quint16 attributeI
     If the value couldn't be found the NodeValue::timestamp field holds a invalid QTime.
     \param clusterId - the cluster id of the value
     \param attributeId - the attribute id of the value
+    \param endpoint - the endpoint of the value, optional: 0 means no check
  */
-NodeValue &RestNodeBase::getZclValue(quint16 clusterId, quint16 attributeId)
+NodeValue &RestNodeBase::getZclValue(quint16 clusterId, quint16 attributeId, quint8 endpoint)
 {
     std::vector<NodeValue>::iterator i = m_values.begin();
     std::vector<NodeValue>::iterator end = m_values.end();
 
     for (; i != end; ++i)
     {
+        if (endpoint > 0 && i->endpoint != endpoint)
+        {
+            continue;
+        }
+
         if (i->clusterId == clusterId &&
             i->attributeId == attributeId)
         {
