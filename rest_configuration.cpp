@@ -848,7 +848,7 @@ int DeRestPluginPrivate::createUser(const ApiRequest &req, ApiResponse &rsp)
             for (int i = 0; i < 5; i++)
             {
                 quint8 rnd = qrand() & 0xFF;
-                QString frac = QString::asprintf("%02X", rnd);
+                QString frac = QString("%1").arg(rnd, 2, 16, QLatin1Char('0')).toUpper();
                 auth.apikey.append(frac);
             }
         }
@@ -1079,8 +1079,8 @@ void DeRestPluginPrivate::basicConfigToMap(QVariantMap &map)
 {
     map["name"] = gwName;
     map["datastoreversion"] = QLatin1String("60");
-    QStringList versions = QString(GW_SW_VERSION).split('.');
-    QString swversion = QString::asprintf("%d.%d.%d", versions[0].toInt(), versions[1].toInt(), versions[2].toInt());
+    const QStringList versions = QString(GW_SW_VERSION).split('.');
+    const QString swversion = QString("%1.%2.%3").arg(versions[0].toInt()).arg(versions[1].toInt()).arg(versions[2].toInt());
     map["swversion"] = swversion;
     map["apiversion"] = QString(GW_API_VERSION);
     map["mac"] = gwMAC;
@@ -2560,7 +2560,7 @@ void DeRestPluginPrivate::checkRfConnectState()
         }
 
         const quint32 fwVersion = apsCtrl->getParameter(deCONZ::ParamFirmwareVersion);
-        QString str = QString::asprintf("0x%08x", fwVersion);
+        QString str = QString("0x%1").arg(fwVersion, 8, 16, QLatin1Char('0'));
 
         if (gwFirmwareVersion != str)
         {
@@ -3402,7 +3402,7 @@ int DeRestPluginPrivate::putHomebridgeUpdated(const ApiRequest &req, ApiResponse
 
     if (map.contains("homebridge"))
     {
-        homebridge = map["homebridge"].toString();  
+        homebridge = map["homebridge"].toString();
 
         if (homebridge == QLatin1String("not-managed"))
         {

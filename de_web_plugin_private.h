@@ -95,13 +95,21 @@
 #define DE_OTAU_ENDPOINT             0x50
 #define DE_PROFILE_ID              0xDE00
 
+// Digi Drop-In-Networking (DIN) ZigBee Profile, used by the XBee.
+#define DIN_PROFILE_ID                      0xC105 // Digi Drop-In-Networking
+#define DIN_DDO_ENDPOINT                    0xE6   // Digi Device Object endpoint
+#define DIN_DDM_ENDPOINT                    0xE8   // Digi Data Management endpoint
+#define DEV_ID_DIN_XBEE                     0x0001 // Device ID used by the XBee
+
 // Generic devices
 #define DEV_ID_ONOFF_SWITCH                 0x0000 // On/Off switch
 #define DEV_ID_LEVEL_CONTROL_SWITCH         0x0001 // Level control switch
 #define DEV_ID_ONOFF_OUTPUT                 0x0002 // On/Off output
 #define DEV_ID_LEVEL_CONTROLLABLE_OUTPUT    0x0003 // Level controllable output
+#define DEV_ID_CONFIGURATION_TOOL           0x0005 // Configuration tool
 #define DEV_ID_RANGE_EXTENDER               0x0008 // Range extender
 #define DEV_ID_MAINS_POWER_OUTLET           0x0009 // Mains power outlet
+#define DEV_ID_CONSUMPTION_AWARENESS_DEVICE 0x000d // Consumption awareness device
 #define DEV_ID_FAN                          0x000e // Fan (used by Hamption Bay fan module)
 #define DEV_ID_SMART_PLUG                   0x0051 // Smart plug
 // HA lighting devices
@@ -115,6 +123,7 @@
 
 // Other HA devices
 #define DEV_ID_HA_WINDOW_COVERING_DEVICE    0x0202 // Window Covering Device
+#define DEV_ID_HA_WINDOW_COVERING_CONTROLLER 0x0203 // Window Covering Controller
 //
 #define DEV_ID_IAS_ZONE                     0x0402 // IAS Zone
 #define DEV_ID_IAS_WARNING_DEVICE           0x0403 // IAS Warning Device
@@ -209,6 +218,12 @@
 #define SCENE_COMMAND_IKEA_STEP_CT 0x07
 #define SCENE_COMMAND_IKEA_MOVE_CT 0x08
 #define SCENE_COMMAND_IKEA_STOP_CT 0x09
+#define WINDOW_COVERING_COMMAND_OPEN          0x00
+#define WINDOW_COVERING_COMMAND_CLOSE         0x01
+#define WINDOW_COVERING_COMMAND_STOP          0x02
+#define WINDOW_COVERING_COMMAND_GOTO_LIFT_PCT 0x05
+#define WINDOW_COVERING_COMMAND_GOTO_TILT_PCT 0x08
+
 
 // IAS Zone Types
 #define IAS_ZONE_TYPE_STANDARD_CIE            0x0000
@@ -248,49 +263,60 @@
 #define WRITE_USERTEST          (1 << 16)
 
 // manufacturer codes
-// http://cgit.osmocom.org/wireshark/plain/epan/dissectors/packet-zbee.h
+// https://github.com/wireshark/wireshark/blob/master/epan/dissectors/packet-zbee.h
 #define VENDOR_NONE         0x0000
 #define VENDOR_EMBER        0x1002
 #define VENDOR_PHILIPS      0x100B // Also used by iCasa routers
 #define VENDOR_VISONIC      0x1011
 #define VENDOR_ATMEL        0x1014
 #define VENDOR_DEVELCO      0x1015
+#define VENDOR_MAXSTREAM    0x101E // Used by Digi
+#define VENDOR_VANTAGE      0x1021
+#define VENDOR_LEGRAND      0x1021 // wrong name?
 #define VENDOR_LGE          0x102E
 #define VENDOR_JENNIC       0x1037 // Used by Xiaomi, Trust, Eurotronic
-#define VENDOR_CENTRALITE   0x104E
+#define VENDOR_CLS          0x104E
+#define VENDOR_CENTRALITE   0x104E // wrong name?
 #define VENDOR_SI_LABS      0x1049
-#define VENDOR_BITRON       0x1071
+#define VENDOR_4_NOKS       0x1071
+#define VENDOR_BITRON       0x1071 // branded
+#define VENDOR_COMPUTIME    0x1078
 #define VENDOR_NETVOX       0x109F
 #define VENDOR_NYCE         0x10B9
 #define VENDOR_UBISYS       0x10F2
 #define VENDOR_BEGA         0x1105
 #define VENDOR_PHYSICAL     0x110A // Used by SmartThings
 #define VENDOR_OSRAM        0x110C
+#define VENDOR_JASCO        0x1124 // Used by GE
+#define VENDOR_BUSCH_JAEGER 0x112E
+#define VENDOR_SERCOMM      0x1131
 #define VENDOR_BOSCH        0x1133
 #define VENDOR_DDEL         0x1135
 #define VENDOR_LUTRON       0x1144
 #define VENDOR_ZEN          0x1158
 #define VENDOR_KEEN_HOME    0x115B
-#define VENDOR_115F         0x115F // Used by Xiaomi Aqara
+#define VENDOR_XIAOMI       0x115F
 #define VENDOR_INNR         0x1166
 #define VENDOR_LDS          0x1168 // Used by Samsung SmartPlug 2019
 #define VENDOR_INSTA        0x117A
 #define VENDOR_IKEA         0x117C
-#define VENDOR_BUSCH_JAEGER 0x112E
+#define VENDOR_3A_SMART_HOME  0x117E
+#define VENDOR_STELPRO      0x1185
 #define VENDOR_LEDVANCE     0x1189
-#define VENDOR_119C         0x119C // Used by Sinope
-#define VENDOR_PAULMANN     0x119D
-#define VENDOR_120B         0x120B // Used by Heiman
+#define VENDOR_SINOPE       0x119C
+#define VENDOR_JIUZHOU      0x119D
+#define VENDOR_PAULMANN     0x119D // branded
+#define VENDOR_HEIMAN       0x120B
 #define VENDOR_MUELLER      0x121B // Used by Mueller Licht
 #define VENDOR_AURORA       0x121C // Used by Aurora Aone
-#define VENDOR_SUNRICHER    0x1224 // Used by iCasa and Namron keypads
+#define VENDOR_SUNRICHER    0x1224 // white label used by iCasa, Illuminize, Namron ...
 #define VENDOR_XAL          0x122A
-#define VENDOR_1233         0x1233 // Used by Third Reality
-#define VENDOR_1234         0x1234 // Used by Xiaomi Mi
+#define VENDOR_THIRD_REALITY 0x1233
+#define VENDOR_DSR          0x1234
+#define VENDOR_HANGZHOU_IMAGIC 0x123B
 #define VENDOR_SAMJIN       0x1241
 #define VENDOR_KONKE        0x1268
 #define VENDOR_OSRAM_STACK  0xBBAA
-#define VENDOR_LEGRAND      0x1021
 #define VENDOR_C2DF         0xC2DF
 
 #define ANNOUNCE_INTERVAL 10 // minutes default announce interval
@@ -375,6 +401,7 @@
 
 extern const quint64 macPrefixMask;
 
+extern const quint64 celMacPrefix;
 extern const quint64 bjeMacPrefix;
 extern const quint64 deMacPrefix;
 extern const quint64 emberMacPrefix;
@@ -383,6 +410,8 @@ extern const quint64 heimanMacPrefix;
 extern const quint64 ikeaMacPrefix;
 extern const quint64 ikea2MacPrefix;
 extern const quint64 silabsMacPrefix;
+extern const quint64 silabs2MacPrefix;
+extern const quint64 silabs3MacPrefix;
 extern const quint64 instaMacPrefix;
 extern const quint64 boschMacPrefix;
 extern const quint64 jennicMacPrefix;
@@ -399,20 +428,23 @@ extern const quint64 ubisysMacPrefix;
 extern const quint64 xalMacPrefix;
 extern const quint64 develcoMacPrefix;
 extern const quint64 legrandMacPrefix;
-extern const quint64 silabs2MacPrefix;
 extern const quint64 xiaomiMacPrefix;
+extern const quint64 computimeMacPrefix;
+extern const quint64 konkeMacPrefix;
+extern const quint64 ecozyMacPrefix;
 
 inline bool checkMacVendor(quint64 addr, quint16 vendor)
 {
     const quint64 prefix = addr & macPrefixMask;
     switch (vendor) {
-        case VENDOR_115F:
+        case VENDOR_XIAOMI:
             return prefix == jennicMacPrefix ||
                    prefix == xiaomiMacPrefix;
-        case VENDOR_119C:
+        case VENDOR_SINOPE:
             return prefix == sinopeMacPrefix;
-        case VENDOR_120B:
-            return prefix == emberMacPrefix;
+        case VENDOR_HEIMAN:
+            return prefix == emberMacPrefix ||
+                   prefix == jennicMacPrefix;
         case VENDOR_SUNRICHER:
             return prefix == emberMacPrefix ||
                    prefix == silabs2MacPrefix;
@@ -426,15 +458,20 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
         case VENDOR_CENTRALITE:
             return prefix == emberMacPrefix;
         case VENDOR_EMBER:
-            return prefix == emberMacPrefix;
+            return prefix == emberMacPrefix ||
+                   prefix == konkeMacPrefix ||
+                   prefix == silabs3MacPrefix;
         case VENDOR_DDEL:
-            return prefix == deMacPrefix;
+            return prefix == deMacPrefix ||
+                   prefix == silabs3MacPrefix;
         case VENDOR_IKEA:
             return prefix == ikeaMacPrefix ||
                    prefix == silabsMacPrefix ||
                    prefix == silabs2MacPrefix ||
                    prefix == energyMiMacPrefix ||
                    prefix == emberMacPrefix;
+        case VENDOR_JASCO:
+            return prefix == celMacPrefix;
         case VENDOR_INNR:
         case VENDOR_LDS:
             return prefix == jennicMacPrefix ||
@@ -463,6 +500,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == silabsMacPrefix ||
                    prefix == energyMiMacPrefix ||
                    prefix == ikeaMacPrefix; // belongs to SiLabs
+        case VENDOR_STELPRO:
+            return prefix == xalMacPrefix;
         case VENDOR_UBISYS:
             return prefix == ubisysMacPrefix;
         case VENDOR_VISONIC:
@@ -479,6 +518,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == netvoxMacPrefix;
         case VENDOR_AURORA:
             return prefix == jennicMacPrefix;
+        case VENDOR_COMPUTIME:
+            return prefix == computimeMacPrefix;
         default:
             return false;
     }
@@ -889,6 +930,8 @@ public:
     int getLightData(const ApiRequest &req, ApiResponse &rsp);
     int getLightState(const ApiRequest &req, ApiResponse &rsp);
     int setLightState(const ApiRequest &req, ApiResponse &rsp);
+    int setWindowCoveringState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
+    int setWarningDeviceState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
     int setLightAttributes(const ApiRequest &req, ApiResponse &rsp);
     int deleteLight(const ApiRequest &req, ApiResponse &rsp);
     int removeAllScenes(const ApiRequest &req, ApiResponse &rsp);
@@ -972,7 +1015,7 @@ public:
     int updateRule(const ApiRequest &req, ApiResponse &rsp);
     int deleteRule(const ApiRequest &req, ApiResponse &rsp);
     void queueCheckRuleBindings(const Rule &rule);
-    bool evaluateRule(Rule &rule, const Event &e, Resource *eResource, ResourceItem *eItem);
+    bool evaluateRule(Rule &rule, const Event &e, Resource *eResource, ResourceItem *eItem, QDateTime now);
     void indexRuleTriggers(Rule &rule);
     void triggerRule(Rule &rule);
     bool ruleToMap(const Rule *rule, QVariantMap &map);
@@ -1309,6 +1352,9 @@ public:
     void handleThermostatClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleTimeClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendTimeClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleBasicClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void sendBasicClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handlePhilipsClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZclAttributeReportIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZclConfigureReportingResponseIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendZclDefaultResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, quint8 status);

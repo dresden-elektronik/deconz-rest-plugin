@@ -463,13 +463,12 @@ void GatewayPrivate::handleEventStateOffline(GW_Event event)
         QString url;
         if (!apikey.isEmpty())
         {
-            url = QString::asprintf("http://%s:%u/api/%s/config",
-                        qPrintable(address.toString()), port, qPrintable(apikey));
+            url = QString("http://%1:%2/api/%3/config").arg(address.toString()).arg(port).arg(apikey);
 
         }
         else
         {
-            url = QString::asprintf("http://%s:%u/api/config", qPrintable(address.toString()), port);
+            url = QString("http://%1:%2/api/config").arg(address.toString()).arg(port);
         }
 
         reply = manager->get(QNetworkRequest(url));
@@ -541,8 +540,7 @@ void GatewayPrivate::handleEventStateNotAuthorized(GW_Event event)
         pings = 0;
 
         // try to create user account
-        QString url;
-        url = QString::asprintf("http://%s:%u/api/", qPrintable(address.toString()), port);
+        const QString url = QString("http://%1:%2/api/").arg(address.toString()).arg(port);
 
         QVariantMap map;
         map[QLatin1String("devicetype")] = QLatin1String("x-gw");
@@ -612,8 +610,7 @@ void GatewayPrivate::handleEventStateConnected(GW_Event event)
 
         if (commands.empty())
         {
-            QString url = QString::asprintf("http://%s:%u/api/%s/groups",
-                        qPrintable(address.toString()), port, qPrintable(apikey));
+            const QString url = QString("http://%1:%2/api/%3/groups").arg(address.toString()).arg(port).arg(apikey);
 
             pings++;
             reply = manager->get(QNetworkRequest(url));
@@ -635,13 +632,13 @@ void GatewayPrivate::handleEventStateConnected(GW_Event event)
                         ok = true;
                         if (uuid.startsWith(PHILIPS_MAC_PREFIX))  // cascade gateway is Hue bridge
                         {
-                            QString scene = QString::asprintf("g%us%u", cmd.groupId, cmd.param.sceneId);
+                            const QString scene = QString("g%1s%2").arg(cmd.groupId).arg(cmd.param.sceneId);
                             map[QLatin1String("scene")] = scene;
                         }
                         else
                         {
-                            url = QString::asprintf("http://%s:%u/api/%s/groups/%u/scenes/%u/recall",
-                                        qPrintable(address.toString()), port, qPrintable(apikey), cmd.groupId, cmd.param.sceneId);
+                            url = QString("http://%1:%2/api/%3/groups/%4/scenes/%5/recall")
+                                        .arg(address.toString()).arg(port).arg(apikey).arg(cmd.groupId).arg(cmd.param.sceneId);
                         }
                         break;
                     case SCENE_COMMAND_IKEA_STEP_CT:
@@ -749,8 +746,8 @@ void GatewayPrivate::handleEventStateConnected(GW_Event event)
 
             if (url.isEmpty())
             {
-                url = QString::asprintf("http://%s:%u/api/%s/groups/%u/action",
-                            qPrintable(address.toString()), port, qPrintable(apikey), cmd.groupId);
+                url = QString("http://%1:%2/api/%3/groups/%4/action")
+                            .arg(address.toString()).arg(port).arg(apikey).arg(cmd.groupId);
             }
 
             QString json;

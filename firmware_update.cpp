@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2020 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -259,7 +259,7 @@ void DeRestPluginPrivate::firmwareUpdateTimerFired()
 
             if (devConnected && fwVersion)
             {
-                gwFirmwareVersion = QString::asprintf("0x%08x", fwVersion);
+                gwFirmwareVersion = QString("0x%1").arg(fwVersion, 8, 16, QLatin1Char('0'));
                 gwConfig["fwversion"] = gwFirmwareVersion;
                 updateEtag(gwConfigEtag);
             }
@@ -362,11 +362,11 @@ void DeRestPluginPrivate::queryFirmwareVersion()
     {
         if (((fwVersion & FW_PLATFORM_MASK) == FW_PLATFORM_AVR) || fwVersion == FW_ONLY_AVR_BOOTLOADER)
         {
-            fileName = QString::asprintf("deCONZ_Rpi_0x%08x.bin.GCF", GW_MIN_AVR_FW_VERSION);
+            fileName = QString("deCONZ_Rpi_0x%1.bin.GCF").arg(GW_MIN_AVR_FW_VERSION, 8, 16, QLatin1Char('0'));
         }
         else if (((fwVersion & FW_PLATFORM_MASK) == FW_PLATFORM_R21) || fwVersion == FW_ONLY_R21_BOOTLOADER)
         {
-            fileName = QString::asprintf("deCONZ_ConBeeII_0x%08x.bin.GCF", GW_MIN_R21_FW_VERSION);
+            fileName = QString("deCONZ_ConBeeII_0x%1.bin.GCF").arg(GW_MIN_R21_FW_VERSION, 8, 16, QLatin1Char('0'));
         }
 
         // search in different locations
@@ -416,12 +416,10 @@ void DeRestPluginPrivate::queryFirmwareVersion()
             fwUpdateState = FW_Idle;
             fwUpdateTimer->start(FW_IDLE_TIMEOUT_LONG);
         }
-        else if (getUptime() >= FW_WAIT_UPDATE_READY)
+        else if (getUptime() >= FW_WAIT_UPDATE_READY && fwDeviceName == QLatin1String("RaspBee"))
         {
-            QString str = QString::asprintf("0x%08x", GW_MIN_AVR_FW_VERSION);
-
-            gwFirmwareVersion = "0x00000000"; // unknown
-            gwFirmwareVersionUpdate = str;
+            gwFirmwareVersion = QLatin1String("0x00000000"); // unknown
+            gwFirmwareVersionUpdate = QString("0x%1").arg(GW_MIN_AVR_FW_VERSION, 8, 16, QLatin1Char('0'));
             gwConfig["fwversion"] = gwFirmwareVersion;
             gwFirmwareNeedUpdate = true;
             updateEtag(gwConfigEtag);
@@ -439,7 +437,7 @@ void DeRestPluginPrivate::queryFirmwareVersion()
     }
     else if (devConnected || fwVersion == FW_ONLY_AVR_BOOTLOADER)
     {
-        QString str = QString::asprintf("0x%08x", fwVersion);
+        QString str = QString("0x%1").arg(fwVersion, 8, 16, QLatin1Char('0'));
 
         if (gwFirmwareVersion != str)
         {
@@ -456,7 +454,7 @@ void DeRestPluginPrivate::queryFirmwareVersion()
         {
             if (fwVersion < GW_MIN_AVR_FW_VERSION)
             {
-                gwFirmwareVersionUpdate = QString::asprintf("0x%08x", GW_MIN_AVR_FW_VERSION);
+                gwFirmwareVersionUpdate = QString("0x%1").arg(GW_MIN_AVR_FW_VERSION, 8, 16, QLatin1Char('0'));
                 gwFirmwareNeedUpdate = true;
                 updateEtag(gwConfigEtag);
 
@@ -496,11 +494,11 @@ void DeRestPluginPrivate::queryFirmwareVersion()
         }
 
         // adapted from above AVR handling
-        if (((fwVersion & FW_PLATFORM_MASK) == FW_PLATFORM_R21) || fwVersion == FW_ONLY_R21_BOOTLOADER)
+        if (((fwVersion & FW_PLATFORM_MASK) == FW_PLATFORM_R21) /*|| fwVersion == FW_ONLY_R21_BOOTLOADER*/)
         {
             if (fwVersion < GW_MIN_R21_FW_VERSION)
             {
-                gwFirmwareVersionUpdate = QString::asprintf("0x%08x", GW_MIN_R21_FW_VERSION);
+                gwFirmwareVersionUpdate = QString("0x%1").arg(GW_MIN_R21_FW_VERSION, 8, 16, QLatin1Char('0'));
                 gwFirmwareNeedUpdate = true;
                 updateEtag(gwConfigEtag);
 
