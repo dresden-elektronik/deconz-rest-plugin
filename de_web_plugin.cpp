@@ -5719,6 +5719,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("ZGRC-KEY")) || //  Sunricher wireless CCT remote
                                         i->modelId().startsWith(QLatin1String("ZG2833K")) || // Sunricher remote controller
                                         i->modelId().startsWith(QLatin1String("SV01-"))) // Keen Home vent
+                                        i->modelId().startsWith(QLatin1String("4512703")) || // Namron 4-ch remote controller
                                     {
                                         bat = ia->numericValue().u8;
                                     }
@@ -5753,6 +5754,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("ZGRC-KEY")) || // Sunricher wireless CCT remote
                                         i->modelId().startsWith(QLatin1String("ZG2833K")) || // Sunricher remote controller
                                         i->modelId().startsWith(QLatin1String("SV01-"))) // Keen Home vent
+                                        i->modelId().startsWith(QLatin1String("4512703")) || // Namron 4-ch remote controller
                                     {
                                         bat = ia->numericValue().u8;
                                     }
