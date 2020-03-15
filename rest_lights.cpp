@@ -1329,6 +1329,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     bool hasOn = false;
     bool targetOn = false;
     bool hasLift = false;
+    bool hasBri = false;
     bool hasStop = false;
     quint8 targetLiftPct = 0;
     bool hasTilt = false;
@@ -1347,16 +1348,8 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             if (map["on"].type() == QVariant::Bool)
             {
                 valueOk = true;
-                if (cluster == ANALOG_OUTPUT_CLUSTER_ID)
-                {
-                    hasLift = true;
-                    targetLiftPct = map["on"].toBool() ? 254 : 0;
-                }
-                else
-                {
-                    hasOn = true;
-                    targetOn = map["on"].toBool();
-                }
+                hasOn = true;
+                targetOn = map["on"].toBool();
             }
         }
         else if (param == "bri" && taskRef.lightNode->item(RStateBri))
@@ -1374,6 +1367,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
                 if (ok && bri >= 0 && bri <= 255)
                 {
                     valueOk = true;
+                    hasBri = true; // for response value
                     hasLift = true;
                     targetLiftPct = bri * 100 / 254;
                 }
@@ -1430,10 +1424,10 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         return REQ_READY_SEND;
     }
 
-    if (hasOn && targetOn && targetLiftPct == 0)
+    if (cluster == ANALOG_OUTPUT_CLUSTER_ID && hasOn && !hasLift)
     {
-        // handle {"on": true, "bri": 0}
-        targetLiftPct = 1;
+        hasLift = true;
+        targetLiftPct = targetOn ? 100 : 0;
     }
 
     // Some devices invert LiftPct.
@@ -1446,7 +1440,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         else if (taskRef.lightNode->modelId() == QLatin1String("Shutter switch with neutral"))
         {
             // Legrand invert bri and don't support other value than 0
-            targetLiftPct = targetLiftPct == 0 ? 254 : 0;
+            targetLiftPct = targetLiftPct == 0 ? 100 : 0;
         }
     }
 
@@ -1528,7 +1522,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         {
             QVariantMap rspItem;
             QVariantMap rspItemState;
-            rspItemState[QString("/lights/%1/state/bri").arg(id)] = hasLift ? map["bri"] : targetOn ? 254 : 0;
+            rspItemState[QString("/lights/%1/state/bri").arg(id)] = hasBri ? map["bri"] : targetOn ? 254 : 0;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
             // Rely on attribute reporting to update the light state.
