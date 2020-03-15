@@ -9734,7 +9734,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
         }
     }
 
-    if (zclFrame.isProfileWideCommand() && ind.clusterId() == BASIC_CLUSTER_ID && checkMacVendor(ind.srcAddress().ext(), VENDOR_XIAOMI))
+    if (zclFrame.isProfileWideCommand() && checkMacVendor(ind.srcAddress().ext(), VENDOR_XIAOMI) && (ind.clusterId() == BASIC_CLUSTER_ID || ind.clusterId() == 0xfcc0))
     {
         handleZclAttributeReportIndicationXiaomiSpecial(ind, zclFrame);
     }
@@ -9791,7 +9791,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         stream >> a;
         stream >> dataType;
 
-        if (dataType == deCONZ::ZclCharacterString)
+        if (dataType == deCONZ::ZclCharacterString || dataType == deCONZ::ZclOctedString)
         {
             stream >> length;
         }
@@ -9801,6 +9801,10 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             attrId = a;
         }
         else if (a == 0xff02 && dataType == 0x4c /*deCONZ::ZclStruct*/)
+        {
+            attrId = a;
+        }
+        else if (a == 0x00f7 && dataType == deCONZ::ZclOctedString)
         {
             attrId = a;
         }
@@ -9832,6 +9836,10 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     quint8 onOff = UINT8_MAX;
     quint8 onOff2 = UINT8_MAX;
     quint8 currentPositionLift = UINT8_MAX;
+    quint32 power = UINT32_MAX;
+    quint32 consumption = UINT32_MAX;
+    quint32 current = UINT32_MAX;
+    quint32 voltage = UINT32_MAX;
 
     DBG_Printf(DBG_INFO, "0x%016llX extract Xiaomi special attribute 0x%04X\n", ind.srcAddress().ext(), attrId);
 
@@ -9849,7 +9857,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
         quint8 tag = 0;
 
-        if (attrId == 0xff01)
+        if (attrId == 0xff01 || attrId == 0x00f7)
         {
             stream >> tag;
         }
@@ -9943,6 +9951,10 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             DBG_Printf(DBG_INFO, "\t0b lightlevel %u (0x%04X)\n", u16, u16);
             lightlevel = u16;
         }
+        else if (tag == 0x0b && dataType == deCONZ::Zcl8BitUint)
+        {
+            DBG_Printf(DBG_INFO, "\t0b unknown %d (0x%04X)\n", u8);
+        }
         else if ((tag == 0x64 || structIndex == 0x01) && dataType == deCONZ::ZclBoolean) // lumi.ctrl_ln2 endpoint 01
         {
             DBG_Printf(DBG_INFO, "\t64 on/off %d\n", u8);
@@ -9994,10 +10006,21 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         else if (tag == 0x95 && dataType == deCONZ::ZclSingleFloat) // lumi.ctrl_ln2
         {
             DBG_Printf(DBG_INFO, "\t95 consumption (?) 0x%08X\n", u32);
+            consumption = u32;
+        }
+        else if (tag == 0x96 && dataType == deCONZ::ZclSingleFloat) // lumi.plug.mmeu01
+        {
+            DBG_Printf(DBG_INFO, "\t96 voltage (?) 0x%08X\n", u32);
+            voltage = u32;
         }
         else if (tag == 0x97 && dataType == deCONZ::Zcl16BitUint) // lumi.sensor_cube
         {
             DBG_Printf(DBG_INFO, "\t97 unknown %d (0x%04X)\n", u16, u16);
+        }
+        else if (tag == 0x97 && dataType == deCONZ::ZclSingleFloat) // lumi.plug.mmeu01
+        {
+            DBG_Printf(DBG_INFO, "\t97 current (?) 0x%08X\n", u32);
+            current = u32;
         }
         else if (tag == 0x98 && dataType == deCONZ::Zcl16BitUint) // lumi.sensor_cube
         {
@@ -10006,6 +10029,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         else if (tag == 0x98 && dataType == deCONZ::ZclSingleFloat) // lumi.ctrl_ln2
         {
             DBG_Printf(DBG_INFO, "\t98 power (?) 0x%08X\n", u32);
+            power = u32;
         }
         else if (tag == 0x99 && dataType == deCONZ::Zcl16BitUint) // lumi.sensor_cube
         {
@@ -10030,6 +10054,10 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         else if (tag == 0x9b && dataType == deCONZ::Zcl16BitUint) // lumi.ctrl_neutral2
         {
             DBG_Printf(DBG_INFO, "\t9b unknown %d (0x%04X)\n", u16, u16);
+        }
+        else if (tag == 0x9b && dataType == deCONZ::ZclBoolean) // lumi.plug.mmeu01
+        {
+            DBG_Printf(DBG_INFO, "\t9b unknown %d\n", u8);
         }
         else if (tag)
         {
@@ -10254,7 +10282,59 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
               updated = true;
           }
         }
+        
+        if (power != UINT32_MAX)
+        {
+            ResourceItem *item = sensor.item(RStatePower);
+            if (item)
+            {
+                item->setValue(power);
+                enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor.id(), item));
+                sensor.updateStateTimestamp();
+                enqueueEvent(Event(RSensors, RStateLastUpdated, sensor.id()));
+                updated = true;
+            }
+        }
 
+        if (consumption != UINT32_MAX)
+        {
+            ResourceItem *item = sensor.item(RStateConsumption);
+            if (item)
+            {
+                item->setValue(consumption);
+                enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor.id(), item));
+                sensor.updateStateTimestamp();
+                enqueueEvent(Event(RSensors, RStateLastUpdated, sensor.id()));
+                updated = true;
+            }
+        }
+
+        if (voltage != UINT32_MAX)
+        {
+            ResourceItem *item = sensor.item(RStateVoltage);
+            if (item)
+            {
+                item->setValue(voltage);
+                enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor.id(), item));
+                sensor.updateStateTimestamp();
+                enqueueEvent(Event(RSensors, RStateLastUpdated, sensor.id()));
+                updated = true;
+            }
+        }
+
+        if (current != UINT32_MAX)
+        {
+            ResourceItem *item = sensor.item(RStateCurrent);
+            if (item)
+            {
+                item->setValue(current);
+                enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor.id(), item));
+                sensor.updateStateTimestamp();
+                enqueueEvent(Event(RSensors, RStateLastUpdated, sensor.id()));
+                updated = true;
+            }
+        }
+        
         if (lightlevel != UINT32_MAX &&
             sensor.type() == QLatin1String("ZHALightLevel") &&
             sensor.modelId().startsWith(QLatin1String("lumi.sensor_motion")))
