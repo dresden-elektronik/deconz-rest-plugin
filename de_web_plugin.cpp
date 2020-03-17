@@ -10010,7 +10010,6 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             void * vp = &u32;
             float f = *(float*)vp;
             f *= 1000;     // We want to have Wh
-            f += 0.5;      // Ensure proper rounding
             u32 = static_cast<qint32>(round(f));
             
             DBG_Printf(DBG_INFO, "\t98 consumption %d\n", u32);
@@ -10023,7 +10022,6 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             void * vp = &u32;
             float f = *(float*)vp;
             f /= 10;       // We want to have V
-            f += 0.5;      // Ensure proper rounding
             u32 = static_cast<qint32>(round(f));
             
             DBG_Printf(DBG_INFO, "\t96 voltage (?) %d\n", u32);
@@ -10039,8 +10037,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             
             void * vp = &u32;
             float f = *(float*)vp;
-            f += 0.5;      // Ensure proper rounding, already in mA
-            u32 = static_cast<qint32>(round(f));
+            u32 = static_cast<qint32>(round(f));  // already in mA
             
             DBG_Printf(DBG_INFO, "\t97 current %d\n", u32);
             current = u32;
@@ -10055,8 +10052,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             
             void * vp = &u32;
             float f = *(float*)vp;
-            f += 0.5;      // Ensure proper rounding, already in W
-            u32 = static_cast<qint32>(round(f));
+            u32 = static_cast<qint32>(round(f));  // already in W
             
             DBG_Printf(DBG_INFO, "\t98 power %d\n", u32);
             power = u32;
