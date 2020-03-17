@@ -9915,7 +9915,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x03 && dataType == deCONZ::Zcl8BitInt)
         {
-            DBG_Printf(DBG_INFO, "\t03 temperature %d °C\n", int(s8));
+            DBG_Printf(DBG_INFO, "\t03 temperature %d °C\n", int(s8)); // Device temperature for lumi.plug.mmeu01
             temperature = qint16(s8) * 100;
         }
         else if (tag == 0x04 && dataType == deCONZ::Zcl16BitUint)
@@ -9953,7 +9953,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x0b && dataType == deCONZ::Zcl8BitUint)
         {
-            DBG_Printf(DBG_INFO, "\t0b unknown %d (0x%04X)\n", u8);
+            DBG_Printf(DBG_INFO, "\t0b unknown %d (0x%04X)\n", u8, u8);
         }
         else if ((tag == 0x64 || structIndex == 0x01) && dataType == deCONZ::ZclBoolean) // lumi.ctrl_ln2 endpoint 01
         {
@@ -10005,12 +10005,28 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x95 && dataType == deCONZ::ZclSingleFloat) // lumi.ctrl_ln2
         {
-            DBG_Printf(DBG_INFO, "\t95 consumption (?) 0x%08X\n", u32);
+            DBG_Printf(DBG_INFO, "\t95 consumption 0x%08X\n", u32);
+            
+            void * vp = &u32;
+            float f = *(float*)vp;
+            f *= 1000;     // We want to have Wh
+            f += 0.5;      // Ensure proper rounding
+            u32 = static_cast<qint32>(round(f));
+            
+            DBG_Printf(DBG_INFO, "\t98 consumption %d\n", u32);
             consumption = u32;
         }
         else if (tag == 0x96 && dataType == deCONZ::ZclSingleFloat) // lumi.plug.mmeu01
         {
             DBG_Printf(DBG_INFO, "\t96 voltage (?) 0x%08X\n", u32);
+            
+            void * vp = &u32;
+            float f = *(float*)vp;
+            f /= 10;       // We want to have V
+            f += 0.5;      // Ensure proper rounding
+            u32 = static_cast<qint32>(round(f));
+            
+            DBG_Printf(DBG_INFO, "\t96 voltage (?) %d\n", u32);
             voltage = u32;
         }
         else if (tag == 0x97 && dataType == deCONZ::Zcl16BitUint) // lumi.sensor_cube
@@ -10019,7 +10035,14 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x97 && dataType == deCONZ::ZclSingleFloat) // lumi.plug.mmeu01
         {
-            DBG_Printf(DBG_INFO, "\t97 current (?) 0x%08X\n", u32);
+            DBG_Printf(DBG_INFO, "\t97 current 0x%08X\n", u32);
+            
+            void * vp = &u32;
+            float f = *(float*)vp;
+            f += 0.5;      // Ensure proper rounding, already in mA
+            u32 = static_cast<qint32>(round(f));
+            
+            DBG_Printf(DBG_INFO, "\t97 current %d\n", u32);
             current = u32;
         }
         else if (tag == 0x98 && dataType == deCONZ::Zcl16BitUint) // lumi.sensor_cube
@@ -10028,7 +10051,14 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x98 && dataType == deCONZ::ZclSingleFloat) // lumi.ctrl_ln2
         {
-            DBG_Printf(DBG_INFO, "\t98 power (?) 0x%08X\n", u32);
+            DBG_Printf(DBG_INFO, "\t98 power 0x%08X\n", u32);
+            
+            void * vp = &u32;
+            float f = *(float*)vp;
+            f += 0.5;      // Ensure proper rounding, already in W
+            u32 = static_cast<qint32>(round(f));
+            
+            DBG_Printf(DBG_INFO, "\t98 power %d\n", u32);
             power = u32;
         }
         else if (tag == 0x99 && dataType == deCONZ::Zcl16BitUint) // lumi.sensor_cube
