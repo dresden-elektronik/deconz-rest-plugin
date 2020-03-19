@@ -275,6 +275,7 @@
 #define VENDOR_LEGRAND      0x1021 // wrong name?
 #define VENDOR_LGE          0x102E
 #define VENDOR_JENNIC       0x1037 // Used by Xiaomi, Trust, Eurotronic
+#define VENDOR_ALERTME      0x1039
 #define VENDOR_CLS          0x104E
 #define VENDOR_CENTRALITE   0x104E // wrong name?
 #define VENDOR_SI_LABS      0x1049
@@ -447,6 +448,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
                    prefix == jennicMacPrefix;
         case VENDOR_SUNRICHER:
             return prefix == emberMacPrefix;
+        case VENDOR_ALERTME:
+            return prefix == tiMacPrefix;
         case VENDOR_BITRON:
             return prefix == tiMacPrefix;
         case VENDOR_BOSCH:

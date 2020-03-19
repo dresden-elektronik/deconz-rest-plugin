@@ -276,6 +276,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_HANGZHOU_IMAGIC, "1117-S", energyMiMacPrefix }, // iris motion sensor v3
     { VENDOR_JENNIC, "113D", jennicMacPrefix }, // iHorn (Huawei) temperature and humidity sensor
     { VENDOR_SERCOMM, "SZ-ESW01", emberMacPrefix }, // Sercomm / Telstra smart plug
+    { VENDOR_ALERTME, "MOT003", tiMacPrefix }, // Hive Motion Sensor
     { 0, nullptr, 0 }
 };
 

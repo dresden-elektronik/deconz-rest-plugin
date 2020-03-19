@@ -1985,7 +1985,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("1116-S")) ||
         sensor->modelId().startsWith(QLatin1String("1117-S")) ||
         // iHorn (Huawei)
-        sensor->modelId() == QLatin1String("113D"))
+        sensor->modelId() == QLatin1String("113D") ||
+        // Hive (Huawei)
+        sensor->modelId() == QLatin1String("MOT003"))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||
