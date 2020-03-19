@@ -254,6 +254,7 @@ static const SupportedDevice supportedDevices[] = {
     { 0, nullptr, 0 }
 };
 
+
 int TaskItem::_taskCounter = 1; // static rolling taskcounter
 
 ApiRequest::ApiRequest(const QHttpRequestHeader &h, const QStringList &p, QTcpSocket *s, const QString &c) :
