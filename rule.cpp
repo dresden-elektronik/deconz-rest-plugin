@@ -524,7 +524,7 @@ RuleCondition::RuleCondition(const QVariantMap &map)
                 {
                     m_valuePrefix = RSensors;
                     m_valueSuffix = RStateLocaltime;
-                    m_value = ls[1];
+                    m_valueId = ls[1];
                 }
                 else
                 {
@@ -635,9 +635,16 @@ RuleCondition::Operator RuleCondition::op() const
 
 /*! Returns resource id of address.
  */
-const QString RuleCondition::id() const
+const QString &RuleCondition::id() const
 {
     return m_id;
+}
+
+/*! Returns resource id of address given in a value.
+ */
+const QString &RuleCondition::valueId() const
+{
+    return m_valueId;
 }
 
 /*! Returns value as int (for numeric and bool types).

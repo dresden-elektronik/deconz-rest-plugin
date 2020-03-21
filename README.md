@@ -5,14 +5,12 @@ The deCONZ REST plugin provides a REST-API to access Zigbee 3.0 (Z30), Zigbee Ho
 
 A list of supported Zigbee devices can be found on the [Supported Devices](https://github.com/dresden-elektronik/deconz-rest-plugin/wiki/Supported-Devices) page.
 
-As hardware the [RaspBee](https://phoscon.de/raspbee?ref=gh) Zigbee Shield for Raspberry Pi, a [ConBee](https://phoscon.de/conbee?ref=gh) or [ConBee&nbsp;II](https://phoscon.de/conbee2?ref=gh) USB-dongle is used to communicate with Zigbee devices.
+To communicate with Zigbee devices the [RaspBee](https://phoscon.de/raspbee?ref=gh) / [RaspBee&nbsp;II](https://phoscon.de/raspbee2?ref=gh) Zigbee shield for Raspberry Pi, or a [ConBee](https://phoscon.de/conbee?ref=gh) / [ConBee&nbsp;II](https://phoscon.de/conbee2?ref=gh) USB dongle is required.
 
 To learn more about the REST-API itself please visit the [REST-API Documentation](http://dresden-elektronik.github.io/deconz-rest-doc/) page.
 
 ### Phoscon App
-The Phoscon App is browser based and supports lights, sensors and switches. For more information and screenshots check out:
-
-[Phoscon App Documentation](https://phoscon.de/app/doc?ref=gh)
+The Phoscon App is a browser based web application and supports lights, sensors and switches. For more information and screenshots visit the [Phoscon App Documentation](https://phoscon.de/app/doc?ref=gh).
 
 
 Installation
@@ -27,6 +25,7 @@ Installation
 You find the instructions for your platform and device on the Phoscon website:
 
 * [RaspBee](https://phoscon.de/raspbee/install?ref=gh)
+* [RaspBee&nbsp;II](https://phoscon.de/raspbee2/install?ref=gh)
 * [ConBee](https://phoscon.de/conbee/install?ref=gh)
 * [ConBee&nbsp;II](https://phoscon.de/conbee2/install?ref=gh)
 
@@ -100,9 +99,10 @@ Hardware requirements
 ---------------------
 
 * Raspberry Pi 1, 2B, 3B, 3B+ or 4B
-* [RaspBee](https://phoscon.de/raspbee?ref=gh) Zigbee Shield for Raspberry Pi
-* [ConBee](https://phoscon.de/conbee?ref=gh) USB-dongle for Raspberry Pi and PC
-* [ConBee&nbsp;II](https://phoscon.de/conbee2?ref=gh) USB-dongle for Raspberry Pi and PC
+* [RaspBee](https://phoscon.de/raspbee?ref=gh) Zigbee shield for Raspberry Pi
+* [RaspBee&nbsp;II](https://phoscon.de/raspbee2?ref=gh) Zigbee shield for Raspberry Pi
+* [ConBee](https://phoscon.de/conbee?ref=gh) USB dongle for Raspberry Pi and PC
+* [ConBee&nbsp;II](https://phoscon.de/conbee2?ref=gh) USB dongle for Raspberry Pi and PC
 
 3rd party libraries
 -------------------
