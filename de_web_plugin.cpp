@@ -3486,11 +3486,10 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     ok = true;
                 }
             }
-            else if (ind.clusterId() == IAS_ZONE_CLUSTER_ID)
+            else if (ind.clusterId() == SCENE_CLUSTER_ID && zclFrame.commandId() == 0x04) // store scene
             {
-                ok = false;
-                // following works for Samjin button
-                if (zclFrame.payload().size() == 6 && buttonMap->zclParam0 == zclFrame.payload().at(0))
+                ok = false; // payload: groupId, sceneId
+                if (zclFrame.payload().size() >= 3 && buttonMap->zclParam0 == zclFrame.payload().at(2))
                 {
                     ok = true;
                 }
@@ -3583,6 +3582,15 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                         sensor->previousDirection = 0xFF;
                         ok = true;
                     }
+                }
+            }
+            else if (ind.clusterId() == IAS_ZONE_CLUSTER_ID)
+            {
+                ok = false;
+                // following works for Samjin button
+                if (zclFrame.payload().size() == 6 && buttonMap->zclParam0 == zclFrame.payload().at(0))
+                {
+                    ok = true;
                 }
             }
             else if (ind.clusterId() == COLOR_CLUSTER_ID &&
