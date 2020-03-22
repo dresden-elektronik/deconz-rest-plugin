@@ -3762,17 +3762,20 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
     QList<deCONZ::SimpleDescriptor>::const_iterator i = node->simpleDescriptors().constBegin();
     QList<deCONZ::SimpleDescriptor>::const_iterator end = node->simpleDescriptors().constEnd();
 
-    // Trust specific
+    // Trust and iHorn specific
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC && modelId.isEmpty())
     {
+        int inClusterCount = i->inClusters().size();
+        int outClusterCount = i->outClusters().size();
+		
         // check Trust remote control ZYCT-202
         if (node->simpleDescriptors().size() == 2 &&
-                 node->simpleDescriptors()[0].endpoint() == 0x01 &&
-                 node->simpleDescriptors()[0].profileId() == ZLL_PROFILE_ID &&
-                 node->simpleDescriptors()[0].deviceId() == DEV_ID_ZLL_NON_COLOR_CONTROLLER &&
-                 node->simpleDescriptors()[1].endpoint() == 0x02 &&
-                 node->simpleDescriptors()[1].profileId() == ZLL_PROFILE_ID &&
-                 node->simpleDescriptors()[1].deviceId() == 0x03f2)
+            node->simpleDescriptors()[0].endpoint() == 0x01 &&
+            node->simpleDescriptors()[0].profileId() == ZLL_PROFILE_ID &&
+            node->simpleDescriptors()[0].deviceId() == DEV_ID_ZLL_NON_COLOR_CONTROLLER &&
+            node->simpleDescriptors()[1].endpoint() == 0x02 &&
+            node->simpleDescriptors()[1].profileId() == ZLL_PROFILE_ID &&
+            node->simpleDescriptors()[1].deviceId() == 0x03f2)
         {
             // server clusters endpoint 0x01: 0x0000, 0x0004, 0x0003, 0x0006, 0x0008, 0x1000
             // client clusters endpoint 0x01: 0x0000, 0x0004, 0x0003, 0x0006, 0x0008, 0x1000
@@ -3780,6 +3783,16 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             // client clusters endpoint 0x02: 0x1000
             modelId = QLatin1String("ZYCT-202"); //  the modelid returned by device is empty
             manufacturer = QLatin1String("Trust");
+        }
+        // check iHorn temperature and humidity sensor 113D
+        if (node->simpleDescriptors().size() == 1 &&
+            node->simpleDescriptors()[0].endpoint() == 0x01 &&
+            node->simpleDescriptors()[0].profileId() == HA_PROFILE_ID &&
+            node->simpleDescriptors()[0].deviceId() == 0x0302 &&
+            inClusterCount == 9 && outClusterCount == 11)
+        {
+            modelId = QLatin1String("113D"); //  the modelid returned by device is empty
+            manufacturer = QLatin1String("iHorn");
         }
     }
 
@@ -5988,8 +6001,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId().startsWith(QLatin1String("1116-S")) ||    // iris contact sensor v3
                                     i->modelId().startsWith(QLatin1String("1117-S")) ||    // iris motion sensor v3
                                     i->modelId().startsWith(QLatin1String("3326-L")) ||    // iris motion sensor v2
-                                    i->modelId().startsWith(QLatin1String("lumi.sen_ill")) ||// Xiaomi ZB3.0 light sensor
-                                    i->modelId() == QLatin1String("113D"))               // iHorn (Huawei) temperature and humidity sensor
+                                    i->modelId().startsWith(QLatin1String("lumi.sen_ill")))// Xiaomi ZB3.0 light sensor
                                 {  }
                                 else
                                 {
