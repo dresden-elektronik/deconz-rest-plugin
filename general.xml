@@ -2170,7 +2170,7 @@ controller device, that supports a keypad and LCD screen.</description>
 						<value name="Contact switch" value="0x0015"></value>
 						<value name="Fire sensor" value="0x0028"></value>
 						<value name="Water sensor" value="0x002a"></value>
-						<value name="Carbon Monoxide (CO) sensor" value="0x002b"></value>
+						<value name="Gas sensor" value="0x002b"></value>
 						<value name="Personal emergency device" value="0x002c"></value>
 						<value name="Vibration / Movement sensor" value="0x002d"></value>
 						<value name="Remote Control" value="0x010f"></value>
