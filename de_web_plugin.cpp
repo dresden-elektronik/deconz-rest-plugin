@@ -274,6 +274,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_HANGZHOU_IMAGIC, "1117-S", energyMiMacPrefix }, // iris motion sensor v3
     { VENDOR_JENNIC, "113D", jennicMacPrefix }, // iHorn (Huawei) temperature and humidity sensor
     { VENDOR_SERCOMM, "SZ-ESW01", emberMacPrefix }, // Sercomm / Telstra smart plug
+    { VENDOR_NONE, "TS0204", silabs3MacPrefix }, // Tuya gas sensor
     { 0, nullptr, 0 }
 };
 
@@ -3976,7 +3977,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("SMSZB-120")) ||        // Develco smoke detector
                              modelId.startsWith(QLatin1String("HESZB-120")) ||        // Develco heat detector
                              modelId.startsWith(QLatin1String("SF2")) ||              // ORVIBO (Heiman) smoke sensor
-                             modelId.startsWith(QLatin1String("lumi.sensor_smoke")))  // Xiaomi Mi smoke sensor
+                             modelId.startsWith(QLatin1String("lumi.sensor_smoke")) || // Xiaomi Mi smoke sensor
+                             modelId.startsWith(QLatin1String("TS0204")))             // Tuya gas sensor
                     {
                         // Gas sensor detects combustable gas, so fire is more appropriate than CO.
                         fpFireSensor.inClusters.push_back(ci->id());
@@ -5299,7 +5301,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     {
         sensorNode.setManufacturer("Develco Products A/S");
     }
-    else if (sensorNode.manufacturer().startsWith(QLatin1String("_TYZB01")))
+    else if (manufacturer.startsWith(QLatin1String("_TYZB01")))
     {
         sensorNode.setManufacturer("Tuya");
     }
