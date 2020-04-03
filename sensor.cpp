@@ -986,7 +986,6 @@ int Sensor::rxCounter() const
     return m_rxCounter;
 }
 
-
 /*! Returns the sensor manufacturer.
  */
 const QString &Sensor::manufacturer() const
