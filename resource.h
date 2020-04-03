@@ -47,6 +47,8 @@ extern const char *RAttrType;
 extern const char *RAttrClass;
 extern const char *RAttrUniqueId;
 extern const char *RAttrSwVersion;
+extern const char *RAttrLastAnnounce;
+extern const char *RAttrLastSeen;
 
 extern const char *RActionScene;
 
