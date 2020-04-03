@@ -1285,32 +1285,10 @@ bool DeRestPluginPrivate::addTaskAddScene(TaskItem &task, uint16_t groupId, uint
                     {
                         stream << (uint16_t)0x0300; // color cluster
                         stream << (uint8_t)11; // size
-                        if (l->colorMode() == QLatin1String("xy"))
-                        {
-                            stream << l->x();
-                            stream << l->y();
-                            stream << l->enhancedHue();
-                            stream << l->saturation();
-#if 0
-                            stream << l->x();
-                            stream << l->y();
-
-                            if (task.lightNode->manufacturerCode() == VENDOR_OSRAM ||
-                                    task.lightNode->manufacturerCode() == VENDOR_OSRAM_STACK)
-                            {
-                                stream << l->enhancedHue();
-                                stream << l->saturation();
-                            }
-                            else
-                            {
-                                stream << (quint16)0; //enhanced hue
-                                stream << (quint8)0; // saturation
-                            }
-#endif
-                        }
-                        else if (l->colorMode() == QLatin1String("ct"))
+                        if (l->colorMode() == QLatin1String("ct"))
                         {
                             quint16 x,y;
+                            quint16 enhancedHue = 0;
                             ResourceItem *ctMin = task.lightNode->item(RConfigCtMin);
                             ResourceItem *ctMax = task.lightNode->item(RConfigCtMax);
 
@@ -1330,6 +1308,13 @@ bool DeRestPluginPrivate::addTaskAddScene(TaskItem &task, uint16_t groupId, uint
                             {
                                 // quirks mode Ribag Air O stores color temperature in x
                                 x = l->colorTemperature();
+                                y = 0;
+                            }
+                            else if (task.lightNode->modelId().startsWith(QLatin1String("ICZB-F")))
+                            {
+                                // quirks mode icasa filament lights store color temperature in hue
+                                enhancedHue = l->colorTemperature();
+                                x = 0;
                                 y = 0;
                             }
                             else
@@ -1358,10 +1343,10 @@ bool DeRestPluginPrivate::addTaskAddScene(TaskItem &task, uint16_t groupId, uint
 
                             stream << x;
                             stream << y;
-                            stream << (quint16)0; //enhanced hue
+                            stream << enhancedHue;
                             stream << (quint8)0; // saturation
                         }
-                        else if (l->colorMode() == QLatin1String("hs"))
+                        else
                         {
                             stream << l->x();
                             stream << l->y();
