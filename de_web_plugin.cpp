@@ -1002,6 +1002,8 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
     {
         return;
     }
+    sensor->rx();
+
     quint32 btn = ind.gpdCommandId();
     if (sensor->modelId() == QLatin1String("FOHSWITCH"))
     {
