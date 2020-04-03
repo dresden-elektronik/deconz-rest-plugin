@@ -281,6 +281,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
     map["uniqueid"] = lightNode->uniqueId();
     map["name"] = lightNode->name();
     map["type"] = lightNode->type();
+    map["lastseen"] = lightNode->lastRx().toUTC().toString("yyyy-MM-ddTHH:mm:ss.zzz");
 
     // Amazon Echo quirks mode
     if (req.mode == ApiModeEcho)
@@ -1618,7 +1619,7 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
                 const uint ot = map[param].toUInt(&ok);
                 if (ok && ot > 0 && ot < 0xFFFF) {
                     valueOk = true;
-                    taskRef.onTime = ot;
+                    onTime = ot;
                 }
             }
         }
@@ -1633,7 +1634,7 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
             requestOk = false;
         }
     }
-    if (taskRef.onTime > 0 && alert.isEmpty()) {
+    if (onTime > 0 && alert.isEmpty()) {
         rsp.list.append(errorToMap(ERR_MISSING_PARAMETER, QString("/lights/%1/state").arg(id), QString("missing parameter, alert, for parameter, ontime")));
         requestOk = false;
     }
@@ -2363,20 +2364,24 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
             }
         }
     }
-    else if (e.what() == RAttrName)
+    if (strncmp(e.what(), "attr/", 5) == 0)
     {
-        QVariantMap map;
-        map["t"] = QLatin1String("event");
-        map["e"] = QLatin1String("changed");
-        map["r"] = QLatin1String("lights");
-        map["id"] = e.id();
-        map["uniqueid"] = lightNode->uniqueId();
-
-        if (e.what() == RAttrName) // new attributes might be added in future
+        ResourceItem *item = lightNode->item(e.what());
+        if (item)
         {
-            map["name"] = lightNode->name();
+            QVariantMap map;
+            map["t"] = QLatin1String("event");
+            map["e"] = QLatin1String("changed");
+            map["r"] = QLatin1String("lights");
+            map["id"] = e.id();
+            map["uniqueid"] = lightNode->uniqueId();
+
+            // For now, don't collect top-level attributes into a single event.
+            const char *key = item->descriptor().suffix + 5;
+            map[key] = item->toVariant();
+
+            webSocketServer->broadcastTextMessage(Json::serialize(map));
         }
-        webSocketServer->broadcastTextMessage(Json::serialize(map));
     }
     else if (e.what() == REventAdded)
     {
@@ -2384,12 +2389,20 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
         res["name"] = lightNode->name();
         searchLightsResult[lightNode->id()] = res;
 
+        QVariantMap lmap;
+        QHttpRequestHeader hdr;  // dummy
+        QStringList path;  // dummy
+        ApiRequest req(hdr, path, nullptr, QLatin1String("")); // dummy
+        req.mode = ApiModeNormal;
+        lightToMap(req, lightNode, lmap);
+
         QVariantMap map;
         map["t"] = QLatin1String("event");
         map["e"] = QLatin1String("added");
         map["r"] = QLatin1String("lights");
         map["id"] = e.id();
         map["uniqueid"] = lightNode->uniqueId();
+        map["light"] = lmap;
 
         webSocketServer->broadcastTextMessage(Json::serialize(map));
     }
