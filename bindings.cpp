@@ -1951,6 +1951,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("Remote switch") || //Legrand wireless switch
         sensor->modelId() == QLatin1String("Shutters central remote switch") || //Legrand wireless shutter switch
         sensor->modelId() == QLatin1String("DIN power consumption module") || //Legrand DIN power consumption module
+        //Livolo
+        sensor->modelId() == QLatin1String("TI0001") ||
         // ORVIBO
         sensor->modelId().startsWith(QLatin1String("SN10ZW")) ||
         sensor->modelId().startsWith(QLatin1String("SF2")) ||

@@ -127,6 +127,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "PSMD_", tiMacPrefix }, // Climax smart plug
     { VENDOR_NONE, "PSMP5_", tiMacPrefix }, // Climax smart plug
     { VENDOR_NONE, "OJB-IR715-Z", tiMacPrefix },
+    { VENDOR_NONE, "TI0001", tiMacPrefix },    //Livolo switch
     { VENDOR_NONE, "902010/21", tiMacPrefix }, // Bitron: door/window sensor
     { VENDOR_NONE, "902010/22", tiMacPrefix }, // Bitron: motion sensor
     { VENDOR_NONE, "902010/23", tiMacPrefix }, // Bitron: remote control
@@ -9683,8 +9684,8 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
         sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus);
     }
     else if (checkMacVendor(ind.srcAddress(), VENDOR_PHILIPS) ||
-             macPrefix == tiMacPrefix ||
-             checkMacVendor(ind.srcAddress(), VENDOR_DDEL) ||
+            macPrefix == tiMacPrefix ||
+            checkMacVendor(ind.srcAddress(), VENDOR_DDEL) ||
             checkMacVendor(ind.srcAddress(), VENDOR_IKEA) ||
             checkMacVendor(ind.srcAddress(), VENDOR_OSRAM_STACK) ||
             checkMacVendor(ind.srcAddress(), VENDOR_JENNIC) ||
