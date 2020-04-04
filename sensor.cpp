@@ -1076,7 +1076,9 @@ void Sensor::jsonToState(const QString &json)
     QDateTime dt = QDateTime::currentDateTime().addSecs(-120);
     if (map.contains("lastupdated"))
     {
-        QDateTime lu = QDateTime::fromString(map["lastupdated"].toString(), QLatin1String("yyyy-MM-ddTHH:mm:ss"));
+        QString lastupdated = map["lastupdated"].toString();
+        QString format = lastupdated.length() == 19 ? QLatin1String("yyyy-MM-ddTHH:mm:ss") : QLatin1String("yyyy-MM-ddTHH:mm:ss.zzz");
+        QDateTime lu = QDateTime::fromString(lastupdated, format);
         if (lu < dt)
         {
             dt = lu;
