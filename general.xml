@@ -1076,7 +1076,9 @@ that measures a physical quantity that can take on one of a number of discrete s
 					<value name="Count down" value="4"></value>
 					<value name="Wait for more" value="5"></value>
 				</attribute>
-								<attribute id="0x0009" name="Min block request delay" type="u16" default="0" access="r" required="m"></attribute>
+				<attribute id="0x0007" name="Manufacturer ID" type="u16" access="r" required="o" showas="hex"></attribute>
+				<attribute id="0x0008" name="Image Type ID" type="u16" access="r" required="o" showas="hex"></attribute>
+				<attribute id="0x0009" name="Min block request delay" type="u16" default="0" access="r" required="m"></attribute>
 				<command id="0x01" dir="send" name="Query next image" required="m">
 					<description></description>
 					<payload>
@@ -2619,19 +2621,19 @@ devices can operate on either battery or mains power, and can have a wide variet
 				<attribute id="0x0000" type="u8" name="On" required="m" access="rw" default="0">
 					<description>Enable Sensor </description>
 				</attribute>
-				
+
 				<attribute id="0x0001" name="X-Value" type="u16" default="0x0000" access="r" required="m" showas="dec">
 					<description>X-Value</description>
 				</attribute>
-				
+
 				<attribute id="0x0002" name="Y-Value" type="u16" default="0x0000" access="r" required="m" showas="dec">
 					<description>Y-Value</description>
 				</attribute>
-				
+
 				<attribute id="0x0003" name="Z-Value" type="u16" default="0x0000" access="r" required="m" showas="dec">
 					<description>Z-Value</description>
 				</attribute>
-				
+
 			</server>
 			<client>
 			</client>

@@ -3025,11 +3025,13 @@ int DeRestPluginPrivate::modifyScene(const ApiRequest &req, ApiResponse &rsp)
     uint tt = 0;
     uint16_t xy_x;
     uint16_t xy_y;
+    uint16_t ct = 0;
 
     bool hasOn = false;
     bool hasBri = false;
     bool hasTt = false;
     bool hasXy = false;
+    bool hasCt = false;
 
     // on
     if (map.contains("on"))
@@ -3079,6 +3081,23 @@ int DeRestPluginPrivate::modifyScene(const ApiRequest &req, ApiResponse &rsp)
         else
         {
             rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/groups/%1/scenes/%2/lights/%3/state/bri").arg(gid).arg(sid).arg(lid), QString("invalid value, %1, for parameter bri").arg(tt)));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+    }
+
+    if (map.contains("ct"))
+    {
+        bool ok;
+        ct = map["ct"].toUInt(&ok);
+
+        if (ok && map["ct"].type() == QVariant::Double && (ct < 1000))
+        {
+            hasCt = true;
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/groups/%1/scenes/%2/lights/%3/state/ct").arg(gid).arg(sid).arg(lid), QString("invalid value, %1, for parameter ct").arg(ct)));
             rsp.httpStatus = HttpStatusBadRequest;
             return REQ_READY_SEND;
         }
@@ -3157,8 +3176,14 @@ int DeRestPluginPrivate::modifyScene(const ApiRequest &req, ApiResponse &rsp)
                     }
                     if (hasXy)
                     {
+                        l->setColorMode(QLatin1String("xy"));
                         l->setX(xy_x);
                         l->setY(xy_y);
+                    }
+                    else if (hasCt)
+                    {
+                        l->setColorMode(QLatin1String("ct"));
+                        l->setColorTemperature(ct);
                     }
 
                     if (!modifyScene(group, i->id))

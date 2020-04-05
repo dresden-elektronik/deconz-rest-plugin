@@ -920,16 +920,28 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         {
             bt.restNode->setZclValue(NodeValue::UpdateInvalid, bt.binding.srcEndpoint, bt.binding.clusterId, IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID, dummy);
         }
-        rq.minInterval = 1;
-        rq.maxInterval = 300;
 
         const Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
-        const ResourceItem *item = sensor ? sensor->item(RConfigDuration) : nullptr;
 
-        if (item && item->toNumber() > 15 && item->toNumber() <= UINT16_MAX)
+        if (sensor->type() == QLatin1String("ZHAVibration") && sensor->modelId() == QLatin1String("multi")) // FIXME: check if this also applies to other Samjin sensors
+        // if (bt.restNode->node()->nodeDescriptor().manufacturerCode() == VENDOR_SAMJIN)
         {
-            rq.maxInterval = static_cast<quint16>(item->toNumber());
-            rq.maxInterval -= 5; // report before going presence: false
+            // Only configure periodic reports, as events are already sent though zone status change notification commands
+            rq.minInterval = 300;
+            rq.maxInterval = 300;
+        }
+        else
+        {
+            rq.minInterval = 1;
+            rq.maxInterval = 300;
+
+            const ResourceItem *item = sensor ? sensor->item(RConfigDuration) : nullptr;
+
+            if (item && item->toNumber() > 15 && item->toNumber() <= UINT16_MAX)
+            {
+                rq.maxInterval = static_cast<quint16>(item->toNumber());
+                rq.maxInterval -= 5; // report before going presence: false
+            }
         }
 
         rq.dataType = deCONZ::Zcl16BitBitMap;
@@ -1431,7 +1443,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.dataType = deCONZ::Zcl16BitInt;
             rq.attributeId = 0x0012; // acceleration x
             rq.minInterval = 1;
-            rq.maxInterval = 3600;
+            rq.maxInterval = 300;
             rq.reportableChange16bit = 1;
             rq.manufacturerCode = VENDOR_SAMJIN;
 
@@ -1439,7 +1451,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq2.dataType = deCONZ::Zcl16BitInt;
             rq2.attributeId = 0x0013; // acceleration y
             rq2.minInterval = 1;
-            rq2.maxInterval = 3600;
+            rq2.maxInterval = 300;
             rq2.reportableChange16bit = 1;
             rq2.manufacturerCode = VENDOR_SAMJIN;
 
@@ -1447,7 +1459,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq3.dataType = deCONZ::Zcl16BitInt;
             rq3.attributeId = 0x0014; // acceleration z
             rq3.minInterval = 1;
-            rq3.maxInterval = 3600;
+            rq3.maxInterval = 300;
             rq3.reportableChange16bit = 1;
             rq3.manufacturerCode = VENDOR_SAMJIN;
 

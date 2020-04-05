@@ -1004,6 +1004,8 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
     {
         return;
     }
+    sensor->rx();
+
     quint32 btn = ind.gpdCommandId();
     if (sensor->modelId() == QLatin1String("FOHSWITCH"))
     {
@@ -3488,11 +3490,10 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     ok = true;
                 }
             }
-            else if (ind.clusterId() == IAS_ZONE_CLUSTER_ID)
+            else if (ind.clusterId() == SCENE_CLUSTER_ID && zclFrame.commandId() == 0x04) // store scene
             {
-                ok = false;
-                // following works for Samjin button
-                if (zclFrame.payload().size() == 6 && buttonMap->zclParam0 == zclFrame.payload().at(0))
+                ok = false; // payload: groupId, sceneId
+                if (zclFrame.payload().size() >= 3 && buttonMap->zclParam0 == zclFrame.payload().at(2))
                 {
                     ok = true;
                 }
@@ -3585,6 +3586,15 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                         sensor->previousDirection = 0xFF;
                         ok = true;
                     }
+                }
+            }
+            else if (ind.clusterId() == IAS_ZONE_CLUSTER_ID)
+            {
+                ok = false;
+                // following works for Samjin button
+                if (zclFrame.payload().size() == 6 && buttonMap->zclParam0 == zclFrame.payload().at(0))
+                {
+                    ok = true;
                 }
             }
             else if (ind.clusterId() == COLOR_CLUSTER_ID &&
@@ -5274,6 +5284,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             item = sensorNode.addItem(DataTypeInt16, RStateOrientationX);
             item = sensorNode.addItem(DataTypeInt16, RStateOrientationY);
             item = sensorNode.addItem(DataTypeInt16, RStateOrientationZ);
+            item = sensorNode.addItem(DataTypeUInt16, RConfigDuration);
+            item->setValue(0);
         }
 
         if (fingerPrint.hasInCluster(IAS_ZONE_CLUSTER_ID)) // POLL_CONTROL_CLUSTER_ID
@@ -6485,6 +6497,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                     }
                     else if (event.clusterId() == SAMJIN_CLUSTER_ID)
                     {
+                        bool updated = false;
+                        bool vibration = false;
+
                         for (;ia != enda; ++ia)
                         {
                             if (std::find(event.attributeIds().begin(),
@@ -6494,16 +6509,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 continue;
                             }
 
-                            if (ia->id() == 0x0012 || ia->id() == 0x0013 || ia->id() == 0x0014) // accelerate
-                            {
-                                ResourceItem *item = i->item(RStateVibration);
-                                if (item)
-                                {
-                                    item->setValue(true);
-                                    enqueueEvent(Event(RSensors, RStateVibration, i->id(), item));
-                                    i->durationDue = item->lastSet().addSecs(65);
-                                }
-                            }
 
                             if (ia->id() == 0x0012) // accelerate x
                             {
@@ -6518,15 +6523,14 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (item)
                                 {
                                     item->setValue(ia->numericValue().s16);
+                                    updated = true;
 
                                     if (item->lastSet() == item->lastChanged())
                                     {
                                         Event e(RSensors, item->descriptor().suffix, i->id(), item);
                                         enqueueEvent(e);
+                                        vibration = true;
                                     }
-                                    i->setNeedSaveDatabase(true);
-                                    i->updateStateTimestamp();
-                                    enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
                                 }
                             }
                             else if (ia->id() == 0x0013) // accelerate y
@@ -6542,15 +6546,14 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (item)
                                 {
                                     item->setValue(ia->numericValue().s16);
+                                    updated = true;
 
                                     if (item->lastSet() == item->lastChanged())
                                     {
                                         Event e(RSensors, item->descriptor().suffix, i->id(), item);
                                         enqueueEvent(e);
+                                        vibration = true;
                                     }
-                                    i->setNeedSaveDatabase(true);
-                                    i->updateStateTimestamp();
-                                    enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
                                 }
                             }
                             else if (ia->id() == 0x0014) // accelerate z
@@ -6566,17 +6569,41 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (item)
                                 {
                                     item->setValue(ia->numericValue().s16);
+                                    updated = true;
 
                                     if (item->lastSet() == item->lastChanged())
                                     {
                                         Event e(RSensors, item->descriptor().suffix, i->id(), item);
                                         enqueueEvent(e);
+                                        vibration = true;
                                     }
-                                    i->setNeedSaveDatabase(true);
-                                    i->updateStateTimestamp();
-                                    enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
                                 }
                             }
+                        }
+
+                        if (updated)
+                        {
+                            if (vibration)
+                            {
+                                {
+                                    ResourceItem *item = i->item(RStateVibration);
+                                    if (item)
+                                    {
+                                        item->setValue(true);
+                                        enqueueEvent(Event(RSensors, RStateVibration, i->id(), item));
+
+                                        // prepare to set vibration to false automatically
+                                        ResourceItem *item2 = i->item(RConfigDuration);
+                                        if (item2 && item2->toNumber() > 0)
+                                        {
+                                          i->durationDue = item->lastSet().addSecs(item2->toNumber());
+                                        }
+                                    }
+                                }
+                            }
+                            i->setNeedSaveDatabase(true);
+                            i->updateStateTimestamp();
+                            enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
                         }
                     }
                     else if (event.clusterId() == BASIC_CLUSTER_ID)
@@ -10645,7 +10672,8 @@ bool DeRestPluginPrivate::addTask(const TaskItem &task)
     std::list<TaskItem>::iterator i = tasks.begin();
     std::list<TaskItem>::iterator end = tasks.end();
 
-    if ((task.taskType != TaskGetSceneMembership) &&
+    if ((task.taskType != TaskSetLevel) &&
+        (task.taskType != TaskGetSceneMembership) &&
         (task.taskType != TaskGetGroupMembership) &&
         (task.taskType != TaskGetGroupIdentifiers) &&
         (task.taskType != TaskStoreScene) &&
@@ -10669,7 +10697,7 @@ bool DeRestPluginPrivate::addTask(const TaskItem &task)
                     (i->req.asdu().size() ==  task.req.asdu().size()))
 
                 {
-                    DBG_Printf(DBG_INFO, "Replace task %d type %d in queue cluster 0x%04X with newer task of same type. %u runnig tasks\n", task.taskId, task.taskType, task.req.clusterId(), runningTasks.size());
+                    DBG_Printf(DBG_INFO, "Replace task %d type %d in queue cluster 0x%04X with newer task %d of same type. %u runnig tasks\n", i->taskId, task.taskType, task.req.clusterId(), task.taskId, runningTasks.size());
                     *i = task;
                     return true;
                 }
