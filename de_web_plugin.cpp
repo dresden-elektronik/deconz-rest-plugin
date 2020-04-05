@@ -9826,6 +9826,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
     QDataStream stream(zclFrame.payload());
     stream.setByteOrder(QDataStream::LittleEndian);
+    stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
 
     while (attrId == 0)
     {
@@ -9901,6 +9902,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         qint32 s32;
         quint32 u32;
         quint64 u64;
+        float f;
 
         quint8 tag = 0;
 
@@ -9947,7 +9949,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             }
             break;
         case deCONZ::Zcl64BitUint: stream >> u64; break;
-        case deCONZ::ZclSingleFloat: stream >> u32; break;  // FIXME: use 4-byte float data type
+        case deCONZ::ZclSingleFloat: stream >> f; break;
         default:
         {
             DBG_Printf(DBG_INFO, "\tUnsupported datatype 0x%02X (tag 0x%02X)\n", dataType, tag);
@@ -10052,27 +10054,13 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x95 && dataType == deCONZ::ZclSingleFloat) // lumi.ctrl_ln2
         {
-            DBG_Printf(DBG_INFO, "\t95 consumption 0x%08X\n", u32);
-
-            void * vp = &u32;
-            float f = *(float*)vp;
-            f *= 1000;     // We want to have Wh
-            u32 = static_cast<qint32>(round(f));
-
-            DBG_Printf(DBG_INFO, "\t98 consumption %d\n", u32);
-            consumption = u32;
+            consumption = static_cast<qint32>(round(f * 1000)); // convert to Wh
+            DBG_Printf(DBG_INFO, "\t95 consumption %f (%d)\n", f, consumption);
         }
         else if (tag == 0x96 && dataType == deCONZ::ZclSingleFloat) // lumi.plug.mmeu01
         {
-            DBG_Printf(DBG_INFO, "\t96 voltage (?) 0x%08X\n", u32);
-
-            void * vp = &u32;
-            float f = *(float*)vp;
-            f /= 10;       // We want to have V
-            u32 = static_cast<qint32>(round(f));
-
-            DBG_Printf(DBG_INFO, "\t96 voltage (?) %d\n", u32);
-            voltage = u32;
+            voltage = static_cast<qint32>(round(f / 10)); // convert to V
+            DBG_Printf(DBG_INFO, "\t96 voltage %f (%d)\n", f, voltage);
         }
         else if (tag == 0x97 && dataType == deCONZ::Zcl16BitUint) // lumi.sensor_cube
         {
@@ -10080,14 +10068,8 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x97 && dataType == deCONZ::ZclSingleFloat) // lumi.plug.mmeu01
         {
-            DBG_Printf(DBG_INFO, "\t97 current 0x%08X\n", u32);
-
-            void * vp = &u32;
-            float f = *(float*)vp;
-            u32 = static_cast<qint32>(round(f));  // already in mA
-
-            DBG_Printf(DBG_INFO, "\t97 current %d\n", u32);
-            current = u32;
+            current = static_cast<qint32>(round(f));  // already in mA
+            DBG_Printf(DBG_INFO, "\t97 current %f (%d)\n", f, current);
         }
         else if (tag == 0x98 && dataType == deCONZ::Zcl16BitUint) // lumi.sensor_cube
         {
@@ -10095,14 +10077,8 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x98 && dataType == deCONZ::ZclSingleFloat) // lumi.ctrl_ln2
         {
-            DBG_Printf(DBG_INFO, "\t98 power 0x%08X\n", u32);
-
-            void * vp = &u32;
-            float f = *(float*)vp;
-            u32 = static_cast<qint32>(round(f));  // already in W
-
-            DBG_Printf(DBG_INFO, "\t98 power %d\n", u32);
-            power = u32;
+            power = static_cast<qint32>(round(f));  // already in W
+            DBG_Printf(DBG_INFO, "\t98 power %f (%d)\n", f, power);
         }
         else if (tag == 0x99 && dataType == deCONZ::Zcl16BitUint) // lumi.sensor_cube
         {
@@ -10420,7 +10396,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {   // don't add, just update, useful since door/window and presence sensors otherwise only report on activation
             ResourceItem *item = sensor.item(RStateOpen);
             item = item ? item : sensor.item(RStatePresence);
-//            item = item ? item : sensor.item(RStateWater);  // lumi.sensor_wleak.aq1, ignore, value is not reliable
+            // item = item ? item : sensor.item(RStateWater);  // lumi.sensor_wleak.aq1, ignore, value is not reliable
             if (attrId == 0xff02)
             {
                 // don't update Mija devices
