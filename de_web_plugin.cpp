@@ -2778,11 +2778,31 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                 {
                     if (ia->id() == 0x0055) // Present Value
                     {
-                        uint8_t level = 254 * (100 - ia->numericValue().real) / 100;
-                        ResourceItem *item = lightNode->item(RStateBri);
+                        quint8 lift = 100 - ia->numericValue().real;
+                        ResourceItem *item = lightNode->item(RStateLift);
+                        if (item && item->toNumber() != lift)
+                        {
+                            item->setValue(lift);
+                            Event e(RLights, RStateLift, lightNode->id(), item);
+                            enqueueEvent(e);
+                            updated = true;
+                            pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().real);
+                        }
+                        item = lightNode->item(RStateOpen);
+                        bool open = lift < 100;
+                        if (item && item->toBool() != open)
+                        {
+                            item->setValue(open);
+                            Event e(RLights, RStateOpen, lightNode->id(), item);
+                            enqueueEvent(e);
+                            updated = true;
+                        }
+
+                        // FIXME: deprecate
+                        quint8 level = 254 * lift / 100;
+                        item = lightNode->item(RStateBri);
                         if (item && item->toNumber() != level)
                         {
-                            DBG_Printf(DBG_INFO, "0x%016llX level %u --> %u\n", lightNode->address().ext(), (uint)item->toNumber(), level);
                             item->setValue(level);
                             Event e(RLights, RStateBri, lightNode->id(), item);
                             enqueueEvent(e);
@@ -2793,12 +2813,13 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         item = lightNode->item(RStateOn);
                         if (item && item->toBool() != on)
                         {
-                            DBG_Printf(DBG_INFO, "0x%016llX onOff %u --> %u\n", lightNode->address().ext(), (uint)item->toNumber(), on);
                             item->setValue(on);
                             Event e(RLights, RStateOn, lightNode->id(), item);
                             enqueueEvent(e);
                             updated = true;
                         }
+                        // END FIXME: deprecate
+
                         lightNode->setZclValue(updateType, event.endpoint(), event.clusterId(), 0x0055, ia->numericValue());
                         break;
                     }
@@ -5117,8 +5138,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
 
             if (sensorNode.modelId().startsWith(QLatin1String("J1")))
             {
-            	item = sensorNode.addItem(DataTypeUInt8, RConfigWindowCoveringType);
-            	item->setValue(0);
+                item = sensorNode.addItem(DataTypeUInt8, RConfigWindowCoveringType);
+                item->setValue(0);
             }
         }
     }
@@ -9883,7 +9904,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     qint16 pressure = INT16_MIN;
     quint8 onOff = UINT8_MAX;
     quint8 onOff2 = UINT8_MAX;
-    quint8 currentPositionLift = UINT8_MAX;
+    quint8 lift = UINT8_MAX;
     quint32 power = UINT32_MAX;
     quint32 consumption = UINT32_MAX;
     quint32 current = UINT32_MAX;
@@ -10011,11 +10032,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x64 && dataType == deCONZ::Zcl8BitUint) // lumi.curtain
         {
-            DBG_Printf(DBG_INFO, "\t64 current position lift %d%%\n", u8);
             if (u8 <= 100)
             {
-                currentPositionLift = 100 - u8;
+                lift = 100 - u8;
             }
+            DBG_Printf(DBG_INFO, "\t64 lift %d (%d%%)\n", u8, lift);
         }
         else if (tag == 0x64 && dataType == deCONZ::Zcl16BitInt)
         {
@@ -10042,7 +10063,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         else if (tag == 0x66 && dataType == deCONZ::Zcl32BitInt) // lumi.weather
         {
             pressure = (s32 + 50) / 100;
-            DBG_Printf(DBG_INFO, "\t66 pressure %d\n", pressure);
+            DBG_Printf(DBG_INFO, "\t66 pressure %d (%d)\n", s32, pressure);
         }
         else if (tag == 0x6e && dataType == deCONZ::Zcl8BitUint) // lumi.ctrl_neutral2
         {
@@ -10167,16 +10188,31 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 continue;
             }
         }
-        else if (lightNode.modelId().startsWith(QLatin1String("lumi.curtain")) && currentPositionLift != UINT8_MAX)
+        else if (lightNode.modelId().startsWith(QLatin1String("lumi.curtain")) && lift != UINT8_MAX)
         {
+            item = lightNode.item(RStateLift);
+            if (item)
+            {
+                item->setValue(lift);
+                enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
+            }
+            item = lightNode.item(RStateOpen);
+            bool open = lift < 100;
+            if (item)
+            {
+                item->setValue(open);
+                enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
+            }
+            // FIXME: deprecate
             item = lightNode.item(RStateBri);
             if (item)
             {
-                const uint bri = currentPositionLift * 254 / 100;
+                const uint bri = lift * 254 / 100;
                 item->setValue(bri);
                 enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
                 value = bri != 0;
             }
+            // END FIXME: deprecate
         }
         else
         {

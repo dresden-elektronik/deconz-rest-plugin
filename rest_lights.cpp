@@ -244,6 +244,9 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (item->descriptor().suffix == RStateSpeed) { state["speed"] = item->toNumber(); }
         else if (item->descriptor().suffix == RStateX) { ix = item; }
         else if (item->descriptor().suffix == RStateY) { iy = item; }
+        else if (item->descriptor().suffix == RStateOpen) { state["open"] = item->toBool(); }
+        else if (item->descriptor().suffix == RStateTilt) { state["tilt"] = item->toNumber(); }
+        else if (item->descriptor().suffix == RStateLift) { state["lift"] = item->toNumber(); }
         else if (item->descriptor().suffix == RStateReachable) { state["reachable"] = item->toBool(); }
         else if (item->descriptor().suffix == RConfigCtMin) { map["ctmin"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigCtMax) { map["ctmax"] = item->toNumber(); }
@@ -1327,14 +1330,14 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
 
     bool requestOk = true;
     bool hasCmd = false;
-    bool hasOn = false;
-    bool targetOn = false;
+    bool hasOpen = false;
+    bool targetOpen = false;
     bool hasLift = false;
-    bool hasBri = false;
     bool hasStop = false;
-    quint8 targetLiftPct = 0;
+    quint8 targetLift = 0;
+    quint8 targetLiftZigBee = 0;
     bool hasTilt = false;
-    quint8 targetTiltPct = 0;
+    quint8 targetTilt = 0;
 
     // Check parameters.
     for (QVariantMap::const_iterator p = map.begin(); p != map.end(); p++)
@@ -1342,15 +1345,46 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         bool paramOk = false;
         bool valueOk = false;
         QString param = p.key();
-        if (param == "on" && taskRef.lightNode->item(RStateOn))
+        if (param == "open" && taskRef.lightNode->item(RStateOpen))
         {
             paramOk = true;
             hasCmd = true;
-            if (map["on"].type() == QVariant::Bool)
+            if (map[param].type() == QVariant::Bool)
             {
                 valueOk = true;
-                hasOn = true;
-                targetOn = map["on"].toBool();
+                hasOpen = true;
+                targetOpen = map[param].toBool();
+            }
+        }
+        else if (param == "on" && taskRef.lightNode->item(RStateOn))
+        {
+            paramOk = true;
+            hasCmd = true;
+            if (map[param].type() == QVariant::Bool)
+            {
+                valueOk = true;
+                hasOpen = true;
+                targetOpen = !(map[param].toBool());
+            }
+        }
+        else if (param == "lift" && taskRef.lightNode->item(RStateLift))
+        {
+            paramOk = true;
+            hasCmd = true;
+            if (map[param].type() == QVariant::String && map[param].toString() == "stop" && cluster != ANALOG_OUTPUT_CLUSTER_ID)
+            {
+                valueOk = true;
+                hasStop = true;
+            }
+            else if (map[param].type() == QVariant::Double)
+            {
+                const int lift = map[param].toInt(&ok);
+                if (ok && lift >= 0 && lift <= 100)
+                {
+                    valueOk = true;
+                    hasLift = true;
+                    targetLift = lift;
+                }
             }
         }
         else if (param == "bri" && taskRef.lightNode->item(RStateBri))
@@ -1368,9 +1402,8 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
                 if (ok && bri >= 0 && bri <= 255)
                 {
                     valueOk = true;
-                    hasBri = true; // for response value
                     hasLift = true;
-                    targetLiftPct = bri * 100 / 254;
+                    targetLift = bri * 100 / 254;
                 }
             }
         }
@@ -1388,6 +1421,21 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
                 }
             }
         }
+        else if (param == "tilt" && taskRef.lightNode->item(RStateTilt))
+        {
+            paramOk = true;
+            hasCmd = true;
+            if (map[param].type() == QVariant::Double)
+            {
+                const int tilt = map[param].toInt(&ok);
+                if (ok && tilt >= 0 && tilt <= 100)
+                {
+                    valueOk = true;
+                    hasTilt = true;
+                    targetTilt = tilt;
+                }
+            }
+        }
         else if (param == "sat" && taskRef.lightNode->item(RStateSat))
         {
             paramOk = true;
@@ -1399,7 +1447,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
                 {
                     valueOk = true;
                     hasTilt = true;
-                    targetTiltPct = sat * 100 / 254;
+                    targetTilt = sat * 100 / 254;
                 }
             }
         }
@@ -1425,10 +1473,10 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         return REQ_READY_SEND;
     }
 
-    if (cluster == ANALOG_OUTPUT_CLUSTER_ID && hasOn && !hasLift)
+    if (cluster == ANALOG_OUTPUT_CLUSTER_ID && hasOpen && !hasLift)
     {
         hasLift = true;
-        targetLiftPct = targetOn ? 100 : 0;
+        targetLift = targetOpen ? 0 : 100;
     }
 
     // Some devices invert LiftPct.
@@ -1436,12 +1484,16 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     {
         if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain")))
         {
-            targetLiftPct = 100 - targetLiftPct;
+            targetLiftZigBee = 100 - targetLift;
         }
         else if (taskRef.lightNode->modelId() == QLatin1String("Shutter switch with neutral"))
         {
             // Legrand invert bri and don't support other value than 0
-            targetLiftPct = targetLiftPct == 0 ? 100 : 0;
+            targetLiftZigBee = targetLift == 0 ? 100 : 0;
+        }
+        else
+        {
+            targetLiftZigBee = targetLift;
         }
     }
 
@@ -1455,7 +1507,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         {
             QVariantMap rspItem;
             QVariantMap rspItemState;
-            rspItemState[QString("/lights/%1/state/bri_inc").arg(id)] = 0;
+            rspItemState[QString("/lights/%1/state/lift").arg(id)] = "stop";
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
             // Rely on attribute reporting to update the light state.
@@ -1475,7 +1527,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         {
             const quint16 attr = 0x0055; // Present value;
             const quint8 type = deCONZ::ZclSingleFloat;
-            float value = targetLiftPct;
+            float value = targetLiftZigBee;
 
             // FIXME: The following low-level code is needed because ZclAttribute is broken for ZclSingleFloat.
 
@@ -1517,13 +1569,13 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         }
         else
         {
-            ok = addTaskWindowCovering(task, WINDOW_COVERING_COMMAND_GOTO_LIFT_PCT, 0, targetLiftPct);
+            ok = addTaskWindowCovering(task, WINDOW_COVERING_COMMAND_GOTO_LIFT_PCT, 0, targetLiftZigBee);
         }
         if (ok)
         {
             QVariantMap rspItem;
             QVariantMap rspItemState;
-            rspItemState[QString("/lights/%1/state/bri").arg(id)] = hasBri ? map["bri"] : targetOn ? 254 : 0;
+            rspItemState[QString("/lights/%1/state/lift").arg(id)] = targetLift;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
             // Rely on attribute reporting to update the light state.
@@ -1533,23 +1585,23 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/bri").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
         }
     }
-    else if (hasOn)
+    else if (hasOpen)
     {
         TaskItem task;
         copyTaskReq(taskRef, task);
 
-        if (addTaskWindowCovering(task, targetOn ? WINDOW_COVERING_COMMAND_CLOSE : WINDOW_COVERING_COMMAND_OPEN, 0, 0))
+        if (addTaskWindowCovering(task, targetOpen ? WINDOW_COVERING_COMMAND_OPEN : WINDOW_COVERING_COMMAND_CLOSE, 0, 0))
         {
             QVariantMap rspItem;
             QVariantMap rspItemState;
-            rspItemState[QString("/lights/%1/state/on").arg(id)] = map["on"];
+            rspItemState[QString("/lights/%1/state/open").arg(id)] = targetOpen;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
             // Rely on attribute reporting to update the light state.
         }
         else
         {
-            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/on").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/open").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
         }
     }
 
@@ -1559,18 +1611,18 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         TaskItem task;
         copyTaskReq(taskRef, task);
 
-        if (addTaskWindowCovering(task, WINDOW_COVERING_COMMAND_GOTO_TILT_PCT, 0, targetTiltPct))
+        if (addTaskWindowCovering(task, WINDOW_COVERING_COMMAND_GOTO_TILT_PCT, 0, targetTilt))
         {
             QVariantMap rspItem;
             QVariantMap rspItemState;
-            rspItemState[QString("/lights/%1/state/sat").arg(id)] = map["sat"];
+            rspItemState[QString("/lights/%1/state/tilt").arg(id)] = targetTilt;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
             // Rely on attribute reporting to update the light state.
         }
         else
         {
-            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/sat").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/tilt").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
         }
     }
 
