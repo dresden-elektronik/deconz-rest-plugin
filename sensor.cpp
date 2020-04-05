@@ -1245,6 +1245,10 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         {
             if (modelid.startsWith(QLatin1String("902010/23"))) { m_buttonMap = bitronRemoteMap; }
         }
+        else if (manufacturer == QLatin1String("Namron AS"))
+        {
+            if (modelid.startsWith(QLatin1String("4512703"))) { m_buttonMap = sunricherMap; }
+        }
     }
 
     return m_buttonMap;
