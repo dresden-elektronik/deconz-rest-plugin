@@ -310,7 +310,7 @@
 #define VENDOR_HEIMAN       0x120B
 #define VENDOR_MUELLER      0x121B // Used by Mueller Licht
 #define VENDOR_AURORA       0x121C // Used by Aurora Aone
-#define VENDOR_SUNRICHER    0x1224 // white label used by iCasa, Illuminize ...
+#define VENDOR_SUNRICHER    0x1224 // white label used by iCasa, Illuminize, Namron ...
 #define VENDOR_XAL          0x122A
 #define VENDOR_THIRD_REALITY 0x1233
 #define VENDOR_DSR          0x1234
@@ -447,7 +447,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == emberMacPrefix ||
                    prefix == jennicMacPrefix;
         case VENDOR_SUNRICHER:
-            return prefix == emberMacPrefix;
+            return prefix == emberMacPrefix ||
+                   prefix == silabs2MacPrefix;
         case VENDOR_ALERTME:
             return prefix == tiMacPrefix;
         case VENDOR_BITRON:

@@ -271,6 +271,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "RH3001", ikea2MacPrefix }, // Tuyatec door/window sensor
     { VENDOR_NONE, "RH3052", emberMacPrefix }, // Tuyatec temperature sensor
     { VENDOR_EMBER, "TS0201", silabs3MacPrefix }, // Tuya/Blitzwolf temperature and humidity sensor
+    { VENDOR_NONE, "TS0204", silabs3MacPrefix }, // Tuya gas sensor
     { VENDOR_AURORA, "DoubleSocket50AU", jennicMacPrefix }, // Aurora AOne Double Socket UK
     { VENDOR_COMPUTIME, "SP600", computimeMacPrefix }, // Salus smart plug
     { VENDOR_HANGZHOU_IMAGIC, "1116-S", energyMiMacPrefix }, // iris contact sensor v3
@@ -278,6 +279,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "113D", jennicMacPrefix }, // iHorn (Huawei) temperature and humidity sensor
     { VENDOR_SERCOMM, "SZ-ESW01", emberMacPrefix }, // Sercomm / Telstra smart plug
     { VENDOR_ALERTME, "MOT003", tiMacPrefix }, // Hive Motion Sensor
+    { VENDOR_SUNRICHER, "4512703", silabs2MacPrefix }, // Namron 4-ch remote controller
     { 0, nullptr, 0 }
 };
 
@@ -3768,7 +3770,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
     {
         int inClusterCount = i->inClusters().size();
         int outClusterCount = i->outClusters().size();
-		
+
         // check Trust remote control ZYCT-202
         if (node->simpleDescriptors().size() == 2 &&
             node->simpleDescriptors()[0].endpoint() == 0x01 &&
@@ -3993,7 +3995,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("SMSZB-120")) ||        // Develco smoke detector
                              modelId.startsWith(QLatin1String("HESZB-120")) ||        // Develco heat detector
                              modelId.startsWith(QLatin1String("SF2")) ||              // ORVIBO (Heiman) smoke sensor
-                             modelId.startsWith(QLatin1String("lumi.sensor_smoke")))  // Xiaomi Mi smoke sensor
+                             modelId.startsWith(QLatin1String("lumi.sensor_smoke")) || // Xiaomi Mi smoke sensor
+                             modelId.startsWith(QLatin1String("TS0204")))             // Tuya gas sensor
                     {
                         // Gas sensor detects combustable gas, so fire is more appropriate than CO.
                         fpFireSensor.inClusters.push_back(ci->id());
@@ -5316,7 +5319,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     {
         sensorNode.setManufacturer("Develco Products A/S");
     }
-    else if (sensorNode.manufacturer().startsWith(QLatin1String("_TYZB01")))
+    else if (manufacturer.startsWith(QLatin1String("_TYZB01")))
     {
         sensorNode.setManufacturer("Tuya");
     }
@@ -5930,7 +5933,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("ICZB-")) || // iCasa keypads and remote
                                         i->modelId().startsWith(QLatin1String("ZGRC-KEY")) || //  Sunricher wireless CCT remote
                                         i->modelId().startsWith(QLatin1String("ZG2833K")) || // Sunricher remote controller
-                                        i->modelId().startsWith(QLatin1String("SV01-"))) // Keen Home vent
+                                        i->modelId().startsWith(QLatin1String("SV01-")) || // Keen Home vent
+                                        i->modelId().startsWith(QLatin1String("4512703"))) // Namron 4-ch remote controller
                                     {
                                         bat = ia->numericValue().u8;
                                     }
@@ -5964,7 +5968,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("ICZB-")) || // iCasa keypads and remote
                                         i->modelId().startsWith(QLatin1String("ZGRC-KEY")) || // Sunricher wireless CCT remote
                                         i->modelId().startsWith(QLatin1String("ZG2833K")) || // Sunricher remote controller
-                                        i->modelId().startsWith(QLatin1String("SV01-"))) // Keen Home vent
+                                        i->modelId().startsWith(QLatin1String("SV01-")) || // Keen Home vent
+                                        i->modelId().startsWith(QLatin1String("4512703"))) // Namron 4-ch remote controller
                                     {
                                         bat = ia->numericValue().u8;
                                     }
@@ -10021,24 +10026,24 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         else if (tag == 0x95 && dataType == deCONZ::ZclSingleFloat) // lumi.ctrl_ln2
         {
             DBG_Printf(DBG_INFO, "\t95 consumption 0x%08X\n", u32);
-            
+
             void * vp = &u32;
             float f = *(float*)vp;
             f *= 1000;     // We want to have Wh
             u32 = static_cast<qint32>(round(f));
-            
+
             DBG_Printf(DBG_INFO, "\t98 consumption %d\n", u32);
             consumption = u32;
         }
         else if (tag == 0x96 && dataType == deCONZ::ZclSingleFloat) // lumi.plug.mmeu01
         {
             DBG_Printf(DBG_INFO, "\t96 voltage (?) 0x%08X\n", u32);
-            
+
             void * vp = &u32;
             float f = *(float*)vp;
             f /= 10;       // We want to have V
             u32 = static_cast<qint32>(round(f));
-            
+
             DBG_Printf(DBG_INFO, "\t96 voltage (?) %d\n", u32);
             voltage = u32;
         }
@@ -10049,11 +10054,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         else if (tag == 0x97 && dataType == deCONZ::ZclSingleFloat) // lumi.plug.mmeu01
         {
             DBG_Printf(DBG_INFO, "\t97 current 0x%08X\n", u32);
-            
+
             void * vp = &u32;
             float f = *(float*)vp;
             u32 = static_cast<qint32>(round(f));  // already in mA
-            
+
             DBG_Printf(DBG_INFO, "\t97 current %d\n", u32);
             current = u32;
         }
@@ -10064,11 +10069,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         else if (tag == 0x98 && dataType == deCONZ::ZclSingleFloat) // lumi.ctrl_ln2
         {
             DBG_Printf(DBG_INFO, "\t98 power 0x%08X\n", u32);
-            
+
             void * vp = &u32;
             float f = *(float*)vp;
             u32 = static_cast<qint32>(round(f));  // already in W
-            
+
             DBG_Printf(DBG_INFO, "\t98 power %d\n", u32);
             power = u32;
         }
@@ -10323,7 +10328,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
               updated = true;
           }
         }
-        
+
         if (power != UINT32_MAX)
         {
             ResourceItem *item = sensor.item(RStatePower);
@@ -10375,7 +10380,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 updated = true;
             }
         }
-        
+
         if (lightlevel != UINT32_MAX &&
             sensor.type() == QLatin1String("ZHALightLevel") &&
             sensor.modelId().startsWith(QLatin1String("lumi.sensor_motion")))
