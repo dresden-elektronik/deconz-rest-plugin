@@ -114,6 +114,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_CENTRALITE, "3325-S", emberMacPrefix }, // Centralite motion sensor
     { VENDOR_CENTRALITE, "3305-S", emberMacPrefix }, // Centralite motion sensor
     { VENDOR_CLS, "3200-S", emberMacPrefix }, // Centralite smart plug / Samsung smart outlet
+    { VENDOR_C2DF, "3320-L", emberMacPrefix }, // Centralite contact sensor
     { VENDOR_CENTRALITE, "3326-L", emberMacPrefix }, // Iris motion sensor v2
     { VENDOR_C2DF, "3326-L", emberMacPrefix }, // Iris motion sensor v2
     { VENDOR_CENTRALITE, "3328-G", emberMacPrefix }, // Centralite micro motion sensor
@@ -161,6 +162,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SAMJIN, "multi", samjinMacPrefix }, // Smarthings (Samjin) Multipurpose Sensor
     { VENDOR_SAMJIN, "water", samjinMacPrefix }, // Smarthings (Samjin) Water Sensor
     { VENDOR_SAMJIN, "button", samjinMacPrefix }, // Smarthings (Samjin) Button
+    { VENDOR_SAMJIN, "outlet", samjinMacPrefix }, // Smarthings (Samjin) Outlet
     { VENDOR_JENNIC, "lumi.sensor_ht", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.weather", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_magnet", jennicMacPrefix },
@@ -266,6 +268,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_LDS, "ZB-ONOFFPlug-D0005", silabs2MacPrefix }, // Samsung SmartPlug 2019 (7A-PL-Z-J3)
     { VENDOR_PHYSICAL, "outletv4", stMacPrefix }, // Samsung SmartThings plug (IM6001-OTP)
     { VENDOR_EMBER, "RH3040", konkeMacPrefix }, // Tuyatec motion sensor
+    { VENDOR_NONE, "RH3001", ikea2MacPrefix }, // Tuyatec door/window sensor
     { VENDOR_NONE, "RH3052", emberMacPrefix }, // Tuyatec temperature sensor
     { VENDOR_EMBER, "TS0201", silabs3MacPrefix }, // Tuya/Blitzwolf temperature and humidity sensor
     { VENDOR_NONE, "TS0204", silabs3MacPrefix }, // Tuya gas sensor
@@ -275,6 +278,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_HANGZHOU_IMAGIC, "1117-S", energyMiMacPrefix }, // iris motion sensor v3
     { VENDOR_JENNIC, "113D", jennicMacPrefix }, // iHorn (Huawei) temperature and humidity sensor
     { VENDOR_SERCOMM, "SZ-ESW01", emberMacPrefix }, // Sercomm / Telstra smart plug
+    { VENDOR_ALERTME, "MOT003", tiMacPrefix }, // Hive Motion Sensor
     { VENDOR_SUNRICHER, "4512703", silabs2MacPrefix }, // Namron 4-ch remote controller
     { 0, nullptr, 0 }
 };
@@ -3771,17 +3775,20 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
     QList<deCONZ::SimpleDescriptor>::const_iterator i = node->simpleDescriptors().constBegin();
     QList<deCONZ::SimpleDescriptor>::const_iterator end = node->simpleDescriptors().constEnd();
 
-    // Trust specific
+    // Trust and iHorn specific
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC && modelId.isEmpty())
     {
+        int inClusterCount = i->inClusters().size();
+        int outClusterCount = i->outClusters().size();
+
         // check Trust remote control ZYCT-202
         if (node->simpleDescriptors().size() == 2 &&
-                 node->simpleDescriptors()[0].endpoint() == 0x01 &&
-                 node->simpleDescriptors()[0].profileId() == ZLL_PROFILE_ID &&
-                 node->simpleDescriptors()[0].deviceId() == DEV_ID_ZLL_NON_COLOR_CONTROLLER &&
-                 node->simpleDescriptors()[1].endpoint() == 0x02 &&
-                 node->simpleDescriptors()[1].profileId() == ZLL_PROFILE_ID &&
-                 node->simpleDescriptors()[1].deviceId() == 0x03f2)
+            node->simpleDescriptors()[0].endpoint() == 0x01 &&
+            node->simpleDescriptors()[0].profileId() == ZLL_PROFILE_ID &&
+            node->simpleDescriptors()[0].deviceId() == DEV_ID_ZLL_NON_COLOR_CONTROLLER &&
+            node->simpleDescriptors()[1].endpoint() == 0x02 &&
+            node->simpleDescriptors()[1].profileId() == ZLL_PROFILE_ID &&
+            node->simpleDescriptors()[1].deviceId() == 0x03f2)
         {
             // server clusters endpoint 0x01: 0x0000, 0x0004, 0x0003, 0x0006, 0x0008, 0x1000
             // client clusters endpoint 0x01: 0x0000, 0x0004, 0x0003, 0x0006, 0x0008, 0x1000
@@ -3789,6 +3796,16 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             // client clusters endpoint 0x02: 0x1000
             modelId = QLatin1String("ZYCT-202"); //  the modelid returned by device is empty
             manufacturer = QLatin1String("Trust");
+        }
+        // check iHorn temperature and humidity sensor 113D
+        if (node->simpleDescriptors().size() == 1 &&
+            node->simpleDescriptors()[0].endpoint() == 0x01 &&
+            node->simpleDescriptors()[0].profileId() == HA_PROFILE_ID &&
+            node->simpleDescriptors()[0].deviceId() == 0x0302 &&
+            inClusterCount == 9 && outClusterCount == 11)
+        {
+            modelId = QLatin1String("113D"); //  the modelid returned by device is empty
+            manufacturer = QLatin1String("iHorn");
         }
     }
 
@@ -4123,11 +4140,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     }
                     else if (modelId.startsWith(QLatin1String("lumi.plug")) || modelId.startsWith(QLatin1String("lumi.ctrl_ln1")))
                     {
-                        if (i->endpoint() == 0x02)
+                        if (i->endpoint() == 0x02 || i->endpoint() == 0x15)
                         {
                             fpPowerSensor.inClusters.push_back(ci->id());
                         }
-                        else if (i->endpoint() == 0x03)
+                        else if (i->endpoint() == 0x03 || i->endpoint() == 0x16)
                         {
                             fpConsumptionSensor.inClusters.push_back(ci->id());
                         }
@@ -5318,6 +5335,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     {
         sensorNode.setManufacturer("Tuya");
     }
+    else if (sensorNode.manufacturer().startsWith(QLatin1String("TUYATEC")))
+    {
+        sensorNode.setManufacturer("Tuyatec");
+    }
 
     if (sensorNode.manufacturer().isEmpty() && !manufacturer.isEmpty())
     {
@@ -5998,8 +6019,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId().startsWith(QLatin1String("1116-S")) ||    // iris contact sensor v3
                                     i->modelId().startsWith(QLatin1String("1117-S")) ||    // iris motion sensor v3
                                     i->modelId().startsWith(QLatin1String("3326-L")) ||    // iris motion sensor v2
-                                    i->modelId().startsWith(QLatin1String("lumi.sen_ill")) ||// Xiaomi ZB3.0 light sensor
-                                    i->modelId() == QLatin1String("113D"))               // iHorn (Huawei) temperature and humidity sensor
+                                    i->modelId().startsWith(QLatin1String("3320-L")) ||    // Centralite contact sensor
+                                    i->modelId().startsWith(QLatin1String("lumi.sen_ill")))// Xiaomi ZB3.0 light sensor
                                 {  }
                                 else
                                 {
@@ -7168,9 +7189,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         power = power == 28000 ? 0 : power / 10;
                                     }
-                                    else if (i->modelId() == QLatin1String("RICI01") ||   // LifeControl Smart Plug
-                                             i->modelId() == QLatin1String("outletv4") || // Samsung SmartThings IM6001-OTP
-                                             i->modelId().startsWith(QLatin1String("3200-S"))) // Samsung/Centralite smart outlet
+                                    else if (i->modelId() == QLatin1String("RICI01") ||           // LifeControl Smart Plug
+                                             i->modelId().startsWith(QLatin1String("outlet")) ||  // Samsung SmartThings IM6001-OTP/IM6001-OTP01
+                                             i->modelId().startsWith(QLatin1String("3200-S")))    // Samsung/Centralite smart outlet
                                     {
                                         power /= 10; // 0.1W -> W
                                     }
@@ -7203,9 +7224,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         voltage += 50; voltage /= 100; // 0.01V -> V
                                     }
-                                    else if (i->modelId() == QLatin1String("RICI01") ||    // LifeControl Smart Plug
-                                             i->modelId() == QLatin1String("outletv4") ||  // Samsung SmartThings IM6001-OTP
-                                             i->modelId() == QLatin1String("EMIZB-13"))    // Develco EMI
+                                    else if (i->modelId() == QLatin1String("RICI01") ||           // LifeControl Smart Plug
+                                             i->modelId().startsWith(QLatin1String("outlet")) ||  // Samsung SmartThings IM6001-OTP/IM6001-OTP01
+                                             i->modelId() == QLatin1String("EMIZB-13"))           // Develco EMI
                                     {
                                         voltage /= 10; // 0.1V -> V
                                     }
@@ -7232,7 +7253,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (item && current != 65535)
                                 {
                                     if (i->modelId() == QLatin1String("SP 120") ||            // innr
-                                        i->modelId() == QLatin1String("outletv4") ||          // Samsung SmartThings IM6001-OTP
+                                        i->modelId().startsWith(QLatin1String("outlet")) ||   // Samsung SmartThings IM6001-OTP/IM6001-OTP01
                                         i->modelId() == QLatin1String("DoubleSocket50AU") ||  // Aurora
                                         i->modelId() == QLatin1String("RICI01") ||            // LifeControl Smart Plug
                                         i->modelId().startsWith(QLatin1String("SZ-ESW01")))   // Sercomm / Telstra smart plug
@@ -9760,7 +9781,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
         }
     }
 
-    if (zclFrame.isProfileWideCommand() && ind.clusterId() == BASIC_CLUSTER_ID && checkMacVendor(ind.srcAddress().ext(), VENDOR_XIAOMI))
+    if (zclFrame.isProfileWideCommand() && checkMacVendor(ind.srcAddress().ext(), VENDOR_XIAOMI) && (ind.clusterId() == BASIC_CLUSTER_ID || ind.clusterId() == 0xfcc0))
     {
         handleZclAttributeReportIndicationXiaomiSpecial(ind, zclFrame);
     }
@@ -9817,7 +9838,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         stream >> a;
         stream >> dataType;
 
-        if (dataType == deCONZ::ZclCharacterString)
+        if (dataType == deCONZ::ZclCharacterString || dataType == deCONZ::ZclOctedString)
         {
             stream >> length;
         }
@@ -9827,6 +9848,10 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             attrId = a;
         }
         else if (a == 0xff02 && dataType == 0x4c /*deCONZ::ZclStruct*/)
+        {
+            attrId = a;
+        }
+        else if (a == 0x00f7 && dataType == deCONZ::ZclOctedString)
         {
             attrId = a;
         }
@@ -9858,6 +9883,10 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     quint8 onOff = UINT8_MAX;
     quint8 onOff2 = UINT8_MAX;
     quint8 currentPositionLift = UINT8_MAX;
+    quint32 power = UINT32_MAX;
+    quint32 consumption = UINT32_MAX;
+    quint32 current = UINT32_MAX;
+    quint32 voltage = UINT32_MAX;
 
     DBG_Printf(DBG_INFO, "0x%016llX extract Xiaomi special attribute 0x%04X\n", ind.srcAddress().ext(), attrId);
 
@@ -9875,7 +9904,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
         quint8 tag = 0;
 
-        if (attrId == 0xff01)
+        if (attrId == 0xff01 || attrId == 0x00f7)
         {
             stream >> tag;
         }
@@ -9933,7 +9962,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x03 && dataType == deCONZ::Zcl8BitInt)
         {
-            DBG_Printf(DBG_INFO, "\t03 temperature %d °C\n", int(s8));
+            DBG_Printf(DBG_INFO, "\t03 temperature %d °C\n", int(s8)); // Device temperature for lumi.plug.mmeu01
             temperature = qint16(s8) * 100;
         }
         else if (tag == 0x04 && dataType == deCONZ::Zcl16BitUint)
@@ -9968,6 +9997,10 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {
             DBG_Printf(DBG_INFO, "\t0b lightlevel %u (0x%04X)\n", u16, u16);
             lightlevel = u16;
+        }
+        else if (tag == 0x0b && dataType == deCONZ::Zcl8BitUint)
+        {
+            DBG_Printf(DBG_INFO, "\t0b unknown %d (0x%04X)\n", u8, u8);
         }
         else if ((tag == 0x64 || structIndex == 0x01) && dataType == deCONZ::ZclBoolean) // lumi.ctrl_ln2 endpoint 01
         {
@@ -10019,11 +10052,42 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x95 && dataType == deCONZ::ZclSingleFloat) // lumi.ctrl_ln2
         {
-            DBG_Printf(DBG_INFO, "\t95 consumption (?) 0x%08X\n", u32);
+            DBG_Printf(DBG_INFO, "\t95 consumption 0x%08X\n", u32);
+
+            void * vp = &u32;
+            float f = *(float*)vp;
+            f *= 1000;     // We want to have Wh
+            u32 = static_cast<qint32>(round(f));
+
+            DBG_Printf(DBG_INFO, "\t98 consumption %d\n", u32);
+            consumption = u32;
+        }
+        else if (tag == 0x96 && dataType == deCONZ::ZclSingleFloat) // lumi.plug.mmeu01
+        {
+            DBG_Printf(DBG_INFO, "\t96 voltage (?) 0x%08X\n", u32);
+
+            void * vp = &u32;
+            float f = *(float*)vp;
+            f /= 10;       // We want to have V
+            u32 = static_cast<qint32>(round(f));
+
+            DBG_Printf(DBG_INFO, "\t96 voltage (?) %d\n", u32);
+            voltage = u32;
         }
         else if (tag == 0x97 && dataType == deCONZ::Zcl16BitUint) // lumi.sensor_cube
         {
             DBG_Printf(DBG_INFO, "\t97 unknown %d (0x%04X)\n", u16, u16);
+        }
+        else if (tag == 0x97 && dataType == deCONZ::ZclSingleFloat) // lumi.plug.mmeu01
+        {
+            DBG_Printf(DBG_INFO, "\t97 current 0x%08X\n", u32);
+
+            void * vp = &u32;
+            float f = *(float*)vp;
+            u32 = static_cast<qint32>(round(f));  // already in mA
+
+            DBG_Printf(DBG_INFO, "\t97 current %d\n", u32);
+            current = u32;
         }
         else if (tag == 0x98 && dataType == deCONZ::Zcl16BitUint) // lumi.sensor_cube
         {
@@ -10031,7 +10095,14 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x98 && dataType == deCONZ::ZclSingleFloat) // lumi.ctrl_ln2
         {
-            DBG_Printf(DBG_INFO, "\t98 power (?) 0x%08X\n", u32);
+            DBG_Printf(DBG_INFO, "\t98 power 0x%08X\n", u32);
+
+            void * vp = &u32;
+            float f = *(float*)vp;
+            u32 = static_cast<qint32>(round(f));  // already in W
+
+            DBG_Printf(DBG_INFO, "\t98 power %d\n", u32);
+            power = u32;
         }
         else if (tag == 0x99 && dataType == deCONZ::Zcl16BitUint) // lumi.sensor_cube
         {
@@ -10056,6 +10127,10 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         else if (tag == 0x9b && dataType == deCONZ::Zcl16BitUint) // lumi.ctrl_neutral2
         {
             DBG_Printf(DBG_INFO, "\t9b unknown %d (0x%04X)\n", u16, u16);
+        }
+        else if (tag == 0x9b && dataType == deCONZ::ZclBoolean) // lumi.plug.mmeu01
+        {
+            DBG_Printf(DBG_INFO, "\t9b unknown %d\n", u8);
         }
         else if (tag)
         {
@@ -10279,6 +10354,58 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
               enqueueEvent(Event(RSensors, RStateLastUpdated, sensor.id()));
               updated = true;
           }
+        }
+
+        if (power != UINT32_MAX)
+        {
+            ResourceItem *item = sensor.item(RStatePower);
+            if (item)
+            {
+                item->setValue(power);
+                enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor.id(), item));
+                sensor.updateStateTimestamp();
+                enqueueEvent(Event(RSensors, RStateLastUpdated, sensor.id()));
+                updated = true;
+            }
+        }
+
+        if (consumption != UINT32_MAX)
+        {
+            ResourceItem *item = sensor.item(RStateConsumption);
+            if (item)
+            {
+                item->setValue(consumption);
+                enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor.id(), item));
+                sensor.updateStateTimestamp();
+                enqueueEvent(Event(RSensors, RStateLastUpdated, sensor.id()));
+                updated = true;
+            }
+        }
+
+        if (voltage != UINT32_MAX)
+        {
+            ResourceItem *item = sensor.item(RStateVoltage);
+            if (item)
+            {
+                item->setValue(voltage);
+                enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor.id(), item));
+                sensor.updateStateTimestamp();
+                enqueueEvent(Event(RSensors, RStateLastUpdated, sensor.id()));
+                updated = true;
+            }
+        }
+
+        if (current != UINT32_MAX)
+        {
+            ResourceItem *item = sensor.item(RStateCurrent);
+            if (item)
+            {
+                item->setValue(current);
+                enqueueEvent(Event(RSensors, item->descriptor().suffix, sensor.id(), item));
+                sensor.updateStateTimestamp();
+                enqueueEvent(Event(RSensors, RStateLastUpdated, sensor.id()));
+                updated = true;
+            }
         }
 
         if (lightlevel != UINT32_MAX &&
