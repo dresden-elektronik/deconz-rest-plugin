@@ -210,6 +210,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_HEIMAN, "Smoke", emberMacPrefix }, // Heiman fire sensor - newer model
     { VENDOR_HEIMAN, "COSensor", emberMacPrefix }, // Heiman CO sensor - newer model
     { VENDOR_HEIMAN, "TH-", emberMacPrefix }, // Heiman temperature/humidity sensor - newer model
+    { VENDOR_HEIMAN, "HT-", emberMacPrefix }, // Heiman temperature/humidity sensor - newer model
     { VENDOR_HEIMAN, "Water", emberMacPrefix }, // Heiman water sensor - newer model
     { VENDOR_HEIMAN, "Door", emberMacPrefix }, // Heiman door/window sensor - newer model
     { VENDOR_HEIMAN, "WarningDevice", emberMacPrefix }, // Heiman siren
@@ -2675,7 +2676,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
 
                     if (ia->id() == 0x0004) // Manufacturer name
                     {
-                        QString str = ia->toString();
+                        QString str = ia->toString().trimmed();
                         if (!str.isEmpty() && str != lightNode->manufacturer())
                         {
                             if (str == QString("欧瑞博"))

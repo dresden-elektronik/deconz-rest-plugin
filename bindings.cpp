@@ -1915,6 +1915,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("PIR_")) ||
         sensor->modelId().startsWith(QLatin1String("GAS")) ||
         sensor->modelId().startsWith(QLatin1String("TH-")) ||
+        sensor->modelId().startsWith(QLatin1String("HT-")) ||
         sensor->modelId().startsWith(QLatin1String("SMOK_")) ||
         sensor->modelId().startsWith(QLatin1String("WATER_")) ||
         sensor->modelId().startsWith(QLatin1String("Smoke")) ||
