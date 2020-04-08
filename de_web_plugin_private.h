@@ -297,6 +297,7 @@
 #define VENDOR_ZEN          0x1158
 #define VENDOR_KEEN_HOME    0x115B
 #define VENDOR_XIAOMI       0x115F
+#define VENDOR_SENGLED_OPTOELEC 0x1160
 #define VENDOR_INNR         0x1166
 #define VENDOR_LDS          0x1168 // Used by Samsung SmartPlug 2019
 #define VENDOR_INSTA        0x117A
@@ -433,6 +434,7 @@ extern const quint64 xiaomiMacPrefix;
 extern const quint64 computimeMacPrefix;
 extern const quint64 konkeMacPrefix;
 extern const quint64 ecozyMacPrefix;
+extern const quint64 zhejiangMacPrefix;
 
 inline bool checkMacVendor(quint64 addr, quint16 vendor)
 {
@@ -499,6 +501,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == philipsMacPrefix;
         case VENDOR_PHYSICAL:
             return prefix == stMacPrefix;
+        case VENDOR_SENGLED_OPTOELEC:
+            return prefix == zhejiangMacPrefix;
         case VENDOR_SI_LABS:
             return prefix == silabsMacPrefix ||
                    prefix == energyMiMacPrefix ||

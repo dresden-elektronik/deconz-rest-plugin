@@ -1240,8 +1240,9 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.attributeId = 0x0000; // Curent Summation Delivered
         rq.minInterval = 1;
         rq.maxInterval = 300;
-        if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") || // Heiman
-                       sensor->modelId() == QLatin1String("SKHMP30-I1"))) // GS smart plug
+        if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") ||      // Heiman
+                       sensor->modelId() == QLatin1String("SKHMP30-I1") ||     // GS smart plug
+                       sensor->modelId().startsWith(QLatin1String("E13-"))))   // Sengled PAR38 Bulbs
         {
             rq.reportableChange48bit = 10; // 0.001 kWh (1 Wh)
         }
@@ -1999,7 +2000,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("1116-S")) ||
         sensor->modelId().startsWith(QLatin1String("1117-S")) ||
         // Hive
-        sensor->modelId() == QLatin1String("MOT003"))
+        sensor->modelId() == QLatin1String("MOT003") ||
+        // Sengled
+        sensor->modelId().startsWith(QLatin1String("E13-")))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||

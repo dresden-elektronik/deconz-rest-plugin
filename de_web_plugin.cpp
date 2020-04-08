@@ -90,6 +90,7 @@ const quint64 sinopeMacPrefix     = 0x500b910000000000ULL;
 const quint64 ecozyMacPrefix      = 0x70b3d50000000000ULL;
 const quint64 osramMacPrefix      = 0x8418260000000000ULL;
 const quint64 silabsMacPrefix     = 0x90fd9f0000000000ULL;
+const quint64 zhejiangMacPrefix   = 0xb0ce180000000000ULL;
 const quint64 silabs2MacPrefix    = 0xcccccc0000000000ULL;
 const quint64 silabs3MacPrefix    = 0xec1bbd0000000000ULL;
 const quint64 energyMiMacPrefix   = 0xd0cf5e0000000000ULL;
@@ -281,6 +282,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SERCOMM, "SZ-ESW01", emberMacPrefix }, // Sercomm / Telstra smart plug
     { VENDOR_ALERTME, "MOT003", tiMacPrefix }, // Hive Motion Sensor
     { VENDOR_SUNRICHER, "4512703", silabs2MacPrefix }, // Namron 4-ch remote controller
+    { VENDOR_SENGLED_OPTOELEC, "E13-", zhejiangMacPrefix }, // Sengled PAR38 Bulbs
     { 0, nullptr, 0 }
 };
 
@@ -7108,6 +7110,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 else if (i->modelId().startsWith(QLatin1String("SZ-ESW01"))) // Sercomm / Telstra smart plug
                                 {
                                     consumption /= 1000;
+                                }
+                                else if (i->modelId().startsWith(QLatin1String("E13-"))) // Sengled PAR38 Bulbs
+                                {
+                                    consumption /= 10000;
                                 }
 
                                 if (item)
