@@ -2802,7 +2802,7 @@ Fil pilote > Off=0001 - On=0002</description>
 				<attribute id="0x0100" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0200" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0201" name="Restore Power on Outage" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
-				<attribute id="0x0202" name="Unknown" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0202" name="Auto-off after 20m below 2W" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0203" name="Device LED off" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0204" name="Unknown" type="float" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0205" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
