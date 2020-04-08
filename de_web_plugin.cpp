@@ -237,7 +237,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SINOPE, "WL4200S", sinopeMacPrefix}, // Sinope water sensor
     { VENDOR_SINOPE, "TH1300ZB", sinopeMacPrefix }, // Sinope Thermostat
     { VENDOR_ZEN, "Zen-01", zenMacPrefix }, // Zen Thermostat
-    { VENDOR_C2DF, "3157100-E", emberMacPrefix }, // Centralite Thermostat
+    { VENDOR_C2DF, "3157100", emberMacPrefix }, // Centralite Thermostat
     { VENDOR_EMBER, "Super TR", emberMacPrefix }, // Elko Thermostat
     { VENDOR_ATMEL, "Thermostat", ecozyMacPrefix }, // eCozy Thermostat
     { VENDOR_STELPRO, "ST218", xalMacPrefix }, // Stelpro Thermostat
