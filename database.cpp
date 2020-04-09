@@ -3193,7 +3193,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             else if (sensor.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))
             {
                 clusterId = clusterId ? clusterId : ANALOG_INPUT_CLUSTER_ID;
-                hasVoltage = false;
+                if (!sensor.modelId().startsWith(QLatin1String("lumi.plug.mm"))) // Only available for new ZB3.0 Mi smart plugs?
+                {
+                    hasVoltage = false;
+                }
             }
             item = sensor.addItem(DataTypeInt16, RStatePower);
             item->setValue(0);

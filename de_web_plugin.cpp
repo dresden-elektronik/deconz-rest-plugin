@@ -5026,6 +5026,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = ANALOG_INPUT_CLUSTER_ID;
             item = sensorNode.addItem(DataTypeInt16, RStatePower);
+            if (modelId.startsWith(QLatin1String("lumi.plug.mm"))) // Only available for new ZB3.0 Mi smart plugs?
+            {
+                item = sensorNode.addItem(DataTypeUInt16, RStateVoltage);
+                item = sensorNode.addItem(DataTypeUInt16, RStateCurrent);
+            }
         }
     }
     else if (sensorNode.type().endsWith(QLatin1String("Thermostat")))
