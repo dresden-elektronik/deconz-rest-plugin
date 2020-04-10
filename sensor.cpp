@@ -612,6 +612,26 @@ static const Sensor::ButtonMap legrandSwitchRemote[] = {
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
+static const Sensor::ButtonMap legrandDoubleSwitchRemote[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    //First button
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x01, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 0,    S_BUTTON_1 + S_BUTTON_ACTION_HOLD,           "Dimm up" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 0,    S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED,  "Dimm up stop" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 1,    S_BUTTON_1 + S_BUTTON_ACTION_HOLD,           "Dimm down" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 1,    S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED,  "Dimm down stop" },
+
+    //Second button
+    { Sensor::ModeScenes,           0x02, 0x0006, 0x01, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+    { Sensor::ModeScenes,           0x02, 0x0008, 0x01, 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "Dimm up" },
+    { Sensor::ModeScenes,           0x02, 0x0008, 0x03, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "Dimm up stop" },
+    { Sensor::ModeScenes,           0x02, 0x0008, 0x01, 1,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "Dimm down" },
+    { Sensor::ModeScenes,           0x02, 0x0008, 0x03, 1,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "Dimm down stop" },
+
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
+};
+
 static const Sensor::ButtonMap aqaraOpple6Map[] = {
 //    mode                          ep    cluster cmd   param button                                       name
     // First button Off
@@ -1234,6 +1254,7 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         else if (manufacturer == QLatin1String("Legrand"))
         {
             if      (modelid == QLatin1String("Remote switch")) { m_buttonMap = legrandSwitchRemote; }
+            else if (modelid == QLatin1String("Double gangs remote switch")) { m_buttonMap = legrandDoubleSwitchRemote; }
             else if (modelid == QLatin1String("Shutters central remote switch")) { m_buttonMap = legrandShutterSwitchRemote; }
         }
         else if (manufacturer == QLatin1String("Sunricher"))

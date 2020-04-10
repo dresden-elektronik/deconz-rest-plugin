@@ -261,6 +261,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_LEGRAND, "Shutter switch with neutral", legrandMacPrefix }, // Legrand Shutter switch
     { VENDOR_LEGRAND, "Cable outlet", legrandMacPrefix }, // Legrand Cable outlet
     { VENDOR_LEGRAND, "Remote switch", legrandMacPrefix }, // Legrand wireless switch
+    { VENDOR_LEGRAND, "Double gangs remote switch", legrandMacPrefix }, // Legrand wireless double switch
     { VENDOR_LEGRAND, "Shutters central remote switch", legrandMacPrefix }, // Legrand wireless shutter switch (battery)
     { VENDOR_LEGRAND, "DIN power consumption module", legrandMacPrefix }, // Legrand DIN power consumption module
     { VENDOR_NETVOX, "Z809AE3R", netvoxMacPrefix }, // Netvox smartplug
@@ -3271,7 +3272,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             }
         }
     }
-    else if (sensor->modelId() == QLatin1String("Remote switch")) // legrand switch
+    else if (sensor->modelId() == QLatin1String("Remote switch") || sensor->modelId() == QLatin1String("Double gangs remote switch") ) // legrand switch, simple and double
     {
         checkReporting = true;
         checkClientCluster = true;
@@ -5410,7 +5411,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             else if (*ci == POWER_CONFIGURATION_CLUSTER_ID)
             {
                 //This device make a Rejoin every time, you trigger it, it's the only moment where you can read attribute.
-                if (sensorNode.modelId() == QLatin1String("Remote switch") || sensorNode.modelId() == QLatin1String("Shutters central remote switch") )
+                if (sensorNode.modelId() == QLatin1String("Remote switch") || sensorNode.modelId() == QLatin1String("Shutters central remote switch") || sensorNode.modelId() == QLatin1String("Double gangs remote switch") )
                 {
                     //Ask for battery but only every day max
                     //int diff = idleTotalCounter - sensorNode.lastRead(READ_BATTERY);
@@ -5977,6 +5978,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId().startsWith(QLatin1String("motionv4")) ||// SmartThings motion sensor
                                     i->modelId().startsWith(QLatin1String("3305-S")) ||  // SmartThings 2014 motion sensor
                                     i->modelId() == QLatin1String("Remote switch") ||    // Legrand switch
+                                    i->modelId() == QLatin1String("Double gangs remote switch") ||    // Legrand switch double
                                     i->modelId() == QLatin1String("Shutters central remote switch") || //Legrand shutter switch
                                     i->modelId() == QLatin1String("Zen-01") ||           // Zen thermostat
                                     i->modelId() == QLatin1String("Thermostat") ||       // eCozy thermostat
@@ -14286,6 +14288,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             }
         }
         else if (sensor->modelId() == QLatin1String("Remote switch") || // Legrand switch
+                 sensor->modelId() == QLatin1String("Double gangs remote switch") || // Legrand switch double
                  sensor->modelId() == QLatin1String("Shutters central remote switch")) // Legrand switch
         {
             checkSensorGroup(sensor);
