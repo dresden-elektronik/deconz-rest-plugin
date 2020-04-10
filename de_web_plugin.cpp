@@ -1529,11 +1529,6 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
     {
         // whitelist
     }
-    //WARNING : just for test need better check
-    else if ((node->nodeDescriptor().manufacturerCode() == VENDOR_NONE) && (true) )
-    {
-        
-    }
     else if (!node->nodeDescriptor().receiverOnWhenIdle())
     {
         return;
