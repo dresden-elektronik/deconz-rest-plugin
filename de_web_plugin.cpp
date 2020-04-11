@@ -5373,9 +5373,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
 
     if (clusterId == IAS_ZONE_CLUSTER_ID)
     {
-        if ((modelId == QLatin1String("button") && sensorNode.manufacturer() == QLatin1String("Samjin")) ||
-            (modelId == QLatin1String("multi") && sensorNode.manufacturer() == QLatin1String("Samjin")) ||
-            (modelId == QLatin1String("water") && sensorNode.manufacturer() == QLatin1String("Samjin")))
+        if ((sensorNode.manufacturer() == QLatin1String("Samjin") &&
+            (modelId == QLatin1String("button") || modelId == QLatin1String("multi") || modelId == QLatin1String("water"))) ||
+            (sensorNode.manufacturer() == QLatin1String("CentraLite") && modelId == QLatin1String("Motion Sensor-A")))
         {
             // no support for some IAS flags
         }

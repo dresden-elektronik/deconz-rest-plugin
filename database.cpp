@@ -3383,7 +3383,9 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
         if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
         {
-            if (sensor.modelId() == QLatin1String("multi") && sensor.manufacturer() == QLatin1String("Samjin"))
+          if ((sensor.manufacturer() == QLatin1String("Samjin") &&
+              (sensor.modelId() == QLatin1String("button") || sensor.modelId() == QLatin1String("multi") || sensor.modelId() == QLatin1String("water"))) ||
+              (sensor.manufacturer() == QLatin1String("CentraLite") && sensor.modelId == QLatin1String("Motion Sensor-A")))
             {
                 // no support for some IAS Zone flags
             }
