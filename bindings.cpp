@@ -1989,7 +1989,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Stelpro
         sensor->modelId().contains(QLatin1String("ST218")) ||
         // Tuya
-        sensor->modelId().contains(QLatin1String("TS0201")) ||
+        sensor->modelId().startsWith(QLatin1String("TS01")) ||
+        sensor->modelId().startsWith(QLatin1String("TS02")) ||
         // Tuyatec
         sensor->modelId().startsWith(QLatin1String("RH3040")) ||
         sensor->modelId().startsWith(QLatin1String("RH3001")) ||

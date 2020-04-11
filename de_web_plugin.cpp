@@ -274,6 +274,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "RH3052", emberMacPrefix }, // Tuyatec temperature sensor
     { VENDOR_EMBER, "TS0201", silabs3MacPrefix }, // Tuya/Blitzwolf temperature and humidity sensor
     { VENDOR_NONE, "TS0204", silabs3MacPrefix }, // Tuya gas sensor
+    { VENDOR_NONE, "TS0121", silabs3MacPrefix }, // Tuya/Blitzwolf smart plug
     { VENDOR_AURORA, "DoubleSocket50AU", jennicMacPrefix }, // Aurora AOne Double Socket UK
     { VENDOR_COMPUTIME, "SP600", computimeMacPrefix }, // Salus smart plug
     { VENDOR_HANGZHOU_IMAGIC, "1116-S", energyMiMacPrefix }, // iris contact sensor v3
@@ -7268,7 +7269,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("outlet")) ||   // Samsung SmartThings IM6001-OTP/IM6001-OTP01
                                         i->modelId() == QLatin1String("DoubleSocket50AU") ||  // Aurora
                                         i->modelId() == QLatin1String("RICI01") ||            // LifeControl Smart Plug
-                                        i->modelId().startsWith(QLatin1String("SZ-ESW01")))   // Sercomm / Telstra smart plug
+                                        i->modelId().startsWith(QLatin1String("SZ-ESW01")) || // Sercomm / Telstra smart plug
+                                        i->modelId() == QLatin1String("TS0121"))              // Tuya smart plug
                                     {
                                         // already in mA
                                     }
