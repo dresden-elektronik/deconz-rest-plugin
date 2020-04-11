@@ -1529,11 +1529,6 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
     {
         // whitelist
     }
-    //WARNING : just for test need better check
-    else if ((node->nodeDescriptor().manufacturerCode() == VENDOR_NONE) && (true) )
-    {
-        
-    }
     else if (!node->nodeDescriptor().receiverOnWhenIdle())
     {
         return;
@@ -1556,11 +1551,6 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             else if (i->inClusters()[c].id() == COLOR_CLUSTER_ID) { hasServerColor = true; }
             else if (i->inClusters()[c].id() == WINDOW_COVERING_CLUSTER_ID) { hasServerOnOff = true; }
             else if (i->inClusters()[c].id() == IAS_WD_CLUSTER_ID) { hasIASWDCluster = true; }
-        }
-        //WARNING : just for test need better check
-        if (node->nodeDescriptor().manufacturerCode() == VENDOR_NONE)
-        {
-            hasServerOnOff = true;
         }
 
         // check if node already exist
@@ -1660,6 +1650,14 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         lightNode.setNode(const_cast<deCONZ::Node*>(node));
         lightNode.address() = node->address();
         lightNode.setManufacturerCode(node->nodeDescriptor().manufacturerCode());
+        
+        //Livolo haven't Cluster 0006, so need to force on/off light
+        if ((node->nodeDescriptor().manufacturerCode() == VENDOR_NONE) && (false) )
+        //if ((node->nodeDescriptor().manufacturerCode() == VENDOR_NONE) && (node->nodeDescriptor().manufacturer() == QLatin1String("LIVOLO")) )
+        {
+            lightNode.setHaEndpoint(*i);
+        }
+        
 
         if (!i->inClusters().isEmpty())
         {
