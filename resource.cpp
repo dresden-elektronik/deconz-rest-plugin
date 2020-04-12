@@ -32,6 +32,8 @@ const char *RAttrType = "attr/type";
 const char *RAttrClass = "attr/class";
 const char *RAttrUniqueId = "attr/uniqueid";
 const char *RAttrSwVersion = "attr/swversion";
+const char *RAttrLastAnnounce = "attr/lastannounced";
+const char *RAttrLastSeen = "attr/lastseen";
 
 const char *RActionScene = "action/scene";
 
@@ -164,6 +166,8 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrClass));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrUniqueId));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrSwVersion));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RAttrLastAnnounce));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RAttrLastSeen));
 
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateAlarm));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateAlert));
@@ -373,7 +377,7 @@ const QString &ResourceItem::toString() const
                 QDateTime dt;
                 dt.setOffsetFromUtc(0);
                 dt.setMSecsSinceEpoch(m_num);
-                *m_str = dt.toString("yyyy-MM-ddTHH:mm:ss");
+                *m_str = dt.toString(m_rid.suffix == RStateLastUpdated ? "yyyy-MM-ddTHH:mm:ss.zzz" : "yyyy-MM-ddTHH:mm:ss");
             }
             else
             {

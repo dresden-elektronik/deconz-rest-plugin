@@ -1076,7 +1076,9 @@ that measures a physical quantity that can take on one of a number of discrete s
 					<value name="Count down" value="4"></value>
 					<value name="Wait for more" value="5"></value>
 				</attribute>
-								<attribute id="0x0009" name="Min block request delay" type="u16" default="0" access="r" required="m"></attribute>
+				<attribute id="0x0007" name="Manufacturer ID" type="u16" access="r" required="o" showas="hex"></attribute>
+				<attribute id="0x0008" name="Image Type ID" type="u16" access="r" required="o" showas="hex"></attribute>
+				<attribute id="0x0009" name="Min block request delay" type="u16" default="0" access="r" required="m"></attribute>
 				<command id="0x01" dir="send" name="Query next image" required="m">
 					<description></description>
 					<payload>
@@ -2619,19 +2621,19 @@ devices can operate on either battery or mains power, and can have a wide variet
 				<attribute id="0x0000" type="u8" name="On" required="m" access="rw" default="0">
 					<description>Enable Sensor </description>
 				</attribute>
-				
+
 				<attribute id="0x0001" name="X-Value" type="u16" default="0x0000" access="r" required="m" showas="dec">
 					<description>X-Value</description>
 				</attribute>
-				
+
 				<attribute id="0x0002" name="Y-Value" type="u16" default="0x0000" access="r" required="m" showas="dec">
 					<description>Y-Value</description>
 				</attribute>
-				
+
 				<attribute id="0x0003" name="Z-Value" type="u16" default="0x0000" access="r" required="m" showas="dec">
 					<description>Z-Value</description>
 				</attribute>
-				
+
 			</server>
 			<client>
 			</client>
@@ -2781,6 +2783,34 @@ Fil pilote > Off=0001 - On=0002</description>
 				<attribute id="0xfffd" name="Unknown 2" type="u16" required="m" access="rw" showas="hex" mfcode="0x117c">
 					<description></description>
 				</attribute>
+			</server>
+			<client>
+			</client>
+		</cluster>
+
+		<!-- LUMI -->
+		<cluster id="0xfcc0" name="Lumi" mfcode="0x115f">
+			<description>Lumi specific attributes.</description>
+			<server>
+				<attribute id="0x00f3" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x00f5" name="Unknown" type="u32" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x00f6" name="Reporting Interval" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x00fa" name="Unknown" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x00fc" name="Unknown" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x00fe" name="Serial Number" type="cstring" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x00ff" name="Unknown (write only)" type="ostring" mfcode="0x115f" access="w" required="m"> </attribute>
+				<attribute id="0x0100" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0200" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0201" name="Restore Power on Outage" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0202" name="Unknown" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0203" name="Device LED off" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0204" name="Unknown" type="float" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0205" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0206" name="Unknown" type="float" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0207" name="Unknown" type="bool" mfcode="0x115f" access="r" required="m"> </attribute>
+				<attribute id="0x020b" name="Max. Load exceeded at (in W)???" type="float" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0xf000" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0xfffd" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
 			</server>
 			<client>
 			</client>

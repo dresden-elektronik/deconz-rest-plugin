@@ -288,7 +288,7 @@ void RestNodeBase::setZclValue(NodeValue::UpdateType updateType, quint8 endpoint
 
             if (DBG_IsEnabled(DBG_INFO_L2))
             {
-                DBG_Printf(DBG_INFO_L2, "update ZCL value 0x%04X/0x%04X for ep: 0x%02X 0x%016llX after %lld s\n", endpoint, clusterId, attributeId, address().ext(), i->timestamp.secsTo(now));
+                DBG_Printf(DBG_INFO_L2, "0x%016llX: update ZCL value 0x%02X/0x%04X/0x%04X after %lld s\n", address().ext(), endpoint, clusterId, attributeId, i->timestamp.secsTo(now));
             }
             return;
         }
@@ -306,7 +306,7 @@ void RestNodeBase::setZclValue(NodeValue::UpdateType updateType, quint8 endpoint
     val.updateType = updateType;
     val.value = value;
 
-    DBG_Printf(DBG_INFO_L2, "added ZCL value 0x%04X/0x%04X for ep: 0x%02X 0x%016llX\n", clusterId, attributeId, endpoint, address().ext());
+    DBG_Printf(DBG_INFO_L2, "0x%016llX: added ZCL value 0x%02/0x%04X/0x%04X\n", address().ext(), endpoint, clusterId, attributeId);
 
     m_values.push_back(val);
 }
