@@ -1668,7 +1668,7 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturerCode() == VENDOR_SINOPE)
         {
         }
-        else if (lightNode->modelId() == QLatin1String("SP 120"))
+        else if (lightNode->modelId().startsWith(QLatin1String("SP ")))
         {
         }
         else if (lightNode->manufacturer().startsWith(QLatin1String("Climax")))
@@ -1904,7 +1904,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // iCasa
         sensor->modelId().startsWith(QLatin1String("ICZB-RM")) ||
         // innr
-        sensor->modelId() == QLatin1String("SP 120") ||
+        sensor->modelId().startsWith(QLatin1String("SP ")) ||
         sensor->modelId().startsWith(QLatin1String("RC 110")) ||
         // Eurotronic
         sensor->modelId() == QLatin1String("SPZB0001") ||

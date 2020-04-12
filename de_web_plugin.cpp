@@ -64,6 +64,7 @@ static uint MaxGroupTasks = 4;
 
 const quint64 macPrefixMask       = 0xffffff0000000000ULL;
 
+// New mac prefixes can be checked here: https://wintelguy.com/index.pl 
 const quint64 legrandMacPrefix    = 0x0004740000000000ULL;
 const quint64 ikeaMacPrefix       = 0x000b570000000000ULL;
 const quint64 emberMacPrefix      = 0x000d6f0000000000ULL;
@@ -87,6 +88,7 @@ const quint64 ikea2MacPrefix      = 0x14b4570000000000ULL;
 const quint64 stMacPrefix         = 0x24fd5b0000000000ULL;
 const quint64 samjinMacPrefix     = 0x286d970000000000ULL;
 const quint64 sinopeMacPrefix     = 0x500b910000000000ULL;
+const quint64 silabs4MacPrefix    = 0x680ae20000000000ULL;
 const quint64 ecozyMacPrefix      = 0x70b3d50000000000ULL;
 const quint64 osramMacPrefix      = 0x8418260000000000ULL;
 const quint64 silabsMacPrefix     = 0x90fd9f0000000000ULL;

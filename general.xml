@@ -2815,6 +2815,23 @@ Fil pilote > Off=0001 - On=0002</description>
 			<client>
 			</client>
 		</cluster>
+		
+		<!-- INNR -->
+		<cluster id="0xfc82" name="innr" mfcode="0x1166">
+			<description>innr specific attributes.</description>
+			<server>
+				<attribute id="0x0006" name="Unknown" type="cstring" mfcode="0x1166" access="rw" required="m"> </attribute>
+				<attribute id="0x0010" name="Unknown" type="u32" mfcode="0x1166" access="r" required="m"> </attribute>
+				<attribute id="0x0011" name="Unknown" type="u32" mfcode="0x1166" access="r" required="m"> </attribute>
+				<attribute id="0x0012" name="Unknown" type="u32" mfcode="0x1166" access="r" required="m"> </attribute>
+				<attribute id="0x0013" name="Unknown" type="u32" mfcode="0x1166" access="rw" required="m"> </attribute>
+				<attribute id="0x0014" name="Unknown" type="u32" mfcode="0x1166" access="rw" required="m"> </attribute>
+				<attribute id="0x0015" name="Unknown" type="u32" mfcode="0x1166" access="rw" required="m"> </attribute>
+				<attribute id="0xfffd" name="Unknown" type="u16" mfcode="0x1166" access="r" required="m"> </attribute>
+			</server>
+			<client>
+			</client>
+		</cluster>
 
 	</domain>
 
