@@ -1564,11 +1564,10 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
 
     return REQ_READY_SEND;
 }
-// Livolo use setlevel command for on / off with as level
-// on  : 6C
-// off : 01
-// Always 00 for on/off
-// 0001 and 0002 for button
+// Livolo use MoveToLevel command for on / off with as level
+// Transition time = button > 0001 and 0002
+// Level: 108, Transition Time: 0.1 sec - to on
+// Level: 1, Transition Time: 0.1 sec - to off
 int DeRestPluginPrivate::setLivoloDeviceState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map)
 {
     QString id = req.path[3];
@@ -1585,15 +1584,18 @@ int DeRestPluginPrivate::setLivoloDeviceState(const ApiRequest &req, ApiResponse
             TaskItem task;
             copyTaskReq(taskRef, task);
             
+            //Only button 1
+            task.transitionTime = 0x0001;
+            
             if (isOn)
             {
-                task.transitionTime = 0x0001;
                 ok = addTaskSetBrightness(task, 0x6c, false);
             }
             else
             {
-                task.transitionTime = 0x0001;
                 ok = addTaskSetBrightness(task, 0x01, false);
+                //ok = addTaskSetOnOff(task,ONOFF_COMMAND_OFF,0)
+                //ok = addTaskSetOnOff(task,ONOFF_COMMAND_TOGGLE,0)
             }
             if (ok)
             {

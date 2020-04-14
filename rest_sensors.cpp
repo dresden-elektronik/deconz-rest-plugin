@@ -2975,11 +2975,4 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
             }
         }
     }
-    //Test For livolo switch
-    else if (checkMacVendor(sc->address, VENDOR_NONE))
-    {
-        DBG_Printf(DBG_INFO, "Livolo test\n");
-
-        
-    }
 }

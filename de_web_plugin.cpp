@@ -262,6 +262,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_LEGRAND, "Cable outlet", legrandMacPrefix }, // Legrand Cable outlet
     { VENDOR_LEGRAND, "Remote switch", legrandMacPrefix }, // Legrand wireless switch
     { VENDOR_LEGRAND, "Double gangs remote switch", legrandMacPrefix }, // Legrand wireless double switch
+    { VENDOR_LEGRAND, "Remote motion sensor", legrandMacPrefix }, // Legrand motion sensor
     { VENDOR_LEGRAND, "Shutters central remote switch", legrandMacPrefix }, // Legrand wireless shutter switch (battery)
     { VENDOR_LEGRAND, "DIN power consumption module", legrandMacPrefix }, // Legrand DIN power consumption module
     { VENDOR_NETVOX, "Z809AE3R", netvoxMacPrefix }, // Netvox smartplug
