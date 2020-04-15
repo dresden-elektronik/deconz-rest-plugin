@@ -2004,7 +2004,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Hive
         sensor->modelId() == QLatin1String("MOT003") ||
         // Sengled
-        sensor->modelId().startsWith(QLatin1String("E13-")))
+        sensor->modelId().startsWith(QLatin1String("E13-")) ||
+        // Immax
+        sensor->modelId() == QLatin1String("Plug-230V-ZB3.0"))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||

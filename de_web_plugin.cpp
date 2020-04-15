@@ -287,6 +287,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_ALERTME, "MOT003", tiMacPrefix }, // Hive Motion Sensor
     { VENDOR_SUNRICHER, "4512703", silabs2MacPrefix }, // Namron 4-ch remote controller
     { VENDOR_SENGLED_OPTOELEC, "E13-", zhejiangMacPrefix }, // Sengled PAR38 Bulbs
+    { VENDOR_JENNIC, "Plug-230V-ZB3.0", silabs2MacPrefix }, // Immax NEO ZB3.0 smart plug
     { 0, nullptr, 0 }
 };
 
@@ -5020,6 +5021,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             item = sensorNode.addItem(DataTypeInt16, RStatePower);
             if ( (!modelId.startsWith(QLatin1String("Plug"))) &&
                  (!modelId.startsWith(QLatin1String("ZB-ONOFFPlug-D0005"))) &&
+                 (modelId != QLatin1String("Plug-230V-ZB3.0")) &&
                  (node->nodeDescriptor().manufacturerCode() != VENDOR_LEGRAND) ) // OSRAM and Legrand plug don't have theses options
             {
                 item = sensorNode.addItem(DataTypeUInt16, RStateVoltage);
@@ -7111,10 +7113,12 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (i->modelId() == QLatin1String("SmartPlug") ||       // Heiman
                                     i->modelId().startsWith(QLatin1String("PSMP5_")) || // Climax
                                     i->modelId().startsWith(QLatin1String("SKHMP30")))  // GS smart plug
+																						// Sengled PAR38 Bulbs
                                 {
                                     consumption += 5; consumption /= 10; // 0.1 Wh -> Wh
                                 }
-                                else if (i->modelId() == QLatin1String("SP 120")) // innr
+                                else if (i->modelId() == QLatin1String("SP 120") ||            // innr
+                                         i->modelId() == QLatin1String("Plug-230V-ZB3.0"))     // Immax
                                 {
                                     consumption *= 10; // 0.01 kWh = 10 Wh -> Wh
                                 }

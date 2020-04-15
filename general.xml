@@ -193,6 +193,14 @@
 			<attribute id="0x0032" name="Usertest" type="bool" default="0" access="rw" required="o" mfcode="0x100b"></attribute>
 			<attribute id="0x0033" name="LED Indication" type="bool" default="0" access="rw" required="o" mfcode="0x100b"></attribute>
 		</attribute-set>
+		<attribute-set id="0x4000" description="Manufacturer specific" mfcode="0x1037">
+			<attribute id="0x4001" name="128-Bit security key" type="seckey" access="r" required="m" mfcode="0x1037"></attribute>
+			<attribute id="0x4002" name="IEEE address" type="uid" access="rw" required="m" mfcode="0x1037"></attribute>
+		</attribute-set>
+		<attribute-set id="0x4000" description="Manufacturer specific" mfcode="0x1166">
+			<attribute id="0x4001" name="128-Bit security key" type="seckey" access="r" required="m" mfcode="0x1166"></attribute>
+			<attribute id="0x4002" name="IEEE address" type="uid" access="rw" required="m" mfcode="0x1166"></attribute>
+		</attribute-set>
 		<attribute-set id="0x8000" description="Develco Specific" mfcode="0x1015">
 			<attribute id="0x8000" name="Primary SW Version" type="ostring" access="r" required="m" mfcode="0x1015"></attribute>
 			<attribute id="0x8010" name="Primary Bootloader SW Version" type="ostring" access="r" required="m" mfcode="0x1015"></attribute>
@@ -2576,6 +2584,7 @@ devices can operate on either battery or mains power, and can have a wide variet
 			<attribute-set id="00" description="Reading Information Set">
 				<attribute id="0000" name="Current Summation Delivered" type="u48" access="r" required="m"></attribute>
 				<attribute id="0001" name="Current Summation Received" type="u48" access="r" required="o"></attribute>
+				<attribute id="041b" name="Unknown" type="u64" access="rw" required="o" mfcode="0x1037"></attribute>
 				<!-- TODO -->
 			</attribute-set>
 			<attribute-set id="01" description="TOU Information Set">
@@ -3050,6 +3059,20 @@ Fil pilote > Off=0001 - On=0002</description>
 				<attribute id="0x0014" name="Unknown" type="u32" mfcode="0x1166" access="rw" required="m"> </attribute>
 				<attribute id="0x0015" name="Unknown" type="u32" mfcode="0x1166" access="rw" required="m"> </attribute>
 				<attribute id="0xfffd" name="Unknown" type="u16" mfcode="0x1166" access="r" required="m"> </attribute>
+			</server>
+			<client>
+			</client>
+		</cluster>
+
+		<!-- IMMAX -->
+		<cluster id="0xfc82" name="Immax" mfcode="0x1037">
+			<description>Immax specific attributes.</description>
+			<server>
+				<attribute id="0x0010" name="Turned on since" type="u32" mfcode="0x1037" access="r" required="m"> </attribute>
+				<attribute id="0x0011" name="Turned on (total)" type="u32" mfcode="0x1037" access="r" required="m"> </attribute>
+				<attribute id="0x0012" name="Consumption since turned on" type="u32" mfcode="0x1037" access="r" required="m"> </attribute>
+				<attribute id="0x0013" name="Unknown" type="u32" mfcode="0x1037" access="rw" required="m"> </attribute>
+				<attribute id="0xfffd" name="Unknown" type="u16" mfcode="0x1037" access="r" required="m"> </attribute>
 			</server>
 			<client>
 			</client>

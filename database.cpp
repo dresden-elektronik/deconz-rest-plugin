@@ -3185,7 +3185,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     return 0;
                     // hasVoltage = false;
                 }
-                else if (sensor.modelId() == QLatin1String("ZB-ONOFFPlug-D0005"))
+                else if (sensor.modelId() == QLatin1String("ZB-ONOFFPlug-D0005") || 
+                         sensor.modelId() == QLatin1String("Plug-230V-ZB3.0"))
                 {
                     hasVoltage = false;
                 }

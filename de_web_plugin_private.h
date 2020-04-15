@@ -487,7 +487,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
         case VENDOR_INSTA:
             return prefix == instaMacPrefix;
         case VENDOR_JENNIC:
-            return prefix == jennicMacPrefix;
+            return prefix == jennicMacPrefix ||
+                   prefix == silabs2MacPrefix;
         case VENDOR_KEEN_HOME:
             return prefix == keenhomeMacPrefix;
         case VENDOR_LGE:

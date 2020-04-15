@@ -402,7 +402,8 @@ void PollManager::pollTimerFired()
         if (!item->toString().startsWith(QLatin1String("SP 120")) &&  // Attribute is not available
             !item->toString().startsWith(QLatin1String("lumi.plug.ma")) &&
             !item->toString().startsWith(QLatin1String("ZB-ONOFFPlug-D0005")) &&
-            !item->toString().startsWith(QLatin1String("TS0121")))
+            !item->toString().startsWith(QLatin1String("TS0121")) &&
+            item->toString() != QLatin1String("Plug-230V-ZB3.0"))
         {
             attributes.push_back(0x0400); // Instantaneous Demand
         }
