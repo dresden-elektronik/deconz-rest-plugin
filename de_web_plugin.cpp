@@ -7110,10 +7110,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 quint64 consumption = ia->numericValue().u64;
                                 ResourceItem *item = i->item(RStateConsumption);
 
-                                if (i->modelId() == QLatin1String("SmartPlug") ||       // Heiman
-                                    i->modelId().startsWith(QLatin1String("PSMP5_")) || // Climax
-                                    i->modelId().startsWith(QLatin1String("SKHMP30")))  // GS smart plug
-																						// Sengled PAR38 Bulbs
+                                if (i->modelId() == QLatin1String("SmartPlug") ||        // Heiman
+                                    i->modelId().startsWith(QLatin1String("PSMP5_")) ||  // Climax
+                                    i->modelId().startsWith(QLatin1String("SKHMP30")) || // GS smart plug
+									i->modelId().startsWith(QLatin1String("E13-")))      // Sengled PAR38 Bulbs
                                 {
                                     consumption += 5; consumption /= 10; // 0.1 Wh -> Wh
                                 }
@@ -7125,10 +7125,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 else if (i->modelId().startsWith(QLatin1String("SZ-ESW01"))) // Sercomm / Telstra smart plug
                                 {
                                     consumption /= 1000;
-                                }
-                                else if (i->modelId().startsWith(QLatin1String("E13-"))) // Sengled PAR38 Bulbs
-                                {
-                                    consumption /= 10000;
                                 }
 
                                 if (item)
