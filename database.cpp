@@ -3160,7 +3160,9 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = clusterId ? clusterId : METERING_CLUSTER_ID;
                 if ((sensor.modelId() != QLatin1String("SP 120")) &&
-                    (sensor.modelId() != QLatin1String("ZB-ONOFFPlug-D0005")))
+                    (sensor.modelId() != QLatin1String("ZB-ONOFFPlug-D0005")) &&
+                    (sensor.modelId() != QLatin1String("TS0121")) &&
+                    (sensor.modelId() != QLatin1String("Plug-230V-ZB3.0")))
                 {
                     item = sensor.addItem(DataTypeInt16, RStatePower);
                     item->setValue(0);
