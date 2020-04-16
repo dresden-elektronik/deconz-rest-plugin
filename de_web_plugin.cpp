@@ -1659,6 +1659,13 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             lightNode.setHaEndpoint(*i);
         }
         
+        //Test for Legrand din module
+        if ((node->nodeDescriptor().manufacturerCode() == VENDOR_LEGRAND) && (false) )
+        {
+            lightNode.setHaEndpoint(*i);
+        }
+        
+        
 
         if (!i->inClusters().isEmpty())
         {
