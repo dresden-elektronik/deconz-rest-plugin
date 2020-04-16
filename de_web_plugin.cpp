@@ -5002,7 +5002,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = METERING_CLUSTER_ID;
             item = sensorNode.addItem(DataTypeUInt64, RStateConsumption);
-            if ((modelId != QLatin1String("SP 120")) && (modelId != QLatin1String("ZB-ONOFFPlug-D0005")))
+            if ((modelId != QLatin1String("SP 120")) &&
+                (modelId != QLatin1String("ZB-ONOFFPlug-D0005")) &&
+                (modelId != QLatin1String("TS0121")) &&
+                (modelId != QLatin1String("Plug-230V-ZB3.0")))
             {
                 item = sensorNode.addItem(DataTypeInt16, RStatePower);
             }
