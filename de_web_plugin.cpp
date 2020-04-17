@@ -3274,8 +3274,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     }
     else if (sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")) ||
              sensor->modelId().startsWith(QLatin1String("TRADFRI open/close remote")) ||
-             sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")) ||
-             sensor->modelId().startsWith(QLatin1String("SYMFONISK")))
+             sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")))
     {
 
         if (ind.dstAddressMode() == deCONZ::ApsGroupAddress && ind.dstAddress().group() == 0)
@@ -3288,6 +3287,15 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 checkSensorGroup(sensor);
             }
         }
+    }
+    else if (sensor->modelId().startsWith(QLatin1String("SYMFONISK")))
+    {
+        if (zclFrame.sequenceNumber() == sensor->previousSequenceNumber)
+        {
+            return;
+        }
+        sensor->previousSequenceNumber = zclFrame.sequenceNumber();
+        checkReporting = true;
     }
     else if (sensor->modelId() == QLatin1String("Remote switch")) // legrand switch
     {
@@ -3659,13 +3667,13 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
             }
 
-            if (ok)
+            if (ok && buttonMap->button != 0)
             {
                 DBG_Printf(DBG_INFO, "button %u %s\n", buttonMap->button, buttonMap->name);
                 ResourceItem *item = sensor->item(RStateButtonEvent);
                 if (item)
                 {
-                    if (item->toNumber() == buttonMap->button)
+                    if (item->toNumber() == buttonMap->button && ind.dstAddressMode() == deCONZ::ApsGroupAddress)
                     {
                         QDateTime now = QDateTime::currentDateTime();
                         const auto dt = item->lastSet().msecsTo(now);
@@ -14432,8 +14440,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                  sensor->modelId().startsWith(QLatin1String("TRADFRI open/close remote")) ||
                  sensor->modelId().startsWith(QLatin1String("TRADFRI remote control")) ||
                  sensor->modelId().startsWith(QLatin1String("TRADFRI wireless dimmer")) ||
-                 sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")) ||
-                 sensor->modelId().startsWith(QLatin1String("SYMFONISK")))
+                 sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")))
         {
             checkSensorGroup(sensor);
 
@@ -14443,6 +14450,31 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 {
                     sensor->setLastAttributeReportBind(idleTotalCounter);
 
+                }
+            }
+        }
+        else if (sensor->modelId().startsWith(QLatin1String("SYMFONISK")))
+        {
+            ResourceItem *item = sensor->item(RStateButtonEvent);
+
+            if (!item || !item->lastSet().isValid())
+            {
+                BindingTask bindingTask;
+
+                bindingTask.state = BindingTask::StateIdle;
+                bindingTask.action = BindingTask::ActionBind;
+                bindingTask.restNode = sensor;
+                Binding &bnd = bindingTask.binding;
+                bnd.srcAddress = sensor->address().ext();
+                bnd.dstAddrMode = deCONZ::ApsExtAddress;
+                bnd.srcEndpoint = sensor->fingerPrint().endpoint;
+                bnd.clusterId = LEVEL_CLUSTER_ID;
+                bnd.dstAddress.ext = apsCtrl->getParameter(deCONZ::ParamMacAddress);
+                bnd.dstEndpoint = endpoint();
+
+                if (bnd.dstEndpoint > 0) // valid gateway endpoint?
+                {
+                    queueBindingTask(bindingTask);
                 }
             }
         }
