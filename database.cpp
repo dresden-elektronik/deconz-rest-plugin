@@ -2905,7 +2905,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (sensor.fingerPrint().hasOutCluster(ONOFF_CLUSTER_ID))
             {
                 clusterId = clusterId ? clusterId : ONOFF_CLUSTER_ID;
-                sensor.addItem(DataTypeString, RConfigGroup);
+                if (!sensor.modelId().startsWith(QLatin1String("SYMFONISK")))
+                {
+                    sensor.addItem(DataTypeString, RConfigGroup);
+                }
             }
             else if (sensor.fingerPrint().hasInCluster(ONOFF_CLUSTER_ID))
             {
