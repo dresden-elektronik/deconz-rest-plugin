@@ -3385,7 +3385,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         {
           if ((sensor.manufacturer() == QLatin1String("Samjin") &&
               (sensor.modelId() == QLatin1String("button") || sensor.modelId() == QLatin1String("multi") || sensor.modelId() == QLatin1String("water"))) ||
-              (sensor.manufacturer() == QLatin1String("CentraLite") && sensor.modelId == QLatin1String("Motion Sensor-A")))
+              (sensor.manufacturer() == QLatin1String("CentraLite") && sensor.modelId() == QLatin1String("Motion Sensor-A")))
             {
                 // no support for some IAS Zone flags
             }
