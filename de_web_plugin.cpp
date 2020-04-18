@@ -1510,6 +1510,23 @@ void DeRestPluginPrivate::handleMacDataRequest(const deCONZ::NodeEvent &event)
             }
         }
     }
+
+    for (auto &l : nodes)
+    {
+        if (l.state() != LightNode::StateNormal)
+        {
+            continue;
+        }
+
+        if (l.address().ext() != event.node()->address().ext())
+        {
+            continue;
+        }
+
+        l.rx();
+
+        // FIXME: probably need to do some more light stuff here.
+    }
 }
 
 /*! Adds new node(s) to node cache.
