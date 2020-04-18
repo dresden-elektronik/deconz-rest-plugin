@@ -376,17 +376,30 @@ const QString &ResourceItem::toString() const
     {
         if (m_str)
         {
-            if (m_rid.suffix == RStateLastUpdated || m_rid.suffix == RStateSunrise || m_rid.suffix == RStateSunset)
+            QDateTime dt;
+
+            // default: local time in sec resolution
+            QString format = QLatin1String("yyyy-MM-ddTHH:mm:ss");
+
+            if (m_rid.suffix == RStateLastUpdated)
             {
-                QDateTime dt;
+                // UTC in msec resolution
+                format = QLatin1String("yyyy-MM-ddTHH:mm:ss.zzz");
                 dt.setOffsetFromUtc(0);
-                dt.setMSecsSinceEpoch(m_num);
-                *m_str = dt.toString(m_rid.suffix == RStateLastUpdated ? "yyyy-MM-ddTHH:mm:ss.zzz" : "yyyy-MM-ddTHH:mm:ss");
             }
-            else
+            else if (m_rid.suffix == RStateSunrise || m_rid.suffix == RStateSunset)
             {
-                *m_str = QDateTime::fromMSecsSinceEpoch(m_num).toString("yyyy-MM-ddTHH:mm:ss");
+                // UTC in sec resulution
+                dt.setOffsetFromUtc(0);
             }
+            else if (m_rid.suffix == RConfigLocalTime)
+            {
+                // local time in msec resolution
+                format = QLatin1String("yyyy-MM-ddTHH:mm:ss.zzz");
+            }
+
+            dt.setMSecsSinceEpoch(m_num);
+            *m_str = dt.toString(format);
             return *m_str;
         }
     }
