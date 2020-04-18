@@ -1701,7 +1701,7 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
         return REQ_READY_SEND;
     }
 
-    if (taskRef.lightNode->node()->isZombie())
+    if (taskRef.lightNode->node()->isZombie() || !lightNode->lastRx().isValid())
     {
         DBG_Printf(DBG_INFO,"0x%016llX: resurrecting zombie siren\n", taskRef.lightNode->address().ext());
         taskRef.lightNode->rx(); // FIXME: this incorrectly updates `lastseen`
