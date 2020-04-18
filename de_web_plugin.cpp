@@ -1657,15 +1657,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         //if ((node->nodeDescriptor().manufacturerCode() == VENDOR_NONE) && (node->nodeDescriptor().manufacturer() == QLatin1String("LIVOLO")) )
         {
             lightNode.setHaEndpoint(*i);
-        }
-        
-        //Test for Legrand din module
-        if ((node->nodeDescriptor().manufacturerCode() == VENDOR_LEGRAND) && (false) )
-        {
-            lightNode.setHaEndpoint(*i);
-        }
-        
-        
+        }   
 
         if (!i->inClusters().isEmpty())
         {
@@ -1788,6 +1780,15 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 case DEV_ID_IAS_WARNING_DEVICE:
                     {
                         lightNode.setHaEndpoint(*i);
+                    }
+                    break;
+
+                case DEV_ID_CONSUMPTION_AWARENESS_DEVICE:
+                    {
+                        if (node->nodeDescriptor().manufacturerCode() == VENDOR_LEGRAND)
+                        {
+                            lightNode.setHaEndpoint(*i);
+                        }
                     }
                     break;
 
