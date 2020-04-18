@@ -1842,6 +1842,9 @@ void DeRestPluginPrivate::handleRuleEvent(const Event &e)
     const QDateTime now = localTime
       ? QDateTime::fromMSecsSinceEpoch(localTime->toNumber())
       : QDateTime::currentDateTime();
+    const QDateTime previousNow = localTime
+      ? QDateTime::fromMSecsSinceEpoch(localTime->toNumberPrevious())
+      : now.addSecs(-1);
 
     if (!resource || !item || item->rulesInvolved().empty())
     {
@@ -1850,11 +1853,11 @@ void DeRestPluginPrivate::handleRuleEvent(const Event &e)
 
     if (!e.id().isEmpty())
     {
-        DBG_Printf(DBG_INFO, "rule event at %s: %s/%s/%s: %d -> %d\n", qPrintable(now.toString("hh:mm:ss.zzz")), e.resource(), qPrintable(e.id()), e.what(), e.numPrevious(), e.num());
+        DBG_Printf(DBG_INFO, "rule event %s/%s/%s: %d -> %d\n", e.resource(), qPrintable(e.id()), e.what(), e.numPrevious(), e.num());
     }
     else
     {
-        DBG_Printf(DBG_INFO_L2, "rule event at %s: /%s\n", qPrintable(now.toString("hh:mm:ss.zzz")), e.what());
+        DBG_Printf(DBG_INFO_L2, "rule event /%s: %s -> %s\n", e.what(), qPrintable(previousNow.toString("hh:mm:ss.zzz")), qPrintable(now.toString("hh:mm:ss.zzz")));
     }
 
 
