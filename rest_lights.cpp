@@ -1644,7 +1644,7 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
     bool hasCmd = false;
     QString alert;
     quint16 onTime = 0;
-    static const QStringList alertList({ "none", "select", "lselect", "blink" });
+    static const QStringList alertList({ "none", "select", "lselect", "blink", "all" });
 
     // Check parameters.
     for (QVariantMap::const_iterator p = map.begin(); p != map.end(); p++)
@@ -1701,14 +1701,10 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
         return REQ_READY_SEND;
     }
 
-    bool isSmokeDetector = false;
-    if (taskRef.lightNode->modelId() == QLatin1String("902010/24") || // Bitron Smoke Detector with siren
-        taskRef.lightNode->modelId() == QLatin1String("SMSZB-120") || // Develco smoke sensor
-        taskRef.lightNode->modelId() == QLatin1String("HESZB-120") || // Develco heat sensor with siren
-        taskRef.lightNode->modelId() == QLatin1String("FLSZB-110")) // Develco water leak sensor with siren
+    if (taskRef.lightNode->node()->isZombie())
     {
-        isSmokeDetector = true;
-        taskRef.lightNode->rx(); // otherwise device is marked as zombie and task is dropped
+        DBG_Printf(DBG_INFO,"0x%016llX: resurrecting zombie siren\n", taskRef.lightNode->address().ext());
+        taskRef.lightNode->rx(); // FIXME: this incorrectly updates `lastseen`
     }
 
     TaskItem task;
@@ -1719,27 +1715,33 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
     {
         if (alert == "none")
         {
-            task.options = 0x00; // Warning mode 0 (no warning), No strobe
+            task.options = 0x00; // Warning mode 0 (no warning), No strobe, Low sound
             task.duration = 0;
         }
         else if (alert == "select")
         {
-            task.options = isSmokeDetector
-              ? 0x12  // Warning mode 2 (fire), Strobe
-              : 0x14; // Warning mode 1 (burglar), Strobe
+            task.options = 0x17; // Warning mode 1 (burglar), Strobe, Very high sound
             task.duration = 1;
         }
         else if (alert == "lselect")
         {
-            task.options = isSmokeDetector
-              ? 0x12  // Warning mode 2 (fire), Strobe
-              : 0x14; // Warning mode 1 (burglar), Strobe
+            task.options = 0x17; // Warning mode 1 (burglar), Strobe, Very high sound
             task.duration = onTime > 0 ? onTime : 300;
         }
         else if (alert == "blink")
         {
-            task.options = 0x04; // Warning mode 0 (no warning), Strobe
+            task.options = 0x04; // Warning mode 0 (no warning), Strobe, Low sound
             task.duration = onTime > 0 ? onTime : 300;
+        }
+        else if (alert == "all")
+        {
+            // FXIME: Dirty hack to send a network-wide broadcast to activate all sirens.
+            task.req.dstAddress().setNwk(deCONZ::BroadcastAll);
+            task.req.setDstAddressMode(deCONZ::ApsNwkAddress);
+            task.req.setTxOptions(0);
+            task.req.setDstEndpoint(0xFF);
+            task.options = 0x17; // Warning mode 1 (burglar), Strobe, Very high sound
+            task.duration = onTime > 0 ? onTime : 1;
         }
 
         if (addTaskWarning(task, task.options, task.duration))
