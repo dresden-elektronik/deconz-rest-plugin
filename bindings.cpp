@@ -1906,6 +1906,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("S2")) ||
         // IKEA
         sensor->modelId().startsWith(QLatin1String("TRADFRI")) ||
+        sensor->modelId().startsWith(QLatin1String("FYRTUR")) ||
+        sensor->modelId().startsWith(QLatin1String("KADRILJ")) ||
         sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
         // Keen Home
         sensor->modelId().startsWith(QLatin1String("SV01-")) ||
