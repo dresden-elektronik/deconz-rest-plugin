@@ -3038,7 +3038,7 @@ Fil pilote > Off=0001 - On=0002</description>
 				<attribute id="0x0204" name="Unknown" type="float" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0205" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0206" name="Unknown" type="float" mfcode="0x115f" access="rw" required="m"> </attribute>
-				<attribute id="0x0207" name="Unknown" type="bool" mfcode="0x115f" access="r" required="m"> </attribute>
+				<attribute id="0x0207" name="Consumer connected" type="bool" mfcode="0x115f" access="r" required="m"> </attribute>
 				<attribute id="0x020b" name="Max. Load exceeded at (in W)???" type="float" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0xf000" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0xfffd" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
