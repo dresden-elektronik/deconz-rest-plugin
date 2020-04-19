@@ -285,6 +285,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_HANGZHOU_IMAGIC, "1117-S", energyMiMacPrefix }, // iris motion sensor v3
     { VENDOR_JENNIC, "113D", jennicMacPrefix }, // iHorn (Huawei) temperature and humidity sensor
     { VENDOR_SERCOMM, "SZ-ESW01", emberMacPrefix }, // Sercomm / Telstra smart plug
+    { VENDOR_SERCOMM, "SZ-SRN12N", emberMacPrefix }, // Sercomm siren
     { VENDOR_ALERTME, "MOT003", tiMacPrefix }, // Hive Motion Sensor
     { VENDOR_SUNRICHER, "4512703", silabs2MacPrefix }, // Namron 4-ch remote controller
     { VENDOR_SENGLED_OPTOELEC, "E13-", zhejiangMacPrefix }, // Sengled PAR38 Bulbs
@@ -4028,7 +4029,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpWaterSensor.inClusters.push_back(ci->id());
                     }
-                    else if (modelId == QLatin1String("WarningDevice"))               // Heiman siren
+                    else if (modelId == QLatin1String("WarningDevice") ||               // Heiman siren
+                             modelId == QLatin1String("SZ-SRN12N"))                     // Sercomm siren
                     {
                         fpAlarmSensor.inClusters.push_back(ci->id());
                     }
