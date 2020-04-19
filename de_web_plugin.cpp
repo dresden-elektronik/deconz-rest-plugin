@@ -14053,7 +14053,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 }
             }
 
-            if (sd.deviceId() == DEV_ID_IAS_ZONE && iasZoneType == 0)
+            if ((sd.deviceId() == DEV_ID_IAS_ZONE || sd.deviceId() == DEV_ID_IAS_WARNING_DEVICE) && iasZoneType == 0)
             {
                 deCONZ::ApsDataRequest apsReq;
 
