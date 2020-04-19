@@ -526,9 +526,10 @@ int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
 
     for (; pi != pend; ++pi)
     {
-        if(!((pi.key() == "name") || (pi.key() == "modelid") || (pi.key() == "swversion")
+        if (!((pi.key() == "name") || (pi.key() == "modelid") || (pi.key() == "swversion")
              || (pi.key() == "type")  || (pi.key() == "uniqueid")  || (pi.key() == "manufacturername")
-             || (pi.key() == "state")  || (pi.key() == "config") || (pi.key() == "mode" && sensor->modelId() == "Lighting Switch")))
+             || (pi.key() == "state")  || (pi.key() == "config")
+             || (pi.key() == "mode" && (sensor->modelId() == "Lighting Switch" || sensor->modelId().startsWith(QLatin1String("SYMFONISK"))))))
         {
             rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%2").arg(pi.key()), QString("parameter, %1, not available").arg(pi.key())));
             rsp.httpStatus = HttpStatusBadRequest;
@@ -608,7 +609,9 @@ int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
     {
         Sensor::SensorMode mode = (Sensor::SensorMode)map["mode"].toUInt(&ok);
 
-        if (ok && (map["mode"].type() == QVariant::Double) && (mode == Sensor::ModeScenes || mode == Sensor::ModeTwoGroups || mode == Sensor::ModeColorTemperature))
+        if (ok && (map["mode"].type() == QVariant::Double)
+            && ((sensor->modelId() == "Lighting Switch" && (mode == Sensor::ModeScenes || mode == Sensor::ModeTwoGroups || mode == Sensor::ModeColorTemperature))
+                || (sensor->modelId().startsWith(QLatin1String("SYMFONISK")) && (mode == Sensor::ModeScenes || mode == Sensor::ModeDimmer))))
         {
             if (sensor->mode() != mode)
             {
