@@ -535,10 +535,6 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     {
         return setWarningDeviceState(req, rsp, taskRef, map);
     }
-    else if (taskRef.lightNode->modelId() == QLatin1String("TI0001"))
-    {
-        return setLivoloDeviceState(req, rsp, taskRef, map);
-    }
 
     // TODO: check for valid attributes in body
     bool isOn = false;
@@ -1559,77 +1555,6 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
         }
     }
-
-    processTasks();
-
-    return REQ_READY_SEND;
-}
-// Livolo use MoveToLevel command for on / off with as level
-// Transition time = button > 0001 and 0002
-// Level: 108, Transition Time: 0.1 sec - to on
-// Level: 1, Transition Time: 0.1 sec - to off
-int DeRestPluginPrivate::setLivoloDeviceState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map)
-{
-    QString id = req.path[3];
-    bool isOn = false;
-    bool hasOn = map.contains("on");
-
-    if (hasOn)
-    {
-        if (map["on"].type() == QVariant::Bool)
-        {
-            bool ok = false;
-            isOn = map["on"].toBool();
-
-            TaskItem task;
-            copyTaskReq(taskRef, task);
-            
-            //Only button 1
-            task.transitionTime = 0x0001;
-            
-            if (isOn)
-            {
-                ok = addTaskSetBrightness(task, 0x6c, false);
-            }
-            else
-            {
-                ok = addTaskSetBrightness(task, 0x01, false);
-                //ok = addTaskSetOnOff(task,ONOFF_COMMAND_OFF,0)
-                //ok = addTaskSetOnOff(task,ONOFF_COMMAND_TOGGLE,0)
-            }
-            if (ok)
-            {
-                QVariantMap rspItem;
-                QVariantMap rspItemState;
-                rspItemState[QString("/lights/%1/state/on").arg(id)] = isOn;
-                rspItem["success"] = rspItemState;
-                rsp.list.append(rspItem);
-                taskToLocalData(task);
-            }
-            else
-            {
-                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
-            }
-        }
-        else
-        {
-            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state/on").arg(id), QString("parameter, not available")));
-            rsp.httpStatus = HttpStatusBadRequest;
-            return REQ_READY_SEND;
-        }
-    }
-    else
-    {
-        rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state/on").arg(id), QString("parameter not available")));
-        rsp.httpStatus = HttpStatusBadRequest;
-        return REQ_READY_SEND;
-    }
-
-    //if (taskRef.lightNode)
-    //{
-    //    updateLightEtag(taskRef.lightNode);
-    //    rsp.etag = taskRef.lightNode->etag;
-    //}
 
     processTasks();
 

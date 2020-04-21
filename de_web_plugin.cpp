@@ -127,7 +127,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "PSMD_", tiMacPrefix }, // Climax smart plug
     { VENDOR_NONE, "PSMP5_", tiMacPrefix }, // Climax smart plug
     { VENDOR_NONE, "OJB-IR715-Z", tiMacPrefix },
-    { VENDOR_NONE, "TI0001", tiMacPrefix },    //Livolo switch
     { VENDOR_NONE, "902010/21", tiMacPrefix }, // Bitron: door/window sensor
     { VENDOR_NONE, "902010/22", tiMacPrefix }, // Bitron: motion sensor
     { VENDOR_NONE, "902010/23", tiMacPrefix }, // Bitron: remote control
@@ -1651,13 +1650,6 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         lightNode.setNode(const_cast<deCONZ::Node*>(node));
         lightNode.address() = node->address();
         lightNode.setManufacturerCode(node->nodeDescriptor().manufacturerCode());
-        
-        //Livolo haven't Cluster 0006, so need to force on/off light
-        if ((node->nodeDescriptor().manufacturerCode() == VENDOR_NONE) && (false) )
-        //if ((node->nodeDescriptor().manufacturerCode() == VENDOR_NONE) && (node->nodeDescriptor().manufacturer() == QLatin1String("LIVOLO")) )
-        {
-            lightNode.setHaEndpoint(*i);
-        }   
 
         if (!i->inClusters().isEmpty())
         {
