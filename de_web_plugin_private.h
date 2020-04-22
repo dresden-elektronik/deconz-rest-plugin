@@ -293,6 +293,7 @@
 #define VENDOR_SERCOMM      0x1131
 #define VENDOR_BOSCH        0x1133
 #define VENDOR_DDEL         0x1135
+#define VENDOR_WAXMAN       0x113B
 #define VENDOR_LUTRON       0x1144
 #define VENDOR_ZEN          0x1158
 #define VENDOR_KEEN_HOME    0x115B

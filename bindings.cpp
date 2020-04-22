@@ -2022,7 +2022,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Immax
         sensor->modelId() == QLatin1String("Plug-230V-ZB3.0") ||
         // Sercomm
-        sensor->modelId().startsWith(QLatin1String("SZ-")))
+        sensor->modelId().startsWith(QLatin1String("SZ-")) ||
+        // WAXMAN
+        sensor->modelId() == QLatin1String("leakSMART Water Sensor V2"))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||
