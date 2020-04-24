@@ -508,6 +508,9 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == stMacPrefix;
         case VENDOR_SENGLED_OPTOELEC:
             return prefix == zhejiangMacPrefix;
+        case VENDOR_SERCOMM:
+            return prefix == emberMacPrefix ||
+                   prefix == energyMiMacPrefix;
         case VENDOR_SI_LABS:
             return prefix == silabsMacPrefix ||
                    prefix == energyMiMacPrefix ||
