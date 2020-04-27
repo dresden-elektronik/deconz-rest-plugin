@@ -686,6 +686,14 @@ static const Sensor::ButtonMap legrandShutterSwitchRemote[] = {
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
+static const Sensor::ButtonMap legrandToggleRemoteSwitch[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x01, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x00, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
+};
+
 static const Sensor::ButtonMap bitronRemoteMap[] = {
 //    mode                          ep    cluster cmd   param button                                       name
     { Sensor::ModeScenes,           0x01, 0x0008, 0x06, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Step up (with on/off)" },
@@ -695,7 +703,6 @@ static const Sensor::ButtonMap bitronRemoteMap[] = {
     // end
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
-
 
 /*! Returns a fingerprint as JSON string. */
 QString SensorFingerprint::toString() const
@@ -1256,6 +1263,7 @@ const Sensor::ButtonMap *Sensor::buttonMap()
             if      (modelid == QLatin1String("Remote switch")) { m_buttonMap = legrandSwitchRemote; }
             else if (modelid == QLatin1String("Double gangs remote switch")) { m_buttonMap = legrandDoubleSwitchRemote; }
             else if (modelid == QLatin1String("Shutters central remote switch")) { m_buttonMap = legrandShutterSwitchRemote; }
+            else if (modelid == QLatin1String("Remote toggle switch")) { m_buttonMap = legrandToggleRemoteSwitch; }
         }
         else if (manufacturer == QLatin1String("Sunricher"))
         {

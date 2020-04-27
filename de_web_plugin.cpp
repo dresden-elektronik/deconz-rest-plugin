@@ -258,6 +258,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_LEGRAND, "Dimmer switch w/o neutral", legrandMacPrefix }, // Legrand Dimmer switch wired
     { VENDOR_LEGRAND, "Connected outlet", legrandMacPrefix }, // Legrand Plug
     { VENDOR_LEGRAND, "Shutter switch with neutral", legrandMacPrefix }, // Legrand Shutter switch
+    { VENDOR_LEGRAND, "Remote toggle switch", legrandMacPrefix }, // Legrand switch module
     { VENDOR_LEGRAND, "Cable outlet", legrandMacPrefix }, // Legrand Cable outlet
     { VENDOR_LEGRAND, "Remote switch", legrandMacPrefix }, // Legrand wireless switch
     { VENDOR_LEGRAND, "Double gangs remote switch", legrandMacPrefix }, // Legrand wireless double switch
@@ -3271,12 +3272,11 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             }
         }
     }
-    else if (sensor->modelId() == QLatin1String("Remote switch") || sensor->modelId() == QLatin1String("Double gangs remote switch") ) // legrand switch, simple and double
-    {
-        checkReporting = true;
-        checkClientCluster = true;
-    }
-    else if (sensor->modelId() == QLatin1String("Shutters central remote switch")) // legrand shutter switch
+    else if (sensor->modelId() == QLatin1String("Remote switch") || //legrand switch
+             sensor->modelId() == QLatin1String("Double gangs remote switch") || //Legrand micro module
+             sensor->modelId() == QLatin1String("Shutters central remote switch") || // legrand shutter switch
+             sensor->modelId() == QLatin1String("Remote motion sensor") || // legrand motion sensor
+             sensor->modelId() == QLatin1String("Remote toggle switch")) // legrand switch simple and double
     {
         checkReporting = true;
         checkClientCluster = true;
@@ -4180,6 +4180,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 case BINARY_INPUT_CLUSTER_ID:
                 {
                     if (modelId.startsWith(QLatin1String("tagv4"))) // SmartThings Arrival sensor
+                    {
+                        fpPresenceSensor.inClusters.push_back(ci->id());
+                    }
+                    if (modelId == QLatin1String("Remote motion sensor")) // Legrand motion detector
                     {
                         fpPresenceSensor.inClusters.push_back(ci->id());
                     }
@@ -5978,7 +5982,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId().startsWith(QLatin1String("3305-S")) ||  // SmartThings 2014 motion sensor
                                     i->modelId() == QLatin1String("Remote switch") ||    // Legrand switch
                                     i->modelId() == QLatin1String("Double gangs remote switch") ||    // Legrand switch double
-                                    i->modelId() == QLatin1String("Shutters central remote switch") || //Legrand shutter switch
+                                    i->modelId() == QLatin1String("Shutters central remote switch") || // Legrand switch module
+                                    i->modelId() == QLatin1String("Remote toggle switch") || //Legrand shutter switch
+                                    i->modelId() == QLatin1String("Remote motion sensor") || //Legrand motion sensor
                                     i->modelId() == QLatin1String("Zen-01") ||           // Zen thermostat
                                     i->modelId() == QLatin1String("Thermostat") ||       // eCozy thermostat
                                     i->modelId() == QLatin1String("Motion Sensor-A") ||  // Osram motion sensor
@@ -14288,7 +14294,9 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         }
         else if (sensor->modelId() == QLatin1String("Remote switch") || // Legrand switch
                  sensor->modelId() == QLatin1String("Double gangs remote switch") || // Legrand switch double
-                 sensor->modelId() == QLatin1String("Shutters central remote switch")) // Legrand switch
+                 sensor->modelId() == QLatin1String("Remote toggle switch") || // Legrand switch module
+                 sensor->modelId() == QLatin1String("Remote motion sensor") || // Legrand motion sensor
+                 sensor->modelId() == QLatin1String("Shutters central remote switch")) // Legrand shutter switch
         {
             checkSensorGroup(sensor);
             checkSensorBindingsForClientClusters(sensor);
