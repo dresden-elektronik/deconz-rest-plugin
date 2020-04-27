@@ -2439,7 +2439,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
     // LEGRAND Remote switch, simple and double
-    else if (sensor->modelId() == QLatin1String("Remote switch") || sensor->modelId() == QLatin1String("Double gangs remote switch"))
+    else if (sensor->modelId() == QLatin1String("Remote switch") ||
+             sensor->modelId() == QLatin1String("Double gangs remote switch"))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);
@@ -2449,6 +2450,12 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     else if (sensor->modelId() == QLatin1String("Shutters central remote switch"))
     {
         clusters.push_back(WINDOW_COVERING_CLUSTER_ID);
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+    }
+    // LEGRAND switch micro module
+    else if (sensor->modelId() == QLatin1String("Remote toggle switch"))
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
     else if (sensor->modelId().startsWith(QLatin1String("RC 110")))
