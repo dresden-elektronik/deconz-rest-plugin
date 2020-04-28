@@ -4183,10 +4183,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpPresenceSensor.inClusters.push_back(ci->id());
                     }
-                    if (modelId == QLatin1String("Remote motion sensor")) // Legrand motion detector
-                    {
-                        fpPresenceSensor.inClusters.push_back(ci->id());
-                    }
                 }
                     break;
 

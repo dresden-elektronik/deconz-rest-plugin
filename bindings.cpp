@@ -2452,8 +2452,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         clusters.push_back(WINDOW_COVERING_CLUSTER_ID);
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
-    // LEGRAND switch micro module
-    else if (sensor->modelId() == QLatin1String("Remote toggle switch"))
+    else if (sensor->modelId() == QLatin1String("Remote toggle switch") || // LEGRAND switch micro module
+             sensor->modelId() == QLatin1String("Remote motion sensor"))  //Legrand motion sensor
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
@@ -2660,7 +2660,9 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
     }
     else if (sensor->modelId() == QLatin1String("Remote switch") ||
          sensor->modelId() == QLatin1String("Double gangs remote switch") ||
-	     sensor->modelId() == QLatin1String("Shutters central remote switch"))
+	     sensor->modelId() == QLatin1String("Shutters central remote switch") ||
+         sensor->modelId() == QLatin1String("Remote toggle switch") ||
+         sensor->modelId() == QLatin1String("Remote motion sensor"))
     {
         //Make group but without uniqueid
     }
