@@ -84,6 +84,7 @@ const quint64 heimanMacPrefix     = 0x0050430000000000ULL;
 const quint64 xiaomiMacPrefix     = 0x04cf8c0000000000ULL;
 const quint64 konkeMacPrefix      = 0x086bd70000000000ULL;
 const quint64 ikea2MacPrefix      = 0x14b4570000000000ULL;
+const quint64 profaluxMacPrefix   = 0x20918a0000000000ULL;
 const quint64 stMacPrefix         = 0x24fd5b0000000000ULL;
 const quint64 samjinMacPrefix     = 0x286d970000000000ULL;
 const quint64 sinopeMacPrefix     = 0x500b910000000000ULL;
@@ -1938,6 +1939,18 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
             if (!lightNode.modelId().isEmpty())
             { q->nodeUpdated(lightNode.address().ext(), QLatin1String("modelid"), lightNode.modelId()); }
+        }
+
+        //Add missing values for Profalux device
+        if (checkMacVendor(node->address(), VENDOR_PROFALUX))
+        {
+            //Shutter ?
+            if (i->deviceId() == DEV_ID_ZLL_COLOR_LIGHT)
+            {
+                lightNode.setManufacturerName(QLatin1String("Profalux"));
+                lightNode.setModelId(QLatin1String("Shutter"));
+                lightNode.setNeedSaveDatabase(true);
+            }
         }
 
         // "translate" ORVIBO vendor name

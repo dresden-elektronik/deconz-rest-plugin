@@ -670,7 +670,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             }
         }
 
-        if (!isOn && !hasOn)
+        //Profalux shutter use Stop command but the device can be on (opening) or off (closing) So using this hack
+        if ((!isOn && !hasOn) && (taskRef.lightNode->modelId() != QLatin1String("Shutter")))
         {
             rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1").arg(id), QString("parameter, /lights/%1/bri, is not modifiable. Device is set to off.").arg(id)));
         }
