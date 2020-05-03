@@ -16,7 +16,7 @@ except ImportError:
 f = urlopen("http://fw.ota.homesmart.ikea.net/feed/version_info.json")
 data = f.read()
 
-arr = json.loads(data)
+arr = json.loads(data.decode('utf-8'))
 
 otapath = '%s/otau' % os.path.expanduser('~')
 
