@@ -475,6 +475,7 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == ikeaMacPrefix ||
                    prefix == silabsMacPrefix ||
                    prefix == silabs2MacPrefix ||
+                   prefix == silabs4MacPrefix ||
                    prefix == energyMiMacPrefix ||
                    prefix == emberMacPrefix;
         case VENDOR_JASCO:
