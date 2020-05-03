@@ -1948,7 +1948,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             if (i->deviceId() == DEV_ID_ZLL_COLOR_LIGHT)
             {
                 lightNode.setManufacturerName(QLatin1String("Profalux"));
-                lightNode.setModelId(QLatin1String("Shutter"));
+                lightNode.setModelId(QLatin1String("PFLX Shutter"));
                 lightNode.setNeedSaveDatabase(true);
             }
         }
