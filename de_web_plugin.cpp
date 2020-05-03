@@ -4192,10 +4192,12 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case BINARY_INPUT_CLUSTER_ID:
                 {
-                    if (modelId.startsWith(QLatin1String("tagv4"))) // SmartThings Arrival sensor
+                    if ( (modelId.startsWith(QLatin1String("tagv4"))) || // SmartThings Arrival sensor
+                        ( modelId == QLatin1String("Remote motion sensor") )) // Legrand motion sensor
                     {
                         fpPresenceSensor.inClusters.push_back(ci->id());
                     }
+                    
                 }
                     break;
 
