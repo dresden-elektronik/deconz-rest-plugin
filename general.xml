@@ -193,6 +193,14 @@
 			<attribute id="0x0032" name="Usertest" type="bool" default="0" access="rw" required="o" mfcode="0x100b"></attribute>
 			<attribute id="0x0033" name="LED Indication" type="bool" default="0" access="rw" required="o" mfcode="0x100b"></attribute>
 		</attribute-set>
+		<attribute-set id="0x4000" description="Manufacturer specific" mfcode="0x1037">
+			<attribute id="0x4001" name="128-Bit security key" type="seckey" access="r" required="m" mfcode="0x1037"></attribute>
+			<attribute id="0x4002" name="IEEE address" type="uid" access="rw" required="m" mfcode="0x1037"></attribute>
+		</attribute-set>
+		<attribute-set id="0x4000" description="Manufacturer specific" mfcode="0x1166">
+			<attribute id="0x4001" name="128-Bit security key" type="seckey" access="r" required="m" mfcode="0x1166"></attribute>
+			<attribute id="0x4002" name="IEEE address" type="uid" access="rw" required="m" mfcode="0x1166"></attribute>
+		</attribute-set>
 		<attribute-set id="0x8000" description="Develco Specific" mfcode="0x1015">
 			<attribute id="0x8000" name="Primary SW Version" type="ostring" access="r" required="m" mfcode="0x1015"></attribute>
 			<attribute id="0x8010" name="Primary Bootloader SW Version" type="ostring" access="r" required="m" mfcode="0x1015"></attribute>
@@ -2263,6 +2271,228 @@ controller device, that supports a keypad and LCD screen.</description>
 			<client>
 			</client>
 		</cluster>
+		
+		<cluster id="0x0501" name="IAS ACE">
+			<description>The IAS ACE cluster defines an interface to the functionality of any Ancillary Control Equipment of the IAS system. Using this cluster, a ZigBee enabled ACE device can access a IAS CIE device and manipulate the IAS system, on behalf of a level-2 user.</description>
+			<server>
+				<attribute></attribute>
+				<command id="0x00" dir="recv" name="Arm" required="m">
+					<payload>
+						<attribute id="0x00" type="enum8" name="Arm Mode" required="m">
+							<value name="Disarm" value="0x00"></value>
+							<value name="Arm Day/Home Zones Only" value="0x01"></value>
+							<value name="Arm Night/Sleep Zones Only" value="0x02"></value>
+							<value name="Arm All Zones" value="0x03"></value>
+						</attribute>
+						<attribute id="0x01" type="cstring" name="Arm/Disarm Code" required="m"></attribute>
+						<attribute id="0x02" type="u8" name="Zone ID" required="m"></attribute>
+					</payload>
+				</command>
+				<command id="0x01" dir="recv" name="Bypass" required="m">
+					<payload>
+						<attribute id="0x00" type="u8" name="Number of Zones" required="m"></attribute>
+						<attribute id="0x01" type="u8" name="Zone ID" required="m"></attribute>
+						<attribute id="0x02" type="cstring" name="Arm/Disarm Code" required="m"></attribute>
+					</payload>
+				</command>
+				<command id="0x02" dir="recv" name="Emergency" required="m">
+				</command>
+				<command id="0x03" dir="recv" name="Fire" required="m">
+				</command>
+				<command id="0x04" dir="recv" name="Panic" required="m">
+				</command>
+				<command id="0x05" dir="recv" name="Get Zone ID Map" required="m">
+				</command>
+				<command id="0x06" dir="recv" name="Get Zone Information" required="m">
+					<payload>
+						<attribute id="0x00" type="u8" name="Zone ID" required="m"></attribute>
+					</payload>
+				</command>
+				<command id="0x07" dir="recv" name="Get Panel Status" required="m">
+				</command>
+				<command id="0x08" dir="recv" name="Get Bypassed Zone List" required="m">
+				</command>
+				<command id="0x09" dir="recv" name="Get Zone Status" required="m">
+					<payload>
+						<attribute id="0x00" type="u8" name="Starting Zone ID" required="m"></attribute>
+						<attribute id="0x01" type="u8" name="Max Number of Zone IDs" required="m"></attribute>
+						<attribute id="0x02" type="bool" name="Zone Status Mask Flag" required="m"></attribute>
+						<attribute id="0x03" type="bmp16" name="Zone Status Mask" required="m"></attribute>
+						<!--More to do here!!!-->
+					</payload>
+				</command>
+			</server>
+			<client>
+				<command id="0x00" dir="recv" name="Arm Response" required="m">
+					<payload>
+						<attribute id="0x00" type="enum8" name="Arm Notification" required="m">
+							<value name="All Zones Disarmed" value="0x00"></value>
+							<value name="Only Day/Home Zones Armed" value="0x01"></value>
+							<value name="Only Night/Sleep Zones Armed" value="0x02"></value>
+							<value name="All Zones Armed" value="0x03"></value>
+							<value name="Invalid Arm/Disarm Code" value="0x04"></value>
+							<value name="Not ready to arm" value="0x05"></value>
+							<value name="Already disarmed" value="0x06"></value>
+						</attribute>
+						<attribute id="0x01" type="cstring" name="Arm/Disarm Code" required="m"></attribute>
+						<attribute id="0x02" type="u8" name="Zone ID" required="m"></attribute>
+					</payload>
+				</command>
+				<command id="0x01" dir="recv" name="Get Zone ID Map Response" required="m">
+					<payload>
+						<attribute id="0x00" type="bmp16" name="Zone ID Map section 0" required="m"></attribute>
+						<!--More to do here!!!-->
+					</payload>
+				</command>
+				<command id="0x02" dir="recv" name="Get Zone Information Response" required="m">
+					<payload>
+						<attribute id="0x00" type="u8" name="Zone ID" required="m"></attribute>
+						<attribute id="0x01" type="enum16" name="Zone Type" required="m">
+							<value name="All Zones Disarmed" value="0x00"></value>
+							<value name="Only Day/Home Zones Armed" value="0x01"></value>
+							<value name="Only Night/Sleep Zones Armed" value="0x02"></value>
+							<value name="All Zones Armed" value="0x03"></value>
+							<value name="Invalid Arm/Disarm Code" value="0x04"></value>
+							<value name="Not ready to arm" value="0x05"></value>
+							<value name="Already disarmed" value="0x06"></value>
+						</attribute>
+						<attribute id="0x02" type="uid" name="IEEE address" required="m"></attribute>
+						<attribute id="0x03" type="cstring" name="Zone Label" required="m"></attribute>
+					</payload>
+				</command>
+				<command id="0x03" dir="recv" name="Zone Status Changed" required="m">
+					<payload>
+						<attribute id="0x00" type="u8" name="Zone ID" required="m"></attribute>
+						<attribute id="0x01" type="enum16" name="Zone Status" required="m">
+							<!--More to do here!!!-->
+							<value name="All Zones Disarmed" value="0x00"></value>
+							<value name="Only Day/Home Zones Armed" value="0x01"></value>
+							<value name="Only Night/Sleep Zones Armed" value="0x02"></value>
+							<value name="All Zones Armed" value="0x03"></value>
+							<value name="Invalid Arm/Disarm Code" value="0x04"></value>
+							<value name="Not ready to arm" value="0x05"></value>
+							<value name="Already disarmed" value="0x06"></value>
+						</attribute>
+						<attribute id="0x02" type="enum8" name="Audible Notification" default="0x01" required="m">
+							<value name="Mute" value="0x00"></value>
+							<value name="Default sound" value="0x01"></value>
+						</attribute>
+						<attribute id="0x03" type="cstring" name="Zone Label" required="m"></attribute>
+					</payload>
+				</command>
+				<command id="0x04" dir="recv" name="Panel Status Changed" required="m">
+					<payload>
+						<attribute id="0x00" type="enum8" name="Panel Status" required="m">
+							<value name="Panel disarmed (all zones disarmed) and ready to arm" value="0x00"></value>
+							<value name="Armed stay" value="0x01"></value>
+							<value name="Armed night" value="0x02"></value>
+							<value name="Armed away" value="0x03"></value>
+							<value name="Exit delay" value="0x04"></value>
+							<value name="Entry delay" value="0x05"></value>
+							<value name="Not ready to arm" value="0x06"></value>
+							<value name="In alarm" value="0x07"></value>
+							<value name="Arming stay" value="0x08"></value>
+							<value name="Arming night" value="0x09"></value>
+							<value name="Arming away" value="0x0a"></value>
+						</attribute>
+						<attribute id="0x01" type="u8" name="Seconds Remaining" default="0x00" required="m"></attribute>
+						<attribute id="0x02" type="enum8" name="Audible Notification" default="0x01" required="m">
+							<value name="Mute" value="0x00"></value>
+							<value name="Default sound" value="0x01"></value>
+						</attribute>
+						<attribute id="0x03" type="enum8" name="Alarm Status" default="0x00" required="m">
+							<value name="No alarm" value="0x00"></value>
+							<value name="Burglar" value="0x01"></value>
+							<value name="Fire" value="0x02"></value>
+							<value name="Emergency" value="0x03"></value>
+							<value name="Police Panic" value="0x04"></value>
+							<value name="Fire Panic" value="0x05"></value>
+							<value name="Emergency Panic (i.e., medical issue)" value="0x06"></value>
+						</attribute>
+						<attribute id="0x04" type="cstring" name="Zone Label" required="m"></attribute>
+					</payload>
+				</command>
+				<command id="0x05" dir="recv" name="Get Panel Status Response" required="m">
+					<payload>
+						<attribute id="0x00" type="enum8" name="Panel Status" required="m">
+							<value name="Panel disarmed (all zones disarmed) and ready to arm" value="0x00"></value>
+							<value name="Armed stay" value="0x01"></value>
+							<value name="Armed night" value="0x02"></value>
+							<value name="Armed away" value="0x03"></value>
+							<value name="Exit delay" value="0x04"></value>
+							<value name="Entry delay" value="0x05"></value>
+							<value name="Not ready to arm" value="0x06"></value>
+							<value name="In alarm" value="0x07"></value>
+							<value name="Arming stay" value="0x08"></value>
+							<value name="Arming night" value="0x09"></value>
+							<value name="Arming away" value="0x0a"></value>
+						</attribute>
+						<attribute id="0x01" type="u8" name="Seconds Remaining" default="0x00" required="m"></attribute>
+						<attribute id="0x02" type="enum8" name="Audible Notification" default="0x01" required="m">
+							<value name="Mute" value="0x00"></value>
+							<value name="Default sound" value="0x01"></value>
+						</attribute>
+						<attribute id="0x03" type="enum8" name="Alarm Status" default="0x00" required="m">
+							<value name="No alarm" value="0x00"></value>
+							<value name="Burglar" value="0x01"></value>
+							<value name="Fire" value="0x02"></value>
+							<value name="Emergency" value="0x03"></value>
+							<value name="Police Panic" value="0x04"></value>
+							<value name="Fire Panic" value="0x05"></value>
+							<value name="Emergency Panic (i.e., medical issue)" value="0x06"></value>
+						</attribute>
+						<attribute id="0x04" type="cstring" name="Zone Label" required="m"></attribute>
+					</payload>
+				</command>
+				<command id="0x06" dir="recv" name="Set Bypassed Zone List" required="m">
+					<payload>
+						<attribute id="0x00" type="u8" name="Number of Zones" required="m"></attribute>
+						<attribute id="0x01" type="u8" name="Zone ID 1" required="m"></attribute>
+						<attribute id="0x02" type="u8" name="Zone ID 2" required="m"></attribute>
+						<attribute id="0x03" type="u8" name="Zone ID 3" required="m"></attribute>
+						<attribute id="0x04" type="u8" name="Zone ID 4" required="m"></attribute>
+						<attribute id="0x05" type="u8" name="Zone ID 5" required="m"></attribute>
+						<attribute id="0x06" type="u8" name="Zone ID 6" required="m"></attribute>
+						<attribute id="0x07" type="u8" name="Zone ID 7" required="m"></attribute>
+						<attribute id="0x08" type="u8" name="Zone ID 8" required="m"></attribute>
+					</payload>
+				</command>
+				<command id="0x07" dir="recv" name="Bypass Response" required="m">
+					<payload>
+						<attribute id="0x00" type="u8" name="Number of Zones" required="m"></attribute>
+						<attribute id="0x01" type="u8" name="Bypass Result for Zone ID 1" required="m"></attribute>
+						<attribute id="0x02" type="u8" name="Bypass Result for Zone ID 2" required="m"></attribute>
+						<attribute id="0x03" type="u8" name="Bypass Result for Zone ID 3" required="m"></attribute>
+						<attribute id="0x04" type="u8" name="Bypass Result for Zone ID 4" required="m"></attribute>
+						<attribute id="0x05" type="u8" name="Bypass Result for Zone ID 5" required="m"></attribute>
+						<attribute id="0x06" type="u8" name="Bypass Result for Zone ID 6" required="m"></attribute>
+						<attribute id="0x07" type="u8" name="Bypass Result for Zone ID 7" required="m"></attribute>
+						<attribute id="0x08" type="u8" name="Bypass Result for Zone ID 8" required="m"></attribute>
+							<!--<value name="Zone bypassed" value="0x00"></value>
+							<value name="Zone not bypassed" value="0x01"></value>
+							<value name="Not allowed" value="0x02"></value>
+							<value name="Invalid Zone ID" value="0x03"></value>
+							<value name="Unknown Zone ID" value="0x04"></value>
+							<value name="Invalid Arm/Disarm Code" value="0x05"></value>-->
+					</payload>
+				</command>
+				<command id="0x08" dir="recv" name="Get Zone Status Response" required="m">
+					<payload>
+						<attribute id="0x00" type="bool" name="Zone Status Complete" required="m"></attribute>
+						<attribute id="0x01" type="u8" name="Number of Zones" required="m"></attribute>
+						<attribute id="0x02" type="u8" name="Zone ID 1" required="m"></attribute>
+						<attribute id="0x03" type="bmp16" name="Zone ID 1 Zone Status" required="m"></attribute>
+						<attribute id="0x04" type="u8" name="Zone ID 2" required="m"></attribute>
+						<attribute id="0x05" type="bmp16" name="Zone ID 2 Zone Status" required="m"></attribute>
+						<attribute id="0x06" type="u8" name="Zone ID 3" required="m"></attribute>
+						<attribute id="0x07" type="bmp16" name="Zone ID 3 Zone Status" required="m"></attribute>
+						<attribute id="0x08" type="u8" name="Zone ID 4" required="m"></attribute>
+						<attribute id="0x09" type="bmp16" name="Zone ID 4 Zone Status" required="m"></attribute>
+					</payload>
+				</command>
+			</client>
+		</cluster>
+		
 		<cluster id="0x0502" name="IAS WD">
 			<description>The IAS WD cluster provides an interface to the functionality of any Warning Device equipment of the IAS system. Using this cluster, a ZigBee enabled CIE device can access a ZigBee enabled IAS WD device and issue alarm warning indications (siren, strobe lighting, etc.) when a system alarm condition is detected.</description>
 			<server>
@@ -2354,6 +2584,7 @@ devices can operate on either battery or mains power, and can have a wide variet
 			<attribute-set id="00" description="Reading Information Set">
 				<attribute id="0000" name="Current Summation Delivered" type="u48" access="r" required="m"></attribute>
 				<attribute id="0001" name="Current Summation Received" type="u48" access="r" required="o"></attribute>
+				<attribute id="041b" name="Unknown" type="u64" access="rw" required="o" mfcode="0x1037"></attribute>
 				<!-- TODO -->
 			</attribute-set>
 			<attribute-set id="01" description="TOU Information Set">
@@ -2802,15 +3033,46 @@ Fil pilote > Off=0001 - On=0002</description>
 				<attribute id="0x0100" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0200" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0201" name="Restore Power on Outage" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
-				<attribute id="0x0202" name="Unknown" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0202" name="Auto-off after 20m below 2W" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0203" name="Device LED off" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0204" name="Unknown" type="float" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0205" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0206" name="Unknown" type="float" mfcode="0x115f" access="rw" required="m"> </attribute>
-				<attribute id="0x0207" name="Unknown" type="bool" mfcode="0x115f" access="r" required="m"> </attribute>
+				<attribute id="0x0207" name="Consumer connected" type="bool" mfcode="0x115f" access="r" required="m"> </attribute>
 				<attribute id="0x020b" name="Max. Load exceeded at (in W)???" type="float" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0xf000" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0xfffd" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
+			</server>
+			<client>
+			</client>
+		</cluster>
+		
+		<!-- INNR -->
+		<cluster id="0xfc82" name="innr" mfcode="0x1166">
+			<description>innr specific attributes.</description>
+			<server>
+				<attribute id="0x0006" name="Unknown" type="cstring" mfcode="0x1166" access="rw" required="m"> </attribute>
+				<attribute id="0x0010" name="Unknown" type="u32" mfcode="0x1166" access="r" required="m"> </attribute>
+				<attribute id="0x0011" name="Unknown" type="u32" mfcode="0x1166" access="r" required="m"> </attribute>
+				<attribute id="0x0012" name="Unknown" type="u32" mfcode="0x1166" access="r" required="m"> </attribute>
+				<attribute id="0x0013" name="Unknown" type="u32" mfcode="0x1166" access="rw" required="m"> </attribute>
+				<attribute id="0x0014" name="Unknown" type="u32" mfcode="0x1166" access="rw" required="m"> </attribute>
+				<attribute id="0x0015" name="Unknown" type="u32" mfcode="0x1166" access="rw" required="m"> </attribute>
+				<attribute id="0xfffd" name="Unknown" type="u16" mfcode="0x1166" access="r" required="m"> </attribute>
+			</server>
+			<client>
+			</client>
+		</cluster>
+
+		<!-- IMMAX -->
+		<cluster id="0xfc82" name="Immax" mfcode="0x1037">
+			<description>Immax specific attributes.</description>
+			<server>
+				<attribute id="0x0010" name="Turned on since" type="u32" mfcode="0x1037" access="r" required="m"> </attribute>
+				<attribute id="0x0011" name="Turned on (total)" type="u32" mfcode="0x1037" access="r" required="m"> </attribute>
+				<attribute id="0x0012" name="Consumption since turned on" type="u32" mfcode="0x1037" access="r" required="m"> </attribute>
+				<attribute id="0x0013" name="Unknown" type="u32" mfcode="0x1037" access="rw" required="m"> </attribute>
+				<attribute id="0xfffd" name="Unknown" type="u16" mfcode="0x1037" access="r" required="m"> </attribute>
 			</server>
 			<client>
 			</client>

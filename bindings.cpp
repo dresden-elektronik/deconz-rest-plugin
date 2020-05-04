@@ -1240,8 +1240,9 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.attributeId = 0x0000; // Curent Summation Delivered
         rq.minInterval = 1;
         rq.maxInterval = 300;
-        if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") || // Heiman
-                       sensor->modelId() == QLatin1String("SKHMP30-I1"))) // GS smart plug
+        if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") ||      // Heiman
+                       sensor->modelId() == QLatin1String("SKHMP30-I1") ||     // GS smart plug
+                       sensor->modelId().startsWith(QLatin1String("E13-"))))   // Sengled PAR38 Bulbs
         {
             rq.reportableChange48bit = 10; // 0.001 kWh (1 Wh)
         }
@@ -1667,7 +1668,7 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturerCode() == VENDOR_SINOPE)
         {
         }
-        else if (lightNode->modelId() == QLatin1String("SP 120"))
+        else if (lightNode->modelId().startsWith(QLatin1String("SP ")))
         {
         }
         else if (lightNode->manufacturer().startsWith(QLatin1String("Climax")))
@@ -1698,6 +1699,18 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         {
         }
         else if (lightNode->manufacturerCode() == VENDOR_NETVOX) // Netvox smart plug
+        {
+        }
+        else if (lightNode->manufacturer() == QLatin1String("Immax"))
+        {
+        }
+        else if (lightNode->manufacturer() == QLatin1String("sengled"))
+        {
+        }
+        else if (lightNode->manufacturer() == QLatin1String("LDS"))
+        {
+        }
+        else if (lightNode->manufacturer() == QLatin1String("Sercomm Corp."))
         {
         }
         else
@@ -1893,6 +1906,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("S2")) ||
         // IKEA
         sensor->modelId().startsWith(QLatin1String("TRADFRI")) ||
+        sensor->modelId().startsWith(QLatin1String("FYRTUR")) ||
+        sensor->modelId().startsWith(QLatin1String("KADRILJ")) ||
         sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
         // Keen Home
         sensor->modelId().startsWith(QLatin1String("SV01-")) ||
@@ -1903,7 +1918,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // iCasa
         sensor->modelId().startsWith(QLatin1String("ICZB-RM")) ||
         // innr
-        sensor->modelId() == QLatin1String("SP 120") ||
+        sensor->modelId().startsWith(QLatin1String("SP ")) ||
         sensor->modelId().startsWith(QLatin1String("RC 110")) ||
         // Eurotronic
         sensor->modelId() == QLatin1String("SPZB0001") ||
@@ -1915,6 +1930,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("PIR_")) ||
         sensor->modelId().startsWith(QLatin1String("GAS")) ||
         sensor->modelId().startsWith(QLatin1String("TH-")) ||
+        sensor->modelId().startsWith(QLatin1String("HT-")) ||
         sensor->modelId().startsWith(QLatin1String("SMOK_")) ||
         sensor->modelId().startsWith(QLatin1String("WATER_")) ||
         sensor->modelId().startsWith(QLatin1String("Smoke")) ||
@@ -1923,6 +1939,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("Door")) ||
         sensor->modelId().startsWith(QLatin1String("WarningDevice")) ||
         sensor->modelId().startsWith(QLatin1String("SKHMP30")) || // GS smart plug
+        sensor->modelId().startsWith(QLatin1String("RC_V14")) ||
         // Konke
         sensor->modelId() == QLatin1String("3AFE140103020000") ||
         sensor->modelId() == QLatin1String("3AFE130104020015") ||
@@ -1987,7 +2004,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Stelpro
         sensor->modelId().contains(QLatin1String("ST218")) ||
         // Tuya
-        sensor->modelId().contains(QLatin1String("TS0201")) ||
+        sensor->modelId().startsWith(QLatin1String("TS01")) ||
+        sensor->modelId().startsWith(QLatin1String("TS02")) ||
         // Tuyatec
         sensor->modelId().startsWith(QLatin1String("RH3040")) ||
         sensor->modelId().startsWith(QLatin1String("RH3001")) ||
@@ -1998,7 +2016,15 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("1116-S")) ||
         sensor->modelId().startsWith(QLatin1String("1117-S")) ||
         // Hive
-        sensor->modelId() == QLatin1String("MOT003"))
+        sensor->modelId() == QLatin1String("MOT003") ||
+        // Sengled
+        sensor->modelId().startsWith(QLatin1String("E13-")) ||
+        // Immax
+        sensor->modelId() == QLatin1String("Plug-230V-ZB3.0") ||
+        // Sercomm
+        sensor->modelId().startsWith(QLatin1String("SZ-")) ||
+        // WAXMAN
+        sensor->modelId() == QLatin1String("leakSMART Water Sensor V2"))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||

@@ -64,6 +64,7 @@ static uint MaxGroupTasks = 4;
 
 const quint64 macPrefixMask       = 0xffffff0000000000ULL;
 
+// New mac prefixes can be checked here: https://wintelguy.com/index.pl 
 const quint64 legrandMacPrefix    = 0x0004740000000000ULL;
 const quint64 ikeaMacPrefix       = 0x000b570000000000ULL;
 const quint64 emberMacPrefix      = 0x000d6f0000000000ULL;
@@ -87,9 +88,11 @@ const quint64 ikea2MacPrefix      = 0x14b4570000000000ULL;
 const quint64 stMacPrefix         = 0x24fd5b0000000000ULL;
 const quint64 samjinMacPrefix     = 0x286d970000000000ULL;
 const quint64 sinopeMacPrefix     = 0x500b910000000000ULL;
+const quint64 silabs4MacPrefix    = 0x680ae20000000000ULL;
 const quint64 ecozyMacPrefix      = 0x70b3d50000000000ULL;
 const quint64 osramMacPrefix      = 0x8418260000000000ULL;
 const quint64 silabsMacPrefix     = 0x90fd9f0000000000ULL;
+const quint64 zhejiangMacPrefix   = 0xb0ce180000000000ULL;
 const quint64 silabs2MacPrefix    = 0xcccccc0000000000ULL;
 const quint64 silabs3MacPrefix    = 0xec1bbd0000000000ULL;
 const quint64 energyMiMacPrefix   = 0xd0cf5e0000000000ULL;
@@ -147,6 +150,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_IKEA, "TRADFRI open/close remote", ikeaMacPrefix },
     { VENDOR_IKEA, "FYRTUR", ikeaMacPrefix }, // smart blind
     { VENDOR_IKEA, "KADRILJ", ikeaMacPrefix }, // smart blind
+    { VENDOR_IKEA, "KADRILJ", silabs4MacPrefix }, // smart blind
     { VENDOR_IKEA, "SYMFONISK", ikea2MacPrefix }, // sound controller
     { VENDOR_INSTA, "Remote", instaMacPrefix },
     { VENDOR_INSTA, "HS_4f_GJ_1", instaMacPrefix },
@@ -188,6 +192,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_XIAOMI, "lumi.remote.b486opcn01", xiaomiMacPrefix }, // Xiaomi Aqara Opple WXCJKG12LM
     { VENDOR_XIAOMI, "lumi.remote.b686opcn01", xiaomiMacPrefix }, // Xiaomi Aqara Opple WXCJKG13LM
     { VENDOR_XIAOMI, "lumi.sen_ill.mgl01", xiaomiMacPrefix }, // Xiaomi ZB3.0 light sensor
+    { VENDOR_XIAOMI, "lumi.plug", xiaomiMacPrefix }, // Xiaomi Xiaomi smart plugs (router)
     // { VENDOR_XIAOMI, "lumi.curtain", jennicMacPrefix}, // Xiaomi curtain controller (router) - exposed only as light
     { VENDOR_UBISYS, "C4", ubisysMacPrefix },
     { VENDOR_UBISYS, "D1", ubisysMacPrefix },
@@ -203,6 +208,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_OSRAM_STACK, "TH-", heimanMacPrefix }, // Heiman temperature/humidity sensor
     { VENDOR_OSRAM_STACK, "SMOK_", heimanMacPrefix }, // Heiman fire sensor - older model
     { VENDOR_OSRAM_STACK, "WATER_", heimanMacPrefix }, // Heiman water sensor
+    { VENDOR_OSRAM_STACK, "RC_V14", heimanMacPrefix }, // Heiman HS1RC-M remote control
     { VENDOR_LGE, "LG IP65 HMS", emberMacPrefix },
     { VENDOR_EMBER, "SmartPlug", emberMacPrefix }, // Heiman smart plug
     { VENDOR_HEIMAN, "SmartPlug", emberMacPrefix }, // Heiman smart plug
@@ -210,6 +216,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_HEIMAN, "Smoke", emberMacPrefix }, // Heiman fire sensor - newer model
     { VENDOR_HEIMAN, "COSensor", emberMacPrefix }, // Heiman CO sensor - newer model
     { VENDOR_HEIMAN, "TH-", emberMacPrefix }, // Heiman temperature/humidity sensor - newer model
+    { VENDOR_HEIMAN, "HT-", emberMacPrefix }, // Heiman temperature/humidity sensor - newer model
     { VENDOR_HEIMAN, "Water", emberMacPrefix }, // Heiman water sensor - newer model
     { VENDOR_HEIMAN, "Door", emberMacPrefix }, // Heiman door/window sensor - newer model
     { VENDOR_HEIMAN, "WarningDevice", emberMacPrefix }, // Heiman siren
@@ -235,7 +242,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SINOPE, "WL4200S", sinopeMacPrefix}, // Sinope water sensor
     { VENDOR_SINOPE, "TH1300ZB", sinopeMacPrefix }, // Sinope Thermostat
     { VENDOR_ZEN, "Zen-01", zenMacPrefix }, // Zen Thermostat
-    { VENDOR_C2DF, "3157100-E", emberMacPrefix }, // Centralite Thermostat
+    { VENDOR_C2DF, "3157100", emberMacPrefix }, // Centralite Thermostat
     { VENDOR_EMBER, "Super TR", emberMacPrefix }, // Elko Thermostat
     { VENDOR_ATMEL, "Thermostat", ecozyMacPrefix }, // eCozy Thermostat
     { VENDOR_STELPRO, "ST218", xalMacPrefix }, // Stelpro Thermostat
@@ -272,14 +279,20 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "RH3052", emberMacPrefix }, // Tuyatec temperature sensor
     { VENDOR_EMBER, "TS0201", silabs3MacPrefix }, // Tuya/Blitzwolf temperature and humidity sensor
     { VENDOR_NONE, "TS0204", silabs3MacPrefix }, // Tuya gas sensor
+    { VENDOR_NONE, "TS0121", silabs3MacPrefix }, // Tuya/Blitzwolf smart plug
     { VENDOR_AURORA, "DoubleSocket50AU", jennicMacPrefix }, // Aurora AOne Double Socket UK
     { VENDOR_COMPUTIME, "SP600", computimeMacPrefix }, // Salus smart plug
     { VENDOR_HANGZHOU_IMAGIC, "1116-S", energyMiMacPrefix }, // iris contact sensor v3
     { VENDOR_HANGZHOU_IMAGIC, "1117-S", energyMiMacPrefix }, // iris motion sensor v3
     { VENDOR_JENNIC, "113D", jennicMacPrefix }, // iHorn (Huawei) temperature and humidity sensor
     { VENDOR_SERCOMM, "SZ-ESW01", emberMacPrefix }, // Sercomm / Telstra smart plug
+    { VENDOR_SERCOMM, "SZ-SRN12N", emberMacPrefix }, // Sercomm siren
+    { VENDOR_SERCOMM, "SZ-SRN12N", energyMiMacPrefix }, // Sercomm siren
     { VENDOR_ALERTME, "MOT003", tiMacPrefix }, // Hive Motion Sensor
     { VENDOR_SUNRICHER, "4512703", silabs2MacPrefix }, // Namron 4-ch remote controller
+    { VENDOR_SENGLED_OPTOELEC, "E13-", zhejiangMacPrefix }, // Sengled PAR38 Bulbs
+    { VENDOR_JENNIC, "Plug-230V-ZB3.0", silabs2MacPrefix }, // Immax NEO ZB3.0 smart plug
+    { VENDOR_WAXMAN, "leakSMART Water Sensor V2", celMacPrefix }, // WAXMAN LeakSMART v2
     { 0, nullptr, 0 }
 };
 
@@ -2692,7 +2705,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
 
                     if (ia->id() == 0x0004) // Manufacturer name
                     {
-                        QString str = ia->toString();
+                        QString str = ia->toString().trimmed();
                         if (!str.isEmpty() && str != lightNode->manufacturer())
                         {
                             if (str == QString("欧瑞博"))
@@ -4065,7 +4078,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpWaterSensor.inClusters.push_back(ci->id());
                     }
-                    else if (modelId == QLatin1String("WarningDevice"))               // Heiman siren
+                    else if (modelId == QLatin1String("WarningDevice") ||               // Heiman siren
+                             modelId == QLatin1String("SZ-SRN12N"))                     // Sercomm siren
                     {
                         fpAlarmSensor.inClusters.push_back(ci->id());
                     }
@@ -5040,7 +5054,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = METERING_CLUSTER_ID;
             item = sensorNode.addItem(DataTypeUInt64, RStateConsumption);
-            if ((modelId != QLatin1String("SP 120")) && (modelId != QLatin1String("ZB-ONOFFPlug-D0005")))
+            if ((modelId != QLatin1String("SP 120")) &&
+                (modelId != QLatin1String("ZB-ONOFFPlug-D0005")) &&
+                (modelId != QLatin1String("TS0121")) &&
+                (modelId != QLatin1String("Plug-230V-ZB3.0")))
             {
                 item = sensorNode.addItem(DataTypeInt16, RStatePower);
             }
@@ -5059,6 +5076,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             item = sensorNode.addItem(DataTypeInt16, RStatePower);
             if ( (!modelId.startsWith(QLatin1String("Plug"))) &&
                  (!modelId.startsWith(QLatin1String("ZB-ONOFFPlug-D0005"))) &&
+                 (modelId != QLatin1String("Plug-230V-ZB3.0")) &&
                  (node->nodeDescriptor().manufacturerCode() != VENDOR_LEGRAND) ) // OSRAM and Legrand plug don't have theses options
             {
                 item = sensorNode.addItem(DataTypeUInt16, RStateVoltage);
@@ -5069,6 +5087,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = ANALOG_INPUT_CLUSTER_ID;
             item = sensorNode.addItem(DataTypeInt16, RStatePower);
+            if (modelId.startsWith(QLatin1String("lumi.plug.mm"))) // Only available for new ZB3.0 Mi smart plugs?
+            {
+                item = sensorNode.addItem(DataTypeUInt16, RStateVoltage);
+                item = sensorNode.addItem(DataTypeUInt16, RStateCurrent);
+            }
         }
     }
     else if (sensorNode.type().endsWith(QLatin1String("Thermostat")))
@@ -5384,6 +5407,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else if (sensorNode.manufacturer().startsWith(QLatin1String("TUYATEC")))
     {
         sensorNode.setManufacturer("Tuyatec");
+    }
+    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_SERCOMM)
+    {
+        sensorNode.setManufacturer("Sercomm Corp.");
     }
 
     if (sensorNode.manufacturer().isEmpty() && !manufacturer.isEmpty())
@@ -5992,7 +6019,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("ZGRC-KEY")) || //  Sunricher wireless CCT remote
                                         i->modelId().startsWith(QLatin1String("ZG2833K")) || // Sunricher remote controller
                                         i->modelId().startsWith(QLatin1String("SV01-")) || // Keen Home vent
-                                        i->modelId().startsWith(QLatin1String("4512703"))) // Namron 4-ch remote controller
+                                        i->modelId().startsWith(QLatin1String("4512703")) || // Namron 4-ch remote controller
+                                        i->modelId().startsWith(QLatin1String("RC_V14"))) // Heiman remote controller
                                     {
                                         bat = ia->numericValue().u8;
                                     }
@@ -6027,7 +6055,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("ZGRC-KEY")) || // Sunricher wireless CCT remote
                                         i->modelId().startsWith(QLatin1String("ZG2833K")) || // Sunricher remote controller
                                         i->modelId().startsWith(QLatin1String("SV01-")) || // Keen Home vent
-                                        i->modelId().startsWith(QLatin1String("4512703"))) // Namron 4-ch remote controller
+                                        i->modelId().startsWith(QLatin1String("4512703")) || // Namron 4-ch remote controller
+                                        i->modelId().startsWith(QLatin1String("RC_V14"))) // Heiman remote controller
                                     {
                                         bat = ia->numericValue().u8;
                                     }
@@ -7140,13 +7169,15 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 quint64 consumption = ia->numericValue().u64;
                                 ResourceItem *item = i->item(RStateConsumption);
 
-                                if (i->modelId() == QLatin1String("SmartPlug") ||       // Heiman
-                                    i->modelId().startsWith(QLatin1String("PSMP5_")) || // Climax
-                                    i->modelId().startsWith(QLatin1String("SKHMP30")))  // GS smart plug
+                                if (i->modelId() == QLatin1String("SmartPlug") ||        // Heiman
+                                    i->modelId().startsWith(QLatin1String("PSMP5_")) ||  // Climax
+                                    i->modelId().startsWith(QLatin1String("SKHMP30")) || // GS smart plug
+									i->modelId().startsWith(QLatin1String("E13-")))      // Sengled PAR38 Bulbs
                                 {
                                     consumption += 5; consumption /= 10; // 0.1 Wh -> Wh
                                 }
-                                else if (i->modelId() == QLatin1String("SP 120")) // innr
+                                else if (i->modelId() == QLatin1String("SP 120") ||            // innr
+                                         i->modelId() == QLatin1String("Plug-230V-ZB3.0"))     // Immax
                                 {
                                     consumption *= 10; // 0.01 kWh = 10 Wh -> Wh
                                 }
@@ -7302,7 +7333,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("outlet")) ||   // Samsung SmartThings IM6001-OTP/IM6001-OTP01
                                         i->modelId() == QLatin1String("DoubleSocket50AU") ||  // Aurora
                                         i->modelId() == QLatin1String("RICI01") ||            // LifeControl Smart Plug
-                                        i->modelId().startsWith(QLatin1String("SZ-ESW01")))   // Sercomm / Telstra smart plug
+                                        i->modelId().startsWith(QLatin1String("SZ-ESW01")) || // Sercomm / Telstra smart plug
+                                        i->modelId() == QLatin1String("TS0121"))              // Tuya smart plug
                                     {
                                         // already in mA
                                     }
@@ -14067,7 +14099,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 }
             }
 
-            if (sd.deviceId() == DEV_ID_IAS_ZONE && iasZoneType == 0)
+            if ((sd.deviceId() == DEV_ID_IAS_ZONE || sd.deviceId() == DEV_ID_IAS_WARNING_DEVICE) && iasZoneType == 0)
             {
                 deCONZ::ApsDataRequest apsReq;
 

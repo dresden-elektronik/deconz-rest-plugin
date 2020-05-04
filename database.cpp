@@ -3163,7 +3163,9 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = clusterId ? clusterId : METERING_CLUSTER_ID;
                 if ((sensor.modelId() != QLatin1String("SP 120")) &&
-                    (sensor.modelId() != QLatin1String("ZB-ONOFFPlug-D0005")))
+                    (sensor.modelId() != QLatin1String("ZB-ONOFFPlug-D0005")) &&
+                    (sensor.modelId() != QLatin1String("TS0121")) &&
+                    (sensor.modelId() != QLatin1String("Plug-230V-ZB3.0")))
                 {
                     item = sensor.addItem(DataTypeInt16, RStatePower);
                     item->setValue(0);
@@ -3188,7 +3190,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     return 0;
                     // hasVoltage = false;
                 }
-                else if (sensor.modelId() == QLatin1String("ZB-ONOFFPlug-D0005"))
+                else if (sensor.modelId() == QLatin1String("ZB-ONOFFPlug-D0005") || 
+                         sensor.modelId() == QLatin1String("Plug-230V-ZB3.0"))
                 {
                     hasVoltage = false;
                 }
@@ -3196,7 +3199,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             else if (sensor.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))
             {
                 clusterId = clusterId ? clusterId : ANALOG_INPUT_CLUSTER_ID;
-                hasVoltage = false;
+                if (!sensor.modelId().startsWith(QLatin1String("lumi.plug.mm"))) // Only available for new ZB3.0 Mi smart plugs?
+                {
+                    hasVoltage = false;
+                }
             }
             item = sensor.addItem(DataTypeInt16, RStatePower);
             item->setValue(0);
