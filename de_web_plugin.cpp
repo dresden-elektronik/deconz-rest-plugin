@@ -3357,7 +3357,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
              sensor->modelId() == QLatin1String("Shutters central remote switch") || // legrand shutter switch
              sensor->modelId() == QLatin1String("Remote motion sensor") || // legrand motion sensor
              sensor->modelId() == QLatin1String("Remote toggle switch")) // legrand switch simple and double
-    
+    {
         checkReporting = true;
         checkClientCluster = true;
     }
