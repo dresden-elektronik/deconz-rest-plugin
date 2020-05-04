@@ -1980,8 +1980,11 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("Dimmer switch w/o neutral") || //Legrand dimmer wired
         sensor->modelId() == QLatin1String("Cable outlet") || //Legrand Cable outlet
         sensor->modelId() == QLatin1String("Remote switch") || //Legrand wireless switch
+        sensor->modelId() == QLatin1String("Double gangs remote switch") || //Legrand wireless double switch
         sensor->modelId() == QLatin1String("Shutters central remote switch") || //Legrand wireless shutter switch
         sensor->modelId() == QLatin1String("DIN power consumption module") || //Legrand DIN power consumption module
+        sensor->modelId() == QLatin1String("Remote motion sensor") || //Legrand Motion detector
+        sensor->modelId() == QLatin1String("Remote toggle switch") || //Legrand switch module
         // ORVIBO
         sensor->modelId().startsWith(QLatin1String("SN10ZW")) ||
         sensor->modelId().startsWith(QLatin1String("SF2")) ||
@@ -2117,9 +2120,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             {
                 continue; // process only once
             }
-            if (sensor->modelId() == QLatin1String("Remote switch") || sensor->modelId() == QLatin1String("Shutters central remote switch") )
+            if (sensor->modelId() == QLatin1String("Remote switch") || sensor->modelId() == QLatin1String("Shutters central remote switch") || sensor->modelId() == QLatin1String("Double gangs remote switch") )
             {
-                //This device don't support report attribute
+                //Those device don't support report attribute
                 continue;
             }
             if (sensor->manufacturer().startsWith(QLatin1String("Climax")) ||
@@ -2136,6 +2139,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                      sensor->modelId() == QLatin1String("Zen-01") ||
                      sensor->modelId() == QLatin1String("Remote switch") ||
                      sensor->modelId() == QLatin1String("Shutters central remote switch") ||
+                     sensor->modelId() == QLatin1String("Double gangs remote switch") ||
                      sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||
                      sensor->modelId().endsWith(QLatin1String("86opcn01")) || // Aqara Opple
                      sensor->modelId().startsWith(QLatin1String("1116-S")) ||
@@ -2478,8 +2482,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     //     clusters.push_back(LEVEL_CLUSTER_ID);
     //     srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     // }
-    // LEGRAND Remote switch
-    else if (sensor->modelId() == QLatin1String("Remote switch"))
+    // LEGRAND Remote switch, simple and double
+    else if (sensor->modelId() == QLatin1String("Remote switch") ||
+             sensor->modelId() == QLatin1String("Double gangs remote switch"))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);
@@ -2489,6 +2494,12 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     else if (sensor->modelId() == QLatin1String("Shutters central remote switch"))
     {
         clusters.push_back(WINDOW_COVERING_CLUSTER_ID);
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+    }
+    else if (sensor->modelId() == QLatin1String("Remote toggle switch") || // LEGRAND switch micro module
+             sensor->modelId() == QLatin1String("Remote motion sensor"))  //Legrand motion sensor
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
     else if (sensor->modelId().startsWith(QLatin1String("RC 110")))
@@ -2692,7 +2703,10 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
 
     }
     else if (sensor->modelId() == QLatin1String("Remote switch") ||
-	     sensor->modelId() == QLatin1String("Shutters central remote switch"))
+         sensor->modelId() == QLatin1String("Double gangs remote switch") ||
+	     sensor->modelId() == QLatin1String("Shutters central remote switch") ||
+         sensor->modelId() == QLatin1String("Remote toggle switch") ||
+         sensor->modelId() == QLatin1String("Remote motion sensor"))
     {
         //Make group but without uniqueid
     }

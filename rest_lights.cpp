@@ -553,6 +553,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     bool hasOn = false;
     bool targetOn = false;
     bool hasBri = false;
+    bool hasStop = false;
     quint8 targetBri = 0;
     bool hasBriInc = false;
     qint16 targetBriInc = 0;
@@ -597,11 +598,12 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         {
             paramOk = true;
             hasCmd = true;
-            if (map[param].type() == QVariant::String && map[param].toString() == "stop") // FIXME deprecate this nonsense
+            if (map[param].type() == QVariant::String && map[param].toString() == "stop")
             {
                 valueOk = true;
                 hasBriInc = true;
                 targetBriInc = 0;
+                hasStop = true;
             }
             else if (map[param].type() == QVariant::Double)
             {
@@ -881,7 +883,24 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         TaskItem task;
         copyTaskReq(taskRef, task);
 
-        if (!isOn)
+        //Profalux shutter use Stop command but the device can be on (opening) or off (closing) So using this hack
+        if (hasStop)
+        {
+            if (addTaskStopBrightness(task))
+            {
+                taskToLocalData(task);
+                QVariantMap rspItem;
+                QVariantMap rspItemState;
+                rspItemState[QString("/groups/%1/action/bri").arg(id)] = map["bri"];
+                rspItem["success"] = rspItemState;
+                rsp.list.append(rspItem);
+            }
+            else
+            {
+                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/bri").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+            }
+        }
+        else if (!isOn)
         {
             rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, bri, is not modifiable. Device is set to off.")));
         }

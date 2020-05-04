@@ -288,6 +288,7 @@
 #define VENDOR_BEGA         0x1105
 #define VENDOR_PHYSICAL     0x110A // Used by SmartThings
 #define VENDOR_OSRAM        0x110C
+#define VENDOR_PROFALUX     0x1110
 #define VENDOR_JASCO        0x1124 // Used by GE
 #define VENDOR_BUSCH_JAEGER 0x112E
 #define VENDOR_SERCOMM      0x1131
@@ -432,6 +433,7 @@ extern const quint64 ubisysMacPrefix;
 extern const quint64 xalMacPrefix;
 extern const quint64 develcoMacPrefix;
 extern const quint64 legrandMacPrefix;
+extern const quint64 profaluxMacPrefix;
 extern const quint64 xiaomiMacPrefix;
 extern const quint64 computimeMacPrefix;
 extern const quint64 konkeMacPrefix;
@@ -530,6 +532,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == develcoMacPrefix;
         case VENDOR_LEGRAND:
             return prefix == legrandMacPrefix;
+        case VENDOR_PROFALUX:
+            return prefix == profaluxMacPrefix;
         case VENDOR_NETVOX:
             return prefix == netvoxMacPrefix;
         case VENDOR_AURORA:
