@@ -84,6 +84,9 @@ TaskItem calibrationTask;
  */
 void DeRestPluginPrivate::handleWindowCoveringClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
+    // FIXME: You're only handling ZclReadAttributesResponse and ZclReportAttributes - no other commands
+    //        why not call this from deCONZ::NodeEvent instead that has already parsed the payload
+
     Q_UNUSED(ind);
 
     LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());
@@ -104,132 +107,171 @@ void DeRestPluginPrivate::handleWindowCoveringClusterIndication(const deCONZ::Ap
     QDataStream stream(zclFrame.payload());
     stream.setByteOrder(QDataStream::LittleEndian);
 
-    bool isReadAttr = false;
-    bool isReporting = false;
+    NodeValue::UpdateType updateType = NodeValue::UpdateInvalid;
     if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReadAttributesResponseId)
     {
-    	isReadAttr = true;
+        updateType = NodeValue::UpdateByZclRead;
     }
-    if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReportAttributesId)
+    else if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReportAttributesId)
     {
-    	isReporting = true;
+        updateType = NodeValue::UpdateByZclReport;
     }
 
     // Read ZCL reporting and ZCL Read Attributes Response
-    if (isReadAttr || isReporting)
+    if (updateType != NodeValue::UpdateInvalid)
     {
-    	while(!stream.atEnd())
-    	{
-    		stream >> attrid;
-    		if (isReadAttr)
-    		{
-    			stream >> status;  // Read Attribute Response status
-    			if (status != 0)
-    			{
-    				return;
-    			}
-    		}
-    		stream >> attrTypeId;
-    		// only read 8-bit values, i.e. attrTypeId 0x10,0x20,0x30,0x08,0x18,0x28
-    		if ( ((attrTypeId >> 4) <= 0x03 && (attrTypeId & 0x0F) == 0x00) || // 0x10,0x20,0x30
-    			 ((attrTypeId >> 4) <= 0x02 && (attrTypeId & 0x0F) == 0x08))   // 0x08,0x18,0x28
-    		{
-    			stream >> attrValue;
-    		}
-    		// only read 16-bit values, i.e. attrTypeId 0x21,0x31,0x09,0x19,0x29
-    		else if ( ((attrTypeId >> 4) <= 0x03 && (attrTypeId & 0x0F) == 0x01) || // 0x21,0x31
-    		          ((attrTypeId >> 4) <= 0x02 && (attrTypeId & 0x0F) == 0x09))   // 0x09,0x19,0x29
-    		{
-    			quint16 attrVal16;
-    			stream >> attrVal16;
-    		}
-    		else
-    		{
-    			return;
-    		}
+        while (!stream.atEnd())
+        {
+            stream >> attrid;
+            if (updateType == NodeValue::UpdateByZclRead)
+            {
+                stream >> status;  // Read Attribute Response status
+                if (status != 0)
+                {
+                    return;
+                }
+            }
+            stream >> attrTypeId;
+            switch (attrTypeId)
+            {
+                case deCONZ::Zcl8BitData:
+                case deCONZ::ZclBoolean:
+                case deCONZ::Zcl8BitBitMap:
+                case deCONZ::Zcl8BitUint:
+                case deCONZ::Zcl8BitInt:
+                case deCONZ::Zcl8BitEnum:
+                    stream >> attrValue;
+                    break;
+                case deCONZ::Zcl16BitData:
+                case deCONZ::Zcl16BitBitMap:
+                case deCONZ::Zcl16BitUint:
+                case deCONZ::Zcl16BitInt:
+                case deCONZ::Zcl16BitEnum:
+                    quint16 attrVal16;
+                    stream >> attrVal16;
+                    break;
+                default:
+                    // unsupported data type
+                    return;
+            }
 
-    		NodeValue::UpdateType updateType = NodeValue::UpdateByZclReport;
+            NodeValue::UpdateType updateType = NodeValue::UpdateByZclReport;
 
-    		if (attrid == 0x0008) // current CurrentPositionLiftPercentage 0-100
-    		{
-			    //Reverse it for Xiaomi curtain and Legrand switch
-    			if (lightNode->modelId().startsWith(QLatin1String("lumi.curtain")) || (lightNode->modelId() == QLatin1String("Shutter switch with neutral")))
-    			{
-    				attrValue = 100 - attrValue;
-    			}
-    			uint8_t level = attrValue * 254 / 100;
-    			numericValue.u8 = level;
-    			ResourceItem *item = lightNode->item(RStateBri);
-    			if (item && item->toNumber() != level)
-    			{
-    				DBG_Printf(DBG_INFO, "0x%016llX level %u --> %u\n", lightNode->address().ext(), (uint)item->toNumber(), level);
-    				lightNode->clearRead(READ_LEVEL);
-    				item->setValue(level);
-    				Event e(RLights, RStateBri, lightNode->id(), item);
-    				enqueueEvent(e);
-    				updated = true;
-
-    				// also change on-state if bri changes to/from 0
-    				bool on = (attrValue > 0 ? true : false) ;
-
-    				ResourceItem *itemOn = lightNode->item(RStateOn);
-    				if (itemOn && itemOn->toBool() != on)
-    				{
-    					DBG_Printf(DBG_INFO, "0x%016llX onOff %u --> %u\n", lightNode->address().ext(), (uint)item->toNumber(), on);
-    					itemOn->setValue(on);
-    					Event e(RLights, RStateOn, lightNode->id(), itemOn);
-    					enqueueEvent(e);
-    					updated = true;
-    				}
-    			}
+            if (attrid == 0x0008) // current CurrentPositionLiftPercentage 0-100
+            {
+                // Update value in the GUI.
+                numericValue.u8 = attrValue;
                 lightNode->setZclValue(updateType, ind.srcEndpoint(), WINDOW_COVERING_CLUSTER_ID, 0x0008, numericValue);
-    		}
-    		else if (attrid == 0x0009) // current CurrentPositionTiltPercentage 0-100
-    		{
-    			uint8_t sat = attrValue * 254 / 100;
-    			numericValue.u8 = sat;
-    			ResourceItem *item = lightNode->item(RStateSat);
-    			if (item && item->toNumber() != sat)
-    			{
-    				item->setValue(sat);
-    				Event e(RLights, RStateSat, lightNode->id(), item);
-    				enqueueEvent(e);
-    				updated = true;
-    			}
+
+                quint8 lift = attrValue;
+                // Reverse value for Xiaomi curtain and Legrand switch
+                if (lightNode->modelId().startsWith(QLatin1String("lumi.curtain")) || (lightNode->modelId() == QLatin1String("Shutter switch with neutral")))
+                {
+                    lift = 100 - lift;
+                }
+                ResourceItem *item = lightNode->item(RStateLift);
+                if (item && item->toNumber() != lift)
+                {
+                    item->setValue(lift);
+                    Event e(RLights, RStateLift, lightNode->id(), item);
+                    enqueueEvent(e);
+                    updated = true;
+                    pushZclValueDb(lightNode->address().ext(), lightNode->haEndpoint().endpoint(), WINDOW_COVERING_CLUSTER_ID, attrid, attrValue);
+                }
+                item = lightNode->item(RStateOpen);
+                bool open = lift < 100;
+                if (item && item->toNumber() != open)
+                {
+                    item->setValue(open);
+                    Event e(RLights, RStateOpen, lightNode->id(), item);
+                    enqueueEvent(e);
+                    updated = true;
+                }
+
+                // FIXME: deprecate
+                quint8 level = lift * 254 / 100;
+                item = lightNode->item(RStateBri);
+                if (item && item->toNumber() != level)
+                {
+                    lightNode->clearRead(READ_LEVEL);
+                    item->setValue(level);
+                    Event e(RLights, RStateBri, lightNode->id(), item);
+                    enqueueEvent(e);
+                    pushZclValueDb(lightNode->address().ext(), lightNode->haEndpoint().endpoint(), WINDOW_COVERING_CLUSTER_ID, attrid, attrValue);
+                    updated = true;
+
+                    // also change on-state if bri changes to/from 0
+                    bool on = level > 0;
+                    ResourceItem *itemOn = lightNode->item(RStateOn);
+                    if (itemOn && itemOn->toBool() != on)
+                    {
+                        itemOn->setValue(on);
+                        Event e(RLights, RStateOn, lightNode->id(), itemOn);
+                        enqueueEvent(e);
+                        updated = true;
+                    }
+                }
+                // END FIXME: deprecate
+            }
+            else if (attrid == 0x0009) // current CurrentPositionTiltPercentage 0-100
+            {
+                numericValue.u8 = attrValue;
                 lightNode->setZclValue(updateType, ind.srcEndpoint(), WINDOW_COVERING_CLUSTER_ID, 0x0009, numericValue);
-    		}
-    		else if (attrid == 0x000A)  // read attribute 0x000A OperationalStatus
-    		{
-    			if (calibrationStep != 0 && ind.srcAddress().ext() == calibrationTask.req.dstAddress().ext())
-    			{
-    				operationalStatus = attrValue;
-    			}
-    		}
-    		else if (attrid == 0x0000)  // read attribute 0x0000 WindowConveringType
-    		{
-    			Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x02);
-    			if (sensor)
-    			{
-    				ResourceItem *item = nullptr;
 
-    				item = sensor->item(RConfigWindowCoveringType);
-    				if (item)
-    				{
-    					item->setValue(attrValue);
-    					sensor->setNeedSaveDatabase(true);
-    					queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
-    				}
-    			}
-    		}
-    	}
+                quint8 tilt = attrValue;
+                ResourceItem *item = lightNode->item(RStateTilt);
+                if (item && item->toNumber() != tilt)
+                {
+                  item->setValue(tilt);
+                  Event e(RLights, RStateTilt, lightNode->id(), item);
+                  enqueueEvent(e);
+                  pushZclValueDb(lightNode->address().ext(), lightNode->haEndpoint().endpoint(), WINDOW_COVERING_CLUSTER_ID, attrid, attrValue);
+                  updated = true;
+                }
 
-    	if (updated)
-    	{
-    		updateEtag(lightNode->etag);
-    		updateEtag(gwConfigEtag);
-    		lightNode->setNeedSaveDatabase(true);
-    		saveDatabaseItems |= DB_LIGHTS;
-    	}
+                // FIXME: deprecate
+                quint8 sat = attrValue * 254 / 100;
+                item = lightNode->item(RStateSat);
+                if (item && item->toNumber() != sat)
+                {
+                  item->setValue(sat);
+                  Event e(RLights, RStateSat, lightNode->id(), item);
+                  enqueueEvent(e);
+                  updated = true;
+                }
+                // END FIXME: deprecate
+            }
+            else if (attrid == 0x000A)  // read attribute 0x000A OperationalStatus
+            {
+                if (calibrationStep != 0 && ind.srcAddress().ext() == calibrationTask.req.dstAddress().ext())
+                {
+                    operationalStatus = attrValue;
+                }
+            }
+            else if (attrid == 0x0000)  // read attribute 0x0000 WindowConveringType
+            {
+                Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x02);
+                if (sensor)
+                {
+                    ResourceItem *item = sensor->item(RConfigWindowCoveringType);
+
+                    if (item)
+                    {
+                        item->setValue(attrValue);
+                        sensor->setNeedSaveDatabase(true);
+                        queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+                    }
+                }
+            }
+        }
+
+        if (updated)
+        {
+            updateEtag(lightNode->etag);
+            updateEtag(gwConfigEtag);
+            lightNode->setNeedSaveDatabase(true);
+            saveDatabaseItems |= DB_LIGHTS;
+        }
     }
 }
 
@@ -253,8 +295,8 @@ bool DeRestPluginPrivate::addTaskWindowCovering(TaskItem &task, uint8_t cmd, uin
     task.zclFrame.setSequenceNumber(zclSeq++);
     task.zclFrame.setCommandId(cmd);
     task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
-                             deCONZ::ZclFCDirectionClientToServer |
-                             deCONZ::ZclFCDisableDefaultResponse);
+                                  deCONZ::ZclFCDirectionClientToServer |
+                                  deCONZ::ZclFCDisableDefaultResponse);
 
     if (cmd == 0x04 || cmd == 0x05 || cmd == 0x07 || cmd == 0x08)
     { // payload
@@ -263,11 +305,11 @@ bool DeRestPluginPrivate::addTaskWindowCovering(TaskItem &task, uint8_t cmd, uin
 
         if (cmd == 0x04 || cmd == 0x07)
         {
-        	stream << pos;  // 16-bit moveToPosition
+            stream << pos;  // 16-bit moveToPosition
         }
         if (cmd == 0x05 || cmd == 0x08)
         {
-        	stream << pct;  // 8-bit moveToPct
+            stream << pct;  // 8-bit moveToPct
         }
     }
 
@@ -357,7 +399,7 @@ static void copyTaskReq(TaskItem &a, TaskItem &b)
  * and configures Reporting on Cluster 0x0102 Attributes 0x0008, 0x0009, 0x000A.
  * and starts calibration on ubisys J1
  *
- * Value 	WindowCoveringType      Capabilities
+ * Value   WindowCoveringType      Capabilities
  * 0    Roller Shade                = Lift only
  * 1    Roller Shade two motors     = Lift only
  * 2    Roller Shade exterior       = Lift only
@@ -376,65 +418,65 @@ static void copyTaskReq(TaskItem &a, TaskItem &b)
  */
 bool DeRestPluginPrivate::addTaskWindowCoveringCalibrate(TaskItem &taskRef, int WindowCoveringType)
 {
-	LightNode *lightNode = getLightNodeForAddress(taskRef.req.dstAddress(), 0x01);  // Endpoint 0x01
+    LightNode *lightNode = getLightNodeForAddress(taskRef.req.dstAddress(), 0x01);  // Endpoint 0x01
 
-	if (lightNode)
-	{
-		if (WindowCoveringType == 6 || WindowCoveringType == 7 || WindowCoveringType == 8)
-		{
-			lightNode->addItem(DataTypeUInt8, RStateSat);  // add sat for Tilt
-		}
-		else
-		{
-			lightNode->removeItem(RStateSat);
-		}
-		lightNode->setNeedSaveDatabase(true);
-		saveDatabaseItems |= DB_LIGHTS;
-	}
+    if (lightNode)
+    {
+        if (WindowCoveringType == 6 || WindowCoveringType == 7 || WindowCoveringType == 8)
+        {
+            lightNode->addItem(DataTypeUInt8, RStateSat);  // add sat for Tilt
+        }
+        else
+        {
+            lightNode->removeItem(RStateSat);
+        }
+        lightNode->setNeedSaveDatabase(true);
+        saveDatabaseItems |= DB_LIGHTS;
+    }
 
-	Sensor *sensor = getSensorNodeForAddressAndEndpoint(taskRef.req.dstAddress(), 0x02); // Endpoint 0x02
+    Sensor *sensor = getSensorNodeForAddressAndEndpoint(taskRef.req.dstAddress(), 0x02); // Endpoint 0x02
 
-	if (!sensor || !sensor->modelId().startsWith(QLatin1String("J1")))
-	{
-		return false;
-	}
+    if (!sensor || !sensor->modelId().startsWith(QLatin1String("J1")))
+    {
+        return false;
+    }
 
-	taskRef.req.setDstEndpoint(0x01);  // Window_Covering Server Cluster is on Endpoint 0x01
+    taskRef.req.setDstEndpoint(0x01);  // Window_Covering Server Cluster is on Endpoint 0x01
 
-	TaskItem task;
-	copyTaskReq(taskRef, task);
-	copyTaskReq(taskRef, calibrationTask);
+    TaskItem task;
+    copyTaskReq(taskRef, task);
+    copyTaskReq(taskRef, calibrationTask);
 
-	// Create Binding
-	BindingTask bt;
+    // Create Binding
+    BindingTask bt;
 
-	bt.state = BindingTask::StateIdle;
-	bt.action = BindingTask::ActionBind;
-	bt.restNode = sensor; //task.lightNode;
-	Binding &bnd = bt.binding;
-	bnd.srcAddress = task.req.dstAddress().ext();
-	bnd.dstAddrMode = deCONZ::ApsExtAddress;
-	bnd.srcEndpoint = task.req.srcEndpoint();
-	bnd.clusterId = WINDOW_COVERING_CLUSTER_ID;
-	bnd.dstAddress.ext = apsCtrl->getParameter(deCONZ::ParamMacAddress);
-	bnd.dstEndpoint = endpoint();
+    bt.state = BindingTask::StateIdle;
+    bt.action = BindingTask::ActionBind;
+    bt.restNode = sensor; //task.lightNode;
+    Binding &bnd = bt.binding;
+    bnd.srcAddress = task.req.dstAddress().ext();
+    bnd.dstAddrMode = deCONZ::ApsExtAddress;
+    bnd.srcEndpoint = task.req.srcEndpoint();
+    bnd.clusterId = WINDOW_COVERING_CLUSTER_ID;
+    bnd.dstAddress.ext = apsCtrl->getParameter(deCONZ::ParamMacAddress);
+    bnd.dstEndpoint = endpoint();
 
-	if (bnd.dstEndpoint > 0) // valid gateway endpoint?
-	{
-		DBG_Printf(DBG_INFO_L2, "create binding for attribute reporting of cluster 0x%04X\n", WINDOW_COVERING_CLUSTER_ID);
-		queueBindingTask(bt);
-	}
-	else
-	{
-		return false;
-	}
+    if (bnd.dstEndpoint > 0) // valid gateway endpoint?
+    {
+        DBG_Printf(DBG_INFO_L2, "create binding for attribute reporting of cluster 0x%04X\n", WINDOW_COVERING_CLUSTER_ID);
+        queueBindingTask(bt);
+    }
+    else
+    {
+        return false;
+    }
 
-	if (!bindingTimer->isActive())
-	{
-		bindingTimer->start();
-	}
+    if (!bindingTimer->isActive())
+    {
+        bindingTimer->start();
+    }
 
-	// Configure Reporting on Cluster 0x0102 Attributes 0x0008, 0x0009, 0x000A
+    // Configure Reporting on Cluster 0x0102 Attributes 0x0008, 0x0009, 0x000A
     ConfigureReportingRequest rq;
 
     rq.zclSeqNum = zclSeq++; // to match in configure reporting response handler
@@ -468,8 +510,8 @@ bool DeRestPluginPrivate::addTaskWindowCoveringCalibrate(TaskItem &taskRef, int 
     task2.zclFrame.setSequenceNumber(zclSeq++);
     task2.zclFrame.setCommandId(deCONZ::ZclConfigureReportingId);
     task2.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
-    		deCONZ::ZclFCDirectionClientToServer |
-			deCONZ::ZclFCDisableDefaultResponse);
+                                   deCONZ::ZclFCDirectionClientToServer |
+                                   deCONZ::ZclFCDisableDefaultResponse);
 
     { // payload
         QDataStream stream(&task2.zclFrame.payload(), QIODevice::WriteOnly);
@@ -511,7 +553,7 @@ bool DeRestPluginPrivate::addTaskWindowCoveringCalibrate(TaskItem &taskRef, int 
     }
 
     { // ZCL frame
-    	task2.req.asdu().clear(); // cleanup old request data if there is any
+        task2.req.asdu().clear(); // cleanup old request data if there is any
         QDataStream stream(&task2.req.asdu(), QIODevice::WriteOnly);
         stream.setByteOrder(QDataStream::LittleEndian);
         task2.zclFrame.writeToStream(stream);
@@ -519,19 +561,19 @@ bool DeRestPluginPrivate::addTaskWindowCoveringCalibrate(TaskItem &taskRef, int 
 
     if (!addTask(task2))
     {
-    	return false;
+        return false;
     }
 
-	// Calibration Step 1 and Step 2
+    // Calibration Step 1 and Step 2
     TaskItem task3;
     copyTaskReq(taskRef, task3);
 
     task3.zclFrame.setSequenceNumber(zclSeq++);
     task3.zclFrame.setCommandId(deCONZ::ZclWriteAttributesId);
     task3.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
-                             deCONZ::ZclFCManufacturerSpecific |
-                             deCONZ::ZclFCDirectionClientToServer |
-                             deCONZ::ZclFCDisableDefaultResponse);
+                                   deCONZ::ZclFCManufacturerSpecific |
+                                   deCONZ::ZclFCDirectionClientToServer |
+                                   deCONZ::ZclFCDisableDefaultResponse);
     task3.zclFrame.setManufacturerCode(0x10F2);  // Manufacturer code 0x10F2
 
     { // payload
@@ -585,18 +627,18 @@ bool DeRestPluginPrivate::addTaskWindowCoveringCalibrate(TaskItem &taskRef, int 
 
     if (!addTask(task3))
     {
-    	return false;
+        return false;
     }
 
-	// Calibration Step 3
+    // Calibration Step 3
     TaskItem task4;
     copyTaskReq(taskRef, task4);
 
     task4.zclFrame.setSequenceNumber(zclSeq++);
     task4.zclFrame.setCommandId(deCONZ::ZclWriteAttributesId);
     task4.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
-                             deCONZ::ZclFCDirectionClientToServer |
-                             deCONZ::ZclFCDisableDefaultResponse);
+                                   deCONZ::ZclFCDirectionClientToServer |
+                                   deCONZ::ZclFCDisableDefaultResponse);
 
     { // payload
         QDataStream stream(&task4.zclFrame.payload(), QIODevice::WriteOnly);
@@ -616,102 +658,102 @@ bool DeRestPluginPrivate::addTaskWindowCoveringCalibrate(TaskItem &taskRef, int 
 
     if (!addTask(task4))
     {
-    	return false;
+        return false;
     }
 
-	// start timer for next step
+    // start timer for next step
     calibrationStep = 3;
     QTimer::singleShot(2000, this, SLOT(calibrateWindowCoveringNextStep()));
 
-	return true;
+    return true;
 }
 
 void DeRestPluginPrivate::calibrateWindowCoveringNextStep()
 {
-	TaskItem task;
-	copyTaskReq(calibrationTask, task);
+    TaskItem task;
+    copyTaskReq(calibrationTask, task);
 
-	DBG_Printf(DBG_INFO, "ubisys NextStep calibrationStep = %d, task=%s calibrationTask = %s \n",
-			calibrationStep,
-			qPrintable(task.req.dstAddress().toStringExt()),
-			qPrintable(calibrationTask.req.dstAddress().toStringExt()));
+    DBG_Printf(DBG_INFO, "ubisys NextStep calibrationStep = %d, task=%s calibrationTask = %s \n",
+               calibrationStep,
+               qPrintable(task.req.dstAddress().toStringExt()),
+               qPrintable(calibrationTask.req.dstAddress().toStringExt()));
 
-	switch(calibrationStep)
-	{
-	case 3:
-	    calibrationStep = 4;
-	    QTimer::singleShot(2000, this, SLOT(calibrateWindowCoveringNextStep()));
-	    addTaskWindowCovering(task, 0x01 /*move down*/, 0, 0);
-	    break;
+    switch(calibrationStep)
+    {
+    case 3:
+        calibrationStep = 4;
+        QTimer::singleShot(2000, this, SLOT(calibrateWindowCoveringNextStep()));
+        addTaskWindowCovering(task, 0x01 /*move down*/, 0, 0);
+        break;
 
-	case 4:
-		calibrationStep = 5;
-		QTimer::singleShot(2000, this, SLOT(calibrateWindowCoveringNextStep()));
-		addTaskWindowCovering(task, 0x00 /*move up*/, 0, 0);
-		break;
+    case 4:
+        calibrationStep = 5;
+        QTimer::singleShot(2000, this, SLOT(calibrateWindowCoveringNextStep()));
+        addTaskWindowCovering(task, 0x00 /*move up*/, 0, 0);
+        break;
 
-	case 5:
-		if (operationalStatus == 0)
-		{
-			calibrationStep = 6;
-			addTaskWindowCovering(task, 0x01 /*move down*/, 0, 0);
-		}
-		QTimer::singleShot(4000, this, SLOT(calibrateWindowCoveringNextStep()));
-		break;
+    case 5:
+        if (operationalStatus == 0)
+        {
+            calibrationStep = 6;
+            addTaskWindowCovering(task, 0x01 /*move down*/, 0, 0);
+        }
+        QTimer::singleShot(4000, this, SLOT(calibrateWindowCoveringNextStep()));
+        break;
 
-	case 6:
-		if (operationalStatus == 0)
-		{
-			calibrationStep = 7;
-			addTaskWindowCovering(task, 0x00 /*move up*/, 0, 0);
-		}
-		QTimer::singleShot(4000, this, SLOT(calibrateWindowCoveringNextStep()));
-		break;
+    case 6:
+        if (operationalStatus == 0)
+        {
+            calibrationStep = 7;
+            addTaskWindowCovering(task, 0x00 /*move up*/, 0, 0);
+        }
+        QTimer::singleShot(4000, this, SLOT(calibrateWindowCoveringNextStep()));
+        break;
 
-	case 7:
-		if (operationalStatus == 0)
-		{
-			calibrationStep = 8;
-		}
-		QTimer::singleShot(4000, this, SLOT(calibrateWindowCoveringNextStep()));
-		break;
+    case 7:
+        if (operationalStatus == 0)
+        {
+            calibrationStep = 8;
+        }
+        QTimer::singleShot(4000, this, SLOT(calibrateWindowCoveringNextStep()));
+        break;
 
-	case 8:
-		if (operationalStatus == 0)
-		{
-			calibrationStep = 0;
+    case 8:
+        if (operationalStatus == 0)
+        {
+            calibrationStep = 0;
 
-			// leave calibration mode
-		    task.zclFrame.setSequenceNumber(zclSeq++);
-		    task.zclFrame.setCommandId(deCONZ::ZclWriteAttributesId);
-		    task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
-		                             deCONZ::ZclFCDirectionClientToServer |
-		                             deCONZ::ZclFCDisableDefaultResponse);
+            // leave calibration mode
+            task.zclFrame.setSequenceNumber(zclSeq++);
+            task.zclFrame.setCommandId(deCONZ::ZclWriteAttributesId);
+            task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                                          deCONZ::ZclFCDirectionClientToServer |
+                                          deCONZ::ZclFCDisableDefaultResponse);
 
-		    { // payload
-		        QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
-		        stream.setByteOrder(QDataStream::LittleEndian);
+            { // payload
+                QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
+                stream.setByteOrder(QDataStream::LittleEndian);
 
-		        stream << (quint16) 0x0017;
-		        stream << (quint8) deCONZ::Zcl8BitBitMap;
-		        stream << (quint8) 0x00; // Write attribute Mode 0x0017 as 0x00, typeid = 0x18
-		    }
+                stream << (quint16) 0x0017;
+                stream << (quint8) deCONZ::Zcl8BitBitMap;
+                stream << (quint8) 0x00; // Write attribute Mode 0x0017 as 0x00, typeid = 0x18
+            }
 
-		    { // ZCL frame
-		    	task.req.asdu().clear(); // cleanup old request data if there is any
-		        QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
-		        stream.setByteOrder(QDataStream::LittleEndian);
-		        task.zclFrame.writeToStream(stream);
-		    }
+            { // ZCL frame
+                task.req.asdu().clear(); // cleanup old request data if there is any
+                QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
+                stream.setByteOrder(QDataStream::LittleEndian);
+                task.zclFrame.writeToStream(stream);
+            }
 
-		    addTask(task);
+            addTask(task);
 
-		}
-		break;
+        }
+        break;
 
-	default:
-	{
-	}
-	break;
-	}
+    default:
+        {
+        }
+        break;
+    }
 }

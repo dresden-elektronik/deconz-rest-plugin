@@ -32,6 +32,8 @@ const char *RAttrType = "attr/type";
 const char *RAttrClass = "attr/class";
 const char *RAttrUniqueId = "attr/uniqueid";
 const char *RAttrSwVersion = "attr/swversion";
+const char *RAttrLastAnnounce = "attr/lastannounced";
+const char *RAttrLastSeen = "attr/lastseen";
 
 const char *RActionScene = "action/scene";
 
@@ -57,6 +59,7 @@ const char *RStateGesture = "state/gesture";
 const char *RStateHue = "state/hue";
 const char *RStateHumidity = "state/humidity";
 const char *RStateLastUpdated = "state/lastupdated";
+const char *RStateLift = "state/lift";
 const char *RStateLightLevel = "state/lightlevel";
 const char *RStateLowBattery = "state/lowbattery";
 const char *RStateLocaltime = "state/localtime";
@@ -80,6 +83,7 @@ const char *RStateSunrise = "state/sunrise";
 const char *RStateSunset = "state/sunset";
 const char *RStateTampered = "state/tampered";
 const char *RStateTemperature = "state/temperature";
+const char *RStateTilt = "state/tilt";
 const char *RStateTiltAngle = "state/tiltangle";
 const char *RStateValve = "state/valve";
 const char *RStateVibration = "state/vibration";
@@ -164,6 +168,8 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrClass));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrUniqueId));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrSwVersion));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RAttrLastAnnounce));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RAttrLastSeen));
 
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateAlarm));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateAlert));
@@ -187,6 +193,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateHue));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateHumidity, 0, 10000));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RStateLastUpdated));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RStateLift, 0, 100));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateLightLevel, 0, 0xfffe));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateLowBattery));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RStateLocaltime));
@@ -211,6 +218,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RStateSunset));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateTampered));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RStateTemperature, -27315, 32767));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RStateTilt, 0, 100));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateTiltAngle));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RStateValve));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateVibration));
@@ -368,17 +376,30 @@ const QString &ResourceItem::toString() const
     {
         if (m_str)
         {
-            if (m_rid.suffix == RStateLastUpdated || m_rid.suffix == RStateSunrise || m_rid.suffix == RStateSunset)
+            QDateTime dt;
+
+            // default: local time in sec resolution
+            QString format = QLatin1String("yyyy-MM-ddTHH:mm:ss");
+
+            if (m_rid.suffix == RStateLastUpdated)
             {
-                QDateTime dt;
+                // UTC in msec resolution
+                format = QLatin1String("yyyy-MM-ddTHH:mm:ss.zzz");
                 dt.setOffsetFromUtc(0);
-                dt.setMSecsSinceEpoch(m_num);
-                *m_str = dt.toString("yyyy-MM-ddTHH:mm:ss");
             }
-            else
+            else if (m_rid.suffix == RStateSunrise || m_rid.suffix == RStateSunset)
             {
-                *m_str = QDateTime::fromMSecsSinceEpoch(m_num).toString("yyyy-MM-ddTHH:mm:ss");
+                // UTC in sec resulution
+                dt.setOffsetFromUtc(0);
             }
+            else if (m_rid.suffix == RConfigLocalTime)
+            {
+                // local time in msec resolution
+                format = QLatin1String("yyyy-MM-ddTHH:mm:ss.zzz");
+            }
+
+            dt.setMSecsSinceEpoch(m_num);
+            *m_str = dt.toString(format);
             return *m_str;
         }
     }

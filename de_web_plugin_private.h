@@ -275,6 +275,7 @@
 #define VENDOR_LEGRAND      0x1021 // wrong name?
 #define VENDOR_LGE          0x102E
 #define VENDOR_JENNIC       0x1037 // Used by Xiaomi, Trust, Eurotronic
+#define VENDOR_ALERTME      0x1039
 #define VENDOR_CLS          0x104E
 #define VENDOR_CENTRALITE   0x104E // wrong name?
 #define VENDOR_SI_LABS      0x1049
@@ -293,10 +294,12 @@
 #define VENDOR_SERCOMM      0x1131
 #define VENDOR_BOSCH        0x1133
 #define VENDOR_DDEL         0x1135
+#define VENDOR_WAXMAN       0x113B
 #define VENDOR_LUTRON       0x1144
 #define VENDOR_ZEN          0x1158
 #define VENDOR_KEEN_HOME    0x115B
 #define VENDOR_XIAOMI       0x115F
+#define VENDOR_SENGLED_OPTOELEC 0x1160
 #define VENDOR_INNR         0x1166
 #define VENDOR_LDS          0x1168 // Used by Samsung SmartPlug 2019
 #define VENDOR_INSTA        0x117A
@@ -310,7 +313,7 @@
 #define VENDOR_HEIMAN       0x120B
 #define VENDOR_MUELLER      0x121B // Used by Mueller Licht
 #define VENDOR_AURORA       0x121C // Used by Aurora Aone
-#define VENDOR_SUNRICHER    0x1224 // white label used by iCasa, Illuminize ...
+#define VENDOR_SUNRICHER    0x1224 // white label used by iCasa, Illuminize, Namron ...
 #define VENDOR_XAL          0x122A
 #define VENDOR_THIRD_REALITY 0x1233
 #define VENDOR_DSR          0x1234
@@ -413,6 +416,7 @@ extern const quint64 ikea2MacPrefix;
 extern const quint64 silabsMacPrefix;
 extern const quint64 silabs2MacPrefix;
 extern const quint64 silabs3MacPrefix;
+extern const quint64 silabs4MacPrefix;
 extern const quint64 instaMacPrefix;
 extern const quint64 boschMacPrefix;
 extern const quint64 jennicMacPrefix;
@@ -434,6 +438,7 @@ extern const quint64 xiaomiMacPrefix;
 extern const quint64 computimeMacPrefix;
 extern const quint64 konkeMacPrefix;
 extern const quint64 ecozyMacPrefix;
+extern const quint64 zhejiangMacPrefix;
 
 inline bool checkMacVendor(quint64 addr, quint16 vendor)
 {
@@ -448,7 +453,10 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == emberMacPrefix ||
                    prefix == jennicMacPrefix;
         case VENDOR_SUNRICHER:
-            return prefix == emberMacPrefix;
+            return prefix == emberMacPrefix ||
+                   prefix == silabs2MacPrefix;
+        case VENDOR_ALERTME:
+            return prefix == tiMacPrefix;
         case VENDOR_BITRON:
             return prefix == tiMacPrefix;
         case VENDOR_BOSCH:
@@ -469,18 +477,22 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == ikeaMacPrefix ||
                    prefix == silabsMacPrefix ||
                    prefix == silabs2MacPrefix ||
+                   prefix == silabs4MacPrefix ||
                    prefix == energyMiMacPrefix ||
                    prefix == emberMacPrefix;
         case VENDOR_JASCO:
             return prefix == celMacPrefix;
         case VENDOR_INNR:
+            return prefix == jennicMacPrefix ||
+                   prefix == silabs4MacPrefix;
         case VENDOR_LDS:
             return prefix == jennicMacPrefix ||
                    prefix == silabs2MacPrefix;
         case VENDOR_INSTA:
             return prefix == instaMacPrefix;
         case VENDOR_JENNIC:
-            return prefix == jennicMacPrefix;
+            return prefix == jennicMacPrefix ||
+                   prefix == silabs2MacPrefix;
         case VENDOR_KEEN_HOME:
             return prefix == keenhomeMacPrefix;
         case VENDOR_LGE:
@@ -497,6 +509,11 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == philipsMacPrefix;
         case VENDOR_PHYSICAL:
             return prefix == stMacPrefix;
+        case VENDOR_SENGLED_OPTOELEC:
+            return prefix == zhejiangMacPrefix;
+        case VENDOR_SERCOMM:
+            return prefix == emberMacPrefix ||
+                   prefix == energyMiMacPrefix;
         case VENDOR_SI_LABS:
             return prefix == silabsMacPrefix ||
                    prefix == energyMiMacPrefix ||
@@ -1018,7 +1035,7 @@ public:
     int updateRule(const ApiRequest &req, ApiResponse &rsp);
     int deleteRule(const ApiRequest &req, ApiResponse &rsp);
     void queueCheckRuleBindings(const Rule &rule);
-    bool evaluateRule(Rule &rule, const Event &e, Resource *eResource, ResourceItem *eItem, QDateTime now);
+    bool evaluateRule(Rule &rule, const Event &e, Resource *eResource, ResourceItem *eItem, QDateTime now, QDateTime previousNow);
     void indexRuleTriggers(Rule &rule);
     void triggerRule(Rule &rule);
     bool ruleToMap(const Rule *rule, QVariantMap &map);

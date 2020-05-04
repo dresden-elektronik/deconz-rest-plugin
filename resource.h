@@ -47,6 +47,8 @@ extern const char *RAttrType;
 extern const char *RAttrClass;
 extern const char *RAttrUniqueId;
 extern const char *RAttrSwVersion;
+extern const char *RAttrLastAnnounce;
+extern const char *RAttrLastSeen;
 
 extern const char *RActionScene;
 
@@ -72,6 +74,7 @@ extern const char *RStateGesture;
 extern const char *RStateHue;
 extern const char *RStateHumidity;
 extern const char *RStateLastUpdated;
+extern const char *RStateLift;
 extern const char *RStateLightLevel;
 extern const char *RStateLowBattery;
 extern const char *RStateLocaltime;
@@ -95,6 +98,7 @@ extern const char *RStateSunrise;
 extern const char *RStateSunset;
 extern const char *RStateTampered;
 extern const char *RStateTemperature;
+extern const char *RStateTilt;
 extern const char *RStateTiltAngle;
 extern const char *RStateValve;
 extern const char *RStateVibration;

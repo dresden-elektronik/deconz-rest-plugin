@@ -526,9 +526,10 @@ int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
 
     for (; pi != pend; ++pi)
     {
-        if(!((pi.key() == "name") || (pi.key() == "modelid") || (pi.key() == "swversion")
+        if (!((pi.key() == "name") || (pi.key() == "modelid") || (pi.key() == "swversion")
              || (pi.key() == "type")  || (pi.key() == "uniqueid")  || (pi.key() == "manufacturername")
-             || (pi.key() == "state")  || (pi.key() == "config") || (pi.key() == "mode" && sensor->modelId() == "Lighting Switch")))
+             || (pi.key() == "state")  || (pi.key() == "config")
+             || (pi.key() == "mode" && (sensor->modelId() == "Lighting Switch" || sensor->modelId().startsWith(QLatin1String("SYMFONISK"))))))
         {
             rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/sensors/%2").arg(pi.key()), QString("parameter, %1, not available").arg(pi.key())));
             rsp.httpStatus = HttpStatusBadRequest;
@@ -608,7 +609,9 @@ int DeRestPluginPrivate::updateSensor(const ApiRequest &req, ApiResponse &rsp)
     {
         Sensor::SensorMode mode = (Sensor::SensorMode)map["mode"].toUInt(&ok);
 
-        if (ok && (map["mode"].type() == QVariant::Double) && (mode == Sensor::ModeScenes || mode == Sensor::ModeTwoGroups || mode == Sensor::ModeColorTemperature))
+        if (ok && (map["mode"].type() == QVariant::Double)
+            && ((sensor->modelId() == "Lighting Switch" && (mode == Sensor::ModeScenes || mode == Sensor::ModeTwoGroups || mode == Sensor::ModeColorTemperature))
+                || (sensor->modelId().startsWith(QLatin1String("SYMFONISK")) && (mode == Sensor::ModeScenes || mode == Sensor::ModeDimmer))))
         {
             if (sensor->mode() != mode)
             {
@@ -1708,12 +1711,18 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
         {
             const char *key = item->descriptor().suffix + 6;
 
-            if (rid.suffix == RStateLastUpdated && (!item->lastSet().isValid() || (item->lastSet().date().year() < 2000)))
+            if (rid.suffix == RStateLastUpdated)
             {
-                state[key] = QLatin1String("none");
-                continue;
+                if (!item->lastSet().isValid() || item->lastSet().date().year() < 2000)
+                {
+                    state[key] = QLatin1String("none");
+                }
+                else
+                {
+                    state[key] = item->toVariant().toDateTime().toString("yyyy-MM-ddTHH:mm:ss.zzz");
+                }
             }
-            if (rid.suffix == RStateOrientationX)
+            else if (rid.suffix == RStateOrientationX)
             {
                 ix = item;
             }
@@ -1742,6 +1751,10 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
     //sensor
     map["name"] = sensor->name();
     map["type"] = sensor->type();
+    if (sensor->type().startsWith(QLatin1String("Z"))) // ZigBee sensor
+    {
+        map["lastseen"] = sensor->lastRx().toUTC().toString("yyyy-MM-ddTHH:mm:ss.zzz");
+    }
 
     if (req.path.size() > 2 && req.path[2] == QLatin1String("devices"))
     {
@@ -1981,6 +1994,26 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             }
         }
     }
+    else if (strncmp(e.what(), "attr/", 5) == 0)
+    {
+        ResourceItem *item = sensor->item(e.what());
+        if (item)
+        {
+            QVariantMap map;
+            map["t"] = QLatin1String("event");
+            map["e"] = QLatin1String("changed");
+            map["r"] = QLatin1String("sensors");
+            map["id"] = e.id();
+            map["uniqueid"] = sensor->uniqueId();
+            QVariantMap config;
+
+            // For now, don't collect top-level attributes into a single event.
+            const char *key = item->descriptor().suffix + 5;
+            map[key] = item->toVariant();
+
+            webSocketServer->broadcastTextMessage(Json::serialize(map));
+        }
+    }
     else if (e.what() == REventAdded)
     {
         checkSensorGroup(sensor);
@@ -2028,21 +2061,6 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
         smap["id"] = e.id();
         map["sensor"] = smap;
 
-        webSocketServer->broadcastTextMessage(Json::serialize(map));
-    }
-    else if (e.what() == RAttrName)
-    {
-        QVariantMap map;
-        map["t"] = QLatin1String("event");
-        map["e"] = QLatin1String("changed");
-        map["r"] = QLatin1String("sensors");
-        map["id"] = e.id();
-        map["uniqueid"] = sensor->uniqueId();
-
-        if (e.what() == RAttrName) // new attributes might be added in future
-        {
-            map["name"] = sensor->name();
-        }
         webSocketServer->broadcastTextMessage(Json::serialize(map));
     }
     else if (e.what() == REventValidGroup)

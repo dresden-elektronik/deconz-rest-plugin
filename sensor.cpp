@@ -143,17 +143,21 @@ static const Sensor::ButtonMap ikeaRemoteMap[] = {
 static const Sensor::ButtonMap ikeaDimmerMap[] = {
 //    mode                ep    cluster cmd   param button                                       name
     // on
-    { Sensor::ModeDimmer, 0x01, 0x0008, 0x04, 255,  S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Move to level 255 (with on/off)" },
+    { Sensor::ModeDimmer,           0x01, 0x0008, 0x04, 255,  S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Move to level 255 (with on/off)" },
     // dim up
-    { Sensor::ModeDimmer, 0x01, 0x0008, 0x05, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Move up (with on/off)" },
-    // { Sensor::ModeDimmer, 0x01, 0x0008, 0x05, 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "Move up (with on/off)" },
-    // { Sensor::ModeDimmer, 0x01, 0x0008, 0x07, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop_ up (with on/off)" },
+    { Sensor::ModeDimmer,           0x01, 0x0008, 0x05, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Move up (with on/off)" },
+    { Sensor::ModeDimmer,           0x01, 0x0008, 0x07, 0,    0,                                           "Stop_ up (with on/off)" },
+ // { Sensor::ModeDimmer,           0x01, 0x0008, 0x05, 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "Move up (with on/off)" },
+ // { Sensor::ModeDimmer,           0x01, 0x0008, 0x07, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop_ up (with on/off)" },
     // dim down
-    { Sensor::ModeDimmer, 0x01, 0x0008, 0x01, 1,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "Move down" },
-    // { Sensor::ModeDimmer, 0x01, 0x0008, 0x01, 1,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD,           "Move down" },
-    // { Sensor::ModeDimmer, 0x01, 0x0008, 0x07, 1,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop_ down (with on/off)" },
+    { Sensor::ModeDimmer,           0x01, 0x0008, 0x01, 1,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "Move down" },
+    { Sensor::ModeDimmer,           0x01, 0x0008, 0x07, 1,    0,                                           "Stop_ down (with on/off)" },
+ // { Sensor::ModeDimmer,           0x01, 0x0008, 0x01, 1,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD,           "Move down" },
+ // { Sensor::ModeDimmer,           0x01, 0x0008, 0x07, 1,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop_ down (with on/off)" },
     // off
-    { Sensor::ModeDimmer, 0x01, 0x0008, 0x04, 0,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Move to level 0 (with on/off)" },
+    { Sensor::ModeDimmer,           0x01, 0x0008, 0x04, 0,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Move to level 0 (with on/off)" },
+    // shut off warnings
+    { Sensor::ModeDimmer,           0x01, 0x0008, 0x07, 0,    0,                                           "Stop_ up (with on/off)" },
     // end
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
@@ -174,12 +178,19 @@ static const Sensor::ButtonMap ikeaSoundControllerMap[] = {
     { Sensor::ModeScenes,           0x01, 0x0006, 0x02, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Toggle" },
     { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 0,    S_BUTTON_1 + S_BUTTON_ACTION_DOUBLE_PRESS,   "Step Up" },
     { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 1,    S_BUTTON_1 + S_BUTTON_ACTION_TREBLE_PRESS,   "Step Down" },
+    { Sensor::ModeDimmer,           0x01, 0x0006, 0x02, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Toggle" },
+    { Sensor::ModeDimmer,           0x01, 0x0008, 0x02, 0,    S_BUTTON_1 + S_BUTTON_ACTION_DOUBLE_PRESS,   "Step Up" },
+    { Sensor::ModeDimmer,           0x01, 0x0008, 0x02, 1,    S_BUTTON_1 + S_BUTTON_ACTION_TREBLE_PRESS,   "Step Down" },
     // turn clockwise
     { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "Move Up" },
     { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop" },
+    { Sensor::ModeDimmer,           0x01, 0x0008, 0x01, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Move Up" },
+    { Sensor::ModeDimmer,           0x01, 0x0008, 0x03, 0,    0,                                           "Stop" },
     // turn counter clockwise
     { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 1,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD,           "Move Down" },
     { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 1,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop" },
+    { Sensor::ModeDimmer,           0x01, 0x0008, 0x01, 1,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "Move Down" },
+    { Sensor::ModeDimmer,           0x01, 0x0008, 0x03, 1,    0,                                           "Stop" },
     // end
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
@@ -480,11 +491,17 @@ static const Sensor::ButtonMap icasaKeypadMap[] = {
     { Sensor::ModeScenes,           0x01, 0x0008, 0x07, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
     // Scene buttons
     { Sensor::ModeScenes,           0x01, 0x0005, 0x05, 1,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "Recall scene 1" },
+    { Sensor::ModeScenes,           0x01, 0x0005, 0x04, 1,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED, "Store scene 1" },
     { Sensor::ModeScenes,           0x01, 0x0005, 0x05, 2,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Recall scene 2" },
+    { Sensor::ModeScenes,           0x01, 0x0005, 0x04, 2,    S_BUTTON_4 + S_BUTTON_ACTION_LONG_RELEASED, "Store scene 2" },
     { Sensor::ModeScenes,           0x01, 0x0005, 0x05, 3,    S_BUTTON_5 + S_BUTTON_ACTION_SHORT_RELEASED, "Recall scene 3" },
+    { Sensor::ModeScenes,           0x01, 0x0005, 0x04, 3,    S_BUTTON_5 + S_BUTTON_ACTION_LONG_RELEASED, "Store scene 3" },
     { Sensor::ModeScenes,           0x01, 0x0005, 0x05, 4,    S_BUTTON_6 + S_BUTTON_ACTION_SHORT_RELEASED, "Recall scene 4" },
+    { Sensor::ModeScenes,           0x01, 0x0005, 0x04, 4,    S_BUTTON_6 + S_BUTTON_ACTION_LONG_RELEASED, "Store scene 4" },
     { Sensor::ModeScenes,           0x01, 0x0005, 0x05, 5,    S_BUTTON_7 + S_BUTTON_ACTION_SHORT_RELEASED, "Recall scene 5" },
+    { Sensor::ModeScenes,           0x01, 0x0005, 0x04, 5,    S_BUTTON_7 + S_BUTTON_ACTION_LONG_RELEASED, "Store scene 5" },
     { Sensor::ModeScenes,           0x01, 0x0005, 0x05, 6,    S_BUTTON_8 + S_BUTTON_ACTION_SHORT_RELEASED, "Recall scene 6" },
+    { Sensor::ModeScenes,           0x01, 0x0005, 0x04, 6,    S_BUTTON_8 + S_BUTTON_ACTION_LONG_RELEASED, "Store scene 6" },
     // end
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
@@ -874,6 +891,7 @@ Sensor::Sensor() :
     addItem(DataTypeTime, RStateLastUpdated);
 
     previousDirection = 0xFF;
+    previousSequenceNumber = 0xFF;
 }
 
 /*! Returns the sensor deleted state.
@@ -1018,7 +1036,6 @@ int Sensor::rxCounter() const
     return m_rxCounter;
 }
 
-
 /*! Returns the sensor manufacturer.
  */
 const QString &Sensor::manufacturer() const
@@ -1109,7 +1126,9 @@ void Sensor::jsonToState(const QString &json)
     QDateTime dt = QDateTime::currentDateTime().addSecs(-120);
     if (map.contains("lastupdated"))
     {
-        QDateTime lu = QDateTime::fromString(map["lastupdated"].toString(), QLatin1String("yyyy-MM-ddTHH:mm:ss"));
+        QString lastupdated = map["lastupdated"].toString();
+        QString format = lastupdated.length() == 19 ? QLatin1String("yyyy-MM-ddTHH:mm:ss") : QLatin1String("yyyy-MM-ddTHH:mm:ss.zzz");
+        QDateTime lu = QDateTime::fromString(lastupdated, format);
         if (lu < dt)
         {
             dt = lu;
@@ -1285,6 +1304,10 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         else if (manufacturer == QLatin1String("Bitron Home"))
         {
             if (modelid.startsWith(QLatin1String("902010/23"))) { m_buttonMap = bitronRemoteMap; }
+        }
+        else if (manufacturer == QLatin1String("Namron AS"))
+        {
+            if (modelid.startsWith(QLatin1String("4512703"))) { m_buttonMap = sunricherMap; }
         }
     }
 
