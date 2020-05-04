@@ -1510,6 +1510,23 @@ void DeRestPluginPrivate::handleMacDataRequest(const deCONZ::NodeEvent &event)
             }
         }
     }
+
+    for (auto &l : nodes)
+    {
+        if (l.state() != LightNode::StateNormal)
+        {
+            continue;
+        }
+
+        if (l.address().ext() != event.node()->address().ext())
+        {
+            continue;
+        }
+
+        l.rx();
+
+        // FIXME: probably need to do some more light stuff here.
+    }
 }
 
 /*! Adds new node(s) to node cache.
@@ -2778,11 +2795,31 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                 {
                     if (ia->id() == 0x0055) // Present Value
                     {
-                        uint8_t level = 254 * (100 - ia->numericValue().real) / 100;
-                        ResourceItem *item = lightNode->item(RStateBri);
+                        quint8 lift = 100 - ia->numericValue().real;
+                        ResourceItem *item = lightNode->item(RStateLift);
+                        if (item && item->toNumber() != lift)
+                        {
+                            item->setValue(lift);
+                            Event e(RLights, RStateLift, lightNode->id(), item);
+                            enqueueEvent(e);
+                            updated = true;
+                            pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().real);
+                        }
+                        item = lightNode->item(RStateOpen);
+                        bool open = lift < 100;
+                        if (item && item->toBool() != open)
+                        {
+                            item->setValue(open);
+                            Event e(RLights, RStateOpen, lightNode->id(), item);
+                            enqueueEvent(e);
+                            updated = true;
+                        }
+
+                        // FIXME: deprecate
+                        quint8 level = 254 * lift / 100;
+                        item = lightNode->item(RStateBri);
                         if (item && item->toNumber() != level)
                         {
-                            DBG_Printf(DBG_INFO, "0x%016llX level %u --> %u\n", lightNode->address().ext(), (uint)item->toNumber(), level);
                             item->setValue(level);
                             Event e(RLights, RStateBri, lightNode->id(), item);
                             enqueueEvent(e);
@@ -2793,12 +2830,13 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         item = lightNode->item(RStateOn);
                         if (item && item->toBool() != on)
                         {
-                            DBG_Printf(DBG_INFO, "0x%016llX onOff %u --> %u\n", lightNode->address().ext(), (uint)item->toNumber(), on);
                             item->setValue(on);
                             Event e(RLights, RStateOn, lightNode->id(), item);
                             enqueueEvent(e);
                             updated = true;
                         }
+                        // END FIXME: deprecate
+
                         lightNode->setZclValue(updateType, event.endpoint(), event.clusterId(), 0x0055, ia->numericValue());
                         break;
                     }
@@ -3253,8 +3291,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     }
     else if (sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")) ||
              sensor->modelId().startsWith(QLatin1String("TRADFRI open/close remote")) ||
-             sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")) ||
-             sensor->modelId().startsWith(QLatin1String("SYMFONISK")))
+             sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")))
     {
 
         if (ind.dstAddressMode() == deCONZ::ApsGroupAddress && ind.dstAddress().group() == 0)
@@ -3267,6 +3304,15 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 checkSensorGroup(sensor);
             }
         }
+    }
+    else if (sensor->modelId().startsWith(QLatin1String("SYMFONISK")))
+    {
+        if (zclFrame.sequenceNumber() == sensor->previousSequenceNumber)
+        {
+            return;
+        }
+        sensor->previousSequenceNumber = zclFrame.sequenceNumber();
+        checkReporting = true;
     }
     else if (sensor->modelId() == QLatin1String("Remote switch")) // legrand switch
     {
@@ -3638,13 +3684,13 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
             }
 
-            if (ok)
+            if (ok && buttonMap->button != 0)
             {
                 DBG_Printf(DBG_INFO, "button %u %s\n", buttonMap->button, buttonMap->name);
                 ResourceItem *item = sensor->item(RStateButtonEvent);
                 if (item)
                 {
-                    if (item->toNumber() == buttonMap->button)
+                    if (item->toNumber() == buttonMap->button && ind.dstAddressMode() == deCONZ::ApsGroupAddress)
                     {
                         QDateTime now = QDateTime::currentDateTime();
                         const auto dt = item->lastSet().msecsTo(now);
@@ -5117,8 +5163,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
 
             if (sensorNode.modelId().startsWith(QLatin1String("J1")))
             {
-            	item = sensorNode.addItem(DataTypeUInt8, RConfigWindowCoveringType);
-            	item->setValue(0);
+                item = sensorNode.addItem(DataTypeUInt8, RConfigWindowCoveringType);
+                item->setValue(0);
             }
         }
     }
@@ -5352,9 +5398,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
 
     if (clusterId == IAS_ZONE_CLUSTER_ID)
     {
-        if ((modelId == QLatin1String("button") && sensorNode.manufacturer() == QLatin1String("Samjin")) ||
-            (modelId == QLatin1String("multi") && sensorNode.manufacturer() == QLatin1String("Samjin")) ||
-            (modelId == QLatin1String("water") && sensorNode.manufacturer() == QLatin1String("Samjin")))
+        if ((sensorNode.manufacturer() == QLatin1String("Samjin") &&
+            (modelId == QLatin1String("button") || modelId == QLatin1String("multi") || modelId == QLatin1String("water"))) ||
+            (sensorNode.manufacturer() == QLatin1String("CentraLite") && modelId == QLatin1String("Motion Sensor-A")))
         {
             // no support for some IAS flags
         }
@@ -9826,6 +9872,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
     QDataStream stream(zclFrame.payload());
     stream.setByteOrder(QDataStream::LittleEndian);
+    stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
 
     while (attrId == 0)
     {
@@ -9882,7 +9929,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     qint16 pressure = INT16_MIN;
     quint8 onOff = UINT8_MAX;
     quint8 onOff2 = UINT8_MAX;
-    quint8 currentPositionLift = UINT8_MAX;
+    quint8 lift = UINT8_MAX;
     quint32 power = UINT32_MAX;
     quint32 consumption = UINT32_MAX;
     quint32 current = UINT32_MAX;
@@ -9901,6 +9948,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         qint32 s32;
         quint32 u32;
         quint64 u64;
+        float f;
 
         quint8 tag = 0;
 
@@ -9947,7 +9995,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             }
             break;
         case deCONZ::Zcl64BitUint: stream >> u64; break;
-        case deCONZ::ZclSingleFloat: stream >> u32; break;  // FIXME: use 4-byte float data type
+        case deCONZ::ZclSingleFloat: stream >> f; break;
         default:
         {
             DBG_Printf(DBG_INFO, "\tUnsupported datatype 0x%02X (tag 0x%02X)\n", dataType, tag);
@@ -10009,11 +10057,11 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x64 && dataType == deCONZ::Zcl8BitUint) // lumi.curtain
         {
-            DBG_Printf(DBG_INFO, "\t64 current position lift %d%%\n", u8);
             if (u8 <= 100)
             {
-                currentPositionLift = 100 - u8;
+                lift = 100 - u8;
             }
+            DBG_Printf(DBG_INFO, "\t64 lift %d (%d%%)\n", u8, lift);
         }
         else if (tag == 0x64 && dataType == deCONZ::Zcl16BitInt)
         {
@@ -10040,7 +10088,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         else if (tag == 0x66 && dataType == deCONZ::Zcl32BitInt) // lumi.weather
         {
             pressure = (s32 + 50) / 100;
-            DBG_Printf(DBG_INFO, "\t66 pressure %d\n", pressure);
+            DBG_Printf(DBG_INFO, "\t66 pressure %d (%d)\n", s32, pressure);
         }
         else if (tag == 0x6e && dataType == deCONZ::Zcl8BitUint) // lumi.ctrl_neutral2
         {
@@ -10052,27 +10100,13 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x95 && dataType == deCONZ::ZclSingleFloat) // lumi.ctrl_ln2
         {
-            DBG_Printf(DBG_INFO, "\t95 consumption 0x%08X\n", u32);
-
-            void * vp = &u32;
-            float f = *(float*)vp;
-            f *= 1000;     // We want to have Wh
-            u32 = static_cast<qint32>(round(f));
-
-            DBG_Printf(DBG_INFO, "\t98 consumption %d\n", u32);
-            consumption = u32;
+            consumption = static_cast<qint32>(round(f * 1000)); // convert to Wh
+            DBG_Printf(DBG_INFO, "\t95 consumption %f (%d)\n", f, consumption);
         }
         else if (tag == 0x96 && dataType == deCONZ::ZclSingleFloat) // lumi.plug.mmeu01
         {
-            DBG_Printf(DBG_INFO, "\t96 voltage (?) 0x%08X\n", u32);
-
-            void * vp = &u32;
-            float f = *(float*)vp;
-            f /= 10;       // We want to have V
-            u32 = static_cast<qint32>(round(f));
-
-            DBG_Printf(DBG_INFO, "\t96 voltage (?) %d\n", u32);
-            voltage = u32;
+            voltage = static_cast<qint32>(round(f / 10)); // convert to V
+            DBG_Printf(DBG_INFO, "\t96 voltage %f (%d)\n", f, voltage);
         }
         else if (tag == 0x97 && dataType == deCONZ::Zcl16BitUint) // lumi.sensor_cube
         {
@@ -10080,14 +10114,8 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x97 && dataType == deCONZ::ZclSingleFloat) // lumi.plug.mmeu01
         {
-            DBG_Printf(DBG_INFO, "\t97 current 0x%08X\n", u32);
-
-            void * vp = &u32;
-            float f = *(float*)vp;
-            u32 = static_cast<qint32>(round(f));  // already in mA
-
-            DBG_Printf(DBG_INFO, "\t97 current %d\n", u32);
-            current = u32;
+            current = static_cast<qint32>(round(f));  // already in mA
+            DBG_Printf(DBG_INFO, "\t97 current %f (%d)\n", f, current);
         }
         else if (tag == 0x98 && dataType == deCONZ::Zcl16BitUint) // lumi.sensor_cube
         {
@@ -10095,14 +10123,8 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x98 && dataType == deCONZ::ZclSingleFloat) // lumi.ctrl_ln2
         {
-            DBG_Printf(DBG_INFO, "\t98 power 0x%08X\n", u32);
-
-            void * vp = &u32;
-            float f = *(float*)vp;
-            u32 = static_cast<qint32>(round(f));  // already in W
-
-            DBG_Printf(DBG_INFO, "\t98 power %d\n", u32);
-            power = u32;
+            power = static_cast<qint32>(round(f));  // already in W
+            DBG_Printf(DBG_INFO, "\t98 power %f (%d)\n", f, power);
         }
         else if (tag == 0x99 && dataType == deCONZ::Zcl16BitUint) // lumi.sensor_cube
         {
@@ -10191,16 +10213,31 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 continue;
             }
         }
-        else if (lightNode.modelId().startsWith(QLatin1String("lumi.curtain")) && currentPositionLift != UINT8_MAX)
+        else if (lightNode.modelId().startsWith(QLatin1String("lumi.curtain")) && lift != UINT8_MAX)
         {
+            item = lightNode.item(RStateLift);
+            if (item)
+            {
+                item->setValue(lift);
+                enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
+            }
+            item = lightNode.item(RStateOpen);
+            bool open = lift < 100;
+            if (item)
+            {
+                item->setValue(open);
+                enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
+            }
+            // FIXME: deprecate
             item = lightNode.item(RStateBri);
             if (item)
             {
-                const uint bri = currentPositionLift * 254 / 100;
+                const uint bri = lift * 254 / 100;
                 item->setValue(bri);
                 enqueueEvent(Event(RLights, item->descriptor().suffix, lightNode.id(), item));
                 value = bri != 0;
             }
+            // END FIXME: deprecate
         }
         else
         {
@@ -10420,7 +10457,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {   // don't add, just update, useful since door/window and presence sensors otherwise only report on activation
             ResourceItem *item = sensor.item(RStateOpen);
             item = item ? item : sensor.item(RStatePresence);
-//            item = item ? item : sensor.item(RStateWater);  // lumi.sensor_wleak.aq1, ignore, value is not reliable
+            // item = item ? item : sensor.item(RStateWater);  // lumi.sensor_wleak.aq1, ignore, value is not reliable
             if (attrId == 0xff02)
             {
                 // don't update Mija devices
@@ -14420,8 +14457,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                  sensor->modelId().startsWith(QLatin1String("TRADFRI open/close remote")) ||
                  sensor->modelId().startsWith(QLatin1String("TRADFRI remote control")) ||
                  sensor->modelId().startsWith(QLatin1String("TRADFRI wireless dimmer")) ||
-                 sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")) ||
-                 sensor->modelId().startsWith(QLatin1String("SYMFONISK")))
+                 sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")))
         {
             checkSensorGroup(sensor);
 
@@ -14431,6 +14467,31 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 {
                     sensor->setLastAttributeReportBind(idleTotalCounter);
 
+                }
+            }
+        }
+        else if (sensor->modelId().startsWith(QLatin1String("SYMFONISK")))
+        {
+            ResourceItem *item = sensor->item(RStateButtonEvent);
+
+            if (!item || !item->lastSet().isValid())
+            {
+                BindingTask bindingTask;
+
+                bindingTask.state = BindingTask::StateIdle;
+                bindingTask.action = BindingTask::ActionBind;
+                bindingTask.restNode = sensor;
+                Binding &bnd = bindingTask.binding;
+                bnd.srcAddress = sensor->address().ext();
+                bnd.dstAddrMode = deCONZ::ApsExtAddress;
+                bnd.srcEndpoint = sensor->fingerPrint().endpoint;
+                bnd.clusterId = LEVEL_CLUSTER_ID;
+                bnd.dstAddress.ext = apsCtrl->getParameter(deCONZ::ParamMacAddress);
+                bnd.dstEndpoint = endpoint();
+
+                if (bnd.dstEndpoint > 0) // valid gateway endpoint?
+                {
+                    queueBindingTask(bindingTask);
                 }
             }
         }

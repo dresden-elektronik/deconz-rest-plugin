@@ -143,17 +143,21 @@ static const Sensor::ButtonMap ikeaRemoteMap[] = {
 static const Sensor::ButtonMap ikeaDimmerMap[] = {
 //    mode                ep    cluster cmd   param button                                       name
     // on
-    { Sensor::ModeDimmer, 0x01, 0x0008, 0x04, 255,  S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Move to level 255 (with on/off)" },
+    { Sensor::ModeDimmer,           0x01, 0x0008, 0x04, 255,  S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Move to level 255 (with on/off)" },
     // dim up
-    { Sensor::ModeDimmer, 0x01, 0x0008, 0x05, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Move up (with on/off)" },
-    // { Sensor::ModeDimmer, 0x01, 0x0008, 0x05, 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "Move up (with on/off)" },
-    // { Sensor::ModeDimmer, 0x01, 0x0008, 0x07, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop_ up (with on/off)" },
+    { Sensor::ModeDimmer,           0x01, 0x0008, 0x05, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Move up (with on/off)" },
+    { Sensor::ModeDimmer,           0x01, 0x0008, 0x07, 0,    0,                                           "Stop_ up (with on/off)" },
+ // { Sensor::ModeDimmer,           0x01, 0x0008, 0x05, 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "Move up (with on/off)" },
+ // { Sensor::ModeDimmer,           0x01, 0x0008, 0x07, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop_ up (with on/off)" },
     // dim down
-    { Sensor::ModeDimmer, 0x01, 0x0008, 0x01, 1,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "Move down" },
-    // { Sensor::ModeDimmer, 0x01, 0x0008, 0x01, 1,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD,           "Move down" },
-    // { Sensor::ModeDimmer, 0x01, 0x0008, 0x07, 1,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop_ down (with on/off)" },
+    { Sensor::ModeDimmer,           0x01, 0x0008, 0x01, 1,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "Move down" },
+    { Sensor::ModeDimmer,           0x01, 0x0008, 0x07, 1,    0,                                           "Stop_ down (with on/off)" },
+ // { Sensor::ModeDimmer,           0x01, 0x0008, 0x01, 1,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD,           "Move down" },
+ // { Sensor::ModeDimmer,           0x01, 0x0008, 0x07, 1,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop_ down (with on/off)" },
     // off
-    { Sensor::ModeDimmer, 0x01, 0x0008, 0x04, 0,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Move to level 0 (with on/off)" },
+    { Sensor::ModeDimmer,           0x01, 0x0008, 0x04, 0,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Move to level 0 (with on/off)" },
+    // shut off warnings
+    { Sensor::ModeDimmer,           0x01, 0x0008, 0x07, 0,    0,                                           "Stop_ up (with on/off)" },
     // end
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
@@ -174,12 +178,19 @@ static const Sensor::ButtonMap ikeaSoundControllerMap[] = {
     { Sensor::ModeScenes,           0x01, 0x0006, 0x02, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Toggle" },
     { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 0,    S_BUTTON_1 + S_BUTTON_ACTION_DOUBLE_PRESS,   "Step Up" },
     { Sensor::ModeScenes,           0x01, 0x0008, 0x02, 1,    S_BUTTON_1 + S_BUTTON_ACTION_TREBLE_PRESS,   "Step Down" },
+    { Sensor::ModeDimmer,           0x01, 0x0006, 0x02, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Toggle" },
+    { Sensor::ModeDimmer,           0x01, 0x0008, 0x02, 0,    S_BUTTON_1 + S_BUTTON_ACTION_DOUBLE_PRESS,   "Step Up" },
+    { Sensor::ModeDimmer,           0x01, 0x0008, 0x02, 1,    S_BUTTON_1 + S_BUTTON_ACTION_TREBLE_PRESS,   "Step Down" },
     // turn clockwise
     { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "Move Up" },
     { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop" },
+    { Sensor::ModeDimmer,           0x01, 0x0008, 0x01, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Move Up" },
+    { Sensor::ModeDimmer,           0x01, 0x0008, 0x03, 0,    0,                                           "Stop" },
     // turn counter clockwise
     { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 1,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD,           "Move Down" },
     { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 1,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop" },
+    { Sensor::ModeDimmer,           0x01, 0x0008, 0x01, 1,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "Move Down" },
+    { Sensor::ModeDimmer,           0x01, 0x0008, 0x03, 1,    0,                                           "Stop" },
     // end
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
@@ -842,6 +853,7 @@ Sensor::Sensor() :
     addItem(DataTypeTime, RStateLastUpdated);
 
     previousDirection = 0xFF;
+    previousSequenceNumber = 0xFF;
 }
 
 /*! Returns the sensor deleted state.
