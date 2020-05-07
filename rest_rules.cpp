@@ -1220,7 +1220,7 @@ void DeRestPluginPrivate::queueCheckRuleBindings(const Rule &rule)
     \param now - the current date/time to check the rule against
     \return true if rule can be triggered
  */
-bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eResource, ResourceItem *eItem, QDateTime now)
+bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eResource, ResourceItem *eItem, QDateTime now, QDateTime previousNow)
 {
     if (!apsCtrl || !eItem || !eResource || (apsCtrl->networkState() != deCONZ::InNetwork))
     {
@@ -1398,8 +1398,7 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
             }
 
             QDateTime dt = item->lastChanged().addSecs(c->seconds());
-            qint64 delta = now.msecsTo(dt);
-            if (delta < -500 || delta >= 500)
+            if (dt <= previousNow || dt > now)
             {
                 return false;
             }
@@ -1419,9 +1418,10 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
         }
         else if (c->op() == RuleCondition::OpIn && c->suffix() == RConfigLocalTime)
         {
-            QTime t = now.time();
+            const QTime t = now.time();
+            const QTime pt = previousNow.time();
 
-            if (eItem->descriptor().suffix == RConfigLocalTime && t.secsTo(c->time0()) != 0)
+            if (eItem->descriptor().suffix == RConfigLocalTime && (c->time0() <= pt || c->time0() > t))
             {
                 return false; // Only trigger on start time
             }
@@ -1447,9 +1447,10 @@ bool DeRestPluginPrivate::evaluateRule(Rule &rule, const Event &e, Resource *eRe
         }
         else if (c->op() == RuleCondition::OpNotIn && c->suffix() == RConfigLocalTime)
         {
-            QTime t = now.time();
+            const QTime t = now.time();
+            const QTime pt = previousNow.time();
 
-            if (eItem->descriptor().suffix == RConfigLocalTime && t.secsTo(c->time1()) != 0)
+            if (eItem->descriptor().suffix == RConfigLocalTime && (c->time1() <= pt || c->time1() > t))
             {
                 return false; // Only trigger on end time
             }
@@ -1842,6 +1843,9 @@ void DeRestPluginPrivate::handleRuleEvent(const Event &e)
     const QDateTime now = localTime
       ? QDateTime::fromMSecsSinceEpoch(localTime->toNumber())
       : QDateTime::currentDateTime();
+    const QDateTime previousNow = (localTime && localTime->toNumberPrevious() > 0)
+      ? QDateTime::fromMSecsSinceEpoch(localTime->toNumberPrevious())
+      : now.addSecs(-1);
 
     if (!resource || !item || item->rulesInvolved().empty())
     {
@@ -1850,11 +1854,11 @@ void DeRestPluginPrivate::handleRuleEvent(const Event &e)
 
     if (!e.id().isEmpty())
     {
-        DBG_Printf(DBG_INFO, "rule event at %s: %s/%s/%s: %d -> %d\n", qPrintable(now.toString("hh:mm:ss.zzz")), e.resource(), qPrintable(e.id()), e.what(), e.numPrevious(), e.num());
+        DBG_Printf(DBG_INFO, "rule event %s/%s/%s: %d -> %d\n", e.resource(), qPrintable(e.id()), e.what(), e.numPrevious(), e.num());
     }
     else
     {
-        DBG_Printf(DBG_INFO_L2, "rule event at %s: /%s\n", qPrintable(now.toString("hh:mm:ss.zzz")), e.what());
+        DBG_Printf(DBG_INFO_L2, "rule event /%s: %s -> %s (%lldms)\n", e.what(), qPrintable(previousNow.toString("hh:mm:ss.zzz")), qPrintable(now.toString("hh:mm:ss.zzz")), previousNow.msecsTo(now));
     }
 
 
@@ -1870,7 +1874,7 @@ void DeRestPluginPrivate::handleRuleEvent(const Event &e)
                 continue;
             }
 
-            if (evaluateRule(rules[i], e, resource, item, now))
+            if (evaluateRule(rules[i], e, resource, item, now, previousNow))
             {
                 rulesToTrigger.push_back(i);
             }

@@ -2472,12 +2472,12 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
     // IKEA SYMFONISK sound controller
-    else if (sensor->modelId().startsWith(QLatin1String("SYMFONISK")))
-    {
-        clusters.push_back(ONOFF_CLUSTER_ID);
-        clusters.push_back(LEVEL_CLUSTER_ID);
-        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
-    }
+    // else if (sensor->modelId().startsWith(QLatin1String("SYMFONISK")))
+    // {
+    //     clusters.push_back(ONOFF_CLUSTER_ID);
+    //     clusters.push_back(LEVEL_CLUSTER_ID);
+    //     srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+    // }
     // LEGRAND Remote switch
     else if (sensor->modelId() == QLatin1String("Remote switch"))
     {
@@ -2686,7 +2686,7 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
         sensor->modelId().startsWith(QLatin1String("TRADFRI motion sensor")) ||
         sensor->modelId().startsWith(QLatin1String("TRADFRI remote control")) ||
         sensor->modelId().startsWith(QLatin1String("TRADFRI wireless dimmer")) ||
-        sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
+        // sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
         sensor->modelId().startsWith(QLatin1String("902010/23"))) // bitron remote
     {
 
