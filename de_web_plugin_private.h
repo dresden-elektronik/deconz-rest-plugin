@@ -1310,6 +1310,7 @@ public:
     void storeRecoverOnOffBri(LightNode *lightNode);
     bool flsNbMaintenance(LightNode *lightNode);
     bool pushState(QString json, QTcpSocket *sock);
+    void patchNodeDescriptor(const deCONZ::ApsDataIndication &ind);
 
     void pushClientForClose(QTcpSocket *sock, int closeTimeout, const QHttpRequestHeader &hdr);
 
@@ -1360,6 +1361,7 @@ public:
     void handleZdpIndication(const deCONZ::ApsDataIndication &ind);
     bool handleMgmtBindRspConfirm(const deCONZ::ApsDataConfirm &conf);
     void handleDeviceAnnceIndication(const deCONZ::ApsDataIndication &ind);
+    void handleNodeDescriptorResponseIndication(const deCONZ::ApsDataIndication &ind);
     void handleIeeeAddressReqIndication(const deCONZ::ApsDataIndication &ind);
     void handleNwkAddressReqIndication(const deCONZ::ApsDataIndication &ind);
     void handleMgmtBindRspIndication(const deCONZ::ApsDataIndication &ind);
