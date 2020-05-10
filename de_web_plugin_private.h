@@ -322,6 +322,7 @@
 #define VENDOR_KONKE        0x1268
 #define VENDOR_OSRAM_STACK  0xBBAA
 #define VENDOR_C2DF         0xC2DF
+#define VENDOR_PHILIO       0xFFA0
 
 #define ANNOUNCE_INTERVAL 10 // minutes default announce interval
 
