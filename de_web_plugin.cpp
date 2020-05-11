@@ -3954,6 +3954,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                                 {
                                     modelId = QLatin1String("SF21 smoke sensor");
                                 }
+                                //This device have model ID but not manufacture name
+                                if (modelId == QLatin1String("PST03A-v2.2.5"))
+                                {
+                                    manufacturer = QLatin1String("Philio");
+                                }
                             }
                         }
                     }
