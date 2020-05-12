@@ -292,6 +292,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SERCOMM, "SZ-ESW01", emberMacPrefix }, // Sercomm / Telstra smart plug
     { VENDOR_SERCOMM, "SZ-SRN12N", emberMacPrefix }, // Sercomm siren
     { VENDOR_SERCOMM, "SZ-SRN12N", energyMiMacPrefix }, // Sercomm siren
+    { VENDOR_SERCOMM, "SZ-DWS04", emberMacPrefix }, // Sercomm open/close sensor
     { VENDOR_ALERTME, "MOT003", tiMacPrefix }, // Hive Motion Sensor
     { VENDOR_SUNRICHER, "4512703", silabs2MacPrefix }, // Namron 4-ch remote controller
     { VENDOR_SENGLED_OPTOELEC, "E13-", zhejiangMacPrefix }, // Sengled PAR38 Bulbs
@@ -6129,7 +6130,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId().startsWith(QLatin1String("1117-S")) ||    // iris motion sensor v3
                                     i->modelId().startsWith(QLatin1String("3326-L")) ||    // iris motion sensor v2
                                     i->modelId().startsWith(QLatin1String("3320-L")) ||    // Centralite contact sensor
-                                    i->modelId().startsWith(QLatin1String("lumi.sen_ill")))// Xiaomi ZB3.0 light sensor
+                                    i->modelId().startsWith(QLatin1String("lumi.sen_ill")) || // Xiaomi ZB3.0 light sensor
+                                    i->modelId().startsWith(QLatin1String("SZ-DWS04")))    // Sercomm open/close sensor
                                 {  }
                                 else
                                 {
