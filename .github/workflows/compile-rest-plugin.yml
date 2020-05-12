@@ -1,0 +1,30 @@
+name: Compile the REST plugin
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install dependencies
+      run: |
+        wget -O - http://phoscon.de/apt/deconz.pub.key | sudo apt-key add -
+        sudo sh -c "echo 'deb [arch=amd64] http://phoscon.de/apt/deconz \
+            $(lsb_release -cs) main' > \
+            /etc/apt/sources.list.d/deconz.list"
+        sudo apt update
+        sudo apt install -y deconz deconz-dev
+
+    - name: Compile the plugin
+      run: |
+        qmake && make -j2
+        cp ../libde_rest_plugin.so $HOME
+
+    - name: Upload libde_rest_plugin.so
+      uses: actions/upload-artifact@v2
+      with:
+        name: libde_rest_plugin.so.zip
+        path: '~/libde_rest_plugin.so'
