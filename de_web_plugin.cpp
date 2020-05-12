@@ -4340,13 +4340,19 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case METERING_CLUSTER_ID:
                 {
-                    fpConsumptionSensor.inClusters.push_back(ci->id());
+                    if(!modelId == QLatin1String("lumi.plug.mmeu01"))
+                    {
+                        fpConsumptionSensor.inClusters.push_back(ci->id());
+                    }
                 }
                     break;
 
                 case ELECTRICAL_MEASUREMENT_CLUSTER_ID:
                 {
-                    fpPowerSensor.inClusters.push_back(ci->id());
+                    if(!modelId == QLatin1String("lumi.plug.mmeu01"))
+                    {
+                        fpPowerSensor.inClusters.push_back(ci->id());
+                    }
                 }
                     break;
 
