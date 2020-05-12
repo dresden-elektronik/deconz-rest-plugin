@@ -2568,14 +2568,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(0x04);
         sensor->setMgmtBindSupported(true);
     }
-    // LifeControl Enviroment Sensor
-    else if (sensor->modelId().startsWith(QLatin1String("VOC_Sensor")))
-    {
-        clusters.push_back(TEMPERATURE_MEASUREMENT_CLUSTER_ID);
-        srcEndpoints.push_back(0x00);
-        srcEndpoints.push_back(0x01);
-        sensor->setMgmtBindSupported(true);
-    }
     // Bitron remote control
     else if (sensor->modelId().startsWith(QLatin1String("902010/23")))
     {

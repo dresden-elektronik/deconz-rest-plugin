@@ -4205,24 +4205,17 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case TEMPERATURE_MEASUREMENT_CLUSTER_ID:
                 {
-                    if (modelId.startsWith(QLatin1String("VOC_Sensor")) && i->endpoint() == 0x01)
+                    if (modelId == QLatin1String("VOC_Sensor"))
                     {
                         fpHumiditySensor.inClusters.push_back(ci->id());
                     }
-                    else
-                    {
-                        fpTemperatureSensor.inClusters.push_back(ci->id());
-                    }
+                    fpTemperatureSensor.inClusters.push_back(ci->id());
                 }
                     break;
 
                 case RELATIVE_HUMIDITY_CLUSTER_ID:
                 {
-                    if (modelId.startsWith(QLatin1String("VOC_Sensor")))
-                    {
-                        // Ignore RELATIVE HUMIDITY CLUSTER
-                    }
-                    else
+                    if(modelId != QLatin1String("VOC_Sensor"))
                     {
                         fpHumiditySensor.inClusters.push_back(ci->id());
                     }
@@ -4358,11 +4351,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case THERMOSTAT_CLUSTER_ID:
                 {
-                    if (modelId.startsWith(QLatin1String("VOC_Sensor")))
-                    {
-                        // Ignore THERMOSTAT CLUSTER
-                    }
-                    else
+                    if(modelId != QLatin1String("VOC_Sensor"))
                     {
                         fpThermostatSensor.inClusters.push_back(ci->id());
                     }
