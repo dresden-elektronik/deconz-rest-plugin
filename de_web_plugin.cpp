@@ -5074,6 +5074,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         else if (sensorNode.fingerPrint().hasInCluster(SAMJIN_CLUSTER_ID))
         {
             clusterId = SAMJIN_CLUSTER_ID;
+            item = sensorNode.addItem(DataTypeInt16, RStateOrientationX);
+            item = sensorNode.addItem(DataTypeInt16, RStateOrientationY);
+            item = sensorNode.addItem(DataTypeInt16, RStateOrientationZ);
         }
         item = sensorNode.addItem(DataTypeBool, RStateVibration);
         item->setValue(false);
@@ -5403,15 +5406,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_SAMJIN)
     {
         sensorNode.setManufacturer("Samjin");
-
-        if (sensorNode.type() == QLatin1String("ZHAVibration"))
-        {
-            item = sensorNode.addItem(DataTypeInt16, RStateOrientationX);
-            item = sensorNode.addItem(DataTypeInt16, RStateOrientationY);
-            item = sensorNode.addItem(DataTypeInt16, RStateOrientationZ);
-            item = sensorNode.addItem(DataTypeUInt16, RConfigDuration);
-            item->setValue(0);
-        }
 
         if (fingerPrint.hasInCluster(IAS_ZONE_CLUSTER_ID)) // POLL_CONTROL_CLUSTER_ID
         {
@@ -6636,7 +6630,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                     else if (event.clusterId() == SAMJIN_CLUSTER_ID)
                     {
                         bool updated = false;
-                        bool vibration = false;
 
                         for (;ia != enda; ++ia)
                         {
@@ -6647,8 +6640,29 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 continue;
                             }
 
+                            if (ia->id() == 0x0010) // active
+                            {
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
+                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
+                                }
 
-                            if (ia->id() == 0x0012) // accelerate x
+                                ResourceItem *item = i->item(RStateVibration);
+                                if (item)
+                                {
+                                    const bool vibration = ia->numericValue().u8 == 0x01;
+                                    item->setValue(vibration);
+                                    updated = true;
+
+                                    if (item->lastSet() == item->lastChanged())
+                                    {
+                                        Event e(RSensors, item->descriptor().suffix, i->id(), item);
+                                        enqueueEvent(e);
+                                    }
+                                }
+                            }
+                            else if (ia->id() == 0x0012) // accelerate x
                             {
                                 if (updateType != NodeValue::UpdateInvalid)
                                 {
@@ -6667,7 +6681,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         Event e(RSensors, item->descriptor().suffix, i->id(), item);
                                         enqueueEvent(e);
-                                        vibration = true;
                                     }
                                 }
                             }
@@ -6690,7 +6703,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         Event e(RSensors, item->descriptor().suffix, i->id(), item);
                                         enqueueEvent(e);
-                                        vibration = true;
                                     }
                                 }
                             }
@@ -6713,7 +6725,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         Event e(RSensors, item->descriptor().suffix, i->id(), item);
                                         enqueueEvent(e);
-                                        vibration = true;
                                     }
                                 }
                             }
@@ -6721,24 +6732,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                         if (updated)
                         {
-                            if (vibration)
-                            {
-                                {
-                                    ResourceItem *item = i->item(RStateVibration);
-                                    if (item)
-                                    {
-                                        item->setValue(true);
-                                        enqueueEvent(Event(RSensors, RStateVibration, i->id(), item));
-
-                                        // prepare to set vibration to false automatically
-                                        ResourceItem *item2 = i->item(RConfigDuration);
-                                        if (item2 && item2->toNumber() > 0)
-                                        {
-                                          i->durationDue = item->lastSet().addSecs(item2->toNumber());
-                                        }
-                                    }
-                                }
-                            }
                             i->setNeedSaveDatabase(true);
                             i->updateStateTimestamp();
                             enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
