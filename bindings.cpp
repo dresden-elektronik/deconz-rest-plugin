@@ -1997,6 +1997,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("DIN power consumption module") || //Legrand DIN power consumption module
         sensor->modelId() == QLatin1String("Remote motion sensor") || //Legrand Motion detector
         sensor->modelId() == QLatin1String("Remote toggle switch") || //Legrand switch module
+        // Philio
+        sensor->modelId() == QLatin1String("PST03A-v2.2.5") || //Philio pst03-a
         // ORVIBO
         sensor->modelId().startsWith(QLatin1String("SN10ZW")) ||
         sensor->modelId().startsWith(QLatin1String("SF2")) ||
