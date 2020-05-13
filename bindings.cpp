@@ -923,7 +923,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
         const Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
 
-        if (sensor->type() == QLatin1String("ZHAVibration") && sensor->modelId().startsWith(QLatin1String("multi")))
+        if (sensor->type() == QLatin1String("ZHAOpenClose") && sensor->modelId().startsWith(QLatin1String("multi")))
         {
             // Only configure periodic reports, as events are already sent though zone status change notification commands
             rq.minInterval = 300;
@@ -1430,7 +1430,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
         return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
     }
-    else if (bt.binding.clusterId == SAMJIN_CLUSTER_ID && checkMacVendor(bt.restNode->address(), VENDOR_SAMJIN))
+    else if (bt.binding.clusterId == SAMJIN_CLUSTER_ID)
     {
         Sensor *sensor = dynamic_cast<Sensor*>(bt.restNode);
         if (!sensor)
@@ -1439,32 +1439,44 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
 
         // based on https://github.com/SmartThingsCommunity/SmartThingsPublic/blob/master/devicetypes/smartthings/smartsense-multi-sensor.src/smartsense-multi-sensor.groovy
-        if (sensor->type() == QLatin1String("ZHAVibration") && sensor->modelId().startsWith(QLatin1String("multi")))
+        if (sensor->type() == QLatin1String("ZHAVibration"))
         {
-            rq.dataType = deCONZ::Zcl16BitInt;
-            rq.attributeId = 0x0012; // acceleration x
-            rq.minInterval = 1;
-            rq.maxInterval = 300;
-            rq.reportableChange16bit = 1;
-            rq.manufacturerCode = VENDOR_SAMJIN;
+            const quint16 manufacturerCode = sensor->manufacturer() == QLatin1String("Samjin") ? VENDOR_SAMJIN
+                : sensor->manufacturer() == QLatin1String("SmartThings") ? VENDOR_PHYSICAL : VENDOR_CENTRALITE;
+            const quint16 minInterval = manufacturerCode == VENDOR_SAMJIN ? 0 : 1;
+
+            rq.dataType = deCONZ::Zcl8BitBitMap;
+            rq.attributeId = 0x0010; // active
+            rq.minInterval = manufacturerCode == VENDOR_SAMJIN ? 0 : 10;
+            rq.maxInterval = 3600;
+            rq.reportableChange8bit = 1;
+            rq.manufacturerCode = manufacturerCode;
+
+            ConfigureReportingRequest rq1;
+            rq1.dataType = deCONZ::Zcl16BitInt;
+            rq1.attributeId = 0x0012; // acceleration x
+            rq1.minInterval = minInterval;
+            rq1.maxInterval = 300;
+            rq1.reportableChange16bit = 1;
+            rq1.manufacturerCode = manufacturerCode;
 
             ConfigureReportingRequest rq2;
             rq2.dataType = deCONZ::Zcl16BitInt;
             rq2.attributeId = 0x0013; // acceleration y
-            rq2.minInterval = 1;
+            rq2.minInterval = minInterval;
             rq2.maxInterval = 300;
             rq2.reportableChange16bit = 1;
-            rq2.manufacturerCode = VENDOR_SAMJIN;
+            rq2.manufacturerCode = manufacturerCode;
 
             ConfigureReportingRequest rq3;
             rq3.dataType = deCONZ::Zcl16BitInt;
             rq3.attributeId = 0x0014; // acceleration z
-            rq3.minInterval = 1;
+            rq3.minInterval = minInterval;
             rq3.maxInterval = 300;
             rq3.reportableChange16bit = 1;
-            rq3.manufacturerCode = VENDOR_SAMJIN;
+            rq3.manufacturerCode = manufacturerCode;
 
-            return sendConfigureReportingRequest(bt, {rq, rq2, rq3});
+            return sendConfigureReportingRequest(bt, {rq, rq1, rq2, rq3});
         }
     }
     else if (bt.binding.clusterId == BASIC_CLUSTER_ID && checkMacVendor(bt.restNode->address(), VENDOR_PHILIPS))
@@ -2242,14 +2254,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         }
         else if (*i == SAMJIN_CLUSTER_ID)
         {
-            if (sensor->modelId().startsWith(QLatin1String("multi")))
-            {
-                val = sensor->getZclValue(*i, 0x0012); // Acceleration X
-            }
-            else
-            {
-                continue;
-            }
+            val = sensor->getZclValue(*i, 0x0012); // Acceleration X
         }
 
         quint16 maxInterval = (val.maxInterval > 0) ? (val.maxInterval * 3 / 2) : (60 * 45);

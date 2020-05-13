@@ -3128,6 +3128,9 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             else if (sensor.fingerPrint().hasInCluster(SAMJIN_CLUSTER_ID))
             {
                 clusterId = clusterId ? clusterId : SAMJIN_CLUSTER_ID;
+                item = sensor.addItem(DataTypeInt16, RStateOrientationX);
+                item = sensor.addItem(DataTypeInt16, RStateOrientationY);
+                item = sensor.addItem(DataTypeInt16, RStateOrientationZ);
             }
             item = sensor.addItem(DataTypeBool, RStateVibration);
             item->setValue(false);
@@ -3138,14 +3141,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 item = sensor.addItem(DataTypeInt16, RStateOrientationZ);
                 item = sensor.addItem(DataTypeUInt16, RStateTiltAngle);
                 item = sensor.addItem(DataTypeUInt16, RStateVibrationStrength);
-            }
-            else  if (sensor.modelId().startsWith(QLatin1String("multi")))
-            {
-                item = sensor.addItem(DataTypeInt16, RStateOrientationX);
-                item = sensor.addItem(DataTypeInt16, RStateOrientationY);
-                item = sensor.addItem(DataTypeInt16, RStateOrientationZ);
-                item = sensor.addItem(DataTypeUInt16, RConfigDuration);
-                item->setValue(0);
             }
         }
         else if (sensor.type().endsWith(QLatin1String("Water")))
