@@ -2266,7 +2266,7 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
                         enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
                     }
                 }
-                else if (!item && (sensor->modelId() == QLatin1String("lumi.vibration.aq1") || sensor->modelId() == QLatin1String("multi")) && sensor->type() == QLatin1String("ZHAVibration"))
+                else if (!item && (sensor->modelId().startsWith(QLatin1String("lumi.vibration")) || sensor->modelId().startsWith(QLatin1String("multi"))) && sensor->type() == QLatin1String("ZHAVibration"))
                 {
                     item = sensor->item(RStateVibration);
                     if (item && item->toBool())

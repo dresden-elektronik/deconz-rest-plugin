@@ -64,7 +64,7 @@ static uint MaxGroupTasks = 4;
 
 const quint64 macPrefixMask       = 0xffffff0000000000ULL;
 
-// New mac prefixes can be checked here: https://wintelguy.com/index.pl 
+// New mac prefixes can be checked here: https://wintelguy.com/index.pl
 const quint64 legrandMacPrefix    = 0x0004740000000000ULL;
 const quint64 ikeaMacPrefix       = 0x000b570000000000ULL;
 const quint64 emberMacPrefix      = 0x000d6f0000000000ULL;
@@ -163,6 +163,9 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_PHILIPS, "RWL02", philipsMacPrefix }, // Hue dimmer switch
     { VENDOR_PHILIPS, "ROM00", philipsMacPrefix }, // Hue smart button
     { VENDOR_PHILIPS, "SML00", philipsMacPrefix }, // Hue motion sensor
+    { VENDOR_PHYSICAL, "tagv4", stMacPrefix}, // SmartThings Arrival sensor
+    { VENDOR_PHYSICAL, "motionv4", stMacPrefix}, // SmartThings motion sensor
+    { VENDOR_PHYSICAL, "multiv4", stMacPrefix}, // SmartThings multi sensor 2016
     { VENDOR_SAMJIN, "motion", samjinMacPrefix }, // Smarthings GP-U999SJVLBAA (Samjin) Motion Sensor
     { VENDOR_SAMJIN, "multi", samjinMacPrefix }, // Smarthings (Samjin) Multipurpose Sensor
     { VENDOR_SAMJIN, "water", samjinMacPrefix }, // Smarthings (Samjin) Water Sensor
@@ -227,8 +230,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_LUTRON, "Z3-1BRL", lutronMacPrefix }, // Lutron Aurora Friends-of-Hue dimmer
     { VENDOR_KEEN_HOME , "SV01-", keenhomeMacPrefix}, // Keen Home Vent
     { VENDOR_INNR, "SP 120", jennicMacPrefix}, // innr smart plug
-    { VENDOR_PHYSICAL, "tagv4", stMacPrefix}, // SmartThings Arrival sensor
-    { VENDOR_PHYSICAL, "motionv4", stMacPrefix}, // SmartThings motion sensor
     { VENDOR_JENNIC, "VMS_ADUROLIGHT", jennicMacPrefix }, // Trust motion sensor ZPIR-8000
     { VENDOR_JENNIC, "CSW_ADUROLIGHT", jennicMacPrefix }, // Trust contact sensor ZMST-808
     { VENDOR_JENNIC, "ZYCT-202", jennicMacPrefix }, // Trust remote control ZYCT-202
@@ -792,7 +793,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             handleNodeDescriptorResponseIndication(ind);
         }
             break;
-            
+
         case ZDP_SIMPLE_DESCRIPTOR_RSP_CLID:
         case ZDP_ACTIVE_ENDPOINTS_RSP_CLID:
         {
@@ -4292,7 +4293,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpPresenceSensor.inClusters.push_back(ci->id());
                     }
-                    
+
                 }
                     break;
 
@@ -4317,7 +4318,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case SAMJIN_CLUSTER_ID:
                 {
-                    if (modelId == QLatin1String("multi")) // Samjin Multipurpose sensor
+                    if (modelId.startsWith(QLatin1String("multi"))) // Samjin Multipurpose sensor
                     {
                         fpVibrationSensor.inClusters.push_back(SAMJIN_CLUSTER_ID);
                     }
@@ -5456,9 +5457,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
 
     if (clusterId == IAS_ZONE_CLUSTER_ID)
     {
-        if ((sensorNode.manufacturer() == QLatin1String("Samjin") &&
-            (modelId == QLatin1String("button") || modelId == QLatin1String("multi") || modelId == QLatin1String("water"))) ||
-            (sensorNode.manufacturer() == QLatin1String("CentraLite") && modelId == QLatin1String("Motion Sensor-A")))
+        if (modelId == QLatin1String("button") || modelId.startsWith(QLatin1String("multi")) || modelId == QLatin1String("water") ||
+            modelId == QLatin1String("Motion Sensor-A"))
         {
             // no support for some IAS flags
         }
@@ -6108,6 +6108,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             {
                                 if (i->modelId().startsWith(QLatin1String("tagv4")) ||   // SmartThings Arrival sensor
                                     i->modelId().startsWith(QLatin1String("motionv4")) ||// SmartThings motion sensor
+                                    i->modelId().startsWith(QLatin1String("multiv4")) ||// SmartThings multi sensor 2016
                                     i->modelId().startsWith(QLatin1String("3305-S")) ||  // SmartThings 2014 motion sensor
                                     i->modelId() == QLatin1String("Remote switch") ||    // Legrand switch
                                     i->modelId() == QLatin1String("Double gangs remote switch") ||    // Legrand switch double
@@ -13857,14 +13858,14 @@ void DeRestPluginPrivate::patchNodeDescriptor(const deCONZ::ApsDataIndication &i
             {
                 quint8 seq;
                 quint8 status;
-            
+
                 QDataStream stream(ind.asdu());
                 stream.setByteOrder(QDataStream::LittleEndian);
-                
+
                 stream >> seq;
                 stream >> status;
                 stream >> nwk;
-                
+
                 nd.readFromStream(stream);
             }
 
@@ -13876,12 +13877,12 @@ void DeRestPluginPrivate::patchNodeDescriptor(const deCONZ::ApsDataIndication &i
                     DBG_Printf(DBG_INFO_L2, "[ND] Ext: %s\n", qPrintable(node->address().toStringExt()));
                     DBG_Printf(DBG_INFO_L2, "[ND] Current node descriptor: 0x%s\n", qPrintable(node->nodeDescriptor().toByteArray().toHex()));
                     DBG_Printf(DBG_INFO_L2, "[ND] Checking node...\n");
-                    
+
                     if(node->nodeDescriptor().isNull() || node->nodeDescriptor().toByteArray() != nd.toByteArray())
                     {
                         deCONZ::Node *patchableNode = const_cast<deCONZ::Node*>(&*node);
                         deCONZ::NodeDescriptor &patchableNd = const_cast<deCONZ::NodeDescriptor&>(nd);
-                        
+
                         if(node->nodeDescriptor().isNull())                 // Check current node descriptor
                         {
                             DBG_Printf(DBG_INFO_L2, "[ND] Current node descriptor is NULL...\n");
@@ -13892,7 +13893,7 @@ void DeRestPluginPrivate::patchNodeDescriptor(const deCONZ::ApsDataIndication &i
                             DBG_Printf(DBG_INFO_L2, "[ND] Current node descriptor deviates from the received...\n");
                         }
                         DBG_Printf(DBG_INFO_L2, "[ND] Received node descriptor: 0x%s\n", qPrintable(nd.toByteArray().toHex()));
-                        
+
                         if(qPrintable(nd.toByteArray().toHex()) == 0)       // Check received node descriptor
                         {
                             // Sanity check, do nothing
@@ -13900,7 +13901,7 @@ void DeRestPluginPrivate::patchNodeDescriptor(const deCONZ::ApsDataIndication &i
                         else
                         {
                             int j = 0;
-                            
+
                             if(nd.macCapabilities() == 0)       // This already results in an invalid node descriptor
                             {
                                 DBG_Printf(DBG_INFO_L2, "[ND] Received node descriptor is invalid due to mac capabilities being 0\n");
@@ -13908,14 +13909,14 @@ void DeRestPluginPrivate::patchNodeDescriptor(const deCONZ::ApsDataIndication &i
                                 patchableNd.setMacCapabilities(deCONZ::MacCapability::MacAllocateAddress);
                                 j++;
                             }
-                            
-                            // Also fix incorrect manufacturer code for older Develco devices 
+
+                            // Also fix incorrect manufacturer code for older Develco devices
                             if(node->address().toStringExt().mid(2).startsWith("0015bc", Qt::CaseInsensitive) && nd.manufacturerCode() == 0x0000)
                             {
                                 patchableNd.setManufacturerCode(4117);  // MFC: 0x1015
                                 j++;
                             }
-                            
+
                             if(j > 0)
                             {
                                 if(!patchableNd.isNull() && node->nodeDescriptor().toByteArray() == patchableNd.toByteArray())
@@ -13929,7 +13930,7 @@ void DeRestPluginPrivate::patchNodeDescriptor(const deCONZ::ApsDataIndication &i
                                     DBG_Printf(DBG_INFO_L2, "[ND] Updating node cache and database\n");
                                     apsCtrl->updateNode(*patchableNode);
                                     DBG_Printf(DBG_INFO_L2, "[ND] new MFC: 0x%004X\n", node->nodeDescriptor().manufacturerCode());
-                                    pushZdpDescriptorDb(node->address().ext(), ZDO_ENDPOINT, ZDP_NODE_DESCRIPTOR_CLID, node->nodeDescriptor().toByteArray());                            
+                                    pushZdpDescriptorDb(node->address().ext(), ZDO_ENDPOINT, ZDP_NODE_DESCRIPTOR_CLID, node->nodeDescriptor().toByteArray());
                                 }
                                 else
                                 {
@@ -13949,7 +13950,7 @@ void DeRestPluginPrivate::patchNodeDescriptor(const deCONZ::ApsDataIndication &i
                     }
                 }
                 i++;
-            }       
+            }
 }
 
 /*! Speed up discovery of end devices.
