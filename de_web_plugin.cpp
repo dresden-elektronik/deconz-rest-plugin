@@ -791,6 +791,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
         case ZDP_NODE_DESCRIPTOR_RSP_CLID:
         {
             handleNodeDescriptorResponseIndication(ind);
+            handleIndicationSearchSensors(ind, zclFrame);
         }
             break;
             
