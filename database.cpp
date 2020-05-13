@@ -3139,7 +3139,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 item = sensor.addItem(DataTypeUInt16, RStateTiltAngle);
                 item = sensor.addItem(DataTypeUInt16, RStateVibrationStrength);
             }
-            else  if (sensor.modelId() == QLatin1String("multi") && sensor.manufacturer() == QLatin1String("Samjin"))
+            else  if (sensor.modelId().startsWith(QLatin1String("multi")))
             {
                 item = sensor.addItem(DataTypeInt16, RStateOrientationX);
                 item = sensor.addItem(DataTypeInt16, RStateOrientationY);
@@ -3190,7 +3190,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     return 0;
                     // hasVoltage = false;
                 }
-                else if (sensor.modelId() == QLatin1String("ZB-ONOFFPlug-D0005") || 
+                else if (sensor.modelId() == QLatin1String("ZB-ONOFFPlug-D0005") ||
                          sensor.modelId() == QLatin1String("Plug-230V-ZB3.0"))
                 {
                     hasVoltage = false;
@@ -3392,9 +3392,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
         if (sensor.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
         {
-          if ((sensor.manufacturer() == QLatin1String("Samjin") &&
-              (sensor.modelId() == QLatin1String("button") || sensor.modelId() == QLatin1String("multi") || sensor.modelId() == QLatin1String("water"))) ||
-              (sensor.manufacturer() == QLatin1String("CentraLite") && sensor.modelId() == QLatin1String("Motion Sensor-A")))
+          if (sensor.modelId() == QLatin1String("button") || sensor.modelId().startsWith(QLatin1String("multi")) || sensor.modelId() == QLatin1String("water") ||
+              sensor.modelId() == QLatin1String("Motion Sensor-A"))
             {
                 // no support for some IAS Zone flags
             }

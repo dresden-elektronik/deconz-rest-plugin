@@ -2271,7 +2271,7 @@ controller device, that supports a keypad and LCD screen.</description>
 			<client>
 			</client>
 		</cluster>
-		
+
 		<cluster id="0x0501" name="IAS ACE">
 			<description>The IAS ACE cluster defines an interface to the functionality of any Ancillary Control Equipment of the IAS system. Using this cluster, a ZigBee enabled ACE device can access a IAS CIE device and manipulate the IAS system, on behalf of a level-2 user.</description>
 			<server>
@@ -2492,7 +2492,7 @@ controller device, that supports a keypad and LCD screen.</description>
 				</command>
 			</client>
 		</cluster>
-		
+
 		<cluster id="0x0502" name="IAS WD">
 			<description>The IAS WD cluster provides an interface to the functionality of any Warning Device equipment of the IAS system. Using this cluster, a ZigBee enabled CIE device can access a ZigBee enabled IAS WD device and issue alarm warning indications (siren, strobe lighting, etc.) when a system alarm condition is detected.</description>
 			<server>
@@ -2970,8 +2970,19 @@ Fil pilote > Off=0001 - On=0002</description>
 		</cluster>
 
 		<!-- Samjin -->
+    <cluster id="0xfc02" name="Samjin" mfcode="0x110a">
+			<description>Samjin manufacturer-specifc cluster for SmartThings multi sensor.</description>
+			<server>
+				<attribute id="0x0000" name="Unknown" type="u8" mfcode="0x110a" default="0" access="r" required="m"> </attribute>
+				<attribute id="0x0012" name="Acceleration X" type="s16" mfcode="0x110a" default="0" access="r" required="m"> </attribute>
+				<attribute id="0x0013" name="Acceleration Y" type="s16" mfcode="0x110a" default="0" access="r" required="m"> </attribute>
+				<attribute id="0x0014" name="Acceleration Z" type="s16" mfcode="0x110a" default="0" access="r" required="m"> </attribute>
+			</server>
+			<client>
+			</client>
+		</cluster>
 		<cluster id="0xfc02" name="Samjin" mfcode="0x1241">
-			<description>Attributes and commands.</description>
+			<description>Samjin manufacturer-specifc cluster for SmartThings multi sensor.</description>
 			<server>
 				<attribute id="0x0000" name="Unknown" type="u8" mfcode="0x1241" default="0" access="r" required="m"> </attribute>
 				<attribute id="0x0012" name="Acceleration X" type="s16" mfcode="0x1241" default="0" access="r" required="m"> </attribute>
@@ -3046,7 +3057,7 @@ Fil pilote > Off=0001 - On=0002</description>
 			<client>
 			</client>
 		</cluster>
-		
+
 		<!-- INNR -->
 		<cluster id="0xfc82" name="innr" mfcode="0x1166">
 			<description>innr specific attributes.</description>

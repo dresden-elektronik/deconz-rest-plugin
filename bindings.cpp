@@ -923,8 +923,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
         const Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
 
-        if (sensor->type() == QLatin1String("ZHAVibration") && sensor->modelId() == QLatin1String("multi")) // FIXME: check if this also applies to other Samjin sensors
-        // if (bt.restNode->node()->nodeDescriptor().manufacturerCode() == VENDOR_SAMJIN)
+        if (sensor->type() == QLatin1String("ZHAVibration") && sensor->modelId().startsWith(QLatin1String("multi")))
         {
             // Only configure periodic reports, as events are already sent though zone status change notification commands
             rq.minInterval = 300;
@@ -1160,6 +1159,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         else if (sensor && (sensor->modelId() == QLatin1String("Motion Sensor-A") ||
                             sensor->modelId() == QLatin1String("tagv4") ||
                             sensor->modelId() == QLatin1String("motionv4") ||
+                            sensor->modelId() == QLatin1String("multiv4") ||
                             sensor->modelId() == QLatin1String("RFDL-ZB-MS") ||
                             sensor->modelId() == QLatin1String("Zen-01")))
         {
@@ -1439,7 +1439,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
 
         // based on https://github.com/SmartThingsCommunity/SmartThingsPublic/blob/master/devicetypes/smartthings/smartsense-multi-sensor.src/smartsense-multi-sensor.groovy
-        if (sensor->type() == QLatin1String("ZHAVibration") && sensor->modelId() == QLatin1String("multi"))
+        if (sensor->type() == QLatin1String("ZHAVibration") && sensor->modelId().startsWith(QLatin1String("multi")))
         {
             rq.dataType = deCONZ::Zcl16BitInt;
             rq.attributeId = 0x0012; // acceleration x
@@ -1949,10 +1949,10 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // SmartThings
         sensor->modelId().startsWith(QLatin1String("tagv4")) ||
         sensor->modelId().startsWith(QLatin1String("motionv4")) ||
-        (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("button")) ||
+        sensor->modelId() == QLatin1String("button") ||
         (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("motion")) ||
-        (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("multi")) ||
-        (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("water")) ||
+        sensor->modelId().startsWith(QLatin1String("multi")) ||
+        sensor->modelId() == QLatin1String("water") ||
         (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("outlet")) ||
         // Bitron
         sensor->modelId().startsWith(QLatin1String("902010")) ||
@@ -2244,7 +2244,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         }
         else if (*i == SAMJIN_CLUSTER_ID)
         {
-            if (sensor->modelId() == QLatin1String("multi"))
+            if (sensor->modelId().startsWith(QLatin1String("multi")))
             {
                 val = sensor->getZclValue(*i, 0x0012); // Acceleration X
             }
