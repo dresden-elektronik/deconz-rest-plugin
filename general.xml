@@ -2974,7 +2974,7 @@ Fil pilote > Off=0001 - On=0002</description>
 			<description>Samjin manufacturer-specifc cluster for SmartThings multi sensor.</description>
 			<server>
         <attribute id="0x0000" name="Motion Threshold Multiplier" type="u8" mfcode="0x104e" default="0" access="rw" required="m"> </attribute>
-        <attribute id="0x0001" name="Motion Threshold" type="u16" mfcode="0x104e" default="0" access="rw" required="m"> </attribute>
+        <attribute id="0x0002" name="Motion Threshold" type="u16" mfcode="0x104e" default="0" access="rw" required="m"> </attribute>
         <attribute id="0x0010" name="Active" type="bmp8" mfcode="0x104e" default="0" access="r" required="m">
           <value name="Active" value="0"></value>
         </attribute>
@@ -2989,7 +2989,7 @@ Fil pilote > Off=0001 - On=0002</description>
 			<description>Samjin manufacturer-specifc cluster for SmartThings multi sensor.</description>
 			<server>
         <attribute id="0x0000" name="Motion Threshold Multiplier" type="u8" mfcode="0x110a" default="0" access="rw" required="m"> </attribute>
-        <attribute id="0x0001" name="Motion Threshold" type="u16" mfcode="0x110a" default="0" access="rw" required="m"> </attribute>
+        <attribute id="0x0002" name="Motion Threshold" type="u16" mfcode="0x110a" default="0" access="rw" required="m"> </attribute>
         <attribute id="0x0010" name="Active" type="bmp8" mfcode="0x110a" default="0" access="r" required="m">
           <value name="Active" value="0"></value>
         </attribute>
@@ -3004,7 +3004,6 @@ Fil pilote > Off=0001 - On=0002</description>
 			<description>Samjin manufacturer-specifc cluster for SmartThings multi sensor.</description>
 			<server>
 				<attribute id="0x0000" name="Motion Threshold Multiplier" type="u8" mfcode="0x1241" default="0" access="rw" required="m"> </attribute>
-        <attribute id="0x0001" name="Motion Threshold" type="u16" mfcode="0x1241" default="0" access="rw" required="m"> </attribute>
         <attribute id="0x0010" name="Active" type="bmp8" mfcode="0x1241" default="0" access="r" required="m">
           <value name="Active" value="0"></value>
         </attribute>
