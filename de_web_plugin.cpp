@@ -298,6 +298,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SENGLED_OPTOELEC, "E13-", zhejiangMacPrefix }, // Sengled PAR38 Bulbs
     { VENDOR_JENNIC, "Plug-230V-ZB3.0", silabs2MacPrefix }, // Immax NEO ZB3.0 smart plug
     { VENDOR_WAXMAN, "leakSMART Water Sensor V2", celMacPrefix }, // WAXMAN LeakSMART v2
+    { VENDOR_PHILIO, "PST03A-v2.2.5", emberMacPrefix }, // Philio pst03-a
     { 0, nullptr, 0 }
 };
 
@@ -791,6 +792,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
         case ZDP_NODE_DESCRIPTOR_RSP_CLID:
         {
             handleNodeDescriptorResponseIndication(ind);
+            handleIndicationSearchSensors(ind, zclFrame);
         }
             break;
             
@@ -3953,6 +3955,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                                 else if (modelId == QLatin1String("98293058552c49f38ad0748541ee96ba"))
                                 {
                                     modelId = QLatin1String("SF21 smoke sensor");
+                                }
+                                //This device have model ID but not manufacture name
+                                if (modelId == QLatin1String("PST03A-v2.2.5"))
+                                {
+                                    manufacturer = QLatin1String("Philio");
                                 }
                             }
                         }
