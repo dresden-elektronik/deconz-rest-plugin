@@ -3404,6 +3404,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 item->setValue(false);
                 item = sensor.addItem(DataTypeBool, RStateTampered);
                 item->setValue(false);
+                item = sensor.addItem(DataTypeUInt8, RConfigPending);
+                item->setValue(0);
             }
         }
 
