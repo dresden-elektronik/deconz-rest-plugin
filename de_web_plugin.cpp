@@ -2534,6 +2534,11 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
 
                         if (!item)
                         {
+                            if (lightNode->modelId() == QLatin1String("FB56-ZCW08KU1.1"))
+                            {
+                                // Feibit color light exposes color temperature, but doesn't support it, see #2733.
+                                continue;
+                            }
                             item = lightNode->addItem(DataTypeUInt16, RStateCt);
                             DBG_Assert(item != 0);
                         }
