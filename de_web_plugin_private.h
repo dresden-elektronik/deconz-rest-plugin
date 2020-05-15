@@ -1312,6 +1312,8 @@ public:
     bool flsNbMaintenance(LightNode *lightNode);
     bool pushState(QString json, QTcpSocket *sock);
     void patchNodeDescriptor(const deCONZ::ApsDataIndication &ind);
+    void writeIasCieAddress(Sensor*);
+    void checkIasEnrollmentStatus(Sensor*);
 
     void pushClientForClose(QTcpSocket *sock, int closeTimeout, const QHttpRequestHeader &hdr);
 
