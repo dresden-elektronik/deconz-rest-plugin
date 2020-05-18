@@ -2041,7 +2041,10 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Sercomm
         sensor->modelId().startsWith(QLatin1String("SZ-")) ||
         // WAXMAN
-        sensor->modelId() == QLatin1String("leakSMART Water Sensor V2"))
+        sensor->modelId() == QLatin1String("leakSMART Water Sensor V2") ||
+        // RGBgenie
+        sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5")) ||
+        sensor->modelId().startsWith(QLatin1String("ZGRC-KEY")))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||
@@ -2574,6 +2577,22 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+    }
+    // RGBgenie remote control
+    else if (sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5")))
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+        clusters.push_back(SCENE_CLUSTER_ID);
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+    }
+    // RGBgenie remote control
+    else if (sensor->modelId().startsWith(QLatin1String("ZGRC-KEY")))
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+        srcEndpoints.push_back(0x01);
+        srcEndpoints.push_back(0x02);
     }
     else
     {
