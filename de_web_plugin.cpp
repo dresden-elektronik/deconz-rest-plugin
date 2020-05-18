@@ -238,6 +238,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SUNRICHER, "ICZB-RM", silabs2MacPrefix }, // iCasa remote
     { VENDOR_SUNRICHER, "ZGRC-KEY", emberMacPrefix }, // Sunricher wireless CCT remote
     { VENDOR_SUNRICHER, "ZG2833K", emberMacPrefix }, // Sunricher remote controller
+    { VENDOR_SUNRICHER, "RGBgenie ZB-5", emberMacPrefix }, // RGBgenie remote control
     { VENDOR_JENNIC, "SPZB0001", jennicMacPrefix }, // Eurotronic thermostat
     { VENDOR_NONE, "RES001", tiMacPrefix }, // Hubitat environment sensor, see #1308
     { VENDOR_SINOPE, "WL4200S", sinopeMacPrefix}, // Sinope water sensor
@@ -3380,6 +3381,12 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         checkReporting = true;
         checkClientCluster = true;
     }
+    else if (sensor->modelId().startsWith(QLatin1String("RGBGenie ZB-5"))  // RGBGenie remote control
+             sensor->modelId().startsWith(QLatin1String("ZGRC-KEY")))      // RGBGenie ZB-5001
+    {
+        checkReporting = true;
+        checkClientCluster = true;
+    }
     else if (sensor->modelId().startsWith(QLatin1String("RC 110"))) // innr remote
     {
         checkClientCluster = true;
@@ -6056,7 +6063,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("ZG2833K")) || // Sunricher remote controller
                                         i->modelId().startsWith(QLatin1String("SV01-")) || // Keen Home vent
                                         i->modelId().startsWith(QLatin1String("4512703")) || // Namron 4-ch remote controller
-                                        i->modelId().startsWith(QLatin1String("RC_V14"))) // Heiman remote controller
+                                        i->modelId().startsWith(QLatin1String("RC_V14")) || // Heiman remote controller
+                                        i->modelId().startsWith(QLatin1String("RGBgenie ZB-5"))) // RGBgenie remote control
                                     {
                                         bat = ia->numericValue().u8;
                                     }
@@ -6092,7 +6100,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("ZG2833K")) || // Sunricher remote controller
                                         i->modelId().startsWith(QLatin1String("SV01-")) || // Keen Home vent
                                         i->modelId().startsWith(QLatin1String("4512703")) || // Namron 4-ch remote controller
-                                        i->modelId().startsWith(QLatin1String("RC_V14"))) // Heiman remote controller
+                                        i->modelId().startsWith(QLatin1String("RC_V14")) // Heiman remote controller
+                                        i->modelId().startsWith(QLatin1String("RGBgenie ZB-5"))) // RGBgenie remote control
                                     {
                                         bat = ia->numericValue().u8;
                                     }
