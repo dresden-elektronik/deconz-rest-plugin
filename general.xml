@@ -824,112 +824,312 @@
 	<!-- TODO -->
 	</cluster>
 	<cluster id="0x000c" name="Analog Input (Basic)">
-		<description>An interface for reading the value of an analog measurement and accessing
-various characteristics of that measurement.</description>
+		<description>An interface for reading the value of an analog measurement and accessing various characteristics of that measurement.</description>
 		<server>
-			<attribute id="0x0051" type="bool" name="Out of service" required="m" access="rw" default="0"></attribute>
-			<attribute id="0x0055" type="float" name="Present value" required="m" access="rw" default="0"></attribute>
-			<attribute id="0x006f" type="bmp8" name="Status flags" required="m" access="r" default="0">
+            <attribute id="0x001c" name="Description" type="cstring" required="o" access="rw"></attribute>
+            <attribute id="0x0041" name="Max Present Value" type="float" required="o" access="rw"></attribute>
+            <attribute id="0x0045" name="Min Present Value" type="float" required="o" access="rw"></attribute>
+			<attribute id="0x0051" name="Out of service" type="bool" required="m" access="rw" default="0"></attribute>
+			<attribute id="0x0055" name="Present value" type="float" required="m" access="rw" default="0"></attribute>
+            <attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0"></attribute>
+                <value name="No fault detected" value="0"></value>
+                <value name="No sensor" value="1"></value>
+                <value name="Over range" value="2"></value>
+                <value name="Under range" value="3"></value>
+                <value name="Open loop" value="4"></value>
+                <value name="Shorted loop" value="5"></value>
+                <value name="No output" value="6"></value>
+                <value name="Unreliable other" value="7"></value>
+                <value name="Process error" value="8"></value>
+                <value name="Multi state fault" value="9"></value>
+                <value name="Configuration error" value="10"></value>
+            </attribute>
+            <attribute id="0x006a" name="Resolution" type="float" required="o" access="rw"></attribute>
+			<attribute id="0x006f" name="Status flags" type="bmp8" required="m" access="r" default="0">
 				<value name="In Alarm" value="0x01"></value>
 				<value name="Fault" value="0x02"></value>
 				<value name="Overidden" value="0x04"></value>
 				<value name="Out of Service" value="0x08"></value>
 			</attribute>
-			<attribute id="0xff05" type="u16" name="Unknown" required="o" access="r" default="0" showas="hex"></attribute>
+            <attribute id="0x0075" name="Engineering Units" type="enum16" required="o" access="rw"></attribute>
+            <attribute id="0x0100" name="Application Type" type="u32" required="o" access="r"></attribute>
+			<attribute id="0xff05" name="Unknown" type="u16" required="o" access="r" default="0" showas="hex"></attribute>
 		</server>
         <client>
         </client>
-	<!-- TODO -->
 	</cluster>
-  <cluster id="0x000d" name="Analog Output (Basic)">
-    <description>The Analog Output (Basic) cluster provides an interface for setting the value of an analog output (typically to the environment) and accessing various characteristics of that value.</description>
-    <server>
-      <attribute id="0x001c" type="cstring" name="Description" required="o" access="rw"></attribute>
-      <attribute id="0x0041" type="float" name="Max Present Value" required="o" access="rw"></attribute>
-      <attribute id="0x0045" type="float" name="Min Present Value" required="o" access="rw"></attribute>
-      <attribute id="0x0051" type="bool" name="Out of service" required="m" access="rw" default="0"></attribute>
-      <attribute id="0x0055" type="float" name="Present value" required="m" access="rw" default="0"></attribute>
-      <attribute id="0x006f" type="bmp8" name="Status flags" required="m" access="r" default="0">
-        <value name="In Alarm" value="0x01"></value>
-        <value name="Fault" value="0x02"></value>
-        <value name="Overidden" value="0x04"></value>
-        <value name="Out of Service" value="0x08"></value>
-      </attribute>
-      <attribute id="0xf000" type="u32" name="Xiaomi 0xf000" required="o" access="r"></attribute>
-     </server>
-     <client>
-     </client>
-   </cluster>
+    <cluster id="0x000d" name="Analog Output (Basic)">
+        <description>The Analog Output (Basic) cluster provides an interface for setting the value of an analog output (typically to the environment) and accessing various characteristics of that value.</description>
+        <server>
+            <attribute id="0x001c" name="Description" type="cstring" required="o" access="rw"></attribute>
+            <attribute id="0x0041" name="Max Present Value" type="float" required="o" access="rw"></attribute>
+            <attribute id="0x0045" name="Min Present Value" type="float" required="o" access="rw"></attribute>
+            <attribute id="0x0051" name="Out of service" type="bool" required="m" access="rw" default="0"></attribute>
+            <attribute id="0x0055" name="Present value" type="float" required="m" access="rw" default="0"></attribute>
+            <attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0"></attribute>
+                <value name="No fault detected" value="0"></value>
+                <value name="No sensor" value="1"></value>
+                <value name="Over range" value="2"></value>
+                <value name="Under range" value="3"></value>
+                <value name="Open loop" value="4"></value>
+                <value name="Shorted loop" value="5"></value>
+                <value name="No output" value="6"></value>
+                <value name="Unreliable other" value="7"></value>
+                <value name="Process error" value="8"></value>
+                <value name="Multi state fault" value="9"></value>
+                <value name="Configuration error" value="10"></value>
+            </attribute>
+            <attribute id="0x0068" name="Relinquish Default" type="float" required="o" access="rw"></attribute>
+            <attribute id="0x006a" name="Resolution" type="float" required="o" access="rw"></attribute>
+            <attribute id="0x006f" name="Status flags" type="bmp8" required="m" access="r" default="0">
+                <value name="In Alarm" value="0x01"></value>
+                <value name="Fault" value="0x02"></value>
+                <value name="Overidden" value="0x04"></value>
+                <value name="Out of Service" value="0x08"></value>
+            </attribute>
+            <attribute id="0x0075" name="Engineering Units" type="enum16" required="o" access="rw"></attribute>
+            <attribute id="0x0100" name="Application Type" type="u32" required="o" access="r"></attribute>
+            <attribute id="0xf000" name="Xiaomi 0xf000" type="u32" required="o" access="r"></attribute>
+        </server>
+        <client>
+        </client>
+    </cluster>
 	<cluster id="000e" name="Analog Value (Basic)">
 	<description>An interface for setting an analog value, typically used as a control system parameter, and accessing various characteristics of that value.</description>
-	<!-- TODO -->
+        <server>
+            <attribute id="0x001c" name="Description" type="cstring" required="o" access="rw"></attribute>
+            <attribute id="0x0051" name="Out of service" type="bool" required="m" access="rw" default="0"></attribute>
+            <attribute id="0x0055" name="Present value" type="float" required="m" access="rw" default="0"></attribute>
+            <attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0"></attribute>
+                <value name="No fault detected" value="0"></value>
+                <value name="No sensor" value="1"></value>
+                <value name="Over range" value="2"></value>
+                <value name="Under range" value="3"></value>
+                <value name="Open loop" value="4"></value>
+                <value name="Shorted loop" value="5"></value>
+                <value name="No output" value="6"></value>
+                <value name="Unreliable other" value="7"></value>
+                <value name="Process error" value="8"></value>
+                <value name="Multi state fault" value="9"></value>
+                <value name="Configuration error" value="10"></value>
+            </attribute>
+            <attribute id="0x0068" name="Relinquish Default" type="float" required="o" access="rw"></attribute>
+            <attribute id="0x006f" name="Status flags" type="bmp8" required="m" access="r" default="0">
+                <value name="In Alarm" value="0x01"></value>
+                <value name="Fault" value="0x02"></value>
+                <value name="Overidden" value="0x04"></value>
+                <value name="Out of Service" value="0x08"></value>
+            </attribute>
+            <attribute id="0x0075" name="Engineering Units" type="enum16" required="o" access="rw"></attribute>
+            <attribute id="0x0100" name="Application Type" type="u32" required="o" access="r"></attribute>
+        </server>
+        <client>
+        </client>
 	</cluster>
 	<cluster id="000f" name="Binary Input (Basic)">
-		<description>The Binary Input (Basic) cluster provides an interface for reading the value of a binary measurement and accessing various characteristics of that measurement. The cluster is typically used to implement a sensor that measures a two-state physical quantity.
-		</description>
+		<description>The Binary Input (Basic) cluster provides an interface for reading the value of a binary measurement and accessing various characteristics of that measurement. The cluster is typically used to implement a sensor that measures a two-state physical quantity.</description>
 		<server>
-			<attribute id="0x001c" name="Description" type="cstring" access="rw" required="o"></attribute>
+			<attribute id="0x0004" name="Active Text" type="cstring" required="o" access="rw" default=""></attribute>
+            <attribute id="0x001c" name="Description" type="cstring" access="rw" required="o"></attribute>
+            <attribute id="0x002e" name="Inactive Text" type="cstring" required="o" access="rw" default=""></attribute>
 			<attribute id="0x0051" name="Out of Service" type="bool" default="0" access="rw" required="m"></attribute>
-			<attribute id="0x0055" name="Present Value" type="bool" default="0" access="rw" required="m"></attribute>
-			<attribute id="0x0067" name="Reliabillity" type="enum8" default="0" access="r" required="o"></attribute>
-			<attribute id="0x006F" name="Status Flags" type="bmp8" default="0" access="r" required="m">
+            <attribute id="0x0054" name="Polarity" type="enum8" required="o" access="r"></attribute>
+                <value name="Normal" value="0"></value>
+                <value name="Reverse" value="1"></value>
+			</attribute>
+            <attribute id="0x0055" name="Present Value" type="bool" default="0" access="rw" required="m"></attribute>
+			<attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0"></attribute>
+                <value name="No fault detected" value="0"></value>
+                <value name="No sensor" value="1"></value>
+                <value name="Over range" value="2"></value>
+                <value name="Under range" value="3"></value>
+                <value name="Open loop" value="4"></value>
+                <value name="Shorted loop" value="5"></value>
+                <value name="No output" value="6"></value>
+                <value name="Unreliable other" value="7"></value>
+                <value name="Process error" value="8"></value>
+                <value name="Multi state fault" value="9"></value>
+                <value name="Configuration error" value="10"></value>
+			</attribute>
+            <attribute id="0x006F" name="Status Flags" type="bmp8" default="0" access="r" required="m">
 				<value name="In Alarm" value="0x01"></value>
 				<value name="Fault" value="0x02"></value>
 				<value name="Overidden" value="0x04"></value>
 				<value name="Out of Service" value="0x08"></value>
 			</attribute>
+            <attribute id="0x0100" name="Application Type" type="u32" required="o" access="r"></attribute>
 		</server>
 		<client>
 		</client>
-	<!-- TODO -->
 	</cluster>
 	<cluster id="0010" name="Binary Output (Basic)">
-	<description></description>
-	<!-- TODO -->
+	<description>The Binary Output (Basic) cluster provides an interface for setting the value of a binary output, and accessing various characteristics of that value.</description>
+        <server>
+            <attribute id="0x0004" name="Active Text" type="cstring" required="o" access="rw" default=""></attribute>
+            <attribute id="0x001c" name="Description" type="cstring" required="o" access="rw" default=""></attribute>
+            <attribute id="0x002e" name="Inactive Text" type="cstring" required="o" access="rw" default=""></attribute>
+            <attribute id="0x0042" name="Min Off Time" type="u32" required="o" access="rw" default="0xffffffff"></attribute>
+            <attribute id="0x0043" name="Min On Time" type="u32" required="o" access="rw" default="0xffffffff"></attribute>
+            <attribute id="0x0051" name="Out of service" type="bool" required="m" access="rw" default="0"></attribute>
+            <attribute id="0x0054" name="Polarity" type="enum8" required="o" access="r"></attribute>
+                <value name="Normal" value="0"></value>
+                <value name="Reverse" value="1"></value>
+            </attribute>
+            <attribute id="0x0055" name="Present value" type="bool" required="m" access="rw"></attribute>
+            <attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0"></attribute>
+                <value name="No fault detected" value="0"></value>
+                <value name="No sensor" value="1"></value>
+                <value name="Over range" value="2"></value>
+                <value name="Under range" value="3"></value>
+                <value name="Open loop" value="4"></value>
+                <value name="Shorted loop" value="5"></value>
+                <value name="No output" value="6"></value>
+                <value name="Unreliable other" value="7"></value>
+                <value name="Process error" value="8"></value>
+                <value name="Multi state fault" value="9"></value>
+                <value name="Configuration error" value="10"></value>
+            </attribute>
+            <attribute id="0x0068" name="Relinquish Default" type="bool" required="o" access="rw"></attribute>
+            <attribute id="0x006f" name="Status flags" type="bmp8" required="m" access="r" default="0">
+                <value name="In Alarm" value="0x01"></value>
+                <value name="Fault" value="0x02"></value>
+                <value name="Overidden" value="0x04"></value>
+                <value name="Out of Service" value="0x08"></value>
+            </attribute>
+            <attribute id="0x0100" name="Application Type" type="u32" required="o" access="r"></attribute>
+        </server>
+        <client>
+        </client>
 	</cluster>
 	<cluster id="0011" name="Binary Value (Basic)">
-	<description></description>
-	<!-- TODO -->
+	<description>The Binary Value (Basic) cluster provides an interface for setting a binary value, typically used as a control system parameter, and accessing various characteristics of that value.</description>
+        <server>
+            <attribute id="0x0004" name="Active Text" type="cstring" required="o" access="rw" default=""></attribute>
+            <attribute id="0x001c" name="Description" type="cstring" required="o" access="rw" default=""></attribute>
+            <attribute id="0x002e" name="Inactive Text" type="cstring" required="o" access="rw" default=""></attribute>
+            <attribute id="0x0042" name="Min Off Time" type="u32" required="o" access="rw" default="0xffffffff"></attribute>
+            <attribute id="0x0043" name="Min On Time" type="u32" required="o" access="rw" default="0xffffffff"></attribute>
+            <attribute id="0x0051" name="Out of service" type="bool" required="m" access="rw" default="0"></attribute>
+            <attribute id="0x0055" name="Present value" type="bool" required="m" access="rw"></attribute>
+            <attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0"></attribute>
+                <value name="No fault detected" value="0"></value>
+                <value name="No sensor" value="1"></value>
+                <value name="Over range" value="2"></value>
+                <value name="Under range" value="3"></value>
+                <value name="Open loop" value="4"></value>
+                <value name="Shorted loop" value="5"></value>
+                <value name="No output" value="6"></value>
+                <value name="Unreliable other" value="7"></value>
+                <value name="Process error" value="8"></value>
+                <value name="Multi state fault" value="9"></value>
+                <value name="Configuration error" value="10"></value>
+            </attribute>
+            <attribute id="0x0068" name="Relinquish Default" type="bool" required="o" access="rw"></attribute>
+            <attribute id="0x006f" name="Status flags" type="bmp8" required="m" access="r" default="0">
+                <value name="In Alarm" value="0x01"></value>
+                <value name="Fault" value="0x02"></value>
+                <value name="Overidden" value="0x04"></value>
+                <value name="Out of Service" value="0x08"></value>
+            </attribute>
+            <attribute id="0x0100" name="Application Type" type="u32" required="o" access="r"></attribute>
+        </server>
+        <client>
+        </client>
 	</cluster>
 	<cluster id="0x0012" name="Multistate Input (Basic)">
-		<description>Provides an interface for reading the value of a multistate measurement
-and accessing various characteristics of that measurement. The cluster is typically used to implement a sensor
-that measures a physical quantity that can take on one of a number of discrete states.</description>
+		<description>Provides an interface for reading the value of a multistate measurement and accessing various characteristics of that measurement. The cluster is typically used to implement a sensor that measures a physical quantity that can take on one of a number of discrete states.</description>
 		<server>
-			<attribute id="0x004a" type="u16" name="Number of states" required="m" access="rw" default="0"></attribute>
+			<attribute id="0x001c" name="Description" type="cstring" required="o" access="rw" default=""></attribute>
+            <attribute id="0x004a" type="u16" name="Number of states" required="m" access="rw" default="0"></attribute>
 			<attribute id="0x0051" type="bool" name="Out of service" required="m" access="rw" default="0"></attribute>
 			<attribute id="0x0055" type="u16" name="Present value" required="m" access="rw" default="0"></attribute>
+            <attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0"></attribute>
+                <value name="No fault detected" value="0"></value>
+                <value name="No sensor" value="1"></value>
+                <value name="Over range" value="2"></value>
+                <value name="Under range" value="3"></value>
+                <value name="Open loop" value="4"></value>
+                <value name="Shorted loop" value="5"></value>
+                <value name="No output" value="6"></value>
+                <value name="Unreliable other" value="7"></value>
+                <value name="Process error" value="8"></value>
+                <value name="Multi state fault" value="9"></value>
+                <value name="Configuration error" value="10"></value>
+            </attribute>
 			<attribute id="0x006f" type="bmp8" name="Status flags" required="m" access="r" default="0">
 				<value name="In Alarm" value="0x01"></value>
 				<value name="Fault" value="0x02"></value>
 				<value name="Overidden" value="0x04"></value>
 				<value name="Out of Service" value="0x08"></value>
 			</attribute>
+            <attribute id="0x0100" name="Application Type" type="u32" required="o" access="r"></attribute>
 		</server>
         <client>
         </client>
-	<!-- TODO -->
 	</cluster>
 	<cluster id="0013" name="Multistate Output (Basic)">
-  	<description></description>
-    <server>
-      <attribute id="0x004a" type="u16" name="Number of states" required="m" access="rw" default="0"></attribute>
-      <attribute id="0x0051" type="bool" name="Out of service" required="m" access="rw" default="0"></attribute>
-      <attribute id="0x0055" type="u16" name="Present value" required="m" access="rw" default="0"></attribute>
-      <attribute id="0x006f" type="bmp8" name="Status flags" required="m" access="r" default="0">
-        <value name="In Alarm" value="0x01"></value>
-        <value name="Fault" value="0x02"></value>
-        <value name="Overidden" value="0x04"></value>
-        <value name="Out of Service" value="0x08"></value>
-      </attribute>
-    </server>
-    <client>
-    </client>
-	<!-- TODO -->
+  	<description>The Multistate Output (Basic) cluster provides an interface for setting the value of an output that can take one of a number of discrete values, and accessing characteristics of that value.</description>
+        <server>
+            <attribute id="0x001c" name="Description" type="cstring" required="o" access="rw" default=""></attribute>
+            <attribute id="0x004a" type="u16" name="Number of states" required="m" access="rw" default="0"></attribute>
+            <attribute id="0x0051" type="bool" name="Out of service" required="m" access="rw" default="0"></attribute>
+            <attribute id="0x0055" type="u16" name="Present value" required="m" access="rw" default="0"></attribute>
+            <attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0"></attribute>
+                <value name="No fault detected" value="0"></value>
+                <value name="No sensor" value="1"></value>
+                <value name="Over range" value="2"></value>
+                <value name="Under range" value="3"></value>
+                <value name="Open loop" value="4"></value>
+                <value name="Shorted loop" value="5"></value>
+                <value name="No output" value="6"></value>
+                <value name="Unreliable other" value="7"></value>
+                <value name="Process error" value="8"></value>
+                <value name="Multi state fault" value="9"></value>
+                <value name="Configuration error" value="10"></value>
+            </attribute>
+            <attribute id="0x0068" name="Relinquish Default" type="u16" required="o" access="rw"></attribute>
+            <attribute id="0x006f" type="bmp8" name="Status flags" required="m" access="r" default="0">
+                <value name="In Alarm" value="0x01"></value>
+                <value name="Fault" value="0x02"></value>
+                <value name="Overidden" value="0x04"></value>
+                <value name="Out of Service" value="0x08"></value>
+            </attribute>
+            <attribute id="0x0100" name="Application Type" type="u32" required="o" access="r"></attribute>
+        </server>
+        <client>
+        </client>
 	</cluster>
 	<cluster id="0014" name="Multistate Value (Basic)">
-	<description></description>
-	<!-- TODO -->
+	<description>The Multistate Value (Basic) cluster provides an interface for setting a multistate value, typically used as a control system parameter, and accessing characteristics of that value.</description>
+        <server>
+            <attribute id="0x001c" name="Description" type="cstring" required="o" access="rw" default=""></attribute>
+            <attribute id="0x004a" type="u16" name="Number of states" required="m" access="rw" default="0"></attribute>
+            <attribute id="0x0051" type="bool" name="Out of service" required="m" access="rw" default="0"></attribute>
+            <attribute id="0x0055" type="u16" name="Present value" required="m" access="rw" default="0"></attribute>
+            <attribute id="0x0067" name="Reliabillity" type="enum8" required="o" access="rw" default="0"></attribute>
+                <value name="No fault detected" value="0"></value>
+                <value name="No sensor" value="1"></value>
+                <value name="Over range" value="2"></value>
+                <value name="Under range" value="3"></value>
+                <value name="Open loop" value="4"></value>
+                <value name="Shorted loop" value="5"></value>
+                <value name="No output" value="6"></value>
+                <value name="Unreliable other" value="7"></value>
+                <value name="Process error" value="8"></value>
+                <value name="Multi state fault" value="9"></value>
+                <value name="Configuration error" value="10"></value>
+            </attribute>
+            <attribute id="0x0068" name="Relinquish Default" type="u16" required="o" access="rw"></attribute>
+            <attribute id="0x006f" type="bmp8" name="Status flags" required="m" access="r" default="0">
+                <value name="In Alarm" value="0x01"></value>
+                <value name="Fault" value="0x02"></value>
+                <value name="Overidden" value="0x04"></value>
+                <value name="Out of Service" value="0x08"></value>
+            </attribute>
+            <attribute id="0x0100" name="Application Type" type="u32" required="o" access="r"></attribute>
+        </server>
+        <client>
+        </client>
 	</cluster>
 	<cluster id="0015" name="Commissioning">
 	<description>Attributes and commands for commissioning and managing a ZigBee device.</description>
