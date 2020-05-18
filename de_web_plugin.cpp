@@ -3387,8 +3387,8 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         checkReporting = true;
         checkClientCluster = true;
     }
-    else if (sensor->modelId().startsWith(QLatin1String("RGBGenie ZB-5"))  // RGBGenie remote control
-             sensor->modelId().startsWith(QLatin1String("ZGRC-KEY")))      // RGBGenie ZB-5001
+    else if (sensor->modelId().startsWith(QLatin1String("RGBGenie ZB-5")) || // RGBGenie remote control
+             sensor->modelId().startsWith(QLatin1String("ZGRC-KEY")))        // RGBGenie ZB-5001
     {
         checkReporting = true;
         checkClientCluster = true;
@@ -6099,7 +6099,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("ZG2833K")) || // Sunricher remote controller
                                         i->modelId().startsWith(QLatin1String("SV01-")) || // Keen Home vent
                                         i->modelId().startsWith(QLatin1String("4512703")) || // Namron 4-ch remote controller
-                                        i->modelId().startsWith(QLatin1String("RC_V14")) // Heiman remote controller
+                                        i->modelId().startsWith(QLatin1String("RC_V14")) || // Heiman remote controller
                                         i->modelId().startsWith(QLatin1String("RGBgenie ZB-5"))) // RGBgenie remote control
                                     {
                                         bat = ia->numericValue().u8;
