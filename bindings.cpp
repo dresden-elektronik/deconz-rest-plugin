@@ -2019,6 +2019,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("RH3052")) ||
         // Xiaomi
         sensor->modelId().startsWith(QLatin1String("lumi.plug.maeu01")) ||
+        sensor->modelId().startsWith(QLatin1String("lumi.sen_ill.mgl01")) ||
         // iris
         sensor->modelId().startsWith(QLatin1String("1116-S")) ||
         sensor->modelId().startsWith(QLatin1String("1117-S")) ||
