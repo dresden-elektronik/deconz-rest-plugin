@@ -122,6 +122,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_CENTRALITE, "3326-L", emberMacPrefix }, // Iris motion sensor v2
     { VENDOR_C2DF, "3326-L", emberMacPrefix }, // Iris motion sensor v2
     { VENDOR_CENTRALITE, "3328-G", emberMacPrefix }, // Centralite micro motion sensor
+    { VENDOR_CENTRALITE, "3323", emberMacPrefix }, // Centralite contact sensor
     { VENDOR_DDEL, "de_spect", silabs3MacPrefix }, // dresden elektronic spectral sensor
     { VENDOR_JASCO, "45856", celMacPrefix },
     { VENDOR_NONE, "LM_",  tiMacPrefix },
@@ -4188,7 +4189,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case OCCUPANCY_SENSING_CLUSTER_ID:
                 {
-                    if (node->nodeDescriptor().manufacturerCode() == VENDOR_CENTRALITE)
+                    if (node->nodeDescriptor().manufacturerCode() == VENDOR_CENTRALITE ||
+                        node->nodeDescriptor().manufacturerCode() == VENDOR_C2DF)
                     {
                         // only use IAS Zone cluster on endpoint 0x01 for Centralite motion sensors
                     }
@@ -5432,7 +5434,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     {
         sensorNode.setManufacturer("Visonic");
     }
-    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_CENTRALITE)
+    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_CENTRALITE ||
+             node->nodeDescriptor().manufacturerCode() == VENDOR_C2DF)
     {
         sensorNode.setManufacturer("CentraLite");
     }
@@ -6143,6 +6146,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId().startsWith(QLatin1String("1117-S")) ||    // iris motion sensor v3
                                     i->modelId().startsWith(QLatin1String("3326-L")) ||    // iris motion sensor v2
                                     i->modelId().startsWith(QLatin1String("3320-L")) ||    // Centralite contact sensor
+                                    i->modelId().startsWith(QLatin1String("3323")) ||      // Centralite contact sensor
                                     i->modelId().startsWith(QLatin1String("lumi.sen_ill")) || // Xiaomi ZB3.0 light sensor
                                     i->modelId().startsWith(QLatin1String("SZ-DWS04")))    // Sercomm open/close sensor
                                 {  }

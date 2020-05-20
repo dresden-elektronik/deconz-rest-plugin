@@ -908,6 +908,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     {
         // zone status reporting only supported by some devices
         if (bt.restNode->node()->nodeDescriptor().manufacturerCode() != VENDOR_CENTRALITE &&
+            bt.restNode->node()->nodeDescriptor().manufacturerCode() != VENDOR_C2DF &&
             bt.restNode->node()->nodeDescriptor().manufacturerCode() != VENDOR_SAMJIN)
         {
             return false;
@@ -1896,6 +1897,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("3200-S")) ||
         sensor->modelId().startsWith(QLatin1String("3305-S")) ||
         sensor->modelId().startsWith(QLatin1String("3320-L")) ||
+        sensor->modelId().startsWith(QLatin1String("3323")) ||
         sensor->modelId().startsWith(QLatin1String("3326-L")) ||
         // dresden elektronik
         (sensor->manufacturer() == QLatin1String("dresden elektronik") && sensor->modelId() == QLatin1String("de_spect")) ||
@@ -2161,6 +2163,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                      sensor->modelId().endsWith(QLatin1String("86opcn01")) || // Aqara Opple
                      sensor->modelId().startsWith(QLatin1String("1116-S")) ||
                      sensor->modelId().startsWith(QLatin1String("1117-S")) ||
+                     sensor->modelId().startsWith(QLatin1String("3323")) ||
                      sensor->modelId().startsWith(QLatin1String("3326-L")) ||
                      sensor->modelId().startsWith(QLatin1String("3305-S")) ||
                      sensor->modelId() == QLatin1String("113D"))
