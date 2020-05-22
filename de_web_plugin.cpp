@@ -4142,7 +4142,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         for (const deCONZ::ZclAttribute &attr : ci->attributes())
                         {
-                            if (attr.id() == 0x0001) // IAS Zone type
+                            if (attr.id() == 0x0001 && attr.lastRead() != static_cast<time_t>(-1)) // IAS Zone type
                             {
                                 // Might not work as intended, when IAS Zone Type hasn't been read.
                                 switch (attr.numericValue().u16) {
@@ -6840,6 +6840,11 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 }
 
                                 QString str = ia->toString().simplified();
+                                if (str.startsWith(QLatin1String("TUYATEC")))
+                                {
+                                    str = QLatin1String("Tuyatec"); // normalize TUYATEC-xdqihhgb --> Tuyatec
+                                }
+
                                 if (!str.isEmpty())
                                 {
                                     if (i->manufacturer() != str)
@@ -14220,6 +14225,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         QString modelId;
         QString swBuildId;
         QString dateCode;
+        quint16 iasZoneType = 0;
         bool swBuildIdAvailable = false;
         bool dateCodeAvailable = false;
         quint8 thermostatClusterEndpoint = 0;
@@ -14280,11 +14286,66 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                             unavailBasicAttr.push_back(attr.id());
                         }
                     }
+                    else if (cl.id() == IAS_ZONE_CLUSTER_ID)
+                    {
+                        if (attr.id() == 0x0001 && attr.numericValue().u64 != 0) // Zone type
+                        {
+                            DBG_Assert(attr.numericValue().u64 <= UINT16_MAX);
+                            iasZoneType = static_cast<quint16>(attr.numericValue().u64);
+                        }
+                    }
                     else if (cl.id() == THERMOSTAT_CLUSTER_ID)
                     {
                         thermostatClusterEndpoint = sd.endpoint();
                     }
                 }
+            }
+
+            if ((sd.deviceId() == DEV_ID_IAS_ZONE || sd.deviceId() == DEV_ID_IAS_WARNING_DEVICE) && iasZoneType == 0)
+            {
+                deCONZ::ApsDataRequest apsReq;
+
+                DBG_Printf(DBG_INFO, "[3.1] get IAS Zone type for 0x%016llx\n", sc->address.ext());
+
+                // ZDP Header
+                apsReq.dstAddress() = sc->address;
+                apsReq.setDstAddressMode(deCONZ::ApsNwkAddress);
+                apsReq.setDstEndpoint(sd.endpoint());
+                apsReq.setSrcEndpoint(endpoint());
+                apsReq.setProfileId(HA_PROFILE_ID);
+                apsReq.setRadius(0);
+                apsReq.setClusterId(IAS_ZONE_CLUSTER_ID);
+                apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+
+                deCONZ::ZclFrame zclFrame;
+                zclFrame.setSequenceNumber(zclSeq++);
+                zclFrame.setCommandId(deCONZ::ZclReadAttributesId);
+                zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                                         deCONZ::ZclFCDirectionClientToServer |
+                                         deCONZ::ZclFCDisableDefaultResponse);
+
+                { // payload
+                    QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
+                    stream.setByteOrder(QDataStream::LittleEndian);
+
+                    stream << (quint16)0x0001; // IAS Zone type
+                }
+
+                { // ZCL frame
+                    QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
+                    stream.setByteOrder(QDataStream::LittleEndian);
+                    zclFrame.writeToStream(stream);
+                }
+
+                deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
+
+                if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+                {
+                    queryTime = queryTime.addSecs(1);
+                    sc->timeout.restart();
+                    sc->waitIndicationClusterId = apsReq.clusterId();
+                }
+                return;
             }
         }
 
@@ -14335,6 +14396,8 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             bool skip = false;
 
             if (thermostatClusterEndpoint == 0) // e.g. Eurotronic SPZB0001 thermostat
+            {  }
+            else if (iasZoneType > 0) // IAS motion and contact sensors
             {  }
             else if (modelId.startsWith(QLatin1String("lumi.")))
             {
