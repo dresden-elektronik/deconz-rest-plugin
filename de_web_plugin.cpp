@@ -6840,6 +6840,11 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 }
 
                                 QString str = ia->toString().simplified();
+                                if (str.startsWith(QLatin1String("TUYATEC")))
+                                {
+                                    str = QLatin1String("Tuyatec"); // normalize TUYATEC-xdqihhgb --> Tuyatec
+                                }
+
                                 if (!str.isEmpty())
                                 {
                                     if (i->manufacturer() != str)
