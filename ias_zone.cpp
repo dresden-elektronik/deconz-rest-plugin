@@ -310,30 +310,30 @@ void DeRestPluginPrivate::checkIasEnrollmentStatus(Sensor *sensor)
         ResourceItem *item = nullptr;
         item = sensor->item(RConfigPending);
         
-        if(item && item->toNumber() == 0 && iasZoneStatus.u8 == 0)
+        if (item && item->toNumber() == 0 && iasZoneStatus.u8 == 0)
         {
             DBG_Printf(DBG_INFO_L2, "[IAS] Sensor NOT enrolled\n");
             item->setValue(item->toNumber() | R_PENDING_WRITE_CIE_ADDRESS | R_PENDING_ENROLL_RESPONSE);
             std::vector<uint16_t> attributes;
             attributes.push_back(0x0000); // IAS zone status
             attributes.push_back(0x0010); // IAS CIE address
-            if(readAttributes(sensor, sensor->fingerPrint().endpoint, IAS_ZONE_CLUSTER_ID, attributes))
+            if (readAttributes(sensor, sensor->fingerPrint().endpoint, IAS_ZONE_CLUSTER_ID, attributes))
             {
                 queryTime = queryTime.addSecs(1);
             }
         }
-        else if(item &&
+        else if (item &&
                 (item->toNumber() & R_PENDING_WRITE_CIE_ADDRESS) &&
                 (item->toNumber() & R_PENDING_ENROLL_RESPONSE) &&
                 iasZoneStatus.u8 == 0)
         {
             DBG_Printf(DBG_INFO_L2, "[IAS] Sensor enrollment pending\n");
         }
-        else if(iasZoneStatus.u8 == 1)
+        else if (iasZoneStatus.u8 == 1)
         {
             DBG_Printf(DBG_INFO_L2, "[IAS] Sensor enrolled\n");
         }
-        else if(item && item->toNumber() == 48 && iasZoneStatus.u8 == 1)        // Sanity check
+        else if (item && item->toNumber() == (R_PENDING_WRITE_CIE_ADDRESS | R_PENDING_ENROLL_RESPONSE) && iasZoneStatus.u8 == 1)        // Sanity check
         {
             DBG_Printf(DBG_INFO_L2, "[IAS] Sensor reporting enrolled. Clearing config pending...\n");
             item->setValue(item->toNumber() & ~R_PENDING_WRITE_CIE_ADDRESS);
