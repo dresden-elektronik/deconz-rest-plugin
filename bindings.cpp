@@ -908,6 +908,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     {
         // zone status reporting only supported by some devices
         if (bt.restNode->node()->nodeDescriptor().manufacturerCode() != VENDOR_CENTRALITE &&
+            bt.restNode->node()->nodeDescriptor().manufacturerCode() != VENDOR_C2DF &&
             bt.restNode->node()->nodeDescriptor().manufacturerCode() != VENDOR_SAMJIN)
         {
             return false;
@@ -1896,6 +1897,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("3200-S")) ||
         sensor->modelId().startsWith(QLatin1String("3305-S")) ||
         sensor->modelId().startsWith(QLatin1String("3320-L")) ||
+        sensor->modelId().startsWith(QLatin1String("3323")) ||
         sensor->modelId().startsWith(QLatin1String("3326-L")) ||
         // dresden elektronik
         (sensor->manufacturer() == QLatin1String("dresden elektronik") && sensor->modelId() == QLatin1String("de_spect")) ||
@@ -2029,6 +2031,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("RH3052")) ||
         // Xiaomi
         sensor->modelId().startsWith(QLatin1String("lumi.plug.maeu01")) ||
+        sensor->modelId().startsWith(QLatin1String("lumi.sen_ill.mgl01")) ||
         // iris
         sensor->modelId().startsWith(QLatin1String("1116-S")) ||
         sensor->modelId().startsWith(QLatin1String("1117-S")) ||
@@ -2041,7 +2044,10 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Sercomm
         sensor->modelId().startsWith(QLatin1String("SZ-")) ||
         // WAXMAN
-        sensor->modelId() == QLatin1String("leakSMART Water Sensor V2"))
+        sensor->modelId() == QLatin1String("leakSMART Water Sensor V2") ||
+        // RGBgenie
+        sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5")) ||
+        sensor->modelId().startsWith(QLatin1String("ZGRC-KEY")))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||
@@ -2158,6 +2164,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                      sensor->modelId().endsWith(QLatin1String("86opcn01")) || // Aqara Opple
                      sensor->modelId().startsWith(QLatin1String("1116-S")) ||
                      sensor->modelId().startsWith(QLatin1String("1117-S")) ||
+                     sensor->modelId().startsWith(QLatin1String("3323")) ||
                      sensor->modelId().startsWith(QLatin1String("3326-L")) ||
                      sensor->modelId().startsWith(QLatin1String("3305-S")) ||
                      sensor->modelId() == QLatin1String("113D"))
@@ -2568,20 +2575,28 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(0x04);
         sensor->setMgmtBindSupported(true);
     }
-    // LifeControl Enviroment Sensor
-    else if (sensor->modelId().startsWith(QLatin1String("VOC_Sensor")))
-    {
-        clusters.push_back(TEMPERATURE_MEASUREMENT_CLUSTER_ID);
-        srcEndpoints.push_back(0x00);
-        srcEndpoints.push_back(0x01);
-        sensor->setMgmtBindSupported(true);
-    }
     // Bitron remote control
     else if (sensor->modelId().startsWith(QLatin1String("902010/23")))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+    }
+    // RGBgenie remote control
+    else if (sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5")))
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+        clusters.push_back(SCENE_CLUSTER_ID);
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+    }
+    // RGBgenie remote control
+    else if (sensor->modelId().startsWith(QLatin1String("ZGRC-KEY")))
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+        srcEndpoints.push_back(0x01);
+        srcEndpoints.push_back(0x02);
     }
     else
     {
