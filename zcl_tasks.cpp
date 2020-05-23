@@ -102,7 +102,7 @@ bool DeRestPluginPrivate::addTaskSetOnOff(TaskItem &task, quint8 cmd, quint16 on
         return false;
     }
     task.taskType = TaskSendOnOffToggle;
-    task.onOff = cmd;
+    task.onOff = cmd == ONOFF_COMMAND_ON || cmd == ONOFF_COMMAND_ON_WITH_TIMED_OFF; // FIXME - what about ONOFF_COMMAND_TOGGLE ?!
 
     task.req.setClusterId(ONOFF_CLUSTER_ID);
     task.req.setProfileId(HA_PROFILE_ID);
@@ -156,6 +156,7 @@ bool DeRestPluginPrivate::addTaskSetBrightness(TaskItem &task, uint8_t bri, bool
 {
     task.taskType = TaskSetLevel;
     task.level = bri;
+    task.onOff = withOnOff; // FIXME abuse of taks.onOff
     task.req.setClusterId(LEVEL_CLUSTER_ID);
     task.req.setProfileId(HA_PROFILE_ID);
 

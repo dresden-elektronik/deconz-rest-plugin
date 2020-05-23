@@ -7659,7 +7659,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->setZclValue(updateType, event.endpoint(), event.clusterId(), 0x0000, ia->numericValue());
                                     pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
                                 }
-                                
+
                                 ResourceItem *item = i->item(RConfigPending);
                                 if(ia->numericValue().u8 == 1)
                                 {
@@ -13660,7 +13660,7 @@ void DeRestPluginPrivate::taskToLocalData(const TaskItem &task)
         case TaskSetLevel:
         {
             ResourceItem *item = lightNode->item(RStateOn);
-            if (item && item->toBool() != (task.level > 0))
+            if (task.onOff && item && item->toBool() != (task.level > 0)) // FIXME abuse of taks.onOff
             {
                 updateLightEtag(lightNode);
                 item->setValue(task.level > 0);
