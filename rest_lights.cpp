@@ -574,8 +574,9 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     bool hasColorloopSpeed = false;
     quint16 colorloopSpeed = 25;
     QString alert;
-    bool hasSpeed = 0;
+    bool hasSpeed = false;
     quint8 targetSpeed = 0;
+    bool hasTransitionTime = false;
 
     // Check parameters.
     for (QVariantMap::const_iterator p = map.begin(); p != map.end(); p++)
@@ -778,6 +779,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 if (ok && tt >= 0 && tt <= 0xFFFE)
                 {
                     valueOk = true;
+                    hasTransitionTime = true;
                     taskRef.transitionTime = tt;
                 }
             }
@@ -903,6 +905,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         else if (!isOn)
         {
             rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, bri, is not modifiable. Device is set to off.")));
+        }
+        else if (hasOn && !targetOn && hasTransitionTime)
+        {
+            // Handled by state.on: false
         }
         else if (addTaskSetBrightness(task, targetBri, false))
         {
@@ -1303,10 +1309,15 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
         TaskItem task;
         copyTaskReq(taskRef, task);
-        const quint8 cmd = taskRef.lightNode->manufacturerCode() == VENDOR_PHILIPS // FIXME: use light capabilities
-            ? ONOFF_COMMAND_OFF_WITH_EFFECT
-            : ONOFF_COMMAND_OFF;
-        if (addTaskSetOnOff(task, cmd, 0, 0))
+        if (hasBri && hasTransitionTime) {
+            ok = addTaskSetBrightness(task, 0, true);
+        } else {
+            const quint8 cmd = taskRef.lightNode->manufacturerCode() == VENDOR_PHILIPS // FIXME: use light capabilities
+                ? ONOFF_COMMAND_OFF_WITH_EFFECT
+                : ONOFF_COMMAND_OFF;
+            ok = addTaskSetOnOff(task, cmd, 0, 0);
+        }
+        if (ok)
         {
             QVariantMap rspItem;
             QVariantMap rspItemState;
