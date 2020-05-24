@@ -2043,6 +2043,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("Plug-230V-ZB3.0") ||
         // Sercomm
         sensor->modelId().startsWith(QLatin1String("SZ-")) ||
+        sensor->modelId() == QLatin1String("Tripper") ||
         // WAXMAN
         sensor->modelId() == QLatin1String("leakSMART Water Sensor V2") ||
         // RGBgenie
