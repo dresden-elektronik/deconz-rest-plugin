@@ -264,7 +264,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBER, "3AFE140103020000", konkeMacPrefix }, // Konke Kit Pro-FT Temp Humidity Sensor
     { VENDOR_EMBER, "3AFE130104020015", konkeMacPrefix }, // Konke Kit Pro-Door Entry Sensor
     { VENDOR_NONE, "RICI01", tiMacPrefix}, // LifeControl smart plug
-    { VENDOR_JENNIC, "VOC_Sensor", jennicMacPrefix}, //LifeControl Enviroment sensor
+    { VENDOR_JENNIC, "VOC_Sensor", jennicMacPrefix}, // LifeControl Enviroment sensor
     { VENDOR_JENNIC, "SN10ZW", jennicMacPrefix }, // ORVIBO motion sensor
     { VENDOR_OSRAM_STACK, "SF20", heimanMacPrefix }, // ORVIBO SF20 smoke sensor
     { VENDOR_HEIMAN, "SF21", emberMacPrefix }, // ORVIBO SF21 smoke sensor
@@ -6071,7 +6071,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("SV01-")) || // Keen Home vent
                                         i->modelId().startsWith(QLatin1String("4512703")) || // Namron 4-ch remote controller
                                         i->modelId().startsWith(QLatin1String("RC_V14")) || // Heiman remote controller
-                                        i->modelId().startsWith(QLatin1String("RGBgenie ZB-5"))) // RGBgenie remote control
+                                        i->modelId().startsWith(QLatin1String("RGBgenie ZB-5")) || // RGBgenie remote control
+                                        i->modelId().startsWith(QLatin1String("VOC_Sensor"))) // LifeControl Enviroment sensor
                                     {
                                         bat = ia->numericValue().u8;
                                     }
@@ -6108,7 +6109,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("SV01-")) || // Keen Home vent
                                         i->modelId().startsWith(QLatin1String("4512703")) || // Namron 4-ch remote controller
                                         i->modelId().startsWith(QLatin1String("RC_V14")) || // Heiman remote controller
-                                        i->modelId().startsWith(QLatin1String("RGBgenie ZB-5"))) // RGBgenie remote control
+                                        i->modelId().startsWith(QLatin1String("RGBgenie ZB-5")) || // RGBgenie remote control
+                                        i->modelId().startsWith(QLatin1String("VOC_Sensor"))) // LifeControl Enviroment sensor
                                     {
                                         bat = ia->numericValue().u8;
                                     }
