@@ -4215,6 +4215,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case TEMPERATURE_MEASUREMENT_CLUSTER_ID:
                 {
+                    if (modelId == QLatin1String("VOC_Sensor"))
+                    {
+                        fpHumiditySensor.inClusters.push_back(ci->id());
+                    }
                     fpTemperatureSensor.inClusters.push_back(ci->id());
                 }
                     break;
