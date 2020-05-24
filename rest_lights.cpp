@@ -653,7 +653,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 }
             }
         }
-        else if (param == "ct"  && taskRef.lightNode->item(RStateCt))
+        else if (param == "ct"  && (taskRef.lightNode->item(RStateCt) || taskRef.lightNode->manufacturerCode() == VENDOR_IKEA)) // FIXME workaround for IKEA CWS
         {
             paramOk = true;
             hasCmd = true;
