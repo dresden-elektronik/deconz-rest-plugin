@@ -1319,7 +1319,10 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         {
             if      (modelid.startsWith(QLatin1String("ZGRC-KEY"))) { m_buttonMap = sunricherCCTMap; }
             else if (modelid.startsWith(QLatin1String("ZG2833K"))) { m_buttonMap = sunricherMap; }
-            else if (modelid.startsWith(QLatin1String("RGBgenie ZB-5121"))) { m_buttonMap = rgbgenie5121Map; }
+        }
+        else if (manufacturer == QLatin1String("RGBgenie"))
+        {
+            if (modelid.startsWith(QLatin1String("RGBgenie ZB-5121"))) { m_buttonMap = rgbgenie5121Map; }
         }
         else if (manufacturer == QLatin1String("Bitron Home"))
         {
