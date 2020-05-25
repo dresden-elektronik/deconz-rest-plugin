@@ -3179,7 +3179,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (sensor.fingerPrint().hasInCluster(ELECTRICAL_MEASUREMENT_CLUSTER_ID))
             {
                 clusterId = clusterId ? clusterId : ELECTRICAL_MEASUREMENT_CLUSTER_ID;
-                if (sensor.modelId().startsWith(QLatin1String("Plug"))) // OSRAM
+                if (sensor.modelId().startsWith(QLatin1String("Plug")) && sensor.manufacturer() == QLatin1String("OSRAM")) // OSRAM
                 {
                     DBG_Printf(DBG_INFO, "OSRAM %s: ZHAPower sensor id: %s ignored loading from database\n", qPrintable(sensor.modelId()), qPrintable(sensor.id()));
                     return 0;
