@@ -7327,7 +7327,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         power += 5; power /= 10; // 0.1W -> W
                                     }
-                                    else if (i->modelId().startsWith(QLatin1String("Plug"))) // OSRAM
+                                    else if (i->modelId().startsWith(QLatin1String("Plug")) && i->manufacturer() == QLatin1String("OSRAM")) // OSRAM
                                     {
                                         power = power == 28000 ? 0 : power / 10;
                                     }
