@@ -2041,6 +2041,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("E13-")) ||
         // Immax
         sensor->modelId() == QLatin1String("Plug-230V-ZB3.0") ||
+        sensor->modelId() == QLatin1String("4in1-Sensor-ZB3.0") ||
         // Sercomm
         sensor->modelId().startsWith(QLatin1String("SZ-")) ||
         sensor->modelId() == QLatin1String("Tripper") ||
