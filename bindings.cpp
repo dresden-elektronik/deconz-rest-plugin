@@ -2049,7 +2049,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("leakSMART Water Sensor V2") ||
         // RGBgenie
         sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5")) ||
-        sensor->modelId().startsWith(QLatin1String("ZGRC-KEY")))
+        sensor->modelId().startsWith(QLatin1String("ZGRC-KEY"))
+        // Embertec
+        sensor->modelId().startsWith(QLatin1String("BQZ10-AU")))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||
