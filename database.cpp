@@ -2926,6 +2926,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = clusterId ? clusterId : MULTISTATE_INPUT_CLUSTER_ID;
             }
+            else if (sensor.fingerPrint().hasOutCluster(IAS_ACE_CLUSTER_ID))
+            {
+                clusterId = clusterId ? clusterId : IAS_ACE_CLUSTER_ID;
+            }
             item = sensor.addItem(DataTypeInt32, RStateButtonEvent);
             item->setValue(0);
 

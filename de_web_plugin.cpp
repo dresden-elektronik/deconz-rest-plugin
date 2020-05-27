@@ -3400,7 +3400,8 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         checkReporting = true;
         checkClientCluster = true;
     }
-    else if (sensor->modelId().startsWith(QLatin1String("RC 110"))) // innr remote
+    else if (sensor->modelId().startsWith(QLatin1String("RC 110")) || // innr remote
+             sensor->modelId().startsWith(QLatin1String("RC_V14")))   // Heiman remote
     {
         checkClientCluster = true;
     }
@@ -3708,6 +3709,18 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 ok = false;
                 // following works for Samjin button
                 if (zclFrame.payload().size() == 6 && buttonMap->zclParam0 == zclFrame.payload().at(0))
+                {
+                    ok = true;
+                }
+            }
+            else if (ind.clusterId() == IAS_ACE_CLUSTER_ID)
+            {
+                ok = false;
+                if (zclFrame.commandId() == 0x00 && zclFrame.payload().size() == 3 && buttonMap->zclParam0 == zclFrame.payload().at(0))
+                {
+                    ok = true;
+                }
+                else if (zclFrame.commandId() == 0x02 && zclFrame.payload().isEmpty())
                 {
                     ok = true;
                 }
@@ -4452,6 +4465,15 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 }
                     break;
 
+                case IAS_ACE_CLUSTER_ID:
+                {
+                    if (modelId == QLatin1String("RC_V14"))
+                    {
+                        fpSwitch.outClusters.push_back(ci->id());
+                    }
+                }
+                    break;
+
                 default:
                     break;
                 }
@@ -4489,6 +4511,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             fpSwitch.hasInCluster(MULTISTATE_INPUT_CLUSTER_ID) ||
             fpSwitch.hasInCluster(DOOR_LOCK_CLUSTER_ID) ||
             fpSwitch.hasInCluster(IAS_ZONE_CLUSTER_ID) ||
+            fpSwitch.hasOutCluster(IAS_ACE_CLUSTER_ID) ||
             !fpSwitch.outClusters.empty())
         {
             fpSwitch.endpoint = i->endpoint();
@@ -4937,6 +4960,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = IAS_ZONE_CLUSTER_ID;
         }
+        else if (sensorNode.fingerPrint().hasOutCluster(IAS_ACE_CLUSTER_ID))
+        {
+            clusterId = IAS_ACE_CLUSTER_ID;
+        }
         sensorNode.addItem(DataTypeInt32, RStateButtonEvent);
 
         if (modelId.startsWith(QLatin1String("lumi.sensor_cube")))
@@ -5227,7 +5254,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             modelId.startsWith(QLatin1String("GAS_")) ||  // Heiman conbustable gas sensor
             modelId.startsWith(QLatin1String("TH-")) || // Heiman temperature/humidity sensor
             modelId.startsWith(QLatin1String("SMOK_")) || // Heiman fire sensor
-            modelId.startsWith(QLatin1String("WATER_")))  // Heiman water sensor
+            modelId.startsWith(QLatin1String("WATER_")) || // Heiman water sensor
+            modelId.startsWith(QLatin1String("RC_V14")))   // Heiman remote
         {
             sensorNode.setManufacturer("Heiman");
         }
