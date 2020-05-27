@@ -2049,7 +2049,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("leakSMART Water Sensor V2") ||
         // RGBgenie
         sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5")) ||
-        sensor->modelId().startsWith(QLatin1String("ZGRC-KEY"))
+        sensor->modelId().startsWith(QLatin1String("ZGRC-KEY")) ||
         // Embertec
         sensor->modelId().startsWith(QLatin1String("BQZ10-AU")))
     {
@@ -2584,6 +2584,12 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+    }
+    // Heiman remote control
+    else if (sensor->modelId().startsWith(QLatin1String("RC_V14")))
+    {
+        clusters.push_back(IAS_ACE_CLUSTER_ID);
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
     // RGBgenie remote control
