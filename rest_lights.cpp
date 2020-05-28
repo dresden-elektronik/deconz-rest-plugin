@@ -1273,8 +1273,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     // state.speed
     if (hasSpeed)
     {
+        TaskItem task;
+        copyTaskReq(taskRef, task);
         const quint16 cluster = FAN_CONTROL_CLUSTER_ID;
-        const quint16 attrId = 0x0000; // Fan Mode
+        const quint16 attr = 0x0000; // Fan Mode
         const quint8 type = deCONZ::Zcl8BitEnum;
         const quint8 value = targetSpeed;
 
@@ -1312,7 +1314,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
         // FIXME: Use following code once ZclAttribute has been fixed.
 
-        // deCONZ::ZclAttribute attr(attrId, type, "speed", deCONZ::ZclReadWrite, true);
+        // deCONZ::ZclAttribute attr(0x0000, type, "speed", deCONZ::ZclReadWrite, true);
         // attr.setValue(value);
         // ok = writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), cluster, attr);
 
@@ -1627,7 +1629,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
 
             // FIXME: Use following code once ZclAttribute has been fixed.
 
-            // deCONZ::ZclAttribute attr(attr, type, "value", deCONZ::ZclReadWrite, true);
+            // deCONZ::ZclAttribute attr(0x0055, type, "value", deCONZ::ZclReadWrite, true);
             // attr.setValue(QVariant(value));
             // ok = writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), cluster, attr);
         }
