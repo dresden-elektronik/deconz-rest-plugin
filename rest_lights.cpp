@@ -1273,23 +1273,22 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     // state.speed
     if (hasSpeed)
     {
-        TaskItem task;
-        copyTaskReq(taskRef, task);
         const quint16 cluster = FAN_CONTROL_CLUSTER_ID;
         const quint16 attrId = 0x0000; // Fan Mode
         const quint8 type = deCONZ::Zcl8BitEnum;
+        const quint64 speed = targetSpeed;
 
         deCONZ::ZclAttribute attr(attrId, type, "speed", deCONZ::ZclReadWrite, true);
-        attr.setValue((quint64) targetSpeed);
+        attr.setValue(speed);
         ok = writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), cluster, attr);
-        if (addTask(task))
+        if (ok)
         {
             QVariantMap rspItem;
             QVariantMap rspItemState;
             rspItemState[QString("/lights/%1/state/speed").arg(id)] = map["speed"];
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
-            taskToLocalData(task);
+            // Rely on attribute reporting to update state.speed
         }
         else
         {
