@@ -1276,11 +1276,46 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         const quint16 cluster = FAN_CONTROL_CLUSTER_ID;
         const quint16 attrId = 0x0000; // Fan Mode
         const quint8 type = deCONZ::Zcl8BitEnum;
-        const quint64 speed = targetSpeed;
+        const quint8 value = targetSpeed;
 
-        deCONZ::ZclAttribute attr(attrId, type, "speed", deCONZ::ZclReadWrite, true);
-        attr.setValue(speed);
-        ok = writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), cluster, attr);
+        // FIXME: The following low-level code is needed because ZclAttribute is broken for Zcl8BitEnum.
+
+        task.taskType = TaskWriteAttribute;
+
+        task.req.setClusterId(cluster);
+        task.req.setProfileId(HA_PROFILE_ID);
+        task.zclFrame.setSequenceNumber(zclSeq++);
+        task.zclFrame.setCommandId(deCONZ::ZclWriteAttributesId);
+        task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                                      deCONZ::ZclFCDirectionClientToServer |
+                                      deCONZ::ZclFCDisableDefaultResponse);
+
+        DBG_Printf(DBG_INFO, "write attribute of 0x%016llX ep: 0x%02X cluster: 0x%04X: 0x%04X\n", taskRef.lightNode->address().ext(), taskRef.lightNode->haEndpoint().endpoint(), cluster, attr);
+
+        { // payload
+            QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
+            stream.setByteOrder(QDataStream::LittleEndian);
+            stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
+
+            stream << attr;
+            stream << type;
+            stream << value;
+        }
+
+        { // ZCL frame
+            QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
+            stream.setByteOrder(QDataStream::LittleEndian);
+            task.zclFrame.writeToStream(stream);
+        }
+
+        ok = addTask(task);
+
+        // FIXME: Use following code once ZclAttribute has been fixed.
+
+        // deCONZ::ZclAttribute attr(attrId, type, "speed", deCONZ::ZclReadWrite, true);
+        // attr.setValue(value);
+        // ok = writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), cluster, attr);
+
         if (ok)
         {
             QVariantMap rspItem;
