@@ -227,6 +227,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_HEIMAN, "Door", emberMacPrefix }, // Heiman door/window sensor - newer model
     { VENDOR_HEIMAN, "WarningDevice", emberMacPrefix }, // Heiman siren
     { VENDOR_HEIMAN, "Smoke", jennicMacPrefix }, // Heiman fire sensor - newer model
+    { VENDOR_HEIMAN, "PIRS", jennicMacPrefix }, // Heiman motion sensor - newer model
     { VENDOR_HEIMAN, "SKHMP30", jennicMacPrefix }, // GS (Heiman) smart plug
     { VENDOR_LUTRON, "LZL4BWHL01", lutronMacPrefix }, // Lutron LZL-4B-WH-L01 Connected Bulb Remote
     { VENDOR_LUTRON, "Z3-1BRL", lutronMacPrefix }, // Lutron Aurora Friends-of-Hue dimmer
@@ -4119,6 +4120,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         fpOpenCloseSensor.inClusters.push_back(ci->id());
                     }
                     else if (modelId.startsWith(QLatin1String("PIR_")) ||             // Heiman motion sensor
+                             modelId.startsWith(QLatin1String("PIRS")) ||             // Heiman motion sensor (newer model)
                              modelId == QLatin1String("3AFE14010402000D") ||          // Konke motion sensor
                              modelId == QLatin1String("3AFE28010402000D") ||          // Konke motion sensor ver.2
                              modelId.startsWith(QLatin1String("902010/22")) ||        // Bitron motion sensor

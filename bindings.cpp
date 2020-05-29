@@ -1952,6 +1952,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("Water")) ||
         sensor->modelId().startsWith(QLatin1String("Door")) ||
         sensor->modelId().startsWith(QLatin1String("WarningDevice")) ||
+        sensor->modelId().startsWith(QLatin1String("PIRS")) ||
         sensor->modelId().startsWith(QLatin1String("SKHMP30")) || // GS smart plug
         sensor->modelId().startsWith(QLatin1String("RC_V14")) ||
         // Konke
