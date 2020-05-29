@@ -2943,6 +2943,47 @@ devices can operate on either battery or mains power, and can have a wide variet
 		</cluster>
 	</domain>
 
+    <domain name="Appliances" low_bound="0b00" high_bound="0b03" description="The Appliance clusters are typically used in ZigBee appliance management.">
+		<cluster id="001b" name="Appliance Control">
+			<description>The Appliance Control cluster provides an interface to remotely control and to program household appliances. Example of control is Start, Stop and Pause commands.</description>
+			<server>
+			<!-- TODO -->
+			</server>
+			<client>
+			<!-- TODO -->
+			</client>
+		</cluster>
+        <cluster id="0b01" name="Appliance Identification">
+			<description>Attributes and commands for determining basic information about a device and setting user device information. The Appliance Identification Cluster is a transposition of EN50523 "Identify Product" functional block.</description>
+			<server>
+			<!-- TODO -->
+			</server>
+			<client>
+			<!-- TODO -->
+			</client>
+		</cluster>
+        <cluster id="0b02" name="Appliance Events and Alerts">
+			<description>Attributes and commands for transmitting or notifying the occurrence of an event, such as "temperature reached" and of an alert such as alarm, fault or warning. It is based on the "Signal event" syntax of EN50523 and completed where necessary.</description>
+			<server>
+                <command id="0x00" dir="recv" name="Get Alerts" required="m">
+					<description>The get group identifiers request command is used to retrieve the actual group identifiers that the endpoint is using in its multicast communication in controlling different (remote) devices.</description>
+				</command>
+			</server>
+			<client>
+			<!-- TODO -->
+			</client>
+		</cluster>
+        <cluster id="0b03" name="Appliance Statistics">
+			<description>The Appliance Statistics provides a mechanism for transmitting appliance statistics to a collection unit (gateway). The statistics can be in format of data logs.</description>
+			<server>
+			<!-- TODO -->
+			</server>
+			<client>
+			<!-- TODO -->
+			</client>
+		</cluster>
+	</domain>
+
 	<domain name="Light Link" useZcl="true"
 		description="The light link domain contains clusters and information that provides ZLL specific functions and attributes.">
 		<cluster id="0x1000" name="ZLL commissioning">
@@ -3321,6 +3362,7 @@ Fil pilote > Off=0001 - On=0002</description>
 		<domain-ref name="Closures" low_bound="0100" />
 		<domain-ref name="Security and Safety" low_bound="0500" />
 		<domain-ref name="Smart Energy" low_bound="0x0700" />
+        <domain-ref name="Appliances" low_bound="0x0b00" />
 		<domain-ref name="Light Link" low_bound="1000" />
 		<domain-ref name="Manufacturer Specific" low_bound="0xfc00" />
 		<device id="0x000c" name="Simple sensor" icon="dev-light-sensor.png">

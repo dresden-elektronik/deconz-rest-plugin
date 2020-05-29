@@ -92,6 +92,7 @@ const quint64 sinopeMacPrefix     = 0x500b910000000000ULL;
 const quint64 silabs4MacPrefix    = 0x680ae20000000000ULL;
 const quint64 ecozyMacPrefix      = 0x70b3d50000000000ULL;
 const quint64 osramMacPrefix      = 0x8418260000000000ULL;
+const quint64 embertecMacPrefix   = 0x848e960000000000ULL;
 const quint64 silabsMacPrefix     = 0x90fd9f0000000000ULL;
 const quint64 zhejiangMacPrefix   = 0xb0ce180000000000ULL;
 const quint64 silabs2MacPrefix    = 0xcccccc0000000000ULL;
@@ -301,8 +302,12 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SUNRICHER, "4512703", silabs2MacPrefix }, // Namron 4-ch remote controller
     { VENDOR_SENGLED_OPTOELEC, "E13-", zhejiangMacPrefix }, // Sengled PAR38 Bulbs
     { VENDOR_JENNIC, "Plug-230V-ZB3.0", silabs2MacPrefix }, // Immax NEO ZB3.0 smart plug
+    { VENDOR_JENNIC, "4in1-Sensor-ZB3.0", emberMacPrefix }, // Immax NEO ZB3.0 4 in 1 sensor
     { VENDOR_WAXMAN, "leakSMART Water Sensor V2", celMacPrefix }, // WAXMAN LeakSMART v2
     { VENDOR_PHILIO, "PST03A-v2.2.5", emberMacPrefix }, // Philio pst03-a
+    { VENDOR_EMBERTEC, "BQZ10-AU", embertecMacPrefix }, // Embertec smart plug
+    
+    
     { 0, nullptr, 0 }
 };
 
@@ -3395,7 +3400,8 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         checkReporting = true;
         checkClientCluster = true;
     }
-    else if (sensor->modelId().startsWith(QLatin1String("RC 110"))) // innr remote
+    else if (sensor->modelId().startsWith(QLatin1String("RC 110")) || // innr remote
+             sensor->modelId().startsWith(QLatin1String("RC_V14")))   // Heiman remote
     {
         checkClientCluster = true;
     }
@@ -3713,6 +3719,18 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 ok = false;
                 // following works for Samjin button
                 if (zclFrame.payload().size() == 6 && buttonMap->zclParam0 == zclFrame.payload().at(0))
+                {
+                    ok = true;
+                }
+            }
+            else if (ind.clusterId() == IAS_ACE_CLUSTER_ID)
+            {
+                ok = false;
+                if (zclFrame.commandId() == 0x00 && zclFrame.payload().size() == 3 && buttonMap->zclParam0 == zclFrame.payload().at(0))
+                {
+                    ok = true;
+                }
+                else if (zclFrame.commandId() == 0x02 && zclFrame.payload().isEmpty())
                 {
                     ok = true;
                 }
@@ -4115,7 +4133,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId == QLatin1String("3AFE28010402000D") ||          // Konke motion sensor ver.2
                              modelId.startsWith(QLatin1String("902010/22")) ||        // Bitron motion sensor
                              modelId.startsWith(QLatin1String("SN10ZW")) ||           // ORVIBO motion sensor
-                             modelId.startsWith(QLatin1String("MOSZB-130")))          // Develco motion sensor
+                             modelId.startsWith(QLatin1String("MOSZB-130")) ||        // Develco motion sensor
+                             modelId == QLatin1String("4in1-Sensor-ZB3.0"))           // Immax NEO ZB3.0 4 in 1 sensor
                     {
                         fpPresenceSensor.inClusters.push_back(ci->id());
                     }
@@ -4456,6 +4475,15 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 }
                     break;
 
+                case IAS_ACE_CLUSTER_ID:
+                {
+                    if (modelId == QLatin1String("RC_V14"))
+                    {
+                        fpSwitch.outClusters.push_back(ci->id());
+                    }
+                }
+                    break;
+
                 default:
                     break;
                 }
@@ -4493,6 +4521,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             fpSwitch.hasInCluster(MULTISTATE_INPUT_CLUSTER_ID) ||
             fpSwitch.hasInCluster(DOOR_LOCK_CLUSTER_ID) ||
             fpSwitch.hasInCluster(IAS_ZONE_CLUSTER_ID) ||
+            fpSwitch.hasOutCluster(IAS_ACE_CLUSTER_ID) ||
             !fpSwitch.outClusters.empty())
         {
             fpSwitch.endpoint = i->endpoint();
@@ -4941,6 +4970,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = IAS_ZONE_CLUSTER_ID;
         }
+        else if (sensorNode.fingerPrint().hasOutCluster(IAS_ACE_CLUSTER_ID))
+        {
+            clusterId = IAS_ACE_CLUSTER_ID;
+        }
         sensorNode.addItem(DataTypeInt32, RStateButtonEvent);
 
         if (modelId.startsWith(QLatin1String("lumi.sensor_cube")))
@@ -5231,7 +5264,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             modelId.startsWith(QLatin1String("GAS_")) ||  // Heiman conbustable gas sensor
             modelId.startsWith(QLatin1String("TH-")) || // Heiman temperature/humidity sensor
             modelId.startsWith(QLatin1String("SMOK_")) || // Heiman fire sensor
-            modelId.startsWith(QLatin1String("WATER_")))  // Heiman water sensor
+            modelId.startsWith(QLatin1String("WATER_")) || // Heiman water sensor
+            modelId.startsWith(QLatin1String("RC_V14")))   // Heiman remote
         {
             sensorNode.setManufacturer("Heiman");
         }
@@ -6080,7 +6114,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("ZG2833K")) || // Sunricher remote controller
                                         i->modelId().startsWith(QLatin1String("SV01-")) || // Keen Home vent
                                         i->modelId().startsWith(QLatin1String("4512703")) || // Namron 4-ch remote controller
-                                        i->modelId().startsWith(QLatin1String("RC_V14")) || // Heiman remote controller
                                         i->modelId().startsWith(QLatin1String("RGBgenie ZB-5")) || // RGBgenie remote control
                                         i->modelId().startsWith(QLatin1String("VOC_Sensor"))) // LifeControl Enviroment sensor
                                     {
@@ -6118,7 +6151,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("ZG2833K")) || // Sunricher remote controller
                                         i->modelId().startsWith(QLatin1String("SV01-")) || // Keen Home vent
                                         i->modelId().startsWith(QLatin1String("4512703")) || // Namron 4-ch remote controller
-                                        i->modelId().startsWith(QLatin1String("RC_V14")) || // Heiman remote controller
                                         i->modelId().startsWith(QLatin1String("RGBgenie ZB-5")) || // RGBgenie remote control
                                         i->modelId().startsWith(QLatin1String("VOC_Sensor"))) // LifeControl Enviroment sensor
                                     {
@@ -7337,7 +7369,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         power += 5; power /= 10; // 0.1W -> W
                                     }
-                                    else if (i->modelId().startsWith(QLatin1String("Plug"))) // OSRAM
+                                    else if (i->modelId().startsWith(QLatin1String("Plug")) && i->manufacturer() == QLatin1String("OSRAM")) // OSRAM
                                     {
                                         power = power == 28000 ? 0 : power / 10;
                                     }

@@ -186,6 +186,7 @@
 #define RELATIVE_HUMIDITY_CLUSTER_ID          0x0405
 #define OCCUPANCY_SENSING_CLUSTER_ID          0x0406
 #define IAS_ZONE_CLUSTER_ID                   0x0500
+#define IAS_ACE_CLUSTER_ID                    0x0501
 #define IAS_WD_CLUSTER_ID                     0x0502
 #define METERING_CLUSTER_ID                   0x0702
 #define ELECTRICAL_MEASUREMENT_CLUSTER_ID     0x0B04
@@ -289,6 +290,7 @@
 #define VENDOR_PHYSICAL     0x110A // Used by SmartThings
 #define VENDOR_OSRAM        0x110C
 #define VENDOR_PROFALUX     0x1110
+#define VENDOR_EMBERTEC     0x1112
 #define VENDOR_JASCO        0x1124 // Used by GE
 #define VENDOR_BUSCH_JAEGER 0x112E
 #define VENDOR_SERCOMM      0x1131
@@ -410,6 +412,7 @@ extern const quint64 celMacPrefix;
 extern const quint64 bjeMacPrefix;
 extern const quint64 deMacPrefix;
 extern const quint64 emberMacPrefix;
+extern const quint64 embertecMacPrefix;
 extern const quint64 energyMiMacPrefix;
 extern const quint64 heimanMacPrefix;
 extern const quint64 ikeaMacPrefix;
@@ -471,6 +474,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == emberMacPrefix ||
                    prefix == konkeMacPrefix ||
                    prefix == silabs3MacPrefix;
+        case VENDOR_EMBERTEC:
+            return prefix == embertecMacPrefix;
         case VENDOR_DDEL:
             return prefix == deMacPrefix ||
                    prefix == silabs3MacPrefix;

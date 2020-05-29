@@ -751,6 +751,16 @@ static const Sensor::ButtonMap bitronRemoteMap[] = {
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
+static const Sensor::ButtonMap rcv14Map[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    { Sensor::ModeScenes,           0x01, 0x0501, 0x00,  1,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Arm day/home zones only" },
+    { Sensor::ModeScenes,           0x01, 0x0501, 0x00,  0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Disarm" },
+    { Sensor::ModeScenes,           0x01, 0x0501, 0x02,  0,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "Emergency" },
+    { Sensor::ModeScenes,           0x01, 0x0501, 0x00,  3,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Arm all zones" },
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
+};
+
 /*! Returns a fingerprint as JSON string. */
 QString SensorFingerprint::toString() const
 {
@@ -1319,7 +1329,10 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         {
             if      (modelid.startsWith(QLatin1String("ZGRC-KEY"))) { m_buttonMap = sunricherCCTMap; }
             else if (modelid.startsWith(QLatin1String("ZG2833K"))) { m_buttonMap = sunricherMap; }
-            else if (modelid.startsWith(QLatin1String("RGBgenie ZB-5121"))) { m_buttonMap = rgbgenie5121Map; }
+        }
+        else if (manufacturer == QLatin1String("RGBgenie"))
+        {
+            if (modelid.startsWith(QLatin1String("RGBgenie ZB-5121"))) { m_buttonMap = rgbgenie5121Map; }
         }
         else if (manufacturer == QLatin1String("Bitron Home"))
         {
@@ -1328,6 +1341,10 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         else if (manufacturer == QLatin1String("Namron AS"))
         {
             if (modelid.startsWith(QLatin1String("4512703"))) { m_buttonMap = sunricherMap; }
+        }
+        else if (manufacturer == QLatin1String("Heiman"))
+        {
+            if (modelid == QLatin1String("RC_V14")) { m_buttonMap = rcv14Map; }
         }
     }
 

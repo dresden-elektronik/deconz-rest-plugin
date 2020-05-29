@@ -2926,6 +2926,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = clusterId ? clusterId : MULTISTATE_INPUT_CLUSTER_ID;
             }
+            else if (sensor.fingerPrint().hasOutCluster(IAS_ACE_CLUSTER_ID))
+            {
+                clusterId = clusterId ? clusterId : IAS_ACE_CLUSTER_ID;
+            }
             item = sensor.addItem(DataTypeInt32, RStateButtonEvent);
             item->setValue(0);
 
@@ -3160,6 +3164,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 if ((sensor.modelId() != QLatin1String("SP 120")) &&
                     (sensor.modelId() != QLatin1String("ZB-ONOFFPlug-D0005")) &&
                     (sensor.modelId() != QLatin1String("TS0121")) &&
+                    (!sensor.modelId().startsWith(QLatin1String("BQZ10-AU"))) &&
                     (sensor.modelId() != QLatin1String("Plug-230V-ZB3.0")))
                 {
                     item = sensor.addItem(DataTypeInt16, RStatePower);
@@ -3179,7 +3184,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (sensor.fingerPrint().hasInCluster(ELECTRICAL_MEASUREMENT_CLUSTER_ID))
             {
                 clusterId = clusterId ? clusterId : ELECTRICAL_MEASUREMENT_CLUSTER_ID;
-                if (sensor.modelId().startsWith(QLatin1String("Plug"))) // OSRAM
+                if (sensor.modelId().startsWith(QLatin1String("Plug")) && sensor.manufacturer() == QLatin1String("OSRAM")) // OSRAM
                 {
                     DBG_Printf(DBG_INFO, "OSRAM %s: ZHAPower sensor id: %s ignored loading from database\n", qPrintable(sensor.modelId()), qPrintable(sensor.id()));
                     return 0;
