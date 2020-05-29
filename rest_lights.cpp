@@ -1276,20 +1276,56 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         TaskItem task;
         copyTaskReq(taskRef, task);
         const quint16 cluster = FAN_CONTROL_CLUSTER_ID;
-        const quint16 attrId = 0x0000; // Fan Mode
+        const quint16 attr = 0x0000; // Fan Mode
         const quint8 type = deCONZ::Zcl8BitEnum;
+        const quint8 value = targetSpeed;
 
-        deCONZ::ZclAttribute attr(attrId, type, "speed", deCONZ::ZclReadWrite, true);
-        attr.setValue((quint64) targetSpeed);
-        ok = writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), cluster, attr);
-        if (addTask(task))
+        // FIXME: The following low-level code is needed because ZclAttribute is broken for Zcl8BitEnum.
+
+        task.taskType = TaskWriteAttribute;
+
+        task.req.setClusterId(cluster);
+        task.req.setProfileId(HA_PROFILE_ID);
+        task.zclFrame.setSequenceNumber(zclSeq++);
+        task.zclFrame.setCommandId(deCONZ::ZclWriteAttributesId);
+        task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                                      deCONZ::ZclFCDirectionClientToServer |
+                                      deCONZ::ZclFCDisableDefaultResponse);
+
+        DBG_Printf(DBG_INFO, "write attribute of 0x%016llX ep: 0x%02X cluster: 0x%04X: 0x%04X\n", taskRef.lightNode->address().ext(), taskRef.lightNode->haEndpoint().endpoint(), cluster, attr);
+
+        { // payload
+            QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
+            stream.setByteOrder(QDataStream::LittleEndian);
+            stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
+
+            stream << attr;
+            stream << type;
+            stream << value;
+        }
+
+        { // ZCL frame
+            QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
+            stream.setByteOrder(QDataStream::LittleEndian);
+            task.zclFrame.writeToStream(stream);
+        }
+
+        ok = addTask(task);
+
+        // FIXME: Use following code once ZclAttribute has been fixed.
+
+        // deCONZ::ZclAttribute attr(0x0000, type, "speed", deCONZ::ZclReadWrite, true);
+        // attr.setValue(value);
+        // ok = writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), cluster, attr);
+
+        if (ok)
         {
             QVariantMap rspItem;
             QVariantMap rspItemState;
             rspItemState[QString("/lights/%1/state/speed").arg(id)] = map["speed"];
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
-            taskToLocalData(task);
+            // Rely on attribute reporting to update state.speed
         }
         else
         {
@@ -1593,7 +1629,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
 
             // FIXME: Use following code once ZclAttribute has been fixed.
 
-            // deCONZ::ZclAttribute attr(attr, type, "value", deCONZ::ZclReadWrite, true);
+            // deCONZ::ZclAttribute attr(0x0055, type, "value", deCONZ::ZclReadWrite, true);
             // attr.setValue(QVariant(value));
             // ok = writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), cluster, attr);
         }
