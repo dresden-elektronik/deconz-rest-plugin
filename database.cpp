@@ -2943,6 +2943,12 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 sensor.addItem(DataTypeUInt16, RStateEventDuration);
             }
+            else if (sensor.modelId().startsWith(QLatin1String("ZBT-Remote-ALL-RGBW")))
+            {
+                sensor.addItem(DataTypeUInt16, RStateX);
+                sensor.addItem(DataTypeUInt16, RStateY);
+                sensor.addItem(DataTypeUInt16, RStateAngle);
+            }
         }
         else if (sensor.type().endsWith(QLatin1String("LightLevel")))
         {
