@@ -189,6 +189,7 @@
 #define IAS_ACE_CLUSTER_ID                    0x0501
 #define IAS_WD_CLUSTER_ID                     0x0502
 #define METERING_CLUSTER_ID                   0x0702
+#define APPLIANCE_EVENTS_AND_ALERTS_ID        0x0B02
 #define ELECTRICAL_MEASUREMENT_CLUSTER_ID     0x0B04
 #define COMMISSIONING_CLUSTER_ID              0x1000
 #define DE_CLUSTER_ID                         0xFC00

@@ -4406,6 +4406,15 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     }
                 }
                     break;
+                
+                case APPLIANCE_EVENTS_AND_ALERTS_ID:
+                {
+                    if (modelId == QLatin1String("leakSMART Water Sensor V2"))
+                    {
+                        fpWaterSensor.inClusters.push_back(ci->id());
+                    }
+                }
+                    break;
 
 
                 default:
@@ -4742,7 +4751,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         }
 
         // ZHAWater
-        if (fpWaterSensor.hasInCluster(IAS_ZONE_CLUSTER_ID))
+        if (fpWaterSensor.hasInCluster(IAS_ZONE_CLUSTER_ID) ||
+            fpWaterSensor.hasInCluster(APPLIANCE_EVENTS_AND_ALERTS_ID))
         {
             fpWaterSensor.endpoint = i->endpoint();
             fpWaterSensor.deviceId = i->deviceId();
@@ -5139,6 +5149,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         if (sensorNode.fingerPrint().hasInCluster(IAS_ZONE_CLUSTER_ID))
         {
             clusterId = IAS_ZONE_CLUSTER_ID;
+        }
+        else if (sensorNode.fingerPrint().hasInCluster(APPLIANCE_EVENTS_AND_ALERTS_ID))
+        {
+            clusterId = APPLIANCE_EVENTS_AND_ALERTS_ID;
         }
         item = sensorNode.addItem(DataTypeBool, RStateWater);
         item->setValue(false);
