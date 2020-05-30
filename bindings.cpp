@@ -2878,7 +2878,7 @@ void DeRestPluginPrivate::checkOldSensorGroups(Sensor *sensor)
                     i->removeDeviceMembership(sensor->id());
                 }
 
-                if (i->state() == Group::StateNormal && !i->hasDeviceMembers())
+                if (i->address() != 0 && i->state() == Group::StateNormal && !i->hasDeviceMembers())
                 {
                     DBG_Printf(DBG_INFO, "delete old group %u of sensor %s\n", i->address(), qPrintable(sensor->name()));
                     i->setState(Group::StateDeleted);
