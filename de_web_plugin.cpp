@@ -3559,7 +3559,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 sensor->setNeedSaveDatabase(true);
                 updateSensorEtag(sensor);
                 enqueueEvent(Event(RSensors, RConfigGroup, sensor->id(), item));
-
             }
 
             Event e(RSensors, REventValidGroup, sensor->id());
