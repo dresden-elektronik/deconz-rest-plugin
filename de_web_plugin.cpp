@@ -3536,14 +3536,16 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 stream.setByteOrder(QDataStream::LittleEndian);
                 quint16 attrId;
                 quint8 dataType;
+                quint8 pl3;
                 stream >> attrId;
                 stream >> dataType;
+                stream >> pl3;
 
                 // Xiaomi
                 if (ind.clusterId() == ONOFF_CLUSTER_ID && sensor->manufacturer() == QLatin1String("LUMI"))
                 {
                     ok = false;
-                    const quint16 pl3 = static_cast<quint16>(zclFrame.payload().at(3)) & 0xff;
+                    // const quint16 pl3 = static_cast<quint16>(zclFrame.payload().at(3)) & 0xff;
                     // payload: u16 attrId, u8 datatype, u8 data
                     if (attrId == 0x0000 && dataType == 0x10 && // onoff attribute
                         buttonMap->zclParam0 == pl3)
@@ -3589,7 +3591,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 {
                     ok = false;
                     if (attrId == 0x0055 && dataType == 0x21 && // Xiaomi non-standard attribute
-                        buttonMap->zclParam0 == zclFrame.payload().at(3))
+                        buttonMap->zclParam0 == pl3)
                     {
                         ok = true;
                     }
@@ -3643,8 +3645,8 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 ok = false;
                 if (zclFrame.payload().size() >= 2)
                 {
-                    uint8_t level = zclFrame.payload().at(0);
-                    uint8_t tt = zclFrame.payload().at(1);
+                    quint8 level = zclFrame.payload().at(0);
+                    quint8 tt = zclFrame.payload().at(1);
                     if (tt == 7) // button pressed
                     {
                         ok = buttonMap->zclParam0 == 0; // Toggle
@@ -3662,10 +3664,18 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     }
                 }
             }
+            else if (ind.clusterId() == LEVEL_CLUSTER_ID && zclFrame.commandId() == 0x04) // move to level (with on/off)
+            {
+                ok = false;
+                if (zclFrame.payload().size() >= 1)
+                {
+                    quint8 level = zclFrame.payload().at(0);
+                    ok = buttonMap->zclParam0 == level;
+                }
+            }
             else if (ind.clusterId() == LEVEL_CLUSTER_ID &&
                      (zclFrame.commandId() == 0x01 ||  // move
                       zclFrame.commandId() == 0x02 ||  // step
-                      zclFrame.commandId() == 0x04 ||  // move to level (with on/off)
                       zclFrame.commandId() == 0x05 ||  // move (with on/off)
                       zclFrame.commandId() == 0x06))   // step (with on/off)
             {
