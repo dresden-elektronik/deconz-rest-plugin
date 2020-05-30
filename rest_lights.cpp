@@ -852,18 +852,22 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         TaskItem task;
         copyTaskReq(taskRef, task);
 
-        if (!isOn && hasBri)
+        if (!isOn && hasBri && taskRef.onTime == 0)
         {
             TaskItem task;
             copyTaskReq(taskRef, task);
             task.transitionTime = 0;
 
-            addTaskSetBrightness(task, 2, true);
+            ok = addTaskSetBrightness(task, 2, true);
         }
-        const quint8 cmd = taskRef.onTime > 0
-            ? ONOFF_COMMAND_ON_WITH_TIMED_OFF
-            : ONOFF_COMMAND_ON;
-        if (addTaskSetOnOff(task, cmd, taskRef.onTime, 0))
+        else
+        {
+            const quint8 cmd = taskRef.onTime > 0
+                ? ONOFF_COMMAND_ON_WITH_TIMED_OFF
+                : ONOFF_COMMAND_ON;
+            ok = addTaskSetOnOff(task, cmd, taskRef.onTime, 0);
+        }
+        if (ok)
         {
             taskToLocalData(task);
             isOn = true;
