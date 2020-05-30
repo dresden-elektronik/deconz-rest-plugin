@@ -55,6 +55,7 @@ extern const char *RActionScene;
 extern const char *RStateAlarm;
 extern const char *RStateAlert;
 extern const char *RStateAllOn;
+extern const char *RStateAngle;
 extern const char *RStateAnyOn;
 extern const char *RStateBattery;
 extern const char *RStateBri;
