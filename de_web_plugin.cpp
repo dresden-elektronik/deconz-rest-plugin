@@ -4433,6 +4433,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 case ONOFF_CLUSTER_ID:
                 case LEVEL_CLUSTER_ID:
                 case SCENE_CLUSTER_ID:
+                case IAS_ACE_CLUSTER_ID:
                 case WINDOW_COVERING_CLUSTER_ID:
                 {
                     if (modelId == QLatin1String("ZYCT-202"))
