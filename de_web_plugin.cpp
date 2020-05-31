@@ -5167,7 +5167,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             sensorNode.addItem(DataTypeUInt16, RStateX);
             sensorNode.addItem(DataTypeUInt16, RStateY);
-            sensorNode.addItem(DataTypeUInt16, RStateTiltAngle);
+            sensorNode.addItem(DataTypeUInt16, RStateAngle);
         }
     }
     else if (sensorNode.type().endsWith(QLatin1String("LightLevel")))
