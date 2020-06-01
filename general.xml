@@ -1822,7 +1822,7 @@ controller device, that supports a keypad and LCD screen.</description>
 				<attribute id="0x0002" name="Remaining time" type="u16" access="r" range="0x0000,0xfffe" default="0x0000" required="o"></attribute>
 				<attribute id="0x0003" name="Current x" type="u16" access="r" range="0x0000,0xfeff" default="0x61eb" required="m"></attribute>
 				<attribute id="0x0004" name="Current y" type="u16" access="r" range="0x0000,0xfeff" default="0x607b" required="m"></attribute>
-				<attribute id="0x0007" name="Color temperature" type="u16" access="r" range="0x0000,0xffff" default="0" required="m"></attribute>
+				<attribute id="0x0007" name="Color temperature" type="u16" access="r" range="0x0000,0xfeff" default="0" required="m"></attribute>
 				<!-- TODO -->
 				<attribute id="0x0008" name="Color Mode" type="enum8" access="r" range="0x00,0x02" default="0x01" required="o">
 					<value name="Current hue and current saturation" value="0x00"></value>
@@ -1862,8 +1862,8 @@ controller device, that supports a keypad and LCD screen.</description>
 					<value name="CIE 1931 XY" value="3"></value>
 					<value name="Color temperature" value="4"></value>
 				</attribute>
-				<attribute id="0x400b" name="Color temperature min" type="u16" access="r" range="0x0000,0xffff" default="0" required="m"></attribute>
-				<attribute id="0x400c" name="Color temperature max" type="u16" access="r" range="0x0000,0xffff" default="0xffff" required="m"></attribute>
+				<attribute id="0x400b" name="Color temperature min" type="u16" access="r" range="0x0000,0xfeff" default="0" required="m"></attribute>
+				<attribute id="0x400c" name="Color temperature max" type="u16" access="r" range="0x0000,0xfeff" default="0xfeff" required="m"></attribute>
 				<attribute id="0x4010" name="PowerOn Color Temperature" type="u16" access="rw" range="0x0000,0xffff" default="0xffff" required="o"></attribute>
         <!--
         <attribute id="0x0003" mfcode="0x100b" name="PowerOn X" type="u16" access="rw" range="0x0000,0xffff" default="0xffff" required="o"></attribute>
