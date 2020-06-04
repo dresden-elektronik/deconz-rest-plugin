@@ -4128,7 +4128,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("902010/22")) ||        // Bitron motion sensor
                              modelId.startsWith(QLatin1String("SN10ZW")) ||           // ORVIBO motion sensor
                              modelId.startsWith(QLatin1String("MOSZB-130")) ||        // Develco motion sensor
-                             modelId == QLatin1String("4in1-Sensor-ZB3.0"))           // Immax NEO ZB3.0 4 in 1 sensor
+                             modelId == QLatin1String("4in1-Sensor-ZB3.0") ||         // Immax NEO ZB3.0 4 in 1 sensor E13-A21
+                             modelId == QLatin1String("E13-A21"))                     // Sengled E13-A21 PAR38 bulp with motion sensor
                     {
                         fpPresenceSensor.inClusters.push_back(ci->id());
                     }
