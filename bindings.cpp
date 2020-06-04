@@ -2040,6 +2040,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("MOT003") ||
         // Sengled
         sensor->modelId().startsWith(QLatin1String("E13-")) ||
+        sensor->modelId().startsWith(QLatin1String("E1D-")) ||
         // Immax
         sensor->modelId() == QLatin1String("Plug-230V-ZB3.0") ||
         sensor->modelId() == QLatin1String("4in1-Sensor-ZB3.0") ||
