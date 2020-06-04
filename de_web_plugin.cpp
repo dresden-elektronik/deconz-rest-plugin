@@ -243,6 +243,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SUNRICHER, "ZGRC-KEY", emberMacPrefix }, // Sunricher wireless CCT remote
     { VENDOR_SUNRICHER, "ZG2833K", emberMacPrefix }, // Sunricher remote controller
     { VENDOR_SUNRICHER, "RGBgenie ZB-5", emberMacPrefix }, // RGBgenie remote control
+    { VENDOR_SUNRICHER, "ROB_200", silabs2MacPrefix }, // Sunricher SR-ZG9040A built-in dimmer, whitelabeled by Robbshop
     { VENDOR_JENNIC, "SPZB0001", jennicMacPrefix }, // Eurotronic thermostat
     { VENDOR_NONE, "RES001", tiMacPrefix }, // Hubitat environment sensor, see #1308
     { VENDOR_SINOPE, "WL4200S", sinopeMacPrefix}, // Sinope water sensor
@@ -7301,6 +7302,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     consumption /= 1000;
                                 }
+                                else if (i->modelId().startsWith(QLatin1String("ROB_200"))) // ROBB Smarrt micro dimmer
+                                {
+                                    consumption /= 3600;
+                                }
 
                                 if (item)
                                 {
@@ -7373,8 +7378,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 if (item && power != -32768)
                                 {
-                                    if (i->modelId() == QLatin1String("SmartPlug") ||      // Heiman
-                                        i->modelId().startsWith(QLatin1String("SKHMP30"))) // GS smart plug
+                                    if (i->modelId() == QLatin1String("SmartPlug") ||        // Heiman
+                                        i->modelId().startsWith(QLatin1String("SKHMP30")) || // GS smart plug
+                                        i->modelId().startsWith(QLatin1String("ROB_200")))   // ROBB Smarrt micro dimmer
                                     {
                                         power += 5; power /= 10; // 0.1W -> W
                                     }
@@ -7419,7 +7425,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     }
                                     else if (i->modelId() == QLatin1String("RICI01") ||           // LifeControl Smart Plug
                                              i->modelId().startsWith(QLatin1String("outlet")) ||  // Samsung SmartThings IM6001-OTP/IM6001-OTP01
-                                             i->modelId() == QLatin1String("EMIZB-13"))           // Develco EMI
+                                             i->modelId() == QLatin1String("EMIZB-13") ||         // Develco EMI
+                                             i->modelId().startsWith(QLatin1String("ROB_200")))   // ROBB Smarrt micro dimmer
                                     {
                                         voltage /= 10; // 0.1V -> V
                                     }

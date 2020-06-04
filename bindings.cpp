@@ -1251,6 +1251,10 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         {
             rq.reportableChange48bit = 1000; // 0.001 kWh (1 Wh)
         }
+        else if (sensor && (sensor->modelId().startsWith(QLatin1String("ROB_200")))) // ROBB Smarrt micro dimmer
+        {
+            rq.reportableChange48bit = 3600; // 0.001 kWh (1 Wh)
+        }
         else
         {
             rq.reportableChange48bit = 1; // 0.001 kWh (1 Wh)
@@ -1288,7 +1292,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.maxInterval = 300;
         if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") ||   // Heiman
                        sensor->modelId() == QLatin1String("SKHMP30-I1") ||  // GS smart plug
-                       sensor->modelId() == QLatin1String("SZ-ESW01-AU")))  // Sercomm / Telstra smart plug
+                       sensor->modelId() == QLatin1String("SZ-ESW01-AU") || // Sercomm / Telstra smart plug
+                       sensor->modelId().startsWith(QLatin1String("ROB_200"))))  // ROBB Smarrt micro dimmer
         {
             rq.reportableChange16bit = 10; // 1 W
         }
@@ -1310,6 +1315,10 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         else if (sensor && sensor->modelId() == QLatin1String("SZ-ESW01-AU")) // Sercomm / Telstra smart plug
         {
             rq2.reportableChange16bit = 125; // 1 V
+        }
+        else if (sensor && sensor->modelId().startsWith(QLatin1String("ROB_200"))) // ROBB Smarrt micro dimmer
+        {
+            rq2.reportableChange16bit = 10; // 1 V
         }
         else
         {
@@ -2053,7 +2062,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5")) ||
         sensor->modelId().startsWith(QLatin1String("ZGRC-KEY")) ||
         // Embertec
-        sensor->modelId().startsWith(QLatin1String("BQZ10-AU")))
+        sensor->modelId().startsWith(QLatin1String("BQZ10-AU")) ||
+        // ROBB Smarrt
+        sensor->modelId().startsWith(QLatin1String("ROB_200")))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||
