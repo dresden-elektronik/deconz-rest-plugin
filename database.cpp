@@ -3153,6 +3153,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = clusterId ? clusterId : IAS_ZONE_CLUSTER_ID;
             }
+            else if (sensor.fingerPrint().hasInCluster(APPLIANCE_EVENTS_AND_ALERTS_CLUSTER_ID))
+            {
+                clusterId = clusterId ? clusterId : APPLIANCE_EVENTS_AND_ALERTS_CLUSTER_ID;
+            }
             item = sensor.addItem(DataTypeBool, RStateWater);
             item->setValue(false);
         }
