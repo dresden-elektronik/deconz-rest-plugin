@@ -42,6 +42,8 @@
 #include "poll_manager.h"
 #include "rest_devices.h"
 
+DeRestPluginPrivate *plugin;
+
 const char *HttpStatusOk           = "200 OK"; // OK
 const char *HttpStatusAccepted     = "202 Accepted"; // Accepted but not complete
 const char *HttpStatusNotModified  = "304 Not Modified"; // For ETag / If-None-Match
@@ -343,6 +345,8 @@ QString ApiRequest::apikey() const
 DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     QObject(parent)
 {
+    plugin = this;
+
     pollManager = new PollManager(this);
     restDevices = new RestDevices(this);
 
@@ -2480,7 +2484,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             updated = true;
                         }
                     }
-                    else if (ia->id() == 0x4000) // enhanced current hue
+                    else if (ia->id() == 0x4000 && lightNode->manufacturerCode() != VENDOR_MUELLER) // enhanced current hue
                     {
                         quint16 hue = ia->numericValue().u16;
                         ResourceItem *item = lightNode->item(RStateHue);
@@ -2839,6 +2843,20 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
                             updated = true;
                         }
+                    }
+                    else if (ia->id() == 0x4005 && lightNode->manufacturerCode() == VENDOR_MUELLER)
+                    {
+                        quint8 scene = ia->numericValue().u8;
+                        ResourceItem *item = lightNode->item(RStateEffect);
+                        if (item && scene != item->toNumber() && scene >= 1 && scene <= 6)
+                        {
+                            item->setValue(scene + 1);
+                            Event e(RLights, RStateEffect, lightNode->id(), item);
+                            enqueueEvent(e);
+                            updated = true;
+                            pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
+                        }
+                        lightNode->setZclValue(updateType, event.endpoint(), event.clusterId(), 0x4005, ia->numericValue());
                     }
                 }
             }
