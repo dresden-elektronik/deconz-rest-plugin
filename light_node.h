@@ -58,6 +58,10 @@ public:
     bool isColorLoopActive() const;
     void setColorLoopSpeed(uint8_t speed);
     uint8_t colorLoopSpeed() const;
+    void didSetValue(ResourceItem *i);
+    bool setValue(const char *suffix, qint64 val);
+    bool setValue(const char *suffix, const QString &val);
+    bool setValue(const char *suffix, const QVariant &val);
     const deCONZ::SimpleDescriptor &haEndpoint() const;
     void setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint);
     uint8_t groupCapacity() const;
@@ -91,4 +95,3 @@ private:
 };
 
 #endif // LIGHT_NODE_H
-
