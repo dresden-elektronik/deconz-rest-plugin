@@ -987,8 +987,8 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     {
         if (req.mode != ApiModeNormal)
         {
-            map["swversion"] = QLatin1String("1810251352");
-            map["apiversion"] = QLatin1String("1.28.0");
+            map["swversion"] = QLatin1String("1938112040");
+            map["apiversion"] = QLatin1String("1.38.0");
             map["modelid"] = QLatin1String("BSB002");
         }
         devicetypes["bridge"] = false;
@@ -1078,7 +1078,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
 void DeRestPluginPrivate::basicConfigToMap(QVariantMap &map)
 {
     map["name"] = gwName;
-    map["datastoreversion"] = QLatin1String("60");
+    map["datastoreversion"] = QLatin1String("93");
     const QStringList versions = QString(GW_SW_VERSION).split('.');
     const QString swversion = QString("%1.%2.%3").arg(versions[0].toInt()).arg(versions[1].toInt()).arg(versions[2].toInt());
     map["swversion"] = swversion;
