@@ -51,4 +51,3 @@ Event::Event(const char *resource, const char *what, int num) :
         m_id = QString::number(num);
     }
 }
-
