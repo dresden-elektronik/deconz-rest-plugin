@@ -94,6 +94,13 @@ const char *RStateWater = "state/water";
 const char *RStateX = "state/x";
 const char *RStateY = "state/y";
 
+const QStringList RStateEffectValues({
+    "none", "colorloop"
+});
+const QStringList RStateEffectValuesMueller({
+    "none", "colorloop", "sunset", "party", "worklight", "campfire", "romance", "nightlight"
+});
+
 const char *RConfigAlert = "config/alert";
 const char *RConfigBattery = "config/battery";
 const char *RConfigColorCapabilities = "config/colorcapabilities";
@@ -187,7 +194,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateCt));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateDark));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateDaylight));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateEffect));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RStateEffect));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateEventDuration));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateFire));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateFlag));
@@ -771,9 +778,18 @@ const QString &Resource::toString(const char *suffix) const
     {
         return i->toString();
     }
-
     DBG_Assert(!rItemStrings.empty());
     return rItemStrings[0]; // invalid string
+}
+
+QVariant Resource::toVariant(const char *suffix) const
+{
+    const ResourceItem *i = item(suffix);
+    if (i)
+    {
+        return i->toVariant();
+    }
+    return QVariant();
 }
 
 int Resource::itemCount() const
