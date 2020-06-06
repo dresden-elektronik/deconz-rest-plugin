@@ -14,16 +14,16 @@
  */
 LightNode::LightNode() :
     Resource(RLights),
-   m_state(StateNormal),
-   m_resetRetryCount(0),
-   m_zdpResetSeq(0),
-   m_groupCapacity(0),
-   m_manufacturerCode(0),
-   m_otauClusterId(0), // unknown
-   m_colorLoopActive(false),
-   m_colorLoopSpeed(0),
-   m_groupCount(0),
-   m_sceneCapacity(16)
+    m_state(StateNormal),
+    m_resetRetryCount(0),
+    m_zdpResetSeq(0),
+    m_groupCapacity(0),
+    m_manufacturerCode(0),
+    m_otauClusterId(0), // unknown
+    m_colorLoopActive(false),
+    m_colorLoopSpeed(0),
+    m_groupCount(0),
+    m_sceneCapacity(16)
 
 {
     // add common items
@@ -302,6 +302,74 @@ uint8_t LightNode::colorLoopSpeed() const
     return m_colorLoopSpeed;
 }
 
+/*! Handles admin when ResourceItem value has been set.
+ * \param i ResourceItem
+ */
+void LightNode::didSetValue(ResourceItem *i)
+{
+    plugin->enqueueEvent(Event(RLights, i->descriptor().suffix, id(), i));
+    plugin->updateLightEtag(this);
+    setNeedSaveDatabase(true);
+    plugin->saveDatabaseItems |= DB_LIGHTS;
+}
+
+/*! Set ResourceItem value.
+ * \param suffix ResourceItem suffix
+ * \param val ResourceIetm value
+ */
+bool LightNode::setValue(const char *suffix, qint64 val)
+{
+    ResourceItem *i = item(suffix);
+    if (!i)
+    {
+        return false;
+    }
+    if (!(i->setValue(val)))
+    {
+        return false;
+    }
+    didSetValue(i);
+    return true;
+}
+
+/*! Set ResourceItem value.
+ * \param suffix ResourceItem suffix
+ * \param val ResourceIetm value
+ */
+bool LightNode::setValue(const char *suffix, const QString &val)
+{
+    ResourceItem *i = item(suffix);
+    if (!i)
+    {
+        return false;
+    }
+    if (!(i->setValue(val)))
+    {
+        return false;
+    }
+    didSetValue(i);
+    return true;
+}
+
+/*! Set ResourceItem value.
+ * \param suffix ResourceItem suffix
+ * \param val ResourceIetm value
+ */
+bool LightNode::setValue(const char *suffix, const QVariant &val)
+{
+    ResourceItem *i = item(suffix);
+    if (!i)
+    {
+        return false;
+    }
+    if (!(i->setValue(val)))
+    {
+        return false;
+    }
+    didSetValue(i);
+    return true;
+}
+
 /*! Returns the lights HA endpoint descriptor.
  */
 const deCONZ::SimpleDescriptor &LightNode::haEndpoint() const
@@ -424,6 +492,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                         {
                             addItem(DataTypeUInt16, RStateX);
                             addItem(DataTypeUInt16, RStateY);
+                            addItem(DataTypeUInt8, RStateEffect);
                             addItem(DataTypeUInt16, RStateHue);
                             addItem(DataTypeUInt8, RStateSat);
                         }
@@ -468,6 +537,7 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                             }
                         }
                     }
+                    removeItem(RStateAlert);
                     addItem(DataTypeBool, RStateOpen);
                     // FIXME: removeItem(RStateOn);
                     if (hasLift)
