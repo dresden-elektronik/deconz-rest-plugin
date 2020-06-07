@@ -26,6 +26,10 @@ LightNode::LightNode() :
     m_sceneCapacity(16)
 
 {
+    QDateTime now = QDateTime::currentDateTime();
+    lastStatePush = now;
+    lastAttrPush = now;
+
     // add common items
     addItem(DataTypeBool, RStateOn);
     addItem(DataTypeString, RStateAlert);
@@ -35,6 +39,8 @@ LightNode::LightNode() :
     addItem(DataTypeString, RAttrModelId);
     addItem(DataTypeString, RAttrType);
     addItem(DataTypeString, RAttrSwVersion);
+    addItem(DataTypeTime, RAttrLastAnnounced);
+    addItem(DataTypeTime, RAttrLastSeen);
 
     setManufacturerName(QLatin1String("Unknown"));
 }
@@ -214,66 +220,6 @@ bool LightNode::hasColor() const
     return item(RStateColorMode) != nullptr;
 }
 
-/*! Sets the lights CIE color coordinates.
-    \param x the x coordinate (0..65279)
-    \param y the y coordinate (0..65279)
- */
-void LightNode::setColorXY(uint16_t x, uint16_t y)
-{
-    DBG_Assert(x <= 65279);
-    DBG_Assert(y <= 65279);
-
-    if (x > 65279)
-    {
-        x = 65279;
-    }
-
-    if (y > 65279)
-    {
-        y = 65279;
-    }
-
-    ResourceItem *i = item(RStateX);
-    if (i)
-    {
-        i->setValue(x);
-    }
-
-    i = item(RStateY);
-    if (i)
-    {
-        i->setValue(y);
-    }
-}
-
-/*! Returns the current colormode.
- */
-const QString &LightNode::colorMode() const
-{
-    static QString foo;
-    const ResourceItem *i = item(RStateColorMode);
-    DBG_Assert(i != nullptr);
-    if (i)
-    {
-        return i->toString();
-    }
-    return foo;
-}
-
-/*! Sets the current colormode.
-    \param colorMode the colormode ("hs", "xy", "ct")
- */
-void LightNode::setColorMode(const QString &colorMode)
-{
-    DBG_Assert((colorMode == QLatin1String("hs")) || (colorMode == QLatin1String("xy")) || (colorMode == QLatin1String("ct")));
-
-    ResourceItem *i = item(RStateColorMode);
-    if (i && i->toString() != colorMode)
-    {
-        i->setValue(colorMode);
-    }
-}
-
 /*! Sets the nodes color loop active state.
     \param colorLoopActive whereever the color loop is active
  */
@@ -311,63 +257,84 @@ void LightNode::didSetValue(ResourceItem *i)
     plugin->updateLightEtag(this);
     setNeedSaveDatabase(true);
     plugin->saveDatabaseItems |= DB_LIGHTS;
+    plugin->queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
 }
 
 /*! Set ResourceItem value.
  * \param suffix ResourceItem suffix
  * \param val ResourceIetm value
  */
-bool LightNode::setValue(const char *suffix, qint64 val)
+bool LightNode::setValue(const char *suffix, qint64 val, bool forceUpdate)
 {
     ResourceItem *i = item(suffix);
     if (!i)
     {
         return false;
     }
-    if (!(i->setValue(val)))
+    if (forceUpdate || i->toNumber() != val)
     {
-        return false;
+        if (!(i->setValue(val)))
+        {
+            return false;
+        }
+        didSetValue(i);
+        return true;
     }
-    didSetValue(i);
-    return true;
+    return false;
 }
 
 /*! Set ResourceItem value.
  * \param suffix ResourceItem suffix
  * \param val ResourceIetm value
  */
-bool LightNode::setValue(const char *suffix, const QString &val)
+bool LightNode::setValue(const char *suffix, const QString &val, bool forceUpdate)
 {
     ResourceItem *i = item(suffix);
     if (!i)
     {
         return false;
     }
-    if (!(i->setValue(val)))
+    if (forceUpdate || i->toString() != val)
     {
-        return false;
+        if (!(i->setValue(val)))
+        {
+            return false;
+        }
+        didSetValue(i);
+        return true;
     }
-    didSetValue(i);
-    return true;
+    return false;
 }
 
 /*! Set ResourceItem value.
  * \param suffix ResourceItem suffix
  * \param val ResourceIetm value
  */
-bool LightNode::setValue(const char *suffix, const QVariant &val)
+bool LightNode::setValue(const char *suffix, const QVariant &val, bool forceUpdate)
 {
     ResourceItem *i = item(suffix);
     if (!i)
     {
         return false;
     }
-    if (!(i->setValue(val)))
+    if (forceUpdate || i->toVariant() != val)
     {
-        return false;
+        if (!(i->setValue(val)))
+        {
+            return false;
+        }
+        didSetValue(i);
+        return true;
     }
-    didSetValue(i);
-    return true;
+    return false;
+}
+
+/*! Mark received command and update `lastseen`. */
+void LightNode::rx()
+{
+    RestNodeBase *b = static_cast<RestNodeBase *>(this);
+    b->rx();
+    setValue(RAttrLastSeen, lastRx().toUTC());
 }
 
 /*! Returns the lights HA endpoint descriptor.
@@ -755,6 +722,28 @@ void LightNode::jsonToResourceItems(const QString &json)
 
     QVariantMap map = var.toMap();
     QDateTime dt = QDateTime::currentDateTime().addSecs(-120);
+
+    if (map.contains(RAttrLastAnnounced))
+    {
+        QString lastannounced = map[RAttrLastAnnounced].toString();
+        QString format = QLatin1String("yyyy-MM-ddTHH:mm:ss.zzzZ");
+        QDateTime la = QDateTime::fromString(lastannounced, format);
+        la.setTimeSpec(Qt::UTC);
+        map[RAttrLastAnnounced] = la;
+    }
+
+    if (map.contains(RAttrLastSeen))
+    {
+        QString lastseen = map[RAttrLastSeen].toString();
+        QString format = QLatin1String("yyyy-MM-ddTHH:mm:ss.zzzZ");
+        QDateTime ls = QDateTime::fromString(lastseen, format);
+        ls.setTimeSpec(Qt::UTC);
+        map[RAttrLastSeen] = ls;
+        if (ls < dt)
+        {
+            dt = ls;
+        }
+    }
 
     for (int i = 0; i < itemCount(); i++)
     {
