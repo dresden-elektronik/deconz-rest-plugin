@@ -1583,7 +1583,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA || // IKEA FYRTUR and KADRILJ smart binds
         node->nodeDescriptor().manufacturerCode() == VENDOR_THIRD_REALITY) // Third Reality smart light switch
         // Danalock support
-        node->nodeDescriptor().manufacturerCode() == VENDOR_DANALOCK) // Danalock Door Lock
+        || node->nodeDescriptor().manufacturerCode() == VENDOR_DANALOCK) // Danalock Door Lock
     {
         // whitelist
     }
