@@ -2167,7 +2167,7 @@ int DeRestPluginPrivate::createScene(const ApiRequest &req, ApiResponse &rsp)
 
                 state.setColorloopActive(lightNode->isColorLoopActive());
                 state.setColorloopTime(lightNode->colorLoopSpeed());
-                state.setColorMode(lightNode->colorMode());
+                state.setColorMode(lightNode->toString(RStateColorMode));
             }
             else
             {
