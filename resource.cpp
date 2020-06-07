@@ -390,7 +390,13 @@ const QString &ResourceItem::toString() const
             // default: local time in sec resolution
             QString format = QLatin1String("yyyy-MM-ddTHH:mm:ss");
 
-            if (m_rid.suffix == RStateLastUpdated || m_rid.suffix == RAttrLastAnnounced || m_rid.suffix == RAttrLastSeen)
+            if (m_rid.suffix == RStateLastUpdated)
+            {
+                // UTC in msec resolution
+                format = QLatin1String("yyyy-MM-ddTHH:mm:ss.zzz"); // TODO add Z
+                dt.setOffsetFromUtc(0);
+            }
+            else if (m_rid.suffix == RAttrLastAnnounced || m_rid.suffix == RAttrLastSeen)
             {
                 // UTC in msec resolution
                 format = QLatin1String("yyyy-MM-ddTHH:mm:ss.zzzZ");
@@ -399,7 +405,7 @@ const QString &ResourceItem::toString() const
             else if (m_rid.suffix == RStateSunrise || m_rid.suffix == RStateSunset)
             {
                 // UTC in sec resulution
-                format = QLatin1String("yyyy-MM-ddTHH:mm:ssZ");
+                format = QLatin1String("yyyy-MM-ddTHH:mm:ss"); // TODO add Z
                 dt.setOffsetFromUtc(0);
             }
             else if (m_rid.suffix == RConfigLocalTime)
