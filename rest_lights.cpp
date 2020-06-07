@@ -241,7 +241,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (item->descriptor().suffix == RStateSat) { state["sat"] = static_cast<double>(item->toNumber()); }
         else if (item->descriptor().suffix == RStateCt) { state["ct"] = static_cast<double>(item->toNumber()); }
         else if (item->descriptor().suffix == RStateColorMode) { state["colormode"] = item->toString(); }
-        else if (item->descriptor().suffix == RStateEffect) { state["effect"] = RStateEffectValuesMueller[item->toNumber()]; }
+        else if (item->descriptor().suffix == RStateEffect) { state["effect"] = item->toString(); }
         else if (item->descriptor().suffix == RStateSpeed) { state["speed"] = item->toNumber(); }
         else if (item->descriptor().suffix == RStateX) { ix = item; }
         else if (item->descriptor().suffix == RStateY) { iy = item; }
@@ -256,6 +256,8 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (item->descriptor().suffix == RConfigPowerOnCt) { map["poweronct"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigLevelMin) { map["levelmin"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigId) { map["configid"] = item->toNumber(); }
+        else if (item->descriptor().suffix == RAttrLastAnnounced) { map["lastannounced"] = item->toString(); }
+        else if (item->descriptor().suffix == RAttrLastSeen) { map["lastseen"] = item->toString(); }
     }
 
     if (ix && iy)
@@ -284,7 +286,6 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
     map["uniqueid"] = lightNode->uniqueId();
     map["name"] = lightNode->name();
     map["type"] = lightNode->type();
-    map["lastseen"] = lightNode->lastRx().toUTC().toString("yyyy-MM-ddTHH:mm:ss.zzz");
 
     // Amazon Echo quirks mode
     if (req.mode == ApiModeEcho)
@@ -930,7 +931,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
 
-            // Don't update state.bri ?!
+            taskRef.lightNode->setValue(RStateBri, targetBri);
         }
         else
         {
@@ -1057,7 +1058,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
 
-            // Don't update state.ct?
+            taskRef.lightNode->setValue(RStateCt, targetCt);
+            taskRef.lightNode->setValue(RStateColorMode, QString("ct"));
         }
         else
         {
@@ -1094,6 +1096,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         else if (!hasSat) // only state.hue
         {
             ok = addTaskSetEnhancedHue(task, targetHue);
+            // FIXME: handle lights that don't support Enhanced Current Hue (like Müller)
         }
         else if (!hasHue) // only state.sat
         {
@@ -1213,9 +1216,13 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     {
         const quint64 value = effect - 1;
         deCONZ::ZclAttribute attr(0x4005, deCONZ::Zcl8BitUint, "scene", deCONZ::ZclReadWrite, true);
-
         attr.setValue(value);
-        if (writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), BASIC_CLUSTER_ID, attr, VENDOR_MUELLER))
+
+        if (!isOn)
+        {
+            rsp.list.append(errorToMap(ERR_DEVICE_OFF, QString("/lights/%1/state").arg(id), QString("parameter, effect, is not modifiable. Device is set to off.")));
+        }
+        else if (writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), BASIC_CLUSTER_ID, attr, VENDOR_MUELLER))
         {
             QVariantMap rspItem;
             QVariantMap rspItemState;
@@ -1401,13 +1408,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
-    if (taskRef.lightNode)
-    {
-        rsp.etag = taskRef.lightNode->etag;
-    }
-
+    rsp.etag = taskRef.lightNode->etag;
     processTasks();
-
     return REQ_READY_SEND;
 }
 
@@ -1689,7 +1691,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
 
-            // Rely on attribute reporting to update the light state.
+            taskRef.lightNode->setValue(RStateLift, targetLift);
         }
         else
         {
@@ -1709,7 +1711,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
 
-            // Rely on attribute reporting to update the light state.
+            taskRef.lightNode->setValue(RStateOpen, targetOpen);
         }
         else
         {
@@ -1732,7 +1734,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             rsp.list.append(rspItem);
 
 
-            // Rely on attribute reporting to update the light state.
+            taskRef.lightNode->setValue(RStateTilt, targetTilt);
         }
         else
         {
@@ -1740,8 +1742,8 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         }
     }
 
+    rsp.etag = taskRef.lightNode->etag;
     processTasks();
-
     return REQ_READY_SEND;
 }
 
@@ -1835,11 +1837,19 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
         else if (alert == "select")
         {
             task.options = 0x17; // Warning mode 1 (burglar), Strobe, Very high sound
+            if (taskRef.lightNode->modelId() == QLatin1String("902010/24"))
+            {
+                task.options = 0x12;
+            }
             task.duration = 1;
         }
         else if (alert == "lselect")
         {
             task.options = 0x17; // Warning mode 1 (burglar), Strobe, Very high sound
+            if (taskRef.lightNode->modelId() == QLatin1String("902010/24"))
+            {
+                task.options = 0x12;
+            }
             task.duration = onTime > 0 ? onTime : 300;
         }
         else if (alert == "blink")
@@ -1873,8 +1883,8 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
         }
     }
 
+    rsp.etag = taskRef.lightNode->etag;
     processTasks();
-
     return REQ_READY_SEND;
 }
 
@@ -2455,7 +2465,6 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
         ResourceItem *item = lightNode->item(e.what());
         if (item)
         {
-
             if (lightNode->lastStatePush.isValid() && item->lastSet() < lightNode->lastStatePush)
             {
                 DBG_Printf(DBG_INFO_L2, "discard light state push for %s: %s (already pushed)\n", qPrintable(e.id()), e.what());
@@ -2539,11 +2548,18 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
             }
         }
     }
-    if (strncmp(e.what(), "attr/", 5) == 0)
+    if (strncmp(e.what(), "attr/", 5) == 0 || strncmp(e.what(), "config/", 7) == 0)
     {
         ResourceItem *item = lightNode->item(e.what());
         if (item)
         {
+            if (lightNode->lastAttrPush.isValid() && item->lastSet() < lightNode->lastAttrPush)
+            {
+                DBG_Printf(DBG_INFO_L2, "discard light state push for %s: %s (already pushed)\n", qPrintable(e.id()), e.what());
+                webSocketServer->flush(); // force transmit send buffer
+                return; // already pushed
+            }
+
             QVariantMap map;
             map["t"] = QLatin1String("event");
             map["e"] = QLatin1String("changed");
@@ -2551,11 +2567,39 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
             map["id"] = e.id();
             map["uniqueid"] = lightNode->uniqueId();
 
-            // For now, don't collect top-level attributes into a single event.
-            const char *key = item->descriptor().suffix + 5;
-            map[key] = item->toVariant();
+            QVariantMap attr;
 
-            webSocketServer->broadcastTextMessage(Json::serialize(map));
+            for (int i = 0; i < lightNode->itemCount(); i++)
+            {
+                item = lightNode->itemForIndex(i);
+                const ResourceItemDescriptor &rid = item->descriptor();
+                const char *key;
+
+                if (strncmp(rid.suffix, "attr/", 5) == 0)
+                {
+                    key = item->descriptor().suffix + 5;
+                }
+                else if (strncmp(e.what(), "config/", 7) == 0)
+                {
+                    key = item->descriptor().suffix + 7;
+                }
+                else
+                {
+                    continue;
+                }
+
+                if (item->lastSet().isValid() && (gwWebSocketNotifyAll || (item->lastChanged().isValid() && item->lastChanged() >= lightNode->lastAttrPush)))
+                {
+                    attr[key] = item->toVariant();
+                }
+            }
+
+            if (!attr.isEmpty())
+            {
+                map["attr"] = attr;
+                webSocketServer->broadcastTextMessage(Json::serialize(map));
+                lightNode->lastAttrPush = now;
+            }
         }
     }
     else if (e.what() == REventAdded)
