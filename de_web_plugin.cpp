@@ -2300,38 +2300,24 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
         DBG_Printf(DBG_INFO, "LightNode %s set node %s\n", qPrintable(lightNode->id()), qPrintable(event.node()->address().toStringExt()));
     }
 
-    ResourceItem *reachable = lightNode->item(RStateReachable);
-    DBG_Assert(reachable);
-    if (reachable->toBool())
+    if (lightNode->toBool(RStateReachable))
     {
         if ((event.node()->state() == deCONZ::FailureState) || event.node()->isZombie())
         {
-            reachable->setValue(false);
-            Event e(RLights, RStateReachable, lightNode->id(), reachable);
-            enqueueEvent(e);
-            updated = true;
+            lightNode->setValue(RStateReachable, false);
         }
     }
     else
     {
         if (event.node()->state() != deCONZ::FailureState)
         {
-            reachable->setValue(true);
-            Event e(RLights, RStateReachable, lightNode->id(), reachable);
-            enqueueEvent(e);
-            updated = true;
+            lightNode->setValue(RStateReachable, true);
         }
     }
 
     if (lightNode->isAvailable())
     {
         lightNode->rx();
-    }
-
-    if (updated)
-    {
-        lightNode->setNeedSaveDatabase(true);
-        queSaveDb(DB_LIGHTS, DB_SHORT_SAVE_DELAY);
     }
 
     // filter
@@ -2464,105 +2450,54 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                     {
                         uint8_t hue = ia->numericValue().u8;
 
-                        if (hue > 254)
+                        if (hue > 254) // FIXME: Hue lights accept and report Hue of 255 ?
                         {
                             hue = 254;
                         }
 
-                        qreal normHue = (static_cast<double>(hue) * 360 / 254) / 360;
+                        qreal normHue = (static_cast<double>(hue) * 360 / 254) / 360; // FIXME: Hue lights enhanced hue = 256 * hue.
                         if      (normHue < 0) { normHue = 0; }
                         else if (normHue > 1) { normHue = 1; }
 
                         const quint16 ehue = static_cast<quint16>(normHue * 65535);
 
-                        ResourceItem *item = lightNode->item(RStateHue);
-                        if (item && item->toNumber() != ehue)
-                        {
-                            item->setValue(ehue);
-                            Event e(RLights, RStateHue, lightNode->id(), item);
-                            enqueueEvent(e);
-                            updated = true;
-                        }
+                        lightNode->setValue(RStateHue, ehue);
                     }
                     else if (ia->id() == 0x4000 && lightNode->manufacturerCode() != VENDOR_MUELLER) // enhanced current hue
                     {
                         quint16 hue = ia->numericValue().u16;
-                        ResourceItem *item = lightNode->item(RStateHue);
-
-                        if (item && item->toNumber() != hue)
-                        {
-                            item->setValue(hue);
-                            Event e(RLights, RStateHue, lightNode->id(), item);
-                            enqueueEvent(e);
-                            updated = true;
-                        }
+                        lightNode->setValue(RStateHue, hue);
                     }
                     else if (ia->id() == 0x0001) // current saturation
                     {
                         uint8_t sat = ia->numericValue().u8;
-                        ResourceItem *item = lightNode->item(RStateSat);
-                        if (item && item->toNumber() != sat)
-                        {
-                            item->setValue(sat);
-                            Event e(RLights, RStateSat, lightNode->id(), item);
-                            enqueueEvent(e);
-                            updated = true;
-                        }
+                        lightNode->setValue(RStateSat, sat);
                     }
                     else if (ia->id() == 0x0003) // current x
                     {
                         uint16_t colorX = ia->numericValue().u16;
 
                         // sanity for colorX
-                        if (colorX > 65279) { colorX = 65279; }
-
-                        ResourceItem *item = lightNode->item(RStateX);
-                        if (item && item->toNumber() != colorX)
+                        if (colorX > 0xFEFF)
                         {
-                            item->setValue(colorX);
-                            Event e(RLights, RStateX, lightNode->id(), item);
-                            enqueueEvent(e);
-                            updated = true;
+                            colorX = 0xFEFF;
                         }
+                        lightNode->setValue(RStateX, colorX);
                     }
                     else if (ia->id() == 0x0004) // current y
                     {
                         uint16_t colorY = ia->numericValue().u16;
                         // sanity for colorY
-                        if (colorY > 65279) { colorY = 65279; }
-
-                        ResourceItem *item = lightNode->item(RStateY);
-                        if (item && item->toNumber() != colorY)
+                        if (colorY > 0xFEFF)
                         {
-                            item->setValue(colorY);
-                            Event e(RLights, RStateY, lightNode->id(), item);
-                            enqueueEvent(e);
-                            updated = true;
+                            colorY = 0xFEFF;
                         }
+                        lightNode->setValue(RStateY, colorY);
                     }
                     else if (ia->id() == 0x0007) // color temperature
                     {
                         uint16_t ct = ia->numericValue().u16;
-                        ResourceItem *item = lightNode->item(RStateCt);
-
-                        if (!item)
-                        {
-                            if (lightNode->modelId() == QLatin1String("FB56-ZCW08KU1.1"))
-                            {
-                                // Feibit color light exposes color temperature, but doesn't support it, see #2733.
-                                continue;
-                            }
-                            item = lightNode->addItem(DataTypeUInt16, RStateCt);
-                            DBG_Assert(item != 0);
-                        }
-
-                        if (item && item->toNumber() != ct)
-                        {
-                            item->setValue(ct);
-                            Event e(RLights, RStateCt, lightNode->id(), item);
-                            enqueueEvent(e);
-                            updated = true;
-                        }
+                        lightNode->setValue(RStateCt, ct);
                     }
                     else if (ia->id() == 0x0008 || ia->id() == 0x4001) // color mode | enhanced color mode
                     {
@@ -2601,24 +2536,14 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
 
                         if (cm < 4)
                         {
-                            ResourceItem *item = lightNode->item(RStateColorMode);
-                            if (item && item->toString() != modes[cm])
-                            {
-                                item->setValue(QVariant(modes[cm]));
-                                Event e(RLights, RStateColorMode, lightNode->id());
-                                enqueueEvent(e);
-                                updated = true;
-                            }
+                            lightNode->setValue(RStateColorMode, QString(modes[cm]));
                         }
                     }
                     else if (ia->id() == 0x4002) // color loop active
                     {
-                        bool colorLoopActive = ia->numericValue().u8 == 0x01;
-
-                        if (lightNode->isColorLoopActive() != colorLoopActive)
+                        if (lightNode->toNumber(RStateEffect) <= 1)
                         {
-                            lightNode->setColorLoopActive(colorLoopActive);
-                            updated = true;
+                            lightNode->setValue(RStateEffect, ia->numericValue().u8);
                         }
                     }
                     else if (ia->id() == 0x4004) // color loop time
@@ -2628,50 +2553,22 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         if (lightNode->colorLoopSpeed() != clTime)
                         {
                             lightNode->setColorLoopSpeed(clTime);
-                            updated = true;
                         }
                     }
                     else if (ia->id() == 0x400a) // color capabilities
                     {
                         quint16 cap = ia->numericValue().u16;
-                        ResourceItem *item = lightNode->addItem(DataTypeUInt16, RConfigColorCapabilities);
-                        DBG_Assert(item != 0);
-                        if (item && item->toNumber() != cap)
-                        {
-                            lightNode->setNeedSaveDatabase(true);
-                            item->setValue(cap);
-                            Event e(RLights, RConfigColorCapabilities, lightNode->id(), item);
-                            enqueueEvent(e);
-                            updated = true;
-                        }
+                        lightNode->setValue(RConfigColorCapabilities, cap);
                     }
                     else if (ia->id() == 0x400b) // color temperature min
                     {
                         quint16 cap = ia->numericValue().u16;
-                        ResourceItem *item = lightNode->addItem(DataTypeUInt16, RConfigCtMin);
-                        DBG_Assert(item != 0);
-                        if (item && item->toNumber() != cap)
-                        {
-                            item->setValue(cap);
-                            lightNode->setNeedSaveDatabase(true);
-                            Event e(RLights, RConfigCtMin, lightNode->id(), item);
-                            enqueueEvent(e);
-                            updated = true;
-                        }
+                        lightNode->setValue(RConfigCtMin, cap);
                     }
                     else if (ia->id() == 0x400c) // color temperature max
                     {
                         quint16 cap = ia->numericValue().u16;
-                        ResourceItem *item = lightNode->addItem(DataTypeUInt16, RConfigCtMax);
-                        DBG_Assert(item != 0);
-                        if (item && item->toNumber() != cap)
-                        {
-                            item->setValue(cap);
-                            lightNode->setNeedSaveDatabase(true);
-                            Event e(RLights, RConfigCtMax, lightNode->id(), item);
-                            enqueueEvent(e);
-                            updated = true;
-                        }
+                        lightNode->setValue(RConfigCtMax, cap);
                     }
                 }
             }
@@ -2683,23 +2580,17 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                 {
                     if (ia->id() == 0x0000) // current level
                     {
+                        lightNode->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
+
                         uint8_t level = ia->numericValue().u8;
-                        ResourceItem *item = lightNode->item(RStateBri);
-                        if (item && item->toNumber() != level)
+                        if (lightNode->setValue(RStateBri, level))
                         {
-                            DBG_Printf(DBG_INFO, "0x%016llX level %u --> %u\n", lightNode->address().ext(), (uint)item->toNumber(), level);
                             lightNode->clearRead(READ_LEVEL);
-                            item->setValue(level);
-                            Event e(RLights, RStateBri, lightNode->id(), item);
-                            enqueueEvent(e);
-                            updated = true;
                             pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
                         }
-                        lightNode->setZclValue(updateType, event.endpoint(), event.clusterId(), 0x0000, ia->numericValue());
                         break;
                     }
                 }
-                break;
             }
             else if (ic->id() == ONOFF_CLUSTER_ID && (event.clusterId() == ONOFF_CLUSTER_ID))
             {
@@ -2713,15 +2604,11 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                 {
                     if (ia->id() == 0x0000) // OnOff
                     {
+                        lightNode->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
+
                         bool on = ia->numericValue().u8;
-                        ResourceItem *item = lightNode->item(RStateOn);
-                        if (item && item->toBool() != on)
+                        if (lightNode->setValue(RStateOn, on))
                         {
-                            DBG_Printf(DBG_INFO, "0x%016llX onOff %u --> %u\n", lightNode->address().ext(), (uint)item->toNumber(), on);
-                            item->setValue(on);
-                            Event e(RLights, RStateOn, lightNode->id(), item);
-                            enqueueEvent(e);
-                            updated = true;
                             pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
                         }
                         else
@@ -2736,7 +2623,6 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                                 }
                             }
                         }
-                        lightNode->setZclValue(updateType, event.endpoint(), event.clusterId(), 0x0000, ia->numericValue());
                         break;
                     }
                 }
@@ -2846,17 +2732,13 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                     }
                     else if (ia->id() == 0x4005 && lightNode->manufacturerCode() == VENDOR_MUELLER)
                     {
+                        lightNode->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
+
                         quint8 scene = ia->numericValue().u8;
-                        ResourceItem *item = lightNode->item(RStateEffect);
-                        if (item && scene != item->toNumber() && scene >= 1 && scene <= 6)
+                        if (scene >= 1 && scene <= 6)
                         {
-                            item->setValue(scene + 1);
-                            Event e(RLights, RStateEffect, lightNode->id(), item);
-                            enqueueEvent(e);
-                            updated = true;
-                            pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
+                            lightNode->setValue(RStateEffect, scene + 1);
                         }
-                        lightNode->setZclValue(updateType, event.endpoint(), event.clusterId(), 0x4005, ia->numericValue());
                     }
                 }
             }
@@ -2873,49 +2755,23 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                 {
                     if (ia->id() == 0x0055) // Present Value
                     {
+                        lightNode->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
+
                         quint8 lift = 100 - ia->numericValue().real;
-                        ResourceItem *item = lightNode->item(RStateLift);
-                        if (item && item->toNumber() != lift)
-                        {
-                            item->setValue(lift);
-                            Event e(RLights, RStateLift, lightNode->id(), item);
-                            enqueueEvent(e);
-                            updated = true;
-                            pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().real);
-                        }
-                        item = lightNode->item(RStateOpen);
                         bool open = lift < 100;
-                        if (item && item->toBool() != open)
+                        if (lightNode->setValue(RStateLift, lift))
                         {
-                            item->setValue(open);
-                            Event e(RLights, RStateOpen, lightNode->id(), item);
-                            enqueueEvent(e);
-                            updated = true;
+                            pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
                         }
+                        lightNode->setValue(RStateOpen, open);
 
                         // FIXME: deprecate
                         quint8 level = 254 * lift / 100;
-                        item = lightNode->item(RStateBri);
-                        if (item && item->toNumber() != level)
-                        {
-                            item->setValue(level);
-                            Event e(RLights, RStateBri, lightNode->id(), item);
-                            enqueueEvent(e);
-                            updated = true;
-                            pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().real);
-                        }
                         bool on = level > 0;
-                        item = lightNode->item(RStateOn);
-                        if (item && item->toBool() != on)
-                        {
-                            item->setValue(on);
-                            Event e(RLights, RStateOn, lightNode->id(), item);
-                            enqueueEvent(e);
-                            updated = true;
-                        }
+                        lightNode->setValue(RStateBri, level);
+                        lightNode->setValue(RStateOn, on);
                         // END FIXME: deprecate
 
-                        lightNode->setZclValue(updateType, event.endpoint(), event.clusterId(), 0x0055, ia->numericValue());
                         break;
                     }
                 }
@@ -2928,18 +2784,12 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                 {
                     if (ia->id() == 0x0000) // Fan Mode
                     {
+                        lightNode->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
+
                         uint8_t mode = ia->numericValue().u8;
-                        ResourceItem *item = lightNode->item(RStateSpeed);
-                        if (item && item->toNumber() != mode)
-                        {
-                            item->setValue(mode);
-                            enqueueEvent(Event(RLights, RStateSpeed, lightNode->id(), item));
-                            lightNode->setZclValue(updateType, event.endpoint(), event.clusterId(), 0x0000, ia->numericValue());
-                            updated = true;
-                        }
+                        lightNode->setValue(RStateSpeed, mode);
                     }
                 }
-
             }
         }
 
@@ -13393,6 +13243,7 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
         if (i->address().ext() == ext)
         {
             i->rx();
+            i->setValue(RAttrLastAnnounced, i->lastRx().toUTC());
 
             // clear to speedup polling
             for (NodeValue &val : i->zclValues())
