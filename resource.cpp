@@ -32,7 +32,7 @@ const char *RAttrType = "attr/type";
 const char *RAttrClass = "attr/class";
 const char *RAttrUniqueId = "attr/uniqueid";
 const char *RAttrSwVersion = "attr/swversion";
-const char *RAttrLastAnnounce = "attr/lastannounced";
+const char *RAttrLastAnnounced = "attr/lastannounced";
 const char *RAttrLastSeen = "attr/lastseen";
 
 const char *RActionScene = "action/scene";
@@ -176,7 +176,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrClass));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrUniqueId));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrSwVersion));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RAttrLastAnnounce));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RAttrLastAnnounced));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RAttrLastSeen));
 
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateAlarm));
@@ -383,22 +383,23 @@ const QString &ResourceItem::toString() const
     }
     else if (m_rid.type == DataTypeTime)
     {
-        if (m_str)
+        if (m_num > 0)
         {
             QDateTime dt;
 
             // default: local time in sec resolution
             QString format = QLatin1String("yyyy-MM-ddTHH:mm:ss");
 
-            if (m_rid.suffix == RStateLastUpdated)
+            if (m_rid.suffix == RStateLastUpdated || m_rid.suffix == RAttrLastAnnounced || m_rid.suffix == RAttrLastSeen)
             {
                 // UTC in msec resolution
-                format = QLatin1String("yyyy-MM-ddTHH:mm:ss.zzz");
+                format = QLatin1String("yyyy-MM-ddTHH:mm:ss.zzzZ");
                 dt.setOffsetFromUtc(0);
             }
             else if (m_rid.suffix == RStateSunrise || m_rid.suffix == RStateSunset)
             {
                 // UTC in sec resulution
+                format = QLatin1String("yyyy-MM-ddTHH:mm:ssZ");
                 dt.setOffsetFromUtc(0);
             }
             else if (m_rid.suffix == RConfigLocalTime)
@@ -411,6 +412,10 @@ const QString &ResourceItem::toString() const
             *m_str = dt.toString(format);
             return *m_str;
         }
+    }
+    else if (m_rid.suffix == RStateEffect)
+    {
+        return RStateEffectValuesMueller[m_num];
     }
 
     DBG_Assert(!rItemStrings.empty());
