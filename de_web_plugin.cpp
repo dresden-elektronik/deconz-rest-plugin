@@ -2763,7 +2763,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                     if (ia->id() == 0x0000) // Lock state
                     {
 
-                        bool on = ia->numericValue().u8; // == 1;
+                        bool on = ia->numericValue().u8 == 1;
                         DBG_Printf(DBG_INFO,"Status dørlås: %u\n", (uint)ia->numericValue().u8);
                         ResourceItem *item = lightNode->item(RStateOn);
                         if (item && item->toBool() != on)

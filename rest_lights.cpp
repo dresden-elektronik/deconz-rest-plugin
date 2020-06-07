@@ -868,7 +868,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             addTaskSetBrightness(task, 2, true);
         // Danalock support. In rest_lights.cpp, you need to call this routine from setLightState() under if (hasOn)
         } else if (isDoorLockDevice) {
-            ok = addTaskDoorLockUnlock(task, 0x01 /*UnLock*/);
+            ok = addTaskDoorLockUnlock(task, 0x00 /*Lock*/);
         } else {
             const quint8 cmd = taskRef.onTime > 0
                 ? ONOFF_COMMAND_ON_WITH_TIMED_OFF
@@ -1327,7 +1327,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             ok = addTaskSetBrightness(task, 0, true);
         // Danalock support. In rest_lights.cpp, you need to call this routine from setLightState() under if (hasOn)
         } else if (isDoorLockDevice) {
-            ok = addTaskDoorLockUnlock(task, 0x00 /*Lock*/);
+            ok = addTaskDoorLockUnlock(task, 0x01 /*UnLock*/);
         } else {
             const quint8 cmd = taskRef.lightNode->manufacturerCode() == VENDOR_PHILIPS // FIXME: use light capabilities
                 ? ONOFF_COMMAND_OFF_WITH_EFFECT
