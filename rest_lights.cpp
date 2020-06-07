@@ -998,8 +998,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
 
-            taskRef.lightNode->setValue(RStateX, targetX);
-            taskRef.lightNode->setValue(RStateY, targetY);
+            taskRef.lightNode->setValue(RStateX, targetX * 65535);
+            taskRef.lightNode->setValue(RStateY, targetY * 65535);
             taskRef.lightNode->setValue(RStateColorMode, QString("xy"));
         }
         else
