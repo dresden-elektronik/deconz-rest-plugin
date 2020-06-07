@@ -874,7 +874,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 ? ONOFF_COMMAND_ON_WITH_TIMED_OFF
                 : ONOFF_COMMAND_ON;
         
-            ok = addTaskSetOnOff(task, cmd, taskRef.onTime, 0)
+            ok = addTaskSetOnOff(task, cmd, taskRef.onTime, 0);
         }
 
         if (ok)
