@@ -1567,6 +1567,17 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
         return sendConfigureReportingRequest(bt, {rq});
     }
+    else if (bt.binding.clusterId == BASIC_CLUSTER_ID && manufacturerCode == VENDOR_MUELLER && lightNode)
+    {
+        rq.dataType = deCONZ::Zcl8BitUint;
+        rq.attributeId = 0x4005; // Mueller special scene
+        rq.minInterval = 1;
+        rq.maxInterval = 300;
+        rq.reportableChange8bit = 1;
+        rq.manufacturerCode = VENDOR_MUELLER;
+
+        return sendConfigureReportingRequest(bt, {rq});
+    }
     else if (bt.binding.clusterId == VENDOR_CLUSTER_ID)
     {
         Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
@@ -1670,6 +1681,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         {
         }
         else if (lightNode->manufacturerCode() == VENDOR_LGE)
+        {
+        }
+        else if (lightNode->manufacturerCode() == VENDOR_MUELLER)
         {
         }
         else if (lightNode->manufacturerCode() == VENDOR_KEEN_HOME)
