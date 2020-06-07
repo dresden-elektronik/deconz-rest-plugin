@@ -542,6 +542,13 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         return setWarningDeviceState(req, rsp, taskRef, map);
     }
 
+    // Danalock support
+    bool isDoorLockDevice = false;
+    if (taskRef.lightNode->type() == QLatin1String("Door Lock"))
+    {
+        isDoorLockDevice = true;
+    }
+
     static const QStringList alertList({
         "none", "select", "lselect", "blink", "breathe", "okay", "channelchange", "finish", "stop"
     });
@@ -863,7 +870,17 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         const quint8 cmd = taskRef.onTime > 0
             ? ONOFF_COMMAND_ON_WITH_TIMED_OFF
             : ONOFF_COMMAND_ON;
-        if (addTaskSetOnOff(task, cmd, taskRef.onTime, 0))
+        // Danalock support
+        if (isDoorLockDevice && addTaskDoorLockUnlock(task, isOn ? 0x00 /*Lock*/ : 0x01 /*unlock*/))
+        {	
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/state/on").arg(id)] = isOn;
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+            taskToLocalData(task);
+        }
+        else if (addTaskSetOnOff(task, cmd, taskRef.onTime, 0))
         {
             taskToLocalData(task);
             isOn = true;
@@ -1317,7 +1334,17 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 : ONOFF_COMMAND_OFF;
             ok = addTaskSetOnOff(task, cmd, 0, 0);
         }
-        if (ok)
+        // Danalock support
+        if (isDoorLockDevice && addTaskDoorLockUnlock(task, isOn ? 0x00 /*Lock*/ : 0x01 /*unlock*/))
+        {	
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/state/on").arg(id)] = isOn;
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+            taskToLocalData(task);
+        }
+        else if (ok)
         {
             QVariantMap rspItem;
             QVariantMap rspItemState;

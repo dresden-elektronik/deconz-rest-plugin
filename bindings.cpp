@@ -1376,6 +1376,17 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
         return sendConfigureReportingRequest(bt, {rq});
     }
+    // Danalock support
+    else if (bt.binding.clusterId == DOOR_LOCK_CLUSTER_ID)
+    {
+        rq.dataType = deCONZ::Zcl8BitEnum;;
+        rq.attributeId = 0x0000; // Current Lock Position
+        rq.minInterval = 1;
+        rq.maxInterval = 300;
+        //rq.reportableChange8bit = 1;
+
+        return sendConfigureReportingRequest(bt, {rq});
+    }
     else if (bt.binding.clusterId == FAN_CONTROL_CLUSTER_ID)
     {
         rq.dataType = deCONZ::Zcl8BitEnum;
@@ -1663,6 +1674,11 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturerCode() == VENDOR_UBISYS)
         {
         }
+        // Danalock support
+        else if (lightNode->manufacturerCode() == VENDOR_DANALOCK)
+        {
+        DBG_Printf(DBG_INFO, "Binding DanaLock\n");
+        }
         else if (lightNode->manufacturerCode() == VENDOR_IKEA)
         {
         }
@@ -1751,6 +1767,8 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         case LEVEL_CLUSTER_ID:
         case COLOR_CLUSTER_ID:
         case WINDOW_COVERING_CLUSTER_ID:
+        // Danalock support
+        case DOOR_LOCK_CLUSTER_ID:
         case IAS_ZONE_CLUSTER_ID:
         case FAN_CONTROL_CLUSTER_ID:
         {
@@ -1960,6 +1978,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("3AFE14010402000D") ||
         // Nimbus
         sensor->modelId().startsWith(QLatin1String("FLS-NB")) ||
+	    // Danalock support
+        sensor->modelId().startsWith(QLatin1String("V3")) ||
         // SmartThings
         sensor->modelId().startsWith(QLatin1String("tagv4")) ||
         sensor->modelId().startsWith(QLatin1String("motionv4")) ||
