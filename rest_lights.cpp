@@ -866,8 +866,9 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             task.transitionTime = 0;
 
             addTaskSetBrightness(task, 2, true);
+        }
         // Danalock support. In rest_lights.cpp, you need to call this routine from setLightState() under if (hasOn)
-        } else if (isDoorLockDevice) {
+        if (isDoorLockDevice) {
             ok = addTaskDoorLockUnlock(task, 0x00 /*Lock*/);
         } else {
             const quint8 cmd = taskRef.onTime > 0
