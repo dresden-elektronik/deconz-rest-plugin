@@ -982,13 +982,14 @@ bool DeRestPluginPrivate::addTaskWarning(TaskItem &task, uint8_t options, uint16
     return addTask(task);
 }
 
-// Danalock support
+// Danalock support. To control the lock from the REST API, you need to create a new routine addTaskDoorLock() in zcl_tasks.cpp, cf. the addTaskWarning() I created to control the Siren.
+// Based on a lock state parameter, add a task with a Lock Door or Unlock Door command
 /*! Add door unlock task to the queue.
    \param task - the task item
    \return true - on success
            false - on error
  */
-bool DeRestPluginPrivate::addTaskDoorLockUnlock(TaskItem &task,uint8_t cmd)
+bool DeRestPluginPrivate::addTaskDoorLockUnlock(TaskItem &task, uint8_t cmd)
 {
     task.taskType = TaskDoorUnlock;
 

@@ -542,7 +542,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         return setWarningDeviceState(req, rsp, taskRef, map);
     }
 
-    // Danalock support
+    // Danalock support. You need to check for taskRef.lightNode->type() == QLatin1String("Door lock"), similar to what I've done under hasAlert for the Siren.
     bool isDoorLockDevice = false;
     if (taskRef.lightNode->type() == QLatin1String("Door Lock"))
     {
@@ -866,21 +866,18 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             task.transitionTime = 0;
 
             addTaskSetBrightness(task, 2, true);
+        // Danalock support. In rest_lights.cpp, you need to call this routine from setLightState() under if (hasOn)
+        } else if (isDoorLockDevice) {
+            ok = addTaskDoorLockUnlock(task, 0x00 /*Lock*/);
+        } else {
+            const quint8 cmd = taskRef.onTime > 0
+                ? ONOFF_COMMAND_ON_WITH_TIMED_OFF
+                : ONOFF_COMMAND_ON;
+        
+            ok = addTaskSetOnOff(task, cmd, taskRef.onTime, 0)
         }
-        const quint8 cmd = taskRef.onTime > 0
-            ? ONOFF_COMMAND_ON_WITH_TIMED_OFF
-            : ONOFF_COMMAND_ON;
-        // Danalock support
-        if (isDoorLockDevice && addTaskDoorLockUnlock(task, isOn ? 0x00 /*Lock*/ : 0x01 /*unlock*/))
-        {	
-            QVariantMap rspItem;
-            QVariantMap rspItemState;
-            rspItemState[QString("/lights/%1/state/on").arg(id)] = isOn;
-            rspItem["success"] = rspItemState;
-            rsp.list.append(rspItem);
-            taskToLocalData(task);
-        }
-        else if (addTaskSetOnOff(task, cmd, taskRef.onTime, 0))
+
+        if (ok)
         {
             taskToLocalData(task);
             isOn = true;
@@ -1328,23 +1325,17 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         copyTaskReq(taskRef, task);
         if (hasBri && hasTransitionTime) {
             ok = addTaskSetBrightness(task, 0, true);
+        // Danalock support. In rest_lights.cpp, you need to call this routine from setLightState() under if (hasOn)
+        } else if (isDoorLockDevice) {
+            ok = addTaskDoorLockUnlock(task, 0x01 /*Unlock*/);
         } else {
             const quint8 cmd = taskRef.lightNode->manufacturerCode() == VENDOR_PHILIPS // FIXME: use light capabilities
                 ? ONOFF_COMMAND_OFF_WITH_EFFECT
                 : ONOFF_COMMAND_OFF;
             ok = addTaskSetOnOff(task, cmd, 0, 0);
         }
-        // Danalock support
-        if (isDoorLockDevice && addTaskDoorLockUnlock(task, isOn ? 0x00 /*Lock*/ : 0x01 /*unlock*/))
-        {	
-            QVariantMap rspItem;
-            QVariantMap rspItemState;
-            rspItemState[QString("/lights/%1/state/on").arg(id)] = isOn;
-            rspItem["success"] = rspItemState;
-            rsp.list.append(rspItem);
-            taskToLocalData(task);
-        }
-        else if (ok)
+        
+        if (ok)
         {
             QVariantMap rspItem;
             QVariantMap rspItemState;
