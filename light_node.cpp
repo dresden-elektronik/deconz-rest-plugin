@@ -329,12 +329,19 @@ bool LightNode::setValue(const char *suffix, const QVariant &val, bool forceUpda
     return false;
 }
 
-/*! Mark received command and update `lastseen`. */
+/*! Mark received command and update lastseen. */
 void LightNode::rx()
 {
     RestNodeBase *b = static_cast<RestNodeBase *>(this);
     b->rx();
-    setValue(RAttrLastSeen, lastRx().toUTC());
+    if (lastRx() >= item(RAttrLastSeen)->lastChanged().addSecs(1))
+    {
+        setValue(RAttrLastSeen, lastRx().toUTC());
+    }
+    else
+    {
+        item(RAttrLastSeen)->setValue(lastRx().toUTC());
+    }
 }
 
 /*! Returns the lights HA endpoint descriptor.
@@ -726,7 +733,7 @@ void LightNode::jsonToResourceItems(const QString &json)
     if (map.contains(RAttrLastAnnounced))
     {
         QString lastannounced = map[RAttrLastAnnounced].toString();
-        QString format = QLatin1String("yyyy-MM-ddTHH:mm:ss.zzzZ");
+        QString format = QLatin1String("yyyy-MM-ddTHH:mm:ssZ");
         QDateTime la = QDateTime::fromString(lastannounced, format);
         la.setTimeSpec(Qt::UTC);
         map[RAttrLastAnnounced] = la;
@@ -735,7 +742,7 @@ void LightNode::jsonToResourceItems(const QString &json)
     if (map.contains(RAttrLastSeen))
     {
         QString lastseen = map[RAttrLastSeen].toString();
-        QString format = QLatin1String("yyyy-MM-ddTHH:mm:ss.zzzZ");
+        QString format = QLatin1String("yyyy-MM-ddTHH:mm:ssZ");
         QDateTime ls = QDateTime::fromString(lastseen, format);
         ls.setTimeSpec(Qt::UTC);
         map[RAttrLastSeen] = ls;
