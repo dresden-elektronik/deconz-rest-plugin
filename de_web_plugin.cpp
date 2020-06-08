@@ -692,6 +692,14 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             handleWindowCoveringClusterIndication(ind, zclFrame);
             break;
 
+        case TUYA_CLUSTER_ID:
+            // Tuya manfacture cluster:
+            if (zclFrame.manufacturerCode() == VENDOR_EMBER)
+            {
+                handleTuyaClusterIndication(ind, zclFrame);
+            }
+            break;
+
         case THERMOSTAT_CLUSTER_ID:
             handleThermostatClusterIndication(ind, zclFrame);
             break;
@@ -12911,6 +12919,128 @@ void DeRestPluginPrivate::handlePhilipsClusterIndication(const deCONZ::ApsDataIn
        For rotaryevents: 1400 01 30 0e 29 rrrr 21 dddd 29 rrrr 21 dddd 29 rrrr 21 dddd
        Where b is the button; e is the event; dddd is the duration and rrrr is the rotation.
      */
+
+    if (zclFrame.payload().size() >= 5)
+    {
+        QDataStream stream(zclFrame.payload());
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        uint16_t button;
+        uint8_t buttonType;
+        uint8_t dataType;
+        uint8_t event = 0xFF;
+        int16_t rotation = -0x7FFF;
+        uint16_t duration = 0xFFFF;
+
+        stream >> button;
+        stream >> buttonType;
+        stream >> dataType;
+        if (dataType == deCONZ::Zcl8BitEnum)
+        {
+            stream >> event;
+            while (!stream.atEnd())
+            {
+                stream >> dataType;
+                if      (dataType == deCONZ::Zcl16BitInt)  stream >> rotation;
+                else if (dataType == deCONZ::Zcl16BitUint) stream >> duration;
+                else                                       break;
+            }
+            if (buttonType == 0 && event != 0xFF && duration != 0xFFFF)
+            {
+                button *= 1000;
+                button += event;
+                ResourceItem *item = sensorNode->item(RStateButtonEvent);
+                if (item)
+                {
+                    updateSensorEtag(sensorNode);
+                    sensorNode->updateStateTimestamp();
+                    item->setValue(button);
+                    Event e(RSensors, RStateButtonEvent, sensorNode->id(), item);
+                    enqueueEvent(e);
+                    ResourceItem *item = sensorNode->item(RStateEventDuration);
+                    if (item)
+                    {
+                        item->setValue(duration);
+                        Event e(RSensors, RStateEventDuration, sensorNode->id(), item);
+                        enqueueEvent(e);
+                    }
+                    enqueueEvent(Event(RSensors, RStateLastUpdated, sensorNode->id()));
+                }
+            }
+            else if (buttonType == 1 && event != 0xFF && rotation != -0x7FFF && duration != 0xFFFF)
+            {
+                DBG_Printf(DBG_INFO_L2, "%s: Philips cluster command: rotaryevent: %d, expectedrotation: %d, expectedeventduration: %d\n", qPrintable(sensorNode->address().toStringExt()), event, rotation, duration);
+            }
+            else
+            {
+                DBG_Printf(DBG_INFO_L2, "%s: Philips cluster command: %s\n", qPrintable(sensorNode->address().toStringExt()), qPrintable(zclFrame.payload()));
+            }
+        }
+    }
+}
+
+/*! Handle packets related to Tuya 0xEF00 cluster.
+    \param ind the APS level data indication containing the ZCL packet
+    \param zclFrame the actual ZCL frame which holds the scene cluster reponse
+    
+    Taken from https://medium.com/@dzegarra/zigbee2mqtt-how-to-add-support-for-a-new-tuya-based-device-part-2-5492707e882d
+ */
+void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
+{
+    DBG_Printf(DBG_INFO, "Tuya : debug 0");
+    
+    if (zclFrame.isDefaultResponse() || zclFrame.manufacturerCode() != VENDOR_EMBER)
+    {
+        return;
+    }
+
+    Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
+
+    if (!sensorNode)
+    {
+        return;
+    }
+    
+    if (zclFrame.commandId() != 0x00)
+    {
+        // 0x00 : Used to send command
+    }
+    else if ( (zclFrame.commandId() != 0x01) || (zclFrame.commandId() != 0x02) )
+    {
+        // 0x01 Used to inform of changes in its state.
+        // 0x02 Send after receiving a 0x00 command.
+        
+        DBG_Printf(DBG_INFO, "Tuya : debug 1");
+        
+        if (zclFrame.payload().size() >= 5)
+        {
+            QDataStream stream(zclFrame.payload());
+            stream.setByteOrder(QDataStream::LittleEndian);
+
+            uint8_t status;
+            uint8_t transid;
+            int16_t dp;
+            uint8_t fn;
+            
+            stream >> status;
+            stream >> transid;
+            stream >> dp;
+            stream >> fn;
+            
+            DBG_Printf(DBG_INFO, "Tuya debug 4: status: %d transid: %d dp: %d fn: %d\n", status , transid , dp , fn ));
+            DBG_Printf(DBG_INFO, "Tuya debug 5: data:  %s\n",  qPrintable(zclFrame.payload()));
+            
+        }
+        else
+        {
+            DBG_Printf(DBG_INFO, "Tuya : debug 2");
+        }
+        
+    }
+    else
+    {
+        return;
+    }
 
     if (zclFrame.payload().size() >= 5)
     {
