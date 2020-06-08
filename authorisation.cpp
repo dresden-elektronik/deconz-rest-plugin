@@ -121,7 +121,7 @@ bool DeRestPluginPrivate::allowedToCreateApikey(const ApiRequest &req, ApiRespon
     }
 
     rsp.httpStatus = HttpStatusForbidden;
-    rsp.list.append(errorToMap(ERR_LINK_BUTTON_NOT_PRESSED, "/", "link button not pressed"));
+    rsp.list.append(errorToMap(ERR_LINK_BUTTON_NOT_PRESSED, "/", "Authenticate button not pressed"));
     return false;
 }
 
