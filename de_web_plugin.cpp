@@ -13027,8 +13027,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             stream >> dp;
             stream >> fn;
             
-            DBG_Printf(DBG_INFO, "Tuya debug 4: status: %d transid: %d dp: %d fn: %d\n", status , transid , dp , fn ));
-            DBG_Printf(DBG_INFO, "Tuya debug 5: data:  %s\n",  qPrintable(zclFrame.payload()));
+            DBG_Printf(DBG_INFO, "Tuya debug 4: status: %d transid: %d dp: %d fn: %d\n", status , transid , dp , fn );
+            DBG_Printf(DBG_INFO, "Tuya debug 5: data:  %s\n",  qPrintable(zclFrame.payload()) );
             
         }
         else
@@ -13042,63 +13042,6 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         return;
     }
 
-    if (zclFrame.payload().size() >= 5)
-    {
-        QDataStream stream(zclFrame.payload());
-        stream.setByteOrder(QDataStream::LittleEndian);
-
-        uint16_t button;
-        uint8_t buttonType;
-        uint8_t dataType;
-        uint8_t event = 0xFF;
-        int16_t rotation = -0x7FFF;
-        uint16_t duration = 0xFFFF;
-
-        stream >> button;
-        stream >> buttonType;
-        stream >> dataType;
-        if (dataType == deCONZ::Zcl8BitEnum)
-        {
-            stream >> event;
-            while (!stream.atEnd())
-            {
-                stream >> dataType;
-                if      (dataType == deCONZ::Zcl16BitInt)  stream >> rotation;
-                else if (dataType == deCONZ::Zcl16BitUint) stream >> duration;
-                else                                       break;
-            }
-            if (buttonType == 0 && event != 0xFF && duration != 0xFFFF)
-            {
-                button *= 1000;
-                button += event;
-                ResourceItem *item = sensorNode->item(RStateButtonEvent);
-                if (item)
-                {
-                    updateSensorEtag(sensorNode);
-                    sensorNode->updateStateTimestamp();
-                    item->setValue(button);
-                    Event e(RSensors, RStateButtonEvent, sensorNode->id(), item);
-                    enqueueEvent(e);
-                    ResourceItem *item = sensorNode->item(RStateEventDuration);
-                    if (item)
-                    {
-                        item->setValue(duration);
-                        Event e(RSensors, RStateEventDuration, sensorNode->id(), item);
-                        enqueueEvent(e);
-                    }
-                    enqueueEvent(Event(RSensors, RStateLastUpdated, sensorNode->id()));
-                }
-            }
-            else if (buttonType == 1 && event != 0xFF && rotation != -0x7FFF && duration != 0xFFFF)
-            {
-                DBG_Printf(DBG_INFO_L2, "%s: Philips cluster command: rotaryevent: %d, expectedrotation: %d, expectedeventduration: %d\n", qPrintable(sensorNode->address().toStringExt()), event, rotation, duration);
-            }
-            else
-            {
-                DBG_Printf(DBG_INFO_L2, "%s: Philips cluster command: %s\n", qPrintable(sensorNode->address().toStringExt()), qPrintable(zclFrame.payload()));
-            }
-        }
-    }
 }
 
 /*! Handle packets related to the ZCL Commissioning cluster.
