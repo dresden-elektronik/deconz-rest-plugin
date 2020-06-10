@@ -1745,9 +1745,8 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
             //Fn , always 0
             stream << (qint8) 0x00;
             // Data
-            
-            stream << (quint8) deCONZ::ZclCharacterString;
-            stream << (qint8) 0x01;
+            stream << (quint8) 0x41; // octet string
+            stream << (qint8) 0x01; // len = 1
             
             if (isOn)
             {
