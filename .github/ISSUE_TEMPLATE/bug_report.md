@@ -39,5 +39,7 @@ If applicable, add screenshots to help explain your problem.
  - Firmware: 
  - deCONZ: 
 
+**deCONZ Logs:**
+
 **Additional context**
 Add any other context about the problem here.
