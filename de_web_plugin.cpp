@@ -1608,6 +1608,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         bool hasServerLevel = false;
         bool hasServerColor = false;
         bool hasIASWDCluster = false;
+        bool hasTuyaCluster = false;
 
         for (int c = 0; c < i->inClusters().size(); c++)
         {
@@ -1616,6 +1617,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             else if (i->inClusters()[c].id() == COLOR_CLUSTER_ID) { hasServerColor = true; }
             else if (i->inClusters()[c].id() == WINDOW_COVERING_CLUSTER_ID) { hasServerOnOff = true; }
             else if (i->inClusters()[c].id() == IAS_WD_CLUSTER_ID) { hasIASWDCluster = true; }
+            else if (i->inClusters()[c].id() == TUYA_CLUSTER_ID) { hasTuyaCluster = true; }
         }
 
         // check if node already exist
@@ -1901,6 +1903,13 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 break;
             }
         }
+        
+        //Tuya switch haven't usefull cluster, so need to force on/off light
+        if ((node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER) && hasTuyaCluster )
+        //TODO : use device ID too
+        {
+            lightNode.setHaEndpoint(*i);
+        }   
 
         if (!lightNode.haEndpoint().isValid())
         {
