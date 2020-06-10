@@ -1714,7 +1714,6 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
         if (map["on"].type() == QVariant::Bool)
         {
             bool ok = false;
-            const char *data;
             
             isOn = map["on"].toBool();
 
@@ -1746,24 +1745,19 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
             //Fn , always 0
             stream << (qint8) 0x00;
             // Data
+            
+            stream << (quint8) deCONZ::ZclCharacterString;
+            stream << (qint8) 0x01;
+            
             if (isOn)
             {
-                data = '1';
+                stream << (quint8) '1';
             }
             else
             {
-                data = '0';
+                stream << (quint8) '0';
             }
-            {
-                const quint8 length = strlen(data);
 
-                stream << (quint8) deCONZ::ZclCharacterString;
-                stream << length;
-                for (uint i = 0; i < length; i++)
-                {
-                    stream << (quint8) data[i];
-                }
-            }
 
             { // ZCL frame
                 task.req.asdu().clear(); // cleanup old request data if there is any
