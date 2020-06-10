@@ -140,6 +140,46 @@ static const Sensor::ButtonMap ikeaRemoteMap[] = {
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
+static const Sensor::ButtonMap osramMiniRemoteMap[] = {
+    // mode               ep    cluster cmd   param    button                                       name
+    // Button up
+    { Sensor::ModeScenes, 0x01, 0x0006, 0x01, 0x00,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Up short press" },
+    { Sensor::ModeScenes, 0x01, 0x0008, 0x05, 0x00,    S_BUTTON_1 + S_BUTTON_ACTION_HOLD,           "Up long press" },
+    { Sensor::ModeScenes, 0x01, 0x0008, 0x03, 0x00,    S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED,  "Up long release" },
+    // Button 0 (center)
+    { Sensor::ModeScenes, 0x03, 0x0300, 0x0A, 0x72,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "0 short press" },
+    { Sensor::ModeScenes, 0x03, 0x0300, 0x03, 0xFE,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD,           "0 long press" },
+    { Sensor::ModeScenes, 0x03, 0x0300, 0x01, 0x00,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED,  "0 long release" },
+    // Button down
+    { Sensor::ModeScenes, 0x02, 0x0006, 0x00, 0x00,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Down short press" },
+    { Sensor::ModeScenes, 0x02, 0x0008, 0x01, 0x01,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "Down long press" },
+    { Sensor::ModeScenes, 0x02, 0x0008, 0x03, 0x01,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "Down long release" },
+    // end
+    { Sensor::ModeNone,   0x00, 0x0000, 0x00,    0,    0,                                           nullptr }
+};
+
+static const Sensor::ButtonMap osram4ButRemoteMap[] = {
+    // mode               ep    cluster cmd   param    button                                       name
+    // Button upper-left
+    { Sensor::ModeScenes, 0x01, 0x0006, 0x01, 0x00,    S_BUTTON_1 + S_BUTTON_ACTION_HOLD,           "UL press short" },
+    { Sensor::ModeScenes, 0x01, 0x0008, 0x05, 0x00,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "UL long press" },
+    { Sensor::ModeScenes, 0x01, 0x0008, 0x03, 0x00,    S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED,  "UL press release" },
+    // Button upper-right
+    { Sensor::ModeScenes, 0x02, 0x0300, 0x4C, 0x01,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "UR short press" },
+    { Sensor::ModeScenes, 0x02, 0x0300, 0x03, 0xFE,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "UR press long" },
+    { Sensor::ModeScenes, 0x02, 0x0300, 0x01, 0x00,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "UR press Release" },
+    // Button lower-left 
+    { Sensor::ModeScenes, 0x03, 0x0006, 0x00, 0x00,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "LL short press" },
+    { Sensor::ModeScenes, 0x03, 0x0008, 0x01, 0x01,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD,           "LL press long" },
+    { Sensor::ModeScenes, 0x03, 0x0008, 0x03, 0x01,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED,  "LL press release" },
+    // Button lower-right 
+    { Sensor::ModeScenes, 0x04, 0x0300, 0x4C, 0x03,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "LR short press" },
+    { Sensor::ModeScenes, 0x04, 0x0300, 0x03, 0xFE,    S_BUTTON_4 + S_BUTTON_ACTION_HOLD,           "LR press long" },
+    { Sensor::ModeScenes, 0x04, 0x0300, 0x01, 0x00,    S_BUTTON_4 + S_BUTTON_ACTION_LONG_RELEASED,  "LR press release" },
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
+};
+
 static const Sensor::ButtonMap ikeaDimmerMap[] = {
 //    mode                ep    cluster cmd   param button                                       name
     // on
@@ -1313,6 +1353,11 @@ const Sensor::ButtonMap *Sensor::buttonMap()
             else if (modelid.startsWith(QLatin1String("TRADFRI on/off switch"))) { m_buttonMap = ikeaOnOffMap; }
             else if (modelid.startsWith(QLatin1String("TRADFRI open/close remote"))) { m_buttonMap = ikeaOpenCloseMap; }
             else if (modelid.startsWith(QLatin1String("SYMFONISK"))) { m_buttonMap = ikeaSoundControllerMap; }
+        }
+        else if (manufacturer.startsWith(QLatin1String("OSRAM")))
+        {
+            if      (modelid.startsWith(QLatin1String("Lightify Switch Mini"))) { m_buttonMap = osramMiniRemoteMap; }
+            else if (modelid.startsWith(QLatin1String("Switch 4x EU-LIGHTIFY"))) { m_buttonMap = osram4ButRemoteMap; }
         }
         else if (manufacturer == QLatin1String("ubisys"))
         {
