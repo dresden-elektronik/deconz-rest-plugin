@@ -1169,6 +1169,14 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 3600;
             rq.reportableChange8bit = 0;
         }
+        else if (sensor && (sensor->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
+                            sensor->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY"))) ) // Osram 4 button remote
+        {
+            rq.attributeId = 0x0020;    // battery voltage
+            rq.minInterval = 3600;      // 1 hour
+            rq.maxInterval = 3600;      // 1 hour
+            rq.reportableChange8bit = 0;
+        }
         else if (sensor && (sensor->modelId().startsWith(QLatin1String("SMSZB-120")) || // Develco smoke sensor
                            sensor->modelId().startsWith(QLatin1String("HESZB-120")) ||  // Develco heat sensor
                            sensor->modelId().startsWith(QLatin1String("MOSZB-130")) ||  // Develco motion sensor
@@ -1923,6 +1931,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("FYRTUR")) ||
         sensor->modelId().startsWith(QLatin1String("KADRILJ")) ||
         sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
+        // OSRAM
+        sensor->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
+        sensor->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
         // Keen Home
         sensor->modelId().startsWith(QLatin1String("SV01-")) ||
         // Trust ZPIR-8000
@@ -2091,6 +2102,16 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             action = BindingTask::ActionBind;
         }
     }
+    
+    if (sensor->modelId().startsWith(QLatin1String("Lightify Switch Mini")) || // Osram 3 button remote
+        sensor->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) ) // Osram 4 button remote
+    {
+        // Make bind only for endpoint 01
+        if (sensor->fingerPrint().endpoint != 0x01)
+        {
+            return false;
+        }
+    }
 
     bool ret = false;
     bool checkBindingTable = false;
@@ -2164,6 +2185,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                      sensor->modelId() == QLatin1String("MOSZB-130") ||
                      sensor->modelId() == QLatin1String("FLSZB-110") ||
                      sensor->modelId() == QLatin1String("Zen-01") ||
+                     sensor->modelId() == QLatin1String("Lightify Switch Mini") ||  // Osram 3 button remote
+                     sensor->modelId() == QLatin1String("Switch 4x EU-LIGHTIFY") || // Osram 4 button remote
                      sensor->modelId() == QLatin1String("Remote switch") ||
                      sensor->modelId() == QLatin1String("Shutters central remote switch") ||
                      sensor->modelId() == QLatin1String("Double gangs remote switch") ||
@@ -2503,6 +2526,42 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     //     clusters.push_back(LEVEL_CLUSTER_ID);
     //     srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     // }
+    // OSRAM 3 button remote
+    else if (sensor->modelId().startsWith(QLatin1String("Lightify Switch Mini")) )
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+        clusters.push_back(COLOR_CLUSTER_ID);
+
+        // We bind all endpoints to a single group, so we need to trick the for loop by 
+        // creating dummy group entries that point to the first group so all endpoints are bound properly.
+        QString gid0 = gids[0];
+        gids.append(gid0);
+        gids.append(gid0);
+
+        srcEndpoints.push_back(0x01);
+        srcEndpoints.push_back(0x02);
+        srcEndpoints.push_back(0x03);
+    }
+    // OSRAM 4 button remote
+    else if (sensor->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) )
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+        clusters.push_back(COLOR_CLUSTER_ID);
+
+        // We bind all endpoints to a single group, so we need to trick the for loop by 
+        // creating dummy group entries that point to the first group so all endpoints are bound properly.
+        QString gid0 = gids[0];
+        gids.append(gid0);
+        gids.append(gid0);
+        gids.append(gid0);
+
+        srcEndpoints.push_back(0x01);
+        srcEndpoints.push_back(0x02);
+        srcEndpoints.push_back(0x03);
+        srcEndpoints.push_back(0x04);
+    }
     // LEGRAND Remote switch, simple and double
     else if (sensor->modelId() == QLatin1String("Remote switch") ||
              sensor->modelId() == QLatin1String("Double gangs remote switch"))
@@ -2744,6 +2803,39 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
          sensor->modelId() == QLatin1String("Remote motion sensor"))
     {
         //Make group but without uniqueid
+    }
+    else if (sensor->modelId().startsWith(QLatin1String("Lightify Switch Mini")) || // Osram 3 button remote
+             sensor->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) ) // Osram 4 button remote
+    {
+        quint8 maxEp = 0x03;
+        if (sensor->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")))
+        {
+            maxEp = 0x04;
+        }
+        for (quint8 ep = 0x01; !group && ep <= maxEp; ep++)
+        {
+            Sensor *s = getSensorNodeForAddressAndEndpoint(sensor->address(), ep);
+            if (s && s->deletedState() == Sensor::StateNormal && s != sensor)
+            {
+                ResourceItem *item = s->item(RConfigGroup);
+                if (item && item->lastSet().isValid())
+                {
+                    const QString &gid = item->toString();
+
+                    std::vector<Group>::iterator i = groups.begin();
+                    std::vector<Group>::iterator end = groups.end();
+
+                    for (; i != end; ++i)
+                    {
+                        if (!gid.isEmpty() && i->state() == Group::StateNormal && i->id() == gid)
+                        {
+                            group = &*i;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
     }
     else if (sensor->modelId() == QLatin1String("RB01") ||
              sensor->modelId() == QLatin1String("RM01"))
