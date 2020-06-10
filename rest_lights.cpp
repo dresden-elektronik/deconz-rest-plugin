@@ -1748,11 +1748,11 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
             // Data
             if (isOn)
             {
-                data = "1";
+                data = '1';
             }
             else
             {
-                data = "0";
+                data = '0';
             }
             {
                 const quint8 length = strlen(data);
