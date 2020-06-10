@@ -1691,7 +1691,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
 
-            taskRef.lightNode->setValue(RStateLift, targetLift);
+            // Rely on attribute reporting to update the light state.
         }
         else
         {
@@ -1711,7 +1711,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
 
-            taskRef.lightNode->setValue(RStateOpen, targetOpen);
+            // Rely on attribute reporting to update the light state.
         }
         else
         {
@@ -1733,8 +1733,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
 
-
-            taskRef.lightNode->setValue(RStateTilt, targetTilt);
+            // Rely on attribute reporting to update the light state.
         }
         else
         {
