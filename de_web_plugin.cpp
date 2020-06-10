@@ -12987,9 +12987,9 @@ void DeRestPluginPrivate::handlePhilipsClusterIndication(const deCONZ::ApsDataIn
  */
 void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
-    DBG_Printf(DBG_INFO, "Tuya : debug 0");
+    DBG_Printf(DBG_INFO, "Tuya : debug 0\n");
     
-    if (zclFrame.isDefaultResponse() || zclFrame.manufacturerCode() != VENDOR_EMBER)
+    if (zclFrame.isDefaultResponse())
     {
         return;
     }
@@ -13010,7 +13010,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         // 0x01 Used to inform of changes in its state.
         // 0x02 Send after receiving a 0x00 command.
         
-        DBG_Printf(DBG_INFO, "Tuya : debug 1");
+        DBG_Printf(DBG_INFO, "Tuya : debug 1\n");
         
         if (zclFrame.payload().size() >= 5)
         {
