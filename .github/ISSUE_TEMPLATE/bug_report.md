@@ -26,8 +26,8 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots to help explain your problem.
 
 **Host system / running method:**
- - OS: 
- - Method:
+ - OS: *Where is Conbee/Raspbee being used?*  
+ - Method: *How do you run your Conbee/Raspbee? Docker, Ubuntu, Windows?*
 
 **Device**
  - [ ] Conbee
@@ -36,7 +36,8 @@ If applicable, add screenshots to help explain your problem.
  - [ ] Rasbee II
 
 **Version**
- - Firmware: 
+*These can be found on the Phoscon page at the Gateway settings*
+ - Firmware:  
  - deCONZ: 
 
 **deCONZ Logs:**
