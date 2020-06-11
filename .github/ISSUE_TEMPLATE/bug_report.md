@@ -1,46 +1,72 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Report a bug within the deCONZ REST-API
 title: ''
 labels: Bug report
 assignees: ''
 
 ---
 
-This report is used to report a issue with deCONZ. If you want to report a bug for Phoscon, please head over to: https://github.com/dresden-elektronik/phoscon-app-beta
+<!--
+  - Use this issue template to report a bug in the deCONZ REST-API.
+  - If you want to report a bug for the Phoscon App, please head over to: https://github.com/dresden-elektronik/phoscon-app-beta
+  - If you're unsure if the bug fits into this issue tracker, please ask for advise in our Discord chat: https://discord.gg/QFhTxqN
+  - Please make sure sure you're running the latest version of deCONZ: https://github.com/dresden-elektronik/deconz-rest-plugin/releases
+-->
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+## Describe the bug
+<!--
+  Describe the issue you are experiencing here to communicate to the
+  maintainers. Tell us what you were trying to do and what happened.
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+  Help us to understand the issue by providing valuable context.
+-->
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+## Steps to reproduce the behavior
+<!--
+  If the problem is reproducable, list the steps here:
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+  1. Go to '...'
+  2. Click on '....'
+  3. Scroll down to '....'
+  4. Observed error
 
-**Host system / running method:**
- - OS: *Where is Conbee/Raspbee being used?*  
- - Method: *How do you run your Conbee/Raspbee? Docker, Ubuntu, Windows?*
+  If the problem can't be reproduced and is sporadic, please provide some details
+  on how often and when the issue happens.
+-->
 
-**Device**
- - [ ] Conbee
- - [ ] Conbee II
- - [ ] Raspbee 
- - [ ] Rasbee II
+## Expected behavior
+<!--
+  If applicable, describe what you expected to happen.
+-->
 
-**Version**
-*These can be found on the Phoscon page at the Gateway settings*
- - Firmware:  
- - deCONZ: 
+## Screenshots
+<!--
+  If applicable, add screenshots to help explain the problem.
+-->
 
-**deCONZ Logs:**
+## Environment
+<!--
+  The deCONZ and firmware versions are found in the Phoscon App: Menu -> Settings -> Gateway,
+  as well as in the deCONZ GUI: Menu > Help > About deCONZ.
+-->
 
-**Additional context**
-Add any other context about the problem here.
+ - Host system: (Raspberry Pi / PC / NAS)
+ - Running method: (Raspbian / Ubuntu / Home Assistent deCONZ Add-on / Marthoc Docker container / Windows / Virtual Machine)
+ - Firmware version: (26xxyy00)
+ - deCONZ version: (2.xx.yy)
+ - Device: (ConBee I / ConBee II / RaspBee I / RaspBee II)
+ - Do you use an USB extension cable: (yes / no) -- only relevant for ConBee I/II
+
+### deCONZ Logs
+<!--
+  Debug logs can help to investigate certain problems like device pairing and communication issues.
+  Logging can be enabled on the command line as described in:
+  https://github.com/dresden-elektronik/deconz-rest-plugin/wiki/deCONZ-debug-switches
+-->
+
+## Additional context
+<!--
+  If relevant, add any other context about the problem here, like network size, number of routers and end-devices
+  and what kind of devices/brands are in the network.
+-->
