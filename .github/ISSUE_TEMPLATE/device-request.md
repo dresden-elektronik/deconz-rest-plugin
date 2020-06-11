@@ -20,9 +20,9 @@ Before requesting a device, please make sure to search the open and closed issue
 - [ ] Thermostat
 - [ ] Other: 
 
-**Device Manufacturer as per deconz GUI basic cluster:**
+**Device Manufacturer as per deCONZ GUI basic cluster:**
 
-**Device Product Number as per deconz GUI basic cluster:**
+**Device model identifier as per deCONZ GUI basic cluster:**
 
 **If you do not know what is needed, please read [this](https://github.com/dresden-elektronik/deconz-rest-plugin/wiki/Request-Device-Support)**
 
