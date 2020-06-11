@@ -31,7 +31,7 @@ Before requesting a device, please make sure to search the open and closed issue
 **Screenshot of the node info panel:**
 
 **Screenshot of the basic clusters attributes as shown in the Clusters info panel with the data returned by read:** 
- *Please note that at least "Manufacturer Name" and "Model Identifier" must be populated with data (therefore, must not be empty), otherwise that information will not be usable. For battery powered devices, after pressing read it is required to wake-up the device by pressing a button or any other means of interaction.*
+ *Basic cluster's attributes as shown in the Cluster Info Panel, with the data returned by read. Please note that at least "Manufacturer Name" and "Model Identifier" must be populated with data (therefore, must not be empty), otherwise that information will not be usable. For battery powered devices, after pressing read it is required to wake-up the device by pressing a button or any other means of interaction.*
 
 **Screenshots of the other clusters (if available:**
-*Further clusters (if available) including Simple Metering, Electrical Measurement, Power Configuration, Thermostat. Again, please ensure data has been read prior to taking any screenshots.*
+*Further clusters (if available) including Simple Metering, Electrical Measurement, Power Configuration, Thermostat, etc. You can typically spare indentify, alarms, device temperature, on/off. Again, please ensure data has been read prior to taking any screenshots.*
