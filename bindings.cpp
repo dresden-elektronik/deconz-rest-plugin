@@ -1173,9 +1173,9 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         else if (sensor && (sensor->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
                             sensor->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY"))) ) // Osram 4 button remote
         {
-            rq.attributeId = 0x0020;    // battery voltage
-            rq.minInterval = 3600;      // 1 hour
-            rq.maxInterval = 3600;      // 1 hour
+            rq.attributeId = 0x0020;
+            rq.minInterval = 21600;
+            rq.maxInterval = 21600;
             rq.reportableChange8bit = 0;
         }
         else if (sensor && (sensor->modelId().startsWith(QLatin1String("SMSZB-120")) || // Develco smoke sensor
