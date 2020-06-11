@@ -694,10 +694,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
         case TUYA_CLUSTER_ID:
             // Tuya manfacture cluster:
-            if (zclFrame.manufacturerCode() == VENDOR_EMBER)
-            {
-                handleTuyaClusterIndication(ind, zclFrame);
-            }
+            handleTuyaClusterIndication(ind, zclFrame);
             break;
 
         case THERMOSTAT_CLUSTER_ID:
