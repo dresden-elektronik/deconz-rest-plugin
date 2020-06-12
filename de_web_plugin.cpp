@@ -1595,6 +1595,45 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
     {
         return;
     }
+    
+
+      //Make 2 fakes device for tuya stuff
+
+    if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER)
+    {
+        DBG_Printf(DBG_INFO, "Tuya : debug 10\n");
+        const deCONZ::SimpleDescriptor *sd = &node->simpleDescriptors()[0];
+
+        if (sd)
+        {
+            DBG_Printf(DBG_INFO, "Tuya : debug 11\n");
+
+            if (sd->deviceId() == DEV_ID_SMART_PLUG)
+            {
+                DBG_Printf(DBG_INFO, "Tuya : debug 12\n");
+            }
+            
+            if (sd->inClusters()[4].id() == TUYA_CLUSTER_ID)
+            {
+                DBG_Printf(DBG_INFO, "Tuya : debug 13\n");
+
+                //Ok it's the good device, make 2 clones with differents endpoints
+
+                deCONZ::SimpleDescriptor sd1;
+                deCONZ::SimpleDescriptor sd2;
+
+                node->copySimpleDescriptor(0x01, &sd1);
+                node->copySimpleDescriptor(0x01, &sd1);
+
+                sd1.endpoint() == 0x02;
+                sd2.endpoint() == 0x03;
+
+                node->simpleDescriptors().append(&sd1);
+                node->simpleDescriptors().append(&sd2);
+
+            }
+        }
+    }
 
     QList<deCONZ::SimpleDescriptor>::const_iterator i = node->simpleDescriptors().constBegin();
     QList<deCONZ::SimpleDescriptor>::const_iterator end = node->simpleDescriptors().constEnd();
