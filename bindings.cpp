@@ -1171,7 +1171,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.reportableChange8bit = 0;
         }
         else if (sensor && (sensor->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
-                            sensor->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY"))) ) // Osram 4 button remote
+                            sensor->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
+                            sensor->modelId().startsWith(QLatin1String("Switch-LIGHTIFY"))) ) // Osram 4 button remote
         {
             rq.attributeId = 0x0020;
             rq.minInterval = 21600;
@@ -1959,6 +1960,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // OSRAM
         sensor->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
         sensor->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
+        sensor->modelId().startsWith(QLatin1String("Switch-LIGHTIFY")) || // Osram 4 button remote
         // Keen Home
         sensor->modelId().startsWith(QLatin1String("SV01-")) ||
         // Trust ZPIR-8000
@@ -2133,8 +2135,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         }
     }
     
-    if (sensor->modelId().startsWith(QLatin1String("Lightify Switch Mini")) || // Osram 3 button remote
-        sensor->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) ) // Osram 4 button remote
+    if (sensor->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
+        sensor->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
+        sensor->modelId().startsWith(QLatin1String("Switch-LIGHTIFY")) ) // Osram 4 button remote
     {
         // Make bind only for endpoint 01
         if (sensor->fingerPrint().endpoint != 0x01)
@@ -2215,8 +2218,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                      sensor->modelId() == QLatin1String("MOSZB-130") ||
                      sensor->modelId() == QLatin1String("FLSZB-110") ||
                      sensor->modelId() == QLatin1String("Zen-01") ||
-                     sensor->modelId() == QLatin1String("Lightify Switch Mini") ||  // Osram 3 button remote
-                     sensor->modelId() == QLatin1String("Switch 4x EU-LIGHTIFY") || // Osram 4 button remote
+                     sensor->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
+                     sensor->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
+                     sensor->modelId().startsWith(QLatin1String("Switch-LIGHTIFY")) || // Osram 4 button remote
                      sensor->modelId() == QLatin1String("Remote switch") ||
                      sensor->modelId() == QLatin1String("Shutters central remote switch") ||
                      sensor->modelId() == QLatin1String("Double gangs remote switch") ||
@@ -2575,7 +2579,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(0x03);
     }
     // OSRAM 4 button remote
-    else if (sensor->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) )
+    else if (sensor->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || 
+             sensor->modelId().startsWith(QLatin1String("Switch-LIGHTIFY")) )
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);
@@ -2835,11 +2840,13 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
     {
         //Make group but without uniqueid
     }
-    else if (sensor->modelId().startsWith(QLatin1String("Lightify Switch Mini")) || // Osram 3 button remote
-             sensor->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) ) // Osram 4 button remote
+    else if (sensor->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
+             sensor->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
+             sensor->modelId().startsWith(QLatin1String("Switch-LIGHTIFY")) ) // Osram 4 button remote
     {
         quint8 maxEp = 0x03;
-        if (sensor->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")))
+        if (sensor->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || 
+            sensor->modelId().startsWith(QLatin1String("Switch-LIGHTIFY")) )
         {
             maxEp = 0x04;
         }
