@@ -1324,6 +1324,7 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         {
             if      (modelid.startsWith(QLatin1String("Lightify Switch Mini"))) { m_buttonMap = osramMiniRemoteMap; }
             else if (modelid.startsWith(QLatin1String("Switch 4x EU-LIGHTIFY"))) { m_buttonMap = osram4ButRemoteMap; }
+            else if (modelid.startsWith(QLatin1String("Switch-LIGHTIFY"))) { m_buttonMap = osram4ButRemoteMap; }
         }
         else if (manufacturer == QLatin1String("ubisys"))
         {
