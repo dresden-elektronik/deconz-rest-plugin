@@ -5743,16 +5743,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                         sensorNode.enableRead(READ_BATTERY);
                         queryTime = queryTime.addSecs(1);
                     }
-                } 
-                else if (sensorNode.modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
-                         sensorNode.modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
-                         sensorNode.modelId().startsWith(QLatin1String("Switch-LIGHTIFY")) ) // Osram 4 button remote
-                )
-                {
-                    sensorNode.setNextReadTime(READ_BATTERY, queryTime);
-                    sensorNode.setLastRead(READ_BATTERY, idleTotalCounter);
-                    sensorNode.enableRead(READ_BATTERY);
-                    queryTime = queryTime.addSecs(1);
                 }
             }
         }
