@@ -2158,7 +2158,10 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             {
                 continue; // process only once
             }
-            if (sensor->modelId() == QLatin1String("Remote switch") || sensor->modelId() == QLatin1String("Shutters central remote switch") || sensor->modelId() == QLatin1String("Double gangs remote switch") )
+            if (sensor->modelId() == QLatin1String("Remote switch") || 
+                sensor->modelId() == QLatin1String("Shutters central remote switch") ||
+                sensor->modelId() == QLatin1String("Double gangs remote switch") ||
+                sensor->modelId() == QLatin1String("Remote toggle switch") )
             {
                 //Those device don't support report attribute
                 continue;
