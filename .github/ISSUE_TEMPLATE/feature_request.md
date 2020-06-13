@@ -25,7 +25,7 @@ assignees: ''
     Note: If the problem describes a bug please use the "Bug report" issue template instead of this one.
 -->
 
-## Describtion
+## Description
 <!--
   Please describe the feature in more detail.
   - How it should work, e.g. provide an examples of a request/response, extensions to the REST-API interface, etc.
