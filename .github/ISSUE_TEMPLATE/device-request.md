@@ -1,7 +1,7 @@
 ---
 name: Device Request
 about: Request a new device to be supported.
-title: "Device Support: Device name"
+title: "Device name"
 labels: Device Request
 assignees: ''
 
@@ -12,7 +12,6 @@ assignees: ''
   - Sometimes devices have been requested before but are not implemented yet due to various reasons.
   - If there are no hits on your for the device, please proceed.
   - If you're unsure if the device support is already requested, please ask for advise in our Discord chat: https://discord.gg/QFhTxqN
-
 -->
 
 ## Device
