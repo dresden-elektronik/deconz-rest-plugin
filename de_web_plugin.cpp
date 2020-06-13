@@ -1596,8 +1596,10 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         return;
     }
     
-
-      //Make 2 fakes device for tuya stuff
+    const deCONZ::SimpleDescriptor *sd;
+    node->simpleDescriptors().append(&sd);
+    
+    //Make 2 fakes device for tuya stuff
 
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER)
     {
@@ -1618,18 +1620,23 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 DBG_Printf(DBG_INFO, "Tuya : debug 13\n");
 
                 //Ok it's the good device, make 2 clones with differents endpoints
+                
+                //node is not modifiable (WHY ?) so use an ugly way
+                deCONZ::Node *NodePachable = const_cast<deCONZ::Node*>(&*node);
 
                 deCONZ::SimpleDescriptor sd1;
                 deCONZ::SimpleDescriptor sd2;
+                
+                //const deCONZ::SimpleDescriptor &csd1 = sd1;
 
                 node->copySimpleDescriptor(0x01, &sd1);
                 node->copySimpleDescriptor(0x01, &sd1);
 
-                sd1.endpoint() == 0x02;
-                sd2.endpoint() == 0x03;
-
-                node->simpleDescriptors().append(&sd1);
-                node->simpleDescriptors().append(&sd2);
+                sd1.setEndpoint(0x02);
+                sd2.setEndpoint(0x03);
+                
+                NodePachable->setSimpleDescriptor(sd1);
+                NodePachable->setSimpleDescriptor(sd2);
 
             }
         }
