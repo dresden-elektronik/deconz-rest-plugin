@@ -10,26 +10,33 @@ assignees: ''
 <!--
   - Before requesting a device, please make sure to search the open and closed issues for any requests in the past.
   - Sometimes devices have been requested before but are not implemented yet due to various reasons.
-  - If there are no hits on your for the device, please proceed.
-  - If you're unsure if the device support is already requested, please ask for advise in our Discord chat: https://discord.gg/QFhTxqN
+  - If there are no hits for your device, please proceed.
+  - If you're unsure whether device support was already requested, please ask for advise in our Discord chat: https://discord.gg/QFhTxqN
 -->
 
 ## Device
 
 - Product name: The device name as shown on the product or package.
-- Device Type: (Light / Lock / Remote / Sensor / Siren / Thermostat)
 - Manufacturer: As per deCONZ GUI Basic cluster.
 - Model identifier: As per deCONZ GUI Basic cluster.
+- Device type:
+  - [ ] Light
+  - [ ] Lock
+  - [ ] Remote
+  - [ ] Sensor
+  - [ ] Siren
+  - [ ] Thermostat
+  - [ ] Other: 
 
 <!--
   Please refer to https://github.com/dresden-elektronik/deconz-rest-plugin/wiki/Request-Device-Support
-  on how the Basic Cluster attributes are optained.
+  on how the Basic Cluster attributes are obtained.
 -->
 
 ## Screenshots
 
 <!--
-  Screenshots help to identify the device and it's capabilities. Please refer to:
+  Screenshots help to identify the device and its capabilities. Please refer to:
   https://github.com/dresden-elektronik/deconz-rest-plugin/wiki/Request-Device-Support
   for examples of the required screenshots.
 
