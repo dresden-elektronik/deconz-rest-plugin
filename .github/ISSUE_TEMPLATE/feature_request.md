@@ -20,7 +20,7 @@ assignees: ''
   - Extend the REST-API with new API endpoints, attributes or capabilities.
   - Extend the Websocket interface with new messages.
   - Improve or refactor REST-API internal handling of xyz.
-  - Is your feature request related to a problem but?
+  - Is your feature request related to a problem?
     Tell us what the problem is. Ex. I'm always frustrated when [...]
     Note: If the problem describes a bug please use the "Bug report" issue template instead of this one.
 -->
@@ -28,8 +28,8 @@ assignees: ''
 ## Description
 <!--
   Please describe the feature in more detail.
-  - How it should work, e.g. provide an examples of a request/response, extensions to the REST-API interface, etc.
-  - If applicable describe which benefits will API clients gain.
+  - How it should work, e.g. provide an example of a request/response, extensions to the REST-API interface, etc.
+  - If applicable describe what benefits API clients will gain.
 -->
 
 ## Considered alternatives

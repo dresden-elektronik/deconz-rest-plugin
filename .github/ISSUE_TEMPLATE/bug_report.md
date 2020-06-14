@@ -19,7 +19,7 @@ assignees: ''
   Describe the issue you are experiencing here to communicate to the
   maintainers. Tell us what you were trying to do and what happened.
 
-  Help us to understand the issue by providing valuable context.
+  Help us understand the issue by providing valuable context.
 -->
 
 ## Steps to reproduce the behavior
