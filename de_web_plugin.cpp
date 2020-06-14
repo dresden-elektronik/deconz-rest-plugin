@@ -7461,7 +7461,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId() == QLatin1String("DoubleSocket50AU") ||  // Aurora
                                         i->modelId() == QLatin1String("RICI01") ||            // LifeControl Smart Plug
                                         i->modelId().startsWith(QLatin1String("SZ-ESW01")) || // Sercomm / Telstra smart plug
-                                        i->modelId() == QLatin1String("TS0121"))              // Tuya smart plug
+                                        i->modelId() == QLatin1String("TS0121") ||            // Tuya smart plug
+                                        i->modelId().startsWith(QLatin1String("ROB_200")))    // ROBB Smarrt micro dimmer
                                     {
                                         // already in mA
                                     }
