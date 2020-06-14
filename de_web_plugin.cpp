@@ -1614,16 +1614,20 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             
             if (sd->inClusters()[4].id() == TUYA_CLUSTER_ID)
             {
-                DBG_Printf(DBG_INFO, "Tuya : debug 13\n");
+                DBG_Printf(DBG_INFO, "Tuya : debug 13\n");  
 
                 //Ok it's the good device, make 2 clones with differents endpoints
-                
+
                 //node is not modifiable (WHY ?) so use an ugly way
+
                 deCONZ::Node *NodePachable = const_cast<deCONZ::Node*>(&*node);
 
                 deCONZ::SimpleDescriptor sd1;
                 deCONZ::SimpleDescriptor sd2;
-                
+
+                const deCONZ::SimpleDescriptor &csd1 = sd1;
+                const deCONZ::SimpleDescriptor &csd2 = sd2;
+
                 //const deCONZ::SimpleDescriptor &csd1 = sd1;
 
                 node->copySimpleDescriptor(0x01, &sd1);
@@ -1631,17 +1635,19 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
                 sd1.setEndpoint(0x02);
                 sd2.setEndpoint(0x03);
-                
-                NodePachable->setSimpleDescriptor(sd1);
-                NodePachable->setSimpleDescriptor(sd2);
+
+                NodePachable->setSimpleDescriptor(csd1);
+                NodePachable->setSimpleDescriptor(csd2);
+
+                //apsCtrl->updateNode(*patchableNode);
 
             }
             else
             {
-                DBG_Printf(DBG_INFO, "Tuya : debug 14 > 0x%04X \n ", sd->inClusters()[0].id());
-                DBG_Printf(DBG_INFO, "Tuya : debug 15 > 0x%04X \n ", sd->inClusters()[1].id());
-                DBG_Printf(DBG_INFO, "Tuya : debug 16 > 0x%04X \n ", sd->inClusters()[2].id());
-                DBG_Printf(DBG_INFO, "Tuya : debug 17 > 0x%04X \n ", sd->inClusters()[3].id());
+                //DBG_Printf(DBG_INFO, "Tuya : debug 14 > 0x%04X \n ", sd->inClusters()[0].id());
+                //DBG_Printf(DBG_INFO, "Tuya : debug 15 > 0x%04X \n ", sd->inClusters()[1].id());
+                //DBG_Printf(DBG_INFO, "Tuya : debug 16 > 0x%04X \n ", sd->inClusters()[2].id());
+                //DBG_Printf(DBG_INFO, "Tuya : debug 17 > 0x%04X \n ", sd->inClusters()[3].id());
             }
         }
     }
