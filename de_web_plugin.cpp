@@ -1638,10 +1638,10 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             }
             else
             {
-                DBG_Printf(DBG_INFO, "Tuya : debug 14 > %lld \n ", sd->inClusters()[0].id());
-                DBG_Printf(DBG_INFO, "Tuya : debug 15 > %lld \n ", sd->inClusters()[1].id());
-                DBG_Printf(DBG_INFO, "Tuya : debug 16 > %lld \n ", sd->inClusters()[2].id());
-                DBG_Printf(DBG_INFO, "Tuya : debug 17 > %lld \n ", sd->inClusters()[3].id());
+                DBG_Printf(DBG_INFO, "Tuya : debug 14 > 0x%04X \n ", sd->inClusters()[0].id());
+                DBG_Printf(DBG_INFO, "Tuya : debug 15 > 0x%04X \n ", sd->inClusters()[1].id());
+                DBG_Printf(DBG_INFO, "Tuya : debug 16 > 0x%04X \n ", sd->inClusters()[2].id());
+                DBG_Printf(DBG_INFO, "Tuya : debug 17 > 0x%04X \n ", sd->inClusters()[3].id());
             }
         }
     }
