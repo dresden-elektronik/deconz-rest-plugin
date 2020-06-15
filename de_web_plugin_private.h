@@ -1894,4 +1894,6 @@ public:
 
 };
 
+extern DeRestPluginPrivate *plugin;
+
 #endif // DE_WEB_PLUGIN_PRIVATE_H
