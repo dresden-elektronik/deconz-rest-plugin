@@ -118,7 +118,7 @@ void DeRestPluginPrivate::updateFirmware()
         fwProcess = new QProcess(this);
     }
 
-    fwProcessArgs << "-f" << fwUpdateFile;
+    fwProcessArgs << "-t" << "60" << "-f" << fwUpdateFile;
 
     fwUpdateState = FW_UpdateWaitFinished;
     updateEtag(gwConfigEtag);
