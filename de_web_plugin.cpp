@@ -1602,7 +1602,10 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
     {
         DBG_Printf(DBG_INFO, "Tuya : debug 10\n");
         const deCONZ::SimpleDescriptor *sd = &node->simpleDescriptors()[0];
-
+        
+        bool hasTuyaCluster = false;
+        
+        //node->simpleDescriptors().size() == 2
         if (sd)
         {
             DBG_Printf(DBG_INFO, "Tuya : debug 11\n");
@@ -1612,11 +1615,19 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 DBG_Printf(DBG_INFO, "Tuya : debug 12\n");
             }
             
-            if (sd->inClusters()[4].id() == TUYA_CLUSTER_ID)
+            for (int c = 0; c < sd->inClusters().size(); c++)
+            {
+                if (sd->inClusters()[c].id() == TUYA_CLUSTER_ID) { hasTuyaCluster = true; }
+            }
+            
+            if (hasTuyaCluster)
             {
                 DBG_Printf(DBG_INFO, "Tuya : debug 13\n");  
 
                 //Ok it's the good device, make 2 clones with differents endpoints
+                
+                //Note for me
+                //sudo cp /usr/share/deCONZ/plugins/libde_rest_plugin.so /usr/share/deCONZ/plugins/libde_rest_plugin2.so
 
                 //node is not modifiable (WHY ?) so use an ugly way
 
@@ -1641,13 +1652,6 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
                 //apsCtrl->updateNode(*patchableNode);
 
-            }
-            else
-            {
-                //DBG_Printf(DBG_INFO, "Tuya : debug 14 > 0x%04X \n ", sd->inClusters()[0].id());
-                //DBG_Printf(DBG_INFO, "Tuya : debug 15 > 0x%04X \n ", sd->inClusters()[1].id());
-                //DBG_Printf(DBG_INFO, "Tuya : debug 16 > 0x%04X \n ", sd->inClusters()[2].id());
-                //DBG_Printf(DBG_INFO, "Tuya : debug 17 > 0x%04X \n ", sd->inClusters()[3].id());
             }
         }
     }
