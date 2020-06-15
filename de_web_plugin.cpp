@@ -4384,7 +4384,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case ELECTRICAL_MEASUREMENT_CLUSTER_ID:
                 {
-                    if(modelId != QLatin1String("lumi.plug.mmeu01"))
+                    if(modelId != QLatin1String("lumi.plug.mmeu01") && modelId != QLatin1String("lumi.relay.c2acn01"))
                     {
                         fpPowerSensor.inClusters.push_back(ci->id());
                     }
