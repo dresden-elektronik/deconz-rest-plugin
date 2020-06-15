@@ -5453,9 +5453,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     {
         sensorNode.setManufacturer("BOSCH");
     }
-    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA)
+    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA || modelId.startsWith(QLatin1String("TRADFRI")))
     {
-        sensorNode.setManufacturer("IKEA of Sweden");
+        sensorNode.setManufacturer(QLatin1String("IKEA of Sweden"));
 
         if (modelId == QLatin1String("TRADFRI wireless dimmer"))
         {
@@ -6971,6 +6971,11 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (str.startsWith(QLatin1String("TUYATEC")))
                                 {
                                     str = QLatin1String("Tuyatec"); // normalize TUYATEC-xdqihhgb --> Tuyatec
+                                }
+
+                                if (i->modelId().startsWith(QLatin1String("TRADFRI")))
+                                {
+                                    str = QLatin1String("IKEA of Sweden"); // Fix: since some IKEA devices had a bug returning an invalid string
                                 }
 
                                 if (!str.isEmpty())
