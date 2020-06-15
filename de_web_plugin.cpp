@@ -120,6 +120,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_CENTRALITE, "3305-S", emberMacPrefix }, // Centralite motion sensor
     { VENDOR_CLS, "3200-S", emberMacPrefix }, // Centralite smart plug / Samsung smart outlet
     { VENDOR_C2DF, "3320-L", emberMacPrefix }, // Centralite contact sensor
+    { VENDOR_C2DF, "3315", emberMacPrefix }, // Centralite water sensor
     { VENDOR_CENTRALITE, "3326-L", emberMacPrefix }, // Iris motion sensor v2
     { VENDOR_C2DF, "3326-L", emberMacPrefix }, // Iris motion sensor v2
     { VENDOR_CENTRALITE, "3328-G", emberMacPrefix }, // Centralite micro motion sensor
@@ -4156,6 +4157,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("Water")) ||            // Heiman water sensor (newer model)
                              modelId.startsWith(QLatin1String("lumi.sensor_wleak")) || // Xiaomi Aqara flood sensor
                              modelId.startsWith(QLatin1String("WL4200S")) ||          // Sinope Water Leak detector
+                             modelId.startsWith(QLatin1String("3315")) ||              // Centralite water sensor
                              modelId.startsWith(QLatin1String("FLSZB-110")))          // Develco Water Leak detector
                     {
                         fpWaterSensor.inClusters.push_back(ci->id());
@@ -6211,6 +6213,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId().startsWith(QLatin1String("3326-L")) ||    // iris motion sensor v2
                                     i->modelId().startsWith(QLatin1String("3320-L")) ||    // Centralite contact sensor
                                     i->modelId().startsWith(QLatin1String("3323")) ||      // Centralite contact sensor
+                                    i->modelId().startsWith(QLatin1String("3315")) ||      // Centralite water sensor
                                     i->modelId().startsWith(QLatin1String("lumi.sen_ill")) || // Xiaomi ZB3.0 light sensor
                                     i->modelId().startsWith(QLatin1String("SZ-DWS04"))   || // Sercomm open/close sensor
                                     i->modelId().startsWith(QLatin1String("Tripper"))) // Quirky Tripper (Sercomm) open/close

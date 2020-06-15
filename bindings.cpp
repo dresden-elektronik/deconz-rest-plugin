@@ -1162,7 +1162,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                             sensor->modelId() == QLatin1String("motionv4") ||
                             sensor->modelId() == QLatin1String("multiv4") ||
                             sensor->modelId() == QLatin1String("RFDL-ZB-MS") ||
-                            sensor->modelId() == QLatin1String("Zen-01")))
+                            sensor->modelId() == QLatin1String("Zen-01") ||
+                            sensor->modelId().startsWith(QLatin1String("3315"))))
         {
             rq.attributeId = 0x0020;   // battery voltage
             rq.minInterval = 3600;
@@ -1905,6 +1906,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("332")) ||
         sensor->modelId().startsWith(QLatin1String("3200-S")) ||
         sensor->modelId().startsWith(QLatin1String("3305-S")) ||
+        sensor->modelId().startsWith(QLatin1String("3315")) ||
         sensor->modelId().startsWith(QLatin1String("3320-L")) ||
         sensor->modelId().startsWith(QLatin1String("3323")) ||
         sensor->modelId().startsWith(QLatin1String("3326-L")) ||
