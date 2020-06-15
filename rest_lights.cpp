@@ -1714,8 +1714,12 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
         if (map["on"].type() == QVariant::Bool)
         {
             bool ok = false;
+            qint16 button = 0x0101;
             
-            isOn = map["on"].toBool();
+            //Retreive Fake endpoint, and change button value
+            uint ep = taskRef.lightNode->haEndpoint().endpoint();
+            if (ep == 0x02) { button = 0x0102; }
+            if (ep == 0x03) { button = 0x0103; }
 
             TaskItem task;
             copyTaskReq(taskRef, task);
@@ -1741,7 +1745,7 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
             //TransID , use 0
             stream << (qint8) 0x00;
             //Dp, Button ID
-            stream << (qint16) 0x0101;
+            stream << (qint16) button;
             //Fn , always 0
             stream << (qint8) 0x00;
             // Data

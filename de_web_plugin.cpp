@@ -1597,24 +1597,14 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
     }
     
     //Make 2 fakes device for tuya stuff
-
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER)
     {
-        DBG_Printf(DBG_INFO, "Tuya : debug 10\n");
         const deCONZ::SimpleDescriptor *sd = &node->simpleDescriptors()[0];
-        
         bool hasTuyaCluster = false;
         
-        //node->simpleDescriptors().size() == 2
-        if (sd)
+        if (sd && (sd->deviceId() == DEV_ID_SMART_PLUG))
         {
-            DBG_Printf(DBG_INFO, "Tuya : debug 11\n");
 
-            if (sd->deviceId() == DEV_ID_SMART_PLUG)
-            {
-                DBG_Printf(DBG_INFO, "Tuya : debug 12\n");
-            }
-            
             for (int c = 0; c < sd->inClusters().size(); c++)
             {
                 if (sd->inClusters()[c].id() == TUYA_CLUSTER_ID) { hasTuyaCluster = true; }
@@ -1626,11 +1616,10 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
                 //Ok it's the good device, make 2 clones with differents endpoints
                 
-                //Note for me
+                //Note for me, to remove later
                 //sudo cp /usr/share/deCONZ/plugins/libde_rest_plugin.so /usr/share/deCONZ/plugins/libde_rest_plugin2.so
 
                 //node is not modifiable (WHY ?) so use an ugly way
-
                 deCONZ::Node *NodePachable = const_cast<deCONZ::Node*>(&*node);
 
                 deCONZ::SimpleDescriptor sd1;
@@ -1650,6 +1639,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 NodePachable->setSimpleDescriptor(csd1);
                 NodePachable->setSimpleDescriptor(csd2);
 
+                // No needed ?
                 //apsCtrl->updateNode(*patchableNode);
 
             }
@@ -13060,9 +13050,9 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         return;
     }
 
-    Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
+    LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());
 
-    if (!sensorNode)
+    if (!lightNode)
     {
         return;
     }
@@ -13080,6 +13070,9 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         
         if (zclFrame.payload().size() >= 5)
         {
+            
+            bool onoff = false;
+            
             QDataStream stream(zclFrame.payload());
             stream.setByteOrder(QDataStream::LittleEndian);
 
@@ -13087,6 +13080,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             uint8_t transid;
             int16_t dp;
             uint8_t fn;
+            quint8 data;
+            quint8 a;
             
             stream >> status;
             stream >> transid;
@@ -13095,6 +13090,41 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             
             DBG_Printf(DBG_INFO, "Tuya debug 4: status: %d transid: %d dp: %d fn: %d\n", status , transid , dp , fn );
             DBG_Printf(DBG_INFO, "Tuya debug 5: data:  %s\n",  qPrintable(zclFrame.payload()) );
+            
+            stream >> a; //type
+            stream >> a; // len
+            stream >> data; // data
+            
+            if (data == '1') { onoff = true; }
+            
+            {
+                uint ep = 0x01;
+                
+                if (dp == 0x0102) { ep = 0x02; }
+                if (dp == 0x0103) { ep = 0x03; }
+            
+                lightNode = getLightNodeForAddress(ind.srcAddress(), ep);
+
+                if (!lightNode)
+                {
+                    return;
+                }
+                
+                ResourceItem *item = lightNode->item(RStateOn);
+                if (item && item->toBool() != onoff)
+                {
+                    item->setValue(onoff);
+                    Event e(RLights, RStateOn, lightNode->id(), item);
+                    enqueueEvent(e);
+
+                    // Update Node light
+                    updateEtag(lightNode->etag);
+                    updateEtag(gwConfigEtag);
+                    lightNode->setNeedSaveDatabase(true);
+                    saveDatabaseItems |= DB_LIGHTS;
+                }
+            
+            }
             
         }
         else
