@@ -2032,6 +2032,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("Thermostat") ||
         // Stelpro
         sensor->modelId().contains(QLatin1String("ST218")) ||
+        sensor->modelId().contains(QLatin1String("STZB402")) ||
         // Tuya
         sensor->modelId().startsWith(QLatin1String("TS01")) ||
         sensor->modelId().startsWith(QLatin1String("TS02")) ||
