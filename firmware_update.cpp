@@ -494,7 +494,7 @@ void DeRestPluginPrivate::queryFirmwareVersion()
         }
 
         // adapted from above AVR handling
-        if (((fwVersion & FW_PLATFORM_MASK) == FW_PLATFORM_R21) /*|| fwVersion == FW_ONLY_R21_BOOTLOADER*/)
+        if ((fwVersion & FW_PLATFORM_MASK) == FW_PLATFORM_R21 && fwDeviceName == QLatin1String("ConBee II"))
         {
             if (fwVersion < GW_MIN_R21_FW_VERSION)
             {
