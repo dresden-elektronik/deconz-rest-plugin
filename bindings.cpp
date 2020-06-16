@@ -1295,7 +1295,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") ||   // Heiman
                        sensor->modelId() == QLatin1String("SKHMP30-I1") ||  // GS smart plug
                        sensor->modelId() == QLatin1String("SZ-ESW01-AU") || // Sercomm / Telstra smart plug
-                       sensor->modelId().startsWith(QLatin1String("ROB_200"))))  // ROBB Smarrt micro dimmer
+                       sensor->modelId().startsWith(QLatin1String("ROB_200")) || // ROBB Smarrt micro dimmer
+                       sensor->modelId().startsWith(QLatin1String("lumi.plug.maeu")))) // Xiaomi Aqara ZB3.0 smart plug
         {
             rq.reportableChange16bit = 10; // 1 W
         }
