@@ -1612,7 +1612,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             
             if (hasTuyaCluster)
             {
-                DBG_Printf(DBG_INFO, "Tuya : debug 13\n");  
+                DBG_Printf(DBG_INFO, "Tuya : debug 13\n");
 
                 //Ok it's the good device, make 2 clones with differents endpoints
                 
@@ -1628,10 +1628,8 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 const deCONZ::SimpleDescriptor &csd1 = sd1;
                 const deCONZ::SimpleDescriptor &csd2 = sd2;
 
-                //const deCONZ::SimpleDescriptor &csd1 = sd1;
-
                 node->copySimpleDescriptor(0x01, &sd1);
-                node->copySimpleDescriptor(0x01, &sd1);
+                node->copySimpleDescriptor(0x01, &sd2);
 
                 sd1.setEndpoint(0x02);
                 sd2.setEndpoint(0x03);
@@ -1669,6 +1667,8 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
         // check if node already exist
         LightNode *lightNode2 = nullptr;
+        
+        DBG_Printf(DBG_INFO, "Tuya : debug 22\n");
 
         for (auto &l : nodes)
         {
@@ -1690,6 +1690,8 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             lightNode2 = &l;
             break;
         }
+        
+        DBG_Printf(DBG_INFO, "Tuya : debug 23\n");
 
         if (lightNode2)
         {
@@ -1755,6 +1757,8 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
             continue;
         }
+        
+        DBG_Printf(DBG_INFO, "Tuya : debug 24\n");
 
         LightNode lightNode;
         lightNode.setNode(nullptr);
@@ -1962,6 +1966,8 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         {
             continue;
         }
+        
+        DBG_Printf(DBG_INFO, "Tuya : debug 25\n");
 
         QString uid = generateUniqueId(lightNode.address().ext(), lightNode.haEndpoint().endpoint(), 0);
         lightNode.setUniqueId(uid);
@@ -13057,6 +13063,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         return;
     }
     
+    DBG_Printf(DBG_INFO, "Tuya : debug 8\n");
+    
     if (zclFrame.commandId() != 0x00)
     {
         // 0x00 : Used to send command
@@ -13099,7 +13107,6 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             
             {
                 uint ep = 0x01;
-                
                 if (dp == 0x0102) { ep = 0x02; }
                 if (dp == 0x0103) { ep = 0x03; }
             
