@@ -7524,7 +7524,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     if (i->modelId() == QLatin1String("SmartPlug") ||        // Heiman
                                         i->modelId().startsWith(QLatin1String("SKHMP30")) || // GS smart plug
-                                        i->modelId().startsWith(QLatin1String("ROB_200")))   // ROBB Smarrt micro dimmer
+                                        i->modelId().startsWith(QLatin1String("ROB_200")) || // ROBB Smarrt micro dimmer
+                                        i->modelId().startsWith(QLatin1String("lumi.plug.maeu"))) // Xiaomi Aqara ZB3.0 smart plug
                                     {
                                         power += 5; power /= 10; // 0.1W -> W
                                     }
