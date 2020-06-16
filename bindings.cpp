@@ -1278,7 +1278,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq2.maxInterval = 300;
         if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") || // Heiman
                        sensor->modelId() == QLatin1String("902010/25") || // Bitron
-                       sensor->modelId() == QLatin1String("SKHMP30-I1"))) // GS smart plug
+                       sensor->modelId() == QLatin1String("SKHMP30-I1") ||// GS smart plug
+                       sensor->modelId() == QLatin1String("160-01")))     // Plugwise smart plug
         {
             rq2.reportableChange24bit = 10; // 1 W
         }
@@ -2096,7 +2097,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Embertec
         sensor->modelId().startsWith(QLatin1String("BQZ10-AU")) ||
         // ROBB Smarrt
-        sensor->modelId().startsWith(QLatin1String("ROB_200")))
+        sensor->modelId().startsWith(QLatin1String("ROB_200")) ||
+        // Plugwise
+        sensor->modelId().startsWith(QLatin1String("160-01")))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||
