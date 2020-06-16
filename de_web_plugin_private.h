@@ -305,6 +305,7 @@
 #define VENDOR_SENGLED_OPTOELEC 0x1160
 #define VENDOR_INNR         0x1166
 #define VENDOR_LDS          0x1168 // Used by Samsung SmartPlug 2019
+#define VENDOR_PLUGWISE_BV  0x1172
 #define VENDOR_INSTA        0x117A
 #define VENDOR_IKEA         0x117C
 #define VENDOR_3A_SMART_HOME  0x117E
@@ -514,6 +515,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
                    prefix == heimanMacPrefix;
         case VENDOR_PHILIPS:
             return prefix == philipsMacPrefix;
+        case VENDOR_PLUGWISE_BV:
+            return prefix == emberMacPrefix;
         case VENDOR_PHYSICAL:
             return prefix == stMacPrefix;
         case VENDOR_SENGLED_OPTOELEC:

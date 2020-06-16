@@ -314,6 +314,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_PHILIO, "PST03A-v2.2.5", emberMacPrefix }, // Philio pst03-a
     { VENDOR_EMBERTEC, "BQZ10-AU", embertecMacPrefix }, // Embertec smart plug
     { VENDOR_MUELLER, "ZBT-Remote-ALL-RGBW", jennicMacPrefix }, // Tint remote control
+    { VENDOR_PLUGWISE_BV, "160-01", emberMacPrefix }, // Plugwise smart plug
 
     { 0, nullptr, 0 }
 };
@@ -4438,7 +4439,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case ELECTRICAL_MEASUREMENT_CLUSTER_ID:
                 {
-                    if(modelId != QLatin1String("lumi.plug.mmeu01") && modelId != QLatin1String("lumi.relay.c2acn01"))
+                    if(modelId != QLatin1String("lumi.plug.mmeu01") && modelId != QLatin1String("lumi.relay.c2acn01") &&
+                       modelId != QLatin1String("160-01"))
                     {
                         fpPowerSensor.inClusters.push_back(ci->id());
                     }
@@ -5233,7 +5235,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         if (sensorNode.fingerPrint().hasInCluster(METERING_CLUSTER_ID))
         {
             clusterId = METERING_CLUSTER_ID;
-            item = sensorNode.addItem(DataTypeUInt64, RStateConsumption);
+            if (modelId != QLatin1String("160-01"))
+            {
+                item = sensorNode.addItem(DataTypeUInt64, RStateConsumption);
+            }
             if ((modelId != QLatin1String("SP 120")) &&
                 (modelId != QLatin1String("ZB-ONOFFPlug-D0005")) &&
                 (modelId != QLatin1String("TS0121")) &&
@@ -7401,7 +7406,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (i->modelId() == QLatin1String("SmartPlug") ||       // Heiman
                                     i->modelId() == QLatin1String("902010/25") ||       // Bitron
                                     i->modelId().startsWith(QLatin1String("PSMP5_")) || // Climax
-                                    i->modelId().startsWith(QLatin1String("SKHMP30")))  // GS smart plug
+                                    i->modelId().startsWith(QLatin1String("SKHMP30")) ||// GS smart plug
+                                    i->modelId().startsWith(QLatin1String("160-01")))   // Plugwise smart plug
                                 {
                                     power += 5; power /= 10; // 0.1 W -> W
                                 }
