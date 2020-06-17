@@ -1638,7 +1638,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 NodePachable->setSimpleDescriptor(csd2);
 
                 // No needed ?
-                //apsCtrl->updateNode(*patchableNode);
+                //apsCtrl->updateNode(*NodePachable);
 
             }
         }
@@ -1667,8 +1667,6 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
         // check if node already exist
         LightNode *lightNode2 = nullptr;
-        
-        DBG_Printf(DBG_INFO, "Tuya : debug 22\n");
 
         for (auto &l : nodes)
         {
@@ -1690,8 +1688,6 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             lightNode2 = &l;
             break;
         }
-        
-        DBG_Printf(DBG_INFO, "Tuya : debug 23\n");
 
         if (lightNode2)
         {
@@ -1757,8 +1753,6 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
             continue;
         }
-        
-        DBG_Printf(DBG_INFO, "Tuya : debug 24\n");
 
         LightNode lightNode;
         lightNode.setNode(nullptr);
@@ -2017,6 +2011,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         {
             if (!(searchLightsState == SearchLightsActive || permitJoinFlag))
             {
+                DBG_Printf(DBG_INFO, "Tuya : debug 26\n");
                 // don't add new light node when search is not active
                 return;
             }
@@ -13065,11 +13060,11 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
     
     DBG_Printf(DBG_INFO, "Tuya : debug 8\n");
     
-    if (zclFrame.commandId() != 0x00)
+    if (zclFrame.commandId() == 0x00)
     {
         // 0x00 : Used to send command
     }
-    else if ( (zclFrame.commandId() != 0x01) || (zclFrame.commandId() != 0x02) )
+    else if ( (zclFrame.commandId() == 0x01) || (zclFrame.commandId() == 0x02) )
     {
         // 0x01 Used to inform of changes in its state.
         // 0x02 Send after receiving a 0x00 command.
