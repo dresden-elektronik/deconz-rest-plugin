@@ -1717,9 +1717,11 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
             qint16 button = 0x0101;
             
             //Retreive Fake endpoint, and change button value
-            uint ep = taskRef.lightNode->haEndpoint().endpoint();
+            uint8_t ep = taskRef.lightNode->haEndpoint().endpoint();
             if (ep == 0x02) { button = 0x0102; }
             if (ep == 0x03) { button = 0x0103; }
+            
+            DBG_Printf(DBG_INFO, "Tuya debug 77: EP:  %d\n",  ep );
 
             TaskItem task;
             copyTaskReq(taskRef, task);

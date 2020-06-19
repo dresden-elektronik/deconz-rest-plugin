@@ -13043,9 +13043,7 @@ void DeRestPluginPrivate::handlePhilipsClusterIndication(const deCONZ::ApsDataIn
     Taken from https://medium.com/@dzegarra/zigbee2mqtt-how-to-add-support-for-a-new-tuya-based-device-part-2-5492707e882d
  */
 void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
-{
-    DBG_Printf(DBG_INFO, "Tuya : debug 0\n");
-    
+{    
     if (zclFrame.isDefaultResponse())
     {
         return;
@@ -13091,12 +13089,12 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             stream >> dp;
             stream >> fn;
             
-            DBG_Printf(DBG_INFO, "Tuya debug 4: status: %d transid: %d dp: %d fn: %d\n", status , transid , dp , fn );
-            DBG_Printf(DBG_INFO, "Tuya debug 5: data:  %s\n",  qPrintable(zclFrame.payload()) );
-            
             stream >> a; //type
             stream >> a; // len
             stream >> data; // data
+            
+            DBG_Printf(DBG_INFO, "Tuya debug 4: status: %d transid: %d dp: %d fn: %d\n", status , transid , dp , fn );
+            DBG_Printf(DBG_INFO, "Tuya debug 5: data:  %d\n",  data );
             
             if (data == '1') { onoff = true; }
             
@@ -13109,6 +13107,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
 
                 if (!lightNode)
                 {
+                    DBG_Printf(DBG_INFO, "Tuya debug : No node found\n",  data );
                     return;
                 }
                 
