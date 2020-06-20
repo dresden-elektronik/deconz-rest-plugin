@@ -313,6 +313,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_WAXMAN, "leakSMART Water Sensor V2", celMacPrefix }, // WAXMAN LeakSMART v2
     { VENDOR_PHILIO, "PST03A-v2.2.5", emberMacPrefix }, // Philio pst03-a
     { VENDOR_EMBERTEC, "BQZ10-AU", embertecMacPrefix }, // Embertec smart plug
+    { VENDOR_ALERTME, "SLP2", computimeMacPrefix }, // Computime plug
     { VENDOR_MUELLER, "ZBT-Remote-ALL-RGBW", jennicMacPrefix }, // Tint remote control
 
     { 0, nullptr, 0 }
