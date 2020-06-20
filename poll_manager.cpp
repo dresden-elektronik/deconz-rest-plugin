@@ -261,6 +261,7 @@ void PollManager::pollTimerFired()
     const char *&suffix = pitem.items[0];
     
     DBG_Printf(DBG_INFO, "Tuya : debug 99: %s\n", suffix);
+    //19:53:18:488 Tuya : debug 99: state/on
 
     for (size_t i = 0; pitem.items[0] == nullptr && i < pitem.items.size(); i++)
     {
@@ -279,7 +280,12 @@ void PollManager::pollTimerFired()
 
     if (suffix == RStateOn)
     {
-        if (lightNode && lightNode->manufacturerCode() != VENDOR_XIAOMI) // reports
+        item = r->item(RAttrModelId);
+        if (item->toString() == QLatin1String("TS0601"))
+        {
+            //This device haven't cluster 0006, and use Cluster specific
+        }
+        else if (lightNode && lightNode->manufacturerCode() != VENDOR_XIAOMI) // reports
         {
             clusterId = ONOFF_CLUSTER_ID;
             attributes.push_back(0x0000); // onOff

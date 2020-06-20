@@ -1960,8 +1960,6 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         {
             continue;
         }
-        
-        DBG_Printf(DBG_INFO, "Tuya : debug 25\n");
 
         QString uid = generateUniqueId(lightNode.address().ext(), lightNode.haEndpoint().endpoint(), 0);
         lightNode.setUniqueId(uid);
@@ -13088,13 +13086,13 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             stream >> transid;
             stream >> dp;
             stream >> fn;
-            
-            stream >> a; //type
+
             stream >> a; // len
             stream >> data; // data
             
             DBG_Printf(DBG_INFO, "Tuya debug 4: status: %d transid: %d dp: %d fn: %d\n", status , transid , dp , fn );
             DBG_Printf(DBG_INFO, "Tuya debug 5: data:  %d\n",  data );
+            DBG_Printf(DBG_INFO, "Tuya debug 5: size:  %d\n",  zclFrame.payload().size() );
             
             if (data == '1') { onoff = true; }
             
