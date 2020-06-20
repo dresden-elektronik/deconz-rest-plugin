@@ -259,9 +259,6 @@ void PollManager::pollTimerFired()
     item = r->item(RStateOn);
     bool isOn = item ? item->toBool() : false;
     const char *&suffix = pitem.items[0];
-    
-    DBG_Printf(DBG_INFO, "Tuya : debug 99: %s\n", suffix);
-    //19:53:18:488 Tuya : debug 99: state/on
 
     for (size_t i = 0; pitem.items[0] == nullptr && i < pitem.items.size(); i++)
     {
