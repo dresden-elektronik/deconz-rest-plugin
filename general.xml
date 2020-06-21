@@ -2443,9 +2443,9 @@ controller device, that supports a keypad and LCD screen.</description>
 					<attribute id="0x8000" name="Zone Status Interval" type="u16" access="rw" required="o" mfcode="0x1015"></attribute>
 					<attribute id="0x8001" name="Alarm Off Delay" type="u16" access="rw" required="o" mfcode="0x1015"></attribute>
 				</attribute-set>
-                <attribute-set id="0xf000" description="Xiaomi specific" mfcode="0x115f">
-                    <attribute id="0xfff0" name="Sensitivity" type="u32" access="r" required="o" mfcode="0x115f"></attribute>
-					<attribute id="0xfff1" name="Selftest/Density" type="u32" access="rw" required="o" mfcode="0x115f"></attribute>
+                <attribute-set id="0xf000" description="Xiaomi specific" mfcode="0x1037">
+                    <attribute id="0xfff0" name="Sensitivity" type="u32" access="r" required="o" mfcode="0x1037"></attribute>
+					<attribute id="0xfff1" name="Selftest/Density" type="u32" access="rw" required="o" mfcode="0x1037"></attribute>
 				</attribute-set>
 				<command id="0x00" dir="recv" name="Zone Enroll Response" required="m">
 					<payload>
