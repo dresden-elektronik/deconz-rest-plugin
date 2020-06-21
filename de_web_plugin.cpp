@@ -13067,7 +13067,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         
         DBG_Printf(DBG_INFO, "Tuya : debug 1\n");
         
-        if (zclFrame.payload().size() >= 5)
+        if (zclFrame.payload().size() >= 7)
         {
             
             bool onoff = false;
@@ -13092,7 +13092,6 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             
             DBG_Printf(DBG_INFO, "Tuya debug 4: status: %d transid: %d dp: %d fn: %d\n", status , transid , dp , fn );
             DBG_Printf(DBG_INFO, "Tuya debug 5: data:  %d\n",  data );
-            DBG_Printf(DBG_INFO, "Tuya debug 5: size:  %d\n",  zclFrame.payload().size() );
             
             if (data == '1') { onoff = true; }
             
@@ -13105,7 +13104,6 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
 
                 if (!lightNode)
                 {
-                    DBG_Printf(DBG_INFO, "Tuya debug : No node found\n",  data );
                     return;
                 }
                 
