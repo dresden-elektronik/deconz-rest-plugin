@@ -3915,6 +3915,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::NodeEvent *event)
 {
     DBG_Assert(node);
+    DBG_Printf(DBG_INFO, "SLP2 debug 2\n" );
 
     if (!node)
     {
@@ -3996,7 +3997,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             manufacturer = QLatin1String("iHorn");
         }
     }
-
+    DBG_Printf(DBG_INFO, "SLP2 debug 3\n" );
     for (;i != end; ++i)
     {
         SensorFingerprint fpAlarmSensor;
@@ -4434,6 +4435,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpConsumptionSensor.inClusters.push_back(ci->id());
                     }
+                    DBG_Printf(DBG_INFO, "SLP2 debug 1\n" );
                 }
                     break;
 

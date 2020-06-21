@@ -1933,8 +1933,6 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("3320-L")) ||
         sensor->modelId().startsWith(QLatin1String("3323")) ||
         sensor->modelId().startsWith(QLatin1String("3326-L")) ||
-        //Computime
-        sensor->modelId() == QLatin1String("SLP2") ||
         // dresden elektronik
         (sensor->manufacturer() == QLatin1String("dresden elektronik") && sensor->modelId() == QLatin1String("de_spect")) ||
         // GE
@@ -2075,6 +2073,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("1117-S")) ||
         // Hive
         sensor->modelId() == QLatin1String("MOT003") ||
+        //Computime
+        sensor->modelId() == QLatin1String("SLP2") ||
         // Sengled
         sensor->modelId().startsWith(QLatin1String("E13-")) ||
         sensor->modelId().startsWith(QLatin1String("E1D-")) ||
