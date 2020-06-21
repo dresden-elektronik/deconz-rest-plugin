@@ -1735,6 +1735,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->modelId() == QLatin1String("SPLZB-131"))
         {
         }
+        else if (lightNode->modelId() == QLatin1String("SLP2"))
+        {
+        }
         else if (lightNode->manufacturer() == QString("欧瑞博") || lightNode->manufacturer() == QLatin1String("ORVIBO"))
         {
         }
