@@ -193,6 +193,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "lumi.vibration", jennicMacPrefix }, // Xiaomi Aqara vibration/shock sensor
     { VENDOR_JENNIC, "lumi.sensor_wleak", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_smoke", jennicMacPrefix },
+    { VENDOR_JENNIC, "lumi.sensor_natgas", jennicMacPrefix }, // Xiaomi Mija (HonneyWell) gas detector
     { VENDOR_JENNIC, "lumi.relay.c", jennicMacPrefix }, // Xiaomi Aqara LLKZMK11LM
     { VENDOR_XIAOMI, "lumi.plug", jennicMacPrefix }, // Xiaomi smart plug (router)
     { VENDOR_XIAOMI, "lumi.ctrl_ln", jennicMacPrefix}, // Xiaomi Wall Switch (router)
@@ -4089,6 +4090,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpSwitch.inClusters.push_back(MULTISTATE_INPUT_CLUSTER_ID);
                     }
+                    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC &&
+                             modelId.startsWith(QLatin1String("lumi.sensor_natgas")))
+                    {
+                        fpCarbonMonoxideSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
+                    }
                 }
                     break;
 
@@ -4169,7 +4175,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 case IAS_ZONE_CLUSTER_ID:
                 {
                     if (modelId.startsWith(QLatin1String("CO_")) ||                   // Heiman CO sensor
-                        modelId.startsWith(QLatin1String("COSensor")))                // Heiman CO sensor (newer model)
+                        modelId.startsWith(QLatin1String("COSensor")) ||              // Heiman CO sensor (newer model)
+                        modelId.startsWith(QLatin1String("lumi.sensor_natgas")))      // Xiaomi Mi gas detector
                     {
                         fpCarbonMonoxideSensor.inClusters.push_back(ci->id());
                     }
@@ -5485,6 +5492,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         if (!sensorNode.modelId().startsWith(QLatin1String("lumi.ctrl_")) &&
             !sensorNode.modelId().startsWith(QLatin1String("lumi.plug")) &&
             sensorNode.modelId() != QLatin1String("lumi.curtain") &&
+            sensorNode.modelId() != QLatin1String("lumi.sensor_natgas") &&
             !sensorNode.type().endsWith(QLatin1String("Battery")))
         {
             sensorNode.addItem(DataTypeUInt8, RConfigBattery);
@@ -10327,6 +10335,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
                 lift = 100 - u8;
             }
             DBG_Printf(DBG_INFO, "\t64 lift %d (%d%%)\n", u8, lift);
+            DBG_Printf(DBG_INFO, "\t64 somke/gas density %d (%d%%)\n", u8);   // lumi.sensor_smoke/lumi.sensor_natgas
         }
         else if (tag == 0x64 && dataType == deCONZ::Zcl16BitInt)
         {

@@ -3373,6 +3373,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (!sensor.modelId().startsWith(QLatin1String("lumi.ctrl_")) &&
                 !sensor.modelId().startsWith(QLatin1String("lumi.plug")) &&
                 sensor.modelId() != QLatin1String("lumi.curtain") &&
+                sensor.modelId() != QLatin1String("lumi.sensor_natgas") &&
                 !sensor.type().endsWith(QLatin1String("Battery")))
             {
                 item = sensor.addItem(DataTypeUInt8, RConfigBattery);
