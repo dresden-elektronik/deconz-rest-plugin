@@ -10352,7 +10352,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             DBG_Printf(DBG_INFO, "\t03 temperature %d °C\n", int(s8)); // Device temperature for lumi.plug.mmeu01
             temperature = qint16(s8) * 100;
         }
-        else if (tag == 0x04 && dataType == deCONZ::Zcl16BitUint)
+        else if ((tag == 0x04 || structIndex == 0x03) && dataType == deCONZ::Zcl16BitUint)
         {
             DBG_Printf(DBG_INFO, "\t04 unknown %d (0x%04X)\n", u16, u16);
         }
@@ -10360,7 +10360,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         {
             DBG_Printf(DBG_INFO, "\t05 RSSI dB (?) %d (0x%04X)\n", u16, u16);
         }
-        else if (tag == 0x06 && dataType == deCONZ::Zcl40BitUint)
+        else if ((tag == 0x06 || structIndex == 0x04) && dataType == deCONZ::Zcl40BitUint)
         {
             DBG_Printf(DBG_INFO, "\t06 LQI (?) %lld (0x%010llX)\n", u64, u64);
         }
@@ -10448,6 +10448,10 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             voltage = static_cast<qint32>(round(f / 10)); // convert to V
             DBG_Printf(DBG_INFO, "\t96 voltage %f (%d)\n", f, voltage);
         }
+        else if (tag == 0x96 && dataType == deCONZ::Zcl32BitUint) // lumi.sensor_smoke
+        {
+            DBG_Printf(DBG_INFO, "\t96 unknown %d (0x%08X)\n", u32, u32);
+        }
         else if (tag == 0x97 && dataType == deCONZ::Zcl16BitUint) // lumi.sensor_cube
         {
             DBG_Printf(DBG_INFO, "\t97 unknown %d (0x%04X)\n", u16, u16);
@@ -10493,6 +10497,14 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         else if (tag == 0x9b && dataType == deCONZ::ZclBoolean) // lumi.plug.mmeu01
         {
             DBG_Printf(DBG_INFO, "\t9b unknown %d\n", u8);
+        }
+        else if (structIndex == 0x05 && dataType == deCONZ::Zcl16BitUint) // lumi.sensor_magnet
+        {
+            DBG_Printf(DBG_INFO, "\tStruct index 05 unknown (counter?) %d (0x%04X)\n", u16, u16);
+        }
+        else if (structIndex == 0x06 && dataType == deCONZ::Zcl8BitUint) // lumi.sensor_magnet
+        {
+            DBG_Printf(DBG_INFO, "\tStruct index 06 unknown (counter?) %d (0x%02X)\n", u8, u8);
         }
         else if (tag)
         {
