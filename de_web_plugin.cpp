@@ -4309,7 +4309,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpHumiditySensor.inClusters.push_back(ci->id());
                     }
-                    if (modelId != QLatin1String("SLP2b")
+                    if (modelId != QLatin1String("SLP2b"))
                     {
                         fpTemperatureSensor.inClusters.push_back(ci->id());
                     }
