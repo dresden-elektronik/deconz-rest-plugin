@@ -11410,8 +11410,11 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         {
             refreshDeviceDb(event.node()->address());
         }
+        DBG_Printf(DBG_INFO, "SLP2 debug 31\n" );
         addLightNode(event.node());
+        DBG_Printf(DBG_INFO, "SLP2 debug 32\n" );
         addSensorNode(event.node());
+        DBG_Printf(DBG_INFO, "SLP2 debug 33\n" );
     }
         break;
 

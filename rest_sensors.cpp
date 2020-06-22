@@ -2410,6 +2410,9 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
         else if (checkMacVendor(ext, VENDOR_UBISYS))
         {
         }
+        else if (checkMacVendor(ext, VENDOR_ALERTME))
+        {
+        }
         else if (checkMacVendor(ext, VENDOR_BOSCH))
         { // macCapabilities == 0
         }
