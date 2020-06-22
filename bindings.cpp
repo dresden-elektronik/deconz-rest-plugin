@@ -1188,6 +1188,13 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 43200;    // according to technical manual
             rq.reportableChange8bit = 0;
         }
+        else if (sensor && (sensor->modelId() == QLatin1String("SLT2")))
+        {
+            rq.attributeId = 0x0020;   // battery voltage
+            rq.minInterval = 3600;
+            rq.maxInterval = 3600;
+            rq.reportableChange8bit = 0;
+        }
         else
         {
             rq.minInterval = 300;
@@ -1735,7 +1742,7 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->modelId() == QLatin1String("SPLZB-131"))
         {
         }
-        else if (lightNode->modelId() == QLatin1String("SLP2"))
+        else if (lightNode->manufacturer() == QLatin1String("Computime")) //Hive
         {
         }
         else if (lightNode->manufacturer() == QString("欧瑞博") || lightNode->manufacturer() == QLatin1String("ORVIBO"))
@@ -2075,6 +2082,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("MOT003") ||
         //Computime
         sensor->modelId() == QLatin1String("SLP2") ||
+        sensor->modelId() == QLatin1String("SLP2b") ||
+        sensor->modelId() == QLatin1String("SLR2") ||
+        sensor->modelId() == QLatin1String("SLT2") ||
         // Sengled
         sensor->modelId().startsWith(QLatin1String("E13-")) ||
         sensor->modelId().startsWith(QLatin1String("E1D-")) ||

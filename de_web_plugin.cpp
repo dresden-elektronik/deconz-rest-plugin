@@ -306,6 +306,9 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SERCOMM, "Tripper", emberMacPrefix }, // Quirky Tripper (Sercomm) open/close sensor
     { VENDOR_ALERTME, "MOT003", tiMacPrefix }, // Hive Motion Sensor
     { VENDOR_ALERTME, "SLP2", computimeMacPrefix }, // Computime plug
+    { VENDOR_ALERTME, "SLP2b", computimeMacPrefix }, // Computime plug
+    { VENDOR_ALERTME, "SLR2", computimeMacPrefix }, // Computime  Heating Receiver
+    { VENDOR_ALERTME, "SLT2", computimeMacPrefix }, // Computime thermostat
     { VENDOR_SUNRICHER, "4512703", silabs2MacPrefix }, // Namron 4-ch remote controller
     { VENDOR_SENGLED_OPTOELEC, "E13-", zhejiangMacPrefix }, // Sengled PAR38 Bulbs
     { VENDOR_SENGLED_OPTOELEC, "E1D-", zhejiangMacPrefix }, // Sengled contact sensor
@@ -3915,7 +3918,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::NodeEvent *event)
 {
     DBG_Assert(node);
-    DBG_Printf(DBG_INFO, "SLP2 debug 2\n" );
 
     if (!node)
     {
@@ -3997,7 +3999,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             manufacturer = QLatin1String("iHorn");
         }
     }
-    DBG_Printf(DBG_INFO, "SLP2 debug 3\n" );
+
     for (;i != end; ++i)
     {
         SensorFingerprint fpAlarmSensor;
@@ -4307,13 +4309,16 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpHumiditySensor.inClusters.push_back(ci->id());
                     }
-                    fpTemperatureSensor.inClusters.push_back(ci->id());
+                    if (modelId != QLatin1String("SLP2b")
+                    {
+                        fpTemperatureSensor.inClusters.push_back(ci->id());
+                    }
                 }
                     break;
 
                 case RELATIVE_HUMIDITY_CLUSTER_ID:
                 {
-                    if(modelId != QLatin1String("VOC_Sensor"))
+                    if (modelId != QLatin1String("VOC_Sensor"))
                     {
                         fpHumiditySensor.inClusters.push_back(ci->id());
                     }
@@ -4435,7 +4440,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpConsumptionSensor.inClusters.push_back(ci->id());
                     }
-                    DBG_Printf(DBG_INFO, "SLP2 debug 1\n" );
                 }
                     break;
 
@@ -11410,11 +11414,8 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         {
             refreshDeviceDb(event.node()->address());
         }
-        DBG_Printf(DBG_INFO, "SLP2 debug 31\n" );
         addLightNode(event.node());
-        DBG_Printf(DBG_INFO, "SLP2 debug 32\n" );
         addSensorNode(event.node());
-        DBG_Printf(DBG_INFO, "SLP2 debug 33\n" );
     }
         break;
 
@@ -15746,6 +15747,10 @@ void DeRestPlugin::idleTimerFired()
                             val = sensorNode->getZclValue(*ci, 0x0029); // heating state
 
                             if (sensorNode->modelId().startsWith("SPZB")) // Eurotronic Spirit
+                            {
+                                // supports reporting, no need to read attributes
+                            }
+                            if (sensorNode->modelId().startsWith("SLR2") || sensorNode->modelId().startsWith("SLT2")) // Hive devices
                             {
                                 // supports reporting, no need to read attributes
                             }
