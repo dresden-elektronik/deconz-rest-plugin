@@ -10431,7 +10431,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
         }
         else if (tag == 0x9b && dataType == deCONZ::ZclBoolean) // lumi.plug.mmeu01
         {
-            DBG_Printf(DBG_INFO, "\t9b unknown %d\n", u8);
+            DBG_Printf(DBG_INFO, "\t9b Consumer connected (yes/no) %d\n", u8);
         }
         else if (structIndex == 0x05 && dataType == deCONZ::Zcl16BitUint) // lumi.sensor_magnet
         {
