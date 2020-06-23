@@ -1968,7 +1968,14 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
             char param1[100];
             strcpy(param1, "/usr/share/zoneinfo/");
             strcpy(param1, qPrintable(timezone));
-            symlink(param1, "/etc/localtime");
+
+            if (symlink(param1, "/etc/localtime") == -1)
+            {
+                DBG_Printf(DBG_INFO, "Create symlink to timezone failed with errno: %s\n", strerror(errno));
+                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/config/timezone"), QString("Link timezone failed with errno: %s\n", strerror(errno))));
+                rsp.httpStatus = HttpStatusServiceUnavailable;
+                return REQ_READY_SEND;
+            }
 
             if (rc != 0)
             {
