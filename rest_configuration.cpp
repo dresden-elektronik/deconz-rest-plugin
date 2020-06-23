@@ -32,6 +32,7 @@
   #include <sys/reboot.h>
   #include <sys/time.h>
   #include <signal.h>
+  #include <errno.h>
 #endif
 #endif // Q_OS_LINUX
 
@@ -1972,7 +1973,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
             if (symlink(param1, "/etc/localtime") == -1)
             {
                 DBG_Printf(DBG_INFO, "Create symlink to timezone failed with errno: %s\n", strerror(errno));
-                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/config/timezone"), QString("Link timezone failed with errno: %s\n", strerror(errno))));
+                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/config/timezone"), QString("Link timezone failed with errno: %1\n").arg(strerror(errno))));
                 rsp.httpStatus = HttpStatusServiceUnavailable;
                 return REQ_READY_SEND;
             }
