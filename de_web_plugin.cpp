@@ -4485,8 +4485,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case ELECTRICAL_MEASUREMENT_CLUSTER_ID:
                 {
-                    if(modelId != QLatin1String("lumi.plug.mmeu01") && modelId != QLatin1String("lumi.relay.c2acn01") &&
-                       modelId != QLatin1String("160-01"))
+                    if(modelId != QLatin1String("lumi.plug.mmeu01") && modelId != QLatin1String("160-01"))
                     {
                         fpPowerSensor.inClusters.push_back(ci->id());
                     }
@@ -10435,6 +10434,10 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
             DBG_Printf(DBG_INFO, "\t6e unknown %d (0x%02X)\n", u8, u8);
         }
         else if (tag == 0x6f && dataType == deCONZ::Zcl8BitUint) // lumi.ctrl_neutral2
+        {
+            DBG_Printf(DBG_INFO, "\t6f unknown %d (0x%02X)\n", u8, u8);
+        }
+        else if (tag == 0x94 && dataType == deCONZ::Zcl8BitUint) // lumi.relay.c2acn01
         {
             DBG_Printf(DBG_INFO, "\t6f unknown %d (0x%02X)\n", u8, u8);
         }
