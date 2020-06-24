@@ -316,6 +316,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBERTEC, "BQZ10-AU", embertecMacPrefix }, // Embertec smart plug
     { VENDOR_MUELLER, "ZBT-Remote-ALL-RGBW", jennicMacPrefix }, // Tint remote control
     { VENDOR_PLUGWISE_BV, "160-01", emberMacPrefix }, // Plugwise smart plug
+    { VENDOR_NIKO_NV, "Connected socket outlet", konkeMacPrefix }, // Niko smart socket 170-33505
 
     { 0, nullptr, 0 }
 };
@@ -7375,7 +7376,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (i->modelId() == QLatin1String("SmartPlug") ||        // Heiman
                                     i->modelId().startsWith(QLatin1String("PSMP5_")) ||  // Climax
                                     i->modelId().startsWith(QLatin1String("SKHMP30")) || // GS smart plug
-									i->modelId().startsWith(QLatin1String("E13-")))      // Sengled PAR38 Bulbs
+                                    i->modelId().startsWith(QLatin1String("E13-")) ||    // Sengled PAR38 Bulbs
+                                    i->modelId().startsWith(QLatin1String("Connected s"))) // Niko smart socket
                                 {
                                     consumption += 5; consumption /= 10; // 0.1 Wh -> Wh
                                 }
@@ -7486,6 +7488,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         power *= 128; power /= 1000;
                                     }
+                                    else if (i->modelId().startsWith(QLatin1String("Connected s"))) // Niko smart socket
+                                    {
+                                        power *= 1123; power /= 10000;
+                                    }
                                     item->setValue(power); // in W
                                     enqueueEvent(Event(RSensors, RStatePower, i->id(), item));
                                     updated = true;
@@ -7514,7 +7520,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     else if (i->modelId() == QLatin1String("RICI01") ||           // LifeControl Smart Plug
                                              i->modelId().startsWith(QLatin1String("outlet")) ||  // Samsung SmartThings IM6001-OTP/IM6001-OTP01
                                              i->modelId() == QLatin1String("EMIZB-13") ||         // Develco EMI
-                                             i->modelId().startsWith(QLatin1String("ROB_200")))   // ROBB Smarrt micro dimmer
+                                             i->modelId().startsWith(QLatin1String("ROB_200")) || // ROBB Smarrt micro dimmer
+                                             i->modelId().startsWith(QLatin1String("Connected s"))) // Niko smart socket
                                     {
                                         voltage /= 10; // 0.1V -> V
                                     }
@@ -7546,7 +7553,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId() == QLatin1String("RICI01") ||            // LifeControl Smart Plug
                                         i->modelId().startsWith(QLatin1String("SZ-ESW01")) || // Sercomm / Telstra smart plug
                                         i->modelId() == QLatin1String("TS0121") ||            // Tuya smart plug
-                                        i->modelId().startsWith(QLatin1String("ROB_200")))    // ROBB Smarrt micro dimmer
+                                        i->modelId().startsWith(QLatin1String("ROB_200")) ||  // ROBB Smarrt micro dimmer
+                                        i->modelId().startsWith(QLatin1String("Connected s"))) // Niko smart socket
                                     {
                                         // already in mA
                                     }
