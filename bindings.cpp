@@ -1254,7 +1254,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.maxInterval = 300;
         if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") ||      // Heiman
                        sensor->modelId() == QLatin1String("SKHMP30-I1") ||     // GS smart plug
-                       sensor->modelId().startsWith(QLatin1String("E13-"))))   // Sengled PAR38 Bulbs
+                       sensor->modelId().startsWith(QLatin1String("E13-")) ||  // Sengled PAR38 Bulbs
+                       sensor->modelId().startsWith(QLatin1String("Connected s")))) // Niko smart socket
         {
             rq.reportableChange48bit = 10; // 0.001 kWh (1 Wh)
         }
@@ -1329,7 +1330,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         {
             rq2.reportableChange16bit = 125; // 1 V
         }
-        else if (sensor && sensor->modelId().startsWith(QLatin1String("ROB_200"))) // ROBB Smarrt micro dimmer
+        else if (sensor && (sensor->modelId().startsWith(QLatin1String("ROB_200")) || // ROBB Smarrt micro dimmer
+                            sensor->modelId().startsWith(QLatin1String("Connected s")))) // Niko smart socket
         {
             rq2.reportableChange16bit = 10; // 1 V
         }
@@ -1345,7 +1347,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq3.maxInterval = 300;
         if (sensor && (sensor->modelId() == QLatin1String("SP 120") ||           // innr
                        sensor->modelId() == QLatin1String("DoubleSocket50AU") || // Aurora
-                       sensor->modelId() == QLatin1String("SZ-ESW01-AU")))       // Sercomm / Telstra smart plug
+                       sensor->modelId() == QLatin1String("SZ-ESW01-AU") ||      // Sercomm / Telstra smart plug
+                       sensor->modelId().startsWith(QLatin1String("Connected s")))) // Niko smart socket
         {
             rq3.reportableChange16bit = 100; // 0.1 A
         }
@@ -2100,7 +2103,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // ROBB Smarrt
         sensor->modelId().startsWith(QLatin1String("ROB_200")) ||
         // Plugwise
-        sensor->modelId().startsWith(QLatin1String("160-01")))
+        sensor->modelId().startsWith(QLatin1String("160-01")) ||
+        // Niko
+        sensor->modelId() == QLatin1String("Connected socket outlet"))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||
