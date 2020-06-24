@@ -1,10 +1,10 @@
 #!/bin/bash
 
-UPDATE_VERSION_HB="0.4.50"
-UPDATE_VERSION_HB_HUE="0.11.42"
-UPDATE_VERSION_HB_LIB="4.4.7"
+UPDATE_VERSION_HB="1.1.0"
+UPDATE_VERSION_HB_HUE="0.11.69"
+UPDATE_VERSION_HB_LIB="4.7.7"
 UPDATE_VERSION_NPM="6.9.0"
-UPDATE_VERSION_NODE="12.13.0"
+UPDATE_VERSION_NODE="12.17.0"
 # use install name to install the specific node version via apt. Retrieve it via: apt-cache policy nodejs
 # UPDATE_VERSION_NODE_INSTALL_NAME="10.16.3-1nodesource1"
 # when increasing major version of node adjust downoload link

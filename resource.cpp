@@ -32,7 +32,7 @@ const char *RAttrType = "attr/type";
 const char *RAttrClass = "attr/class";
 const char *RAttrUniqueId = "attr/uniqueid";
 const char *RAttrSwVersion = "attr/swversion";
-const char *RAttrLastAnnounce = "attr/lastannounced";
+const char *RAttrLastAnnounced = "attr/lastannounced";
 const char *RAttrLastSeen = "attr/lastseen";
 
 const char *RActionScene = "action/scene";
@@ -40,6 +40,7 @@ const char *RActionScene = "action/scene";
 const char *RStateAlarm = "state/alarm";
 const char *RStateAlert = "state/alert";
 const char *RStateAllOn = "state/all_on";
+const char *RStateAngle = "state/angle";
 const char *RStateAnyOn = "state/any_on";
 const char *RStateBattery = "state/battery";
 const char *RStateBri = "state/bri";
@@ -92,6 +93,13 @@ const char *RStateVoltage = "state/voltage";
 const char *RStateWater = "state/water";
 const char *RStateX = "state/x";
 const char *RStateY = "state/y";
+
+const QStringList RStateEffectValues({
+    "none", "colorloop"
+});
+const QStringList RStateEffectValuesMueller({
+    "none", "colorloop", "sunset", "party", "worklight", "campfire", "romance", "nightlight"
+});
 
 const char *RConfigAlert = "config/alert";
 const char *RConfigBattery = "config/battery";
@@ -168,12 +176,13 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrClass));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrUniqueId));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrSwVersion));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RAttrLastAnnounce));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RAttrLastAnnounced));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RAttrLastSeen));
 
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateAlarm));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateAlert));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateAllOn));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateAngle));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateAnyOn));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RStateBattery, 0, 100));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RStateBri));
@@ -185,7 +194,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateCt));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateDark));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateDaylight));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateEffect));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RStateEffect));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateEventDuration));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateFire));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateFlag));
@@ -374,7 +383,7 @@ const QString &ResourceItem::toString() const
     }
     else if (m_rid.type == DataTypeTime)
     {
-        if (m_str)
+        if (m_num > 0)
         {
             QDateTime dt;
 
@@ -384,24 +393,30 @@ const QString &ResourceItem::toString() const
             if (m_rid.suffix == RStateLastUpdated)
             {
                 // UTC in msec resolution
-                format = QLatin1String("yyyy-MM-ddTHH:mm:ss.zzz");
+                format = QLatin1String("yyyy-MM-ddTHH:mm:ss.zzz"); // TODO add Z
+                dt.setOffsetFromUtc(0);
+            }
+            else if (m_rid.suffix == RAttrLastAnnounced || m_rid.suffix == RAttrLastSeen)
+            {
+                // UTC in sec resolution
+                format = QLatin1String("yyyy-MM-ddTHH:mm:ssZ");
                 dt.setOffsetFromUtc(0);
             }
             else if (m_rid.suffix == RStateSunrise || m_rid.suffix == RStateSunset)
             {
                 // UTC in sec resulution
+                format = QLatin1String("yyyy-MM-ddTHH:mm:ss"); // TODO add Z
                 dt.setOffsetFromUtc(0);
-            }
-            else if (m_rid.suffix == RConfigLocalTime)
-            {
-                // local time in msec resolution
-                format = QLatin1String("yyyy-MM-ddTHH:mm:ss.zzz");
             }
 
             dt.setMSecsSinceEpoch(m_num);
             *m_str = dt.toString(format);
             return *m_str;
         }
+    }
+    else if (m_rid.suffix == RStateEffect)
+    {
+        return RStateEffectValuesMueller[m_num];
     }
 
     DBG_Assert(!rItemStrings.empty());
@@ -769,9 +784,18 @@ const QString &Resource::toString(const char *suffix) const
     {
         return i->toString();
     }
-
     DBG_Assert(!rItemStrings.empty());
     return rItemStrings[0]; // invalid string
+}
+
+QVariant Resource::toVariant(const char *suffix) const
+{
+    const ResourceItem *i = item(suffix);
+    if (i)
+    {
+        return i->toVariant();
+    }
+    return QVariant();
 }
 
 int Resource::itemCount() const

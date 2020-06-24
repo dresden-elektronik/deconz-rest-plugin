@@ -51,13 +51,15 @@ public:
     uint16_t otauClusterId() const;
     void setOtauClusterId(uint16_t clusterId);
     bool hasColor() const;
-    void setColorXY(uint16_t x, uint16_t y);
-    const QString &colorMode() const;
-    void setColorMode(const QString &colorMode);
     void setColorLoopActive(bool colorLoopActive);
     bool isColorLoopActive() const;
     void setColorLoopSpeed(uint8_t speed);
     uint8_t colorLoopSpeed() const;
+    void didSetValue(ResourceItem *i);
+    bool setValue(const char *suffix, qint64 val, bool forceUpdate = false);
+    bool setValue(const char *suffix, const QString &val, bool forceUpdate = false);
+    bool setValue(const char *suffix, const QVariant &val, bool forceUpdate = false);
+    void rx();
     const deCONZ::SimpleDescriptor &haEndpoint() const;
     void setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint);
     uint8_t groupCapacity() const;
@@ -91,4 +93,3 @@ private:
 };
 
 #endif // LIGHT_NODE_H
-

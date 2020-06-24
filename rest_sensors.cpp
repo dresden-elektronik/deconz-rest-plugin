@@ -1643,10 +1643,13 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
     }
 
     QVariantMap state;
+    const ResourceItem *iox = nullptr;
+    const ResourceItem *ioy = nullptr;
+    const ResourceItem *ioz = nullptr;
+    QVariantList orientation;
     const ResourceItem *ix = nullptr;
     const ResourceItem *iy = nullptr;
-    const ResourceItem *iz = nullptr;
-    QVariantList orientation;
+    QVariantList xy;
     QVariantMap config;
 
     for (int i = 0; i < sensor->itemCount(); i++)
@@ -1724,15 +1727,23 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
             }
             else if (rid.suffix == RStateOrientationX)
             {
-                ix = item;
+                iox = item;
             }
             else if (rid.suffix == RStateOrientationY)
             {
-                iy = item;
+                ioy = item;
             }
             else if (rid.suffix == RStateOrientationZ)
             {
-                iz = item;
+                ioz = item;
+            }
+            else if (rid.suffix == RStateX)
+            {
+                ix = item;
+            }
+            else if (rid.suffix == RStateY)
+            {
+                iy = item;
             }
             else
             {
@@ -1740,12 +1751,18 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
             }
         }
     }
-    if (ix && iy && iz)
+    if (iox && ioy && ioz)
     {
-        orientation.append(ix->toNumber());
-        orientation.append(iy->toNumber());
-        orientation.append(iz->toNumber());
+        orientation.append(iox->toNumber());
+        orientation.append(ioy->toNumber());
+        orientation.append(ioz->toNumber());
         state["orientation"] = orientation;
+    }
+    if (ix && iy)
+    {
+        xy.append(round(ix->toNumber() / 6.5535) / 10000.0);
+        xy.append(round(iy->toNumber() / 6.5535) / 10000.0);
+        state["xy"] = xy;
     }
 
     //sensor
@@ -1891,10 +1908,13 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             map["id"] = e.id();
             map["uniqueid"] = sensor->uniqueId();
             QVariantMap state;
+            ResourceItem *iox = nullptr;
+            ResourceItem *ioy = nullptr;
+            ResourceItem *ioz = nullptr;
+            QVariantList orientation;
             ResourceItem *ix = nullptr;
             ResourceItem *iy = nullptr;
-            ResourceItem *iz = nullptr;
-            QVariantList orientation;
+            QVariantList xy;
 
             for (int i = 0; i < sensor->itemCount(); i++)
             {
@@ -1907,15 +1927,23 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
 
                     if (rid.suffix == RStateOrientationX)
                     {
-                        ix = item;
+                        iox = item;
                     }
                     else if (rid.suffix == RStateOrientationY)
                     {
-                        iy = item;
+                        ioy = item;
                     }
                     else if (rid.suffix == RStateOrientationZ)
                     {
-                        iz = item;
+                        ioz = item;
+                    }
+                    else if (rid.suffix == RStateX)
+                    {
+                        ix = item;
+                    }
+                    else if (rid.suffix == RStateY)
+                    {
+                        iy = item;
                     }
                     else if (item->lastSet().isValid() && (gwWebSocketNotifyAll || rid.suffix == RStateButtonEvent || (item->lastChanged().isValid() && item->lastChanged() >= sensor->lastStatePush)))
                     {
@@ -1924,17 +1952,29 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                 }
             }
 
-            if (ix && ix->lastSet().isValid() && iy && iy->lastSet().isValid() && iz && iz->lastSet().isValid())
+            if (iox && iox->lastSet().isValid() && ioy && ioy->lastSet().isValid() && ioz && ioz->lastSet().isValid())
+            {
+                if (gwWebSocketNotifyAll ||
+                    (iox->lastChanged().isValid() && iox->lastChanged() >= sensor->lastStatePush) ||
+                    (ioy->lastChanged().isValid() && ioy->lastChanged() >= sensor->lastStatePush) ||
+                    (ioz->lastChanged().isValid() && ioz->lastChanged() >= sensor->lastStatePush))
+                {
+                    orientation.append(iox->toNumber());
+                    orientation.append(ioy->toNumber());
+                    orientation.append(ioz->toNumber());
+                    state["orientation"] = orientation;
+                }
+            }
+
+            if (ix && ix->lastSet().isValid() && iy && iy->lastSet().isValid())
             {
                 if (gwWebSocketNotifyAll ||
                     (ix->lastChanged().isValid() && ix->lastChanged() >= sensor->lastStatePush) ||
-                    (iy->lastChanged().isValid() && iy->lastChanged() >= sensor->lastStatePush) ||
-                    (iz->lastChanged().isValid() && iz->lastChanged() >= sensor->lastStatePush))
+                    (iy->lastChanged().isValid() && iy->lastChanged() >= sensor->lastStatePush))
                 {
-                    orientation.append(ix->toNumber());
-                    orientation.append(iy->toNumber());
-                    orientation.append(iz->toNumber());
-                    state["orientation"] = orientation;
+                    xy.append(round(ix->toNumber() / 6.5535) / 10000.0);
+                    xy.append(round(iy->toNumber() / 6.5535) / 10000.0);
+                    state["xy"] = xy;
                 }
             }
 
@@ -2078,6 +2118,12 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
 
         for (int j = 0; j < gids.size(); j++) {
             const QString gid = gids[j];
+
+            if (gid == "0")
+            {
+                continue;
+            }
+
             Group *group = getGroupForId(gid);
 
             if (group && group->state() != Group::StateNormal)

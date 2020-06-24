@@ -585,14 +585,16 @@ static const Sensor::ButtonMap rgbgenie5121Map[] = {
     // Off button
     { Sensor::ModeScenes,           0x01, 0x0006, 0x00, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
     // Dim up
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x06, 0,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "Step up (with on/off)" },
     { Sensor::ModeScenes,           0x01, 0x0008, 0x05, 0,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD, "Move up (with on/off)" },
     { Sensor::ModeScenes,           0x01, 0x0008, 0x07, 0,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
     // Dim down
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x06, 1,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Step down (with on/off)" },
     { Sensor::ModeScenes,           0x01, 0x0008, 0x05, 1,    S_BUTTON_4 + S_BUTTON_ACTION_HOLD, "Move down (with on/off)" },
-    { Sensor::ModeScenes,           0x01, 0x0008, 0x07, 1,    S_BUTTON_4 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x07, 0,    S_BUTTON_4 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
     // Scene button
-    { Sensor::ModeScenes,           0x01, 0x0005, 0x05, 1,    S_BUTTON_5 + S_BUTTON_ACTION_SHORT_RELEASED, "Recall scene 1" },
-    { Sensor::ModeScenes,           0x01, 0x0005, 0x04, 1,    S_BUTTON_5 + S_BUTTON_ACTION_LONG_RELEASED, "Store scene 1" },
+    { Sensor::ModeScenes,           0x01, 0x0005, 0x05, 0,    S_BUTTON_5 + S_BUTTON_ACTION_SHORT_RELEASED, "Recall scene 1" },
+    { Sensor::ModeScenes,           0x01, 0x0005, 0x04, 0,    S_BUTTON_5 + S_BUTTON_ACTION_LONG_RELEASED, "Store scene 1" },
     // end
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
@@ -660,7 +662,7 @@ static const Sensor::ButtonMap legrandDoubleSwitchRemote[] = {
 
     //Second button
     { Sensor::ModeScenes,           0x02, 0x0006, 0x01, 0,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
-    { Sensor::ModeScenes,           0x01, 0x0006, 0x00, 0,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
+    { Sensor::ModeScenes,           0x02, 0x0006, 0x00, 0,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
     { Sensor::ModeScenes,           0x02, 0x0008, 0x01, 0,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD,           "Dimm up" },
     { Sensor::ModeScenes,           0x02, 0x0008, 0x03, 0,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED,  "Dimm up stop" },
     { Sensor::ModeScenes,           0x02, 0x0008, 0x01, 1,    S_BUTTON_4 + S_BUTTON_ACTION_HOLD,           "Dimm down" },
@@ -747,6 +749,47 @@ static const Sensor::ButtonMap bitronRemoteMap[] = {
     { Sensor::ModeScenes,           0x01, 0x0006, 0x01, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
     { Sensor::ModeScenes,           0x01, 0x0006, 0x00, 0,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
     { Sensor::ModeScenes,           0x01, 0x0008, 0x06, 1,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Step down (with on/off)" },
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
+};
+
+static const Sensor::ButtonMap rcv14Map[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    { Sensor::ModeScenes,           0x01, 0x0501, 0x00,  1,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Arm day/home zones only" },
+    { Sensor::ModeScenes,           0x01, 0x0501, 0x00,  0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Disarm" },
+    { Sensor::ModeScenes,           0x01, 0x0501, 0x02,  0,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "Emergency" },
+    { Sensor::ModeScenes,           0x01, 0x0501, 0x00,  3,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Arm all zones" },
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
+};
+
+static const Sensor::ButtonMap tintMap[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    // On/Off button
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x00,  0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x01,  0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+
+    // DimUp and DimDown buttons
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x02,  0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Step Up" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x01,  0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "Move Up" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x03,  0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x02,  1,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "Step Down" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x01,  1,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD,           "Move Down" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x03,  1,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop" },
+
+    // Color temperature buttons and colour wheel
+    { Sensor::ModeScenes,           0x01, 0x0300, 0x0a,  0,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Move to Color Temperature (Up)" },
+    { Sensor::ModeScenes,           0x01, 0x0300, 0x0a,  1,    S_BUTTON_5 + S_BUTTON_ACTION_SHORT_RELEASED, "Move to Color Temperature (Down)" },
+    { Sensor::ModeScenes,           0x01, 0x0300, 0x07,  0,    S_BUTTON_6 + S_BUTTON_ACTION_SHORT_RELEASED, "Move to Color" },
+
+    // Scene buttons
+    { Sensor::ModeScenes,           0x01, 0x0000, 0x02,  3,    S_BUTTON_7 + S_BUTTON_ACTION_SHORT_RELEASED, "Work Light" },
+    { Sensor::ModeScenes,           0x01, 0x0000, 0x02,  1,    S_BUTTON_8 + S_BUTTON_ACTION_SHORT_RELEASED, "Sunset" },
+    { Sensor::ModeScenes,           0x01, 0x0000, 0x02,  2,    S_BUTTON_9 + S_BUTTON_ACTION_SHORT_RELEASED, "Party" },
+    { Sensor::ModeScenes,           0x01, 0x0000, 0x02,  6,         10000 + S_BUTTON_ACTION_SHORT_RELEASED, "Night Light" },
+    { Sensor::ModeScenes,           0x01, 0x0000, 0x02,  4,         11000 + S_BUTTON_ACTION_SHORT_RELEASED, "Campfire" },
+    { Sensor::ModeScenes,           0x01, 0x0000, 0x02,  5,         12000 + S_BUTTON_ACTION_SHORT_RELEASED, "Romance" },
+
     // end
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
@@ -910,6 +953,7 @@ Sensor::Sensor() :
     addItem(DataTypeTime, RStateLastUpdated);
 
     previousDirection = 0xFF;
+    previousCt = 0xFFFF;
     previousSequenceNumber = 0xFF;
 }
 
@@ -1319,7 +1363,10 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         {
             if      (modelid.startsWith(QLatin1String("ZGRC-KEY"))) { m_buttonMap = sunricherCCTMap; }
             else if (modelid.startsWith(QLatin1String("ZG2833K"))) { m_buttonMap = sunricherMap; }
-            else if (modelid.startsWith(QLatin1String("RGBgenie ZB-5121"))) { m_buttonMap = rgbgenie5121Map; }
+        }
+        else if (manufacturer == QLatin1String("RGBgenie"))
+        {
+            if (modelid.startsWith(QLatin1String("RGBgenie ZB-5121"))) { m_buttonMap = rgbgenie5121Map; }
         }
         else if (manufacturer == QLatin1String("Bitron Home"))
         {
@@ -1328,6 +1375,14 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         else if (manufacturer == QLatin1String("Namron AS"))
         {
             if (modelid.startsWith(QLatin1String("4512703"))) { m_buttonMap = sunricherMap; }
+        }
+        else if (manufacturer == QLatin1String("Heiman"))
+        {
+            if (modelid == QLatin1String("RC_V14")) { m_buttonMap = rcv14Map; }
+        }
+        else if (manufacturer == QLatin1String("MLI"))
+        {
+            if (modelid.startsWith(QLatin1String("ZBT-Remote-ALL-RGBW"))) { m_buttonMap = tintMap; }
         }
     }
 
