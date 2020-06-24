@@ -4309,7 +4309,15 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpHumiditySensor.inClusters.push_back(ci->id());
                     }
-                    if (modelId != QLatin1String("SLP2b"))
+                    // Don't create entry for the plug
+                    else if (modelId != QLatin1String("SLP2b"))
+                    {
+                    }
+                    // Don't create entry for cluster 0x07 and 0x08
+                    else if ((modelId == QLatin1String("SLR2")) && (i->endpoint() > 0x06 ))
+                    {
+                    }
+                    else 
                     {
                         fpTemperatureSensor.inClusters.push_back(ci->id());
                     }
