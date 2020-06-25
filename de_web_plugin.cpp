@@ -305,10 +305,10 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SERCOMM, "SZ-DWS04", emberMacPrefix }, // Sercomm open/close sensor
     { VENDOR_SERCOMM, "Tripper", emberMacPrefix }, // Quirky Tripper (Sercomm) open/close sensor
     { VENDOR_ALERTME, "MOT003", tiMacPrefix }, // Hive Motion Sensor
-    { VENDOR_ALERTME, "SLP2", computimeMacPrefix }, // Computime plug
-    { VENDOR_ALERTME, "SLP2b", computimeMacPrefix }, // Computime plug
-    { VENDOR_ALERTME, "SLR2", computimeMacPrefix }, // Computime  Heating Receiver
-    { VENDOR_ALERTME, "SLT2", computimeMacPrefix }, // Computime thermostat
+    { VENDOR_ALERTME, "SLP2", computimeMacPrefix }, // Hive  plug
+    { VENDOR_ALERTME, "SLP2b", computimeMacPrefix }, // Hive  plug
+    { VENDOR_ALERTME, "SLR2", computimeMacPrefix }, // Hive   Heating Receiver
+    { VENDOR_ALERTME, "SLT2", computimeMacPrefix }, // Hive thermostat
     { VENDOR_SUNRICHER, "4512703", silabs2MacPrefix }, // Namron 4-ch remote controller
     { VENDOR_SENGLED_OPTOELEC, "E13-", zhejiangMacPrefix }, // Sengled PAR38 Bulbs
     { VENDOR_SENGLED_OPTOELEC, "E1D-", zhejiangMacPrefix }, // Sengled contact sensor
@@ -4312,6 +4312,12 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     if (modelId == QLatin1String("VOC_Sensor"))
                     {
                         fpHumiditySensor.inClusters.push_back(ci->id());
+                    }
+                    
+                    // Hive devices, don't show model id faster enought
+                    if ((node->nodeDescriptor().manufacturerCode() == VENDOR_ALERTME) && (modelId.isEmpty()))
+                    {
+                        DBG_Printf(DBG_INFO, "SLP2 : debug 5\n");
                     }
                     // Don't create entry for the plug
                     else if (modelId == QLatin1String("SLP2b"))
