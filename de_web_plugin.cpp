@@ -7557,6 +7557,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         power *= 1123; power /= 10000;
                                     }
+                                    else if (i->modelId().startsWith(QLatin1String("lumi.relay.c2acn"))) // Xiaomi relay
+                                    {
+                                        continue;   // Device seems to always report -1 via this cluster/attribute
+                                    }
                                     item->setValue(power); // in W
                                     enqueueEvent(Event(RSensors, RStatePower, i->id(), item));
                                     updated = true;
