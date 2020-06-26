@@ -4305,10 +4305,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case TEMPERATURE_MEASUREMENT_CLUSTER_ID:
                 {
-                    
-                    DBG_Printf(DBG_INFO, "SLP2 : debug 1\n");
-                    DBG_Printf(DBG_INFO, "SLP2 : debug 4 %s\n",qPrintable(modelId));
-                    
+
                     if (modelId == QLatin1String("VOC_Sensor"))
                     {
                         fpHumiditySensor.inClusters.push_back(ci->id());
@@ -4317,12 +4314,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     // Hive devices, don't show model id faster enought
                     if ((node->nodeDescriptor().manufacturerCode() == VENDOR_ALERTME) && (modelId.isEmpty()))
                     {
-                        DBG_Printf(DBG_INFO, "SLP2 : debug 5\n");
                     }
                     // Don't create entry for the plug
                     else if (modelId == QLatin1String("SLP2b"))
                     {
-                        DBG_Printf(DBG_INFO, "SLP2 : debug 2\n");
                     }
                     // Don't create entry for cluster 0x07 and 0x08
                     else if ((modelId == QLatin1String("SLR2")) && (i->endpoint() > 0x06 ))
@@ -4331,7 +4326,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     else 
                     {
                         fpTemperatureSensor.inClusters.push_back(ci->id());
-                        DBG_Printf(DBG_INFO, "SLP2 : debug 3\n");
                     }
                 }
                     break;
