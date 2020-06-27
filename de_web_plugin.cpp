@@ -1602,7 +1602,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         const deCONZ::SimpleDescriptor *sd = &node->simpleDescriptors()[0];
         bool hasTuyaCluster = false;
         
-        if (sd && (sd->deviceId() == DEV_ID_SMART_PLUG))
+        if (sd && (sd->deviceId() == DEV_ID_SMART_PLUG) && (node->simpleDescriptors().size() < 2))
         {
 
             for (int c = 0; c < sd->inClusters().size(); c++)
@@ -1610,7 +1610,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 if (sd->inClusters()[c].id() == TUYA_CLUSTER_ID) { hasTuyaCluster = true; }
             }
             
-            if (hasTuyaCluster)
+            if (hasTuyaCluster) 
             {
                 DBG_Printf(DBG_INFO, "Tuya : debug 13\n");
 
@@ -1633,12 +1633,17 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
                 sd1.setEndpoint(0x02);
                 sd2.setEndpoint(0x03);
+                
+                //remove useless cluster
+                QList<deCONZ::ZclCluster> cl = &sd1.inClusters();
+                cl.clear();
+                cl.append(TUYA_CLUSTER_ID);
 
                 NodePachable->setSimpleDescriptor(csd1);
                 NodePachable->setSimpleDescriptor(csd2);
 
-                // No needed ?
-                //apsCtrl->updateNode(*NodePachable);
+                // Update node
+                apsCtrl->updateNode(*NodePachable);
 
             }
         }
@@ -1653,7 +1658,6 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         bool hasServerLevel = false;
         bool hasServerColor = false;
         bool hasIASWDCluster = false;
-        bool hasTuyaCluster = false;
 
         for (int c = 0; c < i->inClusters().size(); c++)
         {
@@ -1662,7 +1666,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             else if (i->inClusters()[c].id() == COLOR_CLUSTER_ID) { hasServerColor = true; }
             else if (i->inClusters()[c].id() == WINDOW_COVERING_CLUSTER_ID) { hasServerOnOff = true; }
             else if (i->inClusters()[c].id() == IAS_WD_CLUSTER_ID) { hasIASWDCluster = true; }
-            else if (i->inClusters()[c].id() == TUYA_CLUSTER_ID) { hasTuyaCluster = true; }
+            else if (i->inClusters()[c].id() == TUYA_CLUSTER_ID) { hasServerOnOff = true; }
         }
 
         // check if node already exist
@@ -1948,13 +1952,6 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 break;
             }
         }
-        
-        //Tuya switch haven't usefull cluster, so need to force on/off light
-        if ((node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER) && hasTuyaCluster )
-        //TODO : use device ID too
-        {
-            lightNode.setHaEndpoint(*i);
-        }   
 
         if (!lightNode.haEndpoint().isValid())
         {
@@ -2009,7 +2006,6 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         {
             if (!(searchLightsState == SearchLightsActive || permitJoinFlag))
             {
-                DBG_Printf(DBG_INFO, "Tuya : debug 26\n");
                 // don't add new light node when search is not active
                 return;
             }
