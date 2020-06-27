@@ -75,7 +75,7 @@ GIT_COMMIT_DATE = $$system("git show -s --format=%ct $$GIT_TAG")
 
 # Version Major.Minor.Build
 # Important: don't change the format of this line since it's parsed by scripts!
-DEFINES += GW_SW_VERSION=\\\"2.05.77\\\"
+DEFINES += GW_SW_VERSION=\\\"2.05.78\\\"
 DEFINES += GW_SW_DATE=$$GIT_COMMIT_DATE
 DEFINES += GW_API_VERSION=\\\"1.16.0\\\"
 DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\"
@@ -85,7 +85,7 @@ DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\"
 DEFINES += GW_AUTO_UPDATE_AVR_FW_VERSION=0x260b0500
 DEFINES += GW_AUTO_UPDATE_R21_FW_VERSION=0x26420700
 DEFINES += GW_MIN_AVR_FW_VERSION=0x26350500
-DEFINES += GW_MIN_R21_FW_VERSION=0x26490700
+DEFINES += GW_MIN_R21_FW_VERSION=0x26580700
 
 # Minimum version of the deRFusb23E0X firmware
 # which shall be used in order to support all features for this software release
@@ -165,6 +165,7 @@ SOURCES  = authorisation.cpp \
            thermostat.cpp \
            time.cpp \
            basic.cpp \
+           appliances.cpp \
            reset_device.cpp \
            rest_userparameter.cpp \
            zcl_tasks.cpp \

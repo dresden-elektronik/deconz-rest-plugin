@@ -2943,6 +2943,12 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 sensor.addItem(DataTypeUInt16, RStateEventDuration);
             }
+            else if (sensor.modelId().startsWith(QLatin1String("ZBT-Remote-ALL-RGBW")))
+            {
+                sensor.addItem(DataTypeUInt16, RStateX);
+                sensor.addItem(DataTypeUInt16, RStateY);
+                sensor.addItem(DataTypeUInt16, RStateAngle);
+            }
         }
         else if (sensor.type().endsWith(QLatin1String("LightLevel")))
         {
@@ -3153,6 +3159,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = clusterId ? clusterId : IAS_ZONE_CLUSTER_ID;
             }
+            else if (sensor.fingerPrint().hasInCluster(APPLIANCE_EVENTS_AND_ALERTS_CLUSTER_ID))
+            {
+                clusterId = clusterId ? clusterId : APPLIANCE_EVENTS_AND_ALERTS_CLUSTER_ID;
+            }
             item = sensor.addItem(DataTypeBool, RStateWater);
             item->setValue(false);
         }
@@ -3165,6 +3175,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     (sensor.modelId() != QLatin1String("ZB-ONOFFPlug-D0005")) &&
                     (sensor.modelId() != QLatin1String("TS0121")) &&
                     (!sensor.modelId().startsWith(QLatin1String("BQZ10-AU"))) &&
+                    (!sensor.modelId().startsWith(QLatin1String("ROB_200"))) &&
                     (sensor.modelId() != QLatin1String("Plug-230V-ZB3.0")))
                 {
                     item = sensor.addItem(DataTypeInt16, RStatePower);
@@ -3343,6 +3354,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         else if (sensor.modelId().startsWith(QLatin1String("TRADFRI")) ||
                  sensor.modelId().startsWith(QLatin1String("SYMFONISK")))
         {
+            sensor.setManufacturer(QLatin1String("IKEA of Sweden"));
+
             // support power configuration cluster for IKEA devices
             if (!sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
             {

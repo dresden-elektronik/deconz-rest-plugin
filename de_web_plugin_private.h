@@ -189,6 +189,7 @@
 #define IAS_ACE_CLUSTER_ID                    0x0501
 #define IAS_WD_CLUSTER_ID                     0x0502
 #define METERING_CLUSTER_ID                   0x0702
+#define APPLIANCE_EVENTS_AND_ALERTS_CLUSTER_ID 0x0B02
 #define ELECTRICAL_MEASUREMENT_CLUSTER_ID     0x0B04
 #define COMMISSIONING_CLUSTER_ID              0x1000
 #define TUYA_CLUSTER_ID                       0xEF00
@@ -1394,6 +1395,7 @@ public:
     void taskToLocalData(const TaskItem &task);
     void handleZclAttributeReportIndicationXiaomiSpecial(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void queuePollNode(RestNodeBase *node);
+    void handleApplianceAlertClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
 
     // Modify node attributes
     void setAttributeOnOff(LightNode *lightNode);
@@ -1896,5 +1898,7 @@ public:
     DeRestPlugin *q_ptr; // public interface
 
 };
+
+extern DeRestPluginPrivate *plugin;
 
 #endif // DE_WEB_PLUGIN_PRIVATE_H

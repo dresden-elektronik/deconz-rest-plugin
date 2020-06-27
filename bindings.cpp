@@ -1162,7 +1162,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                             sensor->modelId() == QLatin1String("motionv4") ||
                             sensor->modelId() == QLatin1String("multiv4") ||
                             sensor->modelId() == QLatin1String("RFDL-ZB-MS") ||
-                            sensor->modelId() == QLatin1String("Zen-01")))
+                            sensor->modelId() == QLatin1String("Zen-01") ||
+                            sensor->modelId().startsWith(QLatin1String("3315"))))
         {
             rq.attributeId = 0x0020;   // battery voltage
             rq.minInterval = 3600;
@@ -1251,6 +1252,10 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         {
             rq.reportableChange48bit = 1000; // 0.001 kWh (1 Wh)
         }
+        else if (sensor && (sensor->modelId().startsWith(QLatin1String("ROB_200")))) // ROBB Smarrt micro dimmer
+        {
+            rq.reportableChange48bit = 3600; // 0.001 kWh (1 Wh)
+        }
         else
         {
             rq.reportableChange48bit = 1; // 0.001 kWh (1 Wh)
@@ -1288,7 +1293,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.maxInterval = 300;
         if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") ||   // Heiman
                        sensor->modelId() == QLatin1String("SKHMP30-I1") ||  // GS smart plug
-                       sensor->modelId() == QLatin1String("SZ-ESW01-AU")))  // Sercomm / Telstra smart plug
+                       sensor->modelId() == QLatin1String("SZ-ESW01-AU") || // Sercomm / Telstra smart plug
+                       sensor->modelId().startsWith(QLatin1String("ROB_200"))))  // ROBB Smarrt micro dimmer
         {
             rq.reportableChange16bit = 10; // 1 W
         }
@@ -1310,6 +1316,10 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         else if (sensor && sensor->modelId() == QLatin1String("SZ-ESW01-AU")) // Sercomm / Telstra smart plug
         {
             rq2.reportableChange16bit = 125; // 1 V
+        }
+        else if (sensor && sensor->modelId().startsWith(QLatin1String("ROB_200"))) // ROBB Smarrt micro dimmer
+        {
+            rq2.reportableChange16bit = 10; // 1 V
         }
         else
         {
@@ -1567,6 +1577,17 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
         return sendConfigureReportingRequest(bt, {rq});
     }
+    else if (bt.binding.clusterId == BASIC_CLUSTER_ID && manufacturerCode == VENDOR_MUELLER && lightNode)
+    {
+        rq.dataType = deCONZ::Zcl8BitUint;
+        rq.attributeId = 0x4005; // Mueller special scene
+        rq.minInterval = 1;
+        rq.maxInterval = 300;
+        rq.reportableChange8bit = 1;
+        rq.manufacturerCode = VENDOR_MUELLER;
+
+        return sendConfigureReportingRequest(bt, {rq});
+    }
     else if (bt.binding.clusterId == VENDOR_CLUSTER_ID)
     {
         Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
@@ -1670,6 +1691,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         {
         }
         else if (lightNode->manufacturerCode() == VENDOR_LGE)
+        {
+        }
+        else if (lightNode->manufacturerCode() == VENDOR_MUELLER)
         {
         }
         else if (lightNode->manufacturerCode() == VENDOR_KEEN_HOME)
@@ -1896,6 +1920,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("332")) ||
         sensor->modelId().startsWith(QLatin1String("3200-S")) ||
         sensor->modelId().startsWith(QLatin1String("3305-S")) ||
+        sensor->modelId().startsWith(QLatin1String("3315")) ||
         sensor->modelId().startsWith(QLatin1String("3320-L")) ||
         sensor->modelId().startsWith(QLatin1String("3323")) ||
         sensor->modelId().startsWith(QLatin1String("3326-L")) ||
@@ -1952,6 +1977,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("Water")) ||
         sensor->modelId().startsWith(QLatin1String("Door")) ||
         sensor->modelId().startsWith(QLatin1String("WarningDevice")) ||
+        sensor->modelId().startsWith(QLatin1String("PIRS")) ||
         sensor->modelId().startsWith(QLatin1String("SKHMP30")) || // GS smart plug
         sensor->modelId().startsWith(QLatin1String("RC_V14")) ||
         // Konke
@@ -2022,6 +2048,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("Thermostat") ||
         // Stelpro
         sensor->modelId().contains(QLatin1String("ST218")) ||
+        sensor->modelId().contains(QLatin1String("STZB402")) ||
         // Tuya
         sensor->modelId().startsWith(QLatin1String("TS01")) ||
         sensor->modelId().startsWith(QLatin1String("TS02")) ||
@@ -2039,6 +2066,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("MOT003") ||
         // Sengled
         sensor->modelId().startsWith(QLatin1String("E13-")) ||
+        sensor->modelId().startsWith(QLatin1String("E1D-")) ||
         // Immax
         sensor->modelId() == QLatin1String("Plug-230V-ZB3.0") ||
         sensor->modelId() == QLatin1String("4in1-Sensor-ZB3.0") ||
@@ -2051,7 +2079,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5")) ||
         sensor->modelId().startsWith(QLatin1String("ZGRC-KEY")) ||
         // Embertec
-        sensor->modelId().startsWith(QLatin1String("BQZ10-AU")))
+        sensor->modelId().startsWith(QLatin1String("BQZ10-AU")) ||
+        // ROBB Smarrt
+        sensor->modelId().startsWith(QLatin1String("ROB_200")))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||
@@ -2144,7 +2174,10 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             {
                 continue; // process only once
             }
-            if (sensor->modelId() == QLatin1String("Remote switch") || sensor->modelId() == QLatin1String("Shutters central remote switch") || sensor->modelId() == QLatin1String("Double gangs remote switch") )
+            if (sensor->modelId() == QLatin1String("Remote switch") || 
+                sensor->modelId() == QLatin1String("Shutters central remote switch") ||
+                sensor->modelId() == QLatin1String("Double gangs remote switch") ||
+                sensor->modelId() == QLatin1String("Remote toggle switch") )
             {
                 //Those device don't support report attribute
                 continue;
@@ -2319,6 +2352,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         case BASIC_CLUSTER_ID:
         case BINARY_INPUT_CLUSTER_ID:
         case THERMOSTAT_CLUSTER_ID:
+        case APPLIANCE_EVENTS_AND_ALERTS_CLUSTER_ID:
         case SAMJIN_CLUSTER_ID:
         {
             DBG_Printf(DBG_INFO_L2, "0x%016llX (%s) create binding for attribute reporting of cluster 0x%04X on endpoint 0x%02X\n",
@@ -2878,7 +2912,7 @@ void DeRestPluginPrivate::checkOldSensorGroups(Sensor *sensor)
                     i->removeDeviceMembership(sensor->id());
                 }
 
-                if (i->state() == Group::StateNormal && !i->hasDeviceMembers())
+                if (i->address() != 0 && i->state() == Group::StateNormal && !i->hasDeviceMembers())
                 {
                     DBG_Printf(DBG_INFO, "delete old group %u of sensor %s\n", i->address(), qPrintable(sensor->name()));
                     i->setState(Group::StateDeleted);

@@ -201,6 +201,9 @@
 			<attribute id="0x4001" name="128-Bit security key" type="seckey" access="r" required="m" mfcode="0x1166"></attribute>
 			<attribute id="0x4002" name="IEEE address" type="uid" access="rw" required="m" mfcode="0x1166"></attribute>
 		</attribute-set>
+    <attribute-set id="0x4000" description="Müller Licht specific" mfcode="0x121b">
+			<attribute id="0x4005" name="Scene" type="u8" access="rw" required="o" mfcode="0x121b"></attribute>
+		</attribute-set>
 		<attribute-set id="0x8000" description="Develco Specific" mfcode="0x1015">
 			<attribute id="0x8000" name="Primary SW Version" type="ostring" access="r" required="m" mfcode="0x1015"></attribute>
 			<attribute id="0x8010" name="Primary Bootloader SW Version" type="ostring" access="r" required="m" mfcode="0x1015"></attribute>
@@ -997,6 +1000,9 @@
                 <value name="Out of Service" value="0x08"></value>
             </attribute>
             <attribute id="0x0100" name="Application Type" type="u32" required="o" access="r"></attribute>
+            <attribute-set id="0xff00" description="Xiaomi Specific" mfcode="0x115f">
+                <attribute id="0xff06" name="Interlock" type="bool" access="rw" required="m" mfcode="0x115f"></attribute>
+            </attribute-set>
         </server>
         <client>
         </client>
@@ -1822,7 +1828,7 @@ controller device, that supports a keypad and LCD screen.</description>
 				<attribute id="0x0002" name="Remaining time" type="u16" access="r" range="0x0000,0xfffe" default="0x0000" required="o"></attribute>
 				<attribute id="0x0003" name="Current x" type="u16" access="r" range="0x0000,0xfeff" default="0x61eb" required="m"></attribute>
 				<attribute id="0x0004" name="Current y" type="u16" access="r" range="0x0000,0xfeff" default="0x607b" required="m"></attribute>
-				<attribute id="0x0007" name="Color temperature" type="u16" access="r" range="0x0000,0xffff" default="0" required="m"></attribute>
+				<attribute id="0x0007" name="Color temperature" type="u16" access="r" range="0x0000,0xfeff" default="0" required="m"></attribute>
 				<!-- TODO -->
 				<attribute id="0x0008" name="Color Mode" type="enum8" access="r" range="0x00,0x02" default="0x01" required="o">
 					<value name="Current hue and current saturation" value="0x00"></value>
@@ -1841,6 +1847,30 @@ controller device, that supports a keypad and LCD screen.</description>
 				<attribute id="0x0019" name="Primary3 x" type="u16" access="r" range="0x0000,0xfeff" required="o"></attribute>
 				<attribute id="0x001a" name="Primary3 y" type="u16" access="r" range="0x0000,0xfeff" required="o"></attribute>
 				<attribute id="0x001b" name="Primary3 intensity" type="u8" access="r" range="0x00,0xff" required="o"></attribute>
+      </attribute-set>
+      <attribute-set id="0x002" description="Additional Defined Primaries Information">
+        <attribute id="0x0020" name="Primary4 x" type="u16" access="r" range="0x0000,0xfeff" required="o"></attribute>
+				<attribute id="0x0021" name="Primary4 y" type="u16" access="r" range="0x0000,0xfeff" required="o"></attribute>
+				<attribute id="0x0022" name="Primary4 intensity" type="u8" access="r" range="0x00,0xff" required="o"></attribute>
+				<attribute id="0x0024" name="Primary5 x" type="u16" access="r" range="0x0000,0xfeff" required="o"></attribute>
+				<attribute id="0x0025" name="Primary5 y" type="u16" access="r" range="0x0000,0xfeff" required="o"></attribute>
+				<attribute id="0x0026" name="Primary5 intensity" type="u8" access="r" range="0x00,0xff" required="o"></attribute>
+				<attribute id="0x0028" name="Primary6 x" type="u16" access="r" range="0x0000,0xfeff" required="o"></attribute>
+				<attribute id="0x0029" name="Primary6 y" type="u16" access="r" range="0x0000,0xfeff" required="o"></attribute>
+				<attribute id="0x002a" name="Primary6 intensity" type="u8" access="r" range="0x00,0xff" required="o"></attribute>
+			</attribute-set>
+      <attribute-set id="0x003" description="Defined Color Points Settings">
+        <attribute id="0x0030" name="WhitePoint x" type="u16" access="rw" range="0x0000,0xfeff" required="o"></attribute>
+        <attribute id="0x0031" name="WhitePoint y" type="u16" access="rw" range="0x0000,0xfeff" required="o"></attribute>
+        <attribute id="0x0032" name="ColorPoint r x" type="u16" access="rw" range="0x0000,0xfeff" required="o"></attribute>
+        <attribute id="0x0033" name="ColorPoint r y" type="u16" access="rw" range="0x0000,0xfeff" required="o"></attribute>
+        <attribute id="0x0034" name="ColorPoint r intensity" type="u8" access="rw" range="0x00,0xff" required="o"></attribute>
+        <attribute id="0x0036" name="ColorPoint g x" type="u16" access="rw" range="0x0000,0xfeff" required="o"></attribute>
+        <attribute id="0x0037" name="ColorPoint g y" type="u16" access="rw" range="0x0000,0xfeff" required="o"></attribute>
+        <attribute id="0x0038" name="ColorPoint g intensity" type="u8" access="rw" range="0x00,0xff" required="o"></attribute>
+        <attribute id="0x003a" name="ColorPoint b x" type="u16" access="rw" range="0x0000,0xfeff" required="o"></attribute>
+        <attribute id="0x003b" name="ColorPoint b y" type="u16" access="rw" range="0x0000,0xfeff" required="o"></attribute>
+        <attribute id="0x003c" name="ColorPoint b intensity" type="u8" access="rw" range="0x00,0xff" required="o"></attribute>
 			</attribute-set>
 			<attribute-set id="0x4000" description="ZLL extensions">
 				<attribute id="0x4000" name="Enhanced current hue" type="u16" access="r" range="0x0000,0xffff" default="0x0000" required="m"></attribute>
@@ -1862,8 +1892,8 @@ controller device, that supports a keypad and LCD screen.</description>
 					<value name="CIE 1931 XY" value="3"></value>
 					<value name="Color temperature" value="4"></value>
 				</attribute>
-				<attribute id="0x400b" name="Color temperature min" type="u16" access="r" range="0x0000,0xffff" default="0" required="m"></attribute>
-				<attribute id="0x400c" name="Color temperature max" type="u16" access="r" range="0x0000,0xffff" default="0xffff" required="m"></attribute>
+				<attribute id="0x400b" name="Color temperature min" type="u16" access="r" range="0x0000,0xfeff" default="0" required="m"></attribute>
+				<attribute id="0x400c" name="Color temperature max" type="u16" access="r" range="0x0000,0xfeff" default="0xfeff" required="m"></attribute>
 				<attribute id="0x4010" name="PowerOn Color Temperature" type="u16" access="rw" range="0x0000,0xffff" default="0xffff" required="o"></attribute>
         <!--
         <attribute id="0x0003" mfcode="0x100b" name="PowerOn X" type="u16" access="rw" range="0x0000,0xffff" default="0xffff" required="o"></attribute>

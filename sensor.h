@@ -145,6 +145,7 @@ public:
     QString etag;
     const ButtonMap *buttonMap();
     uint8_t previousDirection;
+    quint16 previousCt;
     QDateTime lastConfigPush;
     QDateTime durationDue;
     uint8_t previousSequenceNumber;

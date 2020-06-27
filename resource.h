@@ -47,7 +47,7 @@ extern const char *RAttrType;
 extern const char *RAttrClass;
 extern const char *RAttrUniqueId;
 extern const char *RAttrSwVersion;
-extern const char *RAttrLastAnnounce;
+extern const char *RAttrLastAnnounced;
 extern const char *RAttrLastSeen;
 
 extern const char *RActionScene;
@@ -55,6 +55,7 @@ extern const char *RActionScene;
 extern const char *RStateAlarm;
 extern const char *RStateAlert;
 extern const char *RStateAllOn;
+extern const char *RStateAngle;
 extern const char *RStateAnyOn;
 extern const char *RStateBattery;
 extern const char *RStateBri;
@@ -168,6 +169,17 @@ extern const char *RConfigUbisysJ1StartupSteps;
 #define R_THOLDDARK_DEFAULT         12000
 #define R_THOLDOFFSET_DEFAULT       7000
 
+extern const QStringList RStateEffectValues;
+#define R_EFFECT_NONE               0
+#define R_EFFECT_COLORLOOP          1
+extern const QStringList RStateEffectValuesMueller;
+#define R_EFFECT_SUNSET             2
+#define R_EFFECT_PARTY              3
+#define R_EFFECT_WORKLIGHT          4
+#define R_EFFECT_CAMPFIRE           5
+#define R_EFFECT_ROMANCE            6
+#define R_EFFECT_NIGHTLIGHT         7
+
 #define R_PENDING_DELAY             (1 << 0)
 #define R_PENDING_LEDINDICATION     (1 << 1)
 #define R_PENDING_SENSITIVITY       (1 << 2)
@@ -257,10 +269,12 @@ public:
     bool toBool(const char *suffix) const;
     qint64 toNumber(const char *suffix) const;
     const QString &toString(const char *suffix) const;
+    QVariant toVariant(const char *suffix) const;
     int itemCount() const;
     ResourceItem *itemForIndex(size_t idx);
     const ResourceItem *itemForIndex(size_t idx) const;
     QDateTime lastStatePush;
+    QDateTime lastAttrPush;
 
 private:
     Resource() = delete;

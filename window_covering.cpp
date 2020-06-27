@@ -97,7 +97,6 @@ void DeRestPluginPrivate::handleWindowCoveringClusterIndication(const deCONZ::Ap
         return;
     }
 
-    bool updated = false;
     deCONZ::NumericUnion numericValue;
     quint16 attrid = 0x0000;
     quint8 attrTypeId = 0x00;
@@ -161,7 +160,7 @@ void DeRestPluginPrivate::handleWindowCoveringClusterIndication(const deCONZ::Ap
             {
                 // Update value in the GUI.
                 numericValue.u8 = attrValue;
-                lightNode->setZclValue(updateType, ind.srcEndpoint(), WINDOW_COVERING_CLUSTER_ID, 0x0008, numericValue);
+                lightNode->setZclValue(updateType, ind.srcEndpoint(), WINDOW_COVERING_CLUSTER_ID, attrid, numericValue);
 
                 quint8 lift = attrValue;
                 // Reverse value for Xiaomi curtain and Legrand switch
@@ -169,76 +168,35 @@ void DeRestPluginPrivate::handleWindowCoveringClusterIndication(const deCONZ::Ap
                 {
                     lift = 100 - lift;
                 }
-                ResourceItem *item = lightNode->item(RStateLift);
-                if (item && item->toNumber() != lift)
+                bool open = lift < 100;
+
+                if (lightNode->setValue(RStateLift, lift))
                 {
-                    item->setValue(lift);
-                    Event e(RLights, RStateLift, lightNode->id(), item);
-                    enqueueEvent(e);
-                    updated = true;
                     pushZclValueDb(lightNode->address().ext(), lightNode->haEndpoint().endpoint(), WINDOW_COVERING_CLUSTER_ID, attrid, attrValue);
                 }
-                item = lightNode->item(RStateOpen);
-                bool open = lift < 100;
-                if (item && item->toNumber() != open)
-                {
-                    item->setValue(open);
-                    Event e(RLights, RStateOpen, lightNode->id(), item);
-                    enqueueEvent(e);
-                    updated = true;
-                }
+                lightNode->setValue(RStateOpen, open);
 
                 // FIXME: deprecate
                 quint8 level = lift * 254 / 100;
-                item = lightNode->item(RStateBri);
-                if (item && item->toNumber() != level)
-                {
-                    lightNode->clearRead(READ_LEVEL);
-                    item->setValue(level);
-                    Event e(RLights, RStateBri, lightNode->id(), item);
-                    enqueueEvent(e);
-                    pushZclValueDb(lightNode->address().ext(), lightNode->haEndpoint().endpoint(), WINDOW_COVERING_CLUSTER_ID, attrid, attrValue);
-                    updated = true;
-
-                    // also change on-state if bri changes to/from 0
-                    bool on = level > 0;
-                    ResourceItem *itemOn = lightNode->item(RStateOn);
-                    if (itemOn && itemOn->toBool() != on)
-                    {
-                        itemOn->setValue(on);
-                        Event e(RLights, RStateOn, lightNode->id(), itemOn);
-                        enqueueEvent(e);
-                        updated = true;
-                    }
-                }
+                bool on = level > 0;
+                lightNode->setValue(RStateBri, level);
+                lightNode->setValue(RStateOn, on);
                 // END FIXME: deprecate
             }
             else if (attrid == 0x0009) // current CurrentPositionTiltPercentage 0-100
             {
                 numericValue.u8 = attrValue;
-                lightNode->setZclValue(updateType, ind.srcEndpoint(), WINDOW_COVERING_CLUSTER_ID, 0x0009, numericValue);
+                lightNode->setZclValue(updateType, ind.srcEndpoint(), WINDOW_COVERING_CLUSTER_ID, attrid, numericValue);
 
                 quint8 tilt = attrValue;
-                ResourceItem *item = lightNode->item(RStateTilt);
-                if (item && item->toNumber() != tilt)
+                if (lightNode->setValue(RStateTilt, tilt))
                 {
-                  item->setValue(tilt);
-                  Event e(RLights, RStateTilt, lightNode->id(), item);
-                  enqueueEvent(e);
-                  pushZclValueDb(lightNode->address().ext(), lightNode->haEndpoint().endpoint(), WINDOW_COVERING_CLUSTER_ID, attrid, attrValue);
-                  updated = true;
+                    pushZclValueDb(lightNode->address().ext(), lightNode->haEndpoint().endpoint(), WINDOW_COVERING_CLUSTER_ID, attrid, attrValue);
                 }
 
                 // FIXME: deprecate
                 quint8 sat = attrValue * 254 / 100;
-                item = lightNode->item(RStateSat);
-                if (item && item->toNumber() != sat)
-                {
-                  item->setValue(sat);
-                  Event e(RLights, RStateSat, lightNode->id(), item);
-                  enqueueEvent(e);
-                  updated = true;
-                }
+                lightNode->setValue(RStateSat, sat);
                 // END FIXME: deprecate
             }
             else if (attrid == 0x000A)  // read attribute 0x000A OperationalStatus
@@ -263,14 +221,6 @@ void DeRestPluginPrivate::handleWindowCoveringClusterIndication(const deCONZ::Ap
                     }
                 }
             }
-        }
-
-        if (updated)
-        {
-            updateEtag(lightNode->etag);
-            updateEtag(gwConfigEtag);
-            lightNode->setNeedSaveDatabase(true);
-            saveDatabaseItems |= DB_LIGHTS;
         }
     }
 }
