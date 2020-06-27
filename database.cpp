@@ -3265,7 +3265,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 
                 if (sensor.modelId() == QLatin1String("SLR2")) // Hive
                 {
-                    sensorNode.addItem(DataTypeString, RConfigMode);
+                    sensor.addItem(DataTypeString, RConfigMode);
                 }
                 
                 if (sensor.modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
