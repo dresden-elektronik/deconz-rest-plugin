@@ -1635,9 +1635,19 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 sd2.setEndpoint(0x03);
                 
                 //remove useless cluster
-                QList<deCONZ::ZclCluster> cl = &sd1.inClusters();
-                cl.clear();
-                cl.append(TUYA_CLUSTER_ID);
+                if (false)
+                {
+					QList<deCONZ::ZclCluster> &cl = sd1.inClusters();
+					cl.clear();
+
+					for (const deCONZ::ZclCluster &cl2 : sd2.inClusters())
+					{
+						if (cl2.id() == TUYA_CLUSTER_ID)
+						{
+							cl.append(cl2);
+						}
+					}
+			    }
 
                 NodePachable->setSimpleDescriptor(csd1);
                 NodePachable->setSimpleDescriptor(csd2);
