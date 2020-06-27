@@ -1348,7 +1348,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         if (sensor && (sensor->modelId() == QLatin1String("SP 120") ||           // innr
                        sensor->modelId() == QLatin1String("DoubleSocket50AU") || // Aurora
                        sensor->modelId() == QLatin1String("SZ-ESW01-AU") ||      // Sercomm / Telstra smart plug
-                       sensor->modelId().startsWith(QLatin1String("Connected s")))) // Niko smart socket
+                       sensor->modelId().startsWith(QLatin1String("Connected s")) || // Niko smart socket
+                       sensor->modelId() == QLatin1String("TS0121")))            // Tuya / Blitzwolf
         {
             rq3.reportableChange16bit = 100; // 0.1 A
         }
