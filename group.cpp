@@ -31,6 +31,7 @@ Group::Group() :
    colorY = 0;
    colorTemperature = 0;
    colormode = QLatin1String("hs");
+   alert = QLatin1String("none");
 
     // add common items
     addItem(DataTypeString, RAttrName);
