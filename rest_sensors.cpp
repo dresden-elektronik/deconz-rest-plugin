@@ -878,6 +878,35 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             }
                             rspItem["success"] = rspItemState;
                         }
+                        
+                        else if (sensor->modelId() == QLatin1String("SLR2"))
+                        {
+                            QString mode_set = map[pi.key()].toString();
+                            quint8 mode = 0x0000;
+                            if (mode_set == "Off") { mode = 0x0000; }
+                            else if (mode_set == "Auto") { mode = 0x0001; }
+                            else if (mode_set == "Cool") { mode = 0x0003; }
+                            else if (mode_set == "Heat") { mode = 0x0004; }
+                            else if (mode_set == "Emergency heating") { mode = 0x0005; }
+                            else if (mode_set == "Precooling") { mode = 0x0006; }
+                            else if (mode_set == "Fan only") { mode = 0x0007; }
+                            else if (mode_set == "Dry") { mode = 0x0008; }
+                            else if (mode_set == "Sleep") { mode = 0x0009; }
+                            else
+                            {
+                                rspItemState[QString("error unknow mode for %1").arg(sensor->modelId())] = val;
+                            }
+
+                            if (mode < 10)
+                            {
+                                if (!addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x001C, deCONZ::Zcl8BitEnum, mode))
+                                {
+                                    rspItemState[QString("error sending command for %1").arg(sensor->modelId())] = val;
+                                }
+                            }
+                            rspItem["success"] = rspItemState;
+                        }
+                        
                     }
 
                     if (rid.suffix == RConfigWindowCoveringType)

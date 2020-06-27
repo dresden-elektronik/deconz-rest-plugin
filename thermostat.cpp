@@ -10,6 +10,7 @@
  * state.on           | read only  | 0x0029    | running state on/off
  * state.temperature  | read only  | 0x0000    | measured temperature
  * config.heatsetpoint| read write | 0x0012    | heating setpoint
+ * config.mode        | read write | 0x001C    | System mode
  * config.scheduleron | read write | 0x0025    | scheduler on/off
  * config.offset      | read write | 0x0010    | temperature offset
  * config.scheduler   | read write | (command) | scheduled setpoints
@@ -242,6 +243,23 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                     {
                         item->setValue(heatSetpoint);
                         enqueueEvent(Event(RSensors, RConfigHeatSetpoint, sensor->id(), item));
+                        configUpdated = true;
+                    }
+                }
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
+                break;
+                
+            case 0x001C: // System Mode
+            {
+                if (sensor->modelId().startsWith(QLatin1String("SLR2"))) // Hive
+                {
+                    qint8 mode = attr.numericValue().s8;
+                    item = sensor->item(RConfigMode);
+                    if (item && item->toNumber() != mode)
+                    {
+                        item->setValue(mode);
+                        enqueueEvent(Event(RSensors, RConfigMode, sensor->id(), item));
                         configUpdated = true;
                     }
                 }
