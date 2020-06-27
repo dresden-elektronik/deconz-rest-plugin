@@ -1089,11 +1089,11 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.reportableChange16bit = 10;
             
             ConfigureReportingRequest rq3;
-            rq4.dataType = deCONZ::Zcl16BitBitMap;
-            rq4.attributeId = 0x0012;        // Occupied heating setpoint
-            rq4.minInterval = 1;
-            rq4.maxInterval = 600;
-            rq4.reportableChange16bit = 0xffff;
+            rq3.dataType = deCONZ::Zcl16BitBitMap;
+            rq3.attributeId = 0x0012;        // Occupied heating setpoint
+            rq3.minInterval = 1;
+            rq3.maxInterval = 600;
+            rq3.reportableChange16bit = 0xffff;
             
             ConfigureReportingRequest rq4;
             rq4.dataType = deCONZ::Zcl8BitEnum;
