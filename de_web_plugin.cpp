@@ -94,6 +94,7 @@ const quint64 sinopeMacPrefix     = 0x500b910000000000ULL;
 const quint64 silabs4MacPrefix    = 0x680ae20000000000ULL;
 const quint64 ecozyMacPrefix      = 0x70b3d50000000000ULL;
 const quint64 osramMacPrefix      = 0x8418260000000000ULL;
+const quint64 silabs5MacPrefix    = 0x842e140000000000ULL;
 const quint64 embertecMacPrefix   = 0x848e960000000000ULL;
 const quint64 silabsMacPrefix     = 0x90fd9f0000000000ULL;
 const quint64 zhejiangMacPrefix   = 0xb0ce180000000000ULL;
@@ -295,6 +296,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBER, "TS0201", silabs3MacPrefix }, // Tuya/Blitzwolf temperature and humidity sensor
     { VENDOR_NONE, "TS0204", silabs3MacPrefix }, // Tuya gas sensor
     { VENDOR_NONE, "TS0121", silabs3MacPrefix }, // Tuya/Blitzwolf smart plug
+    { VENDOR_EMBER, "TS0121", silabs3MacPrefix }, // Tuya/Blitzwolf smart plug
     { VENDOR_AURORA, "DoubleSocket50AU", jennicMacPrefix }, // Aurora AOne Double Socket UK
     { VENDOR_COMPUTIME, "SP600", computimeMacPrefix }, // Salus smart plug
     { VENDOR_HANGZHOU_IMAGIC, "1116-S", energyMiMacPrefix }, // iris contact sensor v3
@@ -7382,7 +7384,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     consumption += 5; consumption /= 10; // 0.1 Wh -> Wh
                                 }
                                 else if (i->modelId() == QLatin1String("SP 120") ||            // innr
-                                         i->modelId() == QLatin1String("Plug-230V-ZB3.0"))     // Immax
+                                         i->modelId() == QLatin1String("Plug-230V-ZB3.0") ||   // Immax
+                                         i->modelId() == QLatin1String("TS0121"))              // Tuya / Blitzwolf
                                 {
                                     consumption *= 10; // 0.01 kWh = 10 Wh -> Wh
                                 }
