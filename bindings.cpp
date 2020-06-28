@@ -1080,6 +1080,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
         }
+        /*
         else if (sensor && sensor->modelId() == QLatin1String("SLR2")) // Hive
         {
             rq.dataType = deCONZ::Zcl16BitInt;
@@ -1104,6 +1105,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             
             return sendConfigureReportingRequest(bt, {rq, rq3, rq4});
         }
+        */
         else
         {
             rq.dataType = deCONZ::Zcl16BitInt;
