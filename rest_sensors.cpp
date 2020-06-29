@@ -883,15 +883,15 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         {
                             QString mode_set = map[pi.key()].toString();
                             quint8 mode = 0x00;
-                            if (mode_set == "Off") { mode = 0x00; }
-                            else if (mode_set == "Auto") { mode = 0x01; }
-                            else if (mode_set == "Cool") { mode = 0x03; }
-                            else if (mode_set == "Heat") { mode = 0x04; }
-                            else if (mode_set == "Emergency heating") { mode = 0x05; }
-                            else if (mode_set == "Precooling") { mode = 0x06; }
-                            else if (mode_set == "Fan only") { mode = 0x07; }
-                            else if (mode_set == "Dry") { mode = 0x08; }
-                            else if (mode_set == "Sleep") { mode = 0x09; }
+                            if (mode_set == "off") { mode = 0x00; }
+                            else if (mode_set == "auto") { mode = 0x01; }
+                            else if (mode_set == "cool") { mode = 0x03; }
+                            else if (mode_set == "heat") { mode = 0x04; }
+                            else if (mode_set == "emergency heating") { mode = 0x05; }
+                            else if (mode_set == "precooling") { mode = 0x06; }
+                            else if (mode_set == "fan only") { mode = 0x07; }
+                            else if (mode_set == "dry") { mode = 0x08; }
+                            else if (mode_set == "sleep") { mode = 0x09; }
                             else
                             {
                                 rspItemState[QString("error unknow mode for %1").arg(sensor->modelId())] = val;
