@@ -265,7 +265,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                     if ( mode == 0x06 ) { mode_set = QString("precooling"); }
                     if ( mode == 0x07 ) { mode_set = QString("fan only"); }
                     if ( mode == 0x08 ) { mode_set = QString("dry"); }
-                    if ( mode == 0x09 ) { mode_set = QString"sleep"); }
+                    if ( mode == 0x09 ) { mode_set = QString("sleep"); }
 
                     item = sensor->item(RConfigMode);
                     if (item && !item->toString().isEmpty() && item->toString() != mode_set)
