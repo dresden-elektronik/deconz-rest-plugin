@@ -1601,6 +1601,10 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             // Legrand invert bri and don't support other value than 0
             targetLiftZigBee = targetLift == 0 ? 100 : 0;
         }
+        else if (taskRef.lightNode->modelId() == QLatin1String("Motor Controller"))
+        {
+            targetLiftZigBee = 100 - targetLift;
+        }
         else
         {
             targetLiftZigBee = targetLift;
