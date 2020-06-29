@@ -100,7 +100,7 @@ static int dayofweekTimer = 0;
  */
 void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
-    Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
+    Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
 
     QDataStream stream(zclFrame.payload());
     stream.setByteOrder(QDataStream::LittleEndian);

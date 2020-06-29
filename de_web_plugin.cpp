@@ -15777,7 +15777,11 @@ void DeRestPlugin::idleTimerFired()
                             {
                                 // supports reporting, no need to read attributes
                             }
-                            if (sensorNode->modelId().startsWith("SLT2")) // Hive devices, SLR2 not support reporting
+                            if (sensorNode->modelId().startsWith("SLT2")) // Hive devices
+                            {
+                                // supports reporting, no need to read attributes
+                            }
+                            if (sensorNode->modelId().startsWith("SLR2")) // Hive devices
                             {
                                 // supports reporting, no need to read attributes
                             }
