@@ -255,10 +255,22 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 if (sensor->modelId().startsWith(QLatin1String("SLR2"))) // Hive
                 {
                     qint8 mode = attr.numericValue().s8;
+                    QString mode_set;
+                   
+                    mode_set = QString("off");
+                    if ( mode == 0x01 ) { mode_set = QString("auto"); }
+                    if ( mode == 0x03 ) { mode_set = QString("cool"); }
+                    if ( mode == 0x04 ) { mode_set = QString("heat"); }
+                    if ( mode == 0x05 ) { mode_set = QString("emergency heating"); }
+                    if ( mode == 0x06 ) { mode_set = QString("precooling"); }
+                    if ( mode == 0x07 ) { mode_set = QString("fan only"); }
+                    if ( mode == 0x08 ) { mode_set = QString("dry"); }
+                    if ( mode == 0x09 ) { mode_set = QString"sleep"); }
+
                     item = sensor->item(RConfigMode);
-                    if (item && item->toNumber() != mode)
+                    if (item && !item->toString().isEmpty() && item->toString() != mode_set)
                     {
-                        item->setValue(mode);
+                        item->setValue(mode_set);
                         enqueueEvent(Event(RSensors, RConfigMode, sensor->id(), item));
                         configUpdated = true;
                     }
