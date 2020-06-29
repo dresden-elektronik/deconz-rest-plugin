@@ -8892,16 +8892,9 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         attributes.push_back(0x0000); // temperature
         attributes.push_back(0x0012); // heating setpoint
 
-        if (sensorNode->modelId() == QLatin1String("SLR2"))
-        {
-            attributes.push_back(0x001C); // System mode
-        }
-        else
-        {
-            // following are not supported by Eurotronics Spirit thermostat (SPZB0001)
-            attributes.push_back(0x0025); // scheduler state
-            attributes.push_back(0x0029); // heating operation state
-        }
+        // following are not supported by Eurotronics Spirit thermostat (SPZB0001)
+        attributes.push_back(0x0025); // scheduler state
+        attributes.push_back(0x0029); // heating operation state
 
         if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, THERMOSTAT_CLUSTER_ID, attributes))
         {
@@ -15777,11 +15770,8 @@ void DeRestPlugin::idleTimerFired()
                             {
                                 // supports reporting, no need to read attributes
                             }
-                            if (sensorNode->modelId().startsWith("SLT2")) // Hive devices
-                            {
-                                // supports reporting, no need to read attributes
-                            }
-                            if (sensorNode->modelId().startsWith("SLR2")) // Hive devices
+                            if (sensorNode->modelId().startsWith("SLT2") ||
+                                sensorNode->modelId().startsWith("SLR2") ) // Hive devices
                             {
                                 // supports reporting, no need to read attributes
                             }
