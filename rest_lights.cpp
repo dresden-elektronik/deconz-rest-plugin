@@ -1592,7 +1592,8 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     // Some devices invert LiftPct.
     if (hasLift)
     {
-        if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain")))
+        if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain"))||
+            (taskRef.lightNode->modelId() == QLatin1String("Motor Controller")))
         {
             targetLiftZigBee = 100 - targetLift;
         }
@@ -1600,10 +1601,6 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         {
             // Legrand invert bri and don't support other value than 0
             targetLiftZigBee = targetLift == 0 ? 100 : 0;
-        }
-        else if (taskRef.lightNode->modelId() == QLatin1String("Motor Controller"))
-        {
-            targetLiftZigBee = 100 - targetLift;
         }
         else
         {
