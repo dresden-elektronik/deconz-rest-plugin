@@ -165,8 +165,8 @@ void DeRestPluginPrivate::handleWindowCoveringClusterIndication(const deCONZ::Ap
                 quint8 lift = attrValue;
                 // Reverse value for Xiaomi curtain and Legrand switch
                 if (lightNode->modelId().startsWith(QLatin1String("lumi.curtain")) || 
-                (lightNode->modelId() == QLatin1String("Motor Controller")) ||
-                (lightNode->modelId() == QLatin1String("Shutter switch with neutral")))
+                    (lightNode->modelId() == QLatin1String("Motor Controller")) ||
+                    (lightNode->modelId() == QLatin1String("Shutter switch with neutral")))
                 {
                     lift = 100 - lift;
                 }
