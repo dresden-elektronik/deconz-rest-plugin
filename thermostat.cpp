@@ -632,6 +632,7 @@ bool DeRestPluginPrivate::addTaskThermostatCmd(TaskItem &task, uint8_t cmd, int8
 
     if (cmd == 0x00)
     {
+        stream << (qint8) 0x02;  // Enum 8 Both (adjust Heat Setpoint and Cool Setpoint)
         stream << (qint8) setpoint;  // 8-bit raise/lower
     }
     else if (cmd == 0x01)  // set schedule
