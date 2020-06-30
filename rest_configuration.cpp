@@ -2028,7 +2028,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         std::string date = map["utc"].toString().toStdString();
 
         time_t mytime = time(0);
-        struct tm* tm_ptr = localtime(&mytime);
+        struct tm* tm_ptr = gmtime(&mytime); // gmtime instead localtime
 
         if (tm_ptr)
         {
