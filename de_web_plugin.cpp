@@ -91,6 +91,7 @@ const quint64 profaluxMacPrefix   = 0x20918a0000000000ULL;
 const quint64 stMacPrefix         = 0x24fd5b0000000000ULL;
 const quint64 samjinMacPrefix     = 0x286d970000000000ULL;
 const quint64 sinopeMacPrefix     = 0x500b910000000000ULL;
+const quint64 silabs6MacPrefix    = 0x588e81f0000000000ULL;
 const quint64 silabs4MacPrefix    = 0x680ae20000000000ULL;
 const quint64 ecozyMacPrefix      = 0x70b3d50000000000ULL;
 const quint64 osramMacPrefix      = 0x8418260000000000ULL;
@@ -249,6 +250,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SUNRICHER, "ZG2833K", emberMacPrefix }, // Sunricher remote controller
     { VENDOR_SUNRICHER, "RGBgenie ZB-5", emberMacPrefix }, // RGBgenie remote control
     { VENDOR_SUNRICHER, "ROB_200", silabs3MacPrefix }, // Sunricher SR-ZG9040A built-in dimmer, whitelabeled by Robbshop
+    { VENDOR_SUNRICHER, "Micro Smart Dimmer", silabs3MacPrefix }, // Sunricher SR-ZG9040A built-in dimmer
     { VENDOR_JENNIC, "SPZB0001", jennicMacPrefix }, // Eurotronic thermostat
     { VENDOR_NONE, "RES001", tiMacPrefix }, // Hubitat environment sensor, see #1308
     { VENDOR_SINOPE, "WL4200S", sinopeMacPrefix}, // Sinope water sensor
@@ -7394,7 +7396,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     consumption /= 1000;
                                 }
-                                else if (i->modelId().startsWith(QLatin1String("ROB_200"))) // ROBB Smarrt micro dimmer
+                                else if (i->modelId().startsWith(QLatin1String("ROB_200")) ||            // ROBB Smarrt micro dimmer
+                                         i->modelId().startsWith(QLatin1String("Micro Smart Dimmer")))   // Sunricher Micro Smart Dimmer
                                 {
                                     consumption /= 3600;
                                 }
@@ -7474,6 +7477,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     if (i->modelId() == QLatin1String("SmartPlug") ||        // Heiman
                                         i->modelId().startsWith(QLatin1String("SKHMP30")) || // GS smart plug
                                         i->modelId().startsWith(QLatin1String("ROB_200")) || // ROBB Smarrt micro dimmer
+                                        i->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
                                         i->modelId().startsWith(QLatin1String("lumi.plug.maeu"))) // Xiaomi Aqara ZB3.0 smart plug
                                     {
                                         power += 5; power /= 10; // 0.1W -> W
@@ -7529,6 +7533,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                              i->modelId().startsWith(QLatin1String("outlet")) ||  // Samsung SmartThings IM6001-OTP/IM6001-OTP01
                                              i->modelId() == QLatin1String("EMIZB-13") ||         // Develco EMI
                                              i->modelId().startsWith(QLatin1String("ROB_200")) || // ROBB Smarrt micro dimmer
+                                             i->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
                                              i->modelId().startsWith(QLatin1String("Connected s"))) // Niko smart socket
                                     {
                                         voltage /= 10; // 0.1V -> V
@@ -7562,6 +7567,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("SZ-ESW01")) || // Sercomm / Telstra smart plug
                                         i->modelId() == QLatin1String("TS0121") ||            // Tuya smart plug
                                         i->modelId().startsWith(QLatin1String("ROB_200")) ||  // ROBB Smarrt micro dimmer
+                                        i->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
                                         i->modelId().startsWith(QLatin1String("Connected s"))) // Niko smart socket
                                     {
                                         // already in mA
