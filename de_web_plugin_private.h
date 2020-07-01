@@ -425,6 +425,7 @@ extern const quint64 silabs2MacPrefix;
 extern const quint64 silabs3MacPrefix;
 extern const quint64 silabs4MacPrefix;
 extern const quint64 silabs5MacPrefix;
+extern const quint64 silabs6MacPrefix;
 extern const quint64 instaMacPrefix;
 extern const quint64 boschMacPrefix;
 extern const quint64 jennicMacPrefix;
@@ -462,7 +463,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
                    prefix == jennicMacPrefix;
         case VENDOR_SUNRICHER:
             return prefix == emberMacPrefix ||
-                   prefix == silabs3MacPrefix;
+                   prefix == silabs3MacPrefix ||
+                   prefix == silabs6MacPrefix;
         case VENDOR_ALERTME:
             return prefix == tiMacPrefix;
         case VENDOR_BITRON:

@@ -1263,7 +1263,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         {
             rq.reportableChange48bit = 1000; // 0.001 kWh (1 Wh)
         }
-        else if (sensor && (sensor->modelId().startsWith(QLatin1String("ROB_200")))) // ROBB Smarrt micro dimmer
+        else if (sensor && (sensor->modelId().startsWith(QLatin1String("ROB_200")) ||            // ROBB Smarrt micro dimmer
+                            sensor->modelId().startsWith(QLatin1String("Micro Smart Dimmer"))))  // Sunricher Micro Smart Dimmer
         {
             rq.reportableChange48bit = 3600; // 0.001 kWh (1 Wh)
         }
@@ -1307,6 +1308,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                        sensor->modelId() == QLatin1String("SKHMP30-I1") ||  // GS smart plug
                        sensor->modelId() == QLatin1String("SZ-ESW01-AU") || // Sercomm / Telstra smart plug
                        sensor->modelId().startsWith(QLatin1String("ROB_200")) || // ROBB Smarrt micro dimmer
+                       sensor->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
                        sensor->modelId().startsWith(QLatin1String("lumi.plug.maeu")))) // Xiaomi Aqara ZB3.0 smart plug
         {
             rq.reportableChange16bit = 10; // 1 W
@@ -1331,6 +1333,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq2.reportableChange16bit = 125; // 1 V
         }
         else if (sensor && (sensor->modelId().startsWith(QLatin1String("ROB_200")) || // ROBB Smarrt micro dimmer
+                            sensor->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
                             sensor->modelId().startsWith(QLatin1String("Connected s")))) // Niko smart socket
         {
             rq2.reportableChange16bit = 10; // 1 V
@@ -2103,6 +2106,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("BQZ10-AU")) ||
         // ROBB Smarrt
         sensor->modelId().startsWith(QLatin1String("ROB_200")) ||
+        // Sunricher
+        sensor->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) ||
         // Plugwise
         sensor->modelId().startsWith(QLatin1String("160-01")) ||
         // Niko
