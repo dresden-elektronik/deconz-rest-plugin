@@ -462,7 +462,7 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
                    prefix == jennicMacPrefix;
         case VENDOR_SUNRICHER:
             return prefix == emberMacPrefix ||
-                   prefix == silabs2MacPrefix;
+                   prefix == silabs3MacPrefix;
         case VENDOR_ALERTME:
             return prefix == tiMacPrefix;
         case VENDOR_BITRON:
