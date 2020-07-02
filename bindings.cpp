@@ -1193,6 +1193,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                             sensor->modelId() == QLatin1String("multiv4") ||
                             sensor->modelId() == QLatin1String("RFDL-ZB-MS") ||
                             sensor->modelId() == QLatin1String("Zen-01") ||
+                            sensor->modelId() == QLatin1String("SLT2") ||
                             sensor->modelId().startsWith(QLatin1String("3315"))))
         {
             rq.attributeId = 0x0020;   // battery voltage
@@ -1210,13 +1211,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.attributeId = 0x0020;   // battery voltage
             rq.minInterval = 43200;    // according to technical manual
             rq.maxInterval = 43200;    // according to technical manual
-            rq.reportableChange8bit = 0;
-        }
-        else if (sensor && (sensor->modelId() == QLatin1String("SLT2")))
-        {
-            rq.attributeId = 0x0020;   // battery voltage
-            rq.minInterval = 3600;
-            rq.maxInterval = 3600;
             rq.reportableChange8bit = 0;
         }
         else
