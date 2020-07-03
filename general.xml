@@ -3385,6 +3385,49 @@ Fil pilote > Off=0001 - On=0002</description>
 			<client>
 			</client>
 		</cluster>
+        
+        <!-- NIKO -->
+		<cluster id="0xfc00" name="Niko specific" mfcode="0x125f">
+			<description>Niko specific attributes.</description>
+			<server>
+				<attribute id="0x0000" name="Unknown" type="bmp8" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0100" name="Unknown" type="u24" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0101" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0102" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0103" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0104" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0200" name="Unknown" type="u32" mfcode="0x125f" access="w" required="m"> </attribute>
+				<attribute id="0x0201" name="Connected to power since" type="u48" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0202" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0300" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0301" name="Unknown" type="bmp8" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0302" name="Unknown" type="u32" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0303" name="Unknown" type="u32" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0304" name="Unknown" type="u32" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0305" name="Unknown" type="u32" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0306" name="Unknown" type="u32" mfcode="0x125f" access="r" required="m"> </attribute>
+				<attribute id="0x0307" name="Unknown" type="u32" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0308" name="Unknown" type="u32" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0309" name="Unknown" type="u32" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x030A" name="Unknown" type="u32" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0400" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0401" name="Unknown" type="u32" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0500" name="Unknown" type="u16" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0501" name="Unknown" type="u16" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0502" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0503" name="Unknown" type="u16" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0504" name="Unknown" type="u16" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0505" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0506" name="Unknown" type="u8" mfcode="0x125f" access="r" required="m"> </attribute>
+				<attribute id="0x0507" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0508" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0600" name="Unknown" type="seckey" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0601" name="Unknown" type="seckey" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0xFFFD" name="Unknown" type="u16" mfcode="0x125f" access="rw" required="m"> </attribute>
+			</server>
+			<client>
+			</client>
+		</cluster>
 
 	</domain>
 
