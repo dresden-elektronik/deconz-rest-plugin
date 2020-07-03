@@ -1334,7 +1334,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
         else if (sensor && (sensor->modelId().startsWith(QLatin1String("ROB_200")) || // ROBB Smarrt micro dimmer
                             sensor->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
-                            sensor->modelId().startsWith(QLatin1String("Connected s")))) // Niko smart socket
+                            sensor->modelId().startsWith(QLatin1String("Connected s")) || // Niko smart socket
+                            sensor->modelId().startsWith(QLatin1String("TH112")))) // Sinope Thermostats
         {
             rq2.reportableChange16bit = 10; // 1 V
         }
@@ -2034,6 +2035,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("LG IP65 HMS") ||
         // Sinope
         sensor->modelId() == QLatin1String("WL4200S") ||
+        sensor->modelId().startsWith(QLatin1String("TH112")) ||
         //LifeControl smart plug
         sensor->modelId() == QLatin1String("RICI01") ||
         //LifeControl enviroment sensor
