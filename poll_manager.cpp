@@ -404,6 +404,7 @@ void PollManager::pollTimerFired()
             !item->toString().startsWith(QLatin1String("ZB-ONOFFPlug-D0005")) &&
             !item->toString().startsWith(QLatin1String("TS0121")) &&
             !item->toString().startsWith(QLatin1String("BQZ10-AU")) &&
+            !item->toString().startsWith(QLatin1String("ROB_200")) &&
             item->toString() != QLatin1String("Plug-230V-ZB3.0"))
         {
             attributes.push_back(0x0400); // Instantaneous Demand

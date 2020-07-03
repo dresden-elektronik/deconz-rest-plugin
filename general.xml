@@ -1000,6 +1000,9 @@
                 <value name="Out of Service" value="0x08"></value>
             </attribute>
             <attribute id="0x0100" name="Application Type" type="u32" required="o" access="r"></attribute>
+            <attribute-set id="0xff00" description="Xiaomi Specific" mfcode="0x115f">
+                <attribute id="0xff06" name="Interlock" type="bool" access="rw" required="m" mfcode="0x115f"></attribute>
+            </attribute-set>
         </server>
         <client>
         </client>
