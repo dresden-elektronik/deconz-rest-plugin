@@ -255,6 +255,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "RES001", tiMacPrefix }, // Hubitat environment sensor, see #1308
     { VENDOR_SINOPE, "WL4200S", sinopeMacPrefix}, // Sinope water sensor
     { VENDOR_SINOPE, "TH1300ZB", sinopeMacPrefix }, // Sinope Thermostat
+    { VENDOR_SINOPE, "TH112", sinopeMacPrefix }, // Sinope Thermostat TH1123ZB & TH1124ZB
     { VENDOR_ZEN, "Zen-01", zenMacPrefix }, // Zen Thermostat
     { VENDOR_C2DF, "3157100", emberMacPrefix }, // Centralite Thermostat
     { VENDOR_EMBER, "Super TR", emberMacPrefix }, // Elko Thermostat
@@ -7534,7 +7535,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                              i->modelId() == QLatin1String("EMIZB-13") ||         // Develco EMI
                                              i->modelId().startsWith(QLatin1String("ROB_200")) || // ROBB Smarrt micro dimmer
                                              i->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
-                                             i->modelId().startsWith(QLatin1String("Connected s"))) // Niko smart socket
+                                             i->modelId().startsWith(QLatin1String("Connected s")) || // Niko smart socket
+                                             i->modelId().startsWith(QLatin1String("TH112"))) // Sinope Thermostats
                                     {
                                         voltage /= 10; // 0.1V -> V
                                     }
