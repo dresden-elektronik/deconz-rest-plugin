@@ -763,6 +763,37 @@ static const Sensor::ButtonMap rcv14Map[] = {
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
+static const Sensor::ButtonMap LDSRemoteMap[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    // On/Off button
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x00,  0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x01,  0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+
+    // DimUp and DimDown buttons
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x02,  0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Step Up" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x01,  0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "Move Up" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x03,  0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x02,  1,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "Step Down" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x01,  1,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD,           "Move Down" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x03,  1,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED,  "Stop" },
+
+    // Color temperature buttons and colour wheel
+    { Sensor::ModeScenes,           0x01, 0x0300, 0x0a,  0,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Move to Color Temperature (Up)" },
+    { Sensor::ModeScenes,           0x01, 0x0300, 0x0a,  1,    S_BUTTON_5 + S_BUTTON_ACTION_SHORT_RELEASED, "Move to Color Temperature (Down)" },
+    { Sensor::ModeScenes,           0x01, 0x0300, 0x07,  0,    S_BUTTON_6 + S_BUTTON_ACTION_SHORT_RELEASED, "Move to Color" },
+
+    // Scene buttons
+    { Sensor::ModeScenes,           0x01, 0x0000, 0x02,  3,    S_BUTTON_7 + S_BUTTON_ACTION_SHORT_RELEASED, "Work Light" },
+    { Sensor::ModeScenes,           0x01, 0x0000, 0x02,  1,    S_BUTTON_8 + S_BUTTON_ACTION_SHORT_RELEASED, "Sunset" },
+    { Sensor::ModeScenes,           0x01, 0x0000, 0x02,  2,    S_BUTTON_9 + S_BUTTON_ACTION_SHORT_RELEASED, "Party" },
+    { Sensor::ModeScenes,           0x01, 0x0000, 0x02,  6,         10000 + S_BUTTON_ACTION_SHORT_RELEASED, "Night Light" },
+    { Sensor::ModeScenes,           0x01, 0x0000, 0x02,  4,         11000 + S_BUTTON_ACTION_SHORT_RELEASED, "Campfire" },
+    { Sensor::ModeScenes,           0x01, 0x0000, 0x02,  5,         12000 + S_BUTTON_ACTION_SHORT_RELEASED, "Romance" },
+
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
+};
+
 static const Sensor::ButtonMap tintMap[] = {
 //    mode                          ep    cluster cmd   param button                                       name
     // On/Off button
@@ -1383,6 +1414,10 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         else if (manufacturer == QLatin1String("MLI"))
         {
             if (modelid.startsWith(QLatin1String("ZBT-Remote-ALL-RGBW"))) { m_buttonMap = tintMap; }
+        }
+        else if (manufacturer == QLatin1String("LDS"))
+        {
+            if (modelid == QLatin1String("ZBT-CCTSwitch-D0001")) { m_buttonMap = LDSRemoteMap; }
         }
     }
 
