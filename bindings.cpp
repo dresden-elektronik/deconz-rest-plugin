@@ -1080,7 +1080,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
         }
-        else if (sensor && sensor->modelId() == QLatin1String("SLR2")) // Hive
+        else if (sensor && sensor->modelId() == QLatin1String("SLR2") || // Hive
+                 sensor && sensor->modelId().startsWith(QLatin1String("TH112")) ) // Sinope
         {
             rq.dataType = deCONZ::Zcl16BitInt;
             rq.attributeId = 0x0000;       // local temperature
@@ -1102,7 +1103,14 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq4.maxInterval = 600;
             rq4.reportableChange16bit = 0xffff;
             
-            return sendConfigureReportingRequest(bt, {rq, rq3, rq4});
+            ConfigureReportingRequest rq2;
+            rq2.dataType = deCONZ::Zcl16BitBitMap;
+            rq2.attributeId = 0x0029;        // Thermostat running state
+            rq2.minInterval = 1;
+            rq2.maxInterval = 600;
+            rq2.reportableChange16bit = 0xffff;
+            
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
         }
         else
         {

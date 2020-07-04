@@ -5315,7 +5315,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             sensorNode.addItem(DataTypeInt16, RConfigHeatSetpoint);    // Heating set point
             sensorNode.addItem(DataTypeBool, RStateOn);           // Heating on/off
             
-            if (sensorNode.modelId() == QLatin1String("SLR2")) // Hive
+            if (sensorNode.modelId() == QLatin1String("SLR2") || //Hive
+                sensorNode.modelId().startsWith(QLatin1String("TH112")) ) // Sinope
             {
                 sensorNode.addItem(DataTypeString, RConfigMode);
             }
@@ -15771,7 +15772,8 @@ void DeRestPlugin::idleTimerFired()
                                 // supports reporting, no need to read attributes
                             }
                             if (sensorNode->modelId().startsWith("SLT2") ||
-                                sensorNode->modelId().startsWith("SLR2") ) // Hive devices
+                                sensorNode->modelId().startsWith("SLR2") ||
+                                sensorNode->modelId().startsWith(QLatin1String("TH112")) ) // Sinope devices
                             {
                                 // supports reporting, no need to read attributes
                             }
