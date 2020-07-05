@@ -2111,6 +2111,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("ROB_200")) ||
         // Sunricher
         sensor->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) ||
+        sensor->modelId().startsWith(QLatin1String("451270")) ||
         // Plugwise
         sensor->modelId().startsWith(QLatin1String("160-01")) ||
         // Niko
