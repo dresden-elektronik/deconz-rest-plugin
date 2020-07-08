@@ -2005,6 +2005,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("PIRS")) ||
         sensor->modelId().startsWith(QLatin1String("SKHMP30")) || // GS smart plug
         sensor->modelId().startsWith(QLatin1String("RC_V14")) ||
+        sensor->modelId().startsWith(QLatin1String("RC-EM")) ||
         // Konke
         sensor->modelId() == QLatin1String("3AFE140103020000") ||
         sensor->modelId() == QLatin1String("3AFE130104020015") ||
@@ -2721,7 +2722,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
     // Heiman remote control
-    else if (sensor->modelId().startsWith(QLatin1String("RC_V14")))
+    else if (sensor->modelId().startsWith(QLatin1String("RC_V14")) ||
+             sensor->modelId().startsWith(QLatin1String("RC-EM")))
     {
         clusters.push_back(IAS_ACE_CLUSTER_ID);
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);

@@ -1454,6 +1454,7 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         else if (manufacturer == QLatin1String("Heiman"))
         {
             if (modelid == QLatin1String("RC_V14")) { m_buttonMap = rcv14Map; }
+            else if (modelid == QLatin1String("RC-EM")) { m_buttonMap = rcv14Map; }
         }
         else if (manufacturer == QLatin1String("MLI"))
         {
