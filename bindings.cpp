@@ -1163,6 +1163,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                             sensor->modelId() == QLatin1String("multiv4") ||
                             sensor->modelId() == QLatin1String("RFDL-ZB-MS") ||
                             sensor->modelId() == QLatin1String("Zen-01") ||
+                            sensor->modelId() == QLatin1String("Bell") ||
                             sensor->modelId().startsWith(QLatin1String("3315"))))
         {
             rq.attributeId = 0x0020;   // battery voltage
@@ -2119,7 +2120,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Plugwise
         sensor->modelId().startsWith(QLatin1String("160-01")) ||
         // Niko
-        sensor->modelId() == QLatin1String("Connected socket outlet"))
+        sensor->modelId() == QLatin1String("Connected socket outlet") ||
+        // Sage
+        sensor->modelId() == QLatin1String("Bell"))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||
@@ -2745,6 +2748,13 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(0x01);
         srcEndpoints.push_back(0x02);
     }
+    // Sage doorbell sensor
+    else if (sensor->modelId().startsWith(QLatin1String("Bell")))
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+    }
     else
     {
         return false;
@@ -2867,7 +2877,8 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
         sensor->modelId().startsWith(QLatin1String("TRADFRI remote control")) ||
         sensor->modelId().startsWith(QLatin1String("TRADFRI wireless dimmer")) ||
         // sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
-        sensor->modelId().startsWith(QLatin1String("902010/23"))) // bitron remote
+        sensor->modelId().startsWith(QLatin1String("902010/23")) || // bitron remote
+        sensor->modelId().startsWith(QLatin1String("Bell")) // Sage doorbell sensor
     {
 
     }

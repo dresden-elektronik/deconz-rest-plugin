@@ -68,6 +68,7 @@ const quint64 macPrefixMask       = 0xffffff0000000000ULL;
 
 // New mac prefixes can be checked here: https://wintelguy.com/index.pl
 const quint64 legrandMacPrefix    = 0x0004740000000000ULL;
+const quint64 dishMacPrefix       = 0x0008890000000000ULL;
 const quint64 ikeaMacPrefix       = 0x000b570000000000ULL;
 const quint64 emberMacPrefix      = 0x000d6f0000000000ULL;
 const quint64 instaMacPrefix      = 0x000f170000000000ULL;
@@ -330,6 +331,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_MUELLER, "ZBT-Remote-ALL-RGBW", jennicMacPrefix }, // Tint remote control
     { VENDOR_PLUGWISE_BV, "160-01", emberMacPrefix }, // Plugwise smart plug
     { VENDOR_NIKO_NV, "Connected socket outlet", konkeMacPrefix }, // Niko smart socket 170-33505
+    { VENDOR_ATMEL, "Bell", dishMacPrefix }, // Sage doorbell sensor
 
     { 0, nullptr, 0 }
 };
@@ -3322,6 +3324,19 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     else if (sensor->modelId().endsWith(QLatin1String("86opcn01"))) // Aqara Opple
     {
         checkReporting = true;
+    }
+    else if (sensor->modelId() == QLatin1String("Bell")) //Sage doorbell sensor
+    {
+        if (ind.dstAddressMode() == deCONZ::ApsGroupAddress && ind.dstAddress().group() == 0)
+        {
+            checkClientCluster = true;
+            checkReporting = true;
+            ResourceItem *item = sensor->item(RConfigGroup);
+            if (!item || (item && (item->toString() == QLatin1String("0") || item->toString().isEmpty())))
+            {
+                checkSensorGroup(sensor); // still default group, create unique group and binding
+            }
+        }
     }
 
     if (ind.dstAddressMode() == deCONZ::ApsGroupAddress && ind.dstAddress().group() != 0)
@@ -6348,6 +6363,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId() == QLatin1String("Zen-01") ||           // Zen thermostat
                                     i->modelId() == QLatin1String("Thermostat") ||       // eCozy thermostat
                                     i->modelId() == QLatin1String("Motion Sensor-A") ||  // Osram motion sensor
+                                    i->modelId() == QLatin1String("Bell") ||             // Sage doorbell sensor
                                     i->modelId().endsWith(QLatin1String("86opcn01")) ||  // Aqara Opple
                                     i->modelId().startsWith(QLatin1String("SMSZB-120")) || // Develco smoke sensor
                                     i->modelId().startsWith(QLatin1String("HESZB-120")) || // Develco heat sensor
