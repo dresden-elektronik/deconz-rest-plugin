@@ -794,6 +794,17 @@ static const Sensor::ButtonMap tintMap[] = {
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
+static const Sensor::ButtonMap sageMap[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    { Sensor::ModeScenes,           0x12, 0x0006, 0x01, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+    { Sensor::ModeScenes,           0x12, 0x0006, 0x00, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
+    { Sensor::ModeScenes,           0x12, 0x0008, 0x05, 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "On (hold)" },
+    { Sensor::ModeScenes,           0x12, 0x0008, 0x03, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "On (released)" },
+
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
+};
+
 /*! Returns a fingerprint as JSON string. */
 QString SensorFingerprint::toString() const
 {
@@ -1388,6 +1399,10 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         else if (manufacturer == QLatin1String("MLI"))
         {
             if (modelid.startsWith(QLatin1String("ZBT-Remote-ALL-RGBW"))) { m_buttonMap = tintMap; }
+        }
+        else if (manufacturer == QLatin1String("Echostar"))
+        {
+            if (modelid == QLatin1String("Bell")) { m_buttonMap = sageMap; }
         }
     }
 
