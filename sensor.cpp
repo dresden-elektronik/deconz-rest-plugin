@@ -861,9 +861,9 @@ static const Sensor::ButtonMap tintMap[] = {
 static const Sensor::ButtonMap sageMap[] = {
 //    mode                          ep    cluster cmd   param button                                       name
     { Sensor::ModeScenes,           0x12, 0x0006, 0x01, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
-    { Sensor::ModeScenes,           0x12, 0x0006, 0x00, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
-    { Sensor::ModeScenes,           0x12, 0x0008, 0x05, 0,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "On (hold)" },
-    { Sensor::ModeScenes,           0x12, 0x0008, 0x03, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "On (released)" },
+    { Sensor::ModeScenes,           0x12, 0x0006, 0x00, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
+    { Sensor::ModeScenes,           0x12, 0x0008, 0x05, 0,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD,           "On (hold)" },
+    { Sensor::ModeScenes,           0x12, 0x0008, 0x03, 0,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED,  "On (released)" },
 
     // end
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
