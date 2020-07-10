@@ -968,6 +968,41 @@ bool DeRestPluginPrivate::addTaskWarning(TaskItem &task, uint8_t options, uint16
 
     return addTask(task);
 }
+// Danalock support. To control the lock from the REST API, you need to create a new routine addTaskDoorLock() in zcl_tasks.cpp, cf. the addTaskWarning() I created to control the Siren.
+ // Based on a lock state parameter, add a task with a Lock Door or Unlock Door command
+ /*! Add door unlock task to the queue.
+    \param task - the task item
+    \return true - on success
+            false - on error
+  */
+ bool DeRestPluginPrivate::addTaskDoorLockUnlock(TaskItem &task, uint8_t cmd)
+ {
+     task.taskType = TaskDoorUnlock;
+
+      task.req.setClusterId(DOOR_LOCK_CLUSTER_ID);
+     task.req.setProfileId(HA_PROFILE_ID);
+
+      task.zclFrame.payload().clear();
+     task.zclFrame.setSequenceNumber(zclSeq++);
+     task.zclFrame.setCommandId(cmd); // Start Unlocking
+     task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
+                              deCONZ::ZclFCDirectionClientToServer |
+                              deCONZ::ZclFCDisableDefaultResponse);
+
+      { // payload
+         QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
+         stream.setByteOrder(QDataStream::LittleEndian);
+     }
+
+      { // ZCL frame
+         task.req.asdu().clear(); // cleanup old request data if there is any
+         QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
+         stream.setByteOrder(QDataStream::LittleEndian);
+         task.zclFrame.writeToStream(stream);
+     }
+
+      return addTask(task);
+ }
 
 /*! Add a add to group task to the queue.
 
