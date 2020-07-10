@@ -215,6 +215,10 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_UBISYS, "S2", ubisysMacPrefix },
     { VENDOR_NONE, "Z716A", netvoxMacPrefix },
     // { VENDOR_OSRAM_STACK, "Plug", osramMacPrefix }, // OSRAM plug - exposed only as light
+    { VENDOR_OSRAM, "Lightify Switch Mini", emberMacPrefix }, // Osram 3 button remote
+    { VENDOR_OSRAM, "Switch 4x EU-LIGHTIFY", emberMacPrefix }, // Osram 4 button remote
+    { VENDOR_OSRAM, "Switch 4x-LIGHTIFY", emberMacPrefix }, // Osram 4 button remote
+    { VENDOR_OSRAM, "Switch-LIGHTIFY", emberMacPrefix }, // Osram 4 button remote
     { VENDOR_OSRAM_STACK, "CO_", heimanMacPrefix }, // Heiman CO sensor
     { VENDOR_OSRAM_STACK, "DOOR_", heimanMacPrefix }, // Heiman door/window sensor - older model
     { VENDOR_OSRAM_STACK, "PIR_", heimanMacPrefix }, // Heiman motion sensor
@@ -766,7 +770,11 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                     }
                     else if (sensorNode->modelId().startsWith("C4") || // ubisys
                              sensorNode->modelId().startsWith("RC 110") || // innr RC 110
-                             sensorNode->modelId().startsWith("ICZB-RM")) // icasa remote
+                             sensorNode->modelId().startsWith("ICZB-RM") || // icasa remote
+                             sensorNode->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
+                             sensorNode->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
+                             sensorNode->modelId().startsWith(QLatin1String("Switch 4x-LIGHTIFY")) || // Osram 4 button remote
+                             sensorNode->modelId().startsWith(QLatin1String("Switch-LIGHTIFY")) ) // Osram 4 button remote
                     {
                         sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
                     }
@@ -3301,6 +3309,14 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     {
         checkReporting = true;
     }
+    else if (sensor->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
+             sensor->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
+             sensor->modelId().startsWith(QLatin1String("Switch 4x-LIGHTIFY")) || // Osram 4 button remote
+             sensor->modelId().startsWith(QLatin1String("Switch-LIGHTIFY")) ) // Osram 4 button remote
+    {
+        checkReporting = true;
+        checkClientCluster = true;
+    }
     else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM"))) // icasa remote
     {
         checkReporting = true;
@@ -3874,6 +3890,22 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 }
 
             }
+            else if (ind.clusterId() == COLOR_CLUSTER_ID && (zclFrame.commandId() == 0x01 ) )  // Move hue command
+            {
+                // Only used by Osram devices currently
+                if (sensor->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
+                    sensor->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
+                    sensor->modelId().startsWith(QLatin1String("Switch 4x-LIGHTIFY")) || // Osram 4 button remote
+                    sensor->modelId().startsWith(QLatin1String("Switch-LIGHTIFY")) ) // Osram 4 button remote
+                {
+                    quint8 pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(0);
+                    if (buttonMap->zclParam0 != pl0)
+                    {
+                        ok = false;
+                    }
+                }
+                
+            }
 
             if (ok && buttonMap->button != 0)
             {
@@ -4174,6 +4206,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     if (modelId == QLatin1String("ZYCT-202") && i->endpoint() != 0x01)
                     {
                         // ignore second endpoint
+                    }
+                    else if (modelId.startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
+                             modelId.startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
+                             modelId.startsWith(QLatin1String("Switch 4x-LIGHTIFY")) || // Osram 4 button remote
+                             modelId.startsWith(QLatin1String("Switch-LIGHTIFY")) ) // Osram 4 button remote
+                    {
+                        // Don't create entry for this cluster
                     }
                     else
                     {
@@ -4578,6 +4617,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpPresenceSensor.outClusters.push_back(ci->id());
                     }
+                    else if (modelId.startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
+                             modelId.startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
+                             modelId.startsWith(QLatin1String("Switch 4x-LIGHTIFY")) || // Osram 4 button remote
+                             modelId.startsWith(QLatin1String("Switch-LIGHTIFY")) ) // Osram 4 button remote
+                    {
+                        // Only create entry for endpoint 0x01
+                        fpSwitch.outClusters.push_back(ci->id());
+                    }
                     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_UBISYS)
                     {
                         if ((modelId.startsWith(QLatin1String("D1")) && i->endpoint() == 0x02) ||
@@ -4658,6 +4705,18 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     sensor = nullptr;
                 }
                 fpSwitch.endpoint = 2;
+            }
+            
+            if (modelId.startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
+                modelId.startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
+                modelId.startsWith(QLatin1String("Switch 4x-LIGHTIFY")) || // Osram 4 button remote
+                modelId.startsWith(QLatin1String("Switch-LIGHTIFY")) ) // Osram 4 button remote
+            {
+                sensor = getSensorNodeForAddress(node->address().ext());
+                if (sensor && sensor->deletedState() != Sensor::StateNormal)
+                {
+                    sensor = nullptr;
+                }
             }
 
             if (!sensor)
@@ -5739,7 +5798,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             else if (*ci == POWER_CONFIGURATION_CLUSTER_ID)
             {
                 //This device make a Rejoin every time, you trigger it, it's the only moment where you can read attribute.
-                if (sensorNode.modelId() == QLatin1String("Remote switch") || sensorNode.modelId() == QLatin1String("Shutters central remote switch") || sensorNode.modelId() == QLatin1String("Double gangs remote switch") )
+                if (sensorNode.modelId() == QLatin1String("Remote switch") || 
+                    sensorNode.modelId() == QLatin1String("Shutters central remote switch") || 
+                    sensorNode.modelId() == QLatin1String("Double gangs remote switch") )
                 {
                     //Ask for battery but only every day max
                     //int diff = idleTotalCounter - sensorNode.lastRead(READ_BATTERY);
@@ -6340,7 +6401,11 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId().startsWith(QLatin1String("3315")) ||      // Centralite water sensor
                                     i->modelId().startsWith(QLatin1String("lumi.sen_ill")) || // Xiaomi ZB3.0 light sensor
                                     i->modelId().startsWith(QLatin1String("SZ-DWS04"))   || // Sercomm open/close sensor
-                                    i->modelId().startsWith(QLatin1String("Tripper"))) // Quirky Tripper (Sercomm) open/close
+                                    i->modelId().startsWith(QLatin1String("Tripper")) || // Quirky Tripper (Sercomm) open/close
+                                    i->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
+                                    i->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
+                                    i->modelId().startsWith(QLatin1String("Switch 4x-LIGHTIFY")) || // Osram 4 button remote
+                                    i->modelId().startsWith(QLatin1String("Switch-LIGHTIFY")) ) // Osram 4 button remote
                                 {  }
                                 else
                                 {
