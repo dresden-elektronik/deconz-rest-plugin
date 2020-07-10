@@ -10,6 +10,7 @@
  * state.on           | read only  | 0x0029    | running state on/off
  * state.temperature  | read only  | 0x0000    | measured temperature
  * config.heatsetpoint| read write | 0x0012    | heating setpoint
+ * config.mode        | read write | 0x001C    | System mode
  * config.scheduleron | read write | 0x0025    | scheduler on/off
  * config.offset      | read write | 0x0010    | temperature offset
  * config.scheduler   | read write | (command) | scheduled setpoints
@@ -99,7 +100,7 @@ static int dayofweekTimer = 0;
  */
 void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
-    Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
+    Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
 
     QDataStream stream(zclFrame.payload());
     stream.setByteOrder(QDataStream::LittleEndian);
@@ -242,6 +243,36 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                     {
                         item->setValue(heatSetpoint);
                         enqueueEvent(Event(RSensors, RConfigHeatSetpoint, sensor->id(), item));
+                        configUpdated = true;
+                    }
+                }
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
+                break;
+                
+            case 0x001C: // System Mode
+            {
+                if (sensor->modelId().startsWith(QLatin1String("SLR2")) || //Hive
+                    sensor->modelId().startsWith(QLatin1String("TH112")) ) // Sinope
+                {
+                    qint8 mode = attr.numericValue().s8;
+                    QString mode_set;
+                   
+                    mode_set = QString("off");
+                    if ( mode == 0x01 ) { mode_set = QString("auto"); }
+                    if ( mode == 0x03 ) { mode_set = QString("cool"); }
+                    if ( mode == 0x04 ) { mode_set = QString("heat"); }
+                    if ( mode == 0x05 ) { mode_set = QString("emergency heating"); }
+                    if ( mode == 0x06 ) { mode_set = QString("precooling"); }
+                    if ( mode == 0x07 ) { mode_set = QString("fan only"); }
+                    if ( mode == 0x08 ) { mode_set = QString("dry"); }
+                    if ( mode == 0x09 ) { mode_set = QString("sleep"); }
+
+                    item = sensor->item(RConfigMode);
+                    if (item && !item->toString().isEmpty() && item->toString() != mode_set)
+                    {
+                        item->setValue(mode_set);
+                        enqueueEvent(Event(RSensors, RConfigMode, sensor->id(), item));
                         configUpdated = true;
                     }
                 }
@@ -602,6 +633,7 @@ bool DeRestPluginPrivate::addTaskThermostatCmd(TaskItem &task, uint8_t cmd, int8
 
     if (cmd == 0x00)
     {
+        stream << (qint8) 0x02;  // Enum 8 Both (adjust Heat Setpoint and Cool Setpoint)
         stream << (qint8) setpoint;  // 8-bit raise/lower
     }
     else if (cmd == 0x01)  // set schedule

@@ -305,6 +305,7 @@
 #define VENDOR_SENGLED_OPTOELEC 0x1160
 #define VENDOR_INNR         0x1166
 #define VENDOR_LDS          0x1168 // Used by Samsung SmartPlug 2019
+#define VENDOR_PLUGWISE_BV  0x1172
 #define VENDOR_INSTA        0x117A
 #define VENDOR_IKEA         0x117C
 #define VENDOR_3A_SMART_HOME  0x117E
@@ -322,6 +323,7 @@
 #define VENDOR_DSR          0x1234
 #define VENDOR_HANGZHOU_IMAGIC 0x123B
 #define VENDOR_SAMJIN       0x1241
+#define VENDOR_NIKO_NV      0x125F
 #define VENDOR_KONKE        0x1268
 #define VENDOR_OSRAM_STACK  0xBBAA
 #define VENDOR_C2DF         0xC2DF
@@ -422,6 +424,8 @@ extern const quint64 silabsMacPrefix;
 extern const quint64 silabs2MacPrefix;
 extern const quint64 silabs3MacPrefix;
 extern const quint64 silabs4MacPrefix;
+extern const quint64 silabs5MacPrefix;
+extern const quint64 silabs6MacPrefix;
 extern const quint64 instaMacPrefix;
 extern const quint64 boschMacPrefix;
 extern const quint64 jennicMacPrefix;
@@ -459,9 +463,11 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
                    prefix == jennicMacPrefix;
         case VENDOR_SUNRICHER:
             return prefix == emberMacPrefix ||
-                   prefix == silabs2MacPrefix;
+                   prefix == silabs3MacPrefix ||
+                   prefix == silabs6MacPrefix;
         case VENDOR_ALERTME:
-            return prefix == tiMacPrefix;
+            return prefix == tiMacPrefix ||
+                   prefix == computimeMacPrefix;
         case VENDOR_BITRON:
             return prefix == tiMacPrefix;
         case VENDOR_BOSCH:
@@ -474,7 +480,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
         case VENDOR_EMBER:
             return prefix == emberMacPrefix ||
                    prefix == konkeMacPrefix ||
-                   prefix == silabs3MacPrefix;
+                   prefix == silabs3MacPrefix ||
+                   prefix == silabs5MacPrefix;
         case VENDOR_EMBERTEC:
             return prefix == embertecMacPrefix;
         case VENDOR_DDEL:
@@ -506,6 +513,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == emberMacPrefix;
         case VENDOR_LUTRON:
             return prefix == lutronMacPrefix;
+        case VENDOR_NIKO_NV:
+            return prefix == konkeMacPrefix;
         case VENDOR_NYCE:
             return prefix == emberMacPrefix;
         case VENDOR_OSRAM:
@@ -514,6 +523,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
                    prefix == heimanMacPrefix;
         case VENDOR_PHILIPS:
             return prefix == philipsMacPrefix;
+        case VENDOR_PLUGWISE_BV:
+            return prefix == emberMacPrefix;
         case VENDOR_PHYSICAL:
             return prefix == stMacPrefix;
         case VENDOR_SENGLED_OPTOELEC:
@@ -1421,7 +1432,6 @@ public:
     void refreshDeviceDb(const deCONZ::Address &addr);
     void pushZdpDescriptorDb(quint64 extAddress, quint8 endpoint, quint16 type, const QByteArray &data);
     void pushZclValueDb(quint64 extAddress, quint8 endpoint, quint16 clusterId, quint16 attributeId, qint64 data);
-    void clearDb();
     void openDb();
     void readDb();
     void loadAuthFromDb();

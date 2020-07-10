@@ -1593,7 +1593,8 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     // Some devices invert LiftPct.
     if (hasLift)
     {
-        if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain")))
+        if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain"))||
+            (taskRef.lightNode->modelId() == QLatin1String("Motor Controller")))
         {
             targetLiftZigBee = 100 - targetLift;
         }

@@ -1001,7 +1001,7 @@
             </attribute>
             <attribute id="0x0100" name="Application Type" type="u32" required="o" access="r"></attribute>
             <attribute-set id="0xff00" description="Xiaomi Specific" mfcode="0x115f">
-                <attribute id="0xff06" name="Interlock" type="bool" access="rw" required="m" mfcode="0x115f"></attribute>
+                <attribute id="0xff06" name="Interlock" type="bool" access="rw" required="m" mfcode="0x1037"></attribute>
             </attribute-set>
         </server>
         <client>
@@ -2439,9 +2439,13 @@ controller device, that supports a keypad and LCD screen.</description>
 					<attribute id="0x0010" name="IAS_CIE_Address" type="uid" access="rw" required="o" default="0"></attribute>
 					<attribute id="0x0011" name="Zone ID" type="u8" range="0x00,0xff" access="r" required="m"></attribute>
 				</attribute-set>
-				<attribute-set id="0x8000" description="Develco Specific" mfcode="0x1015">
+				<attribute-set id="0x8000" description="Develco specific" mfcode="0x1015">
 					<attribute id="0x8000" name="Zone Status Interval" type="u16" access="rw" required="o" mfcode="0x1015"></attribute>
 					<attribute id="0x8001" name="Alarm Off Delay" type="u16" access="rw" required="o" mfcode="0x1015"></attribute>
+				</attribute-set>
+                <attribute-set id="0xf000" description="Xiaomi specific" mfcode="0x1037">
+                    <attribute id="0xfff0" name="Sensitivity" type="u32" access="r" required="o" mfcode="0x1037"></attribute>
+					<attribute id="0xfff1" name="Selftest/Density" type="u32" access="rw" required="o" mfcode="0x1037"></attribute>
 				</attribute-set>
 				<command id="0x00" dir="recv" name="Zone Enroll Response" required="m">
 					<payload>
@@ -3337,13 +3341,13 @@ Fil pilote > Off=0001 - On=0002</description>
 				<attribute id="0x0100" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0200" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0201" name="Restore Power on Outage" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
-				<attribute id="0x0202" name="Auto-off after 20m below 2W" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0202" name="Auto-off after 20m below Threshold" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0203" name="Device LED off" type="bool" mfcode="0x115f" access="rw" required="m"> </attribute>
-				<attribute id="0x0204" name="Unknown" type="float" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0204" name="Min. Power Change for Report (W)" type="float" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0205" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
-				<attribute id="0x0206" name="Unknown" type="float" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x0206" name="Power Threshold for Auto-off" type="float" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0x0207" name="Consumer connected" type="bool" mfcode="0x115f" access="r" required="m"> </attribute>
-				<attribute id="0x020b" name="Max. Load exceeded at (in W)???" type="float" mfcode="0x115f" access="rw" required="m"> </attribute>
+				<attribute id="0x020b" name="Max. Load Exceeded at (W)" type="float" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0xf000" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
 				<attribute id="0xfffd" name="Unknown" type="u16" mfcode="0x115f" access="rw" required="m"> </attribute>
 			</server>
@@ -3377,6 +3381,49 @@ Fil pilote > Off=0001 - On=0002</description>
 				<attribute id="0x0012" name="Consumption since turned on" type="u32" mfcode="0x1037" access="r" required="m"> </attribute>
 				<attribute id="0x0013" name="Unknown" type="u32" mfcode="0x1037" access="rw" required="m"> </attribute>
 				<attribute id="0xfffd" name="Unknown" type="u16" mfcode="0x1037" access="r" required="m"> </attribute>
+			</server>
+			<client>
+			</client>
+		</cluster>
+        
+        <!-- NIKO -->
+		<cluster id="0xfc00" name="Niko specific" mfcode="0x125f">
+			<description>Niko specific attributes.</description>
+			<server>
+				<attribute id="0x0000" name="Unknown" type="bmp8" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0100" name="Unknown" type="u24" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0101" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0102" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0103" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0104" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0200" name="Unknown" type="u32" mfcode="0x125f" access="w" required="m"> </attribute>
+				<attribute id="0x0201" name="Connected to power since" type="u48" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0202" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0300" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0301" name="Unknown" type="bmp8" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0302" name="Unknown" type="u32" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0303" name="Unknown" type="u32" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0304" name="Unknown" type="u32" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0305" name="Unknown" type="u32" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0306" name="Unknown" type="u32" mfcode="0x125f" access="r" required="m"> </attribute>
+				<attribute id="0x0307" name="Unknown" type="u32" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0308" name="Unknown" type="u32" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0309" name="Unknown" type="u32" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x030A" name="Unknown" type="u32" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0400" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0401" name="Unknown" type="u32" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0500" name="Unknown" type="u16" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0501" name="Unknown" type="u16" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0502" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0503" name="Unknown" type="u16" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0504" name="Unknown" type="u16" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0505" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0506" name="Unknown" type="u8" mfcode="0x125f" access="r" required="m"> </attribute>
+				<attribute id="0x0507" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0508" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0600" name="Unknown" type="seckey" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0601" name="Unknown" type="seckey" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0xFFFD" name="Unknown" type="u16" mfcode="0x125f" access="rw" required="m"> </attribute>
 			</server>
 			<client>
 			</client>
