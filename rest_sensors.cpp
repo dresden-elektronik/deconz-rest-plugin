@@ -879,8 +879,9 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             rspItem["success"] = rspItemState;
                         }
                         
-                        else if (sensor->modelId() == QLatin1String("SLR2") || //Hive
-                                 sensor->modelId().startsWith(QLatin1String("TH112")) ) // Sinope
+                        else if (sensor->modelId() == QLatin1String("SLR2") ||            // Hive
+                                 sensor->modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
+                                 sensor->modelId() == QLatin1String("Zen-01"))            // Zen
                         {
                             QString mode_set = map[pi.key()].toString();
                             quint8 mode = 0x00;
