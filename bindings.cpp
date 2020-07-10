@@ -1077,8 +1077,16 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq4.minInterval = 1;
             rq4.maxInterval = 600;
             rq4.reportableChange16bit = 0xffff;
+            
+            ConfigureReportingRequest rq5;
+            rq5.dataType = deCONZ::Zcl8BitEnum;
+            rq5.attributeId = 0x001C;        // Thermostat mode
+            rq5.minInterval = 1;
+            rq5.maxInterval = 600;
+            rq5.reportableChange16bit = 0xffff;
 
-            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4}) ||
+                   sendConfigureReportingRequest(bt, {rq5});
         }
         else if ((sensor && sensor->modelId() == QLatin1String("SLR2")) || // Hive
                  (sensor && sensor->modelId().startsWith(QLatin1String("TH112")))) // Sinope

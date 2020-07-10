@@ -100,6 +100,7 @@ const quint64 silabs5MacPrefix    = 0x842e140000000000ULL;
 const quint64 embertecMacPrefix   = 0x848e960000000000ULL;
 const quint64 silabsMacPrefix     = 0x90fd9f0000000000ULL;
 const quint64 zhejiangMacPrefix   = 0xb0ce180000000000ULL;
+const quint64 silabs7MacPrefix    = 0xbc33ac0000000000ULL;
 const quint64 silabs2MacPrefix    = 0xcccccc0000000000ULL;
 const quint64 silabs3MacPrefix    = 0xec1bbd0000000000ULL;
 const quint64 energyMiMacPrefix   = 0xd0cf5e0000000000ULL;
@@ -5434,8 +5435,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             sensorNode.addItem(DataTypeInt16, RConfigHeatSetpoint);    // Heating set point
             sensorNode.addItem(DataTypeBool, RStateOn);           // Heating on/off
             
-            if (sensorNode.modelId() == QLatin1String("SLR2") || //Hive
-                sensorNode.modelId().startsWith(QLatin1String("TH112")) ) // Sinope
+            if (sensorNode.modelId() == QLatin1String("SLR2") ||            // Hive
+                sensorNode.modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
+                sensorNode.modelId() == QLatin1String("Zen-01"))            // Zen
             {
                 sensorNode.addItem(DataTypeString, RConfigMode);
             }

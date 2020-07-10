@@ -252,8 +252,9 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 
             case 0x001C: // System Mode
             {
-                if (sensor->modelId().startsWith(QLatin1String("SLR2")) || //Hive
-                    sensor->modelId().startsWith(QLatin1String("TH112")) ) // Sinope
+                if (sensor->modelId().startsWith(QLatin1String("SLR2")) ||  // Hive
+                    sensor->modelId().startsWith(QLatin1String("TH112")) || // Sinope
+                    sensor->modelId().startsWith(QLatin1String("Zen-01")))  // Zen
                 {
                     qint8 mode = attr.numericValue().s8;
                     QString mode_set;
