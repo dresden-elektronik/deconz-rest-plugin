@@ -2878,7 +2878,7 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
         sensor->modelId().startsWith(QLatin1String("TRADFRI wireless dimmer")) ||
         // sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
         sensor->modelId().startsWith(QLatin1String("902010/23")) || // bitron remote
-        sensor->modelId().startsWith(QLatin1String("Bell")) // Sage doorbell sensor
+        sensor->modelId().startsWith(QLatin1String("Bell"))) // Sage doorbell sensor
     {
 
     }
