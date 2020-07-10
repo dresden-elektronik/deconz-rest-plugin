@@ -1400,7 +1400,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
             return REQ_READY_SEND;
         }
 
-        group->alert = QLatin1String(alert);
+        group->alert = QLatin1String("alert");
         taskToLocalData(task);
 
         if ((task.taskType == TaskIdentify && addTaskIdentify(task, task.identifyTime)) ||
@@ -1806,7 +1806,7 @@ bool DeRestPluginPrivate::groupToMap(const ApiRequest &req, const Group *group, 
     action["bri"] = (double)group->level;
     action["sat"] = (double)group->sat;
     action["ct"] = (double)group->colorTemperature;
-    action["alert"] = QLatin1String(group->alert);
+    action["alert"] = group->alert;
     QVariantList xy;
 
     double colorX = group->colorX;

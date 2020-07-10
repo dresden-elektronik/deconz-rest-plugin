@@ -512,7 +512,7 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == emberMacPrefix;
         case VENDOR_LUTRON:
             return prefix == lutronMacPrefix;
-        case VENDOR_NIKO_BV:
+        case VENDOR_NIKO_NV:
             return prefix == konkeMacPrefix;
         case VENDOR_NYCE:
             return prefix == emberMacPrefix;
