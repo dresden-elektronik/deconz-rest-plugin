@@ -1421,7 +1421,6 @@ public:
     void refreshDeviceDb(const deCONZ::Address &addr);
     void pushZdpDescriptorDb(quint64 extAddress, quint8 endpoint, quint16 type, const QByteArray &data);
     void pushZclValueDb(quint64 extAddress, quint8 endpoint, quint16 clusterId, quint16 attributeId, qint64 data);
-    void clearDb();
     void openDb();
     void readDb();
     void loadAuthFromDb();
