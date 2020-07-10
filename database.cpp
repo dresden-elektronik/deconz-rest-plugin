@@ -3265,6 +3265,13 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 item->setValue(0);
                 sensor.addItem(DataTypeInt16, RConfigHeatSetpoint);    // Heating set point
                 sensor.addItem(DataTypeBool, RStateOn);           // Heating on/off
+                
+                if (sensor.modelId() == QLatin1String("SLR2") || //Hive 
+                    sensor.modelId().startsWith(QLatin1String("TH112")) ) // Sinope
+                {
+                    sensor.addItem(DataTypeString, RConfigMode);
+                }
+                
                 if (sensor.modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);

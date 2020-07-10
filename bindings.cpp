@@ -1080,6 +1080,38 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
         }
+        else if (sensor && sensor->modelId() == QLatin1String("SLR2") || // Hive
+                 sensor && sensor->modelId().startsWith(QLatin1String("TH112")) ) // Sinope
+        {
+            rq.dataType = deCONZ::Zcl16BitInt;
+            rq.attributeId = 0x0000;       // local temperature
+            rq.minInterval = 0;
+            rq.maxInterval = 300;
+            rq.reportableChange16bit = 10;
+            
+            ConfigureReportingRequest rq3;
+            rq3.dataType = deCONZ::Zcl16BitBitMap;
+            rq3.attributeId = 0x0012;        // Occupied heating setpoint
+            rq3.minInterval = 1;
+            rq3.maxInterval = 600;
+            rq3.reportableChange16bit = 0xffff;
+            
+            ConfigureReportingRequest rq4;
+            rq4.dataType = deCONZ::Zcl8BitEnum;
+            rq4.attributeId = 0x001C;        // Thermostat mode
+            rq4.minInterval = 1;
+            rq4.maxInterval = 600;
+            rq4.reportableChange16bit = 0xffff;
+            
+            ConfigureReportingRequest rq2;
+            rq2.dataType = deCONZ::Zcl16BitBitMap;
+            rq2.attributeId = 0x0029;        // Thermostat running state
+            rq2.minInterval = 1;
+            rq2.maxInterval = 600;
+            rq2.reportableChange16bit = 0xffff;
+            
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
+        }
         else
         {
             rq.dataType = deCONZ::Zcl16BitInt;
@@ -1120,6 +1152,12 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     else if (bt.binding.clusterId == POWER_CONFIGURATION_CLUSTER_ID)
     {
         Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
+        
+        // This device use only Attribute 0x0000 for tension and 0x001 for frequency
+        if (sensor->modelId() == QLatin1String("SLP2"))
+        {
+            return false;
+        }
 
         rq.dataType = deCONZ::Zcl8BitUint;
         rq.attributeId = 0x0021;   // battery percentage remaining
@@ -1164,6 +1202,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                             sensor->modelId() == QLatin1String("RFDL-ZB-MS") ||
                             sensor->modelId() == QLatin1String("Zen-01") ||
                             sensor->modelId() == QLatin1String("Bell") ||
+                            sensor->modelId() == QLatin1String("SLT2") ||
                             sensor->modelId().startsWith(QLatin1String("3315"))))
         {
             rq.attributeId = 0x0020;   // battery voltage
@@ -1750,6 +1789,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->modelId() == QLatin1String("SPLZB-131"))
         {
         }
+        else if (lightNode->manufacturer() == QLatin1String("Computime")) //Hive
+        {
+        }
         else if (lightNode->manufacturer() == QString("欧瑞博") || lightNode->manufacturer() == QLatin1String("ORVIBO"))
         {
         }
@@ -2094,6 +2136,11 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("1117-S")) ||
         // Hive
         sensor->modelId() == QLatin1String("MOT003") ||
+        //Computime
+        sensor->modelId() == QLatin1String("SLP2") ||
+        sensor->modelId() == QLatin1String("SLP2b") ||
+        sensor->modelId() == QLatin1String("SLR2") ||
+        sensor->modelId() == QLatin1String("SLT2") ||
         // Sengled
         sensor->modelId().startsWith(QLatin1String("E13-")) ||
         sensor->modelId().startsWith(QLatin1String("E1D-")) ||

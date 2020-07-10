@@ -320,6 +320,11 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SERCOMM, "SZ-DWS04", emberMacPrefix }, // Sercomm open/close sensor
     { VENDOR_SERCOMM, "Tripper", emberMacPrefix }, // Quirky Tripper (Sercomm) open/close sensor
     { VENDOR_ALERTME, "MOT003", tiMacPrefix }, // Hive Motion Sensor
+    { VENDOR_ALERTME, "SLP2", computimeMacPrefix }, // Hive  plug
+    { VENDOR_ALERTME, "SLP2b", computimeMacPrefix }, // Hive  plug
+    { VENDOR_ALERTME, "SLR2", computimeMacPrefix }, // Hive   Heating Receiver
+    { VENDOR_ALERTME, "SLT2", computimeMacPrefix }, // Hive thermostat
+    { VENDOR_SUNRICHER, "4512703", silabs2MacPrefix }, // Namron 4-ch remote controller
     { VENDOR_SUNRICHER, "451270", silabs2MacPrefix }, // Namron 1/4-ch remote controller
     { VENDOR_SENGLED_OPTOELEC, "E13-", zhejiangMacPrefix }, // Sengled PAR38 Bulbs
     { VENDOR_SENGLED_OPTOELEC, "E1D-", zhejiangMacPrefix }, // Sengled contact sensor
@@ -4396,17 +4401,34 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case TEMPERATURE_MEASUREMENT_CLUSTER_ID:
                 {
+
                     if (modelId == QLatin1String("VOC_Sensor"))
                     {
                         fpHumiditySensor.inClusters.push_back(ci->id());
                     }
-                    fpTemperatureSensor.inClusters.push_back(ci->id());
+                    
+                    // Hive devices, don't show model id faster enought
+                    if ((node->nodeDescriptor().manufacturerCode() == VENDOR_ALERTME) && (modelId.isEmpty()))
+                    {
+                    }
+                    // Don't create entry for the plug
+                    else if (modelId == QLatin1String("SLP2b"))
+                    {
+                    }
+                    // Don't create entry for cluster 0x07 and 0x08
+                    else if ((modelId == QLatin1String("SLR2")) && (i->endpoint() > 0x06 ))
+                    {
+                    }
+                    else 
+                    {
+                        fpTemperatureSensor.inClusters.push_back(ci->id());
+                    }
                 }
                     break;
 
                 case RELATIVE_HUMIDITY_CLUSTER_ID:
                 {
-                    if(modelId != QLatin1String("VOC_Sensor"))
+                    if (modelId != QLatin1String("VOC_Sensor"))
                     {
                         fpHumiditySensor.inClusters.push_back(ci->id());
                     }
@@ -5411,6 +5433,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             item->setValue(0);
             sensorNode.addItem(DataTypeInt16, RConfigHeatSetpoint);    // Heating set point
             sensorNode.addItem(DataTypeBool, RStateOn);           // Heating on/off
+            
+            if (sensorNode.modelId() == QLatin1String("SLR2") || //Hive
+                sensorNode.modelId().startsWith(QLatin1String("TH112")) ) // Sinope
+            {
+                sensorNode.addItem(DataTypeString, RConfigMode);
+            }
+            
             if (modelId.startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
@@ -15909,6 +15938,12 @@ void DeRestPlugin::idleTimerFired()
                             val = sensorNode->getZclValue(*ci, 0x0029); // heating state
 
                             if (sensorNode->modelId().startsWith("SPZB")) // Eurotronic Spirit
+                            {
+                                // supports reporting, no need to read attributes
+                            }
+                            if (sensorNode->modelId().startsWith("SLT2") ||
+                                sensorNode->modelId().startsWith("SLR2") ||
+                                sensorNode->modelId().startsWith(QLatin1String("TH112")) ) // Sinope devices
                             {
                                 // supports reporting, no need to read attributes
                             }
