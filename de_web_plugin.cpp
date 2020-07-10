@@ -827,6 +827,27 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
         {
         case ZDP_NODE_DESCRIPTOR_RSP_CLID:
         {
+            // Safeguard to issue a 2nd active endpoint request in case the first one got MIA
+            // Temporary workaround till state machine is available (request is fired ruthless)
+            deCONZ::ApsDataRequest apsReq;
+
+            // ZDP Header
+            apsReq.dstAddress() = ind.srcAddress();
+            apsReq.setDstAddressMode(deCONZ::ApsNwkAddress);
+            apsReq.setDstEndpoint(ZDO_ENDPOINT);
+            apsReq.setSrcEndpoint(ZDO_ENDPOINT);
+            apsReq.setProfileId(ZDP_PROFILE_ID);
+            apsReq.setRadius(0);
+            apsReq.setClusterId(ZDP_ACTIVE_ENDPOINTS_CLID);
+
+            QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
+            stream.setByteOrder(QDataStream::LittleEndian);
+
+            stream << zclSeq++;
+            stream << ind.srcAddress().nwk();
+            
+            apsCtrl->apsdeDataRequest(apsReq);  // Fire and forget
+            
             handleNodeDescriptorResponseIndication(ind);
             handleIndicationSearchSensors(ind, zclFrame);
         }
