@@ -542,6 +542,12 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     {
         return setWarningDeviceState(req, rsp, taskRef, map);
     }
+    // Danalock support. You need to check for taskRef.lightNode->type() == QLatin1String("Door lock"), similar to what I've done under hasAlert for the Siren.
+    bool isDoorLockDevice = false;
+    if (taskRef.lightNode->type() == QLatin1String("Door Lock"))
+    {
+       isDoorLockDevice = true;
+    }
 
     static const QStringList alertList({
         "none", "select", "lselect", "blink", "breathe", "okay", "channelchange", "finish", "stop"
@@ -847,8 +853,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
             ok = addTaskSetBrightness(task, 2, true);
         }
-        else
-        {
+        // Danalock support. In rest_lights.cpp, you need to call this routine from setLightState() under if (hasOn)
+        if (isDoorLockDevice) {
+             ok = addTaskDoorLockUnlock(task, 0x00 /*Lock*/);
+         } else {
             const quint8 cmd = taskRef.onTime > 0
                 ? ONOFF_COMMAND_ON_WITH_TIMED_OFF
                 : ONOFF_COMMAND_ON;
@@ -1387,6 +1395,9 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         copyTaskReq(taskRef, task);
         if (hasBri && hasTransitionTime) {
             ok = addTaskSetBrightness(task, 0, true);
+            // Danalock support. In rest_lights.cpp, you need to call this routine from setLightState() under if (hasOn)
+            } else if (isDoorLockDevice) {
+              ok = addTaskDoorLockUnlock(task, 0x01 /*UnLock*/);
         } else {
             const quint8 cmd = taskRef.lightNode->manufacturerCode() == VENDOR_PHILIPS // FIXME: use light capabilities
                 ? ONOFF_COMMAND_OFF_WITH_EFFECT
