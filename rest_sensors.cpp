@@ -904,6 +904,19 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                 {
                                     rspItemState[QString("error sending command for %1").arg(sensor->modelId())] = val;
                                 }
+                                //Idk for other device
+                                if (sensor->modelId() == QLatin1String("SLR2") )
+                                {
+                                    //change automatically the Setpoint Hold
+                                    // Add a timer for Boost mode
+                                    if (mode == 0x00) { addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0023, deCONZ::Zcl8BitEnum, 0x00); }
+                                    else if (mode == 0x04) { addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0023, deCONZ::Zcl8BitEnum, 0x01); }
+                                    else if (mode == 0x05)
+                                    {
+                                        addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0023, deCONZ::Zcl8BitEnum, 0x01) ;
+                                        addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0024, deCONZ::Zcl16BitInt, 0x003c) ;
+                                    }
+                                }
                             }
                             rspItem["success"] = rspItemState;
                         }

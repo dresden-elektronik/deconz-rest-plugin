@@ -1657,15 +1657,15 @@ by the Poll Control Cluster Client.</description>
 						<value name="Cooling and Heating 4-pipes with Reheat" value="5"></value>
 					</attribute>
 					<attribute id="0x001c" name="System Mode" type="enum8" default="0x01" access="rw" required="m">
-						<value name="Off" value="0"></value>
-						<value name="Auto" value="1"></value>
-						<value name="Cool" value="3"></value>
-						<value name="Heat" value="4"></value>
-						<value name="Emergency heating" value="5"></value>
-						<value name="Precooling" value="6"></value>
-						<value name="Fan only" value="7"></value>
-						<value name="Dry" value="8"></value>
-						<value name="Sleep" value="9"></value>
+						<value name="Off" value="0x00"></value>
+						<value name="Auto" value="0x01"></value>
+						<value name="Cool" value="0x03"></value>
+						<value name="Heat" value="0x04"></value>
+						<value name="Emergency heating" value="0x05"></value>
+						<value name="Precooling" value="0x06"></value>
+						<value name="Fan only" value="0x07"></value>
+						<value name="Dry" value="0x08"></value>
+						<value name="Sleep" value="0x09"></value>
 					</attribute>
 					<attribute id="0x001d" name="Alarm Mask" type="bmp8" default="0" access="r" required="o">
 						<value name="Initialization failure" value="0"></value>
@@ -1690,7 +1690,7 @@ by the Poll Control Cluster Client.</description>
 					</attribute>
 					<attribute id="0x0021" name="Number of Weekly Transitions" type="u8" range="0x00,0xff" access="r" required="o"></attribute>
 					<attribute id="0x0022" name="Number of Dail Transitions" type="u8" range="0x00,0xff" access="r" required="o"></attribute>
-					<attribute id="0x0023" name="Temperature Setpoint Hold" type="enum8" default="0x00" access="r" required="o">
+					<attribute id="0x0023" name="Temperature Setpoint Hold" type="enum8" default="0x00" access="rw" required="o">
 						<value name="Setpoint Hold Off" value="0"></value>
 						<value name="Setpoint Hold On" value="1"></value>
 					</attribute>
@@ -3139,6 +3139,27 @@ devices can operate on either battery or mains power, and can have a wide variet
 				<attribute id="0x0003" name="Z-Value" type="u16" default="0x0000" access="r" required="m" showas="dec">
 					<description>Z-Value</description>
 				</attribute>
+
+			</server>
+			<client>
+			</client>
+		</cluster>
+
+		<!-- Tuya -->
+		<cluster id="0xef00" name="Tuya specific Cluster" mfcode="0x1002">
+			<description>Tuya Specific clusters.</description>
+			<server>
+
+			<command id="00" dir="recv" name="Unknow" required="m">
+				<description>Command</description>
+				<payload>
+					<attribute id="0x0000" type="u8" name="Status" required="m" showas="hex" default="0x00"></attribute>
+					<attribute id="0x0001" type="u8" name="TransID" required="m" showas="hex" default="0x00"></attribute>
+					<attribute id="0x0002" type="u16" name="Dp" required="m" showas="hex" default="0x0000"></attribute>
+					<attribute id="0x0003" type="u8" name="fn" required="m" showas="hex" default="0x00"></attribute>
+					<attribute id="0x0004" type="ostring" name="data" required="m" default="1,0x0000"></attribute>
+				</payload>
+			</command>
 
 			</server>
 			<client>
