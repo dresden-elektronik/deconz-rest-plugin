@@ -661,6 +661,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     quint32 hostFlags = 0;
     bool offsetUpdated = false;
     qint16 offset = 0;
+    QMap<quint16, quint32> AttributeList;
     bool tholdUpdated = false;
     uint8_t pendingMask = 0;
     QVariant var = Json::parse(req.content, ok);
@@ -853,73 +854,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     		}
                     		rspItem["success"] = rspItemState;
                     	}
-
-                        else if (sensor->modelId() == QLatin1String("Cable outlet"))
-                        {
-                            QString mode_set = map[pi.key()].toString();
-                            quint64 mode = 10;
-                            if (mode_set == "confort") { mode = 0x00; }
-                            else if (mode_set == "confort-1") { mode = 0x01; }
-                            else if (mode_set == "confort-2") { mode = 0x02; }
-                            else if (mode_set == "eco") { mode = 0x03; }
-                            else if (mode_set == "hors gel") { mode = 0x04; }
-                            else if (mode_set == "off") { mode = 0x05; }
-                            else
-                            {
-                                rspItemState[QString("error unknow mode for %1").arg(sensor->modelId())] = val;
-                            }
-
-                            if (mode < 10)
-                            {
-                                if (!addTaskControlModeCmd(task, 0x00, mode))
-                                {
-                                    rspItemState[QString("error sending command for %1").arg(sensor->modelId())] = val;
-                                }
-                            }
-                            rspItem["success"] = rspItemState;
-                        }
-                        
-                        else if (sensor->modelId() == QLatin1String("SLR2") || //Hive
-                                 sensor->modelId().startsWith(QLatin1String("TH112")) ) // Sinope
-                        {
-                            QString mode_set = map[pi.key()].toString();
-                            quint8 mode = 0x00;
-                            if (mode_set == "off") { mode = 0x00; }
-                            else if (mode_set == "auto") { mode = 0x01; }
-                            else if (mode_set == "cool") { mode = 0x03; }
-                            else if (mode_set == "heat") { mode = 0x04; }
-                            else if (mode_set == "emergency heating") { mode = 0x05; }
-                            else if (mode_set == "precooling") { mode = 0x06; }
-                            else if (mode_set == "fan only") { mode = 0x07; }
-                            else if (mode_set == "dry") { mode = 0x08; }
-                            else if (mode_set == "sleep") { mode = 0x09; }
-                            else
-                            {
-                                rspItemState[QString("error unknow mode for %1").arg(sensor->modelId())] = val;
-                            }
-
-                            if (mode < 10)
-                            {
-                                if (!addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x001C, deCONZ::Zcl8BitEnum, mode))
-                                {
-                                    rspItemState[QString("error sending command for %1").arg(sensor->modelId())] = val;
-                                }
-                                //Idk for other device
-                                if (sensor->modelId() == QLatin1String("SLR2") )
-                                {
-                                    //change automatically the Setpoint Hold
-                                    // Add a timer for Boost mode
-                                    if (mode == 0x00) { addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0023, deCONZ::Zcl8BitEnum, 0x00); }
-                                    else if (mode == 0x04) { addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0023, deCONZ::Zcl8BitEnum, 0x01); }
-                                    else if (mode == 0x05)
-                                    {
-                                        addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0023, deCONZ::Zcl8BitEnum, 0x01) ;
-                                        addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0024, deCONZ::Zcl16BitInt, 0x003c) ;
-                                    }
-                                }
-                            }
-                            rspItem["success"] = rspItemState;
-                        }
                         
                     }
 
@@ -1054,6 +988,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 return REQ_READY_SEND;
             }
 
+            //Special part for thermostat
             if (sensor->type() == "ZHAThermostat")
             {
                 if (rid.suffix == RConfigOffset)
@@ -1139,6 +1074,71 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         return REQ_READY_SEND;
                     }
                 }
+                else if ((rid.suffix == RConfigMode) && !sensor->modelId().startsWith(QLatin1String("SPZB")))
+                {
+                    // Legrand cable outlet
+                    if (sensor->modelId() == QLatin1String("Cable outlet"))
+                    {
+                        QString mode_set = map[pi.key()].toString();
+                        quint64 mode = 10;
+                        if (mode_set == "confort") { mode = 0x00; }
+                        else if (mode_set == "confort-1") { mode = 0x01; }
+                        else if (mode_set == "confort-2") { mode = 0x02; }
+                        else if (mode_set == "eco") { mode = 0x03; }
+                        else if (mode_set == "hors gel") { mode = 0x04; }
+                        else if (mode_set == "off") { mode = 0x05; }
+                        else
+                        {
+                            rspItemState[QString("error unknow mode for %1").arg(sensor->modelId())] = val;
+                        }
+
+                        if (mode < 10)
+                        {
+                            if (!addTaskControlModeCmd(task, 0x00, mode))
+                            {
+                                rspItemState[QString("error sending command for %1").arg(sensor->modelId())] = val;
+                            }
+                        }
+                        rspItem["success"] = rspItemState;
+                    }
+                    else if (sensor->modelId() == QLatin1String("SLR2") || //Hive
+                             sensor->modelId().startsWith(QLatin1String("TH112")) ) // Sinope
+                    {
+                        QString mode_set = map[pi.key()].toString();
+                        quint8 mode = 0x00;
+                        if (mode_set == "off") { mode = 0x00; }
+                        else if (mode_set == "auto") { mode = 0x01; }
+                        else if (mode_set == "cool") { mode = 0x03; }
+                        else if (mode_set == "heat") { mode = 0x04; }
+                        else if (mode_set == "emergency heating") { mode = 0x05; }
+                        else if (mode_set == "precooling") { mode = 0x06; }
+                        else if (mode_set == "fan only") { mode = 0x07; }
+                        else if (mode_set == "dry") { mode = 0x08; }
+                        else if (mode_set == "sleep") { mode = 0x09; }
+                        else
+                        {
+                            rspItemState[QString("error unknow mode for %1").arg(sensor->modelId())] = val;
+                        }
+
+                        if (mode < 10)
+                        {
+                            AttributeList.insert(0x001C, mode);
+                            //Idk for other device
+                            if (sensor->modelId() == QLatin1String("SLR2") )
+                            {
+                                //change automatically the Setpoint Hold
+                                // Add a timer for Boost mode
+                                if (mode == 0x00) { AttributeList.insert(0x0023, 0x00); }
+                                else if (mode == 0x04) { AttributeList.insert(0x0023, 0x01); }
+                                else if (mode == 0x05)
+                                {
+                                    AttributeList.insert(0x0023, 0x01);
+                                    AttributeList.insert(0x0026, 0x003c);
+                                }
+                            }
+                        }
+                    }
+                }
                 else if ((rid.suffix == RConfigDisplayFlipped || rid.suffix == RConfigLocked || rid.suffix == RConfigMode)
                          && sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit)
                 {
@@ -1208,6 +1208,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
         }
     }
 
+    //Make Thermostat Tasks
     if (hostFlags != 0 && sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit)
     {
         if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_JENNIC, 0x4008, deCONZ::Zcl24BitUint, hostFlags))
@@ -1220,7 +1221,21 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
             rsp.httpStatus = HttpStatusBadRequest;
             return REQ_READY_SEND;
         }
-
+    }
+    if (!AttributeList.isEmpty())
+    {
+        if (!addTaskThermostatWriteAttributeList(task, 0, AttributeList))
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE,
+                                       QString("/sensors/%1/%2").arg(id).arg(rid.suffix),
+                                       QString("could not set attribute value=%1").arg(map[pi.key()].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+        else
+        {
+            updated = true;
+        }
     }
 
     if (tholdUpdated)

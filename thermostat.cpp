@@ -788,6 +788,80 @@ bool DeRestPluginPrivate::addTaskThermostatReadWriteAttribute(TaskItem &task, ui
     return addTask(task);
 }
 
+/*! Write Attribute List on thermostat cluster.
+   \param task - the task item
+   \param AttributeList
+   \return true - on success
+           false - on error
+ */
+bool DeRestPluginPrivate::addTaskThermostatWriteAttributeList(TaskItem &task, uint16_t mfrCode, QMap<quint16, quint32> &AttributeList )
+{
+
+    task.taskType = TaskThermostat;
+
+    task.req.setClusterId(THERMOSTAT_CLUSTER_ID);
+    task.req.setProfileId(HA_PROFILE_ID);
+
+    task.zclFrame.payload().clear();
+    task.zclFrame.setSequenceNumber(zclSeq++);
+    task.zclFrame.setCommandId(deCONZ::ZclWriteAttributesId);
+    task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+            deCONZ::ZclFCDirectionClientToServer |
+            deCONZ::ZclFCDisableDefaultResponse);
+
+    if (mfrCode != 0x0000)
+    {
+        task.zclFrame.setFrameControl(task.zclFrame.frameControl() | deCONZ::ZclFCManufacturerSpecific);
+        task.zclFrame.setManufacturerCode(mfrCode);
+    }
+
+    // payload
+    quint16 attrId;
+    quint8 attrType;
+    quint32 attrValue;
+    
+    QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
+    stream.setByteOrder(QDataStream::LittleEndian);
+    
+    QMapIterator<QString, int> i(AttributeList);
+    while (i.hasNext()) {
+        i.next();
+        attrId = i.key();
+        attrValue = i.value();
+        
+        //attribute
+        stream << (quint16) attrId;
+        
+        //type and value
+        switch (attrId)
+        {
+            case 0x0023:
+            case 0x001C:
+                stream << (quint8) deCONZ::Zcl8BitUint;
+                stream << (quint8) attrValue;
+                break;
+            case 0x0024:
+                stream << (quint8) deCONZ::Zcl16BitInt;
+                stream << (quint16) attrValue;
+                break;
+            default:
+            {
+                // to avoid
+            }
+            break;
+        }
+    }
+
+    { // ZCL frame
+        task.req.asdu().clear(); // cleanup old request data if there is any
+        QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        task.zclFrame.writeToStream(stream);
+    }
+
+    return addTask(task);
+}
+
 /*! Adds a control mode command task to the queue. Used by Legrand
 
    \param task - the task item
