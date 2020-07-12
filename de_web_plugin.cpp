@@ -7523,7 +7523,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId().startsWith(QLatin1String("PSMP5_")) ||  // Climax
                                     i->modelId().startsWith(QLatin1String("SKHMP30")) || // GS smart plug
                                     i->modelId().startsWith(QLatin1String("E13-")) ||    // Sengled PAR38 Bulbs
-                                    i->modelId().startsWith(QLatin1String("Connected s"))) // Niko smart socket
+                                    i->modelId() == QLatin1String("Connected socket outlet")) // Niko smart socket
                                 {
                                     consumption += 5; consumption /= 10; // 0.1 Wh -> Wh
                                 }
@@ -7637,7 +7637,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         power *= 128; power /= 1000;
                                     }
-                                    else if (i->modelId().startsWith(QLatin1String("Connected s"))) // Niko smart socket
+                                    else if (i->modelId() == QLatin1String("Connected socket outlet")) // Niko smart socket
                                     {
                                         power *= 1123; power /= 10000;
                                     }
@@ -7675,7 +7675,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                              i->modelId() == QLatin1String("EMIZB-13") ||         // Develco EMI
                                              i->modelId().startsWith(QLatin1String("ROB_200")) || // ROBB Smarrt micro dimmer
                                              i->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
-                                             i->modelId().startsWith(QLatin1String("Connected s")) || // Niko smart socket
+                                             i->modelId() == QLatin1String("Connected socket outlet") || // Niko smart socket
                                              i->modelId().startsWith(QLatin1String("TH112"))) // Sinope Thermostats
                                     {
                                         voltage /= 10; // 0.1V -> V
@@ -7710,7 +7710,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId() == QLatin1String("TS0121") ||            // Tuya smart plug
                                         i->modelId().startsWith(QLatin1String("ROB_200")) ||  // ROBB Smarrt micro dimmer
                                         i->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
-                                        i->modelId().startsWith(QLatin1String("Connected s")) || // Niko smart socket
+                                        i->modelId() == QLatin1String("Connected socket outlet") || // Niko smart socket
                                         i->modelId().startsWith(QLatin1String("S1")) || // Ubisys S1/S1-R
                                         i->modelId().startsWith(QLatin1String("S2")) || // Ubisys S2/S2-R
                                         i->modelId().startsWith(QLatin1String("J1")) || // Ubisys J1/J1-R

@@ -1303,7 +1303,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") ||      // Heiman
                        sensor->modelId() == QLatin1String("SKHMP30-I1") ||     // GS smart plug
                        sensor->modelId().startsWith(QLatin1String("E13-")) ||  // Sengled PAR38 Bulbs
-                       sensor->modelId().startsWith(QLatin1String("Connected s")))) // Niko smart socket
+                       sensor->modelId() == QLatin1String("Connected socket outlet"))) // Niko smart socket
         {
             rq.reportableChange48bit = 10; // 0.001 kWh (1 Wh)
         }
@@ -1355,6 +1355,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") ||   // Heiman
                        sensor->modelId() == QLatin1String("SKHMP30-I1") ||  // GS smart plug
                        sensor->modelId() == QLatin1String("SZ-ESW01-AU") || // Sercomm / Telstra smart plug
+                       sensor->modelId() == QLatin1String("Connected socket outlet") || // Niko smart socket
                        sensor->modelId().startsWith(QLatin1String("ROB_200")) || // ROBB Smarrt micro dimmer
                        sensor->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
                        sensor->modelId().startsWith(QLatin1String("lumi.plug.maeu")))) // Xiaomi Aqara ZB3.0 smart plug
@@ -1382,7 +1383,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
         else if (sensor && (sensor->modelId().startsWith(QLatin1String("ROB_200")) || // ROBB Smarrt micro dimmer
                             sensor->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
-                            sensor->modelId().startsWith(QLatin1String("Connected s")) || // Niko smart socket
+                            sensor->modelId() == QLatin1String("Connected socket outlet") || // Niko smart socket
                             sensor->modelId().startsWith(QLatin1String("TH112")))) // Sinope Thermostats
         {
             rq2.reportableChange16bit = 10; // 1 V
@@ -1400,7 +1401,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         if (sensor && (sensor->modelId() == QLatin1String("SP 120") ||           // innr
                        sensor->modelId() == QLatin1String("DoubleSocket50AU") || // Aurora
                        sensor->modelId() == QLatin1String("SZ-ESW01-AU") ||      // Sercomm / Telstra smart plug
-                       sensor->modelId().startsWith(QLatin1String("Connected s")) || // Niko smart socket
+                       sensor->modelId() == QLatin1String("Connected socket outlet") || // Niko smart socket
                        sensor->modelId() == QLatin1String("TS0121")))            // Tuya / Blitzwolf
         {
             rq3.reportableChange16bit = 100; // 0.1 A
