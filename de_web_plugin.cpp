@@ -7303,7 +7303,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     if (i->type() == QLatin1String("ZHAPower"))
                                     {
-                                        qint16 power = ia->numericValue().real;
+                                        qint16 power = static_cast<qint16>(round(ia->numericValue().real));
                                         ResourceItem *item = i->item(RStatePower);
 
                                         if (item)
