@@ -991,6 +991,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
             //Special part for thermostat
             if (sensor->type() == "ZHAThermostat")
             {
+                DBG_Printf(DBG_INFO, "SLR2 debug 0\n");
+                
                 if (rid.suffix == RConfigOffset)
                 {
                     bool ok;
