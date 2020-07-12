@@ -1383,6 +1383,7 @@ public:
     bool addTaskThermostatCmd(TaskItem &task, uint8_t cmd, int8_t setpoint, const QString &schedule, uint8_t daysToReturn);
     bool addTaskThermostatSetAndGetSchedule(TaskItem &task, const QString &sched);
     bool addTaskThermostatReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t mfrCode, uint16_t attrId, uint8_t attrType, uint32_t attrValue);
+    bool addTaskThermostatWriteAttributeList(TaskItem &task, uint16_t mfrCode, QMap<quint16, quint32> &AttributeList );
     bool addTaskControlModeCmd(TaskItem &task, uint8_t cmdId, int8_t mode);
     void handleGroupClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleSceneClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
