@@ -1089,14 +1089,14 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         else if (mode_set == "off") { mode = 0x05; }
                         else
                         {
-                            rspItemState[QString("error unknow mode for %1").arg(sensor->modelId())] = val;
+                            rspItemState[QString("error unknow mode for %1").arg(sensor->modelId())] = map[pi.key()];
                         }
 
                         if (mode < 10)
                         {
                             if (!addTaskControlModeCmd(task, 0x00, mode))
                             {
-                                rspItemState[QString("error sending command for %1").arg(sensor->modelId())] = val;
+                                rspItemState[QString("error sending command for %1").arg(sensor->modelId())] = map[pi.key()];
                             }
                         }
                         rspItem["success"] = rspItemState;
@@ -1117,7 +1117,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         else if (mode_set == "sleep") { mode = 0x09; }
                         else
                         {
-                            rspItemState[QString("error unknow mode for %1").arg(sensor->modelId())] = val;
+                            rspItemState[QString("error unknow mode for %1").arg(sensor->modelId())] = map[pi.key()];
                         }
 
                         if (mode < 10)
@@ -1227,8 +1227,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
         if (!addTaskThermostatWriteAttributeList(task, 0, AttributeList))
         {
             rsp.list.append(errorToMap(ERR_INVALID_VALUE,
-                                       QString("/sensors/%1/%2").arg(id).arg(rid.suffix),
-                                       QString("could not set attribute value=%1").arg(map[pi.key()].toString())));
+                                       QString("/sensors/%1/").arg(id),
+                                       QString("could not set thermostat attribute")));
             rsp.httpStatus = HttpStatusBadRequest;
             return REQ_READY_SEND;
         }
