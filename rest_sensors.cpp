@@ -1045,16 +1045,11 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 else if (rid.suffix == RConfigHeatSetpoint)
                 {
                     int16_t heatsetpoint = map[pi.key()].toUInt(&ok);
-                    uint16_t mfrCode = 0;
-                    uint16_t attrId = 0x0012;
 
                     if (sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
                     {
-                        mfrCode = VENDOR_JENNIC;
-                        attrId = 0x4003;
-
                         // Setting the heat setpoint disables off/boost modes, but this is not reported back by the thermostat.
-			                  // Hence, the off/boost flags will be removed here to reflect the actual operating state.
+			            // Hence, the off/boost flags will be removed here to reflect the actual operating state.
                         if (hostFlags == 0)
                         {
                             ResourceItem *item = sensor->item(RConfigHostFlags);
@@ -1063,19 +1058,23 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 
                         hostFlags &= ~0x04; // clear `boost` flag
                         hostFlags |=  0x10; // set `disable off` flag
-                    }
 
-                    if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, mfrCode, attrId, deCONZ::Zcl16BitInt, heatsetpoint))
-                    {
-                        updated = true;
+                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_JENNIC, 0x4003, deCONZ::Zcl16BitInt, heatsetpoint))
+                        {
+                            updated = true;
+                        }
+                        else
+                        {
+                            rsp.list.append(errorToMap(ERR_INVALID_VALUE,
+                                                       QString("/sensors/%1/%2").arg(id).arg(rid.suffix),
+                                                       QString("could not set attribute value=%1").arg(map[pi.key()].toString())));
+                            rsp.httpStatus = HttpStatusBadRequest;
+                            return REQ_READY_SEND;
+                        }
                     }
                     else
                     {
-                        rsp.list.append(errorToMap(ERR_INVALID_VALUE,
-                                                   QString("/sensors/%1/%2").arg(id).arg(rid.suffix),
-                                                   QString("could not set attribute value=%1").arg(map[pi.key()].toString())));
-                        rsp.httpStatus = HttpStatusBadRequest;
-                        return REQ_READY_SEND;
+                        AttributeList.insert(0x0012, (quint32)heatsetpoint);
                     }
                 }
                 else if ((rid.suffix == RConfigMode) && !sensor->modelId().startsWith(QLatin1String("SPZB")))
@@ -1129,18 +1128,18 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 
                         if (mode < 10)
                         {
-                            AttributeList.insert(0x001C, mode);
+                            AttributeList.insert(0x001C, (quint32)mode);
                             //Idk for other device
                             if (sensor->modelId() == QLatin1String("SLR2") )
                             {
                                 //change automatically the Setpoint Hold
                                 // Add a timer for Boost mode
-                                if (mode == 0x00) { AttributeList.insert(0x0023, 0x00); }
-                                else if (mode == 0x04) { AttributeList.insert(0x0023, 0x01); }
+                                if (mode == 0x00) { AttributeList.insert(0x0023, (quint32)0x00); }
+                                else if (mode == 0x04) { AttributeList.insert(0x0023, (quint32)0x01); }
                                 else if (mode == 0x05)
                                 {
-                                    AttributeList.insert(0x0023, 0x01);
-                                    AttributeList.insert(0x0026, 0x003c);
+                                    AttributeList.insert(0x0023, (quint32)0x01);
+                                    AttributeList.insert(0x0026, (quint32)0x003c);
                                 }
                             }
                         }
