@@ -668,6 +668,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     QVariantMap map = var.toMap();
     QVariantMap rspItem;
     QVariantMap rspItemState;
+    
+    DBG_Printf(DBG_INFO, "SLR2 debug 6\n");
 
 //    QRegExp latitude("^\\d{3,3}\\.\\d{4,4}(W|E)$");
 //    QRegExp longitude("^\\d{3,3}\\.\\d{4,4}(N|S)$");
