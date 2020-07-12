@@ -839,6 +839,7 @@ bool DeRestPluginPrivate::addTaskThermostatWriteAttributeList(TaskItem &task, ui
                 stream << (quint8) deCONZ::Zcl8BitEnum;
                 stream << (quint8) attrValue;
                 break;
+            case 0x0012:
             case 0x0024:
                 stream << (quint8) deCONZ::Zcl16BitInt;
                 stream << (quint16) attrValue;
