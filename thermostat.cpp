@@ -817,13 +817,12 @@ bool DeRestPluginPrivate::addTaskThermostatWriteAttributeList(TaskItem &task, ui
 
     // payload
     quint16 attrId;
-    quint8 attrType;
     quint32 attrValue;
     
     QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
     stream.setByteOrder(QDataStream::LittleEndian);
     
-    QMapIterator<QString, int> i(AttributeList);
+    QMapIterator<quint16, quint32> i(AttributeList);
     while (i.hasNext()) {
         i.next();
         attrId = i.key();
