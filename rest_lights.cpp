@@ -542,6 +542,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     {
         return setWarningDeviceState(req, rsp, taskRef, map);
     }
+    else if (taskRef.lightNode->modelId() == QLatin1String("TS0601"))
+    {
+        return setTuyaDeviceState(req, rsp, taskRef, map);
+    }
 
     static const QStringList alertList({
         "none", "select", "lselect", "blink", "breathe", "okay", "channelchange", "finish", "stop"
@@ -1745,6 +1749,117 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
 
     rsp.etag = taskRef.lightNode->etag;
     processTasks();
+    return REQ_READY_SEND;
+}
+
+// Tuya Devices
+//
+int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map)
+{
+    QString id = req.path[3];
+    bool isOn = false;
+    bool hasOn = map.contains("on");
+
+    if (hasOn)
+    {
+        if (map["on"].type() == QVariant::Bool)
+        {
+            bool ok = false;
+            qint16 button = 0x0101;
+            
+            //Retreive Fake endpoint, and change button value
+            uint8_t ep = taskRef.lightNode->haEndpoint().endpoint();
+            if (ep == 0x02) { button = 0x0102; }
+            if (ep == 0x03) { button = 0x0103; }
+            
+            DBG_Printf(DBG_INFO, "Tuya debug 77: EP:  %d\n",  ep );
+
+            TaskItem task;
+            copyTaskReq(taskRef, task);
+            
+            //Tuya task
+            task.taskType = TaskSendOnOffToggle;
+
+            task.req.setClusterId(TUYA_CLUSTER_ID);
+            task.req.setProfileId(HA_PROFILE_ID);
+
+            task.zclFrame.payload().clear();
+            task.zclFrame.setSequenceNumber(zclSeq++);
+            task.zclFrame.setCommandId(0x00); // Command 0x00
+            task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
+                    deCONZ::ZclFCDirectionClientToServer);
+
+            // payload
+            QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
+            stream.setByteOrder(QDataStream::LittleEndian);
+            
+            //Status always 0x00
+            stream << (qint8) 0x00;
+            //TransID , use 0
+            stream << (qint8) 0x00;
+            //Dp, Button ID
+            stream << (qint16) button;
+            //Fn , always 0
+            stream << (qint8) 0x00;
+            // Data
+            stream << (quint8) 0x41; // octet string
+            stream << (qint8) 0x01; // len = 1
+            
+            if (isOn)
+            {
+                stream << (quint8) '1';
+            }
+            else
+            {
+                stream << (quint8) '0';
+            }
+
+
+            { // ZCL frame
+                task.req.asdu().clear(); // cleanup old request data if there is any
+                QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
+                stream.setByteOrder(QDataStream::LittleEndian);
+                task.zclFrame.writeToStream(stream);
+            }
+
+            ok = addTask(task);
+
+            if (ok)
+            {
+                QVariantMap rspItem;
+                QVariantMap rspItemState;
+                rspItemState[QString("/lights/%1/state/on").arg(id)] = isOn;
+                rspItem["success"] = rspItemState;
+                rsp.list.append(rspItem);
+                taskToLocalData(task);
+            }
+            else
+            {
+                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+            }
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state/on").arg(id), QString("parameter, not available")));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+    }
+    else
+    {
+        rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state/on").arg(id), QString("parameter not available")));
+        rsp.httpStatus = HttpStatusBadRequest;
+        return REQ_READY_SEND;
+    }
+
+    //if (taskRef.lightNode)
+    //{
+    //    updateLightEtag(taskRef.lightNode);
+    //    rsp.etag = taskRef.lightNode->etag;
+    //}
+
+    processTasks();
+
     return REQ_READY_SEND;
 }
 

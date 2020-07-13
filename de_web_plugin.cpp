@@ -309,6 +309,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "TS0121", silabs3MacPrefix }, // Tuya/Blitzwolf smart plug
     { VENDOR_EMBER, "TS0121", silabs3MacPrefix }, // Tuya/Blitzwolf smart plug
     { VENDOR_EMBER, "TS0302", silabs3MacPrefix }, // Tuya curtain switch
+    { VENDOR_NONE, "kud7u2l", silabs3MacPrefix }, // Tuya Smart TRV HY369 Thermostatic Radiator Valve
     { VENDOR_AURORA, "DoubleSocket50AU", jennicMacPrefix }, // Aurora AOne Double Socket UK
     { VENDOR_COMPUTIME, "SP600", computimeMacPrefix }, // Salus smart plug
     { VENDOR_HANGZHOU_IMAGIC, "1116-S", energyMiMacPrefix }, // iris contact sensor v3
@@ -722,6 +723,11 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
         case WINDOW_COVERING_CLUSTER_ID:
             handleWindowCoveringClusterIndication(ind, zclFrame);
+            break;
+
+        case TUYA_CLUSTER_ID:
+            // Tuya manfacture cluster:
+            handleTuyaClusterIndication(ind, zclFrame);
             break;
 
         case THERMOSTAT_CLUSTER_ID:
@@ -1651,6 +1657,69 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
     {
         return;
     }
+    
+    //Make 2 fakes device for tuya stuff
+    if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER)
+    {
+        const deCONZ::SimpleDescriptor *sd = &node->simpleDescriptors()[0];
+        bool hasTuyaCluster = false;
+        
+        if (sd && (sd->deviceId() == DEV_ID_SMART_PLUG) && (node->simpleDescriptors().size() < 2))
+        {
+
+            for (int c = 0; c < sd->inClusters().size(); c++)
+            {
+                if (sd->inClusters()[c].id() == TUYA_CLUSTER_ID) { hasTuyaCluster = true; }
+            }
+            
+            if (hasTuyaCluster) 
+            {
+                DBG_Printf(DBG_INFO, "Tuya : debug 13\n");
+
+                //Ok it's the good device, make 2 clones with differents endpoints
+                
+                //Note for me, to remove later
+                //sudo cp /usr/share/deCONZ/plugins/libde_rest_plugin.so /usr/share/deCONZ/plugins/libde_rest_plugin2.so
+
+                //node is not modifiable (WHY ?) so use an ugly way
+                deCONZ::Node *NodePachable = const_cast<deCONZ::Node*>(&*node);
+
+                deCONZ::SimpleDescriptor sd1;
+                deCONZ::SimpleDescriptor sd2;
+
+                const deCONZ::SimpleDescriptor &csd1 = sd1;
+                const deCONZ::SimpleDescriptor &csd2 = sd2;
+
+                node->copySimpleDescriptor(0x01, &sd1);
+                node->copySimpleDescriptor(0x01, &sd2);
+
+                sd1.setEndpoint(0x02);
+                sd2.setEndpoint(0x03);
+                
+                //remove useless cluster
+                if (false)
+                {
+					QList<deCONZ::ZclCluster> &cl = sd1.inClusters();
+					cl.clear();
+
+					for (const deCONZ::ZclCluster &cl2 : sd2.inClusters())
+					{
+						if (cl2.id() == TUYA_CLUSTER_ID)
+						{
+							cl.append(cl2);
+						}
+					}
+			    }
+
+                NodePachable->setSimpleDescriptor(csd1);
+                NodePachable->setSimpleDescriptor(csd2);
+
+                // Update node
+                apsCtrl->updateNode(*NodePachable);
+
+            }
+        }
+    }
 
     QList<deCONZ::SimpleDescriptor>::const_iterator i = node->simpleDescriptors().constBegin();
     QList<deCONZ::SimpleDescriptor>::const_iterator end = node->simpleDescriptors().constEnd();
@@ -1669,6 +1738,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             else if (i->inClusters()[c].id() == COLOR_CLUSTER_ID) { hasServerColor = true; }
             else if (i->inClusters()[c].id() == WINDOW_COVERING_CLUSTER_ID) { hasServerOnOff = true; }
             else if (i->inClusters()[c].id() == IAS_WD_CLUSTER_ID) { hasIASWDCluster = true; }
+            else if (i->inClusters()[c].id() == TUYA_CLUSTER_ID) { hasServerOnOff = true; }
         }
 
         // check if node already exist
@@ -4534,6 +4604,15 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     }
                 }
                     break;
+                    
+                case TUYA_CLUSTER_ID:
+                {
+                    if (modelId == QLatin1String("kud7u2l"))
+                    {
+                        fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
+                    }
+                }
+                    break;
 
                 case SAMJIN_CLUSTER_ID:
                 {
@@ -5030,7 +5109,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
         // ZHAThermostat
         if (fpThermostatSensor.hasInCluster(THERMOSTAT_CLUSTER_ID) ||
-           (fpThermostatSensor.hasInCluster(LEGRAND_CONTROL_CLUSTER_ID) && modelId == QLatin1String("Cable outlet")))
+           (fpThermostatSensor.hasInCluster(LEGRAND_CONTROL_CLUSTER_ID) && modelId == QLatin1String("Cable outlet")) ||
+           (fpThermostatSensor.hasInCluster(TUYA_CLUSTER_ID) && modelId == QLatin1String("kud7u2l")) )
         {
             fpThermostatSensor.endpoint = i->endpoint();
             fpThermostatSensor.deviceId = i->deviceId();
@@ -13257,6 +13337,109 @@ void DeRestPluginPrivate::handlePhilipsClusterIndication(const deCONZ::ApsDataIn
             }
         }
     }
+}
+
+/*! Handle packets related to Tuya 0xEF00 cluster.
+    \param ind the APS level data indication containing the ZCL packet
+    \param zclFrame the actual ZCL frame which holds the scene cluster reponse
+    
+    Taken from https://medium.com/@dzegarra/zigbee2mqtt-how-to-add-support-for-a-new-tuya-based-device-part-2-5492707e882d
+ */
+void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
+{    
+    if (zclFrame.isDefaultResponse())
+    {
+        return;
+    }
+
+    LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());
+
+    if (!lightNode)
+    {
+        return;
+    }
+    
+    DBG_Printf(DBG_INFO, "Tuya : debug 8\n");
+    
+    if (zclFrame.commandId() == 0x00)
+    {
+        // 0x00 : Used to send command
+    }
+    else if ( (zclFrame.commandId() == 0x01) || (zclFrame.commandId() == 0x02) )
+    {
+        // 0x01 Used to inform of changes in its state.
+        // 0x02 Send after receiving a 0x00 command.
+        
+        DBG_Printf(DBG_INFO, "Tuya : debug 1\n");
+        
+        if (zclFrame.payload().size() >= 7)
+        {
+            
+            bool onoff = false;
+            
+            QDataStream stream(zclFrame.payload());
+            stream.setByteOrder(QDataStream::LittleEndian);
+
+            uint8_t status;
+            uint8_t transid;
+            int16_t dp;
+            uint8_t fn;
+            quint8 data;
+            quint8 a;
+            
+            stream >> status;
+            stream >> transid;
+            stream >> dp;
+            stream >> fn;
+
+            stream >> a; // len
+            stream >> data; // data
+            
+            DBG_Printf(DBG_INFO, "Tuya debug 4: status: %d transid: %d dp: %d fn: %d\n", status , transid , dp , fn );
+            DBG_Printf(DBG_INFO, "Tuya debug 5: data:  %d\n",  data );
+            
+            if (data == '1') { onoff = true; }
+            
+            {
+                uint ep = 0x01;
+                if (dp == 0x0102) { ep = 0x02; }
+                if (dp == 0x0103) { ep = 0x03; }
+            
+                lightNode = getLightNodeForAddress(ind.srcAddress(), ep);
+
+                if (!lightNode)
+                {
+                    return;
+                }
+                
+                ResourceItem *item = lightNode->item(RStateOn);
+                if (item && item->toBool() != onoff)
+                {
+                    item->setValue(onoff);
+                    Event e(RLights, RStateOn, lightNode->id(), item);
+                    enqueueEvent(e);
+
+                    // Update Node light
+                    updateEtag(lightNode->etag);
+                    updateEtag(gwConfigEtag);
+                    lightNode->setNeedSaveDatabase(true);
+                    saveDatabaseItems |= DB_LIGHTS;
+                }
+            
+            }
+            
+        }
+        else
+        {
+            DBG_Printf(DBG_INFO, "Tuya : debug 2");
+        }
+        
+    }
+    else
+    {
+        return;
+    }
+
 }
 
 /*! Handle packets related to the ZCL Commissioning cluster.

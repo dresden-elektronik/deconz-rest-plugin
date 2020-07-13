@@ -192,6 +192,7 @@
 #define APPLIANCE_EVENTS_AND_ALERTS_CLUSTER_ID 0x0B02
 #define ELECTRICAL_MEASUREMENT_CLUSTER_ID     0x0B04
 #define COMMISSIONING_CLUSTER_ID              0x1000
+#define TUYA_CLUSTER_ID                       0xEF00
 #define DE_CLUSTER_ID                         0xFC00
 #define VENDOR_CLUSTER_ID                     0xFC00
 #define UBISYS_DEVICE_SETUP_CLUSTER_ID        0xFC00
@@ -970,6 +971,7 @@ public:
     int setLightState(const ApiRequest &req, ApiResponse &rsp);
     int setWindowCoveringState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
     int setWarningDeviceState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
+    int setTuyaDeviceState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
     int setLightAttributes(const ApiRequest &req, ApiResponse &rsp);
     int deleteLight(const ApiRequest &req, ApiResponse &rsp);
     int removeAllScenes(const ApiRequest &req, ApiResponse &rsp);
@@ -1397,6 +1399,7 @@ public:
     void handleBasicClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendBasicClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handlePhilipsClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleTuyaClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZclAttributeReportIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZclConfigureReportingResponseIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendZclDefaultResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, quint8 status);
