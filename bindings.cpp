@@ -2181,7 +2181,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Niko
         sensor->modelId() == QLatin1String("Connected socket outlet") ||
         // Sage
-        sensor->modelId() == QLatin1String("Bell"))
+        sensor->modelId() == QLatin1String("Bell") ||
+        // Sonoff
+        sensor->modelId() == QLatin1String("MS01"))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||

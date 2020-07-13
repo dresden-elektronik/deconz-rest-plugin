@@ -338,6 +338,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_PLUGWISE_BV, "160-01", emberMacPrefix }, // Plugwise smart plug
     { VENDOR_NIKO_NV, "Connected socket outlet", konkeMacPrefix }, // Niko smart socket 170-33505
     { VENDOR_ATMEL, "Bell", dishMacPrefix }, // Sage doorbell sensor
+    { VENDOR_NONE, "MS01", tiMacPrefix }, // Sonoff SNZB-03
 
     { 0, nullptr, 0 }
 };
@@ -4291,7 +4292,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("SN10ZW")) ||           // ORVIBO motion sensor
                              modelId.startsWith(QLatin1String("MOSZB-130")) ||        // Develco motion sensor
                              modelId == QLatin1String("4in1-Sensor-ZB3.0") ||         // Immax NEO ZB3.0 4 in 1 sensor E13-A21
-                             modelId == QLatin1String("E13-A21"))                     // Sengled E13-A21 PAR38 bulp with motion sensor
+                             modelId == QLatin1String("E13-A21") ||                   // Sengled E13-A21 PAR38 bulp with motion sensor
+                             modelId == QLatin1String("MS01"))                        // Sonoff SNZB-03
                     {
                         fpPresenceSensor.inClusters.push_back(ci->id());
                     }
