@@ -2184,7 +2184,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("Bell") ||
         // Sonoff
         sensor->modelId() == QLatin1String("MS01") ||
-        sensor->modelId() == QLatin1String("TH01"))
+        sensor->modelId() == QLatin1String("TH01") ||
+        sensor->modelId() == QLatin1String("DS01"))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||

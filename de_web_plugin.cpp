@@ -340,6 +340,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_ATMEL, "Bell", dishMacPrefix }, // Sage doorbell sensor
     { VENDOR_NONE, "MS01", tiMacPrefix }, // Sonoff SNZB-03
     { VENDOR_NONE, "TH01", tiMacPrefix }, // Sonoff SNZB-02
+    { VENDOR_NONE, "DS01", tiMacPrefix }, // Sonoff SNZB-04
 
     { 0, nullptr, 0 }
 };
@@ -4281,7 +4282,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("902010/21")) ||        // Bitron door/window sensor
                              modelId.startsWith(QLatin1String("WISZB-120")) ||        // Develco door/window sensor
                              modelId.startsWith(QLatin1String("ZHMS101")) ||          // Wattle (Develco) door/window sensor
-                             modelId == QLatin1String("E1D-G73"))                     // Sengled contact sensor
+                             modelId == QLatin1String("E1D-G73") ||                   // Sengled contact sensor
+                             modelId == QLatin1String("DS01"))                        // Sonoff SNZB-04
                     {
                         fpOpenCloseSensor.inClusters.push_back(ci->id());
                     }
