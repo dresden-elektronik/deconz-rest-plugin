@@ -768,6 +768,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
 
     bool hasOn = map.contains("on");
     bool hasOnTime = map.contains("ontime");
+    bool hasOpen = map.contains("open");
     bool hasBri = map.contains("bri");
     bool hasHue = map.contains("hue");
     bool hasSat = map.contains("sat");
@@ -782,6 +783,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
     bool hasWrap = map.contains("wrap");
 
     bool on = false;
+    bool targetOpen = false;
     uint bri = 0;
     uint hue = UINT_MAX;
     uint sat = UINT_MAX;
@@ -902,6 +904,37 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
         else
         {
             rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/groups/%1/action/on").arg(id), QString("invalid value, %1, for parameter, on").arg(map["on"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+    }
+
+    if (hasOpen)
+    {
+        hasOpen = false;
+        if (map["open"].type() == QVariant::Bool)
+        {
+            hasOpen = true;
+            targetOpen = map["open"].toBool();
+
+            TaskItem task;
+            copyTaskReq(taskRef, task);
+            if (addTaskWindowCovering(task, targetOpen ? WINDOW_COVERING_COMMAND_OPEN : WINDOW_COVERING_COMMAND_CLOSE, 0, 0))
+            {
+                QVariantMap rspItem;
+                QVariantMap rspItemState;
+                rspItemState[QString("/groups/%1/action/open").arg(id)] = targetOpen;
+                rspItem["success"] = rspItemState;
+                rsp.list.append(rspItem);
+            }
+            else
+            {
+                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/groups/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+            }
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/groups/%1/action/open").arg(id), QString("invalid value, %1, for parameter, on").arg(map["on"].toString())));
             rsp.httpStatus = HttpStatusBadRequest;
             return REQ_READY_SEND;
         }
@@ -1400,6 +1433,7 @@ int DeRestPluginPrivate::setGroupState(const ApiRequest &req, ApiResponse &rsp)
             return REQ_READY_SEND;
         }
 
+        group->alert = QLatin1String("alert");
         taskToLocalData(task);
 
         if ((task.taskType == TaskIdentify && addTaskIdentify(task, task.identifyTime)) ||
@@ -1805,6 +1839,7 @@ bool DeRestPluginPrivate::groupToMap(const ApiRequest &req, const Group *group, 
     action["bri"] = (double)group->level;
     action["sat"] = (double)group->sat;
     action["ct"] = (double)group->colorTemperature;
+    action["alert"] = group->alert;
     QVariantList xy;
 
     double colorX = group->colorX;

@@ -658,7 +658,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                 }
             }
         }
-        else if (param == "ct"  && (taskRef.lightNode->item(RStateCt) || taskRef.lightNode->manufacturerCode() == VENDOR_IKEA)) // FIXME workaround for IKEA CWS
+        else if (param == "ct") // FIXME workaround for lights that support color tempeature, but API doesn't expose ct.
+        // else if (param == "ct"  && (taskRef.lightNode->item(RStateCt))
         {
             paramOk = true;
             hasCmd = true;
@@ -1596,7 +1597,8 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     // Some devices invert LiftPct.
     if (hasLift)
     {
-        if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain")))
+        if (taskRef.lightNode->modelId().startsWith(QLatin1String("lumi.curtain"))||
+            (taskRef.lightNode->modelId() == QLatin1String("Motor Controller")))
         {
             targetLiftZigBee = 100 - targetLift;
         }
