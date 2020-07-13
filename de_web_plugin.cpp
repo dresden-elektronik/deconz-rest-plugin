@@ -5383,7 +5383,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             if ((modelId != QLatin1String("SP 120")) &&
                 (modelId != QLatin1String("ZB-ONOFFPlug-D0005")) &&
                 (modelId != QLatin1String("TS0121")) &&
-                (modelId != QLatin1String("Plug-230V-ZB3.0")))
+                (!modelId.startsWith(QLatin1String("BQZ10-AU"))) &&
+                (!modelId.startsWith(QLatin1String("ROB_200"))) &&
+                (modelId != QLatin1String("Plug-230V-ZB3.0")) &&
+                (modelId != QLatin1String("Connected socket outlet")))
             {
                 item = sensorNode.addItem(DataTypeInt16, RStatePower);
             }

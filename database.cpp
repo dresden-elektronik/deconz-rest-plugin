@@ -3124,12 +3124,18 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (sensor.fingerPrint().hasInCluster(METERING_CLUSTER_ID))
             {
                 clusterId = clusterId ? clusterId : METERING_CLUSTER_ID;
+                if (sensor.modelId() != QLatin1String("160-01"))
+                {
+                    item = sensor.addItem(DataTypeUInt64, RStateConsumption);
+                    item->setValue(0);
+                }
                 if ((sensor.modelId() != QLatin1String("SP 120")) &&
                     (sensor.modelId() != QLatin1String("ZB-ONOFFPlug-D0005")) &&
                     (sensor.modelId() != QLatin1String("TS0121")) &&
                     (!sensor.modelId().startsWith(QLatin1String("BQZ10-AU"))) &&
                     (!sensor.modelId().startsWith(QLatin1String("ROB_200"))) &&
-                    (sensor.modelId() != QLatin1String("Plug-230V-ZB3.0")))
+                    (sensor.modelId() != QLatin1String("Plug-230V-ZB3.0")) &&
+                    (sensor.modelId() != QLatin1String("Connected socket outlet")))
                 {
                     item = sensor.addItem(DataTypeInt16, RStatePower);
                     item->setValue(0);
@@ -3138,11 +3144,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             else if (sensor.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))
             {
                 clusterId = clusterId ? clusterId : ANALOG_INPUT_CLUSTER_ID;
-            }
-            if (sensor.modelId() != QLatin1String("160-01"))
-            {
-                item = sensor.addItem(DataTypeUInt64, RStateConsumption);
-                item->setValue(0);
             }
         }
         else if (sensor.type().endsWith(QLatin1String("Power")))
