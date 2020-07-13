@@ -7525,7 +7525,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId().startsWith(QLatin1String("E13-")) ||    // Sengled PAR38 Bulbs
                                     i->modelId() == QLatin1String("Connected socket outlet")) // Niko smart socket
                                 {
-                                    consumption += 5; consumption /= 10; // 0.1 Wh -> Wh
+                                    //consumption += 5; consumption /= 10; // 0.1 Wh -> Wh
+                                    consumption = static_cast<quint64>(round((double)consumption / 10.0)); // 0.1 Wh -> Wh
                                 }
                                 else if (i->modelId() == QLatin1String("SP 120") ||            // innr
                                          i->modelId() == QLatin1String("Plug-230V-ZB3.0") ||   // Immax
@@ -7535,12 +7536,14 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 }
                                 else if (i->modelId().startsWith(QLatin1String("SZ-ESW01"))) // Sercomm / Telstra smart plug
                                 {
-                                    consumption /= 1000;
+                                    //consumption /= 1000;
+                                    consumption = static_cast<quint64>(round((double)consumption / 1000.0)); // -> Wh
                                 }
                                 else if (i->modelId().startsWith(QLatin1String("ROB_200")) ||            // ROBB Smarrt micro dimmer
                                          i->modelId().startsWith(QLatin1String("Micro Smart Dimmer")))   // Sunricher Micro Smart Dimmer
                                 {
-                                    consumption /= 3600;
+                                    //consumption /= 3600;
+                                    consumption = static_cast<quint64>(round((double)consumption / 3600.0)); // -> Wh
                                 }
 
                                 if (item)
@@ -7567,11 +7570,13 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId().startsWith(QLatin1String("SKHMP30")) ||// GS smart plug
                                     i->modelId().startsWith(QLatin1String("160-01")))   // Plugwise smart plug
                                 {
-                                    power += 5; power /= 10; // 0.1 W -> W
+                                    //power += 5; power /= 10; // 0.1 W -> W
+                                    power = static_cast<qint32>(round((double)power / 10.0)); // 0.1W -> W
                                 }
                                 else if (i->modelId().startsWith(QLatin1String("SZ-ESW01"))) // Sercomm / Telstra smart plug
                                 {
-                                    power /= 1000;
+                                    //power /= 1000;
+                                    power = static_cast<qint32>(round((double)power / 1000.0)); // -> W
                                 }
 
                                 if (item)
@@ -7619,27 +7624,27 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("SKHMP30")) || // GS smart plug
                                         i->modelId().startsWith(QLatin1String("ROB_200")) || // ROBB Smarrt micro dimmer
                                         i->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
-                                        i->modelId().startsWith(QLatin1String("lumi.plug.maeu"))) // Xiaomi Aqara ZB3.0 smart plug
+                                        i->modelId().startsWith(QLatin1String("lumi.plug.maeu")) || // Xiaomi Aqara ZB3.0 smart plug
+                                        i->modelId() == QLatin1String("RICI01") ||           // LifeControl Smart Plug
+                                        i->modelId().startsWith(QLatin1String("outlet")) ||  // Samsung SmartThings IM6001-OTP/IM6001-OTP01
+                                        i->modelId().startsWith(QLatin1String("3200-S")))    // Samsung/Centralite smart outlet
                                     {
-                                        power += 5; power /= 10; // 0.1W -> W
+                                        //power += 5; power /= 10; // 0.1W -> W
+                                        power = static_cast<qint16>(round((double)power / 10.0)); // 0.1W -> W
                                     }
                                     else if (i->modelId().startsWith(QLatin1String("Plug")) && i->manufacturer() == QLatin1String("OSRAM")) // OSRAM
                                     {
                                         power = power == 28000 ? 0 : power / 10;
                                     }
-                                    else if (i->modelId() == QLatin1String("RICI01") ||           // LifeControl Smart Plug
-                                             i->modelId().startsWith(QLatin1String("outlet")) ||  // Samsung SmartThings IM6001-OTP/IM6001-OTP01
-                                             i->modelId().startsWith(QLatin1String("3200-S")))    // Samsung/Centralite smart outlet
-                                    {
-                                        power /= 10; // 0.1W -> W
-                                    }
                                     else if (i->modelId().startsWith(QLatin1String("SZ-ESW01"))) // Sercomm / Telstra smart plug
                                     {
-                                        power *= 128; power /= 1000;
+                                        //power *= 128; power /= 1000;
+                                        power = static_cast<qint16>(round(((double)power * 128) / 1000.0));
                                     }
                                     else if (i->modelId() == QLatin1String("Connected socket outlet")) // Niko smart socket
                                     {
-                                        power *= 1123; power /= 10000;
+                                        //power *= 1123; power /= 10000;
+                                        power = static_cast<qint16>(round(((double)power * 1123) / 10000.0));
                                     }
                                     else if (i->modelId().startsWith(QLatin1String("lumi.relay.c2acn"))) // Xiaomi relay
                                     {
@@ -7668,7 +7673,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("SMRZB-33")) || // Develco smart relay
                                         i->modelId().startsWith(QLatin1String("SKHMP30")))    // GS smart plug
                                     {
-                                        voltage += 50; voltage /= 100; // 0.01V -> V
+                                        //voltage += 50; voltage /= 100; // 0.01V -> V
+                                        voltage = static_cast<quint16>(round((double)voltage / 100.0)); // 0.01V -> V
                                     }
                                     else if (i->modelId() == QLatin1String("RICI01") ||           // LifeControl Smart Plug
                                              i->modelId().startsWith(QLatin1String("outlet")) ||  // Samsung SmartThings IM6001-OTP/IM6001-OTP01
@@ -7678,11 +7684,13 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                              i->modelId() == QLatin1String("Connected socket outlet") || // Niko smart socket
                                              i->modelId().startsWith(QLatin1String("TH112"))) // Sinope Thermostats
                                     {
-                                        voltage /= 10; // 0.1V -> V
+                                        //voltage /= 10; // 0.1V -> V
+                                        voltage = static_cast<quint16>(round((double)voltage / 10.0)); // 0.1V -> V
                                     }
                                     else if (i->modelId().startsWith(QLatin1String("SZ-ESW01"))) // Sercomm / Telstra smart plug
                                     {
-                                        voltage /= 125; // -> V
+                                        //voltage /= 125; // -> V
+                                        voltage = static_cast<quint16>(round((double)voltage / 125.0)); // -> V
                                     }
                                     item->setValue(voltage); // in V
                                     enqueueEvent(Event(RSensors, RStateVoltage, i->id(), item));
