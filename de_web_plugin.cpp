@@ -5669,6 +5669,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     {
         sensorNode.setManufacturer("Heiman");
     }
+    else if (modelId.startsWith(QLatin1String("451270")))
+    {
+        sensorNode.setManufacturer("Namron AS");
+    }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_LGE)
     {
         sensorNode.setManufacturer("LG Electronics");
