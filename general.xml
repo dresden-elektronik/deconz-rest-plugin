@@ -3396,8 +3396,8 @@ Fil pilote > Off=0001 - On=0002</description>
 				<attribute id="0x0102" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
 				<attribute id="0x0103" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
 				<attribute id="0x0104" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
-				<attribute id="0x0200" name="Unknown" type="u32" mfcode="0x125f" access="w" required="m"> </attribute>
-				<attribute id="0x0201" name="Connected to power since" type="u48" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0200" name="Connected to power since" type="u32" mfcode="0x125f" access="r" required="m"> </attribute>
+				<attribute id="0x0201" name="Unknown" type="u48" mfcode="0x125f" access="rw" required="m"> </attribute>
 				<attribute id="0x0202" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
 				<attribute id="0x0300" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
 				<attribute id="0x0301" name="Unknown" type="bmp8" mfcode="0x125f" access="rw" required="m"> </attribute>
