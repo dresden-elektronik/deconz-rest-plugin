@@ -2183,7 +2183,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Sage
         sensor->modelId() == QLatin1String("Bell") ||
         // Sonoff
-        sensor->modelId() == QLatin1String("MS01"))
+        sensor->modelId() == QLatin1String("MS01") ||
+        sensor->modelId() == QLatin1String("TH01"))
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||

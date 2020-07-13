@@ -339,6 +339,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NIKO_NV, "Connected socket outlet", konkeMacPrefix }, // Niko smart socket 170-33505
     { VENDOR_ATMEL, "Bell", dishMacPrefix }, // Sage doorbell sensor
     { VENDOR_NONE, "MS01", tiMacPrefix }, // Sonoff SNZB-03
+    { VENDOR_NONE, "TH01", tiMacPrefix }, // Sonoff SNZB-02
 
     { 0, nullptr, 0 }
 };
