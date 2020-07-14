@@ -3471,6 +3471,13 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             buttonMap->zclCommandId == zclFrame.commandId())
         {
             ok = true;
+            
+            //to remove
+            else if (ind.clusterId() == COLOR_CLUSTER_ID &&
+                     (zclFrame.commandId() == 0x4b ))
+            {
+                DBG_Printf(DBG_INFO, "LDS debug 1");
+            }
 
             if (zclFrame.isProfileWideCommand() &&
                 zclFrame.commandId() == deCONZ::ZclReportAttributesId &&
@@ -3632,6 +3639,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 {
                     quint8 level = zclFrame.payload().at(0);
                     ok = buttonMap->zclParam0 == level;
+                    
                 }
             }
             else if (ind.clusterId() == LEVEL_CLUSTER_ID &&
@@ -3795,6 +3803,21 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
             }
             else if (ind.clusterId() == COLOR_CLUSTER_ID &&
+                     zclFrame.commandId() == 0x0a && zclFrame.payload().size() >= 2 && // Move to Color Temperature
+                     sensor->modelId().startsWith(QLatin1String("ZBT-CCTSwitch-D0001")))
+            {
+                    quint8 pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(0);
+                    if (buttonMap->zclParam0 != pl0)
+                    {
+                        ok = false;
+                    }
+                    //ignore the command if previous was button4
+                    if (sensor->previousCommandId == 0x04)
+                    {
+                        ok = false;
+                    }
+            }
+            else if (ind.clusterId() == COLOR_CLUSTER_ID &&
                      (zclFrame.commandId() == 0x4b && zclFrame.payload().size() >= 7) )  // move color temperature
             {
                 ok = false;
@@ -3819,7 +3842,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 param |= (quint16)zclFrame.payload().at(2) & 0xff;
                 param <<= 8;
                 param |= (quint16)zclFrame.payload().at(1) & 0xff;
-
+                DBG_Printf(DBG_INFO, "LDS debug 2: 0x%04X",param);
                 if (buttonMap->zclParam0 == param)
                 {
                     if (moveMode == 0x00)
@@ -3880,6 +3903,12 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             }
         }
         buttonMap++;
+    }
+    
+    //Remember last command id
+    if (sensor->modelId().startsWith(QLatin1String("ZBT-CCTSwitch-D0001"))) // LDS remote
+    {
+        sensor->previousCommandId = zclFrame.commandId();
     }
 
     if (checkReporting && sensor->node() &&
