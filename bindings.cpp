@@ -1120,6 +1120,47 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
         }
+
+        else if (sensor && sensor->modelId() == QLatin1String("eTVR0100")) // Danfoss Ally
+        {
+            rq.dataType = deCONZ::Zcl16BitInt;
+            rq.attributeId = 0x0000;       // local temperature
+            rq.minInterval = 60;
+            rq.maxInterval = 3600;
+            rq.reportableChange16bit = 50;
+            
+            ConfigureReportingRequest rq2;
+            rq2.dataType = deCONZ::Zcl16BitBitMap;
+            rq2.attributeId = 0x0008;        // Pi heating demand
+            rq2.minInterval = 300;
+            rq2.maxInterval = 43200;
+            rq2.reportableChange16bit = 1;
+            
+            ConfigureReportingRequest rq3;
+            rq3.dataType = deCONZ::Zcl16BitBitMap;
+            rq3.attributeId = 0x0012;        // Occupied heating setpoint
+            rq3.minInterval = 1;
+            rq3.maxInterval = 43200;
+            rq3.reportableChange16bit = 1;
+            
+            ConfigureReportingRequest rq4;
+            rq4.dataType = deCONZ::Zcl8BitEnum;
+            rq4.attributeId = 0x4000;        // eTRV Open Window detection
+            rq4.minInterval = 60;
+            rq4.maxInterval = 43200;
+            rq4.reportableChange16bit = 0xffff;
+            
+            ConfigureReportingRequest rq5;
+            rq5.dataType = deCONZ::Zcl8BitEnum;
+            rq5.attributeId = 0x4012;        // Mounting mode active
+            rq5.minInterval = 1;
+            rq5.maxInterval = 0;
+            rq5.reportableChange16bit = 0xffff;
+            
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4}) ||
+                   sendConfigureReportingRequest(bt, {rq5});
+        }
+
         else
         {
             rq.dataType = deCONZ::Zcl16BitInt;
@@ -1193,6 +1234,12 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.minInterval = 900;        // value used by Hue bridge
             rq.maxInterval = 900;        // value used by Hue bridge
             rq.reportableChange8bit = 4; // value used by Hue bridge
+        }
+        else if (sensor && sensor->modelId() == QLatin1String("eTVR0100")) // Danfoss Ally
+        {
+            rq.minInterval = 3600;         // Vendor defaults
+            rq.maxInterval = 43200;        // Vendor defaults
+            rq.reportableChange8bit = 2;   // Vendor defaults
         }
         else if (sensor && (sensor->manufacturer().startsWith(QLatin1String("Climax")) ||
                             sensor->modelId().startsWith(QLatin1String("902010/23"))))
@@ -2185,7 +2232,10 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Sonoff
         sensor->modelId() == QLatin1String("MS01") ||
         sensor->modelId() == QLatin1String("TH01") ||
-        sensor->modelId() == QLatin1String("DS01"))
+        sensor->modelId() == QLatin1String("DS01") ||
+        // Danfoss
+        sensor->modelId() == QLatin1String("eTVR0100")
+        )
     {
         deviceSupported = true;
         if (!sensor->node()->nodeDescriptor().receiverOnWhenIdle() ||

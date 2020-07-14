@@ -341,6 +341,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "MS01", tiMacPrefix }, // Sonoff SNZB-03
     { VENDOR_NONE, "TH01", tiMacPrefix }, // Sonoff SNZB-02
     { VENDOR_NONE, "DS01", tiMacPrefix }, // Sonoff SNZB-04
+    { VENDOR_DANFOSS, "eTRV0100", silabs2MacPrefix }, // Danfoss Ally thermostat
 
     { 0, nullptr, 0 }
 };
@@ -5445,11 +5446,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             
             if (sensorNode.modelId() == QLatin1String("SLR2") ||            // Hive
                 sensorNode.modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
-                sensorNode.modelId() == QLatin1String("Zen-01"))            // Zen
+                sensorNode.modelId() == QLatin1String("Zen-01") ||          // Zen
             {
                 sensorNode.addItem(DataTypeString, RConfigMode);
             }
-            
+            if (modelId == QLatin1String("eTVR0100"))
+            {
+                sensorNode.addItem(DataTypeUInt8, RStateValve);
+            }            
             if (modelId.startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);

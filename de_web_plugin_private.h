@@ -323,6 +323,7 @@
 #define VENDOR_DSR          0x1234
 #define VENDOR_HANGZHOU_IMAGIC 0x123B
 #define VENDOR_SAMJIN       0x1241
+#define VENDOR_DANFOSS      0x1246
 #define VENDOR_NIKO_NV      0x125F
 #define VENDOR_KONKE        0x1268
 #define VENDOR_OSRAM_STACK  0xBBAA
@@ -478,6 +479,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == bjeMacPrefix;
         case VENDOR_CENTRALITE:
             return prefix == emberMacPrefix;
+        case VENDOR_DANFOSS:
+            return prefix == silabs2MacPrefix;
         case VENDOR_EMBER:
             return prefix == emberMacPrefix ||
                    prefix == konkeMacPrefix ||
