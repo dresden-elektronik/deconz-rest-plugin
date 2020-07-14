@@ -4112,6 +4112,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
     {
         return;
     }
+    
+    DBG_Printf(DBG_INFO, "Tuya debug 53" );
 
     // check for new sensors
     QString modelId;
@@ -4775,6 +4777,12 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     modelId = lightNode->modelId();
                 }
             }
+        }
+        DBG_Printf(DBG_INFO, "Tuya debug 50" );
+        if (modelId == QLatin1String("kud7u2l"))
+        {
+            fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
+            DBG_Printf(DBG_INFO, "Tuya debug 51" );
         }
 
         if (!isDeviceSupported(node, modelId))
