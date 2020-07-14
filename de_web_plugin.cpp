@@ -14997,11 +14997,13 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             }
             else if (!sensor)
             {
+                DBG_Printf(DBG_INFO, "Tuya debug 88");
                 addSensorNode(node);
             }
             return;
         }
 
+        DBG_Printf(DBG_INFO, "Tuya debug 89");
         if (!sensor || searchSensorsState != SearchSensorsActive)
         {
             // do nothing
@@ -15317,6 +15319,8 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
              attr.setValue((quint64) 1);
              writeAttribute(sensor, sensor->fingerPrint().endpoint, 0xFCC0, attr, VENDOR_XIAOMI);
         }
+        
+        DBG_Printf(DBG_INFO, "Tuya debug 90");
 
         for (auto &s : sensors)
         {
