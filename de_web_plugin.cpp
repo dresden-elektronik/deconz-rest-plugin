@@ -5446,7 +5446,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             
             if (sensorNode.modelId() == QLatin1String("SLR2") ||            // Hive
                 sensorNode.modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
-                sensorNode.modelId() == QLatin1String("Zen-01") ||          // Zen
+                sensorNode.modelId() == QLatin1String("Zen-01"))            // Zen
             {
                 sensorNode.addItem(DataTypeString, RConfigMode);
             }

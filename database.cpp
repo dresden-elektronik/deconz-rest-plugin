@@ -3240,7 +3240,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 }
                 else if (sensor.modelId() == QLatin1String("eTVR0100"))
                 {
-                    sensorNode.addItem(DataTypeUInt8, RStateValve);
+                    sensor.addItem(DataTypeUInt8, RStateValve);
                 }
                 else
                 {
