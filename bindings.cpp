@@ -1758,7 +1758,7 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         // Danalock support
         else if (lightNode->manufacturerCode() == VENDOR_DANALOCK)
         {
-          DBG_Printf(DBG_INFO, "Binding DanaLock\n");
+            DBG_Printf(DBG_INFO, "Binding DanaLock\n");
         }
         else if (lightNode->manufacturerCode() == VENDOR_IKEA)
         {

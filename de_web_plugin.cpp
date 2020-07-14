@@ -107,7 +107,7 @@ const quint64 bjeMacPrefix        = 0xd85def0000000000ULL;
 const quint64 xalMacPrefix        = 0xf8f0050000000000ULL;
 const quint64 lutronMacPrefix     = 0xffff000000000000ULL;
 // Danalock support
-const quint64 danalockMacPrefix   = 0x000b570000000000ULL;
+const quint64 danalockMacPrefix   = 0x000b570000000000ULL; // note: same as ikeaMacPrefix
 
 struct SupportedDevice {
     quint16 vendorId;
@@ -1793,10 +1793,10 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 // Danalock support. The device id (0x000a) needs to be defined and whitelisted
                 case DEV_ID_DOOR_LOCK:
                 {
-                  if (hasServerOnOff)
-                  {
-                    lightNode.setHaEndpoint(*i);
-                  }
+                    if (hasServerOnOff)
+                    {
+                        lightNode.setHaEndpoint(*i);
+                    }
                 }
                 break;
 
@@ -2707,44 +2707,41 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
             // Danalock support. In updateLightNode(), whitelist the same cluster and add a handler for ic->id() == DOOR_LOCK_CLUSTER_ID, similar to ONOFF_CLUSTER_ID, but obviously checking for attribute 0x0101/0x0000.
             else if (ic->id() == DOOR_LOCK_CLUSTER_ID && (event.clusterId() == DOOR_LOCK_CLUSTER_ID))
             {
-              DBG_Printf(DBG_INFO, "updateLights! \n");
-              std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
-              std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
-              for (;ia != enda; ++ia)
-              {
-                if (ia->id() == 0x0000) // Lock state
+                std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
+                std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
+                for (;ia != enda; ++ia)
                 {
-
-                  bool on = ia->numericValue().u8 == 1;
-                  DBG_Printf(DBG_INFO,"Status dørlås: %u\n", (uint)ia->numericValue().u8);
-                  ResourceItem *item = lightNode->item(RStateOn);
-                  if (item && item->toBool() != on)
-                  {
-                    DBG_Printf(DBG_INFO, "0x%016llX onOff %u --> %u\n", lightNode->address().ext(), (uint)item->toNumber(), on);
-                    item->setValue(on);
-                    Event e(RLights, RStateOn, lightNode->id(), item);
-                    enqueueEvent(e);
-                    updated = true;
-                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
-                  }
-                  else
-                  {
-                    // since light event won't trigger a group check, do it here
-                    for (const GroupInfo &gi : lightNode->groups())
+                    if (ia->id() == 0x0000) // Lock state
                     {
-                      if (gi.state == GroupInfo::StateInGroup)
-                      {
-                          Event e(RGroups, REventCheckGroupAnyOn, int(gi.id));
-                          enqueueEvent(e);
+                        bool on = ia->numericValue().u8 == 1;
+                        DBG_Printf(DBG_INFO, "Status dørlås: %u\n", (uint)ia->numericValue().u8);
+                        ResourceItem *item = lightNode->item(RStateOn);
+                        if (item && item->toBool() != on)
+                        {
+                            DBG_Printf(DBG_INFO, "0x%016llX onOff %u --> %u\n", lightNode->address().ext(), (uint)item->toNumber(), on);
+                            item->setValue(on);
+                            Event e(RLights, RStateOn, lightNode->id(), item);
+                            enqueueEvent(e);
+                            updated = true;
+                            pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
                         }
-                      }
+                        else
+                        {
+                            // since light event won't trigger a group check, do it here
+                            for (const GroupInfo &gi : lightNode->groups())
+                            {
+                                if (gi.state == GroupInfo::StateInGroup)
+                                {
+                                    Event e(RGroups, REventCheckGroupAnyOn, int(gi.id));
+                                    enqueueEvent(e);
+                                }
+                            }
+                        }
+                        lightNode->setZclValue(updateType, event.endpoint(), event.clusterId(), 0x0000, ia->numericValue());
+                        break;
                     }
-                    lightNode->setZclValue(updateType, event.endpoint(), event.clusterId(), 0x0000, ia->numericValue());
-                    break;
-                  }
-                  // break;
                 }
-              }
+            }
             else if (ic->id() == BASIC_CLUSTER_ID && (event.clusterId() == BASIC_CLUSTER_ID))
             {
                 std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
@@ -11806,7 +11803,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         // Danalock support. In nodeEvent() in de_web_plugin.cpp, whitelist DOOR_LOCK_CLUSTER_ID to call updateLightNode()
         case DOOR_LOCK_CLUSTER_ID:
         {
-          updateLightNode(event);
+            updateLightNode(event);
         }
         break;
         case FAN_CONTROL_CLUSTER_ID:

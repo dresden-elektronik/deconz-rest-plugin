@@ -107,7 +107,6 @@ void LightNode::setManufacturerCode(uint16_t code)
         case VENDOR_EMBER:   // fall through
         case VENDOR_HEIMAN:  name = QLatin1String("Heiman"); break;
         case VENDOR_KEEN_HOME: name = QLatin1String("Keen Home Inc"); break;
-        // Danalock support. Add the vendor to setManufacturerCode();
         case VENDOR_DANALOCK: name = QLatin1String("Danalock"); break;
         case VENDOR_DEVELCO: name = QLatin1String("Develco Products A/S"); break;
         case VENDOR_NETVOX:   name = QLatin1String("netvox"); break;

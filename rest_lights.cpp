@@ -546,7 +546,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     bool isDoorLockDevice = false;
     if (taskRef.lightNode->type() == QLatin1String("Door Lock"))
     {
-       isDoorLockDevice = true;
+        isDoorLockDevice = true;
     }
 
     static const QStringList alertList({
@@ -854,14 +854,18 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             ok = addTaskSetBrightness(task, 2, true);
         }
         // Danalock support. In rest_lights.cpp, you need to call this routine from setLightState() under if (hasOn)
-        if (isDoorLockDevice) {
-             ok = addTaskDoorLockUnlock(task, 0x00 /*Lock*/);
-         } else {
+        if (isDoorLockDevice)
+        {
+            ok = addTaskDoorLockUnlock(task, 0x00 /*Lock*/);
+        }
+        else
+        {
             const quint8 cmd = taskRef.onTime > 0
-                ? ONOFF_COMMAND_ON_WITH_TIMED_OFF
-                : ONOFF_COMMAND_ON;
+                    ? ONOFF_COMMAND_ON_WITH_TIMED_OFF
+                    : ONOFF_COMMAND_ON;
             ok = addTaskSetOnOff(task, cmd, taskRef.onTime, 0);
         }
+
         if (ok)
         {
             isOn = true;
@@ -1393,17 +1397,23 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
         TaskItem task;
         copyTaskReq(taskRef, task);
-        if (hasBri && hasTransitionTime) {
+        if (hasBri && hasTransitionTime)
+        {
             ok = addTaskSetBrightness(task, 0, true);
             // Danalock support. In rest_lights.cpp, you need to call this routine from setLightState() under if (hasOn)
-            } else if (isDoorLockDevice) {
-              ok = addTaskDoorLockUnlock(task, 0x01 /*UnLock*/);
-        } else {
+        }
+        else if (isDoorLockDevice)
+        {
+            ok = addTaskDoorLockUnlock(task, 0x01 /*UnLock*/);
+        }
+        else
+        {
             const quint8 cmd = taskRef.lightNode->manufacturerCode() == VENDOR_PHILIPS // FIXME: use light capabilities
-                ? ONOFF_COMMAND_OFF_WITH_EFFECT
-                : ONOFF_COMMAND_OFF;
+                    ? ONOFF_COMMAND_OFF_WITH_EFFECT
+                    : ONOFF_COMMAND_OFF;
             ok = addTaskSetOnOff(task, cmd, 0, 0);
         }
+
         if (ok)
         {
             QVariantMap rspItem;

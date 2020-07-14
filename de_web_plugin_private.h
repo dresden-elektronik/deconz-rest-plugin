@@ -291,7 +291,6 @@
 #define VENDOR_NETVOX       0x109F
 #define VENDOR_NYCE         0x10B9
 #define VENDOR_UBISYS       0x10F2
-// Danalock support
 #define VENDOR_DANALOCK     0x115C
 #define VENDOR_BEGA         0x1105
 #define VENDOR_PHYSICAL     0x110A // Used by SmartThings
@@ -566,7 +565,6 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == jennicMacPrefix;
         case VENDOR_COMPUTIME:
             return prefix == computimeMacPrefix;
-        // Danalock support
         case VENDOR_DANALOCK:
             return prefix == danalockMacPrefix;
         default:
