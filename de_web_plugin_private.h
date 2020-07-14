@@ -124,6 +124,10 @@
 // Other HA devices
 #define DEV_ID_HA_WINDOW_COVERING_DEVICE    0x0202 // Window Covering Device
 #define DEV_ID_HA_WINDOW_COVERING_CONTROLLER 0x0203 // Window Covering Controller
+
+// Danalock support
+#define DEV_ID_DOOR_LOCK                    0x000a // Door Lock
+
 //
 #define DEV_ID_IAS_ZONE                     0x0402 // IAS Zone
 #define DEV_ID_IAS_WARNING_DEVICE           0x0403 // IAS Warning Device
@@ -287,6 +291,8 @@
 #define VENDOR_NETVOX       0x109F
 #define VENDOR_NYCE         0x10B9
 #define VENDOR_UBISYS       0x10F2
+// Danalock support
+#define VENDOR_DANALOCK     0x115C
 #define VENDOR_BEGA         0x1105
 #define VENDOR_PHYSICAL     0x110A // Used by SmartThings
 #define VENDOR_OSRAM        0x110C
@@ -448,6 +454,8 @@ extern const quint64 computimeMacPrefix;
 extern const quint64 konkeMacPrefix;
 extern const quint64 ecozyMacPrefix;
 extern const quint64 zhejiangMacPrefix;
+// Danalock support
+extern const quint64 danalockMacPrefix;
 
 inline bool checkMacVendor(quint64 addr, quint16 vendor)
 {
@@ -558,6 +566,9 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == jennicMacPrefix;
         case VENDOR_COMPUTIME:
             return prefix == computimeMacPrefix;
+        // Danalock support
+        case VENDOR_DANALOCK:
+            return prefix == danalockMacPrefix;
         default:
             return false;
     }
@@ -721,7 +732,10 @@ enum TaskType
     TaskWarning = 34,
     TaskIncBrightness = 35,
     TaskWindowCovering = 36,
-    TaskThermostat = 37
+    TaskThermostat = 37,
+    // Danalock support
+    TaskDoorLock = 38,
+    TaskDoorUnlock = 39
 };
 
 struct TaskItem
@@ -1355,6 +1369,8 @@ public:
     bool addTaskIdentify(TaskItem &task, uint16_t identifyTime);
     bool addTaskTriggerEffect(TaskItem &task, uint8_t effectIdentifier);
     bool addTaskWarning(TaskItem &task, uint8_t options, uint16_t duration);
+    // Danalock support. To control the lock from the REST API, you need to create a new routine addTaskDoorLock() in zcl_tasks.cpp, cf. the addTaskWarning() I created to control the Siren.
+    bool addTaskDoorLockUnlock(TaskItem &task, uint8_t cmd);
     bool addTaskAddToGroup(TaskItem &task, uint16_t groupId);
     bool addTaskViewGroup(TaskItem &task, uint16_t groupId);
     bool addTaskRemoveFromGroup(TaskItem &task, uint16_t groupId);
@@ -1391,6 +1407,8 @@ public:
     void handleDEClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleXalClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleWindowCoveringClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    // Danalock support
+    void handleDoorLockClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleThermostatClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleTimeClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendTimeClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
