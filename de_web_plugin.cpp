@@ -5450,10 +5450,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             {
                 sensorNode.addItem(DataTypeString, RConfigMode);
             }
-            if (modelId == QLatin1String("eTVR0100"))
-            {
-                sensorNode.addItem(DataTypeUInt8, RStateValve);
-            }            
+                        
             if (modelId.startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
@@ -5464,6 +5461,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             }
             else if (modelId == QLatin1String("Zen-01"))
             {
+            }
+            else if (modelId == QLatin1String("eTVR0100"))
+            {
+                sensorNode.addItem(DataTypeUInt8, RStateValve);
             }
             else
             {
