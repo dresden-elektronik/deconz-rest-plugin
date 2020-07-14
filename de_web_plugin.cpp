@@ -3473,7 +3473,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             ok = true;
             
             //to remove
-            else if (ind.clusterId() == COLOR_CLUSTER_ID &&
+            if (ind.clusterId() == COLOR_CLUSTER_ID &&
                      (zclFrame.commandId() == 0x4b ))
             {
                 DBG_Printf(DBG_INFO, "LDS debug 1");
