@@ -668,8 +668,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     QVariantMap map = var.toMap();
     QVariantMap rspItem;
     QVariantMap rspItemState;
-    
-    DBG_Printf(DBG_INFO, "SLR2 debug 6\n");
 
 //    QRegExp latitude("^\\d{3,3}\\.\\d{4,4}(W|E)$");
 //    QRegExp longitude("^\\d{3,3}\\.\\d{4,4}(N|S)$");
@@ -993,8 +991,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
             //Special part for thermostat
             if (sensor->type() == "ZHAThermostat")
             {
-                DBG_Printf(DBG_INFO, "SLR2 debug 0\n");
-                
                 if (rid.suffix == RConfigOffset)
                 {
                     bool ok;
@@ -1107,8 +1103,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     else if (sensor->modelId() == QLatin1String("SLR2") || //Hive
                              sensor->modelId().startsWith(QLatin1String("TH112")) ) // Sinope
                     {
-                        
-                        DBG_Printf(DBG_INFO, "SLR2 debug 1\n");
                         
                         QString mode_set = map[pi.key()].toString();
                         quint8 mode = 0x00;
@@ -1230,7 +1224,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
     }
     if (!AttributeList.isEmpty())
     {
-        DBG_Printf(DBG_INFO, "SLR2 debug 2\n");
         if (!addTaskThermostatWriteAttributeList(task, 0, AttributeList))
         {
             rsp.list.append(errorToMap(ERR_INVALID_VALUE,
@@ -1241,7 +1234,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
         }
         else
         {
-            DBG_Printf(DBG_INFO, "SLR2 debug 3\n");
             updated = true;
         }
     }
