@@ -313,6 +313,32 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
             // manufacturerspecific reported by Eurotronic SPZB0001
             // https://eurotronic.org/wp-content/uploads/2019/01/Spirit_ZigBee_BAL_web_DE_view_V9.pdf
             case 0x4000: // enum8 (0x30): value 0x02, TRV mode
+            {
+                if (zclFrame.manufacturerCode() == VENDOR_JENNIC)
+                {
+                }
+                else if (zclFrame.manufacturerCode() == VENDOR_DANFOSS)
+                {
+                    qint8 windowmode = attr.numericValue().s8;
+                    QString windowmode_set;
+                   
+                    if ( windowmode == 0x01 ) { windowmode_set = QString("Closed"); }
+                    if ( windowmode == 0x02 ) { windowmode_set = QString("Hold"); }
+                    if ( windowmode == 0x03 ) { windowmode_set = QString("Open"); }
+                    if ( windowmode == 0x04 ) { windowmode_set = QString("Open (external), closed (internal)"); }
+
+                    item = sensor->item(RStateWindowOpen);
+                    if (item && item->toString() != windowmode_set)
+                    {
+                        item->setValue(windowmode_set);
+                        enqueueEvent(Event(RSensors, RStateWindowOpen, sensor->id(), item));
+                        configUpdated = true;
+                    }
+                }
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
+                break;
+            
             case 0x4001: // U8 (0x20): value 0x00, valve position
             case 0x4002: // U8 (0x20): value 0x00, errors
             {

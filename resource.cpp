@@ -91,6 +91,7 @@ const char *RStateVibration = "state/vibration";
 const char *RStateVibrationStrength = "state/vibrationstrength";
 const char *RStateVoltage = "state/voltage";
 const char *RStateWater = "state/water";
+const char *RStateWindowOpen = "state/windowopen";
 const char *RStateX = "state/x";
 const char *RStateY = "state/y";
 
@@ -234,6 +235,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateVibrationStrength));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateVoltage));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateWater));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateWindowOpen));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateX));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateY));
 
