@@ -1121,7 +1121,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
         }
 
-        else if (sensor && sensor->modelId() == QLatin1String("eTVR0100")) // Danfoss Ally
+        else if (sensor && sensor->modelId() == QLatin1String("eTRV0100")) // Danfoss Ally
         {
             rq.dataType = deCONZ::Zcl16BitInt;
             rq.attributeId = 0x0000;       // local temperature
@@ -1235,7 +1235,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 900;        // value used by Hue bridge
             rq.reportableChange8bit = 4; // value used by Hue bridge
         }
-        else if (sensor && sensor->modelId() == QLatin1String("eTVR0100")) // Danfoss Ally
+        else if (sensor && sensor->modelId() == QLatin1String("eTRV0100")) // Danfoss Ally
         {
             rq.minInterval = 3600;         // Vendor defaults
             rq.maxInterval = 43200;        // Vendor defaults
@@ -2254,7 +2254,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("TH01") ||
         sensor->modelId() == QLatin1String("DS01") ||
         // Danfoss
-        sensor->modelId() == QLatin1String("eTVR0100")
+        sensor->modelId() == QLatin1String("eTRV0100")
         )
     {
         deviceSupported = true;

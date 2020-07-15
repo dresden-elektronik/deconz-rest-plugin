@@ -5520,7 +5520,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             else if (modelId == QLatin1String("Zen-01"))
             {
             }
-            else if (modelId == QLatin1String("eTVR0100"))
+            else if (modelId == QLatin1String("eTRV0100"))
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
             }
