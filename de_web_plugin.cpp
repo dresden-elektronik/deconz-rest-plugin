@@ -107,6 +107,8 @@ const quint64 energyMiMacPrefix   = 0xd0cf5e0000000000ULL;
 const quint64 bjeMacPrefix        = 0xd85def0000000000ULL;
 const quint64 xalMacPrefix        = 0xf8f0050000000000ULL;
 const quint64 lutronMacPrefix     = 0xffff000000000000ULL;
+// Danalock support
+const quint64 danalockMacPrefix   = 0x000b570000000000ULL; // note: same as ikeaMacPrefix
 
 struct SupportedDevice {
     quint16 vendorId;
@@ -288,6 +290,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "VOC_Sensor", jennicMacPrefix}, // LifeControl Enviroment sensor
     { VENDOR_JENNIC, "SN10ZW", jennicMacPrefix }, // ORVIBO motion sensor
     { VENDOR_OSRAM_STACK, "SF20", heimanMacPrefix }, // ORVIBO SF20 smoke sensor
+    // Danalock support
+    { VENDOR_DANALOCK, "V3", danalockMacPrefix}, // Danalock Smart Lock
     { VENDOR_HEIMAN, "SF21", emberMacPrefix }, // ORVIBO SF21 smoke sensor
     { VENDOR_LEGRAND, "Dimmer switch w/o neutral", legrandMacPrefix }, // Legrand Dimmer switch wired
     { VENDOR_LEGRAND, "Connected outlet", legrandMacPrefix }, // Legrand Plug
@@ -863,9 +867,9 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
             stream << zclSeq++;
             stream << ind.srcAddress().nwk();
-            
+
             apsCtrl->apsdeDataRequest(apsReq);  // Fire and forget
-            
+
             handleNodeDescriptorResponseIndication(ind);
             handleIndicationSearchSensors(ind, zclFrame);
         }
@@ -1648,7 +1652,9 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         node->nodeDescriptor().manufacturerCode() == VENDOR_DEVELCO || // Develco Smoke sensor with siren
         node->nodeDescriptor().manufacturerCode() == VENDOR_LDS || // Samsung SmartPlug 2019
         node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA || // IKEA FYRTUR and KADRILJ smart binds
-        node->nodeDescriptor().manufacturerCode() == VENDOR_THIRD_REALITY) // Third Reality smart light switch
+        node->nodeDescriptor().manufacturerCode() == VENDOR_THIRD_REALITY || // Third Reality smart light switch
+        // Danalock support. The vendor ID (0x115c) needs to defined and whitelisted, as it's battery operated
+        node->nodeDescriptor().manufacturerCode() == VENDOR_DANALOCK) // Danalock Door Lock
     {
         // whitelist
     }
@@ -1674,6 +1680,8 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             else if (i->inClusters()[c].id() == COLOR_CLUSTER_ID) { hasServerColor = true; }
             else if (i->inClusters()[c].id() == WINDOW_COVERING_CLUSTER_ID) { hasServerOnOff = true; }
             else if (i->inClusters()[c].id() == IAS_WD_CLUSTER_ID) { hasIASWDCluster = true; }
+            // Danalock support. The cluster needs to be defined and whitelisted by setting hasServerOnOff
+            else if (i->inClusters()[c].id() == DOOR_LOCK_CLUSTER_ID) { hasServerOnOff = true; }
         }
 
         // check if node already exist
@@ -1787,6 +1795,16 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT:
                 case DEV_ID_HA_WINDOW_COVERING_DEVICE:
                 case DEV_ID_HA_WINDOW_COVERING_CONTROLLER:
+                // Danalock support. The device id (0x000a) needs to be defined and whitelisted
+                case DEV_ID_DOOR_LOCK:
+                {
+                    if (hasServerOnOff)
+                    {
+                        lightNode.setHaEndpoint(*i);
+                    }
+                }
+                break;
+
                 case DEV_ID_FAN:
                 {
                     if (hasServerOnOff)
@@ -2432,6 +2450,8 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
             case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:
             case DEV_ID_HA_WINDOW_COVERING_DEVICE:
             case DEV_ID_HA_WINDOW_COVERING_CONTROLLER:
+            // Danalock support. The device id (0x000a) needs to be defined and whitelisted
+            case DEV_ID_DOOR_LOCK:
             case DEV_ID_ZLL_ONOFF_SENSOR:
             case DEV_ID_XIAOMI_SMART_PLUG:
             case DEV_ID_IAS_ZONE:
@@ -2685,6 +2705,44 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                                 }
                             }
                         }
+                        break;
+                    }
+                }
+            }
+            // Danalock support. In updateLightNode(), whitelist the same cluster and add a handler for ic->id() == DOOR_LOCK_CLUSTER_ID, similar to ONOFF_CLUSTER_ID, but obviously checking for attribute 0x0101/0x0000.
+            else if (ic->id() == DOOR_LOCK_CLUSTER_ID && (event.clusterId() == DOOR_LOCK_CLUSTER_ID))
+            {
+                std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
+                std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
+                for (;ia != enda; ++ia)
+                {
+                    if (ia->id() == 0x0000) // Lock state
+                    {
+                        bool on = ia->numericValue().u8 == 1;
+                        DBG_Printf(DBG_INFO, "Status dørlås: %u\n", (uint)ia->numericValue().u8);
+                        ResourceItem *item = lightNode->item(RStateOn);
+                        if (item && item->toBool() != on)
+                        {
+                            DBG_Printf(DBG_INFO, "0x%016llX onOff %u --> %u\n", lightNode->address().ext(), (uint)item->toNumber(), on);
+                            item->setValue(on);
+                            Event e(RLights, RStateOn, lightNode->id(), item);
+                            enqueueEvent(e);
+                            updated = true;
+                            pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
+                        }
+                        else
+                        {
+                            // since light event won't trigger a group check, do it here
+                            for (const GroupInfo &gi : lightNode->groups())
+                            {
+                                if (gi.state == GroupInfo::StateInGroup)
+                                {
+                                    Event e(RGroups, REventCheckGroupAnyOn, int(gi.id));
+                                    enqueueEvent(e);
+                                }
+                            }
+                        }
+                        lightNode->setZclValue(updateType, event.endpoint(), event.clusterId(), 0x0000, ia->numericValue());
                         break;
                     }
                 }
@@ -3914,7 +3972,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                         ok = false;
                     }
                 }
-                
+
             }
 
             if (ok && buttonMap->button != 0)
@@ -4413,7 +4471,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpHumiditySensor.inClusters.push_back(ci->id());
                     }
-                    
+
                     // Hive devices, don't show model id faster enought
                     if ((node->nodeDescriptor().manufacturerCode() == VENDOR_ALERTME) && (modelId.isEmpty()))
                     {
@@ -4426,7 +4484,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     else if ((modelId == QLatin1String("SLR2")) && (i->endpoint() > 0x06 ))
                     {
                     }
-                    else 
+                    else
                     {
                         fpTemperatureSensor.inClusters.push_back(ci->id());
                     }
@@ -4595,7 +4653,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     }
                 }
                     break;
-                
+
                 case APPLIANCE_EVENTS_AND_ALERTS_CLUSTER_ID:
                 {
                     if (modelId == QLatin1String("leakSMART Water Sensor V2"))
@@ -4735,7 +4793,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 }
                 fpSwitch.endpoint = 2;
             }
-            
+
             if (modelId.startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
                 modelId.startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
                 modelId.startsWith(QLatin1String("Switch 4x-LIGHTIFY")) || // Osram 4 button remote
@@ -5443,14 +5501,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             item->setValue(0);
             sensorNode.addItem(DataTypeInt16, RConfigHeatSetpoint);    // Heating set point
             sensorNode.addItem(DataTypeBool, RStateOn);           // Heating on/off
-            
+
             if (sensorNode.modelId() == QLatin1String("SLR2") ||            // Hive
                 sensorNode.modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
                 sensorNode.modelId() == QLatin1String("Zen-01"))            // Zen
             {
                 sensorNode.addItem(DataTypeString, RConfigMode);
             }
-                        
+
             if (modelId.startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
@@ -5846,8 +5904,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             else if (*ci == POWER_CONFIGURATION_CLUSTER_ID)
             {
                 //This device make a Rejoin every time, you trigger it, it's the only moment where you can read attribute.
-                if (sensorNode.modelId() == QLatin1String("Remote switch") || 
-                    sensorNode.modelId() == QLatin1String("Shutters central remote switch") || 
+                if (sensorNode.modelId() == QLatin1String("Remote switch") ||
+                    sensorNode.modelId() == QLatin1String("Shutters central remote switch") ||
                     sensorNode.modelId() == QLatin1String("Double gangs remote switch") )
                 {
                     //Ask for battery but only every day max
@@ -8600,6 +8658,8 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
         case DEV_ID_ZLL_ONOFF_SENSOR:
         case DEV_ID_HA_WINDOW_COVERING_DEVICE:
         case DEV_ID_HA_WINDOW_COVERING_CONTROLLER:
+        // Danalock support. The device id (0x000a) needs to be defined and whitelisted
+        case DEV_ID_DOOR_LOCK:
         case DEV_ID_FAN:
             break;
 
@@ -11767,6 +11827,12 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         case COLOR_CLUSTER_ID:
         case ANALOG_OUTPUT_CLUSTER_ID: // lumi.curtain
         case WINDOW_COVERING_CLUSTER_ID:  // FIXME ubisys J1 is not a light
+        // Danalock support. In nodeEvent() in de_web_plugin.cpp, whitelist DOOR_LOCK_CLUSTER_ID to call updateLightNode()
+        case DOOR_LOCK_CLUSTER_ID:
+        {
+            updateLightNode(event);
+        }
+        break;
         case FAN_CONTROL_CLUSTER_ID:
             {
                 updateLightNode(event);

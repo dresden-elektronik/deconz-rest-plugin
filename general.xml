@@ -1658,15 +1658,15 @@ by the Poll Control Cluster Client.</description>
 						<value name="Cooling and Heating 4-pipes with Reheat" value="5"></value>
 					</attribute>
 					<attribute id="0x001c" name="System Mode" type="enum8" default="0x01" access="rw" required="m">
-						<value name="Off" value="0"></value>
-						<value name="Auto" value="1"></value>
-						<value name="Cool" value="3"></value>
-						<value name="Heat" value="4"></value>
-						<value name="Emergency heating" value="5"></value>
-						<value name="Precooling" value="6"></value>
-						<value name="Fan only" value="7"></value>
-						<value name="Dry" value="8"></value>
-						<value name="Sleep" value="9"></value>
+						<value name="Off" value="0x00"></value>
+						<value name="Auto" value="0x01"></value>
+						<value name="Cool" value="0x03"></value>
+						<value name="Heat" value="0x04"></value>
+						<value name="Emergency heating" value="0x05"></value>
+						<value name="Precooling" value="0x06"></value>
+						<value name="Fan only" value="0x07"></value>
+						<value name="Dry" value="0x08"></value>
+						<value name="Sleep" value="0x09"></value>
 					</attribute>
 					<attribute id="0x001d" name="Alarm Mask" type="bmp8" default="0" access="r" required="o">
 						<value name="Initialization failure" value="0"></value>
@@ -1691,7 +1691,7 @@ by the Poll Control Cluster Client.</description>
 					</attribute>
 					<attribute id="0x0021" name="Number of Weekly Transitions" type="u8" range="0x00,0xff" access="r" required="o"></attribute>
 					<attribute id="0x0022" name="Number of Dail Transitions" type="u8" range="0x00,0xff" access="r" required="o"></attribute>
-					<attribute id="0x0023" name="Temperature Setpoint Hold" type="enum8" default="0x00" access="r" required="o">
+					<attribute id="0x0023" name="Temperature Setpoint Hold" type="enum8" default="0x00" access="rw" required="o">
 						<value name="Setpoint Hold Off" value="0"></value>
 						<value name="Setpoint Hold On" value="1"></value>
 					</attribute>

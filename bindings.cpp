@@ -1096,28 +1096,28 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.minInterval = 0;
             rq.maxInterval = 300;
             rq.reportableChange16bit = 10;
-            
+
             ConfigureReportingRequest rq3;
             rq3.dataType = deCONZ::Zcl16BitBitMap;
             rq3.attributeId = 0x0012;        // Occupied heating setpoint
             rq3.minInterval = 1;
             rq3.maxInterval = 600;
             rq3.reportableChange16bit = 0xffff;
-            
+
             ConfigureReportingRequest rq4;
             rq4.dataType = deCONZ::Zcl8BitEnum;
             rq4.attributeId = 0x001C;        // Thermostat mode
             rq4.minInterval = 1;
             rq4.maxInterval = 600;
             rq4.reportableChange16bit = 0xffff;
-            
+
             ConfigureReportingRequest rq2;
             rq2.dataType = deCONZ::Zcl16BitBitMap;
             rq2.attributeId = 0x0029;        // Thermostat running state
             rq2.minInterval = 1;
             rq2.maxInterval = 600;
             rq2.reportableChange16bit = 0xffff;
-            
+
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
         }
 
@@ -1201,7 +1201,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     else if (bt.binding.clusterId == POWER_CONFIGURATION_CLUSTER_ID)
     {
         Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
-        
+
         // This device use only Attribute 0x0000 for tension and 0x001 for frequency
         if (sensor->modelId() == QLatin1String("SLP2"))
         {
@@ -1499,6 +1499,17 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.minInterval = 1;
         rq.maxInterval = 300;
         rq.reportableChange8bit = 1;
+
+        return sendConfigureReportingRequest(bt, {rq});
+    }
+    // Danalock support
+    else if (bt.binding.clusterId == DOOR_LOCK_CLUSTER_ID)
+    {
+        rq.dataType = deCONZ::Zcl8BitEnum;;
+        rq.attributeId = 0x0000; // Current Lock Position
+        rq.minInterval = 1;
+        rq.maxInterval = 300;
+        //rq.reportableChange8bit = 1;
 
         return sendConfigureReportingRequest(bt, {rq});
     }
@@ -1800,6 +1811,11 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturerCode() == VENDOR_UBISYS)
         {
         }
+        // Danalock support
+        else if (lightNode->manufacturerCode() == VENDOR_DANALOCK)
+        {
+            DBG_Printf(DBG_INFO, "Binding DanaLock\n");
+        }
         else if (lightNode->manufacturerCode() == VENDOR_IKEA)
         {
         }
@@ -1897,6 +1913,8 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         case LEVEL_CLUSTER_ID:
         case COLOR_CLUSTER_ID:
         case WINDOW_COVERING_CLUSTER_ID:
+        // Danalock support
+        case DOOR_LOCK_CLUSTER_ID:
         case IAS_ZONE_CLUSTER_ID:
         case FAN_CONTROL_CLUSTER_ID:
         {
@@ -2115,6 +2133,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("3AFE14010402000D") ||
         // Nimbus
         sensor->modelId().startsWith(QLatin1String("FLS-NB")) ||
+        // Danalock support
+        sensor->modelId().startsWith(QLatin1String("V3")) ||
         // SmartThings
         sensor->modelId().startsWith(QLatin1String("tagv4")) ||
         sensor->modelId().startsWith(QLatin1String("motionv4")) ||
@@ -2275,7 +2295,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             action = BindingTask::ActionBind;
         }
     }
-    
+
     if (sensor->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
         sensor->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
         sensor->modelId().startsWith(QLatin1String("Switch 4x-LIGHTIFY")) || // Osram 4 button remote
@@ -2340,7 +2360,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             {
                 continue; // process only once
             }
-            if (sensor->modelId() == QLatin1String("Remote switch") || 
+            if (sensor->modelId() == QLatin1String("Remote switch") ||
                 sensor->modelId() == QLatin1String("Shutters central remote switch") ||
                 sensor->modelId() == QLatin1String("Double gangs remote switch") ||
                 sensor->modelId() == QLatin1String("Remote toggle switch") )
@@ -2711,7 +2731,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         clusters.push_back(LEVEL_CLUSTER_ID);
         clusters.push_back(COLOR_CLUSTER_ID);
 
-        // We bind all endpoints to a single group, so we need to trick the for loop by 
+        // We bind all endpoints to a single group, so we need to trick the for loop by
         // creating dummy group entries that point to the first group so all endpoints are bound properly.
         QString gid0 = gids[0];
         gids.append(gid0);
@@ -2722,15 +2742,15 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(0x03);
     }
     // OSRAM 4 button remote
-    else if (sensor->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || 
-             sensor->modelId().startsWith(QLatin1String("Switch 4x-LIGHTIFY")) || 
+    else if (sensor->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) ||
+             sensor->modelId().startsWith(QLatin1String("Switch 4x-LIGHTIFY")) ||
              sensor->modelId().startsWith(QLatin1String("Switch-LIGHTIFY")) )
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);
         clusters.push_back(COLOR_CLUSTER_ID);
 
-        // We bind all endpoints to a single group, so we need to trick the for loop by 
+        // We bind all endpoints to a single group, so we need to trick the for loop by
         // creating dummy group entries that point to the first group so all endpoints are bound properly.
         QString gid0 = gids[0];
         gids.append(gid0);
@@ -3009,8 +3029,8 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
              sensor->modelId().startsWith(QLatin1String("Switch-LIGHTIFY")) ) // Osram 4 button remote
     {
         quint8 maxEp = 0x03;
-        if (sensor->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || 
-            sensor->modelId().startsWith(QLatin1String("Switch 4x-LIGHTIFY")) || 
+        if (sensor->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) ||
+            sensor->modelId().startsWith(QLatin1String("Switch 4x-LIGHTIFY")) ||
             sensor->modelId().startsWith(QLatin1String("Switch-LIGHTIFY")) )
         {
             maxEp = 0x04;
