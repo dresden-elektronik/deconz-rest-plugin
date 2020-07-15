@@ -1046,7 +1046,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq6.reportableChange24bit = 1;   // recommended value
             rq6.manufacturerCode = VENDOR_JENNIC;
 
-            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4}) ||
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4}) || // Use OR because of manuf. specific attributes
                    sendConfigureReportingRequest(bt, {rq5, rq6});
         }
         else if (sensor && sensor->modelId() == QLatin1String("Zen-01")) // Zen
@@ -1083,10 +1083,9 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq5.attributeId = 0x001C;        // Thermostat mode
             rq5.minInterval = 1;
             rq5.maxInterval = 600;
-            rq5.reportableChange16bit = 0xffff;
+            rq5.reportableChange16bit = 0xff;
 
-            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4}) ||
-                   sendConfigureReportingRequest(bt, {rq5});
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4, rq5});
         }
         else if ((sensor && sensor->modelId() == QLatin1String("SLR2")) || // Hive
                  (sensor && sensor->modelId().startsWith(QLatin1String("TH112")))) // Sinope
@@ -1098,18 +1097,18 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.reportableChange16bit = 10;
 
             ConfigureReportingRequest rq3;
-            rq3.dataType = deCONZ::Zcl16BitBitMap;
+            rq3.dataType = deCONZ::Zcl16BitInt;
             rq3.attributeId = 0x0012;        // Occupied heating setpoint
             rq3.minInterval = 1;
             rq3.maxInterval = 600;
-            rq3.reportableChange16bit = 0xffff;
+            rq3.reportableChange16bit = 50;
 
             ConfigureReportingRequest rq4;
             rq4.dataType = deCONZ::Zcl8BitEnum;
             rq4.attributeId = 0x001C;        // Thermostat mode
             rq4.minInterval = 1;
             rq4.maxInterval = 600;
-            rq4.reportableChange16bit = 0xffff;
+            rq4.reportableChange16bit = 0xff;
 
             ConfigureReportingRequest rq2;
             rq2.dataType = deCONZ::Zcl16BitBitMap;
@@ -1149,6 +1148,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq4.minInterval = 60;
             rq4.maxInterval = 43200;
             rq4.reportableChange8bit = 0xff;
+            rq4.manufacturerCode = VENDOR_DANFOSS;
             
             ConfigureReportingRequest rq5;
             rq5.dataType = deCONZ::ZclBoolean;
@@ -1156,8 +1156,10 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq5.minInterval = 1;
             rq5.maxInterval = 43200;
             rq5.reportableChange8bit = 0xff;
+            rq5.manufacturerCode = VENDOR_DANFOSS;
             
-            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4, rq5});
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq3}) || // Use OR because of manuf. specific attributes
+                   sendConfigureReportingRequest(bt, {rq4, rq5});
         }
 
         else
