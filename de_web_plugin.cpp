@@ -4113,7 +4113,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         return;
     }
     
-    DBG_Printf(DBG_INFO, "Tuya debug 53" );
+    DBG_Printf(DBG_INFO, "Tuya debug 53\n" );
 
     // check for new sensors
     QString modelId;
@@ -4778,11 +4778,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 }
             }
         }
-        DBG_Printf(DBG_INFO, "Tuya debug 50" );
+        DBG_Printf(DBG_INFO, "Tuya debug 50\n" );
         if (modelId == QLatin1String("kud7u2l"))
         {
             fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
-            DBG_Printf(DBG_INFO, "Tuya debug 51" );
+            DBG_Printf(DBG_INFO, "Tuya debug 51\n" );
         }
 
         if (!isDeviceSupported(node, modelId))
@@ -13353,6 +13353,10 @@ void DeRestPluginPrivate::handlePhilipsClusterIndication(const deCONZ::ApsDataIn
     
     Taken from https://medium.com/@dzegarra/zigbee2mqtt-how-to-add-support-for-a-new-tuya-based-device-part-2-5492707e882d
  */
+ 
+ // For Triple switch dp  = 257 258 259 (for on)
+ // For thermostat dp = 514 (Changed temperature target after mode chnage)
+ 
 void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {    
     if (zclFrame.isDefaultResponse())
@@ -13361,12 +13365,13 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
     }
 
     LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());
+    Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
 
-    if (!lightNode)
+    if ((!sensorNode) && (!lightNode))
     {
         return;
     }
-    
+
     DBG_Printf(DBG_INFO, "Tuya : debug 8\n");
     
     if (zclFrame.commandId() == 0x00)
@@ -13378,7 +13383,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         // 0x01 Used to inform of changes in its state.
         // 0x02 Send after receiving a 0x00 command.
         
-        DBG_Printf(DBG_INFO, "Tuya : debug 1\n");
+        DBG_Printf(DBG_INFO, "Tuya : debug 1 : size %d\n",static_cast<int>(zclFrame.payload.size()));
         
         if (zclFrame.payload().size() >= 7)
         {
@@ -13406,34 +13411,52 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             DBG_Printf(DBG_INFO, "Tuya debug 4: status: %d transid: %d dp: %d fn: %d\n", status , transid , dp , fn );
             DBG_Printf(DBG_INFO, "Tuya debug 5: data:  %d\n",  data );
             
-            if (data == '1') { onoff = true; }
-            
+            // Switch device 3 gang
+            if ((dp == 0x0101) || (dp == 0x0102) || (dp == 0x0103))
             {
-                uint ep = 0x01;
-                if (dp == 0x0102) { ep = 0x02; }
-                if (dp == 0x0103) { ep = 0x03; }
             
-                lightNode = getLightNodeForAddress(ind.srcAddress(), ep);
-
-                if (!lightNode)
-                {
-                    return;
-                }
+                if (data == '1') { onoff = true; }
                 
-                ResourceItem *item = lightNode->item(RStateOn);
-                if (item && item->toBool() != onoff)
                 {
-                    item->setValue(onoff);
-                    Event e(RLights, RStateOn, lightNode->id(), item);
+                    uint ep = 0x01;
+                    if (dp == 0x0102) { ep = 0x02; }
+                    if (dp == 0x0103) { ep = 0x03; }
+                
+                    lightNode = getLightNodeForAddress(ind.srcAddress(), ep);
+
+                    if (!lightNode)
+                    {
+                        return;
+                    }
+                    
+                    ResourceItem *item = lightNode->item(RStateOn);
+                    if (item && item->toBool() != onoff)
+                    {
+                        item->setValue(onoff);
+                        Event e(RLights, RStateOn, lightNode->id(), item);
+                        enqueueEvent(e);
+
+                        // Update Node light
+                        updateEtag(lightNode->etag);
+                        updateEtag(gwConfigEtag);
+                        lightNode->setNeedSaveDatabase(true);
+                        saveDatabaseItems |= DB_LIGHTS;
+                    }
+                
+                }
+            }
+            else if (dp == 0x0202)
+            {
+                qint16 temp = 2000;
+                ResourceItem *item = sensorNode->item(RStateTemperature);
+
+                if (item && item->toNumber() != temp)
+                {
+                    item->setValue(temp);
+                    Event e(RSensors, RStateTemperature, sensorNode->id(), item);
                     enqueueEvent(e);
 
-                    // Update Node light
-                    updateEtag(lightNode->etag);
-                    updateEtag(gwConfigEtag);
-                    lightNode->setNeedSaveDatabase(true);
-                    saveDatabaseItems |= DB_LIGHTS;
                 }
-            
             }
             
         }
@@ -15005,13 +15028,13 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             }
             else if (!sensor)
             {
-                DBG_Printf(DBG_INFO, "Tuya debug 88");
+                DBG_Printf(DBG_INFO, "Tuya debug 88\n");
                 addSensorNode(node);
             }
             return;
         }
 
-        DBG_Printf(DBG_INFO, "Tuya debug 89");
+        DBG_Printf(DBG_INFO, "Tuya debug 89\n");
         if (!sensor || searchSensorsState != SearchSensorsActive)
         {
             // do nothing
@@ -15328,7 +15351,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
              writeAttribute(sensor, sensor->fingerPrint().endpoint, 0xFCC0, attr, VENDOR_XIAOMI);
         }
         
-        DBG_Printf(DBG_INFO, "Tuya debug 90");
+        DBG_Printf(DBG_INFO, "Tuya debug 90\n");
 
         for (auto &s : sensors)
         {
