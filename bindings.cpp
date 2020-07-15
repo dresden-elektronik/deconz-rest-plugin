@@ -1130,14 +1130,14 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.reportableChange16bit = 50;
             
             ConfigureReportingRequest rq2;
-            rq2.dataType = deCONZ::Zcl16BitBitMap;
+            rq2.dataType = deCONZ::Zcl8BitUint;
             rq2.attributeId = 0x0008;        // Pi heating demand
-            rq2.minInterval = 300;
+            rq2.minInterval = 60;
             rq2.maxInterval = 43200;
-            rq2.reportableChange16bit = 1;
+            rq2.reportableChange8bit = 1;
             
             ConfigureReportingRequest rq3;
-            rq3.dataType = deCONZ::Zcl16BitBitMap;
+            rq3.dataType = deCONZ::Zcl16BitInt;
             rq3.attributeId = 0x0012;        // Occupied heating setpoint
             rq3.minInterval = 1;
             rq3.maxInterval = 43200;
@@ -1148,17 +1148,16 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq4.attributeId = 0x4000;        // eTRV Open Window detection
             rq4.minInterval = 60;
             rq4.maxInterval = 43200;
-            rq4.reportableChange16bit = 0xffff;
+            rq4.reportableChange8bit = 0xff;
             
             ConfigureReportingRequest rq5;
-            rq5.dataType = deCONZ::Zcl8BitEnum;
+            rq5.dataType = deCONZ::ZclBoolean;
             rq5.attributeId = 0x4012;        // Mounting mode active
             rq5.minInterval = 1;
-            rq5.maxInterval = 0;
-            rq5.reportableChange16bit = 0xffff;
+            rq5.maxInterval = 43200;
+            rq5.reportableChange8bit = 0xff;
             
-            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4}) ||
-                   sendConfigureReportingRequest(bt, {rq5});
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4, rq5});
         }
 
         else
