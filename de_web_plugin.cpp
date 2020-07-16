@@ -13389,8 +13389,6 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         if (zclFrame.payload().size() >= 7)
         {
             
-            bool onoff = false;
-            
             QDataStream stream(zclFrame.payload());
             stream.setByteOrder(QDataStream::LittleEndian);
 
@@ -13430,7 +13428,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             // Switch device 3 gang
             if ((dp == 0x0101) || (dp == 0x0102) || (dp == 0x0103))
             {
-            
+                bool onoff = false;
                 if (data == 1) { onoff = true; }
                 
                 {
@@ -13461,7 +13459,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 
                 }
             }
-            else if (dp == 0x0202)
+            else if (dp == 0x0203) // Thermostat temperature
             {
                 qint16 temp = (qint16)(data & 0xFFFF);
                 ResourceItem *item = sensorNode->item(RStateTemperature);
@@ -13476,6 +13474,36 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
 
                 }
             }
+            else if (dp == 0x0202) // Thermostat heatsetpoint
+            {
+                qint16 temp = (qint16)(data & 0xFFFF);
+                ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
+
+                if (item && item->toNumber() != temp)
+                {
+                    item->setValue(temp);
+                    Event e(RSensors, RConfigHeatSetpoint, sensorNode->id(), item);
+                    enqueueEvent(e);
+                    
+                    //updateSensorEtag(sensorNode->etag);
+
+                }
+            }
+            else if (dp == 0x0114) // Valve state on / off 
+            {
+                bool onoff = false;
+                if (data == 1) { onoff = true; }
+                
+                ResourceItem *item = sensorNode->item(RStateOn);
+
+                if (item && item->toBool() != onoff)
+                {
+                    item->setValue(onoff);
+                    Event e(RSensors, RStateOn, sensorNode->id(), item);
+                    enqueueEvent(e);
+                }
+            }
+            
             
         }
         else
