@@ -1431,7 +1431,7 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         }
         else if (manufacturer == QLatin1String("EcoDim"))
         {
-            if      (modelid.startsWith(QLatin1String("ED-1001"))) { m_buttonMap = icasaKeypadMap; }
+            if      (modelid.startsWith(QLatin1String("ED-1001"))) { m_buttonMap = icasaRemoteMap; }
         }
         else if (manufacturer == QLatin1String("Samjin"))
         {
