@@ -1242,6 +1242,12 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 43200;        // Vendor defaults
             rq.reportableChange8bit = 2;   // Vendor defaults
         }
+        else if (sensor && (sensor->modelId().startsWith(QLatin1String("ED-1001")))) // EcoDim switches
+        {
+            rq.minInterval = 3600;
+            rq.maxInterval = 43200;
+            rq.reportableChange8bit = 1;
+        }
         else if (sensor && (sensor->manufacturer().startsWith(QLatin1String("Climax")) ||
                             sensor->modelId().startsWith(QLatin1String("902010/23"))))
         {
