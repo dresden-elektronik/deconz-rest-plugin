@@ -16031,13 +16031,11 @@ void DeRestPlugin::idleTimerFired()
                         {
                             val = sensorNode->getZclValue(*ci, 0x0029); // heating state
 
-                            if (sensorNode->modelId().startsWith("SPZB")) // Eurotronic Spirit
-                            {
-                                // supports reporting, no need to read attributes
-                            }
-                            if (sensorNode->modelId().startsWith("SLT2") ||
-                                sensorNode->modelId().startsWith("SLR2") ||
-                                sensorNode->modelId().startsWith(QLatin1String("TH112")) ) // Sinope devices
+                            if (sensorNode->modelId().startsWith(QLatin1String("SPZB")) ||   // Eurotronic Spirit
+                                sensorNode->modelId().startsWith(QLatin1String("SLT2")) ||   // Hive Active Heating Thermostat
+                                sensorNode->modelId().startsWith(QLatin1String("SLR2")) ||   // Hive Active Heating Receiver
+                                sensorNode->modelId().startsWith(QLatin1String("TH112")) ||  // Sinope devices
+                                sensorNode->modelId().startsWith(QLatin1String("eTRV0100"))) // Danfoss Ally
                             {
                                 // supports reporting, no need to read attributes
                             }
