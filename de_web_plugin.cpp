@@ -309,6 +309,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "TS0121", silabs3MacPrefix }, // Tuya/Blitzwolf smart plug
     { VENDOR_EMBER, "TS0121", silabs3MacPrefix }, // Tuya/Blitzwolf smart plug
     { VENDOR_EMBER, "TS0302", silabs3MacPrefix }, // Tuya curtain switch
+    { VENDOR_EMBER, "TS0041", silabs3MacPrefix }, // Tuya wireless switch
     { VENDOR_NONE, "kud7u2l", silabs3MacPrefix }, // Tuya Smart TRV HY369 Thermostatic Radiator Valve
     { VENDOR_AURORA, "DoubleSocket50AU", jennicMacPrefix }, // Aurora AOne Double Socket UK
     { VENDOR_COMPUTIME, "SP600", computimeMacPrefix }, // Salus smart plug
@@ -13383,7 +13384,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         // 0x01 Used to inform of changes in its state.
         // 0x02 Send after receiving a 0x00 command.
         
-        DBG_Printf(DBG_INFO, "Tuya : debug 1 : size %d\n",static_cast<int>(zclFrame.payload.size()));
+        DBG_Printf(DBG_INFO, "Tuya : debug 1 : size %d\n",static_cast<int>(zclFrame.payload().size()));
         
         if (zclFrame.payload().size() >= 7)
         {
@@ -13455,6 +13456,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     item->setValue(temp);
                     Event e(RSensors, RStateTemperature, sensorNode->id(), item);
                     enqueueEvent(e);
+                    
+                    //updateSensorEtag(sensorNode->etag);
 
                 }
             }
