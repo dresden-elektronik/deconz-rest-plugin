@@ -13398,25 +13398,40 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             uint8_t transid;
             int16_t dp;
             uint8_t fn;
-            quint8 data;
-            quint8 a;
+            quint32 data = 0;
+            quint8 dummy;
+            quint8 length = 0;
             
             stream >> status;
             stream >> transid;
             stream >> dp;
             stream >> fn;
 
-            stream >> a; // len
-            stream >> data; // data
+            //Convertion octet string to decimal value
+            stream >> length;
+            
+            //security, it seem 4 is the maximum
+            if (length > 4)
+            {
+                DBG_Printf(DBG_INFO, "Tuya debug : lenght exxcess");
+                length = 4;
+            }
+            
+            for (; length > 0; length--)
+            {
+                stream >> dummy;
+                data = data << 8;
+                data = data + dummy;
+            }
             
             DBG_Printf(DBG_INFO, "Tuya debug 4: status: %d transid: %d dp: %d fn: %d\n", status , transid , dp , fn );
-            DBG_Printf(DBG_INFO, "Tuya debug 5: data:  %d\n",  data );
+            DBG_Printf(DBG_INFO, "Tuya debug 5: data:  %lld\n",  data );
             
             // Switch device 3 gang
             if ((dp == 0x0101) || (dp == 0x0102) || (dp == 0x0103))
             {
             
-                if (data == '1') { onoff = true; }
+                if (data == 1) { onoff = true; }
                 
                 {
                     uint ep = 0x01;
@@ -13448,7 +13463,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             }
             else if (dp == 0x0202)
             {
-                qint16 temp = 2000;
+                qint16 temp = (qint16)(data & 0xFFFF);
                 ResourceItem *item = sensorNode->item(RStateTemperature);
 
                 if (item && item->toNumber() != temp)
