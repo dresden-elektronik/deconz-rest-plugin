@@ -13411,7 +13411,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             //security, it seem 4 is the maximum
             if (length > 4)
             {
-                DBG_Printf(DBG_INFO, "Tuya debug : lenght exxcess");
+                DBG_Printf(DBG_INFO, "Tuya debug : lenght excess\n");
                 length = 4;
             }
             
@@ -13426,85 +13426,95 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             DBG_Printf(DBG_INFO, "Tuya debug 5: data:  %lld\n",  data );
             
             // Switch device 3 gang
-            if ((dp == 0x0101) || (dp == 0x0102) || (dp == 0x0103))
+            switch (dp)
             {
-                bool onoff = false;
-                if (data == 1) { onoff = true; }
-                
+                case 0x0101:
+                case 0x0102:
+                case 0x0103:
                 {
-                    uint ep = 0x01;
-                    if (dp == 0x0102) { ep = 0x02; }
-                    if (dp == 0x0103) { ep = 0x03; }
-                
-                    lightNode = getLightNodeForAddress(ind.srcAddress(), ep);
-
-                    if (!lightNode)
-                    {
-                        return;
-                    }
+                    bool onoff = false;
+                    if (data == 1) { onoff = true; }
                     
-                    ResourceItem *item = lightNode->item(RStateOn);
+                    {
+                        uint ep = 0x01;
+                        if (dp == 0x0102) { ep = 0x02; }
+                        if (dp == 0x0103) { ep = 0x03; }
+                    
+                        lightNode = getLightNodeForAddress(ind.srcAddress(), ep);
+
+                        if (!lightNode)
+                        {
+                            return;
+                        }
+                        
+                        ResourceItem *item = lightNode->item(RStateOn);
+                        if (item && item->toBool() != onoff)
+                        {
+                            item->setValue(onoff);
+                            Event e(RLights, RStateOn, lightNode->id(), item);
+                            enqueueEvent(e);
+
+                            // Update Node light
+                            updateEtag(lightNode->etag);
+                            updateEtag(gwConfigEtag);
+                            lightNode->setNeedSaveDatabase(true);
+                            saveDatabaseItems |= DB_LIGHTS;
+                        }
+                    
+                    }
+                }
+                break;
+                case 0x0203: // Thermostat temperature
+                {
+                    qint16 temp = ((qint16)(data & 0xFFFF)) * 10;
+                    ResourceItem *item = sensorNode->item(RStateTemperature);
+
+                    if (item && item->toNumber() != temp)
+                    {
+                        item->setValue(temp);
+                        Event e(RSensors, RStateTemperature, sensorNode->id(), item);
+                        enqueueEvent(e);
+                        
+                        //updateSensorEtag(sensorNode->etag);
+
+                    }
+                }
+                break;
+                case 0x0202: // Thermostat heatsetpoint
+                {
+                    qint16 temp = ((qint16)(data & 0xFFFF)) * 10;
+                    ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
+
+                    if (item && item->toNumber() != temp)
+                    {
+                        item->setValue(temp);
+                        Event e(RSensors, RConfigHeatSetpoint, sensorNode->id(), item);
+                        enqueueEvent(e);
+                        
+                        //updateSensorEtag(sensorNode->etag);
+
+                    }
+                }
+                break;
+                case 0x0114: // Valve state on / off 
+                {
+                    bool onoff = false;
+                    if (data == 1) { onoff = true; }
+                    
+                    ResourceItem *item = sensorNode->item(RStateOn);
+
                     if (item && item->toBool() != onoff)
                     {
                         item->setValue(onoff);
-                        Event e(RLights, RStateOn, lightNode->id(), item);
+                        Event e(RSensors, RStateOn, sensorNode->id(), item);
                         enqueueEvent(e);
-
-                        // Update Node light
-                        updateEtag(lightNode->etag);
-                        updateEtag(gwConfigEtag);
-                        lightNode->setNeedSaveDatabase(true);
-                        saveDatabaseItems |= DB_LIGHTS;
                     }
-                
                 }
+                break;
+                default:
+                break;
             }
-            else if (dp == 0x0203) // Thermostat temperature
-            {
-                qint16 temp = (qint16)(data & 0xFFFF);
-                ResourceItem *item = sensorNode->item(RStateTemperature);
 
-                if (item && item->toNumber() != temp)
-                {
-                    item->setValue(temp);
-                    Event e(RSensors, RStateTemperature, sensorNode->id(), item);
-                    enqueueEvent(e);
-                    
-                    //updateSensorEtag(sensorNode->etag);
-
-                }
-            }
-            else if (dp == 0x0202) // Thermostat heatsetpoint
-            {
-                qint16 temp = (qint16)(data & 0xFFFF);
-                ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
-
-                if (item && item->toNumber() != temp)
-                {
-                    item->setValue(temp);
-                    Event e(RSensors, RConfigHeatSetpoint, sensorNode->id(), item);
-                    enqueueEvent(e);
-                    
-                    //updateSensorEtag(sensorNode->etag);
-
-                }
-            }
-            else if (dp == 0x0114) // Valve state on / off 
-            {
-                bool onoff = false;
-                if (data == 1) { onoff = true; }
-                
-                ResourceItem *item = sensorNode->item(RStateOn);
-
-                if (item && item->toBool() != onoff)
-                {
-                    item->setValue(onoff);
-                    Event e(RSensors, RStateOn, sensorNode->id(), item);
-                    enqueueEvent(e);
-                }
-            }
-            
-            
         }
         else
         {
