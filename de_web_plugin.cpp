@@ -329,6 +329,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_ALERTME, "SLP2b", computimeMacPrefix }, // Hive  plug
     { VENDOR_ALERTME, "SLR2", computimeMacPrefix }, // Hive   Heating Receiver
     { VENDOR_ALERTME, "SLT2", computimeMacPrefix }, // Hive thermostat
+    { VENDOR_DANFOSS, "TRV001", silabs2MacPrefix }, // Hive thermostat (From Danfoos)
     { VENDOR_SUNRICHER, "4512703", silabs2MacPrefix }, // Namron 4-ch remote controller
     { VENDOR_SUNRICHER, "451270", silabs2MacPrefix }, // Namron 1/4-ch remote controller
     { VENDOR_SENGLED_OPTOELEC, "E13-", zhejiangMacPrefix }, // Sengled PAR38 Bulbs
@@ -5520,7 +5521,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             else if (modelId == QLatin1String("Zen-01"))
             {
             }
-            else if (modelId == QLatin1String("eTRV0100"))
+            else if ((modelId == QLatin1String("eTRV0100")) ||
+                     (modelId == QLatin1String("TRV001")) )
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
                 sensorNode.addItem(DataTypeString, RStateWindowOpen);
