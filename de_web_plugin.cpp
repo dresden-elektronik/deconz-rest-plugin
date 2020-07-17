@@ -100,12 +100,15 @@ const quint64 silabs5MacPrefix    = 0x842e140000000000ULL;
 const quint64 embertecMacPrefix   = 0x848e960000000000ULL;
 const quint64 silabsMacPrefix     = 0x90fd9f0000000000ULL;
 const quint64 zhejiangMacPrefix   = 0xb0ce180000000000ULL;
+const quint64 silabs7MacPrefix    = 0xbc33ac0000000000ULL;
 const quint64 silabs2MacPrefix    = 0xcccccc0000000000ULL;
 const quint64 silabs3MacPrefix    = 0xec1bbd0000000000ULL;
 const quint64 energyMiMacPrefix   = 0xd0cf5e0000000000ULL;
 const quint64 bjeMacPrefix        = 0xd85def0000000000ULL;
 const quint64 xalMacPrefix        = 0xf8f0050000000000ULL;
 const quint64 lutronMacPrefix     = 0xffff000000000000ULL;
+// Danalock support
+const quint64 danalockMacPrefix   = 0x000b570000000000ULL; // note: same as ikeaMacPrefix
 
 struct SupportedDevice {
     quint16 vendorId;
@@ -287,6 +290,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "VOC_Sensor", jennicMacPrefix}, // LifeControl Enviroment sensor
     { VENDOR_JENNIC, "SN10ZW", jennicMacPrefix }, // ORVIBO motion sensor
     { VENDOR_OSRAM_STACK, "SF20", heimanMacPrefix }, // ORVIBO SF20 smoke sensor
+    // Danalock support
+    { VENDOR_DANALOCK, "V3", danalockMacPrefix}, // Danalock Smart Lock
     { VENDOR_HEIMAN, "SF21", emberMacPrefix }, // ORVIBO SF21 smoke sensor
     { VENDOR_LEGRAND, "Dimmer switch w/o neutral", legrandMacPrefix }, // Legrand Dimmer switch wired
     { VENDOR_LEGRAND, "Connected outlet", legrandMacPrefix }, // Legrand Plug
@@ -339,6 +344,10 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_PLUGWISE_BV, "160-01", emberMacPrefix }, // Plugwise smart plug
     { VENDOR_NIKO_NV, "Connected socket outlet", konkeMacPrefix }, // Niko smart socket 170-33505
     { VENDOR_ATMEL, "Bell", dishMacPrefix }, // Sage doorbell sensor
+    { VENDOR_NONE, "MS01", tiMacPrefix }, // Sonoff SNZB-03
+    { VENDOR_NONE, "TH01", tiMacPrefix }, // Sonoff SNZB-02
+    { VENDOR_NONE, "DS01", tiMacPrefix }, // Sonoff SNZB-04
+    { VENDOR_DANFOSS, "eTRV0100", silabs2MacPrefix }, // Danfoss Ally thermostat
 
     { 0, nullptr, 0 }
 };
@@ -865,9 +874,9 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
             stream << zclSeq++;
             stream << ind.srcAddress().nwk();
-            
+
             apsCtrl->apsdeDataRequest(apsReq);  // Fire and forget
-            
+
             handleNodeDescriptorResponseIndication(ind);
             handleIndicationSearchSensors(ind, zclFrame);
         }
@@ -1650,7 +1659,9 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         node->nodeDescriptor().manufacturerCode() == VENDOR_DEVELCO || // Develco Smoke sensor with siren
         node->nodeDescriptor().manufacturerCode() == VENDOR_LDS || // Samsung SmartPlug 2019
         node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA || // IKEA FYRTUR and KADRILJ smart binds
-        node->nodeDescriptor().manufacturerCode() == VENDOR_THIRD_REALITY) // Third Reality smart light switch
+        node->nodeDescriptor().manufacturerCode() == VENDOR_THIRD_REALITY || // Third Reality smart light switch
+        // Danalock support. The vendor ID (0x115c) needs to defined and whitelisted, as it's battery operated
+        node->nodeDescriptor().manufacturerCode() == VENDOR_DANALOCK) // Danalock Door Lock
     {
         // whitelist
     }
@@ -1740,6 +1751,8 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             else if (i->inClusters()[c].id() == WINDOW_COVERING_CLUSTER_ID) { hasServerOnOff = true; }
             else if (i->inClusters()[c].id() == IAS_WD_CLUSTER_ID) { hasIASWDCluster = true; }
             else if (i->inClusters()[c].id() == TUYA_CLUSTER_ID) { hasServerOnOff = true; }
+            // Danalock support. The cluster needs to be defined and whitelisted by setting hasServerOnOff
+            else if (i->inClusters()[c].id() == DOOR_LOCK_CLUSTER_ID) { hasServerOnOff = true; }
         }
 
         // check if node already exist
@@ -1853,6 +1866,16 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 case DEV_ID_Z30_COLOR_TEMPERATURE_LIGHT:
                 case DEV_ID_HA_WINDOW_COVERING_DEVICE:
                 case DEV_ID_HA_WINDOW_COVERING_CONTROLLER:
+                // Danalock support. The device id (0x000a) needs to be defined and whitelisted
+                case DEV_ID_DOOR_LOCK:
+                {
+                    if (hasServerOnOff)
+                    {
+                        lightNode.setHaEndpoint(*i);
+                    }
+                }
+                break;
+
                 case DEV_ID_FAN:
                 {
                     if (hasServerOnOff)
@@ -2498,6 +2521,8 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
             case DEV_ID_Z30_ONOFF_PLUGIN_UNIT:
             case DEV_ID_HA_WINDOW_COVERING_DEVICE:
             case DEV_ID_HA_WINDOW_COVERING_CONTROLLER:
+            // Danalock support. The device id (0x000a) needs to be defined and whitelisted
+            case DEV_ID_DOOR_LOCK:
             case DEV_ID_ZLL_ONOFF_SENSOR:
             case DEV_ID_XIAOMI_SMART_PLUG:
             case DEV_ID_IAS_ZONE:
@@ -2751,6 +2776,44 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                                 }
                             }
                         }
+                        break;
+                    }
+                }
+            }
+            // Danalock support. In updateLightNode(), whitelist the same cluster and add a handler for ic->id() == DOOR_LOCK_CLUSTER_ID, similar to ONOFF_CLUSTER_ID, but obviously checking for attribute 0x0101/0x0000.
+            else if (ic->id() == DOOR_LOCK_CLUSTER_ID && (event.clusterId() == DOOR_LOCK_CLUSTER_ID))
+            {
+                std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
+                std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
+                for (;ia != enda; ++ia)
+                {
+                    if (ia->id() == 0x0000) // Lock state
+                    {
+                        bool on = ia->numericValue().u8 == 1;
+                        DBG_Printf(DBG_INFO, "Status dørlås: %u\n", (uint)ia->numericValue().u8);
+                        ResourceItem *item = lightNode->item(RStateOn);
+                        if (item && item->toBool() != on)
+                        {
+                            DBG_Printf(DBG_INFO, "0x%016llX onOff %u --> %u\n", lightNode->address().ext(), (uint)item->toNumber(), on);
+                            item->setValue(on);
+                            Event e(RLights, RStateOn, lightNode->id(), item);
+                            enqueueEvent(e);
+                            updated = true;
+                            pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
+                        }
+                        else
+                        {
+                            // since light event won't trigger a group check, do it here
+                            for (const GroupInfo &gi : lightNode->groups())
+                            {
+                                if (gi.state == GroupInfo::StateInGroup)
+                                {
+                                    Event e(RGroups, REventCheckGroupAnyOn, int(gi.id));
+                                    enqueueEvent(e);
+                                }
+                            }
+                        }
+                        lightNode->setZclValue(updateType, event.endpoint(), event.clusterId(), 0x0000, ia->numericValue());
                         break;
                     }
                 }
@@ -3980,7 +4043,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                         ok = false;
                     }
                 }
-                
+
             }
 
             if (ok && buttonMap->button != 0)
@@ -4351,7 +4414,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("902010/21")) ||        // Bitron door/window sensor
                              modelId.startsWith(QLatin1String("WISZB-120")) ||        // Develco door/window sensor
                              modelId.startsWith(QLatin1String("ZHMS101")) ||          // Wattle (Develco) door/window sensor
-                             modelId == QLatin1String("E1D-G73"))                     // Sengled contact sensor
+                             modelId == QLatin1String("E1D-G73") ||                   // Sengled contact sensor
+                             modelId == QLatin1String("DS01"))                        // Sonoff SNZB-04
                     {
                         fpOpenCloseSensor.inClusters.push_back(ci->id());
                     }
@@ -4363,7 +4427,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("SN10ZW")) ||           // ORVIBO motion sensor
                              modelId.startsWith(QLatin1String("MOSZB-130")) ||        // Develco motion sensor
                              modelId == QLatin1String("4in1-Sensor-ZB3.0") ||         // Immax NEO ZB3.0 4 in 1 sensor E13-A21
-                             modelId == QLatin1String("E13-A21"))                     // Sengled E13-A21 PAR38 bulp with motion sensor
+                             modelId == QLatin1String("E13-A21") ||                   // Sengled E13-A21 PAR38 bulp with motion sensor
+                             modelId == QLatin1String("MS01"))                        // Sonoff SNZB-03
                     {
                         fpPresenceSensor.inClusters.push_back(ci->id());
                     }
@@ -4479,7 +4544,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpHumiditySensor.inClusters.push_back(ci->id());
                     }
-                    
+
                     // Hive devices, don't show model id faster enought
                     if ((node->nodeDescriptor().manufacturerCode() == VENDOR_ALERTME) && (modelId.isEmpty()))
                     {
@@ -4492,7 +4557,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     else if ((modelId == QLatin1String("SLR2")) && (i->endpoint() > 0x06 ))
                     {
                     }
-                    else 
+                    else
                     {
                         fpTemperatureSensor.inClusters.push_back(ci->id());
                     }
@@ -4670,7 +4735,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     }
                 }
                     break;
-                
+
                 case APPLIANCE_EVENTS_AND_ALERTS_CLUSTER_ID:
                 {
                     if (modelId == QLatin1String("leakSMART Water Sensor V2"))
@@ -4816,7 +4881,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 }
                 fpSwitch.endpoint = 2;
             }
-            
+
             if (modelId.startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
                 modelId.startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
                 modelId.startsWith(QLatin1String("Switch 4x-LIGHTIFY")) || // Osram 4 button remote
@@ -5466,7 +5531,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             if ((modelId != QLatin1String("SP 120")) &&
                 (modelId != QLatin1String("ZB-ONOFFPlug-D0005")) &&
                 (modelId != QLatin1String("TS0121")) &&
-                (modelId != QLatin1String("Plug-230V-ZB3.0")))
+                (!modelId.startsWith(QLatin1String("BQZ10-AU"))) &&
+                (!modelId.startsWith(QLatin1String("ROB_200"))) &&
+                (modelId != QLatin1String("Plug-230V-ZB3.0")) &&
+                (modelId != QLatin1String("Connected socket outlet")))
             {
                 item = sensorNode.addItem(DataTypeInt16, RStatePower);
             }
@@ -5522,13 +5590,14 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             item->setValue(0);
             sensorNode.addItem(DataTypeInt16, RConfigHeatSetpoint);    // Heating set point
             sensorNode.addItem(DataTypeBool, RStateOn);           // Heating on/off
-            
-            if (sensorNode.modelId() == QLatin1String("SLR2") || //Hive
-                sensorNode.modelId().startsWith(QLatin1String("TH112")) ) // Sinope
+
+            if (sensorNode.modelId() == QLatin1String("SLR2") ||            // Hive
+                sensorNode.modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
+                sensorNode.modelId() == QLatin1String("Zen-01"))            // Zen
             {
                 sensorNode.addItem(DataTypeString, RConfigMode);
             }
-            
+
             if (modelId.startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
@@ -5539,6 +5608,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             }
             else if (modelId == QLatin1String("Zen-01"))
             {
+            }
+            else if (modelId == QLatin1String("eTRV0100"))
+            {
+                sensorNode.addItem(DataTypeUInt8, RStateValve);
+                sensorNode.addItem(DataTypeString, RStateWindowOpen);
             }
             else
             {
@@ -5756,6 +5830,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     {
         sensorNode.setManufacturer("Heiman");
     }
+    else if (modelId.startsWith(QLatin1String("451270")))
+    {
+        sensorNode.setManufacturer("Namron AS");
+    }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_LGE)
     {
         sensorNode.setManufacturer("LG Electronics");
@@ -5916,8 +5994,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             else if (*ci == POWER_CONFIGURATION_CLUSTER_ID)
             {
                 //This device make a Rejoin every time, you trigger it, it's the only moment where you can read attribute.
-                if (sensorNode.modelId() == QLatin1String("Remote switch") || 
-                    sensorNode.modelId() == QLatin1String("Shutters central remote switch") || 
+                if (sensorNode.modelId() == QLatin1String("Remote switch") ||
+                    sensorNode.modelId() == QLatin1String("Shutters central remote switch") ||
                     sensorNode.modelId() == QLatin1String("Double gangs remote switch") )
                 {
                     //Ask for battery but only every day max
@@ -7390,7 +7468,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 {
                                     if (i->type() == QLatin1String("ZHAPower"))
                                     {
-                                        qint16 power = ia->numericValue().real;
+                                        qint16 power = static_cast<qint16>(round(ia->numericValue().real));
                                         ResourceItem *item = i->item(RStatePower);
 
                                         if (item)
@@ -7610,9 +7688,10 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId().startsWith(QLatin1String("PSMP5_")) ||  // Climax
                                     i->modelId().startsWith(QLatin1String("SKHMP30")) || // GS smart plug
                                     i->modelId().startsWith(QLatin1String("E13-")) ||    // Sengled PAR38 Bulbs
-                                    i->modelId().startsWith(QLatin1String("Connected s"))) // Niko smart socket
+                                    i->modelId() == QLatin1String("Connected socket outlet")) // Niko smart socket
                                 {
-                                    consumption += 5; consumption /= 10; // 0.1 Wh -> Wh
+                                    //consumption += 5; consumption /= 10; // 0.1 Wh -> Wh
+                                    consumption = static_cast<quint64>(round((double)consumption / 10.0)); // 0.1 Wh -> Wh
                                 }
                                 else if (i->modelId() == QLatin1String("SP 120") ||            // innr
                                          i->modelId() == QLatin1String("Plug-230V-ZB3.0") ||   // Immax
@@ -7622,12 +7701,14 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 }
                                 else if (i->modelId().startsWith(QLatin1String("SZ-ESW01"))) // Sercomm / Telstra smart plug
                                 {
-                                    consumption /= 1000;
+                                    //consumption /= 1000;
+                                    consumption = static_cast<quint64>(round((double)consumption / 1000.0)); // -> Wh
                                 }
                                 else if (i->modelId().startsWith(QLatin1String("ROB_200")) ||            // ROBB Smarrt micro dimmer
                                          i->modelId().startsWith(QLatin1String("Micro Smart Dimmer")))   // Sunricher Micro Smart Dimmer
                                 {
-                                    consumption /= 3600;
+                                    //consumption /= 3600;
+                                    consumption = static_cast<quint64>(round((double)consumption / 3600.0)); // -> Wh
                                 }
 
                                 if (item)
@@ -7654,11 +7735,13 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId().startsWith(QLatin1String("SKHMP30")) ||// GS smart plug
                                     i->modelId().startsWith(QLatin1String("160-01")))   // Plugwise smart plug
                                 {
-                                    power += 5; power /= 10; // 0.1 W -> W
+                                    //power += 5; power /= 10; // 0.1 W -> W
+                                    power = static_cast<qint32>(round((double)power / 10.0)); // 0.1W -> W
                                 }
                                 else if (i->modelId().startsWith(QLatin1String("SZ-ESW01"))) // Sercomm / Telstra smart plug
                                 {
-                                    power /= 1000;
+                                    //power /= 1000;
+                                    power = static_cast<qint32>(round((double)power / 1000.0)); // -> W
                                 }
 
                                 if (item)
@@ -7706,27 +7789,27 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("SKHMP30")) || // GS smart plug
                                         i->modelId().startsWith(QLatin1String("ROB_200")) || // ROBB Smarrt micro dimmer
                                         i->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
-                                        i->modelId().startsWith(QLatin1String("lumi.plug.maeu"))) // Xiaomi Aqara ZB3.0 smart plug
+                                        i->modelId().startsWith(QLatin1String("lumi.plug.maeu")) || // Xiaomi Aqara ZB3.0 smart plug
+                                        i->modelId() == QLatin1String("RICI01") ||           // LifeControl Smart Plug
+                                        i->modelId().startsWith(QLatin1String("outlet")) ||  // Samsung SmartThings IM6001-OTP/IM6001-OTP01
+                                        i->modelId().startsWith(QLatin1String("3200-S")))    // Samsung/Centralite smart outlet
                                     {
-                                        power += 5; power /= 10; // 0.1W -> W
+                                        //power += 5; power /= 10; // 0.1W -> W
+                                        power = static_cast<qint16>(round((double)power / 10.0)); // 0.1W -> W
                                     }
                                     else if (i->modelId().startsWith(QLatin1String("Plug")) && i->manufacturer() == QLatin1String("OSRAM")) // OSRAM
                                     {
                                         power = power == 28000 ? 0 : power / 10;
                                     }
-                                    else if (i->modelId() == QLatin1String("RICI01") ||           // LifeControl Smart Plug
-                                             i->modelId().startsWith(QLatin1String("outlet")) ||  // Samsung SmartThings IM6001-OTP/IM6001-OTP01
-                                             i->modelId().startsWith(QLatin1String("3200-S")))    // Samsung/Centralite smart outlet
-                                    {
-                                        power /= 10; // 0.1W -> W
-                                    }
                                     else if (i->modelId().startsWith(QLatin1String("SZ-ESW01"))) // Sercomm / Telstra smart plug
                                     {
-                                        power *= 128; power /= 1000;
+                                        //power *= 128; power /= 1000;
+                                        power = static_cast<qint16>(round(((double)power * 128) / 1000.0));
                                     }
-                                    else if (i->modelId().startsWith(QLatin1String("Connected s"))) // Niko smart socket
+                                    else if (i->modelId() == QLatin1String("Connected socket outlet")) // Niko smart socket
                                     {
-                                        power *= 1123; power /= 10000;
+                                        //power *= 1123; power /= 10000;
+                                        power = static_cast<qint16>(round(((double)power * 1123) / 10000.0));
                                     }
                                     else if (i->modelId().startsWith(QLatin1String("lumi.relay.c2acn"))) // Xiaomi relay
                                     {
@@ -7755,21 +7838,24 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("SMRZB-33")) || // Develco smart relay
                                         i->modelId().startsWith(QLatin1String("SKHMP30")))    // GS smart plug
                                     {
-                                        voltage += 50; voltage /= 100; // 0.01V -> V
+                                        //voltage += 50; voltage /= 100; // 0.01V -> V
+                                        voltage = static_cast<quint16>(round((double)voltage / 100.0)); // 0.01V -> V
                                     }
                                     else if (i->modelId() == QLatin1String("RICI01") ||           // LifeControl Smart Plug
                                              i->modelId().startsWith(QLatin1String("outlet")) ||  // Samsung SmartThings IM6001-OTP/IM6001-OTP01
                                              i->modelId() == QLatin1String("EMIZB-13") ||         // Develco EMI
                                              i->modelId().startsWith(QLatin1String("ROB_200")) || // ROBB Smarrt micro dimmer
                                              i->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
-                                             i->modelId().startsWith(QLatin1String("Connected s")) || // Niko smart socket
+                                             i->modelId() == QLatin1String("Connected socket outlet") || // Niko smart socket
                                              i->modelId().startsWith(QLatin1String("TH112"))) // Sinope Thermostats
                                     {
-                                        voltage /= 10; // 0.1V -> V
+                                        //voltage /= 10; // 0.1V -> V
+                                        voltage = static_cast<quint16>(round((double)voltage / 10.0)); // 0.1V -> V
                                     }
                                     else if (i->modelId().startsWith(QLatin1String("SZ-ESW01"))) // Sercomm / Telstra smart plug
                                     {
-                                        voltage /= 125; // -> V
+                                        //voltage /= 125; // -> V
+                                        voltage = static_cast<quint16>(round((double)voltage / 125.0)); // -> V
                                     }
                                     item->setValue(voltage); // in V
                                     enqueueEvent(Event(RSensors, RStateVoltage, i->id(), item));
@@ -7797,7 +7883,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId() == QLatin1String("TS0121") ||            // Tuya smart plug
                                         i->modelId().startsWith(QLatin1String("ROB_200")) ||  // ROBB Smarrt micro dimmer
                                         i->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
-                                        i->modelId().startsWith(QLatin1String("Connected s")) || // Niko smart socket
+                                        i->modelId() == QLatin1String("Connected socket outlet") || // Niko smart socket
                                         i->modelId().startsWith(QLatin1String("S1")) || // Ubisys S1/S1-R
                                         i->modelId().startsWith(QLatin1String("S2")) || // Ubisys S2/S2-R
                                         i->modelId().startsWith(QLatin1String("J1")) || // Ubisys J1/J1-R
@@ -8662,6 +8748,8 @@ bool DeRestPluginPrivate::processZclAttributes(LightNode *lightNode)
         case DEV_ID_ZLL_ONOFF_SENSOR:
         case DEV_ID_HA_WINDOW_COVERING_DEVICE:
         case DEV_ID_HA_WINDOW_COVERING_CONTROLLER:
+        // Danalock support. The device id (0x000a) needs to be defined and whitelisted
+        case DEV_ID_DOOR_LOCK:
         case DEV_ID_FAN:
             break;
 
@@ -11829,6 +11917,12 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         case COLOR_CLUSTER_ID:
         case ANALOG_OUTPUT_CLUSTER_ID: // lumi.curtain
         case WINDOW_COVERING_CLUSTER_ID:  // FIXME ubisys J1 is not a light
+        // Danalock support. In nodeEvent() in de_web_plugin.cpp, whitelist DOOR_LOCK_CLUSTER_ID to call updateLightNode()
+        case DOOR_LOCK_CLUSTER_ID:
+        {
+            updateLightNode(event);
+        }
+        break;
         case FAN_CONTROL_CLUSTER_ID:
             {
                 updateLightNode(event);

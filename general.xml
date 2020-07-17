@@ -290,6 +290,7 @@
 		<description>Attributes and commands for putting a device into Identification mode (e.g. flashing a light)</description>
 		<server>
 			<attribute id="0000" name="Identify Time" type="u16" access="rw" default="0x0000" range="0x0000,0xfff" required="m"></attribute>
+			<attribute id="0x4000" name="Identification button" type="bool" default="0x00" access="r" required="m" mfcode="0x1246"></attribute>
 			<command id="00" dir="recv" name="Identify" required="m">
 				<description>Start or stop the device identifying itself.</description>
 				<payload>
@@ -1657,15 +1658,15 @@ by the Poll Control Cluster Client.</description>
 						<value name="Cooling and Heating 4-pipes with Reheat" value="5"></value>
 					</attribute>
 					<attribute id="0x001c" name="System Mode" type="enum8" default="0x01" access="rw" required="m">
-						<value name="Off" value="0"></value>
-						<value name="Auto" value="1"></value>
-						<value name="Cool" value="3"></value>
-						<value name="Heat" value="4"></value>
-						<value name="Emergency heating" value="5"></value>
-						<value name="Precooling" value="6"></value>
-						<value name="Fan only" value="7"></value>
-						<value name="Dry" value="8"></value>
-						<value name="Sleep" value="9"></value>
+						<value name="Off" value="0x00"></value>
+						<value name="Auto" value="0x01"></value>
+						<value name="Cool" value="0x03"></value>
+						<value name="Heat" value="0x04"></value>
+						<value name="Emergency heating" value="0x05"></value>
+						<value name="Precooling" value="0x06"></value>
+						<value name="Fan only" value="0x07"></value>
+						<value name="Dry" value="0x08"></value>
+						<value name="Sleep" value="0x09"></value>
 					</attribute>
 					<attribute id="0x001d" name="Alarm Mask" type="bmp8" default="0" access="r" required="o">
 						<value name="Initialization failure" value="0"></value>
@@ -1690,7 +1691,7 @@ by the Poll Control Cluster Client.</description>
 					</attribute>
 					<attribute id="0x0021" name="Number of Weekly Transitions" type="u8" range="0x00,0xff" access="r" required="o"></attribute>
 					<attribute id="0x0022" name="Number of Dail Transitions" type="u8" range="0x00,0xff" access="r" required="o"></attribute>
-					<attribute id="0x0023" name="Temperature Setpoint Hold" type="enum8" default="0x00" access="r" required="o">
+					<attribute id="0x0023" name="Temperature Setpoint Hold" type="enum8" default="0x00" access="rw" required="o">
 						<value name="Setpoint Hold Off" value="0"></value>
 						<value name="Setpoint Hold On" value="1"></value>
 					</attribute>
@@ -1717,6 +1718,36 @@ Note: It does not clear or delete previous weekly schedule programming configura
 						<value name="Fan 3rd Stage State On" value="6"></value>
 					</attribute>
 				</attribute-set>
+                
+                <!-- Danfoss manufacturer specific -->
+                <attribute-set id="0x4000" description="Danfoss specific">
+					<attribute id="0x4000" name="eTRV Open Window Detection" type="enum8" default="0x00" access="r" required="m" mfcode="0x1246">
+						<value name="Closed" value="0x01"></value>
+						<value name="Hold" value="0x02"></value>
+						<value name="Open" value="0x03"></value>
+						<value name="Windows open from external, but detected closed" value="0x04"></value>
+					</attribute>
+                    <attribute id="0x4003" name="External Open Window Detected" type="bool" default="0x00" access="rw" required="m" mfcode="0x1246"></attribute>
+                    <attribute id="0x4010" name="Exercise day of week" type="enum8" default="0x04" access="rw" required="m" mfcode="0x1246">
+						<value name="Sunday" value="0x00"></value>
+						<value name="Monday" value="0x01"></value>
+						<value name="Tuesday" value="0x02"></value>
+						<value name="Wednesday" value="0x03"></value>
+						<value name="Thursday" value="0x04"></value>
+						<value name="Friday" value="0x05"></value>
+						<value name="Saturday" value="0x06"></value>
+						<value name="Undefined" value="0x07"></value>
+					</attribute>
+                    <attribute id="0x4011" name="Exercise trigger time" type="u16" default="660" access="rw" required="m" mfcode="0x1246"></attribute>
+                    <attribute id="0x4012" name="Mounting mode active" type="bool" default="0x01" access="r" required="m" mfcode="0x1246"></attribute>
+                    <attribute id="0x4013" name="Mounting mode control" type="bool" access="rw" required="m" mfcode="0x1246"></attribute>
+                    <attribute id="0x4014" name="eTRV Orientation" type="bool" default="0x00" access="rw" required="m" mfcode="0x1246"></attribute>
+                    <attribute id="0x4015" name="External Measured Room Sensor" type="s16" access="r" required="m" mfcode="0x1246"></attribute>
+                    <attribute id="0x4020" name="Control algorithm scale factor" type="u8" default="1" access="rw" required="m" mfcode="0x1246"></attribute>
+                    <attribute id="0x4030" name="Heat Available" type="bool" default="0x01" access="rw" required="m" mfcode="0x1246"></attribute>
+                    <attribute id="0x4031" name="Heat Supply Request " type="bool" access="r" required="m" mfcode="0x1246"></attribute>
+                </attribute-set>
+                
 				<!-- Eurotronic manufacturer specific -->
 				<attribute-set id="0x4000" description="Eurotronic">
 					<attribute id="0x4000" name="TRV Mode" type="enum8" default="0x02" access="rw" required="m" mfcode="0x1037">
@@ -1802,6 +1833,10 @@ controller device, that supports a keypad and LCD screen.</description>
 				<attribute id="0x0002" name="Schedule Programming Visibility" type="enum8" access="rw"  range="0x00,0x01" default="0x00" required="o">
 					<value name="Local schedule programming enabled" value="0x00"></value>
 					<value name="Local schedule programming disabled" value="0x01"></value>
+				</attribute>
+                <attribute id="0x4000" name="Viewing Direction" type="enum8" access="rw" range="0x00,0x01" default="0x00" required="o" mfcode="0x1246">
+					<value name="Viewing direction 1" value="0x00"></value>
+					<value name="Viewing direction 2" value="0x01"></value>
 				</attribute>
 			</server>
 			<client>
@@ -2391,6 +2426,7 @@ controller device, that supports a keypad and LCD screen.</description>
 						<attribute id="0x011c" name="Last Message LQI" type="u8" access="r" required="o" default="0x00"></attribute>
 						<attribute id="0x011d" name="Last Message RSSI" type="s8" access="r" required="o" default="0x00"></attribute>
 					</attribute-set>
+                    <attribute id="0x4000" name="SW error code" type="map16" access="rw" default="0" required="o" mfcode="0x1246"></attribute>
 				</server>
 				<client>
 				</client>
@@ -3417,8 +3453,8 @@ Fil pilote > Off=0001 - On=0002</description>
 				<attribute id="0x0102" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
 				<attribute id="0x0103" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
 				<attribute id="0x0104" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
-				<attribute id="0x0200" name="Unknown" type="u32" mfcode="0x125f" access="w" required="m"> </attribute>
-				<attribute id="0x0201" name="Connected to power since" type="u48" mfcode="0x125f" access="rw" required="m"> </attribute>
+				<attribute id="0x0200" name="Connected to power since" type="u32" mfcode="0x125f" access="r" required="m"> </attribute>
+				<attribute id="0x0201" name="Unknown" type="u48" mfcode="0x125f" access="rw" required="m"> </attribute>
 				<attribute id="0x0202" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
 				<attribute id="0x0300" name="Unknown" type="u8" mfcode="0x125f" access="rw" required="m"> </attribute>
 				<attribute id="0x0301" name="Unknown" type="bmp8" mfcode="0x125f" access="rw" required="m"> </attribute>
