@@ -32,6 +32,7 @@
   #include <sys/reboot.h>
   #include <sys/time.h>
   #include <signal.h>
+  #include <errno.h>
 #endif
 #endif // Q_OS_LINUX
 
@@ -1968,7 +1969,14 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
             char param1[100];
             strcpy(param1, "/usr/share/zoneinfo/");
             strcpy(param1, qPrintable(timezone));
-            symlink(param1, "/etc/localtime");
+
+            if (symlink(param1, "/etc/localtime") == -1)
+            {
+                DBG_Printf(DBG_INFO, "Create symlink to timezone failed with errno: %s\n", strerror(errno));
+                //rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/config/timezone"), QString("Link timezone failed with errno: %1\n").arg(strerror(errno))));
+                //rsp.httpStatus = HttpStatusServiceUnavailable;
+                //return REQ_READY_SEND;
+            }
 
             if (rc != 0)
             {
@@ -2020,7 +2028,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         std::string date = map["utc"].toString().toStdString();
 
         time_t mytime = time(0);
-        struct tm* tm_ptr = localtime(&mytime);
+        struct tm* tm_ptr = gmtime(&mytime); // gmtime instead localtime
 
         if (tm_ptr)
         {
@@ -2045,6 +2053,63 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         QVariantMap rspItem;
         QVariantMap rspItemState;
         rspItemState["/config/utc"] = map["utc"];
+        rspItem["success"] = rspItemState;
+        rsp.list.append(rspItem);
+
+    }
+
+    if (map.contains("localtime")) // optional
+    {
+        bool error = false;
+        if ((map["localtime"].type() != QVariant::String))
+        {
+            error = true;
+        }
+        else
+        {
+            QDateTime localtime = QDateTime::fromString(map["localtime"].toString(),"yyyy-MM-ddTHH:mm:ss");
+            if (!localtime.isValid() || map["localtime"].toString().length() != 19)
+            {
+                error = true;
+            }
+        }
+
+        if (error)
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/config/localtime"), QString("invalid value, %1, for parameter, utc").arg(map["localtime"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+
+#ifdef ARCH_ARM
+        int ret = 0;
+        std::string date = map["localtime"].toString().toStdString();
+
+        time_t mytime = time(0);
+        struct tm* tm_ptr = localtime(&mytime);
+        if (tm_ptr)
+        {
+            tm_ptr->tm_year = atoi(date.substr(0,4).c_str()) - 1900;
+            tm_ptr->tm_mon  = atoi(date.substr(5,2).c_str()) - 1;
+            tm_ptr->tm_mday = atoi(date.substr(8,2).c_str());
+            tm_ptr->tm_hour  = atoi(date.substr(11,2).c_str());
+            tm_ptr->tm_min  = atoi(date.substr(14,2).c_str());
+            tm_ptr->tm_sec  = atoi(date.substr(17,2).c_str());
+
+            const struct timeval tv = {mktime(tm_ptr), 0};
+            ret = settimeofday(&tv, NULL);
+        }
+
+        if (ret != 0)
+        {
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/config/localtime"), QString("Error setting date and time")));
+            rsp.httpStatus = HttpStatusServiceUnavailable;
+            return REQ_READY_SEND;
+        }
+#endif
+        QVariantMap rspItem;
+        QVariantMap rspItemState;
+        rspItemState["/config/localtime"] = map["localtime"];
         rspItem["success"] = rspItemState;
         rsp.list.append(rspItem);
 
