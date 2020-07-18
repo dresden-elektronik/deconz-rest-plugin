@@ -781,6 +781,7 @@ bool DeRestPluginPrivate::addTaskThermostatReadWriteAttribute(TaskItem &task, ui
     task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
             deCONZ::ZclFCDirectionClientToServer |
             deCONZ::ZclFCDisableDefaultResponse);
+
     if (mfrCode != 0x0000)
     {
         task.zclFrame.setFrameControl(task.zclFrame.frameControl() | deCONZ::ZclFCManufacturerSpecific);
