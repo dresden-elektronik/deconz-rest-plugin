@@ -1778,15 +1778,17 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
 int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map)
 {
     QString id = req.path[3];
-    bool isOn = false;
-    bool hasOn = map.contains("on");
+    bool on = false;
 
-    if (hasOn)
+    if (map.contains("on"))
     {
         if (map["on"].type() == QVariant::Bool)
         {
             bool ok = false;
             qint16 button = 0x0101;
+            QByteArray data;
+            
+            on = map["on"].toBool();
             
             //Retreive Fake endpoint, and change button value
             uint8_t ep = taskRef.lightNode->haEndpoint().endpoint();
@@ -1794,56 +1796,17 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
             if (ep == 0x03) { button = 0x0103; }
             
             DBG_Printf(DBG_INFO, "Tuya debug 77: EP:  %d\n",  ep );
-
-            TaskItem task;
-            copyTaskReq(taskRef, task);
             
-            //Tuya task
-            task.taskType = TaskSendOnOffToggle;
-
-            task.req.setClusterId(TUYA_CLUSTER_ID);
-            task.req.setProfileId(HA_PROFILE_ID);
-
-            task.zclFrame.payload().clear();
-            task.zclFrame.setSequenceNumber(zclSeq++);
-            task.zclFrame.setCommandId(0x00); // Command 0x00
-            task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
-                    deCONZ::ZclFCDirectionClientToServer);
-
-            // payload
-            QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
-            stream.setByteOrder(QDataStream::LittleEndian);
-            
-            //Status always 0x00
-            stream << (qint8) 0x00;
-            //TransID , use 0
-            stream << (qint8) 0x00;
-            //Dp, Button ID
-            stream << (qint16) button;
-            //Fn , always 0
-            stream << (qint8) 0x00;
-            // Data
-            stream << (quint8) 0x41; // octet string
-            stream << (qint8) 0x01; // len = 1
-            
-            if (isOn)
+            if (on)
             {
-                stream << (quint8) '1';
+                data = QByteArray("\x01",1);
             }
             else
             {
-                stream << (quint8) '0';
+                data = QByteArray("\x00",1);
             }
-
-
-            { // ZCL frame
-                task.req.asdu().clear(); // cleanup old request data if there is any
-                QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
-                stream.setByteOrder(QDataStream::LittleEndian);
-                task.zclFrame.writeToStream(stream);
-            }
-
-            ok = addTask(task);
+            
+            ok = SendTuyaRequest(taskRef, TaskSendOnOffToggle , button , data )
 
             if (ok)
             {
@@ -1852,7 +1815,6 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
                 rspItemState[QString("/lights/%1/state/on").arg(id)] = isOn;
                 rspItem["success"] = rspItemState;
                 rsp.list.append(rspItem);
-                taskToLocalData(task);
             }
             else
             {
@@ -1878,8 +1840,6 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
     //    updateLightEtag(taskRef.lightNode);
     //    rsp.etag = taskRef.lightNode->etag;
     //}
-
-    processTasks();
 
     return REQ_READY_SEND;
 }

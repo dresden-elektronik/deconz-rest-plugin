@@ -1070,7 +1070,9 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else if (sensor->modelId().startsWith(QLatin1String("kud7u2l"))) // Tuya Smart TRV HY369 Thermostatic Radiator Valve
                     {
-                        QByteArray data = QByteArray("\x00\x00\x00\xff",4);
+                        QByteArray data = QByteArray("\x00\x00",2);
+                        data.append((qint8)((heatsetpoint >> 8) & 0xff));
+                        data.append((qint8)(heatsetpoint & 0xff));
                         if ( SendTuyaRequest(task, TaskThermostat , 0x0202 , data ))
                         {
                             updated = true;
@@ -3114,69 +3116,4 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
             }
         }
     }
-}
-
-// Tuya Devices
-//
-bool DeRestPluginPrivate::SendTuyaRequest(TaskItem &taskRef, TaskType taskType , qint16 Dp , QByteArray data )
-{
-    
-    DBG_Printf(DBG_INFO, "Tuya debug 77\n");
-
-    TaskItem task;
-    copyTaskReq(taskRef, task);
-    
-    //Tuya task
-    task.taskType = taskType;
-
-    task.req.setClusterId(TUYA_CLUSTER_ID);
-    task.req.setProfileId(HA_PROFILE_ID);
-
-    task.zclFrame.payload().clear();
-    task.zclFrame.setSequenceNumber(zclSeq++);
-    task.zclFrame.setCommandId(0x00); // Command 0x00
-    task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
-            deCONZ::ZclFCDirectionClientToServer);
-
-    // payload
-    QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
-    stream.setByteOrder(QDataStream::LittleEndian);
-    
-    //Status always 0x00
-    stream << (qint8) 0x00;
-    //TransID , use 0
-    stream << (qint8) 0x00;
-    //Dp
-    stream << (qint16) Dp;
-    //Fn , always 0
-    stream << (qint8) 0x00;
-    // Data
-    stream << (quint8) 0x41; // deCONZ::ZclOctedString
-    stream << (qint8) data.length(); // len
-    for (uint i = 0; i < data.length(); i++)
-    {
-        stream << (quint8) data[i];
-    }
-
-    { // ZCL frame
-        task.req.asdu().clear(); // cleanup old request data if there is any
-        QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
-        stream.setByteOrder(QDataStream::LittleEndian);
-        task.zclFrame.writeToStream(stream);
-    }
-
-    ok = addTask(task);
-
-    if (ok)
-    {
-        taskToLocalData(task);
-    }
-    else
-    {
-        return false;
-    }
-
-    processTasks();
-
-    return true;
 }
