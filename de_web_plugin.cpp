@@ -16039,6 +16039,7 @@ void DeRestPlugin::idleTimerFired()
                             }
                             if (sensorNode->modelId().startsWith("SLT2") ||
                                 sensorNode->modelId().startsWith("SLR2") ||
+                                sensorNode->modelId().startsWith("TRV001") ||
                                 sensorNode->modelId().startsWith(QLatin1String("TH112")) ) // Sinope devices
                             {
                                 // supports reporting, no need to read attributes
