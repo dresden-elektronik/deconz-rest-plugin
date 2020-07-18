@@ -641,7 +641,7 @@ static QByteArray setSchedule(const QString &sched)
    \return true - on success
            false - on error
  */
-bool DeRestPluginPrivate::addTaskThermostatCmd(TaskItem &task, uint8_t cmd, int8_t setpoint, const QString &schedule, uint8_t daysToReturn)
+bool DeRestPluginPrivate::addTaskThermostatCmd(TaskItem &task, uint16_t mfrCode, uint8_t cmd, int16_t setpoint, const QString &schedule, uint8_t daysToReturn)
 {
     task.taskType = TaskThermostat;
 
@@ -653,6 +653,12 @@ bool DeRestPluginPrivate::addTaskThermostatCmd(TaskItem &task, uint8_t cmd, int8
     task.zclFrame.setCommandId(cmd);
     task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
             deCONZ::ZclFCDirectionClientToServer);
+            
+    if (mfrCode != 0x0000)
+    {
+        task.zclFrame.setFrameControl(task.zclFrame.frameControl() | deCONZ::ZclFCManufacturerSpecific);
+        task.zclFrame.setManufacturerCode(mfrCode);
+    }
 
     // payload
     QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
@@ -676,6 +682,11 @@ bool DeRestPluginPrivate::addTaskThermostatCmd(TaskItem &task, uint8_t cmd, int8
     else if (cmd == 0x03)  // clear schedule
     {
         // no payload
+    }
+    else if (cmd == 0x40) // Hive manufacture command
+    {
+        stream << (qint8) 0x01;  // ???
+        stream << (qint16) setpoint;  // temperature
     }
     else
     {
@@ -715,7 +726,7 @@ bool DeRestPluginPrivate::addTaskThermostatSetAndGetSchedule(TaskItem &task, con
 {
     copyTaskReq(task, taskScheduleTimer);
 
-    if (!sched.isEmpty() && !addTaskThermostatCmd(task, 0x01, 0, sched, 0))  // set schedule
+    if (!sched.isEmpty() && !addTaskThermostatCmd(task, 0, 0x01, 0, sched, 0))  // set schedule
     {
         return false;
     }
@@ -739,7 +750,7 @@ void DeRestPluginPrivate::addTaskThermostatGetScheduleTimer()
     uint8_t dayofweek = (1 << dayofweekTimer);
     dayofweekTimer++;
 
-    addTaskThermostatCmd(task, 0x02, 0, nullptr, dayofweek);  // get schedule
+    addTaskThermostatCmd(task, 0, 0x02, 0, nullptr, dayofweek);  // get schedule
 }
 
 /*! Write Attribute on thermostat cluster.
