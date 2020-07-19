@@ -3473,8 +3473,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             ok = true;
             
             //to remove
-            if (ind.clusterId() == COLOR_CLUSTER_ID &&
-                     (zclFrame.commandId() == 0x4b ))
+            if (ind.clusterId() == COLOR_CLUSTER_ID && (zclFrame.commandId() == 0x4b ))
             {
                 DBG_Printf(DBG_INFO, "LDS debug 1");
             }
@@ -3809,7 +3808,10 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     quint8 pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(0);
                     if (buttonMap->zclParam0 != pl0)
                     {
-                        ok = false;
+                        //ok = false;
+                        DBG_Printf(DBG_INFO, "LDS debug 88: 0x%04X",pl0);
+                        pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(1);
+                        DBG_Printf(DBG_INFO, "LDS debug 89: 0x%04X",pl0);
                     }
                     //ignore the command if previous was button4
                     if (sensor->previousCommandId == 0x04)
