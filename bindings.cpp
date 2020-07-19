@@ -2894,6 +2894,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         clusters.push_back(LEVEL_CLUSTER_ID);
         srcEndpoints.push_back(0x01);
         srcEndpoints.push_back(0x02);
+        srcEndpoints.push_back(0x03);
+        srcEndpoints.push_back(0x04);
+        srcEndpoints.push_back(0x05);
     }
     // Sage doorbell sensor
     else if (sensor->modelId().startsWith(QLatin1String("Bell")))
