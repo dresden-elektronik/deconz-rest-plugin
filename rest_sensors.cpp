@@ -1070,6 +1070,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else if (sensor->modelId().startsWith(QLatin1String("kud7u2l"))) // Tuya Smart TRV HY369 Thermostatic Radiator Valve
                     {
+                        heatsetpoint = heatsetpoint / 10;
                         QByteArray data = QByteArray("\x00\x00",2);
                         data.append((qint8)((heatsetpoint >> 8) & 0xff));
                         data.append((qint8)(heatsetpoint & 0xff));
@@ -1123,8 +1124,12 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         QByteArray data;
                         QString mode_set = map[pi.key()].toString();
                         if (mode_set == "off") { data = QByteArray("\x00",1); }
-                        else if (mode_set == "manual") { data = QByteArray("\x02",1); }
                         else if (mode_set == "auto") { data = QByteArray("\x01",1); }
+                        else if (mode_set == "manual") { data = QByteArray("\x02",1); }
+                        else if (mode_set == "confort") { data = QByteArray("\x03",1); }
+                        else if (mode_set == "eco") { data = QByteArray("\x04",1); }
+                        else if (mode_set == "boost") { data = QByteArray("\x05",1); }
+                        else if (mode_set == "complex") { data = QByteArray("\x06",1); }
                         else
                         {
                             rspItemState[QString("error unknow mode for %1").arg(sensor->modelId())] = map[pi.key()];

@@ -38,6 +38,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
     {
         return;
     }
+    
+    bool update = false;
 
     LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());
     Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
@@ -51,7 +53,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
     
     if (zclFrame.commandId() == 0x00)
     {
-        // 0x00 : Used to send command
+        // 0x00 : Used to send command, so not used here
     }
     else if ( (zclFrame.commandId() == 0x01) || (zclFrame.commandId() == 0x02) )
     {
@@ -85,7 +87,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             //security, it seem 4 is the maximum
             if (length > 4)
             {
-                DBG_Printf(DBG_INFO, "Tuya debug : lenght excess\n");
+                DBG_Printf(DBG_INFO, "Tuya debug : data length excess\n");
                 length = 4;
             }
             
@@ -96,8 +98,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 data = data + dummy;
             }
             
-            DBG_Printf(DBG_INFO, "Tuya debug 4: status: %d transid: %d dp: %d fn: %d\n", status , transid , dp , fn );
-            DBG_Printf(DBG_INFO, "Tuya debug 5: data:  %lld\n",  data );
+            DBG_Printf(DBG_INFO, "Tuya debug 4: status: %d transid: %d dp: %d fn: %d data %lld\n", status , transid , dp , fn , data);
             
             // Switch device 3 gang
             switch (dp)
@@ -128,11 +129,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                             Event e(RLights, RStateOn, lightNode->id(), item);
                             enqueueEvent(e);
 
-                            // Update Node light
-                            updateEtag(lightNode->etag);
-                            updateEtag(gwConfigEtag);
-                            lightNode->setNeedSaveDatabase(true);
-                            saveDatabaseItems |= DB_LIGHTS;
+                            update = true;
+
                         }
                     
                     }
@@ -148,8 +146,6 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         item->setValue(temp);
                         Event e(RSensors, RStateTemperature, sensorNode->id(), item);
                         enqueueEvent(e);
-                        
-                        //updateSensorEtag(sensorNode->etag);
 
                     }
                 }
@@ -165,7 +161,20 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         Event e(RSensors, RConfigHeatSetpoint, sensorNode->id(), item);
                         enqueueEvent(e);
                         
-                        //updateSensorEtag(sensorNode->etag);
+                    }
+                }
+                break;
+                case 0x0215: // battery
+                {
+                    quint8 bat = (qint8)(data & 0xFF);
+                    if (bat > 100) { bat = 100; }
+                    ResourceItem *item = sensorNode->item(RConfigBattery);
+
+                    if (item && item->toNumber() != bat)
+                    {
+                        item->setValue(bat);
+                        Event e(RSensors, RConfigBattery, sensorNode->id(), item);
+                        enqueueEvent(e);
                     }
                 }
                 break;
@@ -190,6 +199,10 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     if (data == 0) { mode = "off"; }
                     if (data == 1) { mode = "auto"; }
                     if (data == 2) { mode = "manual"; }
+                    if (data == 3) { mode = "confort"; }
+                    if (data == 4) { mode = "eco"; }
+                    if (data == 5) { mode = "boost"; }
+                    if (data == 6) { mode = "complex"; }
                     
                     ResourceItem *item = sensorNode->item(RConfigMode);
 
@@ -215,6 +228,26 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
     else
     {
         return;
+    }
+    
+    if (update)
+    {
+        if (lightNode)
+        {
+            // Update Node light
+            updateEtag(lightNode->etag);
+            updateEtag(gwConfigEtag);
+            lightNode->setNeedSaveDatabase(true);
+            saveDatabaseItems |= DB_LIGHTS;
+        }
+        if (sensorNode)
+        {
+            // Update Node Sensor
+            //updateEtag(sensorNode->etag);
+            //updateEtag(gwConfigEtag);
+            //sensorNode->setNeedSaveDatabase(true);
+            //queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+        }
     }
 
 }
