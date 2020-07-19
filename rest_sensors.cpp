@@ -1118,6 +1118,26 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                         rspItem["success"] = rspItemState;
                     }
+                    else if (sensor->modelId().startsWith(QLatin1String("kud7u2l"))) // Tuya Smart TRV HY369 Thermostatic Radiator Valve
+                    {
+                        QByteArray data;
+                        QString mode_set = map[pi.key()].toString();
+                        if (mode_set == "off") { data = QByteArray("\x00",1); }
+                        else if (mode_set == "manual") { data = QByteArray("\x02",1); }
+                        else if (mode_set == "auto") { data = QByteArray("\x01",1); }
+                        else
+                        {
+                            rspItemState[QString("error unknow mode for %1").arg(sensor->modelId())] = map[pi.key()];
+                        }
+                        if (data.length() > 0 )
+                        {
+                            if ( SendTuyaRequest(task, TaskThermostat , 0x0404 , data ))
+                            {
+                                updated = true;
+                            }
+                        }
+
+                    }
                     else if (sensor->modelId() == QLatin1String("SLR2") ||            //Hive
                              sensor->modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
                              sensor->modelId().startsWith(QLatin1String("Zen-01")))   // Zen

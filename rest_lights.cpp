@@ -1806,13 +1806,13 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
                 data = QByteArray("\x00",1);
             }
             
-            ok = SendTuyaRequest(taskRef, TaskSendOnOffToggle , button , data )
+            ok = SendTuyaRequest(taskRef, TaskSendOnOffToggle , button , data );
 
             if (ok)
             {
                 QVariantMap rspItem;
                 QVariantMap rspItemState;
-                rspItemState[QString("/lights/%1/state/on").arg(id)] = isOn;
+                rspItemState[QString("/lights/%1/state/on").arg(id)] = on;
                 rspItem["success"] = rspItemState;
                 rsp.list.append(rspItem);
             }

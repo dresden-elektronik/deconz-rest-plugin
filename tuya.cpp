@@ -166,7 +166,6 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         enqueueEvent(e);
                         
                         //updateSensorEtag(sensorNode->etag);
-
                     }
                 }
                 break;
@@ -181,6 +180,23 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     {
                         item->setValue(onoff);
                         Event e(RSensors, RStateOn, sensorNode->id(), item);
+                        enqueueEvent(e);
+                    }
+                }
+                break;
+                case 0x404 : // mode
+                {
+                    QString mode;
+                    if (data == 0) { mode = "off"; }
+                    if (data == 1) { mode = "auto"; }
+                    if (data == 2) { mode = "manual"; }
+                    
+                    ResourceItem *item = sensorNode->item(RConfigMode);
+
+                    if (item && item->toString() != mode)
+                    {
+                        item->setValue(mode);
+                        Event e(RSensors, RConfigMode, sensorNode->id(), item);
                         enqueueEvent(e);
                     }
                 }
