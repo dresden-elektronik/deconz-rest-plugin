@@ -1083,7 +1083,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq5.attributeId = 0x001C;        // Thermostat mode
             rq5.minInterval = 1;
             rq5.maxInterval = 600;
-            rq5.reportableChange16bit = 0xff;
+            rq5.reportableChange8bit = 0xff;
 
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4, rq5});
         }
@@ -1108,7 +1108,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq4.attributeId = 0x001C;        // Thermostat mode
             rq4.minInterval = 1;
             rq4.maxInterval = 600;
-            rq4.reportableChange16bit = 0xff;
+            rq4.reportableChange8bit = 0xff;
 
             ConfigureReportingRequest rq2;
             rq2.dataType = deCONZ::Zcl16BitBitMap;
