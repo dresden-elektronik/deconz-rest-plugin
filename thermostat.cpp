@@ -185,7 +185,8 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 
             case 0x0008:  // Pi Heating Demand
             {
-                if (sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
+                if (sensor->modelId().startsWith(QLatin1String("SPZB")) ||  // Eurotronic Spirit
+                    sensor->modelId() == QLatin1String("TRV001")) // Hive
                 {
                     quint8 valve = attr.numericValue().u8;
                     bool on = valve > 3;
