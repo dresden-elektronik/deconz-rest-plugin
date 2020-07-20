@@ -1817,6 +1817,11 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         {
             DBG_Printf(DBG_INFO, "Binding DanaLock\n");
         }
+        // Schlage support
+        else if (lightNode->manufacturerCode() == VENDOR_SCHLAGE)
+        {
+            DBG_Printf(DBG_INFO, "Binding Schlage\n");
+        }
         else if (lightNode->manufacturerCode() == VENDOR_IKEA)
         {
         }
@@ -2136,6 +2141,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("FLS-NB")) ||
         // Danalock support
         sensor->modelId().startsWith(QLatin1String("V3")) ||
+        // Schlage support
+        sensor->modelId().startsWith(QLatin1String("BE468")) ||
         // SmartThings
         sensor->modelId().startsWith(QLatin1String("tagv4")) ||
         sensor->modelId().startsWith(QLatin1String("motionv4")) ||
