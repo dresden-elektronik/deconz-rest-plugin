@@ -293,6 +293,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_OSRAM_STACK, "SF20", heimanMacPrefix }, // ORVIBO SF20 smoke sensor
     // Danalock support
     { VENDOR_DANALOCK, "V3", danalockMacPrefix}, // Danalock Smart Lock
+    // Schlage support
+    { VENDOR_SCHLAGE, "BE468", schlageMacPrefix}, // Schlage BE468 Smart Lock
     { VENDOR_HEIMAN, "SF21", emberMacPrefix }, // ORVIBO SF21 smoke sensor
     { VENDOR_LEGRAND, "Dimmer switch w/o neutral", legrandMacPrefix }, // Legrand Dimmer switch wired
     { VENDOR_LEGRAND, "Connected outlet", legrandMacPrefix }, // Legrand Plug
