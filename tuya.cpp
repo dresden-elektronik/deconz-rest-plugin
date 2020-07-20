@@ -289,7 +289,7 @@ bool DeRestPluginPrivate::SendTuyaRequest(TaskItem &taskRef, TaskType taskType ,
     stream << (qint8) 0x00;
     // Data
     stream << (qint8) data.length(); // len
-    for (uint i = 0; i < data.length(); i++)
+    for (int i = 0; i < data.length(); i++)
     {
         stream << (quint8) data[i];
     }
