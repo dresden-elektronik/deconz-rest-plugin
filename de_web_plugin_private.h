@@ -292,6 +292,7 @@
 #define VENDOR_NYCE         0x10B9
 #define VENDOR_UBISYS       0x10F2
 #define VENDOR_DANALOCK     0x115C
+#define VENDOR_SCHLAGE      0x1236 // Used by Schlage Locks
 #define VENDOR_BEGA         0x1105
 #define VENDOR_PHYSICAL     0x110A // Used by SmartThings
 #define VENDOR_OSRAM        0x110C
@@ -457,6 +458,7 @@ extern const quint64 ecozyMacPrefix;
 extern const quint64 zhejiangMacPrefix;
 // Danalock support
 extern const quint64 danalockMacPrefix;
+extern const quint64 schlageMacPrefix;
 
 inline bool checkMacVendor(quint64 addr, quint16 vendor)
 {
@@ -572,6 +574,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == computimeMacPrefix;
         case VENDOR_DANALOCK:
             return prefix == danalockMacPrefix;
+        case VENDOR_SCHLAGE:
+            return prefix == schlageMacPrefix;
         default:
             return false;
     }
