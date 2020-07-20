@@ -98,7 +98,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 data = data + dummy;
             }
             
-            DBG_Printf(DBG_INFO, "Tuya debug 4: status: %d transid: %d dp: %d fn: %d data %lld\n", status , transid , dp , fn , data);
+            DBG_Printf(DBG_INFO, "Tuya debug 4: status: %d transid: %d dp: %d fn: %d data %llu\n", status , transid , dp , fn , data);
+            //DBG_Printf(DBG_INFO, "Tuya debug 4: status: %d transid: %d dp: %d fn: %d payload %s\n", status , transid , dp , fn ,  qPrintable(zclFrame.payload().toHex()));
             
             // Switch device 3 gang
             switch (dp)
@@ -193,7 +194,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     }
                 }
                 break;
-                case 0x404 : // mode
+                case 0x0404 : // mode
                 {
                     QString mode;
                     if (data == 0) { mode = "off"; }
@@ -214,6 +215,30 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     }
                 }
                 break;
+                case 0x026D : // Valve position
+                {
+                    quint8 valve = (qint8)(data & 0xFF);
+                    bool on = valve > 3;
+                    
+                    ResourceItem *item = sensorNode->item(RStateOn);
+                    if (item)
+                    {
+                        if (item->toBool() != on)
+                        {
+                            item->setValue(on);
+                            enqueueEvent(Event(RSensors, RStateOn, sensor->id(), item));
+                            enqueueEvent(e);
+                        }
+                    }
+                    item = sensorNode->item(RStateValve);
+                    if (item && item->toNumber() != valve)
+                    {
+                        item->setValue(valve);
+                        enqueueEvent(Event(RSensors, RStateValve, sensor->id(), item));
+                        enqueueEvent(e);
+                    }
+                }
+                breal;
                 default:
                 break;
             }
