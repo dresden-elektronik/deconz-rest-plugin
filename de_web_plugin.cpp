@@ -109,6 +109,7 @@ const quint64 xalMacPrefix        = 0xf8f0050000000000ULL;
 const quint64 lutronMacPrefix     = 0xffff000000000000ULL;
 // Danalock support
 const quint64 danalockMacPrefix   = 0x000b570000000000ULL; // note: same as ikeaMacPrefix
+const quint64 schlageMacPrefix    = 0xd0cf5e0000000000ULL;
 
 struct SupportedDevice {
     quint16 vendorId;
@@ -1654,7 +1655,9 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA || // IKEA FYRTUR and KADRILJ smart binds
         node->nodeDescriptor().manufacturerCode() == VENDOR_THIRD_REALITY || // Third Reality smart light switch
         // Danalock support. The vendor ID (0x115c) needs to defined and whitelisted, as it's battery operated
-        node->nodeDescriptor().manufacturerCode() == VENDOR_DANALOCK) // Danalock Door Lock
+        node->nodeDescriptor().manufacturerCode() == VENDOR_DANALOCK || // Danalock Door Lock
+        // Schlage support. The vendor ID (0x1236) needs to defined and whitelisted, as it's battery operated
+        node->nodeDescriptor().manufacturerCode() == VENDOR_SCHLAGE)
     {
         // whitelist
     }
