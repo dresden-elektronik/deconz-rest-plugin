@@ -128,6 +128,7 @@ const char *RConfigPending = "config/pending";
 const char *RConfigPowerup = "config/powerup";
 const char *RConfigPowerOnCt = "config/poweronct";
 const char *RConfigPowerOnLevel = "config/poweronlevel";
+const char *RConfigPreset = "config/preset";
 const char *RConfigReachable = "config/reachable";
 const char *RConfigScheduler = "config/scheduler";
 const char *RConfigSchedulerOn = "config/scheduleron";
@@ -265,6 +266,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, RConfigPowerup));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigPowerOnLevel));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigPowerOnCt));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigPreset));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigReachable));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigScheduler));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigSchedulerOn));

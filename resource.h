@@ -136,6 +136,7 @@ extern const char *RConfigPending;
 extern const char *RConfigPowerup;
 extern const char *RConfigPowerOnCt;
 extern const char *RConfigPowerOnLevel;
+extern const char *RConfigPreset;
 extern const char *RConfigReachable;
 extern const char *RConfigScheduler;
 extern const char *RConfigSchedulerOn;
