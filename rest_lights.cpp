@@ -835,9 +835,6 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     {
         rsp.list.append(errorToMap(ERR_MISSING_PARAMETER, QString("/lights/%1/state").arg(id), QString("missing parameter to set light state")));
     }
-
-    // Check whether light is on.
-    isOn = taskRef.lightNode->toBool(RStateOn);
     
     // Check whether light is on.
     isOn = taskRef.lightNode->toBool(RStateOn);
