@@ -1123,20 +1123,16 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     {
                         QByteArray data;
                         QString mode_set = map[pi.key()].toString();
-                        if (mode_set == "off") { data = QByteArray("\x00",1); }
-                        else if (mode_set == "auto") { data = QByteArray("\x01",1); }
-                        else if (mode_set == "manual") { data = QByteArray("\x02",1); }
-                        else if (mode_set == "confort") { data = QByteArray("\x03",1); }
-                        else if (mode_set == "eco") { data = QByteArray("\x04",1); }
-                        else if (mode_set == "boost") { data = QByteArray("\x05",1); }
-                        else if (mode_set == "complex") { data = QByteArray("\x06",1); }
+                        if (mode_set == "auto") { data = QByteArray("\x00",1); }
+                        else if (mode_set == "heat") { data = QByteArray("\x01",1); }
+                        else if (mode_set == "off") { data = QByteArray("\x02",1); }
                         else
                         {
                             rspItemState[QString("error unknow mode for %1").arg(sensor->modelId())] = map[pi.key()];
                         }
                         if (data.length() > 0 )
                         {
-                            if ( SendTuyaRequest(task, TaskThermostat , 0x0404 , data ))
+                            if ( SendTuyaRequest(task, TaskThermostat , 0x046a , data ))
                             {
                                 updated = true;
                             }
@@ -1240,6 +1236,30 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                     }
                 }
+                else if ((rid.suffix == RConfigPreset) && sensor->modelId().startsWith(QLatin1String("kud7u2l")) )
+                {
+
+                    QByteArray data;
+                    QString preset_set = map[pi.key()].toString();
+                    if (preset_set == "holiday") { data = QByteArray("\x00",1); }
+                    else if (preset_set == "auto") { data = QByteArray("\x01",1); }
+                    else if (preset_set == "manual") { data = QByteArray("\x02",1); }
+                    else if (preset_set == "confort") { data = QByteArray("\x03",1); }
+                    else if (preset_set == "eco") { data = QByteArray("\x04",1); }
+                    else if (preset_set == "boost") { data = QByteArray("\x05",1); }
+                    else if (preset_set == "complex") { data = QByteArray("\x06",1); }
+                    else
+                    {
+                        rspItemState[QString("error unknown preset for %1").arg(sensor->modelId())] = map[pi.key()];
+                    }
+                    if (data.length() > 0 )
+                    {
+                        if ( SendTuyaRequest(task, TaskThermostat , 0x0404 , data ))
+                        {
+                            updated = true;
+                        }
+                    }
+		}
             }
         }
 

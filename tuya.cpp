@@ -98,8 +98,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 data = data + dummy;
             }
             
-            DBG_Printf(DBG_INFO, "Tuya debug 4: status: %d transid: %d dp: %d fn: %d data %llu\n", status , transid , dp , fn , data);
-            //DBG_Printf(DBG_INFO, "Tuya debug 4: status: %d transid: %d dp: %d fn: %d payload %s\n", status , transid , dp , fn ,  qPrintable(zclFrame.payload().toHex()));
+            //DBG_Printf(DBG_INFO, "Tuya debug 4: status: %d transid: %d dp: %d fn: %d data %llu\n", status , transid , dp , fn , data);
+            DBG_Printf(DBG_INFO, "Tuya debug 4: status: %d transid: %d dp: %d fn: %d payload %s\n", status , transid , dp , fn ,  qPrintable(zclFrame.payload().toHex()));
             
             // Switch device 3 gang
             switch (dp)
@@ -194,24 +194,23 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     }
                 }
                 break;
-                case 0x0404 : // mode
+                case 0x0404 : // preset
                 {
-                    QString mode;
-                    if (data == 0) { mode = "off"; }
-                    if (data == 1) { mode = "auto"; }
-                    if (data == 2) { mode = "manual"; }
-                    if (data == 3) { mode = "confort"; }
-                    if (data == 4) { mode = "eco"; }
-                    if (data == 5) { mode = "boost"; }
-                    if (data == 6) { mode = "complex"; }
+                    QString preset;
+                    if (data == 0) { preset = "holiday"; }
+                    if (data == 1) { preset = "auto"; }
+                    if (data == 2) { preset = "manual"; }
+                    if (data == 3) { preset = "confort"; }
+                    if (data == 4) { preset = "eco"; }
+                    if (data == 5) { preset = "boost"; }
+                    if (data == 6) { preset = "complex"; }
                     
-                    ResourceItem *item = sensorNode->item(RConfigMode);
+                    ResourceItem *item = sensorNode->item(RConfigPreset);
 
-                    if (item && item->toString() != mode)
+                    if (item && item->toString() != preset)
                     {
-                        item->setValue(mode);
-                        Event e(RSensors, RConfigMode, sensorNode->id(), item);
-                        enqueueEvent(e);
+                        item->setValue(preset);
+                        enqueueEvent(Event(RSensors, RConfigPreset, sensorNode->id(), item));
                     }
                 }
                 break;
@@ -226,19 +225,34 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         if (item->toBool() != on)
                         {
                             item->setValue(on);
-                            enqueueEvent(Event(RSensors, RStateOn, sensor->id(), item));
-                            enqueueEvent(e);
+                            enqueueEvent(Event(RSensors, RStateOn, sensorNode->id(), item));
                         }
                     }
                     item = sensorNode->item(RStateValve);
                     if (item && item->toNumber() != valve)
                     {
                         item->setValue(valve);
-                        enqueueEvent(Event(RSensors, RStateValve, sensor->id(), item));
-                        enqueueEvent(e);
+                        enqueueEvent(Event(RSensors, RStateValve, sensorNode->id(), item));
                     }
                 }
-                breal;
+                break;
+                case 0x046a : // mode
+                {
+                    QString mode;
+                    if (data == 0) { mode = "auto"; }
+                    if (data == 1) { mode = "heat"; }
+                    if (data == 2) { mode = "off"; }
+                    
+                    ResourceItem *item = sensorNode->item(RConfigMode);
+
+                    if (item && item->toString() != mode)
+                    {
+                        item->setValue(mode);
+                        enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                    }
+                }
+                break;
+                
                 default:
                 break;
             }
