@@ -839,6 +839,30 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
     // Check whether light is on.
     isOn = taskRef.lightNode->toBool(RStateOn);
+    
+    // Check whether light is on.
+    isOn = taskRef.lightNode->toBool(RStateOn);
+    
+    // Special part for Profalux device
+    // This device is a shutter but is used as a dimmable light, so need some hack
+    if (taskRef.lightNode->modelId() == QLatin1String("PFLX Shutter"))
+    {
+        // if the user use on/off instead off bri
+        if (hasOn && !hasBri)
+        {
+            targetBri = targetOn ? 0xFE : 0x00;
+        }
+        
+        // The constructor ask to use setvel instead of on/off
+        hasBri = true;
+        hasOn = false;
+        isOn = true; // to force bri even state = off
+        
+        //Check limit
+        if (targetBri > 0xFE) { targetBri = 0xFE; }
+        if (targetBri < 1 ) { targetBri = 0x01; }
+        
+    }
 
     // state.on: true
     if (hasOn && targetOn)
