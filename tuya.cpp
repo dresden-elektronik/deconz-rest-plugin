@@ -252,6 +252,20 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     }
                 }
                 break;
+                case 0x022c : // temperature calibration (offset)
+                {
+                    qint32 temp = ((qint32)(data & 0xFFFFFFFF)) * 10;
+                    ResourceItem *item = sensorNode->item(RConfigOffset);
+
+                    if (item && item->toNumber() != temp)
+                    {
+                        item->setValue(temp);
+                        Event e(RSensors, RConfigOffset, sensorNode->id(), item);
+                        enqueueEvent(e);
+                        
+                    }
+                }
+                break;
                 
                 default:
                 break;
