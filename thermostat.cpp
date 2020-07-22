@@ -10,6 +10,7 @@
  * state.on           | read only  | 0x0029    | running state on/off
  * state.temperature  | read only  | 0x0000    | measured temperature
  * config.heatsetpoint| read write | 0x0012    | heating setpoint
+ * config.mode        | read write | 0x001C    | System mode
  * config.scheduleron | read write | 0x0025    | scheduler on/off
  * config.offset      | read write | 0x0010    | temperature offset
  * config.scheduler   | read write | (command) | scheduled setpoints
@@ -99,7 +100,7 @@ static int dayofweekTimer = 0;
  */
 void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
-    Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
+    Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
 
     QDataStream stream(zclFrame.payload());
     stream.setByteOrder(QDataStream::LittleEndian);
@@ -248,6 +249,37 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
             }
                 break;
+                
+            case 0x001C: // System Mode
+            {
+                if (sensor->modelId().startsWith(QLatin1String("SLR2")) ||  // Hive
+                    sensor->modelId().startsWith(QLatin1String("TH112")) || // Sinope
+                    sensor->modelId().startsWith(QLatin1String("Zen-01")))  // Zen
+                {
+                    qint8 mode = attr.numericValue().s8;
+                    QString mode_set;
+                   
+                    mode_set = QString("off");
+                    if ( mode == 0x01 ) { mode_set = QString("auto"); }
+                    if ( mode == 0x03 ) { mode_set = QString("cool"); }
+                    if ( mode == 0x04 ) { mode_set = QString("heat"); }
+                    if ( mode == 0x05 ) { mode_set = QString("emergency heating"); }
+                    if ( mode == 0x06 ) { mode_set = QString("precooling"); }
+                    if ( mode == 0x07 ) { mode_set = QString("fan only"); }
+                    if ( mode == 0x08 ) { mode_set = QString("dry"); }
+                    if ( mode == 0x09 ) { mode_set = QString("sleep"); }
+
+                    item = sensor->item(RConfigMode);
+                    if (item && !item->toString().isEmpty() && item->toString() != mode_set)
+                    {
+                        item->setValue(mode_set);
+                        enqueueEvent(Event(RSensors, RConfigMode, sensor->id(), item));
+                        configUpdated = true;
+                    }
+                }
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
+                break;
 
             case 0x0025:  // Thermostat Programming Operation Mode, default 0 (bit#0 = disable/enable Scheduler)
             {
@@ -281,6 +313,32 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
             // manufacturerspecific reported by Eurotronic SPZB0001
             // https://eurotronic.org/wp-content/uploads/2019/01/Spirit_ZigBee_BAL_web_DE_view_V9.pdf
             case 0x4000: // enum8 (0x30): value 0x02, TRV mode
+            {
+                if (zclFrame.manufacturerCode() == VENDOR_JENNIC)
+                {
+                }
+                else if (zclFrame.manufacturerCode() == VENDOR_DANFOSS)
+                {
+                    qint8 windowmode = attr.numericValue().s8;
+                    QString windowmode_set;
+                   
+                    if ( windowmode == 0x01 ) { windowmode_set = QString("Closed"); }
+                    if ( windowmode == 0x02 ) { windowmode_set = QString("Hold"); }
+                    if ( windowmode == 0x03 ) { windowmode_set = QString("Open"); }
+                    if ( windowmode == 0x04 ) { windowmode_set = QString("Open (external), closed (internal)"); }
+
+                    item = sensor->item(RStateWindowOpen);
+                    if (item && item->toString() != windowmode_set)
+                    {
+                        item->setValue(windowmode_set);
+                        enqueueEvent(Event(RSensors, RStateWindowOpen, sensor->id(), item));
+                        configUpdated = true;
+                    }
+                }
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
+                break;
+            
             case 0x4001: // U8 (0x20): value 0x00, valve position
             case 0x4002: // U8 (0x20): value 0x00, errors
             {
@@ -602,6 +660,7 @@ bool DeRestPluginPrivate::addTaskThermostatCmd(TaskItem &task, uint8_t cmd, int8
 
     if (cmd == 0x00)
     {
+        stream << (qint8) 0x02;  // Enum 8 Both (adjust Heat Setpoint and Cool Setpoint)
         stream << (qint8) setpoint;  // 8-bit raise/lower
     }
     else if (cmd == 0x01)  // set schedule
@@ -743,6 +802,80 @@ bool DeRestPluginPrivate::addTaskThermostatReadWriteAttribute(TaskItem &task, ui
         else
         {
             return false;
+        }
+    }
+
+    { // ZCL frame
+        task.req.asdu().clear(); // cleanup old request data if there is any
+        QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        task.zclFrame.writeToStream(stream);
+    }
+
+    return addTask(task);
+}
+
+/*! Write Attribute List on thermostat cluster.
+   \param task - the task item
+   \param AttributeList
+   \return true - on success
+           false - on error
+ */
+bool DeRestPluginPrivate::addTaskThermostatWriteAttributeList(TaskItem &task, uint16_t mfrCode, QMap<quint16, quint32> &AttributeList )
+{
+
+    task.taskType = TaskThermostat;
+
+    task.req.setClusterId(THERMOSTAT_CLUSTER_ID);
+    task.req.setProfileId(HA_PROFILE_ID);
+
+    task.zclFrame.payload().clear();
+    task.zclFrame.setSequenceNumber(zclSeq++);
+    task.zclFrame.setCommandId(deCONZ::ZclWriteAttributesId);
+    task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+            deCONZ::ZclFCDirectionClientToServer |
+            deCONZ::ZclFCDisableDefaultResponse);
+
+    if (mfrCode != 0x0000)
+    {
+        task.zclFrame.setFrameControl(task.zclFrame.frameControl() | deCONZ::ZclFCManufacturerSpecific);
+        task.zclFrame.setManufacturerCode(mfrCode);
+    }
+
+    // payload
+    quint16 attrId;
+    quint32 attrValue;
+    
+    QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
+    stream.setByteOrder(QDataStream::LittleEndian);
+    
+    QMapIterator<quint16, quint32> i(AttributeList);
+    while (i.hasNext()) {
+        i.next();
+        attrId = i.key();
+        attrValue = i.value();
+        
+        //attribute
+        stream << (quint16) attrId;
+        
+        //type and value
+        switch (attrId)
+        {
+            case 0x0023:
+            case 0x001C:
+                stream << (quint8) deCONZ::Zcl8BitEnum;
+                stream << (quint8) attrValue;
+                break;
+            case 0x0012:
+            case 0x0024:
+                stream << (quint8) deCONZ::Zcl16BitInt;
+                stream << (quint16) attrValue;
+                break;
+            default:
+            {
+                // to avoid
+            }
+            break;
         }
     }
 

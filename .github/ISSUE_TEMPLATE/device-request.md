@@ -19,14 +19,15 @@ assignees: ''
 - Product name: The device name as shown on the product or package.
 - Manufacturer: As per deCONZ GUI Basic cluster.
 - Model identifier: As per deCONZ GUI Basic cluster.
-- Device type:
-  - [ ] Light
-  - [ ] Lock
-  - [ ] Remote
-  - [ ] Sensor
-  - [ ] Siren
-  - [ ] Thermostat
-  - [ ] Other: 
+- Device type : Please remove all unrelated device types. 
+  - Light
+  - Lock
+  - Remote
+  - Sensor
+  - Siren
+  - Switch
+  - Thermostat
+  - Other: 
 
 <!--
   Please refer to https://github.com/dresden-elektronik/deconz-rest-plugin/wiki/Request-Device-Support

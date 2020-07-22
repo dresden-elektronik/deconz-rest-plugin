@@ -725,53 +725,6 @@ void DeRestPluginPrivate::pushZclValueDb(quint64 extAddress, quint8 endpoint, qu
     dbQueryQueue.push_back(sql);
 }
 
-/*! Clears all content of tables of db except auth table
- */
-void DeRestPluginPrivate::clearDb()
-{
-    DBG_Assert(db != 0);
-
-    if (!db)
-    {
-        return;
-    }
-
-    int rc;
-    char *errmsg;
-
-    // clear tables
-
-    const char *sql[] = {
-        "DELETE FROM auth",
-        "DELETE FROM config2",
-        "DELETE FROM userparameter",
-        "DELETE FROM nodes",
-        "DELETE FROM groups",
-        "DELETE FROM resourcelinks",
-        "DELETE FROM rules",
-        "DELETE FROM sensors",
-        "DELETE FROM scenes",
-        "DELETE FROM schedules",
-        NULL
-        };
-
-    for (int i = 0; sql[i] != NULL; i++)
-    {
-        errmsg = NULL;
-        rc = sqlite3_exec(db, sql[i], NULL, NULL, &errmsg);
-
-        if (rc != SQLITE_OK)
-        {
-            if (errmsg)
-            {
-                DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s\n", sql[i], errmsg);
-                sqlite3_free(errmsg);
-            }
-        }
-    }
-}
-
-
 /*! Opens/creates sqlite database.
  */
 void DeRestPluginPrivate::openDb()
@@ -3171,12 +3124,18 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (sensor.fingerPrint().hasInCluster(METERING_CLUSTER_ID))
             {
                 clusterId = clusterId ? clusterId : METERING_CLUSTER_ID;
+                if (sensor.modelId() != QLatin1String("160-01"))
+                {
+                    item = sensor.addItem(DataTypeUInt64, RStateConsumption);
+                    item->setValue(0);
+                }
                 if ((sensor.modelId() != QLatin1String("SP 120")) &&
                     (sensor.modelId() != QLatin1String("ZB-ONOFFPlug-D0005")) &&
                     (sensor.modelId() != QLatin1String("TS0121")) &&
                     (!sensor.modelId().startsWith(QLatin1String("BQZ10-AU"))) &&
                     (!sensor.modelId().startsWith(QLatin1String("ROB_200"))) &&
-                    (sensor.modelId() != QLatin1String("Plug-230V-ZB3.0")))
+                    (sensor.modelId() != QLatin1String("Plug-230V-ZB3.0")) &&
+                    (sensor.modelId() != QLatin1String("Connected socket outlet")))
                 {
                     item = sensor.addItem(DataTypeInt16, RStatePower);
                     item->setValue(0);
@@ -3186,8 +3145,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             {
                 clusterId = clusterId ? clusterId : ANALOG_INPUT_CLUSTER_ID;
             }
-            item = sensor.addItem(DataTypeUInt64, RStateConsumption);
-            item->setValue(0);
         }
         else if (sensor.type().endsWith(QLatin1String("Power")))
         {
@@ -3262,6 +3219,14 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 item->setValue(0);
                 sensor.addItem(DataTypeInt16, RConfigHeatSetpoint);    // Heating set point
                 sensor.addItem(DataTypeBool, RStateOn);           // Heating on/off
+                
+                if (sensor.modelId() == QLatin1String("SLR2") ||           // Hive 
+                    sensor.modelId().startsWith(QLatin1String("TH112")) || // Sinope
+                    sensor.modelId() == QLatin1String("Zen-01"))           // Zen
+                {
+                    sensor.addItem(DataTypeString, RConfigMode);
+                }
+                
                 if (sensor.modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
@@ -3272,6 +3237,11 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 }
                 else if (sensor.modelId() == QLatin1String("Zen-01"))
                 {
+                }
+                else if (sensor.modelId() == QLatin1String("eTRV0100"))
+                {
+                    sensor.addItem(DataTypeUInt8, RStateValve);
+                    sensor.addItem(DataTypeString, RStateWindowOpen);
                 }
                 else
                 {
@@ -3370,6 +3340,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (!sensor.modelId().startsWith(QLatin1String("lumi.ctrl_")) &&
                 !sensor.modelId().startsWith(QLatin1String("lumi.plug")) &&
                 sensor.modelId() != QLatin1String("lumi.curtain") &&
+                sensor.modelId() != QLatin1String("lumi.sensor_natgas") &&
+                !sensor.modelId().startsWith(QLatin1String("lumi.relay.c")) &&
                 !sensor.type().endsWith(QLatin1String("Battery")))
             {
                 item = sensor.addItem(DataTypeUInt8, RConfigBattery);

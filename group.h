@@ -65,6 +65,7 @@ public:
     uint16_t colorTemperature;
     QString etag;
     QString colormode;
+    QString alert;
     std::vector<Scene> scenes;
     QTime sendTime;
     bool hidden;
