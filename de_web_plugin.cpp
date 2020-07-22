@@ -346,6 +346,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "TH01", tiMacPrefix }, // Sonoff SNZB-02
     { VENDOR_NONE, "DS01", tiMacPrefix }, // Sonoff SNZB-04
     { VENDOR_DANFOSS, "eTRV0100", silabs2MacPrefix }, // Danfoss Ally thermostat
+    { VENDOR_LDS, "ZBT-CCTSwitch-D0001", silabs2MacPrefix }, // Leedarson remote control
 
     { 0, nullptr, 0 }
 };
@@ -3390,6 +3391,11 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         checkReporting = true;
         checkClientCluster = true;
     }
+    else if (sensor->modelId().startsWith(QLatin1String("ZBT-CCTSwitch-D0001"))) // LDS remote
+    {
+        checkReporting = true;
+        checkClientCluster = true;
+    }
     else if (sensor->modelId().startsWith(QLatin1String("RGBGenie ZB-5")) || // RGBGenie remote control
              sensor->modelId().startsWith(QLatin1String("ZGRC-KEY")))        // RGBGenie ZB-5001
     {
@@ -3598,6 +3604,12 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             buttonMap->zclCommandId == zclFrame.commandId())
         {
             ok = true;
+            
+            //to remove
+            if (ind.clusterId() == COLOR_CLUSTER_ID && (zclFrame.commandId() == 0x4b ))
+            {
+                DBG_Printf(DBG_INFO, "LDS debug 1\n");
+            }
 
             if (zclFrame.isProfileWideCommand() &&
                 zclFrame.commandId() == deCONZ::ZclReportAttributesId &&
@@ -3759,6 +3771,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 {
                     quint8 level = zclFrame.payload().at(0);
                     ok = buttonMap->zclParam0 == level;
+                    
                 }
             }
             else if (ind.clusterId() == LEVEL_CLUSTER_ID &&
@@ -3923,6 +3936,24 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
             }
             else if (ind.clusterId() == COLOR_CLUSTER_ID &&
+                     zclFrame.commandId() == 0x0a && zclFrame.payload().size() >= 2 && // Move to Color Temperature
+                     sensor->modelId().startsWith(QLatin1String("ZBT-CCTSwitch-D0001")))
+            {
+                    quint8 pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(0);
+                    if (buttonMap->zclParam0 != pl0)
+                    {
+                        ok = false;
+                        DBG_Printf(DBG_INFO, "LDS debug 88: 0x%04X",pl0);
+                        pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(1);
+                        DBG_Printf(DBG_INFO, "LDS debug 89: 0x%04X",pl0);
+                    }
+                    //ignore the command if previous was button4
+                    if (sensor->previousCommandId == 0x04)
+                    {
+                        ok = false;
+                    }
+            }
+            else if (ind.clusterId() == COLOR_CLUSTER_ID &&
                      (zclFrame.commandId() == 0x4b && zclFrame.payload().size() >= 7) )  // move color temperature
             {
                 ok = false;
@@ -3944,10 +3975,11 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 }
 
                 // byte-2 most likely 0, but include anyway
+                // LDS : debug have cmd: 0x4B pl[0]: 0x01 > 0x0155 and cmd: 0x4B pl[0]: 0x00 > 0x1000 in log
                 param |= (quint16)zclFrame.payload().at(2) & 0xff;
                 param <<= 8;
                 param |= (quint16)zclFrame.payload().at(1) & 0xff;
-
+                DBG_Printf(DBG_INFO, "LDS debug 2: 0x%04X\n",param);
                 if (buttonMap->zclParam0 == param)
                 {
                     if (moveMode == 0x00)
@@ -4024,6 +4056,12 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             }
         }
         buttonMap++;
+    }
+    
+    //Remember last command id
+    if (sensor->modelId().startsWith(QLatin1String("ZBT-CCTSwitch-D0001"))) // LDS remote
+    {
+        sensor->previousCommandId = zclFrame.commandId();
     }
 
     if (checkReporting && sensor->node() &&
@@ -15080,6 +15118,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                  sensor->modelId() == QLatin1String("Double gangs remote switch") || // Legrand switch double
                  sensor->modelId() == QLatin1String("Remote toggle switch") || // Legrand switch module
                  sensor->modelId() == QLatin1String("Remote motion sensor") || // Legrand motion sensor
+                 sensor->modelId() == QLatin1String("ZBT-CCTSwitch-D0001") || // LDS Remote
                  sensor->modelId() == QLatin1String("Shutters central remote switch")) // Legrand shutter switch
         {
             checkSensorGroup(sensor);
