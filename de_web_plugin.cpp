@@ -190,8 +190,10 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_JENNIC, "lumi.sensor_cube", jennicMacPrefix },
     { VENDOR_JENNIC, "lumi.sensor_86sw1", jennicMacPrefix },      // Xiaomi single button wall switch WXKG03LM 2016
     { VENDOR_JENNIC, "lumi.remote.b186acn01", jennicMacPrefix },  // Xiaomi single button wall switch WXKG03LM 2018
+    { VENDOR_JENNIC, "lumi.remote.b186acn02", jennicMacPrefix },  // Xiaomi single button wall switch WXKG02LM 2020
     { VENDOR_JENNIC, "lumi.sensor_86sw2", jennicMacPrefix },      // Xiaomi dual button wall switch WXKG02LM 2016
     { VENDOR_JENNIC, "lumi.remote.b286acn01", jennicMacPrefix },  // Xiaomi dual button wall switch WXKG02LM 2018
+    { VENDOR_JENNIC, "lumi.remote.b286acn02", jennicMacPrefix },  // Xiaomi dual button wall switch WXKG02LM 2020
     { VENDOR_JENNIC, "lumi.sensor_switch", jennicMacPrefix },     // Xiaomi WXKG01LM, WXKG11LM and WXKG12LM (fallback)
     { VENDOR_JENNIC, "lumi.ctrl_neutral", jennicMacPrefix }, // Xiaomi Wall Switch (end-device)
     { VENDOR_JENNIC, "lumi.vibration", jennicMacPrefix }, // Xiaomi Aqara vibration/shock sensor
@@ -4496,11 +4498,15 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
-                    else if (modelId == QLatin1String("lumi.remote.b186acn01") && i->endpoint() == 0x01)
+                    else if (((modelId == QLatin1String("lumi.remote.b186acn01")) ||
+                             (modelId == QLatin1String("lumi.remote.b186acn02")) )
+                             && i->endpoint() == 0x01)
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
-                    else if (modelId == QLatin1String("lumi.remote.b286acn01") && i->endpoint() == 0x01)
+                    else if (((modelId == QLatin1String("lumi.remote.b286acn01")) ||
+                             (modelId == QLatin1String("lumi.remote.b286acn02")) )
+                             && i->endpoint() == 0x01)
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
@@ -7384,7 +7390,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 }
                                 else if (i->modelId() == QLatin1String("lumi.remote.b1acn01") ||
                                          i->modelId() == QLatin1String("lumi.remote.b186acn01") ||
-                                         i->modelId() == QLatin1String("lumi.remote.b286acn01"))
+                                         i->modelId() == QLatin1String("lumi.remote.b186acn02") ||
+                                         i->modelId() == QLatin1String("lumi.remote.b286acn01") ||
+                                         i->modelId() == QLatin1String("lumi.remote.b286acn02"))
                                 {
                                     buttonevent = S_BUTTON_1 * event.endpoint();
                                     switch (rawValue)
