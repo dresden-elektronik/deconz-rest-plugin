@@ -995,16 +995,41 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 {
                     bool ok;
                     int offset = round(map[pi.key()].toInt(&ok) / 10.0);
-                    if (ok && addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0010, deCONZ::Zcl8BitInt, offset))
+                    if (ok && sensor->modelId().startsWith(QLatin1String("kud7u2l"))) // Tuya Smart TRV HY369 Thermostatic Radiator Valve
                     {
-                        rspItemState[QString("set %1").arg(rid.suffix)] = offset;
-                        rspItem["success"] = rspItemState;
+                        QByteArray data;
+                        if (offset > 90) { offset = 90; }
+                        if (offset < -90) { offset = -90; }
+                        data.append((qint8)((offset >> 24) & 0xff));
+                        data.append((qint8)((offset >> 16) & 0xff));
+                        data.append((qint8)((offset >> 8) & 0xff));
+                        data.append((qint8)(offset & 0xff));
+                        if ( SendTuyaRequest(task, TaskThermostat , 0x022c , data ))
+                        {
+                            updated = true;
+                        }
+                        else
+                        {
+                            rsp.list.append(errorToMap(ERR_INVALID_VALUE,
+                                                       QString("/sensors/%1/%2").arg(id).arg(rid.suffix),
+                                                       QString("could not set attribute value=%1").arg(map[pi.key()].toString())));
+                            rsp.httpStatus = HttpStatusBadRequest;
+                            return REQ_READY_SEND;
+                        }
                     }
                     else
                     {
-                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/%2").arg(id).arg(rid.suffix), QString("could not set attribute")));
-                        rsp.httpStatus = HttpStatusBadRequest;
-                        return REQ_READY_SEND;
+                        if (ok && addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0010, deCONZ::Zcl8BitInt, offset))
+                        {
+                            rspItemState[QString("set %1").arg(rid.suffix)] = offset;
+                            rspItem["success"] = rspItemState;
+                        }
+                        else
+                        {
+                            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/%2").arg(id).arg(rid.suffix), QString("could not set attribute")));
+                            rsp.httpStatus = HttpStatusBadRequest;
+                            return REQ_READY_SEND;
+                        }
                     }
                 }
                 if (rid.suffix == RConfigScheduler)
@@ -1045,7 +1070,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     if (sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
                     {
                         // Setting the heat setpoint disables off/boost modes, but this is not reported back by the thermostat.
-			            // Hence, the off/boost flags will be removed here to reflect the actual operating state.
+                        // Hence, the off/boost flags will be removed here to reflect the actual operating state.
                         if (hostFlags == 0)
                         {
                             ResourceItem *item = sensor->item(RConfigHostFlags);
@@ -1255,6 +1280,18 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     if (data.length() > 0 )
                     {
                         if ( SendTuyaRequest(task, TaskThermostat , 0x0404 , data ))
+                        {
+                            updated = true;
+                        }
+                    }
+		}
+                else if ((rid.suffix == RConfigLocked) && sensor->modelId().startsWith(QLatin1String("kud7u2l")) )
+                {
+
+                    QByteArray data = QByteArray(map[pi.key()].toBool(),1);
+                    if (data.length() > 0 )
+                    {
+                        if ( SendTuyaRequest(task, TaskThermostat , 0x0107 , data ))
                         {
                             updated = true;
                         }
