@@ -1285,6 +1285,18 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                     }
 		}
+                else if ((rid.suffix == RConfigLocked) && sensor->modelId().startsWith(QLatin1String("kud7u2l")) )
+                {
+
+                    QByteArray data = QByteArray(map[pi.key()].toBool(),1);
+                    if (data.length() > 0 )
+                    {
+                        if ( SendTuyaRequest(task, TaskThermostat , 0x0107 , data ))
+                        {
+                            updated = true;
+                        }
+                    }
+		}
             }
         }
 

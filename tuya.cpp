@@ -266,6 +266,20 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     }
                 }
                 break;
+                case 0x0107 : // Childlock status
+                {
+                    bool locked = (bool)(data & 0xFF);;
+                    ResourceItem *item = sensorNode->item(RConfigLocked);
+
+                    if (item && item->toBool() != locked)
+                    {
+                        item->setValue(locked);
+                        Event e(RSensors, RConfigLocked, sensorNode->id(), item);
+                        enqueueEvent(e);
+                        
+                    }
+                }
+                break;
                 
                 default:
                 break;
