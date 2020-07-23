@@ -3947,7 +3947,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                         ok = false;
                     }
             }
-            else if (ind.clusterId() == COLOR_CLUSTER_ID &&
+            else if ((ind.clusterId() == COLOR_CLUSTER_ID) &&
                      (zclFrame.commandId() == 0x4b) && 
                      sensor->modelId().startsWith(QLatin1String("ZBT-CCTSwitch-D0001")) )
             {
