@@ -108,8 +108,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 case 0x0102:
                 case 0x0103:
                 {
-                    bool onoff = false;
-                    if (data == 1) { onoff = true; }
+
+                    bool onoff = (data == 0) ? false : true;
                     
                     {
                         uint ep = 0x01;
