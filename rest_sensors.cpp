@@ -997,12 +997,9 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     int offset = round(map[pi.key()].toInt(&ok) / 10.0);
                     if (ok && sensor->modelId().startsWith(QLatin1String("kud7u2l"))) // Tuya Smart TRV HY369 Thermostatic Radiator Valve
                     {
-                        QByteArray data;
+                        QByteArray data = QByteArray("\x00\x00\x00",3);
                         if (offset > 90) { offset = 90; }
                         if (offset < -90) { offset = -90; }
-                        data.append((qint8)((offset >> 24) & 0xff));
-                        data.append((qint8)((offset >> 16) & 0xff));
-                        data.append((qint8)((offset >> 8) & 0xff));
                         data.append((qint8)(offset & 0xff));
                         if ( SendTuyaRequest(task, TaskThermostat , 0x022c , data ))
                         {
@@ -1288,13 +1285,11 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 else if ((rid.suffix == RConfigLocked) && sensor->modelId().startsWith(QLatin1String("kud7u2l")) )
                 {
 
-                    QByteArray data = QByteArray(map[pi.key()].toBool(),1);
-                    if (data.length() > 0 )
+                    QByteArray data = QByteArray("\x00",1);
+                    if (map[pi.key()].toBool()) { data = QByteArray("\x01",1); }
+                    if ( SendTuyaRequest(task, TaskThermostat , 0x0107 , data ))
                     {
-                        if ( SendTuyaRequest(task, TaskThermostat , 0x0107 , data ))
-                        {
-                            updated = true;
-                        }
+                        updated = true;
                     }
 		}
             }

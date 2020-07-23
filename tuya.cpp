@@ -254,7 +254,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 break;
                 case 0x022c : // temperature calibration (offset)
                 {
-                    qint32 temp = ((qint32)(data & 0xFFFFFFFF)) * 10;
+                    qint16 temp = ((qint16)(data & 0xFFFF)) * 10;
                     ResourceItem *item = sensorNode->item(RConfigOffset);
 
                     if (item && item->toNumber() != temp)
@@ -262,13 +262,12 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         item->setValue(temp);
                         Event e(RSensors, RConfigOffset, sensorNode->id(), item);
                         enqueueEvent(e);
-                        
                     }
                 }
                 break;
                 case 0x0107 : // Childlock status
                 {
-                    bool locked = (bool)(data & 0xFF);;
+                    bool locked = (data == 0) ? false : true;
                     ResourceItem *item = sensorNode->item(RConfigLocked);
 
                     if (item && item->toBool() != locked)
@@ -276,7 +275,6 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         item->setValue(locked);
                         Event e(RSensors, RConfigLocked, sensorNode->id(), item);
                         enqueueEvent(e);
-                        
                     }
                 }
                 break;
