@@ -3604,12 +3604,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             buttonMap->zclCommandId == zclFrame.commandId())
         {
             ok = true;
-            
-            //to remove
-            if (ind.clusterId() == COLOR_CLUSTER_ID && (zclFrame.commandId() == 0x4b ))
-            {
-                DBG_Printf(DBG_INFO, "LDS debug 1\n");
-            }
 
             if (zclFrame.isProfileWideCommand() &&
                 zclFrame.commandId() == deCONZ::ZclReportAttributesId &&
@@ -3943,15 +3937,25 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     if (buttonMap->zclParam0 != pl0)
                     {
                         ok = false;
-                        DBG_Printf(DBG_INFO, "LDS debug 88: 0x%04X",pl0);
+                        DBG_Printf(DBG_INFO, "LDS debug 88: 0x%02X\n",pl0);
                         pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(1);
-                        DBG_Printf(DBG_INFO, "LDS debug 89: 0x%04X",pl0);
+                        DBG_Printf(DBG_INFO, "LDS debug 89: 0x%02X\n",pl0);
                     }
                     //ignore the command if previous was button4
                     if (sensor->previousCommandId == 0x04)
                     {
                         ok = false;
                     }
+            }
+            else if (ind.clusterId() == COLOR_CLUSTER_ID &&
+                     (zclFrame.commandId() == 0x4b) && 
+                     sensor->modelId().startsWith(QLatin1String("ZBT-CCTSwitch-D0001")) )
+            {
+                quint8 pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(0);
+                if (buttonMap->zclParam0 != pl0)
+                {
+                    ok = false;
+                }
             }
             else if (ind.clusterId() == COLOR_CLUSTER_ID &&
                      (zclFrame.commandId() == 0x4b && zclFrame.payload().size() >= 7) )  // move color temperature
@@ -3975,11 +3979,9 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 }
 
                 // byte-2 most likely 0, but include anyway
-                // LDS : debug have cmd: 0x4B pl[0]: 0x01 > 0x0155 and cmd: 0x4B pl[0]: 0x00 > 0x1000 in log
                 param |= (quint16)zclFrame.payload().at(2) & 0xff;
                 param <<= 8;
                 param |= (quint16)zclFrame.payload().at(1) & 0xff;
-                DBG_Printf(DBG_INFO, "LDS debug 2: 0x%04X\n",param);
                 if (buttonMap->zclParam0 == param)
                 {
                     if (moveMode == 0x00)
@@ -3988,7 +3990,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     }
                     ok = true;
                 }
-
             }
             else if (ind.clusterId() == COLOR_CLUSTER_ID && (zclFrame.commandId() == 0x01 ) )  // Move hue command
             {

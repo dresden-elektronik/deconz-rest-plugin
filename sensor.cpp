@@ -840,10 +840,10 @@ static const Sensor::ButtonMap LDSRemoteMap[] = {
     { Sensor::ModeScenes,           0x01, 0x0008, 0x03,  0x01,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "Dim long release" },
 
     // Temperature button
-    { Sensor::ModeScenes,           0x01, 0x0300, 0x0a,  0x00,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "Temperature short" },
+    { Sensor::ModeScenes,           0x01, 0x0300, 0x0a,  0x1D,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "Temperature short" },
     { Sensor::ModeScenes,           0x01, 0x0300, 0x0a,  0x01,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD, "Temperature 1" },
-    { Sensor::ModeScenes,           0x01, 0x0300, 0x4B,  0x1000,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD, "Temperature 2" },
-    { Sensor::ModeScenes,           0x01, 0x0300, 0x4B,  0x0155,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD, "Temperature 3" },
+    { Sensor::ModeScenes,           0x01, 0x0300, 0x4B,  0x00,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD, "Temperature 2" },
+    { Sensor::ModeScenes,           0x01, 0x0300, 0x4B,  0x01,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD, "Temperature 3" },
     { Sensor::ModeScenes,           0x01, 0x0300, 0x4B,  0x0A,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED, "Temperature 4" },
 
     // end
