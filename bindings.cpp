@@ -1947,6 +1947,11 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
             {
                 continue;
             }
+            //This device have too much clusters
+            if ((lightNode->modelId() == QLatin1String("Gear")) && (i->id() != WINDOW_COVERING_CLUSTER_ID) )
+            {
+                continue;
+            }
 
             BindingTask bt;
             if (checkMacVendor(lightNode->address(), VENDOR_DDEL))
@@ -2144,6 +2149,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("multi")) ||
         sensor->modelId() == QLatin1String("water") ||
         (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("outlet")) ||
+        // Axis
+        sensor->modelId() == QLatin1String("Gear") ||
         // Bitron
         sensor->modelId().startsWith(QLatin1String("902010")) ||
         // Develco

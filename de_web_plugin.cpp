@@ -169,6 +169,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_INSTA, "HS_4f_GJ_1", instaMacPrefix },
     { VENDOR_INSTA, "WS_4f_J_1", instaMacPrefix },
     { VENDOR_INSTA, "WS_3f_G_1", instaMacPrefix },
+    { VENDOR_AXIS, "Gear", zenMacPrefix },
     { VENDOR_NYCE, "3011", emberMacPrefix }, // NYCE door/window sensor
     { VENDOR_NYCE, "3014", emberMacPrefix }, // NYCE garage door/tilt sensor
     { VENDOR_NYCE, "3043", emberMacPrefix }, // NYCE ceiling motion sensor
@@ -1653,6 +1654,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         node->nodeDescriptor().manufacturerCode() == VENDOR_LDS || // Samsung SmartPlug 2019
         node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA || // IKEA FYRTUR and KADRILJ smart binds
         node->nodeDescriptor().manufacturerCode() == VENDOR_THIRD_REALITY || // Third Reality smart light switch
+        node->nodeDescriptor().manufacturerCode() == VENDOR_AXIS || // Axis shade
         // Danalock support. The vendor ID (0x115c) needs to defined and whitelisted, as it's battery operated
         node->nodeDescriptor().manufacturerCode() == VENDOR_DANALOCK) // Danalock Door Lock
     {
