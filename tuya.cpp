@@ -72,7 +72,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             uint8_t transid;
             int16_t dp;
             uint8_t fn;
-            quint32 data = 0;
+            qint32 data = 0;
             quint8 dummy;
             quint8 length = 0;
             
