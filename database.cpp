@@ -3144,6 +3144,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             else if (sensor.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))
             {
                 clusterId = clusterId ? clusterId : ANALOG_INPUT_CLUSTER_ID;
+                item = sensor.addItem(DataTypeUInt64, RStateConsumption);
+                item->setValue(0);
             }
         }
         else if (sensor.type().endsWith(QLatin1String("Power")))
