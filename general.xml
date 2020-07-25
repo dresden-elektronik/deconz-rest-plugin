@@ -3151,12 +3151,14 @@ devices can operate on either battery or mains power, and can have a wide variet
 
 > Dimmer switch without neutral : Option 1 = Dimmer on/off.
 > Cable outlet : Option 1 = Fil pilote on/off.
+> Contactor : On/off=0003 - HP/HC=0004.
 			</description>
 			<server>
 				<attribute id="0x0000" type="dat16" name="Option 1" default="0x0101" access="rw" required="m" showas="hex">
 					<description>Choose correctly according to your device Dimmer OR fil pilote.
 Dimmer > Off=0100 - On=0101
-Fil pilote > Off=0001 - On=0002</description>
+Fil pilote > Off=0001 - On=0002
+Contactor > On/off=0003 - HP/HC=0004</description>
 				</attribute>
 				<attribute id="0x0001" type="bool" name="Option 2" required="m" access="rw" default="0">
 					<description>Option 1</description>
