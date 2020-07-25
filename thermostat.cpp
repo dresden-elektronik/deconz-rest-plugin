@@ -249,7 +249,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
             }
                 break;
-                
+
             case 0x001C: // System Mode
             {
                 if (sensor->modelId().startsWith(QLatin1String("SLR2")) ||  // Hive
@@ -258,7 +258,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 {
                     qint8 mode = attr.numericValue().s8;
                     QString mode_set;
-                   
+
                     mode_set = QString("off");
                     if ( mode == 0x01 ) { mode_set = QString("auto"); }
                     if ( mode == 0x03 ) { mode_set = QString("cool"); }
@@ -321,7 +321,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 {
                     qint8 windowmode = attr.numericValue().s8;
                     QString windowmode_set;
-                   
+
                     if ( windowmode == 0x01 ) { windowmode_set = QString("Closed"); }
                     if ( windowmode == 0x02 ) { windowmode_set = QString("Hold"); }
                     if ( windowmode == 0x03 ) { windowmode_set = QString("Open"); }
@@ -338,7 +338,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
             }
                 break;
-            
+
             case 0x4001: // U8 (0x20): value 0x00, valve position
             case 0x4002: // U8 (0x20): value 0x00, errors
             {
@@ -482,51 +482,48 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
         int count = 0;
         int daycount = 0;
 
-        while (!stream.atEnd())
+        quint8 nrTrans = 0;
+        quint8 dayOfWeek = 0;
+        quint8 modeSeq = 0;
+
+        stream >> nrTrans;
+        stream >> dayOfWeek;
+        stream >> modeSeq;
+
+        for (daycount = 0; daycount < 8; daycount++)
         {
-            quint8 nrTrans = 0;
-            quint8 dayOfWeek = 0;
-            quint8 modeSeq = 0;
-
-            if (count == 0)
+            if ((dayOfWeek >> daycount) & 1U)
             {
-                stream >> nrTrans;
-                stream >> dayOfWeek;
-                stream >> modeSeq;
-
-                for (daycount = 0; daycount < 8; daycount++)
-                {
-                    if ((dayOfWeek >> daycount) & 1U)
-                    {
-                        break;
-                    }
-                }
+                break;
             }
+        }
+        DBG_Printf(DBG_INFO, "Thermostat 0x%04X scheduler: %d transitions, day: 0x%x, mode: 0x%d\n", ind.srcAddress().nwk(), nrTrans, dayOfWeek, modeSeq);
 
-            if (count < nrTrans)
+        while (count < nrTrans)
+        {
+            quint16 transTime;
+            qint16 heatSetPoint;
+            qint16 coolSetPoint;
+
+            stream >> transTime;
+
+            QTime midnight(0, 0, 0);
+            QTime heatTime = midnight.addSecs(transTime * 60);
+
+            val = val + " " + qPrintable(heatTime.toString("HH:mm"));
+
+            if (modeSeq & 0x01)  // bit-0 heat set point
             {
-                quint16 transTime;
-                qint16 heatSetPoint;
-                qint16 coolSetPoint;
-
-                stream >> transTime;
-
-                QTime midnight(0, 0, 0);
-                QTime heatTime = midnight.addSecs(transTime * 60);
-
-                val = val + " " + qPrintable(heatTime.toString("HH:mm"));
-
-                if (modeSeq & 0x01)  // bit-0 heat set point
-                {
-                    stream >> heatSetPoint;
-                    val = val + QString(" %1").arg(heatSetPoint);
-                }
-                if (modeSeq & 0x02)  // bit-1 cool set point
-                {
-                    stream >> coolSetPoint;
-                }
-                count++;
+                stream >> heatSetPoint;
+                val = val + QString(" %1").arg(heatSetPoint);
             }
+            if (modeSeq & 0x02)  // bit-1 cool set point
+            {
+                stream >> coolSetPoint;
+            }
+            count++;
+
+            DBG_Printf(DBG_INFO, "Thermostat 0x%04X scheduler: sequence %d, time: %s, setpoint: %d\n", ind.srcAddress().nwk(), count, qPrintable(heatTime.toString("HH:mm")), heatSetPoint);
         }
 
         if (stream.status() == QDataStream::ReadPastEnd)
@@ -845,19 +842,19 @@ bool DeRestPluginPrivate::addTaskThermostatWriteAttributeList(TaskItem &task, ui
     // payload
     quint16 attrId;
     quint32 attrValue;
-    
+
     QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
     stream.setByteOrder(QDataStream::LittleEndian);
-    
+
     QMapIterator<quint16, quint32> i(AttributeList);
     while (i.hasNext()) {
         i.next();
         attrId = i.key();
         attrValue = i.value();
-        
+
         //attribute
         stream << (quint16) attrId;
-        
+
         //type and value
         switch (attrId)
         {
