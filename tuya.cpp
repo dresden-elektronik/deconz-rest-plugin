@@ -99,7 +99,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             }
 
             DBG_Printf(DBG_INFO, "Tuya debug 4: status: %d transid: %d dp: %d fn: %d payload %s\n", status , transid , dp , fn ,  qPrintable(zclFrame.payload().toHex()));
-            DBG_Printf(DBG_INFO, "Tuya debug 4: decimal value  %llu\n" , data );
+            DBG_Printf(DBG_INFO, "Tuya debug 4: decimal value  %ld\n" , data );
             
             // Switch device 3 gang
             switch (dp)
