@@ -995,7 +995,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 {
                     bool ok;
                     qint32 offset = (qint32)(round(map[pi.key()].toInt(&ok) / 10.0));
-                    if (ok && sensor->modelId().startsWith(QLatin1String("kud7u2l"))) // Tuya Smart TRV HY369 Thermostatic Radiator Valve
+                    if (ok && (sensor->modelId().startsWith(QLatin1String("kud7u2l"))|| 
+                               sensor->modelId().startsWith(QLatin1String("TS0601"))) ) // Tuya Smart TRV HY369 Thermostatic Radiator Valve
                     {
                         QByteArray data;
                         if (offset > 90) { offset = 90; }
@@ -1093,7 +1094,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             return REQ_READY_SEND;
                         }
                     }
-                    else if (sensor->modelId().startsWith(QLatin1String("kud7u2l"))) // Tuya Smart TRV HY369 Thermostatic Radiator Valve
+                    else if ( sensor->modelId().startsWith(QLatin1String("kud7u2l")) ||
+                              sensor->modelId().startsWith(QLatin1String("TS0601")) )  // Tuya Smart TRV HY369 Thermostatic Radiator Valve
                     {
                         heatsetpoint = heatsetpoint / 10;
                         QByteArray data = QByteArray("\x00\x00",2);
@@ -1144,7 +1146,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                         rspItem["success"] = rspItemState;
                     }
-                    else if (sensor->modelId().startsWith(QLatin1String("kud7u2l"))) // Tuya Smart TRV HY369 Thermostatic Radiator Valve
+                    else if ((sensor->modelId().startsWith(QLatin1String("kud7u2l"))) ||
+                             (sensor->modelId().startsWith(QLatin1String("TS0601"))) ) // Tuya Smart TRV HY369 Thermostatic Radiator Valve
                     {
                         QByteArray data;
                         QString mode_set = map[pi.key()].toString();
@@ -1261,7 +1264,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                     }
                 }
-                else if ((rid.suffix == RConfigPreset) && sensor->modelId().startsWith(QLatin1String("kud7u2l")) )
+                else if ((rid.suffix == RConfigPreset) && (sensor->modelId().startsWith(QLatin1String("kud7u2l")) ||
+                                                           sensor->modelId().startsWith(QLatin1String("TS0601"))) )
                 {
 
                     QByteArray data;
@@ -1285,7 +1289,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                     }
 		}
-                else if ((rid.suffix == RConfigLocked) && sensor->modelId().startsWith(QLatin1String("kud7u2l")) )
+                else if ((rid.suffix == RConfigLocked) && (sensor->modelId().startsWith(QLatin1String("kud7u2l")) || 
+                                                           sensor->modelId().startsWith(QLatin1String("kud7u2l"))) )
                 {
 
                     QByteArray data = QByteArray("\x00",1);

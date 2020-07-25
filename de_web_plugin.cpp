@@ -316,6 +316,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBER, "TS0302", silabs3MacPrefix }, // Tuya curtain switch
     { VENDOR_EMBER, "TS0041", silabs3MacPrefix }, // Tuya wireless switch
     { VENDOR_NONE, "kud7u2l", silabs3MacPrefix }, // Tuya Smart TRV HY369 Thermostatic Radiator Valve
+    { VENDOR_EMBER, "TS0601", silabs7MacPrefix }, // Tuya Smart TRV HY369 Thermostatic Radiator Valve
     { VENDOR_AURORA, "DoubleSocket50AU", jennicMacPrefix }, // Aurora AOne Double Socket UK
     { VENDOR_COMPUTIME, "SP600", computimeMacPrefix }, // Salus smart plug
     { VENDOR_HANGZHOU_IMAGIC, "1116-S", energyMiMacPrefix }, // iris contact sensor v3
@@ -4675,7 +4676,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     
                 case TUYA_CLUSTER_ID:
                 {
-                    if (modelId == QLatin1String("kud7u2l"))
+                    if ((modelId == QLatin1String("kud7u2l")) ||
+                        (modelId == QLatin1String("TS0601")) )
                     {
                         fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
                     }
@@ -5184,7 +5186,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         // ZHAThermostat
         if (fpThermostatSensor.hasInCluster(THERMOSTAT_CLUSTER_ID) ||
            (fpThermostatSensor.hasInCluster(LEGRAND_CONTROL_CLUSTER_ID) && modelId == QLatin1String("Cable outlet")) ||
-           (fpThermostatSensor.hasInCluster(TUYA_CLUSTER_ID) && modelId == QLatin1String("kud7u2l")) )
+           (fpThermostatSensor.hasInCluster(TUYA_CLUSTER_ID) && modelId == QLatin1String("kud7u2l")) ||
+           (fpThermostatSensor.hasInCluster(TUYA_CLUSTER_ID) && modelId == QLatin1String("TS0601")) )
         {
             fpThermostatSensor.endpoint = i->endpoint();
             fpThermostatSensor.deviceId = i->deviceId();
@@ -5598,7 +5601,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.addItem(DataTypeString, RConfigMode);
             }
             
-            if (sensorNode.modelId() == QLatin1String("kud7u2l") ) //tuya
+            if (sensorNode.modelId() == QLatin1String("kud7u2l") ||
+                sensorNode.modelId() == QLatin1String("TS0601") ) //tuya
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
                 sensorNode.addItem(DataTypeString, RConfigMode);
