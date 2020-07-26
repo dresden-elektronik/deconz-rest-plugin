@@ -398,10 +398,16 @@ const QString &ResourceItem::toString() const
                 format = QLatin1String("yyyy-MM-ddTHH:mm:ss.zzz"); // TODO add Z
                 dt.setOffsetFromUtc(0);
             }
-            else if (m_rid.suffix == RAttrLastAnnounced || m_rid.suffix == RAttrLastSeen)
+            else if (m_rid.suffix == RAttrLastAnnounced)
             {
                 // UTC in sec resolution
                 format = QLatin1String("yyyy-MM-ddTHH:mm:ssZ");
+                dt.setOffsetFromUtc(0);
+            }
+            else if (m_rid.suffix == RAttrLastSeen)
+            {
+                // UTC in min resolution
+                format = QLatin1String("yyyy-MM-ddTHH:mmZ");
                 dt.setOffsetFromUtc(0);
             }
             else if (m_rid.suffix == RStateSunrise || m_rid.suffix == RStateSunset)
