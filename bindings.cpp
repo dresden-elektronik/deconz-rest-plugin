@@ -1049,6 +1049,23 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4}) || // Use OR because of manuf. specific attributes
                    sendConfigureReportingRequest(bt, {rq5, rq6});
         }
+        else if (sensor && sensor->modelId() == QLatin1String("Thermostat")) // eCozy
+        {
+            rq.dataType = deCONZ::Zcl16BitInt;
+            rq.attributeId = 0x0000;        // Local Temperature
+            rq.minInterval = 1;             // report changes every second
+            rq.maxInterval = 600;           // recommended value
+            rq.reportableChange16bit = 20;  // value from TEMPERATURE_MEASUREMENT_CLUSTER_ID
+
+            ConfigureReportingRequest rq2;
+            rq2.dataType = deCONZ::Zcl8BitUint;
+            rq2.attributeId = 0x0008;        // Pi Heating Demand (valve position %)
+            rq2.minInterval = 1;             // report changes every second
+            rq2.maxInterval = 600;           // recommended value
+            rq2.reportableChange8bit = 1;    // recommended value
+
+            return sendConfigureReportingRequest(bt, {rq, rq2});
+        }
         else if (sensor && sensor->modelId() == QLatin1String("Zen-01")) // Zen
         {
             rq.dataType = deCONZ::Zcl16BitInt;
@@ -1077,7 +1094,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq4.minInterval = 1;
             rq4.maxInterval = 600;
             rq4.reportableChange16bit = 0xffff;
-            
+
             ConfigureReportingRequest rq5;
             rq5.dataType = deCONZ::Zcl8BitEnum;
             rq5.attributeId = 0x001C;        // Thermostat mode
@@ -1127,21 +1144,21 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.minInterval = 60;
             rq.maxInterval = 3600;
             rq.reportableChange16bit = 50;
-            
+
             ConfigureReportingRequest rq2;
             rq2.dataType = deCONZ::Zcl8BitUint;
             rq2.attributeId = 0x0008;        // Pi heating demand
             rq2.minInterval = 60;
             rq2.maxInterval = 43200;
             rq2.reportableChange8bit = 1;
-            
+
             ConfigureReportingRequest rq3;
             rq3.dataType = deCONZ::Zcl16BitInt;
             rq3.attributeId = 0x0012;        // Occupied heating setpoint
             rq3.minInterval = 1;
             rq3.maxInterval = 43200;
             rq3.reportableChange16bit = 1;
-            
+
             ConfigureReportingRequest rq4;
             rq4.dataType = deCONZ::Zcl8BitEnum;
             rq4.attributeId = 0x4000;        // eTRV Open Window detection
@@ -1149,7 +1166,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq4.maxInterval = 43200;
             rq4.reportableChange8bit = 0xff;
             rq4.manufacturerCode = VENDOR_DANFOSS;
-            
+
             ConfigureReportingRequest rq5;
             rq5.dataType = deCONZ::ZclBoolean;
             rq5.attributeId = 0x4012;        // Mounting mode active
@@ -1157,7 +1174,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq5.maxInterval = 43200;
             rq5.reportableChange8bit = 0xff;
             rq5.manufacturerCode = VENDOR_DANFOSS;
-            
+
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3}) || // Use OR because of manuf. specific attributes
                    sendConfigureReportingRequest(bt, {rq4, rq5});
         }
