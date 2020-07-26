@@ -2426,7 +2426,9 @@ controller device, that supports a keypad and LCD screen.</description>
 						<attribute id="0x011c" name="Last Message LQI" type="u8" access="r" required="o" default="0x00"></attribute>
 						<attribute id="0x011d" name="Last Message RSSI" type="s8" access="r" required="o" default="0x00"></attribute>
 					</attribute-set>
-                    <attribute id="0x4000" name="SW error code" type="map16" access="rw" default="0" required="o" mfcode="0x1246"></attribute>
+					<attribute-set id="0x4000" description="Vendor specific attributes">
+						<attribute id="0x4000" name="SW error code" type="bmp16" access="rw" default="0" required="o" mfcode="0x1246"></attribute>
+					</attribute-set>
 				</server>
 				<client>
 				</client>
