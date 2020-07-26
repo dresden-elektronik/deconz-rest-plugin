@@ -88,24 +88,24 @@ void DeRestPluginPrivate::sendTimeClusterResponse(const deCONZ::ApsDataIndicatio
 
     if (timeZoneLocal.hasTransitions())
     {
-    	time_status |= 0x04; // MasterZoneDst(bit-2)=1
+      	time_status |= 0x04; // MasterZoneDst(bit-2)=1
 
-    	time_zone = timeZoneLocal.offsetFromUtc(beginYear);
+      	time_zone = timeZoneLocal.offsetFromUtc(beginYear);
 
-    	QTimeZone::OffsetData dststartoffset = timeZoneLocal.nextTransition(beginYear);
-    	dststart =  dststartoffset.atUtc;
+      	QTimeZone::OffsetData dststartoffset = timeZoneLocal.nextTransition(beginYear);
+      	dststart =  dststartoffset.atUtc;
 
-    	QTimeZone::OffsetData dstendoffset = timeZoneLocal.nextTransition(dststart);
-    	dstend =  dstendoffset.atUtc;
+      	QTimeZone::OffsetData dstendoffset = timeZoneLocal.nextTransition(dststart);
+      	dstend =  dstendoffset.atUtc;
 
-    	time_dst_shift = dststartoffset.daylightTimeOffset;
+      	time_dst_shift = dststartoffset.daylightTimeOffset;
 
-    	time_dst_start = epoch.secsTo(dststartoffset.atUtc);
-    	time_dst_end = epoch.secsTo(dstendoffset.atUtc);
-    	time_std_time = time_now +  time_zone;
-    	time_local_time = time_now + timeZoneLocal.offsetFromUtc(local);
-    	time_last_set_time = time_now;
-    	time_valid_until_time = time_now + (3600 * 24 * 30 * 12);
+      	time_dst_start = epoch.secsTo(dststartoffset.atUtc);
+      	time_dst_end = epoch.secsTo(dstendoffset.atUtc);
+      	time_std_time = time_now +  time_zone;
+      	time_local_time = time_now + timeZoneLocal.offsetFromUtc(local);
+      	time_last_set_time = time_now;
+      	time_valid_until_time = time_now + (3600 * 24 * 30 * 12);
     }
 
     // DBG_Printf(DBG_INFO, "Time_Cluster time_now       %s\n", local.toString(Qt::ISODate).toStdString().c_str());
