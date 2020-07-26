@@ -854,7 +854,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     		}
                     		rspItem["success"] = rspItemState;
                     	}
-                        
+
                     }
 
                     if (rid.suffix == RConfigWindowCoveringType)
@@ -1025,9 +1025,19 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 if (rid.suffix == RConfigSchedulerOn)
                 {
                     bool onoff = map[pi.key()].toBool();
-                    uint8_t onoffAttr = onoff ? 0x01 : 0x00;
+                    bool ok = false;
 
-                    if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0025, deCONZ::Zcl8BitBitMap, onoffAttr))
+                    if (sensor->modelId() == QLatin1String("Thermostat")) // eCozy
+                    {
+                        uint8_t onoffAttr = onoff ? 0x00 : 0x01;
+                        ok = addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0023, deCONZ::Zcl8BitEnum, onoffAttr);
+                    }
+                    else
+                    {
+                        uint8_t onoffAttr = onoff ? 0x01 : 0x00;
+                        ok = addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0025, deCONZ::Zcl8BitBitMap, onoffAttr);
+                    }
+                    if (ok)
                     {
                         updated = true;
                     }
@@ -1045,7 +1055,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     if (sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
                     {
                         // Setting the heat setpoint disables off/boost modes, but this is not reported back by the thermostat.
-			            // Hence, the off/boost flags will be removed here to reflect the actual operating state.
+                        // Hence, the off/boost flags will be removed here to reflect the actual operating state.
                         if (hostFlags == 0)
                         {
                             ResourceItem *item = sensor->item(RConfigHostFlags);
@@ -1829,7 +1839,7 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
     map["type"] = sensor->type();
     if (sensor->type().startsWith(QLatin1String("Z"))) // ZigBee sensor
     {
-        map["lastseen"] = sensor->lastRx().toUTC().toString("yyyy-MM-ddTHH:mm:ss.zzz");
+        map["lastseen"] = sensor->lastRx().toUTC().toString("yyyy-MM-ddTHH:mmZ");
     }
 
     if (req.path.size() > 2 && req.path[2] == QLatin1String("devices"))
