@@ -3219,14 +3219,14 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 item->setValue(0);
                 sensor.addItem(DataTypeInt16, RConfigHeatSetpoint);    // Heating set point
                 sensor.addItem(DataTypeBool, RStateOn);           // Heating on/off
-                
-                if (sensor.modelId() == QLatin1String("SLR2") ||           // Hive 
+
+                if (sensor.modelId() == QLatin1String("SLR2") ||           // Hive
                     sensor.modelId().startsWith(QLatin1String("TH112")) || // Sinope
                     sensor.modelId() == QLatin1String("Zen-01"))           // Zen
                 {
                     sensor.addItem(DataTypeString, RConfigMode);
                 }
-                
+
                 if (sensor.modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
@@ -3234,6 +3234,12 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeBool, RConfigDisplayFlipped);
                     sensor.addItem(DataTypeBool, RConfigLocked);
                     sensor.addItem(DataTypeString, RConfigMode);
+                }
+                else if (sensor.modelId() == QLatin1String("Thermostat")) // ecozy
+                {
+                    sensor.addItem(DataTypeUInt8, RStateValve);
+                    sensor.addItem(DataTypeString, RConfigScheduler); // Scheduler setting
+                    sensor.addItem(DataTypeBool, RConfigSchedulerOn); // Scheduler state on/off
                 }
                 else if (sensor.modelId() == QLatin1String("Zen-01"))
                 {
