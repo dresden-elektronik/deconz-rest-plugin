@@ -5517,6 +5517,12 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.addItem(DataTypeBool, RConfigLocked);
                 sensorNode.addItem(DataTypeString, RConfigMode);
             }
+            else if (modelId == QLatin1String("Thermostat")) // ecozy
+            {
+                sensorNode.addItem(DataTypeUInt8, RStateValve);
+                sensorNode.addItem(DataTypeString, RConfigScheduler); // Scheduler setting
+                sensorNode.addItem(DataTypeBool, RConfigSchedulerOn); // Scheduler state on/off
+            }
             else if (modelId == QLatin1String("Zen-01"))
             {
             }
@@ -13729,6 +13735,11 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
                 }
 
                 addSensorNode(si->node()); // check if somethings needs to be updated
+            }
+
+            if (si->fingerPrint().hasInCluster(TIME_CLUSTER_ID))
+            {
+
             }
         }
     }
