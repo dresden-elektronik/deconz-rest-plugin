@@ -185,7 +185,8 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 
             case 0x0008:  // Pi Heating Demand
             {
-                if (sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
+                if (sensor->modelId().startsWith(QLatin1String("SPZB")) || // Eurotronic Spirit
+                    sensor->modelId() == QLatin1String("Thermostat")) // eCozy
                 {
                     quint8 valve = attr.numericValue().u8;
                     bool on = valve > 3;
@@ -274,6 +275,24 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                     {
                         item->setValue(mode_set);
                         enqueueEvent(Event(RSensors, RConfigMode, sensor->id(), item));
+                        configUpdated = true;
+                    }
+                }
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
+                break;
+
+            case 0x0023: // Temperature setpoint hold disable schedule
+            {
+                if (sensor->modelId() == QLatin1String("Thermostat")) // eCozy
+                {
+                    bool schedulerOn = (attr.numericValue().u8 == 0x00); // setpoint hold off -> schedule enabled
+
+                    item = sensor->item(RConfigSchedulerOn);
+                    if (item && item->toBool() != schedulerOn)
+                    {
+                        item->setValue(schedulerOn);
+                        enqueueEvent(Event(RSensors, RConfigSchedulerOn, sensor->id(), item));
                         configUpdated = true;
                     }
                 }
@@ -497,7 +516,6 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 break;
             }
         }
-        DBG_Printf(DBG_INFO, "Thermostat 0x%04X scheduler: %d transitions, day: 0x%x, mode: 0x%d\n", ind.srcAddress().nwk(), nrTrans, dayOfWeek, modeSeq);
 
         while (count < nrTrans)
         {
@@ -507,23 +525,19 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 
             stream >> transTime;
 
-            QTime midnight(0, 0, 0);
-            QTime heatTime = midnight.addSecs(transTime * 60);
-
-            val = val + " " + qPrintable(heatTime.toString("HH:mm"));
-
             if (modeSeq & 0x01)  // bit-0 heat set point
             {
                 stream >> heatSetPoint;
-                val = val + QString(" %1").arg(heatSetPoint);
+                val += QString(" %1:%2 %3")
+                    .arg(transTime / 60, 2, 10, QChar('0'))
+                    .arg(transTime % 60, 2, 10, QChar('0'))
+                    .arg(heatSetPoint);
             }
             if (modeSeq & 0x02)  // bit-1 cool set point
             {
                 stream >> coolSetPoint;
             }
             count++;
-
-            DBG_Printf(DBG_INFO, "Thermostat 0x%04X scheduler: sequence %d, time: %s, setpoint: %d\n", ind.srcAddress().nwk(), count, qPrintable(heatTime.toString("HH:mm")), heatSetPoint);
         }
 
         if (stream.status() == QDataStream::ReadPastEnd)
@@ -567,6 +581,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
         if (item)
         {
             item->setValue(sched);
+            enqueueEvent(Event(RSensors, RConfigScheduler, sensor->id(), item));
         }
     }
 
