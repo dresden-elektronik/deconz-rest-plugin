@@ -178,6 +178,10 @@
 				<value name="General Hardware Fault" value="0"></value>
 				<value name="General Software Fault" value="1"></value>
 			</attribute>
+      <attribute id="0014" name="Disable Local Config" type="bmp8" default="00000000" access="rw" required="o">
+				<value name="Reset (to factory defaults) disabled" value="0"></value>
+				<value name="Device configuration disabled" value="1"></value>
+			</attribute>
 		</attribute-set>
 		<attribute-set id="0x0030" description="Philips Specific" mfcode="0x100b">
 			<attribute id="0x0030" name="Sensitivity" description="Hue motion sensor related SML001" type="enum8" default="0" access="rw" required="o" mfcode="0x100b">
@@ -1718,6 +1722,15 @@ Note: It does not clear or delete previous weekly schedule programming configura
 						<value name="Fan 3rd Stage State On" value="6"></value>
 					</attribute>
 				</attribute-set>
+        <attribute-set id="0x0030" description="Thermostat Setpoint Change Tracking">
+          <attribute id="0x0030" name="Setpoint Change Source" type="enum8" access="r" required="o">
+            <value name="Manual" value="0"></value>
+            <value name="Schedule" value="1"></value>
+            <value name="Zigbee" value="2"></value>
+          </attribute>
+          <attribute id="0x0031" name="Setpoint Change Amount" type="s16" access="r" required="o" default="0x8000"/>
+          <attribute id="0x0032" name="Setpoint Change Timestamp" type="utc" access="r" required="o" default="0"/>
+        </attribute-set>
 
         <!-- Danfoss manufacturer specific -->
         <attribute-set id="0x4000" description="Danfoss specific">
