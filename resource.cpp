@@ -59,6 +59,7 @@ const char *RStateFlag = "state/flag";
 const char *RStateGesture = "state/gesture";
 const char *RStateHue = "state/hue";
 const char *RStateHumidity = "state/humidity";
+const char *RStateLastSet = "state/lastset";
 const char *RStateLastUpdated = "state/lastupdated";
 const char *RStateLift = "state/lift";
 const char *RStateLightLevel = "state/lightlevel";
@@ -82,6 +83,7 @@ const char *RStateSpeed = "state/speed";
 const char *RStateStatus = "state/status";
 const char *RStateSunrise = "state/sunrise";
 const char *RStateSunset = "state/sunset";
+const char *RStateUtc = "state/utc";
 const char *RStateTampered = "state/tampered";
 const char *RStateTemperature = "state/temperature";
 const char *RStateTilt = "state/tilt";
@@ -202,11 +204,12 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt32, RStateGesture));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateHue));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateHumidity, 0, 10000));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RStateLastSet));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RStateLastUpdated));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RStateLift, 0, 100));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateLightLevel, 0, 0xfffe));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateLowBattery));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RStateLocaltime));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateLowBattery));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, RStateLux));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateOn));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateOpen));
@@ -230,6 +233,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RStateTemperature, -27315, 32767));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RStateTilt, 0, 100));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateTiltAngle));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RStateUtc));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RStateValve));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateVibration));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateVibrationStrength));
@@ -398,7 +402,7 @@ const QString &ResourceItem::toString() const
                 format = QLatin1String("yyyy-MM-ddTHH:mm:ss.zzz"); // TODO add Z
                 dt.setOffsetFromUtc(0);
             }
-            else if (m_rid.suffix == RAttrLastAnnounced)
+            else if (m_rid.suffix == RAttrLastAnnounced || m_rid.suffix == RStateLastSet || m_rid.suffix == RStateUtc)
             {
                 // UTC in sec resolution
                 format = QLatin1String("yyyy-MM-ddTHH:mm:ssZ");
