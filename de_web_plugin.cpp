@@ -1677,7 +1677,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         const deCONZ::SimpleDescriptor *sd = &node->simpleDescriptors()[0];
         bool hasTuyaCluster = false;
         
-        if (sd && (sd->deviceId() == DEV_ID_SMART_PLUG) && (node->simpleDescriptors().size() < 2) && ((node->address() & 0xffffff0000000000ULL ) == silabs3MacPrefix))
+        if (sd && (sd->deviceId() == DEV_ID_SMART_PLUG) && (node->simpleDescriptors().size() < 2) && ((node->address().ext() & 0xffffff0000000000ULL ) == silabs3MacPrefix))
         {
 
             for (int c = 0; c < sd->inClusters().size(); c++)
