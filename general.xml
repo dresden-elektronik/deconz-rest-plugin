@@ -1845,7 +1845,7 @@ Note: It does not clear or delete previous weekly schedule programming configura
             <attribute id="0x0016" type="s16" name="Heat Set Point 10" required="o"/>
           </payload>
         </command>
-        <command id="0x02" dir="recv" name="Get Weekly Schedule" required="o">
+        <command id="0x02" dir="recv" name="Get Weekly Schedule" required="o" response="0x00">
           <payload>
             <attribute id="0x0000" type="bmp8" name="Days to Return" required="m">
               <value name="Sunday" value="0"></value>
