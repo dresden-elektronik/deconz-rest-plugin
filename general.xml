@@ -1798,6 +1798,7 @@ Note: It does not clear or delete previous weekly schedule programming configura
         <command id="0x01" dir="recv" name="Set Weekly Schedule" required="o">
           <payload>
             <attribute id="0x0000" type="enum8" name="Number of Transtions for Sequence" required="m">
+              <value name="0" value="0"></value>
               <value name="1" value="1"></value>
               <value name="2" value="2"></value>
               <value name="3" value="3"></value>
@@ -1872,6 +1873,7 @@ Note: It does not clear or delete previous weekly schedule programming configura
         <command id="0x00" dir="recv" name="Get Weekly Schedule Response" required="o">
           <payload>
             <attribute id="0x0000" type="enum8" name="Number of Transtions for Sequence" required="m">
+              <value name="0" value="0"></value>
               <value name="1" value="1"></value>
               <value name="2" value="2"></value>
               <value name="3" value="3"></value>
