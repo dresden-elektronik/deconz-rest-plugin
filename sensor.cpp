@@ -169,11 +169,11 @@ static const Sensor::ButtonMap osram4ButRemoteMap[] = {
     { Sensor::ModeScenes, 0x02, 0x0300, 0x4C, 0x01,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "UR short press" },
     { Sensor::ModeScenes, 0x02, 0x0300, 0x03, 0xFE,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "UR long press" },
     { Sensor::ModeScenes, 0x02, 0x0300, 0x01, 0x00,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "UR long release" },
-    // Button lower-left 
+    // Button lower-left
     { Sensor::ModeScenes, 0x03, 0x0006, 0x00, 0x00,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "LL short press" },
     { Sensor::ModeScenes, 0x03, 0x0008, 0x01, 0x01,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD,           "LL long press" },
     { Sensor::ModeScenes, 0x03, 0x0008, 0x03, 0x01,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED,  "LL long release" },
-    // Button lower-right 
+    // Button lower-right
     { Sensor::ModeScenes, 0x04, 0x0300, 0x4C, 0x03,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "LR short press" },
     { Sensor::ModeScenes, 0x04, 0x0300, 0x03, 0xFE,    S_BUTTON_4 + S_BUTTON_ACTION_HOLD,           "LR long press" },
     { Sensor::ModeScenes, 0x04, 0x0300, 0x01, 0x00,    S_BUTTON_4 + S_BUTTON_ACTION_LONG_RELEASED,  "LR long release" },
@@ -192,11 +192,11 @@ static const Sensor::ButtonMap osram4ButRemoteMap2[] = {
     { Sensor::ModeScenes, 0x02, 0x0300, 0x4C, 0x01,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "UR short press" },
     { Sensor::ModeScenes, 0x02, 0x0300, 0x01, 0x01,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "UR long press" },
     { Sensor::ModeScenes, 0x02, 0x0300, 0x47, 0x00,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "UR long release" },
-    // Button lower-left 
+    // Button lower-left
     { Sensor::ModeScenes, 0x03, 0x0006, 0x00, 0x00,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "LL short press" },
     { Sensor::ModeScenes, 0x03, 0x0008, 0x01, 0x01,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD,           "LL long press" },
     { Sensor::ModeScenes, 0x03, 0x0008, 0x03, 0x01,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED,  "LL long release" },
-    // Button lower-right 
+    // Button lower-right
     { Sensor::ModeScenes, 0x04, 0x0300, 0x4C, 0x03,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "LR short press" },
     { Sensor::ModeScenes, 0x04, 0x0300, 0x01, 0x03,    S_BUTTON_4 + S_BUTTON_ACTION_HOLD,           "LR long press" },
     { Sensor::ModeScenes, 0x04, 0x0300, 0x47, 0x00,    S_BUTTON_4 + S_BUTTON_ACTION_LONG_RELEASED,  "LR long release" },
@@ -1260,6 +1260,15 @@ void Sensor::jsonToState(const QString &json)
 
     QVariantMap map = var.toMap();
 
+    if (map.contains("lastset"))
+    {
+        QString lastset = map["lastset"].toString();
+        QString format = QLatin1String("yyyy-MM-ddTHH:mm:ssZ");
+        QDateTime ls = QDateTime::fromString(lastset, format);
+        ls.setTimeSpec(Qt::UTC);
+        map["lastset"] = ls;
+    }
+
     // use old time stamp before deCONZ was started
     QDateTime dt = QDateTime::currentDateTime().addSecs(-120);
     if (map.contains("lastupdated"))
@@ -1273,6 +1282,23 @@ void Sensor::jsonToState(const QString &json)
         }
         lu.setTimeSpec(Qt::UTC);
         map["lastupdated"] = lu;
+    }
+
+    if (map.contains("localtime"))
+    {
+        QString localtime = map["localtime"].toString();
+        QString format = QLatin1String("yyyy-MM-ddTHH:mm:ss");
+        QDateTime lt = QDateTime::fromString(localtime, format);
+        map["localtime"] = lt;
+    }
+
+    if (map.contains("utc"))
+    {
+        QString utc = map["utc"].toString();
+        QString format = QLatin1String("yyyy-MM-ddTHH:mm:ssZ");
+        QDateTime u = QDateTime::fromString(utc, format);
+        u.setTimeSpec(Qt::UTC);
+        map["utc"] = u;
     }
 
     for (int i = 0; i < itemCount(); i++)
