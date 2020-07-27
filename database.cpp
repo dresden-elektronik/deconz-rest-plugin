@@ -3271,6 +3271,12 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             sensor.addItem(DataTypeString, RConfigMode);
             sensor.addItem(DataTypeTime, RStateLocaltime);
         }
+        else if (sensor.type().endsWith(QLatin1String("Time")))
+        {
+            sensor.addItem(DataTypeTime, RStateUtc);
+            sensor.addItem(DataTypeTime, RStateLocaltime);
+            sensor.addItem(DataTypeTime, RStateLastSet);
+        }
 
         if (sensor.modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch
         {
