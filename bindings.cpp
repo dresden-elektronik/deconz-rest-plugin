@@ -1204,8 +1204,9 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     {
         Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
 
-        // This device use only Attribute 0x0000 for tension and 0x001 for frequency
-        if (sensor->modelId() == QLatin1String("SLP2"))
+        // Thoses device use only Attribute 0x0000 for tension and 0x001 for frequency
+        if ((sensor->modelId() == QLatin1String("SLP2")) ||
+            (sensor->modelId() == QLatin1String("SLP2b")))
         {
             return false;
         }
