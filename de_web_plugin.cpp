@@ -329,8 +329,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_ALERTME, "SLP2b", computimeMacPrefix }, // Hive  plug
     { VENDOR_ALERTME, "SLR2", computimeMacPrefix }, // Hive   Heating Receiver
     { VENDOR_ALERTME, "SLT2", computimeMacPrefix }, // Hive thermostat
-    { VENDOR_SUNRICHER, "4512703", silabs2MacPrefix }, // Namron 4-ch remote controller
-    { VENDOR_SUNRICHER, "451270", silabs2MacPrefix }, // Namron 1/4-ch remote controller
+    { VENDOR_SUNRICHER, "45127", silabs2MacPrefix }, // Namron 1/2/4-ch remote controller
     { VENDOR_SENGLED_OPTOELEC, "E13-", zhejiangMacPrefix }, // Sengled PAR38 Bulbs
     { VENDOR_SENGLED_OPTOELEC, "E1D-", zhejiangMacPrefix }, // Sengled contact sensor
     { VENDOR_JENNIC, "Plug-230V-ZB3.0", silabs2MacPrefix }, // Immax NEO ZB3.0 smart plug
@@ -5742,7 +5741,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     {
         sensorNode.setManufacturer("Heiman");
     }
-    else if (modelId.startsWith(QLatin1String("451270")))
+    else if (modelId.startsWith(QLatin1String("45127")))
     {
         sensorNode.setManufacturer("Namron AS");
     }
@@ -6421,7 +6420,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("ZGRC-KEY")) || //  Sunricher wireless CCT remote
                                         i->modelId().startsWith(QLatin1String("ZG2833K")) || // Sunricher remote controller
                                         i->modelId().startsWith(QLatin1String("SV01-")) || // Keen Home vent
-                                        i->modelId().startsWith(QLatin1String("451270")) || // Namron 1/4-ch remote controller
+                                        i->modelId().startsWith(QLatin1String("45127")) || // Namron 1/2/4-ch remote controller
                                         i->modelId().startsWith(QLatin1String("RGBgenie ZB-5")) || // RGBgenie remote control
                                         i->modelId().startsWith(QLatin1String("VOC_Sensor"))) // LifeControl Enviroment sensor
                                     {
@@ -6459,7 +6458,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("ZGRC-KEY")) || // Sunricher wireless CCT remote
                                         i->modelId().startsWith(QLatin1String("ZG2833K")) || // Sunricher remote controller
                                         i->modelId().startsWith(QLatin1String("SV01-")) || // Keen Home vent
-                                        i->modelId().startsWith(QLatin1String("451270")) || // Namron 1/4-ch remote controller
+                                        i->modelId().startsWith(QLatin1String("45127")) || // Namron 1/2/4-ch remote controller
                                         i->modelId().startsWith(QLatin1String("RGBgenie ZB-5")) || // RGBgenie remote control
                                         i->modelId().startsWith(QLatin1String("VOC_Sensor"))) // LifeControl Enviroment sensor
                                     {
