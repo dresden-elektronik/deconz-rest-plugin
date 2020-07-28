@@ -3130,6 +3130,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     (!sensor.modelId().startsWith(QLatin1String("BQZ10-AU"))) &&
                     (!sensor.modelId().startsWith(QLatin1String("ROB_200"))) &&
                     (sensor.modelId() != QLatin1String("Plug-230V-ZB3.0")) &&
+                    (sensor.modelId() != QLatin1String("lumi.switch.b1naus01")) &&
                     (sensor.modelId() != QLatin1String("Connected socket outlet")))
                 {
                     item = sensor.addItem(DataTypeInt16, RStatePower);
@@ -3159,7 +3160,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     // hasVoltage = false;
                 }
                 else if (sensor.modelId() == QLatin1String("ZB-ONOFFPlug-D0005") ||
-                         sensor.modelId() == QLatin1String("Plug-230V-ZB3.0"))
+                         sensor.modelId() == QLatin1String("Plug-230V-ZB3.0") ||
+                         sensor.modelId() == QLatin1String("lumi.switch.b1naus01"))
                 {
                     hasVoltage = false;
                 }
@@ -3341,6 +3343,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 !sensor.modelId().startsWith(QLatin1String("lumi.plug")) &&
                 sensor.modelId() != QLatin1String("lumi.curtain") &&
                 sensor.modelId() != QLatin1String("lumi.sensor_natgas") &&
+                sensor.modelId() != QLatin1String("lumi.switch.b1naus01") &&
                 !sensor.modelId().startsWith(QLatin1String("lumi.relay.c")) &&
                 !sensor.type().endsWith(QLatin1String("Battery")))
             {
