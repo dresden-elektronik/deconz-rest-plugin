@@ -1412,7 +1412,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                        sensor->modelId() == QLatin1String("Connected socket outlet") || // Niko smart socket
                        sensor->modelId().startsWith(QLatin1String("ROB_200")) || // ROBB Smarrt micro dimmer
                        sensor->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
-                       sensor->modelId().startsWith(QLatin1String("lumi.plug.maeu")))) // Xiaomi Aqara ZB3.0 smart plug
+                       sensor->modelId().startsWith(QLatin1String("lumi.plug.maeu")) || // Xiaomi Aqara ZB3.0 smart plug
+                       sensor->modelId().startsWith(QLatin1String("lumi.switch.b1naus01")))) // Xiaomi ZB3.0 Smart Wall Switch
         {
             rq.reportableChange16bit = 10; // 1 W
         }
@@ -1849,6 +1850,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturerCode() == VENDOR_SINOPE)
         {
         }
+        else if (lightNode->manufacturerCode() == VENDOR_XIAOMI)
+        {
+        }
         else if (lightNode->modelId().startsWith(QLatin1String("SP ")))
         {
         }
@@ -2224,6 +2228,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Xiaomi
         sensor->modelId().startsWith(QLatin1String("lumi.plug.maeu01")) ||
         sensor->modelId().startsWith(QLatin1String("lumi.sen_ill.mgl01")) ||
+        sensor->modelId().startsWith(QLatin1String("lumi.switch.b1naus01")) ||
         // iris
         sensor->modelId().startsWith(QLatin1String("1116-S")) ||
         sensor->modelId().startsWith(QLatin1String("1117-S")) ||

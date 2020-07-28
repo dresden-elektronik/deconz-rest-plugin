@@ -210,7 +210,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_XIAOMI, "lumi.remote.b486opcn01", xiaomiMacPrefix }, // Xiaomi Aqara Opple WXCJKG12LM
     { VENDOR_XIAOMI, "lumi.remote.b686opcn01", xiaomiMacPrefix }, // Xiaomi Aqara Opple WXCJKG13LM
     { VENDOR_XIAOMI, "lumi.sen_ill.mgl01", xiaomiMacPrefix }, // Xiaomi ZB3.0 light sensor
-    { VENDOR_XIAOMI, "lumi.plug", xiaomiMacPrefix }, // Xiaomi Xiaomi smart plugs (router)
+    { VENDOR_XIAOMI, "lumi.plug", xiaomiMacPrefix }, // Xiaomi smart plugs (router)
+    { VENDOR_XIAOMI, "lumi.switch.b1naus01", xiaomiMacPrefix }, // Xiaomi Aqara ZB3.0 Smart Wall Switch Single Rocker
     // { VENDOR_XIAOMI, "lumi.curtain", jennicMacPrefix}, // Xiaomi curtain controller (router) - exposed only as light
     { VENDOR_UBISYS, "C4", ubisysMacPrefix },
     { VENDOR_UBISYS, "D1", ubisysMacPrefix },
@@ -5450,6 +5451,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 (!modelId.startsWith(QLatin1String("BQZ10-AU"))) &&
                 (!modelId.startsWith(QLatin1String("ROB_200"))) &&
                 (modelId != QLatin1String("Plug-230V-ZB3.0")) &&
+                (modelId != QLatin1String("lumi.switch.b1naus01")) &&
                 (modelId != QLatin1String("Connected socket outlet")))
             {
                 item = sensorNode.addItem(DataTypeInt16, RStatePower);
@@ -5470,6 +5472,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             if ( (!modelId.startsWith(QLatin1String("Plug"))) &&
                  (!modelId.startsWith(QLatin1String("ZB-ONOFFPlug-D0005"))) &&
                  (modelId != QLatin1String("Plug-230V-ZB3.0")) &&
+                 (modelId != QLatin1String("lumi.switch.b1naus01")) &&
                  (node->nodeDescriptor().manufacturerCode() != VENDOR_LEGRAND) ) // OSRAM and Legrand plug don't have theses options
             {
                 item = sensorNode.addItem(DataTypeUInt16, RStateVoltage);
@@ -5708,6 +5711,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             !sensorNode.modelId().startsWith(QLatin1String("lumi.relay.c")) &&
             sensorNode.modelId() != QLatin1String("lumi.curtain") &&
             sensorNode.modelId() != QLatin1String("lumi.sensor_natgas") &&
+            sensorNode.modelId() != QLatin1String("lumi.switch.b1naus01") &&
             !sensorNode.type().endsWith(QLatin1String("Battery")))
         {
             sensorNode.addItem(DataTypeUInt8, RConfigBattery);
@@ -7708,7 +7712,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("lumi.plug.maeu")) || // Xiaomi Aqara ZB3.0 smart plug
                                         i->modelId() == QLatin1String("RICI01") ||           // LifeControl Smart Plug
                                         i->modelId().startsWith(QLatin1String("outlet")) ||  // Samsung SmartThings IM6001-OTP/IM6001-OTP01
-                                        i->modelId().startsWith(QLatin1String("3200-S")))    // Samsung/Centralite smart outlet
+                                        i->modelId().startsWith(QLatin1String("3200-S")) ||    // Samsung/Centralite smart outlet
+                                        i->modelId().startsWith(QLatin1String("lumi.switch.b1naus01"))) // Xiaomi ZB3.0 Smart Wall Switch
                                     {
                                         //power += 5; power /= 10; // 0.1W -> W
                                         power = static_cast<qint16>(round((double)power / 10.0)); // 0.1W -> W
