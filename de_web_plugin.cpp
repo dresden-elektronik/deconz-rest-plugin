@@ -1687,7 +1687,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             
             if (hasTuyaCluster) 
             {
-                DBG_Printf(DBG_INFO, "Tuya : debug 13\n");
+                DBG_Printf(DBG_INFO, "Tuya : Creating 2 Fake Endpoints\n");
 
                 //Ok it's the good device, make 2 clones with differents endpoints
                 
@@ -4177,8 +4177,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
     {
         return;
     }
-    
-    DBG_Printf(DBG_INFO, "Tuya debug 53\n" );
 
     // check for new sensors
     QString modelId;
@@ -4846,11 +4844,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 }
             }
         }
-        DBG_Printf(DBG_INFO, "Tuya debug 50\n" );
+
         if (modelId == QLatin1String("kud7u2l"))
         {
             fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
-            DBG_Printf(DBG_INFO, "Tuya debug 51\n" );
         }
 
         if (!isDeviceSupported(node, modelId))
@@ -15009,13 +15006,11 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             }
             else if (!sensor)
             {
-                DBG_Printf(DBG_INFO, "Tuya debug 88\n");
                 addSensorNode(node);
             }
             return;
         }
 
-        DBG_Printf(DBG_INFO, "Tuya debug 89\n");
         if (!sensor || searchSensorsState != SearchSensorsActive)
         {
             // do nothing
@@ -15331,8 +15326,6 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
              attr.setValue((quint64) 1);
              writeAttribute(sensor, sensor->fingerPrint().endpoint, 0xFCC0, attr, VENDOR_XIAOMI);
         }
-        
-        DBG_Printf(DBG_INFO, "Tuya debug 90\n");
 
         for (auto &s : sensors)
         {

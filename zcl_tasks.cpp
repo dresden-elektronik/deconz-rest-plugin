@@ -113,7 +113,7 @@ bool DeRestPluginPrivate::addTaskSetOnOff(TaskItem &task, quint8 cmd, quint16 on
     task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
                              deCONZ::ZclFCDirectionClientToServer |
                              deCONZ::ZclFCDisableDefaultResponse);
-    DBG_Printf(DBG_INFO, "Tuya : debug 44\n");
+
     if (cmd == ONOFF_COMMAND_OFF_WITH_EFFECT)
     {
         const quint8 effect = 0;

@@ -48,8 +48,6 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
     {
         return;
     }
-
-    DBG_Printf(DBG_INFO, "Tuya : debug 8\n");
     
     if (zclFrame.commandId() == 0x00)
     {
@@ -59,9 +57,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
     {
         // 0x01 Used to inform of changes in its state.
         // 0x02 Send after receiving a 0x00 command.
-        
-        DBG_Printf(DBG_INFO, "Tuya : debug 1 : size %d\n",static_cast<int>(zclFrame.payload().size()));
-        
+
         if (zclFrame.payload().size() >= 7)
         {
             
@@ -87,7 +83,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             //security, it seem 4 is the maximum
             if (length > 4)
             {
-                DBG_Printf(DBG_INFO, "Tuya debug : data length excess\n");
+                DBG_Printf(DBG_INFO, "Tuya : data length excess\n");
                 length = 4;
             }
             
@@ -98,8 +94,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 data = data + dummy;
             }
 
-            DBG_Printf(DBG_INFO, "Tuya debug 4: status: %d transid: %d dp: %d fn: %d payload %s\n", status , transid , dp , fn ,  qPrintable(zclFrame.payload().toHex()));
-            DBG_Printf(DBG_INFO, "Tuya debug 4: decimal value  %ld\n" , data);
+            DBG_Printf(DBG_INFO, "Tuya debug 4 : Address 0x%016llX Payload %s\n" , ind.srcAddress().ext(), qPrintable(zclFrame.payload().toHex()));
+            DBG_Printf(DBG_INFO, "Tuya debug 5 : Status: %d Transid: %d Dp: %d Fn: %d Data %ld\n", status , transid , dp , fn , data);
             
             //Security check
             if (((dp == 0x0101) || (dp == 0x0102) || (dp == 0x0103)) && (!lightNode))
