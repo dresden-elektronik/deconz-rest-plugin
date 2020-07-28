@@ -1242,7 +1242,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 43200;        // Vendor defaults
             rq.reportableChange8bit = 2;   // Vendor defaults
         }
-        else if (sensor && (sensor->modelId().startsWith(QLatin1String("ED-1001")))) // EcoDim switches
+        else if (sensor && (sensor->modelId().startsWith(QLatin1String("ED-1001")) || // EcoDim switches
+                            sensor->modelId().startsWith(QLatin1String("45127"))))    // Namron switches
         {
             rq.minInterval = 3600;
             rq.maxInterval = 43200;
@@ -2262,6 +2263,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("45127")) ||
         // EcoDim
         sensor->modelId().startsWith(QLatin1String("ED-1001")) ||
+        // Namron
+        sensor->modelId().startsWith(QLatin1String("45127")) ||
         // Plugwise
         sensor->modelId().startsWith(QLatin1String("160-01")) ||
         // Niko
@@ -2823,7 +2826,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(0x03);
         srcEndpoints.push_back(0x04);
     }
-    else if (sensor->modelId().startsWith(QLatin1String("ED-1001")))
+    else if (sensor->modelId().startsWith(QLatin1String("ED-1001")) ||
+             sensor->modelId().startsWith(QLatin1String("45127")))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);
