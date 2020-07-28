@@ -103,7 +103,10 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             
             //Security check
             if (((dp == 0x0101) || (dp == 0x0102) || (dp == 0x0103)) && (!lightNode)) return;
-            if (!sensorNode) return;
+            else
+            {
+                if (!sensorNode) return;
+            }
             
             // Switch device 3 gang
             switch (dp)
