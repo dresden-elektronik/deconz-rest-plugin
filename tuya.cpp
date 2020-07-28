@@ -101,6 +101,10 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             DBG_Printf(DBG_INFO, "Tuya debug 4: status: %d transid: %d dp: %d fn: %d payload %s\n", status , transid , dp , fn ,  qPrintable(zclFrame.payload().toHex()));
             DBG_Printf(DBG_INFO, "Tuya debug 4: decimal value  %ld\n" , data);
             
+            //Security check
+            if (((dp == 0x0101) || (dp == 0x0102) || (dp == 0x0103)) && (!lightNode)) return;
+            if (!sensorNode) return;
+            
             // Switch device 3 gang
             switch (dp)
             {

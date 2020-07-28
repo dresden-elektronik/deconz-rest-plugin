@@ -1751,7 +1751,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             else if (i->inClusters()[c].id() == COLOR_CLUSTER_ID) { hasServerColor = true; }
             else if (i->inClusters()[c].id() == WINDOW_COVERING_CLUSTER_ID) { hasServerOnOff = true; }
             else if (i->inClusters()[c].id() == IAS_WD_CLUSTER_ID) { hasIASWDCluster = true; }
-            else if (i->inClusters()[c].id() == TUYA_CLUSTER_ID) { hasServerOnOff = true; }
+            else if ((i->inClusters()[c].id() == TUYA_CLUSTER_ID) && (node->macCapabilities() & deCONZ::MacDeviceIsFFD) ) { hasServerOnOff = true; }
             // Danalock support. The cluster needs to be defined and whitelisted by setting hasServerOnOff
             else if (i->inClusters()[c].id() == DOOR_LOCK_CLUSTER_ID) { hasServerOnOff = true; }
         }
