@@ -785,6 +785,8 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                     else if (sensorNode->modelId().startsWith("C4") || // ubisys
                              sensorNode->modelId().startsWith("RC 110") || // innr RC 110
                              sensorNode->modelId().startsWith("ICZB-RM") || // icasa remote
+                             sensorNode->modelId().startsWith("ED-1001") || // EcoDim switches
+                             sensorNode->modelId().startsWith("45127") || // Namron switches
                              sensorNode->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
                              sensorNode->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
                              sensorNode->modelId().startsWith(QLatin1String("Switch 4x-LIGHTIFY")) || // Osram 4 button remote
@@ -3487,7 +3489,9 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             Event e(RSensors, REventValidGroup, sensor->id());
             enqueueEvent(e);
         }
-        else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM"))) // icasa remote
+        else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM")) || // icasa remote
+                 sensor->modelId().startsWith(QLatin1String("ED-1001")) || // EcoDim switches
+                 sensor->modelId().startsWith(QLatin1String("45127")))     // Namron switches
         {
             // 4 controller endpoints: 0x01, 0x02, 0x03, 0x04
             if (gids.length() != 4)
@@ -4687,8 +4691,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpSwitch.outClusters.push_back(ci->id());
                     }
-                    else if (modelId.startsWith(QLatin1String("RC 110")) || // innr RC 110
-                             modelId.startsWith(QLatin1String("ICZB-RM"))) // icasa remote
+                    else if (modelId.startsWith(QLatin1String("RC 110")) ||  // innr RC 110
+                             modelId.startsWith(QLatin1String("ICZB-RM")) || // icasa remote
+                             modelId.startsWith(QLatin1String("ED-1001")) || // EcoDim switches
+                             modelId.startsWith(QLatin1String("ED-1001")))   // Namron switches
                     {
                         if (i->endpoint() == 0x01) // create sensor only for first endpoint
                         {
