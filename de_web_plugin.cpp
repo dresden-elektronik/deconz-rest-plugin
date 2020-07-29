@@ -3937,9 +3937,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     if (buttonMap->zclParam0 != pl0)
                     {
                         ok = false;
-                        DBG_Printf(DBG_INFO, "LDS debug 88: 0x%02X\n",pl0);
                         pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(1);
-                        DBG_Printf(DBG_INFO, "LDS debug 89: 0x%02X\n",pl0);
                     }
                     //ignore the command if previous was button4
                     if (sensor->previousCommandId == 0x04)
