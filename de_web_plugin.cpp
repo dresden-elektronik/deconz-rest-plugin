@@ -150,6 +150,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "902010/23", tiMacPrefix }, // Bitron: remote control
     { VENDOR_NONE, "902010/24", tiMacPrefix }, // Bitron: smoke detector
     { VENDOR_NONE, "902010/25", tiMacPrefix }, // Bitron: smart plug
+    { VENDOR_NONE, "902010/29", tiMacPrefix }, // Bitron: Outdoor siren
     { VENDOR_BITRON, "902010/32", emberMacPrefix }, // Bitron: thermostat
     { VENDOR_DDEL, "Lighting Switch", deMacPrefix },
     { VENDOR_DDEL, "Scene Switch", deMacPrefix },
@@ -4392,7 +4393,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         fpWaterSensor.inClusters.push_back(ci->id());
                     }
                     else if (modelId == QLatin1String("WarningDevice") ||               // Heiman siren
-                             modelId == QLatin1String("SZ-SRN12N"))                     // Sercomm siren
+                             modelId == QLatin1String("SZ-SRN12N") ||                   // Sercomm siren
+                             modelId == QLatin1String("902010/29"))                     // Bitron outdoor siren
                     {
                         fpAlarmSensor.inClusters.push_back(ci->id());
                     }

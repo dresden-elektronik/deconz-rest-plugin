@@ -535,7 +535,8 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                     if (modelId() == QLatin1String("902010/24") ||   // Bitron Smoke Detector with siren
                         modelId() == QLatin1String("SMSZB-120") ||   // Develco Smoke Alarm with siren
                         modelId() == QLatin1String("HESZB-120") ||   // Develco heat sensor with siren
-                        modelId() == QLatin1String("FLSZB-110"))     // Develco water leak sensor with siren
+                        modelId() == QLatin1String("FLSZB-110") ||   // Develco water leak sensor with siren
+                        modelId() == QLatin1String("902010/29"))     // Bitron outdoor siren
                     {
                         removeItem(RStateOn);
                         ltype = QLatin1String("Warning device");

@@ -1859,7 +1859,8 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
         else if (alert == "select")
         {
             task.options = 0x17; // Warning mode 1 (burglar), Strobe, Very high sound
-            if (taskRef.lightNode->modelId() == QLatin1String("902010/24"))
+            if (taskRef.lightNode->modelId() == QLatin1String("902010/24") ||
+                taskRef.lightNode->modelId() == QLatin1String("902010/29"))
             {
                 task.options = 0x12;
             }
@@ -1868,7 +1869,8 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
         else if (alert == "lselect")
         {
             task.options = 0x17; // Warning mode 1 (burglar), Strobe, Very high sound
-            if (taskRef.lightNode->modelId() == QLatin1String("902010/24"))
+            if (taskRef.lightNode->modelId() == QLatin1String("902010/24") ||
+                taskRef.lightNode->modelId() == QLatin1String("902010/29"))
             {
                 task.options = 0x12;
             }
