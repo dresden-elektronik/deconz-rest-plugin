@@ -587,6 +587,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     bool hasSpeed = false;
     quint8 targetSpeed = 0;
     bool hasTransitionTime = false;
+    bool hasStop = false;
 
     // Check parameters.
     for (QVariantMap::const_iterator p = map.begin(); p != map.end(); p++)
@@ -859,6 +860,40 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         if (targetBri > 0xFE) { targetBri = 0xFE; }
         if (targetBri < 1 ) { targetBri = 0x01; }
         
+        //Check for stop
+        if (hasBriInc)
+        {
+            hasStop = true;
+        }
+        
+    }
+    
+    // Stop command, I think it's useless, but the command exist, and need it for profalux
+    if (hasStop)
+    {
+        //Reset all
+        hasBriInc = false;
+        hasBri = false;
+        isOn = false;
+        
+        TaskItem task;
+        copyTaskReq(taskRef, task);
+        
+        if (addTaskStopBrightness(task))
+        {
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/state/stop").arg(id)] = true;
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+
+            taskRef.lightNode->setValue(RStateOn, targetOn);
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/on").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+        }
+
     }
 
     // state.on: true
