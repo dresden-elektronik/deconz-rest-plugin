@@ -885,12 +885,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
             rspItemState[QString("/lights/%1/state/stop").arg(id)] = true;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
-
-            taskRef.lightNode->setValue(RStateOn, targetOn);
         }
         else
         {
-            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/on").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/stop").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
         }
 
     }
