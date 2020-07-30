@@ -15,6 +15,7 @@
 #include <QTime>
 #include <QTimer>
 #include <QElapsedTimer>
+#include <QJsonObject>
 #include <stdint.h>
 #include <queue>
 #if QT_VERSION < 0x050000
@@ -1304,6 +1305,9 @@ public:
     void updateSensorNode(const deCONZ::NodeEvent &event);
     void updateSensorLightLevel(Sensor &sensor, quint16 measuredValue);
     bool isDeviceSupported(const deCONZ::Node *node, const QString &modelId);
+    
+    bool isDeviceSupportedJson(const deCONZ::Node *node, const QString &modelId);
+    bool checkMacVendorJson(const QString addr, const quint16 vendor);
     Sensor *getSensorNodeForAddressAndEndpoint(const deCONZ::Address &addr, quint8 ep);
     Sensor *getSensorNodeForAddress(quint64 extAddr);
     Sensor *getSensorNodeForAddress(const deCONZ::Address &addr);
@@ -1899,6 +1903,11 @@ public:
     QUdpSocket *udpSock;
     QUdpSocket *udpSockOut;
     uint8_t haEndpoint;
+    
+    // JSON support
+    QMap<QString, quint16> vendorCodes;
+    QMap<QString, quint32> macPrefix;
+    QJsonObject checkMacVendorObj;
 
     // events
     QTimer *eventTimer;

@@ -26,6 +26,11 @@
 #include <QDir>
 #include <QProcess>
 #include <QSettings>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonValue>
+#include <QJsonParseError>
 #include <queue>
 #include <cmath>
 #ifdef ARCH_ARM
@@ -639,6 +644,66 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     {
         addLightNode(node);
     }
+    
+    // JSON device configuration file support
+    deviceConfigurationFile = deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation) + "/devices.json";
+
+    QFile file;
+    file.setFileName(deviceConfigurationFile);
+    
+    if (file.exists())
+    {
+        DBG_Printf(DBG_INFO, "[INFO] - Found file containing supported devices.\n");
+        
+        QJsonDocument supportedDevices;
+        QJsonParseError error;
+        
+        file.open(QIODevice::ReadOnly | QIODevice::Text);
+        supportedDevices = QJsonDocument::fromJson(file.readAll(), &error);
+        file.close();
+            
+        if (supportedDevices.isNull() || supportedDevices.isEmpty())
+        {
+            DBG_Printf(DBG_INFO, "[ERROR] - Error: %s\n", error.errorString().toUtf8().data());
+        }
+        
+        // Load vendor codes
+        QJsonObject vendorCodesObj = supportedDevices.object().value(QString("vendorCodes")).toObject();
+        
+        foreach(const QString& key, vendorCodesObj.keys())
+        {
+            bool ok;
+            QString code = vendorCodesObj.value(key).toString();    // direct conversion to int not possible?
+            quint16 mfc = code.toInt(&ok, 16);
+            
+            //DBG_Printf(DBG_INFO, "[INFO] - MFCs supported: %d\n", mfc);
+            //DBG_Printf(DBG_INFO, "[INFO] - MFCs supported: %s\n", qUtf8Printable(code));
+
+            vendorCodes.insert(key, mfc);   // Store data in global QMap
+        }
+        
+        // Load MAC prefixes
+        QJsonObject macPrefixObj = supportedDevices.object().value(QString("macPrefix")).toObject();
+        
+        foreach(const QString& key, macPrefixObj.keys())
+        {
+            bool ok;
+            QString pref = macPrefixObj.value(key).toString();
+            quint32 prefix = pref.toInt(&ok, 16);
+            
+            //DBG_Printf(DBG_INFO, "[INFO] - MacPrefixes supported: %d\n", prefix);
+            //DBG_Printf(DBG_INFO, "[INFO] - MacPrefixes supported: %s\n", qUtf8Printable(pref));
+            
+            macPrefix.insert(key, prefix);  // Store data in global QMap
+        }
+        
+        // Load checkMacVendor data
+        checkMacVendorObj = supportedDevices.object().value(QString("checkMacVendor")).toObject();
+    }
+    else
+    {
+        DBG_Printf(DBG_INFO, "[ERROR] - File containing supported devices was NOT found.\n");
+    }
 }
 
 /*! Deconstructor for pimpl.
@@ -650,6 +715,65 @@ DeRestPluginPrivate::~DeRestPluginPrivate()
         inetDiscoveryManager->deleteLater();
         inetDiscoveryManager = 0;
     }
+}
+
+/*! PoC to potentially replace checkMacVendor in de_web_plugin_private.h
+    \param addr - address().toStringExt()
+    \param vendor - manufacturer code
+    \note will currently only be called from isDeviceSupportedJson()
+ */
+bool DeRestPluginPrivate::checkMacVendorJson(const QString addr, const quint16 vendor)
+{
+    //DBG_Printf(DBG_INFO, "[INFO] - Searching for MAC prefix: %s\n", qUtf8Printable(addr.mid(2,6)));
+    //DBG_Printf(DBG_INFO, "[INFO] - Searching for vendor: %d\n", vendor);
+
+    foreach (const QString& key, checkMacVendorObj.keys())             // Loop through vendors
+    {
+        QString mfc = key;      // Store vendor
+        
+        //DBG_Printf(DBG_INFO, "[INFO] - mfc: %s\n", qUtf8Printable(mfc));
+        //DBG_Printf(DBG_INFO, "[INFO] - vendor key: %s\n", qUtf8Printable(vendorCodes.key(vendor)));
+        
+        if (mfc != vendorCodes.key(vendor))      // Check if vendor is available
+        {
+            continue;
+        }
+
+        QJsonValue prefixes = checkMacVendorObj.value(key);     // Get the macPrefix values for a vendor
+    
+        if (prefixes.isArray())
+        {
+            QJsonArray prefixArr = prefixes.toArray();
+            QString prefix;
+            
+            foreach (const QJsonValue & value, prefixArr)         // Loop through macPrefixes
+            {
+                prefix = value.toString();
+                
+                //DBG_Printf(DBG_INFO, "[INFO] - Checking prefix: %s\n", qUtf8Printable(prefix));
+                //DBG_Printf(DBG_INFO, "[INFO] - Checking prefix: %d\n", macPrefix.value(prefix));
+                
+                bool ok;
+                quint32 nodePrefix = addr.mid(2,6).toInt(&ok, 16);
+                quint32 prefixInt = macPrefix.value(prefix);
+                DBG_Printf(DBG_INFO, "[INFO] - Target prefix: %d\n", nodePrefix);
+                
+                if (nodePrefix == prefixInt)
+                {
+                    //DBG_Printf(DBG_INFO, "[INFO] - DEVICE IS SUPPORTED: %s\n", qUtf8Printable(prefix));
+                    //DBG_Printf(DBG_INFO, "[INFO] - checkMacVendorJson result: true\n");
+                    return true;
+                }
+            }
+        }
+        else
+        {
+            DBG_Printf(DBG_INFO, "[ERROR] - 'checkMacVendor' in JSON must be an array, but isn't.\n");
+            //return false;
+        }
+    }
+    DBG_Printf(DBG_INFO, "[INFO] - checkMacVendorJson result: false\n");
+    return false;
 }
 
 /*! APSDE-DATA.indication callback.
@@ -4763,7 +4887,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             }
         }
 
-        if (!isDeviceSupported(node, modelId))
+        if (!isDeviceSupportedJson(node, modelId))
         {
             continue;
         }
@@ -8092,6 +8216,88 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
         {
             saveDatabaseItems |= DB_SENSORS;
         }
+    }
+}
+
+/*! Returns true if the device is supported.
+ */
+bool DeRestPluginPrivate::isDeviceSupportedJson(const deCONZ::Node *node, const QString &modelId)
+{
+    if (!node || modelId.isEmpty())
+    {
+        return false;
+    }
+    
+    QFile file;
+    file.setFileName(deviceConfigurationFile);
+    
+    if (file.exists())
+    {
+        DBG_Printf(DBG_INFO, "[INFO] - Found file containing supported devices.\n");
+        
+        QJsonDocument supportedDevices;
+        QJsonParseError error;
+        
+        file.open(QIODevice::ReadOnly | QIODevice::Text);
+        supportedDevices = QJsonDocument::fromJson(file.readAll(), &error);
+        file.close();
+            
+        if (supportedDevices.isNull() || supportedDevices.isEmpty())
+        {
+            DBG_Printf(DBG_INFO, "[ERROR] - Error: %s\n", error.errorString().toUtf8().data());
+        }
+        
+        QJsonObject allDevicesObj = supportedDevices.object();
+        QJsonArray allDevicesArr = allDevicesObj.value(QString("devices")).toArray();
+        
+        foreach (const QJsonValue & value, allDevicesArr)         // Loop through devices
+        {
+            QJsonObject device = value.toObject();
+            QString zbModelId = device.value(QString("zigbeeModel")).toString();
+            QString manufacturer = device.value(QString("zigbeeManufacturer")).toString();
+            QString mfc;
+            
+            //DBG_Printf(DBG_INFO, "[INFO] - Manufacturer supported: %s\n", qUtf8Printable(manufacturer));
+            //DBG_Printf(DBG_INFO, "[INFO] - ModelIDs supported: %s\n", qUtf8Printable(zbModelId));
+            
+            if (device.value(QString("manufacturerCode")).isArray())
+            {
+                QJsonArray mfcArray = device.value(QString("manufacturerCode")).toArray();
+                
+                foreach (const QJsonValue & value, mfcArray)         // Loop through mfcs
+                {
+                    mfc = value.toString();
+                    
+                    bool ok;
+                    quint16 mfc2 = mfc.toInt(&ok, 16);
+                    
+                    // 3rd original check 'node->address().ext() & macPrefixMask) == s->mac' has been omitted
+                    if (mfc2 == node->nodeDescriptor().manufacturerCode() || checkMacVendorJson(node->address().toStringExt(), mfc2))
+                    {
+                        if (zbModelId.trimmed() == modelId.trimmed())
+                        {
+                            //DBG_Printf(DBG_INFO, "[INFO] - Result of isDeviceSupportedJson:\n");
+                            //DBG_Printf(DBG_INFO, "[INFO] - DEVICE IS SUPPORTED.\n");
+                            return true;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                DBG_Printf(DBG_INFO, "[ERROR] - 'manufacturerCode' in JSON must be an array, but isn't.\n");
+                //return false;
+            }
+        }
+        
+        //DBG_Printf(DBG_INFO, "[INFO] - Result of isDeviceSupportedJson:\n");
+        //DBG_Printf(DBG_INFO, "[INFO] - DEVICE APPEARS NOT TO BE SUPPORTED.\n");
+        return false;
+    }
+    else
+    {
+        DBG_Printf(DBG_INFO, "[INFO] - File containing supported devices was NOT found.\n");
+        return false;
     }
 }
 
@@ -14796,7 +15002,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         // manufacturer, model id, sw build id
         if (!sensor || modelId.isEmpty() || manufacturer.isEmpty() || (swBuildId.isEmpty() && dateCode.isEmpty() && (dateCodeAvailable || swBuildIdAvailable)))
         {
-            if (!modelId.isEmpty() && !isDeviceSupported(node, modelId))
+            if (!modelId.isEmpty() && !isDeviceSupportedJson(node, modelId))
             {
                 return;
             }
