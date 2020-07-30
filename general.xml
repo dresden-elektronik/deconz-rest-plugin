@@ -1731,9 +1731,37 @@ Note: It does not clear or delete previous weekly schedule programming configura
           <attribute id="0x0031" name="Setpoint Change Amount" type="s16" access="r" required="o" default="0x8000"/>
           <attribute id="0x0032" name="Setpoint Change Timestamp" type="utc" access="r" required="o" default="0"/>
         </attribute-set>
+        
+        <attribute-set id="0x0080" description="eCozy" mfcode="0x1014">
+          <attribute id="0x0080" name="Unknown" type="s16" access="r" required="o"/>
+          <attribute id="0x0081" name="Unknown" type="s16" access="r" required="o"/>
+          <attribute id="0x0082" name="Unknown (Heat Setpoint?)" type="s16" access="r" required="o"/>
+        </attribute-set>
+
+				<!-- Eurotronic manufacturer specific -->
+				<attribute-set id="0x4000" description="Eurotronic" mfcode="0x1037">
+					<attribute id="0x4000" name="TRV Mode" type="enum8" default="0x02" access="rw" required="m" mfcode="0x1037">
+						<value name="Unknown 1" value="0"></value>
+						<value name="Unknown 2" value="1"></value>
+						<value name="manual" value="2"></value>
+					</attribute>
+					<attribute id="0x4001" name="Set Valve Position" type="u8" default="0x00" access="rw" required="m" mfcode="0x1037"></attribute>
+					<attribute id="0x4002" name="Errors" type="u8" default="0x00" access="r" required="m" mfcode="0x1037">
+						<value name="Reserved" value="0"></value>
+						<value name="Reserved" value="1"></value>
+						<value name="Reserved" value="2"></value>
+						<value name="Valve Adaption Failed (E1)" value="3"></value>
+						<value name="Valve Movement too slow (E2)" value="4"></value>
+						<value name="Valve not Moving (E3)" value="5"></value>
+						<value name="Reserved" value="6"></value>
+						<value name="Reserved" value="7"></value>
+					</attribute>
+					<attribute id="0x4003" name="Current Temperature Setpoint" type="s16" default="0x07d0" access="rw" required="m" mfcode="0x1037"></attribute>
+					<attribute id="0x4008" name="Host Flags" type="u24" default="0x000000" showas="hex" access="rw" required="m" mfcode="0x1037"></attribute>
+				</attribute-set>
 
         <!-- Danfoss manufacturer specific -->
-        <attribute-set id="0x4000" description="Danfoss specific">
+        <attribute-set id="0x4000" description="Danfoss specific" mfcode="0x1246">
 					<attribute id="0x4000" name="eTRV Open Window Detection" type="enum8" default="0x00" access="r" required="m" mfcode="0x1246">
 						<value name="Closed" value="0x01"></value>
 						<value name="Hold" value="0x02"></value>
@@ -1761,27 +1789,6 @@ Note: It does not clear or delete previous weekly schedule programming configura
           <attribute id="0x4031" name="Heat Supply Request " type="bool" access="r" required="m" mfcode="0x1246"></attribute>
         </attribute-set>
 
-				<!-- Eurotronic manufacturer specific -->
-				<attribute-set id="0x4000" description="Eurotronic">
-					<attribute id="0x4000" name="TRV Mode" type="enum8" default="0x02" access="rw" required="m" mfcode="0x1037">
-						<value name="Unknown 1" value="0"></value>
-						<value name="Unknown 2" value="1"></value>
-						<value name="manual" value="2"></value>
-					</attribute>
-					<attribute id="0x4001" name="Set Valve Position" type="u8" default="0x00" access="rw" required="m" mfcode="0x1037"></attribute>
-					<attribute id="0x4002" name="Errors" type="u8" default="0x00" access="r" required="m" mfcode="0x1037">
-						<value name="Reserved" value="0"></value>
-						<value name="Reserved" value="1"></value>
-						<value name="Reserved" value="2"></value>
-						<value name="Valve Adaption Failed (E1)" value="3"></value>
-						<value name="Valve Movement too slow (E2)" value="4"></value>
-						<value name="Valve not Moving (E3)" value="5"></value>
-						<value name="Reserved" value="6"></value>
-						<value name="Reserved" value="7"></value>
-					</attribute>
-					<attribute id="0x4003" name="Current Temperature Setpoint" type="s16" default="0x07d0" access="rw" required="m" mfcode="0x1037"></attribute>
-					<attribute id="0x4008" name="Host Flags" type="u24" default="0x000000" showas="hex" access="rw" required="m" mfcode="0x1037"></attribute>
-				</attribute-set>
 				<command id="0x00" dir="recv" name="Setpoint Raise/Lower" required="m">
 					<description>This command increases (or decreases) the setpoint(s) by amount, in steps of 0.1°C.</description>
 					<payload>
@@ -1868,8 +1875,8 @@ Note: It does not clear or delete previous weekly schedule programming configura
         </command>
         <command id="0x04" dir="recv" name="Get Relay Status Log" required="o">
         </command>
-			</server>
-			<client>
+      </server>
+      <client>
         <command id="0x00" dir="recv" name="Get Weekly Schedule Response" required="o">
           <payload>
             <attribute id="0x0000" type="enum8" name="Number of Transtions for Sequence" required="m">
