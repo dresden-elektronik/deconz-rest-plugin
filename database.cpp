@@ -3221,6 +3221,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 sensor.addItem(DataTypeBool, RStateOn);           // Heating on/off
                 
                 if (sensor.modelId() == QLatin1String("SLR2") ||           // Hive 
+                    sensor.modelId() == QLatin1String("SLR1b") ||           // Hive 
                     sensor.modelId().startsWith(QLatin1String("TH112")) || // Sinope
                     sensor.modelId() == QLatin1String("Zen-01"))           // Zen
                 {

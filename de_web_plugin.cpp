@@ -327,7 +327,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_ALERTME, "MOT003", tiMacPrefix }, // Hive Motion Sensor
     { VENDOR_ALERTME, "SLP2", computimeMacPrefix }, // Hive  plug
     { VENDOR_ALERTME, "SLP2b", computimeMacPrefix }, // Hive  plug
-    { VENDOR_ALERTME, "SLR2", computimeMacPrefix }, // Hive   Heating Receiver
+    { VENDOR_ALERTME, "SLR1b", computimeMacPrefix }, // Hive   Heating Receiver 1 channel
+    { VENDOR_ALERTME, "SLR2", computimeMacPrefix }, // Hive   Heating Receiver 2 channel
     { VENDOR_ALERTME, "SLT2", computimeMacPrefix }, // Hive thermostat
     { VENDOR_DANFOSS, "TRV001", silabs2MacPrefix }, // Hive thermostat (From Danfoos)
     { VENDOR_SUNRICHER, "4512703", silabs2MacPrefix }, // Namron 4-ch remote controller
@@ -4481,8 +4482,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     else if (modelId == QLatin1String("SLP2b"))
                     {
                     }
-                    // Don't create entry for cluster 0x07 and 0x08
-                    else if ((modelId == QLatin1String("SLR2")) && (i->endpoint() > 0x06 ))
+                    // Don't create entry for cluster 0x07 and 0x08 for Hive thermostat
+                    else if (((modelId == QLatin1String("SLR2")) || (modelId == QLatin1String("SLR1b")) ) && (i->endpoint() > 0x06 ))
                     {
                     }
                     else
@@ -5504,6 +5505,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             sensorNode.addItem(DataTypeBool, RStateOn);           // Heating on/off
 
             if (sensorNode.modelId() == QLatin1String("SLR2") ||            // Hive
+                sensorNode.modelId() == QLatin1String("SLR1b") ||           // Hive
                 sensorNode.modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
                 sensorNode.modelId() == QLatin1String("Zen-01"))            // Zen
             {
@@ -16039,6 +16041,7 @@ void DeRestPlugin::idleTimerFired()
                             }
                             if (sensorNode->modelId().startsWith("SLT2") ||
                                 sensorNode->modelId().startsWith("SLR2") ||
+                                sensorNode->modelId().startsWith("SLR1b") ||
                                 sensorNode->modelId().startsWith("TRV001") ||
                                 sensorNode->modelId().startsWith(QLatin1String("TH112")) ) // Sinope devices
                             {
