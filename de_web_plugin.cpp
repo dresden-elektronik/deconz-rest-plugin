@@ -339,6 +339,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SERCOMM, "SZ-DWS04", emberMacPrefix }, // Sercomm open/close sensor
     { VENDOR_SERCOMM, "Tripper", emberMacPrefix }, // Quirky Tripper (Sercomm) open/close sensor
     { VENDOR_ALERTME, "MOT003", tiMacPrefix }, // Hive Motion Sensor
+    { VENDOR_ALERTME, "DWS003", tiMacPrefix }, // Hive Door sensor
     { VENDOR_ALERTME, "SLP2", computimeMacPrefix }, // Hive  plug
     { VENDOR_ALERTME, "SLP2b", computimeMacPrefix }, // Hive  plug
     { VENDOR_ALERTME, "SLR2", computimeMacPrefix }, // Hive   Heating Receiver

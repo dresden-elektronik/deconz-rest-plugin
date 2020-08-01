@@ -2241,6 +2241,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("1117-S")) ||
         // Hive
         sensor->modelId() == QLatin1String("MOT003") ||
+        sensor->modelId() == QLatin1String("DWS003") ||
         //Computime
         sensor->modelId() == QLatin1String("SLP2") ||
         sensor->modelId() == QLatin1String("SLP2b") ||
