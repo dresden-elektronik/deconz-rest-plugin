@@ -1948,10 +1948,10 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
                 continue;
             }
             //This device have too much clusters
-            if ((lightNode->modelId() == QLatin1String("Gear")) && (i->id() != WINDOW_COVERING_CLUSTER_ID) )
-            {
-                continue;
-            }
+            //if ((lightNode->modelId() == QLatin1String("Gear")) && (i->id() != WINDOW_COVERING_CLUSTER_ID) )
+            //{
+            //    continue;
+            //}
 
             BindingTask bt;
             if (checkMacVendor(lightNode->address(), VENDOR_DDEL))
