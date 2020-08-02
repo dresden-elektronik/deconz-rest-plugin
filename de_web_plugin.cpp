@@ -316,6 +316,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBER, "TS0302", silabs3MacPrefix }, // Tuya curtain switch
     { VENDOR_EMBER, "TS0041", silabs3MacPrefix }, // Tuya wireless switch
     { VENDOR_NONE, "kud7u2l", silabs3MacPrefix }, // Tuya Smart TRV HY369 Thermostatic Radiator Valve
+    { VENDOR_NONE, "GbxAXL2", silabs3MacPrefix }, // Another Tuya Smart TRV Thermostatic Radiator Valve
     { VENDOR_EMBER, "TS0601", silabs7MacPrefix }, // Tuya Smart TRV HY369 Thermostatic Radiator Valve
     { VENDOR_AURORA, "DoubleSocket50AU", jennicMacPrefix }, // Aurora AOne Double Socket UK
     { VENDOR_COMPUTIME, "SP600", computimeMacPrefix }, // Salus smart plug
@@ -4675,6 +4676,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 case TUYA_CLUSTER_ID:
                 {
                     if ((modelId == QLatin1String("kud7u2l")) ||
+                        (modelId == QLatin1String("GbxAXL2")) ||
                         (modelId == QLatin1String("TS0601")) )
                     {
                         fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
@@ -4845,7 +4847,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             }
         }
 
-        if (modelId == QLatin1String("kud7u2l"))
+        if ((modelId == QLatin1String("kud7u2l")) ||
+           (modelId == QLatin1String("GbxAXL2")) )
         {
             fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
         }
@@ -5184,6 +5187,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         if (fpThermostatSensor.hasInCluster(THERMOSTAT_CLUSTER_ID) ||
            (fpThermostatSensor.hasInCluster(LEGRAND_CONTROL_CLUSTER_ID) && modelId == QLatin1String("Cable outlet")) ||
            (fpThermostatSensor.hasInCluster(TUYA_CLUSTER_ID) && modelId == QLatin1String("kud7u2l")) ||
+           (fpThermostatSensor.hasInCluster(TUYA_CLUSTER_ID) && modelId == QLatin1String("GbxAXL2")) ||
            (fpThermostatSensor.hasInCluster(TUYA_CLUSTER_ID) && modelId == QLatin1String("TS0601")) )
         {
             fpThermostatSensor.endpoint = i->endpoint();
@@ -5599,6 +5603,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             }
             
             if (sensorNode.modelId() == QLatin1String("kud7u2l") ||
+                sensorNode.modelId() == QLatin1String("GbxAXL2") ||
                 sensorNode.modelId() == QLatin1String("TS0601") ) //tuya
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
