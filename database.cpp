@@ -3199,7 +3199,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         }
         else if (sensor.type().endsWith(QLatin1String("Thermostat")))
         {
-            if (sensor.fingerPrint().hasInCluster(THERMOSTAT_CLUSTER_ID))
+            if (sensor.fingerPrint().hasInCluster(THERMOSTAT_CLUSTER_ID) || sensor.fingerPrint().hasInCluster(TUYA_CLUSTER_ID))
             {
                 clusterId = THERMOSTAT_CLUSTER_ID;
             }

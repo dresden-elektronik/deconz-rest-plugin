@@ -5577,7 +5577,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     }
     else if (sensorNode.type().endsWith(QLatin1String("Thermostat")))
     {
-        if (sensorNode.fingerPrint().hasInCluster(THERMOSTAT_CLUSTER_ID))
+        if (sensorNode.fingerPrint().hasInCluster(THERMOSTAT_CLUSTER_ID) || sensorNode.fingerPrint().hasInCluster(TUYA_CLUSTER_ID))
         {
             clusterId = THERMOSTAT_CLUSTER_ID;
         }
