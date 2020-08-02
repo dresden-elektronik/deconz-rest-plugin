@@ -1950,11 +1950,6 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
             {
                 continue;
             }
-            // This device have too much clusters, can use 0x0008 and 0x0102, use only the second one to prevent battery
-            if ((lightNode->modelId() == QLatin1String("Gear")) && (i->id() != WINDOW_COVERING_CLUSTER_ID) )
-            {
-                continue;
-            }
 
             BindingTask bt;
             if (checkMacVendor(lightNode->address(), VENDOR_DDEL))
