@@ -1889,6 +1889,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturer() == QLatin1String("NIKO NV"))
         {
         }
+        else if (lightNode->manufacturerCode() == VENDOR_AXIS) // To Test
+        {
+        }
         else
         {
             return;

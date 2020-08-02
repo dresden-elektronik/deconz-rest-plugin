@@ -4256,7 +4256,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpBatterySensor.inClusters.push_back(ci->id());
                     }
-                    if (node->nodeDescriptor().manufacturerCode() == VENDOR_AXIS && (modelId == QLatin1String("Gear")) )
+                    if (node->nodeDescriptor().manufacturerCode() == VENDOR_AXIS && (modelId == QLatin1String("Gear")) && (i->endpoint() == 0x01) )
                     {
                         fpBatterySensor.inClusters.push_back(ci->id());
                     }
