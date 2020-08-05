@@ -2,7 +2,7 @@
 name: User question
 about: A user question regarding a device, issue or other problem. 
 title: ''
-labels:User Question
+labels: User Question
 assignees: ''
 
 ---
