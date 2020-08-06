@@ -200,6 +200,42 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     }
                 }
                 break;
+                case 0x0266: // min temperature limit
+                {
+                    //Can be Temperature for some device
+                    if (sensorNode->modelId() == QLatin1String("GbxAXL2"))
+                    {
+                        qint16 temp = ((qint16)(data & 0xFFFF)) * 10;
+                        ResourceItem *item = sensorNode->item(RStateTemperature);
+
+                        if (item && item->toNumber() != temp)
+                        {
+                            item->setValue(temp);
+                            Event e(RSensors, RStateTemperature, sensorNode->id(), item);
+                            enqueueEvent(e);
+                            
+                        }
+                    }
+                }
+                break;
+                case 0x0267: // max temperature limit
+                {
+                    //can be setpoint for some device
+                    if (sensorNode->modelId() == QLatin1String("GbxAXL2"))
+                    {
+                        qint16 temp = ((qint16)(data & 0xFFFF)) * 10;
+                        ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
+
+                        if (item && item->toNumber() != temp)
+                        {
+                            item->setValue(temp);
+                            Event e(RSensors, RConfigHeatSetpoint, sensorNode->id(), item);
+                            enqueueEvent(e);
+                            
+                        }
+                    }
+                }
+                break;
                 case 0x0404 : // preset
                 {
                     QString preset;
@@ -329,7 +365,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
 bool DeRestPluginPrivate::SendTuyaRequest(TaskItem &taskRef, TaskType taskType , qint16 Dp , QByteArray data )
 {
     
-    DBG_Printf(DBG_INFO, "Tuya debug 77\n");
+    DBG_Printf(DBG_INFO, "Send Tuya Request\n");
 
     TaskItem task;
     copyTaskReq(taskRef, task);
