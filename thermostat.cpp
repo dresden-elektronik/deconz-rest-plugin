@@ -102,6 +102,12 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 {
     Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
 
+    if (!sensor)
+    {
+        DBG_Printf(DBG_INFO, "No thermostat sensor found for 0x%016llX, endpoint: 0x%08X\n", ind.srcAddress().ext(), ind.srcEndpoint());
+        return;
+    }
+
     QDataStream stream(zclFrame.payload());
     stream.setByteOrder(QDataStream::LittleEndian);
 
@@ -149,11 +155,6 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
             deCONZ::ZclAttribute attr(attrId, attrTypeId, QLatin1String(""), deCONZ::ZclRead, false);
 
             if (!attr.readFromStream(stream))
-            {
-                continue;
-            }
-
-            if (!sensor)
             {
                 continue;
             }
@@ -572,7 +573,6 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
             item->setValue(sched);
         }
     }
-
 }
 
 
