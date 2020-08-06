@@ -1960,23 +1960,23 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
             gwTimezone = timezone;
             queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
             changed = true;
-
 #ifdef ARCH_ARM
-            int rc = setenv("TZ", qPrintable(timezone), 1);
+            const QString tzFilespec = QString(":") + timezone;
+            int rc = setenv("TZ", qPrintable(tzFilespec), 1);
             tzset();
 
             //also set zoneinfo on RPI
-            char param1[100];
-            strcpy(param1, "/usr/share/zoneinfo/");
-            strcpy(param1, qPrintable(timezone));
+            //char param1[100];
+            //strcpy(param1, "/usr/share/zoneinfo/");
+            //strcpy(param1, qPrintable(timezone));
 
-            if (symlink(param1, "/etc/localtime") == -1)
-            {
-                DBG_Printf(DBG_INFO, "Create symlink to timezone failed with errno: %s\n", strerror(errno));
+            //if (symlink(param1, "/etc/localtime") == -1)
+            //{
+                //DBG_Printf(DBG_INFO, "Create symlink to timezone failed with errno: %s\n", strerror(errno));
                 //rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/config/timezone"), QString("Link timezone failed with errno: %1\n").arg(strerror(errno))));
                 //rsp.httpStatus = HttpStatusServiceUnavailable;
                 //return REQ_READY_SEND;
-            }
+            //}
 
             if (rc != 0)
             {
