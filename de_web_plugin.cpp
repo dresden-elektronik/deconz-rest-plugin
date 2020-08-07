@@ -265,6 +265,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SUNRICHER, "RGBgenie ZB-5", emberMacPrefix }, // RGBgenie remote control
     { VENDOR_SUNRICHER, "ROB_200", silabs3MacPrefix }, // Sunricher SR-ZG9040A built-in dimmer, whitelabeled by Robbshop
     { VENDOR_SUNRICHER, "Micro Smart Dimmer", silabs3MacPrefix }, // Sunricher SR-ZG9040A built-in dimmer
+    { VENDOR_SUNRICHER, "ZG2835", silabs6MacPrefix }, // SR-ZG2835 Zigbee Rotary Switch
     { VENDOR_JENNIC, "SPZB0001", jennicMacPrefix }, // Eurotronic thermostat
     { VENDOR_NONE, "RES001", tiMacPrefix }, // Hubitat environment sensor, see #1308
     { VENDOR_SINOPE, "WL4200S", sinopeMacPrefix}, // Sinope water sensor
@@ -6443,7 +6444,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("SV01-")) || // Keen Home vent
                                         i->modelId().startsWith(QLatin1String("45127")) || // Namron 1/2/4-ch remote controller
                                         i->modelId().startsWith(QLatin1String("RGBgenie ZB-5")) || // RGBgenie remote control
-                                        i->modelId().startsWith(QLatin1String("VOC_Sensor"))) // LifeControl Enviroment sensor
+                                        i->modelId().startsWith(QLatin1String("VOC_Sensor")) || // LifeControl Enviroment sensor
+                                        i->modelId().startsWith(QLatin1String("ZG2835"))) // SR-ZG2835 Zigbee Rotary Switch
                                     {
                                         bat = ia->numericValue().u8;
                                     }
@@ -6481,7 +6483,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->modelId().startsWith(QLatin1String("SV01-")) || // Keen Home vent
                                         i->modelId().startsWith(QLatin1String("45127")) || // Namron 1/2/4-ch remote controller
                                         i->modelId().startsWith(QLatin1String("RGBgenie ZB-5")) || // RGBgenie remote control
-                                        i->modelId().startsWith(QLatin1String("VOC_Sensor"))) // LifeControl Enviroment sensor
+                                        i->modelId().startsWith(QLatin1String("VOC_Sensor")) || // LifeControl Enviroment sensor
+                                        i->modelId().startsWith(QLatin1String("ZG2835"))) // SR-ZG2835 Zigbee Rotary Switch
                                     {
                                         bat = ia->numericValue().u8;
                                     }

@@ -1457,6 +1457,7 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         {
             if      (modelid.startsWith(QLatin1String("ZGRC-KEY"))) { m_buttonMap = sunricherCCTMap; }
             else if (modelid.startsWith(QLatin1String("ZG2833K"))) { m_buttonMap = sunricherMap; }
+            else if (modelid.startsWith(QLatin1String("ZG2835"))) { m_buttonMap = sunricherMap; }
         }
         else if (manufacturer == QLatin1String("RGBgenie"))
         {

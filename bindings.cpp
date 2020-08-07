@@ -2261,6 +2261,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Sunricher
         sensor->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) ||
         sensor->modelId().startsWith(QLatin1String("45127")) ||
+        sensor->modelId().startsWith(QLatin1String("ZG2835")) ||
         // EcoDim
         sensor->modelId().startsWith(QLatin1String("ED-1001")) ||
         // Namron
@@ -2918,7 +2919,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
     // Linkind 1 key Remote Control / ZS23000178
-    else if (sensor->modelId().startsWith(QLatin1String("ZBT-DIMSwitch")))
+    // SR-ZG2835 Zigbee Rotary Switch
+    else if (sensor->modelId().startsWith(QLatin1String("ZBT-DIMSwitch")) ||
+             sensor->modelId().startsWith(QLatin1String("ZG2835")))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);
@@ -3049,7 +3052,8 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
         sensor->modelId().startsWith(QLatin1String("902010/23")) || // bitron remote
         sensor->modelId().startsWith(QLatin1String("Bell")) || // Sage doorbell sensor
         sensor->modelId().startsWith(QLatin1String("ZBT-DIMSwitch")) || // Linkind 1 key Remote Control / ZS23000178
-        sensor->modelId().startsWith(QLatin1String("WB01"))) // Sonoff SNZB-01
+        sensor->modelId().startsWith(QLatin1String("WB01")) || // Sonoff SNZB-01
+        sensor->modelId().startsWith(QLatin1String("ZG2835"))) // SR-ZG2835 Zigbee Rotary Switch
     {
 
     }
