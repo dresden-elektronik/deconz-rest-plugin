@@ -2914,6 +2914,13 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         clusters.push_back(LEVEL_CLUSTER_ID);
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
+    // Linkind 1 key Remote Control / ZS23000178
+    else if (sensor->modelId().startsWith(QLatin1String("ZBT-DIMSwitch")))
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+    }
     else
     {
         return false;
@@ -3037,7 +3044,8 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
         sensor->modelId().startsWith(QLatin1String("TRADFRI wireless dimmer")) ||
         // sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
         sensor->modelId().startsWith(QLatin1String("902010/23")) || // bitron remote
-        sensor->modelId().startsWith(QLatin1String("Bell"))) // Sage doorbell sensor
+        sensor->modelId().startsWith(QLatin1String("Bell")) || // Sage doorbell sensor
+        sensor->modelId().startsWith(QLatin1String("ZBT-DIMSwitch"))) // Linkind 1 key Remote Control / ZS23000178
     {
 
     }
