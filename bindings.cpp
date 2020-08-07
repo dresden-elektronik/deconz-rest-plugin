@@ -2265,6 +2265,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Sage
         sensor->modelId() == QLatin1String("Bell") ||
         // Sonoff
+        sensor->modelId() == QLatin1String("WB01") ||
         sensor->modelId() == QLatin1String("MS01") ||
         sensor->modelId() == QLatin1String("TH01") ||
         sensor->modelId() == QLatin1String("DS01") ||
@@ -2714,7 +2715,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
     // IKEA Trådfri on/off switch
-    else if (sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")))
+    // Sonoff SNZB-01
+    else if (sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")) ||
+             sensor->modelId().startsWith(QLatin1String("WB01")))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
@@ -3038,7 +3041,8 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
         // sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
         sensor->modelId().startsWith(QLatin1String("902010/23")) || // bitron remote
         sensor->modelId().startsWith(QLatin1String("Bell")) || // Sage doorbell sensor
-        sensor->modelId().startsWith(QLatin1String("ZBT-DIMSwitch"))) // Linkind 1 key Remote Control / ZS23000178
+        sensor->modelId().startsWith(QLatin1String("ZBT-DIMSwitch")) || // Linkind 1 key Remote Control / ZS23000178
+        sensor->modelId().startsWith(QLatin1String("WB01"))) // Sonoff SNZB-01
     {
 
     }

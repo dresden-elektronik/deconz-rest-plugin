@@ -345,6 +345,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_PLUGWISE_BV, "160-01", emberMacPrefix }, // Plugwise smart plug
     { VENDOR_NIKO_NV, "Connected socket outlet", konkeMacPrefix }, // Niko smart socket 170-33505
     { VENDOR_ATMEL, "Bell", dishMacPrefix }, // Sage doorbell sensor
+    { VENDOR_NONE, "WB01", tiMacPrefix }, // Sonoff SNZB-01
     { VENDOR_NONE, "MS01", tiMacPrefix }, // Sonoff SNZB-03
     { VENDOR_NONE, "TH01", tiMacPrefix }, // Sonoff SNZB-02
     { VENDOR_NONE, "DS01", tiMacPrefix }, // Sonoff SNZB-04
