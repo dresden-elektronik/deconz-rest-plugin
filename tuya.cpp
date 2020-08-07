@@ -143,6 +143,36 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     }
                 }
                 break;
+                case 0x016c: // manual / auto
+                {
+                    QString mode;
+                    if (data == 0) { mode = "manu"; }
+                    if (data == 1) { mode = "auto"; }
+                    
+                    ResourceItem *item = sensorNode->item(RConfigMode);
+
+                    if (item && item->toString() != mode)
+                    {
+                        item->setValue(mode);
+                        enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                    }
+                }
+                break;
+                case 0x0165: // off / on
+                {
+                    QString mode;
+                    if (data == 0) { mode = "off"; }
+                    if (data == 1) { mode = "manu"; }
+                    
+                    ResourceItem *item = sensorNode->item(RConfigMode);
+
+                    if (item && item->toString() != mode)
+                    {
+                        item->setValue(mode);
+                        enqueueEvent(Event(RSensors, RConfigMode, sensorNode->id(), item));
+                    }
+                }
+                break;
                 case 0x0203: // Thermostat temperature
                 {
                     qint16 temp = ((qint16)(data & 0xFFFF)) * 10;
@@ -328,7 +358,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         }
         else
         {
-            DBG_Printf(DBG_INFO, "Tuya : debug 2");
+            DBG_Printf(DBG_INFO, "Tuya : Payload too short");
         }
         
     }

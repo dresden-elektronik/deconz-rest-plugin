@@ -1103,7 +1103,15 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         QByteArray data = QByteArray("\x00\x00",2);
                         data.append((qint8)((heatsetpoint >> 8) & 0xff));
                         data.append((qint8)(heatsetpoint & 0xff));
-                        if ( SendTuyaRequest(task, TaskThermostat , 0x0202 , data ))
+                        
+                        qint16 dp = 0x0202;
+                        
+                        if (sensor->modelId().startsWith(QLatin1String("GbxAXL2")))
+                        {
+                            dp = 0x0267;
+                        }
+                        
+                        if ( SendTuyaRequest(task, TaskThermostat , dp , data ))
                         {
                             updated = true;
                         }
@@ -1149,7 +1157,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         rspItem["success"] = rspItemState;
                     }
                     else if ((sensor->modelId().startsWith(QLatin1String("kud7u2l"))) ||
-                             (sensor->modelId().startsWith(QLatin1String("GbxAXL2"))) ||
                              (sensor->modelId().startsWith(QLatin1String("TS0601"))) ) // Tuya Smart TRV HY369 Thermostatic Radiator Valve
                     {
                         QByteArray data;
@@ -1169,6 +1176,26 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             }
                         }
 
+                    }
+                    else if (sensor->modelId().startsWith(QLatin1String("GbxAXL2")))
+                    {
+                        QByteArray data;
+                        qint16 dp = 0x016c;
+                        QString mode_set = map[pi.key()].toString();
+                        if (mode_set == "auto") { data = QByteArray("\x01",1); }
+                        else if (mode_set == "heat") { dp = 0x0165; data = QByteArray("\x01",1); }
+                        else if (mode_set == "off") { dp = 0x0165; data = QByteArray("\x00",1); }
+                        else
+                        {
+                            rspItemState[QString("error unknow mode for %1").arg(sensor->modelId())] = map[pi.key()];
+                        }
+                        if (data.length() > 0 )
+                        {
+                            if ( SendTuyaRequest(task, TaskThermostat , dp , data ))
+                            {
+                                updated = true;
+                            }
+                        }
                     }
                     else if (sensor->modelId() == QLatin1String("SLR2") ||            //Hive
                              sensor->modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
