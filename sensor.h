@@ -106,7 +106,7 @@ public:
         quint8 zclCommandId;
         quint16 zclParam0;
         int button;
-        const char *name;
+        QString name;
     };
 
     Sensor();
@@ -143,7 +143,7 @@ public:
     const SensorFingerprint &fingerPrint() const;
 
     QString etag;
-    const ButtonMap *buttonMap();
+    const ButtonMap *buttonMap(const QMap<QString, Sensor::ButtonMap*> &buttonMapData);
     uint8_t previousDirection;
     quint16 previousCt;
     QDateTime lastConfigPush;

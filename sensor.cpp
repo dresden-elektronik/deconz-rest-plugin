@@ -10,7 +10,7 @@
 
 #include "sensor.h"
 #include "json.h"
-
+/*
 static const Sensor::ButtonMap deLightingSwitchMap[] = {
 //    mode                          ep    cluster cmd   param button                                       name
     { Sensor::ModeTwoGroups,        0x01, 0x0006, 0x01, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
@@ -868,7 +868,7 @@ static const Sensor::ButtonMap sageMap[] = {
     // end
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
-
+*/
 /*! Returns a fingerprint as JSON string. */
 QString SensorFingerprint::toString() const
 {
@@ -1360,120 +1360,128 @@ const SensorFingerprint &Sensor::fingerPrint() const
     return m_fingerPrint;
 }
 
-const Sensor::ButtonMap *Sensor::buttonMap()
+const Sensor::ButtonMap *Sensor::buttonMap(const QMap<QString, Sensor::ButtonMap*> &buttonMapData)
 {
     if (!m_buttonMap)
     {
+        if (buttonMapData.empty())
+        {
+            DBG_Printf(DBG_INFO, "[INFO] - QMap is empty. Reading button maps...\n");
+        }
+        else
+        {
+            DBG_Printf(DBG_INFO, "[INFO] - QMap is NOT empty. Contains %d elements\n", buttonMapData.size());
+        }
         const QString &modelid = item(RAttrModelId)->toString();
         const QString &manufacturer = item(RAttrManufacturerName)->toString();
         if (manufacturer == QLatin1String("dresden elektronik"))
         {
-            if      (modelid == QLatin1String("Lighting Switch")) { m_buttonMap = deLightingSwitchMap; }
-            else if (modelid == QLatin1String("Scene Switch"))    { m_buttonMap = deSceneSwitchMap; }
+            if      (modelid == QLatin1String("Lighting Switch")) { m_buttonMap = buttonMapData.value("deLightingSwitchMap"); }
+            else if (modelid == QLatin1String("Scene Switch"))    { m_buttonMap = buttonMapData.value("deSceneSwitchMap"); }
         }
         else if (manufacturer == QLatin1String("Insta"))
         {
-            if      (modelid.endsWith(QLatin1String("_1")))       { m_buttonMap = instaRemoteMap; }
-            if      (modelid.contains(QLatin1String("Remote")))   { m_buttonMap = instaRemoteMap; }
+            if      (modelid.endsWith(QLatin1String("_1")))       { m_buttonMap = buttonMapData.value("instaRemoteMap"); }
+            if      (modelid.contains(QLatin1String("Remote")))   { m_buttonMap = buttonMapData.value("instaRemoteMap"); }
         }
         else if (manufacturer == QLatin1String("Busch-Jaeger"))
         {
-            m_buttonMap = bjeSwitchMap;
+            m_buttonMap = buttonMapData.value("bjeSwitchMap");
         }
         else if (manufacturer.startsWith(QLatin1String("IKEA")))
         {
-            if      (modelid.startsWith(QLatin1String("TRADFRI remote control"))) { m_buttonMap = ikeaRemoteMap; }
-            else if (modelid.startsWith(QLatin1String("TRADFRI motion sensor"))) { m_buttonMap = ikeaMotionSensorMap; }
-            else if (modelid.startsWith(QLatin1String("TRADFRI wireless dimmer"))) { m_buttonMap = ikeaDimmerMap; }
-            else if (modelid.startsWith(QLatin1String("TRADFRI on/off switch"))) { m_buttonMap = ikeaOnOffMap; }
-            else if (modelid.startsWith(QLatin1String("TRADFRI open/close remote"))) { m_buttonMap = ikeaOpenCloseMap; }
-            else if (modelid.startsWith(QLatin1String("SYMFONISK"))) { m_buttonMap = ikeaSoundControllerMap; }
+            if      (modelid.startsWith(QLatin1String("TRADFRI remote control"))) { m_buttonMap = buttonMapData.value("ikeaRemoteMap"); }
+            else if (modelid.startsWith(QLatin1String("TRADFRI motion sensor"))) { m_buttonMap = buttonMapData.value("ikeaMotionSensorMap"); }
+            else if (modelid.startsWith(QLatin1String("TRADFRI wireless dimmer"))) { m_buttonMap = buttonMapData.value("ikeaDimmerMap"); }
+            else if (modelid.startsWith(QLatin1String("TRADFRI on/off switch"))) { m_buttonMap = buttonMapData.value("ikeaOnOffMap"); }
+            else if (modelid.startsWith(QLatin1String("TRADFRI open/close remote"))) { m_buttonMap = buttonMapData.value("ikeaOpenCloseMap"); }
+            else if (modelid.startsWith(QLatin1String("SYMFONISK"))) { m_buttonMap = buttonMapData.value("ikeaSoundControllerMap"); }
         }
         else if (manufacturer.startsWith(QLatin1String("OSRAM")))
         {
-            if      (modelid.startsWith(QLatin1String("Lightify Switch Mini")))     { m_buttonMap = osramMiniRemoteMap; }
-            else if (modelid.startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")))    { m_buttonMap = osram4ButRemoteMap; }
-            else if (modelid.startsWith(QLatin1String("Switch 4x-LIGHTIFY")))       { m_buttonMap = osram4ButRemoteMap; }
-            else if (modelid.startsWith(QLatin1String("Switch-LIGHTIFY")))          { m_buttonMap = osram4ButRemoteMap2; }
+            if      (modelid.startsWith(QLatin1String("Lightify Switch Mini")))     { m_buttonMap = buttonMapData.value("osramMiniRemoteMap"); }
+            else if (modelid.startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")))    { m_buttonMap = buttonMapData.value("osram4ButRemoteMap"); }
+            else if (modelid.startsWith(QLatin1String("Switch 4x-LIGHTIFY")))       { m_buttonMap = buttonMapData.value("osram4ButRemoteMap"); }
+            else if (modelid.startsWith(QLatin1String("Switch-LIGHTIFY")))          { m_buttonMap = buttonMapData.value("osram4ButRemoteMap2"); }
         }
         else if (manufacturer == QLatin1String("ubisys"))
         {
-            if      (modelid.startsWith(QLatin1String("D1"))) { m_buttonMap = ubisysD1Map; }
-            else if (modelid.startsWith(QLatin1String("C4"))) { m_buttonMap = ubisysC4Map; }
-            else if (modelid.startsWith(QLatin1String("S1"))) { m_buttonMap = ubisysD1Map; }
-            else if (modelid.startsWith(QLatin1String("S2"))) { m_buttonMap = ubisysS2Map; }
+            if      (modelid.startsWith(QLatin1String("D1"))) { m_buttonMap = buttonMapData.value("ubisysD1Map"); }
+            else if (modelid.startsWith(QLatin1String("C4"))) { m_buttonMap = buttonMapData.value("ubisysC4Map"); }
+            else if (modelid.startsWith(QLatin1String("S1"))) { m_buttonMap = buttonMapData.value("ubisysD1Map"); }
+            else if (modelid.startsWith(QLatin1String("S2"))) { m_buttonMap = buttonMapData.value("ubisysS2Map"); }
         }
         else if (manufacturer == QLatin1String("LUMI"))
         {
-            if      (modelid == QLatin1String("lumi.sensor_switch"))      { m_buttonMap = xiaomiSwitchMap; }
-            else if (modelid == QLatin1String("lumi.sensor_switch.aq2"))  { m_buttonMap = xiaomiSwitchAq2Map; }
-            else if (modelid.startsWith(QLatin1String("lumi.vibration"))) { m_buttonMap = xiaomiVibrationMap; }
-            else if (modelid.endsWith(QLatin1String("86opcn01")))  { m_buttonMap = aqaraOpple6Map; }
+            if      (modelid == QLatin1String("lumi.sensor_switch"))      { m_buttonMap = buttonMapData.value("xiaomiSwitchMap"); }
+            else if (modelid == QLatin1String("lumi.sensor_switch.aq2"))  { m_buttonMap = buttonMapData.value("xiaomiSwitchAq2Map"); }
+            else if (modelid.startsWith(QLatin1String("lumi.vibration"))) { m_buttonMap = buttonMapData.value("xiaomiVibrationMap"); }
+            else if (modelid.endsWith(QLatin1String("86opcn01")))  { m_buttonMap = buttonMapData.value("aqaraOpple6Map"); }
         }
         else if (manufacturer == QLatin1String("Lutron"))
         {
-            if      (modelid.startsWith(QLatin1String("LZL4BWHL")))       { m_buttonMap = lutronLZL4BWHLSwitchMap; }
-            else if (modelid.startsWith(QLatin1String("Z3-1BRL")))        { m_buttonMap = lutronAuroraMap; }
+            if      (modelid.startsWith(QLatin1String("LZL4BWHL")))       { m_buttonMap = buttonMapData.value("lutronLZL4BWHLSwitchMap"); }
+            else if (modelid.startsWith(QLatin1String("Z3-1BRL")))        { m_buttonMap = buttonMapData.value("lutronAuroraMap"); }
 
         }
         else if (manufacturer == QLatin1String("Trust"))
         {
-            if      (modelid == QLatin1String("ZYCT-202"))      { m_buttonMap = trustZYCT202SwitchMap; }
+            if      (modelid == QLatin1String("ZYCT-202"))      { m_buttonMap = buttonMapData.value("trustZYCT202SwitchMap"); }
         }
         else if (manufacturer == QLatin1String("innr"))
         {
-            if      (modelid.startsWith(QLatin1String("RC 110"))) { m_buttonMap = innrRC110Map; }
+            if      (modelid.startsWith(QLatin1String("RC 110"))) { m_buttonMap = buttonMapData.value("innrRC110Map"); }
         }
         else if (manufacturer == QLatin1String("icasa"))
         {
-            if      (modelid.startsWith(QLatin1String("ICZB-KPD1"))) { m_buttonMap = icasaKeypadMap; }
-            else if (modelid.startsWith(QLatin1String("ICZB-RM"))) { m_buttonMap = icasaRemoteMap; }
+            if      (modelid.startsWith(QLatin1String("ICZB-KPD1"))) { m_buttonMap = buttonMapData.value("icasaKeypadMap"); }
+            else if (modelid.startsWith(QLatin1String("ICZB-RM"))) { m_buttonMap = buttonMapData.value("icasaRemoteMap"); }
         }
         else if (manufacturer == QLatin1String("EcoDim"))
         {
-            if      (modelid.startsWith(QLatin1String("ED-1001"))) { m_buttonMap = icasaKeypadMap; }
+            if      (modelid.startsWith(QLatin1String("ED-1001"))) { m_buttonMap = buttonMapData.value("sunricherMap"); }
         }
         else if (manufacturer == QLatin1String("Samjin"))
         {
-            if (modelid == QLatin1String("button")) { m_buttonMap = samjinButtonMap; }
+            if (modelid == QLatin1String("button")) { m_buttonMap = buttonMapData.value("samjinButtonMap"); }
         }
         else if (manufacturer == QLatin1String("Legrand"))
         {
-            if      (modelid == QLatin1String("Remote switch")) { m_buttonMap = legrandSwitchRemote; }
-            else if (modelid == QLatin1String("Double gangs remote switch")) { m_buttonMap = legrandDoubleSwitchRemote; }
-            else if (modelid == QLatin1String("Shutters central remote switch")) { m_buttonMap = legrandShutterSwitchRemote; }
-            else if (modelid == QLatin1String("Remote toggle switch")) { m_buttonMap = legrandToggleRemoteSwitch; }
-            else if (modelid == QLatin1String("Remote motion sensor")) { m_buttonMap = legrandMotionSensor; }
+            if      (modelid == QLatin1String("Remote switch")) { m_buttonMap = buttonMapData.value("legrandSwitchRemote"); }
+            else if (modelid == QLatin1String("Double gangs remote switch")) { m_buttonMap = buttonMapData.value("legrandDoubleSwitchRemote"); }
+            else if (modelid == QLatin1String("Shutters central remote switch")) { m_buttonMap = buttonMapData.value("legrandShutterSwitchRemote"); }
+            else if (modelid == QLatin1String("Remote toggle switch")) { m_buttonMap = buttonMapData.value("legrandToggleRemoteSwitch"); }
+            else if (modelid == QLatin1String("Remote motion sensor")) { m_buttonMap = buttonMapData.value("legrandMotionSensor"); }
         }
         else if (manufacturer == QLatin1String("Sunricher"))
         {
-            if      (modelid.startsWith(QLatin1String("ZGRC-KEY"))) { m_buttonMap = sunricherCCTMap; }
-            else if (modelid.startsWith(QLatin1String("ZG2833K"))) { m_buttonMap = sunricherMap; }
+            if      (modelid.startsWith(QLatin1String("ZGRC-KEY"))) { m_buttonMap = buttonMapData.value("sunricherCCTMap"); }
+            else if (modelid.startsWith(QLatin1String("ZG2833K"))) { m_buttonMap = buttonMapData.value("sunricherMap"); }
         }
         else if (manufacturer == QLatin1String("RGBgenie"))
         {
-            if (modelid.startsWith(QLatin1String("RGBgenie ZB-5121"))) { m_buttonMap = rgbgenie5121Map; }
+            if (modelid.startsWith(QLatin1String("RGBgenie ZB-5121"))) { m_buttonMap = buttonMapData.value("rgbgenie5121Map"); }
         }
         else if (manufacturer == QLatin1String("Bitron Home"))
         {
-            if (modelid.startsWith(QLatin1String("902010/23"))) { m_buttonMap = bitronRemoteMap; }
+            if (modelid.startsWith(QLatin1String("902010/23"))) { m_buttonMap = buttonMapData.value("bitronRemoteMap"); }
         }
         else if (manufacturer == QLatin1String("Namron AS"))
         {
-            if (modelid.startsWith(QLatin1String("451270"))) { m_buttonMap = sunricherMap; }
+            if (modelid.startsWith(QLatin1String("451270"))) { m_buttonMap = buttonMapData.value("sunricherMap"); }
         }
         else if (manufacturer == QLatin1String("Heiman"))
         {
-            if (modelid == QLatin1String("RC_V14")) { m_buttonMap = rcv14Map; }
-            else if (modelid == QLatin1String("RC-EM")) { m_buttonMap = rcv14Map; }
+            if (modelid == QLatin1String("RC_V14")) { m_buttonMap = buttonMapData.value("rcv14Map"); }
+            else if (modelid == QLatin1String("RC-EM")) { m_buttonMap = buttonMapData.value("rcv14Map"); }
         }
         else if (manufacturer == QLatin1String("MLI"))
         {
-            if (modelid.startsWith(QLatin1String("ZBT-Remote-ALL-RGBW"))) { m_buttonMap = tintMap; }
+            if (modelid.startsWith(QLatin1String("ZBT-Remote-ALL-RGBW"))) { m_buttonMap = buttonMapData.value("tintMap"); }
         }
         else if (manufacturer == QLatin1String("Echostar"))
         {
-            if (modelid == QLatin1String("Bell")) { m_buttonMap = sageMap; }
+            if (modelid == QLatin1String("Bell")) { m_buttonMap = buttonMapData.value("sageMap"); }
         }
     }
 

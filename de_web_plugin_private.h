@@ -1426,6 +1426,7 @@ public:
     void handleZclAttributeReportIndicationXiaomiSpecial(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void queuePollNode(RestNodeBase *node);
     void handleApplianceAlertClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void readButtonMapJson();
 
     // Modify node attributes
     void setAttributeOnOff(LightNode *lightNode);
@@ -1496,6 +1497,9 @@ public:
     qint64 dbZclValueMaxAge;
     QTimer *databaseTimer;
     QString emptyString;
+    
+    // JSON support
+    QMap<QString, Sensor::ButtonMap*> buttonMapData;
 
     // gateways
     std::vector<Gateway*> gateways;

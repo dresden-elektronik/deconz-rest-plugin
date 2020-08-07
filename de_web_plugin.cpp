@@ -639,6 +639,8 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     {
         addLightNode(node);
     }
+    
+    readButtonMapJson();    // Read json button maps
 }
 
 /*! Deconstructor for pimpl.
@@ -650,6 +652,208 @@ DeRestPluginPrivate::~DeRestPluginPrivate()
         inetDiscoveryManager->deleteLater();
         inetDiscoveryManager = 0;
     }
+}
+
+/*! Reads all available button maps from JSON file.
+ */
+void DeRestPluginPrivate::readButtonMapJson()
+{
+    QString buttonMapFile = deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation) + "/button_maps.json";
+
+    QFile file;
+    file.setFileName(buttonMapFile);
+    
+    if (file.exists())
+    {
+        DBG_Printf(DBG_INFO, "[INFO] - Found file containing button maps.\n");
+        
+        QJsonParseError error;
+        
+        file.open(QIODevice::ReadOnly | QIODevice::Text);
+        QJsonDocument buttonMaps = QJsonDocument::fromJson(file.readAll(), &error);
+        file.close();
+            
+        if (buttonMaps.isNull() || buttonMaps.isEmpty())
+        {
+            DBG_Printf(DBG_INFO, "[ERROR] - Error: %s at offset: %d (in characters)\n", qUtf8Printable(error.errorString()), error.offset);
+        }
+        
+        // Load buttons
+        QJsonObject buttonsObj = buttonMaps.object().value(QString("buttons")).toObject();
+        QMap<QString, quint16> buttons;
+        
+        foreach(const QString& key, buttonsObj.keys())
+        {
+            buttons.insert(key, buttonsObj.value(key).toInt());   // Store data in QMap for later use
+        }
+        
+        // Load button actions
+        QJsonObject actionsObj = buttonMaps.object().value(QString("buttonActions")).toObject();
+        QMap<QString, quint8> actions;
+        
+        foreach(const QString& key, actionsObj.keys())
+        {
+            actions.insert(key, actionsObj.value(key).toInt());   // Store data in QMap for later use
+        }
+        
+        QJsonObject allMapsObj = buttonMaps.object().value(QString("maps")).toObject();     // Get all button maps
+        
+        for (auto i = allMapsObj.begin(); i != allMapsObj.end(); ++i)       // Loop through button maps
+        {
+            QString buttonMapName = i.key();    // Individual button map name
+            //DBG_Printf(DBG_INFO, "[INFO] - Button map name: %s\n", qUtf8Printable(buttonMapName));
+            quint8 mapItem = 0;
+            
+            if (i.value().isArray())        // Check if button map is an array of arrays
+            {
+                QJsonArray buttonMapArr = i.value().toArray();
+                //DBG_Printf(DBG_INFO, "[INFO] - Button map size: %d\n", i.value().toArray().size());
+                Sensor::ButtonMap* btnMap = new Sensor::ButtonMap[i.value().toArray().size()];      // Create button map array of required size
+                
+                for (auto i = buttonMapArr.begin(); i != buttonMapArr.end(); ++i)       // Loop through button map items
+                {
+                    QJsonValue asd = *i;
+                    if (asd.isArray())
+                    {
+                        QJsonArray buttonMapItemArr = asd.toArray();
+                        
+                        if (buttonMapItemArr.size() != 8)
+                        {
+                            DBG_Printf(DBG_INFO, "[ERROR] - Button map item has an incorrect size. Expected 8, got %d\n", buttonMapItemArr.size());
+                            continue;
+                        }
+                        else
+                        {
+                            bool ok;
+                            quint16 btn = 0;
+                            
+                            DBG_Printf(DBG_INFO, "[INFO] - Button map item #1 type: %d\n", buttonMapItemArr.at(0).type());
+                            
+                            if (buttonMapItemArr.at(0).toInt() != 0)    // Check if conversion succeeds and disregard Sensor::ModeNone
+                            {
+                                DBG_Printf(DBG_INFO, "[INFO] - Button map item #1: %d\n", buttonMapItemArr.at(0).toInt());
+                                if (buttonMapItemArr.at(0).toInt() == 1) { btnMap[mapItem].mode = Sensor::ModeScenes; }
+                                else if (buttonMapItemArr.at(0).toInt() == 2) { btnMap[mapItem].mode = Sensor::ModeTwoGroups; }
+                                else if (buttonMapItemArr.at(0).toInt() == 3) { btnMap[mapItem].mode = Sensor::ModeColorTemperature; }
+                                else if (buttonMapItemArr.at(0).toInt() == 4) { btnMap[mapItem].mode = Sensor::ModeDimmer; }
+                            }
+                            else
+                            {
+                                DBG_Printf(DBG_INFO, "[INFO] - Button map item #1 does not seem to be an integer.\n");
+                            }
+                            
+                            if (buttonMapItemArr.at(1).isString() && buttonMapItemArr.at(1).toString().startsWith(QLatin1String("0x")) && 
+                                buttonMapItemArr.at(1).toString().length() == 4)
+                            {
+                                QString ep = buttonMapItemArr.at(1).toString();
+                                //DBG_Printf(DBG_INFO, "[INFO] - Button map item #2: %d\n", ep.toInt(&ok, 16));
+                                btnMap[mapItem].endpoint = ep.toInt(&ok, 16);
+                            }
+                            else
+                            {
+                                DBG_Printf(DBG_INFO, "[INFO] - Button map item #2 has an incorrect format.\n");
+                            }
+                            
+                            if (buttonMapItemArr.at(2).isString() && buttonMapItemArr.at(2).toString().startsWith(QLatin1String("0x")) && 
+                                buttonMapItemArr.at(2).toString().length() == 6)
+                            {
+                                QString cid = buttonMapItemArr.at(2).toString();
+                                //DBG_Printf(DBG_INFO, "[INFO] - Button map item #3: %d\n", cid.toInt(&ok, 16));
+                                btnMap[mapItem].clusterId = cid.toInt(&ok, 16);
+                            }
+                            else
+                            {
+                                DBG_Printf(DBG_INFO, "[INFO] - Button map item #3 has an incorrect format.\n");
+                            }
+                            
+                            if (buttonMapItemArr.at(3).isString() && buttonMapItemArr.at(3).toString().startsWith(QLatin1String("0x")) && 
+                                buttonMapItemArr.at(3).toString().length() == 4)
+                            {
+                                QString cmd = buttonMapItemArr.at(3).toString();
+                                //DBG_Printf(DBG_INFO, "[INFO] - Button map item #4: %d\n", cmd.toInt(&ok, 16));
+                                btnMap[mapItem].zclCommandId = cmd.toInt(&ok, 16);
+                            }
+                            else
+                            {
+                                DBG_Printf(DBG_INFO, "[INFO] - Button map item #4 has an incorrect format.\n");
+                            }
+                            
+                            if (buttonMapItemArr.at(4).isString() && buttonMapItemArr.at(4).toString().length() <= 3)
+                            {
+                                QString para = buttonMapItemArr.at(4).toString();
+                                //DBG_Printf(DBG_INFO, "[INFO] - Button map item #5: %d\n", para.toInt(&ok, 16));
+                                btnMap[mapItem].zclParam0 = para.toInt(&ok, 16);
+                            }
+                            else if (buttonMapItemArr.at(4).isString() && buttonMapItemArr.at(4).toString().startsWith(QLatin1String("0x")) && 
+                                     (buttonMapItemArr.at(4).toString().length() == 4 || buttonMapItemArr.at(4).toString().length() == 6))
+                            {
+                                QString para = buttonMapItemArr.at(4).toString();
+                                //DBG_Printf(DBG_INFO, "[INFO] - Button map item #5: %d\n", para.toInt(&ok, 16));
+                                btnMap[mapItem].zclParam0 = para.toInt(&ok, 16);
+                            }
+                            else
+                            {
+                                DBG_Printf(DBG_INFO, "[INFO] - Button map item #5 has an incorrect format.\n");
+                            }
+                            
+                            if (buttonMapItemArr.at(5).isString() && buttons.value(buttonMapItemArr.at(5).toString(), 255) != 255)
+                            {
+                                //DBG_Printf(DBG_INFO, "[INFO] - Button map item #6: %s\n", qUtf8Printable(buttonMapItemArr.at(5).toString()));
+                                btn = buttons.value(buttonMapItemArr.at(5).toString(), 0);
+                            }
+                            else
+                            {
+                                DBG_Printf(DBG_INFO, "[INFO] - Button map item #6 is unknown.\n");
+                            }
+                            
+                            if (buttonMapItemArr.at(6).isString() && actions.value(buttonMapItemArr.at(6).toString(), 255) != 255)
+                            {
+                                //DBG_Printf(DBG_INFO, "[INFO] - Button map item #7: %s\n", qUtf8Printable(buttonMapItemArr.at(6).toString()));
+                                btn += actions.value(buttonMapItemArr.at(6).toString(), 0);
+                                btnMap[mapItem].button = btn;
+                            }
+                            else
+                            {
+                                DBG_Printf(DBG_INFO, "[INFO] - Button map item #7 is unknown.\n");
+                            }
+                            
+                            if (buttonMapItemArr.at(7).isString() && buttonMapItemArr.at(7).toString().length() <= 40)
+                            {
+                                //DBG_Printf(DBG_INFO, "[INFO] - Button map item #8: %s\n", qUtf8Printable(buttonMapItemArr.at(7).toString()));
+                                btnMap[mapItem].name = buttonMapItemArr.at(7).toString();
+                            }
+                            else
+                            {
+                                DBG_Printf(DBG_INFO, "[INFO] - Button map item #8 is too long.\n");
+                            }
+
+                            //DBG_Printf(DBG_INFO, "[INFO] - btnMap item #6: %d\n", btnMap[mapItem].button);
+                            //DBG_Printf(DBG_INFO, "[INFO] - btnMap item #7: %s\n", qUtf8Printable(btnMap[mapItem].name));
+                            mapItem++;
+                        }
+                        
+                    }
+                    else
+                    {
+                        DBG_Printf(DBG_INFO, "[ERROR] - Button map item in JSON must be an array, but isn't.\n");
+                    }
+                }
+                
+                //DBG_Printf(DBG_INFO, "[INFO] - Assigned button map size: %d\n", sizeof(btnMap));
+                //DBG_Printf(DBG_INFO, "[INFO] - Assigned button map size: %d\n", sizeof(btnMap[0]));
+                buttonMapData.insert(buttonMapName, btnMap);       // Assign array of button maps to QMap
+            }
+            else
+            {
+                DBG_Printf(DBG_INFO, "[ERROR] - Button map in JSON must be an array, but isn't.\n");
+            }    
+        }
+    }
+    else
+    {
+        DBG_Printf(DBG_INFO, "[ERROR] - File containing button maps was NOT found.\n");
+    }
+
 }
 
 /*! APSDE-DATA.indication callback.
@@ -3235,7 +3439,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
     bool checkReporting = false;
     bool checkClientCluster = false;
-    const Sensor::ButtonMap *buttonMap = sensor->buttonMap();
+    const Sensor::ButtonMap *buttonMap = sensor->buttonMap(buttonMapData);
     if (!buttonMap)
     {
         quint8 pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(0);
@@ -3977,7 +4181,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
             if (ok && buttonMap->button != 0)
             {
-                DBG_Printf(DBG_INFO, "button %u %s\n", buttonMap->button, buttonMap->name);
+                DBG_Printf(DBG_INFO, "button %u %s\n", buttonMap->button, qUtf8Printable(buttonMap->name));
                 ResourceItem *item = sensor->item(RStateButtonEvent);
                 if (item)
                 {
@@ -3988,7 +4192,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
                         if (dt > 0 && dt < 500)
                         {
-                            DBG_Printf(DBG_INFO, "button %u %s, discard too fast event (dt = %d)\n", buttonMap->button, buttonMap->name, dt);
+                            DBG_Printf(DBG_INFO, "button %u %s, discard too fast event (dt = %d)\n", buttonMap->button, qUtf8Printable(buttonMap->name), dt);
                             break;
                         }
                     }
@@ -6965,7 +7169,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 item = i->item(RStateButtonEvent);
 
-                                if (item && !i->buttonMap() &&
+                                if (item && !i->buttonMap(buttonMapData) &&
                                     event.event() == deCONZ::NodeEvent::UpdatedClusterDataZclReport)
                                 {
                                     quint32 button = 0;
