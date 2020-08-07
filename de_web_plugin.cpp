@@ -26,6 +26,11 @@
 #include <QDir>
 #include <QProcess>
 #include <QSettings>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonValue>
+#include <QJsonParseError>
 #include <queue>
 #include <cmath>
 #ifdef ARCH_ARM
@@ -727,12 +732,20 @@ void DeRestPluginPrivate::readButtonMapJson()
                             bool ok;
                             quint16 btn = 0;
                             
-                            DBG_Printf(DBG_INFO, "[INFO] - Button map item #1 type: %d\n", buttonMapItemArr.at(0).type());
+                            // Initialize with defaults
+                            btnMap[mapItem].mode = 0;
+                            btnMap[mapItem].endpoint = 0;
+                            btnMap[mapItem].clusterId = 0;
+                            btnMap[mapItem].zclCommandId = 0;
+                            btnMap[mapItem].zclParam0 = 0;
+                            btnMap[mapItem].button = 0;
+                            btnMap[mapItem].name = "";
                             
-                            if (buttonMapItemArr.at(0).toInt() != 0)    // Check if conversion succeeds and disregard Sensor::ModeNone
+                            if (buttonMapItemArr.at(0).isDouble())
                             {
-                                DBG_Printf(DBG_INFO, "[INFO] - Button map item #1: %d\n", buttonMapItemArr.at(0).toInt());
-                                if (buttonMapItemArr.at(0).toInt() == 1) { btnMap[mapItem].mode = Sensor::ModeScenes; }
+                                //DBG_Printf(DBG_INFO, "[INFO] - Button map item #1: %d\n", buttonMapItemArr.at(0).toInt());
+                                if (buttonMapItemArr.at(0).toInt() == 0) { btnMap[mapItem].mode = Sensor::ModeNone; }
+                                else if (buttonMapItemArr.at(0).toInt() == 1) { btnMap[mapItem].mode = Sensor::ModeScenes; }
                                 else if (buttonMapItemArr.at(0).toInt() == 2) { btnMap[mapItem].mode = Sensor::ModeTwoGroups; }
                                 else if (buttonMapItemArr.at(0).toInt() == 3) { btnMap[mapItem].mode = Sensor::ModeColorTemperature; }
                                 else if (buttonMapItemArr.at(0).toInt() == 4) { btnMap[mapItem].mode = Sensor::ModeDimmer; }
@@ -796,7 +809,7 @@ void DeRestPluginPrivate::readButtonMapJson()
                                 DBG_Printf(DBG_INFO, "[INFO] - Button map item #5 has an incorrect format.\n");
                             }
                             
-                            if (buttonMapItemArr.at(5).isString() && buttons.value(buttonMapItemArr.at(5).toString(), 255) != 255)
+                            if (buttonMapItemArr.at(5).isString() && buttonMapItemArr.at(5).isString().length() <= 11)
                             {
                                 //DBG_Printf(DBG_INFO, "[INFO] - Button map item #6: %s\n", qUtf8Printable(buttonMapItemArr.at(5).toString()));
                                 btn = buttons.value(buttonMapItemArr.at(5).toString(), 0);
@@ -806,7 +819,7 @@ void DeRestPluginPrivate::readButtonMapJson()
                                 DBG_Printf(DBG_INFO, "[INFO] - Button map item #6 is unknown.\n");
                             }
                             
-                            if (buttonMapItemArr.at(6).isString() && actions.value(buttonMapItemArr.at(6).toString(), 255) != 255)
+                            if (buttonMapItemArr.at(6).isString() && buttonMapItemArr.at(6).isString().length() <= 32)
                             {
                                 //DBG_Printf(DBG_INFO, "[INFO] - Button map item #7: %s\n", qUtf8Printable(buttonMapItemArr.at(6).toString()));
                                 btn += actions.value(buttonMapItemArr.at(6).toString(), 0);
