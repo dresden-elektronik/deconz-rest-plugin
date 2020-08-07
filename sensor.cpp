@@ -1475,6 +1475,10 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         {
             if (modelid == QLatin1String("Bell")) { m_buttonMap = sageMap; }
         }
+        else if (manufacturer == QLatin1String("lk"))
+        {
+            if (modelid == QLatin1String("ZBT-DIMSwitch")) { m_buttonMap = ikeaOnOffMap; }
+        }
     }
 
     return m_buttonMap;
