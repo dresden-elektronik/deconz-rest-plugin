@@ -3222,7 +3222,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 
                 if (sensor.modelId() == QLatin1String("SLR2") ||           // Hive 
                     sensor.modelId().startsWith(QLatin1String("TH112")) || // Sinope
-                    sensor.modelId() == QLatin1String("Zen-01"))           // Zen
+                    sensor.modelId() == QLatin1String("GbxAXL2") ||        // Tuya
+                    sensor.modelId() == QLatin1String("Zen-01") )          // Zen
                 {
                     sensor.addItem(DataTypeString, RConfigMode);
                 }
