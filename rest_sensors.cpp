@@ -1184,17 +1184,17 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         
                         if (mode_set == "auto")
                         {
-                            ok = SendTuyaRequest(task, TaskThermostat , 0x0165 , QByteArray("\x01",1) ) // turn valve on
-                            ok = ok && (SendTuyaRequest(task, TaskThermostat , 0x016c , QByteArray("\x01",1) )) // Set mode to auto
+                            ok = SendTuyaRequest(task, TaskThermostat , 0x0165 , QByteArray("\x01",1) ); // turn valve on
+                            ok = ok && (SendTuyaRequest(task, TaskThermostat , 0x016c , QByteArray("\x01",1) )); // Set mode to auto
                         }
                         else if (mode_set == "heat")
                         {
-                            ok = SendTuyaRequest(task, TaskThermostat , 0x0165 , QByteArray("\x01",1) ) // turn valve on
-                            ok = ok && (SendTuyaRequest(task, TaskThermostat , 0x016c , QByteArray("\x01",0) )) // Set mode to manu
+                            ok = SendTuyaRequest(task, TaskThermostat , 0x0165 , QByteArray("\x01",1) ); // turn valve on
+                            ok = ok && (SendTuyaRequest(task, TaskThermostat , 0x016c , QByteArray("\x01",0) )); // Set mode to manu
                         }
                         else if (mode_set == "off")
                         {
-                            ok = SendTuyaRequest(task, TaskThermostat , 0x0165 , QByteArray("\x01",0) ) // turn valve off
+                            ok = SendTuyaRequest(task, TaskThermostat , 0x0165 , QByteArray("\x01",0) ); // turn valve off
                         }
                         else
                         {
