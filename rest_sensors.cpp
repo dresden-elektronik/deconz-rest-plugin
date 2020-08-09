@@ -1179,22 +1179,31 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else if (sensor->modelId().startsWith(QLatin1String("GbxAXL2")))
                     {
-                        QByteArray data;
-                        qint16 dp = 0x016c;
                         QString mode_set = map[pi.key()].toString();
-                        if (mode_set == "auto") { data = QByteArray("\x01",1); }
-                        else if (mode_set == "heat") { dp = 0x0165; data = QByteArray("\x01",1); }
-                        else if (mode_set == "off") { dp = 0x0165; data = QByteArray("\x00",1); }
+                        bool ok = false;
+                        
+                        if (mode_set == "auto")
+                        {
+                            ok = SendTuyaRequest(task, TaskThermostat , 0x0165 , QByteArray("\x01",1) ) // turn valve on
+                            ok = ok && (SendTuyaRequest(task, TaskThermostat , 0x016c , QByteArray("\x01",1) )) // Set mode to auto
+                        }
+                        else if (mode_set == "heat")
+                        {
+                            ok = SendTuyaRequest(task, TaskThermostat , 0x0165 , QByteArray("\x01",1) ) // turn valve on
+                            ok = ok && (SendTuyaRequest(task, TaskThermostat , 0x016c , QByteArray("\x01",0) )) // Set mode to manu
+                        }
+                        else if (mode_set == "off")
+                        {
+                            ok = SendTuyaRequest(task, TaskThermostat , 0x0165 , QByteArray("\x01",0) ) // turn valve off
+                        }
                         else
                         {
                             rspItemState[QString("error unknow mode for %1").arg(sensor->modelId())] = map[pi.key()];
                         }
-                        if (data.length() > 0 )
+                        
+                        if ( ok )
                         {
-                            if ( SendTuyaRequest(task, TaskThermostat , dp , data ))
-                            {
-                                updated = true;
-                            }
+                            updated = true;
                         }
                     }
                     else if (sensor->modelId() == QLatin1String("SLR2") ||            //Hive
