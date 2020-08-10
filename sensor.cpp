@@ -1331,6 +1331,16 @@ void Sensor::jsonToConfig(const QString &json)
         return;
     }
     QVariantMap map = var.toMap();
+
+    if (map.contains("lastchange_time"))
+    {
+        QString lastchange_time = map["lastchange_time"].toString();
+        QString format = QLatin1String("yyyy-MM-ddTHH:mm:ssZ");
+        QDateTime lct = QDateTime::fromString(lastchange_time, format);
+        lct.setTimeSpec(Qt::UTC);
+        map["lastchange_time"] = lct;
+    }
+
     QDateTime dt = QDateTime::currentDateTime().addSecs(-120);
 
     for (int i = 0; i < itemCount(); i++)
