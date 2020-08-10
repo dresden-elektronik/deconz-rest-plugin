@@ -117,6 +117,9 @@ const char *RConfigGroup = "config/group";
 const char *RConfigHeatSetpoint = "config/heatsetpoint";
 const char *RConfigHostFlags = "config/hostflags";
 const char *RConfigId = "config/id";
+const char *RConfigLastChangeAmount = "config/lastchange_amount";
+const char *RConfigLastChangeSource = "config/lastchange_source";
+const char *RConfigLastChangeTime = "config/lastchange_time";
 const char *RConfigLat = "config/lat";
 const char *RConfigLedIndication = "config/ledindication";
 const char *RConfigLocalTime = "config/localtime";
@@ -131,8 +134,8 @@ const char *RConfigPowerup = "config/powerup";
 const char *RConfigPowerOnCt = "config/poweronct";
 const char *RConfigPowerOnLevel = "config/poweronlevel";
 const char *RConfigReachable = "config/reachable";
-const char *RConfigScheduler = "config/scheduler";
-const char *RConfigSchedulerOn = "config/scheduleron";
+const char *RConfigSchedule = "config/schedule";
+const char *RConfigScheduleOn = "config/schedule_on";
 const char *RConfigSensitivity = "config/sensitivity";
 const char *RConfigSensitivityMax = "config/sensitivitymax";
 const char *RConfigSunriseOffset = "config/sunriseoffset";
@@ -158,6 +161,10 @@ const char *RConfigUbisysJ1TotalSteps2 = "config/ubisys_j1_totalsteps2";
 const char *RConfigUbisysJ1AdditionalSteps = "config/ubisys_j1_additionalsteps";
 const char *RConfigUbisysJ1InactivePowerThreshold = "config/ubisys_j1_inactivepowerthreshold";
 const char *RConfigUbisysJ1StartupSteps = "config/ubisys_j1_startupsteps";
+
+const QStringList RConfigLastChangeSourceValues({
+    "manual", "schedule", "zigbee"
+});
 
 static std::vector<const char*> rPrefixes;
 static std::vector<ResourceItemDescriptor> rItemDescriptors;
@@ -256,6 +263,9 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RConfigHeatSetpoint, 500, 3000));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, RConfigHostFlags));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, RConfigId));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RConfigLastChangeAmount));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigLastChangeSource));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RConfigLastChangeTime));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigLat));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigLedIndication));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RConfigLocalTime));
@@ -270,8 +280,8 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigPowerOnLevel));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigPowerOnCt));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigReachable));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigScheduler));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigSchedulerOn));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigSchedule));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigScheduleOn));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigSensitivity));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigSensitivityMax));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt8, RConfigSunriseOffset, -120, 120));
@@ -402,7 +412,7 @@ const QString &ResourceItem::toString() const
                 format = QLatin1String("yyyy-MM-ddTHH:mm:ss.zzz"); // TODO add Z
                 dt.setOffsetFromUtc(0);
             }
-            else if (m_rid.suffix == RAttrLastAnnounced || m_rid.suffix == RStateLastSet || m_rid.suffix == RStateUtc)
+            else if (m_rid.suffix == RAttrLastAnnounced || m_rid.suffix == RStateLastSet || m_rid.suffix == RStateUtc || m_rid.suffix == RConfigLastChangeTime)
             {
                 // UTC in sec resolution
                 format = QLatin1String("yyyy-MM-ddTHH:mm:ssZ");
