@@ -207,8 +207,8 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 
     if (!sensor)
     {
-       DBG_Printf(DBG_INFO, "No thermostat sensor found for 0x%016llX, endpoint: 0x%08X\n", ind.srcAddress().ext(), ind.srcEndpoint());
-       return;
+        DBG_Printf(DBG_INFO, "No thermostat sensor found for 0x%016llX, endpoint: 0x%08X\n", ind.srcAddress().ext(), ind.srcEndpoint());
+        return;
     }
 
     QDataStream stream(zclFrame.payload());
