@@ -5569,8 +5569,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             else if (modelId == QLatin1String("Thermostat")) // ecozy
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
-                sensorNode.addItem(DataTypeString, RConfigScheduler); // Scheduler setting
-                sensorNode.addItem(DataTypeBool, RConfigSchedulerOn); // Scheduler state on/off
+                sensorNode.addItem(DataTypeString, RConfigSchedule);
+                sensorNode.addItem(DataTypeBool, RConfigScheduleOn);
+                sensorNode.addItem(DataTypeInt16, RConfigLastChangeAmount);
+                sensorNode.addItem(DataTypeUInt8, RConfigLastChangeSource);
+                sensorNode.addItem(DataTypeTime, RConfigLastChangeTime);
             }
             else if (modelId == QLatin1String("Zen-01"))
             {
@@ -5582,8 +5585,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             }
             else
             {
-                sensorNode.addItem(DataTypeBool, RConfigSchedulerOn); // Scheduler state on/off
-                sensorNode.addItem(DataTypeString, RConfigScheduler); // Scheduler setting
+                sensorNode.addItem(DataTypeBool, RConfigScheduleOn);
+                sensorNode.addItem(DataTypeString, RConfigSchedule);
             }
         }
     }
@@ -8145,7 +8148,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 }
 
                                 ResourceItem *item = i->item(RConfigPending);
-                                if(ia->numericValue().u8 == 1)
+                                if (item && ia->numericValue().u8 == 1)
                                 {
                                     DBG_Printf(DBG_INFO_L2, "[IAS] Sensor already enrolled\n");
                                     item->setValue(item->toNumber() & ~R_PENDING_WRITE_CIE_ADDRESS);
@@ -9285,14 +9288,26 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
     if (sensorNode->mustRead(READ_THERMOSTAT_STATE) && tNow > sensorNode->nextReadTime(READ_THERMOSTAT_STATE))
     {
         std::vector<uint16_t> attributes;
-        // following are reported by Eurotronics Spirit thermostat (SPZB0001)
-        // TODO use poll manager, only poll when needed
-        attributes.push_back(0x0000); // temperature
-        attributes.push_back(0x0012); // heating setpoint
 
-        // following are not supported by Eurotronics Spirit thermostat (SPZB0001)
-        attributes.push_back(0x0025); // scheduler state
-        attributes.push_back(0x0029); // heating operation state
+        if (sensorNode->modelId() == QLatin1String("Thermostat")) // eCozy
+        {
+            // attributes.push_back(0x0000); // Local Temperature - reported
+            // attributes.push_back(0x0008); // PI Heating Demand - reported
+            attributes.push_back(0x0010); // Local Temperature Calibration
+            attributes.push_back(0x0012); // Occupied Heating Setpoint
+            attributes.push_back(0x0023); // Temperature Setpoint Hold
+            attributes.push_back(0x0030); // Setpoint Change Source
+            attributes.push_back(0x0031); // Setpoint Change Amount
+            attributes.push_back(0x0032); // Setpoint Change Timestamp
+        }
+        else
+        {
+            // TODO use poll manager, only poll when needed
+            attributes.push_back(0x0000); // temperature
+            attributes.push_back(0x0012); // heating setpoint
+            attributes.push_back(0x0025); // scheduler state
+            attributes.push_back(0x0029); // heating operation state
+        }
 
         if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, THERMOSTAT_CLUSTER_ID, attributes))
         {
@@ -9301,16 +9316,23 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         }
     }
 
-    //if (sensorNode->mustRead(READ_MODE_CONFIG) && tNow > sensorNode->nextReadTime(READ_MODE_CONFIG))
-    //{
-    //    std::vector<uint16_t> attributes;
-    //    attributes.push_back(0x0000); // heating regulation mode
-    //    if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, LEGRAND_CONTROL_CLUSTER_ID, attributes))
-    //    {
-    //        sensorNode->clearRead(READ_MODE_CONFIG);
-    //        processed++;
-    //    }
-    //}
+    if (sensorNode->mustRead(READ_THERMOSTAT_SCHEDULE) && tNow > sensorNode->nextReadTime(READ_THERMOSTAT_SCHEDULE))
+    {
+        TaskItem task;
+
+        // set destination parameters
+        task.req.dstAddress() = sensorNode->address();
+        task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+        task.req.setDstEndpoint(sensorNode->fingerPrint().endpoint);
+        task.req.setSrcEndpoint(getSrcEndpoint(sensorNode, task.req));
+        task.req.setDstAddressMode(deCONZ::ApsExtAddress);
+
+        if (addTaskThermostatSetAndGetSchedule(task, ""))
+        {
+            sensorNode->clearRead(READ_THERMOSTAT_SCHEDULE);
+            processed++;
+        }
+    }
 
     if (sensorNode->mustRead(READ_BATTERY) && tNow > sensorNode->nextReadTime(READ_BATTERY))
     {
@@ -9338,7 +9360,7 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         }
         else
         {
-            DBG_Printf(DBG_INFO, "  >>> %s sensor %s: READ_TIME FAILED\n", qPrintable(sensorNode->type()), qPrintable(sensorNode->name()));
+            DBG_Printf(DBG_INFO, "  >>> %s sensor %s: READ_TIME failed\n", qPrintable(sensorNode->type()), qPrintable(sensorNode->name()));
         }
     }
 
@@ -16235,11 +16257,16 @@ void DeRestPlugin::idleTimerFired()
 
                         if (*ci == THERMOSTAT_CLUSTER_ID)
                         {
-                            val = sensorNode->getZclValue(*ci, 0x0029); // heating state
+                            if (sensorNode->modelId() == QLatin1String("Thermostat")) // eCozy
+                            {
+                                val = sensorNode->getZclValue(*ci, 0x0023); // Temperature Setpoint Hold
+                            } else {
+                                val = sensorNode->getZclValue(*ci, 0x0029); // heating operation state
+                            }
 
-                            if (sensorNode->modelId().startsWith("SPZB") || // Eurotronic Spirit
-                                sensorNode->modelId().startsWith("SLT2") ||
-                                sensorNode->modelId().startsWith("SLR2") ||
+                            if (sensorNode->modelId().startsWith(QLatin1String("SPZB")) || // Eurotronic Spirit
+                                sensorNode->modelId().startsWith(QLatin1String("SLT2")) ||
+                                sensorNode->modelId().startsWith(QLatin1String("SLR2")) ||
                                 sensorNode->modelId().startsWith(QLatin1String("TH112")) ) // Sinope devices
                             {
                                 // supports reporting, no need to read attributes
@@ -16251,6 +16278,14 @@ void DeRestPlugin::idleTimerFired()
                                 sensorNode->setNextReadTime(READ_THERMOSTAT_STATE, d->queryTime);
                                 d->queryTime = d->queryTime.addSecs(tSpacing);
                                 processSensors = true;
+
+                                if (sensorNode->modelId() == QLatin1String("Thermostat"))
+                                {
+                                    sensorNode->enableRead(READ_THERMOSTAT_SCHEDULE);
+                                    sensorNode->setLastRead(READ_THERMOSTAT_SCHEDULE, d->idleTotalCounter);
+                                    sensorNode->setNextReadTime(READ_THERMOSTAT_SCHEDULE, d->queryTime);
+                                    d->queryTime = d->queryTime.addSecs(tSpacing);
+                                }
                             }
                         }
 
