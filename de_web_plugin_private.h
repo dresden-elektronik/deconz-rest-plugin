@@ -255,7 +255,6 @@
 #define READ_OCCUPANCY_CONFIG  (1 << 10)
 #define WRITE_OCCUPANCY_CONFIG (1 << 11)
 #define READ_GROUP_IDENTIFIERS (1 << 12)
-// #define READ_MODE_CONFIG       (1 << 13) // FIXME: Duplicate value, but not used anyways?!
 #define WRITE_DELAY            (1 << 13)
 #define WRITE_LEDINDICATION    (1 << 14)
 #define WRITE_SENSITIVITY      (1 << 15)
@@ -264,6 +263,7 @@
 #define READ_BATTERY           (1 << 18)
 #define READ_TIME              (1 << 19)
 #define WRITE_TIME             (1 << 20)
+#define READ_THERMOSTAT_SCHEDULE (1 << 21)
 
 #define READ_MODEL_ID_INTERVAL   (60 * 60) // s
 #define READ_SWBUILD_ID_INTERVAL (60 * 60) // s
@@ -1431,6 +1431,10 @@ public:
     void handleZclAttributeReportIndicationXiaomiSpecial(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void queuePollNode(RestNodeBase *node);
     void handleApplianceAlertClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    bool serialiseThermostatTransitions(const QVariantList &transitions, QString *s);
+    bool deserialiseThermostatTransitions(const QString &s, QVariantList *transitions);
+    bool serialiseThermostatSchedule(const QVariantMap &schedule, QString *s);
+    bool deserialiseThermostatSchedule(const QString &s, QVariantMap *schedule);
 
     // Modify node attributes
     void setAttributeOnOff(LightNode *lightNode);
