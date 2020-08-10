@@ -146,8 +146,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 case 0x016c: // manual / auto
                 {
                     QString mode;
-                    if (data == 0) { mode = "manu"; }
-                    if (data == 1) { mode = "heat"; } //long story but the "auto" is renamed "heat" to buse used easyly.
+                    if (data == 0) { mode = "heat"; } // was "manu"
+                    if (data == 1) { mode = "auto"; } // back to "auto"
                     
                     ResourceItem *item = sensorNode->item(RConfigMode);
 
