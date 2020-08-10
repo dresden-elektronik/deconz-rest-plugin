@@ -3238,8 +3238,11 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 else if (sensor.modelId() == QLatin1String("Thermostat")) // ecozy
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
-                    sensor.addItem(DataTypeString, RConfigScheduler); // Scheduler setting
-                    sensor.addItem(DataTypeBool, RConfigSchedulerOn); // Scheduler state on/off
+                    sensor.addItem(DataTypeString, RConfigSchedule);
+                    sensor.addItem(DataTypeBool, RConfigScheduleOn);
+                    sensor.addItem(DataTypeInt16, RConfigLastChangeAmount);
+                    sensor.addItem(DataTypeUInt8, RConfigLastChangeSource);
+                    sensor.addItem(DataTypeTime, RConfigLastChangeTime);
                 }
                 else if (sensor.modelId() == QLatin1String("Zen-01"))
                 {
@@ -3251,8 +3254,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 }
                 else
                 {
-                    sensor.addItem(DataTypeBool, RConfigSchedulerOn); // Scheduler state on/off
-                    sensor.addItem(DataTypeString, RConfigScheduler); // Scheduler setting
+                    sensor.addItem(DataTypeBool, RConfigScheduleOn);
+                    sensor.addItem(DataTypeString, RConfigSchedule);
                 }
             }
         }
