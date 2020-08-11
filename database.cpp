@@ -3405,6 +3405,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 item = sensor.addItem(DataTypeBool, RStateLowBattery);
                 // don't set value -> null until reported
             }
+            else if (sensor.modelId() == QLatin1String("lumi.sensor_natgas"))
+            {
+                // Don't expose battery resource item for this device
+            }
             else if (!sensor.type().endsWith(QLatin1String("Battery")))
             {
                 item = sensor.addItem(DataTypeUInt8, RConfigBattery);
