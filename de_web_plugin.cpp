@@ -319,6 +319,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "TS0121", silabs3MacPrefix }, // Tuya/Blitzwolf smart plug
     { VENDOR_EMBER, "TS0121", silabs3MacPrefix }, // Tuya/Blitzwolf smart plug
     { VENDOR_EMBER, "TS0302", silabs3MacPrefix }, // Tuya curtain switch
+    { VENDOR_EMBER, "TS0207", silabs3MacPrefix }, // Tuya water leak sensor
     { VENDOR_AURORA, "DoubleSocket50AU", jennicMacPrefix }, // Aurora AOne Double Socket UK
     { VENDOR_COMPUTIME, "SP600", computimeMacPrefix }, // Salus smart plug
     { VENDOR_HANGZHOU_IMAGIC, "1116-S", energyMiMacPrefix }, // iris contact sensor v3
@@ -4387,8 +4388,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("Water")) ||            // Heiman water sensor (newer model)
                              modelId.startsWith(QLatin1String("lumi.sensor_wleak")) || // Xiaomi Aqara flood sensor
                              modelId.startsWith(QLatin1String("WL4200S")) ||          // Sinope Water Leak detector
-                             modelId.startsWith(QLatin1String("3315")) ||              // Centralite water sensor
-                             modelId.startsWith(QLatin1String("FLSZB-110")))          // Develco Water Leak detector
+                             modelId.startsWith(QLatin1String("3315")) ||             // Centralite water sensor
+                             modelId.startsWith(QLatin1String("FLSZB-110")) ||        // Develco Water Leak detector
+                             modelId.startsWith(QLatin1String("TS0207")))             // Tuya water leak sensor
                     {
                         fpWaterSensor.inClusters.push_back(ci->id());
                     }
