@@ -607,6 +607,14 @@ static const Sensor::ButtonMap icasaRemoteMap[] = {
     { Sensor::ModeScenes,           0x04, 0x0006, 0x01, 0,    S_BUTTON_8 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
     { Sensor::ModeScenes,           0x04, 0x0008, 0x05, 0,    S_BUTTON_8 + S_BUTTON_ACTION_HOLD, "Move up (with on/off)" },
     { Sensor::ModeScenes,           0x04, 0x0008, 0x07, 0,    S_BUTTON_8 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // Off 5 button
+    { Sensor::ModeScenes,           0x05, 0x0006, 0x00, 0,    S_BUTTON_11 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
+    { Sensor::ModeScenes,           0x05, 0x0008, 0x05, 1,    S_BUTTON_11 + S_BUTTON_ACTION_HOLD, "Move down (with on/off)" },
+    { Sensor::ModeScenes,           0x05, 0x0008, 0x07, 1,    S_BUTTON_11 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // On 5 button
+    { Sensor::ModeScenes,           0x05, 0x0006, 0x01, 0,    S_BUTTON_12 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+    { Sensor::ModeScenes,           0x05, 0x0008, 0x05, 0,    S_BUTTON_12 + S_BUTTON_ACTION_HOLD, "Move up (with on/off)" },
+    { Sensor::ModeScenes,           0x05, 0x0008, 0x07, 0,    S_BUTTON_12 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
     // end
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
@@ -1455,9 +1463,10 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         }
         else if (manufacturer == QLatin1String("Sunricher"))
         {
-            if      (modelid.startsWith(QLatin1String("ZGRC-KEY"))) { m_buttonMap = sunricherCCTMap; }
+            if      (modelid.startsWith(QLatin1String("ZGRC-KEY-012"))) { m_buttonMap = icasaRemoteMap; }
             else if (modelid.startsWith(QLatin1String("ZG2833K"))) { m_buttonMap = sunricherMap; }
             else if (modelid.startsWith(QLatin1String("ZG2835"))) { m_buttonMap = sunricherMap; }
+            else if (modelid.startsWith(QLatin1String("ZGRC-KEY-013"))) { m_buttonMap = icasaRemoteMap; }
         }
         else if (manufacturer == QLatin1String("RGBgenie"))
         {

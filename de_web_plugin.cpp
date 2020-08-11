@@ -794,6 +794,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                     else if (sensorNode->modelId().startsWith("C4") || // ubisys
                              sensorNode->modelId().startsWith("RC 110") || // innr RC 110
                              sensorNode->modelId().startsWith("ICZB-RM") || // icasa remote
+                             sensorNode->modelId().startsWith("ZGRC-KEY") || // Sunricher remote
                              sensorNode->modelId().startsWith("ED-1001") || // EcoDim switches
                              sensorNode->modelId().startsWith("45127") || // Namron switches
                              sensorNode->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
@@ -3398,12 +3399,8 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         checkReporting = true;
         checkClientCluster = true;
     }
-    else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM"))) // icasa remote
-    {
-        checkReporting = true;
-        checkClientCluster = true;
-    }
-    else if (sensor->modelId().startsWith(QLatin1String("RGBGenie ZB-5")) || // RGBGenie remote control
+    else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM")) || // icasa remote
+             sensor->modelId().startsWith(QLatin1String("RGBGenie ZB-5")) || // RGBGenie remote control
              sensor->modelId().startsWith(QLatin1String("ZGRC-KEY")))        // RGBGenie ZB-5001
     {
         checkReporting = true;
@@ -3501,16 +3498,23 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             enqueueEvent(e);
         }
         else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM")) || // icasa remote
+                 sensor->modelId().startsWith(QLatin1String("ZGRC-KEY")) ||// Sunricher remote
                  sensor->modelId().startsWith(QLatin1String("ED-1001")) || // EcoDim switches
                  sensor->modelId().startsWith(QLatin1String("45127")))     // Namron switches
         {
-            // 4 controller endpoints: 0x01, 0x02, 0x03, 0x04
-            if (gids.length() != 4)
+            if (gids.length() != 5 && sensor->modelId().startsWith(QLatin1String("ZGRC-KEY-012"))) // 5 controller endpoints: 0x01, 0x02, 0x03, 0x04, 0x05
+            {
+                // initialise list of groups: one for each endpoint
+                gids = QStringList();
+                gids << "0" << "0" << "0" << "0" << "0";
+            }
+            else if (gids.length() != 4) // 4 controller endpoints: 0x01, 0x02, 0x03, 0x04
             {
                 // initialise list of groups: one for each endpoint
                 gids = QStringList();
                 gids << "0" << "0" << "0" << "0";
             }
+            else 
 
             // check group corresponding to source endpoint
             int i = ind.srcEndpoint();
@@ -4707,6 +4711,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     }
                     else if (modelId.startsWith(QLatin1String("RC 110")) ||  // innr RC 110
                              modelId.startsWith(QLatin1String("ICZB-RM")) || // icasa remote
+                             modelId.startsWith(QLatin1String("ZGRC-KEY")) || // Sunricher remote
                              modelId.startsWith(QLatin1String("ED-1001")) || // EcoDim switches
                              modelId.startsWith(QLatin1String("ED-1001")))   // Namron switches
                     {
@@ -15174,8 +15179,12 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             }
             checkSensorBindingsForClientClusters(sensor);
         }
-        else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM"))) // icasa remote
+        else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM")) || // icasa remote
+                 sensor->modelId().startsWith(QLatin1String("ZGRC-KEY"))   // Sunricher remote
         {
+            if (sensor->modelId() == QLatin1String("ZGRC-KEY-012")) { quint8 lastEndpoint = 0x05; }
+            else { quint8 lastEndpoint = 0x04; }
+            
             ResourceItem *item = sensor->item(RConfigGroup);
             if (!item)
             {
@@ -15184,7 +15193,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 QString gid;
                 Group *group;
 
-                for (quint8 endpoint = 0x01; endpoint <= 0x04; endpoint++)
+                for (quint8 endpoint = 0x01; endpoint <= lastEndpoint; endpoint++)
                 {
                     group = addGroup();
                     gid = group->id();
