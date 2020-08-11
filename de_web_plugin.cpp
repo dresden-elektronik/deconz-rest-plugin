@@ -5215,6 +5215,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             sensorNode.addItem(DataTypeBool, RStateLowBattery);
             // don't set value -> null until reported
         }
+        else if (sensorNode.modelId() == QLatin1String("lumi.sensor_natgas"))
+        {
+            // Don't expose battery resource item for this device
+        }
         else if (!sensorNode.type().endsWith(QLatin1String("Battery")))
         {
             sensorNode.addItem(DataTypeUInt8, RConfigBattery);
