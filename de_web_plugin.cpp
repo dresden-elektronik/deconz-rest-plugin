@@ -3514,7 +3514,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 gids = QStringList();
                 gids << "0" << "0" << "0" << "0";
             }
-            else 
 
             // check group corresponding to source endpoint
             int i = ind.srcEndpoint();
@@ -15180,10 +15179,12 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             checkSensorBindingsForClientClusters(sensor);
         }
         else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM")) || // icasa remote
-                 sensor->modelId().startsWith(QLatin1String("ZGRC-KEY"))   // Sunricher remote
+                 sensor->modelId().startsWith(QLatin1String("ZGRC-KEY")))  // Sunricher remote
         {
-            if (sensor->modelId() == QLatin1String("ZGRC-KEY-012")) { quint8 lastEndpoint = 0x05; }
-            else { quint8 lastEndpoint = 0x04; }
+            quint8 lastEndpoint;
+            
+            if (sensor->modelId() == QLatin1String("ZGRC-KEY-012")) { lastEndpoint = 0x05; }
+            else { lastEndpoint = 0x04; }
             
             ResourceItem *item = sensor->item(RConfigGroup);
             if (!item)
