@@ -3230,19 +3230,19 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeString, RConfigMode);
                 }
                 
-                if (sensorNode.modelId() == QLatin1String("kud7u2l") || // tuya 
-                    sensorNode.modelId() == QLatin1String("GbxAXL2") || // tuya
-                    sensorNode.modelId() == QLatin1String("TS0601") ) //tuya
+                if (sensor.modelId() == QLatin1String("kud7u2l") || // tuya 
+                    sensor.modelId() == QLatin1String("GbxAXL2") || // tuya
+                    sensor.modelId() == QLatin1String("TS0601") ) //tuya
                 {
-                    sensorNode.addItem(DataTypeUInt8, RStateValve);
-                    sensorNode.addItem(DataTypeBool, RStateLowBattery);
+                    sensor.addItem(DataTypeUInt8, RStateValve);
+                    sensor.addItem(DataTypeBool, RStateLowBattery);
                 }
                 
-                if (sensorNode.modelId() == QLatin1String("kud7u2l") || // tuya 
-                    sensorNode.modelId() == QLatin1String("TS0601") ) //tuya
+                if (sensor.modelId() == QLatin1String("kud7u2l") || // tuya 
+                    sensor.modelId() == QLatin1String("TS0601") ) //tuya
                 {
-                    sensorNode.addItem(DataTypeString, RConfigPreset);
-                    sensorNode.addItem(DataTypeBool, RConfigLocked);
+                    sensor.addItem(DataTypeString, RConfigPreset);
+                    sensor.addItem(DataTypeBool, RConfigLocked);
                 }
                 
                 if (sensor.modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
