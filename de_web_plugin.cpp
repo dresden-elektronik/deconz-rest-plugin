@@ -686,7 +686,7 @@ void DeRestPluginPrivate::readButtonMapJson()
         
         QMap<QString, quint16> buttons;
         QMap<QString, quint8> actions;
-        quint8 counter = 1;
+        quint8 counter = 0;
         
         // Load buttons
         if (buttonMaps.object().value(QString("buttons")) == QJsonValue::Undefined)
@@ -705,6 +705,8 @@ void DeRestPluginPrivate::readButtonMapJson()
             
             for (auto i = buttonsObj.constBegin(); i != buttonsObj.constEnd(); ++i)       // Loop through button objects
             {
+                ++counter;
+                
                 if (i.key().isNull() || i.key().isEmpty() || i.key().length() > 11)
                 {
                     DBG_Printf(DBG_INFO, "[ERROR] - Key #%d for object 'buttons' is no string or too long. Skipping entry...\n",
@@ -721,12 +723,10 @@ void DeRestPluginPrivate::readButtonMapJson()
                 {
                     buttons.insert(i.key(), i.value().toInt());   // Store data in QMap for later use
                 }
-                
-                counter++;
             }
         }
         
-        counter = 1;
+        counter = 0;
         
         // Load button actions
         if (buttonMaps.object().value(QString("buttonActions")) == QJsonValue::Undefined)
@@ -745,6 +745,8 @@ void DeRestPluginPrivate::readButtonMapJson()
             
             for (auto i = actionsObj.constBegin(); i != actionsObj.constEnd(); ++i)       // Loop through button action objects
             {
+                ++counter;
+                
                 if (i.key().isNull() || i.key().isEmpty() || i.key().length() > 33)
                 {
                     DBG_Printf(DBG_INFO, "[ERROR] - Key #%d for object 'buttonActions' is no string or too long. Skipping entry...\n",
@@ -761,8 +763,6 @@ void DeRestPluginPrivate::readButtonMapJson()
                 {
                     actions.insert(i.key(), i.value().toInt());   // Store data in QMap for later use
                 }
-                
-                counter++;
             }
         }
         
