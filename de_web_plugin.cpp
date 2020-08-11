@@ -4847,6 +4847,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             }
         }
 
+        // For some device the Tuya cluster is sometime Invisible, so force device detection
         if ((modelId == QLatin1String("kud7u2l")) ||
            (modelId == QLatin1String("GbxAXL2")) )
         {
@@ -5597,17 +5598,25 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
 
             if (sensorNode.modelId() == QLatin1String("SLR2") ||            // Hive
                 sensorNode.modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
-                sensorNode.modelId() == QLatin1String("Zen-01") )         // Zen
+                sensorNode.modelId() == QLatin1String("kud7u2l") ||         // tuya 
+                sensorNode.modelId() == QLatin1String("GbxAXL2") ||         // tuya
+                sensorNode.modelId() == QLatin1String("TS0601") ||           //tuya
+                sensorNode.modelId() == QLatin1String("Zen-01") )           // Zen
             {
                 sensorNode.addItem(DataTypeString, RConfigMode);
             }
             
-            if (sensorNode.modelId() == QLatin1String("kud7u2l") ||
-                sensorNode.modelId() == QLatin1String("GbxAXL2") ||
+            if (sensorNode.modelId() == QLatin1String("kud7u2l") || // tuya 
+                sensorNode.modelId() == QLatin1String("GbxAXL2") || // tuya
                 sensorNode.modelId() == QLatin1String("TS0601") ) //tuya
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
-                sensorNode.addItem(DataTypeString, RConfigMode);
+                sensorNode.addItem(DataTypeBool, RStateLowBattery);
+            }
+
+            if (sensorNode.modelId() == QLatin1String("kud7u2l") || // tuya 
+                sensorNode.modelId() == QLatin1String("TS0601") ) //tuya
+            {
                 sensorNode.addItem(DataTypeString, RConfigPreset);
                 sensorNode.addItem(DataTypeBool, RConfigLocked);
             }

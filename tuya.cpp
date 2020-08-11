@@ -173,6 +173,21 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     }
                 }
                 break;
+                case 0x016E: // Low battery
+                {
+                    bool bat = false;
+                    if (data == 1) { bat = true; }
+                    
+                    ResourceItem *item = sensorNode->item(RStateLowBattery);
+
+                    if (item && item->toBool() != bat)
+                    {
+                        item->setValue(bat);
+                        Event e(RSensors, RStateLowBattery, sensorNode->id(), item);
+                        enqueueEvent(e);
+                    }
+                }
+                break;
                 case 0x0203: // Thermostat temperature
                 {
                     qint16 temp = ((qint16)(data & 0xFFFF)) * 10;
@@ -346,6 +361,21 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     {
                         item->setValue(locked);
                         Event e(RSensors, RConfigLocked, sensorNode->id(), item);
+                        enqueueEvent(e);
+                    }
+                }
+                break;
+                case 0x0569 : // Low battery
+                {
+                    bool bat = false;
+                    if (data == 1) { bat = true; }
+                    
+                    ResourceItem *item = sensorNode->item(RStateLowBattery);
+
+                    if (item && item->toBool() != bat)
+                    {
+                        item->setValue(bat);
+                        Event e(RSensors, RStateLowBattery, sensorNode->id(), item);
                         enqueueEvent(e);
                     }
                 }

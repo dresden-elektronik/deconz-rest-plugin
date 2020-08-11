@@ -3223,9 +3223,26 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 if (sensor.modelId() == QLatin1String("SLR2") ||           // Hive 
                     sensor.modelId().startsWith(QLatin1String("TH112")) || // Sinope
                     sensor.modelId() == QLatin1String("GbxAXL2") ||        // Tuya
+                    sensor.modelId() == QLatin1String("kud7u2l") ||        // Tuya
+                    sensor.modelId() == QLatin1String("TS0601") ||        // Tuya
                     sensor.modelId() == QLatin1String("Zen-01") )          // Zen
                 {
                     sensor.addItem(DataTypeString, RConfigMode);
+                }
+                
+                if (sensorNode.modelId() == QLatin1String("kud7u2l") || // tuya 
+                    sensorNode.modelId() == QLatin1String("GbxAXL2") || // tuya
+                    sensorNode.modelId() == QLatin1String("TS0601") ) //tuya
+                {
+                    sensorNode.addItem(DataTypeUInt8, RStateValve);
+                    sensorNode.addItem(DataTypeBool, RStateLowBattery);
+                }
+                
+                if (sensorNode.modelId() == QLatin1String("kud7u2l") || // tuya 
+                    sensorNode.modelId() == QLatin1String("TS0601") ) //tuya
+                {
+                    sensorNode.addItem(DataTypeString, RConfigPreset);
+                    sensorNode.addItem(DataTypeBool, RConfigLocked);
                 }
                 
                 if (sensor.modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
