@@ -670,7 +670,7 @@ void DeRestPluginPrivate::readButtonMapJson()
     
     if (file.exists())
     {
-        DBG_Printf(DBG_INFO, "[INFO] - Found file containing button maps.\n");
+        DBG_Printf(DBG_INFO, "[INFO] - Found file containing button maps. Parsing data...\n");
         
         QJsonParseError error;
         
@@ -684,27 +684,92 @@ void DeRestPluginPrivate::readButtonMapJson()
             return;
         }
         
-        // Load buttons
-        QJsonObject buttonsObj = buttonMaps.object().value(QString("buttons")).toObject();
         QMap<QString, quint16> buttons;
+        QMap<QString, quint8> actions;
+        quint8 counter = 1;
         
-        foreach(const QString& key, buttonsObj.keys())
+        // Load buttons
+        if (buttonMaps.object().value(QString("buttons")) == QJsonValue::Undefined)
         {
-            buttons.insert(key, buttonsObj.value(key).toInt());   // Store data in QMap for later use
+            DBG_Printf(DBG_INFO, "[ERROR] - No object named 'buttons' found in JSON file. Skip to load button maps.\n");
+            return;
         }
+        else if (!buttonMaps.object().value(QString("buttons")).isObject())
+        {
+            DBG_Printf(DBG_INFO, "[ERROR] - Expected 'buttons' in JSON file to be an object, but it isn't. Skip to load button maps.\n");
+            return;
+        }
+        else
+        {
+            QJsonObject buttonsObj = buttonMaps.object().value(QString("buttons")).toObject();
+            
+            for (auto i = buttonsObj.constBegin(); i != buttonsObj.constEnd(); ++i)       // Loop through button objects
+            {
+                if (i.key().isNull() || i.key().isEmpty() || i.key().length() > 11)
+                {
+                    DBG_Printf(DBG_INFO, "[ERROR] - Key #%d for object 'buttons' is no string or too long. Skipping entry...\n",
+                                counter);
+                    continue;
+                }
+                else if (!i.value().isDouble() || i.value().toDouble() > 32000)
+                {
+                    DBG_Printf(DBG_INFO, "[ERROR] - Value #%d for object 'buttons' is no number or too large. Skipping entry...\n",
+                                counter);
+                    continue;
+                }
+                else
+                {
+                    buttons.insert(i.key(), i.value().toInt());   // Store data in QMap for later use
+                }
+                
+                counter++;
+            }
+        }
+        
+        counter = 1;
         
         // Load button actions
-        QJsonObject actionsObj = buttonMaps.object().value(QString("buttonActions")).toObject();
-        QMap<QString, quint8> actions;
-        
-        foreach(const QString& key, actionsObj.keys())
+        if (buttonMaps.object().value(QString("buttonActions")) == QJsonValue::Undefined)
         {
-            actions.insert(key, actionsObj.value(key).toInt());   // Store data in QMap for later use
+            DBG_Printf(DBG_INFO, "[ERROR] - No object named 'buttonActions' found in JSON file. Skip to load button maps.\n");
+            return;
+        }
+        else if (!buttonMaps.object().value(QString("buttonActions")).isObject())
+        {
+            DBG_Printf(DBG_INFO, "[ERROR] - Expected 'buttonActions' in JSON file to be an object, but it isn't. Skip to load button maps.\n");
+            return;
+        }
+        else
+        {
+            QJsonObject actionsObj = buttonMaps.object().value(QString("buttonActions")).toObject();
+            
+            for (auto i = actionsObj.constBegin(); i != actionsObj.constEnd(); ++i)       // Loop through button action objects
+            {
+                if (i.key().isNull() || i.key().isEmpty() || i.key().length() > 33)
+                {
+                    DBG_Printf(DBG_INFO, "[ERROR] - Key #%d for object 'buttonActions' is no string or too long. Skipping entry...\n",
+                                counter);
+                    continue;
+                }
+                else if (!i.value().isDouble() || i.value().toDouble() > 16)
+                {
+                    DBG_Printf(DBG_INFO, "[ERROR] - Value #%d for object 'buttonActions' is no number or too large. Skipping entry...\n",
+                                counter);
+                    continue;
+                }
+                else
+                {
+                    actions.insert(i.key(), i.value().toInt());   // Store data in QMap for later use
+                }
+                
+                counter++;
+            }
         }
         
+        // Load button maps
         QJsonObject allMapsObj = buttonMaps.object().value(QString("maps")).toObject();     // Get all button maps
         
-        for (auto i = allMapsObj.begin(); i != allMapsObj.end(); ++i)       // Loop through button maps
+        for (auto i = allMapsObj.constBegin(); i != allMapsObj.constEnd(); ++i)       // Loop through button maps
         {
             QString buttonMapName = i.key();    // Individual button map name
             //DBG_Printf(DBG_INFO, "[INFO] - Button map name: %s\n", qUtf8Printable(buttonMapName));
@@ -716,16 +781,18 @@ void DeRestPluginPrivate::readButtonMapJson()
                 //DBG_Printf(DBG_INFO, "[INFO] - Button map size: %d\n", i.value().toArray().size());
                 Sensor::ButtonMap* btnMap = new Sensor::ButtonMap[i.value().toArray().size()];      // Create button map array of required size
                 
-                for (auto i = buttonMapArr.begin(); i != buttonMapArr.end(); ++i)       // Loop through button map items
+                for (auto i = buttonMapArr.constBegin(); i != buttonMapArr.constEnd(); ++i)       // Loop through button map items
                 {
-                    QJsonValue asd = *i;
-                    if (asd.isArray())
+                    QJsonValue val = *i;
+                    if (val.isArray())
                     {
-                        QJsonArray buttonMapItemArr = asd.toArray();
+                        QJsonArray buttonMapItemArr = val.toArray();
                         
                         if (buttonMapItemArr.size() != 8)
                         {
-                            DBG_Printf(DBG_INFO, "[ERROR] - Button map item has an incorrect size. Expected 8, got %d\n", buttonMapItemArr.size());
+                            DBG_Printf(DBG_INFO, "[ERROR] - Button map item #%d for '%s' has an incorrect size. Expected 8, got %d\n", 
+                                        mapItem, qUtf8Printable(buttonMapName), buttonMapItemArr.size());
+                            mapItem++;
                             continue;
                         }
                         else
@@ -753,7 +820,8 @@ void DeRestPluginPrivate::readButtonMapJson()
                             }
                             else
                             {
-                                DBG_Printf(DBG_INFO, "[INFO] - Button map item #1 does not seem to be an integer.\n");
+                                DBG_Printf(DBG_INFO, "[INFO] - Button map item #%d, field #1 for '%s' does not seem to be an integer.\n", 
+                                            mapItem, qUtf8Printable(buttonMapName));
                             }
                             
                             if (buttonMapItemArr.at(1).isString() && buttonMapItemArr.at(1).toString().startsWith(QLatin1String("0x")) && 
@@ -765,7 +833,8 @@ void DeRestPluginPrivate::readButtonMapJson()
                             }
                             else
                             {
-                                DBG_Printf(DBG_INFO, "[INFO] - Button map item #2 has an incorrect format.\n");
+                                DBG_Printf(DBG_INFO, "[INFO] - Button map item #%d, field #2 for '%s' has an incorrect format.\n", 
+                                            mapItem, qUtf8Printable(buttonMapName));
                             }
                             
                             if (buttonMapItemArr.at(2).isString() && buttonMapItemArr.at(2).toString().startsWith(QLatin1String("0x")) && 
@@ -777,7 +846,8 @@ void DeRestPluginPrivate::readButtonMapJson()
                             }
                             else
                             {
-                                DBG_Printf(DBG_INFO, "[INFO] - Button map item #3 has an incorrect format.\n");
+                                DBG_Printf(DBG_INFO, "[INFO] - Button map item #%d, field #3 for '%s' has an incorrect format.\n", 
+                                            mapItem, qUtf8Printable(buttonMapName));
                             }
                             
                             if (buttonMapItemArr.at(3).isString() && buttonMapItemArr.at(3).toString().startsWith(QLatin1String("0x")) && 
@@ -789,7 +859,8 @@ void DeRestPluginPrivate::readButtonMapJson()
                             }
                             else
                             {
-                                DBG_Printf(DBG_INFO, "[INFO] - Button map item #4 has an incorrect format.\n");
+                                DBG_Printf(DBG_INFO, "[INFO] - Button map item #%d, field #4 for '%s' has an incorrect format.\n", 
+                                            mapItem, qUtf8Printable(buttonMapName));
                             }
                             
                             if (buttonMapItemArr.at(4).isString() && buttonMapItemArr.at(4).toString().length() <= 3)
@@ -807,7 +878,8 @@ void DeRestPluginPrivate::readButtonMapJson()
                             }
                             else
                             {
-                                DBG_Printf(DBG_INFO, "[INFO] - Button map item #5 has an incorrect format.\n");
+                                DBG_Printf(DBG_INFO, "[INFO] - Button map item #%d, field #5 for '%s' has an incorrect format.\n", 
+                                            mapItem, qUtf8Printable(buttonMapName));
                             }
                             
                             if (buttonMapItemArr.at(5).isString() && buttonMapItemArr.at(5).toString().length() <= 11)
@@ -817,7 +889,8 @@ void DeRestPluginPrivate::readButtonMapJson()
                             }
                             else
                             {
-                                DBG_Printf(DBG_INFO, "[INFO] - Button map item #6 is unknown.\n");
+                                DBG_Printf(DBG_INFO, "[INFO] - Button map item #%d, field #6 for '%s' is unknown.\n", 
+                                            mapItem, qUtf8Printable(buttonMapName));
                             }
                             
                             if (buttonMapItemArr.at(6).isString() && buttonMapItemArr.at(6).toString().length() <= 32)
@@ -828,7 +901,8 @@ void DeRestPluginPrivate::readButtonMapJson()
                             }
                             else
                             {
-                                DBG_Printf(DBG_INFO, "[INFO] - Button map item #7 is unknown.\n");
+                                DBG_Printf(DBG_INFO, "[INFO] - Button map item #%d, field #7 for '%s' is unknown.\n", 
+                                            mapItem, qUtf8Printable(buttonMapName));
                             }
                             
                             if (buttonMapItemArr.at(7).isString() && buttonMapItemArr.at(7).toString().length() <= 40)
@@ -838,7 +912,8 @@ void DeRestPluginPrivate::readButtonMapJson()
                             }
                             else
                             {
-                                DBG_Printf(DBG_INFO, "[INFO] - Button map item #8 is too long.\n");
+                                DBG_Printf(DBG_INFO, "[INFO] - Button map item #%d, field #8 for '%s' is too long.\n", 
+                                            mapItem, qUtf8Printable(buttonMapName));
                             }
 
                             //DBG_Printf(DBG_INFO, "[INFO] - btnMap item #6: %d\n", btnMap[mapItem].button);
@@ -849,7 +924,10 @@ void DeRestPluginPrivate::readButtonMapJson()
                     }
                     else
                     {
-                        DBG_Printf(DBG_INFO, "[ERROR] - Button map item in JSON must be an array, but isn't.\n");
+                        DBG_Printf(DBG_INFO, "[ERROR] - Button map item #%d for '%s' in JSON must be an array, but isn't.\n", 
+                                    mapItem, qUtf8Printable(buttonMapName));
+                        
+                        mapItem++;
                         continue;
                     }
                 }
@@ -860,10 +938,12 @@ void DeRestPluginPrivate::readButtonMapJson()
             }
             else
             {
-                DBG_Printf(DBG_INFO, "[ERROR] - Button map in JSON must be an array, but isn't.\n");
+                DBG_Printf(DBG_INFO, "[ERROR] - Button map '%s' in JSON must be an array, but isn't.\n", qUtf8Printable(buttonMapName));
                 continue;
             }    
         }
+        
+        DBG_Printf(DBG_INFO, "[INFO] - Button maps loaded.\n");
     }
     else
     {
