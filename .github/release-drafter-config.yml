@@ -28,8 +28,8 @@ version-resolver:
       - 'patch'
   default: patch
 template: |
-# Contributors:
-The following users have been contributing to this release. Thank you for that! <br/>
-$CONTRIBUTORS	<br/>
-# Changes
-$CHANGES
+  # Contributors:
+  The following users have been contributing to this release. Thank you for that! <br/>
+  $CONTRIBUTORS	<br/>
+  # Changes
+  $CHANGES
