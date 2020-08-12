@@ -12,14 +12,13 @@ categories:
       - 'bug'
   - title: 'New devices'
     label: 'device-request'
-change-template: '**$TITLE @$AUTHOR (#$NUMBER):**   <br/> __123ad123 $BODY 31231adb32__<br/>'
+change-template: '**$TITLE @$AUTHOR (#$NUMBER):**   <br/> __123ad123 $BODY 31231adb32__ <br/>'
 replacers:
   - search: '- '
     replace: ''
 replacers:
   - search: '123ad123'
     replace: '- ' 
-replacers:
   - search: '31231adb32'
     replace: ''       
 
