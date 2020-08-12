@@ -13,8 +13,10 @@ categories:
   - title: 'New devices'
     label: 'device-request'
 
-change-template: '**$TITLE @$AUTHOR (#$NUMBER):** <br/> $BODY <br/><a/><br/>'
-
+change-template: '**$TITLE @$AUTHOR (#$NUMBER):** <br/> $BODY <br/><br/>'
+replacers:
+  - search: '  '
+    replace: ''
   
 
 version-resolver:
