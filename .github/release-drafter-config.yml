@@ -12,10 +12,11 @@ categories:
       - 'bug'
   - title: 'New devices'
     label: 'device-request'
-change-template: '**## $TITLE @$AUTHOR (#$NUMBER):**   <br/> $BODY<br/>'
 replacers:
   - search: '- '
-    replace: ''
+    replace: ''   
+change-template: '** $TITLE @$AUTHOR (#$NUMBER):**   <br/> - $BODY<br/>'
+
   
 
 version-resolver:
@@ -30,6 +31,6 @@ version-resolver:
       - 'patch'
   default: patch
 template: |
-  ## Changes
+  # Changes
 
   $CHANGES
