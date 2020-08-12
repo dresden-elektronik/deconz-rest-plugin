@@ -346,8 +346,6 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_ALERTME, "SLR2", computimeMacPrefix }, // Hive   Heating Receiver 2 channel
     { VENDOR_ALERTME, "SLT2", computimeMacPrefix }, // Hive thermostat
     { VENDOR_DANFOSS, "TRV001", silabs2MacPrefix }, // Hive thermostat (From Danfoos)
-    { VENDOR_SUNRICHER, "4512703", silabs2MacPrefix }, // Namron 4-ch remote controller
-    { VENDOR_SUNRICHER, "451270", silabs2MacPrefix }, // Namron 1/4-ch remote controller
     { VENDOR_SUNRICHER, "45127", silabs2MacPrefix }, // Namron 1/2/4-ch remote controller
     { VENDOR_SENGLED_OPTOELEC, "E13-", zhejiangMacPrefix }, // Sengled PAR38 Bulbs
     { VENDOR_SENGLED_OPTOELEC, "E1D-", zhejiangMacPrefix }, // Sengled contact sensor
