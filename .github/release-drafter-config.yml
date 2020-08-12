@@ -14,9 +14,9 @@ categories:
     label: 'device-request'
 change-template: '**- $TITLE @$AUTHOR (#$NUMBER):**  <br/> $BODY'
 replacers:
-  - search: '-'
+  - search: ' - '
     replace: ''
-  - search: '*'
+  - search: ' * '
     replace: ''
 
 version-resolver:
