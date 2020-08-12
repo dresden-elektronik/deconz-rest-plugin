@@ -169,11 +169,11 @@ static const Sensor::ButtonMap osram4ButRemoteMap[] = {
     { Sensor::ModeScenes, 0x02, 0x0300, 0x4C, 0x01,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "UR short press" },
     { Sensor::ModeScenes, 0x02, 0x0300, 0x03, 0xFE,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "UR long press" },
     { Sensor::ModeScenes, 0x02, 0x0300, 0x01, 0x00,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "UR long release" },
-    // Button lower-left 
+    // Button lower-left
     { Sensor::ModeScenes, 0x03, 0x0006, 0x00, 0x00,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "LL short press" },
     { Sensor::ModeScenes, 0x03, 0x0008, 0x01, 0x01,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD,           "LL long press" },
     { Sensor::ModeScenes, 0x03, 0x0008, 0x03, 0x01,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED,  "LL long release" },
-    // Button lower-right 
+    // Button lower-right
     { Sensor::ModeScenes, 0x04, 0x0300, 0x4C, 0x03,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "LR short press" },
     { Sensor::ModeScenes, 0x04, 0x0300, 0x03, 0xFE,    S_BUTTON_4 + S_BUTTON_ACTION_HOLD,           "LR long press" },
     { Sensor::ModeScenes, 0x04, 0x0300, 0x01, 0x00,    S_BUTTON_4 + S_BUTTON_ACTION_LONG_RELEASED,  "LR long release" },
@@ -192,11 +192,11 @@ static const Sensor::ButtonMap osram4ButRemoteMap2[] = {
     { Sensor::ModeScenes, 0x02, 0x0300, 0x4C, 0x01,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "UR short press" },
     { Sensor::ModeScenes, 0x02, 0x0300, 0x01, 0x01,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "UR long press" },
     { Sensor::ModeScenes, 0x02, 0x0300, 0x47, 0x00,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "UR long release" },
-    // Button lower-left 
+    // Button lower-left
     { Sensor::ModeScenes, 0x03, 0x0006, 0x00, 0x00,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "LL short press" },
     { Sensor::ModeScenes, 0x03, 0x0008, 0x01, 0x01,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD,           "LL long press" },
     { Sensor::ModeScenes, 0x03, 0x0008, 0x03, 0x01,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED,  "LL long release" },
-    // Button lower-right 
+    // Button lower-right
     { Sensor::ModeScenes, 0x04, 0x0300, 0x4C, 0x03,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "LR short press" },
     { Sensor::ModeScenes, 0x04, 0x0300, 0x01, 0x03,    S_BUTTON_4 + S_BUTTON_ACTION_HOLD,           "LR long press" },
     { Sensor::ModeScenes, 0x04, 0x0300, 0x47, 0x00,    S_BUTTON_4 + S_BUTTON_ACTION_LONG_RELEASED,  "LR long release" },
@@ -607,6 +607,14 @@ static const Sensor::ButtonMap icasaRemoteMap[] = {
     { Sensor::ModeScenes,           0x04, 0x0006, 0x01, 0,    S_BUTTON_8 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
     { Sensor::ModeScenes,           0x04, 0x0008, 0x05, 0,    S_BUTTON_8 + S_BUTTON_ACTION_HOLD, "Move up (with on/off)" },
     { Sensor::ModeScenes,           0x04, 0x0008, 0x07, 0,    S_BUTTON_8 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // Off 5 button
+    { Sensor::ModeScenes,           0x05, 0x0006, 0x00, 0,    S_BUTTON_11 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
+    { Sensor::ModeScenes,           0x05, 0x0008, 0x05, 1,    S_BUTTON_11 + S_BUTTON_ACTION_HOLD, "Move down (with on/off)" },
+    { Sensor::ModeScenes,           0x05, 0x0008, 0x07, 1,    S_BUTTON_11 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
+    // On 5 button
+    { Sensor::ModeScenes,           0x05, 0x0006, 0x01, 0,    S_BUTTON_12 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+    { Sensor::ModeScenes,           0x05, 0x0008, 0x05, 0,    S_BUTTON_12 + S_BUTTON_ACTION_HOLD, "Move up (with on/off)" },
+    { Sensor::ModeScenes,           0x05, 0x0008, 0x07, 0,    S_BUTTON_12 + S_BUTTON_ACTION_LONG_RELEASED, "Stop_ (with on/off)" },
     // end
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
@@ -888,6 +896,14 @@ static const Sensor::ButtonMap sageMap[] = {
     { Sensor::ModeScenes,           0x12, 0x0008, 0x05, 0,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD,           "On (hold)" },
     { Sensor::ModeScenes,           0x12, 0x0008, 0x03, 0,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED,  "On (released)" },
 
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
+};
+
+static const Sensor::ButtonMap sonoffOnOffMap[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x01, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x00, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
     // end
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
@@ -1284,6 +1300,15 @@ void Sensor::jsonToState(const QString &json)
 
     QVariantMap map = var.toMap();
 
+    if (map.contains("lastset"))
+    {
+        QString lastset = map["lastset"].toString();
+        QString format = QLatin1String("yyyy-MM-ddTHH:mm:ssZ");
+        QDateTime ls = QDateTime::fromString(lastset, format);
+        ls.setTimeSpec(Qt::UTC);
+        map["lastset"] = ls;
+    }
+
     // use old time stamp before deCONZ was started
     QDateTime dt = QDateTime::currentDateTime().addSecs(-120);
     if (map.contains("lastupdated"))
@@ -1297,6 +1322,23 @@ void Sensor::jsonToState(const QString &json)
         }
         lu.setTimeSpec(Qt::UTC);
         map["lastupdated"] = lu;
+    }
+
+    if (map.contains("localtime"))
+    {
+        QString localtime = map["localtime"].toString();
+        QString format = QLatin1String("yyyy-MM-ddTHH:mm:ss");
+        QDateTime lt = QDateTime::fromString(localtime, format);
+        map["localtime"] = lt;
+    }
+
+    if (map.contains("utc"))
+    {
+        QString utc = map["utc"].toString();
+        QString format = QLatin1String("yyyy-MM-ddTHH:mm:ssZ");
+        QDateTime u = QDateTime::fromString(utc, format);
+        u.setTimeSpec(Qt::UTC);
+        map["utc"] = u;
     }
 
     for (int i = 0; i < itemCount(); i++)
@@ -1329,6 +1371,16 @@ void Sensor::jsonToConfig(const QString &json)
         return;
     }
     QVariantMap map = var.toMap();
+
+    if (map.contains("lastchange_time"))
+    {
+        QString lastchange_time = map["lastchange_time"].toString();
+        QString format = QLatin1String("yyyy-MM-ddTHH:mm:ssZ");
+        QDateTime lct = QDateTime::fromString(lastchange_time, format);
+        lct.setTimeSpec(Qt::UTC);
+        map["lastchange_time"] = lct;
+    }
+
     QDateTime dt = QDateTime::currentDateTime().addSecs(-120);
 
     for (int i = 0; i < itemCount(); i++)
@@ -1455,7 +1507,7 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         }
         else if (manufacturer == QLatin1String("EcoDim"))
         {
-            if      (modelid.startsWith(QLatin1String("ED-1001"))) { m_buttonMap = icasaKeypadMap; }
+            if      (modelid.startsWith(QLatin1String("ED-1001"))) { m_buttonMap = sunricherMap; }
         }
         else if (manufacturer == QLatin1String("Samjin"))
         {
@@ -1471,8 +1523,10 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         }
         else if (manufacturer == QLatin1String("Sunricher"))
         {
-            if      (modelid.startsWith(QLatin1String("ZGRC-KEY"))) { m_buttonMap = sunricherCCTMap; }
+            if      (modelid.startsWith(QLatin1String("ZGRC-KEY-012"))) { m_buttonMap = icasaRemoteMap; }
             else if (modelid.startsWith(QLatin1String("ZG2833K"))) { m_buttonMap = sunricherMap; }
+            else if (modelid.startsWith(QLatin1String("ZG2835"))) { m_buttonMap = sunricherMap; }
+            else if (modelid.startsWith(QLatin1String("ZGRC-KEY-013"))) { m_buttonMap = icasaRemoteMap; }
         }
         else if (manufacturer == QLatin1String("RGBgenie"))
         {
@@ -1484,7 +1538,7 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         }
         else if (manufacturer == QLatin1String("Namron AS"))
         {
-            if (modelid.startsWith(QLatin1String("451270"))) { m_buttonMap = sunricherMap; }
+            if (modelid.startsWith(QLatin1String("45127"))) { m_buttonMap = sunricherMap; }
         }
         else if (manufacturer == QLatin1String("Heiman"))
         {
@@ -1502,6 +1556,14 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         else if (manufacturer == QLatin1String("LDS"))
         {
             if (modelid == QLatin1String("ZBT-CCTSwitch-D0001")) { m_buttonMap = LDSRemoteMap; }
+        }
+        else if (manufacturer == QLatin1String("lk"))
+        {
+            if (modelid == QLatin1String("ZBT-DIMSwitch")) { m_buttonMap = ikeaOnOffMap; }
+        }
+        else if (manufacturer == QLatin1String("eWeLink"))
+        {
+            if (modelid == QLatin1String("WB01")) { m_buttonMap = sonoffOnOffMap; }
         }
     }
 

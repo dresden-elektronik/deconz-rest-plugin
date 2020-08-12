@@ -1,12 +1,12 @@
 #!/bin/bash
 
 UPDATE_VERSION_HB="1.1.0"
-UPDATE_VERSION_HB_HUE="0.11.69"
-UPDATE_VERSION_HB_LIB="4.7.7"
-UPDATE_VERSION_NPM="6.9.0"
-UPDATE_VERSION_NODE="12.17.0"
+UPDATE_VERSION_HB_HUE="0.11.74"
+UPDATE_VERSION_HB_LIB="4.7.14"
+UPDATE_VERSION_NPM="6.14.7"
+UPDATE_VERSION_NODE="12.18.3"
 # use install name to install the specific node version via apt. Retrieve it via: apt-cache policy nodejs
-# UPDATE_VERSION_NODE_INSTALL_NAME="10.16.3-1nodesource1"
+UPDATE_VERSION_NODE_INSTALL_NAME="12.18.3-1nodesource1"
 # when increasing major version of node adjust downoload link
 NODE_DOWNLOAD_LINK="https://deb.nodesource.com/setup_12.x"
 
@@ -250,7 +250,7 @@ function installHomebridge {
 		[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG} TZ from db: $dbTimezone"
 		echo "TZ from db: $dbTimezone" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 
-		if [[ "$sysTimezone" != "$dbTimezone" ]]; then
+		if [[ "$sysTimezone" != "$dbTimezone" && "$dbTimezone" != '' ]]; then
 			[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG} Setting sys timezone to db timezone"
 			echo "Setting sys timezone to db timezone" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 			timedatectl set-timezone "$dbTimezone"
@@ -267,7 +267,7 @@ function installHomebridge {
 		# else
 			curl -sL "$NODE_DOWNLOAD_LINK" | bash -
 			if [ $? -eq 0 ]; then
-				apt-get install -y nodejs | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
+				apt-get install -y nodejs=$UPDATE_VERSION_NODE_INSTALL_NAME | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 				if [ $? -ne 0 ]; then
 					[[ $LOG_WARN ]] && echo "${LOG_WARN}could not install nodejs"
 					echo "could not install nodejs" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
@@ -287,7 +287,7 @@ function installHomebridge {
 			if [ $? -eq 0 ]; then
 			    curl -sL "$NODE_DOWNLOAD_LINK" | bash -
 				if [ $? -eq 0 ]; then
-					apt-get install -y nodejs | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
+					apt-get install -y nodejs=$UPDATE_VERSION_NODE_INSTALL_NAME | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 					if [ $? -ne 0 ]; then
 						[[ $LOG_WARN ]] && echo "${LOG_WARN}could not install nodejs"
 							echo "could not install nodejs" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
@@ -386,7 +386,7 @@ function checkUpdate {
 	[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG} TZ from db: $dbTimezone"
 	echo "TZ from db: $dbTimezone" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 
-	if [[ "$sysTimezone" != "$dbTimezone" ]]; then
+	if [[ "$sysTimezone" != "$dbTimezone" && "$dbTimezone" != '' ]]; then
 		[[ $LOG_DEBUG ]] && echo "${LOG_DEBUG} Setting sys timezone to db timezone"
 		echo "${LOG_DEBUG} Setting sys timezone to db timezone" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 		timedatectl set-timezone "$dbTimezone"
@@ -410,7 +410,7 @@ function checkUpdate {
 
 		curl -sL "$NODE_DOWNLOAD_LINK" | bash -
 		if [ $? -eq 0 ]; then
-			apt-get install -y nodejs | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
+			apt-get install -y nodejs=$UPDATE_VERSION_NODE_INSTALL_NAME | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 			if [ $? -ne 0 ]; then
 				[[ $LOG_WARN ]] && echo "${LOG_WARN}could not update nodejs"
 				echo "could not update nodejs" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
