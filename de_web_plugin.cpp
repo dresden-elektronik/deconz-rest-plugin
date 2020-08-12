@@ -3216,6 +3216,26 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor, const deCONZ:
             }
 */
         }
+        if (sensor->type() == QLatin1String("ZHATime") && !sensor->mustRead(READ_TIME))
+        {
+            std::vector<quint16>::const_iterator ci = sensor->fingerPrint().inClusters.begin();
+            std::vector<quint16>::const_iterator cend = sensor->fingerPrint().inClusters.end();
+            for (;ci != cend; ++ci)
+            {
+                if (*ci == TIME_CLUSTER_ID)
+                {
+                    NodeValue val = sensor->getZclValue(*ci, 0x0000); // Time
+                    if (!val.timestamp.isValid() || val.timestamp.secsTo(now) >= 60)
+                    {
+                        DBG_Printf(DBG_INFO, "  >>> %s sensor %s: set READ_TIME from checkSensorNodeReachable()\n", qPrintable(sensor->type()), qPrintable(sensor->name()));
+                        sensor->setNextReadTime(READ_TIME, queryTime);
+                        sensor->setLastRead(READ_TIME, idleTotalCounter);
+                        sensor->enableRead(READ_TIME);
+                        queryTime = queryTime.addSecs(1);
+                    }
+                }
+            }
+        }
     }
     else
     {
@@ -4187,6 +4207,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         SensorFingerprint fpSwitch;
         SensorFingerprint fpTemperatureSensor;
         SensorFingerprint fpThermostatSensor;
+        SensorFingerprint fpTimeSensor;
         SensorFingerprint fpVibrationSensor;
         SensorFingerprint fpWaterSensor;
 
@@ -4288,6 +4309,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     fpSwitch.inClusters.push_back(ci->id());
                     fpTemperatureSensor.inClusters.push_back(ci->id());
                     fpThermostatSensor.inClusters.push_back(ci->id());
+                    fpTimeSensor.inClusters.push_back(ci->id());
                     fpVibrationSensor.inClusters.push_back(ci->id());
                     fpWaterSensor.inClusters.push_back(ci->id());
                 }
@@ -4695,6 +4717,16 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 }
                     break;
 
+                case TIME_CLUSTER_ID:
+                {
+                    // Many Xiaomi devices advertise non-functional Time cluster, so better use whitelist.
+                    if (modelId == QLatin1String("Thermostat") || // eCozy
+                        modelId == QLatin1String("eTRV0100")) // Danfoss
+                    {
+                        fpTimeSensor.inClusters.push_back(ci->id());
+                    }
+                }
+                    break;
 
                 default:
                     break;
@@ -5165,6 +5197,23 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             }
         }
 
+        // ZHATime
+        if (fpTimeSensor.hasInCluster(TIME_CLUSTER_ID))
+        {
+            fpTimeSensor.endpoint = i->endpoint();
+            fpTimeSensor.deviceId = i->deviceId();
+            fpTimeSensor.profileId = i->profileId();
+
+            sensor = getSensorNodeForFingerPrint(node->address().ext(), fpTimeSensor, "ZHATime");
+            if (!sensor || sensor->deletedState() != Sensor::StateNormal)
+            {
+                addSensorNode(node, fpTimeSensor, "ZHATime", modelId, manufacturer);
+            }
+            else
+            {
+                checkSensorNodeReachable(sensor);
+            }
+        }
     }
 }
 
@@ -5558,6 +5607,15 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.addItem(DataTypeBool, RConfigLocked);
                 sensorNode.addItem(DataTypeString, RConfigMode);
             }
+            else if (modelId == QLatin1String("Thermostat")) // ecozy
+            {
+                sensorNode.addItem(DataTypeUInt8, RStateValve);
+                sensorNode.addItem(DataTypeString, RConfigSchedule);
+                sensorNode.addItem(DataTypeBool, RConfigScheduleOn);
+                sensorNode.addItem(DataTypeInt16, RConfigLastChangeAmount);
+                sensorNode.addItem(DataTypeUInt8, RConfigLastChangeSource);
+                sensorNode.addItem(DataTypeTime, RConfigLastChangeTime);
+            }
             else if (modelId == QLatin1String("Zen-01"))
             {
             }
@@ -5568,8 +5626,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             }
             else
             {
-                sensorNode.addItem(DataTypeBool, RConfigSchedulerOn); // Scheduler state on/off
-                sensorNode.addItem(DataTypeString, RConfigScheduler); // Scheduler setting
+                sensorNode.addItem(DataTypeBool, RConfigScheduleOn);
+                sensorNode.addItem(DataTypeString, RConfigSchedule);
             }
         }
     }
@@ -5580,6 +5638,16 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             clusterId = POWER_CONFIGURATION_CLUSTER_ID;
         }
         sensorNode.addItem(DataTypeUInt8, RStateBattery);
+    }
+    else if (sensorNode.type().endsWith(QLatin1String("Time")))
+    {
+        if (sensorNode.fingerPrint().hasInCluster(TIME_CLUSTER_ID))
+        {
+            clusterId = TIME_CLUSTER_ID;
+        }
+        item = sensorNode.addItem(DataTypeTime, RStateUtc);
+        item = sensorNode.addItem(DataTypeTime, RStateLocaltime);
+        item = sensorNode.addItem(DataTypeTime, RStateLastSet);
     }
 
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_DDEL)
@@ -5962,6 +6030,17 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                     }
                 }
             }
+            else if (*ci == TIME_CLUSTER_ID)
+            {
+                if (sensorNode.modelId() == QLatin1String("Thermostat")) // eCozy
+                {
+                    DBG_Printf(DBG_INFO, "  >>> %s sensor %s: set READ_TIME from addSensorNode()\n", qPrintable(sensorNode.type()), qPrintable(sensorNode.name()));
+                    sensorNode.setNextReadTime(READ_TIME, queryTime);
+                    sensorNode.setLastRead(READ_TIME, idleTotalCounter);
+                    sensorNode.enableRead(READ_TIME);
+                    queryTime = queryTime.addSecs(1);
+                }
+            }
         }
     }
 
@@ -6326,6 +6405,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             case DOOR_LOCK_CLUSTER_ID:
             case SAMJIN_CLUSTER_ID:
             case IAS_ZONE_CLUSTER_ID:
+            case TIME_CLUSTER_ID:
                 break;
 
             case VENDOR_CLUSTER_ID:
@@ -8115,7 +8195,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 }
 
                                 ResourceItem *item = i->item(RConfigPending);
-                                if(ia->numericValue().u8 == 1)
+                                if (item && ia->numericValue().u8 == 1)
                                 {
                                     DBG_Printf(DBG_INFO_L2, "[IAS] Sensor already enrolled\n");
                                     item->setValue(item->toNumber() & ~R_PENDING_WRITE_CIE_ADDRESS);
@@ -8129,6 +8209,85 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 updateSensorEtag(&*i);
                             }
+                        }
+                    }
+                    else if (event.clusterId() == TIME_CLUSTER_ID)
+                    {
+                        // FIXME: value returned for utc attributes is #seconds since 1970-01-01 ?!
+                        static const QDateTime epochUtc = QDateTime(QDate(1970, 1, 1), QTime(0, 0), Qt::UTC);
+
+                        bool updated = false;
+
+                        for (;ia != enda; ++ia)
+                        {
+                            if (ia->id() == 0x0000) // Time (utc, in UTC)
+                            {
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
+                                }
+                                QDateTime time = epochUtc.addSecs(ia->numericValue().u32); // FIXME
+                                // QDateTime time = epoch.addSecs(ia->numericValue().u32);
+                                ResourceItem *item = i->item(RStateUtc);
+                                if (item && item->toVariant().toDateTime().toMSecsSinceEpoch() != time.toMSecsSinceEpoch())
+                                {
+                                    item->setValue(time);
+                                    enqueueEvent(Event(RSensors, RStateUtc, i->id(), item));
+                                    updated = true;
+                                }
+                                const qint32 drift = QDateTime::currentDateTimeUtc().secsTo(time);
+                                DBG_Printf(DBG_INFO, "  >>> %s sensor %s: drift %d\n", qPrintable(i->type()), qPrintable(i->name()), drift);
+
+                                if (!i->mustRead(WRITE_TIME))
+                                {
+                                    if (drift < -10 || drift > 10)
+                                    {
+                                        DBG_Printf(DBG_INFO, "  >>> %s sensor %s: drift: %d: set WRITE_TIME\n", qPrintable(i->type()), qPrintable(i->name()), drift);
+                                        i->setNextReadTime(WRITE_TIME, queryTime);
+                                        i->setLastRead(WRITE_TIME, idleTotalCounter);
+                                        i->enableRead(WRITE_TIME);
+                                        queryTime = queryTime.addSecs(1);
+                                    }
+                                }
+                            }
+                            else if (ia->id() == 0x0007) // Local Time (u32, in local time)
+                            {
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
+                                }
+                                QDateTime time = epoch.addSecs(ia->numericValue().u32 - QDateTime::currentDateTime().offsetFromUtc());
+                                ResourceItem *item = i->item(RStateLocaltime);
+                                if (item && item->toVariant().toDateTime().toMSecsSinceEpoch() != time.toMSecsSinceEpoch())
+                                {
+                                    item->setValue(time);
+                                    enqueueEvent(Event(RSensors, RStateLocaltime, i->id(), item));
+                                    updated = true;
+                                }
+                            }
+                            else if (ia->id() == 0x0008) // Last set time (utc, in UTC)
+                            {
+                              if (updateType != NodeValue::UpdateInvalid)
+                              {
+                                  i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
+                              }
+                              QDateTime time = epochUtc.addSecs(ia->numericValue().u32); // FIXME
+                              // QDateTime time = epoch.addSecs(ia->numericValue().u32);
+                              ResourceItem *item = i->item(RStateLastSet);
+                              if (item && item->toVariant().toDateTime().toMSecsSinceEpoch() != time.toMSecsSinceEpoch())
+                              {
+                                  item->setValue(time);
+                                  enqueueEvent(Event(RSensors, RStateLastSet, i->id(), item));
+                                  updated = true;
+                              }
+                            }
+                        }
+                        if (updated)
+                        {
+                            i->updateStateTimestamp();
+                            i->setNeedSaveDatabase(true);
+                            enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
+                            updateSensorEtag(&*i);
                         }
                     }
                 }
@@ -9176,14 +9335,26 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
     if (sensorNode->mustRead(READ_THERMOSTAT_STATE) && tNow > sensorNode->nextReadTime(READ_THERMOSTAT_STATE))
     {
         std::vector<uint16_t> attributes;
-        // following are reported by Eurotronics Spirit thermostat (SPZB0001)
-        // TODO use poll manager, only poll when needed
-        attributes.push_back(0x0000); // temperature
-        attributes.push_back(0x0012); // heating setpoint
 
-        // following are not supported by Eurotronics Spirit thermostat (SPZB0001)
-        attributes.push_back(0x0025); // scheduler state
-        attributes.push_back(0x0029); // heating operation state
+        if (sensorNode->modelId() == QLatin1String("Thermostat")) // eCozy
+        {
+            // attributes.push_back(0x0000); // Local Temperature - reported
+            // attributes.push_back(0x0008); // PI Heating Demand - reported
+            attributes.push_back(0x0010); // Local Temperature Calibration
+            attributes.push_back(0x0012); // Occupied Heating Setpoint
+            attributes.push_back(0x0023); // Temperature Setpoint Hold
+            attributes.push_back(0x0030); // Setpoint Change Source
+            attributes.push_back(0x0031); // Setpoint Change Amount
+            attributes.push_back(0x0032); // Setpoint Change Timestamp
+        }
+        else
+        {
+            // TODO use poll manager, only poll when needed
+            attributes.push_back(0x0000); // temperature
+            attributes.push_back(0x0012); // heating setpoint
+            attributes.push_back(0x0025); // scheduler state
+            attributes.push_back(0x0029); // heating operation state
+        }
 
         if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, THERMOSTAT_CLUSTER_ID, attributes))
         {
@@ -9192,16 +9363,23 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         }
     }
 
-    //if (sensorNode->mustRead(READ_MODE_CONFIG) && tNow > sensorNode->nextReadTime(READ_MODE_CONFIG))
-    //{
-    //    std::vector<uint16_t> attributes;
-    //    attributes.push_back(0x0000); // heating regulation mode
-    //    if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, LEGRAND_CONTROL_CLUSTER_ID, attributes))
-    //    {
-    //        sensorNode->clearRead(READ_MODE_CONFIG);
-    //        processed++;
-    //    }
-    //}
+    if (sensorNode->mustRead(READ_THERMOSTAT_SCHEDULE) && tNow > sensorNode->nextReadTime(READ_THERMOSTAT_SCHEDULE))
+    {
+        TaskItem task;
+
+        // set destination parameters
+        task.req.dstAddress() = sensorNode->address();
+        task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+        task.req.setDstEndpoint(sensorNode->fingerPrint().endpoint);
+        task.req.setSrcEndpoint(getSrcEndpoint(sensorNode, task.req));
+        task.req.setDstAddressMode(deCONZ::ApsExtAddress);
+
+        if (addTaskThermostatSetAndGetSchedule(task, ""))
+        {
+            sensorNode->clearRead(READ_THERMOSTAT_SCHEDULE);
+            processed++;
+        }
+    }
 
     if (sensorNode->mustRead(READ_BATTERY) && tNow > sensorNode->nextReadTime(READ_BATTERY))
     {
@@ -9210,6 +9388,39 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, POWER_CONFIGURATION_CLUSTER_ID, attributes))
         {
             sensorNode->clearRead(READ_BATTERY);
+            processed++;
+        }
+    }
+
+    if (sensorNode->mustRead(READ_TIME) && tNow > sensorNode->nextReadTime(READ_TIME))
+    {
+        DBG_Printf(DBG_INFO, "  >>> %s sensor %s: exec READ_TIME\n", qPrintable(sensorNode->type()), qPrintable(sensorNode->name()));
+        std::vector<uint16_t> attributes;
+        attributes.push_back(0x0000); // Time
+        attributes.push_back(0x0007); // Local Time
+        attributes.push_back(0x0008); // Last Set
+        if (readAttributes(sensorNode, sensorNode->fingerPrint().endpoint, TIME_CLUSTER_ID, attributes))
+        {
+            DBG_Printf(DBG_INFO, "  >>> %s sensor %s: clear READ_TIME\n", qPrintable(sensorNode->type()), qPrintable(sensorNode->name()));
+            sensorNode->clearRead(READ_TIME);
+            processed++;
+        }
+        else
+        {
+            DBG_Printf(DBG_INFO, "  >>> %s sensor %s: READ_TIME failed\n", qPrintable(sensorNode->type()), qPrintable(sensorNode->name()));
+        }
+    }
+
+    if (sensorNode->mustRead(WRITE_TIME) && tNow > sensorNode->nextReadTime(WRITE_TIME))
+    {
+        DBG_Printf(DBG_INFO, "  >>> %s sensor %s: exec WRITE_TIME\n", qPrintable(sensorNode->type()), qPrintable(sensorNode->name()));
+        deCONZ::ZclAttribute attr(0x0000, deCONZ::ZclUtcTime, "time", deCONZ::ZclReadWrite, true);
+        attr.setValue(QDateTime::currentDateTimeUtc());
+
+        if (addTaskSyncTime(sensorNode))
+        {
+            DBG_Printf(DBG_INFO, "  >>> %s sensor %s: clear WRITE_TIME\n", qPrintable(sensorNode->type()), qPrintable(sensorNode->name()));
+            sensorNode->clearRead(WRITE_TIME);
             processed++;
         }
     }
@@ -9235,7 +9446,11 @@ bool DeRestPluginPrivate::readAttributes(RestNodeBase *restNode, quint8 endpoint
         return false;
     }
 
-    if (!restNode->node()->nodeDescriptor().receiverOnWhenIdle())
+    if (clusterId == TIME_CLUSTER_ID)
+    {
+        // FIXME: should check for light sleeper instead
+    }
+    else if (!restNode->node()->nodeDescriptor().receiverOnWhenIdle())
     {
         QDateTime now = QDateTime::currentDateTime();
         if (!restNode->lastRx().isValid() || (restNode->lastRx().secsTo(now) > 3))
@@ -11852,6 +12067,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         case WINDOW_COVERING_CLUSTER_ID:
         case DOOR_LOCK_CLUSTER_ID:
         case SAMJIN_CLUSTER_ID:
+        case TIME_CLUSTER_ID:
             {
                 addSensorNode(event.node(), &event);
                 updateSensorNode(event);
@@ -13776,6 +13992,18 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
                 }
 
                 addSensorNode(si->node()); // check if somethings needs to be updated
+            }
+
+            if (si->type() == QLatin1String("ZHATime"))
+            {
+                if (!si->mustRead(READ_TIME))
+                {
+                    DBG_Printf(DBG_INFO, "  >>> %s sensor %s: set READ_TIME from handleDeviceAnnceIndication()\n", qPrintable(si->type()), qPrintable(si->name()));
+                    si->enableRead(READ_TIME);
+                    si->setLastRead(READ_TIME, idleTotalCounter);
+                    si->setNextReadTime(READ_TIME, queryTime);
+                    queryTime = queryTime.addSecs(1);
+                }
             }
         }
     }
@@ -16082,7 +16310,14 @@ void DeRestPlugin::idleTimerFired()
 
                         if (*ci == THERMOSTAT_CLUSTER_ID)
                         {
-                            val = sensorNode->getZclValue(*ci, 0x0029); // heating state
+                            if (sensorNode->modelId() == QLatin1String("Thermostat")) // eCozy
+                            {
+                                val = sensorNode->getZclValue(*ci, 0x0023); // Temperature Setpoint Hold
+                            }
+                            else
+                            {
+                                val = sensorNode->getZclValue(*ci, 0x0029); // heating operation state
+                            }
 
                             if (sensorNode->modelId().startsWith(QLatin1String("SPZB")) ||   // Eurotronic Spirit
                                 sensorNode->modelId().startsWith(QLatin1String("SLT2")) ||   // Hive Active Heating Thermostat
@@ -16099,12 +16334,37 @@ void DeRestPlugin::idleTimerFired()
                                 sensorNode->setNextReadTime(READ_THERMOSTAT_STATE, d->queryTime);
                                 d->queryTime = d->queryTime.addSecs(tSpacing);
                                 processSensors = true;
+
+                                if (sensorNode->modelId() == QLatin1String("Thermostat"))
+                                {
+                                    sensorNode->enableRead(READ_THERMOSTAT_SCHEDULE);
+                                    sensorNode->setLastRead(READ_THERMOSTAT_SCHEDULE, d->idleTotalCounter);
+                                    sensorNode->setNextReadTime(READ_THERMOSTAT_SCHEDULE, d->queryTime);
+                                    d->queryTime = d->queryTime.addSecs(tSpacing);
+                                }
+                            }
+                        }
+
+                        if (*ci == TIME_CLUSTER_ID)
+                        {
+                            if (!sensorNode->mustRead(READ_TIME))
+                            {
+                                val = sensorNode->getZclValue(*ci, 0x0000); // Time
+                                if (!val.timestamp.isValid() || val.timestamp.secsTo(now) >= 60)
+                                {
+                                    DBG_Printf(DBG_INFO, "  >>> %s sensor %s: set READ_TIME from idleTimerFired()\n", qPrintable(sensorNode->type()), qPrintable(sensorNode->name()));
+                                    sensorNode->enableRead(READ_TIME);
+                                    sensorNode->setLastRead(READ_TIME, d->idleTotalCounter);
+                                    sensorNode->setNextReadTime(READ_TIME, d->queryTime);
+                                    d->queryTime = d->queryTime.addSecs(tSpacing);
+                                    processSensors = true;
+                                }
                             }
                         }
 
                     }
 
-                    DBG_Printf(DBG_INFO_L2, "Force read attributes for SensorNode %s\n", qPrintable(sensorNode->name()));
+                    DBG_Printf(DBG_INFO_L2, "Force read attributes for %s SensorNode %s\n", qPrintable(sensorNode->type()), qPrintable(sensorNode->name()));
                     //break;
                 }
 

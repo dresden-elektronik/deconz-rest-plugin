@@ -988,7 +988,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     {
         if (req.mode != ApiModeNormal)
         {
-            map["swversion"] = QLatin1String("1938112040");
+            map["swversion"] = QLatin1String("1939070020");
             map["apiversion"] = QLatin1String("1.38.0");
             map["modelid"] = QLatin1String("BSB002");
         }
@@ -1486,8 +1486,8 @@ int DeRestPluginPrivate::putZigbeeConfig(const ApiRequest &req, ApiResponse &rsp
     endpoint1["profileId"] = QLatin1String("0x0104");
     endpoint1["deviceId"] = QLatin1String("0x05");
     endpoint1["deviceVersion"] = QLatin1String("0x01");
-    endpoint1["inClusters"] = QVariantList({ "0x0019", "0x000A"});
-    endpoint1["outClusters"] = QVariantList({ "0x0500"});
+    endpoint1["inClusters"] = QVariantList({"0x0000" , "0x000A", "0x0019"});
+    endpoint1["outClusters"] = QVariantList({"0x0500"});
     endpoint1["index"] = static_cast<double>(0);
 
     // green power endpoint

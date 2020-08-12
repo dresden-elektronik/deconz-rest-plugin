@@ -251,6 +251,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (item->descriptor().suffix == RStateReachable) { state["reachable"] = item->toBool(); }
         else if (item->descriptor().suffix == RConfigCtMin) { map["ctmin"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigCtMax) { map["ctmax"] = item->toNumber(); }
+        else if (item->descriptor().suffix == RConfigColorCapabilities) { map["colorcapabilities"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigPowerup) { map["powerup"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigPowerOnLevel) { map["poweronlevel"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigPowerOnCt) { map["poweronct"] = item->toNumber(); }
@@ -2603,7 +2604,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                 {
                     key = item->descriptor().suffix + 5;
                 }
-                else if (strncmp(e.what(), "config/", 7) == 0)
+                else if (strncmp(rid.suffix, "config/", 7) == 0)
                 {
                     key = item->descriptor().suffix + 7;
                 }
