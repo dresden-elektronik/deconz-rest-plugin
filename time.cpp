@@ -24,15 +24,64 @@
 
 const QDateTime epoch = QDateTime(QDate(2000, 1, 1), QTime(0, 0), Qt::UTC);
 
+static void getTime(quint32 *time, qint32 *tz, quint32 *dstStart, quint32 *dstEnd, qint32 *dstShift, quint32 *standardTime, quint32 *localTime)
+{
+    QDateTime now = QDateTime::currentDateTimeUtc();
+    QDateTime yearStart(QDate(QDate::currentDate().year(), 1, 1), QTime(0, 0), Qt::UTC);
+    QTimeZone timeZone(QTimeZone::systemTimeZoneId());
+
+    *time = *standardTime = *localTime = epoch.secsTo(now);
+    *tz = timeZone.offsetFromUtc(yearStart);
+    if (timeZone.hasTransitions())
+    {
+        QTimeZone::OffsetData dstStartOffsetData = timeZone.nextTransition(yearStart);
+        QTimeZone::OffsetData dstEndOffsetData = timeZone.nextTransition(dstStartOffsetData.atUtc);
+        *dstStart = epoch.secsTo(dstStartOffsetData.atUtc);
+        *dstEnd = epoch.secsTo(dstEndOffsetData.atUtc);
+        *dstShift = dstStartOffsetData.daylightTimeOffset;
+        *standardTime += *tz;
+        *localTime += *tz + ((*time >= *dstStart && *time <= *dstEnd) ? *dstShift : 0);
+    }
+}
+
 /*! Handle packets related to the ZCL Time cluster.
     \param ind the APS level data indication containing the ZCL packet
     \param zclFrame the actual ZCL frame which holds the read attribute request
  */
 void DeRestPluginPrivate::handleTimeClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
-    if (zclFrame.isProfileWideCommand() && zclFrame.commandId() == deCONZ::ZclReadAttributesId)
+    if (zclFrame.isProfileWideCommand())
     {
-    	sendTimeClusterResponse(ind, zclFrame);
+        if (zclFrame.commandId() == deCONZ::ZclReadAttributesId)
+        {
+        	   sendTimeClusterResponse(ind, zclFrame);
+        }
+        else if (zclFrame.commandId() == deCONZ::ZclWriteAttributesResponseId)
+        {
+            for (Sensor &sensor: sensors)
+            {
+                if (sensor.deletedState() != Sensor::StateNormal || !sensor.node() || sensor.type() != QLatin1String("ZHATime"))
+                {
+                    continue;
+                }
+                if      (ind.srcAddress().hasExt() && sensor.address().hasExt() &&
+                         ind.srcAddress().ext() == sensor.address().ext())
+                { }
+                else if (ind.srcAddress().hasNwk() && sensor.address().hasNwk() &&
+                         ind.srcAddress().nwk() == sensor.address().nwk())
+                { }
+                else
+                {
+                    continue;
+                }
+                DBG_Printf(DBG_INFO, "  >>> %s sensor %s: set READ_TIME from handleTimeClusterIndication()\n", qPrintable(sensor.type()), qPrintable(sensor.name()));
+                sensor.setNextReadTime(READ_TIME, queryTime);
+                sensor.setLastRead(READ_TIME, idleTotalCounter);
+                sensor.enableRead(READ_TIME);
+                queryTime = queryTime.addSecs(1);
+                break;
+            }
+        }
     }
 }
 
@@ -60,63 +109,17 @@ void DeRestPluginPrivate::sendTimeClusterResponse(const deCONZ::ApsDataIndicatio
                                 deCONZ::ZclFCDisableDefaultResponse);
 
     quint32 time_now = 0xFFFFFFFF;              // id 0x0000 Time
-    qint8 time_status = 0x09;                   // id 0x0001 TimeStatus Master(bit-0)=1, Superseding(bit-3)= 1
+    qint8 time_status = 0x0D;                   // id 0x0001 TimeStatus Master|MasterZoneDst|Superseding
     qint32 time_zone = 0xFFFFFFFF;              // id 0x0002 TimeZone
     quint32 time_dst_start = 0xFFFFFFFF;        // id 0x0003 DstStart
     quint32 time_dst_end = 0xFFFFFFFF;          // id 0x0004 DstEnd
     qint32 time_dst_shift = 0xFFFFFFFF;         // id 0x0005 DstShift
     quint32 time_std_time = 0xFFFFFFFF;         // id 0x0006 StandardTime
     quint32 time_local_time = 0xFFFFFFFF;       // id 0x0007 LocalTime
-    quint32 time_last_set_time = 0xFFFFFFFF;    // id 0x0008 LastSetTime
-    quint32 time_valid_until_time = 0xFFFFFFFF; // id 0x0009 ValidUnilTime
+    quint32 time_valid_until_time = 0xFFFFFFFF; // id 0x0009 ValidUntilTime
 
-    QDateTime dststart(QDateTime::fromTime_t(0));
-    QDateTime dstend(QDateTime::fromTime_t(0));
-
-    QDateTime local(QDateTime::currentDateTimeUtc());
-
-    QDateTime beginYear(QDate(QDate::currentDate().year(), 1, 1), QTime(0, 0), Qt::UTC);
-
-    time_now = epoch.secsTo(local);
-
-    QTimeZone timeZoneLocal(QTimeZone::systemTimeZoneId());
-
-    // if (timeZoneLocal.operator == (QTimeZone("Etc/GMT")))
-    // {
-    // 	timeZoneLocal = QTimeZone("Europe/Berlin");
-    // }
-
-    if (timeZoneLocal.hasTransitions())
-    {
-    	time_status |= 0x04; // MasterZoneDst(bit-2)=1
-
-    	time_zone = timeZoneLocal.offsetFromUtc(beginYear);
-
-    	QTimeZone::OffsetData dststartoffset = timeZoneLocal.nextTransition(beginYear);
-    	dststart =  dststartoffset.atUtc;
-
-    	QTimeZone::OffsetData dstendoffset = timeZoneLocal.nextTransition(dststart);
-    	dstend =  dstendoffset.atUtc;
-
-    	time_dst_shift = dststartoffset.daylightTimeOffset;
-
-    	time_dst_start = epoch.secsTo(dststartoffset.atUtc);
-    	time_dst_end = epoch.secsTo(dstendoffset.atUtc);
-    	time_std_time = time_now +  time_zone;
-    	time_local_time = time_now + timeZoneLocal.offsetFromUtc(local);
-    	time_last_set_time = time_now;
-    	time_valid_until_time = time_now + (3600 * 24 * 30 * 12);
-    }
-
-    // DBG_Printf(DBG_INFO, "Time_Cluster time_now       %s\n", local.toString(Qt::ISODate).toStdString().c_str());
-    // DBG_Printf(DBG_INFO, "Time_Cluster time_local     %s\n", local.toTimeZone(timeZoneLocal).toString(Qt::ISODate).toStdString().c_str());
-    // DBG_Printf(DBG_INFO, "Time_Cluster time_now       %ld \n", (long) time_now);
-    // DBG_Printf(DBG_INFO, "Time_Cluster time_local     %ld \n", (long) time_local_time);
-    // DBG_Printf(DBG_INFO, "Time_Cluster time_dst_start %s %ld\n", dststart.toUTC().toString(Qt::ISODate).toStdString().c_str(), (long) time_dst_start);
-    // DBG_Printf(DBG_INFO, "Time_Cluster time_dst_end   %s %ld\n", dstend.toUTC().toString(Qt::ISODate).toStdString().c_str(), (long) time_dst_end);
-    // DBG_Printf(DBG_INFO, "Time_Cluster time_dst_shift %d\n", (int) time_dst_shift);
-    // DBG_Printf(DBG_INFO, "Time_Cluster time_zone      %d %s\n", (int) time_zone, timeZoneLocal.abbreviation(local).toStdString().c_str());
-    // DBG_Printf(DBG_INFO, "Time_Cluster systemTimeZone %s\n", QTimeZone::systemTimeZone().abbreviation(local).toStdString().c_str());
+    getTime(&time_now, &time_zone, &time_dst_start, &time_dst_end, &time_dst_shift, &time_std_time, &time_local_time);
+    time_valid_until_time = time_now + (3600 * 24 * 30 * 12);
 
     { // payload
         QDataStream stream(&outZclFrame.payload(), QIODevice::WriteOnly);
@@ -131,10 +134,7 @@ void DeRestPluginPrivate::sendTimeClusterResponse(const deCONZ::ApsDataIndicatio
         {
         	instream >> attr;
         	stream << attr;
-        	// DBG_Printf(DBG_INFO, "Time_Cluster received read request attribute 0x%04X from %s %s\n",
-        	// 		(int) attr,
-					// ind.srcAddress().toStringNwk().toUtf8().data(),
-					// ind.srcAddress().toStringExt().toUtf8().data());
+
         	switch(attr)
         	{
         	case 0x0000:
@@ -188,7 +188,7 @@ void DeRestPluginPrivate::sendTimeClusterResponse(const deCONZ::ApsDataIndicatio
         	case 0x0008:
         		stream << code;
         		stream << (quint8) deCONZ::ZclUtcTime;
-        		stream << time_last_set_time;
+        		stream << time_now;
         		break;
 
         	case 0x0009:
@@ -232,4 +232,85 @@ QVariantList DeRestPluginPrivate::getTimezones()
     }
 
 	return list;
+}
+
+/*! Sync a sensor's on-device real-time clock.
+ * \param sensor the ZHATime sensor
+ */
+bool DeRestPluginPrivate::addTaskSyncTime(Sensor *sensor)
+{
+    if (!sensor || !sensor->isAvailable())
+    {
+        return false;
+    }
+
+    TaskItem task;
+    task.taskType = TaskSyncTime;
+
+    task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+    task.req.setDstEndpoint(sensor->fingerPrint().endpoint);
+    task.req.setDstAddressMode(deCONZ::ApsExtAddress);
+    task.req.dstAddress() = sensor->address();
+    task.req.setClusterId(TIME_CLUSTER_ID);
+    task.req.setProfileId(HA_PROFILE_ID);
+    task.req.setSrcEndpoint(getSrcEndpoint(sensor, task.req));
+
+    task.zclFrame.setSequenceNumber(zclSeq++);
+    task.zclFrame.setCommandId(deCONZ::ZclWriteAttributesId);
+    task.zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                                  deCONZ::ZclFCDirectionClientToServer |
+                                  deCONZ::ZclFCDisableDefaultResponse);
+
+    quint32 time_now = 0xFFFFFFFF;              // id 0x0000 Time
+    qint8 time_status = 0x02;                   // id 0x0001 TimeStatus Synchronized
+    qint32 time_zone = 0xFFFFFFFF;              // id 0x0002 TimeZone
+    quint32 time_dst_start = 0xFFFFFFFF;        // id 0x0003 DstStart
+    quint32 time_dst_end = 0xFFFFFFFF;          // id 0x0004 DstEnd
+    qint32 time_dst_shift = 0xFFFFFFFF;         // id 0x0005 DstShift
+    quint32 time_std_time = 0xFFFFFFFF;         // id 0x0006 StandardTime
+    quint32 time_local_time = 0xFFFFFFFF;       // id 0x0007 LocalTime
+    quint32 time_valid_until_time = 0xFFFFFFFF; // id 0x0009 ValidUntilTime
+
+    getTime(&time_now, &time_zone, &time_dst_start, &time_dst_end, &time_dst_shift, &time_std_time, &time_local_time);
+    time_valid_until_time = time_now + (3600 * 24);
+
+    QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
+    stream.setByteOrder(QDataStream::LittleEndian);
+
+    stream << (quint16) 0x0000; // Time
+    stream << (quint8) deCONZ::ZclUtcTime;
+    stream << time_now;
+
+    stream << (quint16) 0x0001; // Time Status
+    stream << (quint8) deCONZ::Zcl8BitBitMap;
+    stream << time_status;
+
+    stream << (quint16) 0x0002; // Time Zone
+    stream << (quint8) deCONZ::Zcl32BitInt;
+    stream << time_zone;
+
+    stream << (quint16) 0x0003; // Dst Start
+    stream << (quint8) deCONZ::Zcl32BitUint;
+    stream << time_dst_start;
+
+    stream << (quint16) 0x0004; // Dst End
+    stream << (quint8) deCONZ::Zcl32BitUint;
+    stream << time_dst_end;
+
+    stream << (quint16) 0x0005; // Dst Shift
+    stream << (quint8) deCONZ::Zcl32BitInt;
+    stream << time_dst_shift;
+
+    stream << (quint16) 0x0009; // Valid Until Time
+    stream << (quint8) deCONZ::ZclUtcTime;
+    stream << time_valid_until_time;
+
+    { // ZCL frame
+        task.req.asdu().clear(); // cleanup old request data if there is any
+        QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        task.zclFrame.writeToStream(stream);
+    }
+
+    return addTask(task);
 }

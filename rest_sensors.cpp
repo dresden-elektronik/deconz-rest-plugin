@@ -854,7 +854,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     		}
                     		rspItem["success"] = rspItemState;
                     	}
-                        
+
                     }
 
                     if (rid.suffix == RConfigWindowCoveringType)
@@ -1034,7 +1034,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                     }
                 }
-                if (rid.suffix == RConfigScheduler)
+                if (rid.suffix == RConfigSchedule)
                 {
                     QString sched = map[pi.key()].toString().simplified();
                     if (addTaskThermostatSetAndGetSchedule(task, sched))
@@ -1049,12 +1049,22 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         return REQ_READY_SEND;
                     }
                 }
-                if (rid.suffix == RConfigSchedulerOn)
+                if (rid.suffix == RConfigScheduleOn)
                 {
                     bool onoff = map[pi.key()].toBool();
-                    uint8_t onoffAttr = onoff ? 0x01 : 0x00;
+                    bool ok = false;
 
-                    if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0025, deCONZ::Zcl8BitBitMap, onoffAttr))
+                    if (sensor->modelId() == QLatin1String("Thermostat")) // eCozy
+                    {
+                        uint8_t onoffAttr = onoff ? 0x00 : 0x01;
+                        ok = addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0023, deCONZ::Zcl8BitEnum, onoffAttr);
+                    }
+                    else
+                    {
+                        uint8_t onoffAttr = onoff ? 0x01 : 0x00;
+                        ok = addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0025, deCONZ::Zcl8BitBitMap, onoffAttr);
+                    }
+                    if (ok)
                     {
                         updated = true;
                     }
@@ -1854,6 +1864,10 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
     const ResourceItem *iy = nullptr;
     QVariantList xy;
     QVariantMap config;
+    const ResourceItem *ilcs = nullptr;
+    const ResourceItem *ilca = nullptr;
+    const ResourceItem *ilct = nullptr;
+    QVariantMap lastchange;
 
     for (int i = 0; i < sensor->itemCount(); i++)
     {
@@ -1906,6 +1920,24 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
                     pending.append("usertest");
                 }
                 config[key] = pending;
+            }
+            else if (rid.suffix == RConfigLastChangeSource)
+            {
+                ilcs = item;
+            }
+            else if (rid.suffix == RConfigLastChangeAmount)
+            {
+                ilca = item;
+            }
+            else if (rid.suffix == RConfigLastChangeTime)
+            {
+                ilct = item;
+            }
+            else if (rid.suffix == RConfigSchedule)
+            {
+                QVariantMap schedule;
+                deserialiseThermostatSchedule(item->toString(), &schedule);
+                config[key] = schedule;
             }
             else
             {
@@ -1967,13 +1999,20 @@ bool DeRestPluginPrivate::sensorToMap(const Sensor *sensor, QVariantMap &map, co
         xy.append(round(iy->toNumber() / 6.5535) / 10000.0);
         state["xy"] = xy;
     }
+    if (ilcs && ilca && ilct)
+    {
+        lastchange["source"] = RConfigLastChangeSourceValues[ilcs->toNumber()];
+        lastchange["amount"] = ilca->toNumber();
+        lastchange["time"] = ilct->toVariant().toDateTime().toString("yyyy-MM-ddTHH:mm:ssZ");
+        config["lastchange"] = lastchange;
+    }
 
     //sensor
     map["name"] = sensor->name();
     map["type"] = sensor->type();
     if (sensor->type().startsWith(QLatin1String("Z"))) // ZigBee sensor
     {
-        map["lastseen"] = sensor->lastRx().toUTC().toString("yyyy-MM-ddTHH:mm:ss.zzz");
+        map["lastseen"] = sensor->lastRx().toUTC().toString("yyyy-MM-ddTHH:mmZ");
     }
 
     if (req.path.size() > 2 && req.path[2] == QLatin1String("devices"))
@@ -2208,6 +2247,10 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
             map["id"] = e.id();
             map["uniqueid"] = sensor->uniqueId();
             QVariantMap config;
+            const ResourceItem *ilcs = nullptr;
+            const ResourceItem *ilca = nullptr;
+            const ResourceItem *ilct = nullptr;
+            QVariantMap lastchange;
 
             for (int i = 0; i < sensor->itemCount(); i++)
             {
@@ -2222,10 +2265,44 @@ void DeRestPluginPrivate::handleSensorEvent(const Event &e)
                     {
                         continue;
                     }
-                    if (item->lastSet().isValid() && (gwWebSocketNotifyAll || (item->lastChanged().isValid() && item->lastChanged() >= sensor->lastConfigPush)))
+                    else if (rid.suffix == RConfigLastChangeSource)
                     {
-                        config[key] = item->toVariant();
+                        ilcs = item;
                     }
+                    else if (rid.suffix == RConfigLastChangeAmount)
+                    {
+                        ilca = item;
+                    }
+                    else if (rid.suffix == RConfigLastChangeTime)
+                    {
+                        ilct = item;
+                    }
+                    else if (item->lastSet().isValid() && (gwWebSocketNotifyAll || (item->lastChanged().isValid() && item->lastChanged() >= sensor->lastConfigPush)))
+                    {
+                        if (rid.suffix == RConfigSchedule)
+                        {
+                            QVariantMap schedule;
+                            deserialiseThermostatSchedule(item->toString(), &schedule);
+                            config[key] = schedule;
+                        }
+                        else
+                        {
+                            config[key] = item->toVariant();
+                        }
+                    }
+                }
+            }
+            if (ilcs && ilcs->lastSet().isValid() && ilca && ilca->lastSet().isValid() && ilct && ilct->lastSet().isValid())
+            {
+                if (gwWebSocketNotifyAll ||
+                    (ilcs->lastChanged().isValid() && ilcs->lastChanged() >= sensor->lastConfigPush) ||
+                    (ilca->lastChanged().isValid() && ilca->lastChanged() >= sensor->lastConfigPush) ||
+                    (ilct->lastChanged().isValid() && ilct->lastChanged() >= sensor->lastConfigPush))
+                {
+                    lastchange["source"] = RConfigLastChangeSourceValues[ilcs->toNumber()];
+                    lastchange["amount"] = ilca->toNumber();
+                    lastchange["time"] = ilct->toVariant().toDateTime().toString("yyyy-MM-ddTHH:mm:ssZ");
+                    config["lastchange"] = lastchange;
                 }
             }
 

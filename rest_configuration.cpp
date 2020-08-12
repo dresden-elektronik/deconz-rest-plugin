@@ -988,7 +988,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     {
         if (req.mode != ApiModeNormal)
         {
-            map["swversion"] = QLatin1String("1938112040");
+            map["swversion"] = QLatin1String("1939070020");
             map["apiversion"] = QLatin1String("1.38.0");
             map["modelid"] = QLatin1String("BSB002");
         }
@@ -1486,8 +1486,8 @@ int DeRestPluginPrivate::putZigbeeConfig(const ApiRequest &req, ApiResponse &rsp
     endpoint1["profileId"] = QLatin1String("0x0104");
     endpoint1["deviceId"] = QLatin1String("0x05");
     endpoint1["deviceVersion"] = QLatin1String("0x01");
-    endpoint1["inClusters"] = QVariantList({ "0x0019", "0x000A"});
-    endpoint1["outClusters"] = QVariantList({ "0x0500"});
+    endpoint1["inClusters"] = QVariantList({"0x0000" , "0x000A", "0x0019"});
+    endpoint1["outClusters"] = QVariantList({"0x0500"});
     endpoint1["index"] = static_cast<double>(0);
 
     // green power endpoint
@@ -1960,23 +1960,23 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
             gwTimezone = timezone;
             queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
             changed = true;
-
 #ifdef ARCH_ARM
-            int rc = setenv("TZ", qPrintable(timezone), 1);
+            const QString tzFilespec = QString(":") + timezone;
+            int rc = setenv("TZ", qPrintable(tzFilespec), 1);
             tzset();
 
             //also set zoneinfo on RPI
-            char param1[100];
-            strcpy(param1, "/usr/share/zoneinfo/");
-            strcpy(param1, qPrintable(timezone));
+            //char param1[100];
+            //strcpy(param1, "/usr/share/zoneinfo/");
+            //strcpy(param1, qPrintable(timezone));
 
-            if (symlink(param1, "/etc/localtime") == -1)
-            {
-                DBG_Printf(DBG_INFO, "Create symlink to timezone failed with errno: %s\n", strerror(errno));
+            //if (symlink(param1, "/etc/localtime") == -1)
+            //{
+                //DBG_Printf(DBG_INFO, "Create symlink to timezone failed with errno: %s\n", strerror(errno));
                 //rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/config/timezone"), QString("Link timezone failed with errno: %1\n").arg(strerror(errno))));
                 //rsp.httpStatus = HttpStatusServiceUnavailable;
                 //return REQ_READY_SEND;
-            }
+            //}
 
             if (rc != 0)
             {

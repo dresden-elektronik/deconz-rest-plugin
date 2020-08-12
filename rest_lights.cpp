@@ -251,6 +251,7 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (item->descriptor().suffix == RStateReachable) { state["reachable"] = item->toBool(); }
         else if (item->descriptor().suffix == RConfigCtMin) { map["ctmin"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigCtMax) { map["ctmax"] = item->toNumber(); }
+        else if (item->descriptor().suffix == RConfigColorCapabilities) { map["colorcapabilities"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigPowerup) { map["powerup"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigPowerOnLevel) { map["poweronlevel"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigPowerOnCt) { map["poweronct"] = item->toNumber(); }
@@ -590,6 +591,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     bool hasSpeed = false;
     quint8 targetSpeed = 0;
     bool hasTransitionTime = false;
+    bool hasStop = false;
 
     // Check parameters.
     for (QVariantMap::const_iterator p = map.begin(); p != map.end(); p++)
@@ -839,9 +841,62 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     {
         rsp.list.append(errorToMap(ERR_MISSING_PARAMETER, QString("/lights/%1/state").arg(id), QString("missing parameter to set light state")));
     }
-
+    
     // Check whether light is on.
     isOn = taskRef.lightNode->toBool(RStateOn);
+    
+    // Special part for Profalux device
+    // This device is a shutter but is used as a dimmable light, so need some hack
+    if (taskRef.lightNode->modelId() == QLatin1String("PFLX Shutter"))
+    {
+        // if the user use on/off instead off bri
+        if (hasOn && !hasBri)
+        {
+            targetBri = targetOn ? 0xFE : 0x00;
+        }
+        
+        // The constructor ask to use setvel instead of on/off
+        hasBri = true;
+        hasOn = false;
+        isOn = true; // to force bri even state = off
+        
+        //Check limit
+        if (targetBri > 0xFE) { targetBri = 0xFE; }
+        if (targetBri < 1 ) { targetBri = 0x01; }
+        
+        //Check for stop
+        if (hasBriInc)
+        {
+            hasStop = true;
+        }
+        
+    }
+    
+    // Stop command, I think it's useless, but the command exist, and need it for profalux
+    if (hasStop)
+    {
+        //Reset all
+        hasBriInc = false;
+        hasBri = false;
+        isOn = false;
+        
+        TaskItem task;
+        copyTaskReq(taskRef, task);
+        
+        if (addTaskStopBrightness(task))
+        {
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/state/stop").arg(id)] = true;
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/stop").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+        }
+
+    }
 
     // state.on: true
     if (hasOn && targetOn)
@@ -1934,7 +1989,8 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
         else if (alert == "select")
         {
             task.options = 0x17; // Warning mode 1 (burglar), Strobe, Very high sound
-            if (taskRef.lightNode->modelId() == QLatin1String("902010/24"))
+            if (taskRef.lightNode->modelId() == QLatin1String("902010/24") ||
+                taskRef.lightNode->modelId() == QLatin1String("902010/29"))
             {
                 task.options = 0x12;
             }
@@ -1943,7 +1999,8 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
         else if (alert == "lselect")
         {
             task.options = 0x17; // Warning mode 1 (burglar), Strobe, Very high sound
-            if (taskRef.lightNode->modelId() == QLatin1String("902010/24"))
+            if (taskRef.lightNode->modelId() == QLatin1String("902010/24") ||
+                taskRef.lightNode->modelId() == QLatin1String("902010/29"))
             {
                 task.options = 0x12;
             }
@@ -2676,7 +2733,7 @@ void DeRestPluginPrivate::handleLightEvent(const Event &e)
                 {
                     key = item->descriptor().suffix + 5;
                 }
-                else if (strncmp(e.what(), "config/", 7) == 0)
+                else if (strncmp(rid.suffix, "config/", 7) == 0)
                 {
                     key = item->descriptor().suffix + 7;
                 }
