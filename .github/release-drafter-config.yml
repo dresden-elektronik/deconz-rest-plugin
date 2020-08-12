@@ -16,7 +16,6 @@ change-template: '**$TITLE @$AUTHOR (#$NUMBER):**   <br/> __123ad123 $BODY 31231
 replacers:
   - search: '- '
     replace: ''
-replacers:
   - search: '123ad123'
     replace: '- ' 
   - search: '31231adb32'
