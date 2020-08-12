@@ -15,7 +15,7 @@ categories:
 replacers:
   - search: '- '
     replace: ''   
-change-template: '** $TITLE @$AUTHOR (#$NUMBER):**   <br/> - $BODY<br/>'
+change-template: '**$TITLE @$AUTHOR (#$NUMBER):**   <br/> -$BODY<br/>'
 
   
 
