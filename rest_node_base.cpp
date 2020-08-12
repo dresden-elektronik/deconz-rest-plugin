@@ -306,7 +306,7 @@ void RestNodeBase::setZclValue(NodeValue::UpdateType updateType, quint8 endpoint
     val.updateType = updateType;
     val.value = value;
 
-    DBG_Printf(DBG_INFO_L2, "0x%016llX: added ZCL value 0x%02/0x%04X/0x%04X\n", address().ext(), endpoint, clusterId, attributeId);
+    DBG_Printf(DBG_INFO_L2, "0x%016llX: added ZCL value 0x%02X/0x%04X/0x%04X\n", address().ext(), endpoint, clusterId, attributeId);
 
     m_values.push_back(val);
 }

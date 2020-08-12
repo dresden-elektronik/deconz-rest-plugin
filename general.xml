@@ -178,6 +178,10 @@
 				<value name="General Hardware Fault" value="0"></value>
 				<value name="General Software Fault" value="1"></value>
 			</attribute>
+      <attribute id="0014" name="Disable Local Config" type="bmp8" default="00000000" access="rw" required="o">
+				<value name="Reset (to factory defaults) disabled" value="0"></value>
+				<value name="Device configuration disabled" value="1"></value>
+			</attribute>
 		</attribute-set>
 		<attribute-set id="0x0030" description="Philips Specific" mfcode="0x100b">
 			<attribute id="0x0030" name="Sensitivity" description="Hue motion sensor related SML001" type="enum8" default="0" access="rw" required="o" mfcode="0x100b">
@@ -1718,42 +1722,28 @@ Note: It does not clear or delete previous weekly schedule programming configura
 						<value name="Fan 3rd Stage State On" value="6"></value>
 					</attribute>
 				</attribute-set>
-                
-                <!-- Danfoss manufacturer specific -->
-                <attribute-set id="0x4000" description="Danfoss specific">
-					<attribute id="0x4000" name="eTRV Open Window Detection" type="enum8" default="0x00" access="r" required="m" mfcode="0x1246">
-						<value name="Closed" value="0x01"></value>
-						<value name="Hold" value="0x02"></value>
-						<value name="Open" value="0x03"></value>
-						<value name="Windows open from external, but detected closed" value="0x04"></value>
-					</attribute>
-                    <attribute id="0x4003" name="External Open Window Detected" type="bool" default="0x00" access="rw" required="m" mfcode="0x1246"></attribute>
-                    <attribute id="0x4010" name="Exercise day of week" type="enum8" default="0x04" access="rw" required="m" mfcode="0x1246">
-						<value name="Sunday" value="0x00"></value>
-						<value name="Monday" value="0x01"></value>
-						<value name="Tuesday" value="0x02"></value>
-						<value name="Wednesday" value="0x03"></value>
-						<value name="Thursday" value="0x04"></value>
-						<value name="Friday" value="0x05"></value>
-						<value name="Saturday" value="0x06"></value>
-						<value name="Undefined" value="0x07"></value>
-					</attribute>
-                    <attribute id="0x4011" name="Exercise trigger time" type="u16" default="660" access="rw" required="m" mfcode="0x1246"></attribute>
-                    <attribute id="0x4012" name="Mounting mode active" type="bool" default="0x01" access="r" required="m" mfcode="0x1246"></attribute>
-                    <attribute id="0x4013" name="Mounting mode control" type="bool" access="rw" required="m" mfcode="0x1246"></attribute>
-                    <attribute id="0x4014" name="eTRV Orientation" type="bool" default="0x00" access="rw" required="m" mfcode="0x1246"></attribute>
-                    <attribute id="0x4015" name="External Measured Room Sensor" type="s16" access="r" required="m" mfcode="0x1246"></attribute>
-                    <attribute id="0x4020" name="Control algorithm scale factor" type="u8" default="1" access="rw" required="m" mfcode="0x1246"></attribute>
-                    <attribute id="0x4030" name="Heat Available" type="bool" default="0x01" access="rw" required="m" mfcode="0x1246"></attribute>
-                    <attribute id="0x4031" name="Heat Supply Request " type="bool" access="r" required="m" mfcode="0x1246"></attribute>
-                </attribute-set>
-                
+        <attribute-set id="0x0030" description="Thermostat Setpoint Change Tracking">
+          <attribute id="0x0030" name="Setpoint Change Source" type="enum8" access="r" required="o">
+            <value name="Manual" value="0"></value>
+            <value name="Schedule" value="1"></value>
+            <value name="Zigbee" value="2"></value>
+          </attribute>
+          <attribute id="0x0031" name="Setpoint Change Amount" type="s16" access="r" required="o" default="0x8000"/>
+          <attribute id="0x0032" name="Setpoint Change Timestamp" type="utc" access="r" required="o" default="0"/>
+        </attribute-set>
+        
+        <attribute-set id="0x0080" description="eCozy" mfcode="0x1014">
+          <attribute id="0x0080" name="Unknown" type="s16" access="r" required="o"/>
+          <attribute id="0x0081" name="Unknown" type="s16" access="r" required="o"/>
+          <attribute id="0x0082" name="Unknown (Heat Setpoint?)" type="s16" access="r" required="o"/>
+        </attribute-set>
+
 				<!-- Eurotronic manufacturer specific -->
-				<attribute-set id="0x4000" description="Eurotronic">
+				<attribute-set id="0x4000" description="Eurotronic" mfcode="0x1037">
 					<attribute id="0x4000" name="TRV Mode" type="enum8" default="0x02" access="rw" required="m" mfcode="0x1037">
-							<value name="Unknown 1" value="0"></value>
-							<value name="Unknown 2" value="1"></value>
-							<value name="manual" value="2"></value>
+						<value name="Unknown 1" value="0"></value>
+						<value name="Unknown 2" value="1"></value>
+						<value name="manual" value="2"></value>
 					</attribute>
 					<attribute id="0x4001" name="Set Valve Position" type="u8" default="0x00" access="rw" required="m" mfcode="0x1037"></attribute>
 					<attribute id="0x4002" name="Errors" type="u8" default="0x00" access="r" required="m" mfcode="0x1037">
@@ -1769,10 +1759,40 @@ Note: It does not clear or delete previous weekly schedule programming configura
 					<attribute id="0x4003" name="Current Temperature Setpoint" type="s16" default="0x07d0" access="rw" required="m" mfcode="0x1037"></attribute>
 					<attribute id="0x4008" name="Host Flags" type="u24" default="0x000000" showas="hex" access="rw" required="m" mfcode="0x1037"></attribute>
 				</attribute-set>
+
+        <!-- Danfoss manufacturer specific -->
+        <attribute-set id="0x4000" description="Danfoss specific" mfcode="0x1246">
+					<attribute id="0x4000" name="eTRV Open Window Detection" type="enum8" default="0x00" access="r" required="m" mfcode="0x1246">
+						<value name="Closed" value="0x01"></value>
+						<value name="Hold" value="0x02"></value>
+						<value name="Open" value="0x03"></value>
+						<value name="Windows open from external, but detected closed" value="0x04"></value>
+					</attribute>
+          <attribute id="0x4003" name="External Open Window Detected" type="bool" default="0x00" access="rw" required="m" mfcode="0x1246"></attribute>
+          <attribute id="0x4010" name="Exercise day of week" type="enum8" default="0x04" access="rw" required="m" mfcode="0x1246">
+						<value name="Sunday" value="0x00"></value>
+						<value name="Monday" value="0x01"></value>
+						<value name="Tuesday" value="0x02"></value>
+						<value name="Wednesday" value="0x03"></value>
+						<value name="Thursday" value="0x04"></value>
+						<value name="Friday" value="0x05"></value>
+						<value name="Saturday" value="0x06"></value>
+						<value name="Undefined" value="0x07"></value>
+					</attribute>
+          <attribute id="0x4011" name="Exercise trigger time" type="u16" default="660" access="rw" required="m" mfcode="0x1246"></attribute>
+          <attribute id="0x4012" name="Mounting mode active" type="bool" default="0x01" access="r" required="m" mfcode="0x1246"></attribute>
+          <attribute id="0x4013" name="Mounting mode control" type="bool" access="rw" required="m" mfcode="0x1246"></attribute>
+          <attribute id="0x4014" name="eTRV Orientation" type="bool" default="0x00" access="rw" required="m" mfcode="0x1246"></attribute>
+          <attribute id="0x4015" name="External Measured Room Sensor" type="s16" access="r" required="m" mfcode="0x1246"></attribute>
+          <attribute id="0x4020" name="Control algorithm scale factor" type="u8" default="1" access="rw" required="m" mfcode="0x1246"></attribute>
+          <attribute id="0x4030" name="Heat Available" type="bool" default="0x01" access="rw" required="m" mfcode="0x1246"></attribute>
+          <attribute id="0x4031" name="Heat Supply Request " type="bool" access="r" required="m" mfcode="0x1246"></attribute>
+        </attribute-set>
+
 				<command id="0x00" dir="recv" name="Setpoint Raise/Lower" required="m">
 					<description>This command increases (or decreases) the setpoint(s) by amount, in steps of 0.1°C.</description>
 					<payload>
-						<attribute id="0x0000" type="enum8" name="Mode" required="m" default="0x02">
+						<attribute id="0x0000" type="enum8" name="Mode" required="m">
 							<value name="Heat (adjust Heat Setpoint)" value="0x00"></value>
 							<value name="Cool (adjust Cool Setpoint)" value="0x01"></value>
 							<value name="Both (adjust Heat Setpoint and Cool Setpoint)" value="0x02"></value>
@@ -1782,9 +1802,132 @@ Note: It does not clear or delete previous weekly schedule programming configura
 						</attribute>
 					</payload>
 				</command>
-			</server>
-			<client>
-			<!-- TODO -->
+        <command id="0x01" dir="recv" name="Set Weekly Schedule" required="o">
+          <payload>
+            <attribute id="0x0000" type="enum8" name="Number of Transtions for Sequence" required="m">
+              <value name="0" value="0"></value>
+              <value name="1" value="1"></value>
+              <value name="2" value="2"></value>
+              <value name="3" value="3"></value>
+              <value name="4" value="4"></value>
+              <value name="5" value="5"></value>
+              <value name="6" value="6"></value>
+              <value name="7" value="7"></value>
+              <value name="8" value="8"></value>
+              <value name="9" value="9"></value>
+              <value name="10" value="10"></value>
+            </attribute>
+            <attribute id="0x0001" type="bmp8" name="Day of Week for Sequence" required="m">
+              <value name="Sunday" value="0"></value>
+              <value name="Monday" value="1"></value>
+              <value name="Tuesday" value="2"></value>
+              <value name="Wednesday" value="3"></value>
+              <value name="Thursday" value="4"></value>
+              <value name="Friday" value="5"></value>
+              <value name="Saturday" value="6"></value>
+              <value name="Vacation or Away" value="7"></value>
+            </attribute>
+            <attribute id="0x0002" type="bmp8" name="Mode for Sequence" required="m">
+              <value name="Heat Setpoint Field Present in Payload" value="0"></value>
+              <value name="Cool Setpoint Field Present in Payload" value="1"></value>
+            </attribute>
+            <attribute id="0x0003" type="u16" name="Transition Time 1" required="o"/>
+            <attribute id="0x0004" type="s16" name="Heat Set Point 1" required="o"/>
+            <attribute id="0x0005" type="u16" name="Transition Time 2" required="o"/>
+            <attribute id="0x0006" type="s16" name="Heat Set Point 2" required="o"/>
+            <attribute id="0x0007" type="u16" name="Transition Time 3" required="o"/>
+            <attribute id="0x0008" type="s16" name="Heat Set Point 3" required="o"/>
+            <attribute id="0x0009" type="u16" name="Transition Time 4" required="o"/>
+            <attribute id="0x000A" type="s16" name="Heat Set Point 4" required="o"/>
+            <attribute id="0x000B" type="u16" name="Transition Time 5" required="o"/>
+            <attribute id="0x000C" type="s16" name="Heat Set Point 5" required="o"/>
+            <attribute id="0x000D" type="u16" name="Transition Time 6" required="o"/>
+            <attribute id="0x000E" type="s16" name="Heat Set Point 6" required="o"/>
+            <attribute id="0x000F" type="u16" name="Transition Time 7" required="o"/>
+            <attribute id="0x0010" type="s16" name="Heat Set Point 7" required="o"/>
+            <attribute id="0x0011" type="u16" name="Transition Time 8" required="o"/>
+            <attribute id="0x0012" type="s16" name="Heat Set Point 8" required="o"/>
+            <attribute id="0x0013" type="u16" name="Transition Time 9" required="o"/>
+            <attribute id="0x0014" type="s16" name="Heat Set Point 9" required="o"/>
+            <attribute id="0x0015" type="u16" name="Transition Time 10" required="o"/>
+            <attribute id="0x0016" type="s16" name="Heat Set Point 10" required="o"/>
+          </payload>
+        </command>
+        <command id="0x02" dir="recv" name="Get Weekly Schedule" required="o" response="0x00">
+          <payload>
+            <attribute id="0x0000" type="bmp8" name="Days to Return" required="m">
+              <value name="Sunday" value="0"></value>
+              <value name="Monday" value="1"></value>
+              <value name="Tuesday" value="2"></value>
+              <value name="Wednesday" value="3"></value>
+              <value name="Thursday" value="4"></value>
+              <value name="Friday" value="5"></value>
+              <value name="Saturday" value="6"></value>
+              <value name="Vacation or Away" value="7"></value>
+            </attribute>
+            <attribute id="0x0001" type="bmp8" name="Mode to Return" required="m">
+              <value name="Heat Setpoint Field Present in Payload" value="0"></value>
+              <value name="Cool Setpoint Field Present in Payload" value="1"></value>
+            </attribute>
+          </payload>
+        </command>
+        <command id="0x03" dir="recv" name="Clear Weekly Schedule" required="o">
+        </command>
+        <command id="0x04" dir="recv" name="Get Relay Status Log" required="o">
+        </command>
+      </server>
+      <client>
+        <command id="0x00" dir="recv" name="Get Weekly Schedule Response" required="o">
+          <payload>
+            <attribute id="0x0000" type="enum8" name="Number of Transtions for Sequence" required="m">
+              <value name="0" value="0"></value>
+              <value name="1" value="1"></value>
+              <value name="2" value="2"></value>
+              <value name="3" value="3"></value>
+              <value name="4" value="4"></value>
+              <value name="5" value="5"></value>
+              <value name="6" value="6"></value>
+              <value name="7" value="7"></value>
+              <value name="8" value="8"></value>
+              <value name="9" value="9"></value>
+              <value name="10" value="10"></value>
+            </attribute>
+            <attribute id="0x0001" type="bmp8" name="Day of Week for Sequence" required="m">
+              <value name="Sunday" value="0"></value>
+              <value name="Monday" value="1"></value>
+              <value name="Tuesday" value="2"></value>
+              <value name="Wednesday" value="3"></value>
+              <value name="Thursday" value="4"></value>
+              <value name="Friday" value="5"></value>
+              <value name="Saturday" value="6"></value>
+              <value name="Vacation or Away" value="7"></value>
+            </attribute>
+            <attribute id="0x0002" type="bmp8" name="Mode for Sequence" required="m">
+              <value name="Heat Setpoint Field Present in Payload" value="0"></value>
+              <value name="Cool Setpoint Field Present in Payload" value="1"></value>
+            </attribute>
+            <attribute id="0x0003" type="u16" name="Transition Time 1" required="o"/>
+            <attribute id="0x0004" type="s16" name="Heat Set Point 1" required="o"/>
+            <attribute id="0x0005" type="u16" name="Transition Time 2" required="o"/>
+            <attribute id="0x0006" type="s16" name="Heat Set Point 2" required="o"/>
+            <attribute id="0x0007" type="u16" name="Transition Time 3" required="o"/>
+            <attribute id="0x0008" type="s16" name="Heat Set Point 3" required="o"/>
+            <attribute id="0x0009" type="u16" name="Transition Time 4" required="o"/>
+            <attribute id="0x000A" type="s16" name="Heat Set Point 4" required="o"/>
+            <attribute id="0x000B" type="u16" name="Transition Time 5" required="o"/>
+            <attribute id="0x000C" type="s16" name="Heat Set Point 5" required="o"/>
+            <attribute id="0x000D" type="u16" name="Transition Time 6" required="o"/>
+            <attribute id="0x000E" type="s16" name="Heat Set Point 6" required="o"/>
+            <attribute id="0x000F" type="u16" name="Transition Time 7" required="o"/>
+            <attribute id="0x0010" type="s16" name="Heat Set Point 7" required="o"/>
+            <attribute id="0x0011" type="u16" name="Transition Time 8" required="o"/>
+            <attribute id="0x0012" type="s16" name="Heat Set Point 8" required="o"/>
+            <attribute id="0x0013" type="u16" name="Transition Time 9" required="o"/>
+            <attribute id="0x0014" type="s16" name="Heat Set Point 9" required="o"/>
+            <attribute id="0x0015" type="u16" name="Transition Time 10" required="o"/>
+            <attribute id="0x0016" type="s16" name="Heat Set Point 10" required="o"/>
+          </payload>
+        </command>
 			</client>
 		</cluster>
 		<cluster id="0202" name="Fan Control">
@@ -2426,7 +2569,9 @@ controller device, that supports a keypad and LCD screen.</description>
 						<attribute id="0x011c" name="Last Message LQI" type="u8" access="r" required="o" default="0x00"></attribute>
 						<attribute id="0x011d" name="Last Message RSSI" type="s8" access="r" required="o" default="0x00"></attribute>
 					</attribute-set>
-                    <attribute id="0x4000" name="SW error code" type="map16" access="rw" default="0" required="o" mfcode="0x1246"></attribute>
+					<attribute-set id="0x4000" description="Vendor specific attributes">
+						<attribute id="0x4000" name="SW error code" type="bmp16" access="rw" default="0" required="o" mfcode="0x1246"></attribute>
+					</attribute-set>
 				</server>
 				<client>
 				</client>
@@ -3187,12 +3332,14 @@ devices can operate on either battery or mains power, and can have a wide variet
 
 > Dimmer switch without neutral : Option 1 = Dimmer on/off.
 > Cable outlet : Option 1 = Fil pilote on/off.
+> Contactor : On/off=0003 - HP/HC=0004.
 			</description>
 			<server>
 				<attribute id="0x0000" type="dat16" name="Option 1" default="0x0101" access="rw" required="m" showas="hex">
 					<description>Choose correctly according to your device Dimmer OR fil pilote.
 Dimmer > Off=0100 - On=0101
-Fil pilote > Off=0001 - On=0002</description>
+Fil pilote > Off=0001 - On=0002
+Contactor > On/off=0003 - HP/HC=0004</description>
 				</attribute>
 				<attribute id="0x0001" type="bool" name="Option 2" required="m" access="rw" default="0">
 					<description>Option 1</description>
@@ -3421,7 +3568,7 @@ Fil pilote > Off=0001 - On=0002</description>
 			<client>
 			</client>
 		</cluster>
-        
+
         <!-- NIKO -->
 		<cluster id="0xfc00" name="Niko specific" mfcode="0x125f">
 			<description>Niko specific attributes.</description>
