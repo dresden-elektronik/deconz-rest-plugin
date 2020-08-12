@@ -1052,6 +1052,7 @@ Sensor::Sensor() :
 
     previousDirection = 0xFF;
     previousCt = 0xFFFF;
+    previousSequenceNumber = 0xFF;
     previousCommandId = 0xFF;
 }
 
