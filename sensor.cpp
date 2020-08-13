@@ -835,6 +835,29 @@ static const Sensor::ButtonMap rcv14Map[] = {
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
+static const Sensor::ButtonMap LDSRemoteMap[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    // On/Off button
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x00,  0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x01,  0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+
+    // Dim button
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x00,  0x7F,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Dim short" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x01,  0x01,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD,           "Dim long press" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x03,  0x01,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "Dim long release" },
+
+    // Temperature button
+    { Sensor::ModeScenes,           0x01, 0x0300, 0x0a,  0x1D,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "Temperature short" },
+    { Sensor::ModeScenes,           0x01, 0x0300, 0x4B,  0x00,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD,           "Temperature Long press" },
+    { Sensor::ModeScenes,           0x01, 0x0300, 0x4B,  0x01,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD,           "Temperature Long press 2" },
+    
+    //Button4
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x04,  0xFE,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Button 4" },
+
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
+};
+
 static const Sensor::ButtonMap tintMap[] = {
 //    mode                          ep    cluster cmd   param button                                       name
     // On/Off button
@@ -1046,6 +1069,7 @@ Sensor::Sensor() :
     previousDirection = 0xFF;
     previousCt = 0xFFFF;
     previousSequenceNumber = 0xFF;
+    previousCommandId = 0xFF;
 }
 
 /*! Returns the sensor deleted state.
@@ -1528,6 +1552,10 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         else if (manufacturer == QLatin1String("Echostar"))
         {
             if (modelid == QLatin1String("Bell")) { m_buttonMap = sageMap; }
+        }
+        else if (manufacturer == QLatin1String("LDS"))
+        {
+            if (modelid == QLatin1String("ZBT-CCTSwitch-D0001")) { m_buttonMap = LDSRemoteMap; }
         }
         else if (manufacturer == QLatin1String("lk"))
         {

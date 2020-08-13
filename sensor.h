@@ -152,6 +152,8 @@ public:
     QDateTime lastConfigPush;
     QDateTime durationDue;
     uint8_t previousSequenceNumber;
+    uint8_t previousCommandId;
+    
 
 private:
     DeletedState m_deletedstate;

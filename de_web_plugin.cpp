@@ -363,6 +363,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "TH01", tiMacPrefix }, // Sonoff SNZB-02
     { VENDOR_NONE, "DS01", tiMacPrefix }, // Sonoff SNZB-04
     { VENDOR_DANFOSS, "eTRV0100", silabs2MacPrefix }, // Danfoss Ally thermostat
+    { VENDOR_LDS, "ZBT-CCTSwitch-D0001", silabs2MacPrefix }, // Leedarson remote control
 
     { 0, nullptr, 0 }
 };
@@ -3427,6 +3428,11 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         checkReporting = true;
         checkClientCluster = true;
     }
+    else if (sensor->modelId().startsWith(QLatin1String("ZBT-CCTSwitch-D0001"))) // LDS remote
+    {
+        checkReporting = true;
+        checkClientCluster = true;
+    }
     else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM")) || // icasa remote
              sensor->modelId().startsWith(QLatin1String("RGBGenie ZB-5")) || // RGBGenie remote control
              sensor->modelId().startsWith(QLatin1String("ZGRC-KEY")))        // RGBGenie ZB-5001
@@ -3805,6 +3811,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 {
                     quint8 level = zclFrame.payload().at(0);
                     ok = buttonMap->zclParam0 == level;
+                    
                 }
             }
             else if (ind.clusterId() == LEVEL_CLUSTER_ID &&
@@ -3969,6 +3976,32 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
             }
             else if (ind.clusterId() == COLOR_CLUSTER_ID &&
+                     zclFrame.commandId() == 0x0a && zclFrame.payload().size() >= 2 && // Move to Color Temperature
+                     sensor->modelId().startsWith(QLatin1String("ZBT-CCTSwitch-D0001")))
+            {
+                    quint8 pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(0);
+                    if (buttonMap->zclParam0 != pl0)
+                    {
+                        ok = false;
+                        pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(1);
+                    }
+                    //ignore the command if previous was button4
+                    if (sensor->previousCommandId == 0x04)
+                    {
+                        ok = false;
+                    }
+            }
+            else if ((ind.clusterId() == COLOR_CLUSTER_ID) &&
+                     (zclFrame.commandId() == 0x4b) && 
+                     sensor->modelId().startsWith(QLatin1String("ZBT-CCTSwitch-D0001")) )
+            {
+                quint8 pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(0);
+                if (buttonMap->zclParam0 != pl0)
+                {
+                    ok = false;
+                }
+            }
+            else if (ind.clusterId() == COLOR_CLUSTER_ID &&
                      (zclFrame.commandId() == 0x4b && zclFrame.payload().size() >= 7) )  // move color temperature
             {
                 ok = false;
@@ -3993,7 +4026,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 param |= (quint16)zclFrame.payload().at(2) & 0xff;
                 param <<= 8;
                 param |= (quint16)zclFrame.payload().at(1) & 0xff;
-
                 if (buttonMap->zclParam0 == param)
                 {
                     if (moveMode == 0x00)
@@ -4002,7 +4034,6 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     }
                     ok = true;
                 }
-
             }
             else if (ind.clusterId() == COLOR_CLUSTER_ID && (zclFrame.commandId() == 0x01 ) )  // Move hue command
             {
@@ -4070,6 +4101,12 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             }
         }
         buttonMap++;
+    }
+    
+    //Remember last command id
+    if (sensor->modelId().startsWith(QLatin1String("ZBT-CCTSwitch-D0001"))) // LDS remote
+    {
+        sensor->previousCommandId = zclFrame.commandId();
     }
 
     if (checkReporting && sensor->node() &&
@@ -15359,6 +15396,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                  sensor->modelId() == QLatin1String("Double gangs remote switch") || // Legrand switch double
                  sensor->modelId() == QLatin1String("Remote toggle switch") || // Legrand switch module
                  sensor->modelId() == QLatin1String("Remote motion sensor") || // Legrand motion sensor
+                 sensor->modelId() == QLatin1String("ZBT-CCTSwitch-D0001") || // LDS Remote
                  sensor->modelId() == QLatin1String("Shutters central remote switch")) // Legrand shutter switch
         {
             checkSensorGroup(sensor);
