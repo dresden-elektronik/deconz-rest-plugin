@@ -50,6 +50,9 @@
 #define S_BUTTON_7   7000
 #define S_BUTTON_8   8000
 #define S_BUTTON_9   9000
+#define S_BUTTON_10  10000
+#define S_BUTTON_11  11000
+#define S_BUTTON_12  12000
 
 struct SensorFingerprint
 {
@@ -149,6 +152,8 @@ public:
     QDateTime lastConfigPush;
     QDateTime durationDue;
     uint8_t previousSequenceNumber;
+    uint8_t previousCommandId;
+    
 
 private:
     DeletedState m_deletedstate;
