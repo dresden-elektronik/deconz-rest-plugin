@@ -327,6 +327,10 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "TS0121", silabs3MacPrefix }, // Tuya/Blitzwolf smart plug
     { VENDOR_EMBER, "TS0121", silabs3MacPrefix }, // Tuya/Blitzwolf smart plug
     { VENDOR_EMBER, "TS0302", silabs3MacPrefix }, // Tuya curtain switch
+    { VENDOR_EMBER, "TS0041", silabs3MacPrefix }, // Tuya wireless switch
+    { VENDOR_NONE, "kud7u2l", silabs3MacPrefix }, // Tuya Smart TRV HY369 Thermostatic Radiator Valve
+    { VENDOR_NONE, "GbxAXL2", silabs3MacPrefix }, // Another Tuya Smart TRV Thermostatic Radiator Valve
+    { VENDOR_EMBER, "TS0601", silabs7MacPrefix }, // Tuya Smart TRV HY369 Thermostatic Radiator Valve
     { VENDOR_EMBER, "TS0207", silabs3MacPrefix }, // Tuya water leak sensor
     { VENDOR_AURORA, "DoubleSocket50AU", jennicMacPrefix }, // Aurora AOne Double Socket UK
     { VENDOR_COMPUTIME, "SP600", computimeMacPrefix }, // Salus smart plug
@@ -749,6 +753,11 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
         case WINDOW_COVERING_CLUSTER_ID:
             handleWindowCoveringClusterIndication(ind, zclFrame);
+            break;
+
+        case TUYA_CLUSTER_ID:
+            // Tuya manfacture cluster:
+            handleTuyaClusterIndication(ind, zclFrame);
             break;
 
         case THERMOSTAT_CLUSTER_ID:
@@ -1685,6 +1694,69 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
     {
         return;
     }
+    
+    //Make 2 fakes device for tuya stuff
+    if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER)
+    {
+        const deCONZ::SimpleDescriptor *sd = &node->simpleDescriptors()[0];
+        bool hasTuyaCluster = false;
+        
+        if (sd && (sd->deviceId() == DEV_ID_SMART_PLUG) && (node->simpleDescriptors().size() < 2) && ((node->address().ext() & 0xffffff0000000000ULL ) == silabs3MacPrefix))
+        {
+
+            for (int c = 0; c < sd->inClusters().size(); c++)
+            {
+                if (sd->inClusters()[c].id() == TUYA_CLUSTER_ID) { hasTuyaCluster = true; }
+            }
+            
+            if (hasTuyaCluster) 
+            {
+                DBG_Printf(DBG_INFO, "Tuya : Creating 2 Fake Endpoints\n");
+
+                //Ok it's the good device, make 2 clones with differents endpoints
+                
+                //Note for me, to remove later
+                //sudo cp /usr/share/deCONZ/plugins/libde_rest_plugin.so /usr/share/deCONZ/plugins/libde_rest_plugin2.so
+
+                //node is not modifiable (WHY ?) so use an ugly way
+                deCONZ::Node *NodePachable = const_cast<deCONZ::Node*>(&*node);
+
+                deCONZ::SimpleDescriptor sd1;
+                deCONZ::SimpleDescriptor sd2;
+
+                const deCONZ::SimpleDescriptor &csd1 = sd1;
+                const deCONZ::SimpleDescriptor &csd2 = sd2;
+
+                node->copySimpleDescriptor(0x01, &sd1);
+                node->copySimpleDescriptor(0x01, &sd2);
+
+                sd1.setEndpoint(0x02);
+                sd2.setEndpoint(0x03);
+                
+                //remove useless cluster
+                if (false)
+                {
+					QList<deCONZ::ZclCluster> &cl = sd1.inClusters();
+					cl.clear();
+
+					for (const deCONZ::ZclCluster &cl2 : sd2.inClusters())
+					{
+						if (cl2.id() == TUYA_CLUSTER_ID)
+						{
+							cl.append(cl2);
+						}
+					}
+			    }
+
+                NodePachable->setSimpleDescriptor(csd1);
+                NodePachable->setSimpleDescriptor(csd2);
+
+                // Update node
+                apsCtrl->updateNode(*NodePachable);
+
+            }
+        }
+    }
 
     QList<deCONZ::SimpleDescriptor>::const_iterator i = node->simpleDescriptors().constBegin();
     QList<deCONZ::SimpleDescriptor>::const_iterator end = node->simpleDescriptors().constEnd();
@@ -1703,6 +1775,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             else if (i->inClusters()[c].id() == COLOR_CLUSTER_ID) { hasServerColor = true; }
             else if (i->inClusters()[c].id() == WINDOW_COVERING_CLUSTER_ID) { hasServerOnOff = true; }
             else if (i->inClusters()[c].id() == IAS_WD_CLUSTER_ID) { hasIASWDCluster = true; }
+            else if ((i->inClusters()[c].id() == TUYA_CLUSTER_ID) && (node->macCapabilities() & deCONZ::MacDeviceIsFFD) ) { hasServerOnOff = true; }
             // Danalock support. The cluster needs to be defined and whitelisted by setting hasServerOnOff
             else if (i->inClusters()[c].id() == DOOR_LOCK_CLUSTER_ID) { hasServerOnOff = true; }
         }
@@ -4692,6 +4765,17 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     }
                 }
                     break;
+                    
+                case TUYA_CLUSTER_ID:
+                {
+                    if ((modelId == QLatin1String("kud7u2l")) ||
+                        (modelId == QLatin1String("GbxAXL2")) ||
+                        (modelId == QLatin1String("TS0601")) )
+                    {
+                        fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
+                    }
+                }
+                    break;
 
                 case SAMJIN_CLUSTER_ID:
                 {
@@ -4867,6 +4951,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     modelId = lightNode->modelId();
                 }
             }
+        }
+
+        // For some device the Tuya cluster is sometime Invisible, so force device detection
+        if ((modelId == QLatin1String("kud7u2l")) ||
+           (modelId == QLatin1String("GbxAXL2")) )
+        {
+            fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
         }
 
         if (!isDeviceSupported(node, modelId))
@@ -5201,7 +5292,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
         // ZHAThermostat
         if (fpThermostatSensor.hasInCluster(THERMOSTAT_CLUSTER_ID) ||
-           (fpThermostatSensor.hasInCluster(LEGRAND_CONTROL_CLUSTER_ID) && modelId == QLatin1String("Cable outlet")))
+           (fpThermostatSensor.hasInCluster(LEGRAND_CONTROL_CLUSTER_ID) && modelId == QLatin1String("Cable outlet")) ||
+           (fpThermostatSensor.hasInCluster(TUYA_CLUSTER_ID) && modelId == QLatin1String("kud7u2l")) ||
+           (fpThermostatSensor.hasInCluster(TUYA_CLUSTER_ID) && modelId == QLatin1String("GbxAXL2")) ||
+           (fpThermostatSensor.hasInCluster(TUYA_CLUSTER_ID) && modelId == QLatin1String("TS0601")) )
         {
             fpThermostatSensor.endpoint = i->endpoint();
             fpThermostatSensor.deviceId = i->deviceId();
@@ -5613,7 +5707,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     }
     else if (sensorNode.type().endsWith(QLatin1String("Thermostat")))
     {
-        if (sensorNode.fingerPrint().hasInCluster(THERMOSTAT_CLUSTER_ID))
+        if (sensorNode.fingerPrint().hasInCluster(THERMOSTAT_CLUSTER_ID) || sensorNode.fingerPrint().hasInCluster(TUYA_CLUSTER_ID))
         {
             clusterId = THERMOSTAT_CLUSTER_ID;
         }
@@ -5634,9 +5728,27 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             if (sensorNode.modelId() == QLatin1String("SLR2") ||            // Hive
                 sensorNode.modelId() == QLatin1String("SLR1b") ||           // Hive
                 sensorNode.modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
-                sensorNode.modelId() == QLatin1String("Zen-01"))            // Zen
+                sensorNode.modelId() == QLatin1String("kud7u2l") ||         // tuya 
+                sensorNode.modelId() == QLatin1String("GbxAXL2") ||         // tuya
+                sensorNode.modelId() == QLatin1String("TS0601") ||           //tuya
+                sensorNode.modelId() == QLatin1String("Zen-01") )           // Zen
             {
                 sensorNode.addItem(DataTypeString, RConfigMode);
+            }
+            
+            if (sensorNode.modelId() == QLatin1String("kud7u2l") || // tuya 
+                sensorNode.modelId() == QLatin1String("GbxAXL2") || // tuya
+                sensorNode.modelId() == QLatin1String("TS0601") ) //tuya
+            {
+                sensorNode.addItem(DataTypeUInt8, RStateValve);
+                sensorNode.addItem(DataTypeBool, RStateLowBattery);
+            }
+
+            if (sensorNode.modelId() == QLatin1String("kud7u2l") || // tuya 
+                sensorNode.modelId() == QLatin1String("TS0601") ) //tuya
+            {
+                sensorNode.addItem(DataTypeString, RConfigPreset);
+                sensorNode.addItem(DataTypeBool, RConfigLocked);
             }
 
             if (modelId.startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit

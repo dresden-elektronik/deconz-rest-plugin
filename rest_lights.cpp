@@ -543,6 +543,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     {
         return setWarningDeviceState(req, rsp, taskRef, map);
     }
+    else if (taskRef.lightNode->modelId() == QLatin1String("TS0601"))
+    {
+        return setTuyaDeviceState(req, rsp, taskRef, map);
+    }
     // Danalock support. You need to check for taskRef.lightNode->type() == QLatin1String("Door lock"), similar to what I've done under hasAlert for the Siren.
     bool isDoorLockDevice = false;
     if (taskRef.lightNode->type() == QLatin1String("Door Lock"))
@@ -1821,6 +1825,77 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
 
     rsp.etag = taskRef.lightNode->etag;
     processTasks();
+    return REQ_READY_SEND;
+}
+
+// Tuya Devices
+//
+int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map)
+{
+    QString id = req.path[3];
+    bool on = false;
+
+    if (map.contains("on"))
+    {
+        if (map["on"].type() == QVariant::Bool)
+        {
+            bool ok = false;
+            qint16 button = 0x0101;
+            QByteArray data;
+            
+            on = map["on"].toBool();
+            
+            //Retreive Fake endpoint, and change button value
+            uint8_t ep = taskRef.lightNode->haEndpoint().endpoint();
+            if (ep == 0x02) { button = 0x0102; }
+            if (ep == 0x03) { button = 0x0103; }
+            
+            DBG_Printf(DBG_INFO, "Tuya debug 77: EP:  %d\n",  ep );
+            
+            if (on)
+            {
+                data = QByteArray("\x01",1);
+            }
+            else
+            {
+                data = QByteArray("\x00",1);
+            }
+            
+            ok = SendTuyaRequest(taskRef, TaskSendOnOffToggle , button , data );
+
+            if (ok)
+            {
+                QVariantMap rspItem;
+                QVariantMap rspItemState;
+                rspItemState[QString("/lights/%1/state/on").arg(id)] = on;
+                rspItem["success"] = rspItemState;
+                rsp.list.append(rspItem);
+            }
+            else
+            {
+                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+            }
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state/on").arg(id), QString("parameter, not available")));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+    }
+    else
+    {
+        rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state/on").arg(id), QString("parameter not available")));
+        rsp.httpStatus = HttpStatusBadRequest;
+        return REQ_READY_SEND;
+    }
+
+    //if (taskRef.lightNode)
+    //{
+    //    updateLightEtag(taskRef.lightNode);
+    //    rsp.etag = taskRef.lightNode->etag;
+    //}
+
     return REQ_READY_SEND;
 }
 

@@ -277,7 +277,12 @@ void PollManager::pollTimerFired()
 
     if (suffix == RStateOn)
     {
-        if (lightNode && lightNode->manufacturerCode() != VENDOR_XIAOMI) // reports
+        item = r->item(RAttrModelId);
+        if (item->toString() == QLatin1String("TS0601"))
+        {
+            //This device haven't cluster 0006, and use Cluster specific
+        }
+        else if (lightNode && lightNode->manufacturerCode() != VENDOR_XIAOMI) // reports
         {
             clusterId = ONOFF_CLUSTER_ID;
             attributes.push_back(0x0000); // onOff
