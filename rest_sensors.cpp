@@ -1078,6 +1078,21 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             return REQ_READY_SEND;
                         }
                     }
+                    else if (sensor->modelId().startsWith(QLatin1String("TRV001")))
+                    {
+                        if (addTaskThermostatCmd(task, VENDOR_DANFOSS, 0x40, heatsetpoint, nullptr, 0))
+                        {
+                            updated = true;
+                        }
+                        else
+                        {
+                            rsp.list.append(errorToMap(ERR_INVALID_VALUE,
+                                                       QString("/sensors/%1/%2").arg(id).arg(rid.suffix),
+                                                       QString("could not set attribute value=%1").arg(map[pi.key()].toString())));
+                            rsp.httpStatus = HttpStatusBadRequest;
+                            return REQ_READY_SEND;
+                        }
+                    }
                     else
                     {
                         AttributeList.insert(0x0012, (quint32)heatsetpoint);
@@ -1111,6 +1126,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         rspItem["success"] = rspItemState;
                     }
                     else if (sensor->modelId() == QLatin1String("SLR2") ||            //Hive
+                             sensor->modelId() == QLatin1String("SLR1b") ||  // Hive
                              sensor->modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
                              sensor->modelId().startsWith(QLatin1String("Zen-01")))   // Zen
                     {
@@ -1135,7 +1151,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         {
                             AttributeList.insert(0x001C, (quint32)mode);
                             //Idk for other device
-                            if (sensor->modelId() == QLatin1String("SLR2") )
+                            if ( (sensor->modelId() == QLatin1String("SLR2")) ||
+                                 (sensor->modelId() == QLatin1String("SLR1b")) )
                             {
                                 //change automatically the Setpoint Hold
                                 // Add a timer for Boost mode

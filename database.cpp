@@ -3222,7 +3222,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 sensor.addItem(DataTypeInt16, RConfigHeatSetpoint);    // Heating set point
                 sensor.addItem(DataTypeBool, RStateOn);           // Heating on/off
 
-                if (sensor.modelId() == QLatin1String("SLR2") ||           // Hive
+                if (sensor.modelId() == QLatin1String("SLR2") ||           // Hive 
+                    sensor.modelId() == QLatin1String("SLR1b") ||           // Hive 
                     sensor.modelId().startsWith(QLatin1String("TH112")) || // Sinope
                     sensor.modelId() == QLatin1String("Zen-01"))           // Zen
                 {
@@ -3249,7 +3250,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 else if (sensor.modelId() == QLatin1String("Zen-01"))
                 {
                 }
-                else if (sensor.modelId() == QLatin1String("eTRV0100"))
+                else if ((sensor.modelId() == QLatin1String("eTRV0100")) ||
+                         (sensor.modelId() == QLatin1String("TRV001")) )
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
                     sensor.addItem(DataTypeString, RStateWindowOpen);

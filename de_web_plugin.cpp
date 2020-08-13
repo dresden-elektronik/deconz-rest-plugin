@@ -342,8 +342,10 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_ALERTME, "DWS003", tiMacPrefix }, // Hive Door sensor
     { VENDOR_ALERTME, "SLP2", computimeMacPrefix }, // Hive  plug
     { VENDOR_ALERTME, "SLP2b", computimeMacPrefix }, // Hive  plug
-    { VENDOR_ALERTME, "SLR2", computimeMacPrefix }, // Hive   Heating Receiver
+    { VENDOR_ALERTME, "SLR1b", computimeMacPrefix }, // Hive   Heating Receiver 1 channel
+    { VENDOR_ALERTME, "SLR2", computimeMacPrefix }, // Hive   Heating Receiver 2 channel
     { VENDOR_ALERTME, "SLT2", computimeMacPrefix }, // Hive thermostat
+    { VENDOR_DANFOSS, "TRV001", silabs2MacPrefix }, // Hive thermostat (From Danfoos)
     { VENDOR_SUNRICHER, "45127", silabs2MacPrefix }, // Namron 1/2/4-ch remote controller
     { VENDOR_SENGLED_OPTOELEC, "E13-", zhejiangMacPrefix }, // Sengled PAR38 Bulbs
     { VENDOR_SENGLED_OPTOELEC, "E1D-", zhejiangMacPrefix }, // Sengled contact sensor
@@ -4530,8 +4532,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     else if (modelId == QLatin1String("SLP2b"))
                     {
                     }
-                    // Don't create entry for cluster 0x07 and 0x08
-                    else if ((modelId == QLatin1String("SLR2")) && (i->endpoint() > 0x06 ))
+                    // Don't create entry for cluster 0x07 and 0x08 for Hive thermostat
+                    else if (((modelId == QLatin1String("SLR2")) || (modelId == QLatin1String("SLR1b")) ) && (i->endpoint() > 0x06 ))
                     {
                     }
                     else
@@ -5593,6 +5595,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             sensorNode.addItem(DataTypeBool, RStateOn);           // Heating on/off
 
             if (sensorNode.modelId() == QLatin1String("SLR2") ||            // Hive
+                sensorNode.modelId() == QLatin1String("SLR1b") ||           // Hive
                 sensorNode.modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
                 sensorNode.modelId() == QLatin1String("Zen-01"))            // Zen
             {
@@ -5619,7 +5622,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             else if (modelId == QLatin1String("Zen-01"))
             {
             }
-            else if (modelId == QLatin1String("eTRV0100"))
+            else if ((modelId == QLatin1String("eTRV0100")) ||
+                     (modelId == QLatin1String("TRV001")) )
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
                 sensorNode.addItem(DataTypeString, RStateWindowOpen);
@@ -16321,7 +16325,9 @@ void DeRestPlugin::idleTimerFired()
 
                             if (sensorNode->modelId().startsWith(QLatin1String("SPZB")) ||   // Eurotronic Spirit
                                 sensorNode->modelId().startsWith(QLatin1String("SLT2")) ||   // Hive Active Heating Thermostat
-                                sensorNode->modelId().startsWith(QLatin1String("SLR2")) ||   // Hive Active Heating Receiver
+                                sensorNode->modelId().startsWith(QLatin1String("SLR2")) ||   // Hive Active Heating Receiver 2 channel
+                                sensorNode->modelId().startsWith(QLatin1String("SLR1b")) ||  // Hive Active Heating Receiver 1 channel
+                                sensorNode->modelId().startsWith(QLatin1String("TRV001")) || // Hive TRV
                                 sensorNode->modelId().startsWith(QLatin1String("TH112")) ||  // Sinope devices
                                 sensorNode->modelId().startsWith(QLatin1String("eTRV0100"))) // Danfoss Ally
                             {
