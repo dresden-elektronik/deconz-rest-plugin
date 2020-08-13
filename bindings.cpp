@@ -1926,6 +1926,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturer() == QLatin1String("NIKO NV"))
         {
         }
+        else if (lightNode->manufacturerCode() == VENDOR_AXIS) // Axis shade
+        {
+        }
         else if (lightNode->manufacturer() == QLatin1String("Sunricher"))
         {
         }
@@ -2187,6 +2190,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("multi")) ||
         sensor->modelId() == QLatin1String("water") ||
         (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("outlet")) ||
+        // Axis
+        sensor->modelId() == QLatin1String("Gear") ||
         // Bitron
         sensor->modelId().startsWith(QLatin1String("902010")) ||
         // Develco

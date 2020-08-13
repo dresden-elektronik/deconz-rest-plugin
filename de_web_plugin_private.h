@@ -289,6 +289,7 @@
 #define VENDOR_4_NOKS       0x1071
 #define VENDOR_BITRON       0x1071 // branded
 #define VENDOR_COMPUTIME    0x1078
+#define VENDOR_AXIS         0x109A //Axis
 #define VENDOR_NETVOX       0x109F
 #define VENDOR_NYCE         0x10B9
 #define VENDOR_UBISYS       0x10F2
@@ -426,6 +427,7 @@ extern const quint64 emberMacPrefix;
 extern const quint64 embertecMacPrefix;
 extern const quint64 energyMiMacPrefix;
 extern const quint64 heimanMacPrefix;
+extern const quint64 zenMacPrefix;
 extern const quint64 ikeaMacPrefix;
 extern const quint64 ikea2MacPrefix;
 extern const quint64 silabsMacPrefix;
@@ -577,6 +579,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == computimeMacPrefix;
         case VENDOR_DANALOCK:
             return prefix == danalockMacPrefix;
+        case VENDOR_AXIS:
+            return prefix == zenMacPrefix;
         case VENDOR_SCHLAGE:
             return prefix == schlageMacPrefix;
         default:
