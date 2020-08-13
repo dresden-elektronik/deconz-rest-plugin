@@ -13,7 +13,9 @@ categories:
   - title: 'New devices'
     label: 'device-request'
 
-change-template: '<a/> **$TITLE @$AUTHOR (#$NUMBER):** <br/> $BODY <br/>'
+change-template: |
+**$TITLE @$AUTHOR (#$NUMBER):**  
+$BODY  
 
 
 version-resolver:
