@@ -4302,7 +4302,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             node->simpleDescriptors()[0].endpoint() == 0x01 &&
             node->simpleDescriptors()[0].profileId() == HA_PROFILE_ID &&
             node->simpleDescriptors()[0].deviceId() == 0x0302 &&
-            inClusterCount == 9 && outClusterCount == 11)
+            inClusterCount == 8 && outClusterCount == 11)
         {
             modelId = QLatin1String("113D"); //  the modelid returned by device is empty
             manufacturer = QLatin1String("iHorn");
