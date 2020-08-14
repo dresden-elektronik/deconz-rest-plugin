@@ -74,6 +74,7 @@ extern const char *RStateFlag;
 extern const char *RStateGesture;
 extern const char *RStateHue;
 extern const char *RStateHumidity;
+extern const char *RStateLastSet;
 extern const char *RStateLastUpdated;
 extern const char *RStateLift;
 extern const char *RStateLightLevel;
@@ -101,6 +102,7 @@ extern const char *RStateTampered;
 extern const char *RStateTemperature;
 extern const char *RStateTilt;
 extern const char *RStateTiltAngle;
+extern const char *RStateUtc;
 extern const char *RStateValve;
 extern const char *RStateVibration;
 extern const char *RStateVibrationStrength;
@@ -122,6 +124,9 @@ extern const char *RConfigDuration;
 extern const char *RConfigGroup;
 extern const char *RConfigHeatSetpoint;
 extern const char *RConfigHostFlags;
+extern const char *RConfigLastChangeAmount;
+extern const char *RConfigLastChangeSource;
+extern const char *RConfigLastChangeTime;
 extern const char *RConfigId;
 extern const char *RConfigLat;
 extern const char *RConfigLedIndication;
@@ -136,9 +141,10 @@ extern const char *RConfigPending;
 extern const char *RConfigPowerup;
 extern const char *RConfigPowerOnCt;
 extern const char *RConfigPowerOnLevel;
+extern const char *RConfigPreset;
 extern const char *RConfigReachable;
-extern const char *RConfigScheduler;
-extern const char *RConfigSchedulerOn;
+extern const char *RConfigSchedule;
+extern const char *RConfigScheduleOn;
 extern const char *RConfigSensitivity;
 extern const char *RConfigSensitivityMax;
 extern const char *RConfigSunriseOffset;
@@ -180,6 +186,7 @@ extern const QStringList RStateEffectValuesMueller;
 #define R_EFFECT_CAMPFIRE           5
 #define R_EFFECT_ROMANCE            6
 #define R_EFFECT_NIGHTLIGHT         7
+extern const QStringList RConfigLastChangeSourceValues;
 
 #define R_PENDING_DELAY             (1 << 0)
 #define R_PENDING_LEDINDICATION     (1 << 1)

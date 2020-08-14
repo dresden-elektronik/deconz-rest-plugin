@@ -164,6 +164,7 @@ SOURCES  = authorisation.cpp \
            sensor.cpp \
            thermostat.cpp \
            time.cpp \
+           tuya.cpp \
            basic.cpp \
            appliances.cpp \
            reset_device.cpp \

@@ -3201,7 +3201,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         }
         else if (sensor.type().endsWith(QLatin1String("Thermostat")))
         {
-            if (sensor.fingerPrint().hasInCluster(THERMOSTAT_CLUSTER_ID))
+            if (sensor.fingerPrint().hasInCluster(THERMOSTAT_CLUSTER_ID) || sensor.fingerPrint().hasInCluster(TUYA_CLUSTER_ID))
             {
                 clusterId = THERMOSTAT_CLUSTER_ID;
             }
@@ -3221,12 +3221,31 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 item->setValue(0);
                 sensor.addItem(DataTypeInt16, RConfigHeatSetpoint);    // Heating set point
                 sensor.addItem(DataTypeBool, RStateOn);           // Heating on/off
-                
+
                 if (sensor.modelId() == QLatin1String("SLR2") ||           // Hive 
+                    sensor.modelId() == QLatin1String("SLR1b") ||           // Hive 
                     sensor.modelId().startsWith(QLatin1String("TH112")) || // Sinope
-                    sensor.modelId() == QLatin1String("Zen-01"))           // Zen
+                    sensor.modelId() == QLatin1String("GbxAXL2") ||        // Tuya
+                    sensor.modelId() == QLatin1String("kud7u2l") ||        // Tuya
+                    sensor.modelId() == QLatin1String("TS0601") ||        // Tuya
+                    sensor.modelId() == QLatin1String("Zen-01") )          // Zen
                 {
                     sensor.addItem(DataTypeString, RConfigMode);
+                }
+
+                if (sensor.modelId() == QLatin1String("kud7u2l") || // tuya 
+                    sensor.modelId() == QLatin1String("GbxAXL2") || // tuya
+                    sensor.modelId() == QLatin1String("TS0601") ) //tuya
+                {
+                    sensor.addItem(DataTypeUInt8, RStateValve);
+                    sensor.addItem(DataTypeBool, RStateLowBattery);
+                }
+                
+                if (sensor.modelId() == QLatin1String("kud7u2l") || // tuya 
+                    sensor.modelId() == QLatin1String("TS0601") ) //tuya
+                {
+                    sensor.addItem(DataTypeString, RConfigPreset);
+                    sensor.addItem(DataTypeBool, RConfigLocked);
                 }
                 
                 if (sensor.modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
@@ -3237,18 +3256,28 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeBool, RConfigLocked);
                     sensor.addItem(DataTypeString, RConfigMode);
                 }
+                else if (sensor.modelId() == QLatin1String("Thermostat")) // ecozy
+                {
+                    sensor.addItem(DataTypeUInt8, RStateValve);
+                    sensor.addItem(DataTypeString, RConfigSchedule);
+                    sensor.addItem(DataTypeBool, RConfigScheduleOn);
+                    sensor.addItem(DataTypeInt16, RConfigLastChangeAmount);
+                    sensor.addItem(DataTypeUInt8, RConfigLastChangeSource);
+                    sensor.addItem(DataTypeTime, RConfigLastChangeTime);
+                }
                 else if (sensor.modelId() == QLatin1String("Zen-01"))
                 {
                 }
-                else if (sensor.modelId() == QLatin1String("eTRV0100"))
+                else if ((sensor.modelId() == QLatin1String("eTRV0100")) ||
+                         (sensor.modelId() == QLatin1String("TRV001")) )
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
                     sensor.addItem(DataTypeString, RStateWindowOpen);
                 }
                 else
                 {
-                    sensor.addItem(DataTypeBool, RConfigSchedulerOn); // Scheduler state on/off
-                    sensor.addItem(DataTypeString, RConfigScheduler); // Scheduler setting
+                    sensor.addItem(DataTypeBool, RConfigScheduleOn);
+                    sensor.addItem(DataTypeString, RConfigSchedule);
                 }
             }
         }
@@ -3266,6 +3295,12 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             sensor.addItem(DataTypeInt16, RConfigOffset);
             sensor.addItem(DataTypeString, RConfigMode);
             sensor.addItem(DataTypeTime, RStateLocaltime);
+        }
+        else if (sensor.type().endsWith(QLatin1String("Time")))
+        {
+            sensor.addItem(DataTypeTime, RStateUtc);
+            sensor.addItem(DataTypeTime, RStateLocaltime);
+            sensor.addItem(DataTypeTime, RStateLastSet);
         }
 
         if (sensor.modelId().startsWith(QLatin1String("RWL02"))) // Hue dimmer switch

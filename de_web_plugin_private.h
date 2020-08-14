@@ -196,6 +196,7 @@
 #define APPLIANCE_EVENTS_AND_ALERTS_CLUSTER_ID 0x0B02
 #define ELECTRICAL_MEASUREMENT_CLUSTER_ID     0x0B04
 #define COMMISSIONING_CLUSTER_ID              0x1000
+#define TUYA_CLUSTER_ID                       0xEF00
 #define DE_CLUSTER_ID                         0xFC00
 #define VENDOR_CLUSTER_ID                     0xFC00
 #define UBISYS_DEVICE_SETUP_CLUSTER_ID        0xFC00
@@ -241,7 +242,7 @@
 #define IAS_ZONE_TYPE_VIBRATION_SENSOR        0x002d
 #define IAS_ZONE_TYPE_WARNING_DEVICE          0x0225
 
-// read flags
+// read and write flags
 #define READ_MODEL_ID          (1 << 0)
 #define READ_SWBUILD_ID        (1 << 1)
 #define READ_ON_OFF            (1 << 2)
@@ -253,20 +254,20 @@
 #define READ_VENDOR_NAME       (1 << 8)
 #define READ_BINDING_TABLE     (1 << 9)
 #define READ_OCCUPANCY_CONFIG  (1 << 10)
+#define WRITE_OCCUPANCY_CONFIG (1 << 11)
 #define READ_GROUP_IDENTIFIERS (1 << 12)
-#define READ_MODE_CONFIG       (1 << 13)
+#define WRITE_DELAY            (1 << 13)
+#define WRITE_LEDINDICATION    (1 << 14)
+#define WRITE_SENSITIVITY      (1 << 15)
+#define WRITE_USERTEST         (1 << 16)
 #define READ_THERMOSTAT_STATE  (1 << 17)
 #define READ_BATTERY           (1 << 18)
+#define READ_TIME              (1 << 19)
+#define WRITE_TIME             (1 << 20)
+#define READ_THERMOSTAT_SCHEDULE (1 << 21)
 
 #define READ_MODEL_ID_INTERVAL   (60 * 60) // s
 #define READ_SWBUILD_ID_INTERVAL (60 * 60) // s
-
-// write flags
-#define WRITE_OCCUPANCY_CONFIG  (1 << 11)
-#define WRITE_DELAY             (1 << 13)
-#define WRITE_LEDINDICATION     (1 << 14)
-#define WRITE_SENSITIVITY       (1 << 15)
-#define WRITE_USERTEST          (1 << 16)
 
 // manufacturer codes
 // https://github.com/wireshark/wireshark/blob/master/epan/dissectors/packet-zbee.h
@@ -288,10 +289,12 @@
 #define VENDOR_4_NOKS       0x1071
 #define VENDOR_BITRON       0x1071 // branded
 #define VENDOR_COMPUTIME    0x1078
+#define VENDOR_AXIS         0x109A //Axis
 #define VENDOR_NETVOX       0x109F
 #define VENDOR_NYCE         0x10B9
 #define VENDOR_UBISYS       0x10F2
 #define VENDOR_DANALOCK     0x115C
+#define VENDOR_SCHLAGE      0x1236 // Used by Schlage Locks
 #define VENDOR_BEGA         0x1105
 #define VENDOR_PHYSICAL     0x110A // Used by SmartThings
 #define VENDOR_OSRAM        0x110C
@@ -424,6 +427,7 @@ extern const quint64 emberMacPrefix;
 extern const quint64 embertecMacPrefix;
 extern const quint64 energyMiMacPrefix;
 extern const quint64 heimanMacPrefix;
+extern const quint64 zenMacPrefix;
 extern const quint64 ikeaMacPrefix;
 extern const quint64 ikea2MacPrefix;
 extern const quint64 silabsMacPrefix;
@@ -457,6 +461,9 @@ extern const quint64 ecozyMacPrefix;
 extern const quint64 zhejiangMacPrefix;
 // Danalock support
 extern const quint64 danalockMacPrefix;
+extern const quint64 schlageMacPrefix;
+
+extern const QDateTime epoch;
 
 inline bool checkMacVendor(quint64 addr, quint16 vendor)
 {
@@ -572,6 +579,10 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == computimeMacPrefix;
         case VENDOR_DANALOCK:
             return prefix == danalockMacPrefix;
+        case VENDOR_AXIS:
+            return prefix == zenMacPrefix;
+        case VENDOR_SCHLAGE:
+            return prefix == schlageMacPrefix;
         default:
             return false;
     }
@@ -738,7 +749,8 @@ enum TaskType
     TaskThermostat = 37,
     // Danalock support
     TaskDoorLock = 38,
-    TaskDoorUnlock = 39
+    TaskDoorUnlock = 39,
+    TaskSyncTime = 40
 };
 
 struct TaskItem
@@ -987,6 +999,7 @@ public:
     int setLightState(const ApiRequest &req, ApiResponse &rsp);
     int setWindowCoveringState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
     int setWarningDeviceState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
+    int setTuyaDeviceState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map);
     int setLightAttributes(const ApiRequest &req, ApiResponse &rsp);
     int deleteLight(const ApiRequest &req, ApiResponse &rsp);
     int removeAllScenes(const ApiRequest &req, ApiResponse &rsp);
@@ -1385,11 +1398,13 @@ public:
     bool addTaskWindowCoveringSetAttr(TaskItem &task, uint16_t mfrCode, uint16_t attrId, uint8_t attrType, uint16_t attrValue);
     bool addTaskWindowCoveringCalibrate(TaskItem &task, int WindowCoveringType);
     bool addTaskUbisysConfigureSwitch(TaskItem &taskRef);
-    bool addTaskThermostatCmd(TaskItem &task, uint8_t cmd, int8_t setpoint, const QString &schedule, uint8_t daysToReturn);
+    bool addTaskThermostatCmd(TaskItem &task, uint16_t mfrCode, uint8_t cmd, int16_t setpoint, const QString &schedule, uint8_t daysToReturn);
     bool addTaskThermostatSetAndGetSchedule(TaskItem &task, const QString &sched);
     bool addTaskThermostatReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t mfrCode, uint16_t attrId, uint8_t attrType, uint32_t attrValue);
     bool addTaskThermostatWriteAttributeList(TaskItem &task, uint16_t mfrCode, QMap<quint16, quint32> &AttributeList );
     bool addTaskControlModeCmd(TaskItem &task, uint8_t cmdId, int8_t mode);
+    bool addTaskSyncTime(Sensor *sensor);
+
     void handleGroupClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleSceneClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleOnOffClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
@@ -1397,6 +1412,7 @@ public:
     void handleIasZoneClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendIasZoneEnrollResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleIndicationSearchSensors(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    bool SendTuyaRequest(TaskItem &task, TaskType taskType , qint16 Dp , QByteArray data );
     void handleCommissioningClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZdpIndication(const deCONZ::ApsDataIndication &ind);
     bool handleMgmtBindRspConfirm(const deCONZ::ApsDataConfirm &conf);
@@ -1419,6 +1435,7 @@ public:
     void handleBasicClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendBasicClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handlePhilipsClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleTuyaClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZclAttributeReportIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZclConfigureReportingResponseIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendZclDefaultResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame, quint8 status);
@@ -1426,6 +1443,10 @@ public:
     void handleZclAttributeReportIndicationXiaomiSpecial(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void queuePollNode(RestNodeBase *node);
     void handleApplianceAlertClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    bool serialiseThermostatTransitions(const QVariantList &transitions, QString *s);
+    bool deserialiseThermostatTransitions(const QString &s, QVariantList *transitions);
+    bool serialiseThermostatSchedule(const QVariantMap &schedule, QString *s);
+    bool deserialiseThermostatSchedule(const QString &s, QVariantMap *schedule);
 
     // Modify node attributes
     void setAttributeOnOff(LightNode *lightNode);
