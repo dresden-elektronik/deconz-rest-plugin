@@ -1520,7 +1520,7 @@ public:
     QString emptyString;
 
     // JSON support
-    QMap<QString, Sensor::ButtonMap*> buttonMapData;
+    QMap<QString, std::vector<Sensor::ButtonMap>> buttonMapData;
 
     // gateways
     std::vector<Gateway*> gateways;

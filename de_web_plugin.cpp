@@ -800,9 +800,9 @@ void DeRestPluginPrivate::readButtonMapJson()
             
             if (i.value().isArray())        // Check if button map is an array of arrays
             {
+                std::vector<Sensor::ButtonMap> btnMapVec;
                 QJsonArray buttonMapArr = i.value().toArray();
                 //DBG_Printf(DBG_INFO, "[INFO] - Button map size: %d\n", i.value().toArray().size());
-                Sensor::ButtonMap* btnMap = new Sensor::ButtonMap[i.value().toArray().size()];      // Create button map array of required size
                 
                 for (auto i = buttonMapArr.constBegin(); i != buttonMapArr.constEnd(); ++i)       // Loop through button map items
                 {
@@ -822,24 +822,25 @@ void DeRestPluginPrivate::readButtonMapJson()
                         {
                             bool ok;
                             quint16 btn = 0;
+                            Sensor::ButtonMap btnMap;
                             
                             // Initialize with defaults
-                            btnMap[mapItem].mode = Sensor::ModeNone;
-                            btnMap[mapItem].endpoint = 0;
-                            btnMap[mapItem].clusterId = 0;
-                            btnMap[mapItem].zclCommandId = 0;
-                            btnMap[mapItem].zclParam0 = 0;
-                            btnMap[mapItem].button = 0;
-                            btnMap[mapItem].name = "";
+                            btnMap.mode = Sensor::ModeNone;
+                            btnMap.endpoint = 0;
+                            btnMap.clusterId = 0;
+                            btnMap.zclCommandId = 0;
+                            btnMap.zclParam0 = 0;
+                            btnMap.button = 0;
+                            btnMap.name = "";
                             
                             if (buttonMapItemArr.at(0).isDouble())
                             {
                                 //DBG_Printf(DBG_INFO, "[INFO] - Button map item #1: %d\n", buttonMapItemArr.at(0).toInt());
-                                if (buttonMapItemArr.at(0).toInt() == 0) { btnMap[mapItem].mode = Sensor::ModeNone; }
-                                else if (buttonMapItemArr.at(0).toInt() == 1) { btnMap[mapItem].mode = Sensor::ModeScenes; }
-                                else if (buttonMapItemArr.at(0).toInt() == 2) { btnMap[mapItem].mode = Sensor::ModeTwoGroups; }
-                                else if (buttonMapItemArr.at(0).toInt() == 3) { btnMap[mapItem].mode = Sensor::ModeColorTemperature; }
-                                else if (buttonMapItemArr.at(0).toInt() == 4) { btnMap[mapItem].mode = Sensor::ModeDimmer; }
+                                if (buttonMapItemArr.at(0).toInt() == 0) { btnMap.mode = Sensor::ModeNone; }
+                                else if (buttonMapItemArr.at(0).toInt() == 1) { btnMap.mode = Sensor::ModeScenes; }
+                                else if (buttonMapItemArr.at(0).toInt() == 2) { btnMap.mode = Sensor::ModeTwoGroups; }
+                                else if (buttonMapItemArr.at(0).toInt() == 3) { btnMap.mode = Sensor::ModeColorTemperature; }
+                                else if (buttonMapItemArr.at(0).toInt() == 4) { btnMap.mode = Sensor::ModeDimmer; }
                             }
                             else
                             {
@@ -852,7 +853,7 @@ void DeRestPluginPrivate::readButtonMapJson()
                             {
                                 QString ep = buttonMapItemArr.at(1).toString();
                                 //DBG_Printf(DBG_INFO, "[INFO] - Button map item #2: %d\n", ep.toInt(&ok, 16));
-                                btnMap[mapItem].endpoint = ep.toInt(&ok, 16);
+                                btnMap.endpoint = ep.toInt(&ok, 16);
                             }
                             else
                             {
@@ -865,7 +866,7 @@ void DeRestPluginPrivate::readButtonMapJson()
                             {
                                 QString cid = buttonMapItemArr.at(2).toString();
                                 //DBG_Printf(DBG_INFO, "[INFO] - Button map item #3: %d\n", cid.toInt(&ok, 16));
-                                btnMap[mapItem].clusterId = cid.toInt(&ok, 16);
+                                btnMap.clusterId = cid.toInt(&ok, 16);
                             }
                             else
                             {
@@ -878,7 +879,7 @@ void DeRestPluginPrivate::readButtonMapJson()
                             {
                                 QString cmd = buttonMapItemArr.at(3).toString();
                                 //DBG_Printf(DBG_INFO, "[INFO] - Button map item #4: %d\n", cmd.toInt(&ok, 16));
-                                btnMap[mapItem].zclCommandId = cmd.toInt(&ok, 16);
+                                btnMap.zclCommandId = cmd.toInt(&ok, 16);
                             }
                             else
                             {
@@ -890,14 +891,14 @@ void DeRestPluginPrivate::readButtonMapJson()
                             {
                                 QString para = buttonMapItemArr.at(4).toString();
                                 //DBG_Printf(DBG_INFO, "[INFO] - Button map item #5: %d\n", para.toInt(&ok, 16));
-                                btnMap[mapItem].zclParam0 = para.toInt(&ok, 16);
+                                btnMap.zclParam0 = para.toInt(&ok, 16);
                             }
                             else if (buttonMapItemArr.at(4).isString() && buttonMapItemArr.at(4).toString().startsWith(QLatin1String("0x")) && 
                                      (buttonMapItemArr.at(4).toString().length() == 4 || buttonMapItemArr.at(4).toString().length() == 6))
                             {
                                 QString para = buttonMapItemArr.at(4).toString();
                                 //DBG_Printf(DBG_INFO, "[INFO] - Button map item #5: %d\n", para.toInt(&ok, 16));
-                                btnMap[mapItem].zclParam0 = para.toInt(&ok, 16);
+                                btnMap.zclParam0 = para.toInt(&ok, 16);
                             }
                             else
                             {
@@ -920,7 +921,7 @@ void DeRestPluginPrivate::readButtonMapJson()
                             {
                                 //DBG_Printf(DBG_INFO, "[INFO] - Button map item #7: %s\n", qUtf8Printable(buttonMapItemArr.at(6).toString()));
                                 btn += actions.value(buttonMapItemArr.at(6).toString(), 0);
-                                btnMap[mapItem].button = btn;
+                                btnMap.button = btn;
                             }
                             else
                             {
@@ -931,7 +932,7 @@ void DeRestPluginPrivate::readButtonMapJson()
                             if (buttonMapItemArr.at(7).isString() && buttonMapItemArr.at(7).toString().length() <= 40)
                             {
                                 //DBG_Printf(DBG_INFO, "[INFO] - Button map item #8: %s\n", qUtf8Printable(buttonMapItemArr.at(7).toString()));
-                                btnMap[mapItem].name = buttonMapItemArr.at(7).toString();
+                                btnMap.name = buttonMapItemArr.at(7).toString();
                             }
                             else
                             {
@@ -939,11 +940,11 @@ void DeRestPluginPrivate::readButtonMapJson()
                                             mapItem, qUtf8Printable(buttonMapName));
                             }
 
-                            //DBG_Printf(DBG_INFO, "[INFO] - btnMap item #6: %d\n", btnMap[mapItem].button);
-                            //DBG_Printf(DBG_INFO, "[INFO] - btnMap item #7: %s\n", qUtf8Printable(btnMap[mapItem].name));
+                            //DBG_Printf(DBG_INFO, "[INFO] - btnMap item #6: %d\n", btnMap.button);
+                            //DBG_Printf(DBG_INFO, "[INFO] - btnMap item #7: %s\n", qUtf8Printable(btnMap.name));
+                            btnMapVec.push_back(btnMap);
                             mapItem++;
                         }
-                        
                     }
                     else
                     {
@@ -954,10 +955,7 @@ void DeRestPluginPrivate::readButtonMapJson()
                         continue;
                     }
                 }
-                
-                //DBG_Printf(DBG_INFO, "[INFO] - Assigned button map size: %d\n", sizeof(btnMap));
-                //DBG_Printf(DBG_INFO, "[INFO] - Assigned button map size: %d\n", sizeof(btnMap[0]));
-                buttonMapData.insert(buttonMapName, btnMap);       // Assign array of button maps to QMap
+                buttonMapData.insert(buttonMapName, btnMapVec);       // Assign vector of button maps to QMap
             }
             else
             {
@@ -965,14 +963,12 @@ void DeRestPluginPrivate::readButtonMapJson()
                 continue;
             }    
         }
-        
         DBG_Printf(DBG_INFO, "[INFO] - Button maps loaded.\n");
     }
     else
     {
         DBG_Printf(DBG_INFO, "[ERROR] - File containing button maps was NOT found.\n");
     }
-
 }
 
 /*! APSDE-DATA.indication callback.
@@ -3653,8 +3649,8 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
     bool checkReporting = false;
     bool checkClientCluster = false;
-    const Sensor::ButtonMap *buttonMap = sensor->buttonMap(buttonMapData);
-    if (!buttonMap)
+    const std::vector<Sensor::ButtonMap> buttonMapVec = sensor->buttonMap(buttonMapData);
+    if (buttonMapVec.empty())
     {
         quint8 pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(0);
         DBG_Printf(DBG_INFO, "no button map for: %s ep: 0x%02X cl: 0x%04X cmd: 0x%02X pl[0]: 0%02X\n",
@@ -4017,465 +4013,467 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     }
 
     bool ok = false;
-    while (buttonMap->mode != Sensor::ModeNone && !ok)
+    for (const auto &buttonMap : buttonMapVec)
     {
-        if (buttonMap->mode == sensor->mode() &&
-            buttonMap->endpoint == ind.srcEndpoint() &&
-            buttonMap->clusterId == ind.clusterId() &&
-            buttonMap->zclCommandId == zclFrame.commandId())
+        if (buttonMap.mode != Sensor::ModeNone && !ok)
         {
-            ok = true;
-
-            if (zclFrame.isProfileWideCommand() &&
-                zclFrame.commandId() == deCONZ::ZclReportAttributesId &&
-                zclFrame.payload().size() >= 4)
+            if (buttonMap.mode == sensor->mode() &&
+                buttonMap.endpoint == ind.srcEndpoint() &&
+                buttonMap.clusterId == ind.clusterId() &&
+                buttonMap.zclCommandId == zclFrame.commandId())
             {
-                QDataStream stream(zclFrame.payload());
-                stream.setByteOrder(QDataStream::LittleEndian);
-                quint16 attrId;
-                quint8 dataType;
-                quint8 pl3;
-                stream >> attrId;
-                stream >> dataType;
-                stream >> pl3;
+                ok = true;
 
-                // Xiaomi
-                if (ind.clusterId() == ONOFF_CLUSTER_ID && sensor->manufacturer() == QLatin1String("LUMI"))
+                if (zclFrame.isProfileWideCommand() &&
+                    zclFrame.commandId() == deCONZ::ZclReportAttributesId &&
+                    zclFrame.payload().size() >= 4)
                 {
-                    ok = false;
-                    // payload: u16 attrId, u8 datatype, u8 data
-                    if (attrId == 0x0000 && dataType == 0x10 && // onoff attribute
-                        buttonMap->zclParam0 == pl3)
-                    {
-                        ok = true;
-                    }
-                    else if (attrId == 0x8000 && dataType == 0x20 && // custom attribute for multi press
-                        buttonMap->zclParam0 == pl3)
-                    {
-                        ok = true;
-                    }
+                    QDataStream stream(zclFrame.payload());
+                    stream.setByteOrder(QDataStream::LittleEndian);
+                    quint16 attrId;
+                    quint8 dataType;
+                    quint8 pl3;
+                    stream >> attrId;
+                    stream >> dataType;
+                    stream >> pl3;
 
-                    // the round button (lumi.sensor_switch) sends a release command regardless if it is a short press or a long release
-                    // figure it out here to decide if it is a short release (1002) or a long release (1003)
-                    if (ok && sensor->modelId() == QLatin1String("lumi.sensor_switch"))
+                    // Xiaomi
+                    if (ind.clusterId() == ONOFF_CLUSTER_ID && sensor->manufacturer() == QLatin1String("LUMI"))
                     {
-                        const QDateTime now = QDateTime::currentDateTime();
-
-                        if (buttonMap->button == (S_BUTTON_1 + S_BUTTON_ACTION_INITIAL_PRESS))
+                        ok = false;
+                        // payload: u16 attrId, u8 datatype, u8 data
+                        if (attrId == 0x0000 && dataType == 0x10 && // onoff attribute
+                            buttonMap.zclParam0 == pl3)
                         {
-                            sensor->durationDue = now.addMSecs(500); // enable generation of 1001 (hold)
-                            checkSensorsTimer->start(CHECK_SENSOR_FAST_INTERVAL);
+                            ok = true;
                         }
-                        else if (buttonMap->button == (S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED))
+                        else if (attrId == 0x8000 && dataType == 0x20 && // custom attribute for multi press
+                            buttonMap.zclParam0 == pl3)
                         {
-                            sensor->durationDue = QDateTime(); // disable generation of 1001 (hold)
+                            ok = true;
+                        }
 
-                            ResourceItem *item = sensor->item(RStateButtonEvent);
-                            if (item && (item->toNumber() == (S_BUTTON_1 + S_BUTTON_ACTION_INITIAL_PRESS) ||
-                                         item->toNumber() == (S_BUTTON_1 + S_BUTTON_ACTION_HOLD)))
+                        // the round button (lumi.sensor_switch) sends a release command regardless if it is a short press or a long release
+                        // figure it out here to decide if it is a short release (1002) or a long release (1003)
+                        if (ok && sensor->modelId() == QLatin1String("lumi.sensor_switch"))
+                        {
+                            const QDateTime now = QDateTime::currentDateTime();
+
+                            if (buttonMap.button == (S_BUTTON_1 + S_BUTTON_ACTION_INITIAL_PRESS))
                             {
-                                if (item->toNumber() == (S_BUTTON_1 + S_BUTTON_ACTION_HOLD) || // hold already triggered -> long release
-                                    item->lastSet().msecsTo(now) > 400) // over 400 ms since initial press? -> long release
+                                sensor->durationDue = now.addMSecs(500); // enable generation of 1001 (hold)
+                                checkSensorsTimer->start(CHECK_SENSOR_FAST_INTERVAL);
+                            }
+                            else if (buttonMap.button == (S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED))
+                            {
+                                sensor->durationDue = QDateTime(); // disable generation of 1001 (hold)
+
+                                ResourceItem *item = sensor->item(RStateButtonEvent);
+                                if (item && (item->toNumber() == (S_BUTTON_1 + S_BUTTON_ACTION_INITIAL_PRESS) ||
+                                             item->toNumber() == (S_BUTTON_1 + S_BUTTON_ACTION_HOLD)))
                                 {
-                                    ok = false; // force long release button event
+                                    if (item->toNumber() == (S_BUTTON_1 + S_BUTTON_ACTION_HOLD) || // hold already triggered -> long release
+                                        item->lastSet().msecsTo(now) > 400) // over 400 ms since initial press? -> long release
+                                    {
+                                        ok = false; // force long release button event
+                                    }
                                 }
                             }
                         }
                     }
+                    else if ((ind.clusterId() == DOOR_LOCK_CLUSTER_ID && sensor->manufacturer() == QLatin1String("LUMI")) ||
+                             (ind.clusterId() == MULTISTATE_INPUT_CLUSTER_ID && sensor->modelId().endsWith(QLatin1String("86opcn01")))) // Aqara Opple multistate cluster event handling
+                    {
+                        ok = false;
+                        if (attrId == 0x0055 && dataType == 0x21 && // Xiaomi non-standard attribute
+                            buttonMap.zclParam0 == pl3)
+                        {
+                            ok = true;
+                        }
+                    }
                 }
-                else if ((ind.clusterId() == DOOR_LOCK_CLUSTER_ID && sensor->manufacturer() == QLatin1String("LUMI")) ||
-                         (ind.clusterId() == MULTISTATE_INPUT_CLUSTER_ID && sensor->modelId().endsWith(QLatin1String("86opcn01")))) // Aqara Opple multistate cluster event handling
+                else if (zclFrame.isProfileWideCommand() &&
+                         zclFrame.commandId() == deCONZ::ZclWriteAttributesId &&
+                         zclFrame.payload().size() >= 4)
+                {
+                    QDataStream stream(zclFrame.payload());
+                    stream.setByteOrder(QDataStream::LittleEndian);
+                    quint16 attrId;
+                    quint8 dataType;
+                    quint8 pl3;
+                    stream >> attrId;
+                    stream >> dataType;
+                    stream >> pl3;
+
+                    if (ind.clusterId() == BASIC_CLUSTER_ID && sensor->modelId().startsWith(QLatin1String("ZBT-Remote-ALL-RGBW")))
+                    {
+                        ok = attrId == 0x4005 && dataType == deCONZ::Zcl8BitUint && buttonMap.zclParam0 == pl3;
+                    }
+                }
+                else if (zclFrame.isProfileWideCommand())
+                {
+                }
+                else if (ind.clusterId() == SCENE_CLUSTER_ID && zclFrame.commandId() == 0x05) // recall scene
+                {
+                    ok = false; // payload: groupId, sceneId
+                    if (zclFrame.payload().size() >= 3 && buttonMap.zclParam0 == zclFrame.payload().at(2))
+                    {
+                        ok = true;
+                    }
+                }
+                else if (ind.clusterId() == SCENE_CLUSTER_ID && zclFrame.commandId() == 0x04) // store scene
+                {
+                    ok = false; // payload: groupId, sceneId
+                    if (zclFrame.payload().size() >= 3 && buttonMap.zclParam0 == zclFrame.payload().at(2))
+                    {
+                        ok = true;
+                    }
+                }
+                else if (ind.clusterId() == SCENE_CLUSTER_ID &&
+                         sensor->modelId().startsWith(QLatin1String("TRADFRI"))) // IKEA non-standard scene
                 {
                     ok = false;
-                    if (attrId == 0x0055 && dataType == 0x21 && // Xiaomi non-standard attribute
-                        buttonMap->zclParam0 == pl3)
+                    if (zclFrame.commandId() == 0x07 || // short release
+                        zclFrame.commandId() == 0x08)   // hold
                     {
+                        if (zclFrame.payload().size() >= 1 && buttonMap.zclParam0 == zclFrame.payload().at(0)) // next, prev scene
+                        {
+                            sensor->previousDirection = buttonMap.zclParam0;
+                            ok = true;
+                        }
+                    }
+                    else if (zclFrame.commandId() == 0x09) // long release
+                    {
+                        if (buttonMap.zclParam0 == sensor->previousDirection)
+                        {
+                            sensor->previousDirection = 0xFF;
+                            ok = true;
+                        }
+                    }
+                }
+                else if (ind.clusterId() == LEVEL_CLUSTER_ID && zclFrame.commandId() == 0x04 && // move to level (with on/off)
+                         sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer
+                {
+                    // This code is for handling the button map for the Aurora, until we figure out how to activate the 0xFC00 cluster.
+                    ok = false;
+                    if (zclFrame.payload().size() >= 2)
+                    {
+                        quint8 level = zclFrame.payload().at(0);
+                        quint8 tt = zclFrame.payload().at(1);
+                        if (tt == 7) // button pressed
+                        {
+                            ok = buttonMap.zclParam0 == 0; // Toggle
+                        }
+                        else if (tt == 2) // dial turned
+                        {
+                            if      (sensor->previousDirection < level) ok = buttonMap.zclParam0 == 1; // DimUp
+                            else if (sensor->previousDirection > level) ok = buttonMap.zclParam0 == 2; // DimDown
+                            else if (level == 0xFF)                     ok = buttonMap.zclParam0 == 1; // DimUp
+                            else if (level == 2)                        ok = buttonMap.zclParam0 == 2; // DimDown
+                        }
+                        if (ok)
+                        {
+                            sensor->previousDirection = level;
+                        }
+                    }
+                }
+                else if (ind.clusterId() == LEVEL_CLUSTER_ID && zclFrame.commandId() == 0x04) // move to level (with on/off)
+                {
+                    ok = false;
+                    if (zclFrame.payload().size() >= 1)
+                    {
+                        quint8 level = zclFrame.payload().at(0);
+                        ok = buttonMap.zclParam0 == level;
+                        
+                    }
+                }
+                else if (ind.clusterId() == LEVEL_CLUSTER_ID &&
+                         (zclFrame.commandId() == 0x01 ||  // move
+                          zclFrame.commandId() == 0x02 ||  // step
+                          zclFrame.commandId() == 0x05 ||  // move (with on/off)
+                          zclFrame.commandId() == 0x06))   // step (with on/off)
+                {
+                    ok = false;
+                    if (zclFrame.payload().size() >= 1 && buttonMap.zclParam0 == zclFrame.payload().at(0)) // direction
+                    {
+                        sensor->previousDirection = zclFrame.payload().at(0);
                         ok = true;
                     }
                 }
-            }
-            else if (zclFrame.isProfileWideCommand() &&
-                     zclFrame.commandId() == deCONZ::ZclWriteAttributesId &&
-                     zclFrame.payload().size() >= 4)
-            {
-                QDataStream stream(zclFrame.payload());
-                stream.setByteOrder(QDataStream::LittleEndian);
-                quint16 attrId;
-                quint8 dataType;
-                quint8 pl3;
-                stream >> attrId;
-                stream >> dataType;
-                stream >> pl3;
-
-                if (ind.clusterId() == BASIC_CLUSTER_ID && sensor->modelId().startsWith(QLatin1String("ZBT-Remote-ALL-RGBW")))
+                else if (ind.clusterId() == LEVEL_CLUSTER_ID &&
+                           (zclFrame.commandId() == 0x03 ||  // stop
+                            zclFrame.commandId() == 0x07) )  // stop (with on/off)
                 {
-                    ok = attrId == 0x4005 && dataType == deCONZ::Zcl8BitUint && buttonMap->zclParam0 == pl3;
-                }
-            }
-            else if (zclFrame.isProfileWideCommand())
-            {
-            }
-            else if (ind.clusterId() == SCENE_CLUSTER_ID && zclFrame.commandId() == 0x05) // recall scene
-            {
-                ok = false; // payload: groupId, sceneId
-                if (zclFrame.payload().size() >= 3 && buttonMap->zclParam0 == zclFrame.payload().at(2))
-                {
-                    ok = true;
-                }
-            }
-            else if (ind.clusterId() == SCENE_CLUSTER_ID && zclFrame.commandId() == 0x04) // store scene
-            {
-                ok = false; // payload: groupId, sceneId
-                if (zclFrame.payload().size() >= 3 && buttonMap->zclParam0 == zclFrame.payload().at(2))
-                {
-                    ok = true;
-                }
-            }
-            else if (ind.clusterId() == SCENE_CLUSTER_ID &&
-                     sensor->modelId().startsWith(QLatin1String("TRADFRI"))) // IKEA non-standard scene
-            {
-                ok = false;
-                if (zclFrame.commandId() == 0x07 || // short release
-                    zclFrame.commandId() == 0x08)   // hold
-                {
-                    if (zclFrame.payload().size() >= 1 && buttonMap->zclParam0 == zclFrame.payload().at(0)) // next, prev scene
-                    {
-                        sensor->previousDirection = buttonMap->zclParam0;
-                        ok = true;
-                    }
-                }
-                else if (zclFrame.commandId() == 0x09) // long release
-                {
-                    if (buttonMap->zclParam0 == sensor->previousDirection)
+                    ok = false;
+                    if (buttonMap.zclParam0 == sensor->previousDirection || // direction of previous move/step
+                        sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5121"))) // Device sends cmd = 7 + param = 0 for dim up/down
                     {
                         sensor->previousDirection = 0xFF;
                         ok = true;
                     }
                 }
-            }
-            else if (ind.clusterId() == LEVEL_CLUSTER_ID && zclFrame.commandId() == 0x04 && // move to level (with on/off)
-                     sensor->modelId().startsWith(QLatin1String("Z3-1BRL"))) // Lutron Aurora Friends-of-Hue dimmer
-            {
-                // This code is for handling the button map for the Aurora, until we figure out how to activate the 0xFC00 cluster.
-                ok = false;
-                if (zclFrame.payload().size() >= 2)
+                else if (ind.clusterId() == WINDOW_COVERING_CLUSTER_ID)
                 {
-                    quint8 level = zclFrame.payload().at(0);
-                    quint8 tt = zclFrame.payload().at(1);
-                    if (tt == 7) // button pressed
+                    ok = false;
+                    if (zclFrame.commandId() == 0x00 || zclFrame.commandId() == 0x01) // Open, Close
                     {
-                        ok = buttonMap->zclParam0 == 0; // Toggle
+                        sensor->previousDirection = zclFrame.commandId();
+                        ok = true;
                     }
-                    else if (tt == 2) // dial turned
+                    else if (zclFrame.commandId() == 0x02) // Stop
                     {
-                        if      (sensor->previousDirection < level) ok = buttonMap->zclParam0 == 1; // DimUp
-                        else if (sensor->previousDirection > level) ok = buttonMap->zclParam0 == 2; // DimDown
-                        else if (level == 0xFF)                     ok = buttonMap->zclParam0 == 1; // DimUp
-                        else if (level == 2)                        ok = buttonMap->zclParam0 == 2; // DimDown
+                        if (buttonMap.zclParam0 == sensor->previousDirection)
+                        {
+                            sensor->previousDirection = 0xFF;
+                            ok = true;
+                        }
                     }
+                }
+                else if (ind.clusterId() == IAS_ZONE_CLUSTER_ID)
+                {
+                    ok = false;
+                    // following works for Samjin button
+                    if (zclFrame.payload().size() == 6 && buttonMap.zclParam0 == zclFrame.payload().at(0))
+                    {
+                        ok = true;
+                    }
+                }
+                else if (ind.clusterId() == IAS_ACE_CLUSTER_ID)
+                {
+                    ok = false;
+                    if (zclFrame.commandId() == 0x00 && zclFrame.payload().size() == 3 && buttonMap.zclParam0 == zclFrame.payload().at(0))
+                    {
+                        ok = true;
+                    }
+                    else if (zclFrame.commandId() == 0x02 && zclFrame.payload().isEmpty())
+                    {
+                        ok = true;
+                    }
+                }
+                else if (ind.clusterId() == COLOR_CLUSTER_ID &&
+                         zclFrame.commandId() == 0x07 && zclFrame.payload().size() >= 4 && // Move to Color
+                         sensor->modelId().startsWith(QLatin1String("ZBT-Remote-ALL-RGBW")))
+                {
+                    quint16 x;
+                    quint16 y;
+                    quint16 a = 0xFFFF;
+                    QDataStream stream(zclFrame.payload());
+                    stream.setByteOrder(QDataStream::LittleEndian);
+                    stream >> x;
+                    stream >> y;
+
+                    switch (x) {
+                        case 19727: a =   0; break; // North
+                        case 22156: a =  10; break;
+                        case 24216: a =  20; break;
+                        case 25909: a =  30; break;
+                        case 27663: a =  40; break;
+                        case 29739: a =  50; break;
+                        case 32302: a =  60; break;
+                        case 35633: a =  70; break;
+                        case 39898: a =  80; break;
+                        case 45875: a =  90; break; // East
+                        case 42184: a = 100; break;
+                        case 39202: a = 110; break;
+                        case 36633: a = 120; break;
+                        case 34493: a = 130; break;
+                        case 32602: a = 140; break;
+                        case 30993: a = 150; break;
+                        case 29270: a = 160; break;
+                        case 27154: a = 170; break;
+                        case 24420: a = 180; break; // South
+                        case 20648: a = 190; break;
+                        case 11111: a = 200; break;
+                        case  7208: a = 210; break;
+                        case  7356: a = 220; break;
+                        case  7451: a = 230; break;
+                        case  7517: a = 240; break;
+                        case  7563: a = 250; break;
+                        case  7599: a = 260; break;
+                        case  7627: a = 270; break; // West
+                        case  7654: a = 280; break;
+                        case  7684: a = 290; break;
+                        case  7719: a = 300; break;
+                        case  7760: a = 310; break;
+                        case  7808: a = 320; break;
+                        case  7864: a = 330; break;
+                        case 12789: a = 340; break;
+                        case 16664: a = 350; break;
+                        default: ok = false; break;
+                    }
+
                     if (ok)
                     {
-                        sensor->previousDirection = level;
+                        ResourceItem *item = sensor->item(RStateX);
+                        if (item)
+                        {
+                            item->setValue(x);
+                            enqueueEvent(Event(RSensors, RStateX, sensor->id(), item));
+                        }
+                        item = sensor->item(RStateY);
+                        if (item)
+                        {
+                            item->setValue(y);
+                            enqueueEvent(Event(RSensors, RStateY, sensor->id(), item));
+                        }
+                        item = sensor->item(RStateAngle);
+                        if (item)
+                        {
+                            item->setValue(a);
+                            enqueueEvent(Event(RSensors, RStateAngle, sensor->id(), item));
+                        }
+                    }
+                    else
+                    {
+                        DBG_Printf(DBG_INFO, "unknown xy values for: %s ep: 0x%02X cl: 0x%04X cmd: 0x%02X xy: (%u, %u)\n",
+                                   qPrintable(sensor->modelId()), ind.srcEndpoint(), ind.clusterId(), zclFrame.commandId(), x, y);
                     }
                 }
-            }
-            else if (ind.clusterId() == LEVEL_CLUSTER_ID && zclFrame.commandId() == 0x04) // move to level (with on/off)
-            {
-                ok = false;
-                if (zclFrame.payload().size() >= 1)
+                else if (ind.clusterId() == COLOR_CLUSTER_ID &&
+                         zclFrame.commandId() == 0x0a && zclFrame.payload().size() >= 2 && // Move to Color Temperature
+                         sensor->modelId().startsWith(QLatin1String("ZBT-Remote-ALL-RGBW")))
                 {
-                    quint8 level = zclFrame.payload().at(0);
-                    ok = buttonMap->zclParam0 == level;
-                    
-                }
-            }
-            else if (ind.clusterId() == LEVEL_CLUSTER_ID &&
-                     (zclFrame.commandId() == 0x01 ||  // move
-                      zclFrame.commandId() == 0x02 ||  // step
-                      zclFrame.commandId() == 0x05 ||  // move (with on/off)
-                      zclFrame.commandId() == 0x06))   // step (with on/off)
-            {
-                ok = false;
-                if (zclFrame.payload().size() >= 1 && buttonMap->zclParam0 == zclFrame.payload().at(0)) // direction
-                {
-                    sensor->previousDirection = zclFrame.payload().at(0);
-                    ok = true;
-                }
-            }
-            else if (ind.clusterId() == LEVEL_CLUSTER_ID &&
-                       (zclFrame.commandId() == 0x03 ||  // stop
-                        zclFrame.commandId() == 0x07) )  // stop (with on/off)
-            {
-                ok = false;
-                if (buttonMap->zclParam0 == sensor->previousDirection || // direction of previous move/step
-                    sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5121"))) // Device sends cmd = 7 + param = 0 for dim up/down
-                {
-                    sensor->previousDirection = 0xFF;
-                    ok = true;
-                }
-            }
-            else if (ind.clusterId() == WINDOW_COVERING_CLUSTER_ID)
-            {
-                ok = false;
-                if (zclFrame.commandId() == 0x00 || zclFrame.commandId() == 0x01) // Open, Close
-                {
-                    sensor->previousDirection = zclFrame.commandId();
-                    ok = true;
-                }
-                else if (zclFrame.commandId() == 0x02) // Stop
-                {
-                    if (buttonMap->zclParam0 == sensor->previousDirection)
+                    quint16 ct;
+                    QDataStream stream(zclFrame.payload());
+                    stream.setByteOrder(QDataStream::LittleEndian);
+                    stream >> ct;
+
+                    if      (sensor->previousCt < ct) ok = buttonMap.zclParam0 == 0; // CtUp
+                    else if (sensor->previousCt > ct) ok = buttonMap.zclParam0 == 1; // CtDown
+                    else if (ct == 370)               ok = buttonMap.zclParam0 == 0; // DimUp
+                    else if (ct == 153)               ok = buttonMap.zclParam0 == 1; // DimDown
+                    if (ok)
                     {
-                        sensor->previousDirection = 0xFF;
+                        sensor->previousCt = ct;
+                    }
+
+                }
+                else if (ind.clusterId() == COLOR_CLUSTER_ID &&
+                         zclFrame.commandId() == 0x0a && zclFrame.payload().size() >= 2 && // Move to Color Temperature
+                         sensor->modelId().startsWith(QLatin1String("ZBT-CCTSwitch-D0001")))
+                {
+                        quint8 pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(0);
+                        if (buttonMap.zclParam0 != pl0)
+                        {
+                            ok = false;
+                            pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(1);
+                        }
+                        //ignore the command if previous was button4
+                        if (sensor->previousCommandId == 0x04)
+                        {
+                            ok = false;
+                        }
+                }
+                else if ((ind.clusterId() == COLOR_CLUSTER_ID) &&
+                         (zclFrame.commandId() == 0x4b) && 
+                         sensor->modelId().startsWith(QLatin1String("ZBT-CCTSwitch-D0001")) )
+                {
+                    quint8 pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(0);
+                    if (buttonMap.zclParam0 != pl0)
+                    {
+                        ok = false;
+                    }
+                }
+                else if (ind.clusterId() == COLOR_CLUSTER_ID &&
+                         (zclFrame.commandId() == 0x4b && zclFrame.payload().size() >= 7) )  // move color temperature
+                {
+                    ok = false;
+                    // u8 move mode
+                    // u16 rate
+                    // u16 ctmin = 0
+                    // u16 ctmax = 0
+                    quint8 moveMode = zclFrame.payload().at(0);
+                    quint16 param = moveMode;
+
+                    if (moveMode == 0x01 || moveMode == 0x03)
+                    {
+                        sensor->previousDirection = moveMode;
+                    }
+                    else if (moveMode == 0x00)
+                    {
+                        param = sensor->previousDirection;
+                        param <<= 4;
+                    }
+
+                    // byte-2 most likely 0, but include anyway
+                    param |= (quint16)zclFrame.payload().at(2) & 0xff;
+                    param <<= 8;
+                    param |= (quint16)zclFrame.payload().at(1) & 0xff;
+                    if (buttonMap.zclParam0 == param)
+                    {
+                        if (moveMode == 0x00)
+                        {
+                            sensor->previousDirection = 0xFF;
+                        }
                         ok = true;
                     }
                 }
-            }
-            else if (ind.clusterId() == IAS_ZONE_CLUSTER_ID)
-            {
-                ok = false;
-                // following works for Samjin button
-                if (zclFrame.payload().size() == 6 && buttonMap->zclParam0 == zclFrame.payload().at(0))
+                else if (ind.clusterId() == COLOR_CLUSTER_ID && (zclFrame.commandId() == 0x01 ) )  // Move hue command
                 {
-                    ok = true;
-                }
-            }
-            else if (ind.clusterId() == IAS_ACE_CLUSTER_ID)
-            {
-                ok = false;
-                if (zclFrame.commandId() == 0x00 && zclFrame.payload().size() == 3 && buttonMap->zclParam0 == zclFrame.payload().at(0))
-                {
-                    ok = true;
-                }
-                else if (zclFrame.commandId() == 0x02 && zclFrame.payload().isEmpty())
-                {
-                    ok = true;
-                }
-            }
-            else if (ind.clusterId() == COLOR_CLUSTER_ID &&
-                     zclFrame.commandId() == 0x07 && zclFrame.payload().size() >= 4 && // Move to Color
-                     sensor->modelId().startsWith(QLatin1String("ZBT-Remote-ALL-RGBW")))
-            {
-                quint16 x;
-                quint16 y;
-                quint16 a = 0xFFFF;
-                QDataStream stream(zclFrame.payload());
-                stream.setByteOrder(QDataStream::LittleEndian);
-                stream >> x;
-                stream >> y;
-
-                switch (x) {
-                    case 19727: a =   0; break; // North
-                    case 22156: a =  10; break;
-                    case 24216: a =  20; break;
-                    case 25909: a =  30; break;
-                    case 27663: a =  40; break;
-                    case 29739: a =  50; break;
-                    case 32302: a =  60; break;
-                    case 35633: a =  70; break;
-                    case 39898: a =  80; break;
-                    case 45875: a =  90; break; // East
-                    case 42184: a = 100; break;
-                    case 39202: a = 110; break;
-                    case 36633: a = 120; break;
-                    case 34493: a = 130; break;
-                    case 32602: a = 140; break;
-                    case 30993: a = 150; break;
-                    case 29270: a = 160; break;
-                    case 27154: a = 170; break;
-                    case 24420: a = 180; break; // South
-                    case 20648: a = 190; break;
-                    case 11111: a = 200; break;
-                    case  7208: a = 210; break;
-                    case  7356: a = 220; break;
-                    case  7451: a = 230; break;
-                    case  7517: a = 240; break;
-                    case  7563: a = 250; break;
-                    case  7599: a = 260; break;
-                    case  7627: a = 270; break; // West
-                    case  7654: a = 280; break;
-                    case  7684: a = 290; break;
-                    case  7719: a = 300; break;
-                    case  7760: a = 310; break;
-                    case  7808: a = 320; break;
-                    case  7864: a = 330; break;
-                    case 12789: a = 340; break;
-                    case 16664: a = 350; break;
-                    default: ok = false; break;
-                }
-
-                if (ok)
-                {
-                    ResourceItem *item = sensor->item(RStateX);
-                    if (item)
+                    // Only used by Osram devices currently
+                    if (sensor->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
+                        sensor->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
+                        sensor->modelId().startsWith(QLatin1String("Switch 4x-LIGHTIFY")) || // Osram 4 button remote
+                        sensor->modelId().startsWith(QLatin1String("Switch-LIGHTIFY")) ) // Osram 4 button remote
                     {
-                        item->setValue(x);
-                        enqueueEvent(Event(RSensors, RStateX, sensor->id(), item));
-                    }
-                    item = sensor->item(RStateY);
-                    if (item)
-                    {
-                        item->setValue(y);
-                        enqueueEvent(Event(RSensors, RStateY, sensor->id(), item));
-                    }
-                    item = sensor->item(RStateAngle);
-                    if (item)
-                    {
-                        item->setValue(a);
-                        enqueueEvent(Event(RSensors, RStateAngle, sensor->id(), item));
-                    }
-                }
-                else
-                {
-                    DBG_Printf(DBG_INFO, "unknown xy values for: %s ep: 0x%02X cl: 0x%04X cmd: 0x%02X xy: (%u, %u)\n",
-                               qPrintable(sensor->modelId()), ind.srcEndpoint(), ind.clusterId(), zclFrame.commandId(), x, y);
-                }
-            }
-            else if (ind.clusterId() == COLOR_CLUSTER_ID &&
-                     zclFrame.commandId() == 0x0a && zclFrame.payload().size() >= 2 && // Move to Color Temperature
-                     sensor->modelId().startsWith(QLatin1String("ZBT-Remote-ALL-RGBW")))
-            {
-                quint16 ct;
-                QDataStream stream(zclFrame.payload());
-                stream.setByteOrder(QDataStream::LittleEndian);
-                stream >> ct;
-
-                if      (sensor->previousCt < ct) ok = buttonMap->zclParam0 == 0; // CtUp
-                else if (sensor->previousCt > ct) ok = buttonMap->zclParam0 == 1; // CtDown
-                else if (ct == 370)               ok = buttonMap->zclParam0 == 0; // DimUp
-                else if (ct == 153)               ok = buttonMap->zclParam0 == 1; // DimDown
-                if (ok)
-                {
-                    sensor->previousCt = ct;
-                }
-
-            }
-            else if (ind.clusterId() == COLOR_CLUSTER_ID &&
-                     zclFrame.commandId() == 0x0a && zclFrame.payload().size() >= 2 && // Move to Color Temperature
-                     sensor->modelId().startsWith(QLatin1String("ZBT-CCTSwitch-D0001")))
-            {
-                    quint8 pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(0);
-                    if (buttonMap->zclParam0 != pl0)
-                    {
-                        ok = false;
-                        pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(1);
-                    }
-                    //ignore the command if previous was button4
-                    if (sensor->previousCommandId == 0x04)
-                    {
-                        ok = false;
-                    }
-            }
-            else if ((ind.clusterId() == COLOR_CLUSTER_ID) &&
-                     (zclFrame.commandId() == 0x4b) && 
-                     sensor->modelId().startsWith(QLatin1String("ZBT-CCTSwitch-D0001")) )
-            {
-                quint8 pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(0);
-                if (buttonMap->zclParam0 != pl0)
-                {
-                    ok = false;
-                }
-            }
-            else if (ind.clusterId() == COLOR_CLUSTER_ID &&
-                     (zclFrame.commandId() == 0x4b && zclFrame.payload().size() >= 7) )  // move color temperature
-            {
-                ok = false;
-                // u8 move mode
-                // u16 rate
-                // u16 ctmin = 0
-                // u16 ctmax = 0
-                quint8 moveMode = zclFrame.payload().at(0);
-                quint16 param = moveMode;
-
-                if (moveMode == 0x01 || moveMode == 0x03)
-                {
-                    sensor->previousDirection = moveMode;
-                }
-                else if (moveMode == 0x00)
-                {
-                    param = sensor->previousDirection;
-                    param <<= 4;
-                }
-
-                // byte-2 most likely 0, but include anyway
-                param |= (quint16)zclFrame.payload().at(2) & 0xff;
-                param <<= 8;
-                param |= (quint16)zclFrame.payload().at(1) & 0xff;
-                if (buttonMap->zclParam0 == param)
-                {
-                    if (moveMode == 0x00)
-                    {
-                        sensor->previousDirection = 0xFF;
-                    }
-                    ok = true;
-                }
-            }
-            else if (ind.clusterId() == COLOR_CLUSTER_ID && (zclFrame.commandId() == 0x01 ) )  // Move hue command
-            {
-                // Only used by Osram devices currently
-                if (sensor->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
-                    sensor->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
-                    sensor->modelId().startsWith(QLatin1String("Switch 4x-LIGHTIFY")) || // Osram 4 button remote
-                    sensor->modelId().startsWith(QLatin1String("Switch-LIGHTIFY")) ) // Osram 4 button remote
-                {
-                    quint8 pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(0);
-                    if (buttonMap->zclParam0 != pl0)
-                    {
-                        ok = false;
-                    }
-                }
-
-            }
-
-            if (ok && buttonMap->button != 0)
-            {
-                DBG_Printf(DBG_INFO, "button %u %s\n", buttonMap->button, qUtf8Printable(buttonMap->name));
-                ResourceItem *item = sensor->item(RStateButtonEvent);
-                if (item)
-                {
-                    if (item->toNumber() == buttonMap->button && ind.dstAddressMode() == deCONZ::ApsGroupAddress)
-                    {
-                        QDateTime now = QDateTime::currentDateTime();
-                        const auto dt = item->lastSet().msecsTo(now);
-
-                        if (dt > 0 && dt < 500)
+                        quint8 pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(0);
+                        if (buttonMap.zclParam0 != pl0)
                         {
-                            DBG_Printf(DBG_INFO, "button %u %s, discard too fast event (dt = %d)\n", buttonMap->button, qUtf8Printable(buttonMap->name), dt);
-                            break;
+                            ok = false;
                         }
                     }
 
-                    item->setValue(buttonMap->button);
-
-                    Event e(RSensors, RStateButtonEvent, sensor->id(), item);
-                    enqueueEvent(e);
-                    updateSensorEtag(sensor);
-                    sensor->updateStateTimestamp();
-                    sensor->setNeedSaveDatabase(true);
-                    enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
                 }
 
-                item = sensor->item(RStatePresence);
-                if (item)
+                if (ok && buttonMap.button != 0)
                 {
-                    item->setValue(true);
-                    Event e(RSensors, RStatePresence, sensor->id(), item);
-                    enqueueEvent(e);
-                    updateSensorEtag(sensor);
-                    sensor->updateStateTimestamp();
-                    sensor->setNeedSaveDatabase(true);
-                    enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
-
-                    ResourceItem *item2 = sensor->item(RConfigDuration);
-                    if (item2 && item2->toNumber() > 0)
+                    DBG_Printf(DBG_INFO, "button %u %s\n", buttonMap.button, qUtf8Printable(buttonMap.name));
+                    ResourceItem *item = sensor->item(RStateButtonEvent);
+                    if (item)
                     {
-                        sensor->durationDue = QDateTime::currentDateTime().addSecs(item2->toNumber());
+                        if (item->toNumber() == buttonMap.button && ind.dstAddressMode() == deCONZ::ApsGroupAddress)
+                        {
+                            QDateTime now = QDateTime::currentDateTime();
+                            const auto dt = item->lastSet().msecsTo(now);
+
+                            if (dt > 0 && dt < 500)
+                            {
+                                DBG_Printf(DBG_INFO, "button %u %s, discard too fast event (dt = %d)\n", buttonMap.button, qUtf8Printable(buttonMap.name), dt);
+                                break;
+                            }
+                        }
+
+                        item->setValue(buttonMap.button);
+
+                        Event e(RSensors, RStateButtonEvent, sensor->id(), item);
+                        enqueueEvent(e);
+                        updateSensorEtag(sensor);
+                        sensor->updateStateTimestamp();
+                        sensor->setNeedSaveDatabase(true);
+                        enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
                     }
+
+                    item = sensor->item(RStatePresence);
+                    if (item)
+                    {
+                        item->setValue(true);
+                        Event e(RSensors, RStatePresence, sensor->id(), item);
+                        enqueueEvent(e);
+                        updateSensorEtag(sensor);
+                        sensor->updateStateTimestamp();
+                        sensor->setNeedSaveDatabase(true);
+                        enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
+
+                        ResourceItem *item2 = sensor->item(RConfigDuration);
+                        if (item2 && item2->toNumber() > 0)
+                        {
+                            sensor->durationDue = QDateTime::currentDateTime().addSecs(item2->toNumber());
+                        }
+                    }
+                    break;
                 }
-                break;
             }
         }
-        buttonMap++;
     }
     
     //Remember last command id
@@ -7548,7 +7546,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 item = i->item(RStateButtonEvent);
 
-                                if (item && !i->buttonMap(buttonMapData) &&
+                                if (item && i->buttonMap(buttonMapData).empty() &&
                                     event.event() == deCONZ::NodeEvent::UpdatedClusterDataZclReport)
                                 {
                                     quint32 button = 0;
