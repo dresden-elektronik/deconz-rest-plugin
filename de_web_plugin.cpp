@@ -3907,8 +3907,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                         zclFrame.commandId() == 0x07) )  // stop (with on/off)
             {
                 ok = false;
-                if (buttonMap->zclParam0 == sensor->previousDirection || // direction of previous move/step
-                    sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5121"))) // Device sends cmd = 7 + param = 0 for dim up/down
+                if (buttonMap->zclParam0 == sensor->previousDirection) // direction of previous move/step
                 {
                     sensor->previousDirection = 0xFF;
                     ok = true;
