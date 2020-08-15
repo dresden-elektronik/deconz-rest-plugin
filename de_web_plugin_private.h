@@ -1399,7 +1399,7 @@ public:
     bool addTaskWindowCoveringSetAttr(TaskItem &task, uint16_t mfrCode, uint16_t attrId, uint8_t attrType, uint16_t attrValue);
     bool addTaskWindowCoveringCalibrate(TaskItem &task, int WindowCoveringType);
     bool addTaskUbisysConfigureSwitch(TaskItem &taskRef);
-    bool addTaskThermostatCmd(TaskItem &task, uint16_t mfrCode, uint8_t cmd, int8_t setpoint, const QString &schedule, uint8_t daysToReturn);
+    bool addTaskThermostatCmd(TaskItem &task, uint16_t mfrCode, uint8_t cmd, int16_t setpoint, const QString &schedule, uint8_t daysToReturn);
     bool addTaskThermostatGetSchedule(TaskItem &task);
     bool addTaskThermostatSetTransitions(TaskItem &task, quint8 weekDays, const QString &transitions);
     bool addTaskThermostatReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t mfrCode, uint16_t attrId, uint8_t attrType, uint32_t attrValue);
