@@ -314,6 +314,16 @@ int DeRestPluginPrivate::setScheduleAttributes(const ApiRequest &req, ApiRespons
                     i->endtime = QDateTime();
                 }
 
+                // randomize time again
+                if (status == "enabled" && i->time.contains("A"))
+                {
+                    map["time"] = i->time;
+                }
+                if (status == "enabled" && i->localtime.contains("A"))
+                {
+                    map["localtime"] = i->localtime;
+                }
+
                 QVariantMap rspItem;
                 QVariantMap rspItemState;
                 rspItemState[QString("/schedules/%1/status").arg(id)] = map["status"];
@@ -395,6 +405,8 @@ int DeRestPluginPrivate::setScheduleAttributes(const ApiRequest &req, ApiRespons
         // time
         QString time;
         Qt::TimeSpec timeSpec = Qt::UTC;
+        int randomTime = 0;
+        int randomMax = 0;
 
         // time (deprecated)
         if (map.contains("time") && (map["time"].type() == QVariant::String))
@@ -414,31 +426,40 @@ int DeRestPluginPrivate::setScheduleAttributes(const ApiRequest &req, ApiRespons
         {
             i->lastTriggerDatetime = QDateTime(); // reset
 
-            { // cutoff random part, A[hh]:[mm]:[ss], because this is not supported yet
+            if (time.contains("A"))
+            {
+                // cutoff random part, A[hh]:[mm]:[ss] (it will be added later)
                 QStringList ls = time.split("A");
 
                 if (ls.size() == 2)
                 {
-                    DBG_Printf(DBG_INFO, "cut off random part %s\n", qPrintable(ls[1]));
+                    DBG_Printf(DBG_INFO, "random part: %s\n", qPrintable(ls[1]));
                     time = ls.first();
                 }
-            }
 
-            // Timer with random element
-            // PT[hh]:[mm]:[ss]A[hh]:[mm]:[ss]
-            if (time.startsWith("PT") && time.contains("A"))
-            {
-                //            schedule.type = Schedule::TypeTimer;
-            }
-            // Recurring timer with random element
-            // R[nn]/PT[hh]:[mm]:[ss]A[hh]:[mm]:[ss]
-            else if (time.startsWith("R") && time.contains("PT") && time.contains("A"))
-            {
-                //            schedule.type = Schedule::TypeTimer;
+                QRegExp rnd("(\\d\\d):(\\d\\d):(\\d\\d)");
+                if (rnd.exactMatch(ls[1]))
+                {
+                    randomMax = rnd.cap(1).toInt() * 60 * 60 + // h
+                        rnd.cap(2).toInt() * 60 +   // m
+                        rnd.cap(3).toInt(); // s
+
+                    if (randomMax == 0) {
+                        randomTime = 0;
+                    } else {
+                        randomTime = (qrand() % ((randomMax + 1) - 1) + 1);
+                    }
+                }
+                else
+                {
+                    rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules"), QString("invalid value, %1, for random part of parameter time").arg(map["time"].toString())));
+                    rsp.httpStatus = HttpStatusBadRequest;
+                    return REQ_READY_SEND;
+                }
             }
             // Recurring timer
             // R[nn]/PT[hh]:[mm]:[ss]
-            else if (time.startsWith("R") && time.contains("PT"))
+            if (time.startsWith("R") && time.contains("PT"))
             {
                 QRegExp rx("R([0-9]{0,2})/PT(\\d\\d):(\\d\\d):(\\d\\d)");
 
@@ -447,7 +468,8 @@ int DeRestPluginPrivate::setScheduleAttributes(const ApiRequest &req, ApiRespons
                     // offset always from current localtime?
                     i->timeout = rx.cap(2).toInt() * 60 * 60 + // h
                             rx.cap(3).toInt() * 60 +   // m
-                            rx.cap(4).toInt(); // s
+                            rx.cap(4).toInt() + // s
+                            randomTime; // randomTime in seconds
                     i->currentTimeout = i->timeout;
                     QDateTime now = QDateTime::currentDateTimeUtc();
                     i->starttime = now.toString("yyyy-MM-ddThh:mm:ss");
@@ -500,7 +522,8 @@ int DeRestPluginPrivate::setScheduleAttributes(const ApiRequest &req, ApiRespons
                     // offset always from current localtime?
                     i->timeout = rx.cap(1).toInt() * 60 * 60 + // h
                                  rx.cap(2).toInt() * 60 +   // m
-                                 rx.cap(3).toInt(); // s
+                                 rx.cap(4).toInt() + // s
+                                 randomTime; // randomTime in seconds
                     i->currentTimeout = i->timeout;
                     i->recurring = 1;
                     QDateTime now = QDateTime::currentDateTimeUtc();
@@ -546,6 +569,10 @@ int DeRestPluginPrivate::setScheduleAttributes(const ApiRequest &req, ApiRespons
             {
                 QRegExp rx("W([0-9]{1,3})/T(\\d\\d):(\\d\\d):(\\d\\d)");
 
+                if (randomTime > 43200) {
+                    randomTime = 43200; // random time has to be smaller than 12 hours
+                }
+
                 if (rx.exactMatch(time))
                 {
                     i->type = Schedule::TypeRecurringTime;
@@ -562,6 +589,7 @@ int DeRestPluginPrivate::setScheduleAttributes(const ApiRequest &req, ApiRespons
                     i->datetime.setTime(QTime(rx.cap(2).toUInt(),   // h
                                               rx.cap(3).toUInt(),   // m
                                               rx.cap(4).toUInt())); // s
+                    i->datetime = i->datetime.addSecs(randomTime);
 
                     // conversion to localtime
                     if (timeSpec == Qt::UTC)
@@ -584,6 +612,7 @@ int DeRestPluginPrivate::setScheduleAttributes(const ApiRequest &req, ApiRespons
             {
                 QDateTime checkTime = QDateTime::fromString(time, Qt::ISODate);
                 checkTime.setTimeSpec(timeSpec);
+                checkTime = checkTime.addSecs(randomTime);
 
                 // conversion to localtime
                 if (checkTime.isValid() && timeSpec == Qt::UTC)
@@ -800,6 +829,8 @@ bool DeRestPluginPrivate::jsonToSchedule(const QString &jsonString, Schedule &sc
     // time
     QString time;
     Qt::TimeSpec timeSpec = Qt::UTC;
+    int randomTime = 0;
+    int randomMax = 0;
 
     // time (deprecated)
     if (map.contains("time") && (map["time"].type() == QVariant::String))
@@ -830,31 +861,56 @@ bool DeRestPluginPrivate::jsonToSchedule(const QString &jsonString, Schedule &sc
     else
     {
         //schedule.time = map["time"].toString();
-        { // cutoff random part, A[hh]:[mm]:[ss], because this is not supported yet
+
+        // Timer with random element
+        // PT[hh]:[mm]:[ss]A[hh]:[mm]:[ss]
+        // if (time.startsWith("PT") && time.contains("A"))
+        //{
+//            schedule.type = Schedule::TypeTimer;
+        //}
+        // Recurring timer with random element
+        // R[nn]/PT[hh]:[mm]:[ss]A[hh]:[mm]:[ss]
+        //else if (time.startsWith("R") && time.contains("PT") && time.contains("A"))
+        //{
+//            schedule.type = Schedule::TypeTimer;
+        //}
+        // Recurring timer
+        // R[nn]/PT[hh]:[mm]:[ss]
+        if (time.contains("A"))
+        {
+            // cutoff random part, A[hh]:[mm]:[ss] (it will be added later)
             QStringList ls = time.split("A");
 
             if (ls.size() == 2)
             {
-                DBG_Printf(DBG_INFO, "cut off random part %s\n", qPrintable(ls[1]));
+                DBG_Printf(DBG_INFO, "random part: %s\n", qPrintable(ls[1]));
                 time = ls.first();
             }
-        }
 
-        // Timer with random element
-        // PT[hh]:[mm]:[ss]A[hh]:[mm]:[ss]
-        if (time.startsWith("PT") && time.contains("A"))
-        {
-//            schedule.type = Schedule::TypeTimer;
+            QRegExp rnd("(\\d\\d):(\\d\\d):(\\d\\d)");
+            if (rnd.exactMatch(ls[1]))
+            {
+                randomMax = rnd.cap(1).toInt() * 60 * 60 + // h
+                    rnd.cap(2).toInt() * 60 +   // m
+                    rnd.cap(3).toInt(); // s
+
+                if (randomMax == 0) {
+                    randomTime = 0;
+                } else {
+                    randomTime = (qrand() % ((randomMax + 1) - 1) + 1);
+                }
+            }
+            else
+            {
+                if (rsp)
+                {
+                    rsp->list.append(errorToMap(ERR_INVALID_VALUE, QString("/schedules"), QString("invalid value, %1, for random part of parameter time").arg(map["time"].toString())));
+                    rsp->httpStatus = HttpStatusBadRequest;
+                }
+                return false;
+            }
         }
-        // Recurring timer with random element
-        // R[nn]/PT[hh]:[mm]:[ss]A[hh]:[mm]:[ss]
-        else if (time.startsWith("R") && time.contains("PT") && time.contains("A"))
-        {
-//            schedule.type = Schedule::TypeTimer;
-        }
-        // Recurring timer
-        // R[nn]/PT[hh]:[mm]:[ss]
-        else if (time.startsWith("R") && time.contains("PT"))
+        if (time.startsWith("R") && time.contains("PT"))
         {
             QRegExp rx("R([0-9]{0,2})/PT(\\d\\d):(\\d\\d):(\\d\\d)");
 
@@ -863,7 +919,8 @@ bool DeRestPluginPrivate::jsonToSchedule(const QString &jsonString, Schedule &sc
                 // offset always from current localtime?
                 schedule.timeout = rx.cap(2).toInt() * 60 * 60 + // h
                                    rx.cap(3).toInt() * 60 +   // m
-                                   rx.cap(4).toInt(); // s
+                                   rx.cap(4).toInt() + // s
+                                   randomTime; // randomTime in seconds
                 schedule.currentTimeout = schedule.timeout;
                 QDateTime now = QDateTime::currentDateTimeUtc();
                 schedule.starttime = now.toString(QLatin1String("yyyy-MM-ddThh:mm:ss"));
@@ -910,7 +967,8 @@ bool DeRestPluginPrivate::jsonToSchedule(const QString &jsonString, Schedule &sc
                 // offset always from current localtime?
                 schedule.timeout = rx.cap(1).toInt() * 60 * 60 + // h
                                    rx.cap(2).toInt() * 60 +   // m
-                                   rx.cap(3).toInt(); // s
+                                   rx.cap(3).toInt() + // s
+                                   randomTime; // randomTime in seconds
                 schedule.currentTimeout = schedule.timeout;
                 schedule.recurring = 1;
                 QDateTime now = QDateTime::currentDateTimeUtc();
@@ -950,6 +1008,10 @@ bool DeRestPluginPrivate::jsonToSchedule(const QString &jsonString, Schedule &sc
         {
             QRegExp rx("W([0-9]{1,3})/T(\\d\\d):(\\d\\d):(\\d\\d)");
 
+            if (randomTime > 43200) {
+                randomTime = 43200; // random time has to be smaller than 12 hours
+            }
+
             if (rx.exactMatch(time))
             {
                 schedule.type = Schedule::TypeRecurringTime;
@@ -966,6 +1028,7 @@ bool DeRestPluginPrivate::jsonToSchedule(const QString &jsonString, Schedule &sc
                 schedule.datetime.setTime(QTime(rx.cap(2).toUInt(),   // h
                                                 rx.cap(3).toUInt(),   // m
                                                 rx.cap(4).toUInt())); // s
+                schedule.datetime = schedule.datetime.addSecs(randomTime);
 
                 // conversion to localtime
                 if (timeSpec == Qt::UTC)
@@ -982,6 +1045,7 @@ bool DeRestPluginPrivate::jsonToSchedule(const QString &jsonString, Schedule &sc
         {
             schedule.datetime = QDateTime::fromString(time, Qt::ISODate);
             schedule.datetime.setTimeSpec(timeSpec);
+            schedule.datetime = schedule.datetime.addSecs(randomTime);
 
             // conversion to localtime
             if (timeSpec == Qt::UTC)
@@ -1186,6 +1250,83 @@ void DeRestPluginPrivate::scheduleTimerFired()
                     i->jsonString = deCONZ::jsonStringFromMap(i->jsonMap);
                 }
                 queSaveDb(DB_SCHEDULES, DB_SHORT_SAVE_DELAY);
+            }
+
+            // randomize time again
+            if (i->type == Schedule::TypeRecurringTime || i->type == Schedule::TypeTimer)
+            {
+                if (i->time.contains(("A")) || i->localtime.contains("A"))
+                {
+                    QString time = "";
+                    Qt::TimeSpec timeSpec = Qt::UTC;
+                    int randomMax = 0;
+                    int randomTime = 0;
+                    if (i->time.contains("A"))
+                    {
+                        time = i->time;
+                        timeSpec = Qt::UTC;
+                    }
+                    if (i->localtime.contains("A"))
+                    {
+                        time = i->localtime;
+                        timeSpec = Qt::LocalTime;
+                    }
+
+                    // cutoff random part, A[hh]:[mm]:[ss] (it will be added later)
+                    QStringList ls = time.split("A");
+
+                    if (ls.size() == 2)
+                    {
+                        DBG_Printf(DBG_INFO, "random part: %s\n", qPrintable(ls[1]));
+                        time = ls.first();
+                    }
+
+                    QRegExp rnd("(\\d\\d):(\\d\\d):(\\d\\d)");
+                    if (rnd.exactMatch(ls[1]))
+                    {
+                        randomMax = rnd.cap(1).toInt() * 60 * 60 + // h
+                            rnd.cap(2).toInt() * 60 +   // m
+                            rnd.cap(3).toInt(); // s
+
+                        if (randomMax == 0) {
+                            randomTime = 0;
+                        } else {
+                            randomTime = (qrand() % ((randomMax + 1) - 1) + 1);
+                        }
+                    }
+
+                    if (randomTime > 43200) {
+                        randomTime = 43200; // random time has to be smaller than 12 hours
+                    }
+
+                    if (timeSpec == Qt::UTC)
+                    {
+                        i->datetime = QDateTime::currentDateTimeUtc();
+                    }
+                    else
+                    {
+                        i->datetime = QDateTime::currentDateTime();
+                    }
+
+                    QRegExp rx("W([0-9]{1,3})/T(\\d\\d):(\\d\\d):(\\d\\d)");
+
+                    if (rx.exactMatch(time))
+                    {
+                        i->datetime.setTime(QTime(rx.cap(2).toUInt(),   // h
+                                                  rx.cap(3).toUInt(),   // m
+                                                  rx.cap(4).toUInt())); // s
+                        i->datetime = i->datetime.addSecs(randomTime);
+
+                        // conversion to localtime
+                        if (timeSpec == Qt::UTC)
+                        {
+                            int toffset = QDateTime::currentDateTime().offsetFromUtc();
+                            i->datetime = i->datetime.addSecs(toffset);
+                            i->datetime.setOffsetFromUtc(toffset);
+                            i->datetime.setTimeSpec(Qt::LocalTime);
+                        }
+                    }
+                }
             }
 
             QVariantMap cmd = i->jsonMap["command"].toMap();

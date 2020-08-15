@@ -543,6 +543,10 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     {
         return setWarningDeviceState(req, rsp, taskRef, map);
     }
+    else if (taskRef.lightNode->modelId() == QLatin1String("TS0601"))
+    {
+        return setTuyaDeviceState(req, rsp, taskRef, map);
+    }
     // Danalock support. You need to check for taskRef.lightNode->type() == QLatin1String("Door lock"), similar to what I've done under hasAlert for the Siren.
     bool isDoorLockDevice = false;
     if (taskRef.lightNode->type() == QLatin1String("Door Lock"))
@@ -587,6 +591,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     bool hasSpeed = false;
     quint8 targetSpeed = 0;
     bool hasTransitionTime = false;
+    bool hasStop = false;
 
     // Check parameters.
     for (QVariantMap::const_iterator p = map.begin(); p != map.end(); p++)
@@ -836,9 +841,62 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     {
         rsp.list.append(errorToMap(ERR_MISSING_PARAMETER, QString("/lights/%1/state").arg(id), QString("missing parameter to set light state")));
     }
-
+    
     // Check whether light is on.
     isOn = taskRef.lightNode->toBool(RStateOn);
+    
+    // Special part for Profalux device
+    // This device is a shutter but is used as a dimmable light, so need some hack
+    if (taskRef.lightNode->modelId() == QLatin1String("PFLX Shutter"))
+    {
+        // if the user use on/off instead off bri
+        if (hasOn && !hasBri)
+        {
+            targetBri = targetOn ? 0xFE : 0x00;
+        }
+        
+        // The constructor ask to use setvel instead of on/off
+        hasBri = true;
+        hasOn = false;
+        isOn = true; // to force bri even state = off
+        
+        //Check limit
+        if (targetBri > 0xFE) { targetBri = 0xFE; }
+        if (targetBri < 1 ) { targetBri = 0x01; }
+        
+        //Check for stop
+        if (hasBriInc)
+        {
+            hasStop = true;
+        }
+        
+    }
+    
+    // Stop command, I think it's useless, but the command exist, and need it for profalux
+    if (hasStop)
+    {
+        //Reset all
+        hasBriInc = false;
+        hasBri = false;
+        isOn = false;
+        
+        TaskItem task;
+        copyTaskReq(taskRef, task);
+        
+        if (addTaskStopBrightness(task))
+        {
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/state/stop").arg(id)] = true;
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/stop").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+        }
+
+    }
 
     // state.on: true
     if (hasOn && targetOn)
@@ -1770,6 +1828,77 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     return REQ_READY_SEND;
 }
 
+// Tuya Devices
+//
+int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map)
+{
+    QString id = req.path[3];
+    bool on = false;
+
+    if (map.contains("on"))
+    {
+        if (map["on"].type() == QVariant::Bool)
+        {
+            bool ok = false;
+            qint16 button = 0x0101;
+            QByteArray data;
+            
+            on = map["on"].toBool();
+            
+            //Retreive Fake endpoint, and change button value
+            uint8_t ep = taskRef.lightNode->haEndpoint().endpoint();
+            if (ep == 0x02) { button = 0x0102; }
+            if (ep == 0x03) { button = 0x0103; }
+            
+            DBG_Printf(DBG_INFO, "Tuya debug 77: EP:  %d\n",  ep );
+            
+            if (on)
+            {
+                data = QByteArray("\x01",1);
+            }
+            else
+            {
+                data = QByteArray("\x00",1);
+            }
+            
+            ok = SendTuyaRequest(taskRef, TaskSendOnOffToggle , button , data );
+
+            if (ok)
+            {
+                QVariantMap rspItem;
+                QVariantMap rspItemState;
+                rspItemState[QString("/lights/%1/state/on").arg(id)] = on;
+                rspItem["success"] = rspItemState;
+                rsp.list.append(rspItem);
+            }
+            else
+            {
+                rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
+            }
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state/on").arg(id), QString("parameter, not available")));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+    }
+    else
+    {
+        rsp.list.append(errorToMap(ERR_PARAMETER_NOT_AVAILABLE, QString("/lights/%1/state/on").arg(id), QString("parameter not available")));
+        rsp.httpStatus = HttpStatusBadRequest;
+        return REQ_READY_SEND;
+    }
+
+    //if (taskRef.lightNode)
+    //{
+    //    updateLightEtag(taskRef.lightNode);
+    //    rsp.etag = taskRef.lightNode->etag;
+    //}
+
+    return REQ_READY_SEND;
+}
+
 /*! PUT, PATCH /api/<apikey>/lights/<id>/state for Warning device "lights".
     \return REQ_READY_SEND
             REQ_NOT_HANDLED
@@ -1860,7 +1989,8 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
         else if (alert == "select")
         {
             task.options = 0x17; // Warning mode 1 (burglar), Strobe, Very high sound
-            if (taskRef.lightNode->modelId() == QLatin1String("902010/24"))
+            if (taskRef.lightNode->modelId() == QLatin1String("902010/24") ||
+                taskRef.lightNode->modelId() == QLatin1String("902010/29"))
             {
                 task.options = 0x12;
             }
@@ -1869,7 +1999,8 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
         else if (alert == "lselect")
         {
             task.options = 0x17; // Warning mode 1 (burglar), Strobe, Very high sound
-            if (taskRef.lightNode->modelId() == QLatin1String("902010/24"))
+            if (taskRef.lightNode->modelId() == QLatin1String("902010/24") ||
+                taskRef.lightNode->modelId() == QLatin1String("902010/29"))
             {
                 task.options = 0x12;
             }

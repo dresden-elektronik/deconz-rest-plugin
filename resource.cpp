@@ -133,6 +133,7 @@ const char *RConfigPending = "config/pending";
 const char *RConfigPowerup = "config/powerup";
 const char *RConfigPowerOnCt = "config/poweronct";
 const char *RConfigPowerOnLevel = "config/poweronlevel";
+const char *RConfigPreset = "config/preset";
 const char *RConfigReachable = "config/reachable";
 const char *RConfigSchedule = "config/schedule";
 const char *RConfigScheduleOn = "config/schedule_on";
@@ -260,7 +261,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigDisplayFlipped));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigDuration));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigGroup));
-    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RConfigHeatSetpoint, 500, 3000));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RConfigHeatSetpoint, 500, 3200));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, RConfigHostFlags));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, RConfigId));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RConfigLastChangeAmount));
@@ -279,6 +280,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, RConfigPowerup));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigPowerOnLevel));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigPowerOnCt));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigPreset));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigReachable));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigSchedule));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigScheduleOn));

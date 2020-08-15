@@ -3124,17 +3124,13 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (sensor.fingerPrint().hasInCluster(METERING_CLUSTER_ID))
             {
                 clusterId = clusterId ? clusterId : METERING_CLUSTER_ID;
-                if (sensor.modelId() != QLatin1String("160-01"))
-                {
-                    item = sensor.addItem(DataTypeUInt64, RStateConsumption);
-                    item->setValue(0);
-                }
                 if ((sensor.modelId() != QLatin1String("SP 120")) &&
                     (sensor.modelId() != QLatin1String("ZB-ONOFFPlug-D0005")) &&
                     (sensor.modelId() != QLatin1String("TS0121")) &&
                     (!sensor.modelId().startsWith(QLatin1String("BQZ10-AU"))) &&
                     (!sensor.modelId().startsWith(QLatin1String("ROB_200"))) &&
                     (sensor.modelId() != QLatin1String("Plug-230V-ZB3.0")) &&
+                    (sensor.modelId() != QLatin1String("lumi.switch.b1naus01")) &&
                     (sensor.modelId() != QLatin1String("Connected socket outlet")))
                 {
                     item = sensor.addItem(DataTypeInt16, RStatePower);
@@ -3144,6 +3140,11 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             else if (sensor.fingerPrint().hasInCluster(ANALOG_INPUT_CLUSTER_ID))
             {
                 clusterId = clusterId ? clusterId : ANALOG_INPUT_CLUSTER_ID;
+            }
+            if (sensor.modelId() != QLatin1String("160-01"))
+            {
+                item = sensor.addItem(DataTypeUInt64, RStateConsumption);
+                item->setValue(0);
             }
         }
         else if (sensor.type().endsWith(QLatin1String("Power")))
@@ -3159,7 +3160,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     // hasVoltage = false;
                 }
                 else if (sensor.modelId() == QLatin1String("ZB-ONOFFPlug-D0005") ||
-                         sensor.modelId() == QLatin1String("Plug-230V-ZB3.0"))
+                         sensor.modelId() == QLatin1String("Plug-230V-ZB3.0") ||
+                         sensor.modelId() == QLatin1String("lumi.switch.b1naus01"))
                 {
                     hasVoltage = false;
                 }
@@ -3199,7 +3201,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
         }
         else if (sensor.type().endsWith(QLatin1String("Thermostat")))
         {
-            if (sensor.fingerPrint().hasInCluster(THERMOSTAT_CLUSTER_ID))
+            if (sensor.fingerPrint().hasInCluster(THERMOSTAT_CLUSTER_ID) || sensor.fingerPrint().hasInCluster(TUYA_CLUSTER_ID))
             {
                 clusterId = THERMOSTAT_CLUSTER_ID;
             }
@@ -3220,13 +3222,32 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 sensor.addItem(DataTypeInt16, RConfigHeatSetpoint);    // Heating set point
                 sensor.addItem(DataTypeBool, RStateOn);           // Heating on/off
 
-                if (sensor.modelId() == QLatin1String("SLR2") ||           // Hive
+                if (sensor.modelId() == QLatin1String("SLR2") ||           // Hive 
+                    sensor.modelId() == QLatin1String("SLR1b") ||           // Hive 
                     sensor.modelId().startsWith(QLatin1String("TH112")) || // Sinope
-                    sensor.modelId() == QLatin1String("Zen-01"))           // Zen
+                    sensor.modelId() == QLatin1String("GbxAXL2") ||        // Tuya
+                    sensor.modelId() == QLatin1String("kud7u2l") ||        // Tuya
+                    sensor.modelId() == QLatin1String("TS0601") ||        // Tuya
+                    sensor.modelId() == QLatin1String("Zen-01") )          // Zen
                 {
                     sensor.addItem(DataTypeString, RConfigMode);
                 }
 
+                if (sensor.modelId() == QLatin1String("kud7u2l") || // tuya 
+                    sensor.modelId() == QLatin1String("GbxAXL2") || // tuya
+                    sensor.modelId() == QLatin1String("TS0601") ) //tuya
+                {
+                    sensor.addItem(DataTypeUInt8, RStateValve);
+                    sensor.addItem(DataTypeBool, RStateLowBattery);
+                }
+                
+                if (sensor.modelId() == QLatin1String("kud7u2l") || // tuya 
+                    sensor.modelId() == QLatin1String("TS0601") ) //tuya
+                {
+                    sensor.addItem(DataTypeString, RConfigPreset);
+                    sensor.addItem(DataTypeBool, RConfigLocked);
+                }
+                
                 if (sensor.modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
@@ -3247,7 +3268,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 else if (sensor.modelId() == QLatin1String("Zen-01"))
                 {
                 }
-                else if (sensor.modelId() == QLatin1String("eTRV0100"))
+                else if ((sensor.modelId() == QLatin1String("eTRV0100")) ||
+                         (sensor.modelId() == QLatin1String("TRV001")) )
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
                     sensor.addItem(DataTypeString, RStateWindowOpen);
@@ -3356,6 +3378,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 !sensor.modelId().startsWith(QLatin1String("lumi.plug")) &&
                 sensor.modelId() != QLatin1String("lumi.curtain") &&
                 sensor.modelId() != QLatin1String("lumi.sensor_natgas") &&
+                sensor.modelId() != QLatin1String("lumi.switch.b1naus01") &&
                 !sensor.modelId().startsWith(QLatin1String("lumi.relay.c")) &&
                 !sensor.type().endsWith(QLatin1String("Battery")))
             {
@@ -3416,6 +3439,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 // climax non IAS reports state/lowbattery via battery alarm mask attribute
                 item = sensor.addItem(DataTypeBool, RStateLowBattery);
                 // don't set value -> null until reported
+            }
+            else if (sensor.modelId() == QLatin1String("lumi.sensor_natgas"))
+            {
+                // Don't expose battery resource item for this device
             }
             else if (!sensor.type().endsWith(QLatin1String("Battery")))
             {
@@ -4896,7 +4923,6 @@ void DeRestPluginPrivate::closeDb()
     {
         if (ttlDataBaseConnection > idleTotalCounter)
         {
-            DBG_Printf(DBG_INFO, "don't close database yet, keep open for %d seconds\n", (ttlDataBaseConnection - idleTotalCounter));
             return;
         }
 

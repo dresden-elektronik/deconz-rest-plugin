@@ -1100,11 +1100,12 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq5.attributeId = 0x001C;        // Thermostat mode
             rq5.minInterval = 1;
             rq5.maxInterval = 600;
-            rq5.reportableChange16bit = 0xff;
+            rq5.reportableChange8bit = 0xff;
 
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4, rq5});
         }
         else if ((sensor && sensor->modelId() == QLatin1String("SLR2")) || // Hive
+                 (sensor && sensor->modelId() == QLatin1String("SLR1b")) || // Hive
                  (sensor && sensor->modelId().startsWith(QLatin1String("TH112")))) // Sinope
         {
             rq.dataType = deCONZ::Zcl16BitInt;
@@ -1125,7 +1126,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq4.attributeId = 0x001C;        // Thermostat mode
             rq4.minInterval = 1;
             rq4.maxInterval = 600;
-            rq4.reportableChange16bit = 0xff;
+            rq4.reportableChange8bit = 0xff;
 
             ConfigureReportingRequest rq2;
             rq2.dataType = deCONZ::Zcl16BitBitMap;
@@ -1137,7 +1138,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
         }
 
-        else if (sensor && sensor->modelId() == QLatin1String("eTRV0100")) // Danfoss Ally
+        else if ( (sensor && sensor->modelId() == QLatin1String("eTRV0100")) || // Danfoss Ally
+                  (sensor && sensor->modelId() == QLatin1String("TRV001")) )
         {
             rq.dataType = deCONZ::Zcl16BitInt;
             rq.attributeId = 0x0000;       // local temperature
@@ -1220,8 +1222,9 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     {
         Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
 
-        // This device use only Attribute 0x0000 for tension and 0x001 for frequency
-        if (sensor->modelId() == QLatin1String("SLP2"))
+        // Thoses device use only Attribute 0x0000 for tension and 0x001 for frequency
+        if ((sensor->modelId() == QLatin1String("SLP2")) ||
+            (sensor->modelId() == QLatin1String("SLP2b")))
         {
             return false;
         }
@@ -1253,11 +1256,19 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 900;        // value used by Hue bridge
             rq.reportableChange8bit = 4; // value used by Hue bridge
         }
-        else if (sensor && sensor->modelId() == QLatin1String("eTRV0100")) // Danfoss Ally
+        else if ( (sensor && sensor->modelId() == QLatin1String("eTRV0100")) || // Danfoss Ally
+                  (sensor && sensor->modelId() == QLatin1String("TRV001") ))
         {
             rq.minInterval = 3600;         // Vendor defaults
             rq.maxInterval = 43200;        // Vendor defaults
             rq.reportableChange8bit = 2;   // Vendor defaults
+        }
+        else if (sensor && (sensor->modelId().startsWith(QLatin1String("ED-1001")) || // EcoDim switches
+                            sensor->modelId().startsWith(QLatin1String("45127"))))    // Namron switches
+        {
+            rq.minInterval = 3600;
+            rq.maxInterval = 43200;
+            rq.reportableChange8bit = 1;
         }
         else if (sensor && (sensor->manufacturer().startsWith(QLatin1String("Climax")) ||
                             sensor->modelId().startsWith(QLatin1String("902010/23"))))
@@ -1423,7 +1434,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                        sensor->modelId() == QLatin1String("Connected socket outlet") || // Niko smart socket
                        sensor->modelId().startsWith(QLatin1String("ROB_200")) || // ROBB Smarrt micro dimmer
                        sensor->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
-                       sensor->modelId().startsWith(QLatin1String("lumi.plug.maeu")))) // Xiaomi Aqara ZB3.0 smart plug
+                       sensor->modelId().startsWith(QLatin1String("lumi.plug.maeu")) || // Xiaomi Aqara ZB3.0 smart plug
+                       sensor->modelId().startsWith(QLatin1String("lumi.switch.b1naus01")))) // Xiaomi ZB3.0 Smart Wall Switch
         {
             rq.reportableChange16bit = 10; // 1 W
         }
@@ -1834,6 +1846,11 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         {
             DBG_Printf(DBG_INFO, "Binding DanaLock\n");
         }
+        // Schlage support
+        else if (lightNode->manufacturerCode() == VENDOR_SCHLAGE)
+        {
+            DBG_Printf(DBG_INFO, "Binding Schlage\n");
+        }
         else if (lightNode->manufacturerCode() == VENDOR_IKEA)
         {
         }
@@ -1853,6 +1870,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         {
         }
         else if (lightNode->manufacturerCode() == VENDOR_SINOPE)
+        {
+        }
+        else if (lightNode->manufacturerCode() == VENDOR_XIAOMI)
         {
         }
         else if (lightNode->modelId().startsWith(QLatin1String("SP ")))
@@ -1904,6 +1924,12 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         {
         }
         else if (lightNode->manufacturer() == QLatin1String("NIKO NV"))
+        {
+        }
+        else if (lightNode->manufacturerCode() == VENDOR_AXIS) // Axis shade
+        {
+        }
+        else if (lightNode->manufacturer() == QLatin1String("Sunricher"))
         {
         }
         else
@@ -2149,10 +2175,13 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("3AFE140103020000") ||
         sensor->modelId() == QLatin1String("3AFE130104020015") ||
         sensor->modelId() == QLatin1String("3AFE14010402000D") ||
+        sensor->modelId() == QLatin1String("3AFE220103020000") ||
         // Nimbus
         sensor->modelId().startsWith(QLatin1String("FLS-NB")) ||
         // Danalock support
         sensor->modelId().startsWith(QLatin1String("V3")) ||
+        // Schlage support
+        sensor->modelId().startsWith(QLatin1String("BE468")) ||
         // SmartThings
         sensor->modelId().startsWith(QLatin1String("tagv4")) ||
         sensor->modelId().startsWith(QLatin1String("motionv4")) ||
@@ -2161,6 +2190,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("multi")) ||
         sensor->modelId() == QLatin1String("water") ||
         (sensor->manufacturer() == QLatin1String("Samjin") && sensor->modelId() == QLatin1String("outlet")) ||
+        // Axis
+        sensor->modelId() == QLatin1String("Gear") ||
         // Bitron
         sensor->modelId().startsWith(QLatin1String("902010")) ||
         // Develco
@@ -2193,6 +2224,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("DIN power consumption module") || //Legrand DIN power consumption module
         sensor->modelId() == QLatin1String("Remote motion sensor") || //Legrand Motion detector
         sensor->modelId() == QLatin1String("Remote toggle switch") || //Legrand switch module
+        sensor->modelId() == QLatin1String("Teleruptor") || //Legrand teleruptor
+        sensor->modelId() == QLatin1String("Contactor") || //Legrand Contactor
         // Philio
         sensor->modelId() == QLatin1String("PST03A-v2.2.5") || //Philio pst03-a
         // ORVIBO
@@ -2228,16 +2261,20 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Xiaomi
         sensor->modelId().startsWith(QLatin1String("lumi.plug.maeu01")) ||
         sensor->modelId().startsWith(QLatin1String("lumi.sen_ill.mgl01")) ||
+        sensor->modelId().startsWith(QLatin1String("lumi.switch.b1naus01")) ||
         // iris
         sensor->modelId().startsWith(QLatin1String("1116-S")) ||
         sensor->modelId().startsWith(QLatin1String("1117-S")) ||
         // Hive
         sensor->modelId() == QLatin1String("MOT003") ||
+        sensor->modelId() == QLatin1String("DWS003") ||
         //Computime
         sensor->modelId() == QLatin1String("SLP2") ||
         sensor->modelId() == QLatin1String("SLP2b") ||
         sensor->modelId() == QLatin1String("SLR2") ||
+        sensor->modelId() == QLatin1String("SLR1b") ||
         sensor->modelId() == QLatin1String("SLT2") ||
+        sensor->modelId() == QLatin1String("TRV001") ||
         // Sengled
         sensor->modelId().startsWith(QLatin1String("E13-")) ||
         sensor->modelId().startsWith(QLatin1String("E1D-")) ||
@@ -2258,9 +2295,12 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("ROB_200")) ||
         // Sunricher
         sensor->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) ||
-        sensor->modelId().startsWith(QLatin1String("451270")) ||
+        sensor->modelId().startsWith(QLatin1String("45127")) ||
+        sensor->modelId().startsWith(QLatin1String("ZG2835")) ||
         // EcoDim
         sensor->modelId().startsWith(QLatin1String("ED-1001")) ||
+        // Namron
+        sensor->modelId().startsWith(QLatin1String("45127")) ||
         // Plugwise
         sensor->modelId().startsWith(QLatin1String("160-01")) ||
         // Niko
@@ -2268,6 +2308,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Sage
         sensor->modelId() == QLatin1String("Bell") ||
         // Sonoff
+        sensor->modelId() == QLatin1String("WB01") ||
         sensor->modelId() == QLatin1String("MS01") ||
         sensor->modelId() == QLatin1String("TH01") ||
         sensor->modelId() == QLatin1String("DS01") ||
@@ -2717,7 +2758,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
     // IKEA Trådfri on/off switch
-    else if (sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")))
+    // Sonoff SNZB-01
+    else if (sensor->modelId().startsWith(QLatin1String("TRADFRI on/off switch")) ||
+             sensor->modelId().startsWith(QLatin1String("WB01")))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
@@ -2788,6 +2831,13 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         clusters.push_back(LEVEL_CLUSTER_ID);
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
+    else if (sensor->modelId() == QLatin1String("ZBT-CCTSwitch-D0001"))
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+        clusters.push_back(COLOR_CLUSTER_ID);
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+    }
     // LEGRAND Remote shutter switch
     else if (sensor->modelId() == QLatin1String("Shutters central remote switch"))
     {
@@ -2812,7 +2862,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(0x07);
         srcEndpoints.push_back(0x08);
     }
-    else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM")))
+    else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM")) ||
+             sensor->modelId().startsWith(QLatin1String("ZGRC-KEY-013")))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);
@@ -2822,7 +2873,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(0x03);
         srcEndpoints.push_back(0x04);
     }
-    else if (sensor->modelId().startsWith(QLatin1String("ED-1001")))
+    else if (sensor->modelId().startsWith(QLatin1String("ED-1001")) ||
+             sensor->modelId().startsWith(QLatin1String("45127")))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);
@@ -2892,15 +2944,27 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
     // RGBgenie remote control
-    else if (sensor->modelId().startsWith(QLatin1String("ZGRC-KEY")))
+    else if (sensor->modelId().startsWith(QLatin1String("ZGRC-KEY-012")))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);
         srcEndpoints.push_back(0x01);
         srcEndpoints.push_back(0x02);
+        srcEndpoints.push_back(0x03);
+        srcEndpoints.push_back(0x04);
+        srcEndpoints.push_back(0x05);
     }
     // Sage doorbell sensor
     else if (sensor->modelId().startsWith(QLatin1String("Bell")))
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+    }
+    // Linkind 1 key Remote Control / ZS23000178
+    // SR-ZG2835 Zigbee Rotary Switch
+    else if (sensor->modelId().startsWith(QLatin1String("ZBT-DIMSwitch")) ||
+             sensor->modelId().startsWith(QLatin1String("ZG2835")))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);
@@ -3029,7 +3093,12 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
         sensor->modelId().startsWith(QLatin1String("TRADFRI wireless dimmer")) ||
         // sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
         sensor->modelId().startsWith(QLatin1String("902010/23")) || // bitron remote
-        sensor->modelId().startsWith(QLatin1String("Bell"))) // Sage doorbell sensor
+        sensor->modelId().startsWith(QLatin1String("Bell")) || // Sage doorbell sensor
+        sensor->modelId().startsWith(QLatin1String("ZBT-CCTSwitch-D0001")) || //LDS Remote
+        sensor->modelId().startsWith(QLatin1String("ZBT-DIMSwitch")) || // Linkind 1 key Remote Control / ZS23000178
+        sensor->modelId().startsWith(QLatin1String("WB01")) || // Sonoff SNZB-01
+        sensor->modelId().startsWith(QLatin1String("ZG2835")) || // SR-ZG2835 Zigbee Rotary Switch
+        sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5121"))) // RGBgenie ZB-5121 remote
     {
 
     }

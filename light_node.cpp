@@ -108,6 +108,7 @@ void LightNode::setManufacturerCode(uint16_t code)
         case VENDOR_HEIMAN:  name = QLatin1String("Heiman"); break;
         case VENDOR_KEEN_HOME: name = QLatin1String("Keen Home Inc"); break;
         case VENDOR_DANALOCK: name = QLatin1String("Danalock"); break;
+        case VENDOR_SCHLAGE: name = QLatin1String("Schlage"); break;
         case VENDOR_DEVELCO: name = QLatin1String("Develco Products A/S"); break;
         case VENDOR_NETVOX:   name = QLatin1String("netvox"); break;
         default:
@@ -482,52 +483,55 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                 }
                 else if (i->id() == WINDOW_COVERING_CLUSTER_ID /*FIXME ubisys J1*/)
                 {
-                    QList<deCONZ::ZclCluster>::const_iterator ic = haEndpoint().inClusters().constBegin();
-                    std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
-                    std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
-                    isWindowCovering = true;
-                    bool hasLift = true; // set default to lift
-                    bool hasTilt = false;
-                    for (;ia != enda; ++ia)
+                    if (modelId() != QLatin1String("lumi.light.aqcn02"))
                     {
-                        if (ia->id() == 0x0000)  // WindowCoveringType
+                        QList<deCONZ::ZclCluster>::const_iterator ic = haEndpoint().inClusters().constBegin();
+                        std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
+                        std::vector<deCONZ::ZclAttribute>::const_iterator enda = ic->attributes().end();
+                        isWindowCovering = true;
+                        bool hasLift = true; // set default to lift
+                        bool hasTilt = false;
+                        for (;ia != enda; ++ia)
                         {
-                            /*
-                             * Value Type                         Capabilities
-                             *  0    Roller Shade                 = Lift only
-                             *  1    Roller Shade two motors      = Lift only
-                             *  2    Roller Shade exterior        = Lift only
-                             *  3    Roller Shade two motors ext  = Lift only
-                             *  4    Drapery                      = Lift only
-                             *  5    Awning                       = Lift only
-                             *  6    Shutter                      = Tilt only
-                             *  7    Tilt Blind Lift only         = Tilt only
-                             *  8    Tilt Blind lift & tilt       = Lift & Tilt
-                             *  9    Projector Screen             = Lift only
-                             */
-                            uint8_t coveringType = ia->numericValue().u8;
-                            if (coveringType == 8 ) {
-                                hasTilt = true;
-                            }
-                            else if (coveringType == 6 || coveringType == 7)
+                            if (ia->id() == 0x0000)  // WindowCoveringType
                             {
-                                hasTilt = true;
-                                hasLift = false;
+                                /*
+                                 * Value Type                         Capabilities
+                                 *  0    Roller Shade                 = Lift only
+                                 *  1    Roller Shade two motors      = Lift only
+                                 *  2    Roller Shade exterior        = Lift only
+                                 *  3    Roller Shade two motors ext  = Lift only
+                                 *  4    Drapery                      = Lift only
+                                 *  5    Awning                       = Lift only
+                                 *  6    Shutter                      = Tilt only
+                                 *  7    Tilt Blind Lift only         = Tilt only
+                                 *  8    Tilt Blind lift & tilt       = Lift & Tilt
+                                 *  9    Projector Screen             = Lift only
+                                 */
+                                uint8_t coveringType = ia->numericValue().u8;
+                                if (coveringType == 8 ) {
+                                    hasTilt = true;
+                                }
+                                else if (coveringType == 6 || coveringType == 7)
+                                {
+                                    hasTilt = true;
+                                    hasLift = false;
+                                }
                             }
                         }
-                    }
-                    removeItem(RStateAlert);
-                    addItem(DataTypeBool, RStateOpen);
-                    // FIXME: removeItem(RStateOn);
-                    if (hasLift)
-                    {
-                        addItem(DataTypeUInt8, RStateLift);
-                        addItem(DataTypeUInt8, RStateBri); // FIXME: deprecate
-                    }
-                    if (hasTilt)
-                    {
-                        addItem(DataTypeUInt8, RStateTilt);
-                        addItem(DataTypeUInt8, RStateSat); // FIXME: deprecate
+                        removeItem(RStateAlert);
+                        addItem(DataTypeBool, RStateOpen);
+                        // FIXME: removeItem(RStateOn);
+                        if (hasLift)
+                        {
+                            addItem(DataTypeUInt8, RStateLift);
+                            addItem(DataTypeUInt8, RStateBri); // FIXME: deprecate
+                        }
+                        if (hasTilt)
+                        {
+                            addItem(DataTypeUInt8, RStateTilt);
+                            addItem(DataTypeUInt8, RStateSat); // FIXME: deprecate
+                        }
                     }
                 }
                 else if (i->id() == FAN_CONTROL_CLUSTER_ID) {
@@ -538,7 +542,8 @@ void LightNode::setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint)
                     if (modelId() == QLatin1String("902010/24") ||   // Bitron Smoke Detector with siren
                         modelId() == QLatin1String("SMSZB-120") ||   // Develco Smoke Alarm with siren
                         modelId() == QLatin1String("HESZB-120") ||   // Develco heat sensor with siren
-                        modelId() == QLatin1String("FLSZB-110"))     // Develco water leak sensor with siren
+                        modelId() == QLatin1String("FLSZB-110") ||   // Develco water leak sensor with siren
+                        modelId() == QLatin1String("902010/29"))     // Bitron outdoor siren
                     {
                         removeItem(RStateOn);
                         ltype = QLatin1String("Warning device");
