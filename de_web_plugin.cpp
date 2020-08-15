@@ -8377,9 +8377,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                     }
                     else if (event.clusterId() == TIME_CLUSTER_ID)
                     {
-                        // FIXME: value returned for utc attributes is #seconds since 1970-01-01 ?!
-                        static const QDateTime epochUtc = QDateTime(QDate(1970, 1, 1), QTime(0, 0), Qt::UTC);
-
                         bool updated = false;
 
                         for (;ia != enda; ++ia)
@@ -8434,8 +8431,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                               {
                                   i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
                               }
-                              QDateTime time = epochUtc.addSecs(ia->numericValue().u32); // FIXME
-                              // QDateTime time = epoch.addSecs(ia->numericValue().u32);
+                              QDateTime time = epoch.addSecs(ia->numericValue().u32);
                               ResourceItem *item = i->item(RStateLastSet);
                               if (item && item->toVariant().toDateTime().toMSecsSinceEpoch() != time.toMSecsSinceEpoch())
                               {
