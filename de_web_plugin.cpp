@@ -9327,7 +9327,7 @@ bool DeRestPluginPrivate::processZclAttributes(Sensor *sensorNode)
         task.req.setSrcEndpoint(getSrcEndpoint(sensorNode, task.req));
         task.req.setDstAddressMode(deCONZ::ApsExtAddress);
 
-        if (addTaskThermostatSetAndGetSchedule(task, ""))
+        if (addTaskThermostatGetSchedule(task))
         {
             sensorNode->clearRead(READ_THERMOSTAT_SCHEDULE);
             processed++;

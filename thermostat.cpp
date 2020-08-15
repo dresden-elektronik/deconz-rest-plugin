@@ -112,6 +112,10 @@ static quint8 convertWeekdayBitmap(const quint8 weekdayBitmap)
 bool DeRestPluginPrivate::serialiseThermostatTransitions(const QVariantList &transitions, QString *s)
 {
     *s = "";
+    if (transitions.size() < 1 || transitions.size() > 10)
+    {
+        return false;
+    }
     for (const QVariant &entry : transitions)
     {
         QVariantMap transition = entry.toMap();
@@ -122,11 +126,36 @@ bool DeRestPluginPrivate::serialiseThermostatTransitions(const QVariantList &tra
                 return false;
             }
         }
-        if (!transition.contains(QLatin1String("localtime")) || !transition.contains(QLatin1String("heatsetpoint")))
+        if (!transition.contains(QLatin1String("localtime")) || !transition.contains(QLatin1String("heatsetpoint")) ||
+            transition[QLatin1String("localtime")].type() != QVariant::String || transition[QLatin1String("heatsetpoint")].type() != QVariant::Double)
         {
             return false;
         }
-        *s += transition[QLatin1String("localtime")].toString() + "|" + transition[QLatin1String("heatsetpoint")].toString();
+        bool ok;
+        int heatsetpoint = transition[QLatin1String("heatsetpoint")].toInt(&ok);
+        if (!ok || heatsetpoint < 500 || heatsetpoint > 3000)
+        {
+            return false;
+        }
+        QString localtime = transition[QLatin1String("localtime")].toString();
+        int hh, mm;
+        ok = (localtime.size() == 6 && localtime.mid(0, 1) == "T" && localtime.mid(3, 1) == ":");
+        if (ok)
+        {
+            hh = localtime.mid(1, 2).toInt(&ok);
+        }
+        if (ok)
+        {
+            mm = localtime.mid(4, 2).toInt(&ok);
+        }
+        if (!ok)
+        {
+            return false;
+        }
+        *s += QString("T%1:%2|%3")
+            .arg(hh, 2, 10, QChar('0'))
+            .arg(mm, 2, 10, QChar('0'))
+            .arg(heatsetpoint);
     }
     return true;
 }
@@ -845,14 +874,23 @@ static void copyTaskReq(TaskItem &a, TaskItem &b)
    \return true - on success
            false - on error
  */
-bool DeRestPluginPrivate::addTaskThermostatSetAndGetSchedule(TaskItem &task, const QString &sched)
+bool DeRestPluginPrivate::addTaskThermostatSetTransitions(TaskItem &task, quint8 weekdays, const QString &transitions)
+{
+    // if (!sched.isEmpty() && !addTaskThermostatCmd(task, 0x01, 0, sched, 0))  // set schedule
+    // {
+    //     return false;
+    // }
+
+    // sensor->enableRead(READ_THERMOSTAT_SCHEDULE);
+    // sensor->setLastRead(READ_THERMOSTAT_SCHEDULE, d->idleTotalCounter);
+    // sensor->setNextReadTime(READ_THERMOSTAT_SCHEDULE, QTime::currentTime().addSecs(2));
+
+    return true;
+}
+
+bool DeRestPluginPrivate::addTaskThermostatGetSchedule(TaskItem &task)
 {
     copyTaskReq(task, taskScheduleTimer);
-
-    if (!sched.isEmpty() && !addTaskThermostatCmd(task, 0x01, 0, sched, 0))  // set schedule
-    {
-        return false;
-    }
 
     dayofweekTimer = 0;
 

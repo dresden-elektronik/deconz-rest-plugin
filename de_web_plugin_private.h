@@ -1051,6 +1051,7 @@ public:
     int deleteSensor(const ApiRequest &req, ApiResponse &rsp);
     int changeSensorConfig(const ApiRequest &req, ApiResponse &rsp);
     int changeSensorState(const ApiRequest &req, ApiResponse &rsp);
+    int changeThermostatSchedule(const ApiRequest &req, ApiResponse &rsp);
     int createSensor(const ApiRequest &req, ApiResponse &rsp);
     int getGroupIdentifiers(const ApiRequest &req, ApiResponse &rsp);
     int recoverSensor(const ApiRequest &req, ApiResponse &rsp);
@@ -1389,7 +1390,8 @@ public:
     bool addTaskWindowCoveringCalibrate(TaskItem &task, int WindowCoveringType);
     bool addTaskUbisysConfigureSwitch(TaskItem &taskRef);
     bool addTaskThermostatCmd(TaskItem &task, uint8_t cmd, int8_t setpoint, const QString &schedule, uint8_t daysToReturn);
-    bool addTaskThermostatSetAndGetSchedule(TaskItem &task, const QString &sched);
+    bool addTaskThermostatGetSchedule(TaskItem &task);
+    bool addTaskThermostatSetTransitions(TaskItem &task, quint8 weekDays, const QString &transitions);
     bool addTaskThermostatReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t mfrCode, uint16_t attrId, uint8_t attrType, uint32_t attrValue);
     bool addTaskThermostatWriteAttributeList(TaskItem &task, uint16_t mfrCode, QMap<quint16, quint32> &AttributeList );
     bool addTaskControlModeCmd(TaskItem &task, uint8_t cmdId, int8_t mode);
