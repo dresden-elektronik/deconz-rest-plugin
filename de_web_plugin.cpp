@@ -560,6 +560,15 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
 
     connect(apsCtrl, SIGNAL(nodeEvent(deCONZ::NodeEvent)),
             this, SLOT(nodeEvent(deCONZ::NodeEvent)));
+    
+    if (DBG_IsEnabled(DBG_INFO_L2))
+    {
+        connect(apsCtrl, SIGNAL(apsdeDataRequestEnqueued(const deCONZ::ApsDataRequest&)),
+                this, SLOT(handleDebugging(const deCONZ::ApsDataRequest&)));
+                
+        connect(apsCtrl, SIGNAL(apsdeDataIndication(const deCONZ::ApsDataIndication&)),
+                this, SLOT(handleDebugging(const deCONZ::ApsDataIndication&)));
+    }
 
     deCONZ::GreenPowerController *gpCtrl = deCONZ::GreenPowerController::instance();
 

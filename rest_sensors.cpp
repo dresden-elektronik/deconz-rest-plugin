@@ -793,6 +793,30 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     if (item->lastChanged() == item->lastSet())
                     {
                         updated = true;
+                        
+                        if (rid.suffix == RConfigDebug)
+                        {
+                            if (val == "1")
+                            {
+                                bool enable = true;
+                                sensor->setDebugNode(enable);
+                            }
+                            else if (val == "0")
+                            {
+                                bool enable = false;
+                                sensor->setDebugNode(enable);
+                            }
+                            else if (val == "all")
+                            {
+                                bool enable = true;
+                                sensor->setDebugAll(enable);
+                            }
+                            else if (val == "none")
+                            {
+                                bool enable = false;
+                                sensor->setDebugAll(enable);
+                            }
+                        }
 
                         if (rid.suffix == RConfigTholdDark || rid.suffix == RConfigTholdOffset)
                         {

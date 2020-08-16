@@ -118,6 +118,7 @@ extern const char *RConfigColorCapabilities;
 extern const char *RConfigCtMin;
 extern const char *RConfigCtMax;
 extern const char *RConfigConfigured;
+extern const char *RConfigDebug;
 extern const char *RConfigDelay;
 extern const char *RConfigDisplayFlipped;
 extern const char *RConfigDuration;

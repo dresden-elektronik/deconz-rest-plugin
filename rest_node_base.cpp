@@ -19,7 +19,9 @@ RestNodeBase::RestNodeBase() :
     m_needSaveDatabase(false),
     m_read(0),
     m_lastRead(0),
-    m_lastAttributeReportBind(0)
+    m_lastAttributeReportBind(0),
+    m_debugNode(false),
+    m_debugAll(false)
 {
     QTime t = QTime::currentTime();
 
@@ -393,4 +395,29 @@ const QDateTime &RestNodeBase::lastRx() const
 void RestNodeBase::rx()
 {
     m_lastRx = QDateTime::currentDateTime();
+}
+
+uint64_t RestNodeBase::extv2() const
+{
+    return m_node->address().ext();
+}
+
+bool RestNodeBase::debugNode() const
+{
+    return m_debugNode;
+}
+
+void RestNodeBase::setDebugNode(bool nodeEnabled)
+{
+    m_debugNode = nodeEnabled;
+}
+
+bool RestNodeBase::debugAll() const
+{
+    return m_debugAll;
+}
+
+void RestNodeBase::setDebugAll(bool allEnabled)
+{
+    m_debugAll = allEnabled;
 }

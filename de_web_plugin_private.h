@@ -1146,6 +1146,8 @@ public Q_SLOTS:
     Resource *getResource(const char *resource, const QString &id = QString());
     void announceUpnp();
     void upnpReadyRead();
+    void handleDebugging(const deCONZ::ApsDataRequest &req);
+    void handleDebugging(const deCONZ::ApsDataIndication &ind);
     void apsdeDataIndication(const deCONZ::ApsDataIndication &ind);
     void apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf);
     void gpDataIndication(const deCONZ::GpDataIndication &ind);

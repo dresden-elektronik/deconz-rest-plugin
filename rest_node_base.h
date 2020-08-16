@@ -89,6 +89,12 @@ public:
     const std::vector<NodeValue> &zclValues() const;
     const QDateTime &lastRx() const;
     void rx();
+    
+    uint64_t extv2() const;
+    bool debugNode() const;
+    void setDebugNode(bool nodeEnabled);
+    bool debugAll() const;
+    void setDebugAll(bool allEnabled);
 
 private:
     deCONZ::Node *m_node;
@@ -107,6 +113,9 @@ private:
     NodeValue m_invalidValue;
     std::vector<NodeValue> m_values;
     QTime m_invalidTime;
+    
+    bool m_debugNode;
+    bool m_debugAll;
 };
 
 #endif // REST_NODE_BASE_H
