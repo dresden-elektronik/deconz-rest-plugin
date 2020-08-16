@@ -184,7 +184,7 @@ bool DeRestPluginPrivate::deserialiseThermostatTransitions(const QString &s, QVa
     return true;
 }
 
-/*! Serialise a schedule
+/*! Serialise a thermostat schedule
  * \param schedule the schedule
  * \param s the serialised schedule
  */
@@ -205,7 +205,7 @@ bool DeRestPluginPrivate::serialiseThermostatSchedule(const QVariantMap &schedul
     return true;
 }
 
-/*! Deserialise a schedule
+/*! Deserialise a thermostat schedule
  * \param s the serialised schedule
  * \param schedule the schedule
  */
@@ -228,7 +228,79 @@ bool DeRestPluginPrivate::deserialiseThermostatSchedule(const QString &s, QVaria
     return true;
 }
 
-static const QStringList weekday({"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Away"});
+/*! Update thermostat schedule with new transitions
+ * \param sensor the sensorNode
+ * \param newWeekdays the ISO bitmap of the weekdays
+ * \param transitions the serialised list of transitions
+ */
+void DeRestPluginPrivate::updateThermostatSchedule(Sensor *sensor, quint8 newWeekdays, QString &transitions)
+{
+    // Deserialise currently saved schedule, without newWeekdays.
+    bool ok = true;
+    ResourceItem *item = sensor->item(RConfigSchedule);
+    if (!item)
+    {
+        return;
+    }
+    QMap<quint8, QString> map;
+    QStringList list = item->toString().split("W", QString::SkipEmptyParts);
+    for (const QString &entry : list)
+    {
+        QStringList attributes = entry.split("/");
+        quint8 weekdays = attributes[0].toUInt(&ok);
+        if (!ok)
+        {
+            break;
+        }
+        weekdays &= ~newWeekdays;
+        if (weekdays != 0)
+        {
+            map[weekdays] = attributes[1];
+        }
+    }
+    if (!ok)
+    {
+        map.clear();
+    }
+
+    // Check if we already have an entry with these transitions.
+    if (transitions.size() > 0)
+    {
+        ok = false;
+        for (const quint8 weekdays : map.keys())
+        {
+            if (map[weekdays] == transitions)
+            {
+                // Merge the entries.
+                map.remove(weekdays);
+                map[weekdays | newWeekdays] = transitions;
+                ok = true;
+                break;
+            }
+        }
+        if (!ok)
+        {
+            // Create new entry.
+            map[newWeekdays] = transitions;
+        }
+    }
+
+    // Store the updated schedule.
+    QString s = QString("");
+    for (const quint8 weekdays : map.keys())
+    {
+        s += QString("W%1/").arg(weekdays) + map[weekdays];
+    }
+    item->setValue(s);
+    enqueueEvent(Event(RSensors, RConfigSchedule, sensor->id(), item));
+    updateEtag(sensor->etag);
+    updateEtag(gwConfigEtag);
+    sensor->setNeedSaveDatabase(true);
+    queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+}
+
+
+// static const QStringList weekday({"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Away"});
 static TaskItem taskScheduleTimer;
 static int dayofweekTimer = 0;
 
@@ -681,122 +753,9 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
             return;
         }
 
-        // Deserialise currently saved schedule, without newWeekdays.
         const quint8 newWeekdays = convertWeekdayBitmap(dayOfWeek);
-        bool ok = true;
-        ResourceItem *item = sensor->item(RConfigSchedule);
-        if (!item)
-        {
-            return;
-        }
-        QMap<quint8, QString> map;
-        QStringList list = item->toString().split("W", QString::SkipEmptyParts);
-        for (const QString &entry : list)
-        {
-            QStringList attributes = entry.split("/");
-            quint8 weekdays = attributes[0].toUInt(&ok);
-            if (!ok)
-            {
-                break;
-            }
-            weekdays &= ~newWeekdays;
-            if (weekdays != 0)
-            {
-                map[weekdays] = attributes[1];
-            }
-        }
-        if (!ok)
-        {
-            map.clear();
-        }
-
-        // Check if we already have an entry with these transitions.
-        if (numberOfTransitions > 0)
-        {
-            ok = false;
-            for (const quint8 weekdays : map.keys())
-            {
-                if (map[weekdays] == transitions)
-                {
-                    // Merge the entries.
-                    map.remove(weekdays);
-                    map[weekdays | newWeekdays] = transitions;
-                    ok = true;
-                    break;
-                }
-            }
-            if (!ok)
-            {
-                // Create new entry.
-                map[newWeekdays] = transitions;
-            }
-        }
-
-        // Store the updated schedule.
-        QString s = QString("");
-        for (const quint8 weekdays : map.keys())
-        {
-            s += QString("W%1/").arg(weekdays) + map[weekdays];
-        }
-        item->setValue(s);
-        enqueueEvent(Event(RSensors, RConfigSchedule, sensor->id(), item));
-        updateEtag(sensor->etag);
-        updateEtag(gwConfigEtag);
-        sensor->setNeedSaveDatabase(true);
-        queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+        updateThermostatSchedule(sensor, newWeekdays, transitions);
     }
-}
-
-static QByteArray setSchedule(const QString &sched)
-{
-    QByteArray payload;
-    QDataStream stream(&payload, QIODevice::WriteOnly);
-    stream.setByteOrder(QDataStream::LittleEndian);
-
-    quint8 dayofweek = 0;
-    QStringList schedList = sched.simplified().split(";", QString::SkipEmptyParts);
-    for (const QString &dayEntry : schedList)
-    {
-        QStringList checkdayList;
-        QStringList checkSchedule = dayEntry.split(" ", QString::SkipEmptyParts);
-        checkdayList = checkSchedule.at(0).split(",");  // e.g. Monday,Tuesday,Wednesday
-        for (const QString &checkday : checkdayList)
-        {
-            if (weekday.contains(checkday))
-            {
-                int n = weekday.indexOf(checkday);
-                dayofweek |= (0x01 << n);
-            }
-        }
-
-        if (checkSchedule.length() > 1)
-        {
-            checkSchedule.removeFirst();
-
-            stream << (quint8) (checkSchedule.length() / 2);  // number of transitions
-            stream << dayofweek;
-            stream << (quint8) 0x01; // mode heat
-
-            // e.g. 06:00 2100 22:00 1700
-            for (int i = 0; i < checkSchedule.length(); i++)
-            {
-                const QString &entry = checkSchedule[i];
-                if (i & 1) // odd 1,3... setpoint = 2100 1700
-                {
-                    stream << (qint16) entry.toInt();  // setpoint
-                }
-                else // even 0,2,... time = 06:00 22:00
-                {
-                    QTime midnight(0, 0, 0);
-                    QTime heatTime = QTime::fromString(entry, "hh:mm");
-                    int heatTimeMinutes = midnight.secsTo(heatTime) / 60;
-
-                    stream << (quint16) heatTimeMinutes;  // transition time
-                }
-            }
-        }
-    }
-    return payload;
 }
 
 /*! Adds a thermostat command task to the queue.
@@ -804,15 +763,13 @@ static QByteArray setSchedule(const QString &sched)
    \param task - the task item
    \param cmdId - 0x00 setpoint raise/lower
                   0x01 set schedule
-                  0x02 get schedule
                   0x03 clear schedule
    \param setpoint - raise/lower value
-   \param schedule - set schedule e.g. "Monday,Tuesday 06:00 2000 22:00 1700; Saturday,Sunday 06:00 2100 22:00 1700"
    \param days - days to return schedule
    \return true - on success
            false - on error
  */
-bool DeRestPluginPrivate::addTaskThermostatCmd(TaskItem &task, uint16_t mfrCode, uint8_t cmd, int16_t setpoint, const QString &schedule, uint8_t daysToReturn)
+bool DeRestPluginPrivate::addTaskThermostatCmd(TaskItem &task, uint16_t mfrCode, uint8_t cmd, int16_t setpoint, uint8_t daysToReturn)
 {
     task.taskType = TaskThermostat;
 
@@ -839,11 +796,6 @@ bool DeRestPluginPrivate::addTaskThermostatCmd(TaskItem &task, uint16_t mfrCode,
     {
         stream << (qint8) 0x02;  // Enum 8 Both (adjust Heat Setpoint and Cool Setpoint)
         stream << (qint8) setpoint;  // 8-bit raise/lower
-    }
-    else if (cmd == 0x01)  // set schedule
-    {
-        QByteArray payload = setSchedule(schedule);
-        stream.writeRawData(payload.data(), payload.size());
     }
     else if (cmd == 0x02)  // get schedule
     {
@@ -874,6 +826,62 @@ bool DeRestPluginPrivate::addTaskThermostatCmd(TaskItem &task, uint16_t mfrCode,
     return addTask(task);
 }
 
+/*! Adds a Set Weekly Schedule command to the queue.
+   \param task - the task item
+   \param weekdays - the ISO-bitmap of weekdays
+   \param transitions - the serialised list of transitions
+   \return true - on success
+           false - on error
+ */
+bool DeRestPluginPrivate::addTaskThermostatSetWeeklySchedule(TaskItem &task, quint8 weekdays, const QString &transitions)
+{
+    task.taskType = TaskThermostat;
+
+    task.req.setClusterId(THERMOSTAT_CLUSTER_ID);
+    task.req.setProfileId(HA_PROFILE_ID);
+
+    task.zclFrame.payload().clear();
+    task.zclFrame.setSequenceNumber(zclSeq++);
+    task.zclFrame.setCommandId(0x01); // Set Weekly Schedule
+    task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
+                                  deCONZ::ZclFCDirectionClientToServer);
+
+    QStringList list = transitions.split("T", QString::SkipEmptyParts);
+    quint8 numberOfTransitions = list.size();
+
+    // payload
+    QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
+    stream.setByteOrder(QDataStream::LittleEndian);
+
+    stream << numberOfTransitions;
+    stream << convertWeekdayBitmap(weekdays);
+    stream << (quint8) 0x01; // Mode: heat
+
+    for (const QString &entry : list)
+    {
+        QStringList attributes = entry.split("|");
+        if (attributes.size() != 2)
+        {
+            return false;
+        }
+        const quint16 hh = attributes[0].mid(0, 2).toUInt();
+        const quint16 mm = attributes[0].mid(3, 2).toUInt();
+        const quint16 time = 60 * hh + mm;
+        const qint16 heatSetpoint = attributes[1].toInt();
+        stream << time;
+        stream << heatSetpoint;
+    }
+
+    { // ZCL frame
+        task.req.asdu().clear(); // cleanup old request data if there is any
+        QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        task.zclFrame.writeToStream(stream);
+    }
+
+    return addTask(task);
+}
+
 /*! Helper to generate a new task with new task and req id based on a reference */
 static void copyTaskReq(TaskItem &a, TaskItem &b)
 {
@@ -885,26 +893,6 @@ static void copyTaskReq(TaskItem &a, TaskItem &b)
     b.req.setTxOptions(a.req.txOptions());
     b.req.setSendDelay(a.req.sendDelay());
     b.zclFrame.payload().clear();
-}
-
-/*! Set Scheduler on thermostat cluster.
- *  Iterate over every weekday and get schedule.
-   \param task - the task item
-   \return true - on success
-           false - on error
- */
-bool DeRestPluginPrivate::addTaskThermostatSetTransitions(TaskItem &task, quint8 weekdays, const QString &transitions)
-{
-    // if (!sched.isEmpty() && !addTaskThermostatCmd(task, 0x01, 0, sched, 0))  // set schedule
-    // {
-    //     return false;
-    // }
-
-    // sensor->enableRead(READ_THERMOSTAT_SCHEDULE);
-    // sensor->setLastRead(READ_THERMOSTAT_SCHEDULE, d->idleTotalCounter);
-    // sensor->setNextReadTime(READ_THERMOSTAT_SCHEDULE, QTime::currentTime().addSecs(2));
-
-    return true;
 }
 
 bool DeRestPluginPrivate::addTaskThermostatGetSchedule(TaskItem &task)
@@ -930,7 +918,7 @@ void DeRestPluginPrivate::addTaskThermostatGetScheduleTimer()
     uint8_t dayofweek = (1 << dayofweekTimer);
     dayofweekTimer++;
 
-    addTaskThermostatCmd(task, 0, 0x02, 0, nullptr, dayofweek);  // get schedule
+    addTaskThermostatCmd(task, 0, 0x02, 0, dayofweek);  // get schedule
 }
 
 /*! Write Attribute on thermostat cluster.
