@@ -1521,6 +1521,8 @@ public:
 
     // JSON support
     QMap<QString, std::vector<Sensor::ButtonMap>> buttonMapData;
+    QMap<QString, quint16> btnMapClusters;
+    QMap<QString, QMap<QString, quint16>> btnMapClusterCommands;
 
     // gateways
     std::vector<Gateway*> gateways;
