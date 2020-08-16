@@ -3,7 +3,7 @@
 
 void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataRequest &req)
 {
-    bool found;
+    //bool found;
        
     DBG_Printf(DBG_INFO, "[ZB REQUEST] - Sending data to node: 0x%016llX (%04X)\n", req.dstAddress().ext(), req.dstAddress().nwk());
     DBG_Printf(DBG_INFO, "[ZB REQUEST] - 0x%016llX (%04X) - Request for Profile: 0x%04X, Cluster: %04X, Endpoint: %d\n", req.dstAddress().ext(), req.dstAddress().nwk(),
@@ -90,7 +90,7 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataRequest &req)
                 }
                 else if (req.asdu().size() >= 22 && req.asdu().size() <= 24)
                 {
-                    quint16 dstCluster;
+                    quint16 dstCluster = 0xFFFF;
                      
                     stream >> dstIeee;
                     stream >> dstEp;
@@ -622,7 +622,7 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataIndication &ind)
                 case deCONZ::ZclGeneralCommandId::ZclReportAttributesId:
                 {
                     quint16 attribute;
-                    quint8 status;
+                    quint8 status = 0xFF;
                     quint8 datatype;
                     quint8 data;
                     QString bla;
@@ -724,7 +724,7 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataIndication &ind)
                             quint8 dt;
                             quint16 min;
                             quint16 max;
-                            quint8 change;
+                            //quint8 change;
                             
                             stream >> dt;
                             stream >> min;

@@ -167,6 +167,7 @@ SOURCES  = authorisation.cpp \
            tuya.cpp \
            basic.cpp \
            appliances.cpp \
+           debug.cpp \
            reset_device.cpp \
            rest_userparameter.cpp \
            zcl_tasks.cpp \
