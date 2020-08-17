@@ -1537,7 +1537,7 @@ int DeRestPluginPrivate::changeThermostatSchedule(const ApiRequest &req, ApiResp
     // Check valid weekday pattern
     bool ok;
     uint bbb = req.path[6].mid(1).toUInt(&ok);
-    if (req.path[6][0] != "W" || !ok || bbb < 1 || bbb > 127)
+    if (req.path[6].left(1) != "W" || !ok || bbb < 1 || bbb > 127)
     {
         rsp.httpStatus = HttpStatusNotFound;
         rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/sensors/%1/config/schedule/%2").arg(id).arg(req.path[6]), QString("resource, /sensors/%1/config/schedule/%2, not available").arg(id).arg(req.path[6])));
