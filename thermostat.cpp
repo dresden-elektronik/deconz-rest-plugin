@@ -215,7 +215,6 @@ bool DeRestPluginPrivate::deserialiseThermostatSchedule(const QString &s, QVaria
     QStringList list = s.split("W", QString::SkipEmptyParts);
     for (const QString &entry : list)
     {
-        QVariantMap map;
         QStringList attributes = entry.split("/");
         QVariantList list;
         if (attributes.size() != 2 || !deserialiseThermostatTransitions(attributes[1], &list))
