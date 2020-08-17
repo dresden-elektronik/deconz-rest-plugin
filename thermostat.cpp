@@ -571,11 +571,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 
             case 0x0032: // Setpoint Change Timestamp
             {
-                // FIXME: value returned for utc attributes is #seconds since 1970-01-01 ?!
-                static const QDateTime epochUtc = QDateTime(QDate(1970, 1, 1), QTime(0, 0), Qt::UTC);
-
-                QDateTime time = epochUtc.addSecs(attr.numericValue().u32 - QDateTime::currentDateTime().offsetFromUtc());
-                // QDateTime time = epoch.addSecs(attr.numericValue().u32 - QDateTime::currentDateTime().offsetFromUtc());
+                QDateTime time = epoch.addSecs(attr.numericValue().u32 - QDateTime::currentDateTime().offsetFromUtc());
                 item = sensor->item(RConfigLastChangeTime);
                 if (item) // && item->toVariant().toDateTime().toMSecsSinceEpoch() != time.toMSecsSinceEpoch())
                 {
