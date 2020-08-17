@@ -11523,7 +11523,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
 void DeRestPluginPrivate::queuePollNode(RestNodeBase *node)
 {
-    if (!node || !node->node())
+    if (!node || !node->node() || node->address().ext() == gwDeviceAddress.ext())
     {
         return;
     }
