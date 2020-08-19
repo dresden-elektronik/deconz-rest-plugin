@@ -5791,8 +5791,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
                 sensorNode.addItem(DataTypeString, RStateWindowOpen);
+                sensorNode.addItem(DataTypeBool, RStateMountingModeActive);
                 sensorNode.addItem(DataTypeBool, RConfigDisplayFlipped);
                 sensorNode.addItem(DataTypeBool, RConfigLocked);
+                sensorNode.addItem(DataTypeBool, RConfigMountingMode);
             }
             else
             {

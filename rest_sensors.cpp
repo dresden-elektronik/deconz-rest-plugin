@@ -1422,6 +1422,33 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         return REQ_READY_SEND;
                     }
                 }
+                else if (rid.suffix == RConfigMountingMode)
+                {
+                    if (map[pi.key()].type() == QVariant::Bool)
+                    {
+                        if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001"))
+                        {
+                            quint32 data = map[pi.key()].toUInt(&ok);
+
+                            if (addTaskThermostatUiConfigurationReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x4013, deCONZ::Zcl8BitEnum, data, VENDOR_DANFOSS))
+                            {
+                                updated = true;
+                            }
+                            else
+                            {
+                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/mountingmode"), QString("Could not set attribute")));
+                                rsp.httpStatus = HttpStatusBadRequest;
+                                return REQ_READY_SEND;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/mountingmode"), QString("Invalid attribute value")));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
+                    }
+                }
             }
         }
 

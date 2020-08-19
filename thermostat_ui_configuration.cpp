@@ -74,10 +74,10 @@ void DeRestPluginPrivate::handleThermostatUiConfigurationClusterIndication(const
             {
                 if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001"))
                 {
-                    bool locked = (attr.numericValue().u8 & 0x01);
+                    bool locked = attr.numericValue().u8 > 0 ? true : false;
                     item = sensor->item(RConfigLocked);
 
-                    if (!item->lastSet().isValid() || item->toBool() != locked)
+                    if (item && item->toBool() != locked)
                     {
                         item->setValue(locked);
                         enqueueEvent(Event(RSensors, RConfigLocked, sensor->id(), item));
@@ -92,10 +92,10 @@ void DeRestPluginPrivate::handleThermostatUiConfigurationClusterIndication(const
             {
                 if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001"))
                 {
-                    bool displayflipped = (attr.numericValue().u8 & 0x01);
+                    bool displayflipped = attr.numericValue().u8 > 0 ? true : false;
                     item = sensor->item(RConfigDisplayFlipped);
 
-                    if (!item->lastSet().isValid() || item->toBool() != displayflipped)
+                    if (item && item->toBool() != displayflipped)
                     {
                         item->setValue(displayflipped);
                         enqueueEvent(Event(RSensors, RConfigDisplayFlipped, sensor->id(), item));
