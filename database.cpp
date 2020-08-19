@@ -3220,29 +3220,29 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 item = sensor.addItem(DataTypeInt16, RConfigOffset);
                 item->setValue(0);
                 sensor.addItem(DataTypeInt16, RConfigHeatSetpoint);    // Heating set point
-                sensor.addItem(DataTypeBool, RStateOn);           // Heating on/off
+                sensor.addItem(DataTypeBool, RStateOn);                // Heating on/off
 
-                if (sensor.modelId() == QLatin1String("SLR2") ||           // Hive 
+                if (sensor.modelId() == QLatin1String("SLR2") ||            // Hive 
                     sensor.modelId() == QLatin1String("SLR1b") ||           // Hive 
-                    sensor.modelId().startsWith(QLatin1String("TH112")) || // Sinope
-                    sensor.modelId() == QLatin1String("GbxAXL2") ||        // Tuya
-                    sensor.modelId() == QLatin1String("kud7u2l") ||        // Tuya
-                    sensor.modelId() == QLatin1String("TS0601") ||        // Tuya
-                    sensor.modelId() == QLatin1String("Zen-01") )          // Zen
+                    sensor.modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
+                    sensor.modelId() == QLatin1String("GbxAXL2") ||         // Tuya
+                    sensor.modelId() == QLatin1String("kud7u2l") ||         // Tuya
+                    sensor.modelId() == QLatin1String("TS0601") ||          // Tuya
+                    sensor.modelId() == QLatin1String("Zen-01") )           // Zen
                 {
                     sensor.addItem(DataTypeString, RConfigMode);
                 }
 
-                if (sensor.modelId() == QLatin1String("kud7u2l") || // tuya 
-                    sensor.modelId() == QLatin1String("GbxAXL2") || // tuya
-                    sensor.modelId() == QLatin1String("TS0601") ) //tuya
+                if (sensor.modelId() == QLatin1String("kud7u2l") || // Tuya 
+                    sensor.modelId() == QLatin1String("GbxAXL2") || // Tuya
+                    sensor.modelId() == QLatin1String("TS0601") )   // Tuya
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
                     sensor.addItem(DataTypeBool, RStateLowBattery);
                 }
                 
-                if (sensor.modelId() == QLatin1String("kud7u2l") || // tuya 
-                    sensor.modelId() == QLatin1String("TS0601") ) //tuya
+                if (sensor.modelId() == QLatin1String("kud7u2l") || // Tuya 
+                    sensor.modelId() == QLatin1String("TS0601") )   // Tuya
                 {
                     sensor.addItem(DataTypeString, RConfigPreset);
                     sensor.addItem(DataTypeBool, RConfigLocked);
@@ -3268,11 +3268,13 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 else if (sensor.modelId() == QLatin1String("Zen-01"))
                 {
                 }
-                else if ((sensor.modelId() == QLatin1String("eTRV0100")) ||
-                         (sensor.modelId() == QLatin1String("TRV001")) )
+                else if ((sensor.modelId() == QLatin1String("eTRV0100")) || // Danfoss Ally
+                         (sensor.modelId() == QLatin1String("TRV001")) )    // Hive TRV
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
                     sensor.addItem(DataTypeString, RStateWindowOpen);
+                    sensor.addItem(DataTypeBool, RConfigDisplayFlipped);
+                    sensor.addItem(DataTypeBool, RConfigLocked);
                 }
                 else
                 {

@@ -158,6 +158,7 @@ SOURCES  = authorisation.cpp \
            rest_info.cpp \
            rest_capabilities.cpp \
            rule.cpp \
+           thermostat_ui_configuration.cpp \
            upnp.cpp \
            permitJoin.cpp \
            scene.cpp \
