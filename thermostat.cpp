@@ -310,11 +310,18 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                         }
                     }
                     item = sensor->item(RStateValve);
-                    if (item && item->toNumber() != valve)
+                    if (item)
                     {
-                        item->setValue(valve);
-                        enqueueEvent(Event(RSensors, RStateValve, sensor->id(), item));
-                        stateUpdated = true;
+                        if (updateType == NodeValue::UpdateByZclReport)
+                        {
+                            stateUpdated = true;
+                        }
+                        if (item && item->toNumber() != valve)
+                        {
+                            item->setValue(valve);
+                            enqueueEvent(Event(RSensors, RStateValve, sensor->id(), item));
+                            stateUpdated = true;
+                        }
                     }
                 }
                 sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
@@ -425,11 +432,16 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
             {
                 bool on = attr.bitmap() > 0;
                 item = sensor->item(RStateOn);
+
+                if (item && updateType == NodeValue::UpdateByZclReport)
+                {
+                    stateUpdated = true;
+                }
                 if (item && item->toBool() != on)
                 {
                     item->setValue(on);
                     enqueueEvent(Event(RSensors, RStateOn, sensor->id(), item));
-                    configUpdated = true;
+                    stateUpdated = true;
                 }
                 sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
             }
@@ -490,7 +502,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 }
                 else if (zclFrame.manufacturerCode() == VENDOR_DANFOSS)
                 {
-                    qint8 windowmode = attr.numericValue().s8;
+                    quint8 windowmode = attr.numericValue().u8;
                     QString windowmode_set;
 
                     if ( windowmode == 0x01 ) { windowmode_set = QString("Closed"); }
@@ -499,11 +511,15 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                     if ( windowmode == 0x04 ) { windowmode_set = QString("Open (external), closed (internal)"); }
 
                     item = sensor->item(RStateWindowOpen);
+                    if (item && updateType == NodeValue::UpdateByZclReport)
+                    {
+                        stateUpdated = true;
+                    }
                     if (item && item->toString() != windowmode_set)
                     {
                         item->setValue(windowmode_set);
                         enqueueEvent(Event(RSensors, RStateWindowOpen, sensor->id(), item));
-                        configUpdated = true;
+                        stateUpdated = true;
                     }
                 }
                 sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
