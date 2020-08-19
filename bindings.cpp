@@ -3097,7 +3097,8 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
         sensor->modelId().startsWith(QLatin1String("ZBT-CCTSwitch-D0001")) || //LDS Remote
         sensor->modelId().startsWith(QLatin1String("ZBT-DIMSwitch")) || // Linkind 1 key Remote Control / ZS23000178
         sensor->modelId().startsWith(QLatin1String("WB01")) || // Sonoff SNZB-01
-        sensor->modelId().startsWith(QLatin1String("ZG2835"))) // SR-ZG2835 Zigbee Rotary Switch
+        sensor->modelId().startsWith(QLatin1String("ZG2835")) || // SR-ZG2835 Zigbee Rotary Switch
+        sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5121"))) // RGBgenie ZB-5121 remote
     {
 
     }
