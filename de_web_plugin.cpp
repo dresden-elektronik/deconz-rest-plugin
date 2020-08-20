@@ -3907,7 +3907,12 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                         zclFrame.commandId() == 0x07) )  // stop (with on/off)
             {
                 ok = false;
-                if (buttonMap->zclParam0 == sensor->previousDirection || // direction of previous move/step
+                if (buttonMap->zclParam0 == sensor->previousDirection) // direction of previous move/step
+                {
+                    sensor->previousDirection = 0xFF;
+                    ok = true;
+                }
+                if (buttonMap->zclParam0 != sensor->previousDirection && // direction of previous move/step
                     sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5121"))) // Device sends cmd = 7 + param = 0 for dim up/down
                 {
                     sensor->previousDirection = 0xFF;
@@ -4297,7 +4302,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             node->simpleDescriptors()[0].endpoint() == 0x01 &&
             node->simpleDescriptors()[0].profileId() == HA_PROFILE_ID &&
             node->simpleDescriptors()[0].deviceId() == 0x0302 &&
-            inClusterCount == 9 && outClusterCount == 11)
+            inClusterCount == 8 && outClusterCount == 11)
         {
             modelId = QLatin1String("113D"); //  the modelid returned by device is empty
             manufacturer = QLatin1String("iHorn");

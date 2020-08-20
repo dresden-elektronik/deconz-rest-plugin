@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2013-2020 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -28,6 +28,7 @@ DeRestWidget::DeRestWidget(QWidget *parent) :
     ui->ipAddressesLabel->setTextFormat(Qt::RichText);
     ui->ipAddressesLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
     ui->ipAddressesLabel->setOpenExternalLinks(true);
+    ui->gitCommitLabel->setText(QLatin1String(GIT_COMMMIT));
 
     QString str;
     QList<QNetworkInterface> ifaces = QNetworkInterface::allInterfaces();
