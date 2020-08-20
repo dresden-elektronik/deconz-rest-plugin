@@ -177,8 +177,8 @@ bool DeRestPluginPrivate::deserialiseThermostatTransitions(const QString &s, QVa
             return false;
         }
         QVariantMap map;
-        map[QLatin1String("localtime")] = "T" + attributes[0];
-        map[QLatin1String("heatsetpoint")] = attributes[1].toInt();
+        map[QLatin1String("localtime")] = "T" + attributes.at(0);
+        map[QLatin1String("heatsetpoint")] = attributes.at(1).toInt();
         transitions->push_back(map);
     }
     return true;
@@ -217,12 +217,12 @@ bool DeRestPluginPrivate::deserialiseThermostatSchedule(const QString &s, QVaria
     {
         QStringList attributes = entry.split("/");
         QVariantList list;
-        if (attributes.size() != 2 || !deserialiseThermostatTransitions(attributes[1], &list))
+        if (attributes.size() != 2 || !deserialiseThermostatTransitions(attributes.at(1), &list))
         {
             schedule->clear();
             return false;
         }
-        (*schedule)["W" + attributes[0]] = list;
+        (*schedule)["W" + attributes.at(0)] = list;
     }
     return true;
 }
@@ -246,7 +246,7 @@ void DeRestPluginPrivate::updateThermostatSchedule(Sensor *sensor, quint8 newWee
     for (const QString &entry : list)
     {
         QStringList attributes = entry.split("/");
-        quint8 weekdays = attributes[0].toUInt(&ok);
+        quint8 weekdays = attributes.at(0).toUInt(&ok);
         if (!ok)
         {
             break;
@@ -254,7 +254,7 @@ void DeRestPluginPrivate::updateThermostatSchedule(Sensor *sensor, quint8 newWee
         weekdays &= ~newWeekdays;
         if (weekdays != 0)
         {
-            map[weekdays] = attributes[1];
+            map[weekdays] = attributes.at(1);
         }
     }
     if (!ok)
@@ -757,7 +757,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 
    \param task - the task item
    \param cmdId - 0x00 setpoint raise/lower
-                  0x01 set schedule
+                  0x02 get schedule
                   0x03 clear schedule
    \param setpoint - raise/lower value
    \param days - days to return schedule
@@ -859,10 +859,10 @@ bool DeRestPluginPrivate::addTaskThermostatSetWeeklySchedule(TaskItem &task, qui
         {
             return false;
         }
-        const quint16 hh = attributes[0].mid(0, 2).toUInt();
-        const quint16 mm = attributes[0].mid(3, 2).toUInt();
+        const quint16 hh = attributes.at(0).mid(0, 2).toUInt();
+        const quint16 mm = attributes.at(0).mid(3, 2).toUInt();
         const quint16 time = 60 * hh + mm;
-        const qint16 heatSetpoint = attributes[1].toInt();
+        const qint16 heatSetpoint = attributes.at(1).toInt();
         stream << time;
         stream << heatSetpoint;
     }
