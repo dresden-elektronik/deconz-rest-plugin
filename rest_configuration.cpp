@@ -988,8 +988,8 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     {
         if (req.mode != ApiModeNormal)
         {
-            map["swversion"] = QLatin1String("1939070020");
-            map["apiversion"] = QLatin1String("1.38.0");
+            map["swversion"] = QLatin1String("1940042020");
+            map["apiversion"] = QLatin1String("1.40.0");
             map["modelid"] = QLatin1String("BSB002");
         }
         devicetypes["bridge"] = false;
