@@ -2669,7 +2669,7 @@ controller device, that supports a keypad and LCD screen.</description>
 							<value name="Test" value="8"></value>
 							<value name="Battery defect" value="9"></value>
 						</attribute>
-						<attribute id="0x01" type="u8" name="Extended Status" default="0x00" required="m"></attribute>
+						<attribute id="0x01" type="bmp8" name="Extended Status" default="0x00" required="m"></attribute>
 						<attribute id="0x02" type="u8" name="Zone ID" required="m"></attribute>
 						<attribute id="0x03" type="u16" name="Delay" required="m"></attribute>
 					</payload>
