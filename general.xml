@@ -2642,7 +2642,7 @@ controller device, that supports a keypad and LCD screen.</description>
 				</attribute-set>
 				<command id="0x00" dir="recv" name="Zone Enroll Response" required="m">
 					<payload>
-						<attribute id="0x00" type="enum16" name="Enroll response code" required="m">
+						<attribute id="0x00" type="enum8" name="Enroll response code" required="m">
 							<value name="Success" value="0x00"></value>
 							<value name="Not supported" value="0x01"></value>
 							<value name="No enroll permit" value="0x02"></value>
