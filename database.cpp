@@ -3018,6 +3018,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 {
                     item->setValue(310);
                 }
+                else if (sensor.modelId().startsWith(QLatin1String("lumi.sensor_motion")))
+                {
+                    item->setValue(90);
+                }
                 else
                 {
                     item->setValue(60); // presence should be reasonable for physical sensors
@@ -3222,8 +3226,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 sensor.addItem(DataTypeInt16, RConfigHeatSetpoint);    // Heating set point
                 sensor.addItem(DataTypeBool, RStateOn);           // Heating on/off
 
-                if (sensor.modelId() == QLatin1String("SLR2") ||           // Hive 
-                    sensor.modelId() == QLatin1String("SLR1b") ||           // Hive 
+                if (sensor.modelId() == QLatin1String("SLR2") ||           // Hive
+                    sensor.modelId() == QLatin1String("SLR1b") ||           // Hive
                     sensor.modelId().startsWith(QLatin1String("TH112")) || // Sinope
                     sensor.modelId() == QLatin1String("GbxAXL2") ||        // Tuya
                     sensor.modelId() == QLatin1String("kud7u2l") ||        // Tuya
@@ -3233,21 +3237,21 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeString, RConfigMode);
                 }
 
-                if (sensor.modelId() == QLatin1String("kud7u2l") || // tuya 
+                if (sensor.modelId() == QLatin1String("kud7u2l") || // tuya
                     sensor.modelId() == QLatin1String("GbxAXL2") || // tuya
                     sensor.modelId() == QLatin1String("TS0601") ) //tuya
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
                     sensor.addItem(DataTypeBool, RStateLowBattery);
                 }
-                
-                if (sensor.modelId() == QLatin1String("kud7u2l") || // tuya 
+
+                if (sensor.modelId() == QLatin1String("kud7u2l") || // tuya
                     sensor.modelId() == QLatin1String("TS0601") ) //tuya
                 {
                     sensor.addItem(DataTypeString, RConfigPreset);
                     sensor.addItem(DataTypeBool, RConfigLocked);
                 }
-                
+
                 if (sensor.modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
@@ -3469,18 +3473,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (item && item->toBool())
             {
                 item->setValue(false); // reset at startup
-            }
-        }
-
-        if (sensor.modelId().startsWith(QLatin1String("lumi.sensor_motion")))
-        {
-            // reporting under motion varies between 60 - 90 seconds
-            ResourceItem *item = sensor.item(RConfigDuration);
-            DBG_Assert(item);
-            if (item && item->toNumber() < 90)
-            {
-                item->setValue(90);
-                sensor.setNeedSaveDatabase(true);
             }
         }
 
