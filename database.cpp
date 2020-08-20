@@ -3274,6 +3274,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeUInt8, RStateValve);
                     sensor.addItem(DataTypeString, RStateWindowOpen);
                     sensor.addItem(DataTypeBool, RStateMountingModeActive);
+                    sensor.addItem(DataTypeString, RStateErrorCode);
                     sensor.addItem(DataTypeBool, RConfigDisplayFlipped);
                     sensor.addItem(DataTypeBool, RConfigLocked);
                     sensor.addItem(DataTypeBool, RConfigMountingMode);

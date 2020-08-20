@@ -777,6 +777,10 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             handleThermostatUiConfigurationClusterIndication(ind, zclFrame);
             break;
 
+        case DIAGNOSTICS_CLUSTER_ID:
+            handleDiagnosticsClusterIndication(ind, zclFrame);
+            break;
+
         default:
         {
         }
@@ -5792,6 +5796,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
                 sensorNode.addItem(DataTypeString, RStateWindowOpen);
                 sensorNode.addItem(DataTypeBool, RStateMountingModeActive);
+                sensorNode.addItem(DataTypeString, RStateErrorCode);
                 sensorNode.addItem(DataTypeBool, RConfigDisplayFlipped);
                 sensorNode.addItem(DataTypeBool, RConfigLocked);
                 sensorNode.addItem(DataTypeBool, RConfigMountingMode);

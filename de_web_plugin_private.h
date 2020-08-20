@@ -196,6 +196,7 @@
 #define METERING_CLUSTER_ID                   0x0702
 #define APPLIANCE_EVENTS_AND_ALERTS_CLUSTER_ID 0x0B02
 #define ELECTRICAL_MEASUREMENT_CLUSTER_ID     0x0B04
+#define DIAGNOSTICS_CLUSTER_ID                0x0B05
 #define COMMISSIONING_CLUSTER_ID              0x1000
 #define TUYA_CLUSTER_ID                       0xEF00
 #define DE_CLUSTER_ID                         0xFC00
@@ -1434,6 +1435,7 @@ public:
     void handleThermostatClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleThermostatUiConfigurationClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleTimeClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleDiagnosticsClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendTimeClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleBasicClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendBasicClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);

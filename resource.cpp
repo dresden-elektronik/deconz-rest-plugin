@@ -53,6 +53,7 @@ const char *RStateCt = "state/ct";
 const char *RStateDark = "state/dark";
 const char *RStateDaylight = "state/daylight";
 const char *RStateEffect = "state/effect";
+const char *RStateErrorCode = "state/errorcode";
 const char *RStateEventDuration = "state/eventduration";
 const char *RStateFire = "state/fire";
 const char *RStateFlag = "state/flag";
@@ -208,6 +209,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateDark));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateDaylight));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RStateEffect));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateErrorCode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateEventDuration));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateFire));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateFlag));

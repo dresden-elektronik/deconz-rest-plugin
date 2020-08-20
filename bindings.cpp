@@ -1217,6 +1217,22 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                    sendConfigureReportingRequest(bt, {rq2});
         }
     }
+    else if (bt.binding.clusterId == DIAGNOSTICS_CLUSTER_ID)
+    {
+        Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
+
+        if (sensor && (sensor->modelId() == QLatin1String("eTRV0100") || // Danfoss Ally
+                       sensor->modelId() == QLatin1String("TRV001")))    // Hive TRV
+        {
+            rq.dataType = deCONZ::Zcl16BitBitMap;
+            rq.attributeId = 0x4000;        // SW error code
+            rq.minInterval = 1;
+            rq.maxInterval = 43200;
+            rq.reportableChange16bit = 0xffff;
+            rq.manufacturerCode = VENDOR_DANFOSS;
+            return sendConfigureReportingRequest(bt, {rq});
+        }
+    }
     else if (bt.binding.clusterId == RELATIVE_HUMIDITY_CLUSTER_ID)
     {
         rq.dataType = deCONZ::Zcl16BitUint;
@@ -2626,6 +2642,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         case BASIC_CLUSTER_ID:
         case BINARY_INPUT_CLUSTER_ID:
         case THERMOSTAT_CLUSTER_ID:
+        case THERMOSTAT_UI_CONFIGURATION_CLUSTER_ID:
+        case DIAGNOSTICS_CLUSTER_ID:
         case APPLIANCE_EVENTS_AND_ALERTS_CLUSTER_ID:
         case SAMJIN_CLUSTER_ID:
         {

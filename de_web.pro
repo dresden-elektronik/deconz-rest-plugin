@@ -125,6 +125,7 @@ SOURCES  = authorisation.cpp \
            database.cpp \
            daylight.cpp \
            device_setup.cpp \
+           diagnostics.cpp \
            discovery.cpp \
            de_web_plugin.cpp \
            de_web_widget.cpp \

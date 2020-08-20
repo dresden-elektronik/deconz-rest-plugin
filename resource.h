@@ -68,6 +68,7 @@ extern const char *RStateCt;
 extern const char *RStateDark;
 extern const char *RStateDaylight;
 extern const char *RStateEffect;
+extern const char *RStateErrorCode;
 extern const char *RStateEventDuration;
 extern const char *RStateFire;
 extern const char *RStateFlag;
