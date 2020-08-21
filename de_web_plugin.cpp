@@ -1704,13 +1704,13 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
     {
         return;
     }
-    
+
     //Make 2 fakes device for tuya stuff
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER)
     {
         const deCONZ::SimpleDescriptor *sd = &node->simpleDescriptors()[0];
         bool hasTuyaCluster = false;
-        
+
         if (sd && (sd->deviceId() == DEV_ID_SMART_PLUG) && (node->simpleDescriptors().size() < 2) && ((node->address().ext() & 0xffffff0000000000ULL ) == silabs3MacPrefix))
         {
 
@@ -1718,13 +1718,13 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             {
                 if (sd->inClusters()[c].id() == TUYA_CLUSTER_ID) { hasTuyaCluster = true; }
             }
-            
-            if (hasTuyaCluster) 
+
+            if (hasTuyaCluster)
             {
                 DBG_Printf(DBG_INFO, "Tuya : Creating 2 Fake Endpoints\n");
 
                 //Ok it's the good device, make 2 clones with differents endpoints
-                
+
                 //Note for me, to remove later
                 //sudo cp /usr/share/deCONZ/plugins/libde_rest_plugin.so /usr/share/deCONZ/plugins/libde_rest_plugin2.so
 
@@ -1742,7 +1742,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
                 sd1.setEndpoint(0x02);
                 sd2.setEndpoint(0x03);
-                
+
                 //remove useless cluster
                 if (false)
                 {
@@ -3894,7 +3894,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 {
                     quint8 level = zclFrame.payload().at(0);
                     ok = buttonMap->zclParam0 == level;
-                    
+
                 }
             }
             else if (ind.clusterId() == LEVEL_CLUSTER_ID &&
@@ -4080,7 +4080,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     }
             }
             else if ((ind.clusterId() == COLOR_CLUSTER_ID) &&
-                     (zclFrame.commandId() == 0x4b) && 
+                     (zclFrame.commandId() == 0x4b) &&
                      sensor->modelId().startsWith(QLatin1String("ZBT-CCTSwitch-D0001")) )
             {
                 quint8 pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(0);
@@ -4190,7 +4190,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
         }
         buttonMap++;
     }
-    
+
     //Remember last command id
     if (sensor->modelId().startsWith(QLatin1String("ZBT-CCTSwitch-D0001"))) // LDS remote
     {
@@ -4784,7 +4784,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     }
                 }
                     break;
-                    
+
                 case TUYA_CLUSTER_ID:
                 {
                     if ((modelId == QLatin1String("kud7u2l")) ||
@@ -5754,8 +5754,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             {
                 sensorNode.addItem(DataTypeString, RConfigMode);
             }
-            
-            if (sensorNode.modelId() == QLatin1String("kud7u2l") || // Tuya 
+
+            if (sensorNode.modelId() == QLatin1String("kud7u2l") || // Tuya
                 sensorNode.modelId() == QLatin1String("GbxAXL2") || // Tuya
                 sensorNode.modelId() == QLatin1String("TS0601") )   // Tuya
             {
@@ -5763,7 +5763,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.addItem(DataTypeBool, RStateLowBattery);
             }
 
-            if (sensorNode.modelId() == QLatin1String("kud7u2l") || // Tuya 
+            if (sensorNode.modelId() == QLatin1String("kud7u2l") || // Tuya
                 sensorNode.modelId() == QLatin1String("TS0601") )   // Tuya
             {
                 sensorNode.addItem(DataTypeString, RConfigPreset);
@@ -15600,10 +15600,10 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                  sensor->modelId().startsWith(QLatin1String("ZGRC-KEY")))  // Sunricher remote
         {
             quint8 lastEndpoint;
-            
+
             if (sensor->modelId() == QLatin1String("ZGRC-KEY-012")) { lastEndpoint = 0x05; }
             else { lastEndpoint = 0x04; }
-            
+
             ResourceItem *item = sensor->item(RConfigGroup);
             if (!item)
             {
