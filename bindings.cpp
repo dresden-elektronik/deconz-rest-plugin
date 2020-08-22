@@ -1485,7 +1485,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
         else if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") ||  // Heiman
                             sensor->modelId() == QLatin1String("EMIZB-132") ||  // Develco
-                            sensor->modelId() == QLatin1String("SKHMP30-I1")))  // GS smart plug
+                            sensor->modelId() == QLatin1String("SKHMP30-I1") || // GS smart plug
+                            sensor->modelId().startsWith(QLatin1String("SPW35Z")))) // RT-RK OBLO SPW35ZD0 smart plug
         {
             rq3.reportableChange16bit = 10; // 0.1 A
         }
@@ -2299,6 +2300,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("ZG2835")) ||
         // EcoDim
         sensor->modelId().startsWith(QLatin1String("ED-1001")) ||
+        // RT-RK
+        sensor->modelId().startsWith(QLatin1String("SPW35Z")) ||
         // Namron
         sensor->modelId().startsWith(QLatin1String("45127")) ||
         // Plugwise
