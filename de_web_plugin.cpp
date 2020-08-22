@@ -3754,8 +3754,9 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
     if (btnMapClusters.key(ind.clusterId()) != "")
     {
-        cluster = btnMapClusters.key(ind.clusterId()) + " (" + cluster + ")";
-        QMap<QString, quint16> temp = btnMapClusterCommands.value(cluster);
+        QString val = btnMapClusters.key(ind.clusterId());
+        QMap<QString, quint16> temp = btnMapClusterCommands.value(val);
+        cluster = val + " (" + cluster + ")";
 
         if (!temp.empty() && temp.key(zclFrame.commandId()) != "") { cmd = temp.key(zclFrame.commandId()) + " (" + cmd + ")"; }
     }
