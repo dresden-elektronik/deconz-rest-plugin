@@ -108,6 +108,7 @@ HEADERS  = bindings.h \
            json.h \
            light_node.h \
            poll_manager.h \
+           read_files.h \
            resource.h \
            resourcelinks.h \
            rest_devices.h \
@@ -141,6 +142,7 @@ SOURCES  = authorisation.cpp \
            json.cpp \
            light_node.cpp \
            poll_manager.cpp \
+           read_files.cpp \
            resource.cpp \
            resourcelinks.cpp \
            rest_configuration.cpp \
