@@ -1447,7 +1447,6 @@ public:
     bool deserialiseThermostatTransitions(const QString &s, QVariantList *transitions);
     bool serialiseThermostatSchedule(const QVariantMap &schedule, QString *s);
     bool deserialiseThermostatSchedule(const QString &s, QVariantMap *schedule);
-    void readButtonMapJson();
 
     // Modify node attributes
     void setAttributeOnOff(LightNode *lightNode);
