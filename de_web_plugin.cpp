@@ -5679,7 +5679,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 (!modelId.startsWith(QLatin1String("ROB_200"))) &&
                 (modelId != QLatin1String("Plug-230V-ZB3.0")) &&
                 (modelId != QLatin1String("lumi.switch.b1naus01")) &&
-                (modelId != QLatin1String("Connected socket outlet")))
+                (modelId != QLatin1String("Connected socket outlet")) &&
+                (!modelId.startsWith(QLatin1String("SPW35Z"))))
             {
                 item = sensorNode.addItem(DataTypeInt16, RStatePower);
             }
@@ -7907,7 +7908,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     consumption = static_cast<quint64>(round((double)consumption / 1000.0)); // -> Wh
                                 }
                                 else if (i->modelId().startsWith(QLatin1String("ROB_200")) ||            // ROBB Smarrt micro dimmer
-                                         i->modelId().startsWith(QLatin1String("Micro Smart Dimmer")))   // Sunricher Micro Smart Dimmer
+                                         i->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
+                                         i->modelId().startsWith(QLatin1String("SPW35Z")))               // RT-RK OBLO SPW35ZD0 smart plug
                                 {
                                     //consumption /= 3600;
                                     consumption = static_cast<quint64>(round((double)consumption / 3600.0)); // -> Wh

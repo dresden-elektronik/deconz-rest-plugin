@@ -1388,7 +1388,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.reportableChange48bit = 1000; // 0.001 kWh (1 Wh)
         }
         else if (sensor && (sensor->modelId().startsWith(QLatin1String("ROB_200")) ||            // ROBB Smarrt micro dimmer
-                            sensor->modelId().startsWith(QLatin1String("Micro Smart Dimmer"))))  // Sunricher Micro Smart Dimmer
+                            sensor->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
+                            sensor->modelId().startsWith(QLatin1String("SPW35Z"))))              // RT-RK OBLO SPW35ZD0 smart plug
         {
             rq.reportableChange48bit = 3600; // 0.001 kWh (1 Wh)
         }
