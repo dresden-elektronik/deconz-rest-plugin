@@ -53,7 +53,7 @@
    <item>
     <widget class="QLabel" name="label_2">
      <property name="text">
-      <string>Click on the link to open the WebApp in your browser.</string>
+      <string>Click on the link to open the Phoscon App in your browser.</string>
      </property>
     </widget>
    </item>
