@@ -41,7 +41,9 @@ DeRestWidget::DeRestWidget(QWidget *parent) :
         QString name = ifi->humanReadableName();
 
         // filter
-        if (name.contains("vm", Qt::CaseInsensitive) ||
+        if (name.contains("br-", Qt::CaseInsensitive) ||
+            name.contains("docker", Qt::CaseInsensitive) ||
+            name.contains("vm", Qt::CaseInsensitive) ||
             name.contains("virtual", Qt::CaseInsensitive) ||
             name.contains("loop", Qt::CaseInsensitive))
         {
