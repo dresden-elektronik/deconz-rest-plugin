@@ -8,19 +8,22 @@
  *
  */
 
+#include <QAction>
 #include <QLabel>
 #include <QNetworkInterface>
 #include "de_web_plugin.h"
+#include "de_web_plugin_private.h"
 #include "de_web_widget.h"
 #include "ui_de_web_widget.h"
 
 /*! Constructor. */
-DeRestWidget::DeRestWidget(QWidget *parent) :
+DeRestWidget::DeRestWidget(QWidget *parent, DeRestPlugin *_plugin) :
     QDialog(parent),
-    ui(new Ui::DeWebWidget)
+    ui(new Ui::DeWebWidget),
+    plugin(_plugin)
 {
     ui->setupUi(this);
-    setWindowTitle(tr("DE REST API"));
+    setWindowTitle(tr("DE REST-API"));
     deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
 
     quint16 httpPort = apsCtrl ? deCONZ::ApsController::instance()->getParameter(deCONZ::ParamHttpPort) : 0;
@@ -77,6 +80,15 @@ DeRestWidget::DeRestWidget(QWidget *parent) :
     }
 
     ui->ipAddressesLabel->setText(str);
+
+    //
+    connect(deCONZ::ApsController::instance(), &deCONZ::ApsController::nodeEvent, this, &DeRestWidget::nodeEvent);
+
+    // keyboard shortcuts
+    auto *readBindingTableAction = new QAction(tr("Read binding table"), this);
+    readBindingTableAction->setShortcut(Qt::CTRL + Qt::Key_B);
+    connect(readBindingTableAction, &QAction::triggered, this, &DeRestWidget::readBindingTableTriggered);
+    addAction(readBindingTableAction);
 }
 
 /*! Deconstructor. */
@@ -95,6 +107,42 @@ bool DeRestWidget::pluginActive() const
         return ui->pluginActiveCheckBox->isChecked();
     }
     return false;
+}
+
+void DeRestWidget::readBindingTableTriggered()
+{
+    if (m_selectedNodeAddress.hasExt())
+    {
+
+        auto *restNode = dynamic_cast<RestNodeBase*>(plugin->d->getLightNodeForAddress(m_selectedNodeAddress));
+
+        if (!restNode)
+        {
+            restNode = dynamic_cast<RestNodeBase*>(plugin->d->getSensorNodeForAddress(m_selectedNodeAddress));
+        }
+
+        if (restNode)
+        {
+            restNode->setMgmtBindSupported(true);
+            DBG_Printf(DBG_INFO, "read binding table for %s (%s) \n", qPrintable(m_selectedNodeAddress.toStringExt()), qPrintable(m_selectedNodeAddress.toStringNwk()));
+            plugin->d->readBindingTable(restNode, 0);
+        }
+    }
+}
+
+void DeRestWidget::nodeEvent(const deCONZ::NodeEvent &event)
+{
+    if (event.node())
+    {
+        if (event.event() == deCONZ::NodeEvent::NodeSelected)
+        {
+            m_selectedNodeAddress = event.node()->address();
+        }
+        else if (event.event() == deCONZ::NodeEvent::NodeSelected)
+        {
+            m_selectedNodeAddress = {};
+        }
+    }
 }
 
 void DeRestWidget::showEvent(QShowEvent *)

@@ -123,7 +123,10 @@ bool DeRestPluginPrivate::readBindingTable(RestNodeBase *node, quint8 startIndex
     Resource *r = dynamic_cast<Resource*>(node);
 
     // whitelist
-    if (checkMacVendor(node->address(), VENDOR_DDEL))
+    if (node->mgmtBindSupported())
+    {
+    }
+    else if (checkMacVendor(node->address(), VENDOR_DDEL))
     {
     }
     else if (checkMacVendor(node->address(), VENDOR_UBISYS))

@@ -16777,7 +16777,7 @@ QDialog *DeRestPlugin::createDialog()
 {
     if (!m_w)
     {
-        m_w = new DeRestWidget(0);
+        m_w = new DeRestWidget(nullptr, this);
     }
 
     return m_w;
