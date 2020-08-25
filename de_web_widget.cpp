@@ -16,6 +16,8 @@
 #include "de_web_widget.h"
 #include "ui_de_web_widget.h"
 
+QAction *readBindingTableAction = nullptr;
+
 /*! Constructor. */
 DeRestWidget::DeRestWidget(QWidget *parent, DeRestPlugin *_plugin) :
     QDialog(parent),
@@ -85,8 +87,11 @@ DeRestWidget::DeRestWidget(QWidget *parent, DeRestPlugin *_plugin) :
     connect(deCONZ::ApsController::instance(), &deCONZ::ApsController::nodeEvent, this, &DeRestWidget::nodeEvent);
 
     // keyboard shortcuts
-    auto *readBindingTableAction = new QAction(tr("Read binding table"), this);
+    readBindingTableAction = new QAction(tr("Read binding table"), this);
     readBindingTableAction->setShortcut(Qt::CTRL + Qt::Key_B);
+    readBindingTableAction->setProperty("type", "node-action");
+    readBindingTableAction->setProperty("actionid", "read-binding-table");
+    readBindingTableAction->setEnabled(m_selectedNodeAddress.hasExt());
     connect(readBindingTableAction, &QAction::triggered, this, &DeRestWidget::readBindingTableTriggered);
     addAction(readBindingTableAction);
 }
@@ -132,16 +137,15 @@ void DeRestWidget::readBindingTableTriggered()
 
 void DeRestWidget::nodeEvent(const deCONZ::NodeEvent &event)
 {
-    if (event.node())
+    if (event.node() && event.event() == deCONZ::NodeEvent::NodeSelected)
     {
-        if (event.event() == deCONZ::NodeEvent::NodeSelected)
-        {
-            m_selectedNodeAddress = event.node()->address();
-        }
-        else if (event.event() == deCONZ::NodeEvent::NodeSelected)
-        {
-            m_selectedNodeAddress = {};
-        }
+        m_selectedNodeAddress = event.node()->address();
+        readBindingTableAction->setEnabled(m_selectedNodeAddress.hasExt());
+    }
+    else if (event.event() == deCONZ::NodeEvent::NodeDeselected)
+    {
+        m_selectedNodeAddress = {};
+        readBindingTableAction->setEnabled(false);
     }
 }
 
