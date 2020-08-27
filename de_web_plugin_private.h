@@ -1662,8 +1662,24 @@ public:
     QStringList fwProcessArgs;
     QString fwDeviceName;
 
-    std::deque<RestNodeBase*> pollNodes;
-    PollManager *pollManager;
+    // Helper to reference nodes in containers.
+    // This is needed since the pointer might change due container resize / item removal.
+    struct PollNodeItem
+    {
+        PollNodeItem(const QString &_uuid, const char *rt) :
+        uuid(_uuid),
+        resourceType(rt)
+        { }
+        bool operator==(const PollNodeItem &other) const
+        {
+            return resourceType == other.resourceType && uuid == other.uuid;
+        }
+        const QString uuid;
+        const char* resourceType = nullptr; // back ref to the container RLights, RSensors
+    };
+
+    std::deque<PollNodeItem> pollNodes;
+    PollManager *pollManager = nullptr;
 
     // upnp
     QByteArray descriptionXml;
