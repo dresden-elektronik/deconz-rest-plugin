@@ -4,15 +4,16 @@ daysUntilStale: 21
 daysUntilClose: 7
 # Issues with these labels will never be considered stale
 exemptLabels:
-  - pinned
-  - security
+  - To-Do
   - Backlog
 # Label to use when marking an issue as stale
 staleLabel: stale
 # Comment to post when marking an issue as stale. Set to `false` to disable
 markComment: >
-  This issue has been automatically marked as stale because it has not had
-  recent activity. It will be closed if no further activity occurs. Thank you
-  for your contributions.
+  As there hasn't been any response in 21 days, this issue has been automatically marked as stale. **At OP: Please either close this issue or keep it active** 
+  It will be closed in 7 days if no further activity occurs.
 # Comment to post when closing a stale issue. Set to `false` to disable
-closeComment: false
+closeComment: >
+  As there hasn't been any response in 28 days, this issue will be closed. **@ OP: If this issue is solved post what fixed it for you. If it isn't solved, request to get this opened again.**
+
+
