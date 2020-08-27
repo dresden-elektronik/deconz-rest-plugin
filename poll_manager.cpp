@@ -278,7 +278,7 @@ void PollManager::pollTimerFired()
     if (suffix == RStateOn)
     {
         item = r->item(RAttrModelId);
-        if (item->toString() == QLatin1String("TS0601"))
+        if (item && item->toString() == QLatin1String("TS0601"))
         {
             //This device haven't cluster 0006, and use Cluster specific
         }
@@ -404,7 +404,8 @@ void PollManager::pollTimerFired()
         clusterId = METERING_CLUSTER_ID;
         attributes.push_back(0x0000); // Current Summation Delivered
         item = r->item(RAttrModelId);
-        if (!item->toString().startsWith(QLatin1String("SP 120")) &&  // Attribute is not available
+        if (item &&
+            !item->toString().startsWith(QLatin1String("SP 120")) &&  // Attribute is not available
             !item->toString().startsWith(QLatin1String("lumi.plug.ma")) &&
             !item->toString().startsWith(QLatin1String("ZB-ONOFFPlug-D0005")) &&
             !item->toString().startsWith(QLatin1String("TS0121")) &&
@@ -421,12 +422,12 @@ void PollManager::pollTimerFired()
         clusterId = ELECTRICAL_MEASUREMENT_CLUSTER_ID;
         attributes.push_back(0x050b); // Active Power
         item = r->item(RAttrModelId);
-        if (!item->toString().startsWith(QLatin1String("Plug"))) //Osram plug
+        if (item && !item->toString().startsWith(QLatin1String("Plug"))) //Osram plug
         {
             NotOnlyPower = false;
         }
         item = r->item(RAttrManufacturerName);
-        if (!item->toString().startsWith(QLatin1String("Legrand")))  // All legrand Devices
+        if (item && !item->toString().startsWith(QLatin1String("Legrand")))  // All legrand Devices
         {
             NotOnlyPower = false;
         }
