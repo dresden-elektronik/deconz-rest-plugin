@@ -908,6 +908,16 @@ static const Sensor::ButtonMap sonoffOnOffMap[] = {
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
+static const Sensor::ButtonMap linkind1keyMap[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x01, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x00, 0,    S_BUTTON_1 + S_BUTTON_ACTION_DOUBLE_PRESS, "Off" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 0,    S_BUTTON_1 + S_BUTTON_ACTION_HOLD, "Move up" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 0,    S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED, "Stop" },
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
+};
+
 /*! Returns a fingerprint as JSON string. */
 QString SensorFingerprint::toString() const
 {
@@ -1559,7 +1569,7 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         }
         else if (manufacturer == QLatin1String("lk"))
         {
-            if (modelid == QLatin1String("ZBT-DIMSwitch")) { m_buttonMap = ikeaOnOffMap; }
+            if (modelid == QLatin1String("ZBT-DIMSwitch-D0001")) { m_buttonMap = linkind1keyMap; }
         }
         else if (manufacturer == QLatin1String("eWeLink"))
         {
