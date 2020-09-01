@@ -12,25 +12,32 @@
 #define DE_WEB_WIDGET_H
 
 #include <QDialog>
+#include <deconz.h>
 
 namespace Ui {
 class DeWebWidget;
 }
+
+class DeRestPlugin;
 
 class DeRestWidget : public QDialog
 {
     Q_OBJECT
     
 public:
-    explicit DeRestWidget(QWidget *parent);
+    explicit DeRestWidget(QWidget *parent, DeRestPlugin *_plugin);
     ~DeRestWidget();
     bool pluginActive() const;
 
-public Q_SLOTS:
+private Q_SLOTS:
+    void readBindingTableTriggered();
+    void nodeEvent(const deCONZ::NodeEvent &event);
 
 private:
     void showEvent(QShowEvent *);
-    Ui::DeWebWidget *ui;
+    deCONZ::Address m_selectedNodeAddress;
+    Ui::DeWebWidget *ui = nullptr;
+    DeRestPlugin *plugin = nullptr;
 };
 
 #endif // DE_WEB_WIDGET_H

@@ -123,7 +123,10 @@ bool DeRestPluginPrivate::readBindingTable(RestNodeBase *node, quint8 startIndex
     Resource *r = dynamic_cast<Resource*>(node);
 
     // whitelist
-    if (checkMacVendor(node->address(), VENDOR_DDEL))
+    if (node->mgmtBindSupported())
+    {
+    }
+    else if (checkMacVendor(node->address(), VENDOR_DDEL))
     {
     }
     else if (checkMacVendor(node->address(), VENDOR_UBISYS))
@@ -3097,7 +3100,8 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
         sensor->modelId().startsWith(QLatin1String("ZBT-CCTSwitch-D0001")) || //LDS Remote
         sensor->modelId().startsWith(QLatin1String("ZBT-DIMSwitch")) || // Linkind 1 key Remote Control / ZS23000178
         sensor->modelId().startsWith(QLatin1String("WB01")) || // Sonoff SNZB-01
-        sensor->modelId().startsWith(QLatin1String("ZG2835"))) // SR-ZG2835 Zigbee Rotary Switch
+        sensor->modelId().startsWith(QLatin1String("ZG2835")) || // SR-ZG2835 Zigbee Rotary Switch
+        sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5121"))) // RGBgenie ZB-5121 remote
     {
 
     }

@@ -496,6 +496,8 @@ void DeRestPluginPrivate::queryFirmwareVersion()
         // adapted from above AVR handling
         if ((fwVersion & FW_PLATFORM_MASK) == FW_PLATFORM_R21 && fwDeviceName == QLatin1String("ConBee II"))
         {
+        // TODO temporarily disabled due multiple reports that the update via Phoscon App didn't work. Investigation ongoing.
+#if 0 // temporarily disabled start
             if (fwVersion < GW_MIN_R21_FW_VERSION)
             {
                 gwFirmwareVersionUpdate = QString("0x%1").arg(GW_MIN_R21_FW_VERSION, 8, 16, QLatin1Char('0'));
@@ -527,6 +529,7 @@ void DeRestPluginPrivate::queryFirmwareVersion()
                 return;
             }
             else
+#endif // temporarily disabled end
             {
                 DBG_Printf(DBG_INFO, "GW firmware version is up to date: 0x%08x\n", fwVersion);
                 fwUpdateState = FW_Idle;

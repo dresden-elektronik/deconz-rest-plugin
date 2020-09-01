@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>490</width>
-    <height>220</height>
+    <width>495</width>
+    <height>263</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,6 +17,26 @@
    <bool>true</bool>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QLabel" name="label_3">
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>GIT Commit</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="gitCommitLabel">
+     <property name="text">
+      <string>&lt;commit hash&gt;</string>
+     </property>
+    </widget>
+   </item>
    <item>
     <widget class="QLabel" name="label">
      <property name="font">
@@ -33,7 +53,7 @@
    <item>
     <widget class="QLabel" name="label_2">
      <property name="text">
-      <string>Click on the link to open the WebApp in your browser.</string>
+      <string>Click on the link to open the Phoscon App in your browser.</string>
      </property>
     </widget>
    </item>

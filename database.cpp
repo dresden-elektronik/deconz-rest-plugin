@@ -4925,7 +4925,6 @@ void DeRestPluginPrivate::closeDb()
     {
         if (ttlDataBaseConnection > idleTotalCounter)
         {
-            DBG_Printf(DBG_INFO, "don't close database yet, keep open for %d seconds\n", (ttlDataBaseConnection - idleTotalCounter));
             return;
         }
 
