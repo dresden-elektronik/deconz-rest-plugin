@@ -87,6 +87,11 @@ int DeRestPluginPrivate::handleSensorsApi(const ApiRequest &req, ApiResponse &rs
     {
         return changeSensorState(req, rsp);
     }
+    // POST, DELETE /api/<apikey>/sensors/<id>/config/schedule/Wbbb
+    else if ((req.path.size() == 7) && (req.hdr.method() == "POST" || req.hdr.method() == "DELETE") && (req.path[4] == "config") && (req.path[5] == "schedule"))
+    {
+        return changeThermostatSchedule(req, rsp);
+    }
 
     return REQ_NOT_HANDLED;
 }
@@ -995,7 +1000,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 {
                     bool ok;
                     qint32 offset = (qint32)(round(map[pi.key()].toInt(&ok) / 10.0));
-                    if (ok && (sensor->modelId().startsWith(QLatin1String("kud7u2l")) || 
+                    if (ok && (sensor->modelId().startsWith(QLatin1String("kud7u2l")) ||
                                sensor->modelId().startsWith(QLatin1String("GbxAXL2")) ||
                                sensor->modelId().startsWith(QLatin1String("TS0601")) ) ) // Tuya Smart TRV HY369 Thermostatic Radiator Valve
                     {
@@ -1032,21 +1037,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             rsp.httpStatus = HttpStatusBadRequest;
                             return REQ_READY_SEND;
                         }
-                    }
-                }
-                if (rid.suffix == RConfigSchedule)
-                {
-                    QString sched = map[pi.key()].toString().simplified();
-                    if (addTaskThermostatSetAndGetSchedule(task, sched))
-                    {
-                        rspItemState[QString("set %1").arg(rid.suffix)] = offset;
-                        rspItem["success"] = rspItemState;
-                    }
-                    else
-                    {
-                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/%2").arg(id).arg(rid.suffix), QString("could not set attribute")));
-                        rsp.httpStatus = HttpStatusBadRequest;
-                        return REQ_READY_SEND;
                     }
                 }
                 if (rid.suffix == RConfigScheduleOn)
@@ -1107,7 +1097,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else if (sensor->modelId().startsWith(QLatin1String("TRV001")))
                     {
-                        if (addTaskThermostatCmd(task, VENDOR_DANFOSS, 0x40, heatsetpoint, nullptr, 0))
+                        if (addTaskThermostatCmd(task, VENDOR_DANFOSS, 0x40, heatsetpoint, 0))
                         {
                             updated = true;
                         }
@@ -1128,14 +1118,14 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         QByteArray data = QByteArray("\x00\x00",2);
                         data.append((qint8)((heatsetpoint >> 8) & 0xff));
                         data.append((qint8)(heatsetpoint & 0xff));
-                        
+
                         qint8 dp = 0x02;
-                        
+
                         if (sensor->modelId().startsWith(QLatin1String("GbxAXL2")))
                         {
                             dp = 0x67;
                         }
-                        
+
                         if (SendTuyaRequest(task, TaskThermostat , DP_TYPE_VALUE , dp, data))
                         {
                             updated = true;
@@ -1205,7 +1195,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     {
                         QString modeSet = map[pi.key()].toString();
                         bool ok = false;
-                        
+
                         if (modeSet == "auto")
                         {
                             ok = SendTuyaRequest(task, TaskThermostat , DP_TYPE_BOOL, 0x6c , QByteArray("\x01", 1)); // Set mode to auto
@@ -1224,7 +1214,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         {
                             rspItemState[QString("error unknow mode for %1").arg(sensor->modelId())] = map[pi.key()];
                         }
-                        
+
                         if ( ok )
                         {
                             updated = true;
@@ -1555,6 +1545,106 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
         sensor->setNeedSaveDatabase(true);
         queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
     }
+
+    processTasks();
+
+    return REQ_READY_SEND;
+}
+
+/*! POST, DELETE /api/<apikey>/sensors/<id>/config/schedule/Wbbb
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::changeThermostatSchedule(const ApiRequest &req, ApiResponse &rsp)
+{
+    rsp.httpStatus = HttpStatusOk;
+
+    // Get the /sensors/id resource.
+    QString id = req.path[3];
+    Sensor *sensor = id.length() < MIN_UNIQUEID_LENGTH ? getSensorNodeForId(id) : getSensorNodeForUniqueId(id);
+    if (!sensor || (sensor->deletedState() == Sensor::StateDeleted))
+    {
+        rsp.httpStatus = HttpStatusNotFound;
+        rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/sensors/%1").arg(id), QString("resource, /sensors/%1, not available").arg(id)));
+        return REQ_READY_SEND;
+    }
+
+    // Check that it has config/schedule.
+    ResourceItem *item = sensor->item(RConfigSchedule);
+    if (!item)
+    {
+        rsp.httpStatus = HttpStatusNotFound;
+        rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/sensors/%1/config/schedule").arg(id), QString("resource, /sensors/%1/config/schedule, not available").arg(id)));
+        return REQ_READY_SEND;
+    }
+
+    // Check valid weekday pattern
+    bool ok;
+    uint bbb = req.path[6].mid(1).toUInt(&ok);
+    if (req.path[6].left(1) != "W" || !ok || bbb < 1 || bbb > 127)
+    {
+        rsp.httpStatus = HttpStatusNotFound;
+        rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/sensors/%1/config/schedule/%2").arg(id).arg(req.path[6]), QString("resource, /sensors/%1/config/schedule/%2, not available").arg(id).arg(req.path[6])));
+        return REQ_READY_SEND;
+    }
+    quint8 weekdays = bbb;
+
+    // Check body
+    QString transitions = QString("");
+    if (req.hdr.method() == "POST")
+    {
+        QVariant var = Json::parse(req.content, ok);
+        if (!ok)
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_JSON, QString("/sensors/%1/config/schedule/%2").arg(id).arg(req.path[6]), QString("body contains invalid JSON")));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+        QVariantList list = var.toList();
+        // QString transitions = QString("");
+        if (!serialiseThermostatTransitions(list, &transitions))
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_JSON, QString("/sensors/%1/config/schedule/%2").arg(id).arg(req.path[6]), QString("body contains invalid list of transitions")));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+    }
+
+    if (req.sock)
+    {
+        userActivity();
+    }
+
+    // Queue task.
+    TaskItem task;
+    task.req.dstAddress() = sensor->address();
+    task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+    task.req.setDstEndpoint(sensor->fingerPrint().endpoint);
+    task.req.setSrcEndpoint(getSrcEndpoint(sensor, task.req));
+    task.req.setDstAddressMode(deCONZ::ApsExtAddress);
+    if (!addTaskThermostatSetWeeklySchedule(task, weekdays, transitions))
+    {
+        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/schedule/%2").arg(id).arg(req.path[6]), QString("could not set schedule")));
+        rsp.httpStatus = HttpStatusBadRequest;
+        return REQ_READY_SEND;
+    }
+
+    QVariantMap rspItem;
+    QVariantMap rspItemState;
+    if (req.hdr.method() == "POST")
+    {
+        QVariantList l;
+        deserialiseThermostatTransitions(transitions, &l);
+        rspItemState[QString("/config/schedule/W%1").arg(weekdays)] = l;
+        rspItem["success"] = rspItemState;
+    }
+    else
+    {
+        rspItem["success"] = QString("/sensors/%1/config/schedule/W%2 deleted.").arg(id).arg(weekdays);
+    }
+    rsp.list.append(rspItem);
+
+    updateThermostatSchedule(sensor, weekdays, transitions);
 
     processTasks();
 
