@@ -246,7 +246,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                                 }
                                 if (lightNode2->manufacturer().startsWith(QLatin1String("_T")))
                                 {
-                                    lightNode->setManufacturer(lightNode2->manufacturer());
+                                    lightNode->setManufacturerName(lightNode2->manufacturer());
                                 }
                             }
                             
