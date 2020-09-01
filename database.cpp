@@ -3238,7 +3238,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.modelId() == QLatin1String("TS0601") ) //tuya
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
-                    sensor.addItem(DataTypeBool, RStateLowBattery);
+                    item = sensor.addItem(DataTypeBool, RStateLowBattery);
+                    item->setValue(false);
                 }
                 
                 if (sensor.modelId() == QLatin1String("kud7u2l") || // tuya 
@@ -3246,6 +3247,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 {
                     sensor.addItem(DataTypeString, RConfigPreset);
                     sensor.addItem(DataTypeBool, RConfigLocked);
+                    sensor.addItem(DataTypeBool, RConfigWindowOpen);
                 }
                 
                 if (sensor.modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
