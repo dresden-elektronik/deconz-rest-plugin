@@ -5,7 +5,7 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataRequest &req)
 {
     //bool found;
        
-    DBG_Printf(DBG_INFO, "[ZB REQUEST] - Sending data to node: 0x%016llX (%04X)\n", req.dstAddress().ext(), req.dstAddress().nwk());
+    //DBG_Printf(DBG_INFO, "[ZB REQUEST] - Sending data to node: 0x%016llX (%04X)\n", req.dstAddress().ext(), req.dstAddress().nwk());
     DBG_Printf(DBG_INFO, "[ZB REQUEST] - 0x%016llX (%04X) - Request for Profile: 0x%04X, Cluster: %04X, Endpoint: %d\n", req.dstAddress().ext(), req.dstAddress().nwk(),
                         req.profileId(), req.clusterId(), req.dstEndpoint());
     DBG_Printf(DBG_INFO, "[ZB REQUEST] - 0x%016llX (%04X) - Request ASDU: %s\n", req.dstAddress().ext(), req.dstAddress().nwk(), qPrintable(req.asdu().toHex()));
@@ -157,7 +157,7 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataRequest &req)
                     }
                     
                     DBG_Printf(DBG_INFO, "[ZB REQUEST] - 0x%016llX (%04X) - Request read attributes (%02X) - Sequence no.: %d, Mfc: 0x%04X, %s\n",
-                                req.dstAddress().ext(), req.dstAddress().nwk(), zclFrame.commandId(), zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), attributes.toUtf8().data());
+                                req.dstAddress().ext(), req.dstAddress().nwk(), zclFrame.commandId(), zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), qUtf8Printable(attributes));
                 }
                     break;
 
@@ -181,7 +181,7 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataRequest &req)
                     }
                     
                     DBG_Printf(DBG_INFO, "[ZB REQUEST] - 0x%016llX (%04X) - Request read attributes (%02X) - Sequence no.: %d, Mfc: 0x%04X, Attribute: %04X, Datatype: %02X, %s\n",
-                                req.dstAddress().ext(), req.dstAddress().nwk(), zclFrame.commandId(), zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), attribute, dt, bla.toUtf8().data());
+                                req.dstAddress().ext(), req.dstAddress().nwk(), zclFrame.commandId(), zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), attribute, dt, qUtf8Printable(bla));
                 }
                     break;
                     
@@ -229,7 +229,7 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataRequest &req)
                     }
                     
                     DBG_Printf(DBG_INFO, "[ZB REQUEST] - 0x%016llX (%04X) - Request configure reporting (%02X) - Sequence no.: %d, Mfc: 0x%04X, Attribute: %04X, Datatype: %02X, Min: %d, Max: %d, Change: %s\n",
-                                req.dstAddress().ext(), req.dstAddress().nwk(), zclFrame.commandId(), zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), attribute, dt, min, max, bla.toUtf8().data());
+                                req.dstAddress().ext(), req.dstAddress().nwk(), zclFrame.commandId(), zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), attribute, dt, min, max, qUtf8Printable(bla));
                     
                 }
                     break;
@@ -270,8 +270,6 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataRequest &req)
  */
 void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataIndication &ind)
 {
-    DBG_Printf(DBG_INFO, "[ZB RESPONSE] - Incoming data from node: 0x%016llX (%04X)\n", ind.srcAddress().ext(), ind.srcAddress().nwk());
-    
     QMap<int, QString> zclStatusCodes;
     zclStatusCodes.insert(0x00, "SUCCESS");
     zclStatusCodes.insert(0x01, "FAILURE");
@@ -295,7 +293,7 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataIndication &ind)
     zclStatusCodes.insert(0x90, "INCONSISTENT_STARTUP_STATE");
     zclStatusCodes.insert(0x91, "DEFINED_OUT_OF_BAND");
 
-    DBG_Printf(DBG_INFO, "[ZB RESPONSE] - Incoming data from node: 0x%016llX (%04X)\n", ind.srcAddress().ext(), ind.srcAddress().nwk());
+    //DBG_Printf(DBG_INFO, "[ZB RESPONSE] - Incoming data from node: 0x%016llX (%04X)\n", ind.srcAddress().ext(), ind.srcAddress().nwk());
     DBG_Printf(DBG_INFO, "[ZB RESPONSE] - 0x%016llX (%04X) - Indication for Profile: 0x%04X, Cluster: %04X, Endpoint: %d, Status: 0x%02X\n", ind.srcAddress().ext(), ind.srcAddress().nwk(),
                         ind.profileId(), ind.clusterId(), ind.srcEndpoint(), ind.status());
     DBG_Printf(DBG_INFO, "[ZB RESPONSE] - 0x%016llX (%04X) - Indication ASDU: %s\n", ind.srcAddress().ext(), ind.srcAddress().nwk(), qPrintable(ind.asdu().toHex()));
@@ -361,8 +359,7 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataIndication &ind)
                     if (!stream.atEnd())
                     {
                         stream >> cluster;
-                        inClusters += QString("%1").arg(cluster, 4, 16, QLatin1Char('0')).toUpper();
-                        inClusters += ", ";
+                        inClusters += QString("%1").arg(cluster, 4, 16, QLatin1Char('0')).toUpper() + ", ";
                     }
                 }
                 
@@ -374,8 +371,7 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataIndication &ind)
                     if (!stream.atEnd())
                     {
                         stream >> cluster;
-                        outClusters += QString("%1").arg(cluster, 4, 16, QLatin1Char('0')).toUpper();
-                        outClusters += ", ";
+                        outClusters += QString("%1").arg(cluster, 4, 16, QLatin1Char('0')).toUpper() + ", ";
                     }
                 }
                 
@@ -384,7 +380,7 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataIndication &ind)
                 DBG_Printf(DBG_INFO, "[ZB RESPONSE] - 0x%016llX (%04X) - Received simple descriptor response - Sequence no.: %d\n",
                             ind.srcAddress().ext(), ind.srcAddress().nwk(), seq);
                 DBG_Printf(DBG_INFO, "[ZB RESPONSE] - 0x%016llX (%04X) - Received simple descriptor response - Ep: %02X, Profile: 0x%04X, DeviceID: 0x%04X, Input clusters: %s, Output clusters: %s\n",
-                            ind.srcAddress().ext(), ind.srcAddress().nwk(), ep, profile, appDevice, inClusters.toUtf8().data(), outClusters.toUtf8().data());
+                            ind.srcAddress().ext(), ind.srcAddress().nwk(), ep, profile, appDevice, qUtf8Printable(inClusters), qUtf8Printable(outClusters));
             }
                 break;
             case ZDP_ACTIVE_ENDPOINTS_RSP_CLID:
@@ -406,15 +402,14 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataIndication &ind)
                     if (!stream.atEnd())
                     {
                         stream >> ep;
-                        endpoints += QString("%1").arg(ep, 2, 16, QLatin1Char('0')).toUpper();
-                        endpoints += ", ";
+                        endpoints += QString("%1").arg(ep, 2, 16, QLatin1Char('0')).toUpper() + ", ";
                     }
                 }
                 
                 endpoints = endpoints.left(endpoints.lastIndexOf(QChar(',')));   // Strip everything after the last comma, for beauty
                 
                 DBG_Printf(DBG_INFO, "[ZB RESPONSE] - 0x%016llX (%04X) - Received active endpoint response - Sequence no.: %d, Active endpoints: %s\n",
-                            ind.srcAddress().ext(), ind.srcAddress().nwk(), seq, endpoints.toUtf8().data());
+                            ind.srcAddress().ext(), ind.srcAddress().nwk(), seq, qUtf8Printable(endpoints));
             }
                 break;
 
@@ -441,8 +436,7 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataIndication &ind)
                     if (!stream.atEnd())
                     {
                         stream >> cluster;
-                        inClusters += QString("%1").arg(cluster, 4, 16, QLatin1Char('0')).toUpper();
-                        inClusters += ", ";
+                        inClusters += QString("%1").arg(cluster, 4, 16, QLatin1Char('0')).toUpper() + ", ";
                     }
                 }
                 
@@ -453,15 +447,14 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataIndication &ind)
                     if (!stream.atEnd())
                     {
                         stream >> cluster;
-                        outClusters += QString("%1").arg(cluster, 4, 16, QLatin1Char('0')).toUpper();
-                        outClusters += ", ";
+                        outClusters += QString("%1").arg(cluster, 4, 16, QLatin1Char('0')).toUpper() + ", ";
                     }
                 }
                 
                 outClusters = outClusters.left(outClusters.lastIndexOf(QChar(',')));    // Strip everything after the last comma, for beauty
 
                 DBG_Printf(DBG_INFO, "[ZB RESPONSE] - 0x%016llX (%04X) - Received match descriptor request - Sequence no.: %d, Profile: 0x%04X, Input clusters: %s, Output clusters: %s\n\n",
-                        ind.srcAddress().ext(), ind.srcAddress().nwk(), seq, profile, inClusters.toUtf8().data(), outClusters.toUtf8().data());
+                        ind.srcAddress().ext(), ind.srcAddress().nwk(), seq, profile, qUtf8Printable(inClusters), qUtf8Printable(outClusters));
 
             }
                 break;
@@ -550,8 +543,8 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataIndication &ind)
                 stream >> status;
                 // Potentially following data is not yet picked up here
                 
-                DBG_Printf(DBG_INFO, "[ZB RESPONSE] - 0x%016llX (%04X) - Received MGMT bind response - Sequence no.: %d, Status: 0x%02X\n",
-                            ind.srcAddress().ext(), ind.srcAddress().nwk(), seq, status);
+                DBG_Printf(DBG_INFO, "[ZB RESPONSE] - 0x%016llX (%04X) - Received MGMT bind response - Sequence no.: %d, Status: %s\n",
+                            ind.srcAddress().ext(), ind.srcAddress().nwk(), seq, qUtf8Printable(zclStatusCodes.value(status, "N/A")));
             }
                 break;
 
@@ -563,8 +556,8 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataIndication &ind)
                 stream >> seq;
                 stream >> status;
                 
-                DBG_Printf(DBG_INFO, "[ZB RESPONSE] - 0x%016llX (%04X) - Received bind response - Sequence no.: %d, Status: 0x%02X\n",
-                            ind.srcAddress().ext(), ind.srcAddress().nwk(), seq, status);
+                DBG_Printf(DBG_INFO, "[ZB RESPONSE] - 0x%016llX (%04X) - Received bind response - Sequence no.: %d, Status: %s\n",
+                            ind.srcAddress().ext(), ind.srcAddress().nwk(), seq, qUtf8Printable(zclStatusCodes.value(status, "N/A")));
             }
                 break;
 
@@ -576,8 +569,8 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataIndication &ind)
                 stream >> seq;
                 stream >> status;
                 
-                DBG_Printf(DBG_INFO, "[ZB RESPONSE] - 0x%016llX (%04X) - Received unbind response - Sequence no.: %d, Status: 0x%02X\n",
-                            ind.srcAddress().ext(), ind.srcAddress().nwk(), seq, status);
+                DBG_Printf(DBG_INFO, "[ZB RESPONSE] - 0x%016llX (%04X) - Received unbind response - Sequence no.: %d, Status: %s\n",
+                            ind.srcAddress().ext(), ind.srcAddress().nwk(), seq, qUtf8Printable(zclStatusCodes.value(status, "N/A")));
             }
                 break;
 
@@ -624,37 +617,226 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataIndication &ind)
                     quint16 attribute;
                     quint8 status = 0xFF;
                     quint8 datatype;
-                    quint8 data;
                     QString bla;
                     
                     QDataStream stream(zclFrame.payload());
                     stream.setByteOrder(QDataStream::LittleEndian);
 
-                    stream >> attribute;
-                    
-                    if (zclFrame.commandId() == deCONZ::ZclGeneralCommandId::ZclReadAttributesResponseId)
+                    while (!stream.atEnd())
                     {
-                        stream >> status;
-                    }
-                    
-                    if (status == deCONZ::ZclStatus::ZclSuccessStatus || zclFrame.commandId() == deCONZ::ZclGeneralCommandId::ZclReportAttributesId)
-                    {
-                        stream >> datatype;
-                        
-                        while (!stream.atEnd())
+                        stream >> attribute;
+                        bla += "Attribute: 0x" + QString("%1").arg(attribute, 4, 16, QLatin1Char('0')).toUpper() + ", ";
+
+                        if (zclFrame.commandId() == deCONZ::ZclGeneralCommandId::ZclReadAttributesResponseId)
                         {
-                            stream >> data;
-                            bla += QString("%1").arg(data, 2, 16, QLatin1Char('0')).toUpper();
+                            stream >> status;
+                            bla += "Status: " + zclStatusCodes.value(status, "N/A") + ", ";
                         }
-                        
-                        DBG_Printf(DBG_INFO, "[ZB RESPONSE] - 0x%016llX (%04X) - Response report attributes (%02X) - Attribute: 0x%04X, Status: %s, Datatype: 0x%02X, Data: %s\n",
-                                ind.srcAddress().ext(), ind.srcAddress().nwk(), zclFrame.commandId(), attribute, zclStatusCodes.value(status, "N/A").toUtf8().data(), datatype, bla.toUtf8().data()); 
+
+                        if (status != deCONZ::ZclStatus::ZclSuccessStatus && status != 0xFF)
+                        {
+                            // Nothing further to do
+                        }
+                        else
+                        {
+                            stream >> datatype;
+                            bla += "Datatype: 0x" + QString("%1").arg(datatype, 2, 16, QLatin1Char('0')).toUpper() + ", ";
+
+                            switch (datatype)
+                            {
+                                case deCONZ::Zcl8BitData:
+                                case deCONZ::ZclBoolean:
+                                case deCONZ::Zcl8BitBitMap:
+                                case deCONZ::Zcl8BitUint:
+                                case deCONZ::Zcl8BitEnum:
+                                {
+                                    quint8 attrVal;
+                                    stream >> attrVal;
+                                    bla += "Value: " + QString::number(attrVal) + " (0x" + QString("%1").arg(attrVal, 2, 16, QLatin1Char('0')).toUpper() + "), ";
+                                }
+                                    break;
+
+                                case deCONZ::Zcl8BitInt:
+                                {
+                                    qint8 attrVal;
+                                    stream >> attrVal;
+                                    bla += "Value: " + QString::number(attrVal) + " (0x" + QString("%1").arg(attrVal, 2, 16, QLatin1Char('0')).toUpper() + "), ";
+                                }
+                                    break;
+
+                                case deCONZ::Zcl16BitData:
+                                case deCONZ::Zcl16BitBitMap:
+                                case deCONZ::Zcl16BitUint:
+                                case deCONZ::Zcl16BitEnum:
+                                {
+                                    quint16 attrVal;
+                                    stream >> attrVal;
+                                    bla += "Value: " + QString::number(attrVal) + " (0x" + QString("%1").arg(attrVal, 4, 16, QLatin1Char('0')).toUpper() + "), ";
+                                }
+                                    break;
+
+                                case deCONZ::Zcl16BitInt:
+                                case deCONZ::ZclSemiFloat:
+                                {
+                                    qint16 attrVal;
+                                    stream >> attrVal;
+                                    bla += "Value: " + QString::number(attrVal) + " (0x" + QString("%1").arg(attrVal, 4, 16, QLatin1Char('0')).toUpper() + "), ";
+                                }
+                                    break;
+
+                                case deCONZ::Zcl32BitData:
+                                case deCONZ::Zcl32BitBitMap:
+                                case deCONZ::Zcl32BitUint:
+                                {
+                                    quint32 attrVal;
+                                    stream >> attrVal;
+                                    bla += "Value: " + QString::number(attrVal) + " (0x" + QString("%1").arg(attrVal, 8, 16, QLatin1Char('0')).toUpper() + "), ";
+                                }
+                                    break;
+
+                                case deCONZ::Zcl32BitInt:
+                                {
+                                    qint32 attrVal;
+                                    stream >> attrVal;
+                                    bla += "Value: " + QString::number(attrVal) + " (0x" + QString("%1").arg(attrVal, 8, 16, QLatin1Char('0')).toUpper() + "), ";
+                                }
+                                    break;
+
+                                case deCONZ::ZclSingleFloat:
+                                {
+                                    float attrVal;
+                                    stream >> attrVal;
+                                    QByteArray array(reinterpret_cast<const char*>(&attrVal), sizeof(attrVal));
+                                    bla += "Value: " + QString::number(attrVal) + " (0x" + array.toHex() + "), ";
+                                }
+                                    break;
+
+                                case deCONZ::Zcl24BitUint:
+                                {
+                                    quint8 data;
+                                    QString value;
+                                    bool ok;
+
+                                    for (int i = 0; i < 3; i++)
+                                    {
+                                        stream >> data;
+                                        value.prepend(QString("%1").arg(data, 2, 16, QLatin1Char('0')).toUpper());
+                                    }
+                                    quint32 u32 = value.toUInt(&ok, 16);
+                                    bla += "Value: " + QString::number(u32) + " (0x" + value + "), ";
+                                }
+                                    break;
+
+                                case deCONZ::Zcl40BitUint:
+                                {
+                                    quint8 data;
+                                    QString value;
+                                    bool ok;
+
+                                    for (int i = 0; i < 5; i++)
+                                    {
+                                        stream >> data;
+                                        value.prepend(QString("%1").arg(data, 2, 16, QLatin1Char('0')).toUpper());
+                                    }
+                                    quint64 u64 = value.toULongLong(&ok, 16);
+                                    bla += "Value: " + QString::number(u64) + " (0x" + value + "), ";
+                                }
+                                    break;
+
+                                case deCONZ::Zcl48BitUint:
+                                {
+                                    quint8 data;
+                                    QString value;
+                                    bool ok;
+
+                                    for (int i = 0; i < 6; i++)
+                                    {
+                                        stream >> data;
+                                        value.prepend(QString("%1").arg(data, 2, 16, QLatin1Char('0')).toUpper());
+                                    }
+                                    quint64 u64 = value.toULongLong(&ok, 16);
+                                    bla += "Value: " + QString::number(u64) + " (0x" + value + "), ";
+                                }
+                                    break;
+
+                                case deCONZ::Zcl56BitUint:
+                                {
+                                    quint8 data;
+                                    QString value;
+                                    bool ok;
+
+                                    for (int i = 0; i < 7; i++)
+                                    {
+                                        stream >> data;
+                                        value.prepend(QString("%1").arg(data, 2, 16, QLatin1Char('0')).toUpper());
+                                    }
+                                    quint64 u64 = value.toULongLong(&ok, 16);
+                                    bla += "Value: " + QString::number(u64) + " (0x" + value + "), ";
+                                }
+                                    break;
+
+                                case deCONZ::Zcl64BitData:
+                                case deCONZ::Zcl64BitBitMap:
+                                case deCONZ::Zcl64BitUint:
+                                case deCONZ::ZclIeeeAddress:
+                                {
+                                    quint64 attrVal;
+                                    stream >> attrVal;
+                                    bla += "Value: " + QString::number(attrVal) + " (0x" + QString("%1").arg(attrVal, 16, 16, QLatin1Char('0')).toUpper() + "), ";
+                                }
+                                    break;
+
+                                case deCONZ::Zcl64BitInt:
+                                case deCONZ::ZclDoubleFloat:
+                                {
+                                    qint64 attrVal;
+                                    stream >> attrVal;
+                                    bla += "Value: " + QString::number(attrVal) + " (0x" + QString("%1").arg(attrVal, 16, 16, QLatin1Char('0')).toUpper() + "), ";
+                                }
+                                    break;
+
+                                case deCONZ::ZclOctedString:
+                                case deCONZ::ZclCharacterString:
+                                {
+                                    quint8 length;
+                                    quint8 data;
+                                    QByteArray value;
+                                    stream >> length;
+
+                                    for (int i = 0; i < length; i++)
+                                    {
+                                        stream >> data;
+                                        value.append(data);
+                                    }
+                                    bla += "Value: " + QString(value) + " (0x" + value.toHex() + "), ";
+                                }
+                                    break;
+
+                                case deCONZ::Zcl128BitSecurityKey:
+                                {
+                                    quint8 data;
+                                    QString value;
+
+                                    for (int i = 0; i < 16; i++)
+                                    {
+                                        stream >> data;
+                                        value += QString("%1").arg(data, 2, 16, QLatin1Char('0')).toUpper();
+                                    }
+                                    bla += "Value: 0x" + value + ", ";
+                                }
+                                    break;
+
+                                default:
+                                    // unsupported data type
+                                    break;
+
+                            }
+                        }
                     }
-                    else
-                    {
-                        DBG_Printf(DBG_INFO, "[ZB RESPONSE] - 0x%016llX (%04X) - Response read attributes (%02X) - Attribute: 0x%04X, Status: 0x%02X\n",
-                                ind.srcAddress().ext(), ind.srcAddress().nwk(), zclFrame.commandId(), attribute, status);
-                    }
+
+                    DBG_Printf(DBG_INFO, "[ZB RESPONSE] - 0x%016llX (%04X) - Response report attributes (%02X) - Sequence no.: %d, Mfc: 0x%04X, %s\n",
+                            ind.srcAddress().ext(), ind.srcAddress().nwk(), zclFrame.commandId(), zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), qUtf8Printable(bla));
+
                 }
                     break;
                 
@@ -672,26 +854,20 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataIndication &ind)
                     {
                         stream >> status;
                         
-                        data += "Status: ";
-                        data += zclStatusCodes.value(status, "N/A").toUtf8().data();
-                        data += ", ";
+                        data += "Status: " + zclStatusCodes.value(status, "N/A") + ", ";
                         
                         if (status != 0x00) // not successful
                         {
                             stream >> direction;
                             stream >> attribute;
                             
-                            data += "dir: ";
-                            data += QString("%1").arg(direction, 2, 16, QLatin1Char('0')).toUpper();
-                            data += ", ";
-                            data += "attr: ";
-                            data += QString("%1").arg(attribute, 4, 16, QLatin1Char('0')).toUpper();
-                            data += " || ";
+                            data += "dir: " + QString("%1").arg(direction, 2, 16, QLatin1Char('0')).toUpper() + ", ";
+                            data += "attr: " + QString("%1").arg(attribute, 4, 16, QLatin1Char('0')).toUpper() + " || ";
                         }
                     }
                     
                     DBG_Printf(DBG_INFO, "[ZB RESPONSE] - 0x%016llX (%04X) - Response configure reporting (%02X) - Sequence no.: %d, Mfc: 0x%04X, %s\n",
-                            ind.srcAddress().ext(), ind.srcAddress().nwk(), zclFrame.commandId(), zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), data.toUtf8().data());
+                            ind.srcAddress().ext(), ind.srcAddress().nwk(), zclFrame.commandId(), zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), qUtf8Printable(data));
                 }
                     break;
                 
@@ -711,13 +887,9 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataIndication &ind)
                         stream >> direction;
                         stream >> attribute;
                             
-                        data += "Status: ";
-                        data += zclStatusCodes.value(status, "N/A").toUtf8().data();
-                        data += ", dir: ";
-                        data += QString("%1").arg(direction, 2, 16, QLatin1Char('0')).toUpper();
-                        data += ", ";
-                        data += "attr: ";
-                        data += QString("%1").arg(attribute, 4, 16, QLatin1Char('0')).toUpper();
+                        data += "Status: " + zclStatusCodes.value(status, "N/A");
+                        data += ", dir: " + QString("%1").arg(direction, 2, 16, QLatin1Char('0')).toUpper() + ", ";
+                        data += "attr: " + QString("%1").arg(attribute, 4, 16, QLatin1Char('0')).toUpper();
                         
                         if (status == 0x00) // successful
                         {
@@ -731,13 +903,9 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataIndication &ind)
                             stream >> max;
                             //stream >> change;
                             
-                            data += ", type: ";
-                            data += QString("%1").arg(dt, 2, 16, QLatin1Char('0')).toUpper();
-                            data += ", min: ";
-                            data += QString::number(min);
-                            data += ", max: ";
-                            data += QString("%1").arg(dt, 2, 16, QLatin1Char('0')).toUpper();
-                            data += ", ";
+                            data += ", type: " + QString("%1").arg(dt, 2, 16, QLatin1Char('0')).toUpper();
+                            data += ", min: " + QString::number(min);
+                            data += ", max: " + QString("%1").arg(dt, 2, 16, QLatin1Char('0')).toUpper() + ", ";
                         }
                     }
                     
@@ -762,12 +930,11 @@ void DeRestPluginPrivate::handleDebugging(const deCONZ::ApsDataIndication &ind)
                     while (!stream.atEnd())
                     {
                         stream >> status;
-                        bla += zclStatusCodes.value(status, "N/A").toUtf8().data();
-                        bla += ", ";
+                        bla += zclStatusCodes.value(status, "N/A") + ", ";
                     }
                     
                     DBG_Printf(DBG_INFO, "[ZB RESPONSE] - 0x%016llX (%04X) - Response write attributes - Sequence no.: %d, Mfc: 0x%04X, Status: %s\n",
-                            ind.srcAddress().ext(), ind.srcAddress().nwk(), zclFrame.commandId(), zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), bla.toUtf8().data());
+                            ind.srcAddress().ext(), ind.srcAddress().nwk(), zclFrame.commandId(), zclFrame.sequenceNumber(), zclFrame.manufacturerCode(), qUtf8Printable(bla));
                 }
                     break;
                 
