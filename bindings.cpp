@@ -1104,7 +1104,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4, rq5});
         }
-        else if ((sensor && sensor->modelId() == QLatin1String("SLR2")) || // Hive
+        else if ((sensor && sensor->modelId().startsWith(QLatin1String("SLR2"))) || // Hive
                  (sensor && sensor->modelId() == QLatin1String("SLR1b")) || // Hive
                  (sensor && sensor->modelId().startsWith(QLatin1String("TH112")))) // Sinope
         {
@@ -2272,6 +2272,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("SLP2") ||
         sensor->modelId() == QLatin1String("SLP2b") ||
         sensor->modelId() == QLatin1String("SLR2") ||
+        sensor->modelId() == QLatin1String("SLR2b") ||
         sensor->modelId() == QLatin1String("SLR1b") ||
         sensor->modelId() == QLatin1String("SLT2") ||
         sensor->modelId() == QLatin1String("TRV001") ||
