@@ -3303,7 +3303,7 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor, const deCONZ:
                 if (*ci == TIME_CLUSTER_ID)
                 {
                     NodeValue val = sensor->getZclValue(*ci, 0x0000); // Time
-                    if (!val.timestamp.isValid() || val.timestamp.secsTo(now) >= 60)
+                    if (!val.timestamp.isValid() || val.timestamp.secsTo(now) >= 6 * 3600)
                     {
                         DBG_Printf(DBG_INFO, "  >>> %s sensor %s: set READ_TIME from checkSensorNodeReachable()\n", qPrintable(sensor->type()), qPrintable(sensor->name()));
                         sensor->setNextReadTime(READ_TIME, queryTime);
@@ -8563,6 +8563,32 @@ Sensor *DeRestPluginPrivate::getSensorNodeForAddress(const deCONZ::Address &addr
 
     return 0;
 }
+
+/*! Returns the first Sensor for its given \p Address and \p Endpoint and \p Type or 0 if not found.
+ */
+Sensor *DeRestPluginPrivate::getSensorNodeForAddressAndEndpoint(const deCONZ::Address &addr, quint8 ep, const QString &type)
+{
+    for (Sensor &sensor: sensors)
+    {
+        if (sensor.deletedState() != Sensor::StateNormal || !sensor.node() ||
+            sensor.fingerPrint().endpoint != ep || sensor.type() != type)
+        {
+            continue;
+        }
+        if (sensor.address().hasNwk() && addr.hasNwk() &&
+            sensor.address().nwk() == addr.nwk())
+        {
+            return &sensor;
+        }
+        if (sensor.address().hasExt() && addr.hasExt() &&
+            sensor.address().ext() == addr.ext())
+        {
+            return &sensor;
+        }
+    }
+    return nullptr;
+}
+
 
 /*! Returns the first Sensor for its given \p Address and \p Endpoint or 0 if not found.
  */
@@ -16522,7 +16548,7 @@ void DeRestPlugin::idleTimerFired()
                             if (!sensorNode->mustRead(READ_TIME))
                             {
                                 val = sensorNode->getZclValue(*ci, 0x0000); // Time
-                                if (!val.timestamp.isValid() || val.timestamp.secsTo(now) >= 60)
+                                if (!val.timestamp.isValid() || val.timestamp.secsTo(now) >= 6 * 3600)
                                 {
                                     DBG_Printf(DBG_INFO, "  >>> %s sensor %s: set READ_TIME from idleTimerFired()\n", qPrintable(sensorNode->type()), qPrintable(sensorNode->name()));
                                     sensorNode->enableRead(READ_TIME);
