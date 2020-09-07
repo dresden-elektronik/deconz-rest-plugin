@@ -15,6 +15,12 @@ For community based support with deCONZ or Phoscon, please visit the [deCONZ Dis
 The Phoscon App is a browser based web application and supports lights, sensors and switches. For more information and screenshots visit the [Phoscon App Documentation](https://phoscon.de/app/doc?ref=gh).
 
 
+### Release Schedule
+
+deCONZ is having a beta release at the 15th day of the month in which the beta of last month becomes stable. 
+Current Beta: 2.05.80 
+Current Stable: 2.05.78
+
 Installation
 ============
 
@@ -117,4 +123,5 @@ The following libraries are used by the plugin:
 License
 =======
 The plugin is available as open source and licensed under the BSD (3-Clause) license.
+
 
