@@ -87,6 +87,11 @@ int DeRestPluginPrivate::handleSensorsApi(const ApiRequest &req, ApiResponse &rs
     {
         return changeSensorState(req, rsp);
     }
+    // POST, DELETE /api/<apikey>/sensors/<id>/config/schedule/Wbbb
+    else if ((req.path.size() == 7) && (req.hdr.method() == "POST" || req.hdr.method() == "DELETE") && (req.path[4] == "config") && (req.path[5] == "schedule"))
+    {
+        return changeThermostatSchedule(req, rsp);
+    }
 
     return REQ_NOT_HANDLED;
 }
@@ -995,7 +1000,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 {
                     bool ok;
                     qint32 offset = (qint32)(round(map[pi.key()].toInt(&ok) / 10.0));
-                    if (ok && (sensor->modelId().startsWith(QLatin1String("kud7u2l")) || 
+                    if (ok && (sensor->modelId().startsWith(QLatin1String("kud7u2l")) ||
                                sensor->modelId().startsWith(QLatin1String("GbxAXL2")) ||
                                sensor->modelId().startsWith(QLatin1String("TS0601")) ) ) // Tuya Smart TRV HY369 Thermostatic Radiator Valve
                     {
@@ -1032,21 +1037,6 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             rsp.httpStatus = HttpStatusBadRequest;
                             return REQ_READY_SEND;
                         }
-                    }
-                }
-                if (rid.suffix == RConfigSchedule)
-                {
-                    QString sched = map[pi.key()].toString().simplified();
-                    if (addTaskThermostatSetAndGetSchedule(task, sched))
-                    {
-                        rspItemState[QString("set %1").arg(rid.suffix)] = offset;
-                        rspItem["success"] = rspItemState;
-                    }
-                    else
-                    {
-                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/%2").arg(id).arg(rid.suffix), QString("could not set attribute")));
-                        rsp.httpStatus = HttpStatusBadRequest;
-                        return REQ_READY_SEND;
                     }
                 }
                 if (rid.suffix == RConfigScheduleOn)
@@ -1107,7 +1097,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else if (sensor->modelId().startsWith(QLatin1String("TRV001")))
                     {
-                        if (addTaskThermostatCmd(task, VENDOR_DANFOSS, 0x40, heatsetpoint, nullptr, 0))
+                        if (addTaskThermostatCmd(task, VENDOR_DANFOSS, 0x40, heatsetpoint, 0))
                         {
                             updated = true;
                         }
@@ -1128,14 +1118,14 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         QByteArray data = QByteArray("\x00\x00",2);
                         data.append((qint8)((heatsetpoint >> 8) & 0xff));
                         data.append((qint8)(heatsetpoint & 0xff));
-                        
+
                         qint16 dp = 0x0202; // @Smanar what is dp?
-                        
+
                         if (sensor->modelId().startsWith(QLatin1String("GbxAXL2")))
                         {
                             dp = 0x0267;
                         }
-                        
+
                         if (SendTuyaRequest(task, TaskThermostat , dp, data))
                         {
                             updated = true;
@@ -1205,7 +1195,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     {
                         QString modeSet = map[pi.key()].toString();
                         bool ok = false;
-                        
+
                         if (modeSet == "auto")
                         {
                             ok = SendTuyaRequest(task, TaskThermostat , 0x016c , QByteArray("\x01", 1)); // Set mode to auto
@@ -1224,7 +1214,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         {
                             rspItemState[QString("error unknow mode for %1").arg(sensor->modelId())] = map[pi.key()];
                         }
-                        
+
                         if ( ok )
                         {
                             updated = true;
@@ -1354,19 +1344,105 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                     }
                 }
-                else if ((rid.suffix == RConfigLocked) && (sensor->modelId().startsWith(QLatin1String("kud7u2l")) ||
-                                                           sensor->modelId().startsWith(QLatin1String("GbxAXL2")) ||
-                                                           sensor->modelId().startsWith(QLatin1String("TS0601"))))
+                else if (rid.suffix == RConfigLocked)
                 {
-                    QByteArray data = QByteArray("\x00", 1);
-                    if (map[pi.key()].toBool())
+                    if (map[pi.key()].type() == QVariant::Bool)
                     {
-                        data = QByteArray("\x01", 1);
-                    }
+                        if (sensor->modelId().startsWith(QLatin1String("kud7u2l")) || sensor->modelId().startsWith(QLatin1String("GbxAXL2")) ||
+                            sensor->modelId().startsWith(QLatin1String("TS0601")))
+                        {
+                            QByteArray data = QByteArray("\x00", 1);
+                            if (map[pi.key()].toBool())
+                            {
+                                data = QByteArray("\x01", 1);
+                            }
 
-                    if (SendTuyaRequest(task, TaskThermostat , 0x0107, data))
+                            if (SendTuyaRequest(task, TaskThermostat , 0x0107, data))
+                            {
+                                updated = true;
+                            }
+                        }
+                        else if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001"))
+                        {
+                            quint32 data = map[pi.key()].toUInt(&ok);
+
+                            if (addTaskThermostatUiConfigurationReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0001, deCONZ::Zcl8BitEnum, data))
+                            {
+                                updated = true;
+                            }
+                            else
+                            {
+                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                           QString("Could not set attribute")));
+                                rsp.httpStatus = HttpStatusBadRequest;
+                                return REQ_READY_SEND;
+                            }
+                        }
+                    }
+                    else
                     {
-                        updated = true;
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
+                    }
+                }
+                else if (rid.suffix == RConfigDisplayFlipped)
+                {
+                    if (map[pi.key()].type() == QVariant::Bool)
+                    {
+                        if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001"))
+                        {
+                            quint32 data = map[pi.key()].toUInt(&ok);
+
+                            if (addTaskThermostatUiConfigurationReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x4000, deCONZ::Zcl8BitEnum, data, VENDOR_DANFOSS))
+                            {
+                                updated = true;
+                            }
+                            else
+                            {
+                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                           QString("Could not set attribute")));
+                                rsp.httpStatus = HttpStatusBadRequest;
+                                return REQ_READY_SEND;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
+                    }
+                }
+                else if (rid.suffix == RConfigMountingMode)
+                {
+                    if (map[pi.key()].type() == QVariant::Bool)
+                    {
+                        if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001"))
+                        {
+                            quint32 data = map[pi.key()].toUInt(&ok);
+
+                            if (addTaskThermostatUiConfigurationReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x4013, deCONZ::Zcl8BitEnum, data, VENDOR_DANFOSS))
+                            {
+                                updated = true;
+                            }
+                            else
+                            {
+                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                           QString("Could not set attribute")));
+                                rsp.httpStatus = HttpStatusBadRequest;
+                                return REQ_READY_SEND;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
                     }
                 }
             }
@@ -1511,6 +1587,106 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
         sensor->setNeedSaveDatabase(true);
         queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
     }
+
+    processTasks();
+
+    return REQ_READY_SEND;
+}
+
+/*! POST, DELETE /api/<apikey>/sensors/<id>/config/schedule/Wbbb
+    \return REQ_READY_SEND
+            REQ_NOT_HANDLED
+ */
+int DeRestPluginPrivate::changeThermostatSchedule(const ApiRequest &req, ApiResponse &rsp)
+{
+    rsp.httpStatus = HttpStatusOk;
+
+    // Get the /sensors/id resource.
+    QString id = req.path[3];
+    Sensor *sensor = id.length() < MIN_UNIQUEID_LENGTH ? getSensorNodeForId(id) : getSensorNodeForUniqueId(id);
+    if (!sensor || (sensor->deletedState() == Sensor::StateDeleted))
+    {
+        rsp.httpStatus = HttpStatusNotFound;
+        rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/sensors/%1").arg(id), QString("resource, /sensors/%1, not available").arg(id)));
+        return REQ_READY_SEND;
+    }
+
+    // Check that it has config/schedule.
+    ResourceItem *item = sensor->item(RConfigSchedule);
+    if (!item)
+    {
+        rsp.httpStatus = HttpStatusNotFound;
+        rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/sensors/%1/config/schedule").arg(id), QString("resource, /sensors/%1/config/schedule, not available").arg(id)));
+        return REQ_READY_SEND;
+    }
+
+    // Check valid weekday pattern
+    bool ok;
+    uint bbb = req.path[6].mid(1).toUInt(&ok);
+    if (req.path[6].left(1) != "W" || !ok || bbb < 1 || bbb > 127)
+    {
+        rsp.httpStatus = HttpStatusNotFound;
+        rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/sensors/%1/config/schedule/%2").arg(id).arg(req.path[6]), QString("resource, /sensors/%1/config/schedule/%2, not available").arg(id).arg(req.path[6])));
+        return REQ_READY_SEND;
+    }
+    quint8 weekdays = bbb;
+
+    // Check body
+    QString transitions = QString("");
+    if (req.hdr.method() == "POST")
+    {
+        QVariant var = Json::parse(req.content, ok);
+        if (!ok)
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_JSON, QString("/sensors/%1/config/schedule/%2").arg(id).arg(req.path[6]), QString("body contains invalid JSON")));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+        QVariantList list = var.toList();
+        // QString transitions = QString("");
+        if (!serialiseThermostatTransitions(list, &transitions))
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_JSON, QString("/sensors/%1/config/schedule/%2").arg(id).arg(req.path[6]), QString("body contains invalid list of transitions")));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+    }
+
+    if (req.sock)
+    {
+        userActivity();
+    }
+
+    // Queue task.
+    TaskItem task;
+    task.req.dstAddress() = sensor->address();
+    task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+    task.req.setDstEndpoint(sensor->fingerPrint().endpoint);
+    task.req.setSrcEndpoint(getSrcEndpoint(sensor, task.req));
+    task.req.setDstAddressMode(deCONZ::ApsExtAddress);
+    if (!addTaskThermostatSetWeeklySchedule(task, weekdays, transitions))
+    {
+        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/schedule/%2").arg(id).arg(req.path[6]), QString("could not set schedule")));
+        rsp.httpStatus = HttpStatusBadRequest;
+        return REQ_READY_SEND;
+    }
+
+    QVariantMap rspItem;
+    QVariantMap rspItemState;
+    if (req.hdr.method() == "POST")
+    {
+        QVariantList l;
+        deserialiseThermostatTransitions(transitions, &l);
+        rspItemState[QString("/config/schedule/W%1").arg(weekdays)] = l;
+        rspItem["success"] = rspItemState;
+    }
+    else
+    {
+        rspItem["success"] = QString("/sensors/%1/config/schedule/W%2 deleted.").arg(id).arg(weekdays);
+    }
+    rsp.list.append(rspItem);
+
+    updateThermostatSchedule(sensor, weekdays, transitions);
 
     processTasks();
 

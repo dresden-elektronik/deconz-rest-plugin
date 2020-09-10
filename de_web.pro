@@ -75,7 +75,7 @@ GIT_COMMIT_DATE = $$system("git show -s --format=%ct $$GIT_TAG")
 
 # Version Major.Minor.Build
 # Important: don't change the format of this line since it's parsed by scripts!
-DEFINES += GW_SW_VERSION=\\\"2.05.79\\\"
+DEFINES += GW_SW_VERSION=\\\"2.05.80\\\"
 DEFINES += GW_SW_DATE=$$GIT_COMMIT_DATE
 DEFINES += GW_API_VERSION=\\\"1.16.0\\\"
 DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\"
@@ -125,6 +125,7 @@ SOURCES  = authorisation.cpp \
            database.cpp \
            daylight.cpp \
            device_setup.cpp \
+           diagnostics.cpp \
            discovery.cpp \
            de_web_plugin.cpp \
            de_web_widget.cpp \
@@ -158,6 +159,7 @@ SOURCES  = authorisation.cpp \
            rest_info.cpp \
            rest_capabilities.cpp \
            rule.cpp \
+           thermostat_ui_configuration.cpp \
            upnp.cpp \
            permitJoin.cpp \
            scene.cpp \

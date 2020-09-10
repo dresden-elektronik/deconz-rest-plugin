@@ -112,6 +112,10 @@ static quint8 convertWeekdayBitmap(const quint8 weekdayBitmap)
 bool DeRestPluginPrivate::serialiseThermostatTransitions(const QVariantList &transitions, QString *s)
 {
     *s = "";
+    if (transitions.size() < 1 || transitions.size() > 10)
+    {
+        return false;
+    }
     for (const QVariant &entry : transitions)
     {
         QVariantMap transition = entry.toMap();
@@ -122,11 +126,36 @@ bool DeRestPluginPrivate::serialiseThermostatTransitions(const QVariantList &tra
                 return false;
             }
         }
-        if (!transition.contains(QLatin1String("localtime")) || !transition.contains(QLatin1String("heatsetpoint")))
+        if (!transition.contains(QLatin1String("localtime")) || !transition.contains(QLatin1String("heatsetpoint")) ||
+            transition[QLatin1String("localtime")].type() != QVariant::String || transition[QLatin1String("heatsetpoint")].type() != QVariant::Double)
         {
             return false;
         }
-        *s += transition[QLatin1String("localtime")].toString() + "|" + transition[QLatin1String("heatsetpoint")].toString();
+        bool ok;
+        int heatsetpoint = transition[QLatin1String("heatsetpoint")].toInt(&ok);
+        if (!ok || heatsetpoint < 500 || heatsetpoint > 3000)
+        {
+            return false;
+        }
+        QString localtime = transition[QLatin1String("localtime")].toString();
+        int hh, mm;
+        ok = (localtime.size() == 6 && localtime.mid(0, 1) == "T" && localtime.mid(3, 1) == ":");
+        if (ok)
+        {
+            hh = localtime.mid(1, 2).toInt(&ok);
+        }
+        if (ok)
+        {
+            mm = localtime.mid(4, 2).toInt(&ok);
+        }
+        if (!ok)
+        {
+            return false;
+        }
+        *s += QString("T%1:%2|%3")
+            .arg(hh, 2, 10, QChar('0'))
+            .arg(mm, 2, 10, QChar('0'))
+            .arg(heatsetpoint);
     }
     return true;
 }
@@ -142,15 +171,20 @@ bool DeRestPluginPrivate::deserialiseThermostatTransitions(const QString &s, QVa
     for (const QString &entry : list)
     {
         QStringList attributes = entry.split("|");
+        if (attributes.size() != 2)
+        {
+            transitions->clear();
+            return false;
+        }
         QVariantMap map;
-        map[QLatin1String("localtime")] = "T" + attributes[0];
-        map[QLatin1String("heatsetpoint")] = attributes[1].toInt();
+        map[QLatin1String("localtime")] = "T" + attributes.at(0);
+        map[QLatin1String("heatsetpoint")] = attributes.at(1).toInt();
         transitions->push_back(map);
     }
     return true;
 }
 
-/*! Serialise a schedule
+/*! Serialise a thermostat schedule
  * \param schedule the schedule
  * \param s the serialised schedule
  */
@@ -171,7 +205,7 @@ bool DeRestPluginPrivate::serialiseThermostatSchedule(const QVariantMap &schedul
     return true;
 }
 
-/*! Deserialise a schedule
+/*! Deserialise a thermostat schedule
  * \param s the serialised schedule
  * \param schedule the schedule
  */
@@ -181,19 +215,91 @@ bool DeRestPluginPrivate::deserialiseThermostatSchedule(const QString &s, QVaria
     QStringList list = s.split("W", QString::SkipEmptyParts);
     for (const QString &entry : list)
     {
-        QVariantMap map;
         QStringList attributes = entry.split("/");
         QVariantList list;
-        if (!deserialiseThermostatTransitions(attributes[1], &list))
+        if (attributes.size() != 2 || !deserialiseThermostatTransitions(attributes.at(1), &list))
         {
+            schedule->clear();
             return false;
         }
-        (*schedule)["W" + attributes[0]] = list;
+        (*schedule)["W" + attributes.at(0)] = list;
     }
     return true;
 }
 
-static const QStringList weekday({"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Away"});
+/*! Update thermostat schedule with new transitions
+ * \param sensor the sensorNode
+ * \param newWeekdays the ISO bitmap of the weekdays
+ * \param transitions the serialised list of transitions
+ */
+void DeRestPluginPrivate::updateThermostatSchedule(Sensor *sensor, quint8 newWeekdays, QString &transitions)
+{
+    // Deserialise currently saved schedule, without newWeekdays.
+    bool ok = true;
+    ResourceItem *item = sensor->item(RConfigSchedule);
+    if (!item)
+    {
+        return;
+    }
+    QMap<quint8, QString> map;
+    QStringList list = item->toString().split("W", QString::SkipEmptyParts);
+    for (const QString &entry : list)
+    {
+        QStringList attributes = entry.split("/");
+        quint8 weekdays = attributes.at(0).toUInt(&ok);
+        if (!ok)
+        {
+            break;
+        }
+        weekdays &= ~newWeekdays;
+        if (weekdays != 0)
+        {
+            map[weekdays] = attributes.at(1);
+        }
+    }
+    if (!ok)
+    {
+        map.clear();
+    }
+
+    // Check if we already have an entry with these transitions.
+    if (transitions.size() > 0)
+    {
+        ok = false;
+        for (const quint8 weekdays : map.keys())
+        {
+            if (map[weekdays] == transitions)
+            {
+                // Merge the entries.
+                map.remove(weekdays);
+                map[weekdays | newWeekdays] = transitions;
+                ok = true;
+                break;
+            }
+        }
+        if (!ok)
+        {
+            // Create new entry.
+            map[newWeekdays] = transitions;
+        }
+    }
+
+    // Store the updated schedule.
+    QString s = QString("");
+    for (const quint8 weekdays : map.keys())
+    {
+        s += QString("W%1/").arg(weekdays) + map[weekdays];
+    }
+    item->setValue(s);
+    enqueueEvent(Event(RSensors, RConfigSchedule, sensor->id(), item));
+    updateEtag(sensor->etag);
+    updateEtag(gwConfigEtag);
+    sensor->setNeedSaveDatabase(true);
+    queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+}
+
+
+// static const QStringList weekday({"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Away"});
 static TaskItem taskScheduleTimer;
 static int dayofweekTimer = 0;
 
@@ -203,7 +309,7 @@ static int dayofweekTimer = 0;
  */
 void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
-    Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
+    Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint(), QLatin1String("ZHAThermostat"));
 
     if (!sensor)
     {
@@ -290,8 +396,9 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
             case 0x0008:  // Pi Heating Demand
             {
                 if (sensor->modelId().startsWith(QLatin1String("SPZB")) || // Eurotronic Spirit
-                    sensor->modelId() == QLatin1String("TRV001") ||  // Hive
-                    sensor->modelId() == QLatin1String("Thermostat")) // eCozy
+                    sensor->modelId() == QLatin1String("eTRV0100") ||      // Danfoss Ally
+                    sensor->modelId() == QLatin1String("TRV001") ||        // Hive TRV
+                    sensor->modelId() == QLatin1String("Thermostat"))      // eCozy
                 {
                     quint8 valve = attr.numericValue().u8;
                     bool on = valve > 3;
@@ -310,11 +417,18 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                         }
                     }
                     item = sensor->item(RStateValve);
-                    if (item && item->toNumber() != valve)
+                    if (item)
                     {
-                        item->setValue(valve);
-                        enqueueEvent(Event(RSensors, RStateValve, sensor->id(), item));
-                        stateUpdated = true;
+                        if (updateType == NodeValue::UpdateByZclReport)
+                        {
+                            stateUpdated = true;
+                        }
+                        if (item && item->toNumber() != valve)
+                        {
+                            item->setValue(valve);
+                            enqueueEvent(Event(RSensors, RStateValve, sensor->id(), item));
+                            stateUpdated = true;
+                        }
                     }
                 }
                 sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
@@ -425,11 +539,16 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
             {
                 bool on = attr.bitmap() > 0;
                 item = sensor->item(RStateOn);
+
+                if (item && updateType == NodeValue::UpdateByZclReport)
+                {
+                    stateUpdated = true;
+                }
                 if (item && item->toBool() != on)
                 {
                     item->setValue(on);
                     enqueueEvent(Event(RSensors, RStateOn, sensor->id(), item));
-                    configUpdated = true;
+                    stateUpdated = true;
                 }
                 sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
             }
@@ -465,11 +584,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 
             case 0x0032: // Setpoint Change Timestamp
             {
-                // FIXME: value returned for utc attributes is #seconds since 1970-01-01 ?!
-                static const QDateTime epochUtc = QDateTime(QDate(1970, 1, 1), QTime(0, 0), Qt::UTC);
-
-                QDateTime time = epochUtc.addSecs(attr.numericValue().u32 - QDateTime::currentDateTime().offsetFromUtc());
-                // QDateTime time = epoch.addSecs(attr.numericValue().u32 - QDateTime::currentDateTime().offsetFromUtc());
+                QDateTime time = epoch.addSecs(attr.numericValue().u32 - QDateTime::currentDateTime().offsetFromUtc());
                 item = sensor->item(RConfigLastChangeTime);
                 if (item) // && item->toVariant().toDateTime().toMSecsSinceEpoch() != time.toMSecsSinceEpoch())
                 {
@@ -490,7 +605,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 }
                 else if (zclFrame.manufacturerCode() == VENDOR_DANFOSS)
                 {
-                    qint8 windowmode = attr.numericValue().s8;
+                    quint8 windowmode = attr.numericValue().u8;
                     QString windowmode_set;
 
                     if ( windowmode == 0x01 ) { windowmode_set = QString("Closed"); }
@@ -499,11 +614,15 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                     if ( windowmode == 0x04 ) { windowmode_set = QString("Open (external), closed (internal)"); }
 
                     item = sensor->item(RStateWindowOpen);
+                    if (item && updateType == NodeValue::UpdateByZclReport)
+                    {
+                        stateUpdated = true;
+                    }
                     if (item && item->toString() != windowmode_set)
                     {
                         item->setValue(windowmode_set);
                         enqueueEvent(Event(RSensors, RStateWindowOpen, sensor->id(), item));
-                        configUpdated = true;
+                        stateUpdated = true;
                     }
                 }
                 sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
@@ -586,6 +705,42 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
             }
                 break;
 
+            case 0x4012: // Mounting mode active
+            {
+                if (zclFrame.manufacturerCode() == VENDOR_DANFOSS && (sensor->modelId() == QLatin1String("eTRV0100") ||
+                                                                      sensor->modelId() == QLatin1String("TRV001")))
+                {
+                    bool enabled = attr.numericValue().u8 > 0 ? true : false;
+                    item = sensor->item(RStateMountingModeActive);
+                    if (item && item->toBool() != enabled)
+                    {
+                        item->setValue(enabled);
+                        enqueueEvent(Event(RSensors, RStateMountingModeActive, sensor->id(), item));
+                        configUpdated = true;
+                    }
+                }
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
+                break;
+
+            case 0x4013: // Mounting mode control
+            {
+                if (zclFrame.manufacturerCode() == VENDOR_DANFOSS && (sensor->modelId() == QLatin1String("eTRV0100") ||
+                                                                      sensor->modelId() == QLatin1String("TRV001")))
+                {
+                    bool enabled = attr.numericValue().u8 > 0 ? true : false;
+                    item = sensor->item(RConfigMountingMode);
+                    if (item && item->toBool() != enabled)
+                    {
+                        item->setValue(enabled);
+                        enqueueEvent(Event(RSensors, RConfigMountingMode, sensor->id(), item));
+                        configUpdated = true;
+                    }
+                }
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
+                break;
+
             default:
                 break;
             }
@@ -646,138 +801,23 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
             return;
         }
 
-        // Deserialise currently saved schedule, without newWeekdays.
         const quint8 newWeekdays = convertWeekdayBitmap(dayOfWeek);
-        bool ok = true;
-        ResourceItem *item = sensor->item(RConfigSchedule);
-        if (!item)
-        {
-            return;
-        }
-        QMap<quint8, QString> map;
-        QStringList list = item->toString().split("W", QString::SkipEmptyParts);
-        for (const QString &entry : list)
-        {
-            QStringList attributes = entry.split("/");
-            quint8 weekdays = attributes[0].toUInt(&ok);
-            if (!ok)
-            {
-                break;
-            }
-            weekdays &= ~newWeekdays;
-            if (weekdays != 0)
-            {
-                map[weekdays] = attributes[1];
-            }
-        }
-        if (!ok)
-        {
-            map.clear();
-        }
-
-        // Check if we already have an entry with these transitions.
-        if (numberOfTransitions > 0)
-        {
-            ok = false;
-            for (const quint8 weekdays : map.keys())
-            {
-                if (map[weekdays] == transitions)
-                {
-                    // Merge the entries.
-                    map.remove(weekdays);
-                    map[weekdays | newWeekdays] = transitions;
-                    ok = true;
-                    break;
-                }
-            }
-            if (!ok)
-            {
-                // Create new entry.
-                map[newWeekdays] = transitions;
-            }
-        }
-
-        // Store the updated schedule.
-        QString s = QString("");
-        for (const quint8 weekdays : map.keys())
-        {
-            s += QString("W%1/").arg(weekdays) + map[weekdays];
-        }
-        item->setValue(s);
-        enqueueEvent(Event(RSensors, RConfigSchedule, sensor->id(), item));
-        updateEtag(sensor->etag);
-        updateEtag(gwConfigEtag);
-        sensor->setNeedSaveDatabase(true);
-        queSaveDb(DB_SENSORS, DB_SHORT_SAVE_DELAY);
+        updateThermostatSchedule(sensor, newWeekdays, transitions);
     }
-}
-
-static QByteArray setSchedule(const QString &sched)
-{
-    QByteArray payload;
-    QDataStream stream(&payload, QIODevice::WriteOnly);
-    stream.setByteOrder(QDataStream::LittleEndian);
-
-    quint8 dayofweek = 0;
-    QStringList schedList = sched.simplified().split(";", QString::SkipEmptyParts);
-    for (const QString &dayEntry : schedList)
-    {
-        QStringList checkdayList;
-        QStringList checkSchedule = dayEntry.split(" ", QString::SkipEmptyParts);
-        checkdayList = checkSchedule.at(0).split(",");  // e.g. Monday,Tuesday,Wednesday
-        for (const QString &checkday : checkdayList)
-        {
-            if (weekday.contains(checkday))
-            {
-                int n = weekday.indexOf(checkday);
-                dayofweek |= (0x01 << n);
-            }
-        }
-
-        if (checkSchedule.length() > 1)
-        {
-            checkSchedule.removeFirst();
-
-            stream << (quint8) (checkSchedule.length() / 2);  // number of transitions
-            stream << dayofweek;
-            stream << (quint8) 0x01; // mode heat
-
-            // e.g. 06:00 2100 22:00 1700
-            for (int i = 0; i < checkSchedule.length(); i++)
-            {
-                const QString &entry = checkSchedule[i];
-                if (i & 1) // odd 1,3... setpoint = 2100 1700
-                {
-                    stream << (qint16) entry.toInt();  // setpoint
-                }
-                else // even 0,2,... time = 06:00 22:00
-                {
-                    QTime midnight(0, 0, 0);
-                    QTime heatTime = QTime::fromString(entry, "hh:mm");
-                    int heatTimeMinutes = midnight.secsTo(heatTime) / 60;
-
-                    stream << (quint16) heatTimeMinutes;  // transition time
-                }
-            }
-        }
-    }
-    return payload;
 }
 
 /*! Adds a thermostat command task to the queue.
 
    \param task - the task item
    \param cmdId - 0x00 setpoint raise/lower
-                  0x01 set schedule
                   0x02 get schedule
                   0x03 clear schedule
    \param setpoint - raise/lower value
-   \param schedule - set schedule e.g. "Monday,Tuesday 06:00 2000 22:00 1700; Saturday,Sunday 06:00 2100 22:00 1700"
    \param days - days to return schedule
    \return true - on success
            false - on error
  */
-bool DeRestPluginPrivate::addTaskThermostatCmd(TaskItem &task, uint16_t mfrCode, uint8_t cmd, int16_t setpoint, const QString &schedule, uint8_t daysToReturn)
+bool DeRestPluginPrivate::addTaskThermostatCmd(TaskItem &task, uint16_t mfrCode, uint8_t cmd, int16_t setpoint, uint8_t daysToReturn)
 {
     task.taskType = TaskThermostat;
 
@@ -789,7 +829,7 @@ bool DeRestPluginPrivate::addTaskThermostatCmd(TaskItem &task, uint16_t mfrCode,
     task.zclFrame.setCommandId(cmd);
     task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
             deCONZ::ZclFCDirectionClientToServer);
-            
+
     if (mfrCode != 0x0000)
     {
         task.zclFrame.setFrameControl(task.zclFrame.frameControl() | deCONZ::ZclFCManufacturerSpecific);
@@ -804,11 +844,6 @@ bool DeRestPluginPrivate::addTaskThermostatCmd(TaskItem &task, uint16_t mfrCode,
     {
         stream << (qint8) 0x02;  // Enum 8 Both (adjust Heat Setpoint and Cool Setpoint)
         stream << (qint8) setpoint;  // 8-bit raise/lower
-    }
-    else if (cmd == 0x01)  // set schedule
-    {
-        QByteArray payload = setSchedule(schedule);
-        stream.writeRawData(payload.data(), payload.size());
     }
     else if (cmd == 0x02)  // get schedule
     {
@@ -839,6 +874,62 @@ bool DeRestPluginPrivate::addTaskThermostatCmd(TaskItem &task, uint16_t mfrCode,
     return addTask(task);
 }
 
+/*! Adds a Set Weekly Schedule command to the queue.
+   \param task - the task item
+   \param weekdays - the ISO-bitmap of weekdays
+   \param transitions - the serialised list of transitions
+   \return true - on success
+           false - on error
+ */
+bool DeRestPluginPrivate::addTaskThermostatSetWeeklySchedule(TaskItem &task, quint8 weekdays, const QString &transitions)
+{
+    task.taskType = TaskThermostat;
+
+    task.req.setClusterId(THERMOSTAT_CLUSTER_ID);
+    task.req.setProfileId(HA_PROFILE_ID);
+
+    task.zclFrame.payload().clear();
+    task.zclFrame.setSequenceNumber(zclSeq++);
+    task.zclFrame.setCommandId(0x01); // Set Weekly Schedule
+    task.zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
+                                  deCONZ::ZclFCDirectionClientToServer);
+
+    QStringList list = transitions.split("T", QString::SkipEmptyParts);
+    quint8 numberOfTransitions = list.size();
+
+    // payload
+    QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
+    stream.setByteOrder(QDataStream::LittleEndian);
+
+    stream << numberOfTransitions;
+    stream << convertWeekdayBitmap(weekdays);
+    stream << (quint8) 0x01; // Mode: heat
+
+    for (const QString &entry : list)
+    {
+        QStringList attributes = entry.split("|");
+        if (attributes.size() != 2)
+        {
+            return false;
+        }
+        const quint16 hh = attributes.at(0).mid(0, 2).toUInt();
+        const quint16 mm = attributes.at(0).mid(3, 2).toUInt();
+        const quint16 time = 60 * hh + mm;
+        const qint16 heatSetpoint = attributes.at(1).toInt();
+        stream << time;
+        stream << heatSetpoint;
+    }
+
+    { // ZCL frame
+        task.req.asdu().clear(); // cleanup old request data if there is any
+        QDataStream stream(&task.req.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        task.zclFrame.writeToStream(stream);
+    }
+
+    return addTask(task);
+}
+
 /*! Helper to generate a new task with new task and req id based on a reference */
 static void copyTaskReq(TaskItem &a, TaskItem &b)
 {
@@ -852,20 +943,9 @@ static void copyTaskReq(TaskItem &a, TaskItem &b)
     b.zclFrame.payload().clear();
 }
 
-/*! Set Scheduler on thermostat cluster.
- *  Iterate over every weekday and get schedule.
-   \param task - the task item
-   \return true - on success
-           false - on error
- */
-bool DeRestPluginPrivate::addTaskThermostatSetAndGetSchedule(TaskItem &task, const QString &sched)
+bool DeRestPluginPrivate::addTaskThermostatGetSchedule(TaskItem &task)
 {
     copyTaskReq(task, taskScheduleTimer);
-
-    if (!sched.isEmpty() && !addTaskThermostatCmd(task, 0, 0x01, 0, sched, 0))  // set schedule
-    {
-        return false;
-    }
 
     dayofweekTimer = 0;
 
@@ -886,7 +966,7 @@ void DeRestPluginPrivate::addTaskThermostatGetScheduleTimer()
     uint8_t dayofweek = (1 << dayofweekTimer);
     dayofweekTimer++;
 
-    addTaskThermostatCmd(task, 0, 0x02, 0, nullptr, dayofweek);  // get schedule
+    addTaskThermostatCmd(task, 0, 0x02, 0, dayofweek);  // get schedule
 }
 
 /*! Write Attribute on thermostat cluster.

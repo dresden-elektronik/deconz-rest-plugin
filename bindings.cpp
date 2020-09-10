@@ -123,7 +123,10 @@ bool DeRestPluginPrivate::readBindingTable(RestNodeBase *node, quint8 startIndex
     Resource *r = dynamic_cast<Resource*>(node);
 
     // whitelist
-    if (checkMacVendor(node->address(), VENDOR_DDEL))
+    if (node->mgmtBindSupported())
+    {
+    }
+    else if (checkMacVendor(node->address(), VENDOR_DDEL))
     {
     }
     else if (checkMacVendor(node->address(), VENDOR_UBISYS))
@@ -1138,8 +1141,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
         }
 
-        else if ( (sensor && sensor->modelId() == QLatin1String("eTRV0100")) || // Danfoss Ally
-                  (sensor && sensor->modelId() == QLatin1String("TRV001")) )
+                else if ( (sensor && sensor->modelId() == QLatin1String("eTRV0100")) || // Danfoss Ally
+                  (sensor && sensor->modelId() == QLatin1String("TRV001")) )    // Hive TRV
         {
             rq.dataType = deCONZ::Zcl16BitInt;
             rq.attributeId = 0x0000;       // local temperature
@@ -1164,7 +1167,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             ConfigureReportingRequest rq4;
             rq4.dataType = deCONZ::Zcl8BitEnum;
             rq4.attributeId = 0x4000;        // eTRV Open Window detection
-            rq4.minInterval = 60;
+            rq4.minInterval = 1;
             rq4.maxInterval = 43200;
             rq4.reportableChange8bit = 0xff;
             rq4.manufacturerCode = VENDOR_DANFOSS;
@@ -1191,6 +1194,47 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             return sendConfigureReportingRequest(bt, {rq});
         }
 
+    }
+    else if (bt.binding.clusterId == THERMOSTAT_UI_CONFIGURATION_CLUSTER_ID)
+    {
+        Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
+
+        if (sensor && (sensor->modelId() == QLatin1String("eTRV0100") || // Danfoss Ally
+                       sensor->modelId() == QLatin1String("TRV001")))    // Hive TRV
+        {
+            rq.dataType = deCONZ::Zcl8BitEnum;
+            rq.attributeId = 0x0001;       // Keypad Lockout
+            rq.minInterval = 1;
+            rq.maxInterval = 43200;
+            rq.reportableChange8bit = 0xff;
+
+            ConfigureReportingRequest rq2;
+            rq2.dataType = deCONZ::Zcl8BitEnum;
+            rq2.attributeId = 0x4000;        // Viewing Direction
+            rq2.minInterval = 1;
+            rq2.maxInterval = 43200;
+            rq2.reportableChange8bit = 0xff;
+            rq2.manufacturerCode = VENDOR_DANFOSS;
+
+            return sendConfigureReportingRequest(bt, {rq}) || // Use OR because of manuf. specific attributes
+                   sendConfigureReportingRequest(bt, {rq2});
+        }
+    }
+    else if (bt.binding.clusterId == DIAGNOSTICS_CLUSTER_ID)
+    {
+        Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
+
+        if (sensor && (sensor->modelId() == QLatin1String("eTRV0100") || // Danfoss Ally
+                       sensor->modelId() == QLatin1String("TRV001")))    // Hive TRV
+        {
+            rq.dataType = deCONZ::Zcl16BitBitMap;
+            rq.attributeId = 0x4000;        // SW error code
+            rq.minInterval = 1;
+            rq.maxInterval = 43200;
+            rq.reportableChange16bit = 0xffff;
+            rq.manufacturerCode = VENDOR_DANFOSS;
+            return sendConfigureReportingRequest(bt, {rq});
+        }
     }
     else if (bt.binding.clusterId == RELATIVE_HUMIDITY_CLUSTER_ID)
     {
@@ -1920,6 +1964,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturer() == QLatin1String("LDS"))
         {
         }
+        else if (lightNode->manufacturer() == QLatin1String("Vimar"))
+        {
+        }
         else if (lightNode->manufacturer() == QLatin1String("Sercomm Corp."))
         {
         }
@@ -2602,6 +2649,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         case BASIC_CLUSTER_ID:
         case BINARY_INPUT_CLUSTER_ID:
         case THERMOSTAT_CLUSTER_ID:
+        case THERMOSTAT_UI_CONFIGURATION_CLUSTER_ID:
+        case DIAGNOSTICS_CLUSTER_ID:
         case APPLIANCE_EVENTS_AND_ALERTS_CLUSTER_ID:
         case SAMJIN_CLUSTER_ID:
         {
@@ -3098,7 +3147,8 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
         sensor->modelId().startsWith(QLatin1String("ZBT-CCTSwitch-D0001")) || //LDS Remote
         sensor->modelId().startsWith(QLatin1String("ZBT-DIMSwitch")) || // Linkind 1 key Remote Control / ZS23000178
         sensor->modelId().startsWith(QLatin1String("WB01")) || // Sonoff SNZB-01
-        sensor->modelId().startsWith(QLatin1String("ZG2835"))) // SR-ZG2835 Zigbee Rotary Switch
+        sensor->modelId().startsWith(QLatin1String("ZG2835")) || // SR-ZG2835 Zigbee Rotary Switch
+        sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5121"))) // RGBgenie ZB-5121 remote
     {
 
     }

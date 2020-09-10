@@ -58,28 +58,14 @@ void DeRestPluginPrivate::handleTimeClusterIndication(const deCONZ::ApsDataIndic
         }
         else if (zclFrame.commandId() == deCONZ::ZclWriteAttributesResponseId)
         {
-            for (Sensor &sensor: sensors)
+            Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint(), QLatin1String("ZHATime"));
+            if (sensor)
             {
-                if (sensor.deletedState() != Sensor::StateNormal || !sensor.node() || sensor.type() != QLatin1String("ZHATime"))
-                {
-                    continue;
-                }
-                if      (ind.srcAddress().hasExt() && sensor.address().hasExt() &&
-                         ind.srcAddress().ext() == sensor.address().ext())
-                { }
-                else if (ind.srcAddress().hasNwk() && sensor.address().hasNwk() &&
-                         ind.srcAddress().nwk() == sensor.address().nwk())
-                { }
-                else
-                {
-                    continue;
-                }
-                DBG_Printf(DBG_INFO, "  >>> %s sensor %s: set READ_TIME from handleTimeClusterIndication()\n", qPrintable(sensor.type()), qPrintable(sensor.name()));
-                sensor.setNextReadTime(READ_TIME, queryTime);
-                sensor.setLastRead(READ_TIME, idleTotalCounter);
-                sensor.enableRead(READ_TIME);
+                DBG_Printf(DBG_INFO, "  >>> %s sensor %s: set READ_TIME from handleTimeClusterIndication()\n", qPrintable(sensor->type()), qPrintable(sensor->name()));
+                sensor->setNextReadTime(READ_TIME, queryTime);
+                sensor->setLastRead(READ_TIME, idleTotalCounter);
+                sensor->enableRead(READ_TIME);
                 queryTime = queryTime.addSecs(1);
-                break;
             }
         }
     }

@@ -1005,7 +1005,7 @@
                 <value name="Out of Service" value="0x08"></value>
             </attribute>
             <attribute id="0x0100" name="Application Type" type="u32" required="o" access="r"></attribute>
-            <attribute-set id="0xff00" description="Xiaomi Specific" mfcode="0x115f">
+            <attribute-set id="0xff00" description="Xiaomi Specific" mfcode="0x1037">
                 <attribute id="0xff06" name="Interlock" type="bool" access="rw" required="m" mfcode="0x1037"></attribute>
             </attribute-set>
         </server>
@@ -1738,61 +1738,68 @@ Note: It does not clear or delete previous weekly schedule programming configura
           <attribute id="0x0082" name="Unknown (Heat Setpoint?)" type="s16" access="r" required="o"/>
         </attribute-set>
 
-				<!-- Eurotronic manufacturer specific -->
-				<attribute-set id="0x4000" description="Eurotronic" mfcode="0x1037">
-					<attribute id="0x4000" name="TRV Mode" type="enum8" default="0x02" access="rw" required="m" mfcode="0x1037">
-						<value name="Unknown 1" value="0"></value>
-						<value name="Unknown 2" value="1"></value>
-						<value name="manual" value="2"></value>
-					</attribute>
-					<attribute id="0x4001" name="Set Valve Position" type="u8" default="0x00" access="rw" required="m" mfcode="0x1037"></attribute>
-					<attribute id="0x4002" name="Errors" type="u8" default="0x00" access="r" required="m" mfcode="0x1037">
-						<value name="Reserved" value="0"></value>
-						<value name="Reserved" value="1"></value>
-						<value name="Reserved" value="2"></value>
-						<value name="Valve Adaption Failed (E1)" value="3"></value>
-						<value name="Valve Movement too slow (E2)" value="4"></value>
-						<value name="Valve not Moving (E3)" value="5"></value>
-						<value name="Reserved" value="6"></value>
-						<value name="Reserved" value="7"></value>
-					</attribute>
-					<attribute id="0x4003" name="Current Temperature Setpoint" type="s16" default="0x07d0" access="rw" required="m" mfcode="0x1037"></attribute>
-					<attribute id="0x4008" name="Host Flags" type="u24" default="0x000000" showas="hex" access="rw" required="m" mfcode="0x1037"></attribute>
-				</attribute-set>
+		<!-- Eurotronic manufacturer specific -->
+		<attribute-set id="0x4000" description="Eurotronic" mfcode="0x1037">
+			<attribute id="0x4000" name="TRV Mode" type="enum8" default="0x02" access="rw" required="m" mfcode="0x1037">
+				<value name="Unknown 1" value="0"></value>
+				<value name="Unknown 2" value="1"></value>
+				<value name="manual" value="2"></value>
+			</attribute>
+			<attribute id="0x4001" name="Set Valve Position" type="u8" default="0x00" access="rw" required="m" mfcode="0x1037"></attribute>
+			<attribute id="0x4002" name="Errors" type="u8" default="0x00" access="r" required="m" mfcode="0x1037">
+				<value name="Reserved" value="0"></value>
+				<value name="Reserved" value="1"></value>
+				<value name="Reserved" value="2"></value>
+				<value name="Valve Adaption Failed (E1)" value="3"></value>
+				<value name="Valve Movement too slow (E2)" value="4"></value>
+				<value name="Valve not Moving (E3)" value="5"></value>
+				<value name="Reserved" value="6"></value>
+				<value name="Reserved" value="7"></value>
+			</attribute>
+			<attribute id="0x4003" name="Current Temperature Setpoint" type="s16" default="0x07d0" access="rw" required="m" mfcode="0x1037"></attribute>
+			<attribute id="0x4008" name="Host Flags" type="u24" default="0x000000" showas="hex" access="rw" required="m" mfcode="0x1037"></attribute>
+		</attribute-set>
 
-        <!-- Danfoss manufacturer specific -->
-        <attribute-set id="0x4000" description="Danfoss specific" mfcode="0x1246">
-					<attribute id="0x4000" name="eTRV Open Window Detection" type="enum8" default="0x00" access="r" required="m" mfcode="0x1246">
-						<value name="Closed" value="0x01"></value>
-						<value name="Hold" value="0x02"></value>
-						<value name="Open" value="0x03"></value>
-						<value name="Windows open from external, but detected closed" value="0x04"></value>
-					</attribute>
-          <attribute id="0x4003" name="External Open Window Detected" type="bool" default="0x00" access="rw" required="m" mfcode="0x1246"></attribute>
-          <attribute id="0x4010" name="Exercise day of week" type="enum8" default="0x04" access="rw" required="m" mfcode="0x1246">
-						<value name="Sunday" value="0x00"></value>
-						<value name="Monday" value="0x01"></value>
-						<value name="Tuesday" value="0x02"></value>
-						<value name="Wednesday" value="0x03"></value>
-						<value name="Thursday" value="0x04"></value>
-						<value name="Friday" value="0x05"></value>
-						<value name="Saturday" value="0x06"></value>
-						<value name="Undefined" value="0x07"></value>
-					</attribute>
-          <attribute id="0x4011" name="Exercise trigger time" type="u16" default="660" access="rw" required="m" mfcode="0x1246"></attribute>
-          <attribute id="0x4012" name="Mounting mode active" type="bool" default="0x01" access="r" required="m" mfcode="0x1246"></attribute>
-          <attribute id="0x4013" name="Mounting mode control" type="bool" access="rw" required="m" mfcode="0x1246"></attribute>
-          <attribute id="0x4014" name="eTRV Orientation" type="bool" default="0x00" access="rw" required="m" mfcode="0x1246"></attribute>
-          <attribute id="0x4015" name="External Measured Room Sensor" type="s16" access="r" required="m" mfcode="0x1246"></attribute>
-          <attribute id="0x4020" name="Control algorithm scale factor" type="u8" default="1" access="rw" required="m" mfcode="0x1246"></attribute>
-          <attribute id="0x4030" name="Heat Available" type="bool" default="0x01" access="rw" required="m" mfcode="0x1246"></attribute>
-          <attribute id="0x4031" name="Heat Supply Request " type="bool" access="r" required="m" mfcode="0x1246"></attribute>
-          <attribute id="0x404C" name="Calibration" type="enum8" default="0x00" access="rw" required="m" mfcode="0x1246">
-                        <value name="Idle" value="0x00"></value>
-						<value name="Start" value="0x01"></value>
-						<value name="Stop" value="0x02"></value>
-          </attribute>
-        </attribute-set>
+		<!-- Danfoss manufacturer specific -->
+		<attribute-set id="0x4000" description="Danfoss specific" mfcode="0x1246">
+			<attribute id="0x4000" name="eTRV Open Window Detection" type="enum8" default="0x00" access="r" required="m" mfcode="0x1246">
+				<value name="Closed" value="0x01"></value>
+				<value name="Hold" value="0x02"></value>
+				<value name="Open" value="0x03"></value>
+				<value name="Windows open from external, but detected closed" value="0x04"></value>
+			</attribute>
+			<attribute id="0x4003" name="External Open Window Detected" type="bool" default="0x00" access="rw" required="m" mfcode="0x1246"></attribute>
+			<attribute id="0x4010" name="Exercise day of week" type="enum8" default="0x04" access="rw" required="m" mfcode="0x1246">
+				<value name="Sunday" value="0x00"></value>
+				<value name="Monday" value="0x01"></value>
+				<value name="Tuesday" value="0x02"></value>
+				<value name="Wednesday" value="0x03"></value>
+				<value name="Thursday" value="0x04"></value>
+				<value name="Friday" value="0x05"></value>
+				<value name="Saturday" value="0x06"></value>
+				<value name="Undefined" value="0x07"></value>
+			</attribute>
+			<attribute id="0x4011" name="Exercise trigger time" type="u16" default="660" access="rw" required="m" mfcode="0x1246"></attribute>
+			<attribute id="0x4012" name="Mounting mode active" type="bool" default="0x01" access="r" required="m" mfcode="0x1246"></attribute>
+			<attribute id="0x4013" name="Mounting mode control" type="bool" access="rw" required="m" mfcode="0x1246"></attribute>
+			<attribute id="0x4014" name="eTRV Orientation" type="bool" default="0x00" access="rw" required="m" mfcode="0x1246"></attribute>
+			<attribute id="0x4015" name="External Measured Room Sensor" type="s16" access="r" required="m" mfcode="0x1246"></attribute>
+			<attribute id="0x4016" name="Unknown" type="bool" access="rw" required="m" mfcode="0x1246"></attribute>
+			<attribute id="0x4020" name="Control algorithm scale factor" type="u8" default="1" access="rw" required="m" mfcode="0x1246"></attribute>
+			<attribute id="0x4030" name="Heat Available" type="bool" default="0x01" access="rw" required="m" mfcode="0x1246"></attribute>
+			<attribute id="0x4031" name="Heat Supply Request " type="bool" access="r" required="m" mfcode="0x1246"></attribute>
+			<attribute id="0x4032" name="Unknown" type="bool" access="rw" required="m" mfcode="0x1246"></attribute>
+			<attribute id="0x4040" name="Unknown" type="s16" access="rw" required="m" mfcode="0x1246"></attribute>
+			<attribute id="0x404A" name="Unknown" type="s16" access="r" required="m" mfcode="0x1246"></attribute>
+			<attribute id="0x404B" name="Unknown" type="s8" access="rw" required="m" mfcode="0x1246"></attribute>
+			<attribute id="0x404C" name="Calibration" type="enum8" default="0x00" access="rw" required="m" mfcode="0x1246">
+				<value name="Idle" value="0x00"></value>
+				<value name="Start" value="0x01"></value>
+				<value name="Stop" value="0x02"></value>
+			</attribute>
+			<attribute id="0x404D" name="Unknown" type="bmp8" access="rw" required="m" mfcode="0x1246"></attribute>
+			<attribute id="0x404E" name="Unknown" type="bmp8" access="rw" required="m" mfcode="0x1246"></attribute>
+		</attribute-set>
 
 				<command id="0x00" dir="recv" name="Setpoint Raise/Lower" required="m">
 					<description>This command increases (or decreases) the setpoint(s) by amount, in steps of 0.1°C.</description>
@@ -2635,7 +2642,7 @@ controller device, that supports a keypad and LCD screen.</description>
 				</attribute-set>
 				<command id="0x00" dir="recv" name="Zone Enroll Response" required="m">
 					<payload>
-						<attribute id="0x00" type="enum16" name="Enroll response code" required="m">
+						<attribute id="0x00" type="enum8" name="Enroll response code" required="m">
 							<value name="Success" value="0x00"></value>
 							<value name="Not supported" value="0x01"></value>
 							<value name="No enroll permit" value="0x02"></value>
@@ -2662,7 +2669,7 @@ controller device, that supports a keypad and LCD screen.</description>
 							<value name="Test" value="8"></value>
 							<value name="Battery defect" value="9"></value>
 						</attribute>
-						<attribute id="0x01" type="u8" name="Extended Status" default="0x00" required="m"></attribute>
+						<attribute id="0x01" type="bmp8" name="Extended Status" default="0x00" required="m"></attribute>
 						<attribute id="0x02" type="u8" name="Zone ID" required="m"></attribute>
 						<attribute id="0x03" type="u16" name="Delay" required="m"></attribute>
 					</payload>
