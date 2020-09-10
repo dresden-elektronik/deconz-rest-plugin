@@ -563,6 +563,12 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     connect(apsCtrl, SIGNAL(nodeEvent(deCONZ::NodeEvent)),
             this, SLOT(nodeEvent(deCONZ::NodeEvent)));
 
+#if DECONZ_LIB_VERSION >= 0x010E00
+    connect(apsCtrl, &deCONZ::ApsController::sourceRouteCreated, this, &DeRestPluginPrivate::storeSourceRoute);
+    connect(apsCtrl, &deCONZ::ApsController::sourceRouteDeleted, this, &DeRestPluginPrivate::deleteSourceRoute);
+    connect(apsCtrl, &deCONZ::ApsController::nodesRestored, this, &DeRestPluginPrivate::restoreSourceRoutes, Qt::QueuedConnection);
+#endif
+
     deCONZ::GreenPowerController *gpCtrl = deCONZ::GreenPowerController::instance();
 
     if (gpCtrl)
@@ -773,6 +779,14 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
         case APPLIANCE_EVENTS_AND_ALERTS_CLUSTER_ID:
             handleApplianceAlertClusterIndication(ind, zclFrame);
+            break;
+
+        case THERMOSTAT_UI_CONFIGURATION_CLUSTER_ID:
+            handleThermostatUiConfigurationClusterIndication(ind, zclFrame);
+            break;
+
+        case DIAGNOSTICS_CLUSTER_ID:
+            handleDiagnosticsClusterIndication(ind, zclFrame);
             break;
 
         default:
@@ -3335,7 +3349,7 @@ void DeRestPluginPrivate::checkSensorNodeReachable(Sensor *sensor, const deCONZ:
                 if (*ci == TIME_CLUSTER_ID)
                 {
                     NodeValue val = sensor->getZclValue(*ci, 0x0000); // Time
-                    if (!val.timestamp.isValid() || val.timestamp.secsTo(now) >= 60)
+                    if (!val.timestamp.isValid() || val.timestamp.secsTo(now) >= 6 * 3600)
                     {
                         DBG_Printf(DBG_INFO, "  >>> %s sensor %s: set READ_TIME from checkSensorNodeReachable()\n", qPrintable(sensor->type()), qPrintable(sensor->name()));
                         sensor->setNextReadTime(READ_TIME, queryTime);
@@ -5783,25 +5797,25 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             if (sensorNode.modelId() == QLatin1String("SLR2") ||            // Hive
                 sensorNode.modelId() == QLatin1String("SLR1b") ||           // Hive
                 sensorNode.modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
-                sensorNode.modelId() == QLatin1String("kud7u2l") ||         // tuya
-                sensorNode.modelId() == QLatin1String("GbxAXL2") ||         // tuya
-                sensorNode.modelId() == QLatin1String("TS0601") ||           //tuya
+                sensorNode.modelId() == QLatin1String("kud7u2l") ||         // Tuya
+                sensorNode.modelId() == QLatin1String("GbxAXL2") ||         // Tuya
+                sensorNode.modelId() == QLatin1String("TS0601") ||          // Tuya
                 sensorNode.modelId() == QLatin1String("Zen-01") )           // Zen
             {
                 sensorNode.addItem(DataTypeString, RConfigMode);
             }
 
-            if (sensorNode.modelId() == QLatin1String("kud7u2l") || // tuya
-                sensorNode.modelId() == QLatin1String("GbxAXL2") || // tuya
-                sensorNode.modelId() == QLatin1String("TS0601") ) //tuya
+            if (sensorNode.modelId() == QLatin1String("kud7u2l") || // Tuya
+                sensorNode.modelId() == QLatin1String("GbxAXL2") || // Tuya
+                sensorNode.modelId() == QLatin1String("TS0601") )   // Tuya
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
                 item = sensorNode.addItem(DataTypeBool, RStateLowBattery);
                 item->setValue(false);
             }
 
-            if (sensorNode.modelId() == QLatin1String("kud7u2l") || // tuya
-                sensorNode.modelId() == QLatin1String("TS0601") ) //tuya
+            if (sensorNode.modelId() == QLatin1String("kud7u2l") || // Tuya
+                sensorNode.modelId() == QLatin1String("TS0601") )   // Tuya
             {
                 sensorNode.addItem(DataTypeString, RConfigPreset);
                 sensorNode.addItem(DataTypeBool, RConfigLocked);
@@ -5828,11 +5842,16 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             else if (modelId == QLatin1String("Zen-01"))
             {
             }
-            else if ((modelId == QLatin1String("eTRV0100")) ||
-                     (modelId == QLatin1String("TRV001")) )
+            else if ((modelId == QLatin1String("eTRV0100")) || // Danfoss Ally
+                     (modelId == QLatin1String("TRV001")) )    // Hive TRV
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
                 sensorNode.addItem(DataTypeString, RStateWindowOpen);
+                sensorNode.addItem(DataTypeBool, RStateMountingModeActive);
+                sensorNode.addItem(DataTypeString, RStateErrorCode);
+                sensorNode.addItem(DataTypeBool, RConfigDisplayFlipped);
+                sensorNode.addItem(DataTypeBool, RConfigLocked);
+                sensorNode.addItem(DataTypeBool, RConfigMountingMode);
             }
             else
             {
@@ -8609,6 +8628,32 @@ Sensor *DeRestPluginPrivate::getSensorNodeForAddress(const deCONZ::Address &addr
 
     return 0;
 }
+
+/*! Returns the first Sensor for its given \p Address and \p Endpoint and \p Type or 0 if not found.
+ */
+Sensor *DeRestPluginPrivate::getSensorNodeForAddressAndEndpoint(const deCONZ::Address &addr, quint8 ep, const QString &type)
+{
+    for (Sensor &sensor: sensors)
+    {
+        if (sensor.deletedState() != Sensor::StateNormal || !sensor.node() ||
+            sensor.fingerPrint().endpoint != ep || sensor.type() != type)
+        {
+            continue;
+        }
+        if (sensor.address().hasNwk() && addr.hasNwk() &&
+            sensor.address().nwk() == addr.nwk())
+        {
+            return &sensor;
+        }
+        if (sensor.address().hasExt() && addr.hasExt() &&
+            sensor.address().ext() == addr.ext())
+        {
+            return &sensor;
+        }
+    }
+    return nullptr;
+}
+
 
 /*! Returns the first Sensor for its given \p Address and \p Endpoint or 0 if not found.
  */
@@ -16568,7 +16613,7 @@ void DeRestPlugin::idleTimerFired()
                             if (!sensorNode->mustRead(READ_TIME))
                             {
                                 val = sensorNode->getZclValue(*ci, 0x0000); // Time
-                                if (!val.timestamp.isValid() || val.timestamp.secsTo(now) >= 60)
+                                if (!val.timestamp.isValid() || val.timestamp.secsTo(now) >= 6 * 3600)
                                 {
                                     DBG_Printf(DBG_INFO, "  >>> %s sensor %s: set READ_TIME from idleTimerFired()\n", qPrintable(sensorNode->type()), qPrintable(sensorNode->name()));
                                     sensorNode->enableRead(READ_TIME);

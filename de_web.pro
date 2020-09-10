@@ -126,6 +126,7 @@ SOURCES  = authorisation.cpp \
            database.cpp \
            daylight.cpp \
            device_setup.cpp \
+           diagnostics.cpp \
            discovery.cpp \
            de_web_plugin.cpp \
            de_web_widget.cpp \
@@ -159,6 +160,7 @@ SOURCES  = authorisation.cpp \
            rest_info.cpp \
            rest_capabilities.cpp \
            rule.cpp \
+           thermostat_ui_configuration.cpp \
            upnp.cpp \
            permitJoin.cpp \
            scene.cpp \

@@ -1141,8 +1141,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
         }
 
-        else if ( (sensor && sensor->modelId() == QLatin1String("eTRV0100")) || // Danfoss Ally
-                  (sensor && sensor->modelId() == QLatin1String("TRV001")) )
+                else if ( (sensor && sensor->modelId() == QLatin1String("eTRV0100")) || // Danfoss Ally
+                  (sensor && sensor->modelId() == QLatin1String("TRV001")) )    // Hive TRV
         {
             rq.dataType = deCONZ::Zcl16BitInt;
             rq.attributeId = 0x0000;       // local temperature
@@ -1167,7 +1167,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             ConfigureReportingRequest rq4;
             rq4.dataType = deCONZ::Zcl8BitEnum;
             rq4.attributeId = 0x4000;        // eTRV Open Window detection
-            rq4.minInterval = 60;
+            rq4.minInterval = 1;
             rq4.maxInterval = 43200;
             rq4.reportableChange8bit = 0xff;
             rq4.manufacturerCode = VENDOR_DANFOSS;
@@ -1194,6 +1194,47 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             return sendConfigureReportingRequest(bt, {rq});
         }
 
+    }
+    else if (bt.binding.clusterId == THERMOSTAT_UI_CONFIGURATION_CLUSTER_ID)
+    {
+        Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
+
+        if (sensor && (sensor->modelId() == QLatin1String("eTRV0100") || // Danfoss Ally
+                       sensor->modelId() == QLatin1String("TRV001")))    // Hive TRV
+        {
+            rq.dataType = deCONZ::Zcl8BitEnum;
+            rq.attributeId = 0x0001;       // Keypad Lockout
+            rq.minInterval = 1;
+            rq.maxInterval = 43200;
+            rq.reportableChange8bit = 0xff;
+
+            ConfigureReportingRequest rq2;
+            rq2.dataType = deCONZ::Zcl8BitEnum;
+            rq2.attributeId = 0x4000;        // Viewing Direction
+            rq2.minInterval = 1;
+            rq2.maxInterval = 43200;
+            rq2.reportableChange8bit = 0xff;
+            rq2.manufacturerCode = VENDOR_DANFOSS;
+
+            return sendConfigureReportingRequest(bt, {rq}) || // Use OR because of manuf. specific attributes
+                   sendConfigureReportingRequest(bt, {rq2});
+        }
+    }
+    else if (bt.binding.clusterId == DIAGNOSTICS_CLUSTER_ID)
+    {
+        Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
+
+        if (sensor && (sensor->modelId() == QLatin1String("eTRV0100") || // Danfoss Ally
+                       sensor->modelId() == QLatin1String("TRV001")))    // Hive TRV
+        {
+            rq.dataType = deCONZ::Zcl16BitBitMap;
+            rq.attributeId = 0x4000;        // SW error code
+            rq.minInterval = 1;
+            rq.maxInterval = 43200;
+            rq.reportableChange16bit = 0xffff;
+            rq.manufacturerCode = VENDOR_DANFOSS;
+            return sendConfigureReportingRequest(bt, {rq});
+        }
     }
     else if (bt.binding.clusterId == RELATIVE_HUMIDITY_CLUSTER_ID)
     {
@@ -1923,6 +1964,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturer() == QLatin1String("LDS"))
         {
         }
+        else if (lightNode->manufacturer() == QLatin1String("Vimar"))
+        {
+        }
         else if (lightNode->manufacturer() == QLatin1String("Sercomm Corp."))
         {
         }
@@ -2604,6 +2648,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         case BASIC_CLUSTER_ID:
         case BINARY_INPUT_CLUSTER_ID:
         case THERMOSTAT_CLUSTER_ID:
+        case THERMOSTAT_UI_CONFIGURATION_CLUSTER_ID:
+        case DIAGNOSTICS_CLUSTER_ID:
         case APPLIANCE_EVENTS_AND_ALERTS_CLUSTER_ID:
         case SAMJIN_CLUSTER_ID:
         {

@@ -309,7 +309,7 @@ static int dayofweekTimer = 0;
  */
 void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
-    Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
+    Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint(), QLatin1String("ZHAThermostat"));
 
     if (!sensor)
     {
@@ -698,6 +698,42 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                     {
                         item->setValue(mode);
                         enqueueEvent(Event(RSensors, RConfigMode, sensor->id(), item));
+                        configUpdated = true;
+                    }
+                }
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
+                break;
+
+            case 0x4012: // Mounting mode active
+            {
+                if (zclFrame.manufacturerCode() == VENDOR_DANFOSS && (sensor->modelId() == QLatin1String("eTRV0100") ||
+                                                                      sensor->modelId() == QLatin1String("TRV001")))
+                {
+                    bool enabled = attr.numericValue().u8 > 0 ? true : false;
+                    item = sensor->item(RStateMountingModeActive);
+                    if (item && item->toBool() != enabled)
+                    {
+                        item->setValue(enabled);
+                        enqueueEvent(Event(RSensors, RStateMountingModeActive, sensor->id(), item));
+                        configUpdated = true;
+                    }
+                }
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
+                break;
+
+            case 0x4013: // Mounting mode control
+            {
+                if (zclFrame.manufacturerCode() == VENDOR_DANFOSS && (sensor->modelId() == QLatin1String("eTRV0100") ||
+                                                                      sensor->modelId() == QLatin1String("TRV001")))
+                {
+                    bool enabled = attr.numericValue().u8 > 0 ? true : false;
+                    item = sensor->item(RConfigMountingMode);
+                    if (item && item->toBool() != enabled)
+                    {
+                        item->setValue(enabled);
+                        enqueueEvent(Event(RSensors, RConfigMountingMode, sensor->id(), item));
                         configUpdated = true;
                     }
                 }
