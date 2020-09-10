@@ -1504,6 +1504,7 @@ public:
     void loadAllScenesFromDb();
     void loadAllSchedulesFromDb();
     void loadLightNodeFromDb(LightNode *lightNode);
+    QString loadDataForLightNodeFromDb(QString extAddress);
     void loadGroupFromDb(Group *group);
     void loadSceneFromDb(Scene *scene);
     void loadSwUpdateStateFromDb();

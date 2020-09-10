@@ -546,7 +546,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     else if (UseTuyaCluster(taskRef.lightNode->manufacturer()))
     {
         //window covering
-        if (taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_wmcdj3aq"))
+        if ((taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_wmcdj3aq")) ||
+            (taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_xu1rkty3")) )
         {
             return setWindowCoveringState(req, rsp, taskRef, map);
         }
@@ -1518,7 +1519,8 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         cluster = ANALOG_OUTPUT_CLUSTER_ID;
     }
     
-    if (taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_wmcdj3aq"))
+    if ((taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_wmcdj3aq")) ||
+        (taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_xu1rkty3")) )
     {
         cluster = TUYA_CLUSTER_ID;
     }
@@ -2222,6 +2224,62 @@ int DeRestPluginPrivate::setLightAttributes(const ApiRequest &req, ApiResponse &
         else
         {
             rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/powerup").arg(id), QString("invalid value, %1, for parameter powerup").arg(map["powerup"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+    }
+
+    // Tuya options
+    // Reverse covering
+    if (map.contains("reverse"))
+    {
+
+        TaskItem taskRef;
+        taskRef.lightNode = getLightNodeForId(id);
+
+        if (!taskRef.lightNode || taskRef.lightNode->state() == LightNode::StateDeleted)
+        {
+            rsp.httpStatus = HttpStatusNotFound;
+            rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("resource, /lights/%1, not available").arg(id)));
+            return REQ_READY_SEND;
+        }
+
+        if (!taskRef.lightNode->isAvailable())
+        {
+            rsp.httpStatus = HttpStatusOk;
+            rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("resource, /lights/%1, not available").arg(id)));
+            return REQ_READY_SEND;
+        }
+
+        // set destination parameters
+        taskRef.req.dstAddress() = taskRef.lightNode->address();
+        taskRef.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+        taskRef.req.setDstEndpoint(taskRef.lightNode->haEndpoint().endpoint());
+        taskRef.req.setSrcEndpoint(getSrcEndpoint(taskRef.lightNode, taskRef.req));
+        taskRef.req.setDstAddressMode(deCONZ::ApsExtAddress);
+        //taskRef.transitionTime = 4;
+        //taskRef.onTime = 0;
+
+        QByteArray direction = QByteArray("\x01\x00", 2);
+        if (map["reverse"].toBool())
+        {
+            direction = QByteArray("\x01\x01", 2);
+        }
+
+        if (SendTuyaRequest(taskRef, TaskTuyaRequest , DP_TYPE_ENUM, 0x05 , direction ))
+        {
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/reverse").arg(id)] = map["reverse"];
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+            rsp.etag = lightNode->etag;
+
+            return REQ_READY_SEND;
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/reverse").arg(id), QString("invalid value, %1, for parameter reverse").arg(map["reverse"].toString())));
             rsp.httpStatus = HttpStatusBadRequest;
             return REQ_READY_SEND;
         }

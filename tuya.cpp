@@ -171,11 +171,21 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
 
         DBG_Printf(DBG_INFO, "Tuya debug 4 : Address 0x%016llX Payload %s\n" , ind.srcAddress().ext(), qPrintable(zclFrame.payload().toHex()));
         DBG_Printf(DBG_INFO, "Tuya debug 5 : Status: %d Transid: %d Dp: %d (0x%02X,0x%02X) Fn: %d Data %ld\n", status , transid , dp , dp_type, dp_identifier, fn , data);
+        
+        //Sensor and light use same cluster, so need to make a choice for device that have both
+        if ((sensorNode) && (lightNode))
+        {
+            if (dp == 0x0215) // battery
+            {
+                lightNode = nullptr;
+            }
+        }
 
         if (lightNode)
         {
             //Window covering ?
-            if (lightNode->manufacturer() == QLatin1String("_TYST11_wmcdj3aq"))
+            if ((lightNode->manufacturer() == QLatin1String("_TYST11_wmcdj3aq")) ||
+                (lightNode->manufacturer() == QLatin1String("_TYST11_xu1rkty3")) )
             {
                 
                 switch (dp)
@@ -202,6 +212,9 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     {
                         quint8 lift = (quint8) data;
                         lightNode->setValue(RStateLift, lift);
+                        bool open = lift < 100;
+                        lightNode->setValue(RStateOpen, open);
+                        lightNode->setValue(RStateOn, open);
                     }
                     break;
                     

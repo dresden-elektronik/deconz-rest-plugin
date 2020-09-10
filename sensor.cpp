@@ -709,6 +709,24 @@ static const Sensor::ButtonMap sunricherMap[] = {
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
 
+static const Sensor::ButtonMap Tuya3gangMap[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    { Sensor::ModeScenes,           0x01, 0x0006, 0xFD, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "B1 short" },
+    { Sensor::ModeScenes,           0x01, 0x0006, 0xFD, 1,    S_BUTTON_1 + S_BUTTON_ACTION_DOUBLE_PRESS,   "B1 double" },
+    { Sensor::ModeScenes,           0x01, 0x0006, 0xFD, 2,    S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED,  "B1 long" },
+
+    { Sensor::ModeScenes,           0x02, 0x0006, 0xFD, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "B2 short" },
+    { Sensor::ModeScenes,           0x02, 0x0006, 0xFD, 1,    S_BUTTON_2 + S_BUTTON_ACTION_DOUBLE_PRESS,   "B2 double" },
+    { Sensor::ModeScenes,           0x02, 0x0006, 0xFD, 2,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED,  "B2 long" },
+
+    { Sensor::ModeScenes,           0x03, 0x0006, 0xFD, 0,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "B3 short" },
+    { Sensor::ModeScenes,           0x03, 0x0006, 0xFD, 1,    S_BUTTON_3 + S_BUTTON_ACTION_DOUBLE_PRESS,   "B3 double" },
+    { Sensor::ModeScenes,           0x03, 0x0006, 0xFD, 2,    S_BUTTON_3 + S_BUTTON_ACTION_LONG_RELEASED,  "B3 long" },
+
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
+};
+
 static const Sensor::ButtonMap legrandSwitchRemote[] = {
 //    mode                          ep    cluster cmd   param button                                       name
     { Sensor::ModeScenes,           0x01, 0x0006, 0x01, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
@@ -1564,6 +1582,10 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         else if (manufacturer == QLatin1String("eWeLink"))
         {
             if (modelid == QLatin1String("WB01")) { m_buttonMap = sonoffOnOffMap; }
+        }
+        else if (manufacturer == QLatin1String("_TZ3000_bi6lpsew")) // can't use model id but manufacture name is device specific
+        {
+            m_buttonMap = Tuya3gangMap;
         }
     }
 
