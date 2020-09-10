@@ -773,6 +773,14 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             handleApplianceAlertClusterIndication(ind, zclFrame);
             break;
 
+        case THERMOSTAT_UI_CONFIGURATION_CLUSTER_ID:
+            handleThermostatUiConfigurationClusterIndication(ind, zclFrame);
+            break;
+
+        case DIAGNOSTICS_CLUSTER_ID:
+            handleDiagnosticsClusterIndication(ind, zclFrame);
+            break;
+
         default:
         {
         }
@@ -5739,24 +5747,24 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             if (sensorNode.modelId() == QLatin1String("SLR2") ||            // Hive
                 sensorNode.modelId() == QLatin1String("SLR1b") ||           // Hive
                 sensorNode.modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
-                sensorNode.modelId() == QLatin1String("kud7u2l") ||         // tuya
-                sensorNode.modelId() == QLatin1String("GbxAXL2") ||         // tuya
-                sensorNode.modelId() == QLatin1String("TS0601") ||           //tuya
+                sensorNode.modelId() == QLatin1String("kud7u2l") ||         // Tuya
+                sensorNode.modelId() == QLatin1String("GbxAXL2") ||         // Tuya
+                sensorNode.modelId() == QLatin1String("TS0601") ||          // Tuya
                 sensorNode.modelId() == QLatin1String("Zen-01") )           // Zen
             {
                 sensorNode.addItem(DataTypeString, RConfigMode);
             }
 
-            if (sensorNode.modelId() == QLatin1String("kud7u2l") || // tuya
-                sensorNode.modelId() == QLatin1String("GbxAXL2") || // tuya
-                sensorNode.modelId() == QLatin1String("TS0601") ) //tuya
+            if (sensorNode.modelId() == QLatin1String("kud7u2l") || // Tuya
+                sensorNode.modelId() == QLatin1String("GbxAXL2") || // Tuya
+                sensorNode.modelId() == QLatin1String("TS0601") )   // Tuya
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
                 sensorNode.addItem(DataTypeBool, RStateLowBattery);
             }
 
-            if (sensorNode.modelId() == QLatin1String("kud7u2l") || // tuya
-                sensorNode.modelId() == QLatin1String("TS0601") ) //tuya
+            if (sensorNode.modelId() == QLatin1String("kud7u2l") || // Tuya
+                sensorNode.modelId() == QLatin1String("TS0601") )   // Tuya
             {
                 sensorNode.addItem(DataTypeString, RConfigPreset);
                 sensorNode.addItem(DataTypeBool, RConfigLocked);
@@ -5782,11 +5790,16 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             else if (modelId == QLatin1String("Zen-01"))
             {
             }
-            else if ((modelId == QLatin1String("eTRV0100")) ||
-                     (modelId == QLatin1String("TRV001")) )
+            else if ((modelId == QLatin1String("eTRV0100")) || // Danfoss Ally
+                     (modelId == QLatin1String("TRV001")) )    // Hive TRV
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
                 sensorNode.addItem(DataTypeString, RStateWindowOpen);
+                sensorNode.addItem(DataTypeBool, RStateMountingModeActive);
+                sensorNode.addItem(DataTypeString, RStateErrorCode);
+                sensorNode.addItem(DataTypeBool, RConfigDisplayFlipped);
+                sensorNode.addItem(DataTypeBool, RConfigLocked);
+                sensorNode.addItem(DataTypeBool, RConfigMountingMode);
             }
             else
             {

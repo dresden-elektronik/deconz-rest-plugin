@@ -182,6 +182,7 @@
 #define WINDOW_COVERING_CLUSTER_ID            0x0102
 #define THERMOSTAT_CLUSTER_ID                 0x0201
 #define FAN_CONTROL_CLUSTER_ID                0x0202
+#define THERMOSTAT_UI_CONFIGURATION_CLUSTER_ID 0x0204
 #define COLOR_CLUSTER_ID                      0x0300
 #define ILLUMINANCE_MEASUREMENT_CLUSTER_ID    0x0400
 #define ILLUMINANCE_LEVEL_SENSING_CLUSTER_ID  0x0401
@@ -195,6 +196,7 @@
 #define METERING_CLUSTER_ID                   0x0702
 #define APPLIANCE_EVENTS_AND_ALERTS_CLUSTER_ID 0x0B02
 #define ELECTRICAL_MEASUREMENT_CLUSTER_ID     0x0B04
+#define DIAGNOSTICS_CLUSTER_ID                0x0B05
 #define COMMISSIONING_CLUSTER_ID              0x1000
 #define TUYA_CLUSTER_ID                       0xEF00
 #define DE_CLUSTER_ID                         0xFC00
@@ -1408,6 +1410,7 @@ public:
     bool addTaskThermostatWriteAttributeList(TaskItem &task, uint16_t mfrCode, QMap<quint16, quint32> &AttributeList );
     bool addTaskControlModeCmd(TaskItem &task, uint8_t cmdId, int8_t mode);
     bool addTaskSyncTime(Sensor *sensor);
+    bool addTaskThermostatUiConfigurationReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t attrId, uint8_t attrType, uint32_t attrValue, uint16_t mfrCode=0);
 
     void handleGroupClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleSceneClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
@@ -1434,7 +1437,9 @@ public:
     // Danalock support
     void handleDoorLockClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleThermostatClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleThermostatUiConfigurationClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleTimeClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleDiagnosticsClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendTimeClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleBasicClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendBasicClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
