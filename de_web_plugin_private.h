@@ -1210,6 +1210,13 @@ public Q_SLOTS:
     void pushSensorInfoToCore(Sensor *sensor);
     void pollNextDevice();
 
+    // database
+#if DECONZ_LIB_VERSION >= 0x010E00
+    void storeSourceRoute(const deCONZ::SourceRoute &sourceRoute);
+    void deleteSourceRoute(const QString &uuid);
+    void restoreSourceRoutes();
+#endif
+
     // touchlink
     void touchlinkDisconnectNetwork();
     void checkTouchlinkNetworkDisconnected();
@@ -1481,6 +1488,7 @@ public:
     bool upgradeDbToUserVersion1();
     bool upgradeDbToUserVersion2();
     bool upgradeDbToUserVersion6();
+    bool upgradeDbToUserVersion7();
     void refreshDeviceDb(const deCONZ::Address &addr);
     void pushZdpDescriptorDb(quint64 extAddress, quint8 endpoint, quint16 type, const QByteArray &data);
     void pushZclValueDb(quint64 extAddress, quint8 endpoint, quint16 clusterId, quint16 attributeId, qint64 data);

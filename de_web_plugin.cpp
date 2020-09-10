@@ -561,6 +561,12 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     connect(apsCtrl, SIGNAL(nodeEvent(deCONZ::NodeEvent)),
             this, SLOT(nodeEvent(deCONZ::NodeEvent)));
 
+#if DECONZ_LIB_VERSION >= 0x010E00
+    connect(apsCtrl, &deCONZ::ApsController::sourceRouteCreated, this, &DeRestPluginPrivate::storeSourceRoute);
+    connect(apsCtrl, &deCONZ::ApsController::sourceRouteDeleted, this, &DeRestPluginPrivate::deleteSourceRoute);
+    connect(apsCtrl, &deCONZ::ApsController::nodesRestored, this, &DeRestPluginPrivate::restoreSourceRoutes, Qt::QueuedConnection);
+#endif
+
     deCONZ::GreenPowerController *gpCtrl = deCONZ::GreenPowerController::instance();
 
     if (gpCtrl)
