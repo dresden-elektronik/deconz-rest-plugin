@@ -38,6 +38,11 @@
 #include <math.h>
 #include "websocket_server.h"
 
+#if defined(Q_OS_LINUX) && !defined(Q_PROCESSOR_X86)
+  // Workaround to detect ARM and AARCH64 in older Qt versions.
+  #define ARCH_ARM
+#endif
+
 /*! JSON generic error message codes */
 #define ERR_UNAUTHORIZED_USER          1
 #define ERR_INVALID_JSON               2

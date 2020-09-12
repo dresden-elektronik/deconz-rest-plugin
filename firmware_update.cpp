@@ -15,6 +15,9 @@
 #include <QDir>
 #include <QString>
 #include <QProcess>
+#ifdef Q_OS_LINUX
+#include <unistd.h>
+#endif
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 
@@ -38,16 +41,6 @@ void DeRestPluginPrivate::initFirmwareUpdate()
     fwUpdateTimer->setSingleShot(true);
     connect(fwUpdateTimer, SIGNAL(timeout()),
             this, SLOT(firmwareUpdateTimerFired()));
-
-
-#if defined(Q_OS_LINUX) && !defined(ARCH_ARM)
-    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    if (!env.contains(QLatin1String("DISPLAY")))
-    {
-        DBG_Printf(DBG_INFO, "GW firmware update not supported on x86 linux headless\n");
-        return;
-    }
-#endif
 
     fwUpdateTimer->start(5000);
 }
@@ -84,8 +77,9 @@ void DeRestPluginPrivate::updateFirmware()
 #ifdef Q_OS_WIN
     gcfFlasherBin.append(".exe");
     bin = gcfFlasherBin;
-#elif defined(Q_OS_LINUX) && !defined(ARCH_ARM) // on x86 linux
-    if (!needSudo)
+#elif defined(Q_OS_LINUX) && !defined(ARCH_ARM) // on desktop linux
+
+    if (!needSudo || geteuid() == 0)
     {
         bin = QLatin1String("/usr/bin/GCFFlasher_internal.bin");
     }
@@ -100,12 +94,12 @@ void DeRestPluginPrivate::updateFirmware()
     // /usr/bin/osascript -e 'do shell script "make install" with administrator privileges'
     bin = "sudo";
     fwProcessArgs.prepend(gcfFlasherBin);
-#else // on RPi a normal sudo is ok since we don't need password there
-    if (!needSudo)
+#else
+    if (!needSudo || geteuid() == 0)
     {
         bin = QLatin1String("/usr/bin/GCFFlasher_internal.bin");
     }
-    else
+    else  // on ARM or Raspbian assume we don't need password (todo find a better solution)
     {
         bin = QLatin1String("sudo");
         gcfFlasherBin = QLatin1String("/usr/bin/GCFFlasher_internal");
@@ -496,8 +490,6 @@ void DeRestPluginPrivate::queryFirmwareVersion()
         // adapted from above AVR handling
         if ((fwVersion & FW_PLATFORM_MASK) == FW_PLATFORM_R21 && fwDeviceName == QLatin1String("ConBee II"))
         {
-        // TODO temporarily disabled due multiple reports that the update via Phoscon App didn't work. Investigation ongoing.
-#if 0 // temporarily disabled start
             if (fwVersion < GW_MIN_R21_FW_VERSION)
             {
                 gwFirmwareVersionUpdate = QString("0x%1").arg(GW_MIN_R21_FW_VERSION, 8, 16, QLatin1Char('0'));
@@ -529,7 +521,6 @@ void DeRestPluginPrivate::queryFirmwareVersion()
                 return;
             }
             else
-#endif // temporarily disabled end
             {
                 DBG_Printf(DBG_INFO, "GW firmware version is up to date: 0x%08x\n", fwVersion);
                 fwUpdateState = FW_Idle;

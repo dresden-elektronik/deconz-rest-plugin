@@ -28,11 +28,6 @@
 #include <QSettings>
 #include <queue>
 #include <cmath>
-#ifdef ARCH_ARM
-  #include <unistd.h>
-  #include <sys/reboot.h>
-  #include <errno.h>
-#endif
 #include "colorspace.h"
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
@@ -41,6 +36,11 @@
 #include "json.h"
 #include "poll_manager.h"
 #include "rest_devices.h"
+#ifdef ARCH_ARM
+  #include <unistd.h>
+  #include <sys/reboot.h>
+  #include <errno.h>
+#endif
 
 DeRestPluginPrivate *plugin;
 
