@@ -28,12 +28,7 @@
 #include "gateway.h"
 #ifdef Q_OS_LINUX
   #include <unistd.h>
-#ifdef ARCH_ARM
-  #include <sys/reboot.h>
   #include <sys/time.h>
-  #include <signal.h>
-  #include <errno.h>
-#endif
 #endif // Q_OS_LINUX
 
 /*! Constructor. */
@@ -411,7 +406,7 @@ void DeRestPluginPrivate::initNetworkInfo()
 /*! Init WiFi parameters if necessary. */
 void DeRestPluginPrivate::initWiFi()
 {
-#if !defined(ARCH_ARMV6) && !defined (ARCH_ARMV7)
+#if !defined(ARCH_ARM)
     gwWifi = QLatin1String("not-available");
     return;
 #else
@@ -526,7 +521,7 @@ void DeRestPluginPrivate::initWiFi()
     }
 
     queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
-#endif // ARCH_ARMV6, ARCH_ARMV7
+#endif
 }
 
 /*! Handle deCONZ::ApsController::configurationChanged() event.
@@ -959,7 +954,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         // since api version 1.2.1
         map["apiversion"] = QLatin1String(GW_SW_VERSION);
         map["system"] = "other";
-#if defined(ARCH_ARMV6) || defined (ARCH_ARMV7)
+#ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
         map["system"] = "linux-gw";
 #endif
@@ -2821,9 +2816,6 @@ int DeRestPluginPrivate::configureWifi(const ApiRequest &req, ApiResponse &rsp)
 
         updateEtag(gwConfigEtag);
         queSaveDb(DB_CONFIG | DB_SYNC, DB_SHORT_SAVE_DELAY);
-#ifdef ARCH_ARM
-        //kill(gwWifiPID, SIGUSR1);
-#endif
     }
 
     QVariantMap rspItem;

@@ -6,13 +6,6 @@ TARGET = $$qtLibraryTarget($$TARGET)
 
 DEFINES += DECONZ_DLLSPEC=Q_DECL_IMPORT
 
-unix:contains(QMAKE_HOST.arch, armv6l) {
-    DEFINES += ARCH_ARM ARCH_ARMV6
-}
-unix:contains(QMAKE_HOST.arch, armv7l) {
-    DEFINES += ARCH_ARM ARCH_ARMV7
-}
-
 QMAKE_CXXFLAGS += -Wno-attributes \
                   -Wno-psabi \
                   -Wall
