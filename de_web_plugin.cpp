@@ -473,8 +473,8 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
 
     // set some default might be overwritten by database
     gwAnnounceInterval = ANNOUNCE_INTERVAL;
-    gwAnnounceUrl = "http://dresden-light.appspot.com/discover";
-    inetDiscoveryManager = 0;
+    gwAnnounceUrl = "https://phoscon.de/discover";
+    inetDiscoveryManager = nullptr;
 
     webhookManager = new QNetworkAccessManager(this);
     connect(webhookManager, SIGNAL(finished(QNetworkReply*)),
