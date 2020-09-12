@@ -211,10 +211,14 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     case 0x0203: // position reached (more usefull I think)
                     {
                         quint8 lift = (quint8) data;
-                        lightNode->setValue(RStateLift, lift);
                         bool open = lift < 100;
+                        lightNode->setValue(RStateLift, lift);
                         lightNode->setValue(RStateOpen, open);
-                        lightNode->setValue(RStateOn, open);
+                        
+                        quint8 level = lift * 254 / 100;
+                        bool on = level > 0;
+                        lightNode->setValue(RStateBri, level);
+                        lightNode->setValue(RStateOn, on);
                     }
                     break;
                     
