@@ -340,7 +340,7 @@
 #define VENDOR_C2DF         0xC2DF
 #define VENDOR_PHILIO       0xFFA0
 
-#define ANNOUNCE_INTERVAL 10 // minutes default announce interval
+#define ANNOUNCE_INTERVAL 45 // minutes default announce interval
 
 #define MAX_NODES 200
 #define MAX_SENSORS 1000

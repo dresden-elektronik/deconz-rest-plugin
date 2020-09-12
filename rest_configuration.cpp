@@ -375,6 +375,13 @@ void DeRestPluginPrivate::initNetworkInfo()
                     continue;
                 }
 
+                if ((ipv4 & 0xFFFF0000ul) == 0xA9FE0000ul)
+                {
+                    // link local ip
+                    // 169.254.0.0 - 169.254.255.255
+                    continue;
+                }
+
                 QString mac = i->hardwareAddress().toLower();
                 gwMAC = mac;
                 if (gwLANBridgeId) {
