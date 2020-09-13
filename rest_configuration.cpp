@@ -1077,7 +1077,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     }
     else
     {
-        map["gateway"] = "192.168.178.1";
+        map["gateway"] = "0.0.0.0";
     }
 }
 
