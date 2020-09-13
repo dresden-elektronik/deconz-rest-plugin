@@ -3620,10 +3620,11 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
             Event e(RSensors, REventValidGroup, sensor->id());
             enqueueEvent(e);
         }
-        else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM")) || // icasa remote
-                 sensor->modelId().startsWith(QLatin1String("ZGRC-KEY")) ||// Sunricher remote
-                 sensor->modelId().startsWith(QLatin1String("ED-1001")) || // EcoDim switches
-                 sensor->modelId().startsWith(QLatin1String("45127")))     // Namron switches
+        else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM")) ||          // icasa remote
+                 sensor->modelId().startsWith(QLatin1String("ZGRC-KEY")) ||         // Sunricher remote
+                 sensor->modelId().startsWith(QLatin1String("ED-1001")) ||          // EcoDim switches
+                 sensor->modelId().startsWith(QLatin1String("45127")) ||            // Namron switches
+                 sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5001")))   // RGBGenie remote
         {
             if (gids.length() != 5 && sensor->modelId().startsWith(QLatin1String("ZGRC-KEY-012"))) // 5 controller endpoints: 0x01, 0x02, 0x03, 0x04, 0x05
             {
