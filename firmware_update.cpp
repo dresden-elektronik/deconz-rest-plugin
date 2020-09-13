@@ -118,6 +118,8 @@ void DeRestPluginPrivate::updateFirmware()
     updateEtag(gwConfigEtag);
     fwUpdateTimer->start(250);
 
+    DBG_Printf(DBG_INFO, "exec: %s %s\n", qPrintable(bin), qPrintable(fwProcessArgs.join(' ')));
+
     fwProcess->start(bin, fwProcessArgs);
 }
 
@@ -593,10 +595,13 @@ void DeRestPluginPrivate::checkFirmwareDevices()
 #if DECONZ_LIB_VERSION >= 0x010A00
     if (devConnected > 0 && !ttyPath.isEmpty())
     {
-        fwProcessArgs << "-d" << ttyPath << "-t" << "30"; // GCFFlasher >= 3.x
         if (!serialNumber.isEmpty())
         {
             fwProcessArgs << "-s" << serialNumber; // GCFFlasher >= 3.2
+        }
+        else
+        {
+            fwProcessArgs << "-d" << ttyPath; // GCFFlasher >= 3.x
         }
     }
     else
