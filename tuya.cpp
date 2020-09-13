@@ -195,12 +195,12 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         if (data == 0x02) //open
                         {
                             lightNode->setValue(RStateOpen, true);
-                            lightNode->setValue(RStateOn, true);
+                            lightNode->setValue(RStateOn, false);
                         }
                         else if (data == 0x00) //close
                         {
                             lightNode->setValue(RStateOpen, false);
-                            lightNode->setValue(RStateOn, false);
+                            lightNode->setValue(RStateOn, true);
                         }
                         else if (data == 0x01) //stop
                         {
