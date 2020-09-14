@@ -312,11 +312,6 @@ void DeRestPluginPrivate::queryFirmwareVersion()
         return;
     }
 
-    if (gwDeviceName.isEmpty())
-    {
-        gwDeviceName = apsCtrl->getParameter(deCONZ::ParamDeviceName);
-    }
-
     { // check for GCFFlasher binary
         QString gcfFlasherBin = qApp->applicationDirPath() + "/GCFFlasher";
 #ifdef Q_OS_WIN
@@ -466,7 +461,7 @@ void DeRestPluginPrivate::queryFirmwareVersion()
                 {
                     autoUpdate = true;
                 }
-                else if (gwDeviceName == QLatin1String("RaspBee") &&
+                else if (apsCtrl->getParameter(deCONZ::ParamDeviceName) == QLatin1String("RaspBee") &&
                     !gwSdImageVersion.isEmpty() && nodes.empty() && sensors.size() < 2)
                 {
                     autoUpdate = true;

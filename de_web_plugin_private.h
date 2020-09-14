@@ -1645,7 +1645,6 @@ public:
     std::vector<QString> gwUserParameterToDelete;
     deCONZ::Address gwDeviceAddress;
     QString gwSdImageVersion;
-    QString gwDeviceName;
     QDateTime globalLastMotion; // last time any physical PIR has detected motion
     QDateTime zbConfigGood; // timestamp incoming ZCL reports/read attribute responses are received, indication that network is operational
 
