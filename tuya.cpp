@@ -190,7 +190,9 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 
                 switch (dp)
                 {
-                    case 0x0104:
+                    // 0x0407 > starting moving
+                    // 0x0105 > configuration done
+                    case 0x0401:
                     {
                         if (data == 0x02) //open
                         {
@@ -207,7 +209,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                     break;
-                    case 0x0202: // go to position 
+                    case 0x0202: // going to position 
                     case 0x0203: // position reached (more usefull I think)
                     {
                         quint8 lift = (quint8) data;
