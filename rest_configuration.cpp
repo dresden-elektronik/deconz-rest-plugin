@@ -370,6 +370,13 @@ void DeRestPluginPrivate::initNetworkInfo()
                     continue;
                 }
 
+                if ((ipv4 & 0xFFFF0000ul) == 0xA9FE0000ul)
+                {
+                    // link local ip
+                    // 169.254.0.0 - 169.254.255.255
+                    continue;
+                }
+
                 QString mac = i->hardwareAddress().toLower();
                 gwMAC = mac;
                 if (gwLANBridgeId) {
@@ -1065,7 +1072,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     }
     else
     {
-        map["gateway"] = "192.168.178.1";
+        map["gateway"] = "0.0.0.0";
     }
 }
 

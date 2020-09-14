@@ -1151,18 +1151,6 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
             }
         }
     }
-    else if (strcmp(colval[0], "permitjoin") == 0)
-    {
-        if (!val.isEmpty())
-        {
-            uint seconds = val.toUInt(&ok);
-            if (ok && (seconds <= 255))
-            {
-                d->setPermitJoinDuration(seconds);
-                d->gwConfig["permitjoin"] = (double)seconds;
-            }
-        }
-    }
     else if (strcmp(colval[0], "networkopenduration") == 0)
     {
         if (!val.isEmpty())
@@ -4363,7 +4351,6 @@ void DeRestPluginPrivate::saveDb()
     // dump config
     if (saveDatabaseItems & DB_CONFIG)
     {
-        gwConfig["permitjoin"] = (double)gwPermitJoinDuration;
         gwConfig["networkopenduration"] = (double)gwNetworkOpenDuration;
         gwConfig["timeformat"] = gwTimeFormat;
         gwConfig["timezone"] = gwTimezone;
