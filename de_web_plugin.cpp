@@ -2994,12 +2994,6 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         ResourceItem *item = lightNode->item(RAttrModelId);
                         if (item && !str.isEmpty() && str != item->toString())
                         {
-                            
-                            //to test
-                            if (str == QLatin1String("mcdj3aq"))
-                            {
-                                lightNode->addItem(DataTypeUInt8, RStateSat);
-                            }
 
                             if (str == QLatin1String("abb71ca5fe1846f185cfbda554046cce"))
                             {
