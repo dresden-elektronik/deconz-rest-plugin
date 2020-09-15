@@ -1539,6 +1539,7 @@ const Sensor::ButtonMap *Sensor::buttonMap()
             else if (modelid.startsWith(QLatin1String("ZG2833K"))) { m_buttonMap = sunricherMap; }
             else if (modelid.startsWith(QLatin1String("ZG2835"))) { m_buttonMap = sunricherMap; }
             else if (modelid.startsWith(QLatin1String("ZGRC-KEY-013"))) { m_buttonMap = icasaRemoteMap; }
+            else if (modelid.startsWith(QLatin1String("RGBgenie ZB-5001"))) { m_buttonMap = icasaRemoteMap; }
         }
         else if (manufacturer == QLatin1String("RGBgenie"))
         {

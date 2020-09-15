@@ -2935,7 +2935,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(0x08);
     }
     else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM")) ||
-             sensor->modelId().startsWith(QLatin1String("ZGRC-KEY-013")))
+             sensor->modelId().startsWith(QLatin1String("ZGRC-KEY-013")) ||
+             sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5001")))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);
