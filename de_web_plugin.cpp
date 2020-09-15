@@ -251,7 +251,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_HEIMAN, "Door", emberMacPrefix }, // Heiman door/window sensor - newer model
     { VENDOR_HEIMAN, "WarningDevice", emberMacPrefix }, // Heiman siren
     { VENDOR_HEIMAN, "Smoke", jennicMacPrefix }, // Heiman fire sensor - newer model
-    { VENDOR_HEIMAN, "PIRS", jennicMacPrefix }, // Heiman motion sensor - newer model
+    { VENDOR_HEIMAN, "PIRSensor-EM", jennicMacPrefix }, // Heiman motion sensor - newer model
     { VENDOR_HEIMAN, "SKHMP30", jennicMacPrefix }, // GS (Heiman) smart plug
     { VENDOR_HEIMAN, "RC-EM", emberMacPrefix }, // Heiman IAS ACE remote control
     { VENDOR_LUTRON, "LZL4BWHL01", lutronMacPrefix }, // Lutron LZL-4B-WH-L01 Connected Bulb Remote
@@ -337,6 +337,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "GbxAXL2", silabs3MacPrefix }, // Another Tuya Smart TRV Thermostatic Radiator Valve
     { VENDOR_EMBER, "TS0601", silabs7MacPrefix }, // Tuya Smart TRV HY369 Thermostatic Radiator Valve
     { VENDOR_EMBER, "TS0207", silabs3MacPrefix }, // Tuya water leak sensor
+    { VENDOR_NONE, "TS0202", silabs4MacPrefix }, // Tuya presence sensor
     { VENDOR_AURORA, "DoubleSocket50AU", jennicMacPrefix }, // Aurora AOne Double Socket UK
     { VENDOR_COMPUTIME, "SP600", computimeMacPrefix }, // Salus smart plug
     { VENDOR_HANGZHOU_IMAGIC, "1116-S", energyMiMacPrefix }, // iris contact sensor v3
@@ -4546,6 +4547,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("MOSZB-130")) ||        // Develco motion sensor
                              modelId == QLatin1String("4in1-Sensor-ZB3.0") ||         // Immax NEO ZB3.0 4 in 1 sensor E13-A21
                              modelId == QLatin1String("E13-A21") ||                   // Sengled E13-A21 PAR38 bulp with motion sensor
+                             modelId == QLatin1String("TS0202") ||                    // Tuya generic motion sensor
                              modelId == QLatin1String("MS01"))                        // Sonoff SNZB-03
                     {
                         fpPresenceSensor.inClusters.push_back(ci->id());
