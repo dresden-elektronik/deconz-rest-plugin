@@ -2350,6 +2350,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("45127")) ||
         // Plugwise
         sensor->modelId().startsWith(QLatin1String("160-01")) ||
+        // Feibit
+        sensor->modelId().startsWith(QLatin1String("FNB56")) ||
         // Niko
         sensor->modelId() == QLatin1String("Connected socket outlet") ||
         // Sage

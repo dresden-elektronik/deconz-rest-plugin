@@ -118,6 +118,7 @@ struct SupportedDevice {
 };
 
 static const SupportedDevice supportedDevices[] = {
+    { VENDOR_3A_SMART_HOME, "FNB56-GAS", jennicMacPrefix }, // Feibit FNB56-GAS05FB1.4 gas leak detector
     { VENDOR_BUSCH_JAEGER, "RB01", bjeMacPrefix },
     { VENDOR_BUSCH_JAEGER, "RM01", bjeMacPrefix },
     { VENDOR_BOSCH, "ISW-ZDL1-WP11G", boschMacPrefix },
@@ -4552,7 +4553,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("SF2")) ||              // ORVIBO (Heiman) smoke sensor
                              modelId.startsWith(QLatin1String("lumi.sensor_smoke")) || // Xiaomi Mi smoke sensor
                              modelId.startsWith(QLatin1String("TS0204")) ||           // Tuya gas sensor
-                             modelId.startsWith(QLatin1String("MOT003")))             // Hive motion sensor
+                             modelId.startsWith(QLatin1String("MOT003")) ||           // Hive motion sensor
+                             modelId.startsWith(QLatin1String("FNB56-GAS")))          // Feibit gas sensor
                     {
                         // Gas sensor detects combustable gas, so fire is more appropriate than CO.
                         fpFireSensor.inClusters.push_back(ci->id());
