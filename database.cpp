@@ -3348,7 +3348,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     (!sensor.modelId().startsWith(QLatin1String("ROB_200"))) &&
                     (sensor.modelId() != QLatin1String("Plug-230V-ZB3.0")) &&
                     (sensor.modelId() != QLatin1String("lumi.switch.b1naus01")) &&
-                    (sensor.modelId() != QLatin1String("Connected socket outlet")))
+                    (sensor.modelId() != QLatin1String("Connected socket outlet")) &&
+                    (!sensor.modelId().startsWith(QLatin1String("SPW35Z"))))
                 {
                     item = sensor.addItem(DataTypeInt16, RStatePower);
                     item->setValue(0);
