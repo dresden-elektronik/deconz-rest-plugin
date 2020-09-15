@@ -2157,9 +2157,9 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         rsp.list.append(rspItem);
     }
 
-    if (map.contains("gwDisablePJSecurisation")) // optional
+    if (map.contains("DisablePJSecurisation")) // optional
     {
-        bool v = map["gwDisablePJSecurisation"].toBool();
+        bool v = map["DisablePJSecurisation"].toBool();
 
         if (gwWebSocketNotifyAll != v)
         {
@@ -2169,7 +2169,7 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         }
         QVariantMap rspItem;
         QVariantMap rspItemState;
-        rspItemState["/config/gwDisablePJSecurisation"] = v;
+        rspItemState["/config/DisablePJSecurisation"] = v;
         rspItem["success"] = rspItemState;
         rsp.list.append(rspItem);
     }
