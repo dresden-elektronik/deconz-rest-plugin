@@ -1220,7 +1220,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             updated = true;
                         }
                     }
-                    else if (sensor->modelId() == QLatin1String("SLR2") ||            // Hive
+                    else if (sensor->modelId().startsWith(QLatin1String("SLR2")) ||   // Hive
                              sensor->modelId() == QLatin1String("SLR1b") ||           // Hive
                              sensor->modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
                              sensor->modelId().startsWith(QLatin1String("Zen-01")))   // Zen
@@ -1246,7 +1246,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         {
                             attributeList.insert(0x001C, (quint32)mode);
                             //Idk for other device
-                            if ( (sensor->modelId() == QLatin1String("SLR2")) ||
+                            if ( (sensor->modelId().startsWith(QLatin1String("SLR2"))) ||
                                  (sensor->modelId() == QLatin1String("SLR1b")))
                             {
                                 //change automatically the Setpoint Hold
