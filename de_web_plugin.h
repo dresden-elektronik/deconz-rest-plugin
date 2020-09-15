@@ -68,11 +68,12 @@ Q_SIGNALS:
     void nodeUpdated(quint64 extAddress, QString key, QString value);
 
 private:
-    QTimer *m_idleTimer;
-    QTimer *m_readAttributesTimer;
+    QTimer *m_idleTimer = nullptr;
+    QTimer *m_readAttributesTimer = nullptr;
     State m_state;
-    DeRestWidget *m_w;
-    DeRestPluginPrivate *d;
+    friend class DeRestWidget;
+    DeRestWidget *m_w = nullptr;
+    DeRestPluginPrivate *d = nullptr;
 };
 
 #endif // REST_PLUGIN_H

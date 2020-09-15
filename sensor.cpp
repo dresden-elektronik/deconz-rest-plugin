@@ -850,7 +850,7 @@ static const Sensor::ButtonMap LDSRemoteMap[] = {
     { Sensor::ModeScenes,           0x01, 0x0300, 0x0a,  0x1D,    S_BUTTON_3 + S_BUTTON_ACTION_SHORT_RELEASED, "Temperature short" },
     { Sensor::ModeScenes,           0x01, 0x0300, 0x4B,  0x00,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD,           "Temperature Long press" },
     { Sensor::ModeScenes,           0x01, 0x0300, 0x4B,  0x01,    S_BUTTON_3 + S_BUTTON_ACTION_HOLD,           "Temperature Long press 2" },
-    
+
     //Button4
     { Sensor::ModeScenes,           0x01, 0x0008, 0x04,  0xFE,    S_BUTTON_4 + S_BUTTON_ACTION_SHORT_RELEASED, "Button 4" },
 
@@ -904,6 +904,18 @@ static const Sensor::ButtonMap sonoffOnOffMap[] = {
 //    mode                          ep    cluster cmd   param button                                       name
     { Sensor::ModeScenes,           0x01, 0x0006, 0x01, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
     { Sensor::ModeScenes,           0x01, 0x0006, 0x00, 0,    S_BUTTON_2 + S_BUTTON_ACTION_SHORT_RELEASED, "Off" },
+    // end
+    { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
+};
+
+static const Sensor::ButtonMap linkind1keyMap[] = {
+//    mode                          ep    cluster cmd   param button                                       name
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x01, 0,    S_BUTTON_1 + S_BUTTON_ACTION_SHORT_RELEASED, "On" },
+    { Sensor::ModeScenes,           0x01, 0x0006, 0x00, 0,    S_BUTTON_2 + S_BUTTON_ACTION_DOUBLE_PRESS, "Off" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 0,    S_BUTTON_1 + S_BUTTON_ACTION_HOLD, "Move up" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 0,    S_BUTTON_1 + S_BUTTON_ACTION_LONG_RELEASED, "Stop" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x01, 1,    S_BUTTON_2 + S_BUTTON_ACTION_HOLD, "Move down" },
+    { Sensor::ModeScenes,           0x01, 0x0008, 0x03, 0,    S_BUTTON_2 + S_BUTTON_ACTION_LONG_RELEASED, "Stop" },
     // end
     { Sensor::ModeNone,             0x00, 0x0000, 0x00, 0,    0,                                           nullptr }
 };
@@ -1527,6 +1539,7 @@ const Sensor::ButtonMap *Sensor::buttonMap()
             else if (modelid.startsWith(QLatin1String("ZG2833K"))) { m_buttonMap = sunricherMap; }
             else if (modelid.startsWith(QLatin1String("ZG2835"))) { m_buttonMap = sunricherMap; }
             else if (modelid.startsWith(QLatin1String("ZGRC-KEY-013"))) { m_buttonMap = icasaRemoteMap; }
+            else if (modelid.startsWith(QLatin1String("RGBgenie ZB-5001"))) { m_buttonMap = icasaRemoteMap; }
         }
         else if (manufacturer == QLatin1String("RGBgenie"))
         {
@@ -1559,7 +1572,7 @@ const Sensor::ButtonMap *Sensor::buttonMap()
         }
         else if (manufacturer == QLatin1String("lk"))
         {
-            if (modelid == QLatin1String("ZBT-DIMSwitch")) { m_buttonMap = ikeaOnOffMap; }
+            if (modelid == QLatin1String("ZBT-DIMSwitch-D0001")) { m_buttonMap = linkind1keyMap; }
         }
         else if (manufacturer == QLatin1String("eWeLink"))
         {

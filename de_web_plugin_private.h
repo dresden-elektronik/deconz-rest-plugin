@@ -38,6 +38,11 @@
 #include <math.h>
 #include "websocket_server.h"
 
+#if defined(Q_OS_LINUX) && !defined(Q_PROCESSOR_X86)
+  // Workaround to detect ARM and AARCH64 in older Qt versions.
+  #define ARCH_ARM
+#endif
+
 /*! JSON generic error message codes */
 #define ERR_UNAUTHORIZED_USER          1
 #define ERR_INVALID_JSON               2
@@ -182,6 +187,7 @@
 #define WINDOW_COVERING_CLUSTER_ID            0x0102
 #define THERMOSTAT_CLUSTER_ID                 0x0201
 #define FAN_CONTROL_CLUSTER_ID                0x0202
+#define THERMOSTAT_UI_CONFIGURATION_CLUSTER_ID 0x0204
 #define COLOR_CLUSTER_ID                      0x0300
 #define ILLUMINANCE_MEASUREMENT_CLUSTER_ID    0x0400
 #define ILLUMINANCE_LEVEL_SENSING_CLUSTER_ID  0x0401
@@ -195,6 +201,7 @@
 #define METERING_CLUSTER_ID                   0x0702
 #define APPLIANCE_EVENTS_AND_ALERTS_CLUSTER_ID 0x0B02
 #define ELECTRICAL_MEASUREMENT_CLUSTER_ID     0x0B04
+#define DIAGNOSTICS_CLUSTER_ID                0x0B05
 #define COMMISSIONING_CLUSTER_ID              0x1000
 #define TUYA_CLUSTER_ID                       0xEF00
 #define DE_CLUSTER_ID                         0xFC00
@@ -338,7 +345,7 @@
 #define VENDOR_C2DF         0xC2DF
 #define VENDOR_PHILIO       0xFFA0
 
-#define ANNOUNCE_INTERVAL 10 // minutes default announce interval
+#define ANNOUNCE_INTERVAL 45 // minutes default announce interval
 
 #define MAX_NODES 200
 #define MAX_SENSORS 1000
@@ -481,6 +488,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == emberMacPrefix ||
                    prefix == silabs3MacPrefix ||
                    prefix == silabs6MacPrefix;
+        case VENDOR_3A_SMART_HOME:
+            return prefix == jennicMacPrefix;
         case VENDOR_ALERTME:
             return prefix == tiMacPrefix ||
                    prefix == computimeMacPrefix;
@@ -1061,6 +1070,7 @@ public:
     int deleteSensor(const ApiRequest &req, ApiResponse &rsp);
     int changeSensorConfig(const ApiRequest &req, ApiResponse &rsp);
     int changeSensorState(const ApiRequest &req, ApiResponse &rsp);
+    int changeThermostatSchedule(const ApiRequest &req, ApiResponse &rsp);
     int createSensor(const ApiRequest &req, ApiResponse &rsp);
     int getGroupIdentifiers(const ApiRequest &req, ApiResponse &rsp);
     int recoverSensor(const ApiRequest &req, ApiResponse &rsp);
@@ -1207,6 +1217,13 @@ public Q_SLOTS:
     void pushSensorInfoToCore(Sensor *sensor);
     void pollNextDevice();
 
+    // database
+#if DECONZ_LIB_VERSION >= 0x010E00
+    void storeSourceRoute(const deCONZ::SourceRoute &sourceRoute);
+    void deleteSourceRoute(const QString &uuid);
+    void restoreSourceRoutes();
+#endif
+
     // touchlink
     void touchlinkDisconnectNetwork();
     void checkTouchlinkNetworkDisconnected();
@@ -1317,6 +1334,7 @@ public:
     void updateSensorNode(const deCONZ::NodeEvent &event);
     void updateSensorLightLevel(Sensor &sensor, quint16 measuredValue);
     bool isDeviceSupported(const deCONZ::Node *node, const QString &modelId);
+    Sensor *getSensorNodeForAddressAndEndpoint(const deCONZ::Address &addr, quint8 ep, const QString &type);
     Sensor *getSensorNodeForAddressAndEndpoint(const deCONZ::Address &addr, quint8 ep);
     Sensor *getSensorNodeForAddress(quint64 extAddr);
     Sensor *getSensorNodeForAddress(const deCONZ::Address &addr);
@@ -1398,12 +1416,15 @@ public:
     bool addTaskWindowCoveringSetAttr(TaskItem &task, uint16_t mfrCode, uint16_t attrId, uint8_t attrType, uint16_t attrValue);
     bool addTaskWindowCoveringCalibrate(TaskItem &task, int WindowCoveringType);
     bool addTaskUbisysConfigureSwitch(TaskItem &taskRef);
-    bool addTaskThermostatCmd(TaskItem &task, uint16_t mfrCode, uint8_t cmd, int16_t setpoint, const QString &schedule, uint8_t daysToReturn);
-    bool addTaskThermostatSetAndGetSchedule(TaskItem &task, const QString &sched);
+    bool addTaskThermostatCmd(TaskItem &task, uint16_t mfrCode, uint8_t cmd, int16_t setpoint, uint8_t daysToReturn);
+    bool addTaskThermostatGetSchedule(TaskItem &task);
+    bool addTaskThermostatSetWeeklySchedule(TaskItem &task, quint8 weekdays, const QString &transitions);
+    void updateThermostatSchedule(Sensor *sensor, quint8 newWeekdays, QString &transitions);
     bool addTaskThermostatReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t mfrCode, uint16_t attrId, uint8_t attrType, uint32_t attrValue);
     bool addTaskThermostatWriteAttributeList(TaskItem &task, uint16_t mfrCode, QMap<quint16, quint32> &AttributeList );
     bool addTaskControlModeCmd(TaskItem &task, uint8_t cmdId, int8_t mode);
     bool addTaskSyncTime(Sensor *sensor);
+    bool addTaskThermostatUiConfigurationReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t attrId, uint8_t attrType, uint32_t attrValue, uint16_t mfrCode=0);
 
     void handleGroupClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleSceneClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
@@ -1430,7 +1451,9 @@ public:
     // Danalock support
     void handleDoorLockClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleThermostatClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleThermostatUiConfigurationClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleTimeClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleDiagnosticsClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendTimeClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleBasicClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendBasicClusterResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
@@ -1472,6 +1495,7 @@ public:
     bool upgradeDbToUserVersion1();
     bool upgradeDbToUserVersion2();
     bool upgradeDbToUserVersion6();
+    bool upgradeDbToUserVersion7();
     void refreshDeviceDb(const deCONZ::Address &addr);
     void pushZdpDescriptorDb(quint64 extAddress, quint8 endpoint, quint16 type, const QByteArray &data);
     void pushZclValueDb(quint64 extAddress, quint8 endpoint, quint16 clusterId, quint16 attributeId, qint64 data);
@@ -1623,7 +1647,6 @@ public:
     std::vector<QString> gwUserParameterToDelete;
     deCONZ::Address gwDeviceAddress;
     QString gwSdImageVersion;
-    QString gwDeviceName;
     QDateTime globalLastMotion; // last time any physical PIR has detected motion
     QDateTime zbConfigGood; // timestamp incoming ZCL reports/read attribute responses are received, indication that network is operational
 
@@ -1659,8 +1682,24 @@ public:
     QStringList fwProcessArgs;
     QString fwDeviceName;
 
-    std::deque<RestNodeBase*> pollNodes;
-    PollManager *pollManager;
+    // Helper to reference nodes in containers.
+    // This is needed since the pointer might change due container resize / item removal.
+    struct PollNodeItem
+    {
+        PollNodeItem(const QString &_uuid, const char *rt) :
+        uuid(_uuid),
+        resourceType(rt)
+        { }
+        bool operator==(const PollNodeItem &other) const
+        {
+            return resourceType == other.resourceType && uuid == other.uuid;
+        }
+        const QString uuid;
+        const char* resourceType = nullptr; // back ref to the container RLights, RSensors
+    };
+
+    std::deque<PollNodeItem> pollNodes;
+    PollManager *pollManager = nullptr;
 
     // upnp
     QByteArray descriptionXml;
