@@ -15,6 +15,9 @@
 #include <QDir>
 #include <QString>
 #include <QProcess>
+#ifdef Q_OS_LINUX
+#include <unistd.h>
+#endif
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 
@@ -38,16 +41,6 @@ void DeRestPluginPrivate::initFirmwareUpdate()
     fwUpdateTimer->setSingleShot(true);
     connect(fwUpdateTimer, SIGNAL(timeout()),
             this, SLOT(firmwareUpdateTimerFired()));
-
-
-#if defined(Q_OS_LINUX) && !defined(ARCH_ARM)
-    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    if (!env.contains(QLatin1String("DISPLAY")))
-    {
-        DBG_Printf(DBG_INFO, "GW firmware update not supported on x86 linux headless\n");
-        return;
-    }
-#endif
 
     fwUpdateTimer->start(5000);
 }
@@ -84,8 +77,9 @@ void DeRestPluginPrivate::updateFirmware()
 #ifdef Q_OS_WIN
     gcfFlasherBin.append(".exe");
     bin = gcfFlasherBin;
-#elif defined(Q_OS_LINUX) && !defined(ARCH_ARM) // on x86 linux
-    if (!needSudo)
+#elif defined(Q_OS_LINUX) && !defined(ARCH_ARM) // on desktop linux
+
+    if (!needSudo || geteuid() == 0)
     {
         bin = QLatin1String("/usr/bin/GCFFlasher_internal.bin");
     }
@@ -100,12 +94,12 @@ void DeRestPluginPrivate::updateFirmware()
     // /usr/bin/osascript -e 'do shell script "make install" with administrator privileges'
     bin = "sudo";
     fwProcessArgs.prepend(gcfFlasherBin);
-#else // on RPi a normal sudo is ok since we don't need password there
-    if (!needSudo)
+#else
+    if (!needSudo || geteuid() == 0)
     {
         bin = QLatin1String("/usr/bin/GCFFlasher_internal.bin");
     }
-    else
+    else  // on ARM or Raspbian assume we don't need password (todo find a better solution)
     {
         bin = QLatin1String("sudo");
         gcfFlasherBin = QLatin1String("/usr/bin/GCFFlasher_internal");
@@ -123,6 +117,8 @@ void DeRestPluginPrivate::updateFirmware()
     fwUpdateState = FW_UpdateWaitFinished;
     updateEtag(gwConfigEtag);
     fwUpdateTimer->start(250);
+
+    DBG_Printf(DBG_INFO, "exec: %s %s\n", qPrintable(bin), qPrintable(fwProcessArgs.join(' ')));
 
     fwProcess->start(bin, fwProcessArgs);
 }
@@ -316,11 +312,6 @@ void DeRestPluginPrivate::queryFirmwareVersion()
         return;
     }
 
-    if (gwDeviceName.isEmpty())
-    {
-        gwDeviceName = apsCtrl->getParameter(deCONZ::ParamDeviceName);
-    }
-
     { // check for GCFFlasher binary
         QString gcfFlasherBin = qApp->applicationDirPath() + "/GCFFlasher";
 #ifdef Q_OS_WIN
@@ -470,7 +461,7 @@ void DeRestPluginPrivate::queryFirmwareVersion()
                 {
                     autoUpdate = true;
                 }
-                else if (gwDeviceName == QLatin1String("RaspBee") &&
+                else if (apsCtrl->getParameter(deCONZ::ParamDeviceName) == QLatin1String("RaspBee") &&
                     !gwSdImageVersion.isEmpty() && nodes.empty() && sensors.size() < 2)
                 {
                     autoUpdate = true;
@@ -599,10 +590,13 @@ void DeRestPluginPrivate::checkFirmwareDevices()
 #if DECONZ_LIB_VERSION >= 0x010A00
     if (devConnected > 0 && !ttyPath.isEmpty())
     {
-        fwProcessArgs << "-d" << ttyPath << "-t" << "30"; // GCFFlasher >= 3.x
         if (!serialNumber.isEmpty())
         {
             fwProcessArgs << "-s" << serialNumber; // GCFFlasher >= 3.2
+        }
+        else
+        {
+            fwProcessArgs << "-d" << ttyPath; // GCFFlasher >= 3.x
         }
     }
     else

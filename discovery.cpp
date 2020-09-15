@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2020 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -34,7 +34,7 @@ void DeRestPluginPrivate::initInternetDicovery()
     DBG_Assert(gwAnnounceInterval >= 0);
     if (gwAnnounceInterval < 0)
     {
-        gwAnnounceInterval = 15;
+        gwAnnounceInterval = ANNOUNCE_INTERVAL;
     }
 
     gwAnnounceVital = 0;
@@ -236,16 +236,7 @@ void DeRestPluginPrivate::internetDiscoveryFinishedRequest(QNetworkReply *reply)
         gwAnnounceVital++;
         DBG_Printf(DBG_INFO, "Announced to internet %s\n", qPrintable(gwAnnounceUrl));
         internetDiscoveryExtractGeo(reply);
-#ifdef ARCH_ARM
-        // currently this is only supported for the RaspBee Gateway
         internetDiscoveryExtractVersionInfo(reply);
-#else
-        if (gwSwUpdateState != swUpdateState.noUpdate)
-        {
-            gwSwUpdateState = swUpdateState.noUpdate;
-            queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
-        }
-#endif // ARCH_ARM
     }
     else
     {
@@ -293,6 +284,7 @@ void DeRestPluginPrivate::internetDiscoveryExtractVersionInfo(QNetworkReply *rep
         DBG_Printf(DBG_ERROR, "discovery couldn't extract version info from reply\n");
     }
 
+#ifdef ARCH_ARM
     if (reply->hasRawHeader("date") || reply->hasRawHeader("Date"))
     {
         // if NTP is not working (UDP blocked, proxies, etc)
@@ -336,7 +328,6 @@ void DeRestPluginPrivate::internetDiscoveryExtractVersionInfo(QNetworkReply *rep
                      gwConfig["ntp"].toString() != QLatin1String("synced"))
             {
                 DBG_Printf(DBG_INFO, "\t = %s, diff %d\n", qPrintable(dt.toString()), diff);
-#ifdef ARCH_ARM
                 // lazy adjustment of process time
                 //time_t t = dt.toSecsSinceEpoch(); // Qt 5.8
                 time_t t = dt.toTime_t();
@@ -351,11 +342,12 @@ void DeRestPluginPrivate::internetDiscoveryExtractVersionInfo(QNetworkReply *rep
                         DBG_Printf(DBG_ERROR, "settimeofday(): errno %d\n", errno);
                     }
                 }
-#endif // ARCH_ARM
             }
         }
     }
+#endif // ARCH_ARM
 
+#ifdef ARCH_ARM
     if (map.contains("versions") && (map["versions"].type() == QVariant::Map))
     {
         QString version;
@@ -389,6 +381,7 @@ void DeRestPluginPrivate::internetDiscoveryExtractVersionInfo(QNetworkReply *rep
     {
         DBG_Printf(DBG_ERROR, "discovery reply doesn't contain valid version info\n");
     }
+#endif // ARCH_ARM
 
     if (map.contains("interval") && (map["interval"].type() == QVariant::Double))
     {

@@ -233,6 +233,14 @@ void DeRestPluginPrivate::permitJoinTimerFired()
         return;
     }
 
+    auto ctrlPermitJoin = apsCtrl->getParameter(deCONZ::ParamPermitJoin);
+    if (ctrlPermitJoin > 0 && gwPermitJoinDuration == 0)
+    {
+        // workaround since the firmware reports cached value instead hot value
+        apsCtrl->setPermitJoin(gwPermitJoinDuration);
+        permitJoinLastSendTime = {}; // force broadcast
+    }
+
 //    if (gwPermitJoinDuration == 0 && otauLastBusyTimeDelta() < (60 * 5))
 //    {
 //        // don't pollute channel while OTA is running

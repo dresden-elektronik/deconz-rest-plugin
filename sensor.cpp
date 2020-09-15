@@ -633,6 +633,7 @@ const std::vector<Sensor::ButtonMap> Sensor::buttonMap(const QMap<QString, std::
         else if (manufacturer == QLatin1String("RGBgenie"))
         {
             if (modelid.startsWith(QLatin1String("RGBgenie ZB-5121"))) { m_buttonMap = buttonMapData.value("rgbgenie5121Map"); }
+            else if (modelid.startsWith(QLatin1String("RGBgenie ZB-5001"))) { m_buttonMap = buttonMapData.value("icasaRemoteMap"); }
         }
         else if (manufacturer == QLatin1String("Bitron Home"))
         {
@@ -661,7 +662,7 @@ const std::vector<Sensor::ButtonMap> Sensor::buttonMap(const QMap<QString, std::
         }
         else if (manufacturer == QLatin1String("lk"))
         {
-            if (modelid == QLatin1String("ZBT-DIMSwitch")) { m_buttonMap = buttonMapData.value("ikeaOnOffMap"); }
+            if (modelid == QLatin1String("ZBT-DIMSwitch-D0001")) { m_buttonMap = buttonMapData.value("linkind1keyMap"); }
         }
         else if (manufacturer == QLatin1String("eWeLink"))
         {
