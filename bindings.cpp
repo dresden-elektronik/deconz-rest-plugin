@@ -2600,6 +2600,22 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         {
             val = sensor->getZclValue(*i, 0x0000); // Local temperature
         }
+        else if (*i == THERMOSTAT_UI_CONFIGURATION_CLUSTER_ID)
+        {
+            val = sensor->getZclValue(*i, 0x0001); // Keypad lockout
+        }
+        else if (*i == DIAGNOSTICS_CLUSTER_ID)
+        {
+            if (sensor->modelId() == QLatin1String("eTRV0100") || // Danfoss Ally
+                sensor->modelId() == QLatin1String("TRV001"))     // Hive TRV
+            {
+                val = sensor->getZclValue(*i, 0x4000); // SW error code
+            }
+            else
+            {
+                continue;
+            }
+        }
         else if (*i == SAMJIN_CLUSTER_ID)
         {
             val = sensor->getZclValue(*i, 0x0012); // Acceleration X

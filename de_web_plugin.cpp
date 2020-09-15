@@ -3930,7 +3930,8 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     ok = true;
                 }
                 if (buttonMap->zclParam0 != sensor->previousDirection && // direction of previous move/step
-                    sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5121"))) // Device sends cmd = 7 + param = 0 for dim up/down
+                    (sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5121")) || // Device sends cmd = 7 + param = 0 for dim up/down
+                    sensor->modelId().startsWith(QLatin1String("ZBT-DIMSwitch-D0001"))))
                 {
                     sensor->previousDirection = 0xFF;
                     ok = true;
@@ -5448,7 +5449,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             sensorNode.addItem(DataTypeBool, RStateLowBattery);
             // don't set value -> null until reported
         }
-        else if (sensorNode.modelId() == QLatin1String("lumi.sensor_natgas"))
+        else if (sensorNode.modelId() == QLatin1String("lumi.sensor_natgas") ||
+                 sensorNode.modelId() == QLatin1String("Bell"))
         {
             // Don't expose battery resource item for this device
         }

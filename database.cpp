@@ -3663,7 +3663,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 item = sensor.addItem(DataTypeBool, RStateLowBattery);
                 // don't set value -> null until reported
             }
-            else if (sensor.modelId() == QLatin1String("lumi.sensor_natgas"))
+            else if (sensor.modelId() == QLatin1String("lumi.sensor_natgas") ||
+                     sensor.modelId() == QLatin1String("Bell"))
             {
                 // Don't expose battery resource item for this device
             }
