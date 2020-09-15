@@ -1518,6 +1518,15 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
           d->gwWebSocketNotifyAll = notifyAll;
       }
     }
+    else if (strcmp(colval[0], "DisablePJSecurisation") == 0)
+    {
+      if (!val.isEmpty())
+      {
+          bool v = val == "true";
+          d->gwConfig["DisablePJSecurisation"] = v;
+          d->gwDisablePJSecurisation = v;
+      }
+    }
     else if (strcmp(colval[0], "proxyaddress") == 0)
     {
       if (!val.isEmpty())
@@ -4394,6 +4403,7 @@ void DeRestPluginPrivate::saveDb()
         gwConfig["wifilastupdated"] = gwWifiLastUpdated;
         gwConfig["bridgeid"] = gwBridgeId;
         gwConfig["websocketnotifyall"] = gwWebSocketNotifyAll;
+        gwConfig["DisablePJsecurisation"] = gwDisablePJSecurisation;
         gwConfig["proxyaddress"] = gwProxyAddress;
         gwConfig["proxyport"] = gwProxyPort;
         gwConfig["zclvaluemaxage"] = dbZclValueMaxAge;

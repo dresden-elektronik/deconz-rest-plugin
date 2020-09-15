@@ -451,6 +451,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     groupDeviceMembershipChecked = false;
     gwLinkButton = false;
     gwWebSocketNotifyAll = true;
+    gwDisablePJSecurisation = false;
 
     // preallocate memory to get consistent pointers
     nodes.reserve(300);
