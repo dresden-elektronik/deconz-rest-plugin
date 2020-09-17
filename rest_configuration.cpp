@@ -3680,11 +3680,15 @@ size_t DeRestPluginPrivate::calcDaylightOffsets(Sensor *daylightSensor, size_t i
         if (mode->toString() == QLatin1String("sunrise"))
         {
             tref = sunrise->toNumber() + offset->toNumber() * 60 * 1000;
-
         }
         else if (mode->toString() == QLatin1String("sunset"))
         {
             tref = sunset->toNumber() + offset->toNumber() * 60 * 1000;
+        }
+        else if (mode->toString() == QLatin1String("fix"))
+        {
+            auto dt = QDateTime::fromString(localTime->toString(), QLatin1String("yyyy-MM-ddTHH:mm:ss"));
+            tref = dt.toMSecsSinceEpoch();
         }
 
         if (tref != localTime->toNumber())
