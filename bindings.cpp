@@ -1331,6 +1331,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                             sensor->modelId() == QLatin1String("Zen-01") ||
                             sensor->modelId() == QLatin1String("Bell") ||
                             sensor->modelId() == QLatin1String("SLT2") ||
+                            sensor->modelId() == QLatin1String("TS0202") || // Tuya sensor
+                            sensor->modelId() == QLatin1String("3AFE14010402000D") || // Konke presence sensor
                             sensor->modelId().startsWith(QLatin1String("3315"))))
         {
             rq.attributeId = 0x0020;   // battery voltage
@@ -2502,6 +2504,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                      sensor->modelId() == QLatin1String("Shutters central remote switch") ||
                      sensor->modelId() == QLatin1String("Double gangs remote switch") ||
                      sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||
+                     sensor->modelId().startsWith(QLatin1String("3AFE14010402000D")) || //konke presence sensor
+                     sensor->modelId().startsWith(QLatin1String("TS0202")) || //Tuya presence sensor
                      sensor->modelId().endsWith(QLatin1String("86opcn01")) || // Aqara Opple
                      sensor->modelId().startsWith(QLatin1String("1116-S")) ||
                      sensor->modelId().startsWith(QLatin1String("1117-S")) ||
