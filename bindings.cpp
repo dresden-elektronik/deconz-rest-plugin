@@ -2314,6 +2314,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // iris
         sensor->modelId().startsWith(QLatin1String("1116-S")) ||
         sensor->modelId().startsWith(QLatin1String("1117-S")) ||
+        // ELKO
+        sensor->modelId().startsWith(QLatin1String("Super TR")) ||
+        sensor->modelId().startsWith(QLatin1String("ElkoDimmer")) ||
         // Hive
         sensor->modelId() == QLatin1String("MOT003") ||
         sensor->modelId() == QLatin1String("DWS003") ||
@@ -2773,7 +2776,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     std::vector<quint16> clusters;
 
     if (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
-        sensor->modelId().startsWith(QLatin1String("ROM00"))) // Hue smart button
+        sensor->modelId().startsWith(QLatin1String("ROM00")) || // Hue smart button
+        sensor->modelId().startsWith(QLatin1String("ElkoDimmer"))) // Elko dimmer
 
     {
         srcEndpoints.push_back(0x01);
@@ -3169,6 +3173,7 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
         sensor->modelId().startsWith(QLatin1String("Bell")) || // Sage doorbell sensor
         sensor->modelId().startsWith(QLatin1String("ZBT-CCTSwitch-D0001")) || //LDS Remote
         sensor->modelId().startsWith(QLatin1String("ZBT-DIMSwitch")) || // Linkind 1 key Remote Control / ZS23000178
+        sensor->modelId().startsWith(QLatin1String("ElkoDimmer")) || // Elko dimmer
         sensor->modelId().startsWith(QLatin1String("WB01")) || // Sonoff SNZB-01
         sensor->modelId().startsWith(QLatin1String("ZG2835")) || // SR-ZG2835 Zigbee Rotary Switch
         sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5121"))) // RGBgenie ZB-5121 remote
