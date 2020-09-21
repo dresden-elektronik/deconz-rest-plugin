@@ -670,7 +670,7 @@ const std::vector<Sensor::ButtonMap> Sensor::buttonMap(const QMap<QString, std::
         }
         else if (manufacturer == QLatin1String("_TZ3000_bi6lpsew")) // can't use model id but manufacture name is device specific
         {
-            m_buttonMap = Tuya3gangMap;
+            m_buttonMap = buttonMapData.value("Tuya3gangMap");
         }
     }
 
