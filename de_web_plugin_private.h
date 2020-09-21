@@ -39,6 +39,11 @@
 #include "websocket_server.h"
 #include "tuya.h"
 
+#if defined(Q_OS_LINUX) && !defined(Q_PROCESSOR_X86)
+  // Workaround to detect ARM and AARCH64 in older Qt versions.
+  #define ARCH_ARM
+#endif
+
 /*! JSON generic error message codes */
 #define ERR_UNAUTHORIZED_USER          1
 #define ERR_INVALID_JSON               2
@@ -341,7 +346,7 @@
 #define VENDOR_C2DF         0xC2DF
 #define VENDOR_PHILIO       0xFFA0
 
-#define ANNOUNCE_INTERVAL 10 // minutes default announce interval
+#define ANNOUNCE_INTERVAL 45 // minutes default announce interval
 
 #define MAX_NODES 200
 #define MAX_SENSORS 1000
@@ -484,6 +489,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == emberMacPrefix ||
                    prefix == silabs3MacPrefix ||
                    prefix == silabs6MacPrefix;
+        case VENDOR_3A_SMART_HOME:
+            return prefix == jennicMacPrefix;
         case VENDOR_ALERTME:
             return prefix == tiMacPrefix ||
                    prefix == computimeMacPrefix;
@@ -1538,6 +1545,11 @@ public:
     QTimer *databaseTimer;
     QString emptyString;
 
+    // JSON support
+    QMap<QString, std::vector<Sensor::ButtonMap>> buttonMapData;
+    QMap<QString, quint16> btnMapClusters;
+    QMap<QString, QMap<QString, quint16>> btnMapClusterCommands;
+
     // gateways
     std::vector<Gateway*> gateways;
     GatewayScanner *gwScanner;
@@ -1643,7 +1655,6 @@ public:
     std::vector<QString> gwUserParameterToDelete;
     deCONZ::Address gwDeviceAddress;
     QString gwSdImageVersion;
-    QString gwDeviceName;
     QDateTime globalLastMotion; // last time any physical PIR has detected motion
     QDateTime zbConfigGood; // timestamp incoming ZCL reports/read attribute responses are received, indication that network is operational
 

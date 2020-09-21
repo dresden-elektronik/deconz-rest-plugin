@@ -1801,6 +1801,32 @@ Note: It does not clear or delete previous weekly schedule programming configura
 			<attribute id="0x404E" name="Unknown" type="bmp8" access="rw" required="m" mfcode="0x1246"></attribute>
 		</attribute-set>
 
+		<!-- ELKO manufacturer specific -->
+		<attribute-set id="0x4000" description="ELKO specific" mfcode="0x1002">
+			<attribute id="0x4001" name="Unknown" type="u16" access="rw" required="m" mfcode="0x1002"></attribute>
+			<attribute id="0x4002" name="Unknown name field" type="cstring" access="rw" required="m" mfcode="0x1002"></attribute>
+            <attribute id="0x4003" name="Unknown" type="enum8" access="rw" required="m" mfcode="0x1002">
+				<value name="Air sensor" value="0x00"></value>
+				<value name="Floor sensor" value="0x01"></value>
+				<value name="Floor protection" value="0x03"></value>
+			</attribute>
+			<attribute id="0x4004" name="Unknown" type="u8" access="rw" required="m" mfcode="0x1002"></attribute>
+			<attribute id="0x4005" name="Regulator mode" type="bool" access="rw" required="m" mfcode="0x1002"></attribute>
+			<attribute id="0x4006" name="Device on" type="bool" access="rw" required="m" mfcode="0x1002"></attribute>
+			<attribute id="0x4007" name="Unknown" type="ostring" access="rw" required="m" mfcode="0x1002"></attribute>
+			<attribute id="0x4008" name="Unknown" type="u16" access="rw" required="m" mfcode="0x1002"></attribute>
+			<attribute id="0x4009" name="Floor temperature sensor" type="s16" access="rw" required="m" mfcode="0x1002"></attribute>
+			<attribute id="0x4011" name="Night lowering" type="bool" access="rw" required="m" mfcode="0x1002"></attribute>
+			<attribute id="0x4012" name="Unknown" type="bool" access="r" required="m" mfcode="0x1002"></attribute>
+			<attribute id="0x4013" name="Child lock" type="bool" access="rw" required="m" mfcode="0x1002"></attribute>
+			<attribute id="0x4014" name="Unknown" type="u8" access="rw" required="m" mfcode="0x1002"></attribute>
+			<attribute id="0x4015" name="Heating active/inactive" type="bool" access="rw" required="m" mfcode="0x1002"></attribute>
+			<attribute id="0x4016" name="Unknown" type="ostring" access="rw" required="m" mfcode="0x1002"></attribute>
+			<attribute id="0x4017" name="Unknown" type="s8" access="rw" required="m" mfcode="0x1002"></attribute>
+			<attribute id="0x4018" name="Unknown" type="u8" access="rw" required="m" mfcode="0x1002"></attribute>
+			<attribute id="0x4019" name="Unknown" type="u8" access="rw" required="m" mfcode="0x1002"></attribute>
+		</attribute-set>
+
 				<command id="0x00" dir="recv" name="Setpoint Raise/Lower" required="m">
 					<description>This command increases (or decreases) the setpoint(s) by amount, in steps of 0.1°C.</description>
 					<payload>

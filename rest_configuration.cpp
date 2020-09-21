@@ -28,12 +28,7 @@
 #include "gateway.h"
 #ifdef Q_OS_LINUX
   #include <unistd.h>
-#ifdef ARCH_ARM
-  #include <sys/reboot.h>
   #include <sys/time.h>
-  #include <signal.h>
-  #include <errno.h>
-#endif
 #endif // Q_OS_LINUX
 
 /*! Constructor. */
@@ -375,6 +370,13 @@ void DeRestPluginPrivate::initNetworkInfo()
                     continue;
                 }
 
+                if ((ipv4 & 0xFFFF0000ul) == 0xA9FE0000ul)
+                {
+                    // link local ip
+                    // 169.254.0.0 - 169.254.255.255
+                    continue;
+                }
+
                 QString mac = i->hardwareAddress().toLower();
                 gwMAC = mac;
                 if (gwLANBridgeId) {
@@ -411,7 +413,7 @@ void DeRestPluginPrivate::initNetworkInfo()
 /*! Init WiFi parameters if necessary. */
 void DeRestPluginPrivate::initWiFi()
 {
-#if !defined(ARCH_ARMV6) && !defined (ARCH_ARMV7)
+#if !defined(ARCH_ARM)
     gwWifi = QLatin1String("not-available");
     return;
 #else
@@ -526,7 +528,7 @@ void DeRestPluginPrivate::initWiFi()
     }
 
     queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
-#endif // ARCH_ARMV6, ARCH_ARMV7
+#endif
 }
 
 /*! Handle deCONZ::ApsController::configurationChanged() event.
@@ -959,7 +961,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
         // since api version 1.2.1
         map["apiversion"] = QLatin1String(GW_SW_VERSION);
         map["system"] = "other";
-#if defined(ARCH_ARMV6) || defined (ARCH_ARMV7)
+#ifdef ARCH_ARM
 #ifdef Q_OS_LINUX
         map["system"] = "linux-gw";
 #endif
@@ -1070,7 +1072,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     }
     else
     {
-        map["gateway"] = "192.168.178.1";
+        map["gateway"] = "0.0.0.0";
     }
 }
 
@@ -1091,14 +1093,9 @@ void DeRestPluginPrivate::basicConfigToMap(QVariantMap &map)
     map["modelid"] = QLatin1String("deCONZ");
     map["starterkitid"] = QLatin1String("");
 
-    if (gwDeviceName.isEmpty())
+    if (!apsCtrl->getParameter(deCONZ::ParamDeviceName).isEmpty())
     {
-        gwDeviceName = apsCtrl->getParameter(deCONZ::ParamDeviceName);
-    }
-
-    if (!gwDeviceName.isEmpty())
-    {
-        map["devicename"] = gwDeviceName;
+        map["devicename"] = apsCtrl->getParameter(deCONZ::ParamDeviceName);
     }
 }
 
@@ -1313,12 +1310,12 @@ int DeRestPluginPrivate::getBasicConfig(const ApiRequest &req, ApiResponse &rsp)
     basicConfigToMap(rsp.map);
 
     // include devicename attribute in web based requests
-    if (!gwDeviceName.isEmpty() && req.hdr.hasKey("User-Agent"))
+    if (!apsCtrl->getParameter(deCONZ::ParamDeviceName).isEmpty() && req.hdr.hasKey("User-Agent"))
     {
         const QString ua = req.hdr.value("User-Agent");
         if (ua.startsWith(QLatin1String("Mozilla"))) // all browser UA start with Mozilla/5.0
         {
-            rsp.map["devicename"] = gwDeviceName;
+            rsp.map["devicename"] = apsCtrl->getParameter(deCONZ::ParamDeviceName);
         }
     }
 
@@ -2821,9 +2818,6 @@ int DeRestPluginPrivate::configureWifi(const ApiRequest &req, ApiResponse &rsp)
 
         updateEtag(gwConfigEtag);
         queSaveDb(DB_CONFIG | DB_SYNC, DB_SHORT_SAVE_DELAY);
-#ifdef ARCH_ARM
-        //kill(gwWifiPID, SIGUSR1);
-#endif
     }
 
     QVariantMap rspItem;
@@ -3686,11 +3680,15 @@ size_t DeRestPluginPrivate::calcDaylightOffsets(Sensor *daylightSensor, size_t i
         if (mode->toString() == QLatin1String("sunrise"))
         {
             tref = sunrise->toNumber() + offset->toNumber() * 60 * 1000;
-
         }
         else if (mode->toString() == QLatin1String("sunset"))
         {
             tref = sunset->toNumber() + offset->toNumber() * 60 * 1000;
+        }
+        else if (mode->toString() == QLatin1String("fix"))
+        {
+            auto dt = QDateTime::fromString(localTime->toString(), QLatin1String("yyyy-MM-ddTHH:mm:ss"));
+            tref = dt.toMSecsSinceEpoch();
         }
 
         if (tref != localTime->toNumber())

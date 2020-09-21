@@ -113,7 +113,7 @@ void DeRestPluginPrivate::sendBasicClusterResponse(const deCONZ::ApsDataIndicati
 
             case 0x0005: // Model Identifier
             {
-                const QByteArray id = gwDeviceName.toLatin1();
+                const QByteArray id = apsCtrl->getParameter(deCONZ::ParamDeviceName).toLatin1();
                 const quint8 length = id.length();
 
                 stream << code;

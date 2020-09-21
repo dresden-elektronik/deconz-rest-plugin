@@ -1151,18 +1151,6 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
             }
         }
     }
-    else if (strcmp(colval[0], "permitjoin") == 0)
-    {
-        if (!val.isEmpty())
-        {
-            uint seconds = val.toUInt(&ok);
-            if (ok && (seconds <= 255))
-            {
-                d->setPermitJoinDuration(seconds);
-                d->gwConfig["permitjoin"] = (double)seconds;
-            }
-        }
-    }
     else if (strcmp(colval[0], "networkopenduration") == 0)
     {
         if (!val.isEmpty())
@@ -3410,7 +3398,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     (!sensor.modelId().startsWith(QLatin1String("ROB_200"))) &&
                     (sensor.modelId() != QLatin1String("Plug-230V-ZB3.0")) &&
                     (sensor.modelId() != QLatin1String("lumi.switch.b1naus01")) &&
-                    (sensor.modelId() != QLatin1String("Connected socket outlet")))
+                    (sensor.modelId() != QLatin1String("Connected socket outlet")) &&
+                    (!sensor.modelId().startsWith(QLatin1String("SPW35Z"))))
                 {
                     item = sensor.addItem(DataTypeInt16, RStatePower);
                     item->setValue(0);
@@ -3501,7 +3490,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 sensor.addItem(DataTypeInt16, RConfigHeatSetpoint);    // Heating set point
                 sensor.addItem(DataTypeBool, RStateOn);                // Heating on/off
 
-                if (sensor.modelId() == QLatin1String("SLR2") ||            // Hive 
+                if (sensor.modelId().startsWith(QLatin1String("SLR2")) ||   // Hive 
                     sensor.modelId() == QLatin1String("SLR1b") ||           // Hive 
                     sensor.modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
                     sensor.modelId() == QLatin1String("GbxAXL2") ||         // Tuya
@@ -3730,7 +3719,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 item = sensor.addItem(DataTypeBool, RStateLowBattery);
                 // don't set value -> null until reported
             }
-            else if (sensor.modelId() == QLatin1String("lumi.sensor_natgas"))
+            else if (sensor.modelId() == QLatin1String("lumi.sensor_natgas") ||
+                     sensor.modelId() == QLatin1String("Bell"))
             {
                 // Don't expose battery resource item for this device
             }
@@ -4419,7 +4409,6 @@ void DeRestPluginPrivate::saveDb()
     // dump config
     if (saveDatabaseItems & DB_CONFIG)
     {
-        gwConfig["permitjoin"] = (double)gwPermitJoinDuration;
         gwConfig["networkopenduration"] = (double)gwNetworkOpenDuration;
         gwConfig["timeformat"] = gwTimeFormat;
         gwConfig["timezone"] = gwTimezone;

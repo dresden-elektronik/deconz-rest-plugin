@@ -1107,7 +1107,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4, rq5});
         }
-        else if ((sensor && sensor->modelId() == QLatin1String("SLR2")) || // Hive
+        else if ((sensor && sensor->modelId().startsWith(QLatin1String("SLR2"))) || // Hive
                  (sensor && sensor->modelId() == QLatin1String("SLR1b")) || // Hive
                  (sensor && sensor->modelId().startsWith(QLatin1String("TH112")))) // Sinope
         {
@@ -1432,7 +1432,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.reportableChange48bit = 1000; // 0.001 kWh (1 Wh)
         }
         else if (sensor && (sensor->modelId().startsWith(QLatin1String("ROB_200")) ||            // ROBB Smarrt micro dimmer
-                            sensor->modelId().startsWith(QLatin1String("Micro Smart Dimmer"))))  // Sunricher Micro Smart Dimmer
+                            sensor->modelId().startsWith(QLatin1String("Micro Smart Dimmer")) || // Sunricher Micro Smart Dimmer
+                            sensor->modelId().startsWith(QLatin1String("SPW35Z"))))              // RT-RK OBLO SPW35ZD0 smart plug
         {
             rq.reportableChange48bit = 3600; // 0.001 kWh (1 Wh)
         }
@@ -1529,7 +1530,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
         else if (sensor && (sensor->modelId() == QLatin1String("SmartPlug") ||  // Heiman
                             sensor->modelId() == QLatin1String("EMIZB-132") ||  // Develco
-                            sensor->modelId() == QLatin1String("SKHMP30-I1")))  // GS smart plug
+                            sensor->modelId() == QLatin1String("SKHMP30-I1") || // GS smart plug
+                            sensor->modelId().startsWith(QLatin1String("SPW35Z")))) // RT-RK OBLO SPW35ZD0 smart plug
         {
             rq3.reportableChange16bit = 10; // 0.1 A
         }
@@ -2320,6 +2322,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("SLP2") ||
         sensor->modelId() == QLatin1String("SLP2b") ||
         sensor->modelId() == QLatin1String("SLR2") ||
+        sensor->modelId() == QLatin1String("SLR2b") ||
         sensor->modelId() == QLatin1String("SLR1b") ||
         sensor->modelId() == QLatin1String("SLT2") ||
         sensor->modelId() == QLatin1String("TRV001") ||
@@ -2347,10 +2350,14 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("ZG2835")) ||
         // EcoDim
         sensor->modelId().startsWith(QLatin1String("ED-1001")) ||
+        // RT-RK
+        sensor->modelId().startsWith(QLatin1String("SPW35Z")) ||
         // Namron
         sensor->modelId().startsWith(QLatin1String("45127")) ||
         // Plugwise
         sensor->modelId().startsWith(QLatin1String("160-01")) ||
+        // Feibit
+        sensor->modelId().startsWith(QLatin1String("FNB56")) ||
         // Niko
         sensor->modelId() == QLatin1String("Connected socket outlet") ||
         // Sage
@@ -2594,6 +2601,22 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         else if (*i == THERMOSTAT_CLUSTER_ID)
         {
             val = sensor->getZclValue(*i, 0x0000); // Local temperature
+        }
+        else if (*i == THERMOSTAT_UI_CONFIGURATION_CLUSTER_ID)
+        {
+            val = sensor->getZclValue(*i, 0x0001); // Keypad lockout
+        }
+        else if (*i == DIAGNOSTICS_CLUSTER_ID)
+        {
+            if (sensor->modelId() == QLatin1String("eTRV0100") || // Danfoss Ally
+                sensor->modelId() == QLatin1String("TRV001"))     // Hive TRV
+            {
+                val = sensor->getZclValue(*i, 0x4000); // SW error code
+            }
+            else
+            {
+                continue;
+            }
         }
         else if (*i == SAMJIN_CLUSTER_ID)
         {
@@ -2913,7 +2936,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(0x08);
     }
     else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM")) ||
-             sensor->modelId().startsWith(QLatin1String("ZGRC-KEY-013")))
+             sensor->modelId().startsWith(QLatin1String("ZGRC-KEY-013")) ||
+             sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5001")))
     {
         clusters.push_back(ONOFF_CLUSTER_ID);
         clusters.push_back(LEVEL_CLUSTER_ID);

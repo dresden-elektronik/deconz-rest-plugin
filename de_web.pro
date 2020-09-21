@@ -6,13 +6,6 @@ TARGET = $$qtLibraryTarget($$TARGET)
 
 DEFINES += DECONZ_DLLSPEC=Q_DECL_IMPORT
 
-unix:contains(QMAKE_HOST.arch, armv6l) {
-    DEFINES += ARCH_ARM ARCH_ARMV6
-}
-unix:contains(QMAKE_HOST.arch, armv7l) {
-    DEFINES += ARCH_ARM ARCH_ARMV7
-}
-
 QMAKE_CXXFLAGS += -Wno-attributes \
                   -Wno-psabi \
                   -Wall
@@ -75,7 +68,7 @@ GIT_COMMIT_DATE = $$system("git show -s --format=%ct $$GIT_TAG")
 
 # Version Major.Minor.Build
 # Important: don't change the format of this line since it's parsed by scripts!
-DEFINES += GW_SW_VERSION=\\\"2.05.80\\\"
+DEFINES += GW_SW_VERSION=\\\"2.05.82\\\"
 DEFINES += GW_SW_DATE=$$GIT_COMMIT_DATE
 DEFINES += GW_API_VERSION=\\\"1.16.0\\\"
 DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\"
@@ -108,6 +101,7 @@ HEADERS  = bindings.h \
            json.h \
            light_node.h \
            poll_manager.h \
+           read_files.h \
            resource.h \
            resourcelinks.h \
            rest_devices.h \
@@ -143,6 +137,7 @@ SOURCES  = authorisation.cpp \
            json.cpp \
            light_node.cpp \
            poll_manager.cpp \
+           read_files.cpp \
            resource.cpp \
            resourcelinks.cpp \
            rest_configuration.cpp \
