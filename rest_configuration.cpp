@@ -2161,9 +2161,9 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
     {
         bool v = map["DisablePJSecurisation"].toBool();
 
-        if (gwWebSocketNotifyAll != v)
+        if (gwDisablePJSecurisation != v)
         {
-            gwWebSocketNotifyAll = v;
+            gwDisablePJSecurisation = v;
             changed = true;
             queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
         }
