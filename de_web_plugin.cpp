@@ -376,6 +376,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_ATMEL, "Bell", dishMacPrefix }, // Sage doorbell sensor
     { VENDOR_NONE, "WB01", tiMacPrefix }, // Sonoff SNZB-01
     { VENDOR_NONE, "MS01", tiMacPrefix }, // Sonoff SNZB-03
+    { VENDOR_NONE, "MSO1", tiMacPrefix }, // Sonoff SNZB-03, variant 2	
     { VENDOR_NONE, "TH01", tiMacPrefix }, // Sonoff SNZB-02
     { VENDOR_NONE, "DS01", tiMacPrefix }, // Sonoff SNZB-04
     { VENDOR_DANFOSS, "eTRV0100", silabs2MacPrefix }, // Danfoss Ally thermostat
@@ -4577,7 +4578,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("MOSZB-130")) ||        // Develco motion sensor
                              modelId == QLatin1String("4in1-Sensor-ZB3.0") ||         // Immax NEO ZB3.0 4 in 1 sensor E13-A21
                              modelId == QLatin1String("E13-A21") ||                   // Sengled E13-A21 PAR38 bulp with motion sensor
-                             modelId == QLatin1String("MS01"))                        // Sonoff SNZB-03
+                             modelId == QLatin1String("MS01")) ||                     // Sonoff SNZB-03
+                             modelId == QLatin1String("MSO1"))                        // Sonoff SNZB-03 variant 2
                     {
                         fpPresenceSensor.inClusters.push_back(ci->id());
                     }
