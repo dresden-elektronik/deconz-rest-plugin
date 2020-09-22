@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2019 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2013-2020 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -164,6 +164,8 @@ Sensor::Sensor() :
     addItem(DataTypeString, RAttrModelId);
     addItem(DataTypeString, RAttrType);
     addItem(DataTypeString, RAttrSwVersion);
+    addItem(DataTypeString, RAttrId);
+    addItem(DataTypeString, RAttrUniqueId);
     addItem(DataTypeBool, RConfigOn);
     addItem(DataTypeBool, RConfigReachable);
     addItem(DataTypeTime, RStateLastUpdated);
