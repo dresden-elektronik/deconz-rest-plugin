@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2016-2020 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -91,6 +91,12 @@ void RestNodeBase::setNeedSaveDatabase(bool needSave)
  */
 const QString &RestNodeBase::id() const
 {
+    const Resource *r = dynamic_cast<const Resource*>(this);
+    const ResourceItem *item = r ? r->item(RAttrId) : nullptr;
+    if (item)
+    {
+        return item->toString();
+    }
     return m_id;
 }
 
@@ -99,6 +105,12 @@ const QString &RestNodeBase::id() const
  */
 void RestNodeBase::setId(const QString &id)
 {
+    Resource *r = dynamic_cast<Resource*>(this);
+    ResourceItem *item = r ? r->item(RAttrId) : nullptr;
+    if (item)
+    {
+        item->setValue(id);
+    }
     m_id = id;
 }
 
