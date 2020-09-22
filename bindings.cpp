@@ -2364,6 +2364,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Sonoff
         sensor->modelId() == QLatin1String("WB01") ||
         sensor->modelId() == QLatin1String("MS01") ||
+        sensor->modelId() == QLatin1String("MSO1") ||
         sensor->modelId() == QLatin1String("TH01") ||
         sensor->modelId() == QLatin1String("DS01") ||
         // Danfoss
