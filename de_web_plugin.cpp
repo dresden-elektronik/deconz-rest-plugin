@@ -3881,7 +3881,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                     if (zclFrame.payload().size() >= 1)
                     {
                         quint8 level = zclFrame.payload().at(0);
-                        ok = buttonMap->zclParam0 == level;
+                        ok = buttonMap.zclParam0 == level;
                     }
                 }
                 else if (zclFrame.isProfileWideCommand() &&
