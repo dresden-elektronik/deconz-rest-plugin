@@ -1688,18 +1688,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             targetLiftZigBee = targetLift;
         }
     }
-    
-    
-    
-                paramOk = true;
-            hasCmd = true;
-            if (map[param].type() == QVariant::Bool)
-            {
-                valueOk = true;
-                hasOpen = true;
-                targetOpen = !(map[param].toBool());
-            }
-    
+
     //Some device don't support lift, but third app can use it
     if (hasLift)
     {
