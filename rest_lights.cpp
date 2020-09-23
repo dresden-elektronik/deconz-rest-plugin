@@ -1688,6 +1688,35 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             targetLiftZigBee = targetLift;
         }
     }
+    
+    
+    
+                paramOk = true;
+            hasCmd = true;
+            if (map[param].type() == QVariant::Bool)
+            {
+                valueOk = true;
+                hasOpen = true;
+                targetOpen = !(map[param].toBool());
+            }
+    
+    //Some device don't support lift, but third app can use it
+    if (hasLift)
+    {
+        if (taskRef.lightNode->manufacturer() == QLatin1String("_TYZB01_dazsid15"))
+        {
+            hasLift = false;
+            hasOpen = true;
+            if (targetLiftZigBee > 0)
+            {
+                targetOpen = false;
+            }
+            else
+            {
+                targetOpen = true;
+            }
+        }
+    }
 
     // Send command(s) to device.  Stop trumps LiftPct trumps Open/Close.
     if (hasStop)
