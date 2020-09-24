@@ -181,6 +181,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_INSTA, "WS_4f_J_1", instaMacPrefix },
     { VENDOR_INSTA, "WS_3f_G_1", instaMacPrefix },
     { VENDOR_AXIS, "Gear", zenMacPrefix },
+    { VENDOR_MMB, "Gear", zenMacPrefix },
     { VENDOR_NYCE, "3011", emberMacPrefix }, // NYCE door/window sensor
     { VENDOR_NYCE, "3014", emberMacPrefix }, // NYCE garage door/tilt sensor
     { VENDOR_NYCE, "3043", emberMacPrefix }, // NYCE ceiling motion sensor
@@ -1723,6 +1724,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA || // IKEA FYRTUR and KADRILJ smart binds
         node->nodeDescriptor().manufacturerCode() == VENDOR_THIRD_REALITY || // Third Reality smart light switch
         node->nodeDescriptor().manufacturerCode() == VENDOR_AXIS || // Axis shade
+        node->nodeDescriptor().manufacturerCode() == VENDOR_MMB || // Axis shade
         // Danalock support. The vendor ID (0x115c) needs to defined and whitelisted, as it's battery operated
         node->nodeDescriptor().manufacturerCode() == VENDOR_DANALOCK || // Danalock Door Lock
         // Schlage support. The vendor ID (0x1236) needs to defined and whitelisted, as it's battery operated
@@ -4470,7 +4472,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpBatterySensor.inClusters.push_back(ci->id());
                     }
-                    if (node->nodeDescriptor().manufacturerCode() == VENDOR_AXIS && (modelId == QLatin1String("Gear")) && (i->endpoint() == 0x01) )
+                    if ((node->nodeDescriptor().manufacturerCode() == VENDOR_AXIS || node->nodeDescriptor().manufacturerCode() == VENDOR_MMB) &&
+                        (modelId == QLatin1String("Gear")) && (i->endpoint() == 0x01) )
                     {
                         fpBatterySensor.inClusters.push_back(ci->id());
                     }
