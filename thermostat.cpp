@@ -475,7 +475,8 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 if (sensor->modelId().startsWith(QLatin1String("SLR2")) ||  // Hive
                     sensor->modelId().startsWith(QLatin1String("SLR1b")) ||  // Hive
                     sensor->modelId().startsWith(QLatin1String("TH112")) || // Sinope
-                    sensor->modelId().startsWith(QLatin1String("Zen-01")))  // Zen
+                    sensor->modelId().startsWith(QLatin1String("Zen-01")) || // Zen
+                    sensor->modelId().startsWith(QLatin1String("Super")))   // ELKO
                 {
                     qint8 mode = attr.numericValue().s8;
                     QString mode_set;
@@ -595,7 +596,31 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
             }
                 break;
+            
+            // manufacturerspecific reported by Elko Super TR
+            case 0x0415:  // Thermostat Running State (Elko)
+            { 
+                if (sensor->modelId().startsWith(QLatin1String("Super"))) 
+                {
+                  bool on = attr.numericValue().u8 > 0 ? true : false;
+                  item = sensor->item(RStateOn);
 
+                  if (item && updateType == NodeValue::UpdateByZclReport)
+                  {
+                      stateUpdated = true;
+                  }
+                  if (item && item->toBool() != on)
+                  {
+                      item->setValue(on);
+                      enqueueEvent(Event(RSensors, RStateOn, sensor->id(), item));
+                      stateUpdated = true;
+                  }
+                  sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+                }
+            }
+                break;
+
+            
             // manufacturerspecific reported by Eurotronic SPZB0001
             // https://eurotronic.org/wp-content/uploads/2019/01/Spirit_ZigBee_BAL_web_DE_view_V9.pdf
             case 0x4000: // enum8 (0x30): value 0x02, TRV mode
