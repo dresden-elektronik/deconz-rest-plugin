@@ -1960,6 +1960,12 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturer() == QLatin1String("Immax"))
         {
         }
+        else if (lightNode->manufacturer().startsWith(QLatin1String("EcoDim")))
+        {
+        }
+        else if (lightNode->manufacturer().startsWith(QLatin1String("ROBB smarrt")))
+        {
+        }
         else if (lightNode->manufacturer() == QLatin1String("sengled"))
         {
         }
