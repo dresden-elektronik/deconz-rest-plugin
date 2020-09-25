@@ -681,10 +681,22 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
         addLightNode(node);
     }
 
+    const QStringList buttonMapLocations = {
+        deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation) + QLatin1String("/devices/button_maps.json")
+#ifdef Q_OS_LINUX
+        , "/usr/share/deCONZ/devices/button_maps.json"
+#endif
+    };
+
+    for (const auto &path : buttonMapLocations)
     {
-        QString buttonMapFile = deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation) + QLatin1String("/button_maps.json");
+        if (!QFile::exists(path))
+        {
+            continue;
+        }
+
         QStringList requiredJsonObjects = {"buttons", "buttonActions", "clusters", "commands", "maps"};
-        QJsonDocument buttonMaps = readButtonMapJson(buttonMapFile);
+        QJsonDocument buttonMaps = readButtonMapJson(path);
 
         if (checkRootLevelObjectsJson(buttonMaps, requiredJsonObjects))
         {
