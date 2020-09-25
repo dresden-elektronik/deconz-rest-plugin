@@ -3424,7 +3424,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     if (buttonMapVec.empty())
     {
         DBG_Printf(DBG_INFO, "[INFO] - No button map for: %s endpoint: 0x%02X cluster: %s command: %s payload[0]: 0%02X\n",
-                   qPrintable(sensor->modelId()), ind.srcEndpoint(), qUtf8Printable(cluster), qUtf8Printable(cmd), pl0);
+                   qPrintable(sensor->modelId()), ind.srcEndpoint(), qPrintable(cluster), qPrintable(cmd), pl0);
         return;
     }
 
@@ -4203,7 +4203,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 if (ok && buttonMap.button != 0)
                 {
                     if (!buttonMap.name.isEmpty()) { cmd = buttonMap.name; }
-                    DBG_Printf(DBG_INFO, "[INFO] - Button %u %s\n", buttonMap.button, qUtf8Printable(cmd));
+                    DBG_Printf(DBG_INFO, "[INFO] - Button %u %s\n", buttonMap.button, qPrintable(cmd));
                     ResourceItem *item = sensor->item(RStateButtonEvent);
                     if (item)
                     {
@@ -4214,7 +4214,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
                             if (dt > 0 && dt < 500)
                             {
-                                DBG_Printf(DBG_INFO, "[INFO] - Button %u %s, discard too fast event (dt = %d)\n", buttonMap.button, qUtf8Printable(cmd), dt);
+                                DBG_Printf(DBG_INFO, "[INFO] - Button %u %s, discard too fast event (dt = %d)\n", buttonMap.button, qPrintable(cmd), dt);
                                 break;
                             }
                         }
@@ -4284,7 +4284,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     }
 
     DBG_Printf(DBG_INFO, "[INFO] - No button handler for: %s endpoint: 0x%02X cluster: %s command: %s payload[0]: 0%02X\n",
-               qPrintable(sensor->modelId()), ind.srcEndpoint(), qUtf8Printable(cluster), qUtf8Printable(cmd), pl0);
+               qPrintable(sensor->modelId()), ind.srcEndpoint(), qPrintable(cluster), qPrintable(cmd), pl0);
 }
 
 /*! Adds a new sensor node to node cache.
