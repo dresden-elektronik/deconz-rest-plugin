@@ -34,6 +34,7 @@
 #include <queue>
 #include <cmath>
 #include "colorspace.h"
+#include "device_descriptions.h"
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 #include "de_web_widget.h"
@@ -48,7 +49,7 @@
   #include <errno.h>
 #endif
 
-DeRestPluginPrivate *plugin;
+DeRestPluginPrivate *plugin = nullptr;
 
 const char *HttpStatusOk           = "200 OK"; // OK
 const char *HttpStatusAccepted     = "202 Accepted"; // Accepted but not complete
@@ -425,6 +426,8 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     databaseTimer = new QTimer(this);
     databaseTimer->setSingleShot(true);
 
+    deviceDescriptions = new DeviceDescriptions(this);
+
     initEventQueue();
     initResourceDescriptors();
 
@@ -706,6 +709,70 @@ DeRestPluginPrivate::~DeRestPluginPrivate()
     }
 }
 
+void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndication &ind)
+{
+    deCONZ::ZclFrame zclFrame;
+
+    if ((ind.profileId() == HA_PROFILE_ID) || (ind.profileId() == ZLL_PROFILE_ID))
+    {
+        QDataStream stream(ind.asdu());
+        stream.setByteOrder(QDataStream::LittleEndian);
+        zclFrame.readFromStream(stream);
+    }
+
+    // Helper function until we have a proper Device class which hosts sub devices
+
+    std::vector<Resource*> resources;
+
+    for (auto &r : nodes)
+    {
+        if (r.address().ext() == ind.srcAddress().ext())
+            resources.push_back(&r);
+    }
+
+    for (auto &r : sensors)
+    {
+        if (r.address().ext() == ind.srcAddress().ext())
+            resources.push_back(&r);
+    }
+
+    for (auto &r : resources)
+    {
+        for (int i = 0; i < r->itemCount(); i++)
+        {
+            ResourceItem *item = r->itemForIndex(i);
+            DBG_Assert(item);
+            if (item && !item->parseParameters().empty())
+            {
+                ParseFuntion_t parseFunction = item->handleApsIndication;
+
+                // First call
+                // This is a hack to init the parse function. Later on this needs to be done by the device description loader.
+                if (!parseFunction)
+                {
+                    const auto fnName = item->parseParameters().front().toString();
+                    for (const auto &pf : parseFunctions)
+                    {
+                        if (pf.name == fnName)
+                        {
+                            parseFunction = pf.fn;
+                            break;
+                        }
+                    }
+                }
+
+                // TODO  item->lastSet() == item->lastChanged() doesn't cut it
+                // This needs to be part of the ResourceItem: item.notifyOnlyChangeOnly() -> bool
+                // Some items like state/buttonevent should fire events on set, not only change
+                if (parseFunction && parseFunction(r, item, ind, zclFrame) && item->lastSet() == item->lastChanged())
+                {
+                    enqueueEvent(Event(r->prefix(), item->descriptor().suffix, r->item(RAttrId)->toString()));
+                }
+            }
+        }
+    }
+}
+
 /*! APSDE-DATA.indication callback.
     \param ind - the indication primitive
     \note Will be called from the main application for each incoming indication.
@@ -718,6 +785,8 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
     {
         return;
     }
+
+    apsdeDataIndicationDevice(ind);
 
     if ((ind.profileId() == HA_PROFILE_ID) || (ind.profileId() == ZLL_PROFILE_ID))
     {

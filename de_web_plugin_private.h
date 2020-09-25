@@ -623,6 +623,7 @@ extern const char *HttpContentJPG;
 extern const char *HttpContentSVG;
 
 // Forward declarations
+class DeviceDescriptions;
 class Gateway;
 class GatewayScanner;
 class QUdpSocket;
@@ -1158,6 +1159,7 @@ public Q_SLOTS:
     Resource *getResource(const char *resource, const QString &id = QString());
     void announceUpnp();
     void upnpReadyRead();
+    void apsdeDataIndicationDevice(const deCONZ::ApsDataIndication &ind);
     void apsdeDataIndication(const deCONZ::ApsDataIndication &ind);
     void apsdeDataConfirm(const deCONZ::ApsDataConfirm &conf);
     void gpDataIndication(const deCONZ::GpDataIndication &ind);
@@ -1980,6 +1982,8 @@ public:
     std::list<Binding> bindingToRuleQueue; // check if rule exists for discovered bindings
     std::list<BindingTask> bindingQueue; // bind/unbind queue
     std::vector<BindingTableReader> bindingTableReaders;
+
+    DeviceDescriptions *deviceDescriptions = nullptr;
 
     // TCP connection watcher
     QTimer *openClientTimer;

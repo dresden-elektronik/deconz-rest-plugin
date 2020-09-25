@@ -3317,6 +3317,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (sensor.modelId().startsWith(QLatin1String("lumi.vibration")))
             {
                 item = sensor.addItem(DataTypeInt16, RStateOrientationX);
+                item->setParseParameters({"parseGenericAttribute/4", 1, "0x0101", "0x0508", "var a = BigInt($raw) & 0xffffn; a + 5n;"});
                 item = sensor.addItem(DataTypeInt16, RStateOrientationY);
                 item = sensor.addItem(DataTypeInt16, RStateOrientationZ);
                 item = sensor.addItem(DataTypeUInt16, RStateTiltAngle);

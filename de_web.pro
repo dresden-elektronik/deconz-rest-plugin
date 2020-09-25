@@ -49,7 +49,7 @@ CONFIG         += plugin \
                += c++11 \
                -= qtquickcompiler
 
-QT             += network
+QT             += network qml
 
 INCLUDEPATH    += ../.. \
                   ../../common
@@ -93,6 +93,7 @@ HEADERS  = bindings.h \
            de_web_plugin.h \
            de_web_plugin_private.h \
            de_web_widget.h \
+           device_descriptions.h \
            event.h \
            gateway.h \
            gateway_scanner.h \
@@ -118,6 +119,7 @@ SOURCES  = authorisation.cpp \
            colorspace.cpp \
            database.cpp \
            daylight.cpp \
+           device_descriptions.cpp \
            device_setup.cpp \
            diagnostics.cpp \
            discovery.cpp \

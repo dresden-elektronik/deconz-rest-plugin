@@ -9,7 +9,7 @@
  */
 
 #include <QString>
-
+#include <QJSEngine>
 #include "deconz.h"
 #include "resource.h"
 
@@ -175,11 +175,153 @@ static std::vector<const char*> rPrefixes;
 static std::vector<ResourceItemDescriptor> rItemDescriptors;
 static std::vector<QString> rItemStrings; // string allocator: only grows, never shrinks
 
+/*! A generic function to parse ZCL values from read/report commands.
+    The item->parseParameters() is expected to contain 5 elements (given in the device description file).
+
+    ["parseGenericAttr/4", endpoint, clusterId, attributeId, expression]
+
+    - endpoint, 0xff means any endpoint
+    - clusterId: string hex value
+    - attributeId: string hex value
+    - expression: Javascript expression to transform the raw value
+
+    Example: { "parse": ["parseGenericAttr/4", 1, "0x0402", "0x0000", "$raw + $config/offset"] }
+ */
+bool parseGenericAttribute4(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame)
+{
+    Q_UNUSED(r)
+
+    bool result = false;
+
+    if (zclFrame.commandId() != deCONZ::ZclReadAttributesResponseId && zclFrame.commandId() != deCONZ::ZclReportAttributesId)
+    {
+        return result;
+    }
+
+    if (!item->handleApsIndication) // init on first call
+    {
+        Q_ASSERT(item->parseParameters().size() == 5);
+        if (item->parseParameters().size() != 5)
+        {
+            return result;
+        }
+        bool ok;
+        const auto endpoint = item->parseParameters().at(1).toString().toUInt(&ok, 0);
+        const auto clusterId = ok ? item->parseParameters().at(2).toString().toUInt(&ok, 0) : 0;
+        const auto attributeId = ok ? item->parseParameters().at(3).toString().toUInt(&ok, 0) : 0;
+
+        if (!ok)
+        {
+            return result;
+        }
+
+        item->handleApsIndication = parseGenericAttribute4;
+        item->setZclProperties(clusterId, attributeId, endpoint);
+    }
+
+    if (ind.clusterId() != item->clusterId() || zclFrame.payload().isEmpty())
+    {
+        return result;
+    }
+
+    if (item->endpoint() < 0xff && item->endpoint() != ind.srcEndpoint())
+    {
+        return result;
+    }
+
+    QDataStream stream(zclFrame.payload());
+    stream.setByteOrder(QDataStream::LittleEndian);
+
+    while (!stream.atEnd())
+    {
+        quint16 attrId;
+        quint8 status;
+        quint8 dataType;
+
+        stream >> attrId;
+
+        if (zclFrame.commandId() == deCONZ::ZclReadAttributesResponseId)
+        {
+            stream >> status;
+            if (status != deCONZ::ZclSuccessStatus)
+            {
+                continue;
+            }
+        }
+
+        stream >> dataType;
+        deCONZ::ZclAttribute attr(attrId, dataType, QLatin1String(""), deCONZ::ZclReadWrite, true);
+
+        if (!attr.readFromStream(stream))
+        {
+            break;
+        }
+
+        if (attrId == item->attributeId())
+        {
+            auto expr = item->parseParameters().back().toString();
+
+            if (expr == QLatin1String("$raw"))
+            {
+                if (item->setValue(attr.toVariant()))
+                {
+                    result = true;
+                }
+
+                DBG_Printf(DBG_INFO, "RD cluster: 0x%04X / %04X --> %s\n", ind.clusterId(), attrId, qPrintable(attr.toString()));
+            }
+
+            else if (expr.contains(QLatin1String("$raw")) && dataType < deCONZ::ZclOctedString) // numeric data type
+            {
+                if ((dataType >= deCONZ::Zcl8BitData && dataType <= deCONZ::Zcl64BitUint)
+                     || dataType == deCONZ::Zcl8BitEnum || dataType == deCONZ::Zcl16BitEnum)
+                {
+                    expr.replace("$raw", QString::number(attr.numericValue().u64));
+                }
+                else if (dataType >= deCONZ::Zcl8BitInt && dataType <= deCONZ::Zcl64BitInt)
+                {
+                    expr.replace("$raw", QString::number(attr.numericValue().s64));
+                }
+                else if (dataType >= deCONZ::ZclSemiFloat && dataType <= deCONZ::ZclDoubleFloat)
+                {
+                    expr.replace("$raw", QString::number(attr.numericValue().real));
+                }
+                else
+                {
+                    return result;
+                }
+
+                QJSEngine engine;
+
+                const auto res = engine.evaluate(expr);
+
+                if (!res.isError())
+                {
+                    DBG_Printf(DBG_INFO, "expression: %s = %.0f\n", qPrintable(expr), res.toNumber());
+                    item->setValue(res.toVariant());
+                    result = true;
+                }
+                else
+                {
+                    DBG_Printf(DBG_INFO, "failed to evaluate expression: %s, err: %d\n", qPrintable(expr), res.errorType());
+                }
+            }
+            break;
+        }
+    }
+
+    return result;
+}
+
+const std::vector<ParseFunction> parseFunctions = {
+    ParseFunction("parseGenericAttribute/4", 4, parseGenericAttribute4)
+};
+
 void initResourceDescriptors()
 {
     rPrefixes.clear();
     rItemDescriptors.clear();
-    rItemStrings.clear();
+    rItemStrings.clear();    
 
     rItemStrings.emplace_back(QString()); // invalid string on index 0
 
@@ -364,6 +506,11 @@ ResourceItem &ResourceItem::operator=(const ResourceItem &other)
         return *this;
     }
 
+    handleApsIndication = other.handleApsIndication;
+    m_parseParameters = other.parseParameters();
+    m_clusterId = other.clusterId();
+    m_attributeId = other.attributeId();
+    m_endpoint = other.endpoint();
     m_num = other.m_num;
     m_numPrev = other.m_numPrev;
     m_rid = other.m_rid;
@@ -394,6 +541,17 @@ ResourceItem::ResourceItem(const ResourceItemDescriptor &rid) :
         m_rid.type == DataTypeTimePattern)
     {
         m_str = new QString;
+    }
+
+    if (rid.suffix == RAttrModelId)
+    {
+        // basic cluster, model identifier
+//        setParseParameters({"parseGenericAttribute/4", 0xff, 0x0000, 0x0005, "$raw" });
+    }
+    else if (rid.suffix == RAttrManufacturerName)
+    {
+        // basic cluster, manufacturer name
+//        setParseParameters({"parseGenericAttribute/4", 0xff, 0x0000, 0x0004, "$raw" });
     }
 }
 
@@ -527,9 +685,9 @@ bool ResourceItem::setValue(const QVariant &val)
         if (m_str)
         {
             m_lastSet = now;
-            if (*m_str != val.toString())
+            if (*m_str != val.toString().trimmed())
             {
-                *m_str = val.toString();
+                *m_str = val.toString().trimmed();
                 m_lastChanged = m_lastSet;
             }
             return true;
@@ -581,6 +739,11 @@ bool ResourceItem::setValue(const QVariant &val)
     }
     else
     {
+        if (m_rid.type == DataTypeReal)
+        {
+            DBG_Printf(DBG_ERROR, "todo handle DataTypeReal in %s", __FUNCTION__);
+        }
+
         bool ok;
         int n = val.toInt(&ok);
         if (ok)
@@ -661,6 +824,13 @@ QVariant ResourceItem::toVariant() const
     return QVariant();
 }
 
+void ResourceItem::setZclProperties(quint16 clusterId, quint16 attrId, quint8 endpoint)
+{
+    m_clusterId = clusterId;
+    m_attributeId = attrId;
+    m_endpoint = endpoint;
+}
+
 /*! Marks the resource item as involved in a rule. */
 void ResourceItem::inRule(int ruleHandle)
 {
@@ -691,6 +861,11 @@ bool ResourceItem::isPublic() const
 void ResourceItem::setIsPublic(bool isPublic)
 {
     m_isPublic = isPublic;
+}
+
+void ResourceItem::setParseParameters(const std::vector<QVariant> &params)
+{
+    m_parseParameters = params;
 }
 
 Resource::Resource(const char *prefix) :

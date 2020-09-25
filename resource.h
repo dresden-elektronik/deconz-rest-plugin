@@ -207,6 +207,11 @@ extern const QStringList RConfigLastChangeSourceValues;
 #define R_POWERUP_RESTORE_AT_DAYLIGHT       (1 << 1)  // restore at daylight
 #define R_POWERUP_RESTORE_AT_NO_DAYLIGHT    (1 << 2)  // restore when no daylight
 
+namespace deCONZ {
+    class ApsDataIndication;
+    class ZclFrame;
+}
+
 class  ResourceItemDescriptor
 {
 public:
@@ -223,11 +228,30 @@ public:
         validMax(max) { }
 
     bool isValid() const { return (type != DataTypeUnknown && suffix); }
-    ApiDataType type;
-    const char *suffix;
-    qint64 validMin;
-    qint64 validMax;
+    ApiDataType type = DataTypeUnknown;
+    const char *suffix = nullptr;
+    qint64 validMin = 0;
+    qint64 validMax = 0;
 };
+
+class Resource;
+class ResourceItem;
+
+typedef bool (*ParseFuntion_t)(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
+
+struct ParseFunction
+{
+    ParseFunction(const QString &_name, const int _arity, ParseFuntion_t _fn) :
+        name(_name),
+        arity(_arity),
+        fn(_fn)
+    { }
+    QString name;
+    int arity = 0; // number of parameters given by the device description file
+    ParseFuntion_t fn = nullptr;
+};
+
+extern const std::vector<ParseFunction> parseFunctions;
 
 class ResourceItem
 {
@@ -241,6 +265,7 @@ public:
     qint64 toNumberPrevious() const;
     bool toBool() const;
     QVariant toVariant() const;
+    void setZclProperties(quint16 clusterId, quint16 attrId, quint8 endpoint = 0xff);
     bool setValue(const QString &val);
     bool setValue(qint64 val);
     bool setValue(const QVariant &val);
@@ -252,6 +277,13 @@ public:
     const std::vector<int> rulesInvolved() const;
     bool isPublic() const;
     void setIsPublic(bool isPublic);
+    quint16 clusterId() const { return m_clusterId; }
+    quint16 attributeId() const { return m_attributeId; }
+    quint16 endpoint() const { return m_endpoint; }
+    // temp. quick workaround for caching the parse function
+    ParseFuntion_t handleApsIndication = nullptr;
+    const std::vector<QVariant> &parseParameters() const { return m_parseParameters; }
+    void setParseParameters(const std::vector<QVariant> &params);
 
 private:
     ResourceItem() = delete;
@@ -264,6 +296,13 @@ private:
     QDateTime m_lastSet;
     QDateTime m_lastChanged;
     std::vector<int> m_rulesInvolved; // the rules a resource item is trigger
+    /*! The clusterId, attributeId and endpoint values are used by the parse function
+        To retreive the value from ZCL read/report commands.
+    */
+    quint16 m_clusterId = 0xFFFF;
+    quint16 m_attributeId = 0xFFFF;
+    quint8 m_endpoint = 0xFF;
+    std::vector<QVariant> m_parseParameters;
 };
 
 class Resource

@@ -1,6 +1,4 @@
-#include <QVariantMap>
 #include "de_web_plugin_private.h"
-#include "json.h"
 
 /*! Inits the event queue.
  */
