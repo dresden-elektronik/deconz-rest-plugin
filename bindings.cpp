@@ -1183,6 +1183,23 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3}) || // Use OR because of manuf. specific attributes
                    sendConfigureReportingRequest(bt, {rq4, rq5});
         }
+        else if (sensor && sensor->modelId() == QLatin1String("902010/32")) // Bitron thermostat
+        {
+            rq.dataType = deCONZ::Zcl16BitInt;
+            rq.attributeId = 0x0000;         // local temperature
+            rq.minInterval = 0;
+            rq.maxInterval = 300;
+            rq.reportableChange16bit = 10;
+
+            ConfigureReportingRequest rq2;
+            rq2.dataType = deCONZ::Zcl8BitUint;
+            rq2.attributeId = 0x0012;        // Occupied heating setpoint
+            rq2.minInterval = 1;
+            rq2.maxInterval = 600;
+            rq2.reportableChange8bit = 1;
+
+            return sendConfigureReportingRequest(bt, {rq, rq2});
+        }
 
         else
         {
