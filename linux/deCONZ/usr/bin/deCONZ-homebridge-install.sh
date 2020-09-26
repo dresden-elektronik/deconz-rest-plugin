@@ -2,11 +2,11 @@
 
 UPDATE_VERSION_HB="1.1.0"
 UPDATE_VERSION_HB_HUE="0.11.74"
-UPDATE_VERSION_HB_LIB="4.7.14"
+UPDATE_VERSION_HB_LIB="4.7.15"
 UPDATE_VERSION_NPM="6.14.7"
-UPDATE_VERSION_NODE="12.18.3"
+UPDATE_VERSION_NODE="12.18.4"
 # use install name to install the specific node version via apt. Retrieve it via: apt-cache policy nodejs
-UPDATE_VERSION_NODE_INSTALL_NAME="12.18.3-1nodesource1"
+UPDATE_VERSION_NODE_INSTALL_NAME="12.18.4-1nodesource1"
 # when increasing major version of node adjust downoload link
 NODE_DOWNLOAD_LINK="https://deb.nodesource.com/setup_12.x"
 
@@ -266,8 +266,9 @@ function installHomebridge {
 			#link nodejs to node
 		# else
 			curl -sL "$NODE_DOWNLOAD_LINK" | bash -
+			apt-get update
 			if [ $? -eq 0 ]; then
-				apt-get install -y nodejs=$UPDATE_VERSION_NODE_INSTALL_NAME | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
+				apt-get install -y nodejs | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 				if [ $? -ne 0 ]; then
 					[[ $LOG_WARN ]] && echo "${LOG_WARN}could not install nodejs"
 					echo "could not install nodejs" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
@@ -286,8 +287,9 @@ function installHomebridge {
 		    dpkg --compare-versions "$node_ver" lt "$UPDATE_VERSION_NODE"
 			if [ $? -eq 0 ]; then
 			    curl -sL "$NODE_DOWNLOAD_LINK" | bash -
+			    apt-get update
 				if [ $? -eq 0 ]; then
-					apt-get install -y nodejs=$UPDATE_VERSION_NODE_INSTALL_NAME | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
+					apt-get install -y nodejs | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 					if [ $? -ne 0 ]; then
 						[[ $LOG_WARN ]] && echo "${LOG_WARN}could not install nodejs"
 							echo "could not install nodejs" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
@@ -409,8 +411,9 @@ function checkUpdate {
 		echo "update nodejs" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 
 		curl -sL "$NODE_DOWNLOAD_LINK" | bash -
+		apt-get update
 		if [ $? -eq 0 ]; then
-			apt-get install -y nodejs=$UPDATE_VERSION_NODE_INSTALL_NAME | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
+			apt-get install -y nodejs | tee -a "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
 			if [ $? -ne 0 ]; then
 				[[ $LOG_WARN ]] && echo "${LOG_WARN}could not update nodejs"
 				echo "could not update nodejs" >> "$LOG_DIR/LOG_HOMEBRIDGE_INSTALL_$LOGFILE_DATE"
