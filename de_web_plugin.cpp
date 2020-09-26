@@ -378,6 +378,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_ATMEL, "Bell", dishMacPrefix }, // Sage doorbell sensor
     { VENDOR_NONE, "WB01", tiMacPrefix }, // Sonoff SNZB-01
     { VENDOR_NONE, "MS01", tiMacPrefix }, // Sonoff SNZB-03
+    { VENDOR_NONE, "MSO1", tiMacPrefix }, // Sonoff SNZB-03
+    { VENDOR_NONE, "ms01", tiMacPrefix }, // Sonoff SNZB-03
     { VENDOR_NONE, "TH01", tiMacPrefix }, // Sonoff SNZB-02
     { VENDOR_NONE, "DS01", tiMacPrefix }, // Sonoff SNZB-04
     { VENDOR_DANFOSS, "eTRV0100", silabs2MacPrefix }, // Danfoss Ally thermostat
@@ -684,10 +686,22 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
         addLightNode(node);
     }
 
+    const QStringList buttonMapLocations = {
+        deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation) + QLatin1String("/devices/button_maps.json")
+#ifdef Q_OS_LINUX
+        , "/usr/share/deCONZ/devices/button_maps.json"
+#endif
+    };
+
+    for (const auto &path : buttonMapLocations)
     {
-        QString buttonMapFile = deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation) + QLatin1String("/button_maps.json");
+        if (!QFile::exists(path))
+        {
+            continue;
+        }
+
         QStringList requiredJsonObjects = {"buttons", "buttonActions", "clusters", "commands", "maps"};
-        QJsonDocument buttonMaps = readButtonMapJson(buttonMapFile);
+        QJsonDocument buttonMaps = readButtonMapJson(path);
 
         if (checkRootLevelObjectsJson(buttonMaps, requiredJsonObjects))
         {
@@ -3479,7 +3493,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     if (buttonMapVec.empty())
     {
         DBG_Printf(DBG_INFO, "[INFO] - No button map for: %s endpoint: 0x%02X cluster: %s command: %s payload[0]: 0%02X\n",
-                   qPrintable(sensor->modelId()), ind.srcEndpoint(), qUtf8Printable(cluster), qUtf8Printable(cmd), pl0);
+                   qPrintable(sensor->modelId()), ind.srcEndpoint(), qPrintable(cluster), qPrintable(cmd), pl0);
         return;
     }
 
@@ -4258,7 +4272,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 if (ok && buttonMap.button != 0)
                 {
                     if (!buttonMap.name.isEmpty()) { cmd = buttonMap.name; }
-                    DBG_Printf(DBG_INFO, "[INFO] - Button %u %s\n", buttonMap.button, qUtf8Printable(cmd));
+                    DBG_Printf(DBG_INFO, "[INFO] - Button %u %s\n", buttonMap.button, qPrintable(cmd));
                     ResourceItem *item = sensor->item(RStateButtonEvent);
                     if (item)
                     {
@@ -4269,7 +4283,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
                             if (dt > 0 && dt < 500)
                             {
-                                DBG_Printf(DBG_INFO, "[INFO] - Button %u %s, discard too fast event (dt = %d)\n", buttonMap.button, qUtf8Printable(cmd), dt);
+                                DBG_Printf(DBG_INFO, "[INFO] - Button %u %s, discard too fast event (dt = %d)\n", buttonMap.button, qPrintable(cmd), dt);
                                 break;
                             }
                         }
@@ -4339,7 +4353,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
     }
 
     DBG_Printf(DBG_INFO, "[INFO] - No button handler for: %s endpoint: 0x%02X cluster: %s command: %s payload[0]: 0%02X\n",
-               qPrintable(sensor->modelId()), ind.srcEndpoint(), qUtf8Printable(cluster), qUtf8Printable(cmd), pl0);
+               qPrintable(sensor->modelId()), ind.srcEndpoint(), qPrintable(cluster), qPrintable(cmd), pl0);
 }
 
 /*! Adds a new sensor node to node cache.
@@ -4649,7 +4663,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("MOSZB-130")) ||        // Develco motion sensor
                              modelId == QLatin1String("4in1-Sensor-ZB3.0") ||         // Immax NEO ZB3.0 4 in 1 sensor E13-A21
                              modelId == QLatin1String("E13-A21") ||                   // Sengled E13-A21 PAR38 bulp with motion sensor
-                             modelId == QLatin1String("MS01"))                        // Sonoff SNZB-03
+                             modelId == QLatin1String("MS01") ||                      // Sonoff SNZB-03
+                             modelId == QLatin1String("MSO1") ||                      // Sonoff SNZB-03
+                             modelId == QLatin1String("ms01"))                        // Sonoff SNZB-03
                     {
                         fpPresenceSensor.inClusters.push_back(ci->id());
                     }
