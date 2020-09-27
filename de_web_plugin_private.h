@@ -1548,6 +1548,7 @@ public:
     QMap<QString, std::vector<Sensor::ButtonMap>> buttonMapData;
     QMap<QString, quint16> btnMapClusters;
     QMap<QString, QMap<QString, quint16>> btnMapClusterCommands;
+    QMap<QString, QString> buttonMapForModelId;
 
     // gateways
     std::vector<Gateway*> gateways;
