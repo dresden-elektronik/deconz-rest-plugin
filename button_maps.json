@@ -104,8 +104,8 @@
 	},
 	"maps": {
 		"deLightingSwitchMap": {
-            modelids: ["Lighting Switch"],
-            map: [
+            "modelids": ["Lighting Switch"],
+            "map": [
                 [2, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
                 [2, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
                 [2, "0x01", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Dimm up"],
@@ -141,8 +141,8 @@
             ]
         },
 		"deSceneSwitchMap": {
-            modelids: ["Scene Switch"],
-            map: [
+            "modelids": ["Scene Switch"],
+            "map": [
                 [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
                 [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
                 [1, "0x01", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Dimm up"],
@@ -156,8 +156,8 @@
             ]
         },
 		"instaRemoteMap": {
-            modelids: [],
-            map: [
+            "modelids": [],
+            "map": [
                 [1, "0x01", "ONOFF", "OFF_WITH_EFFECT", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Off with effect"],
                 [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
                 [1, "0x01", "LEVEL_CONTROL", "STEP_WITH_ON_OFF", "0", "S_BUTTON_2", "S_BUTTON_ACTION_HOLD", "Dimm up"],
@@ -173,8 +173,8 @@
             ]
         },
 		"ikeaOnOffMap": {
-            modelids: ["TRADFRI on/off switch"],
-            map: [
+            "modelids": ["TRADFRI on/off switch"],
+            "map": [
                 [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
                 [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
                 [1, "0x01", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Move up (with on/off)"],
@@ -184,8 +184,8 @@
             ]
         },
 		"ikeaOpenCloseMap": {
-            modelids: ["TRADFRI open/close remote"],
-            map: [
+            "modelids": ["TRADFRI open/close remote"],
+            "map": [
                 [1, "0x01", "WINDOW_COVERING", "OPEN", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Open"],
                 [1, "0x01", "WINDOW_COVERING", "STOP", "0", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Stop"],
                 [1, "0x01", "WINDOW_COVERING", "CLOSE", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Close"],
@@ -193,8 +193,8 @@
             ]
         },
 		"ikeaRemoteMap": {
-            modelids: ["TRADFRI remote control"],
-            map: [
+            "modelids": ["TRADFRI remote control"],
+            "map": [
                 [3, "0x01", "ONOFF", "TOGGLE", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Toggle"],
                 [3, "0x01", "SCENES", "IKEA_STEP_CT", "2", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Setup 10s"],
                 [3, "0x01", "LEVEL_CONTROL", "STEP_WITH_ON_OFF", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Step up (with on/off)"],
@@ -212,8 +212,8 @@
             ]
         },
 		"osramMiniRemoteMap": {
-            modelids: ["Lightify Switch Mini"],
-            map: [
+            "modelids": ["Lightify Switch Mini"],
+            "map": [
                 [1, "0x01", "ONOFF", "ON", "0x00", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Up short press"],
                 [1, "0x01", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "0x00", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Up long press"],
                 [1, "0x01", "LEVEL_CONTROL", "STOP", "0x00", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Up long release"],
@@ -226,8 +226,8 @@
             ]
         },
 		"osram4ButRemoteMap": {
-            modelids: ["Switch 4x EU-LIGHTIFY", "Switch 4x-LIGHTIFY"],
-            map: [
+            "modelids": ["Switch 4x EU-LIGHTIFY", "Switch 4x-LIGHTIFY"],
+            "map": [
                 [1, "0x01", "ONOFF", "ON", "0x00", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "UL short press"],
                 [1, "0x01", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "0x00", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "UL long press"],
                 [1, "0x01", "LEVEL_CONTROL", "STOP", "0x00", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "UL long release"],
@@ -243,8 +243,8 @@
             ]
         },
 		"osram4ButRemoteMap2": {
-            modelids: ["Switch-LIGHTIFY"],
-            map: [
+            "modelids": ["Switch-LIGHTIFY"],
+            "map": [
                 [1, "0x01", "ONOFF", "ON", "0x00", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "UL short press"],
                 [1, "0x01", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "0x00", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "UL long press"],
                 [1, "0x01", "LEVEL_CONTROL", "STOP", "0x00", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "UL long release"],
@@ -260,8 +260,8 @@
             ]
         },
 		"ikeaDimmerMap": {
-            modelids: ["TRADFRI wireless dimmer"],
-            map: [
+            "modelids": ["TRADFRI wireless dimmer"],
+            "map": [
                 [4, "0x01", "LEVEL_CONTROL", "MOVE_TO_LEVEL_WITH_ON_OFF", "255", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Move to level 255 (with on/off)"],
                 [4, "0x01", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Move up (with on/off)"],
                 [4, "0x01", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "0", "0", "0", "Stop_ up (with on/off)"],
@@ -272,14 +272,14 @@
             ]
         },
 		"ikeaMotionSensorMap": {
-            modelids: ["TRADFRI motion sensor"],
-            map: [
+            "modelids": ["TRADFRI motion sensor"],
+            "map": [
                 [1, "0x01", "ONOFF", "ON_WITH_TIMED_OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On with timed off"]
             ]
         },
 		"ikeaSoundControllerMap": {
-            modelids: ["SYMFONISK"],
-            map: [
+            "modelids": ["SYMFONISK"],
+            "map": [
                 [1, "0x01", "ONOFF", "TOGGLE", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Toggle"],
                 [1, "0x01", "LEVEL_CONTROL", "STEP", "0", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Step Up"],
                 [1, "0x01", "LEVEL_CONTROL", "STEP", "1", "S_BUTTON_1", "S_BUTTON_ACTION_TREBLE_PRESS", "Step Down"],
@@ -297,8 +297,8 @@
             ]
         },
 		"bjeSwitchMap": {
-            modelids: ["RB01", "RM01"],
-            map: [
+            "modelids": ["RB01", "RM01"],
+            "map": [
                 [1, "0x0A", "ONOFF", "OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
                 [1, "0x0A", "LEVEL_CONTROL", "STEP", "1", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Step down"],
                 [1, "0x0A", "LEVEL_CONTROL", "STOP", "1", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Stop"],
@@ -356,8 +356,8 @@
             ]
         },
 		"trustZYCT202SwitchMap": {
-            modelids: ["ZYCT-202"],
-            map: [
+            "modelids": ["ZYCT-202"],
+            "map": [
                 [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
                 [1, "0x01", "LEVEL_CONTROL", "MOVE", "0", "S_BUTTON_2", "S_BUTTON_ACTION_HOLD", "Dimm up"],
                 [1, "0x01", "LEVEL_CONTROL", "STOP", "0", "S_BUTTON_2", "S_BUTTON_ACTION_LONG_RELEASED", "Dimm up stop"],
@@ -367,8 +367,8 @@
             ]
         },
 		"xiaomiSwitchAq2Map": {
-            modelids: ["lumi.sensor_switch.aq2"],
-            map: [
+            "modelids": ["lumi.sensor_switch.aq2"],
+            "map": [
                 [1, "0x01", "ONOFF", "0x0a", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Normal press"],
                 [1, "0x01", "ONOFF", "0x0a", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
                 [1, "0x01", "ONOFF", "0x0a", "3", "S_BUTTON_1", "S_BUTTON_ACTION_TREBLE_PRESS", "Triple press"],
@@ -376,8 +376,8 @@
             ]
         },
         "xiaomiSwitchMap": {
-            modelids: ["lumi.sensor_switch"],
-            map: [
+            "modelids": ["lumi.sensor_switch"],
+            "map": [
                 [1, "0x01", "ONOFF", "0x0a", "0", "S_BUTTON_1", "S_BUTTON_ACTION_INITIAL_PRESS", "Normal press"],
                 [1, "0x01", "ONOFF", "0x0a", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Normal release"],
                 [1, "0x01", "ONOFF", "0x0a", "1", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Long release"],
@@ -388,16 +388,16 @@
             ]
         },
 		"xiaomiVibrationMap": {
-            modelids: ["lumi.vibration"],
-            map: [
+            "modelids": ["lumi.vibration"],
+            "map": [
                 [1, "0x01", "DOOR_LOCK", "0x0a", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHAKE", "Shake"],
                 [1, "0x01", "DOOR_LOCK", "0x0a", "2", "S_BUTTON_1", "S_BUTTON_ACTION_TILT", "Tilt"],
                 [1, "0x01", "DOOR_LOCK", "0x0a", "3", "S_BUTTON_1", "S_BUTTON_ACTION_DROP", "Drop"]
             ]
         },
 		"ubisysD1Map": {
-            modelids: ["D1", "S1"],
-            map: [
+            "modelids": ["D1", "S1"],
+            "map": [
                 [1, "0x02", "ONOFF", "TOGGLE", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Toggle"],
                 [1, "0x02", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Move up (with on/off)"],
                 [1, "0x02", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Stop_ (with on/off)"],
@@ -411,8 +411,8 @@
             ]
         },
 		"ubisysC4Map": {
-            modelids: ["C4"],
-            map: [
+            "modelids": ["C4"],
+            "map": [
                 [1, "0x01", "ONOFF", "TOGGLE", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Toggle"],
                 [1, "0x01", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Move up (with on/off)"],
                 [1, "0x01", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Stop_ (with on/off)"],
@@ -436,8 +436,8 @@
             ]
         },
 		"ubisysS2Map": {
-            modelids: ["S2"],
-            map: [
+            "modelids": ["S2"],
+            "map": [
                 [1, "0x03", "ONOFF", "TOGGLE", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Toggle"],
                 [1, "0x03", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Move up (with on/off)"],
                 [1, "0x03", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Stop_ (with on/off)"],
@@ -451,8 +451,8 @@
             ]
         },
 		"lutronLZL4BWHLSwitchMap": {
-            modelids: ["LZL4BWHL"],
-            map: [
+            "modelids": ["LZL4BWHL"],
+            "map": [
                 [4, "0x01", "LEVEL_CONTROL", "MOVE_TO_LEVEL_WITH_ON_OFF", "0xfe", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "on"],
                 [4, "0x01", "LEVEL_CONTROL", "STEP_WITH_ON_OFF", "0x00", "S_BUTTON_2", "S_BUTTON_ACTION_HOLD", "dimm up"],
                 [4, "0x01", "LEVEL_CONTROL", "STOP", "0x00", "S_BUTTON_2", "S_BUTTON_ACTION_LONG_RELEASED", "dimm up release"],
@@ -462,16 +462,16 @@
             ]
         },
 		"lutronAuroraMap": {
-            modelids: ["Z3-1BRL"],
-            map: [
+            "modelids": ["Z3-1BRL"],
+            "map": [
                 [1, "0x01", "LEVEL_CONTROL", "MOVE_TO_LEVEL_WITH_ON_OFF", "0x00", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Toggle"],
                 [1, "0x01", "LEVEL_CONTROL", "MOVE_TO_LEVEL_WITH_ON_OFF", "0x01", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "DimUp"],
                 [1, "0x01", "LEVEL_CONTROL", "MOVE_TO_LEVEL_WITH_ON_OFF", "0x02", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "DimDown"]
             ]
         },
 		"innrRC110Map": {
-            modelids: ["RC 110"],
-            map: [
+            "modelids": ["RC 110"],
+            "map": [
                 [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "OnOff"],
                 [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "OnOff"],
                 [1, "0x01", "LEVEL_CONTROL", "MOVE", "0", "S_BUTTON_2", "S_BUTTON_ACTION_HOLD", "DimUp"],
@@ -537,8 +537,8 @@
             ]
         },
 		"icasaKeypadMap": {
-            modelids: ["ICZB-KPD1"],
-            map: [
+            "modelids": ["ICZB-KPD1"],
+            "map": [
                 [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
                 [1, "0x01", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "1", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Move down (with on/off)"],
                 [1, "0x01", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "1", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Stop_ (with on/off)"],
@@ -560,8 +560,8 @@
             ]
         },
 		"icasaRemoteMap": {
-            modelids: ["ICZB-RM", "ZGRC-KEY-012", "ZGRC-KEY-013", "RGBgenie ZB-5001"],
-            map: [
+            "modelids": ["ICZB-RM", "ZGRC-KEY-012", "ZGRC-KEY-013", "RGBgenie ZB-5001"],
+            "map": [
                 [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
                 [1, "0x01", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "1", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Move down (with on/off)"],
                 [1, "0x01", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "1", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Stop_ (with on/off)"],
@@ -591,16 +591,16 @@
             ]
         },
 		"samjinButtonMap": {
-            modelids: ["button"],
-            map: [
+            "modelids": ["button"],
+            "map": [
                 [1, "0x01", "IAS_ZONE", "0x00", "0x01", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Single press"],
                 [1, "0x01", "IAS_ZONE", "0x00", "0x02", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Double press"],
                 [1, "0x01", "IAS_ZONE", "0x00", "0x03", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Hold"]
             ]
         },
 		"sunricherCCTMap": {
-            modelids: [],
-            map: [
+            "modelids": [],
+            "map": [
                 [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
                 [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
                 [1, "0x01", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "0", "S_BUTTON_3", "S_BUTTON_ACTION_HOLD", "Move up (with on/off)"],
@@ -614,8 +614,8 @@
             ]
         },
 		"rgbgenie5121Map": {
-            modelids: ["RGBgenie ZB-5121"],
-            map: [
+            "modelids": ["RGBgenie ZB-5121"],
+            "map": [
                 [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
                 [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
                 [1, "0x01", "LEVEL_CONTROL", "STEP_WITH_ON_OFF", "0", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "Step up (with on/off)"],
@@ -629,8 +629,8 @@
             ]
         },
 		"sunricherMap": {
-            modelids: ["ED-1001", "ZG2833K", "ZG2835", "45127"],
-            map: [
+            "modelids": ["ED-1001", "ZG2833K", "ZG2835", "45127"],
+            "map": [
                 [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
                 [1, "0x01", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Move up (with on/off)"],
                 [1, "0x01", "LEVEL_CONTROL", "STOP_WITH_ON_OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Stop_ (with on/off)"],
@@ -658,8 +658,8 @@
             ]
         },
 		"legrandSwitchRemote": {
-            modelids: ["Remote switch"],
-            map: [
+            "modelids": ["Remote switch"],
+            "map": [
                 [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
                 [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
                 [1, "0x01", "LEVEL_CONTROL", "MOVE", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Dimm up"],
@@ -669,8 +669,8 @@
             ]
         },
 		"legrandDoubleSwitchRemote": {
-            modelids: ["Double gangs remote switch"],
-            map: [
+            "modelids": ["Double gangs remote switch"],
+            "map": [
                 [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
                 [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
                 [1, "0x01", "LEVEL_CONTROL", "MOVE", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Dimm up"],
@@ -686,8 +686,8 @@
             ]
         },
 		"aqaraOpple6Map": {
-            modelids: ["86opcn01"],
-            map: [
+            "modelids": ["86opcn01"],
+            "map": [
                 [1, "0x01", "MULTISTATE_INPUT", "0x0a", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Off hold"],
                 [1, "0x01", "MULTISTATE_INPUT", "0x0a", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Off press"],
                 [1, "0x01", "MULTISTATE_INPUT", "0x0a", "2", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "Off double press"],
@@ -721,8 +721,8 @@
             ]
         },
 		"legrandShutterSwitchRemote": {
-            modelids: ["Shutters central remote switch"],
-            map: [
+            "modelids": ["Shutters central remote switch"],
+            "map": [
                 [1, "0x01", "WINDOW_COVERING", "OPEN", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Move up (with on/off)"],
                 [1, "0x01", "WINDOW_COVERING", "CLOSE", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Move down (with on/off)"],
                 [1, "0x01", "WINDOW_COVERING", "STOP", "0", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "Stop_ (with on/off)"],
@@ -731,23 +731,23 @@
             ]
         },
 		"legrandToggleRemoteSwitch": {
-            modelids: ["Remote toggle switch"],
-            map: [
+            "modelids": ["Remote toggle switch"],
+            "map": [
                 [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
                 [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"]
             ]
         },
 		"legrandMotionSensor": {
-            modelids: ["Remote motion sensor"],
-            map: [
+            "modelids": ["Remote motion sensor"],
+            "map": [
                 [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
                 [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
                 [1, "0x01", "ONOFF", "ON_WITH_TIMED_OFF", "0", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "On with timed off"]
             ]
         },
 		"bitronRemoteMap": {
-            modelids: ["902010/23"],
-            map: [
+            "modelids": ["902010/23"],
+            "map": [
                 [1, "0x01", "LEVEL_CONTROL", "STEP_WITH_ON_OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Step up (with on/off)"],
                 [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
                 [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
@@ -755,8 +755,8 @@
             ]
         },
 		"rcv14Map": {
-            modelids: ["RC_V14", "RC-EM"],
-            map: [
+            "modelids": ["RC_V14", "RC-EM"],
+            "map": [
                 [1, "0x01", "IAS_ACE", "ARM", "1", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Arm day/home zones only"],
                 [1, "0x01", "IAS_ACE", "ARM", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Disarm"],
                 [1, "0x01", "IAS_ACE", "EMERGENCY", "0", "S_BUTTON_3", "S_BUTTON_ACTION_SHORT_RELEASED", "Emergency"],
@@ -764,8 +764,8 @@
             ]
         },
 		"tintMap": {
-            modelids: ["ZBT-Remote-ALL-RGBW"],
-            map: [
+            "modelids": ["ZBT-Remote-ALL-RGBW"],
+            "map": [
                 [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
                 [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
                 [1, "0x01", "LEVEL_CONTROL", "STEP", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Step Up"],
@@ -786,8 +786,8 @@
             ]
         },
 		"sageMap": {
-            modelids: ["Bell"],
-            map: [
+            "modelids": ["Bell"],
+            "map": [
                 [1, "0x12", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
                 [1, "0x12", "ONOFF", "OFF", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
                 [1, "0x12", "LEVEL_CONTROL", "MOVE_WITH_ON_OFF", "0", "S_BUTTON_3", "S_BUTTON_ACTION_HOLD", "On (hold)"],
@@ -795,16 +795,16 @@
             ]
         },
 		"sonoffOnOffMap": {
-            modelids: ["WB01"],
-            map: [
+            "modelids": ["WB01"],
+            "map": [
                 [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Long"],
                 [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "double"],
                 [1, "0x01", "ONOFF", "TOGGLE", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "short"]
             ]
         },
 		"LDSRemoteMap": {
-            modelids: ["ZBT-CCTSwitch-D0001"],
-            map: [
+            "modelids": ["ZBT-CCTSwitch-D0001"],
+            "map": [
                 [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
                 [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
                 [1, "0x01", "LEVEL_CONTROL", "MOVE_TO_LEVEL", "0x7F", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Dim short"],
@@ -816,8 +816,8 @@
             ]
         },
         "linkind1keyMap": {
-            modelids: ["ZBT-DIMSwitch-D0001"],
-            map: [
+            "modelids": ["ZBT-DIMSwitch-D0001"],
+            "map": [
                 [1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "On"],
                 [1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_2", "S_BUTTON_ACTION_SHORT_RELEASED", "Off"],
                 [1, "0x01", "LEVEL_CONTROL", "MOVE", "0", "S_BUTTON_1", "S_BUTTON_ACTION_HOLD", "Move up"],
