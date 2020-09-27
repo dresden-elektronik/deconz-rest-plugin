@@ -472,10 +472,11 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 
             case 0x001C: // System Mode
             {
-                if (sensor->modelId().startsWith(QLatin1String("SLR2")) ||  // Hive
+                if (sensor->modelId().startsWith(QLatin1String("SLR2")) ||   // Hive
                     sensor->modelId().startsWith(QLatin1String("SLR1b")) ||  // Hive
-                    sensor->modelId().startsWith(QLatin1String("TH112")) || // Sinope
-                    sensor->modelId().startsWith(QLatin1String("Zen-01")))  // Zen
+                    sensor->modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
+                    sensor->modelId().startsWith(QLatin1String("Zen-01")) || // Zen
+                    sensor->modelId().startsWith(QLatin1String("Super")))    // ELKO
                 {
                     qint8 mode = attr.numericValue().s8;
                     QString mode_set;
@@ -593,6 +594,119 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                     configUpdated = true;
                 }
                 sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
+                break;
+
+            case 0x0403: // Temperature measurement
+            {
+                if (zclFrame.manufacturerCode() == VENDOR_EMBER && sensor->modelId().startsWith(QLatin1String("Super TR"))) // ELKO
+                {
+                    quint8 mode = attr.numericValue().u8;
+                    QString mode_set;
+
+                    if ( mode == 0x00 ) { mode_set = QString("Air sensor"); }
+                    if ( mode == 0x01 ) { mode_set = QString("Floor sensor"); }
+                    if ( mode == 0x03 ) { mode_set = QString("Floor protection"); }
+                    
+                    item = sensor->item(RConfigHeatSetpoint); // TO BE DONE
+                    if (itemitem && !item->toString().isEmpty() && item->toString() != mode_set)
+                    {
+                        if (updateType == NodeValue::UpdateByZclReport)
+                        {
+                            stateUpdated = true;
+                        }
+                        if (item->toNumber() != mode_set)
+                        {
+                            item->setValue(mode_set);
+                            enqueueEvent(Event(RSensors, RConfigHeatSetpoint, sensor->id(), item)); // TO BE DONE
+                            stateUpdated = true;
+                        }
+                    }
+                }
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
+                break;
+
+            case 0x0406: // Device on/off
+            {
+                if (zclFrame.manufacturerCode() == VENDOR_EMBER && sensor->modelId() == QLatin1String("Super TR")) // ELKO
+                {
+                    bool on = attr.numericValue().u8 > 0 ? true : false;
+                    item = sensor->item(RStateOn);
+                    
+                    if (item && updateType == NodeValue::UpdateByZclReport)
+                    {
+                        stateUpdated = true;
+                    }
+                    if (item && item->toBool() != on)
+                    {
+                        item->setValue(on);
+                        enqueueEvent(Event(RSensors, RStateOn, sensor->id(), item));
+                        stateUpdated  = true;
+                    }
+                    sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+                }
+            }
+                break;
+
+            case 0x0409: // Floor temperature
+            {
+                if (zclFrame.manufacturerCode() == VENDOR_EMBER && sensor->modelId().startsWith(QLatin1String("Super TR"))) // ELKO
+                {
+                    qint16 floortemp = attr.numericValue().s16;
+                    item = sensor->item(RStateFloorTemperature);
+                    
+                    if (item && updateType == NodeValue::UpdateByZclReport)
+                    {
+                        stateUpdated = true;
+                    }
+                    if (item && item->toNumber() != floortemp)
+                    {
+                        item->setValue(floortemp);
+                        enqueueEvent(Event(RSensors, RStateFloorTemperature, sensor->id(), item));
+                        stateUpdated = true;
+                    }
+                }
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
+                break;
+
+            case 0x0412: // Child lock
+            {
+                if (zclFrame.manufacturerCode() == VENDOR_EMBER && sensor->modelId() == QLatin1String("Super TR")) // ELKO
+                {
+                    bool enabled = attr.numericValue().u8 > 0 ? true : false;
+                    item = sensor->item(RConfigLock);
+                    if (item && item->toBool() != enabled)
+                    {
+                        item->setValue(enabled);
+                        enqueueEvent(Event(RSensors, RConfigLock, sensor->id(), item));
+                        configUpdated = true;
+                    }
+                    sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+                }
+            }
+                break;
+
+            case 0x0415: // Heating active/inactive
+            {
+                if (zclFrame.manufacturerCode() == VENDOR_EMBER && sensor->modelId() == QLatin1String("Super TR")) // ELKO
+                {
+                    bool on = attr.numericValue().u8 > 0 ? true : false;
+                    item = sensor->item(RStateHeating);
+                    
+                    if (item && updateType == NodeValue::UpdateByZclReport)
+                    {
+                        stateUpdated = true;
+                    }
+                    if (item && item->toBool() != on)
+                    {
+                        item->setValue(on);
+                        enqueueEvent(Event(RSensors, RStateHeating, sensor->id(), item));
+                        stateUpdated  = true;
+                    }
+                    sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+                }
             }
                 break;
 

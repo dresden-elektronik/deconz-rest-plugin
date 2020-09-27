@@ -1223,7 +1223,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     else if (sensor->modelId().startsWith(QLatin1String("SLR2")) ||   // Hive
                              sensor->modelId() == QLatin1String("SLR1b") ||           // Hive
                              sensor->modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
-                             sensor->modelId().startsWith(QLatin1String("Zen-01")))   // Zen
+                             sensor->modelId().startsWith(QLatin1String("Zen-01")) || // Zen
+                             sensor->modelId() == QLatin1String("Super TR"))          // ELKO
                     {
 
                         QString modeSet = map[pi.key()].toString();
@@ -1378,6 +1379,22 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                 return REQ_READY_SEND;
                             }
                         }
+                        else if (sensor->modelId() == QLatin1String("Super TR"))
+                        {
+                            bool data = map[pi.key()].toBool();
+
+                            if (addTaskThermostatUiConfigurationReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0412, deCONZ::ZclBoolean, data))
+                            {
+                                updated = true;
+                            }
+                            else
+                            {
+                                rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                           QString("Could not set attribute")));
+                                rsp.httpStatus = HttpStatusBadRequest;
+                                return REQ_READY_SEND;
+                            }
+                        }
                     }
                     else
                     {
@@ -1435,6 +1452,47 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                 rsp.httpStatus = HttpStatusBadRequest;
                                 return REQ_READY_SEND;
                             }
+                        }
+                    }
+                    else
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
+                    }
+                }
+                else if (rid.suffix == RConfigTemperatureMeasurement)
+                {
+                    if (map[pi.key()].type() == QVariant::QString)
+                    {
+                        if (sensor->modelId() == QLatin1String("Super TR"))
+                        {
+                            QString modeSet = map[pi.key()].toString();
+                            quint8 mode = 0;
+                            
+                            if (modeSet == "air sensor") { mode = 0x00; }
+                            else if (modeSet == "floor sensor") { mode = 0x01; }
+                            else if (modeSet == "floor protection") { mode = 0x03; }
+                            else
+                            {
+                                rspItemState[QString("error unknow temperature measurement mode for %1").arg(sensor->modelId())] = map[pi.key()];
+                            }
+                            
+                            if (mode < 4 && mode != 2)
+                            {
+                                if (addTaskThermostatUiConfigurationReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0403, deCONZ::Zcl8BitEnum, data))
+                                {
+                                    updated = true;
+                                }
+                                else
+                                {
+                                    rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                               QString("Could not set attribute")));
+                                    rsp.httpStatus = HttpStatusBadRequest;
+                                    return REQ_READY_SEND;
+                                }
+                            }  
                         }
                     }
                     else

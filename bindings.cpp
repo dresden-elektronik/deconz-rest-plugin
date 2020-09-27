@@ -1069,6 +1069,55 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
             return sendConfigureReportingRequest(bt, {rq, rq2});
         }
+        else if (sensor && sensor->modelId() == QLatin1String("Super TR")) // Elko Super TR
+        {
+            rq.dataType = deCONZ::Zcl16BitInt;
+            rq.attributeId = 0x0000;        // Local temperature
+            rq.minInterval = 1;
+            rq.maxInterval = 600;
+            rq.reportableChange16bit = 20;
+
+            ConfigureReportingRequest rq2;
+            rq2.dataType = deCONZ::Zcl16BitInt;
+            rq2.attributeId = 0x0012;        // Occupied heating setpoint
+            rq2.minInterval = 1;
+            rq2.maxInterval = 600;
+            rq2.reportableChange16bit = 50;
+
+            ConfigureReportingRequest rq3;
+            rq3.dataType = deCONZ::Zcl8BitEnum;
+            rq3.attributeId = 0x001C;        // Thermostat mode
+            rq3.minInterval = 1;
+            rq3.maxInterval = 600;
+            rq3.reportableChange8bit = 0xff;
+
+            ConfigureReportingRequest rq4;
+            rq4.dataType = deCONZ::ZclBoolean;
+            rq4.attributeId = 0x0406;        // Device on
+            rq4.minInterval = 1;
+            rq4.maxInterval = 600;
+
+            ConfigureReportingRequest rq5;
+            rq5.dataType = deCONZ::Zcl16BitInt;
+            rq5.attributeId = 0x0409;        // Floor temperature
+            rq5.minInterval = 1;
+            rq5.maxInterval = 600;
+            rq5.reportableChange16bit = 20;
+
+            ConfigureReportingRequest rq6;
+            rq6.dataType = deCONZ::ZclBoolean;
+            rq6.attributeId = 0x0413;        // Child lock
+            rq6.minInterval = 1;
+            rq6.maxInterval = 600;
+
+            ConfigureReportingRequest rq7;
+            rq7.dataType = deCONZ::ZclBoolean;
+            rq7.attributeId = 0x0415;        // Heating active/inactive
+            rq7.minInterval = 1;
+            rq7.maxInterval = 600;
+
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4, rq5, rq6, rq7});
+        }
         else if (sensor && sensor->modelId() == QLatin1String("Zen-01")) // Zen
         {
             rq.dataType = deCONZ::Zcl16BitInt;
