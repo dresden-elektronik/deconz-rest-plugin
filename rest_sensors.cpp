@@ -1159,7 +1159,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         else if (modeSet == "off") { mode = 0x05; }
                         else
                         {
-                            rspItemState[QString("error unknow mode for %1").arg(sensor->modelId())] = map[pi.key()];
+                            rspItemState[QString("error unknown mode for %1").arg(sensor->modelId())] = map[pi.key()];
                         }
 
                         if (mode < 10)
@@ -1181,7 +1181,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         else if (modeSet == "off") { data = QByteArray("\x02", 1); }
                         else
                         {
-                            rspItemState[QString("error unknow mode for %1").arg(sensor->modelId())] = map[pi.key()];
+                            rspItemState[QString("error unknown mode for %1").arg(sensor->modelId())] = map[pi.key()];
                         }
                         if (data.length() > 0)
                         {
@@ -1212,7 +1212,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         }
                         else
                         {
-                            rspItemState[QString("error unknow mode for %1").arg(sensor->modelId())] = map[pi.key()];
+                            rspItemState[QString("error unknown mode for %1").arg(sensor->modelId())] = map[pi.key()];
                         }
 
                         if ( ok )
@@ -1223,8 +1223,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     else if (sensor->modelId().startsWith(QLatin1String("SLR2")) ||   // Hive
                              sensor->modelId() == QLatin1String("SLR1b") ||           // Hive
                              sensor->modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
-                             sensor->modelId().startsWith(QLatin1String("Zen-01")) || // Zen
-                             sensor->modelId() == QLatin1String("Super TR"))          // ELKO
+                             sensor->modelId().startsWith(QLatin1String("Zen-01")))   // Zen
                     {
 
                         QString modeSet = map[pi.key()].toString();
@@ -1240,7 +1239,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         else if (modeSet == "sleep") { mode = 0x09; }
                         else
                         {
-                            rspItemState[QString("error unknow mode for %1").arg(sensor->modelId())] = map[pi.key()];
+                            rspItemState[QString("error unknown mode for %1").arg(sensor->modelId())] = map[pi.key()];
                         }
 
                         if (mode < 10)
@@ -1464,7 +1463,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if (rid.suffix == RConfigTemperatureMeasurement)
                 {
-                    if (map[pi.key()].type() == QVariant::QString)
+                    if (map[pi.key()].type() == QVariant::String && map[pi.key()].toString().size() <= 16)
                     {
                         if (sensor->modelId() == QLatin1String("Super TR"))
                         {
@@ -1476,12 +1475,12 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             else if (modeSet == "floor protection") { mode = 0x03; }
                             else
                             {
-                                rspItemState[QString("error unknow temperature measurement mode for %1").arg(sensor->modelId())] = map[pi.key()];
+                                rspItemState[QString("error unknown temperature measurement mode for %1").arg(sensor->modelId())] = map[pi.key()];
                             }
                             
                             if (mode < 4 && mode != 2)
                             {
-                                if (addTaskThermostatUiConfigurationReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0403, deCONZ::Zcl8BitEnum, data))
+                                if (addTaskThermostatUiConfigurationReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0403, deCONZ::Zcl8BitEnum, mode))
                                 {
                                     updated = true;
                                 }

@@ -608,19 +608,13 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                     if ( mode == 0x01 ) { mode_set = QString("Floor sensor"); }
                     if ( mode == 0x03 ) { mode_set = QString("Floor protection"); }
                     
-                    item = sensor->item(RConfigHeatSetpoint); // TO BE DONE
-                    if (itemitem && !item->toString().isEmpty() && item->toString() != mode_set)
+                    item = sensor->item(RConfigTemperatureMeasurement);
+
+                    if (item && item->toString() != mode_set)
                     {
-                        if (updateType == NodeValue::UpdateByZclReport)
-                        {
-                            stateUpdated = true;
-                        }
-                        if (item->toNumber() != mode_set)
-                        {
-                            item->setValue(mode_set);
-                            enqueueEvent(Event(RSensors, RConfigHeatSetpoint, sensor->id(), item)); // TO BE DONE
-                            stateUpdated = true;
-                        }
+                        item->setValue(mode_set);
+                        enqueueEvent(Event(RSensors, RConfigTemperatureMeasurement, sensor->id(), item));
+                        configUpdated = true;
                     }
                 }
                 sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
@@ -676,11 +670,11 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 if (zclFrame.manufacturerCode() == VENDOR_EMBER && sensor->modelId() == QLatin1String("Super TR")) // ELKO
                 {
                     bool enabled = attr.numericValue().u8 > 0 ? true : false;
-                    item = sensor->item(RConfigLock);
+                    item = sensor->item(RConfigLocked);
                     if (item && item->toBool() != enabled)
                     {
                         item->setValue(enabled);
-                        enqueueEvent(Event(RSensors, RConfigLock, sensor->id(), item));
+                        enqueueEvent(Event(RSensors, RConfigLocked, sensor->id(), item));
                         configUpdated = true;
                     }
                     sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());

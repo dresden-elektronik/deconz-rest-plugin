@@ -3451,7 +3451,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeString, RConfigMode);
                 }
                 
-                if (sensor.modelId().modelId() == QLatin1String("Super TR"))   // ELKO
+                if (sensor.modelId() == QLatin1String("Super TR"))   // ELKO
                 {
                     sensor.addItem(DataTypeString, RConfigTemperatureMeasurement);
                     sensor.addItem(DataTypeInt16, RStateFloorTemperature);
