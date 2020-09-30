@@ -678,8 +678,8 @@
 			[1, "0x12", "LEVEL_CONTROL", "STOP", "0", "S_BUTTON_3", "S_BUTTON_ACTION_LONG_RELEASED", "On (released)"]
 		],
 		"sonoffOnOffMap": [
-			[1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "Long"],
-			[1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "double"],
+			[1, "0x01", "ONOFF", "ON", "0", "S_BUTTON_1", "S_BUTTON_ACTION_DOUBLE_PRESS", "double"],
+			[1, "0x01", "ONOFF", "OFF", "0", "S_BUTTON_1", "S_BUTTON_ACTION_LONG_RELEASED", "long"],
 			[1, "0x01", "ONOFF", "TOGGLE", "0", "S_BUTTON_1", "S_BUTTON_ACTION_SHORT_RELEASED", "short"]
 		],
 		"LDSRemoteMap": [
