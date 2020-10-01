@@ -37,6 +37,7 @@
 #include "bindings.h"
 #include <math.h>
 #include "websocket_server.h"
+#include "tuya.h"
 
 #if defined(Q_OS_LINUX) && !defined(Q_PROCESSOR_X86)
   // Workaround to detect ARM and AARCH64 in older Qt versions.
@@ -761,7 +762,8 @@ enum TaskType
     // Danalock support
     TaskDoorLock = 38,
     TaskDoorUnlock = 39,
-    TaskSyncTime = 40
+    TaskSyncTime = 40,
+    TaskTuyaRequest = 41
 };
 
 struct TaskItem
@@ -1435,7 +1437,7 @@ public:
     void handleIasZoneClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendIasZoneEnrollResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleIndicationSearchSensors(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
-    bool SendTuyaRequest(TaskItem &task, TaskType taskType , qint16 Dp , QByteArray data );
+    bool SendTuyaRequest(TaskItem &task, TaskType taskType , qint8 Dp_type, qint8 Dp_identifier , QByteArray data );
     void handleCommissioningClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZdpIndication(const deCONZ::ApsDataIndication &ind);
     bool handleMgmtBindRspConfirm(const deCONZ::ApsDataConfirm &conf);
@@ -1511,6 +1513,7 @@ public:
     void loadAllScenesFromDb();
     void loadAllSchedulesFromDb();
     void loadLightNodeFromDb(LightNode *lightNode);
+    QString loadDataForLightNodeFromDb(QString extAddress);
     void loadGroupFromDb(Group *group);
     void loadSceneFromDb(Scene *scene);
     void loadSwUpdateStateFromDb();

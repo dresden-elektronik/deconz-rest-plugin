@@ -159,6 +159,7 @@ extern const char *RConfigTholdOffset;
 extern const char *RConfigUrl;
 extern const char *RConfigUsertest;
 extern const char *RConfigWindowCoveringType;
+extern const char *RConfigWindowOpen;
 extern const char *RConfigUbisysJ1Mode;
 extern const char *RConfigUbisysJ1WindowCoveringType;
 extern const char *RConfigUbisysJ1ConfigurationAndStatus;

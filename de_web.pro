@@ -109,6 +109,7 @@ HEADERS  = bindings.h \
            rule.h \
            scene.h \
            sensor.h \
+           tuya.h \
            websocket_server.h
 
 SOURCES  = authorisation.cpp \
