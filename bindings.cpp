@@ -2310,8 +2310,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // LG
         sensor->modelId() == QLatin1String("LG IP65 HMS") ||
         // Sinope
-        sensor->modelId() == QLatin1String("WL4200S") ||
-        sensor->modelId().startsWith(QLatin1String("TH112")) ||
+        sensor->modelId().startsWith(QLatin1String("WL4200")) || // water leak sensor
+        sensor->modelId().startsWith(QLatin1String("TH112")) || // thermostat
         //LifeControl smart plug
         sensor->modelId() == QLatin1String("RICI01") ||
         //LifeControl enviroment sensor
