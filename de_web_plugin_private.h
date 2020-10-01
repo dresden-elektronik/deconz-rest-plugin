@@ -38,6 +38,7 @@
 #include "bindings.h"
 #include <math.h>
 #include "websocket_server.h"
+#include "tuya.h"
 
 #if defined(Q_OS_LINUX) && !defined(Q_PROCESSOR_X86)
   // Workaround to detect ARM and AARCH64 in older Qt versions.
@@ -301,6 +302,7 @@
 #define VENDOR_MMB          0x109a
 #define VENDOR_NETVOX       0x109F
 #define VENDOR_NYCE         0x10B9
+#define VENDOR_UNIVERSAL2   0x10EF
 #define VENDOR_UBISYS       0x10F2
 #define VENDOR_DANALOCK     0x115C
 #define VENDOR_SCHLAGE      0x1236 // Used by Schlage Locks
@@ -343,6 +345,7 @@
 #define VENDOR_DANFOSS      0x1246
 #define VENDOR_NIKO_NV      0x125F
 #define VENDOR_KONKE        0x1268
+#define VENDOR_SHYUGJ_TECHNOLOGY 0x126A
 #define VENDOR_OSRAM_STACK  0xBBAA
 #define VENDOR_C2DF         0xC2DF
 #define VENDOR_PHILIO       0xFFA0
@@ -570,6 +573,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == xalMacPrefix;
         case VENDOR_UBISYS:
             return prefix == ubisysMacPrefix;
+        case VENDOR_UNIVERSAL2:
+            return prefix == emberMacPrefix;
         case VENDOR_VISONIC:
             return prefix == emberMacPrefix;
         case VENDOR_XAL:
@@ -767,7 +772,8 @@ enum TaskType
     // Danalock support
     TaskDoorLock = 38,
     TaskDoorUnlock = 39,
-    TaskSyncTime = 40
+    TaskSyncTime = 40,
+    TaskTuyaRequest = 41
 };
 
 struct TaskItem
@@ -1441,7 +1447,7 @@ public:
     void handleIasZoneClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendIasZoneEnrollResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleIndicationSearchSensors(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
-    bool SendTuyaRequest(TaskItem &task, TaskType taskType , qint16 Dp , QByteArray data );
+    bool SendTuyaRequest(TaskItem &task, TaskType taskType , qint8 Dp_type, qint8 Dp_identifier , QByteArray data );
     void handleCommissioningClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZdpIndication(const deCONZ::ApsDataIndication &ind);
     bool handleMgmtBindRspConfirm(const deCONZ::ApsDataConfirm &conf);
@@ -1517,6 +1523,7 @@ public:
     void loadAllScenesFromDb();
     void loadAllSchedulesFromDb();
     void loadLightNodeFromDb(LightNode *lightNode);
+    QString loadDataForLightNodeFromDb(QString extAddress);
     void loadGroupFromDb(Group *group);
     void loadSceneFromDb(Scene *scene);
     void loadSwUpdateStateFromDb();
