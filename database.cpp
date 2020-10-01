@@ -3762,7 +3762,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
 
         if (extAddr != 0)
         {
-            QString uid = d->generateUniqueId(extAddr, endpoint, clusterId);
+            QString uid = generateUniqueId(extAddr, endpoint, clusterId);
 
             if (uid != sensor.uniqueId())
             {

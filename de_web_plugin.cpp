@@ -17459,7 +17459,7 @@ uint8_t DeRestPluginPrivate::endpoint()
     return 1;
 }
 
-QString DeRestPluginPrivate::generateUniqueId(quint64 extAddress, quint8 endpoint, quint16 clusterId)
+QString generateUniqueId(quint64 extAddress, quint8 endpoint, quint16 clusterId)
 {
     union _a
     {

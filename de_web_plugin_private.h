@@ -604,6 +604,7 @@ inline bool checkMacVendor(const deCONZ::Address &addr, quint16 vendor)
     return checkMacVendor(addr.ext(), vendor);
 }
 
+QString generateUniqueId(quint64 extAddress, quint8 endpoint, quint16 clusterId);
 // HTTP status codes
 extern const char *HttpStatusOk;
 extern const char *HttpStatusAccepted;
@@ -1387,7 +1388,6 @@ public:
     void pushClientForClose(QTcpSocket *sock, int closeTimeout, const QHttpRequestHeader &hdr);
 
     uint8_t endpoint();
-    QString generateUniqueId(quint64 extAddress, quint8 endpoint, quint16 clusterId);
 
     // Task interface
     bool addTask(const TaskItem &task);
