@@ -389,6 +389,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         enqueueEvent(e);
                     }
                 }
+                break;
                 case 0x016E: // Low battery
                 {
                     bool bat = false;
