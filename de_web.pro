@@ -110,7 +110,8 @@ HEADERS  = bindings.h \
            rule.h \
            scene.h \
            sensor.h \
-           websocket_server.h
+           websocket_server.h \
+           zdp.h
 
 SOURCES  = authorisation.cpp \
            bindings.cpp \
@@ -170,7 +171,8 @@ SOURCES  = authorisation.cpp \
            rest_userparameter.cpp \
            zcl_tasks.cpp \
            window_covering.cpp \
-           websocket_server.cpp
+           websocket_server.cpp \
+           zdp.cpp
 
 win32 {
 

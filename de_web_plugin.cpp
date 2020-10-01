@@ -15158,27 +15158,8 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         if (!hasNodeDescriptor)
         {
             DBG_Printf(DBG_INFO, "[1] get node descriptor for 0x%016llx\n", sc->address.ext());
-            deCONZ::ApsDataRequest apsReq;
 
-            // ZDP Header
-            apsReq.dstAddress() = sc->address;
-            apsReq.setDstAddressMode(deCONZ::ApsNwkAddress);
-            apsReq.setDstEndpoint(ZDO_ENDPOINT);
-            apsReq.setSrcEndpoint(ZDO_ENDPOINT);
-            apsReq.setProfileId(ZDP_PROFILE_ID);
-            apsReq.setRadius(0);
-            apsReq.setClusterId(ZDP_NODE_DESCRIPTOR_CLID);
-            apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
-
-            QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
-            stream.setByteOrder(QDataStream::LittleEndian);
-
-            stream << zclSeq++;
-            stream << sc->address.nwk();
-
-            deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
-
-            if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+            if (zdpSendNodeDescriptorReq(sc->address.nwk(), apsCtrl) == deCONZ::Success)
             {
                 queryTime = queryTime.addSecs(5);
                 sc->timeout.restart();
@@ -15192,27 +15173,8 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
         if (!hasActiveEndpoints)
         {
             DBG_Printf(DBG_INFO, "[2] get active endpoints for 0x%016llx\n", sc->address.ext());
-            deCONZ::ApsDataRequest apsReq;
 
-            // ZDP Header
-            apsReq.dstAddress() = sc->address;
-            apsReq.setDstAddressMode(deCONZ::ApsNwkAddress);
-            apsReq.setDstEndpoint(ZDO_ENDPOINT);
-            apsReq.setSrcEndpoint(ZDO_ENDPOINT);
-            apsReq.setProfileId(ZDP_PROFILE_ID);
-            apsReq.setRadius(0);
-            apsReq.setClusterId(ZDP_ACTIVE_ENDPOINTS_CLID);
-            //apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
-
-            QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
-            stream.setByteOrder(QDataStream::LittleEndian);
-
-            stream << zclSeq++;
-            stream << sc->address.nwk();
-
-            deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
-
-            if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+            if (zdpSendActiveEndpointsReq(sc->address.nwk(), apsCtrl) == deCONZ::Success)
             {
                 queryTime = queryTime.addSecs(5);
                 sc->timeout.restart();
@@ -15242,28 +15204,8 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 if (ep) // fetch this
                 {
                     DBG_Printf(DBG_INFO, "[3] get simple descriptor 0x%02X for 0x%016llx\n", ep, sc->address.ext());
-                    deCONZ::ApsDataRequest apsReq;
 
-                    // ZDP Header
-                    apsReq.dstAddress() = sc->address;
-                    apsReq.setDstAddressMode(deCONZ::ApsNwkAddress);
-                    apsReq.setDstEndpoint(ZDO_ENDPOINT);
-                    apsReq.setSrcEndpoint(ZDO_ENDPOINT);
-                    apsReq.setProfileId(ZDP_PROFILE_ID);
-                    apsReq.setRadius(0);
-                    apsReq.setClusterId(ZDP_SIMPLE_DESCRIPTOR_CLID);
-                    //apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
-
-                    QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
-                    stream.setByteOrder(QDataStream::LittleEndian);
-
-                    stream << zclSeq++;
-                    stream << sc->address.nwk();
-                    stream << ep;
-
-                    deCONZ::ApsController *apsCtrl = deCONZ::ApsController::instance();
-
-                    if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+                    if (zdpSendSimpleDescriptorReq(sc->address.nwk(), ep, apsCtrl) == deCONZ::Success)
                     {
                         queryTime = queryTime.addSecs(1);
                         sc->timeout.restart();
