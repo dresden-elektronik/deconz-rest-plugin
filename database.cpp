@@ -3317,7 +3317,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (sensor.modelId().startsWith(QLatin1String("lumi.vibration")))
             {
                 item = sensor.addItem(DataTypeInt16, RStateOrientationX);
-                item->setParseParameters({"parseGenericAttribute/4", 1, "0x0101", "0x0508", "var a = BigInt($raw) & 0xffffn; a + 5n;"});
                 item = sensor.addItem(DataTypeInt16, RStateOrientationY);
                 item = sensor.addItem(DataTypeInt16, RStateOrientationZ);
                 item = sensor.addItem(DataTypeUInt16, RStateTiltAngle);
@@ -3835,6 +3834,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 // append to cache if not already known
                 d->sensors.push_back(sensor);
                 d->updateSensorEtag(&d->sensors.back());
+
+                const auto key = extAddr != 0 ? extAddr : qHash(sensor.uniqueId());
+                auto *device = getOrCreateDevice(d, d->m_devices, key);
+                device->addSubDevice(&d->sensors.back());
 
                 if (sensor.needSaveDatabase())
                 {

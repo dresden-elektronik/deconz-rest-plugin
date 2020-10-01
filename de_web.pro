@@ -93,6 +93,7 @@ HEADERS  = bindings.h \
            de_web_plugin.h \
            de_web_plugin_private.h \
            de_web_widget.h \
+           device.h \
            device_descriptions.h \
            event.h \
            gateway.h \
@@ -120,6 +121,7 @@ SOURCES  = authorisation.cpp \
            colorspace.cpp \
            database.cpp \
            daylight.cpp \
+           device.cpp \
            device_descriptions.cpp \
            device_setup.cpp \
            diagnostics.cpp \

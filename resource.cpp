@@ -12,16 +12,26 @@
 #include <QJSEngine>
 #include "deconz.h"
 #include "resource.h"
+#include "de_web_plugin_private.h"
 
+const char *RDevices = "/devices";
 const char *RSensors = "/sensors";
 const char *RLights = "/lights";
 const char *RGroups = "/groups";
 const char *RConfig = "/config";
 
 const char *REventAdded = "event/added";
+const char *REventAwake = "event/awake";
 const char *REventDeleted = "event/deleted";
+const char *REventPoll = "event/poll";
 const char *REventValidGroup = "event/validgroup";
 const char *REventCheckGroupAnyOn = "event/checkgroupanyon";
+const char *REventNodeDescriptor = "event/node.descriptor";
+const char *REventActiveEndpoints = "event/active.endpoints";
+const char *REventSimpleDescriptor = "event/simple.descriptor";
+const char *REventStateEnter = "event/state.enter";
+const char *REventStateLeave = "event/state.leave";
+const char *REventStateTimeout = "event/state.timeout";
 
 const char *RInvalidSuffix = "invalid/suffix";
 
@@ -35,6 +45,9 @@ const char *RAttrUniqueId = "attr/uniqueid";
 const char *RAttrSwVersion = "attr/swversion";
 const char *RAttrLastAnnounced = "attr/lastannounced";
 const char *RAttrLastSeen = "attr/lastseen";
+const char *RAttrExtAddress = "attr/extaddress";
+const char *RAttrNwkAddress = "attr/nwkaddress";
+const char *RAttrGroupAddress = "attr/groupaddress";
 
 const char *RActionScene = "action/scene";
 
@@ -178,14 +191,14 @@ static std::vector<QString> rItemStrings; // string allocator: only grows, never
 /*! A generic function to parse ZCL values from read/report commands.
     The item->parseParameters() is expected to contain 5 elements (given in the device description file).
 
-    ["parseGenericAttr/4", endpoint, clusterId, attributeId, expression]
+    ["parseGenericAttribute/4", endpoint, clusterId, attributeId, expression]
 
     - endpoint, 0xff means any endpoint
     - clusterId: string hex value
     - attributeId: string hex value
     - expression: Javascript expression to transform the raw value
 
-    Example: { "parse": ["parseGenericAttr/4", 1, "0x0402", "0x0000", "$raw + $config/offset"] }
+    Example: { "parse": ["parseGenericAttribute/4", 1, "0x0402", "0x0000", "$raw + $config/offset"] }
  */
 bool parseGenericAttribute4(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame)
 {
@@ -198,7 +211,7 @@ bool parseGenericAttribute4(Resource *r, ResourceItem *item, const deCONZ::ApsDa
         return result;
     }
 
-    if (!item->handleApsIndication) // init on first call
+    if (!item->parseFunction()) // init on first call
     {
         Q_ASSERT(item->parseParameters().size() == 5);
         if (item->parseParameters().size() != 5)
@@ -215,7 +228,7 @@ bool parseGenericAttribute4(Resource *r, ResourceItem *item, const deCONZ::ApsDa
             return result;
         }
 
-        item->handleApsIndication = parseGenericAttribute4;
+        item->setParseFunction(parseGenericAttribute4);
         item->setZclProperties(clusterId, attributeId, endpoint);
     }
 
@@ -313,8 +326,114 @@ bool parseGenericAttribute4(Resource *r, ResourceItem *item, const deCONZ::ApsDa
     return result;
 }
 
+/*! A generic function to read ZCL attributes.
+    The item->readParameters() is expected to contain 5 elements (given in the device description file).
+
+    ["readGenericAttribute/4", endpoint, clusterId, attributeId, manufacturerCode]
+
+    - endpoint, 0xff means any endpoint
+    - clusterId: string hex value
+    - attributeId: string hex value
+    - manufacturerCode: can be set to 0x0000 for non manufacturer specific commands
+
+    Example: { "parse": ["readGenericAttribute/4", 1, "0x0402", "0x0000", "0x110b"] }
+ */
+bool readGenericAttribute4(Resource *r, ResourceItem *item, deCONZ::ApsController *apsCtrl)
+{
+    bool result = false;
+    Q_ASSERT(item->readParameters().size() == 5);
+    if (item->readParameters().size() != 5)
+    {
+        return result;
+    }
+
+    const auto *extAddr = r->item(RAttrExtAddress);
+    const auto *nwkAddr = r->item(RAttrNwkAddress);
+
+    if (!extAddr || !nwkAddr)
+    {
+        return result;
+    }
+
+    bool ok;
+    const auto endpoint = item->readParameters().at(1).toString().toUInt(&ok, 0);
+    const auto clusterId = ok ? item->readParameters().at(2).toString().toUInt(&ok, 0) : 0;
+    const auto attributeId = ok ? item->readParameters().at(3).toString().toUInt(&ok, 0) : 0;
+    const auto manufacturerCode = ok ? item->readParameters().at(4).toString().toUInt(&ok, 0) : 0;
+
+    if (!ok)
+    {
+        return result;
+    }
+
+    const std::vector<quint16> attributes = { static_cast<quint16>(attributeId) };
+
+
+//    task.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+    deCONZ::ApsDataRequest req;
+    req.setDstEndpoint(endpoint);
+    req.setDstAddressMode(deCONZ::ApsExtAddress);
+    req.dstAddress().setExt(extAddr->toNumber());
+    req.dstAddress().setNwk(nwkAddr->toNumber());
+    req.setClusterId(clusterId);
+    req.setProfileId(HA_PROFILE_ID);
+    req.setSrcEndpoint(0x01); // todo dynamic
+
+    deCONZ::ZclFrame zclFrame;
+
+    zclFrame.setSequenceNumber(zclNextSequenceNumber());
+    zclFrame.setCommandId(deCONZ::ZclReadAttributesId);
+
+    if (manufacturerCode)
+    {
+        zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                                      deCONZ::ZclFCManufacturerSpecific |
+                                      deCONZ::ZclFCDirectionClientToServer |
+                                      deCONZ::ZclFCDisableDefaultResponse);
+        zclFrame.setManufacturerCode(manufacturerCode);
+    }
+    else
+    {
+        zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                                      deCONZ::ZclFCDirectionClientToServer |
+                                      deCONZ::ZclFCDisableDefaultResponse);
+    }
+
+    { // payload
+        QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        for (uint i = 0; i < attributes.size(); i++)
+        {
+            stream << attributes[i];
+        }
+    }
+
+
+    { // ZCL frame
+        QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        zclFrame.writeToStream(stream);
+    }
+
+    if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
+    {
+        result = true;
+    }
+    else
+    {
+
+    }
+
+    return result;
+}
+
 const std::vector<ParseFunction> parseFunctions = {
     ParseFunction("parseGenericAttribute/4", 4, parseGenericAttribute4)
+};
+
+const std::vector<ReadFunction> readFunctions = {
+    ReadFunction("readGenericAttribute/4", 4, readGenericAttribute4)
 };
 
 void initResourceDescriptors()
@@ -336,6 +455,9 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrSwVersion));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RAttrLastAnnounced));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RAttrLastSeen));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt64, RAttrExtAddress));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RAttrNwkAddress));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RAttrGroupAddress));
 
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateAlarm));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateAlert));
@@ -506,8 +628,9 @@ ResourceItem &ResourceItem::operator=(const ResourceItem &other)
         return *this;
     }
 
-    handleApsIndication = other.handleApsIndication;
+    m_parseFunction = other.m_parseFunction;
     m_parseParameters = other.parseParameters();
+    m_readParameters = other.readParameters();
     m_clusterId = other.clusterId();
     m_attributeId = other.attributeId();
     m_endpoint = other.endpoint();
@@ -868,6 +991,11 @@ void ResourceItem::setParseParameters(const std::vector<QVariant> &params)
     m_parseParameters = params;
 }
 
+void ResourceItem::setReadParameters(const std::vector<QVariant> &params)
+{
+    m_readParameters = params;
+}
+
 Resource::Resource(const char *prefix) :
     m_prefix(prefix)
 {
@@ -1026,4 +1154,44 @@ const ResourceItem *Resource::itemForIndex(size_t idx) const
         return &m_rItems[idx];
     }
     return 0;
+}
+
+ParseFunction_t getParseFunction(const std::vector<ParseFunction> &functions, const std::vector<QVariant> &params)
+{
+    ParseFunction_t result = nullptr;
+
+    if (params.size() >= 1)
+    {
+        const auto fnName = params.at(0).toString();
+        for (const auto &pf : functions)
+        {
+            if (pf.name == fnName)
+            {
+                result = pf.fn;
+                break;
+            }
+        }
+    }
+
+    return result;
+}
+
+ReadFunction_t getReadFunction(const std::vector<ReadFunction> &functions, const std::vector<QVariant> &params)
+{
+    ReadFunction_t result = nullptr;
+
+    if (params.size() >= 1)
+    {
+        const auto fnName = params.at(0).toString();
+        for (const auto &pf : functions)
+        {
+            if (pf.name == fnName)
+            {
+                result = pf.fn;
+                break;
+            }
+        }
+    }
+
+    return result;
 }

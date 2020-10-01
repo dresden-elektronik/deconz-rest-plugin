@@ -22,6 +22,7 @@
 #endif
 #include <sqlite3.h>
 #include <deconz.h>
+#include "device.h"
 #include "resource.h"
 #include "daylight.h"
 #include "event.h"
@@ -605,6 +606,9 @@ inline bool checkMacVendor(const deCONZ::Address &addr, quint16 vendor)
 }
 
 QString generateUniqueId(quint64 extAddress, quint8 endpoint, quint16 clusterId);
+quint8 zclNextSequenceNumber();
+const deCONZ::Node *getCoreNode(uint64_t extAddress);
+
 // HTTP status codes
 extern const char *HttpStatusOk;
 extern const char *HttpStatusAccepted;
@@ -1948,6 +1952,7 @@ public:
     size_t sensorAttrIter;
     size_t sensorCheckIter;
     int sensorCheckFast;
+    DeviceContainer m_devices;
     std::vector<Group> groups;
     std::vector<LightNode> nodes;
     std::vector<Rule> rules;

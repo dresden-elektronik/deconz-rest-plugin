@@ -31,6 +31,13 @@ void DeRestPluginPrivate::eventQueueTimerFired()
         handleGroupEvent(e);
     }
 
+    if (e.deviceKey() != 0)
+    {
+        auto *device = getOrCreateDevice(this, m_devices, e.deviceKey());
+        Q_ASSERT(device);
+        device->handleEvent(e);
+    }
+
     handleRuleEvent(e);
 
     eventQueue.pop_front();
@@ -46,7 +53,36 @@ void DeRestPluginPrivate::eventQueueTimerFired()
  */
 void DeRestPluginPrivate::enqueueEvent(const Event &event)
 {
-    eventQueue.push_back(event);
+
+    RestNodeBase *restNode = nullptr;
+
+    // workaround to attach DeviceKey to an event
+    if (event.deviceKey() == 0 && (event.resource() == RSensors || event.resource() == RLights))
+    {
+        if (event.resource() == RSensors)
+        {
+            restNode = getSensorNodeForId(event.id());
+            if (!restNode)
+            {
+                restNode = getSensorNodeForUniqueId(event.id());
+            }
+        }
+        else if (event.resource() == RLights)
+        {
+            restNode = getLightNodeForId(event.id());
+        }
+    }
+
+    if (restNode && restNode->address().ext() > 0)
+    {
+        Event e2 = event;
+        e2.setDeviceKey(restNode->address().ext());
+        eventQueue.push_back(e2);
+    }
+    else
+    {
+        eventQueue.push_back(event);
+    }
 
     if (!eventTimer->isActive())
     {

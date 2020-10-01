@@ -74,6 +74,10 @@ void PollManager::poll(RestNodeBase *restNode, const QDateTime &tStart)
         return;
     }
 
+    auto *device = getOrCreateDevice(this, plugin->m_devices, restNode->address().ext());
+    Q_ASSERT(device);
+    plugin->enqueueEvent(Event(device->prefix(), REventPoll, 0, device->key()));
+
     pitem.id = restNode->id();
     pitem.prefix = r->prefix();
     pitem.address = restNode->address();

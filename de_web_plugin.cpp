@@ -43,6 +43,7 @@
 #include "poll_manager.h"
 #include "rest_devices.h"
 #include "read_files.h"
+#include "zdp.h"
 #ifdef ARCH_ARM
   #include <unistd.h>
   #include <sys/reboot.h>
@@ -414,6 +415,36 @@ QString ApiRequest::apikey() const
     return QLatin1String("");
 }
 
+/*! Returns the next ZCL sequence number to use.
+ */
+quint8 zclNextSequenceNumber()
+{
+    Q_ASSERT(plugin);
+    return plugin->zclSeq++;
+}
+
+/*! Returns deCONZ core node for a given \p extAddress.
+ */
+const deCONZ::Node *getCoreNode(uint64_t extAddress)
+{
+    int i = 0;
+    const deCONZ::Node *result = nullptr;
+    const deCONZ::Node *node = nullptr;
+    deCONZ::ApsController *ctrl = deCONZ::ApsController::instance();
+
+    while (ctrl->getNode(i, &node) == 0)
+    {
+        if (node->address().ext() == extAddress)
+        {
+            result = node;
+            break;
+        }
+        i++;
+    }
+
+    return result;
+}
+
 /*! Constructor for pimpl.
     \param parent - the main plugin
  */
@@ -735,19 +766,29 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
     }
 
     // Helper function until we have a proper Device class which hosts sub devices
+    Device *device = nullptr;
 
-    std::vector<Resource*> resources;
-
-    for (auto &r : nodes)
+    if (ind.srcAddress().hasExt())
     {
-        if (r.address().ext() == ind.srcAddress().ext())
-            resources.push_back(&r);
+        device = getOrCreateDevice(this, m_devices, ind.srcAddress().ext());
+        Q_ASSERT(device);
     }
 
-    for (auto &r : sensors)
+    if (!device)
     {
-        if (r.address().ext() == ind.srcAddress().ext())
-            resources.push_back(&r);
+        return;
+    }
+
+    std::vector<Resource*> resources = { device };
+
+    // todo hack to gather all sub devices
+    for (const auto &sub : device->m_subDevices)
+    {
+        auto r = getResource(std::get<1>(sub), std::get<0>(sub));
+        if (r)
+        {
+            resources.push_back(r);
+        }
     }
 
     for (auto &r : resources)
@@ -758,21 +799,13 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
             DBG_Assert(item);
             if (item && !item->parseParameters().empty())
             {
-                ParseFuntion_t parseFunction = item->handleApsIndication;
+                ParseFunction_t parseFunction = item->parseFunction();
 
                 // First call
-                // This is a hack to init the parse function. Later on this needs to be done by the device description loader.
+                // Init the parse function. Later on this needs to be done by the device description loader.
                 if (!parseFunction)
                 {
-                    const auto fnName = item->parseParameters().front().toString();
-                    for (const auto &pf : parseFunctions)
-                    {
-                        if (pf.name == fnName)
-                        {
-                            parseFunction = pf.fn;
-                            break;
-                        }
-                    }
+                    parseFunction = getParseFunction(parseFunctions, item->parseParameters());
                 }
 
                 // TODO  item->lastSet() == item->lastChanged() doesn't cut it
@@ -780,10 +813,38 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                 // Some items like state/buttonevent should fire events on set, not only change
                 if (parseFunction && parseFunction(r, item, ind, zclFrame) && item->lastSet() == item->lastChanged())
                 {
-                    enqueueEvent(Event(r->prefix(), item->descriptor().suffix, r->item(RAttrId)->toString()));
+                    auto *item = r->item(RAttrId);
+                    if (!item)
+                    {
+                        item = r->item(RAttrUniqueId);
+                    }
+                    if (item)
+                    {
+                        enqueueEvent(Event(r->prefix(), item->descriptor().suffix, item->toString(), device->key()));
+                    }
                 }
             }
         }
+    }
+
+    if (ind.profileId() == ZDP_PROFILE_ID)
+    {
+        if (ind.clusterId() == ZDP_ACTIVE_ENDPOINTS_RSP_CLID)
+        {
+            enqueueEvent(Event(device->prefix(), REventActiveEndpoints, 0, device->key()));
+        }
+        else if (ind.clusterId() == ZDP_NODE_DESCRIPTOR_RSP_CLID)
+        {
+            enqueueEvent(Event(device->prefix(), REventNodeDescriptor, 0, device->key()));
+        }
+        else if (ind.clusterId() == ZDP_SIMPLE_DESCRIPTOR_RSP_CLID)
+        {
+            enqueueEvent(Event(device->prefix(), REventSimpleDescriptor, 0, device->key()));
+        }
+    }
+    else if (ind.clusterId() == POWER_CONFIGURATION_CLUSTER_ID) // genral assumption that the device is awake
+    {
+        enqueueEvent(Event(device->prefix(), REventAwake, 0, device->key()));
     }
 }
 
@@ -1738,6 +1799,13 @@ void DeRestPluginPrivate::handleMacDataRequest(const deCONZ::NodeEvent &event)
         return;
     }
 
+    if (event.node()->address().hasExt())
+    {
+        auto *device = getOrCreateDevice(this, m_devices, event.node()->address().ext());
+        Q_ASSERT(device);
+        enqueueEvent(Event(device->prefix(), REventAwake, 0, device->key()));
+    }
+
     for (auto &s : sensors)
     {
         if (s.deletedState() != Sensor::StateNormal)
@@ -1819,6 +1887,9 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
     {
         return;
     }
+
+    auto *device = getOrCreateDevice(this, m_devices, node->address().ext());
+    Q_ASSERT(device);
 
     //Make 2 fakes device for tuya stuff
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER)
@@ -2368,6 +2439,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         nodes.push_back(lightNode);
         lightNode2 = &nodes.back();
         queuePollNode(lightNode2);
+        device->addSubDevice(lightNode2);
 
         if (searchLightsState == SearchLightsActive || permitJoinFlag)
         {
@@ -2984,7 +3056,8 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                     if (ia->id() == 0x0004) // Manufacturer name
                     {
                         QString str = ia->toString().trimmed();
-                        if (!str.isEmpty() && str != lightNode->manufacturer())
+                        ResourceItem *item = lightNode->item(RAttrManufacturerName);
+                        if (item && !str.isEmpty() && str != lightNode->manufacturer())
                         {
                             if (str == QString("欧瑞博"))
                             {
@@ -3002,6 +3075,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
                             updated = true;
                             setLightNodeStaticCapabilities(lightNode);
+                            enqueueEvent({lightNode->prefix(), item->descriptor().suffix, lightNode->id(), item, lightNode->address().ext()});
                         }
                     }
                     else if (ia->id() == 0x0005) // Model identifier
@@ -3038,6 +3112,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
                             updated = true;
                             setLightNodeStaticCapabilities(lightNode);
+                            enqueueEvent({lightNode->prefix(), item->descriptor().suffix, lightNode->id(), item, lightNode->address().ext()});
                         }
                     }
                     else if (ia->id() == 0x0006) // Date code
@@ -3052,6 +3127,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             lightNode->setNeedSaveDatabase(true);
                             queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
                             updated = true;
+                            enqueueEvent({lightNode->prefix(), item->descriptor().suffix, lightNode->id(), item, lightNode->address().ext()});
                         }
                     }
                     else if (ia->id() == 0x4000) // Software build identifier
@@ -3069,6 +3145,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                             lightNode->setNeedSaveDatabase(true);
                             queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
                             updated = true;
+                            enqueueEvent({lightNode->prefix(), item->descriptor().suffix, lightNode->id(), item, lightNode->address().ext()});
                         }
                     }
                     else if (ia->id() == 0x4005 && lightNode->manufacturerCode() == VENDOR_MUELLER)
@@ -5520,6 +5597,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         return;
     }
 
+    auto *device = getOrCreateDevice(this, m_devices, node->address().ext());
+
     Sensor sensorNode;
     sensorNode.setMode(Sensor::ModeScenes);
     sensorNode.setNode(const_cast<deCONZ::Node*>(node));
@@ -6371,6 +6450,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         sensor2 = &sensors.back();
         updateSensorEtag(sensor2);
         indexRulesTriggers();
+        device->addSubDevice(sensor2);
     }
 
     if (searchSensorsState == SearchSensorsActive)
@@ -7576,7 +7656,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 }
 
                                 QString str = ia->toString().simplified();
-                                if (!str.isEmpty())
+                                ResourceItem *item = i->item(RAttrModelId);
+                                if (item && !str.isEmpty())
                                 {
                                     if (i->modelId() != str)
                                     {
@@ -7619,6 +7700,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         updateSensorEtag(&*i);
                                         pushSensorInfoToCore(&*i);
                                         queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
+                                        enqueueEvent({i->prefix(), item->descriptor().suffix, i->id(), item, i->address().ext()});
                                     }
 
                                     if (i->name() == QString("Switch %1").arg(i->id()))
@@ -7641,6 +7723,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 }
 
                                 QString str = ia->toString().simplified();
+                                ResourceItem *item = i->item(RAttrManufacturerName);
+
                                 if (str.startsWith(QLatin1String("TUYATEC")))
                                 {
                                     str = QLatin1String("Tuyatec"); // normalize TUYATEC-xdqihhgb --> Tuyatec
@@ -7660,6 +7744,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                         i->setNeedSaveDatabase(true);
                                         pushSensorInfoToCore(&*i);
                                         queSaveDb(DB_SENSORS, DB_LONG_SAVE_DELAY);
+                                        enqueueEvent({i->prefix(), item->descriptor().suffix, i->id(), item, i->address().ext()});
                                     }
                                 }
                             }
@@ -11042,6 +11127,15 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
     if (stream.atEnd() || attrId == 0)
     {
         return;
+    }
+
+    Device *device = nullptr;
+    const DeviceKey deviceKey = ind.srcAddress().ext();
+    if (ind.srcAddress().hasExt())
+    {
+        device = getOrCreateDevice(this, m_devices, deviceKey);
+        Q_ASSERT(device);
+        enqueueEvent(Event(device->prefix(), REventAwake, 0, device->key()));
     }
 
     quint8 structIndex = 0; // only attribute id 0xff02

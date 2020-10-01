@@ -4,20 +4,15 @@
 
 /*! Constructor.
  */
-Event::Event() :
-    m_resource(0),
-    m_what(0),
-    m_num(0),
-    m_numPrev(0)
+Event::Event()
 {
 }
 
-Event::Event(const char *resource, const char *what, const QString &id, ResourceItem *item) :
+Event::Event(const char *resource, const char *what, const QString &id, ResourceItem *item, DeviceKey deviceKey) :
     m_resource(resource),
     m_what(what),
     m_id(id),
-    m_num(0),
-    m_numPrev(0)
+    m_deviceKey(deviceKey)
 {
     DBG_Assert(item != 0);
     if (item)
@@ -29,22 +24,22 @@ Event::Event(const char *resource, const char *what, const QString &id, Resource
 
 /*! Constructor.
  */
-Event::Event(const char *resource, const char *what, const QString &id) :
+Event::Event(const char *resource, const char *what, const QString &id, DeviceKey deviceKey) :
     m_resource(resource),
     m_what(what),
     m_id(id),
-    m_num(0),
-    m_numPrev(0)
+    m_deviceKey(deviceKey)
 {
 }
 
 /*! Constructor.
  */
-Event::Event(const char *resource, const char *what, int num) :
+Event::Event(const char *resource, const char *what, int num, DeviceKey deviceKey) :
     m_resource(resource),
     m_what(what),
     m_num(num),
-    m_numPrev(0)
+    m_numPrev(0),
+    m_deviceKey(deviceKey)
 {
     if (resource == RGroups)
     {

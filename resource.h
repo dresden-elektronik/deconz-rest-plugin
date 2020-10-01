@@ -3,6 +3,7 @@
 
 #include <QDateTime>
 #include <vector>
+#include <deconz.h>
 
 class QString;
 class QVariant;
@@ -25,7 +26,8 @@ enum ApiDataType
     DataTypeTimePattern
 };
 
-// resource prefixes: /lights, /sensors, ...
+// resource prefixes: /devices, /lights, /sensors, ...
+extern const char *RDevices;
 extern const char *RSensors;
 extern const char *RLights;
 extern const char *RGroups;
@@ -33,9 +35,17 @@ extern const char *RConfig;
 
 // resource events
 extern const char *REventAdded;
+extern const char *REventAwake;
 extern const char *REventDeleted;
+extern const char *REventPoll;
 extern const char *REventValidGroup;
 extern const char *REventCheckGroupAnyOn;
+extern const char *REventNodeDescriptor;
+extern const char *REventActiveEndpoints;
+extern const char *REventSimpleDescriptor;
+extern const char *REventStateEnter;
+extern const char *REventStateLeave;
+extern const char *REventStateTimeout;
 
 // resouce suffixes: state/buttonevent, config/on, ...
 extern const char *RInvalidSuffix;
@@ -50,6 +60,9 @@ extern const char *RAttrUniqueId;
 extern const char *RAttrSwVersion;
 extern const char *RAttrLastAnnounced;
 extern const char *RAttrLastSeen;
+extern const char *RAttrExtAddress;
+extern const char *RAttrNwkAddress;
+extern const char *RAttrGroupAddress;
 
 extern const char *RActionScene;
 
@@ -237,21 +250,38 @@ public:
 class Resource;
 class ResourceItem;
 
-typedef bool (*ParseFuntion_t)(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
+typedef bool (*ParseFunction_t)(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
+typedef bool (*ReadFunction_t)(Resource *r, ResourceItem *item, deCONZ::ApsController *apsCtrl);
 
 struct ParseFunction
 {
-    ParseFunction(const QString &_name, const int _arity, ParseFuntion_t _fn) :
+    ParseFunction(const QString &_name, const int _arity, ParseFunction_t _fn) :
         name(_name),
         arity(_arity),
         fn(_fn)
     { }
     QString name;
     int arity = 0; // number of parameters given by the device description file
-    ParseFuntion_t fn = nullptr;
+    ParseFunction_t fn = nullptr;
+};
+
+struct ReadFunction
+{
+    ReadFunction(const QString &_name, const int _arity, ReadFunction_t _fn) :
+        name(_name),
+        arity(_arity),
+        fn(_fn)
+    { }
+    QString name;
+    int arity = 0; // number of parameters given by the device description file
+    ReadFunction_t fn = nullptr;
 };
 
 extern const std::vector<ParseFunction> parseFunctions;
+extern const std::vector<ReadFunction> readFunctions;
+
+ParseFunction_t getParseFunction(const std::vector<ParseFunction> &functions, const std::vector<QVariant> &params);
+ReadFunction_t getReadFunction(const std::vector<ReadFunction> &functions, const std::vector<QVariant> &params);
 
 class ResourceItem
 {
@@ -280,10 +310,12 @@ public:
     quint16 clusterId() const { return m_clusterId; }
     quint16 attributeId() const { return m_attributeId; }
     quint16 endpoint() const { return m_endpoint; }
-    // temp. quick workaround for caching the parse function
-    ParseFuntion_t handleApsIndication = nullptr;
+    ParseFunction_t parseFunction() const { return m_parseFunction; }
+    void setParseFunction(ParseFunction_t fn) { m_parseFunction = fn; }
     const std::vector<QVariant> &parseParameters() const { return m_parseParameters; }
     void setParseParameters(const std::vector<QVariant> &params);
+    const std::vector<QVariant> &readParameters() const { return m_readParameters; }
+    void setReadParameters(const std::vector<QVariant> &params);
 
 private:
     ResourceItem() = delete;
@@ -302,7 +334,9 @@ private:
     quint16 m_clusterId = 0xFFFF;
     quint16 m_attributeId = 0xFFFF;
     quint8 m_endpoint = 0xFF;
+    ParseFunction_t m_parseFunction = nullptr;
     std::vector<QVariant> m_parseParameters;
+    std::vector<QVariant> m_readParameters;
 };
 
 class Resource
@@ -330,6 +364,7 @@ public:
 private:
     Resource() = delete;
     const char *m_prefix;
+    Resource *m_parent = nullptr;
     std::vector<ResourceItem> m_rItems;
 };
 
