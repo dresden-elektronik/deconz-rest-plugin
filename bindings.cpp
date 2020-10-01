@@ -1331,7 +1331,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                             sensor->modelId() == QLatin1String("Zen-01") ||
                             sensor->modelId() == QLatin1String("Bell") ||
                             sensor->modelId() == QLatin1String("SLT2") ||
-                            sensor->modelId().startsWith(QLatin1String("3315"))))
+                            sensor->modelId().startsWith(QLatin1String("3315")) ||
+                            sensor->modelId().startsWith(QLatin1String("4655BC0"))))
         {
             rq.attributeId = 0x0020;   // battery voltage
             rq.minInterval = 3600;
@@ -2286,6 +2287,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("ZB-ONOFFPlug-D0005")) ||
         // Aurora
         sensor->modelId().startsWith(QLatin1String("DoubleSocket50AU")) ||
+        // Ecolink
+        sensor->modelId().startsWith(QLatin1String("4655BC0")) ||
         // Bosch
         sensor->modelId().startsWith(QLatin1String("ISW-ZDL1-WP11G")) ||
         sensor->modelId().startsWith(QLatin1String("ISW-ZPR1-WP13")) ||
@@ -2510,6 +2513,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                      sensor->modelId().startsWith(QLatin1String("3323")) ||
                      sensor->modelId().startsWith(QLatin1String("3326-L")) ||
                      sensor->modelId().startsWith(QLatin1String("3305-S")) ||
+                     sensor->modelId().startsWith(QLatin1String("4655BC0")) ||
                      sensor->modelId() == QLatin1String("113D"))
             {
                 val = sensor->getZclValue(*i, 0x0020); // battery voltage

@@ -301,6 +301,7 @@
 #define VENDOR_MMB          0x109a
 #define VENDOR_NETVOX       0x109F
 #define VENDOR_NYCE         0x10B9
+#define VENDOR_UNIVERSAL2   0x10EF
 #define VENDOR_UBISYS       0x10F2
 #define VENDOR_DANALOCK     0x115C
 #define VENDOR_SCHLAGE      0x1236 // Used by Schlage Locks
@@ -570,6 +571,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == xalMacPrefix;
         case VENDOR_UBISYS:
             return prefix == ubisysMacPrefix;
+        case VENDOR_UNIVERSAL2:
+            return prefix == emberMacPrefix;
         case VENDOR_VISONIC:
             return prefix == emberMacPrefix;
         case VENDOR_XAL:
