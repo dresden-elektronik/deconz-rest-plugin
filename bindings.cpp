@@ -1141,7 +1141,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
         }
 
-                else if ( (sensor && sensor->modelId() == QLatin1String("eTRV0100")) || // Danfoss Ally
+        else if ( (sensor && sensor->modelId() == QLatin1String("eTRV0100")) || // Danfoss Ally
                   (sensor && sensor->modelId() == QLatin1String("TRV001")) )    // Hive TRV
         {
             rq.dataType = deCONZ::Zcl16BitInt;
@@ -1183,7 +1183,54 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3}) || // Use OR because of manuf. specific attributes
                    sendConfigureReportingRequest(bt, {rq4, rq5});
         }
+        else if (sensor && sensor->modelId() == QLatin1String("902010/32")) // Bitron thermostat
+        {
+            rq.dataType = deCONZ::Zcl16BitInt;
+            rq.attributeId = 0x0000;         // local temperature
+            rq.minInterval = 0;
+            rq.maxInterval = 300;
+            rq.reportableChange16bit = 10;
 
+            ConfigureReportingRequest rq2;
+            rq2.dataType = deCONZ::Zcl8BitUint;
+            rq2.attributeId = 0x0012;        // Occupied heating setpoint
+            rq2.minInterval = 1;
+            rq2.maxInterval = 600;
+            rq2.reportableChange8bit = 1;
+
+            return sendConfigureReportingRequest(bt, {rq, rq2});
+        }
+        else if (sensor && sensor->modelId().startsWith(QLatin1String("TH112"))) // Sinope Thermostat TH1123ZB & TH1124ZB
+        {
+            rq.dataType = deCONZ::Zcl16BitInt;
+            rq.attributeId = 0x0000;         // Local Temperature
+            rq.minInterval = 1;
+            rq.maxInterval = 600;
+            rq.reportableChange16bit = 10;
+
+            ConfigureReportingRequest rq2;
+            rq2.dataType = deCONZ::Zcl16BitInt;
+            rq2.attributeId = 0x0001;        // Outdoor temperature
+            rq2.minInterval = 1;
+            rq2.maxInterval = 600;
+            rq2.reportableChange8bit = 10;
+
+            ConfigureReportingRequest rq3;
+            rq3.dataType = deCONZ::Zcl8BitUint;
+            rq3.attributeId = 0x0008;        // Pi heating demand
+            rq3.minInterval = 60;
+            rq3.maxInterval = 3600;
+            rq3.reportableChange8bit = 1;
+
+            ConfigureReportingRequest rq4;
+            rq4.dataType = deCONZ::Zcl16BitInt;
+            rq4.attributeId = 0x0012;        // Occupied heating setpoint
+            rq4.minInterval = 1;
+            rq4.maxInterval = 600;
+            rq4.reportableChange16bit = 50;
+
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
+        }
         else
         {
             rq.dataType = deCONZ::Zcl16BitInt;
@@ -1959,6 +2006,12 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         {
         }
         else if (lightNode->manufacturer() == QLatin1String("Immax"))
+        {
+        }
+        else if (lightNode->manufacturer().startsWith(QLatin1String("EcoDim")))
+        {
+        }
+        else if (lightNode->manufacturer().startsWith(QLatin1String("ROBB smarrt")))
         {
         }
         else if (lightNode->manufacturer() == QLatin1String("sengled"))

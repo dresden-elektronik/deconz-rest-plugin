@@ -2062,6 +2062,52 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
         {
             task.options = 0x00; // Warning mode 0 (no warning), No strobe, Low sound
             task.duration = 0;
+            
+            // Quickfix for clearing the alarm bit of Develco smoke, heat and water leak sensor
+            if (taskRef.lightNode->modelId() == QLatin1String("SMSZB-120") ||
+                taskRef.lightNode->modelId() == QLatin1String("HESZB-120") ||
+                taskRef.lightNode->modelId() == QLatin1String("FLSZB-110"))
+            {
+                deCONZ::ApsDataRequest apsReq;
+
+                // ZDP Header
+                apsReq.dstAddress() = taskRef.lightNode->node()->address();
+                apsReq.setDstAddressMode(deCONZ::ApsNwkAddress);
+                apsReq.setDstEndpoint(0x23);
+                apsReq.setSrcEndpoint(0x01);
+                apsReq.setProfileId(HA_PROFILE_ID);
+                apsReq.setRadius(0);
+                apsReq.setClusterId(IAS_ZONE_CLUSTER_ID);
+
+                deCONZ::ZclFrame outZclFrame;
+                outZclFrame.setSequenceNumber(zclSeq++);
+                outZclFrame.setCommandId(deCONZ::ZclDefaultResponseId);
+                outZclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                                         deCONZ::ZclFCDirectionClientToServer |
+                                         deCONZ::ZclFCDisableDefaultResponse);
+
+                { // ZCL payload
+                    QDataStream stream(&outZclFrame.payload(), QIODevice::WriteOnly);
+                    stream.setByteOrder(QDataStream::LittleEndian);
+
+                    quint8 cmd = 0x00;      // Zone Status Change notification
+                    quint8 status = 0x00;   // Success
+
+                    stream << cmd;
+                    stream << status;
+                }
+
+                { // ZCL frame
+                    QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
+                    stream.setByteOrder(QDataStream::LittleEndian);
+                    outZclFrame.writeToStream(stream);
+                }
+
+                if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+                {
+                    queryTime = queryTime.addSecs(1);
+                }
+            }
         }
         else if (alert == "select")
         {
