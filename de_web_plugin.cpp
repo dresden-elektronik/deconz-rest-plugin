@@ -782,17 +782,8 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
         return;
     }
 
-    std::vector<Resource*> resources = { device };
-
-    // todo hack to gather all sub devices
-    for (const auto &sub : device->m_subDevices)
-    {
-        auto r = getResource(std::get<1>(sub), std::get<0>(sub));
-        if (r)
-        {
-            resources.push_back(r);
-        }
-    }
+    auto resources = device->subDevices();
+    resources.push_back(device); // self reference
 
     for (auto &r : resources)
     {

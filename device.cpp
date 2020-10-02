@@ -167,32 +167,28 @@ void DEV_ModelIdStateHandler(Device *device, const Event &event)
 {
     if (event.what() == REventStateEnter)
     {
-        // temp hack to get valid sub device pointers
-        auto *plugin = dynamic_cast<DeRestPluginPrivate*>(device->parent());
-        Q_ASSERT(plugin);
-        Resource *r = nullptr;
-        ResourceItem *modelId = nullptr;
+        auto *modelId = device->item(RAttrModelId);
+        Q_ASSERT(modelId);
 
-        for (const auto &sub : device->m_subDevices)
+        for (const auto rsub : device->subDevices())
         {
-            r = plugin->getResource(std::get<1>(sub), std::get<0>(sub));
-            modelId = r ? r->item(RAttrModelId) : nullptr;
-            if (modelId)
+            if (!modelId->toString().isEmpty())
             {
                 break;
             }
-            r = nullptr;
+
+            auto *item = rsub->item(RAttrModelId);
+            if (item && !item->toString().isEmpty())
+            {
+                // copy modelId from sub-device into device
+                modelId->setValue(item->toString());
+                break;
+            }
         }
 
-        if (!modelId || device->m_subDevices.empty())
+        if (!modelId->toString().isEmpty())
         {
-            modelId = device->addItem(DataTypeString, RAttrModelId); // new device?
-        }
-
-        if (modelId && !modelId->toString().isEmpty())
-        {
-            DBG_Printf(DBG_INFO, "modelId verified: 0x%016llX (%s)\n", device->key(), qPrintable(modelId->toString()));
-            device->setState(DEV_IdleStateHandler);
+            device->setState(DEV_GetDeviceDescriptionHandler);
         }
         else
         {
@@ -248,6 +244,18 @@ void DEV_ModelIdStateHandler(Device *device, const Event &event)
     }
 }
 
+void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event)
+{
+    if (event.what() == REventStateEnter)
+    {
+        const auto modelId = device->item(RAttrModelId)->toString();
+
+        DBG_Printf(DBG_INFO, "Try load device description for 0x%016llX, modelId: %s\n", device->key(), qPrintable(modelId));
+
+        device->setState(DEV_IdleStateHandler); // TODO
+    }
+}
+
 Device::Device(DeviceKey key, QObject *parent) :
     QObject(parent),
     Resource(RDevices),
@@ -256,6 +264,7 @@ Device::Device(DeviceKey key, QObject *parent) :
     addItem(DataTypeUInt64, RAttrExtAddress);
     addItem(DataTypeUInt16, RAttrNwkAddress);
     addItem(DataTypeString, RAttrUniqueId)->setValue(generateUniqueId(key, 0, 0));
+    addItem(DataTypeString, RAttrModelId);
 
     setState(DEV_InitStateHandler);
 }
@@ -316,6 +325,27 @@ void Device::timerEvent(QTimerEvent *event)
         m_timer.stop(); // single shot
         m_state(this, Event(prefix(), REventStateTimeout, 0, key()));
     }
+}
+
+std::vector<Resource *> Device::subDevices() const
+{
+    std::vector<Resource *> result;
+
+    // temp hack to get valid sub device pointers
+    auto *plugin = dynamic_cast<DeRestPluginPrivate*>(parent());
+    Q_ASSERT(plugin);
+
+    for (const auto &sub : m_subDevices)
+    {
+        auto *r = plugin->getResource(std::get<1>(sub), std::get<0>(sub));
+
+        if (r)
+        {
+            result.push_back(r);
+        }
+    }
+
+    return result;
 }
 
 Device *getOrCreateDevice(QObject *parent, DeviceContainer &devices, DeviceKey key)

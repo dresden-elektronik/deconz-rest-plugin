@@ -19,6 +19,7 @@ void DEV_NodeDescriptorStateHandler(Device *device, const Event &event);
 void DEV_ActiveEndpointsStateHandler(Device *device, const Event &event);
 void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event);
 void DEV_ModelIdStateHandler(Device *device, const Event &event);
+void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event);
 
 /*! \class Device
 
@@ -79,17 +80,19 @@ public:
     void stopStateTimer();
     void timerEvent(QTimerEvent *event) override;
 
+    std::vector<Resource*> subDevices() const;
+
     // following handlers need access to private members (friend functions)
     friend void DEV_InitStateHandler(Device *device, const Event &event);
-    friend void DEV_ModelIdStateHandler(Device *device, const Event &event);
+    //friend void DEV_ModelIdStateHandler(Device *device, const Event &event);
 
+
+private:
+    Device(); // not accessible
     /*! sub-devices are not yet referenced via pointers since these may become dangling.
         This is a helper to query the actual sub-device Resource* on demand.
     */
     std::vector<std::tuple<QString, const char*>> m_subDevices;
-
-private:
-    Device(); // not accessible
     const deCONZ::Node *m_node = nullptr; //! a reference to the deCONZ core node
     DeviceKey m_deviceKey = 0; //! for physical devices this is the MAC address
     DeviceStateHandler m_state = nullptr; //! the currently active state handler function
