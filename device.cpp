@@ -78,11 +78,9 @@ void DEV_NodeDescriptorStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventNodeDescriptor)
     {
-        auto *plugin = dynamic_cast<DeRestPluginPrivate*>(device->parent());
-        Q_ASSERT(plugin);
         device->stopStateTimer();
         device->setState(DEV_InitStateHandler);
-        plugin->enqueueEvent(Event(device->prefix(), REventAwake, 0, device->key()));
+        device->plugin()->enqueueEvent(Event(device->prefix(), REventAwake, 0, device->key()));
     }
     else if (event.what() == REventStateTimeout)
     {
@@ -108,11 +106,9 @@ void DEV_ActiveEndpointsStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventActiveEndpoints)
     {
-        auto *plugin = dynamic_cast<DeRestPluginPrivate*>(device->parent());
-        Q_ASSERT(plugin);
         device->stopStateTimer();
         device->setState(DEV_InitStateHandler);
-        plugin->enqueueEvent(Event(device->prefix(), REventAwake, 0, device->key()));
+        device->plugin()->enqueueEvent(Event(device->prefix(), REventAwake, 0, device->key()));
     }
     else if (event.what() == REventStateTimeout)
     {
@@ -150,11 +146,9 @@ void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == REventSimpleDescriptor)
     {
-        auto *plugin = dynamic_cast<DeRestPluginPrivate*>(device->parent());
-        Q_ASSERT(plugin);
         device->stopStateTimer();
         device->setState(DEV_InitStateHandler);
-        plugin->enqueueEvent(Event(device->prefix(), REventAwake, 0, device->key()));
+        device->plugin()->enqueueEvent(Event(device->prefix(), REventAwake, 0, device->key()));
     }
     else if (event.what() == REventStateTimeout)
     {
@@ -236,6 +230,7 @@ void DEV_ModelIdStateHandler(Device *device, const Event &event)
         DBG_Printf(DBG_INFO, "OK received modelId: 0x%016llX\n", device->key());
         device->stopStateTimer();
         device->setState(DEV_InitStateHandler); // ok re-evaluate
+        device->plugin()->enqueueEvent(Event(device->prefix(), REventAwake, 0, device->key()));
     }
     else if (event.what() == REventStateTimeout)
     {
@@ -300,10 +295,8 @@ void Device::setState(DeviceStateHandler state)
         m_state = state;
         if (m_state)
         {
-            auto *plugin = dynamic_cast<DeRestPluginPrivate*>(parent());
-            Q_ASSERT(plugin);
             // invoke the handler in the next event loop iteration
-            plugin->enqueueEvent(Event(prefix(), REventStateEnter, 0, key()));
+            plugin()->enqueueEvent(Event(prefix(), REventStateEnter, 0, key()));
         }
     }
 }
@@ -332,12 +325,9 @@ std::vector<Resource *> Device::subDevices() const
     std::vector<Resource *> result;
 
     // temp hack to get valid sub device pointers
-    auto *plugin = dynamic_cast<DeRestPluginPrivate*>(parent());
-    Q_ASSERT(plugin);
-
     for (const auto &sub : m_subDevices)
     {
-        auto *r = plugin->getResource(std::get<1>(sub), std::get<0>(sub));
+        auto *r = plugin()->getResource(std::get<1>(sub), std::get<0>(sub));
 
         if (r)
         {
@@ -346,6 +336,13 @@ std::vector<Resource *> Device::subDevices() const
     }
 
     return result;
+}
+
+DeRestPluginPrivate *Device::plugin() const
+{
+    auto *plugin = dynamic_cast<DeRestPluginPrivate*>(parent());
+    Q_ASSERT(plugin);
+    return plugin;
 }
 
 Device *getOrCreateDevice(QObject *parent, DeviceContainer &devices, DeviceKey key)

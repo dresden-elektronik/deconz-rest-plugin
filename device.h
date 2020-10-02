@@ -10,6 +10,7 @@
 
 class Event;
 class Device;
+class DeRestPluginPrivate;
 using DeviceKey = uint64_t; //! uniqueId for an Device, MAC address for physical devices
 typedef void (*DeviceStateHandler)(Device *, const Event &);
 
@@ -82,10 +83,10 @@ public:
 
     std::vector<Resource*> subDevices() const;
 
+    DeRestPluginPrivate *plugin() const;
+
     // following handlers need access to private members (friend functions)
     friend void DEV_InitStateHandler(Device *device, const Event &event);
-    //friend void DEV_ModelIdStateHandler(Device *device, const Event &event);
-
 
 private:
     Device(); // not accessible
