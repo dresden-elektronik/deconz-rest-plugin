@@ -21,8 +21,8 @@ deCONZ is having a beta release at the 15th day of the month in which the beta o
 Current Beta: 2.05.82
 Current Stable: 2.05.81
 
-Next Beta: 2.05.84 expected at the 15th of October. 
-Next Stable: 2.05.83 expected in week 45 (2th to 8th of November)
+Next Beta: 2.05.85 expected at the 15th of October. 
+Next Stable: 2.05.84 expected at 8th October (minor fixes and new firmware files)
 
 Installation
 ============
