@@ -1805,7 +1805,7 @@ Note: It does not clear or delete previous weekly schedule programming configura
 		<attribute-set id="0x4000" description="ELKO specific" mfcode="0x1002">
 			<attribute id="0x4001" name="Unknown" type="u16" access="rw" required="m" mfcode="0x1002"></attribute>
 			<attribute id="0x4002" name="Unknown name field" type="cstring" access="rw" required="m" mfcode="0x1002"></attribute>
-			<attribute id="0x4003" name="Unknown" type="enum8" access="rw" required="m" mfcode="0x1002"></attribute>
+            <attribute id="0x4003" name="Unknown" type="enum8" access="rw" required="m" mfcode="0x1002">
 				<value name="Air sensor" value="0x00"></value>
 				<value name="Floor sensor" value="0x01"></value>
 				<value name="Floor protection" value="0x03"></value>
