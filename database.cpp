@@ -2556,6 +2556,45 @@ static int sqliteLoadLightNodeCallback(void *user, int ncols, char **colval , ch
     return 0;
 }
 
+/*! Loads data (if available) for a LightNode from the database according to the adress
+ */
+QString DeRestPluginPrivate::loadDataForLightNodeFromDb(QString extAddress)
+{
+
+    DBG_Assert(db != nullptr);
+
+    if (!db || extAddress.isEmpty())
+    {
+        return NULL;
+    }
+
+    QString sql = QString("SELECT manufacturername FROM nodes WHERE mac LIKE '%1%' COLLATE NOCASE").arg(extAddress);
+    DBG_Printf(DBG_INFO_L2, "sql exec %s\n", qPrintable(sql));
+
+    const char * val = nullptr;
+    sqlite3_stmt *res = NULL;
+    int rc;
+
+    rc = sqlite3_prepare_v2(db, qPrintable(sql), -1, &res, nullptr);
+    if (rc == SQLITE_OK)
+    {
+		rc = sqlite3_step(res);
+	}
+
+    if (rc == SQLITE_ROW)
+    {
+        val = reinterpret_cast<const char*>(sqlite3_column_text(res, 0));
+        DBG_Printf(DBG_INFO, "DB %s: %s\n", qPrintable(sql), val);
+    }
+
+    if (res)
+    {
+        rc = sqlite3_finalize(res);
+    }
+
+    return QString(val);
+}
+
 /*! Loads data (if available) for a LightNode from the database.
  */
 void DeRestPluginPrivate::loadLightNodeFromDb(LightNode *lightNode)
@@ -3160,6 +3199,17 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeUInt16, RStateSpectralZ);
             item->setValue(0);
         }
+        else if (sensor.type().endsWith(QLatin1String("Tuya")))
+        {
+            clusterId = clusterId ? clusterId : TUYA_CLUSTER_ID;
+
+            item = sensor.addItem(DataTypeInt16, RStateTemperature);
+            item->setValue(0);
+            item = sensor.addItem(DataTypeUInt16, RStateHumidity);
+            item->setValue(0);
+            item = sensor.addItem(DataTypeBool, RStateAlarm);
+            item->setValue(false);
+        }
         else if (sensor.type().endsWith(QLatin1String("Humidity")))
         {
             if (sensor.fingerPrint().hasInCluster(RELATIVE_HUMIDITY_CLUSTER_ID))
@@ -3346,6 +3396,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     (sensor.modelId() != QLatin1String("TS0121")) &&
                     (!sensor.modelId().startsWith(QLatin1String("BQZ10-AU"))) &&
                     (!sensor.modelId().startsWith(QLatin1String("ROB_200"))) &&
+                    (!sensor.modelId().startsWith(QLatin1String("lumi.plug.ma"))) &&
                     (sensor.modelId() != QLatin1String("Plug-230V-ZB3.0")) &&
                     (sensor.modelId() != QLatin1String("lumi.switch.b1naus01")) &&
                     (sensor.modelId() != QLatin1String("Connected socket outlet")) &&
@@ -3456,7 +3507,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.modelId() == QLatin1String("TS0601") )   // Tuya
                 {
                     sensor.addItem(DataTypeUInt8, RStateValve);
-                    sensor.addItem(DataTypeBool, RStateLowBattery);
+                    item = sensor.addItem(DataTypeBool, RStateLowBattery);
+                    item->setValue(false);
                 }
                 
                 if (sensor.modelId() == QLatin1String("kud7u2l") || // Tuya 
@@ -3464,6 +3516,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 {
                     sensor.addItem(DataTypeString, RConfigPreset);
                     sensor.addItem(DataTypeBool, RConfigLocked);
+                    sensor.addItem(DataTypeBool, RConfigWindowOpen);
                 }
 
                 if (sensor.modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit
@@ -3509,6 +3562,10 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             if (sensor.fingerPrint().hasInCluster(POWER_CONFIGURATION_CLUSTER_ID))
             {
                 clusterId = POWER_CONFIGURATION_CLUSTER_ID;
+            }
+            if (sensor.manufacturer() == QLatin1String("_TYST11_xu1rkty3"))
+            {
+                clusterId = TUYA_CLUSTER_ID;
             }
             item = sensor.addItem(DataTypeUInt8, RStateBattery);
             item->setValue(100);

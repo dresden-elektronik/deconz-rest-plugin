@@ -543,9 +543,19 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     {
         return setWarningDeviceState(req, rsp, taskRef, map);
     }
-    else if (taskRef.lightNode->modelId() == QLatin1String("TS0601"))
+    else if (UseTuyaCluster(taskRef.lightNode->manufacturer()))
     {
-        return setTuyaDeviceState(req, rsp, taskRef, map);
+        //window covering
+        if ((taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_wmcdj3aq")) ||
+            (taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_xu1rkty3")) )
+        {
+            return setWindowCoveringState(req, rsp, taskRef, map);
+        }
+        //switch
+        else
+        {
+            return setTuyaDeviceState(req, rsp, taskRef, map);
+        }
     }
     // Danalock support. You need to check for taskRef.lightNode->type() == QLatin1String("Door lock"), similar to what I've done under hasAlert for the Siren.
     bool isDoorLockDevice = false;
@@ -1508,6 +1518,12 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     {
         cluster = ANALOG_OUTPUT_CLUSTER_ID;
     }
+    
+    if ((taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_wmcdj3aq")) ||
+        (taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_xu1rkty3")) )
+    {
+        cluster = TUYA_CLUSTER_ID;
+    }
 
     bool requestOk = true;
     bool hasCmd = false;
@@ -1689,13 +1705,41 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         }
     }
 
+    //Some device don't support lift, but third app can use it
+    if (hasLift)
+    {
+        if (taskRef.lightNode->manufacturer() == QLatin1String("_TYZB01_dazsid15"))
+        {
+            hasLift = false;
+            hasOpen = true;
+            if (targetLiftZigBee > 0)
+            {
+                targetOpen = false;
+            }
+            else
+            {
+                targetOpen = true;
+            }
+        }
+    }
+
     // Send command(s) to device.  Stop trumps LiftPct trumps Open/Close.
     if (hasStop)
     {
+        bool ok;
         TaskItem task;
         copyTaskReq(taskRef, task);
+        
+        if (cluster == TUYA_CLUSTER_ID)
+        {
+            ok = SendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_ENUM, 0x01 , QByteArray("\x01", 1) );
+        }
+        else
+        {
+            ok = addTaskWindowCovering(task, WINDOW_COVERING_COMMAND_STOP, 0, 0);
+        }
 
-        if (addTaskWindowCovering(task, WINDOW_COVERING_COMMAND_STOP, 0, 0))
+        if (ok)
         {
             QVariantMap rspItem;
             QVariantMap rspItemState;
@@ -1715,8 +1759,15 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         bool ok;
         TaskItem task;
         copyTaskReq(taskRef, task);
-
-        if (cluster == ANALOG_OUTPUT_CLUSTER_ID)
+        
+        
+        if (cluster == TUYA_CLUSTER_ID)
+        {
+            QByteArray lev = QByteArray("\x00\x00\x00", 3);
+            lev.append(targetLiftZigBee);
+            ok = SendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_VALUE, 0x02 , lev );
+        }
+        else if (cluster == ANALOG_OUTPUT_CLUSTER_ID)
         {
 
             // FIXME: The following low-level code is needed because ZclAttribute is broken for ZclSingleFloat.
@@ -1765,6 +1816,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         {
             ok = addTaskWindowCovering(task, WINDOW_COVERING_COMMAND_GOTO_LIFT_PCT, 0, targetLiftZigBee);
         }
+
         if (ok)
         {
             QVariantMap rspItem;
@@ -1782,10 +1834,28 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     }
     else if (hasOpen)
     {
+        bool ok;
         TaskItem task;
         copyTaskReq(taskRef, task);
+        
+        if (cluster == TUYA_CLUSTER_ID)
+        {
+            if (targetOpen)
+            {
+                ok = SendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_ENUM, 0x01 , QByteArray("\x02", 1) );
+            }
+            else
+            {
+                ok = SendTuyaRequest(task, TaskTuyaRequest , DP_TYPE_ENUM, 0x01 , QByteArray("\x00", 1) );
+            }
+            
+        }
+        else
+        {
+            ok = addTaskWindowCovering(task, targetOpen ? WINDOW_COVERING_COMMAND_OPEN : WINDOW_COVERING_COMMAND_CLOSE, 0, 0);
+        }
 
-        if (addTaskWindowCovering(task, targetOpen ? WINDOW_COVERING_COMMAND_OPEN : WINDOW_COVERING_COMMAND_CLOSE, 0, 0))
+        if (ok)
         {
             QVariantMap rspItem;
             QVariantMap rspItemState;
@@ -1828,31 +1898,35 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     return REQ_READY_SEND;
 }
 
+//
 // Tuya Devices
 //
 int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &rsp, TaskItem &taskRef, QVariantMap &map)
 {
     QString id = req.path[3];
-    bool on = false;
+    bool targetOn = false;
 
     if (map.contains("on"))
     {
         if (map["on"].type() == QVariant::Bool)
         {
             bool ok = false;
-            qint16 button = 0x0101;
+            qint8 button = 0x01;
             QByteArray data;
             
-            on = map["on"].toBool();
+            targetOn = map["on"].toBool();
             
             //Retreive Fake endpoint, and change button value
             uint8_t ep = taskRef.lightNode->haEndpoint().endpoint();
-            if (ep == 0x02) { button = 0x0102; }
-            if (ep == 0x03) { button = 0x0103; }
+            if (ep == 0x02) { button = 0x02; }
+            if (ep == 0x03) { button = 0x03; }
             
-            DBG_Printf(DBG_INFO, "Tuya debug 77: EP:  %d\n",  ep );
+            //Use only the first endpoint for command
+            taskRef.req.setDstEndpoint(0x01);
             
-            if (on)
+            DBG_Printf(DBG_INFO, "Tuya debug 10: EP: %d ID : %s\n",  ep , qPrintable(id));
+            
+            if (targetOn)
             {
                 data = QByteArray("\x01",1);
             }
@@ -1861,15 +1935,18 @@ int DeRestPluginPrivate::setTuyaDeviceState(const ApiRequest &req, ApiResponse &
                 data = QByteArray("\x00",1);
             }
             
-            ok = SendTuyaRequest(taskRef, TaskSendOnOffToggle , button , data );
+            ok = SendTuyaRequest(taskRef, TaskTuyaRequest , DP_TYPE_BOOL, button , data );
 
             if (ok)
             {
                 QVariantMap rspItem;
                 QVariantMap rspItemState;
-                rspItemState[QString("/lights/%1/state/on").arg(id)] = on;
+                rspItemState[QString("/lights/%1/state/on").arg(id)] = targetOn;
                 rspItem["success"] = rspItemState;
                 rsp.list.append(rspItem);
+                
+                //Not needed ?
+                //taskRef.lightNode->setValue(RStateOn, targetOn);
             }
             else
             {
@@ -1985,6 +2062,52 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
         {
             task.options = 0x00; // Warning mode 0 (no warning), No strobe, Low sound
             task.duration = 0;
+            
+            // Quickfix for clearing the alarm bit of Develco smoke, heat and water leak sensor
+            if (taskRef.lightNode->modelId() == QLatin1String("SMSZB-120") ||
+                taskRef.lightNode->modelId() == QLatin1String("HESZB-120") ||
+                taskRef.lightNode->modelId() == QLatin1String("FLSZB-110"))
+            {
+                deCONZ::ApsDataRequest apsReq;
+
+                // ZDP Header
+                apsReq.dstAddress() = taskRef.lightNode->node()->address();
+                apsReq.setDstAddressMode(deCONZ::ApsNwkAddress);
+                apsReq.setDstEndpoint(0x23);
+                apsReq.setSrcEndpoint(0x01);
+                apsReq.setProfileId(HA_PROFILE_ID);
+                apsReq.setRadius(0);
+                apsReq.setClusterId(IAS_ZONE_CLUSTER_ID);
+
+                deCONZ::ZclFrame outZclFrame;
+                outZclFrame.setSequenceNumber(zclSeq++);
+                outZclFrame.setCommandId(deCONZ::ZclDefaultResponseId);
+                outZclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                                         deCONZ::ZclFCDirectionClientToServer |
+                                         deCONZ::ZclFCDisableDefaultResponse);
+
+                { // ZCL payload
+                    QDataStream stream(&outZclFrame.payload(), QIODevice::WriteOnly);
+                    stream.setByteOrder(QDataStream::LittleEndian);
+
+                    quint8 cmd = 0x00;      // Zone Status Change notification
+                    quint8 status = 0x00;   // Success
+
+                    stream << cmd;
+                    stream << status;
+                }
+
+                { // ZCL frame
+                    QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
+                    stream.setByteOrder(QDataStream::LittleEndian);
+                    outZclFrame.writeToStream(stream);
+                }
+
+                if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
+                {
+                    queryTime = queryTime.addSecs(1);
+                }
+            }
         }
         else if (alert == "select")
         {
@@ -2165,6 +2288,62 @@ int DeRestPluginPrivate::setLightAttributes(const ApiRequest &req, ApiResponse &
         else
         {
             rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/powerup").arg(id), QString("invalid value, %1, for parameter powerup").arg(map["powerup"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+    }
+
+    // Tuya options
+    // Reverse covering
+    if (map.contains("reverse"))
+    {
+
+        TaskItem taskRef;
+        taskRef.lightNode = getLightNodeForId(id);
+
+        if (!taskRef.lightNode || taskRef.lightNode->state() == LightNode::StateDeleted)
+        {
+            rsp.httpStatus = HttpStatusNotFound;
+            rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("resource, /lights/%1, not available").arg(id)));
+            return REQ_READY_SEND;
+        }
+
+        if (!taskRef.lightNode->isAvailable())
+        {
+            rsp.httpStatus = HttpStatusOk;
+            rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("resource, /lights/%1, not available").arg(id)));
+            return REQ_READY_SEND;
+        }
+
+        // set destination parameters
+        taskRef.req.dstAddress() = taskRef.lightNode->address();
+        taskRef.req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+        taskRef.req.setDstEndpoint(taskRef.lightNode->haEndpoint().endpoint());
+        taskRef.req.setSrcEndpoint(getSrcEndpoint(taskRef.lightNode, taskRef.req));
+        taskRef.req.setDstAddressMode(deCONZ::ApsExtAddress);
+        //taskRef.transitionTime = 4;
+        //taskRef.onTime = 0;
+
+        QByteArray direction = QByteArray("\x01\x00", 2);
+        if (map["reverse"].toBool())
+        {
+            direction = QByteArray("\x01\x01", 2);
+        }
+
+        if (SendTuyaRequest(taskRef, TaskTuyaRequest , DP_TYPE_ENUM, 0x05 , direction ))
+        {
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/reverse").arg(id)] = map["reverse"];
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+            rsp.etag = lightNode->etag;
+
+            return REQ_READY_SEND;
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/reverse").arg(id), QString("invalid value, %1, for parameter reverse").arg(map["reverse"].toString())));
             rsp.httpStatus = HttpStatusBadRequest;
             return REQ_READY_SEND;
         }

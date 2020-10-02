@@ -278,9 +278,10 @@ void PollManager::pollTimerFired()
     if (suffix == RStateOn)
     {
         item = r->item(RAttrModelId);
-        if (item && item->toString() == QLatin1String("TS0601"))
+
+        if (UseTuyaCluster(lightNode->manufacturer()))
         {
-            //This device haven't cluster 0006, and use Cluster specific
+            //Thoses devices haven't cluster 0006, and use Cluster specific
         }
         else if (lightNode && lightNode->manufacturerCode() != VENDOR_XIAOMI) // reports
         {
