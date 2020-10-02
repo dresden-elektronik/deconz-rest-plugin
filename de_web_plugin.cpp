@@ -1734,7 +1734,11 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_KEEN_HOME || // Keen Home Vent
         node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC || // Xiaomi lumi.ctrl_neutral1, lumi.ctrl_neutral2
         node->nodeDescriptor().manufacturerCode() == VENDOR_XIAOMI || // Xiaomi lumi.curtain.hagl04
-        node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER || // atsmart Z6-03 switch
+        ((node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER) && (
+            ((node->address().ext() & 0xffffff0000000000ULL ) == 0x8841570000000000ULL) ||  // atsmart Z6-03 switch 
+            ((node->address().ext() & 0xffffff0000000000ULL ) == emberMacPrefix) ||         // Heiman plug
+            ((node->address().ext() & 0xffffff0000000000ULL ) == silabs7MacPrefix) ||       // Tuya Smart TRV HY369
+            ((node->address().ext() & 0xffffff0000000000ULL ) == silabs5MacPrefix) )) ||    // MOES Zigbee Radiator Actuator HY368
         node->nodeDescriptor().manufacturerCode() == VENDOR_NONE || // Climax Siren
         node->nodeDescriptor().manufacturerCode() == VENDOR_DEVELCO || // Develco Smoke sensor with siren
         node->nodeDescriptor().manufacturerCode() == VENDOR_LDS || // Samsung SmartPlug 2019
@@ -1756,13 +1760,6 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
     bool hasTuyaCluster = false;
     QString manufacturer;
-    
-    //using VENDOR_EMBER is too much, lot of enddevice use this manufacture and are not router, so using this black list
-    if ((node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER) &&
-        ((node->address().ext() & 0xffffff0000000000ULL ) == silabs7MacPrefix) )
-    {
-        return;
-    }
 
     //Make 2 fakes device for tuya stuff
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER)
@@ -4685,7 +4682,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
-                    else if (manufacturer == QLatin1String("_TZ3000_bi6lpsew"))
+                    else if ((manufacturer == QLatin1String("_TZ3000_bi6lpsew")) ||
+                             (manufacturer == QLatin1String("_TYZB02_keyjqthh")) )
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }

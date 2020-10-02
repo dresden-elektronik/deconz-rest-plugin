@@ -80,6 +80,7 @@ bool UseTuyaCluster(QString manufacturer)
     // https://docs.tuya.com/en/iot/device-development/module/zigbee-module/zigbeetyzs11module?id=K989rik5nkhez
     //_TZ3000 don't use tuya cluster
     //_TYZB01 don't use tuya cluster
+    //_TYZB02 don't use tuya cluster
     
     if (manufacturer.startsWith(QLatin1String("_TZE200_")) || // Tuya clutster visible
         manufacturer.startsWith(QLatin1String("Tuya_C_")) ||  // Used by fake device
