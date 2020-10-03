@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2020 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -30,6 +30,7 @@ const char *RAttrManufacturerName = "attr/manufacturername";
 const char *RAttrModelId = "attr/modelid";
 const char *RAttrType = "attr/type";
 const char *RAttrClass = "attr/class";
+const char *RAttrId = "attr/id";
 const char *RAttrUniqueId = "attr/uniqueid";
 const char *RAttrSwVersion = "attr/swversion";
 const char *RAttrLastAnnounced = "attr/lastannounced";
@@ -150,6 +151,7 @@ const char *RConfigTholdOffset = "config/tholdoffset";
 const char *RConfigUrl = "config/url";
 const char *RConfigUsertest = "config/usertest";
 const char *RConfigWindowCoveringType = "config/windowcoveringtype";
+const char *RConfigWindowOpen = "config/windowopen_set";
 const char *RConfigUbisysJ1Mode = "config/ubisys_j1_mode";
 const char *RConfigUbisysJ1WindowCoveringType = "config/ubisys_j1_windowcoveringtype";
 const char *RConfigUbisysJ1ConfigurationAndStatus = "config/ubisys_j1_configurationandstatus";
@@ -188,6 +190,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrModelId));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrType));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrClass));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrId));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrUniqueId));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrSwVersion));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RAttrLastAnnounced));
@@ -300,6 +303,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigUrl));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigUsertest));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigWindowCoveringType));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigWindowOpen));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigUbisysJ1Mode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigUbisysJ1WindowCoveringType));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigUbisysJ1ConfigurationAndStatus));
