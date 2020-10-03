@@ -342,7 +342,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBER, "TS0041", silabs3MacPrefix }, // Tuya wireless switch
     { VENDOR_NONE, "kud7u2l", silabs3MacPrefix }, // Tuya Smart TRV HY369 Thermostatic Radiator Valve
     { VENDOR_NONE, "GbxAXL2", silabs3MacPrefix }, // Another Tuya Smart TRV Thermostatic Radiator Valve
-    { VENDOR_EMBER, "TS0601", silabs7MacPrefix }, // Tuya Smart TRV HY369 Thermostatic Radiator Valve
+    { VENDOR_EMBER, "TS0601", silabs7MacPrefix }, // Tuya Smart TRV HY369 Thermostatic Radiator Valve / Moes Tuya Thermostat BTH-002
     { VENDOR_EMBER, "TS0601", silabs5MacPrefix }, // MOES Zigbee Radiator Actuator HY368
     { VENDOR_EMBER, "TS0207", silabs3MacPrefix }, // Tuya water leak sensor
     { VENDOR_NONE, "0yu2xgi", silabs5MacPrefix }, // Tuya siren
@@ -1761,7 +1761,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
     bool hasTuyaCluster = false;
     QString manufacturer;
 
-    //Make 2 fakes device for tuya stuff
+    //Make 2 fakes device for tuya switch
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER)
     {
         const deCONZ::SimpleDescriptor *sd = &node->simpleDescriptors()[0];
@@ -1983,7 +1983,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             }
         }
 
-        //VENDOR_NONE only use device with 2 cluster ? or perhaps VENDOR_EMBER too
+        //VENDOR_NONE only use device with 2 cluster for tuya ? or perhaps VENDOR_EMBER too
         if (node->nodeDescriptor().manufacturerCode() == VENDOR_NONE)
         {
             //General method to detect tuya cluster
@@ -2319,6 +2319,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         //Add missing field for Tuya Device with tuya cluster
         // Window covering
         if ((lightNode.manufacturer() == QString("_TYST11_xu1rkty3")) ||
+            (lightNode.manufacturer() == QString("_TZE200_xuzcvlku")) ||
             (lightNode.manufacturer() == QString("_TYST11_wmcdj3aq")) )
         {
             lightNode.addItem(DataTypeBool, RStateOpen);
@@ -4986,6 +4987,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 {
                     if ((modelId == QLatin1String("kud7u2l")) ||
                         (modelId == QLatin1String("GbxAXL2")) ||
+                        (manufacturer == QLatin1String("_TZE200_aoclfnxz")) ||
                         (manufacturer == QLatin1String("_TZE200_ckud7u2l")) )
                     {
                         fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);

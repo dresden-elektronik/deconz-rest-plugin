@@ -186,9 +186,10 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         {
             //Window covering ?
             if ((lightNode->manufacturer() == QLatin1String("_TYST11_wmcdj3aq")) ||
+                (lightNode->manufacturer() == QLatin1String("_TZE200_xuzcvlku")) ||
                 (lightNode->manufacturer() == QLatin1String("_TYST11_xu1rkty3")) )
             {
-                
+
                 switch (dp)
                 {
                     // 0x0407 > starting moving
