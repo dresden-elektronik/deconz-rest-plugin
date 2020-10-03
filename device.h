@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QBasicTimer>
+#include <QElapsedTimer>
 #include <unordered_map>
 #include <tuple>
 #include <deconz.h>
@@ -80,6 +81,8 @@ public:
     void startStateTimer(int IntervalMs);
     void stopStateTimer();
     void timerEvent(QTimerEvent *event) override;
+    qint64 lastAwakeMs() const;
+    bool reachable() const;
 
     std::vector<Resource*> subDevices() const;
 
@@ -98,6 +101,7 @@ private:
     DeviceKey m_deviceKey = 0; //! for physical devices this is the MAC address
     DeviceStateHandler m_state = nullptr; //! the currently active state handler function
     QBasicTimer m_timer; //! internal single shot timer
+    QElapsedTimer m_awake; //! time to track when an end-device was last awake
 };
 
 using DeviceContainer = std::unordered_map<DeviceKey, Device*>;

@@ -3,20 +3,36 @@
 
 #include <QObject>
 #include <QVariantMap>
+#include "resource.h"
 
 class DeviceDescription
 {
 public:
+    bool isValid() const { return !modelIds.empty() && !subDevices.empty(); }
+
     QStringList modelIds;
     QString manufacturer;
     QString product;
 
+    class Item
+    {
+    public:
+        bool isValid() const { return descriptor.isValid(); }
+        QString name;
+        ResourceItemDescriptor descriptor;
+        std::vector<QVariant> parseParameters;
+        std::vector<QVariant> readParameters;
+        std::vector<QVariant> writeParameters;
+    };
+
     class SubDevice
     {
     public:
+        bool isValid() const { return !type.isEmpty() && !endpoint.isEmpty() && !uniqueId.isEmpty() && !items.empty(); }
         QString type;
-        QStringList uuid; // [ "$address.ext", "01", "0405"],
-        std::vector<QVariantMap> items;
+        QString endpoint;
+        QStringList uniqueId; // [ "$address.ext", "01", "0405"],
+        std::vector<Item> items;
     };
 
     std::vector<SubDevice> subDevices;
@@ -31,6 +47,10 @@ class DeviceDescriptions : public QObject
 public:
     explicit DeviceDescriptions(QObject *parent = nullptr);
     ~DeviceDescriptions();
+
+    static DeviceDescriptions *instance();
+
+    DeviceDescription get(const Resource *resource);
 
 public Q_SLOTS:
     void readAll();

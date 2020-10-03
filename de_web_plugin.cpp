@@ -462,10 +462,12 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     databaseTimer = new QTimer(this);
     databaseTimer->setSingleShot(true);
 
-    deviceDescriptions = new DeviceDescriptions(this);
 
     initEventQueue();
     initResourceDescriptors();
+
+    deviceDescriptions = new DeviceDescriptions(this);
+    deviceDescriptions->readAll();
 
     connect(databaseTimer, SIGNAL(timeout()),
             this, SLOT(saveDatabaseTimerFired()));
@@ -2657,6 +2659,17 @@ void DeRestPluginPrivate::nodeZombieStateChanged(const deCONZ::Node *node)
     }
 
     bool available = !node->isZombie();
+
+    {
+        auto *device = getOrCreateDevice(this, m_devices, node->address().ext());
+        Q_ASSERT(device);
+        ResourceItem *item = device->item(RConfigReachable);
+        if (item->toBool() != available)
+        {
+            item->setValue(available);
+            enqueueEvent({device->prefix(), item->descriptor().suffix, 0, device->key()});
+        }
+    }
 
     { // lights
         std::vector<LightNode>::iterator i = nodes.begin();

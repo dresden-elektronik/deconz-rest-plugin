@@ -1,0 +1,63 @@
+{
+    "schema": "devcap1.schema.json",
+    "manufacturer": "$MF_LUMI",
+    "modelid": "lumi.vibration.aq1",
+    "product": "DJT11LM",
+    "awake": [
+        ["received/3", 1, "0x0000", "0xff01"]
+    ],
+    "subdevices": [
+        {
+            "type": "$TYPE_VIBRATION_SENSOR",
+            "endpoint": "/sensors",
+            "uuid": [ "$address.ext", "0x01", "0x0101"],
+            "items": [
+                {
+                    "name": "config/battery",
+                    "parse": ["parseXiaomiSpecialAttr/4", "0x01", "0x02", "0x21", "$raw"],
+                    "awake": true
+                },
+                {
+                    "name": "config/temperature",
+                    "parse": ["parseXiaomiSpecialAttr/4", "0x03", "0x00", "0x28", "$raw"]
+                },
+                {
+                    "name": "config/sensitivity",
+                    "parse": ["parseGenericAttr/4", 1, "0x0000", "0xff0d", "$old == 0 ? $raw : $old"],
+                    "write": ["writeGenericZclAttr/6", 1, "0x0000", "0xff0d", "0x20", "0x11F5", "$raw"]
+                },
+                {
+                    "name": "config/sensitivitymax",
+                    "default": 21
+                },
+                {
+                    "name": "state/orientation_x",
+                    "parse": ["parseXiaomiVibration/0"]
+                },
+                {
+                    "name": "state/orientation_y",
+                    "parse": ["parseXiaomiVibration/0"]
+                },
+                {
+                    "name": "state/orientation_y",
+                    "parse": ["parseXiaomiVibration/0"]
+                },
+                {
+                    "name": "state/tiltangle",
+                    "parse": ["parseGenericAttr/4", 1, "0x0101", "0x0503", "$raw"],
+                    "default": 0
+                },
+                {
+                    "name": "state/vibration",
+                    "parse": ["parseGenericAttr/4", 1, "0x0101", "0x0055", "$raw == 0x0001"],
+                    "default": false
+                },
+                {
+                    "name": "state/vibrationstrength",
+                    "parse": ["parseGenericAttr/4", 1, "0x0101", "0x0505", "$raw >> 16"],
+                    "default": 0
+                }
+            ]
+        }
+    ]
+}

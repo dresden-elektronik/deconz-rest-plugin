@@ -1,8 +1,11 @@
 #include <QTimerEvent>
 #include "de_web_plugin_private.h" // todo hack, remove later
 #include "device.h"
+#include "device_descriptions.h"
 #include "event.h"
 #include "zdp.h"
+
+const int MinMacPollRxOn = 8000; // 7680 ms + some space for timeout
 
 void DEV_InitStateHandler(Device *device, const Event &event)
 {
@@ -11,7 +14,7 @@ void DEV_InitStateHandler(Device *device, const Event &event)
         DBG_Printf(DBG_INFO, "DEV Init event %s/0x%016llX/%s\n", event.resource(), event.deviceKey(), event.what());
     }
 
-    if (event.what() == REventPoll || event.what() == REventAwake)
+    if (event.what() == REventPoll || event.what() == REventAwake || event.what() == RConfigReachable  || event.what() == REventStateTimeout)
     {
         // lazy reference to deCONZ::Node
         if (!device->node())
@@ -30,7 +33,10 @@ void DEV_InitStateHandler(Device *device, const Event &event)
             }
 
             // got a node, jump to verification
-            device->setState(DEV_NodeDescriptorStateHandler);
+            if (!device->node()->nodeDescriptor().isNull() || device->reachable())
+            {
+                device->setState(DEV_NodeDescriptorStateHandler);
+            }
         }
         else
         {
@@ -70,10 +76,14 @@ void DEV_NodeDescriptorStateHandler(Device *device, const Event &event)
             DBG_Printf(DBG_INFO, "ZDP node descriptor verified: 0x%016llX\n", device->key());
             device->setState(DEV_ActiveEndpointsStateHandler);
         }
+        else if (!device->reachable())
+        {
+            device->setState(DEV_InitStateHandler);
+        }
         else
         {
             zdpSendNodeDescriptorReq(device->item(RAttrNwkAddress)->toNumber(), deCONZ::ApsController::instance());
-            device->startStateTimer(8000);
+            device->startStateTimer(MinMacPollRxOn);
         }
     }
     else if (event.what() == REventNodeDescriptor)
@@ -98,10 +108,14 @@ void DEV_ActiveEndpointsStateHandler(Device *device, const Event &event)
             DBG_Printf(DBG_INFO, "ZDP active endpoints verified: 0x%016llX\n", device->key());
             device->setState(DEV_SimpleDescriptorStateHandler);
         }
+        else if (!device->reachable())
+        {
+            device->setState(DEV_InitStateHandler);
+        }
         else
         {
             zdpSendActiveEndpointsReq(device->item(RAttrNwkAddress)->toNumber(), deCONZ::ApsController::instance());
-            device->startStateTimer(8000);
+            device->startStateTimer(MinMacPollRxOn);
         }
     }
     else if (event.what() == REventActiveEndpoints)
@@ -138,10 +152,14 @@ void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event)
             DBG_Printf(DBG_INFO, "ZDP simple descriptors verified: 0x%016llX\n", device->key());
             device->setState(DEV_ModelIdStateHandler);
         }
+        else if (!device->reachable())
+        {
+            device->setState(DEV_InitStateHandler);
+        }
         else
         {
             zdpSendSimpleDescriptorReq(device->item(RAttrNwkAddress)->toNumber(), needFetchEp, deCONZ::ApsController::instance());
-            device->startStateTimer(8000);
+            device->startStateTimer(MinMacPollRxOn);
         }
     }
     else if (event.what() == REventSimpleDescriptor)
@@ -184,6 +202,10 @@ void DEV_ModelIdStateHandler(Device *device, const Event &event)
         {
             device->setState(DEV_GetDeviceDescriptionHandler);
         }
+        else if (!device->reachable())
+        {
+            device->setState(DEV_InitStateHandler);
+        }
         else
         {
             quint8 basicClusterEp = 0x00;
@@ -222,7 +244,7 @@ void DEV_ModelIdStateHandler(Device *device, const Event &event)
                 DBG_Printf(DBG_INFO, "TODO no basic cluster found to read modelId: 0x%016llX\n", device->key());
             }
 
-            device->startStateTimer(8000);
+            device->startStateTimer(MinMacPollRxOn);
         }
     }
     else if (event.what() == RAttrModelId)
@@ -239,15 +261,110 @@ void DEV_ModelIdStateHandler(Device *device, const Event &event)
     }
 }
 
+QString uniqueIdFromTemplate(const QStringList &templ, const quint64 extAddress)
+{
+    bool ok = false;
+    quint8 endpoint = 0;
+    quint16 clusterId = 0;
+
+    // <mac>-<endpoint>
+    // <mac>-<endpoint>-<cluster>
+    if (templ.size() > 1 && templ.first() == QLatin1String("$address.ext"))
+    {
+        endpoint = templ.at(1).toUInt(&ok, 0);
+
+        if (ok && templ.size() > 2)
+        {
+            clusterId = templ.at(2).toUInt(&ok, 0);
+        }
+    }
+
+    if (ok)
+    {
+        return generateUniqueId(extAddress, endpoint, clusterId);
+    }
+
+    return {};
+}
+
+/*! Creates and initialises sub-device Resources and ResourceItems if not already present.
+
+    This function can replace database and joining device initialisation.
+ */
+static bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescription &description)
+{
+    Q_ASSERT(device);
+    Q_ASSERT(description.isValid());
+
+    for (const auto &sub : description.subDevices)
+    {
+        Q_ASSERT(sub.isValid());
+
+        const auto uniqueId = uniqueIdFromTemplate(sub.uniqueId, device->item(RAttrExtAddress)->toNumber());
+
+        Resource *rsub = nullptr;
+
+        for (auto *r : device->subDevices())
+        {
+            if (r->item(RAttrUniqueId)->toString() == uniqueId)
+            {
+                rsub = r; // already existing Resource* for sub-device
+                break;
+            }
+        }
+
+        if (!rsub && sub.endpoint == QLatin1String("/sensors"))
+        {
+
+        }
+        else if (!rsub && sub.endpoint == QLatin1String("/lights"))
+        {
+
+        }
+
+        if (rsub)
+        {
+            for (const auto &i : sub.items)
+            {
+                Q_ASSERT(i.isValid());
+
+                auto *item = rsub->item(i.descriptor.suffix);
+
+                if (item)
+                {
+                    DBG_Printf(DBG_INFO, "sub-device: %s, has item: %s\n", qPrintable(uniqueId), i.descriptor.suffix);
+                }
+                else
+                {
+                    DBG_Printf(DBG_INFO, "sub-device: %s, create item: %s\n", qPrintable(uniqueId), i.descriptor.suffix);
+                }
+            }
+        }
+
+    }
+
+    return false;
+}
+
 void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event)
 {
     if (event.what() == REventStateEnter)
     {
         const auto modelId = device->item(RAttrModelId)->toString();
+        const auto description = DeviceDescriptions::instance()->get(device);
 
-        DBG_Printf(DBG_INFO, "Try load device description for 0x%016llX, modelId: %s\n", device->key(), qPrintable(modelId));
+        if (description.isValid())
+        {
+            DBG_Printf(DBG_INFO, "found device description for 0x%016llX, modelId: %s\n", device->key(), qPrintable(modelId));
 
-        device->setState(DEV_IdleStateHandler); // TODO
+            DEV_InitDeviceFromDescription(device, description);
+            device->setState(DEV_IdleStateHandler); // TODO
+        }
+        else
+        {
+            DBG_Printf(DBG_INFO, "No device description for 0x%016llX, modelId: %s\n", device->key(), qPrintable(modelId));
+            device->setState(DEV_IdleStateHandler);
+        }
     }
 }
 
@@ -256,12 +373,17 @@ Device::Device(DeviceKey key, QObject *parent) :
     Resource(RDevices),
     m_deviceKey(key)
 {
+    addItem(DataTypeBool, RConfigReachable);
     addItem(DataTypeUInt64, RAttrExtAddress);
     addItem(DataTypeUInt16, RAttrNwkAddress);
     addItem(DataTypeString, RAttrUniqueId)->setValue(generateUniqueId(key, 0, 0));
     addItem(DataTypeString, RAttrModelId);
 
     setState(DEV_InitStateHandler);
+
+    static int initTimer = 1000;
+    startStateTimer(initTimer);
+    initTimer += 300; // hack for the first round init
 }
 
 void Device::addSubDevice(const Resource *sub)
@@ -281,6 +403,11 @@ void Device::addSubDevice(const Resource *sub)
 
 void Device::handleEvent(const Event &event)
 {
+    if (event.what() == REventAwake)
+    {
+        m_awake.start();
+    }
+
     m_state(this, event);
 }
 
@@ -318,6 +445,25 @@ void Device::timerEvent(QTimerEvent *event)
         m_timer.stop(); // single shot
         m_state(this, Event(prefix(), REventStateTimeout, 0, key()));
     }
+}
+
+qint64 Device::lastAwakeMs() const
+{
+    return m_awake.isValid() ? m_awake.elapsed() : 8640000;
+}
+
+bool Device::reachable() const
+{
+    if (m_awake.isValid() && m_awake.elapsed() < MinMacPollRxOn)
+    {
+        return true;
+    }
+    else if (m_node && !m_node->nodeDescriptor().isNull() && m_node->nodeDescriptor().receiverOnWhenIdle())
+    {
+        return item(RConfigReachable)->toBool();
+    }
+
+    return false;
 }
 
 std::vector<Resource *> Device::subDevices() const
