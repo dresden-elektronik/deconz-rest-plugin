@@ -1055,6 +1055,11 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
         {
             handleZclConfigureReportingResponseIndication(ind, zclFrame);
         }
+
+        if (!(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
+        {
+            sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus);
+        }
     }
     else if (ind.profileId() == ZDP_PROFILE_ID)
     {
@@ -11172,7 +11177,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
     if (!(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
     {
         checkReporting = true;
-        sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus);
+//        sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus);
     }
     else if (checkMacVendor(ind.srcAddress(), VENDOR_PHILIPS) ||
             macPrefix == tiMacPrefix ||
