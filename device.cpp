@@ -67,6 +67,8 @@ void DEV_IdleStateHandler(Device *device, const Event &event)
     }
 }
 
+/*! #2 This state checks that a valid NodeDescriptor is available.
+ */
 void DEV_NodeDescriptorStateHandler(Device *device, const Event &event)
 {
     if (event.what() == REventStateEnter)
@@ -76,7 +78,7 @@ void DEV_NodeDescriptorStateHandler(Device *device, const Event &event)
             DBG_Printf(DBG_INFO, "ZDP node descriptor verified: 0x%016llX\n", device->key());
             device->setState(DEV_ActiveEndpointsStateHandler);
         }
-        else if (!device->reachable())
+        else if (!device->reachable()) // can't be queried, go back to #1 init
         {
             device->setState(DEV_InitStateHandler);
         }
@@ -86,10 +88,10 @@ void DEV_NodeDescriptorStateHandler(Device *device, const Event &event)
             device->startStateTimer(MinMacPollRxOn);
         }
     }
-    else if (event.what() == REventNodeDescriptor)
+    else if (event.what() == REventNodeDescriptor) // received the node descriptor
     {
         device->stopStateTimer();
-        device->setState(DEV_InitStateHandler);
+        device->setState(DEV_InitStateHandler); // evaluate egain from state #1 init
         device->plugin()->enqueueEvent(Event(device->prefix(), REventAwake, 0, device->key()));
     }
     else if (event.what() == REventStateTimeout)
@@ -99,6 +101,8 @@ void DEV_NodeDescriptorStateHandler(Device *device, const Event &event)
     }
 }
 
+/*! #3 This state checks that active endpoints are known.
+ */
 void DEV_ActiveEndpointsStateHandler(Device *device, const Event &event)
 {
     if (event.what() == REventStateEnter)
@@ -131,6 +135,8 @@ void DEV_ActiveEndpointsStateHandler(Device *device, const Event &event)
     }
 }
 
+/*! #4 This state checks that for all active endpoints simple descriptors are known.
+ */
 void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event)
 {
     if (event.what() == REventStateEnter)
@@ -175,6 +181,8 @@ void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event)
     }
 }
 
+/*! #4 This state checks that modelId of the device is known.
+ */
 void DEV_ModelIdStateHandler(Device *device, const Event &event)
 {
     if (event.what() == REventStateEnter)
@@ -208,7 +216,7 @@ void DEV_ModelIdStateHandler(Device *device, const Event &event)
             DBG_Printf(DBG_INFO, "DEV not reachable, check  modelId later: 0x%016llX\n", device->key());
             device->setState(DEV_InitStateHandler);
         }
-        else
+        else // query modelId from basic cluster
         {
             quint8 basicClusterEp = 0x00;
 
