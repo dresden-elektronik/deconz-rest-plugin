@@ -2360,6 +2360,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("TS02")) ||
         sensor->modelId().startsWith(QLatin1String("TS03")) ||
         sensor->modelId().startsWith(QLatin1String("TS0043")) || // to test
+        sensor->modelId().startsWith(QLatin1String("TS0041")) ||
         // Tuyatec
         sensor->modelId().startsWith(QLatin1String("RH3040")) ||
         sensor->modelId().startsWith(QLatin1String("RH3001")) ||
