@@ -397,15 +397,16 @@ static bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescriptio
                 {
                     DBG_Printf(DBG_INFO, "sub-device: %s, create item: %s\n", qPrintable(uniqueId), i.descriptor.suffix);
                     item = rsub->addItem(i.descriptor.type, i.descriptor.suffix);
+
+                    if (i.defaultValue.isValid())
+                    {
+                        item->setValue(i.defaultValue);
+                    }
                 }
 
                 DBG_Assert(item);
                 if (item)
                 {
-                    if (i.defaultValue.isValid())
-                    {
-                        item->setValue(i.defaultValue);
-                    }
 
                     item->setParseParameters(i.parseParameters);
                     item->setReadParameters(i.readParameters);
