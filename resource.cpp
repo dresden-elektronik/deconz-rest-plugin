@@ -275,6 +275,11 @@ bool parseGenericAttribute4(Resource *r, ResourceItem *item, const deCONZ::ApsDa
         {
             auto expr = item->parseParameters().back().toString();
 
+            if (expr.contains(QLatin1String("$old")) && dataType < deCONZ::ZclOctedString)
+            {
+                expr.replace("$old", QString::number(item->toNumber()));
+            }
+
             if (expr == QLatin1String("$raw"))
             {
                 if (item->setValue(attr.toVariant()))
@@ -284,7 +289,6 @@ bool parseGenericAttribute4(Resource *r, ResourceItem *item, const deCONZ::ApsDa
 
                 DBG_Printf(DBG_INFO, "RD cluster: 0x%04X / %04X --> %s\n", ind.clusterId(), attrId, qPrintable(attr.toString()));
             }
-
             else if (expr.contains(QLatin1String("$raw")) && dataType < deCONZ::ZclOctedString) // numeric data type
             {
                 if ((dataType >= deCONZ::Zcl8BitData && dataType <= deCONZ::Zcl64BitUint)
