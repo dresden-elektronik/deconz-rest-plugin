@@ -24,6 +24,7 @@ public:
         std::vector<QVariant> parseParameters;
         std::vector<QVariant> readParameters;
         std::vector<QVariant> writeParameters;
+        QVariant defaultValue;
     };
 
     class SubDevice

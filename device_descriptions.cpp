@@ -200,6 +200,10 @@ static DeviceDescription::Item parseDeviceDescriptionItem(const QJsonObject &obj
             }
         }
 
+        if (obj.contains(QLatin1String("default")))
+        {
+            result.defaultValue = obj.value(QLatin1String("default")).toVariant();
+        }
     }
     else
     {

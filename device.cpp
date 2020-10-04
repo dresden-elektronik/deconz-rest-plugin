@@ -394,8 +394,14 @@ static bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescriptio
                 DBG_Assert(item);
                 if (item)
                 {
+                    if (i.defaultValue.isValid())
+                    {
+                        item->setValue(i.defaultValue);
+                    }
+
                     item->setParseParameters(i.parseParameters);
                     item->setReadParameters(i.readParameters);
+
                     // TODO write parameters
                 }
             }
