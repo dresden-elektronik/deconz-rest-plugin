@@ -3,13 +3,15 @@
 
     "manufacturers" : {
         "$MF_IKEA": "IKEA of Sweden",
+        "$MF_LUMI": "LUMI",
         "$MF_PHILIPS": "Philips",
-        "$MF_LUMI": "LUMI"
+        "$MF_TUYA": "Tuyatec"
     },
     "device-types": {
         "$TYPE_WINDOW_COVERING_DEVICE": "Window covering device",
         "$TYPE_TEMPERATURE_SENSOR": "ZHATemperature",
         "$TYPE_HUMIDITY_SENSOR": "ZHAHumidity",
-        "$TYPE_VIBRATION_SENSOR": "ZHAVibration"
+        "$TYPE_VIBRATION_SENSOR": "ZHAVibration",
+        "$TYPE_PRESENCE_SENSOR": "ZHAPresence"
     }
 }

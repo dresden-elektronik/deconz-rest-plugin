@@ -419,6 +419,9 @@ static bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescriptio
     return subCount == description.subDevices.size();
 }
 
+/*! #5 This state checks if for the modelId a device description is available.
+    In that case the device is initialised (or updated) based on the JSON description.
+ */
 void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event)
 {
     if (event.what() == REventStateEnter)
