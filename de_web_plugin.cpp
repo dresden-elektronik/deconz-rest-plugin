@@ -14647,6 +14647,10 @@ void DeRestPluginPrivate::handleDeviceAnnceIndication(const deCONZ::ApsDataIndic
         deCONZ::ZclFrame zclFrame; // dummy
         handleIndicationSearchSensors(ind, zclFrame);
     }
+
+    auto *device = getOrCreateDevice(this, m_devices, ext);
+    Q_ASSERT(device);
+    enqueueEvent(Event(device->prefix(), REventAwake, 0, device->key()));
 }
 
 /*! Handle node descriptor response.
