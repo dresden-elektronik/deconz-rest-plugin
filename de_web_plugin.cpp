@@ -1966,7 +1966,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
 
         // For Tuya, we realy need manufacture Name, but can't use it to compare because of fonction setManufacturerCode() that put "Heiman",
-        if ((node->nodeDescriptor().manufacturerCode() == VENDOR_NONE) && (node->simpleDescriptors().size() == 1) )
+        if (!node->nodeDescriptor().isNull() && node->nodeDescriptor().manufacturerCode() == VENDOR_NONE && node->simpleDescriptors().size() == 1)
         {
             if (manufacturer.isEmpty())
             {
