@@ -302,6 +302,7 @@ static Resource *DEV_InitSensorNodeFromDescription(Device *device, const DeviceD
     sensor.setType(DeviceDescriptions::instance()->constantToString(sub.type));
     sensor.setUniqueId(uniqueId);
     sensor.setNode(const_cast<deCONZ::Node*>(device->node()));
+    sensor.item(RConfigOn)->setValue(true);
 
     QString friendlyName = sensor.type();
     if (friendlyName.startsWith("ZHA") || friendlyName.startsWith("ZLL"))
