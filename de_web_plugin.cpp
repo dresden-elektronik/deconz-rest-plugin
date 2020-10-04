@@ -820,6 +820,10 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                         enqueueEvent(Event(r->prefix(), item->descriptor().suffix, idItem->toString(), device->key()));
                     }
                 }
+                else if (!parseFunction)
+                {
+                    DBG_Printf(DBG_INFO, "parse function not found: %s\n", qPrintable(item->parseParameters().front().toString()));
+                }
             }
         }
     }
