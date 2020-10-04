@@ -13,11 +13,11 @@ DeviceDescriptions *_instance = nullptr;
 class DeviceDescriptionsPrivate
 {
 public:
-    std::map<QString,QString> manufacturers;
+    std::map<QString,QString> constants;
     std::vector<DeviceDescription> descriptions;
 };
 
-static bool readDeviceConstantsJson(const QString &path, std::map<QString,QString> *manufacturers);
+static bool readDeviceConstantsJson(const QString &path, std::map<QString,QString> *constants);
 static std::vector<DeviceDescription> readDeviceDescriptionFile(const QString &path);
 
 DeviceDescriptions::DeviceDescriptions(QObject *parent) :
@@ -64,6 +64,20 @@ DeviceDescription DeviceDescriptions::get(const Resource *resource)
     return {};
 }
 
+QString DeviceDescriptions::constantToString(const QString &constant) const
+{
+    Q_D(const DeviceDescriptions);
+
+    const auto i = d->constants.find(constant);
+
+    if (i != d->constants.end())
+    {
+        return i->second;
+    }
+
+    return constant;
+}
+
 void DeviceDescriptions::readAll()
 {
     Q_D(DeviceDescriptions);
@@ -79,10 +93,10 @@ void DeviceDescriptions::readAll()
 
         if (it.fileName() == QLatin1String("constants.json"))
         {
-            std::map<QString,QString> manufacturers;
-            if (readDeviceConstantsJson(deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation) + QLatin1String("/devices/generic/constants.json"), &d->manufacturers))
+            std::map<QString,QString> constants;
+            if (readDeviceConstantsJson(deCONZ::getStorageLocation(deCONZ::ApplicationsDataLocation) + QLatin1String("/devices/generic/constants.json"), &d->constants))
             {
-                d->manufacturers = manufacturers;
+                d->constants = constants;
             }
         }
         else if (it.fileName() == QLatin1String("button_maps.json"))
@@ -101,9 +115,9 @@ void DeviceDescriptions::readAll()
     }
 }
 
-static bool readDeviceConstantsJson(const QString &path, std::map<QString,QString> *manufacturers)
+static bool readDeviceConstantsJson(const QString &path, std::map<QString,QString> *constants)
 {
-    Q_ASSERT(manufacturers);
+    Q_ASSERT(constants);
 
     QFile file(path);
 
@@ -127,10 +141,19 @@ static bool readDeviceConstantsJson(const QString &path, std::map<QString,QStrin
         return false;
     }
 
-    const auto mfobj = doc.object().value("manufacturers").toObject();
-    for (auto &mf : mfobj.keys())
+    const auto obj = doc.object();
+    const QStringList categories {"manufacturers", "device-types"};
+
+    for (const auto &cat : categories)
     {
-        (*manufacturers)[mf] = mfobj.value(mf).toString();
+        if (obj.contains(cat))
+        {
+            const auto catobj = obj.value(cat).toObject();
+            for (auto &key : catobj.keys())
+            {
+                (*constants)[key] = catobj.value(key).toString();
+            }
+        }
     }
 
     return false;
@@ -196,8 +219,8 @@ static DeviceDescription::SubDevice parseDeviceDescriptionSubDevice(const QJsonO
         return result;
     }
 
-    result.endpoint = obj.value(QLatin1String("endpoint")).toString();
-    if (result.endpoint.isEmpty())
+    result.restApi = obj.value(QLatin1String("restapi")).toString();
+    if (result.restApi.isEmpty())
     {
         return result;
     }
@@ -208,6 +231,45 @@ static DeviceDescription::SubDevice parseDeviceDescriptionSubDevice(const QJsonO
         for (const auto i : uniqueId.toArray())
         {
             result.uniqueId.push_back(i.toString());
+        }
+    }
+
+    const auto fingerPrint = obj.value(QLatin1String("fingerprint"));
+    if (fingerPrint.isObject())
+    {
+        bool ok;
+        const auto fp = fingerPrint.toObject();
+        result.fingerPrint.endpoint = fp.value(QLatin1String("endpoint")).toString().toUInt(&ok, 0);
+        result.fingerPrint.profileId = ok ? fp.value(QLatin1String("profile")).toString().toUInt(&ok, 0) : 0;
+        result.fingerPrint.deviceId = ok ? fp.value(QLatin1String("device")).toString().toUInt(&ok, 0) : 0;
+
+        if (fp.value(QLatin1String("in")).isArray())
+        {
+            for (const auto &cl : fp.value(QLatin1String("in")).toArray())
+            {
+                const auto clusterId = ok ? cl.toString().toUInt(&ok, 0) : 0;
+                if (ok)
+                {
+                    result.fingerPrint.inClusters.push_back(clusterId);
+                }
+            }
+        }
+
+        if (fp.value(QLatin1String("out")).isArray())
+        {
+            for (const auto &cl : fp.value(QLatin1String("out")).toArray())
+            {
+                const auto clusterId = ok ? cl.toString().toUInt(&ok, 0) : 0;
+                if (ok)
+                {
+                    result.fingerPrint.outClusters.push_back(clusterId);
+                }
+            }
+        }
+
+        if (!ok)
+        {
+            result.fingerPrint = { };
         }
     }
 

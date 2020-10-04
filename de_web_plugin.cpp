@@ -4589,6 +4589,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         return;
     }
 
+    auto *device = getOrCreateDevice(this, m_devices, node->address().ext());
+    Q_ASSERT(device);
+
     if (fastProbeAddr.hasExt() && fastProbeAddr.ext() != node->address().ext())
     {
         return;

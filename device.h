@@ -75,6 +75,7 @@ public:
     void addSubDevice(const Resource *sub);
     DeviceKey key() const { return m_deviceKey; }
     const deCONZ::Node *node() const { return m_node; }
+    bool managed() const { return m_managed; }
 
     void handleEvent(const Event &event);
     void setState(DeviceStateHandler state);
@@ -87,6 +88,7 @@ public:
     std::vector<Resource*> subDevices() const;
 
     DeRestPluginPrivate *plugin() const;
+
 
     // following handlers need access to private members (friend functions)
     friend void DEV_InitStateHandler(Device *device, const Event &event);
@@ -102,6 +104,7 @@ private:
     DeviceStateHandler m_state = nullptr; //! the currently active state handler function
     QBasicTimer m_timer; //! internal single shot timer
     QElapsedTimer m_awake; //! time to track when an end-device was last awake
+    bool m_managed = false; //! a managed device doesn't rely on legacy implementation of polling etc.
 };
 
 using DeviceContainer = std::unordered_map<DeviceKey, Device*>;

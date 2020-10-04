@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2020 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -10,6 +10,7 @@
 
 #include "poll_manager.h"
 #include "de_web_plugin_private.h"
+#include "device_descriptions.h"
 
 /*! Constructor.
  */
@@ -77,6 +78,11 @@ void PollManager::poll(RestNodeBase *restNode, const QDateTime &tStart)
     auto *device = getOrCreateDevice(this, plugin->m_devices, restNode->address().ext());
     Q_ASSERT(device);
     plugin->enqueueEvent(Event(device->prefix(), REventPoll, 0, device->key()));
+
+    if (device->managed())
+    {
+        return;
+    }
 
     pitem.id = restNode->id();
     pitem.prefix = r->prefix();

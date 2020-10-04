@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QVariantMap>
 #include "resource.h"
+#include "sensor.h"
 
 class DeviceDescription
 {
@@ -28,11 +29,12 @@ public:
     class SubDevice
     {
     public:
-        bool isValid() const { return !type.isEmpty() && !endpoint.isEmpty() && !uniqueId.isEmpty() && !items.empty(); }
+        bool isValid() const { return !type.isEmpty() && !restApi.isEmpty() && !uniqueId.isEmpty() && !items.empty(); }
         QString type;
-        QString endpoint;
+        QString restApi;
         QStringList uniqueId; // [ "$address.ext", "01", "0405"],
         std::vector<Item> items;
+        SensorFingerprint fingerPrint;
     };
 
     std::vector<SubDevice> subDevices;
@@ -47,10 +49,10 @@ class DeviceDescriptions : public QObject
 public:
     explicit DeviceDescriptions(QObject *parent = nullptr);
     ~DeviceDescriptions();
+    DeviceDescription get(const Resource *resource);
+    QString constantToString(const QString &constant) const;
 
     static DeviceDescriptions *instance();
-
-    DeviceDescription get(const Resource *resource);
 
 public Q_SLOTS:
     void readAll();

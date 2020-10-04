@@ -200,10 +200,12 @@ void DEV_ModelIdStateHandler(Device *device, const Event &event)
 
         if (!modelId->toString().isEmpty())
         {
+            DBG_Printf(DBG_INFO, "DEV modelId: %s, 0x%016llX\n", qPrintable(modelId->toString()), device->key());
             device->setState(DEV_GetDeviceDescriptionHandler);
         }
         else if (!device->reachable())
         {
+            DBG_Printf(DBG_INFO, "DEV not reachable, check  modelId later: 0x%016llX\n", device->key());
             device->setState(DEV_InitStateHandler);
         }
         else
@@ -249,14 +251,14 @@ void DEV_ModelIdStateHandler(Device *device, const Event &event)
     }
     else if (event.what() == RAttrModelId)
     {
-        DBG_Printf(DBG_INFO, "OK received modelId: 0x%016llX\n", device->key());
+        DBG_Printf(DBG_INFO, "DEV received modelId: 0x%016llX\n", device->key());
         device->stopStateTimer();
         device->setState(DEV_InitStateHandler); // ok re-evaluate
         device->plugin()->enqueueEvent(Event(device->prefix(), REventAwake, 0, device->key()));
     }
     else if (event.what() == REventStateTimeout)
     {
-        DBG_Printf(DBG_INFO, "read ZCL read modelId timeout: 0x%016llX\n", device->key());
+        DBG_Printf(DBG_INFO, "DEV read modelId timeout: 0x%016llX\n", device->key());
         device->setState(DEV_InitStateHandler);
     }
 }
@@ -287,6 +289,38 @@ QString uniqueIdFromTemplate(const QStringList &templ, const quint64 extAddress)
     return {};
 }
 
+/*! V1 compatibility function to create SensorNodes based on sub-device description.
+ */
+static Resource *DEV_InitSensorNodeFromDescription(Device *device, const DeviceDescription::SubDevice &sub, const QString &uniqueId)
+{
+    Sensor sensor;
+
+    sensor.fingerPrint() = sub.fingerPrint;
+    sensor.address().setExt(device->item(RAttrExtAddress)->toNumber());
+    sensor.address().setNwk(device->item(RAttrNwkAddress)->toNumber());
+    sensor.setModelId(device->item(RAttrModelId)->toString());
+    sensor.setType(DeviceDescriptions::instance()->constantToString(sub.type));
+    sensor.setUniqueId(uniqueId);
+    sensor.setNode(const_cast<deCONZ::Node*>(device->node()));
+
+    QString friendlyName = sensor.type();
+    if (friendlyName.startsWith("ZHA") || friendlyName.startsWith("ZLL"))
+    {
+        friendlyName = friendlyName.mid(3);
+    }
+
+    sensor.setId(QString::number(device->plugin()->getFreeSensorId()));
+    sensor.setName(QString("%1 %2").arg(friendlyName).arg(sensor.id()));
+
+    sensor.setNeedSaveDatabase(true);
+    sensor.rx();
+
+    device->plugin()->sensors.push_back(sensor);
+    device->addSubDevice(&device->plugin()->sensors.back());
+
+    return &device->plugin()->sensors.back();
+}
+
 /*! Creates and initialises sub-device Resources and ResourceItems if not already present.
 
     This function can replace database and joining device initialisation.
@@ -295,6 +329,8 @@ static bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescriptio
 {
     Q_ASSERT(device);
     Q_ASSERT(description.isValid());
+
+    size_t subCount = 0;
 
     for (const auto &sub : description.subDevices)
     {
@@ -313,17 +349,31 @@ static bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescriptio
             }
         }
 
-        if (!rsub && sub.endpoint == QLatin1String("/sensors"))
+        if (!rsub && sub.restApi == QLatin1String("/sensors"))
         {
-
+            rsub = DEV_InitSensorNodeFromDescription(device, sub, uniqueId);
         }
-        else if (!rsub && sub.endpoint == QLatin1String("/lights"))
+        else if (!rsub && sub.restApi == QLatin1String("/lights"))
         {
-
+            // TODO create LightNode for compatibility with v1
+        }
+        else
+        {
+            // TODO create dynamic Resource*
         }
 
         if (rsub)
         {
+            subCount++;
+
+            {
+                auto *mf = rsub->item(RAttrManufacturerName);
+                if (mf && mf->toString().isEmpty())
+                {
+                    mf->setValue(DeviceDescriptions::instance()->constantToString(description.manufacturer));
+                }
+            }
+
             for (const auto &i : sub.items)
             {
                 Q_ASSERT(i.isValid());
@@ -337,13 +387,21 @@ static bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescriptio
                 else
                 {
                     DBG_Printf(DBG_INFO, "sub-device: %s, create item: %s\n", qPrintable(uniqueId), i.descriptor.suffix);
+                    item = rsub->addItem(i.descriptor.type, i.descriptor.suffix);
+                }
+
+                DBG_Assert(item);
+                if (item)
+                {
+                    item->setParseParameters(i.parseParameters);
+                    item->setReadParameters(i.readParameters);
+                    // TODO write parameters
                 }
             }
         }
-
     }
 
-    return false;
+    return subCount == description.subDevices.size();
 }
 
 void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event)
@@ -384,6 +442,11 @@ Device::Device(DeviceKey key, QObject *parent) :
     static int initTimer = 1000;
     startStateTimer(initTimer);
     initTimer += 300; // hack for the first round init
+
+    if (deCONZ::appArgumentNumeric("--dev-test-managed", 0) > 0)
+    {
+        m_managed = true;
+    }
 }
 
 void Device::addSubDevice(const Resource *sub)

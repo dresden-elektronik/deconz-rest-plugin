@@ -2899,6 +2899,11 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
         return;
     }
 
+    if (deCONZ::appArgumentNumeric("--dev-test-managed", 0) > 0)
+    {
+        return;
+    }
+
     if ((ind.srcAddress().hasExt() && ind.srcAddress().ext() == fastProbeAddr.ext()) ||
         (ind.srcAddress().hasNwk() && ind.srcAddress().nwk() == fastProbeAddr.nwk()))
     {

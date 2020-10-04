@@ -6,7 +6,7 @@ int zdpSendNodeDescriptorReq(quint16 nwkAddress, deCONZ::ApsController *apsCtrl)
 {
     Q_ASSERT(apsCtrl);
 
-    DBG_Printf(DBG_ZDP, "get node descriptor for 0x%04X\n", nwkAddress);
+    DBG_Printf(DBG_INFO, "ZDP get node descriptor for 0x%04X\n", nwkAddress);
     deCONZ::ApsDataRequest apsReq;
 
     // ZDP Header
@@ -32,7 +32,7 @@ int zdpSendActiveEndpointsReq(uint16_t nwkAddress, deCONZ::ApsController *apsCtr
 {
     Q_ASSERT(apsCtrl);
 
-    DBG_Printf(DBG_ZDP, "get active endpoints for 0x%04X\n", nwkAddress);
+    DBG_Printf(DBG_INFO, "ZDP get active endpoints for 0x%04X\n", nwkAddress);
     deCONZ::ApsDataRequest apsReq;
 
     // ZDP Header
@@ -58,7 +58,7 @@ int zdpSendSimpleDescriptorReq(uint16_t nwkAddress, quint8 endpoint, deCONZ::Aps
 {
     Q_ASSERT(apsCtrl);
 
-    DBG_Printf(DBG_ZDP, "[3] get simple descriptor 0x%02X for 0x%04X\n", endpoint, nwkAddress);
+    DBG_Printf(DBG_INFO, "ZDP get simple descriptor 0x%02X for 0x%04X\n", endpoint, nwkAddress);
     deCONZ::ApsDataRequest apsReq;
 
     // ZDP Header
@@ -69,7 +69,7 @@ int zdpSendSimpleDescriptorReq(uint16_t nwkAddress, quint8 endpoint, deCONZ::Aps
     apsReq.setProfileId(ZDP_PROFILE_ID);
     apsReq.setRadius(0);
     apsReq.setClusterId(ZDP_SIMPLE_DESCRIPTOR_CLID);
-    //apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+    apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
 
     QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
     stream.setByteOrder(QDataStream::LittleEndian);
