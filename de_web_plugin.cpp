@@ -340,6 +340,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBER, "TS0121", silabs3MacPrefix }, // Tuya/Blitzwolf smart plug
     { VENDOR_EMBER, "TS0302", silabs3MacPrefix }, // Tuya curtain switch
     { VENDOR_EMBER, "TS0041", silabs3MacPrefix }, // Tuya wireless switch
+    { VENDOR_EMBER, "TS0041", silabs5MacPrefix }, // Tuya wireless switch
     { VENDOR_EMBER, "TS0042", silabs3MacPrefix }, // Tuya wireless switch
     { VENDOR_EMBER, "TS0043", silabs3MacPrefix }, // Tuya wireless switch
     { VENDOR_NONE, "kud7u2l", silabs3MacPrefix }, // Tuya Smart TRV HY369 Thermostatic Radiator Valve
@@ -4688,6 +4689,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     else if ((manufacturer == QLatin1String("_TZ3000_bi6lpsew")) ||
                              (manufacturer == QLatin1String("_TZ3400_keyjhapk")) ||
                              (manufacturer == QLatin1String("_TYZB02_key8kk7r")) ||
+                             (manufacturer == QLatin1String("_TZ3400_keyjqthh")) ||
                              (manufacturer == QLatin1String("_TYZB02_keyjqthh")) )
                     {
                         fpSwitch.inClusters.push_back(ci->id());
