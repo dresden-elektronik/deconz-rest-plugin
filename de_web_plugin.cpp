@@ -809,14 +809,15 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                 // Some items like state/buttonevent should fire events on set, not only change
                 if (parseFunction && parseFunction(r, item, ind, zclFrame) && item->lastSet() == item->lastChanged())
                 {
-                    auto *item = r->item(RAttrId);
-                    if (!item)
+                    auto *idItem = r->item(RAttrId);
+                    if (!idItem)
                     {
-                        item = r->item(RAttrUniqueId);
+                        idItem = r->item(RAttrUniqueId);
                     }
-                    if (item)
+
+                    if (idItem)
                     {
-                        enqueueEvent(Event(r->prefix(), item->descriptor().suffix, item->toString(), device->key()));
+                        enqueueEvent(Event(r->prefix(), item->descriptor().suffix, idItem->toString(), device->key()));
                     }
                 }
             }
