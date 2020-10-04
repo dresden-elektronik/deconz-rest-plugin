@@ -2121,7 +2121,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         }
 
         //VENDOR_NONE only use device with 2 cluster ? or perhaps VENDOR_EMBER too
-        if (node->nodeDescriptor().manufacturerCode() == VENDOR_NONE)
+        if (!node->nodeDescriptor().isNull() && node->nodeDescriptor().manufacturerCode() == VENDOR_NONE)
         {
             //General method to detect tuya cluster
             if ((i->inClusters().size() == 2) && (i->endpoint() == 0x01) )
