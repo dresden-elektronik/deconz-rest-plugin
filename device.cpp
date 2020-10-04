@@ -140,7 +140,7 @@ void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event)
         for (const auto ep : device->node()->endpoints())
         {
             deCONZ::SimpleDescriptor sd;
-            if (device->node()->copySimpleDescriptor(ep, &sd) != 0)
+            if (device->node()->copySimpleDescriptor(ep, &sd) != 0 || sd.deviceId() == 0xffff)
             {
                 needFetchEp = ep;
                 break;
