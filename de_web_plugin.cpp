@@ -2008,6 +2008,15 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 hasServerOnOff = false;
             }
         }
+        if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER)
+        {
+            //Tuya black list
+            //_TZE200_aoclfnxz is a thermostat
+            if (lightNode.manufacturer() == QLatin1String("_TZE200_aoclfnxz"))
+            {
+                hasServerOnOff = false;
+            }
+        }
 
         if (!i->inClusters().isEmpty())
         {
