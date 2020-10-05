@@ -707,6 +707,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
         {
             btnMapClusters = loadButtonMapClustersJson(buttonMaps);
             btnMapClusterCommands = loadButtonMapCommadsJson(buttonMaps);
+            buttonMapForModelId = loadButtonMapModelIdsJson(buttonMaps);
             buttonMapData = loadButtonMapsJson(buttonMaps, btnMapClusters, btnMapClusterCommands);
         }
     }
@@ -3503,7 +3504,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
     bool checkReporting = false;
     bool checkClientCluster = false;
-    const std::vector<Sensor::ButtonMap> buttonMapVec = sensor->buttonMap(buttonMapData);
+    const std::vector<Sensor::ButtonMap> buttonMapVec = sensor->buttonMap(buttonMapData, buttonMapForModelId);
     QString cluster = "0x" + QString("%1").arg(ind.clusterId(), 4, 16, QLatin1Char('0')).toUpper();
     QString cmd = "0x" + QString("%1").arg(zclFrame.commandId(), 2, 16, QLatin1Char('0')).toUpper();
     quint8 pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(0);
@@ -7504,7 +7505,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 item = i->item(RStateButtonEvent);
 
-                                if (item && i->buttonMap(buttonMapData).empty() &&
+                                if (item && i->buttonMap(buttonMapData, buttonMapForModelId).empty() &&
                                     event.event() == deCONZ::NodeEvent::UpdatedClusterDataZclReport)
                                 {
                                     quint32 button = 0;
