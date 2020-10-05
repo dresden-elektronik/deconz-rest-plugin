@@ -1849,7 +1849,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             else if (i->inClusters()[c].id() == IAS_WD_CLUSTER_ID) { hasIASWDCluster = true; }
             else if ((i->inClusters()[c].id() == TUYA_CLUSTER_ID) && (node->macCapabilities() & deCONZ::MacDeviceIsFFD) ) { hasServerOnOff = true; }
             // Danalock support. The cluster needs to be defined and whitelisted by setting hasServerOnOff
-            else if (i->inClusters()[c].id() == DOOR_LOCK_CLUSTER_ID) { hasServerOnOff = true; }
+            else if (node->nodeDescriptor().manufacturerCode() == VENDOR_DANALOCK && i->inClusters()[c].id() == DOOR_LOCK_CLUSTER_ID) { hasServerOnOff = true; }
             else if (i->inClusters()[c].id() == BASIC_CLUSTER_ID)
             {
                 std::vector<deCONZ::ZclAttribute>::const_iterator j = i->inClusters()[c].attributes().begin();
@@ -1966,7 +1966,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
 
         // For Tuya, we realy need manufacture Name, but can't use it to compare because of fonction setManufacturerCode() that put "Heiman",
-        if ((node->nodeDescriptor().manufacturerCode() == VENDOR_NONE) && (node->simpleDescriptors().size() == 1) )
+        if (!node->nodeDescriptor().isNull() && node->nodeDescriptor().manufacturerCode() == VENDOR_NONE && node->simpleDescriptors().size() == 1)
         {
             if (manufacturer.isEmpty())
             {
@@ -1991,7 +1991,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         }
 
         //VENDOR_NONE only use device with 2 cluster ? or perhaps VENDOR_EMBER too
-        if (node->nodeDescriptor().manufacturerCode() == VENDOR_NONE)
+        if (!node->nodeDescriptor().isNull() && node->nodeDescriptor().manufacturerCode() == VENDOR_NONE)
         {
             //General method to detect tuya cluster
             if ((i->inClusters().size() == 2) && (i->endpoint() == 0x01) )
@@ -4586,7 +4586,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpCarbonMonoxideSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
                     }
-                    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_NONE)
+                    else if (!node->nodeDescriptor().isNull() && node->nodeDescriptor().manufacturerCode() == VENDOR_NONE)
                     {
                         // For some device the Tuya cluster is sometime Invisible, so force device detection
                         if ((modelId == QLatin1String("kud7u2l")) ||
