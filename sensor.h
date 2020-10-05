@@ -146,7 +146,7 @@ public:
     const SensorFingerprint &fingerPrint() const;
 
     QString etag;
-    const std::vector<Sensor::ButtonMap> buttonMap(const QMap<QString, std::vector<Sensor::ButtonMap>> &buttonMapData);
+    const std::vector<Sensor::ButtonMap> buttonMap(const QMap<QString, std::vector<Sensor::ButtonMap>> &buttonMapData, QMap<QString, QString> &buttonMapForModelId);
     uint8_t previousDirection;
     quint16 previousCt;
     QDateTime lastConfigPush;
