@@ -1378,6 +1378,9 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                             sensor->modelId() == QLatin1String("Zen-01") ||
                             sensor->modelId() == QLatin1String("Bell") ||
                             sensor->modelId() == QLatin1String("SLT2") ||
+                            sensor->modelId() == QLatin1String("TS0202") || // Tuya sensor
+                            sensor->modelId() == QLatin1String("3AFE14010402000D") || // Konke presence sensor
+                            sensor->modelId() == QLatin1String("3AFE28010402000D") || // Konke presence sensor
                             sensor->modelId().startsWith(QLatin1String("3315")) ||
                             sensor->modelId().startsWith(QLatin1String("4655BC0"))))
         {
@@ -1401,6 +1404,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                            sensor->modelId().startsWith(QLatin1String("MOSZB-130")) ||  // Develco motion sensor
                            sensor->modelId().startsWith(QLatin1String("WISZB-120")) ||  // Develco window sensor
                            sensor->modelId().startsWith(QLatin1String("FLSZB-110")) ||  // Develco water leak sensor
+                           sensor->modelId().startsWith(QLatin1String("SIRZB-110")) ||  // Develco siren
                            sensor->modelId().startsWith(QLatin1String("ZHMS101"))))     // Wattle (Develco) magnetic sensor
         {
             rq.attributeId = 0x0020;   // battery voltage
@@ -2279,6 +2283,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("3AFE130104020015") ||
         sensor->modelId() == QLatin1String("3AFE14010402000D") ||
         sensor->modelId() == QLatin1String("3AFE220103020000") ||
+        sensor->modelId() == QLatin1String("3AFE28010402000D") ||
         // Nimbus
         sensor->modelId().startsWith(QLatin1String("FLS-NB")) ||
         // Danalock support
@@ -2306,6 +2311,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||   // Wattle (Develco) magnetic sensor
         sensor->modelId().startsWith(QLatin1String("EMIZB-132")) || // EMI Norwegian HAN
         sensor->modelId().startsWith(QLatin1String("SMRZB-33")) || // Smart Relay DIN
+        sensor->modelId().startsWith(QLatin1String("SIRZB-110")) || // siren
         sensor->modelId() == QLatin1String("SPLZB-131") ||
         // LG
         sensor->modelId() == QLatin1String("LG IP65 HMS") ||
@@ -2359,6 +2365,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("TS01")) ||
         sensor->modelId().startsWith(QLatin1String("TS02")) ||
         sensor->modelId().startsWith(QLatin1String("TS03")) ||
+        sensor->modelId().startsWith(QLatin1String("TS0202")) || // motion sensor, manu = _TYZB01_zwvaj5wy
         sensor->modelId().startsWith(QLatin1String("TS0043")) || // to test
         sensor->modelId().startsWith(QLatin1String("TS0041")) ||
         // Tuyatec
@@ -2561,6 +2568,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                      sensor->modelId() == QLatin1String("Shutters central remote switch") ||
                      sensor->modelId() == QLatin1String("Double gangs remote switch") ||
                      sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||
+                     sensor->modelId().startsWith(QLatin1String("3AFE14010402000D")) || //konke presence sensor
+                     sensor->modelId().startsWith(QLatin1String("3AFE28010402000D")) || //konke presence sensor
+                     sensor->modelId().startsWith(QLatin1String("TS0202")) || //Tuya presence sensor
                      sensor->modelId().endsWith(QLatin1String("86opcn01")) || // Aqara Opple
                      sensor->modelId().startsWith(QLatin1String("1116-S")) ||
                      sensor->modelId().startsWith(QLatin1String("1117-S")) ||
