@@ -260,7 +260,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_HEIMAN, "Door", emberMacPrefix }, // Heiman door/window sensor - newer model
     { VENDOR_HEIMAN, "WarningDevice", emberMacPrefix }, // Heiman siren
     { VENDOR_HEIMAN, "Smoke", jennicMacPrefix }, // Heiman fire sensor - newer model
-    { VENDOR_HEIMAN, "PIRS", jennicMacPrefix }, // Heiman motion sensor - newer model
+    { VENDOR_HEIMAN, "PIRSensor-EM", jennicMacPrefix }, // Heiman motion sensor - newer model
     { VENDOR_HEIMAN, "SKHMP30", jennicMacPrefix }, // GS (Heiman) smart plug
     { VENDOR_HEIMAN, "RC-EM", emberMacPrefix }, // Heiman IAS ACE remote control
     { VENDOR_LUTRON, "LZL4BWHL01", lutronMacPrefix }, // Lutron LZL-4B-WH-L01 Connected Bulb Remote
@@ -283,7 +283,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_SUNRICHER, "ZG2835", silabs6MacPrefix }, // SR-ZG2835 Zigbee Rotary Switch
     { VENDOR_JENNIC, "SPZB0001", jennicMacPrefix }, // Eurotronic thermostat
     { VENDOR_NONE, "RES001", tiMacPrefix }, // Hubitat environment sensor, see #1308
-    { VENDOR_SINOPE, "WL4200S", sinopeMacPrefix}, // Sinope water sensor
+    { VENDOR_SINOPE, "WL4200S", sinopeMacPrefix}, // Sinope water sensor with wired remote sensor
+    { VENDOR_SINOPE, "WL4200", sinopeMacPrefix}, // Sinope water sensor
     { VENDOR_SINOPE, "TH1300ZB", sinopeMacPrefix }, // Sinope Thermostat
     { VENDOR_SINOPE, "TH112", sinopeMacPrefix }, // Sinope Thermostat TH1123ZB & TH1124ZB
     { VENDOR_ZEN, "Zen-01", zenMacPrefix }, // Zen Thermostat
@@ -300,6 +301,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_DEVELCO, "FLSZB-110", develcoMacPrefix }, // Develco water leak sensor
     { VENDOR_DEVELCO, "EMIZB-132", develcoMacPrefix }, // Develco EMI Norwegian HAN
     { VENDOR_DEVELCO, "SMRZB-33", develcoMacPrefix }, // Develco Smart Relay DIN
+    { VENDOR_DEVELCO, "SIRZB-110", develcoMacPrefix }, // Develco siren
     { VENDOR_DEVELCO, "ZHMS101", develcoMacPrefix }, // Wattle (Develco) magnetic sensor
     { VENDOR_EMBER, "3AFE14010402000D", konkeMacPrefix }, // Konke Kit Pro-BS Motion Sensor
     { VENDOR_KONKE, "3AFE28010402000D", ikea2MacPrefix }, // Konke Kit Pro-BS Motion Sensor ver.2
@@ -347,6 +349,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBER, "TS0601", silabs7MacPrefix }, // Tuya Smart TRV HY369 Thermostatic Radiator Valve
     { VENDOR_EMBER, "TS0601", silabs5MacPrefix }, // MOES Zigbee Radiator Actuator HY368
     { VENDOR_EMBER, "TS0207", silabs3MacPrefix }, // Tuya water leak sensor
+    { VENDOR_NONE, "TS0202", silabs4MacPrefix }, // Tuya presence sensor
     { VENDOR_NONE, "0yu2xgi", silabs5MacPrefix }, // Tuya siren
     { VENDOR_AURORA, "DoubleSocket50AU", jennicMacPrefix }, // Aurora AOne Double Socket UK
     { VENDOR_COMPUTIME, "SP600", computimeMacPrefix }, // Salus smart plug
@@ -743,6 +746,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
         {
             btnMapClusters = loadButtonMapClustersJson(buttonMaps);
             btnMapClusterCommands = loadButtonMapCommadsJson(buttonMaps);
+            buttonMapForModelId = loadButtonMapModelIdsJson(buttonMaps);
             buttonMapData = loadButtonMapsJson(buttonMaps, btnMapClusters, btnMapClusterCommands);
         }
     }
@@ -3663,7 +3667,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
     bool checkReporting = false;
     bool checkClientCluster = false;
-    const std::vector<Sensor::ButtonMap> buttonMapVec = sensor->buttonMap(buttonMapData);
+    const std::vector<Sensor::ButtonMap> buttonMapVec = sensor->buttonMap(buttonMapData, buttonMapForModelId);
     QString cluster = "0x" + QString("%1").arg(ind.clusterId(), 4, 16, QLatin1Char('0')).toUpper();
     QString cmd = "0x" + QString("%1").arg(zclFrame.commandId(), 2, 16, QLatin1Char('0')).toUpper();
     quint8 pl0 = zclFrame.payload().isEmpty() ? 0 : zclFrame.payload().at(0);
@@ -4731,7 +4735,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         fpFireSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
                     }
                     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_SINOPE &&
-                             modelId.startsWith(QLatin1String("WL4200S")))
+                             modelId.startsWith(QLatin1String("WL4200")))
                     {
                         fpWaterSensor.inClusters.push_back(IAS_ZONE_CLUSTER_ID);
                     }
@@ -4891,6 +4895,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("MOSZB-130")) ||        // Develco motion sensor
                              modelId == QLatin1String("4in1-Sensor-ZB3.0") ||         // Immax NEO ZB3.0 4 in 1 sensor E13-A21
                              modelId == QLatin1String("E13-A21") ||                   // Sengled E13-A21 PAR38 bulp with motion sensor
+                             modelId == QLatin1String("TS0202") ||                    // Tuya generic motion sensor                   // Sonoff SNZB-03
                              modelId == QLatin1String("MS01") ||                      // Sonoff SNZB-03
                              modelId == QLatin1String("MSO1") ||                      // Sonoff SNZB-03
                              modelId == QLatin1String("ms01"))                        // Sonoff SNZB-03
@@ -4916,7 +4921,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     else if (modelId.startsWith(QLatin1String("WATER_")) ||           // Heiman water sensor
                              modelId.startsWith(QLatin1String("Water")) ||            // Heiman water sensor (newer model)
                              modelId.startsWith(QLatin1String("lumi.sensor_wleak")) || // Xiaomi Aqara flood sensor
-                             modelId.startsWith(QLatin1String("WL4200S")) ||          // Sinope Water Leak detector
+                             modelId.startsWith(QLatin1String("WL4200")) ||           // Sinope Water Leak detector
                              modelId.startsWith(QLatin1String("3315")) ||             // Centralite water sensor
                              modelId.startsWith(QLatin1String("FLSZB-110")) ||        // Develco Water Leak detector
                              modelId.startsWith(QLatin1String("TS0207")))             // Tuya water leak sensor
@@ -4925,6 +4930,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     }
                     else if (modelId == QLatin1String("WarningDevice") ||               // Heiman siren
                              modelId == QLatin1String("SZ-SRN12N") ||                   // Sercomm siren
+                             modelId == QLatin1String("SIRZB-110") ||                   // Develco siren
                              modelId == QLatin1String("902010/29"))                     // Bitron outdoor siren
                     {
                         fpAlarmSensor.inClusters.push_back(ci->id());
@@ -7202,6 +7208,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId().startsWith(QLatin1String("MOSZB-130")) || // Develco motion sensor
                                     i->modelId().startsWith(QLatin1String("WISZB-120")) || // Develco window sensor
                                     i->modelId().startsWith(QLatin1String("FLSZB-110")) || // Develco water leak sensor
+                                    i->modelId().startsWith(QLatin1String("SIRZB-110")) || // Develco siren
                                     i->modelId().startsWith(QLatin1String("ZHMS101")) ||   // Wattle (Develco) magnetic sensor
                                     i->modelId().startsWith(QLatin1String("RFDL-ZB-MS")) ||// Bosch motion sensor
                                     i->modelId().startsWith(QLatin1String("1116-S")) ||    // iris contact sensor v3
@@ -7670,7 +7677,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 item = i->item(RStateButtonEvent);
 
-                                if (item && i->buttonMap(buttonMapData).empty() &&
+                                if (item && i->buttonMap(buttonMapData, buttonMapForModelId).empty() &&
                                     event.event() == deCONZ::NodeEvent::UpdatedClusterDataZclReport)
                                 {
                                     quint32 button = 0;
