@@ -6751,7 +6751,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
     {
         return;
     }
-
+    DBG_Printf(DBG_INFO, "Battery debug 1\n");
     std::vector<Sensor>::iterator i = sensors.begin();
     std::vector<Sensor>::iterator end = sensors.end();
 
@@ -6818,6 +6818,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             }
             return;
         }
+        
+        DBG_Printf(DBG_INFO, "Battery debug 2\n");
 
         // filter for relevant clusters
         if (event.profileId() == HA_PROFILE_ID || event.profileId() == ZLL_PROFILE_ID)
@@ -6936,6 +6938,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                     if (event.clusterId() == POWER_CONFIGURATION_CLUSTER_ID)
                     {
+                        DBG_Printf(DBG_INFO, "Battery debug 3\n");
                         for (;ia != enda; ++ia)
                         {
                             if (!ia->isAvailable())
@@ -6964,6 +6967,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 }
 
                                 ResourceItem *item = i->item(RStateBattery);
+                                
+                                DBG_Printf(DBG_INFO, "Battery debug 4\n");
 
                                 if (item) {
                                     int bat = ia->numericValue().u8 / 2;
