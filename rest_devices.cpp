@@ -66,6 +66,16 @@ int RestDevices::getAllDevices(const ApiRequest &req, ApiResponse &rsp)
 {
     Q_UNUSED(req)
 
+    rsp.httpStatus = HttpStatusOk;
+
+    for (const auto &d : plugin->m_devices)
+    {
+        if (d.second->node()) // for now only physical devices
+        {
+            rsp.list.push_back(d.second->item(RAttrUniqueId)->toString());
+        }
+    }
+
     if (rsp.list.isEmpty())
     {
         rsp.str = QLatin1String("[]"); // return empty list
@@ -83,56 +93,85 @@ int RestDevices::getDevice(const ApiRequest &req, ApiResponse &rsp)
 {
     DBG_Assert(req.path.size() == 4);
 
-    const QString &uniqueid = req.path[3];
+    rsp.httpStatus = HttpStatusOk;
+
+    auto uniqueId = req.path.at(3);
+    uniqueId.remove(QLatin1Char(':'));
+
+    bool ok;
+    const auto deviceKey = uniqueId.toULongLong(&ok, 16);
+
+    Device *device = DEV_getDevice(plugin->m_devices, deviceKey);
+
+    rsp.httpStatus = device ? HttpStatusOk : HttpStatusNotFound;
+
+    if (!device)
+    {
+        return REQ_READY_SEND;
+    }
 
     QVariantList subDevices;
-    QString modelid;
+    QString modelid = device->item(RAttrModelId)->toString();
     QString swversion;
     QString manufacturer;
 
-    // humble attemp to merge resources, these might be merged in one resource container later
-
-    for (const LightNode &l : plugin->nodes)
+    for (const auto &sub : device->subDevices())
     {
-        if (l.uniqueId().indexOf(uniqueid) != 0)
+        QVariantMap map;
+
+        for (int i = 0; i < sub->itemCount(); i++)
         {
-            continue;
+            auto *item = sub->itemForIndex(i);
+            Q_ASSERT(item);
+
+            if (item->descriptor().suffix == RStateLastUpdated)
+            {
+                continue;
+            }
+
+            const auto ls = QString(QLatin1String(item->descriptor().suffix)).split(QLatin1Char('/'));
+
+            if (ls.size() == 2)
+            {
+                if (item->descriptor().suffix == RAttrLastSeen || item->descriptor().suffix == RAttrLastAnnounced ||
+                    item->descriptor().suffix == RAttrManufacturerName || item->descriptor().suffix == RAttrModelId ||
+                    item->descriptor().suffix == RAttrSwVersion || item->descriptor().suffix == RAttrName)
+                {
+                    rsp.map[ls.at(1)] = item->toString(); // top level attribute
+                }
+                else if (ls.at(0) == QLatin1String("attr"))
+                {
+                    map[ls.at(1)] = item->toVariant(); // sub device top level attribute
+                }
+                else
+                {
+                    QVariantMap m2;
+                    if (map.contains(ls.at(0)))
+                    {
+                        m2 = map[ls.at(0)].toMap();
+                    }
+
+                    QVariantMap itemMap;
+
+                    itemMap[QLatin1String("value")] = item->toVariant();
+
+                    QDateTime dt = item->lastChanged();
+                    // UTC in msec resolution
+                    dt.setOffsetFromUtc(0);
+                    itemMap[QLatin1String("lastupdated")] = dt.toString(QLatin1String("yyyy-MM-ddTHH:mm:ssZ"));
+
+
+                    m2[ls.at(1)] = itemMap;
+                    map[ls.at(0)] = m2;
+                }
+            }
         }
 
-        if (manufacturer.isEmpty() && !l.manufacturer().isEmpty()) { manufacturer = l.manufacturer(); }
-        if (modelid.isEmpty() && !l.modelId().isEmpty()) { modelid = l.modelId(); }
-        if (swversion.isEmpty() && !l.swBuildId().isEmpty()) { swversion = l.swBuildId(); }
-
-        QVariantMap m;
-        if (plugin->lightToMap(req, &l, m))
-        {
-            subDevices.push_back(m);
-        }
+        subDevices.push_back(map);
     }
 
-    for (const Sensor &s : plugin->sensors)
-    {
-        if (s.uniqueId().indexOf(uniqueid) != 0)
-        {
-            continue;
-        }
-
-        if (manufacturer.isEmpty() && !s.manufacturer().isEmpty()) { manufacturer = s.manufacturer(); }
-        if (modelid.isEmpty() && !s.modelId().isEmpty()) { modelid = s.modelId(); }
-        if (swversion.isEmpty() && !s.swVersion().isEmpty()) { swversion = s.swVersion(); }
-
-        QVariantMap m;
-        if (plugin->sensorToMap(&s, m, req))
-        {
-            subDevices.push_back(m);
-        }
-    }
-
-    rsp.map["uniqueid"] = uniqueid;
-    rsp.map["sub"] = subDevices;
-    if (!manufacturer.isEmpty()) { rsp.map["manufacturername"] = manufacturer; }
-    if (!modelid.isEmpty()) { rsp.map["modelid"] = modelid; }
-    if (!swversion.isEmpty()) { rsp.map["swversion"] = swversion; }
+    rsp.map["uniqueid"] = device->item(RAttrUniqueId)->toString();
+    rsp.map["subdevices"] = subDevices;
 
     return REQ_READY_SEND;
 }
