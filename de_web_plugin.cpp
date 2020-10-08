@@ -7143,6 +7143,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     enqueueEvent(e);
                                     enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
                                     updateSensorEtag(&*i);
+                                    q_ptr->nodeUpdated(i->address().ext(), QLatin1String(item->descriptor().suffix), QString::number(bat));
                                     continue;
                                 }
 
@@ -7183,6 +7184,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     item->setValue(bat);
                                     Event e(RSensors, RConfigBattery, i->id(), item);
                                     enqueueEvent(e);
+                                    q_ptr->nodeUpdated(i->address().ext(), QLatin1String(item->descriptor().suffix), QString::number(bat));
                                 }
 
                                 updateSensorEtag(&*i);
@@ -7275,6 +7277,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     item->setValue(static_cast<quint8>(bat));
                                     Event e(RSensors, RConfigBattery, i->id(), item);
                                     enqueueEvent(e);
+                                    q_ptr->nodeUpdated(i->address().ext(), QLatin1String(item->descriptor().suffix), QString::number(bat));
                                 }
                                 updateSensorEtag(&*i);
                             }
@@ -11752,6 +11755,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
                 item->setValue(quint8(bat));
                 enqueueEvent(Event(RSensors, RConfigBattery, sensor.id(), item));
+                q_ptr->nodeUpdated(sensor.address().ext(), QLatin1String(item->descriptor().suffix), QString::number(bat));
 
                 if (item->lastSet() == item->lastChanged())
                 {
