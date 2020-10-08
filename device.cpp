@@ -1,4 +1,5 @@
 #include <QTimerEvent>
+#include "de_web_plugin.h" // todo hack, remove later
 #include "de_web_plugin_private.h" // todo hack, remove later
 #include "device.h"
 #include "device_descriptions.h"
@@ -571,6 +572,18 @@ DeRestPluginPrivate *Device::plugin() const
     auto *plugin = dynamic_cast<DeRestPluginPrivate*>(parent());
     Q_ASSERT(plugin);
     return plugin;
+}
+
+Device *DEV_getDevice(DeviceContainer &devices, DeviceKey key)
+{
+    auto d = devices.find(key);
+
+    if (d != devices.end())
+    {
+        return d->second;
+    }
+
+    return nullptr;
 }
 
 Device *getOrCreateDevice(QObject *parent, DeviceContainer &devices, DeviceKey key)
