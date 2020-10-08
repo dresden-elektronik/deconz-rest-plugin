@@ -296,7 +296,8 @@
 #define VENDOR_4_NOKS       0x1071
 #define VENDOR_BITRON       0x1071 // branded
 #define VENDOR_COMPUTIME    0x1078
-#define VENDOR_AXIS         0x109A //Axis
+#define VENDOR_AXIS         0x1262 // Axis
+#define VENDOR_MMB          0x109a
 #define VENDOR_NETVOX       0x109F
 #define VENDOR_NYCE         0x10B9
 #define VENDOR_UBISYS       0x10F2
@@ -589,6 +590,7 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
         case VENDOR_DANALOCK:
             return prefix == danalockMacPrefix;
         case VENDOR_AXIS:
+        case VENDOR_MMB:
             return prefix == zenMacPrefix;
         case VENDOR_SCHLAGE:
             return prefix == schlageMacPrefix;
@@ -1541,6 +1543,11 @@ public:
     qint64 dbZclValueMaxAge;
     QTimer *databaseTimer;
     QString emptyString;
+
+    // JSON support
+    QMap<QString, std::vector<Sensor::ButtonMap>> buttonMapData;
+    QMap<QString, quint16> btnMapClusters;
+    QMap<QString, QMap<QString, quint16>> btnMapClusterCommands;
 
     // gateways
     std::vector<Gateway*> gateways;

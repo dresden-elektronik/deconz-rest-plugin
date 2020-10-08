@@ -45,6 +45,7 @@ extern const char *RAttrManufacturerName;
 extern const char *RAttrModelId;
 extern const char *RAttrType;
 extern const char *RAttrClass;
+extern const char *RAttrId;
 extern const char *RAttrUniqueId;
 extern const char *RAttrSwVersion;
 extern const char *RAttrLastAnnounced;

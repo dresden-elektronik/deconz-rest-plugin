@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 dresden elektronik ingenieurtechnik gmbh.
+ * Copyright (c) 2017-2020 dresden elektronik ingenieurtechnik gmbh.
  * All rights reserved.
  *
  * The software in this package is published under the terms of the BSD
@@ -30,6 +30,7 @@ const char *RAttrManufacturerName = "attr/manufacturername";
 const char *RAttrModelId = "attr/modelid";
 const char *RAttrType = "attr/type";
 const char *RAttrClass = "attr/class";
+const char *RAttrId = "attr/id";
 const char *RAttrUniqueId = "attr/uniqueid";
 const char *RAttrSwVersion = "attr/swversion";
 const char *RAttrLastAnnounced = "attr/lastannounced";
@@ -188,6 +189,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrModelId));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrType));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrClass));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrId));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrUniqueId));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrSwVersion));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RAttrLastAnnounced));

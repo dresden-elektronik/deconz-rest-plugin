@@ -1975,7 +1975,7 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturer() == QLatin1String("NIKO NV"))
         {
         }
-        else if (lightNode->manufacturerCode() == VENDOR_AXIS) // Axis shade
+        else if (lightNode->manufacturerCode() == VENDOR_AXIS || lightNode->manufacturerCode() == VENDOR_MMB) // Axis shade
         {
         }
         else if (lightNode->manufacturer() == QLatin1String("Sunricher"))
