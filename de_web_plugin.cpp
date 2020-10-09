@@ -7012,7 +7012,12 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 // particularly suited for devices with rechargeable batteries.
                                 if (item)
                                 {
+                                    DBG_Printf(DBG_INFO, "Battery debug 5\n");
+                                    
+                                    
                                     int bat = ia->numericValue().u8 / 2;
+                                    
+                                    DBG_Printf(DBG_INFO, "Battery debug 6 : %d\n",bat);
 
                                     if (i->modelId().startsWith(QLatin1String("TRADFRI")) || // IKEA
                                         i->modelId().startsWith(QLatin1String("SYMFONISK")) || // IKEA
