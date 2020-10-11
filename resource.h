@@ -287,6 +287,13 @@ ReadFunction_t getReadFunction(const std::vector<ReadFunction> &functions, const
 class ResourceItem
 {
 public:
+    enum ValueSource
+    {
+        SourceUnknown,
+        SourceDevice,
+        SourceApi
+    };
+
     ResourceItem(const ResourceItem &other);
     ResourceItem(const ResourceItemDescriptor &rid);
     ResourceItem &operator=(const ResourceItem &other);
@@ -297,9 +304,9 @@ public:
     bool toBool() const;
     QVariant toVariant() const;
     void setZclProperties(quint16 clusterId, quint16 attrId, quint8 endpoint = 0xff);
-    bool setValue(const QString &val);
-    bool setValue(qint64 val);
-    bool setValue(const QVariant &val);
+    bool setValue(const QString &val, ValueSource source = SourceUnknown);
+    bool setValue(qint64 val, ValueSource source = SourceUnknown);
+    bool setValue(const QVariant &val, ValueSource source = SourceUnknown);
     const ResourceItemDescriptor &descriptor() const;
     const QDateTime &lastSet() const;
     const QDateTime &lastChanged() const;
@@ -317,10 +324,12 @@ public:
     void setParseParameters(const std::vector<QVariant> &params);
     const std::vector<QVariant> &readParameters() const { return m_readParameters; }
     void setReadParameters(const std::vector<QVariant> &params);
+    ValueSource valueSource() const { return m_valueSource; }
 
 private:
     ResourceItem() = delete;
 
+    ValueSource m_valueSource = SourceUnknown;
     bool m_isPublic = true;
     qint64 m_num = 0;
     qint64 m_numPrev = 0;

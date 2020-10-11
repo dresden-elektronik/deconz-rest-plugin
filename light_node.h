@@ -31,6 +31,12 @@ public:
         StateDeleted
     };
 
+    enum UpdateMode
+    {
+        ForceUpdate,
+        DontForceUpdate
+    };
+
     LightNode();
     State state() const;
     void setState(State state);
@@ -56,9 +62,9 @@ public:
     void setColorLoopSpeed(uint8_t speed);
     uint8_t colorLoopSpeed() const;
     void didSetValue(ResourceItem *i);
-    bool setValue(const char *suffix, qint64 val, bool forceUpdate = false);
-    bool setValue(const char *suffix, const QString &val, bool forceUpdate = false);
-    bool setValue(const char *suffix, const QVariant &val, bool forceUpdate = false);
+    bool setValue(const char *suffix, qint64 val, UpdateMode forceUpdate = DontForceUpdate, ResourceItem::ValueSource source = ResourceItem::SourceUnknown);
+    bool setValue(const char *suffix, const QString &val, UpdateMode forceUpdate = DontForceUpdate, ResourceItem::ValueSource source = ResourceItem::SourceUnknown);
+    bool setValue(const char *suffix, const QVariant &val, UpdateMode forceUpdate = DontForceUpdate, ResourceItem::ValueSource source = ResourceItem::SourceUnknown);
     void rx();
     const deCONZ::SimpleDescriptor &haEndpoint() const;
     void setHaEndpoint(const deCONZ::SimpleDescriptor &endpoint);

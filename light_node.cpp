@@ -268,16 +268,16 @@ void LightNode::didSetValue(ResourceItem *i)
  * \param suffix ResourceItem suffix
  * \param val ResourceIetm value
  */
-bool LightNode::setValue(const char *suffix, qint64 val, bool forceUpdate)
+bool LightNode::setValue(const char *suffix, qint64 val, UpdateMode forceUpdate, ResourceItem::ValueSource source)
 {
     ResourceItem *i = item(suffix);
     if (!i)
     {
         return false;
     }
-    if (forceUpdate || i->toNumber() != val)
+    if (forceUpdate == ForceUpdate || i->toNumber() != val)
     {
-        if (!(i->setValue(val)))
+        if (!(i->setValue(val, source)))
         {
             return false;
         }
@@ -291,16 +291,16 @@ bool LightNode::setValue(const char *suffix, qint64 val, bool forceUpdate)
  * \param suffix ResourceItem suffix
  * \param val ResourceIetm value
  */
-bool LightNode::setValue(const char *suffix, const QString &val, bool forceUpdate)
+bool LightNode::setValue(const char *suffix, const QString &val, UpdateMode forceUpdate, ResourceItem::ValueSource source)
 {
     ResourceItem *i = item(suffix);
     if (!i)
     {
         return false;
     }
-    if (forceUpdate || i->toString() != val)
+    if (forceUpdate == ForceUpdate || i->toString() != val)
     {
-        if (!(i->setValue(val)))
+        if (!(i->setValue(val, source)))
         {
             return false;
         }
@@ -314,16 +314,16 @@ bool LightNode::setValue(const char *suffix, const QString &val, bool forceUpdat
  * \param suffix ResourceItem suffix
  * \param val ResourceIetm value
  */
-bool LightNode::setValue(const char *suffix, const QVariant &val, bool forceUpdate)
+bool LightNode::setValue(const char *suffix, const QVariant &val, UpdateMode forceUpdate, ResourceItem::ValueSource source)
 {
     ResourceItem *i = item(suffix);
     if (!i)
     {
         return false;
     }
-    if (forceUpdate || i->toVariant() != val)
+    if (forceUpdate == ForceUpdate || i->toVariant() != val)
     {
-        if (!(i->setValue(val)))
+        if (!(i->setValue(val, source)))
         {
             return false;
         }

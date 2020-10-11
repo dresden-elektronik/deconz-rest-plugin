@@ -3069,7 +3069,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         lightNode->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
 
                         uint8_t level = ia->numericValue().u8;
-                        if (lightNode->setValue(RStateBri, level))
+                        if (lightNode->setValue(RStateBri, level, LightNode::DontForceUpdate, ResourceItem::SourceDevice))
                         {
                             lightNode->clearRead(READ_LEVEL);
                             pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
@@ -3093,7 +3093,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                         lightNode->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
 
                         bool on = ia->numericValue().u8;
-                        if (lightNode->setValue(RStateOn, on))
+                        if (lightNode->setValue(RStateOn, on, LightNode::DontForceUpdate, ResourceItem::SourceDevice))
                         {
                             pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u8);
                         }

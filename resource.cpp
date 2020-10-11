@@ -757,10 +757,11 @@ bool ResourceItem::toBool() const
     return m_num != 0;
 }
 
-bool ResourceItem::setValue(const QString &val)
+bool ResourceItem::setValue(const QString &val, ValueSource source)
 {
     if (m_str)
     {
+        m_valueSource = source;
         m_lastSet = QDateTime::currentDateTime();
         if (*m_str != val)
         {
@@ -773,7 +774,7 @@ bool ResourceItem::setValue(const QString &val)
     return false;
 }
 
-bool ResourceItem::setValue(qint64 val)
+bool ResourceItem::setValue(qint64 val, ValueSource source)
 {
     if (m_rid.validMin != 0 || m_rid.validMax != 0)
     {
@@ -786,6 +787,7 @@ bool ResourceItem::setValue(qint64 val)
 
     m_lastSet = QDateTime::currentDateTime();
     m_numPrev = m_num;
+    m_valueSource = source;
 
     if (m_num != val)
     {
@@ -796,16 +798,18 @@ bool ResourceItem::setValue(qint64 val)
     return true;
 }
 
-bool ResourceItem::setValue(const QVariant &val)
+bool ResourceItem::setValue(const QVariant &val, ValueSource source)
 {
     if (!val.isValid())
     {
         m_lastSet = QDateTime();
         m_lastChanged = m_lastSet;
+        m_valueSource = SourceUnknown;
         return true;
     }
 
     QDateTime now = QDateTime::currentDateTime();
+    m_valueSource = source;
 
     if (m_rid.type == DataTypeString ||
         m_rid.type == DataTypeTimePattern)
@@ -882,6 +886,7 @@ bool ResourceItem::setValue(const QVariant &val)
             else if (n >= m_rid.validMin && n <= m_rid.validMax)
             {   /* range check: ok*/ }
             else {
+                m_valueSource = SourceUnknown;
                 return false;
             }
 
@@ -897,6 +902,7 @@ bool ResourceItem::setValue(const QVariant &val)
         }
     }
 
+    m_valueSource = SourceUnknown;
     return false;
 }
 
@@ -1082,7 +1088,7 @@ ResourceItem *Resource::item(const char *suffix)
         }
     }
 
-    return 0;
+    return nullptr;
 }
 
 const ResourceItem *Resource::item(const char *suffix) const
