@@ -916,12 +916,15 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
 
         if (!isOn && hasBri && taskRef.onTime == 0)
         {
+            // if a light is off and should transition from 0 to new brightness
+            // turn light on at lowest brightness first
             TaskItem task;
             copyTaskReq(taskRef, task);
             task.transitionTime = 0;
 
             ok = addTaskSetBrightness(task, 2, true);
         }
+
         // Danalock support. In rest_lights.cpp, you need to call this routine from setLightState() under if (hasOn)
         if (isDoorLockDevice)
         {
