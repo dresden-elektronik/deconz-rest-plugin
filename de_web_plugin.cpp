@@ -393,6 +393,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "DS01", tiMacPrefix }, // Sonoff SNZB-04
     { VENDOR_DANFOSS, "eTRV0100", silabs2MacPrefix }, // Danfoss Ally thermostat
     { VENDOR_LDS, "ZBT-CCTSwitch-D0001", silabs2MacPrefix }, // Leedarson remote control
+    { VENDOR_NONE, "SMARTCODE_CONVERT_GEN1", zenMacPrefix }, // Kwikset 914 ZigBee smart lock
 
     { 0, nullptr, 0 }
 };
@@ -1851,6 +1852,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             else if ((i->inClusters()[c].id() == TUYA_CLUSTER_ID) && (node->macCapabilities() & deCONZ::MacDeviceIsFFD) ) { hasServerOnOff = true; }
             // Danalock support. The cluster needs to be defined and whitelisted by setting hasServerOnOff
             else if (node->nodeDescriptor().manufacturerCode() == VENDOR_DANALOCK && i->inClusters()[c].id() == DOOR_LOCK_CLUSTER_ID) { hasServerOnOff = true; }
+            else if (node->nodeDescriptor().manufacturerCode() == VENDOR_NONE && i->inClusters()[c].id() == DOOR_LOCK_CLUSTER_ID) { hasServerOnOff = true; } //Kwikset 914 ZigBee smart lock
             else if (i->inClusters()[c].id() == BASIC_CLUSTER_ID)
             {
                 std::vector<deCONZ::ZclAttribute>::const_iterator j = i->inClusters()[c].attributes().begin();
@@ -6758,7 +6760,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
     {
         return;
     }
-    DBG_Printf(DBG_INFO, "Battery debug 1\n");
+
     std::vector<Sensor>::iterator i = sensors.begin();
     std::vector<Sensor>::iterator end = sensors.end();
 
@@ -6825,8 +6827,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             }
             return;
         }
-        
-        DBG_Printf(DBG_INFO, "Battery debug 2\n");
 
         // filter for relevant clusters
         if (event.profileId() == HA_PROFILE_ID || event.profileId() == ZLL_PROFILE_ID)
@@ -6945,7 +6945,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                     if (event.clusterId() == POWER_CONFIGURATION_CLUSTER_ID)
                     {
-                        DBG_Printf(DBG_INFO, "Battery debug 3\n");
                         for (;ia != enda; ++ia)
                         {
                             if (!ia->isAvailable())
@@ -6974,8 +6973,6 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 }
 
                                 ResourceItem *item = i->item(RStateBattery);
-                                
-                                DBG_Printf(DBG_INFO, "Battery debug 4\n");
 
                                 if (item) {
                                     int bat = ia->numericValue().u8 / 2;
@@ -7018,13 +7015,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 // 68.5%, 90%) with a range between zero and 100%, with 0x00 = 0%, 0x64 = 50%, and 0xC8 = 100%. This is
                                 // particularly suited for devices with rechargeable batteries.
                                 if (item)
-                                {
-                                    DBG_Printf(DBG_INFO, "Battery debug 5\n");
-                                    
+                                {  
                                     
                                     int bat = ia->numericValue().u8 / 2;
-                                    
-                                    DBG_Printf(DBG_INFO, "Battery debug 6 : %d\n",bat);
 
                                     if (i->modelId().startsWith(QLatin1String("TRADFRI")) || // IKEA
                                         i->modelId().startsWith(QLatin1String("SYMFONISK")) || // IKEA
