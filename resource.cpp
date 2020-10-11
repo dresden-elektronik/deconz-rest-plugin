@@ -733,7 +733,7 @@ const QString &ResourceItem::toString() const
             return *m_str;
         }
     }
-    else if (m_rid.suffix == RStateEffect)
+    else if (m_rid.suffix == RStateEffect && m_num < RStateEffectValuesMueller.size())
     {
         return RStateEffectValuesMueller[m_num];
     }
