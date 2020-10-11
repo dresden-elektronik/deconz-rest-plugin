@@ -129,6 +129,11 @@ int RestDevices::getDevice(const ApiRequest &req, ApiResponse &rsp)
                 continue;
             }
 
+            if (!item->isPublic())
+            {
+                continue;
+            }
+
             const auto ls = QString(QLatin1String(item->descriptor().suffix)).split(QLatin1Char('/'));
 
             if (ls.size() == 2)
