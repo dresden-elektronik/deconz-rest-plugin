@@ -1060,7 +1060,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             handleZclConfigureReportingResponseIndication(ind, zclFrame);
         }
 
-        if (!(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse))
+        if (!(zclFrame.frameControl() & deCONZ::ZclFCDisableDefaultResponse) && !zclFrame.isDefaultResponse())
         {
             sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus);
         }
