@@ -936,6 +936,15 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                     ? ONOFF_COMMAND_ON_WITH_TIMED_OFF
                     : ONOFF_COMMAND_ON;
             ok = addTaskSetOnOff(task, cmd, taskRef.onTime, 0);
+
+            StateChange change(StateChange::StateWaitSync, SC_SetOnOff, task.req.dstEndpoint());
+            change.addTargetValue(RStateOn, 0x01);
+            change.addParameter(QLatin1String("cmd"), cmd);
+            if (cmd == ONOFF_COMMAND_ON_WITH_TIMED_OFF)
+            {
+                change.addParameter(QLatin1String("ontime"), taskRef.onTime);
+            }
+            taskRef.lightNode->addStateChange(change);
         }
 
         if (ok)
@@ -955,7 +964,7 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         }
     }
 
-    // state.bri trumps state.bri_inc
+    // state.bri has priority over state.bri_inc
     if (hasBri)
     {
         TaskItem task;
@@ -1484,6 +1493,11 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
                     ? ONOFF_COMMAND_OFF_WITH_EFFECT
                     : ONOFF_COMMAND_OFF;
             ok = addTaskSetOnOff(task, cmd, 0, 0);
+
+            StateChange change(StateChange::StateWaitSync, SC_SetOnOff, task.req.dstEndpoint());
+            change.addTargetValue(RStateOn, 0x00);
+            change.addParameter(QLatin1String("cmd"), cmd);
+            taskRef.lightNode->addStateChange(change);
         }
 
         if (ok)
@@ -1500,6 +1514,12 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
         {
             rsp.list.append(errorToMap(ERR_INTERNAL_ERROR, QString("/lights/%1/state/on").arg(id), QString("Internal error, %1").arg(ERR_BRIDGE_BUSY)));
         }
+    }
+
+    if (!taskRef.lightNode->stateChanges().empty())
+    {
+        DBG_Printf(DBG_INFO, "emit event/tick: %s\n", qPrintable(taskRef.lightNode->address().toStringExt()));
+        enqueueEvent({taskRef.lightNode->prefix(), REventTick, taskRef.lightNode->uniqueId(), taskRef.lightNode->address().ext()});
     }
 
     rsp.etag = taskRef.lightNode->etag;

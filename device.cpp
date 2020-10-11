@@ -8,6 +8,24 @@
 
 const int MinMacPollRxOn = 8000; // 7680 ms + some space for timeout
 
+Resource *DEV_GetSubDevice(Device *device, const char *prefix, const QString &identifier)
+{
+    for (auto &sub : device->subDevices())
+    {
+        if (prefix && sub->prefix() != prefix)
+        {
+            continue;
+        }
+
+        if (sub->item(RAttrUniqueId)->toString() == identifier || sub->item(RAttrId)->toString() == identifier)
+        {
+            return sub;
+        }
+    }
+
+    return nullptr;
+}
+
 void DEV_InitStateHandler(Device *device, const Event &event)
 {
     if (event.what() != RAttrLastSeen)
@@ -46,9 +64,28 @@ void DEV_InitStateHandler(Device *device, const Event &event)
     }
 }
 
+void DEV_CheckItemChanges(Device *device, const Event &event)
+{
+    auto *sub = DEV_GetSubDevice(device, event.resource(), event.id());
+
+    if (sub && !sub->stateChanges().empty())
+    {
+        auto *item = sub->item(event.what());
+        for (auto &change : sub->stateChanges())
+        {
+            if (item)
+            {
+                change.verifyItemChange(item);
+            }
+            change.tick(sub, deCONZ::ApsController::instance());
+        }
+
+        sub->cleanupStateChanges();
+    }
+}
+
 void DEV_IdleStateHandler(Device *device, const Event &event)
 {
-    Q_UNUSED(device)
     if (event.what() == RAttrLastSeen || event.what() == REventPoll)
     {
          // don't print logs
@@ -61,6 +98,8 @@ void DEV_IdleStateHandler(Device *device, const Event &event)
     {
         DBG_Printf(DBG_INFO, "DEV Idle event %s/0x%016llX/%s\n", event.resource(), event.deviceKey(), event.what());
     }
+
+    DEV_CheckItemChanges(device, event);
 
     if (event.what() == REventStateTimeout)
     {

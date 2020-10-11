@@ -32,6 +32,7 @@ const char *REventSimpleDescriptor = "event/simple.descriptor";
 const char *REventStateEnter = "event/state.enter";
 const char *REventStateLeave = "event/state.leave";
 const char *REventStateTimeout = "event/state.timeout";
+const char *REventTick = "event/tick";
 
 const char *RInvalidSuffix = "invalid/suffix";
 
@@ -282,7 +283,7 @@ bool parseGenericAttribute4(Resource *r, ResourceItem *item, const deCONZ::ApsDa
 
             if (expr == QLatin1String("$raw"))
             {
-                if (item->setValue(attr.toVariant()))
+                if (item->setValue(attr.toVariant(), ResourceItem::SourceDevice))
                 {
                     result = true;
                 }
@@ -316,7 +317,7 @@ bool parseGenericAttribute4(Resource *r, ResourceItem *item, const deCONZ::ApsDa
                 if (!res.isError())
                 {
                     DBG_Printf(DBG_INFO, "expression: %s = %.0f\n", qPrintable(expr), res.toNumber());
-                    item->setValue(res.toVariant());
+                    item->setValue(res.toVariant(), ResourceItem::SourceDevice);
                     result = true;
                 }
                 else
@@ -341,7 +342,7 @@ bool parseGenericAttribute4(Resource *r, ResourceItem *item, const deCONZ::ApsDa
     - attributeId: string hex value
     - manufacturerCode: can be set to 0x0000 for non manufacturer specific commands
 
-    Example: { "parse": ["readGenericAttribute/4", 1, "0x0402", "0x0000", "0x110b"] }
+    Example: { "read": ["readGenericAttribute/4", 1, "0x0402", "0x0000", "0x110b"] }
  */
 bool readGenericAttribute4(Resource *r, ResourceItem *item, deCONZ::ApsController *apsCtrl)
 {
@@ -370,6 +371,8 @@ bool readGenericAttribute4(Resource *r, ResourceItem *item, deCONZ::ApsControlle
     {
         return result;
     }
+
+    DBG_Printf(DBG_INFO, "readGenericAttribute/4, ep: 0x%02X, cl: 0x%04X, attr: 0x%04X, mfcode: 0x%04X\n", endpoint, clusterId, attributeId, manufacturerCode);
 
     const std::vector<quint16> attributes = { static_cast<quint16>(attributeId) };
 
@@ -1168,6 +1171,54 @@ const ResourceItem *Resource::itemForIndex(size_t idx) const
     return 0;
 }
 
+/*! Adds \p stateChange to a Resource.
+
+    If an equal StateChange already exists it will be replaced.
+ */
+void Resource::addStateChange(const StateChange &stateChange)
+{
+    auto i = std::find(m_stateChanges.begin(), m_stateChanges.end(), stateChange);
+
+    if (i != m_stateChanges.end())
+    {
+        *i = stateChange;
+    }
+    else
+    {
+        m_stateChanges.push_back(stateChange);
+    }
+}
+
+/*! Removes all StateChange items having state StateFailed or StateFinished. */
+void Resource::cleanupStateChanges()
+{
+    while (!m_stateChanges.empty())
+    {
+        const auto i = std::find_if(m_stateChanges.begin(), m_stateChanges.end(), [](const StateChange &x)
+        {
+            return x.state() == StateChange::StateFailed || x.state() == StateChange::StateFinished;
+        });
+
+        if (i != m_stateChanges.end())
+        {
+            if (i->state() == StateChange::StateFinished)
+            {
+                DBG_Printf(DBG_INFO, "SC state change finished: %s\n", qPrintable(item(RAttrUniqueId)->toString()));
+            }
+            else if (i->state() == StateChange::StateFailed)
+            {
+                DBG_Printf(DBG_INFO, "SC state change failed: %s\n", qPrintable(item(RAttrUniqueId)->toString()));
+            }
+
+            m_stateChanges.erase(i);
+        }
+        else
+        {
+            break;
+        }
+    }
+}
+
 ParseFunction_t getParseFunction(const std::vector<ParseFunction> &functions, const std::vector<QVariant> &params)
 {
     ParseFunction_t result = nullptr;
@@ -1206,4 +1257,164 @@ ReadFunction_t getReadFunction(const std::vector<ReadFunction> &functions, const
     }
 
     return result;
+}
+
+StateChange::StateChange(StateChange::State initialState, StateChangeFunction_t fn, quint8 dstEndpoint) :
+    m_state(initialState),
+    m_changeFunction(fn),
+    m_dstEndpoint(dstEndpoint)
+{
+    Q_ASSERT(initialState == StateCallFunction || initialState == StateWaitSync);
+    Q_ASSERT(fn);
+
+    m_stateTimer.start();
+    m_changeTimer.start();
+}
+
+/*! Tick function for the inner state machine.
+
+    Is called from the Device state machine on certain events.
+*/
+StateChange::State StateChange::tick(Resource *r, deCONZ::ApsController *apsCtrl)
+{
+    if (m_state == StateFinished || m_state == StateFailed)
+    {
+        return m_state;
+    }
+
+    auto rParent = r->parentResource() ? r->parentResource() : r;
+
+    Q_ASSERT(rParent);
+    Q_ASSERT(m_stateTimer.isValid());
+    Q_ASSERT(m_changeTimer.isValid());
+    Q_ASSERT(rParent->item(RStateReachable));
+
+    if (m_state == StateWaitSync && rParent->item(RStateReachable)->toBool())
+    {
+        if (m_stateTimer.elapsed() > m_stateTimeoutMs)
+        {
+            m_state = StateCallFunction;
+
+            for (auto &i : m_items)
+            {
+                if (i.verified == VerifyUnknown) // didn't receive a ZCL attribute read or report command
+                {
+                    DBG_Printf(DBG_INFO, "SC tick --> StateRead\n");
+                    m_state = StateRead;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (m_state == StateFailed)
+    {
+
+    }
+    else if (m_changeTimeoutMs > 0 && m_changeTimer.elapsed() > m_changeTimeoutMs)
+    {
+        m_state = StateFailed;
+    }
+    else if (m_state == StateCallFunction && m_changeFunction)
+    {
+        DBG_Printf(DBG_INFO, "SC tick --> StateCallFunction\n");
+        if (m_changeFunction(r, this, apsCtrl) == 0)
+        {
+            m_stateTimer.start();
+            m_changeCalls++;
+            m_state = StateWaitSync;
+        }
+    }
+    else if (m_state == StateRead)
+    {
+        ResourceItem *item = nullptr;
+        for (auto &i : m_items)
+        {
+            if (i.verified == VerifyUnknown)
+            {
+                item = r->item(i.suffix);
+                break;
+            }
+        }
+
+        m_state = StateFailed;
+        if (item && !item->readParameters().empty())
+        {
+            const auto fn = getReadFunction(readFunctions, item->readParameters());
+            if (fn && fn(rParent, item, apsCtrl))
+            {
+                m_stateTimer.start();
+                m_state = StateWaitSync;
+            }
+        }
+    }
+
+    return m_state;
+}
+
+/*! Should be called when the item was set by a ZCL read or report attribute command.
+
+    When all items are verified the StateChange::state() is set to StateFinished.
+ */
+void StateChange::verifyItemChange(const ResourceItem *item)
+{
+    Q_ASSERT(item);
+
+    size_t syncedItems = 0;
+
+    if (item->valueSource() != ResourceItem::SourceDevice)
+    {
+        return;
+    }
+
+    for (auto &i : m_items)
+    {
+        if (i.suffix == item->descriptor().suffix)
+        {
+            if (i.targetValue == item->toVariant())
+            {
+                i.verified = VerifySynced;
+                DBG_Printf(DBG_INFO, "SC %s: synced\n", i.suffix);
+            }
+            else
+            {
+                i.verified = VerifyNotSynced;
+                DBG_Printf(DBG_INFO, "SC %s: not synced\n", i.suffix);
+            }
+        }
+
+        if (i.verified == VerifySynced)
+        {
+            syncedItems++;
+        }
+    }
+
+    if (syncedItems == m_items.size() && m_state != StateFinished)
+    {
+        m_state = StateFinished;
+        DBG_Printf(DBG_INFO, "SC --> StateFinished\n");
+    }
+}
+
+/*! Adds a target value. */
+void StateChange::addTargetValue(const char *suffix, const QVariant &value)
+{
+    m_items.push_back({suffix, value});
+}
+
+/*! Adds a parameter. If the parameter already exsits it will be replaced. */
+void StateChange::addParameter(const QString &name, const QVariant &value)
+{
+    auto i = std::find_if(m_parameters.begin(), m_parameters.end(), [name](const Param &x){
+        return x.name == name;
+    });
+
+    if (i != m_parameters.end())
+    {
+        i->value = value;
+    }
+    else
+    {
+        m_parameters.push_back({name, value});
+    }
 }
