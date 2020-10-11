@@ -370,6 +370,9 @@ public:
     const ResourceItem *itemForIndex(size_t idx) const;
     QDateTime lastStatePush;
     QDateTime lastAttrPush;
+    Resource *parentResource() { return m_parent; }
+    const Resource *parentResource() const { return m_parent; }
+    void setParentResource(Resource *parent) { m_parent = parent; }
 
 private:
     Resource() = delete;

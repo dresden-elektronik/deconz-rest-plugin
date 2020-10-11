@@ -72,7 +72,7 @@ class Device : public QObject,
     Q_OBJECT
 public:
     explicit Device(DeviceKey key, QObject *parent = nullptr);
-    void addSubDevice(const Resource *sub);
+    void addSubDevice(Resource *sub);
     DeviceKey key() const { return m_deviceKey; }
     const deCONZ::Node *node() const { return m_node; }
     bool managed() const { return m_managed; }

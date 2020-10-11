@@ -469,11 +469,13 @@ Device::Device(DeviceKey key, QObject *parent) :
     }
 }
 
-void Device::addSubDevice(const Resource *sub)
+void Device::addSubDevice(Resource *sub)
 {
     Q_ASSERT(sub);
     Q_ASSERT(sub->item(RAttrUniqueId));
     const auto uniqueId = sub->item(RAttrUniqueId)->toString();
+
+    sub->setParentResource(this);
 
     for (const auto &s : m_subDevices)
     {
