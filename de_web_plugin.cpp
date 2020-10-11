@@ -788,6 +788,14 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
         return;
     }
 
+    if (device->node() && device->node()->nodeDescriptor().receiverOnWhenIdle())
+    {
+        if (!device->reachable())
+        {
+            device->item(RStateReachable)->setValue(true);
+        }
+    }
+
     auto resources = device->subDevices();
     resources.push_back(device); // self reference
 
@@ -2677,8 +2685,8 @@ void DeRestPluginPrivate::nodeZombieStateChanged(const deCONZ::Node *node)
     {
         auto *device = getOrCreateDevice(this, m_devices, node->address().ext());
         Q_ASSERT(device);
-        ResourceItem *item = device->item(RConfigReachable);
-        if (item->toBool() != available)
+        ResourceItem *item = device->item(RStateReachable);
+        if (item && item->toBool() != available)
         {
             item->setValue(available);
             enqueueEvent({device->prefix(), item->descriptor().suffix, 0, device->key()});

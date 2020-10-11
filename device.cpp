@@ -451,7 +451,7 @@ Device::Device(DeviceKey key, QObject *parent) :
     Resource(RDevices),
     m_deviceKey(key)
 {
-    addItem(DataTypeBool, RConfigReachable);
+    addItem(DataTypeBool, RStateReachable);
     addItem(DataTypeUInt64, RAttrExtAddress);
     addItem(DataTypeUInt16, RAttrNwkAddress);
     addItem(DataTypeString, RAttrUniqueId)->setValue(generateUniqueId(key, 0, 0));
@@ -543,7 +543,7 @@ bool Device::reachable() const
     }
     else if (m_node && !m_node->nodeDescriptor().isNull() && m_node->nodeDescriptor().receiverOnWhenIdle())
     {
-        return item(RConfigReachable)->toBool();
+        return item(RStateReachable)->toBool();
     }
 
     return false;
