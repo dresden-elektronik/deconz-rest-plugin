@@ -12952,7 +12952,7 @@ void DeRestPluginPrivate::handleGroupClusterIndication(TaskItem &task, const deC
         lightNode->setGroupCapacity(capacity);
         lightNode->setGroupCount(count);
 
-        DBG_Printf(DBG_INFO, "verified group capacity: %u and group count: %u of LightNode %s\n", capacity, count, qPrintable(lightNode->address().toStringExt()));
+//        DBG_Printf(DBG_INFO, "verified group capacity: %u and group count: %u of LightNode %s\n", capacity, count, qPrintable(lightNode->address().toStringExt()));
 
         QVector<quint16> responseGroups;
         for (uint i = 0; i < count; i++)
