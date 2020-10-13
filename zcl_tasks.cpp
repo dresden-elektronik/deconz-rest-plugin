@@ -1439,6 +1439,55 @@ bool DeRestPluginPrivate::addTaskRemoveScene(TaskItem &task, uint16_t groupId, u
     return addTask(task);
 }
 
+/*! Calls the ZCL write function of item(s) to write target value(s).
+
+    \returns 0 - if the command has been enqueued, or a negative number on failure.
+ */
+int SC_WriteZclAttribute(const Resource *r, const StateChange *stateChange, deCONZ::ApsController *apsCtrl)
+{
+    Q_ASSERT(r);
+    Q_ASSERT(stateChange);
+    Q_ASSERT(apsCtrl);
+
+    int written = 0;
+
+    for (const auto &i : stateChange->items())
+    {
+        const auto *item = r->item(i.suffix);
+
+        if (!item)
+        {
+            return -1;
+        }
+
+        if (item->writeParameters().empty())
+        {
+            return -2;
+        }
+
+        const auto fn = getWriteFunction(writeFunctions, item->writeParameters());
+
+        if (!fn)
+        {
+            return -3;
+        }
+
+        // create a copy since item is const
+        ResourceItem copy(item->descriptor());
+        copy.setWriteParameters(item->writeParameters());
+        copy.setValue(i.targetValue);
+
+        if (!fn(r, &copy, apsCtrl))
+        {
+            return -4;
+        }
+
+        written++;
+    }
+
+    return written > 0 ? 0 : -5;
+}
+
 /*! Sends a ZCL command to the on/off cluster.
 
     StateChange::parameters() -> "cmd"
