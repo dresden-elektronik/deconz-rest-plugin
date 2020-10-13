@@ -256,6 +256,7 @@ class StateChange;
 
 typedef bool (*ParseFunction_t)(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
 typedef bool (*ReadFunction_t)(Resource *r, ResourceItem *item, deCONZ::ApsController *apsCtrl);
+typedef bool (*WriteFunction_t)(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl);
 
 struct ParseFunction
 {
@@ -281,13 +282,28 @@ struct ReadFunction
     ReadFunction_t fn = nullptr;
 };
 
+struct WriteFunction
+{
+    WriteFunction(const QString &_name, const int _arity, WriteFunction_t _fn) :
+        name(_name),
+        arity(_arity),
+        fn(_fn)
+    { }
+    QString name;
+    int arity = 0; // number of parameters given by the device description file
+    WriteFunction_t fn = nullptr;
+};
+
 extern const std::vector<ParseFunction> parseFunctions;
 extern const std::vector<ReadFunction> readFunctions;
+extern const std::vector<WriteFunction> writeFunctions;
 
 ParseFunction_t getParseFunction(const std::vector<ParseFunction> &functions, const std::vector<QVariant> &params);
 ReadFunction_t getReadFunction(const std::vector<ReadFunction> &functions, const std::vector<QVariant> &params);
+WriteFunction_t getWriteFunction(const std::vector<WriteFunction> &functions, const std::vector<QVariant> &params);
 
 
+int SC_WriteZclAttribute(const Resource *r, const StateChange *stateChange, deCONZ::ApsController *apsCtrl);
 int SC_SetOnOff(const Resource *r, const StateChange *stateChange, deCONZ::ApsController *apsCtrl);
 
 /*! \fn StateChangeFunction_t
@@ -433,6 +449,8 @@ public:
     void setParseParameters(const std::vector<QVariant> &params);
     const std::vector<QVariant> &readParameters() const { return m_readParameters; }
     void setReadParameters(const std::vector<QVariant> &params);
+    const std::vector<QVariant> &writeParameters() const { return m_writeParameters; }
+    void setWriteParameters(const std::vector<QVariant> &params);
     ValueSource valueSource() const { return m_valueSource; }
 
 private:
@@ -456,6 +474,7 @@ private:
     ParseFunction_t m_parseFunction = nullptr;
     std::vector<QVariant> m_parseParameters;
     std::vector<QVariant> m_readParameters;
+    std::vector<QVariant> m_writeParameters;
 };
 
 class Resource

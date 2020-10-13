@@ -436,12 +436,166 @@ bool readGenericAttribute4(Resource *r, ResourceItem *item, deCONZ::ApsControlle
     return result;
 }
 
+/*! A generic function to write ZCL attributes.
+    The item->writeParameters() is expected to contain 7 elements (given in the device description file).
+
+    ["writeGenericAttribute/6", endpoint, clusterId, attributeId, zclDataType, manufacturerCode, expression]
+
+    - endpoint: the destination endpoint
+    - clusterId: string hex value
+    - attributeId: string hex value
+    - zclDataType: string hex value
+    - manufacturerCode: must be set to 0x0000 for non manufacturer specific commands
+    - expression: to transform the item value
+
+    Example: { "write": ["writeGenericAttribute/6", 1, "0x0020", "0x0000", "0x23", "0x0000", "$raw"] }
+ */
+bool writeGenericAttribute6(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl)
+{
+    Q_ASSERT(r);
+    Q_ASSERT(item);
+    Q_ASSERT(apsCtrl);
+
+    bool result = false;
+    Q_ASSERT(item->writeParameters().size() == 7);
+    if (item->writeParameters().size() != 7)
+    {
+        return result;
+    }
+
+    const auto rParent = r->parentResource() ? r->parentResource() : r;
+    const auto *extAddr = rParent->item(RAttrExtAddress);
+    const auto *nwkAddr = rParent->item(RAttrNwkAddress);
+
+    if (!extAddr || !nwkAddr)
+    {
+        return result;
+    }
+
+    bool ok;
+    const auto endpoint = item->writeParameters().at(1).toString().toUInt(&ok, 0);
+    const auto clusterId = ok ? item->writeParameters().at(2).toString().toUInt(&ok, 0) : 0;
+    const auto attributeId = ok ? item->writeParameters().at(3).toString().toUInt(&ok, 0) : 0;
+    const auto dataType = ok ? item->writeParameters().at(4).toString().toUInt(&ok, 0) : 0;
+    const auto manufacturerCode = ok ? item->writeParameters().at(5).toString().toUInt(&ok, 0) : 0;
+    auto expr = item->writeParameters().back().toString();
+
+    if (!ok)
+    {
+        return result;
+    }
+
+    DBG_Printf(DBG_INFO, "writeGenericAttribute/6, ep: 0x%02X, cl: 0x%04X, attr: 0x%04X, type: 0x%02X, mfcode: 0x%04X, expr: %s\n", endpoint, clusterId, attributeId, dataType, manufacturerCode, qPrintable(expr));
+
+    const std::vector<quint16> attributes = { static_cast<quint16>(attributeId) };
+
+
+    deCONZ::ApsDataRequest req;
+    deCONZ::ZclFrame zclFrame;
+
+    req.setDstEndpoint(endpoint);
+    req.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
+    req.setDstAddressMode(deCONZ::ApsNwkAddress);
+    req.dstAddress().setNwk(nwkAddr->toNumber());
+    req.dstAddress().setExt(extAddr->toNumber());
+    req.setClusterId(clusterId);
+    req.setProfileId(HA_PROFILE_ID);
+    req.setSrcEndpoint(1); // TODO
+
+    zclFrame.setSequenceNumber(zclNextSequenceNumber());
+    zclFrame.setCommandId(deCONZ::ZclWriteAttributesId);
+
+    if (manufacturerCode)
+    {
+        zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                                 deCONZ::ZclFCManufacturerSpecific |
+                                 deCONZ::ZclFCDirectionClientToServer |
+                                 deCONZ::ZclFCDisableDefaultResponse);
+        zclFrame.setManufacturerCode(manufacturerCode);
+    }
+    else
+    {
+        zclFrame.setFrameControl(deCONZ::ZclFCProfileCommand |
+                                 deCONZ::ZclFCDirectionClientToServer |
+                                 deCONZ::ZclFCDisableDefaultResponse);
+    }
+
+    { // payload
+        deCONZ::ZclAttribute attribute(attributeId, dataType, QLatin1String(""), deCONZ::ZclReadWrite, true);
+
+        if (expr == QLatin1String("$raw"))
+        {
+            attribute.setValue(item->toVariant());
+        }
+        else if (expr.contains(QLatin1String("$raw")) && dataType < deCONZ::ZclOctedString) // numeric data type
+        {
+            if ((dataType >= deCONZ::Zcl8BitData && dataType <= deCONZ::Zcl64BitUint)
+                    || dataType == deCONZ::Zcl8BitEnum || dataType == deCONZ::Zcl16BitEnum)
+            {
+                expr.replace("$raw", QString::number(item->toNumber()));
+            }
+            else if (dataType >= deCONZ::Zcl8BitInt && dataType <= deCONZ::Zcl64BitInt)
+            {
+                expr.replace("$raw", QString::number(item->toNumber()));
+            }
+            else if (dataType >= deCONZ::ZclSemiFloat && dataType <= deCONZ::ZclDoubleFloat)
+            {
+                Q_ASSERT(0); // TODO implement
+            }
+            else
+            {
+                return result;
+            }
+
+            QJSEngine engine;
+
+            const auto res = engine.evaluate(expr);
+
+            if (!res.isError())
+            {
+                DBG_Printf(DBG_INFO, "expression: %s = %.0f\n", qPrintable(expr), res.toNumber());
+                attribute.setValue(res.toVariant());
+            }
+            else
+            {
+                DBG_Printf(DBG_INFO, "failed to evaluate expression: %s, err: %d\n", qPrintable(expr), res.errorType());
+                return result;
+            }
+        }
+
+        QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+
+        stream << attribute.id();
+        stream << attribute.dataType();
+
+        if (!attribute.writeToStream(stream))
+        {
+            return result;
+        }
+    }
+
+    { // ZCL frame
+        QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        zclFrame.writeToStream(stream);
+    }
+
+    result = apsCtrl->apsdeDataRequest(req) == deCONZ::Success;
+
+    return result;
+}
+
 const std::vector<ParseFunction> parseFunctions = {
     ParseFunction("parseGenericAttribute/4", 4, parseGenericAttribute4)
 };
 
 const std::vector<ReadFunction> readFunctions = {
     ReadFunction("readGenericAttribute/4", 4, readGenericAttribute4)
+};
+
+const std::vector<WriteFunction> writeFunctions = {
+    WriteFunction("writeGenericAttribute/6", 6, writeGenericAttribute6)
 };
 
 void initResourceDescriptors()
@@ -640,6 +794,7 @@ ResourceItem &ResourceItem::operator=(const ResourceItem &other)
     m_parseFunction = other.m_parseFunction;
     m_parseParameters = other.parseParameters();
     m_readParameters = other.readParameters();
+    m_writeParameters = other.writeParameters();
     m_clusterId = other.clusterId();
     m_attributeId = other.attributeId();
     m_endpoint = other.endpoint();
@@ -1011,6 +1166,11 @@ void ResourceItem::setReadParameters(const std::vector<QVariant> &params)
     m_readParameters = params;
 }
 
+void ResourceItem::setWriteParameters(const std::vector<QVariant> &params)
+{
+    m_writeParameters = params;
+}
+
 Resource::Resource(const char *prefix) :
     m_prefix(prefix)
 {
@@ -1258,6 +1418,27 @@ ReadFunction_t getReadFunction(const std::vector<ReadFunction> &functions, const
 
     return result;
 }
+
+WriteFunction_t getWriteFunction(const std::vector<WriteFunction> &functions, const std::vector<QVariant> &params)
+{
+    WriteFunction_t result = nullptr;
+
+    if (params.size() >= 1)
+    {
+        const auto fnName = params.at(0).toString();
+        for (const auto &pf : functions)
+        {
+            if (pf.name == fnName)
+            {
+                result = pf.fn;
+                break;
+            }
+        }
+    }
+
+    return result;
+}
+
 
 StateChange::StateChange(StateChange::State initialState, StateChangeFunction_t fn, quint8 dstEndpoint) :
     m_state(initialState),

@@ -444,12 +444,14 @@ static bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescriptio
                     }
                 }
 
-                DBG_Assert(item);
-                if (item)
+                if (!item)
                 {
+                    continue;
+                }
 
-                    item->setParseParameters(i.parseParameters);
-                    item->setReadParameters(i.readParameters);
+                item->setParseParameters(i.parseParameters);
+                item->setReadParameters(i.readParameters);
+                item->setWriteParameters(i.writeParameters);
 
                     // TODO write parameters
                 }
