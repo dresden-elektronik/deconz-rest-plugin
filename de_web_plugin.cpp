@@ -4727,6 +4727,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("PIRS")) ||             // Heiman motion sensor (newer model)
                              modelId == QLatin1String("3AFE14010402000D") ||          // Konke motion sensor
                              modelId == QLatin1String("3AFE28010402000D") ||          // Konke motion sensor ver.2
+                             modelId == QLatin1String("motion") ||                    // Samjin motion sensor
                              modelId.startsWith(QLatin1String("902010/22")) ||        // Bitron motion sensor
                              modelId.startsWith(QLatin1String("SN10ZW")) ||           // ORVIBO motion sensor
                              modelId.startsWith(QLatin1String("MOSZB-130")) ||        // Develco motion sensor
