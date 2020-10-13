@@ -3,6 +3,7 @@
     "manufacturer": "$MF_TUYA",
     "modelid": ["RH3040"],
     "product": "ESS-SI-PIR-6101",
+    "supportsMgmtBind": true,
     "subdevices": [
         {
             "type": "$TYPE_PRESENCE_SENSOR",
@@ -17,7 +18,7 @@
                 },
                 {
                     "name": "config/duration",
-                    "default": 120,
+                    "default": 120
                 },
                 {
                     "name": "state/presence",

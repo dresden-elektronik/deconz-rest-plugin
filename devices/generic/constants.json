@@ -12,6 +12,7 @@
         "$TYPE_TEMPERATURE_SENSOR": "ZHATemperature",
         "$TYPE_HUMIDITY_SENSOR": "ZHAHumidity",
         "$TYPE_VIBRATION_SENSOR": "ZHAVibration",
-        "$TYPE_PRESENCE_SENSOR": "ZHAPresence"
+        "$TYPE_PRESENCE_SENSOR": "ZHAPresence",
+        "$TYPE_BATTERY_SENSOR": "ZHABattery"
     }
 }

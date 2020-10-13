@@ -25,7 +25,7 @@
                 {
                     "name": "config/sensitivity",
                     "parse": ["parseGenericAttribute/4", 1, "0x0000", "0xff0d", "$old == 0 ? $raw : $old"],
-                    "write": ["writeGenericZclAttribute/6", 1, "0x0000", "0xff0d", "0x20", "0x11F5", "$raw"]
+                    "write": ["writeGenericAttribute/6", 1, "0x0000", "0xff0d", "0x20", "0x11F5", "$raw"]
                 },
                 {
                     "name": "config/sensitivitymax",

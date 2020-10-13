@@ -1,0 +1,61 @@
+{
+    "schema": "devcap1.schema.json",
+    "manufacturer": "$MF_IKEA",
+    "modelid": "KADRILJ roller blind",
+    "product": "E1752-140",
+    "supportsMgmtBind": true,
+    "subdevices": [
+        {
+            "type": "$TYPE_WINDOW_COVERING_DEVICE",
+            "restapi": "/lights",
+            "uuid": ["$address.ext", "0x01"],
+            "items": [
+                {
+                    "name": "state/lift",
+                    "parse": ["parseGenericAttribute/4", 1, "0x0102", "0x0008", "$raw"]
+                },
+                {
+                    "name": "state/open",
+                    "parse": ["parseGenericAttribute/4", 1, "0x0102", "0x0008", "$raw < 100"]
+                },
+                {
+                    "name": "state/bri",
+                    "parse": ["parseGenericAttribute/4", 1, "0x0102", "0x0008", "$raw * 254 / 100"],
+                    "deprecated": "2020-04-08"
+                },
+                {
+                    "name": "state/on",
+                    "parse": ["parseGenericAttribute/4", 1, "0x0102", "0x0008", "$raw < 100"],
+                    "deprecated": "2020-04-08"
+                },
+                {
+                    "name": "config/checkin",
+                    "public": false,
+                    "default": 480,
+                    "parse": ["parseGenericAttribute/4", 1, "0x0020", "0x0000", "$raw"],
+                    "read": ["readGenericAttribute/4", 1, "0x0020", "0x0000", "0x0000"],
+                    "write": ["writeGenericAttribute/6", 1, "0x0020", "0x0000", "0x23", "0x0000", "$raw"]
+                }
+            ]
+        },
+        {
+            "type": "$TYPE_BATTERY_SENSOR",
+            "restapi": "/sensors",
+            "uuid": [ "$address.ext", "0x01", "0x0001"],
+            "fingerprint": { "profile": "0x0104", "device": "0x0402", "endpoint": "0x01", "in": ["0x0001", "0x0020", "0x0102"] },
+            "items": [
+                {
+                    "name": "state/battery",
+                    "parse": ["parseGenericAttribute/4", 1, "0x0001", "0x0021", "$raw"]
+                }
+            ]
+        }
+    ],
+     "reporting": [
+        ["report/5", 1, "0x0001", "0x0021", 5, 3600],
+        ["report/5", 1, "0x0102", "0x0008", 1, 1800]
+    ],
+    "bindings": [
+        ["bind/2", 1, "0x0020"]
+    ]
+}
