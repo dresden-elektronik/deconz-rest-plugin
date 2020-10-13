@@ -7037,6 +7037,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId() == QLatin1String("Thermostat") ||       // eCozy thermostat
                                     i->modelId() == QLatin1String("Motion Sensor-A") ||  // Osram motion sensor
                                     i->modelId() == QLatin1String("Bell") ||             // Sage doorbell sensor
+                                    i->modelId() == QLatin1String("ISW-ZPR1-WP13") ||    // Bosch motion sensor 
                                     i->modelId().endsWith(QLatin1String("86opcn01")) ||  // Aqara Opple
                                     i->modelId().startsWith(QLatin1String("SMSZB-120")) || // Develco smoke sensor
                                     i->modelId().startsWith(QLatin1String("HESZB-120")) || // Develco heat sensor
