@@ -66,11 +66,27 @@ void DEV_InitStateHandler(Device *device, const Event &event)
 
 void DEV_CheckItemChanges(Device *device, const Event &event)
 {
-    auto *sub = DEV_GetSubDevice(device, event.resource(), event.id());
+    std::vector<Resource*> subDevices;
 
-    if (sub && !sub->stateChanges().empty())
+    if (event.what() == REventAwake || event.what() == REventPoll)
     {
-        auto *item = sub->item(event.what());
+        subDevices = device->subDevices();
+    }
+    else
+    {
+        auto *sub = DEV_GetSubDevice(device, event.resource(), event.id());
+        if (sub)
+        {
+            subDevices.push_back(sub);
+        }
+    }
+
+
+    for (auto *sub : subDevices)
+    {
+        if (sub && !sub->stateChanges().empty())
+        {
+            auto *item = sub->item(event.what());
         for (auto &change : sub->stateChanges())
         {
             if (item)
@@ -80,7 +96,8 @@ void DEV_CheckItemChanges(Device *device, const Event &event)
             change.tick(sub, deCONZ::ApsController::instance());
         }
 
-        sub->cleanupStateChanges();
+            sub->cleanupStateChanges();
+        }
     }
 }
 
