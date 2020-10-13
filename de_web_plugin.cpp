@@ -4731,6 +4731,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("902010/22")) ||        // Bitron motion sensor
                              modelId.startsWith(QLatin1String("SN10ZW")) ||           // ORVIBO motion sensor
                              modelId.startsWith(QLatin1String("MOSZB-130")) ||        // Develco motion sensor
+                             modelId.startsWith(QLatin1String("MOT003")) ||           // Hive motion sensor
                              modelId == QLatin1String("4in1-Sensor-ZB3.0") ||         // Immax NEO ZB3.0 4 in 1 sensor E13-A21
                              modelId == QLatin1String("E13-A21") ||                   // Sengled E13-A21 PAR38 bulp with motion sensor
                              modelId == QLatin1String("TS0202") ||                    // Tuya generic motion sensor                   // Sonoff SNZB-03
@@ -4750,8 +4751,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("lumi.sensor_smoke")) || // Xiaomi Mi smoke sensor
                              modelId.startsWith(QLatin1String("TS0204")) ||           // Tuya gas sensor
                              modelId.startsWith(QLatin1String("FNB56-COS")) ||        // Feibit FNB56-COS06FB1.7 Carb. Mon. detector
-                             modelId.startsWith(QLatin1String("FNB56-GAS")) ||        // Feibit gas sensor
-                             modelId.startsWith(QLatin1String("MOT003")))             // Hive motion sensor
+                             modelId.startsWith(QLatin1String("FNB56-GAS")))          // Feibit gas sensor
                     {
                         // Gas sensor detects combustable gas, so fire is more appropriate than CO.
                         fpFireSensor.inClusters.push_back(ci->id());
