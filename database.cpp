@@ -4460,7 +4460,7 @@ void DeRestPluginPrivate::saveDb()
         gwConfig["wifilastupdated"] = gwWifiLastUpdated;
         gwConfig["bridgeid"] = gwBridgeId;
         gwConfig["websocketnotifyall"] = gwWebSocketNotifyAll;
-        gwConfig["DisablePJsecurisation"] = gwDisablePJSecurisation;
+        gwConfig["DisablePJSecurisation"] = gwDisablePJSecurisation;
         gwConfig["proxyaddress"] = gwProxyAddress;
         gwConfig["proxyport"] = gwProxyPort;
         gwConfig["zclvaluemaxage"] = dbZclValueMaxAge;
