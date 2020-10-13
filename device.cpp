@@ -87,14 +87,14 @@ void DEV_CheckItemChanges(Device *device, const Event &event)
         if (sub && !sub->stateChanges().empty())
         {
             auto *item = sub->item(event.what());
-        for (auto &change : sub->stateChanges())
-        {
-            if (item)
+            for (auto &change : sub->stateChanges())
             {
-                change.verifyItemChange(item);
+                if (item)
+                {
+                    change.verifyItemChange(item);
+                }
+                change.tick(sub, deCONZ::ApsController::instance());
             }
-            change.tick(sub, deCONZ::ApsController::instance());
-        }
 
             sub->cleanupStateChanges();
         }
@@ -470,7 +470,12 @@ static bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescriptio
                 item->setReadParameters(i.readParameters);
                 item->setWriteParameters(i.writeParameters);
 
-                    // TODO write parameters
+                if (item->descriptor().suffix == RConfigCheckin)
+                {
+                    StateChange stateChange(StateChange::StateWaitSync, SC_WriteZclAttribute, sub.uniqueId.at(1).toUInt());
+                    stateChange.addTargetValue(RConfigCheckin, i.defaultValue);
+                    stateChange.setChangeTimeoutMs(1000 * 60 * 60);
+                    rsub->addStateChange(stateChange);
                 }
             }
         }

@@ -819,7 +819,7 @@ void DeRestPluginPrivate::apsdeDataIndicationDevice(const deCONZ::ApsDataIndicat
                 // TODO  item->lastSet() == item->lastChanged() doesn't cut it
                 // This needs to be part of the ResourceItem: item.notifyOnlyChangeOnly() -> bool
                 // Some items like state/buttonevent should fire events on set, not only change
-                if (parseFunction && parseFunction(r, item, ind, zclFrame) && item->lastSet() == item->lastChanged())
+                if (parseFunction && parseFunction(r, item, ind, zclFrame))
                 {
                     auto *idItem = r->item(RAttrId);
                     if (!idItem)

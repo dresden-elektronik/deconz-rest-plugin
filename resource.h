@@ -135,6 +135,7 @@ extern const char *RConfigBattery;
 extern const char *RConfigColorCapabilities;
 extern const char *RConfigCtMin;
 extern const char *RConfigCtMax;
+extern const char *RConfigCheckin;
 extern const char *RConfigConfigured;
 extern const char *RConfigDelay;
 extern const char *RConfigDisplayFlipped;
@@ -255,7 +256,7 @@ class ResourceItem;
 class StateChange;
 
 typedef bool (*ParseFunction_t)(Resource *r, ResourceItem *item, const deCONZ::ApsDataIndication &ind, const deCONZ::ZclFrame &zclFrame);
-typedef bool (*ReadFunction_t)(Resource *r, ResourceItem *item, deCONZ::ApsController *apsCtrl);
+typedef bool (*ReadFunction_t)(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl);
 typedef bool (*WriteFunction_t)(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl);
 
 struct ParseFunction
@@ -393,6 +394,7 @@ public:
     const std::vector<Item> &items() const { return m_items; }
     const std::vector<Param> &parameters() const { return m_parameters; }
     quint8 dstEndpoint() const { return m_dstEndpoint; }
+    void setChangeTimeoutMs(int timeout) { m_changeTimeoutMs = timeout; }
 
 private:
     State m_state = StateCallFunction;

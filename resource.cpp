@@ -126,6 +126,7 @@ const char *RConfigBattery = "config/battery";
 const char *RConfigColorCapabilities = "config/colorcapabilities";
 const char *RConfigCtMin = "config/ctmin";
 const char *RConfigCtMax = "config/ctmax";
+const char *RConfigCheckin = "config/checkin";
 const char *RConfigConfigured = "config/configured";
 const char *RConfigDelay = "config/delay";
 const char *RConfigDisplayFlipped = "config/displayflipped";
@@ -340,11 +341,11 @@ bool parseGenericAttribute4(Resource *r, ResourceItem *item, const deCONZ::ApsDa
     - endpoint, 0xff means any endpoint
     - clusterId: string hex value
     - attributeId: string hex value
-    - manufacturerCode: can be set to 0x0000 for non manufacturer specific commands
+    - manufacturerCode: must be set to 0x0000 for non manufacturer specific commands
 
     Example: { "read": ["readGenericAttribute/4", 1, "0x0402", "0x0000", "0x110b"] }
  */
-bool readGenericAttribute4(Resource *r, ResourceItem *item, deCONZ::ApsController *apsCtrl)
+bool readGenericAttribute4(const Resource *r, const ResourceItem *item, deCONZ::ApsController *apsCtrl)
 {
     bool result = false;
     Q_ASSERT(item->readParameters().size() == 5);
@@ -689,6 +690,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigColorCapabilities));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigCtMin));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigCtMax));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt32, RConfigCheckin));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigConfigured));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigDelay));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigDisplayFlipped));
@@ -1464,13 +1466,14 @@ StateChange::State StateChange::tick(Resource *r, deCONZ::ApsController *apsCtrl
     }
 
     auto rParent = r->parentResource() ? r->parentResource() : r;
+    auto *device = static_cast<Device*>(rParent);
 
+    Q_ASSERT(device);
     Q_ASSERT(rParent);
     Q_ASSERT(m_stateTimer.isValid());
     Q_ASSERT(m_changeTimer.isValid());
-    Q_ASSERT(rParent->item(RStateReachable));
 
-    if (m_state == StateWaitSync && rParent->item(RStateReachable)->toBool())
+    if (m_state == StateWaitSync && device->reachable())
     {
         if (m_stateTimer.elapsed() > m_stateTimeoutMs)
         {
@@ -1503,6 +1506,14 @@ StateChange::State StateChange::tick(Resource *r, deCONZ::ApsController *apsCtrl
         {
             m_stateTimer.start();
             m_changeCalls++;
+
+            for (auto &i : m_items)
+            {
+                if (i.verified == VerifyNotSynced)
+                {
+                    i.verified = VerifyUnknown; // read again
+                }
+            }
             m_state = StateWaitSync;
         }
     }
