@@ -284,6 +284,14 @@ bool LightNode::setValue(const char *suffix, qint64 val, UpdateMode forceUpdate,
         didSetValue(i);
         return true;
     }
+    else if (source == ResourceItem::SourceDevice)
+    {
+        if (i->setValue(val, source))
+        {
+            plugin->enqueueEvent(Event(RLights, i->descriptor().suffix, id(), i));
+        }
+    }
+
     return false;
 }
 
@@ -307,6 +315,13 @@ bool LightNode::setValue(const char *suffix, const QString &val, UpdateMode forc
         didSetValue(i);
         return true;
     }
+    else if (source == ResourceItem::SourceDevice)
+    {
+        if (i->setValue(val, source))
+        {
+            plugin->enqueueEvent(Event(RLights, i->descriptor().suffix, id(), i));
+        }
+    }
     return false;
 }
 
@@ -329,6 +344,13 @@ bool LightNode::setValue(const char *suffix, const QVariant &val, UpdateMode for
         }
         didSetValue(i);
         return true;
+    }
+    else if (source == ResourceItem::SourceDevice)
+    {
+        if (i->setValue(val, source))
+        {
+            plugin->enqueueEvent(Event(RLights, i->descriptor().suffix, id(), i));
+        }
     }
     return false;
 }
