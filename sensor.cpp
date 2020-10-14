@@ -555,11 +555,7 @@ const std::vector<Sensor::ButtonMap> Sensor::buttonMap(const QMap<QString, std::
             }
         }
         // Workaround for Tuya without usable modelid
-        if ((manufacturer == QLatin1String("_TZ3000_bi6lpsew")) ||  // can't use model id but manufacture name is device specific
-                 (manufacturer == QLatin1String("_TZ3400_keyjhapk")) ||
-                 (manufacturer == QLatin1String("_TYZB02_key8kk7r")) ||
-                 (manufacturer == QLatin1String("_TZ3400_keyjqthh")) ||
-                 (manufacturer == QLatin1String("_TYZB02_keyjqthh")))
+        if (manufacturer == QLatin1String("_TZ3000_bi6lpsew")) // can't use model id but manufacture name is device specific
         {
             m_buttonMap = buttonMapData.value("Tuya3gangMap");
         }
@@ -567,3 +563,4 @@ const std::vector<Sensor::ButtonMap> Sensor::buttonMap(const QMap<QString, std::
 
     return m_buttonMap;
 }
+

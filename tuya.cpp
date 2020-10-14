@@ -80,8 +80,6 @@ bool UseTuyaCluster(QString manufacturer)
     // https://docs.tuya.com/en/iot/device-development/module/zigbee-module/zigbeetyzs11module?id=K989rik5nkhez
     //_TZ3000 don't use tuya cluster
     //_TYZB01 don't use tuya cluster
-    //_TYZB02 don't use tuya cluster
-    //_TZ3400 don't use tuya cluster
     
     if (manufacturer.startsWith(QLatin1String("_TZE200_")) || // Tuya clutster visible
         manufacturer.startsWith(QLatin1String("Tuya_C_")) ||  // Used by fake device
@@ -187,10 +185,9 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         {
             //Window covering ?
             if ((lightNode->manufacturer() == QLatin1String("_TYST11_wmcdj3aq")) ||
-                (lightNode->manufacturer() == QLatin1String("_TZE200_xuzcvlku")) ||
                 (lightNode->manufacturer() == QLatin1String("_TYST11_xu1rkty3")) )
             {
-
+                
                 switch (dp)
                 {
                     // 0x0407 > starting moving

@@ -342,12 +342,9 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBER, "TS0121", silabs3MacPrefix }, // Tuya/Blitzwolf smart plug
     { VENDOR_EMBER, "TS0302", silabs3MacPrefix }, // Tuya curtain switch
     { VENDOR_EMBER, "TS0041", silabs3MacPrefix }, // Tuya wireless switch
-    { VENDOR_EMBER, "TS0041", silabs5MacPrefix }, // Tuya wireless switch
-    { VENDOR_EMBER, "TS0042", silabs3MacPrefix }, // Tuya wireless switch
-    { VENDOR_EMBER, "TS0043", silabs3MacPrefix }, // Tuya wireless switch
     { VENDOR_NONE, "kud7u2l", silabs3MacPrefix }, // Tuya Smart TRV HY369 Thermostatic Radiator Valve
     { VENDOR_NONE, "GbxAXL2", silabs3MacPrefix }, // Another Tuya Smart TRV Thermostatic Radiator Valve
-    { VENDOR_EMBER, "TS0601", silabs7MacPrefix }, // Tuya Smart TRV HY369 Thermostatic Radiator Valve / Moes Tuya Thermostat BTH-002
+    { VENDOR_EMBER, "TS0601", silabs7MacPrefix }, // Tuya Smart TRV HY369 Thermostatic Radiator Valve
     { VENDOR_EMBER, "TS0601", silabs5MacPrefix }, // MOES Zigbee Radiator Actuator HY368
     { VENDOR_EMBER, "TS0207", silabs3MacPrefix }, // Tuya water leak sensor
     { VENDOR_NONE, "TS0202", silabs4MacPrefix }, // Tuya presence sensor
@@ -1742,11 +1739,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_KEEN_HOME || // Keen Home Vent
         node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC || // Xiaomi lumi.ctrl_neutral1, lumi.ctrl_neutral2
         node->nodeDescriptor().manufacturerCode() == VENDOR_XIAOMI || // Xiaomi lumi.curtain.hagl04
-        ((node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER) && (
-            ((node->address().ext() & 0xffffff0000000000ULL ) == 0x8841570000000000ULL) ||  // atsmart Z6-03 switch 
-            ((node->address().ext() & 0xffffff0000000000ULL ) == emberMacPrefix) ||         // Heiman plug
-            ((node->address().ext() & 0xffffff0000000000ULL ) == silabs7MacPrefix) ||       // Tuya Smart TRV HY369
-            ((node->address().ext() & 0xffffff0000000000ULL ) == silabs5MacPrefix) )) ||    // MOES Zigbee Radiator Actuator HY368
+        node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER || // atsmart Z6-03 switch
         node->nodeDescriptor().manufacturerCode() == VENDOR_NONE || // Climax Siren
         node->nodeDescriptor().manufacturerCode() == VENDOR_DEVELCO || // Develco Smoke sensor with siren
         node->nodeDescriptor().manufacturerCode() == VENDOR_LDS || // Samsung SmartPlug 2019
@@ -1768,8 +1761,15 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
     bool hasTuyaCluster = false;
     QString manufacturer;
+    
+    //using VENDOR_EMBER is too much, lot of enddevice use this manufacture and are not router, so using this black list
+    if ((node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER) &&
+        ((node->address().ext() & 0xffffff0000000000ULL ) == silabs7MacPrefix) )
+    {
+        return;
+    }
 
-    //Make 2 fakes device for tuya switch
+    //Make 2 fakes device for tuya stuff
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER)
     {
         const deCONZ::SimpleDescriptor *sd = &node->simpleDescriptors()[0];
@@ -2009,15 +2009,6 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             //Tuya black list
             //_TYST11_ckud7u2l is valve with 2 cluster
             if (lightNode.manufacturer() == QLatin1String("_TYST11_ckud7u2l"))
-            {
-                hasServerOnOff = false;
-            }
-        }
-        if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER)
-        {
-            //Tuya black list
-            //_TZE200_aoclfnxz is a thermostat
-            if (lightNode.manufacturer() == QLatin1String("_TZE200_aoclfnxz"))
             {
                 hasServerOnOff = false;
             }
@@ -2336,7 +2327,6 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         //Add missing field for Tuya Device with tuya cluster
         // Window covering
         if ((lightNode.manufacturer() == QString("_TYST11_xu1rkty3")) ||
-            (lightNode.manufacturer() == QString("_TZE200_xuzcvlku")) ||
             (lightNode.manufacturer() == QString("_TYST11_wmcdj3aq")) )
         {
             lightNode.addItem(DataTypeBool, RStateOpen);
@@ -4700,11 +4690,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
-                    else if ((manufacturer == QLatin1String("_TZ3000_bi6lpsew")) ||
-                             (manufacturer == QLatin1String("_TZ3400_keyjhapk")) ||
-                             (manufacturer == QLatin1String("_TYZB02_key8kk7r")) ||
-                             (manufacturer == QLatin1String("_TZ3400_keyjqthh")) ||
-                             (manufacturer == QLatin1String("_TYZB02_keyjqthh")) )
+                    else if (manufacturer == QLatin1String("_TZ3000_bi6lpsew"))
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
@@ -5009,7 +4995,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 {
                     if ((modelId == QLatin1String("kud7u2l")) ||
                         (modelId == QLatin1String("GbxAXL2")) ||
-                        (manufacturer == QLatin1String("_TZE200_aoclfnxz")) ||
                         (manufacturer == QLatin1String("_TZE200_ckud7u2l")) )
                     {
                         fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
