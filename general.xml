@@ -3323,6 +3323,12 @@ devices can operate on either battery or mains power, and can have a wide variet
 				<attribute id="0x0007" name="Active Functionality" type="bmp24" default="0xffffff" access="r" required="m" showas="hex">
 					<description>The optional GP functionality supported by this sink that is active.</description>
 				</attribute>
+				<attribute id="0x0020" name="Shared Security Key Type" type="bmp8" default="0x00" access="r" required="m" showas="hex">
+				</attribute>
+				<attribute id="0x0021" name="Shared Security Key" type="seckey" access="r" required="m" showas="hex">
+				</attribute>
+				<attribute id="0x0022" name="GP Link Key" type="seckey" access="r" required="m" showas="hex">
+				</attribute>
 			</server>
 			<client>
 			</client>
