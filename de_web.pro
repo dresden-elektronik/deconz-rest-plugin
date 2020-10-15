@@ -35,6 +35,11 @@ contains(QMAKE_SPEC_T,.*linux.*) {
         DEFINES += HAS_SQLITE3
         PKGCONFIG += sqlite3
     }
+
+    packagesExist(openssl) {
+        DEFINES += HAS_OPENSSL
+        PKGCONFIG += openssl
+    }
 }
 
 unix:LIBS +=  -L../.. -ldeCONZ
@@ -96,6 +101,7 @@ HEADERS  = bindings.h \
            event.h \
            gateway.h \
            gateway_scanner.h \
+           green_power.h \
            group.h \
            group_info.h \
            json.h \
@@ -130,6 +136,7 @@ SOURCES  = authorisation.cpp \
            firmware_update.cpp \
            gateway.cpp \
            gateway_scanner.cpp \
+           green_power.cpp \
            group.cpp \
            group_info.cpp \
            gw_uuid.cpp \

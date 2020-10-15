@@ -1441,7 +1441,7 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
         //       Maybe except for Hue Tap to keep compatibility? -- Maybe.
 
         quint8 gpdDeviceId;
-        quint8 gpdKey[16];
+        GpKey_t gpdKey = { 0 };
         quint32 gpdMIC = 0;
         quint32 gpdOutgoingCounter = 0;
         deCONZ::GPCommissioningOptions options;
@@ -1469,22 +1469,20 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             for (int i = 0; i < 16; i++)
             {
                 if (stream.atEnd()) { return; }
-                stream >> gpdKey[i];
-
+                stream >> gpdKey.at(i);
             }
 
             if (extOptions.bits.gpdKeyEncryption)
             {
-                // TODO decrypt key
                 // When GPDkeyPresent sub-field is set
                 // to 0b1 and the GPDkeyEncryption sub-field is set to 0b1, both fields GPDkey and GPDkeyMIC are
                 // present; the field GPDkey contains the gpdSecurityKey, of the type as indicated in the gpdSecurityKey-
                 // Type, encrypted with the default TC-LK (see A.3.3.3.3) as described inA.3.7.1.2.3; and the GPDk-
                 // eyMIC field contains the MIC for the encrypted GPD key, calculated as described in A.3.7.1.2.3.
-
-                // (TC-LK), ‘ZigBeeAlliance09’.
-
                 if (stream.atEnd()) { return; }
+
+                gpdKey = GP_DecryptSecurityKey(ind.gpdSrcId(), gpdKey);
+
                 stream >> gpdMIC;
             }
         }
@@ -1510,12 +1508,12 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
 
         Sensor *sensor = getSensorNodeForFingerPrint(ind.gpdSrcId(), fp, QLatin1String("ZGPSwitch"));
 
-        if (searchSensorsState == SearchSensorsActive)
+        if (searchSensorsState == SearchSensorsActive && extOptions.bits.gpdKeyEncryption)
         {
             const QDateTime now = QDateTime::currentDateTime();
             if (!sensor || !sensor->lastRx().isValid() || sensor->lastRx().secsTo(now) > 5)
             {
-                sendGPPairing(ind.gpdSrcId(), 0xdd09, gpdDeviceId, gpdOutgoingCounter, gpdKey);
+                GP_SendPairing(ind.gpdSrcId(), 0xdd09, gpdDeviceId, gpdOutgoingCounter, gpdKey, apsCtrl, zclSeq++);
             }
         }
 
