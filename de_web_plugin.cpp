@@ -4449,6 +4449,17 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     pushSensorInfoToCore(&*i);
                 }
 
+                auto *item = i->item(RStateBattery);
+                if (!item)
+                {
+                    item = i->item(RConfigBattery);
+                }
+
+                if (item && item->toNumber() > 0)
+                {
+                    q_ptr->nodeUpdated(i->address().ext(), QLatin1String(item->descriptor().suffix), QString::number(item->toNumber()));
+                }
+
                 checkSensorNodeReachable(&*i, event);
             }
         }
