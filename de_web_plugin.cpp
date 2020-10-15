@@ -1211,30 +1211,55 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
     quint32 btn = ind.gpdCommandId();
     if (sensor->modelId() == QLatin1String("FOHSWITCH"))
     {
-        const quint32 buttonMap[] = {
-            0x10, S_BUTTON_1,
-            0x11, S_BUTTON_2,
-            0x12, S_BUTTON_4,
-            0x13, S_BUTTON_3,
-            0x14, S_BUTTON_1,
-            0x15, S_BUTTON_2,
-            0x16, S_BUTTON_4,
-            0x17, S_BUTTON_3,
-            0x62, S_BUTTON_6,
-            0x63, S_BUTTON_6,
-            0x64, S_BUTTON_5,
-            0x65, S_BUTTON_5,
-            0x68, S_BUTTON_7,
-            0xe0, S_BUTTON_7,
+        // Map the command to the mapped button and action.
+        // PTM215ZE Friends of Hue switch.
+        quint32 buttonMapPTM215ZE[] = {
+            0x12, S_BUTTON_1, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x13, S_BUTTON_1, S_BUTTON_ACTION_SHORT_RELEASED,
+            0x14, S_BUTTON_2, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x15, S_BUTTON_2, S_BUTTON_ACTION_SHORT_RELEASED,
+            0x18, S_BUTTON_3, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x19, S_BUTTON_3, S_BUTTON_ACTION_SHORT_RELEASED,
+            0x22, S_BUTTON_4, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x23, S_BUTTON_4, S_BUTTON_ACTION_SHORT_RELEASED,
             0
         };
+        // Generic Friends of Hue switch.
+        quint32 buttonMapFOHSWITCH[] = {
+            0x10, S_BUTTON_1, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x14, S_BUTTON_1, S_BUTTON_ACTION_SHORT_RELEASED,
+            0x11, S_BUTTON_2, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x15, S_BUTTON_2, S_BUTTON_ACTION_SHORT_RELEASED,
+            0x13, S_BUTTON_3, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x17, S_BUTTON_3, S_BUTTON_ACTION_SHORT_RELEASED,
+            0x12, S_BUTTON_4, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x16, S_BUTTON_4, S_BUTTON_ACTION_SHORT_RELEASED,
+            0x64, S_BUTTON_5, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x65, S_BUTTON_5, S_BUTTON_ACTION_SHORT_RELEASED,
+            0x62, S_BUTTON_6, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x63, S_BUTTON_6, S_BUTTON_ACTION_SHORT_RELEASED,
+            0x68, S_BUTTON_7, S_BUTTON_ACTION_INITIAL_PRESS,
+            0xe0, S_BUTTON_7, S_BUTTON_ACTION_SHORT_RELEASED,
+            0
+        };
+        quint32* buttonMap = 0;
+        // Determine which button map to use.
+        if (sensor->swVersion() == QLatin1String("PTM215ZE"))
+        {
+            buttonMap = buttonMapPTM215ZE;
+        }
+        else {
+            buttonMap = buttonMapFOHSWITCH;
+        }
 
         quint32 btnMapped = 0;
-        for (int i = 0; buttonMap[i] != 0; i += 2)
+        quint32 btnAction = 0;
+        for (int i = 0; buttonMap[i] != 0; i += 3)
         {
             if (buttonMap[i] == btn)
             {
                 btnMapped = buttonMap[i + 1];
+                btnAction = buttonMap[i + 2];
                 break;
             }
         }
@@ -1244,13 +1269,13 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
         {
             // not found
         }
-        else if (btn == 0x10 || btn == 0x11 || btn == 0x13 || btn == 0x12 || btn == 0x64 || btn == 0x62)
+        else if (btnAction == S_BUTTON_ACTION_INITIAL_PRESS)
         {
             sensor->durationDue = now.addMSecs(500); // enable generation of x001 (hold)
             checkSensorsTimer->start(CHECK_SENSOR_FAST_INTERVAL);
             btn = btnMapped + S_BUTTON_ACTION_INITIAL_PRESS;
         }
-        else if (btn == 0x14 || btn == 0x15 || btn == 0x17 || btn == 0x16 || btn == 0x63 || btn == 0x65)
+        else if (btnAction == S_BUTTON_ACTION_SHORT_RELEASED)
         {
             sensor->durationDue = QDateTime(); // disable generation of x001 (hold)
             btn = buttonMap[btn & 0x0f];
@@ -1501,7 +1526,13 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             Sensor sensorNode;
             sensorNode.setType("ZGPSwitch");
 
-            if (gpdDeviceId == deCONZ::GpDeviceIdOnOffSwitch && options.byte == 0x81)
+            if (gpdDeviceId == deCONZ::GpDeviceIdOnOffSwitch && options.byte == 0x81 && ind.payload().size() == 27)
+            {
+                sensorNode.setModelId("FOHSWITCH");
+                sensorNode.setManufacturer("PhilipsFoH");
+                sensorNode.setSwVersion("PTM215ZE");
+            }
+            else if (gpdDeviceId == deCONZ::GpDeviceIdOnOffSwitch && options.byte == 0x81)
             {
                 sensorNode.setModelId("ZGPSWITCH");
                 sensorNode.setManufacturer("Philips");
