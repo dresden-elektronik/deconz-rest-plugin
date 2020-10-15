@@ -3501,6 +3501,14 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 {
                     sensor.addItem(DataTypeString, RConfigMode);
                 }
+                
+                if (sensor.modelId() == QLatin1String("Super TR"))   // ELKO
+                {
+                    sensor.addItem(DataTypeString, RConfigTemperatureMeasurement);
+                    sensor.addItem(DataTypeInt16, RStateFloorTemperature);
+                    sensor.addItem(DataTypeBool, RStateHeating);
+                    sensor.addItem(DataTypeBool, RConfigLocked);
+                }
 
                 if (sensor.modelId() == QLatin1String("kud7u2l") || // Tuya 
                     sensor.modelId() == QLatin1String("GbxAXL2") || // Tuya
