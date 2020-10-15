@@ -83,6 +83,7 @@ void DeRestPluginPrivate::handleThermostatUiConfigurationClusterIndication(const
                 }
                 sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_UI_CONFIGURATION_CLUSTER_ID, attrId, attr.numericValue());
             }
+                break;
 
             case 0x4000: // Viewing Direction
             {
