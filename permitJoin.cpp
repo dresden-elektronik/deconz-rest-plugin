@@ -250,7 +250,7 @@ void DeRestPluginPrivate::permitJoinTimerFired()
     QTime now = QTime::currentTime();
     int diff = permitJoinLastSendTime.msecsTo(now);
 
-    if (!permitJoinLastSendTime.isValid() || (diff > PERMIT_JOIN_SEND_INTERVAL))
+    if (!permitJoinLastSendTime.isValid() || ((diff > PERMIT_JOIN_SEND_INTERVAL) && !gwdisablePermitJoinAutoOff))
     {
         deCONZ::ApsDataRequest apsReq;
         quint8 tcSignificance = 0x01;
