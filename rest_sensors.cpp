@@ -1002,6 +1002,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     qint32 offset = (qint32)(round(map[pi.key()].toInt(&ok) / 10.0));
                     if (ok && (sensor->modelId().startsWith(QLatin1String("kud7u2l")) ||
                                sensor->modelId().startsWith(QLatin1String("GbxAXL2")) ||
+                               sensor->modelId().startsWith(QLatin1String("eaxp72v")) ||
                                sensor->modelId().startsWith(QLatin1String("TS0601")) ) ) // Tuya Smart TRV HY369 Thermostatic Radiator Valve
                     {
                         QByteArray data;
@@ -1112,6 +1113,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else if (sensor->modelId().startsWith(QLatin1String("kud7u2l")) ||
                              sensor->modelId().startsWith(QLatin1String("GbxAXL2")) ||
+                             sensor->modelId().startsWith(QLatin1String("eaxp72v")) ||
                              sensor->modelId().startsWith(QLatin1String("TS0601")))  // Tuya Smart TRV HY369 Thermostatic Radiator Valve
                     {
                         heatsetpoint = heatsetpoint / 10;
@@ -1172,6 +1174,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         rspItem["success"] = rspItemState;
                     }
                     else if ((sensor->modelId().startsWith(QLatin1String("kud7u2l"))) ||
+                             (sensor->modelId().startsWith(QLatin1String("eaxp72v"))) ||
                              (sensor->modelId().startsWith(QLatin1String("TS0601")))) // Tuya Smart TRV HY369 Thermostatic Radiator Valve
                     {
                         QByteArray data;

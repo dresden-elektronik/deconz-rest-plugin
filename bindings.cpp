@@ -2079,6 +2079,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturer() == QLatin1String("Sercomm Corp."))
         {
         }
+        else if (lightNode->manufacturer() == QLatin1String("Kwikset"))
+        {
+        }
         else if (lightNode->manufacturer() == QLatin1String("NIKO NV"))
         {
         }
