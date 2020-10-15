@@ -1748,7 +1748,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             ((node->address().ext() & 0xffffff0000000000ULL ) == emberMacPrefix) ||         // Heiman plug
             ((node->address().ext() & 0xffffff0000000000ULL ) == silabs7MacPrefix) ||       // Tuya Smart TRV HY369
             ((node->address().ext() & 0xffffff0000000000ULL ) == silabs5MacPrefix) )) ||    // MOES Zigbee Radiator Actuator HY368
-        node->nodeDescriptor().manufacturerCode() == VENDOR_NONE || // Climax Siren
+        (!node->nodeDescriptor().isNull() && node->nodeDescriptor().manufacturerCode() == VENDOR_NONE) || // Climax Siren
         node->nodeDescriptor().manufacturerCode() == VENDOR_DEVELCO || // Develco Smoke sensor with siren
         node->nodeDescriptor().manufacturerCode() == VENDOR_LDS || // Samsung SmartPlug 2019
         node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA || // IKEA FYRTUR and KADRILJ smart binds
@@ -1852,7 +1852,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             else if ((i->inClusters()[c].id() == TUYA_CLUSTER_ID) && (node->macCapabilities() & deCONZ::MacDeviceIsFFD) ) { hasServerOnOff = true; }
             // Danalock support. The cluster needs to be defined and whitelisted by setting hasServerOnOff
             else if (node->nodeDescriptor().manufacturerCode() == VENDOR_DANALOCK && i->inClusters()[c].id() == DOOR_LOCK_CLUSTER_ID) { hasServerOnOff = true; }
-            else if (node->nodeDescriptor().manufacturerCode() == VENDOR_NONE && i->inClusters()[c].id() == DOOR_LOCK_CLUSTER_ID) { hasServerOnOff = true; } //Kwikset 914 ZigBee smart lock
+            else if (!node->nodeDescriptor().isNull() && node->nodeDescriptor().manufacturerCode() == VENDOR_NONE && i->inClusters()[c].id() == DOOR_LOCK_CLUSTER_ID) { hasServerOnOff = true; } //Kwikset 914 ZigBee smart lock
             else if (i->inClusters()[c].id() == BASIC_CLUSTER_ID)
             {
                 std::vector<deCONZ::ZclAttribute>::const_iterator j = i->inClusters()[c].attributes().begin();
