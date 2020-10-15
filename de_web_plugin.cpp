@@ -1515,7 +1515,7 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             }
         }
 
-        if (!sensor)
+        if (!sensor || sensor->deletedState() == Sensor::StateDeleted)
         {
             if (searchSensorsState != SearchSensorsActive)
             {
@@ -1589,24 +1589,6 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
 
             indexRulesTriggers();
             gpProcessButtonEvent(ind);
-        }
-        else if (sensor && sensor->deletedState() == Sensor::StateDeleted)
-        {
-            if (searchSensorsState == SearchSensorsActive)
-            {
-                sensor->setDeletedState(Sensor::StateNormal);
-                checkSensorGroup(sensor);
-                sensor->setNeedSaveDatabase(true);
-                sensor->rx();
-                DBG_Printf(DBG_INFO, "SensorNode %u: %s reactivated\n", sensor->id().toUInt(), qPrintable(sensor->name()));
-                updateSensorEtag(sensor);
-
-                Event e(RSensors, REventAdded, sensor->id());
-                enqueueEvent(e);
-                queSaveDb(DB_SENSORS , DB_SHORT_SAVE_DELAY);
-
-                gpProcessButtonEvent(ind);
-            }
         }
         else if (sensor && sensor->deletedState() == Sensor::StateNormal)
         {
