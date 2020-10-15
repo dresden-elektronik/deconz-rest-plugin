@@ -308,12 +308,12 @@ QMap<QString, std::vector<Sensor::ButtonMap>> loadButtonMapsJson(const QJsonDocu
 
                                 if (buttonMapItemArr.at(0).isDouble())
                                 {
-                                    //DBG_Printf(DBG_INFO, "[INFO] - Button map item #1: %d\n", buttonMapItemArr.at(0).toInt());
-                                    if (buttonMapItemArr.at(0).toInt() == 0) { btnMap.mode = Sensor::ModeNone; }
-                                    else if (buttonMapItemArr.at(0).toInt() == 1) { btnMap.mode = Sensor::ModeScenes; }
-                                    else if (buttonMapItemArr.at(0).toInt() == 2) { btnMap.mode = Sensor::ModeTwoGroups; }
-                                    else if (buttonMapItemArr.at(0).toInt() == 3) { btnMap.mode = Sensor::ModeColorTemperature; }
-                                    else if (buttonMapItemArr.at(0).toInt() == 4) { btnMap.mode = Sensor::ModeDimmer; }
+                                    //DBG_Printf(DBG_INFO, "[INFO] - Button map item #1: %d\n", buttonMapItemArr.at(0).toUint());
+                                    if (buttonMapItemArr.at(0).toUint() == 0) { btnMap.mode = Sensor::ModeNone; }
+                                    else if (buttonMapItemArr.at(0).toUint() == 1) { btnMap.mode = Sensor::ModeScenes; }
+                                    else if (buttonMapItemArr.at(0).toUint() == 2) { btnMap.mode = Sensor::ModeTwoGroups; }
+                                    else if (buttonMapItemArr.at(0).toUint() == 3) { btnMap.mode = Sensor::ModeColorTemperature; }
+                                    else if (buttonMapItemArr.at(0).toUint() == 4) { btnMap.mode = Sensor::ModeDimmer; }
                                 }
                                 else
                                 {
@@ -325,8 +325,8 @@ QMap<QString, std::vector<Sensor::ButtonMap>> loadButtonMapsJson(const QJsonDocu
                                     buttonMapItemArr.at(1).toString().length() == 4)
                                 {
                                     QString ep = buttonMapItemArr.at(1).toString();
-                                    //DBG_Printf(DBG_INFO, "[INFO] - Button map item #2: %d\n", ep.toInt(&ok, 16));
-                                    btnMap.endpoint = ep.toInt(&ok, 16);
+                                    //DBG_Printf(DBG_INFO, "[INFO] - Button map item #2: %d\n", ep.toUint(&ok, 16));
+                                    btnMap.endpoint = ep.toUint(&ok, 16);
                                 }
                                 else
                                 {
@@ -338,8 +338,8 @@ QMap<QString, std::vector<Sensor::ButtonMap>> loadButtonMapsJson(const QJsonDocu
                                     buttonMapItemArr.at(2).toString().length() == 6)
                                 {
                                     QString cid = buttonMapItemArr.at(2).toString();
-                                    //DBG_Printf(DBG_INFO, "[INFO] - Button map item #3: %d\n", cid.toInt(&ok, 16));
-                                    btnMap.clusterId = cid.toInt(&ok, 16);
+                                    //DBG_Printf(DBG_INFO, "[INFO] - Button map item #3: %d\n", cid.toUint(&ok, 16));
+                                    btnMap.clusterId = cid.toUint(&ok, 16);
                                 }
                                 else if (buttonMapItemArr.at(2).isString() && !buttonMapItemArr.at(2).toString().startsWith(QLatin1String("0x")) &&
                                          buttonMapItemArr.at(2).toString().length() <= 20)
@@ -363,8 +363,8 @@ QMap<QString, std::vector<Sensor::ButtonMap>> loadButtonMapsJson(const QJsonDocu
                                     buttonMapItemArr.at(3).toString().length() == 4)
                                 {
                                     QString cmd = buttonMapItemArr.at(3).toString();
-                                    //DBG_Printf(DBG_INFO, "[INFO] - Button map item #4: %d\n", cmd.toInt(&ok, 16));
-                                    btnMap.zclCommandId = cmd.toInt(&ok, 16);
+                                    //DBG_Printf(DBG_INFO, "[INFO] - Button map item #4: %d\n", cmd.toUint(&ok, 16));
+                                    btnMap.zclCommandId = cmd.toUint(&ok, 16);
                                 }
                                 else if (buttonMapItemArr.at(3).isString() && !buttonMapItemArr.at(3).toString().startsWith(QLatin1String("0x")) &&
                                          buttonMapItemArr.at(3).toString().length() <= 28)
@@ -398,15 +398,15 @@ QMap<QString, std::vector<Sensor::ButtonMap>> loadButtonMapsJson(const QJsonDocu
                                 if (buttonMapItemArr.at(4).isString() && buttonMapItemArr.at(4).toString().length() <= 3)
                                 {
                                     QString para = buttonMapItemArr.at(4).toString();
-                                    //DBG_Printf(DBG_INFO, "[INFO] - Button map item #5: %d\n", para.toInt(&ok, 16));
-                                    btnMap.zclParam0 = para.toInt(&ok, 16);
+                                    //DBG_Printf(DBG_INFO, "[INFO] - Button map item #5: %d\n", para.toUint(&ok, 16));
+                                    btnMap.zclParam0 = para.toUint(&ok, 16);
                                 }
                                 else if (buttonMapItemArr.at(4).isString() && buttonMapItemArr.at(4).toString().startsWith(QLatin1String("0x")) &&
                                          (buttonMapItemArr.at(4).toString().length() == 4 || buttonMapItemArr.at(4).toString().length() == 6))
                                 {
                                     QString para = buttonMapItemArr.at(4).toString();
-                                    //DBG_Printf(DBG_INFO, "[INFO] - Button map item #5: %d\n", para.toInt(&ok, 16));
-                                    btnMap.zclParam0 = para.toInt(&ok, 16);
+                                    //DBG_Printf(DBG_INFO, "[INFO] - Button map item #5: %d\n", para.toUint(&ok, 16));
+                                    btnMap.zclParam0 = para.toUint(&ok, 16);
                                 }
                                 else
                                 {
