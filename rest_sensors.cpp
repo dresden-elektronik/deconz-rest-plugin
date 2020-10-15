@@ -1571,6 +1571,51 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         rspItemState[QString("Error : unknown Window open setting for %1").arg(sensor->modelId())] = map[pi.key()];
                     }
                 }
+                else if (rid.suffix == RConfigFanMode)
+                {
+                    if (map[pi.key()].type() == QVariant::String && map[pi.key()].toString().size() <= 6)
+                    {
+                        if (sensor->modelId() == QLatin1String("AC201"))
+                        {
+                            QString modeSet = map[pi.key()].toString();
+                            quint8 mode = 0;
+
+                            if (modeSet == "off") { mode = 0x00; }
+                            else if (modeSet == "low") { mode = 0x01; }
+                            else if (modeSet == "medium") { mode = 0x02; }
+                            else if (modeSet == "high") { mode = 0x03; }
+                            else if (modeSet == "on") { mode = 0x04; }
+                            else if (modeSet == "auto") { mode = 0x05; }
+                            else if (modeSet == "smart") { mode = 0x06; }
+                            else
+                            {
+                                rspItemState[QString("error unknown fan mode for %1").arg(sensor->modelId())] = map[pi.key()];
+                            }
+
+                            if (mode < 7)
+                            {
+                                if (addTaskFanControlReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, deCONZ::Zcl8BitEnum, mode))
+                                {
+                                    updated = true;
+                                }
+                                else
+                                {
+                                    rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                               QString("Could not set attribute")));
+                                    rsp.httpStatus = HttpStatusBadRequest;
+                                    return REQ_READY_SEND;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
+                    }
+                }
             }
         }
 
