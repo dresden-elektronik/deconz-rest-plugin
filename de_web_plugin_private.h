@@ -434,6 +434,7 @@ extern const quint64 macPrefixMask;
 
 extern const quint64 celMacPrefix;
 extern const quint64 bjeMacPrefix;
+extern const quint64 davicomMacPrefix;
 extern const quint64 deMacPrefix;
 extern const quint64 emberMacPrefix;
 extern const quint64 embertecMacPrefix;
