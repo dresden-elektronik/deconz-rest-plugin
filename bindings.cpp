@@ -1426,6 +1426,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                             sensor->modelId() == QLatin1String("RFDL-ZB-MS") ||
                             sensor->modelId() == QLatin1String("Zen-01") ||
                             sensor->modelId() == QLatin1String("Bell") ||
+                            sensor->modelId() == QLatin1String("ISW-ZPR1-WP13") ||
                             sensor->modelId() == QLatin1String("SLT2") ||
                             sensor->modelId() == QLatin1String("TS0202") || // Tuya sensor
                             sensor->modelId() == QLatin1String("3AFE14010402000D") || // Konke presence sensor
@@ -2614,6 +2615,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                      sensor->modelId() == QLatin1String("MOSZB-130") ||
                      sensor->modelId() == QLatin1String("FLSZB-110") ||
                      sensor->modelId() == QLatin1String("Zen-01") ||
+                     sensor->modelId() == QLatin1String("ISW-ZPR1-WP13") ||
                      sensor->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
                      sensor->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
                      sensor->modelId().startsWith(QLatin1String("Switch 4x-LIGHTIFY")) || // Osram 4 button remote
