@@ -1061,7 +1061,7 @@ void DeRestPluginPrivate::configToMap(const ApiRequest &req, QVariantMap &map)
     map["portalservices"] = false;
     map["websocketport"] = static_cast<double>(gwConfig["websocketport"].toUInt());
     map["websocketnotifyall"] = gwWebSocketNotifyAll;
-    map["DisablePJSecurisation"] = gwDisablePJSecurisation;
+    map["disablePermitJoinAutoOff"] = gwdisablePermitJoinAutoOff;
 
     QStringList ipv4 = gwIPAddress.split(".");
 
@@ -2157,19 +2157,19 @@ int DeRestPluginPrivate::modifyConfig(const ApiRequest &req, ApiResponse &rsp)
         rsp.list.append(rspItem);
     }
 
-    if (map.contains("DisablePJSecurisation")) // optional
+    if (map.contains("disablePermitJoinAutoOff")) // optional
     {
-        bool v = map["DisablePJSecurisation"].toBool();
+        bool v = map["disablePermitJoinAutoOff"].toBool();
 
-        if (gwDisablePJSecurisation != v)
+        if (gwdisablePermitJoinAutoOff != v)
         {
-            gwDisablePJSecurisation = v;
+            gwdisablePermitJoinAutoOff = v;
             changed = true;
             queSaveDb(DB_CONFIG, DB_SHORT_SAVE_DELAY);
         }
         QVariantMap rspItem;
         QVariantMap rspItemState;
-        rspItemState["/config/DisablePJSecurisation"] = v;
+        rspItemState["/config/disablePermitJoinAutoOff"] = v;
         rspItem["success"] = rspItemState;
         rsp.list.append(rspItem);
     }
