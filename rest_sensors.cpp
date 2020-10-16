@@ -1507,6 +1507,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if ((rid.suffix == RConfigWindowOpen) && (sensor->modelId().startsWith(QLatin1String("kud7u2l")) ||
                                                            sensor->modelId().startsWith(QLatin1String("GbxAXL2")) ||
+                                                           sensor->modelId().startsWith(QLatin1String("eaxp72v")) ||
                                                            sensor->modelId().startsWith(QLatin1String("TS0601"))))
                 {
                     // Config on / off
