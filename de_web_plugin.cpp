@@ -290,6 +290,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_ZEN, "Zen-01", zenMacPrefix }, // Zen Thermostat
     { VENDOR_C2DF, "3157100", emberMacPrefix }, // Centralite Thermostat
     { VENDOR_EMBER, "Super TR", emberMacPrefix }, // Elko Thermostat
+    { VENDOR_EMBER, "ElkoDimmer", emberMacPrefix }, // Elko dimmer
     { VENDOR_ATMEL, "Thermostat", ecozyMacPrefix }, // eCozy Thermostat
     { VENDOR_STELPRO, "ST218", xalMacPrefix }, // Stelpro Thermostat
     { VENDOR_STELPRO, "STZB402", xalMacPrefix }, // Stelpro baseboard thermostat
@@ -351,6 +352,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBER, "TS0207", silabs3MacPrefix }, // Tuya water leak sensor
     { VENDOR_NONE, "TS0202", silabs4MacPrefix }, // Tuya presence sensor
     { VENDOR_NONE, "0yu2xgi", silabs5MacPrefix }, // Tuya siren
+    { VENDOR_NONE, "eaxp72v", ikea2MacPrefix }, // Tuya TRV Wesmartify Thermostat Essentials Premium
     { VENDOR_AURORA, "DoubleSocket50AU", jennicMacPrefix }, // Aurora AOne Double Socket UK
     { VENDOR_COMPUTIME, "SP600", computimeMacPrefix }, // Salus smart plug
     { VENDOR_HANGZHOU_IMAGIC, "1116-S", energyMiMacPrefix }, // iris contact sensor v3
@@ -391,6 +393,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "DS01", tiMacPrefix }, // Sonoff SNZB-04
     { VENDOR_DANFOSS, "eTRV0100", silabs2MacPrefix }, // Danfoss Ally thermostat
     { VENDOR_LDS, "ZBT-CCTSwitch-D0001", silabs2MacPrefix }, // Leedarson remote control
+    { VENDOR_NONE, "SMARTCODE_CONVERT_GEN1", zenMacPrefix }, // Kwikset 914 ZigBee smart lock
 
     { 0, nullptr, 0 }
 };
@@ -502,6 +505,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     groupDeviceMembershipChecked = false;
     gwLinkButton = false;
     gwWebSocketNotifyAll = true;
+    gwdisablePermitJoinAutoOff = false;
 
     // preallocate memory to get consistent pointers
     nodes.reserve(300);
@@ -1352,30 +1356,55 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
     quint32 btn = ind.gpdCommandId();
     if (sensor->modelId() == QLatin1String("FOHSWITCH"))
     {
-        const quint32 buttonMap[] = {
-            0x10, S_BUTTON_1,
-            0x11, S_BUTTON_2,
-            0x12, S_BUTTON_4,
-            0x13, S_BUTTON_3,
-            0x14, S_BUTTON_1,
-            0x15, S_BUTTON_2,
-            0x16, S_BUTTON_4,
-            0x17, S_BUTTON_3,
-            0x62, S_BUTTON_6,
-            0x63, S_BUTTON_6,
-            0x64, S_BUTTON_5,
-            0x65, S_BUTTON_5,
-            0x68, S_BUTTON_7,
-            0xe0, S_BUTTON_7,
+        // Map the command to the mapped button and action.
+        // PTM215ZE Friends of Hue switch.
+        quint32 buttonMapPTM215ZE[] = {
+            0x12, S_BUTTON_1, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x13, S_BUTTON_1, S_BUTTON_ACTION_SHORT_RELEASED,
+            0x14, S_BUTTON_2, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x15, S_BUTTON_2, S_BUTTON_ACTION_SHORT_RELEASED,
+            0x18, S_BUTTON_3, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x19, S_BUTTON_3, S_BUTTON_ACTION_SHORT_RELEASED,
+            0x22, S_BUTTON_4, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x23, S_BUTTON_4, S_BUTTON_ACTION_SHORT_RELEASED,
             0
         };
+        // Generic Friends of Hue switch.
+        quint32 buttonMapFOHSWITCH[] = {
+            0x10, S_BUTTON_1, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x14, S_BUTTON_1, S_BUTTON_ACTION_SHORT_RELEASED,
+            0x11, S_BUTTON_2, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x15, S_BUTTON_2, S_BUTTON_ACTION_SHORT_RELEASED,
+            0x13, S_BUTTON_3, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x17, S_BUTTON_3, S_BUTTON_ACTION_SHORT_RELEASED,
+            0x12, S_BUTTON_4, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x16, S_BUTTON_4, S_BUTTON_ACTION_SHORT_RELEASED,
+            0x64, S_BUTTON_5, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x65, S_BUTTON_5, S_BUTTON_ACTION_SHORT_RELEASED,
+            0x62, S_BUTTON_6, S_BUTTON_ACTION_INITIAL_PRESS,
+            0x63, S_BUTTON_6, S_BUTTON_ACTION_SHORT_RELEASED,
+            0x68, S_BUTTON_7, S_BUTTON_ACTION_INITIAL_PRESS,
+            0xe0, S_BUTTON_7, S_BUTTON_ACTION_SHORT_RELEASED,
+            0
+        };
+        quint32* buttonMap = 0;
+        // Determine which button map to use.
+        if (sensor->swVersion() == QLatin1String("PTM215ZE"))
+        {
+            buttonMap = buttonMapPTM215ZE;
+        }
+        else {
+            buttonMap = buttonMapFOHSWITCH;
+        }
 
         quint32 btnMapped = 0;
-        for (int i = 0; buttonMap[i] != 0; i += 2)
+        quint32 btnAction = 0;
+        for (int i = 0; buttonMap[i] != 0; i += 3)
         {
             if (buttonMap[i] == btn)
             {
                 btnMapped = buttonMap[i + 1];
+                btnAction = buttonMap[i + 2];
                 break;
             }
         }
@@ -1385,13 +1414,13 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
         {
             // not found
         }
-        else if (btn == 0x10 || btn == 0x11 || btn == 0x13 || btn == 0x12 || btn == 0x64 || btn == 0x62)
+        else if (btnAction == S_BUTTON_ACTION_INITIAL_PRESS)
         {
             sensor->durationDue = now.addMSecs(500); // enable generation of x001 (hold)
             checkSensorsTimer->start(CHECK_SENSOR_FAST_INTERVAL);
             btn = btnMapped + S_BUTTON_ACTION_INITIAL_PRESS;
         }
-        else if (btn == 0x14 || btn == 0x15 || btn == 0x17 || btn == 0x16 || btn == 0x63 || btn == 0x65)
+        else if (btnAction == S_BUTTON_ACTION_SHORT_RELEASED)
         {
             sensor->durationDue = QDateTime(); // disable generation of x001 (hold)
             btn = buttonMap[btn & 0x0f];
@@ -1553,7 +1582,7 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
         //       Maybe except for Hue Tap to keep compatibility? -- Maybe.
 
         quint8 gpdDeviceId;
-        quint8 gpdKey[16];
+        GpKey_t gpdKey = { 0 };
         quint32 gpdMIC = 0;
         quint32 gpdOutgoingCounter = 0;
         deCONZ::GPCommissioningOptions options;
@@ -1581,22 +1610,20 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             for (int i = 0; i < 16; i++)
             {
                 if (stream.atEnd()) { return; }
-                stream >> gpdKey[i];
-
+                stream >> gpdKey.at(i);
             }
 
             if (extOptions.bits.gpdKeyEncryption)
             {
-                // TODO decrypt key
                 // When GPDkeyPresent sub-field is set
                 // to 0b1 and the GPDkeyEncryption sub-field is set to 0b1, both fields GPDkey and GPDkeyMIC are
                 // present; the field GPDkey contains the gpdSecurityKey, of the type as indicated in the gpdSecurityKey-
                 // Type, encrypted with the default TC-LK (see A.3.3.3.3) as described inA.3.7.1.2.3; and the GPDk-
                 // eyMIC field contains the MIC for the encrypted GPD key, calculated as described in A.3.7.1.2.3.
-
-                // (TC-LK), ‘ZigBeeAlliance09’.
-
                 if (stream.atEnd()) { return; }
+
+                gpdKey = GP_DecryptSecurityKey(ind.gpdSrcId(), gpdKey);
+
                 stream >> gpdMIC;
             }
         }
@@ -1622,16 +1649,16 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
 
         Sensor *sensor = getSensorNodeForFingerPrint(ind.gpdSrcId(), fp, QLatin1String("ZGPSwitch"));
 
-        if (searchSensorsState == SearchSensorsActive)
+        if (searchSensorsState == SearchSensorsActive && extOptions.bits.gpdKeyEncryption)
         {
             const QDateTime now = QDateTime::currentDateTime();
             if (!sensor || !sensor->lastRx().isValid() || sensor->lastRx().secsTo(now) > 5)
             {
-                sendGPPairing(ind.gpdSrcId(), 0xdd09, gpdDeviceId, gpdOutgoingCounter, gpdKey);
+                GP_SendPairing(ind.gpdSrcId(), 0xdd09, gpdDeviceId, gpdOutgoingCounter, gpdKey, apsCtrl, zclSeq++);
             }
         }
 
-        if (!sensor)
+        if (!sensor || sensor->deletedState() == Sensor::StateDeleted)
         {
             if (searchSensorsState != SearchSensorsActive)
             {
@@ -1642,7 +1669,13 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             Sensor sensorNode;
             sensorNode.setType("ZGPSwitch");
 
-            if (gpdDeviceId == deCONZ::GpDeviceIdOnOffSwitch && options.byte == 0x81)
+            if (gpdDeviceId == deCONZ::GpDeviceIdOnOffSwitch && options.byte == 0x81 && ind.payload().size() == 27 && (ind.gpdSrcId() & 0x01700000) == 0x01700000)
+            {
+                sensorNode.setModelId("FOHSWITCH");
+                sensorNode.setManufacturer("PhilipsFoH");
+                sensorNode.setSwVersion("PTM215ZE");
+            }
+            else if (gpdDeviceId == deCONZ::GpDeviceIdOnOffSwitch && options.byte == 0x81)
             {
                 sensorNode.setModelId("ZGPSWITCH");
                 sensorNode.setManufacturer("Philips");
@@ -1699,24 +1732,6 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
 
             indexRulesTriggers();
             gpProcessButtonEvent(ind);
-        }
-        else if (sensor && sensor->deletedState() == Sensor::StateDeleted)
-        {
-            if (searchSensorsState == SearchSensorsActive)
-            {
-                sensor->setDeletedState(Sensor::StateNormal);
-                checkSensorGroup(sensor);
-                sensor->setNeedSaveDatabase(true);
-                sensor->rx();
-                DBG_Printf(DBG_INFO, "SensorNode %u: %s reactivated\n", sensor->id().toUInt(), qPrintable(sensor->name()));
-                updateSensorEtag(sensor);
-
-                Event e(RSensors, REventAdded, sensor->id());
-                enqueueEvent(e);
-                queSaveDb(DB_SENSORS , DB_SHORT_SAVE_DELAY);
-
-                gpProcessButtonEvent(ind);
-            }
         }
         else if (sensor && sensor->deletedState() == Sensor::StateNormal)
         {
@@ -1889,8 +1904,12 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_KEEN_HOME || // Keen Home Vent
         node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC || // Xiaomi lumi.ctrl_neutral1, lumi.ctrl_neutral2
         node->nodeDescriptor().manufacturerCode() == VENDOR_XIAOMI || // Xiaomi lumi.curtain.hagl04
-        node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER || // atsmart Z6-03 switch
-        node->nodeDescriptor().manufacturerCode() == VENDOR_NONE || // Climax Siren
+        ((node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER) && (
+            ((node->address().ext() & 0xffffff0000000000ULL ) == 0x8841570000000000ULL) ||  // atsmart Z6-03 switch 
+            ((node->address().ext() & 0xffffff0000000000ULL ) == emberMacPrefix) ||         // Heiman plug
+            ((node->address().ext() & 0xffffff0000000000ULL ) == silabs7MacPrefix) ||       // Tuya Smart TRV HY369
+            ((node->address().ext() & 0xffffff0000000000ULL ) == silabs5MacPrefix) )) ||    // MOES Zigbee Radiator Actuator HY368
+        (!node->nodeDescriptor().isNull() && node->nodeDescriptor().manufacturerCode() == VENDOR_NONE) || // Climax Siren
         node->nodeDescriptor().manufacturerCode() == VENDOR_DEVELCO || // Develco Smoke sensor with siren
         node->nodeDescriptor().manufacturerCode() == VENDOR_LDS || // Samsung SmartPlug 2019
         node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA || // IKEA FYRTUR and KADRILJ smart binds
@@ -2004,6 +2023,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             else if ((i->inClusters()[c].id() == TUYA_CLUSTER_ID) && (node->macCapabilities() & deCONZ::MacDeviceIsFFD) ) { hasServerOnOff = true; }
             // Danalock support. The cluster needs to be defined and whitelisted by setting hasServerOnOff
             else if (node->nodeDescriptor().manufacturerCode() == VENDOR_DANALOCK && i->inClusters()[c].id() == DOOR_LOCK_CLUSTER_ID) { hasServerOnOff = true; }
+            else if (!node->nodeDescriptor().isNull() && node->nodeDescriptor().manufacturerCode() == VENDOR_NONE && i->inClusters()[c].id() == DOOR_LOCK_CLUSTER_ID) { hasServerOnOff = true; } //Kwikset 914 ZigBee smart lock
             else if (i->inClusters()[c].id() == BASIC_CLUSTER_ID)
             {
                 std::vector<deCONZ::ZclAttribute>::const_iterator j = i->inClusters()[c].attributes().begin();
@@ -2161,7 +2181,9 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             }
             //Tuya black list
             //_TYST11_ckud7u2l is valve with 2 cluster
-            if (lightNode.manufacturer() == QLatin1String("_TYST11_ckud7u2l"))
+            //_TYST11_jeaxp72v same
+            if ((lightNode.manufacturer() == QLatin1String("_TYST11_ckud7u2l")) ||
+                (lightNode.manufacturer() == QLatin1String("_TYST11_jeaxp72v")) )
             {
                 hasServerOnOff = false;
             }
@@ -4603,6 +4625,17 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     pushSensorInfoToCore(&*i);
                 }
 
+                auto *item = i->item(RStateBattery);
+                if (!item)
+                {
+                    item = i->item(RConfigBattery);
+                }
+
+                if (item && item->toNumber() > 0)
+                {
+                    q_ptr->nodeUpdated(i->address().ext(), QLatin1String(item->descriptor().suffix), QString::number(item->toNumber()));
+                }
+
                 checkSensorNodeReachable(&*i, event);
             }
         }
@@ -4764,6 +4797,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         // For some device the Tuya cluster is sometime Invisible, so force device detection
                         if ((modelId == QLatin1String("kud7u2l")) ||
+                           (modelId == QLatin1String("eaxp72v")) ||
                            (modelId == QLatin1String("GbxAXL2")) )
                         {
                             fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
@@ -4901,9 +4935,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("PIRS")) ||             // Heiman motion sensor (newer model)
                              modelId == QLatin1String("3AFE14010402000D") ||          // Konke motion sensor
                              modelId == QLatin1String("3AFE28010402000D") ||          // Konke motion sensor ver.2
+                             modelId == QLatin1String("motion") ||                    // Samjin motion sensor
                              modelId.startsWith(QLatin1String("902010/22")) ||        // Bitron motion sensor
                              modelId.startsWith(QLatin1String("SN10ZW")) ||           // ORVIBO motion sensor
                              modelId.startsWith(QLatin1String("MOSZB-130")) ||        // Develco motion sensor
+                             modelId.startsWith(QLatin1String("MOT003")) ||           // Hive motion sensor
                              modelId == QLatin1String("4in1-Sensor-ZB3.0") ||         // Immax NEO ZB3.0 4 in 1 sensor E13-A21
                              modelId == QLatin1String("E13-A21") ||                   // Sengled E13-A21 PAR38 bulp with motion sensor
                              modelId == QLatin1String("TS0202") ||                    // Tuya generic motion sensor                   // Sonoff SNZB-03
@@ -4923,8 +4959,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("lumi.sensor_smoke")) || // Xiaomi Mi smoke sensor
                              modelId.startsWith(QLatin1String("TS0204")) ||           // Tuya gas sensor
                              modelId.startsWith(QLatin1String("FNB56-COS")) ||        // Feibit FNB56-COS06FB1.7 Carb. Mon. detector
-                             modelId.startsWith(QLatin1String("FNB56-GAS")) ||        // Feibit gas sensor
-                             modelId.startsWith(QLatin1String("MOT003")))             // Hive motion sensor
+                             modelId.startsWith(QLatin1String("FNB56-GAS")))          // Feibit gas sensor
                     {
                         // Gas sensor detects combustable gas, so fire is more appropriate than CO.
                         fpFireSensor.inClusters.push_back(ci->id());
@@ -5168,6 +5203,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 {
                     if ((modelId == QLatin1String("kud7u2l")) ||
                         (modelId == QLatin1String("GbxAXL2")) ||
+                        (manufacturer == QLatin1String("_TZE200_aoclfnxz")) ||
                         (manufacturer == QLatin1String("_TZE200_ckud7u2l")) )
                     {
                         fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
@@ -6163,13 +6199,23 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.modelId() == QLatin1String("kud7u2l") ||         // Tuya
                 sensorNode.modelId() == QLatin1String("GbxAXL2") ||         // Tuya
                 sensorNode.modelId() == QLatin1String("TS0601") ||          // Tuya
+                sensorNode.modelId() == QLatin1String("eaxp72v") ||          // Tuya
                 sensorNode.modelId() == QLatin1String("Zen-01") )           // Zen
             {
                 sensorNode.addItem(DataTypeString, RConfigMode);
             }
+            
+            if (sensorNode.modelId() == QLatin1String("Super TR"))   // ELKO
+            {
+                sensorNode.addItem(DataTypeString, RConfigTemperatureMeasurement);
+                sensorNode.addItem(DataTypeInt16, RStateFloorTemperature);
+                sensorNode.addItem(DataTypeBool, RStateHeating);
+                sensorNode.addItem(DataTypeBool, RConfigLocked);
+            }
 
             if (sensorNode.modelId() == QLatin1String("kud7u2l") || // Tuya
                 sensorNode.modelId() == QLatin1String("GbxAXL2") || // Tuya
+                sensorNode.modelId() == QLatin1String("eaxp72v") || // Tuya
                 sensorNode.modelId() == QLatin1String("TS0601") )   // Tuya
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
@@ -7169,7 +7215,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 // 68.5%, 90%) with a range between zero and 100%, with 0x00 = 0%, 0x64 = 50%, and 0xC8 = 100%. This is
                                 // particularly suited for devices with rechargeable batteries.
                                 if (item)
-                                {
+                                {  
+                                    
                                     int bat = ia->numericValue().u8 / 2;
 
                                     if (i->modelId().startsWith(QLatin1String("TRADFRI")) || // IKEA
@@ -7215,6 +7262,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId() == QLatin1String("Thermostat") ||       // eCozy thermostat
                                     i->modelId() == QLatin1String("Motion Sensor-A") ||  // Osram motion sensor
                                     i->modelId() == QLatin1String("Bell") ||             // Sage doorbell sensor
+                                    i->modelId() == QLatin1String("ISW-ZPR1-WP13") ||    // Bosch motion sensor 
                                     i->modelId().endsWith(QLatin1String("86opcn01")) ||  // Aqara Opple
                                     i->modelId().startsWith(QLatin1String("SMSZB-120")) || // Develco smoke sensor
                                     i->modelId().startsWith(QLatin1String("HESZB-120")) || // Develco heat sensor

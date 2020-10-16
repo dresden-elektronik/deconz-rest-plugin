@@ -26,6 +26,7 @@
 #include "resource.h"
 #include "daylight.h"
 #include "event.h"
+#include "green_power.h"
 #include "resource.h"
 #include "rest_node_base.h"
 #include "light_node.h"
@@ -184,7 +185,6 @@
 #define MULTISTATE_INPUT_CLUSTER_ID           0x0012
 #define OTAU_CLUSTER_ID                       0x0019
 #define POLL_CONTROL_CLUSTER_ID               0x0020
-#define GREEN_POWER_CLUSTER_ID                0x0021
 #define DOOR_LOCK_CLUSTER_ID                  0x0101
 #define WINDOW_COVERING_CLUSTER_ID            0x0102
 #define THERMOSTAT_CLUSTER_ID                 0x0201
@@ -214,8 +214,6 @@
 #define XAL_CLUSTER_ID                        0xFCCE
 
 #define IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID  0x0002
-
-#define GREEN_POWER_ENDPOINT 0xf2
 
 #define ONOFF_COMMAND_OFF     0x00
 #define ONOFF_COMMAND_ON      0x01
@@ -1139,8 +1137,6 @@ public:
     // Permit join
     void initPermitJoin();
     bool setPermitJoinDuration(uint8_t duration);
-    bool sendGPProxyCommissioningMode();
-    bool sendGPPairing(quint32 gpdSrcId, quint16 sinkGroupId, quint8 deviceId, quint32 frameCounter, const quint8 *key);
 
     // Otau
     void initOtau();
@@ -1584,6 +1580,7 @@ public:
     // configuration
     bool gwLinkButton;
     bool gwWebSocketNotifyAll;  // include all attributes in websocket notification
+    bool gwdisablePermitJoinAutoOff; // Stop the periodic verification for closed network
     bool gwRfConnectedExpected;  // the state which should be hold
     bool gwRfConnected;  // to detect changes
     int gwAnnounceInterval; // used by internet discovery [minutes]

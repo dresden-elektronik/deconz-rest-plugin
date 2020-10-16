@@ -1069,6 +1069,55 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
             return sendConfigureReportingRequest(bt, {rq, rq2});
         }
+        else if (sensor && sensor->modelId() == QLatin1String("Super TR")) // Elko Super TR
+        {
+            rq.dataType = deCONZ::Zcl16BitInt;
+            rq.attributeId = 0x0000;        // Local temperature
+            rq.minInterval = 1;
+            rq.maxInterval = 600;
+            rq.reportableChange16bit = 20;
+
+            ConfigureReportingRequest rq2;
+            rq2.dataType = deCONZ::Zcl16BitInt;
+            rq2.attributeId = 0x0012;        // Occupied heating setpoint
+            rq2.minInterval = 1;
+            rq2.maxInterval = 600;
+            rq2.reportableChange16bit = 50;
+
+            ConfigureReportingRequest rq3;
+            rq3.dataType = deCONZ::Zcl8BitEnum;
+            rq3.attributeId = 0x001C;        // Thermostat mode
+            rq3.minInterval = 1;
+            rq3.maxInterval = 600;
+            rq3.reportableChange8bit = 0xff;
+
+            ConfigureReportingRequest rq4;
+            rq4.dataType = deCONZ::ZclBoolean;
+            rq4.attributeId = 0x0406;        // Device on
+            rq4.minInterval = 1;
+            rq4.maxInterval = 600;
+
+            ConfigureReportingRequest rq5;
+            rq5.dataType = deCONZ::Zcl16BitInt;
+            rq5.attributeId = 0x0409;        // Floor temperature
+            rq5.minInterval = 1;
+            rq5.maxInterval = 600;
+            rq5.reportableChange16bit = 20;
+
+            ConfigureReportingRequest rq6;
+            rq6.dataType = deCONZ::ZclBoolean;
+            rq6.attributeId = 0x0413;        // Child lock
+            rq6.minInterval = 1;
+            rq6.maxInterval = 600;
+
+            ConfigureReportingRequest rq7;
+            rq7.dataType = deCONZ::ZclBoolean;
+            rq7.attributeId = 0x0415;        // Heating active/inactive
+            rq7.minInterval = 1;
+            rq7.maxInterval = 600;
+
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4, rq5, rq6, rq7});
+        }
         else if (sensor && sensor->modelId() == QLatin1String("Zen-01")) // Zen
         {
             rq.dataType = deCONZ::Zcl16BitInt;
@@ -1377,6 +1426,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                             sensor->modelId() == QLatin1String("RFDL-ZB-MS") ||
                             sensor->modelId() == QLatin1String("Zen-01") ||
                             sensor->modelId() == QLatin1String("Bell") ||
+                            sensor->modelId() == QLatin1String("ISW-ZPR1-WP13") ||
                             sensor->modelId() == QLatin1String("SLT2") ||
                             sensor->modelId() == QLatin1String("TS0202") || // Tuya sensor
                             sensor->modelId() == QLatin1String("3AFE14010402000D") || // Konke presence sensor
@@ -2030,6 +2080,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturer() == QLatin1String("Sercomm Corp."))
         {
         }
+        else if (lightNode->manufacturer() == QLatin1String("Kwikset"))
+        {
+        }
         else if (lightNode->manufacturer() == QLatin1String("NIKO NV"))
         {
         }
@@ -2378,6 +2431,9 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // iris
         sensor->modelId().startsWith(QLatin1String("1116-S")) ||
         sensor->modelId().startsWith(QLatin1String("1117-S")) ||
+        // ELKO
+        sensor->modelId().startsWith(QLatin1String("Super TR")) ||
+        sensor->modelId().startsWith(QLatin1String("ElkoDimmer")) ||
         // Hive
         sensor->modelId() == QLatin1String("MOT003") ||
         sensor->modelId() == QLatin1String("DWS003") ||
@@ -2559,6 +2615,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                      sensor->modelId() == QLatin1String("MOSZB-130") ||
                      sensor->modelId() == QLatin1String("FLSZB-110") ||
                      sensor->modelId() == QLatin1String("Zen-01") ||
+                     sensor->modelId() == QLatin1String("ISW-ZPR1-WP13") ||
                      sensor->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
                      sensor->modelId().startsWith(QLatin1String("Switch 4x EU-LIGHTIFY")) || // Osram 4 button remote
                      sensor->modelId().startsWith(QLatin1String("Switch 4x-LIGHTIFY")) || // Osram 4 button remote
@@ -2843,7 +2900,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
     std::vector<quint16> clusters;
 
     if (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
-        sensor->modelId().startsWith(QLatin1String("ROM00"))) // Hue smart button
+        sensor->modelId().startsWith(QLatin1String("ROM00")) || // Hue smart button
+        sensor->modelId().startsWith(QLatin1String("ElkoDimmer"))) // Elko dimmer
 
     {
         srcEndpoints.push_back(0x01);
@@ -3239,6 +3297,7 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
         sensor->modelId().startsWith(QLatin1String("Bell")) || // Sage doorbell sensor
         sensor->modelId().startsWith(QLatin1String("ZBT-CCTSwitch-D0001")) || //LDS Remote
         sensor->modelId().startsWith(QLatin1String("ZBT-DIMSwitch")) || // Linkind 1 key Remote Control / ZS23000178
+        sensor->modelId().startsWith(QLatin1String("ElkoDimmer")) || // Elko dimmer
         sensor->modelId().startsWith(QLatin1String("WB01")) || // Sonoff SNZB-01
         sensor->modelId().startsWith(QLatin1String("ZG2835")) || // SR-ZG2835 Zigbee Rotary Switch
         sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5121"))) // RGBgenie ZB-5121 remote

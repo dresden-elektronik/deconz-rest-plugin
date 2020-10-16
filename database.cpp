@@ -1518,6 +1518,15 @@ static int sqliteLoadConfigCallback(void *user, int ncols, char **colval , char 
           d->gwWebSocketNotifyAll = notifyAll;
       }
     }
+    else if (strcmp(colval[0], "disablePermitJoinAutoOff") == 0)
+    {
+      if (!val.isEmpty())
+      {
+          bool v = val == "true";
+          d->gwConfig["disablePermitJoinAutoOff"] = v;
+          d->gwdisablePermitJoinAutoOff = v;
+      }
+    }
     else if (strcmp(colval[0], "proxyaddress") == 0)
     {
       if (!val.isEmpty())
@@ -3497,12 +3506,22 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.modelId() == QLatin1String("GbxAXL2") ||         // Tuya
                     sensor.modelId() == QLatin1String("kud7u2l") ||         // Tuya
                     sensor.modelId() == QLatin1String("TS0601") ||          // Tuya
+                    sensor.modelId() == QLatin1String("eaxp72v") ||          // Tuya
                     sensor.modelId() == QLatin1String("Zen-01") )           // Zen
                 {
                     sensor.addItem(DataTypeString, RConfigMode);
                 }
+                
+                if (sensor.modelId() == QLatin1String("Super TR"))   // ELKO
+                {
+                    sensor.addItem(DataTypeString, RConfigTemperatureMeasurement);
+                    sensor.addItem(DataTypeInt16, RStateFloorTemperature);
+                    sensor.addItem(DataTypeBool, RStateHeating);
+                    sensor.addItem(DataTypeBool, RConfigLocked);
+                }
 
-                if (sensor.modelId() == QLatin1String("kud7u2l") || // Tuya 
+                if (sensor.modelId() == QLatin1String("kud7u2l") || // Tuya
+                    sensor.modelId() == QLatin1String("eaxp72v") || // Tuya
                     sensor.modelId() == QLatin1String("GbxAXL2") || // Tuya
                     sensor.modelId() == QLatin1String("TS0601") )   // Tuya
                 {
@@ -4455,6 +4474,7 @@ void DeRestPluginPrivate::saveDb()
         gwConfig["wifilastupdated"] = gwWifiLastUpdated;
         gwConfig["bridgeid"] = gwBridgeId;
         gwConfig["websocketnotifyall"] = gwWebSocketNotifyAll;
+        gwConfig["disablePermitJoinAutoOff"] = gwdisablePermitJoinAutoOff;
         gwConfig["proxyaddress"] = gwProxyAddress;
         gwConfig["proxyport"] = gwProxyPort;
         gwConfig["zclvaluemaxage"] = dbZclValueMaxAge;

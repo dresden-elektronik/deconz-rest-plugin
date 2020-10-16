@@ -1737,6 +1737,32 @@ Note: It does not clear or delete previous weekly schedule programming configura
           <attribute id="0x0081" name="Unknown" type="s16" access="r" required="o"/>
           <attribute id="0x0082" name="Unknown (Heat Setpoint?)" type="s16" access="r" required="o"/>
         </attribute-set>
+        
+		<!-- ELKO specific -->
+		<attribute-set id="0x0400" description="ELKO specific" mfcode="0x1002">
+			<attribute id="0x0401" name="Unknown" type="u16" access="rw" required="m"></attribute>
+			<attribute id="0x0402" name="Unknown name field" type="cstring" access="rw" required="m"></attribute>
+			<attribute id="0x0403" name="Temperature measurement" type="enum8" access="rw" required="m">
+				<value name="Air sensor" value="0x00"></value>
+				<value name="Floor sensor" value="0x01"></value>
+				<value name="Floor protection" value="0x03"></value>
+			</attribute>
+			<attribute id="0x0404" name="Unknown" type="u8" access="rw" required="m"></attribute>
+			<attribute id="0x0405" name="Regulator mode" type="bool" access="rw" required="m"></attribute>
+			<attribute id="0x0406" name="Device on" type="bool" access="rw" required="m"></attribute>
+			<attribute id="0x0407" name="Unknown" type="ostring" access="rw" required="m"></attribute>
+			<attribute id="0x0408" name="Unknown" type="u16" access="rw" required="m"></attribute>
+			<attribute id="0x0409" name="Floor temperature sensor" type="s16" access="rw" required="m"></attribute>
+			<attribute id="0x0411" name="Night lowering" type="bool" access="rw" required="m"></attribute>
+			<attribute id="0x0412" name="Unknown" type="bool" access="r" required="m"></attribute>
+			<attribute id="0x0413" name="Child lock" type="bool" access="rw" required="m"></attribute>
+			<attribute id="0x0414" name="Unknown" type="u8" access="rw" required="m"></attribute>
+			<attribute id="0x0415" name="Heating active/inactive" type="bool" access="rw" required="m"></attribute>
+			<attribute id="0x0416" name="Unknown" type="ostring" access="rw" required="m"></attribute>
+			<attribute id="0x0417" name="Unknown" type="s8" access="rw" required="m"></attribute>
+			<attribute id="0x0418" name="Unknown" type="u8" access="rw" required="m"></attribute>
+			<attribute id="0x0419" name="Unknown" type="u8" access="rw" required="m"></attribute>
+		</attribute-set>
 
 		<!-- Eurotronic manufacturer specific -->
 		<attribute-set id="0x4000" description="Eurotronic" mfcode="0x1037">
@@ -1801,45 +1827,19 @@ Note: It does not clear or delete previous weekly schedule programming configura
 			<attribute id="0x404E" name="Unknown" type="bmp8" access="rw" required="m" mfcode="0x1246"></attribute>
 		</attribute-set>
 
-		<!-- ELKO manufacturer specific -->
-		<attribute-set id="0x4000" description="ELKO specific" mfcode="0x1002">
-			<attribute id="0x4001" name="Unknown" type="u16" access="rw" required="m" mfcode="0x1002"></attribute>
-			<attribute id="0x4002" name="Unknown name field" type="cstring" access="rw" required="m" mfcode="0x1002"></attribute>
-            <attribute id="0x4003" name="Unknown" type="enum8" access="rw" required="m" mfcode="0x1002">
-				<value name="Air sensor" value="0x00"></value>
-				<value name="Floor sensor" value="0x01"></value>
-				<value name="Floor protection" value="0x03"></value>
-			</attribute>
-			<attribute id="0x4004" name="Unknown" type="u8" access="rw" required="m" mfcode="0x1002"></attribute>
-			<attribute id="0x4005" name="Regulator mode" type="bool" access="rw" required="m" mfcode="0x1002"></attribute>
-			<attribute id="0x4006" name="Device on" type="bool" access="rw" required="m" mfcode="0x1002"></attribute>
-			<attribute id="0x4007" name="Unknown" type="ostring" access="rw" required="m" mfcode="0x1002"></attribute>
-			<attribute id="0x4008" name="Unknown" type="u16" access="rw" required="m" mfcode="0x1002"></attribute>
-			<attribute id="0x4009" name="Floor temperature sensor" type="s16" access="rw" required="m" mfcode="0x1002"></attribute>
-			<attribute id="0x4011" name="Night lowering" type="bool" access="rw" required="m" mfcode="0x1002"></attribute>
-			<attribute id="0x4012" name="Unknown" type="bool" access="r" required="m" mfcode="0x1002"></attribute>
-			<attribute id="0x4013" name="Child lock" type="bool" access="rw" required="m" mfcode="0x1002"></attribute>
-			<attribute id="0x4014" name="Unknown" type="u8" access="rw" required="m" mfcode="0x1002"></attribute>
-			<attribute id="0x4015" name="Heating active/inactive" type="bool" access="rw" required="m" mfcode="0x1002"></attribute>
-			<attribute id="0x4016" name="Unknown" type="ostring" access="rw" required="m" mfcode="0x1002"></attribute>
-			<attribute id="0x4017" name="Unknown" type="s8" access="rw" required="m" mfcode="0x1002"></attribute>
-			<attribute id="0x4018" name="Unknown" type="u8" access="rw" required="m" mfcode="0x1002"></attribute>
-			<attribute id="0x4019" name="Unknown" type="u8" access="rw" required="m" mfcode="0x1002"></attribute>
-		</attribute-set>
-
-				<command id="0x00" dir="recv" name="Setpoint Raise/Lower" required="m">
-					<description>This command increases (or decreases) the setpoint(s) by amount, in steps of 0.1°C.</description>
-					<payload>
-						<attribute id="0x0000" type="enum8" name="Mode" required="m">
-							<value name="Heat (adjust Heat Setpoint)" value="0x00"></value>
-							<value name="Cool (adjust Cool Setpoint)" value="0x01"></value>
-							<value name="Both (adjust Heat Setpoint and Cool Setpoint)" value="0x02"></value>
-						</attribute>
-						<attribute id="0x0001" type="s8" name="Amount" required="m">
-							<description>The amount field is a signed 8-bit integer that specifies the amount the setpoint(s) are to be a increased (or decreased) by, in steps of 0.1°C.</description>
-						</attribute>
-					</payload>
-				</command>
+		<command id="0x00" dir="recv" name="Setpoint Raise/Lower" required="m">
+			<description>This command increases (or decreases) the setpoint(s) by amount, in steps of 0.1°C.</description>
+			<payload>
+				<attribute id="0x0000" type="enum8" name="Mode" required="m">
+					<value name="Heat (adjust Heat Setpoint)" value="0x00"></value>
+					<value name="Cool (adjust Cool Setpoint)" value="0x01"></value>
+					<value name="Both (adjust Heat Setpoint and Cool Setpoint)" value="0x02"></value>
+				</attribute>
+				<attribute id="0x0001" type="s8" name="Amount" required="m">
+					<description>The amount field is a signed 8-bit integer that specifies the amount the setpoint(s) are to be a increased (or decreased) by, in steps of 0.1°C.</description>
+				</attribute>
+			</payload>
+		</command>
         <command id="0x01" dir="recv" name="Set Weekly Schedule" required="o">
           <payload>
             <attribute id="0x0000" type="enum8" name="Number of Transtions for Sequence" required="m">
@@ -3322,6 +3322,12 @@ devices can operate on either battery or mains power, and can have a wide variet
 				</attribute>
 				<attribute id="0x0007" name="Active Functionality" type="bmp24" default="0xffffff" access="r" required="m" showas="hex">
 					<description>The optional GP functionality supported by this sink that is active.</description>
+				</attribute>
+				<attribute id="0x0020" name="Shared Security Key Type" type="bmp8" default="0x00" access="r" required="m" showas="hex">
+				</attribute>
+				<attribute id="0x0021" name="Shared Security Key" type="seckey" access="r" required="m" showas="hex">
+				</attribute>
+				<attribute id="0x0022" name="GP Link Key" type="seckey" access="r" required="m" showas="hex">
 				</attribute>
 			</server>
 			<client>
