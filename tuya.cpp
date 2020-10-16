@@ -439,6 +439,11 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     quint8 bat = (qint8)(data & 0xFF);
                     if (bat > 100) { bat = 100; }
                     ResourceItem *item = sensorNode->item(RConfigBattery);
+                    
+                    if (!item && bat > 0) // valid value: create resource item
+                    {
+                        item = sensorNode->addItem(DataTypeUInt8, RConfigBattery);
+                    }
 
                     if (item && item->toNumber() != bat)
                     {

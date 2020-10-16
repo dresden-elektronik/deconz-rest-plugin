@@ -6026,7 +6026,6 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.modelId() == QLatin1String("kud7u2l") ||         // Tuya
                 sensorNode.modelId() == QLatin1String("GbxAXL2") ||         // Tuya
                 sensorNode.modelId() == QLatin1String("TS0601") ||          // Tuya
-                sensorNode.modelId() == QLatin1String("eaxp72v") ||          // Tuya
                 sensorNode.modelId() == QLatin1String("Zen-01") )           // Zen
             {
                 sensorNode.addItem(DataTypeString, RConfigMode);
@@ -6051,6 +6050,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             }
 
             if (sensorNode.modelId() == QLatin1String("kud7u2l") || // Tuya
+                sensorNode.modelId() == QLatin1String("eaxp72v") || // Tuya
                 sensorNode.modelId() == QLatin1String("TS0601") )   // Tuya
             {
                 sensorNode.addItem(DataTypeString, RConfigPreset);
