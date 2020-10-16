@@ -4627,6 +4627,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         // For some device the Tuya cluster is sometime Invisible, so force device detection
                         if ((modelId == QLatin1String("kud7u2l")) ||
                            (modelId == QLatin1String("eaxp72v")) ||
+                           (manufacturer == QLatin1String("_TZE200_aoclfnxz")) ||
                            (modelId == QLatin1String("GbxAXL2")) )
                         {
                             fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
