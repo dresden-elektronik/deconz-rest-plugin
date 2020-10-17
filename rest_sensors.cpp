@@ -1385,7 +1385,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         {
                             bool data = map[pi.key()].toBool();
 
-                            if (addTaskThermostatUiConfigurationReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0412, deCONZ::ZclBoolean, data))
+                            if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0412, deCONZ::ZclBoolean, data))
                             {
                                 updated = true;
                             }
@@ -1483,7 +1483,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 
                             if (mode < 4 && mode != 2)
                             {
-                                if (addTaskThermostatUiConfigurationReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0403, deCONZ::Zcl8BitEnum, mode))
+                                if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0403, deCONZ::Zcl8BitEnum, mode))
                                 {
                                     updated = true;
                                 }
@@ -1499,7 +1499,10 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else
                     {
-                        rspItemState[QString("Error : unknown Window open setting for %1").arg(sensor->modelId())] = map[pi.key()];
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
                     }
                 }
                 else if ((rid.suffix == RConfigWindowOpen) && (sensor->modelId().startsWith(QLatin1String("kud7u2l")) ||
