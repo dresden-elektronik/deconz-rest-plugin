@@ -449,6 +449,20 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
             }
                 break;
 
+            case 0x0011: // Occupied Cooling Setpoint
+            {
+                qint16 coolSetpoint = attr.numericValue().s16;
+                item = sensor->item(RConfigCoolSetpoint);
+                if (item && item->toNumber() != coolSetpoint)
+                {
+                    item->setValue(coolSetpoint);
+                    enqueueEvent(Event(RSensors, RConfigCoolSetpoint, sensor->id(), item));
+                    configUpdated = true;
+                }
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
+                break;
+
             case 0x0012: // Occupied Heating Setpoint
             {
                 if (sensor->modelId().startsWith(QLatin1String("SPZB"))) // Eurotronic Spirit

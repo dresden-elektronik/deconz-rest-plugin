@@ -1,20 +1,21 @@
 #include "de_web_plugin.h"
 #include "de_web_plugin_private.h"
 
-/*! Handle packets related to the ZCL Thermostat UI Configration cluster.
+/*! Handle packets related to the ZCL Fan control cluster.
     \param ind the APS level data indication containing the ZCL packet
     \param zclFrame the actual ZCL frame which holds the Thermostat cluster command or attribute
  */
-void DeRestPluginPrivate::handleThermostatUiConfigurationClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
+void DeRestPluginPrivate::handleFanControlClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
     Sensor *sensor = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
 
     if (!sensor)
     {
-        DBG_Printf(DBG_INFO, "No thermostat sensor found for 0x%016llX, endpoint: 0x%08X\n", ind.srcAddress().ext(), ind.srcEndpoint());
+        DBG_Printf(DBG_INFO, "No sensor found for 0x%016llX, endpoint: 0x%08X\n", ind.srcAddress().ext(), ind.srcEndpoint());
         return;
     }
 
+    // Currently only intended for thermostats. Might change later...
     if (sensor->type() != QLatin1String("ZHAThermostat"))
     {
         return;
@@ -70,36 +71,31 @@ void DeRestPluginPrivate::handleThermostatUiConfigurationClusterIndication(const
 
             switch (attrId)
             {
-            case 0x0001: // Keypad Lockout
+            case 0x0000: // Fan mode
             {
-                bool locked = attr.numericValue().u8 > 0 ? true : false;
-                item = sensor->item(RConfigLocked);
-
-                if (item && item->toBool() != locked)
+                if (sensor->modelId() == QLatin1String("AC201"))    // Owon
                 {
-                    item->setValue(locked);
-                    enqueueEvent(Event(RSensors, RConfigLocked, sensor->id(), item));
-                    configUpdated = true;
-                }
-                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_UI_CONFIGURATION_CLUSTER_ID, attrId, attr.numericValue());
-            }
-                break;
+                    qint8 mode = attr.numericValue().u8;
+                    QString mode_set;
 
-            case 0x4000: // Viewing Direction
-            {
-                if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001"))
-                {
-                    bool displayflipped = attr.numericValue().u8 > 0 ? true : false;
-                    item = sensor->item(RConfigDisplayFlipped);
+                    mode_set = QString("off");
+                    if ( mode == 0x00 ) { mode_set = QString("off"); }
+                    if ( mode == 0x01 ) { mode_set = QString("low"); }
+                    if ( mode == 0x02 ) { mode_set = QString("medium"); }
+                    if ( mode == 0x03 ) { mode_set = QString("high"); }
+                    if ( mode == 0x04 ) { mode_set = QString("on"); }
+                    if ( mode == 0x05 ) { mode_set = QString("auto"); }
+                    if ( mode == 0x06 ) { mode_set = QString("smart"); }
 
-                    if (item && item->toBool() != displayflipped)
+                    item = sensor->item(RConfigFanMode);
+                    if (item && !item->toString().isEmpty() && item->toString() != mode_set)
                     {
-                        item->setValue(displayflipped);
-                        enqueueEvent(Event(RSensors, RConfigDisplayFlipped, sensor->id(), item));
+                        item->setValue(mode_set);
+                        enqueueEvent(Event(RSensors, RConfigFanMode, sensor->id(), item));
                         configUpdated = true;
                     }
                 }
-                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_UI_CONFIGURATION_CLUSTER_ID, attrId, attr.numericValue());
+                sensor->setZclValue(updateType, ind.srcEndpoint(), FAN_CONTROL_CLUSTER_ID, attrId, attr.numericValue());
             }
                 break;
 
@@ -124,7 +120,7 @@ void DeRestPluginPrivate::handleThermostatUiConfigurationClusterIndication(const
     }
 }
 
-/*! Write Attribute on thermostat ui configuration cluster.
+/*! Write Attribute on fan control cluster.
    \param task - the task item
    \param attrId
    \param attrType
@@ -132,7 +128,7 @@ void DeRestPluginPrivate::handleThermostatUiConfigurationClusterIndication(const
    \return true - on success
            false - on error
  */
-bool DeRestPluginPrivate::addTaskThermostatUiConfigurationReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t attrId, uint8_t attrType, uint32_t attrValue, uint16_t mfrCode)
+bool DeRestPluginPrivate::addTaskFanControlReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t attrId, uint8_t attrType, uint32_t attrValue, uint16_t mfrCode)
 {
     if (readOrWriteCmd != deCONZ::ZclReadAttributesId && readOrWriteCmd != deCONZ::ZclWriteAttributesId)
     {
@@ -142,7 +138,7 @@ bool DeRestPluginPrivate::addTaskThermostatUiConfigurationReadWriteAttribute(Tas
 
     task.taskType = TaskThermostat;
 
-    task.req.setClusterId(THERMOSTAT_UI_CONFIGURATION_CLUSTER_ID);
+    task.req.setClusterId(FAN_CONTROL_CLUSTER_ID);
     task.req.setProfileId(HA_PROFILE_ID);
 
     task.zclFrame.payload().clear();

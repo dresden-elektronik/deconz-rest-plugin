@@ -1118,6 +1118,37 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4, rq5, rq6, rq7});
         }
+        else if (sensor && sensor->modelId() == QLatin1String("SORB")) // Stelpro Orleans Fan
+        {
+            rq.dataType = deCONZ::Zcl16BitInt;
+            rq.attributeId = 0x0000;         // Local Temperature
+            rq.minInterval = 1;
+            rq.maxInterval = 600;
+            rq.reportableChange16bit = 20;
+
+            ConfigureReportingRequest rq2;
+            rq2.dataType = deCONZ::Zcl16BitInt;
+            rq2.attributeId = 0x0011;        // Occupied cooling setpoint
+            rq2.minInterval = 1;
+            rq2.maxInterval = 600;
+            rq2.reportableChange16bit = 50;
+
+            ConfigureReportingRequest rq3;
+            rq3.dataType = deCONZ::Zcl16BitInt;
+            rq3.attributeId = 0x0012;        // Occupied heating setpoint
+            rq3.minInterval = 1;
+            rq3.maxInterval = 600;
+            rq3.reportableChange16bit = 50;
+
+            ConfigureReportingRequest rq4;
+            rq4.dataType = deCONZ::Zcl8BitEnum;
+            rq4.attributeId = 0x001C;        // Thermostat mode
+            rq4.minInterval = 1;
+            rq4.maxInterval = 600;
+            rq4.reportableChange8bit = 0xff;
+
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
+        }
         else if (sensor && sensor->modelId() == QLatin1String("Zen-01")) // Zen
         {
             rq.dataType = deCONZ::Zcl16BitInt;
@@ -1157,8 +1188,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4, rq5});
         }
         else if ((sensor && sensor->modelId().startsWith(QLatin1String("SLR2"))) || // Hive
-                 (sensor && sensor->modelId() == QLatin1String("SLR1b")) || // Hive
-                 (sensor && sensor->modelId().startsWith(QLatin1String("TH112")))) // Sinope
+                 (sensor && sensor->modelId() == QLatin1String("SLR1b")) ||         // Hive
+                 (sensor && sensor->modelId().startsWith(QLatin1String("TH112"))))  // Sinope
         {
             rq.dataType = deCONZ::Zcl16BitInt;
             rq.attributeId = 0x0000;       // local temperature
@@ -1189,7 +1220,37 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
         }
+        else if (sensor && sensor->modelId() == QLatin1String("AC201")) // OWON AC201 Thermostat
+        {
+            rq.dataType = deCONZ::Zcl16BitInt;
+            rq.attributeId = 0x0000;         // Local Temperature
+            rq.minInterval = 1;
+            rq.maxInterval = 600;
+            rq.reportableChange16bit = 50;
 
+            ConfigureReportingRequest rq2;
+            rq2.dataType = deCONZ::Zcl16BitInt;
+            rq2.attributeId = 0x0011;        // Occupied cooling setpoint
+            rq2.minInterval = 1;
+            rq2.maxInterval = 600;
+            rq2.reportableChange16bit = 50;
+
+            ConfigureReportingRequest rq3;
+            rq3.dataType = deCONZ::Zcl16BitInt;
+            rq3.attributeId = 0x0012;        // Occupied heating setpoint
+            rq3.minInterval = 1;
+            rq3.maxInterval = 600;
+            rq3.reportableChange16bit = 50;
+
+            ConfigureReportingRequest rq4;
+            rq4.dataType = deCONZ::Zcl8BitEnum;
+            rq4.attributeId = 0x001C;        // Thermostat mode
+            rq4.minInterval = 1;
+            rq4.maxInterval = 600;
+            rq4.reportableChange8bit = 0xff;
+
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
+        }
         else if ( (sensor && sensor->modelId() == QLatin1String("eTRV0100")) || // Danfoss Ally
                   (sensor && sensor->modelId() == QLatin1String("TRV001")) )    // Hive TRV
         {
@@ -1315,6 +1376,16 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             return sendConfigureReportingRequest(bt, {rq}) || // Use OR because of manuf. specific attributes
                    sendConfigureReportingRequest(bt, {rq2});
         }
+        else if (sensor && sensor->modelId() == QLatin1String("SORB"))    // Stelpro Orleans Fan
+        {
+            rq.dataType = deCONZ::Zcl8BitEnum;
+            rq.attributeId = 0x0001;       // Keypad Lockout
+            rq.minInterval = 1;
+            rq.maxInterval = 43200;
+            rq.reportableChange8bit = 0xff;
+
+            return sendConfigureReportingRequest(bt, {rq});
+        }
     }
     else if (bt.binding.clusterId == DIAGNOSTICS_CLUSTER_ID)
     {
@@ -1329,6 +1400,20 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 43200;
             rq.reportableChange16bit = 0xffff;
             rq.manufacturerCode = VENDOR_DANFOSS;
+            return sendConfigureReportingRequest(bt, {rq});
+        }
+    }
+    else if (bt.binding.clusterId == FAN_CONTROL_CLUSTER_ID)
+    {
+        Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
+
+        if (sensor && sensor->modelId() == QLatin1String("AC201"))    // OWON AC201 Thermostat
+        {
+            rq.dataType = deCONZ::Zcl8BitEnum;
+            rq.attributeId = 0x0000;        // Fan mode
+            rq.minInterval = 1;
+            rq.maxInterval = 600;
+            rq.reportableChange8bit = 0xff;
             return sendConfigureReportingRequest(bt, {rq});
         }
     }
@@ -2020,7 +2105,13 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturerCode() == VENDOR_SINOPE)
         {
         }
+        else if (lightNode->manufacturerCode() == VENDOR_OWON)
+        {
+        }
         else if (lightNode->manufacturerCode() == VENDOR_XIAOMI)
+        {
+        }
+        else if (lightNode->manufacturerCode() == VENDOR_STELPRO)
         {
         }
         else if (lightNode->modelId().startsWith(QLatin1String("SP ")))
@@ -2414,6 +2505,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Stelpro
         sensor->modelId().contains(QLatin1String("ST218")) ||
         sensor->modelId().contains(QLatin1String("STZB402")) ||
+        sensor->modelId() == QLatin1String("SORB") ||
         // Tuya
         sensor->modelId().startsWith(QLatin1String("TS01")) ||
         sensor->modelId().startsWith(QLatin1String("TS02")) ||
@@ -2481,6 +2573,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("Connected socket outlet") ||
         // Sage
         sensor->modelId() == QLatin1String("Bell") ||
+        // Owon
+        sensor->modelId() == QLatin1String("AC201") ||
         // Sonoff
         sensor->modelId() == QLatin1String("WB01") ||
         sensor->modelId() == QLatin1String("MS01") ||
@@ -2728,6 +2822,10 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         {
             val = sensor->getZclValue(*i, 0x0000); // Local temperature
         }
+        else if (*i == FAN_CONTROL_CLUSTER_ID)
+        {
+            val = sensor->getZclValue(*i, 0x0000); // Fan mode
+        }
         else if (*i == THERMOSTAT_UI_CONFIGURATION_CLUSTER_ID)
         {
             val = sensor->getZclValue(*i, 0x0001); // Keypad lockout
@@ -2798,6 +2896,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         case BASIC_CLUSTER_ID:
         case BINARY_INPUT_CLUSTER_ID:
         case THERMOSTAT_CLUSTER_ID:
+        case FAN_CONTROL_CLUSTER_ID:
         case THERMOSTAT_UI_CONFIGURATION_CLUSTER_ID:
         case DIAGNOSTICS_CLUSTER_ID:
         case APPLIANCE_EVENTS_AND_ALERTS_CLUSTER_ID:

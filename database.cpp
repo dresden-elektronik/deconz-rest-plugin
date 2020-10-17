@@ -3555,6 +3555,13 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeUInt8, RConfigLastChangeSource);
                     sensor.addItem(DataTypeTime, RConfigLastChangeTime);
                 }
+                else if (sensor.modelId() == QLatin1String("SORB")) // Stelpro Orleans Fan
+                {
+                    sensor.addItem(DataTypeInt16, RConfigCoolSetpoint);
+                    sensor.addItem(DataTypeUInt8, RStateValve);
+                    sensor.addItem(DataTypeBool, RConfigLocked);
+                    sensor.addItem(DataTypeString, RConfigMode);
+                }
                 else if (sensor.modelId() == QLatin1String("Zen-01"))
                 {
                 }
@@ -3568,6 +3575,12 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeBool, RConfigDisplayFlipped);
                     sensor.addItem(DataTypeBool, RConfigLocked);
                     sensor.addItem(DataTypeBool, RConfigMountingMode);
+                }
+                else if (sensor.modelId() == QLatin1String("AC201")) // OWON AC201 Thermostat
+                {
+                    sensor.addItem(DataTypeInt16, RConfigCoolSetpoint);
+                    sensor.addItem(DataTypeString, RConfigMode);
+                    sensor.addItem(DataTypeString, RConfigFanMode);
                 }
                 else
                 {
