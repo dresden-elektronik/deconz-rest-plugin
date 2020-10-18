@@ -974,6 +974,13 @@ bool DeRestPluginPrivate::queueBindingTask(const BindingTask &bindingTask)
     {
         DBG_Printf(DBG_INFO_L2, "queue binding task for 0x%016llX, cluster 0x%04X\n", bindingTask.binding.srcAddress, bindingTask.binding.clusterId);
         bindingQueue.push_back(bindingTask);
+
+#if DECONZ_LIB_VERSION >= 0x010F00
+        if (bindingTask.action == BindingTask::ActionBind)
+        {
+            apsCtrl->addBinding(convertToCoreBinding(bindingTask.binding));
+        }
+#endif
     }
     else
     {

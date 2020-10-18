@@ -22,6 +22,7 @@ void DEV_ActiveEndpointsStateHandler(Device *device, const Event &event);
 void DEV_SimpleDescriptorStateHandler(Device *device, const Event &event);
 void DEV_ModelIdStateHandler(Device *device, const Event &event);
 void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event);
+void DEV_BindingHandler(Device *device, const Event &event);
 
 /*! \class Device
 
@@ -92,6 +93,8 @@ public:
 
     // following handlers need access to private members (friend functions)
     friend void DEV_InitStateHandler(Device *device, const Event &event);
+    friend void DEV_IdleStateHandler(Device *device, const Event &event);
+    friend void DEV_BindingHandler(Device *device, const Event &event);
 
 private:
     Device(); // not accessible
@@ -104,6 +107,8 @@ private:
     DeviceStateHandler m_state = nullptr; //! the currently active state handler function
     QBasicTimer m_timer; //! internal single shot timer
     QElapsedTimer m_awake; //! time to track when an end-device was last awake
+    QElapsedTimer m_bindingVerify; //! time to track last binding table verification
+    size_t m_bindingIter = 0;
     bool m_managed = false; //! a managed device doesn't rely on legacy implementation of polling etc.
 };
 

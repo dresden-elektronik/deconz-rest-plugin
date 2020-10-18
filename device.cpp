@@ -118,9 +118,14 @@ void DEV_IdleStateHandler(Device *device, const Event &event)
 
     DEV_CheckItemChanges(device, event);
 
-    if (event.what() == REventStateTimeout)
+    if (event.what() == REventPoll || event.what() == REventAwake)
     {
-//        device->setState(initStateHandler);
+        if (!device->m_bindingVerify.isValid() || device->m_bindingVerify.elapsed() > (1000 * 60 * 5))
+        {
+            DBG_Printf(DBG_INFO, "DEV Idle verify bindings %s/0x%016llX\n", event.resource(), event.deviceKey());
+            device->m_bindingIter = 0;
+            device->setState(DEV_BindingHandler);
+        }
     }
 }
 
@@ -506,6 +511,41 @@ void DEV_GetDeviceDescriptionHandler(Device *device, const Event &event)
             DBG_Printf(DBG_INFO, "No device description for 0x%016llX, modelId: %s\n", device->key(), qPrintable(modelId));
             device->setState(DEV_IdleStateHandler);
         }
+    }
+}
+
+void DEV_BindingHandler(Device *device, const Event &event)
+{
+    if (event.what() == REventStateLeave)
+    {
+
+    }
+    else if (!(event.what() == REventStateEnter || event.what() == REventTick))
+    {
+        return;
+    }
+    else if (device->m_bindingIter >= device->node()->bindingTable().size())
+    {
+        device->m_bindingVerify.start();
+        device->setState(DEV_IdleStateHandler);
+    }
+    else
+    {
+        const auto now = QDateTime::currentMSecsSinceEpoch();
+        const auto &bnd = *(device->node()->bindingTable().const_begin() + device->m_bindingIter);
+        const auto dt = bnd.confirmedMsSinceEpoch() > 0 ? (now - bnd.confirmedMsSinceEpoch()) / 1000: -1;
+
+        if (bnd.dstAddressMode() == deCONZ::ApsExtAddress)
+        {
+            DBG_Printf(DBG_INFO, "BND 0x%016llX cl: 0x%04X, dstAddrmode: %u, dst: 0x%016llX, dstEp: 0x%02X, dt: %lld seconds\n", bnd.srcAddress(), bnd.clusterId(), bnd.dstAddressMode(), bnd.dstAddress().ext(), bnd.dstEndpoint(), dt);
+        }
+        else if (bnd.dstAddressMode() == deCONZ::ApsGroupAddress)
+        {
+            DBG_Printf(DBG_INFO, "BND 0x%016llX cl: 0x%04X, dstAddrmode: %u, group: 0x%04X, dstEp: 0x%02X, dt: %lld seconds\n", bnd.srcAddress(), bnd.clusterId(), bnd.dstAddressMode(), bnd.dstAddress().group(), bnd.dstEndpoint(), dt);
+        }
+
+        device->m_bindingIter++;
+        device->plugin()->enqueueEvent(Event(device->prefix(), REventTick, 0, device->key()));
     }
 }
 

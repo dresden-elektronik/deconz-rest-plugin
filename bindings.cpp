@@ -106,6 +106,21 @@ bool Binding::writeToStream(QDataStream &stream) const
     return false;
 }
 
+/*! Converts a plugin Binding object to core deCONZ::Binding. */
+deCONZ::Binding convertToCoreBinding(const Binding &bnd)
+{
+    if (bnd.dstAddrMode == deCONZ::ApsExtAddress)
+    {
+        return deCONZ::Binding(bnd.srcAddress, bnd.dstAddress.ext, bnd.clusterId, bnd.srcEndpoint, bnd.dstEndpoint);
+    }
+    else if (bnd.dstAddrMode == deCONZ::ApsGroupAddress)
+    {
+        return deCONZ::Binding(bnd.srcAddress, bnd.dstAddress.group, bnd.clusterId, bnd.srcEndpoint);
+    }
+
+    return { };
+}
+
 /*! Queue reading ZDP binding table.
     \param node the node from which the binding table shall be read
     \param startIndex the index to start the reading
