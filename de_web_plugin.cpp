@@ -1528,7 +1528,9 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             Sensor sensorNode;
             sensorNode.setType("ZGPSwitch");
 
-            if (gpdDeviceId == deCONZ::GpDeviceIdOnOffSwitch && options.byte == 0x81 && ind.payload().size() == 27 && (ind.gpdSrcId() & 0x01700000) == 0x01700000)
+            // https://github.com/dresden-elektronik/deconz-rest-plugin/pull/3285
+            // Illumra Dual Rocker Switch PTM215ZE
+            if (gpdDeviceId == deCONZ::GpDeviceIdOnOffSwitch && options.byte == 0x81 && ind.payload().size() == 27 && (ind.gpdSrcId() & 0x01500000) == 0x01500000)
             {
                 sensorNode.setModelId("FOHSWITCH");
                 sensorNode.setManufacturer("PhilipsFoH");
