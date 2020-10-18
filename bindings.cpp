@@ -1431,6 +1431,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                             sensor->modelId() == QLatin1String("TS0202") || // Tuya sensor
                             sensor->modelId() == QLatin1String("3AFE14010402000D") || // Konke presence sensor
                             sensor->modelId() == QLatin1String("3AFE28010402000D") || // Konke presence sensor
+                            sensor->modelId().startsWith(QLatin1String("3300")) ||          // Centralite contatc sensor
                             sensor->modelId().startsWith(QLatin1String("3315")) ||
                             sensor->modelId().startsWith(QLatin1String("4655BC0"))))
         {
@@ -2262,6 +2263,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("PCM_")) ||
         // CentraLite
         sensor->modelId().startsWith(QLatin1String("Motion Sensor-A")) ||
+        sensor->modelId().startsWith(QLatin1String("3300")) ||
         sensor->modelId().startsWith(QLatin1String("332")) ||
         sensor->modelId().startsWith(QLatin1String("3200-S")) ||
         sensor->modelId().startsWith(QLatin1String("3305-S")) ||

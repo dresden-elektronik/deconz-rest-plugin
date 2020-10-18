@@ -136,6 +136,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_CENTRALITE, "3325-S", emberMacPrefix }, // Centralite motion sensor
     { VENDOR_CENTRALITE, "3305-S", emberMacPrefix }, // Centralite motion sensor
     { VENDOR_CLS, "3200-S", emberMacPrefix }, // Centralite smart plug / Samsung smart outlet
+    { VENDOR_C2DF, "3300", emberMacPrefix }, // Centralite contact sensor
     { VENDOR_C2DF, "3320-L", emberMacPrefix }, // Centralite contact sensor
     { VENDOR_C2DF, "3315", emberMacPrefix }, // Centralite water sensor
     { VENDOR_CENTRALITE, "3326-L", emberMacPrefix }, // Iris motion sensor v2
@@ -4756,6 +4757,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("WISZB-120")) ||        // Develco door/window sensor
                              modelId.startsWith(QLatin1String("ZHMS101")) ||          // Wattle (Develco) door/window sensor
                              modelId.startsWith(QLatin1String("4655BC0")) ||          // Ecolink contact sensor
+                             modelId.startsWith(QLatin1String("3300")) ||             // Centralite contact sensor
                              modelId == QLatin1String("E1D-G73") ||                   // Sengled contact sensor
                              modelId == QLatin1String("DS01") ||                      // Sonoff SNZB-04
                              modelId == QLatin1String("RH3001"))                      // Tuya/Blitzwolf BW-IS2 door/window sensor
@@ -7103,6 +7105,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId().startsWith(QLatin1String("1116-S")) ||    // iris contact sensor v3
                                     i->modelId().startsWith(QLatin1String("1117-S")) ||    // iris motion sensor v3
                                     i->modelId().startsWith(QLatin1String("3326-L")) ||    // iris motion sensor v2
+                                    i->modelId().startsWith(QLatin1String("3300")) ||      // Centralite contact sensor
                                     i->modelId().startsWith(QLatin1String("3320-L")) ||    // Centralite contact sensor
                                     i->modelId().startsWith(QLatin1String("3323")) ||      // Centralite contact sensor
                                     i->modelId().startsWith(QLatin1String("3315")) ||      // Centralite water sensor
