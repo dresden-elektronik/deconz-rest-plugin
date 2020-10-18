@@ -1385,7 +1385,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         {
                             bool data = map[pi.key()].toBool();
 
-                            if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0412, deCONZ::ZclBoolean, data))
+                            if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0412, deCONZ::ZclBoolean, data))
                             {
                                 updated = true;
                             }
@@ -1483,7 +1483,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 
                             if (mode < 4 && mode != 2)
                             {
-                                if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0403, deCONZ::Zcl8BitEnum, mode))
+                                if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0403, deCONZ::Zcl8BitEnum, mode))
                                 {
                                     updated = true;
                                 }
