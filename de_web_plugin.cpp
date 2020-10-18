@@ -6315,6 +6315,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             item = sensorNode.addItem(DataTypeUInt8, RConfigPending);
         }
     }
+    else if (modelId.startsWith(QLatin1String("Super TR")) ||
+             modelId.startsWith(QLatin1String("ElkoDimmer")))
+    {
+        sensorNode.setManufacturer("ELKO");
+    }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER ||
              node->nodeDescriptor().manufacturerCode() == VENDOR_HEIMAN)
     {
