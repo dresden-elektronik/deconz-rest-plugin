@@ -6317,6 +6317,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             item = sensorNode.addItem(DataTypeUInt8, RConfigPending);
         }
     }
+    else if (modelId.startsWith(QLatin1String("Super TR")) ||
+             modelId.startsWith(QLatin1String("ElkoDimmer")))
+    {
+        sensorNode.setManufacturer("ELKO");
+    }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER ||
              node->nodeDescriptor().manufacturerCode() == VENDOR_HEIMAN)
     {
@@ -16832,13 +16837,18 @@ void DeRestPlugin::idleTimerFired()
                                 val = sensorNode->getZclValue(*ci, 0x0029); // heating operation state
                             }
 
-                            if (sensorNode->modelId().startsWith(QLatin1String("SPZB")) ||   // Eurotronic Spirit
-                                sensorNode->modelId().startsWith(QLatin1String("SLT2")) ||   // Hive Active Heating Thermostat
-                                sensorNode->modelId().startsWith(QLatin1String("SLR2")) ||   // Hive Active Heating Receiver 2 channel
-                                sensorNode->modelId().startsWith(QLatin1String("SLR1b")) ||  // Hive Active Heating Receiver 1 channel
-                                sensorNode->modelId().startsWith(QLatin1String("TRV001")) || // Hive TRV
-                                sensorNode->modelId().startsWith(QLatin1String("TH112")) ||  // Sinope devices
-                                sensorNode->modelId().startsWith(QLatin1String("eTRV0100"))) // Danfoss Ally
+                            if (sensorNode->modelId().startsWith(QLatin1String("SPZB")) ||      // Eurotronic Spirit
+                                sensorNode->modelId().startsWith(QLatin1String("SLT2")) ||      // Hive Active Heating Thermostat
+                                sensorNode->modelId().startsWith(QLatin1String("SLR2")) ||      // Hive Active Heating Receiver 2 channel
+                                sensorNode->modelId().startsWith(QLatin1String("SLR1b")) ||     // Hive Active Heating Receiver 1 channel
+                                sensorNode->modelId().startsWith(QLatin1String("TRV001")) ||    // Hive TRV
+                                sensorNode->modelId().startsWith(QLatin1String("TH112")) ||     // Sinope devices
+                                sensorNode->modelId().startsWith(QLatin1String("eTRV0100")) ||  // Danfoss Ally
+                                sensorNode->modelId().startsWith(QLatin1String("Super TR")) ||  // Elko
+                                sensorNode->modelId().startsWith(QLatin1String("AC201")) ||     // Owon
+                                sensorNode->modelId().startsWith(QLatin1String("SORB")) ||      // Stelpro Orleans
+                                sensorNode->modelId().startsWith(QLatin1String("3157100")) ||   // Centralite pearl
+                                sensorNode->modelId().startsWith(QLatin1String("902010/32")))   // Bitron
                             {
                                 // supports reporting, no need to read attributes
                             }
