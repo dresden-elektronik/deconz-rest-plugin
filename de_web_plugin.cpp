@@ -1528,7 +1528,9 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             Sensor sensorNode;
             sensorNode.setType("ZGPSwitch");
 
-            if (gpdDeviceId == deCONZ::GpDeviceIdOnOffSwitch && options.byte == 0x81 && ind.payload().size() == 27 && (ind.gpdSrcId() & 0x01700000) == 0x01700000)
+            // https://github.com/dresden-elektronik/deconz-rest-plugin/pull/3285
+            // Illumra Dual Rocker Switch PTM215ZE
+            if (gpdDeviceId == deCONZ::GpDeviceIdOnOffSwitch && options.byte == 0x81 && ind.payload().size() == 27 && (ind.gpdSrcId() & 0x01500000) == 0x01500000)
             {
                 sensorNode.setModelId("FOHSWITCH");
                 sensorNode.setManufacturer("PhilipsFoH");
@@ -1778,7 +1780,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
     bool hasTuyaCluster = false;
     QString manufacturer;
-    
+
     //using VENDOR_EMBER is too much, lot of enddevice use this manufacture and are not router, so using this black list
     if ((node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER) &&
         ((node->address().ext() & 0xffffff0000000000ULL ) == silabs7MacPrefix) )
@@ -1790,7 +1792,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER)
     {
         const deCONZ::SimpleDescriptor *sd = &node->simpleDescriptors()[0];
-        
+
         if (sd && (sd->deviceId() == DEV_ID_SMART_PLUG) && (node->simpleDescriptors().size() < 2) &&
         (((node->address().ext() & 0xffffff0000000000ULL ) == silabs3MacPrefix) ||
          ((node->address().ext() & 0xffffff0000000000ULL ) == silabs4MacPrefix))
@@ -3082,7 +3084,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                                 {
                                     str = QLatin1String("T10W1ZW switch");
                                 }
-                            }       
+                            }
 
                             lightNode->setModelId(str);
                             item->setValue(str);
@@ -5886,7 +5888,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         }
         item = sensorNode.addItem(DataTypeBool, RStateAlarm);
         item->setValue(false);
-        
+
         if (modelId == QLatin1String("0yu2xgi"))
         {
             clusterId = TUYA_CLUSTER_ID;
@@ -6031,7 +6033,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             {
                 sensorNode.addItem(DataTypeString, RConfigMode);
             }
-            
+
             if (sensorNode.modelId() == QLatin1String("Super TR"))   // ELKO
             {
                 sensorNode.addItem(DataTypeString, RConfigTemperatureMeasurement);
@@ -6314,6 +6316,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             item->setValue(0x15); // low
             item = sensorNode.addItem(DataTypeUInt8, RConfigPending);
         }
+    }
+    else if (modelId.startsWith(QLatin1String("Super TR")) ||
+             modelId.startsWith(QLatin1String("ElkoDimmer")))
+    {
+        sensorNode.setManufacturer("ELKO");
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER ||
              node->nodeDescriptor().manufacturerCode() == VENDOR_HEIMAN)
@@ -7041,8 +7048,8 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 // 68.5%, 90%) with a range between zero and 100%, with 0x00 = 0%, 0x64 = 50%, and 0xC8 = 100%. This is
                                 // particularly suited for devices with rechargeable batteries.
                                 if (item)
-                                {  
-                                    
+                                {
+
                                     int bat = ia->numericValue().u8 / 2;
 
                                     if (i->modelId().startsWith(QLatin1String("TRADFRI")) || // IKEA
@@ -7088,7 +7095,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId() == QLatin1String("Thermostat") ||       // eCozy thermostat
                                     i->modelId() == QLatin1String("Motion Sensor-A") ||  // Osram motion sensor
                                     i->modelId() == QLatin1String("Bell") ||             // Sage doorbell sensor
-                                    i->modelId() == QLatin1String("ISW-ZPR1-WP13") ||    // Bosch motion sensor 
+                                    i->modelId() == QLatin1String("ISW-ZPR1-WP13") ||    // Bosch motion sensor
                                     i->modelId().endsWith(QLatin1String("86opcn01")) ||  // Aqara Opple
                                     i->modelId().startsWith(QLatin1String("SMSZB-120")) || // Develco smoke sensor
                                     i->modelId().startsWith(QLatin1String("HESZB-120")) || // Develco heat sensor
@@ -7565,7 +7572,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 item = i->item(RStateButtonEvent);
 
-                                if (item && i->buttonMap(buttonMapData, buttonMapForModelId).empty() &&
+                                if (item && // i->buttonMap(buttonMapData, buttonMapForModelId).empty() &&
                                     event.event() == deCONZ::NodeEvent::UpdatedClusterDataZclReport)
                                 {
                                     quint32 button = 0;
@@ -16830,13 +16837,18 @@ void DeRestPlugin::idleTimerFired()
                                 val = sensorNode->getZclValue(*ci, 0x0029); // heating operation state
                             }
 
-                            if (sensorNode->modelId().startsWith(QLatin1String("SPZB")) ||   // Eurotronic Spirit
-                                sensorNode->modelId().startsWith(QLatin1String("SLT2")) ||   // Hive Active Heating Thermostat
-                                sensorNode->modelId().startsWith(QLatin1String("SLR2")) ||   // Hive Active Heating Receiver 2 channel
-                                sensorNode->modelId().startsWith(QLatin1String("SLR1b")) ||  // Hive Active Heating Receiver 1 channel
-                                sensorNode->modelId().startsWith(QLatin1String("TRV001")) || // Hive TRV
-                                sensorNode->modelId().startsWith(QLatin1String("TH112")) ||  // Sinope devices
-                                sensorNode->modelId().startsWith(QLatin1String("eTRV0100"))) // Danfoss Ally
+                            if (sensorNode->modelId().startsWith(QLatin1String("SPZB")) ||      // Eurotronic Spirit
+                                sensorNode->modelId().startsWith(QLatin1String("SLT2")) ||      // Hive Active Heating Thermostat
+                                sensorNode->modelId().startsWith(QLatin1String("SLR2")) ||      // Hive Active Heating Receiver 2 channel
+                                sensorNode->modelId().startsWith(QLatin1String("SLR1b")) ||     // Hive Active Heating Receiver 1 channel
+                                sensorNode->modelId().startsWith(QLatin1String("TRV001")) ||    // Hive TRV
+                                sensorNode->modelId().startsWith(QLatin1String("TH112")) ||     // Sinope devices
+                                sensorNode->modelId().startsWith(QLatin1String("eTRV0100")) ||  // Danfoss Ally
+                                sensorNode->modelId().startsWith(QLatin1String("Super TR")) ||  // Elko
+                                sensorNode->modelId().startsWith(QLatin1String("AC201")) ||     // Owon
+                                sensorNode->modelId().startsWith(QLatin1String("SORB")) ||      // Stelpro Orleans
+                                sensorNode->modelId().startsWith(QLatin1String("3157100")) ||   // Centralite pearl
+                                sensorNode->modelId().startsWith(QLatin1String("902010/32")))   // Bitron
                             {
                                 // supports reporting, no need to read attributes
                             }
