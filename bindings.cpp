@@ -350,6 +350,8 @@ void DeRestPluginPrivate::handleMgmtBindRspIndication(const deCONZ::ApsDataIndic
         {
             btReader->state = BindingTableReader::StateFinished;
         }
+
+        enqueueEvent({RDevices, REventBindingTable, status, ind.srcAddress().ext()});
     }
 
     while (listCount && !stream.atEnd())

@@ -127,6 +127,20 @@ void DEV_IdleStateHandler(Device *device, const Event &event)
             device->setState(DEV_BindingHandler);
         }
     }
+    else if (event.what() == REventBindingTable)
+    {
+        if (event.num() == deCONZ::ZdpSuccess)
+        {
+            device->m_mgmtBindSupported = true;
+        }
+        else if (event.num() == deCONZ::ZdpNotSupported)
+        {
+            device->m_mgmtBindSupported = true;
+        }
+
+        device->m_bindingIter = 0;
+        device->setState(DEV_BindingHandler);
+    }
 }
 
 /*! #2 This state checks that a valid NodeDescriptor is available.

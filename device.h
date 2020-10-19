@@ -109,6 +109,7 @@ private:
     QElapsedTimer m_awake; //! time to track when an end-device was last awake
     QElapsedTimer m_bindingVerify; //! time to track last binding table verification
     size_t m_bindingIter = 0;
+    bool m_mgmtBindSupported = false;
     bool m_managed = false; //! a managed device doesn't rely on legacy implementation of polling etc.
 };
 
