@@ -4420,3 +4420,29 @@ void DeRestPluginPrivate::bindingTableReaderTimerFired()
         bindingTableReaderTimer->start();
     }
 }
+
+/*! Add a binding task to the queue and prevent double entries.
+    \param bindingTask - the binding task
+    \return true - when enqueued
+ */
+bool DeRestPluginPrivate::queueBindingTask(const BindingTask &bindingTask)
+{
+    if (!apsCtrl || apsCtrl->networkState() != deCONZ::InNetwork)
+    {
+        return false;
+    }
+
+    const std::list<BindingTask>::const_iterator i = std::find(bindingQueue.begin(), bindingQueue.end(), bindingTask);
+
+    if (i == bindingQueue.end())
+    {
+        DBG_Printf(DBG_INFO_L2, "queue binding task for 0x%016llX, cluster 0x%04X\n", bindingTask.binding.srcAddress, bindingTask.binding.clusterId);
+        bindingQueue.push_back(bindingTask);
+    }
+    else
+    {
+        DBG_Printf(DBG_INFO, "discard double entry in binding queue (size: %u) for for 0x%016llX, cluster 0x%04X\n", bindingQueue.size(), bindingTask.binding.srcAddress, bindingTask.binding.clusterId);
+    }
+
+    return true;
+}
