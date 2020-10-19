@@ -476,7 +476,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                     sensor->modelId().startsWith(QLatin1String("SLR1b")) ||  // Hive
                     sensor->modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
                     sensor->modelId().startsWith(QLatin1String("Zen-01")) || // Zen
-                    sensor->modelId().startsWith(QLatin1String("Super")))    // ELKO
+                    sensor->modelId().startsWith(QLatin1String("Super TR")))    // ELKO
                 {
                     qint8 mode = attr.numericValue().s8;
                     QString mode_set;
@@ -604,9 +604,9 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                     quint8 mode = attr.numericValue().u8;
                     QString mode_set;
 
-                    if ( mode == 0x00 ) { mode_set = QString("Air sensor"); }
-                    if ( mode == 0x01 ) { mode_set = QString("Floor sensor"); }
-                    if ( mode == 0x03 ) { mode_set = QString("Floor protection"); }
+                    if ( mode == 0x00 ) { mode_set = QString("air sensor"); }
+                    if ( mode == 0x01 ) { mode_set = QString("floor sensor"); }
+                    if ( mode == 0x03 ) { mode_set = QString("floor protection"); }
                     
                     item = sensor->item(RConfigTemperatureMeasurement);
 
@@ -1121,7 +1121,7 @@ bool DeRestPluginPrivate::addTaskThermostatReadWriteAttribute(TaskItem &task, ui
     if (readOrWriteCmd == deCONZ::ZclWriteAttributesId)
     {
         stream << (quint8) attrType;
-        if (attrType == deCONZ::Zcl8BitEnum || attrType == deCONZ::Zcl8BitInt || attrType == deCONZ::Zcl8BitBitMap)
+        if (attrType == deCONZ::Zcl8BitEnum || attrType == deCONZ::Zcl8BitInt || attrType == deCONZ::Zcl8BitBitMap || attrType == deCONZ::ZclBoolean)
         {
             stream << (quint8) attrValue;
         }
