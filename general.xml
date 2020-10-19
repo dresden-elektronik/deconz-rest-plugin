@@ -2115,6 +2115,8 @@ controller device, that supports a keypad and LCD screen.</description>
         <attribute id="0x0003" mfcode="0x100b" name="PowerOn X" type="u16" access="rw" range="0x0000,0xffff" default="0xffff" required="o"></attribute>
         <attribute id="0x0004" mfcode="0x100b" name="PowerOn Y" type="u16" access="rw" range="0x0000,0xffff" default="0xffff" required="o"></attribute>
         -->
+			</attribute-set>
+			<attribute-set id="0xde00" description="FLS extensions" mfcode="0x1135">
 				<attribute id="0xde01" name="Active channels" type="u8" access="r" range="0x00,0xff" default="0x00" required="m"></attribute>
 			</attribute-set>
 			<command id="0x00" dir="recv" name="Move to hue" required="o">
