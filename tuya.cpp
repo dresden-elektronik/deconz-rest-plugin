@@ -419,8 +419,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     }
                 }
                 break;
-                case 0x0203: // Thermostat temperature
-                case 0x0269: // siren temperature
+                case 0x0203: // Thermostat current temperature
                 {
                     qint16 temp = ((qint16)(data & 0xFFFF)) * 10;
                     ResourceItem *item = sensorNode->item(RStateTemperature);
@@ -439,6 +438,11 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     quint8 bat = (qint8)(data & 0xFF);
                     if (bat > 100) { bat = 100; }
                     ResourceItem *item = sensorNode->item(RConfigBattery);
+                    
+                    if (!item && bat > 0) // valid value: create resource item
+                    {
+                        item = sensorNode->addItem(DataTypeUInt8, RConfigBattery);
+                    }
 
                     if (item && item->toNumber() != bat)
                     {
@@ -497,15 +501,34 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     }
                 }
                 break;
+                case 0x0269: // siren temperature, Boost time
+                {
+                    if (sensorNode->modelId() == QLatin1String("0yu2xgi")) //siren
+                    {
+                        qint16 temp = ((qint16)(data & 0xFFFF)) * 10;
+                        ResourceItem *item = sensorNode->item(RStateTemperature);
+
+                        if (item && item->toNumber() != temp)
+                        {
+                            item->setValue(temp);
+                            Event e(RSensors, RStateTemperature, sensorNode->id(), item);
+                            enqueueEvent(e);
+
+                        }
+                    }
+                    else
+                    {
+                    }
+                }
                 case 0x026A : // Siren Humidity
                 {
-                    qint16 RStateHumidity = ((qint16)(data & 0xFFFF)) * 10;
-                    ResourceItem *item = sensorNode->item(RStateTemperature);
+                    qint16 Hum = ((qint16)(data & 0xFFFF)) * 10;
+                    ResourceItem *item = sensorNode->item(RStateHumidity);
 
-                    if (item && item->toNumber() != RStateHumidity)
+                    if (item && item->toNumber() != Hum)
                     {
-                        item->setValue(RStateHumidity);
-                        Event e(RSensors, RStateTemperature, sensorNode->id(), item);
+                        item->setValue(Hum);
+                        Event e(RSensors, RStateHumidity, sensorNode->id(), item);
                         enqueueEvent(e);
                     }
                 }

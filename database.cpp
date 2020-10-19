@@ -3506,7 +3506,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.modelId() == QLatin1String("GbxAXL2") ||         // Tuya
                     sensor.modelId() == QLatin1String("kud7u2l") ||         // Tuya
                     sensor.modelId() == QLatin1String("TS0601") ||          // Tuya
-                    sensor.modelId() == QLatin1String("eaxp72v") ||          // Tuya
                     sensor.modelId() == QLatin1String("Zen-01") )           // Zen
                 {
                     sensor.addItem(DataTypeString, RConfigMode);
@@ -3521,7 +3520,6 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 }
 
                 if (sensor.modelId() == QLatin1String("kud7u2l") || // Tuya
-                    sensor.modelId() == QLatin1String("eaxp72v") || // Tuya
                     sensor.modelId() == QLatin1String("GbxAXL2") || // Tuya
                     sensor.modelId() == QLatin1String("TS0601") )   // Tuya
                 {
@@ -3530,7 +3528,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     item->setValue(false);
                 }
                 
-                if (sensor.modelId() == QLatin1String("kud7u2l") || // Tuya 
+                if (sensor.modelId() == QLatin1String("kud7u2l") || // Tuya
+                    sensor.modelId() == QLatin1String("eaxp72v") || // Tuya
                     sensor.modelId() == QLatin1String("TS0601") )   // Tuya
                 {
                     sensor.addItem(DataTypeString, RConfigPreset);

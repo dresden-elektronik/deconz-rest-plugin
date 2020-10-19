@@ -1324,6 +1324,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if ((rid.suffix == RConfigPreset) && (sensor->modelId().startsWith(QLatin1String("kud7u2l")) ||
                                                            sensor->modelId().startsWith(QLatin1String("GbxAXL2")) ||
+                                                           sensor->modelId().startsWith(QLatin1String("eaxp72v")) ||
                                                            sensor->modelId().startsWith(QLatin1String("TS0601"))))
                 {
                     QByteArray data;
@@ -1351,7 +1352,9 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 {
                     if (map[pi.key()].type() == QVariant::Bool)
                     {
-                        if (sensor->modelId().startsWith(QLatin1String("kud7u2l")) || sensor->modelId().startsWith(QLatin1String("GbxAXL2")) ||
+                        if (sensor->modelId().startsWith(QLatin1String("kud7u2l")) ||
+                            sensor->modelId().startsWith(QLatin1String("GbxAXL2")) ||
+                            sensor->modelId().startsWith(QLatin1String("eaxp72v")) ||
                             sensor->modelId().startsWith(QLatin1String("TS0601")))
                         {
                             QByteArray data = QByteArray("\x00", 1);
@@ -1507,6 +1510,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 }
                 else if ((rid.suffix == RConfigWindowOpen) && (sensor->modelId().startsWith(QLatin1String("kud7u2l")) ||
                                                            sensor->modelId().startsWith(QLatin1String("GbxAXL2")) ||
+                                                           sensor->modelId().startsWith(QLatin1String("eaxp72v")) ||
                                                            sensor->modelId().startsWith(QLatin1String("TS0601"))))
                 {
                     // Config on / off
