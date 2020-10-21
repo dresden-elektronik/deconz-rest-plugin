@@ -280,7 +280,7 @@ void PollManager::pollTimerFired()
         pitem.items.clear(); // all done
     }
 
-    if (suffix == RStateOn)
+    if (suffix == RStateOn && lightNode)
     {
         item = r->item(RAttrModelId);
 
@@ -288,7 +288,7 @@ void PollManager::pollTimerFired()
         {
             //Thoses devices haven't cluster 0006, and use Cluster specific
         }
-        else if (lightNode && lightNode->manufacturerCode() != VENDOR_XIAOMI) // reports
+        else if (lightNode->manufacturerCode() != VENDOR_XIAOMI) // reports
         {
             clusterId = ONOFF_CLUSTER_ID;
             attributes.push_back(0x0000); // onOff

@@ -721,7 +721,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt, const s
         if (val.clusterId == bt.binding.clusterId)
         {
             // value exists
-            if (val.timestampLastReport.isValid() &&
+            if (rq.maxInterval != 0xffff && // disable reporting
+                val.timestampLastReport.isValid() &&
                 val.timestampLastReport.secsTo(now) < qMin((rq.maxInterval * 3), 1800))
             {
                 DBG_Printf(DBG_INFO, "skip configure report for cluster: 0x%04X attr: 0x%04X of node 0x%016llX (seems to be active)\n",
@@ -1881,9 +1882,9 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
         NodeValue &val = bt.restNode->getZclValue(BASIC_CLUSTER_ID, 0x4000, bt.binding.srcEndpoint);
 
-        if (val.timestampLastReport.isValid() && (val.timestampLastReport.secsTo(now) < val.maxInterval * 1.5))
+        if (val.timestampLastReport.isValid() && (val.timestampLastReport.secsTo(now) > val.maxInterval * 1.5))
         {
-            return false;
+            return false; // reporting this attribute might be already disabled
         }
 
         // already configured? wait for report ...
@@ -1895,7 +1896,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.dataType = deCONZ::ZclCharacterString;
         rq.attributeId = 0x4000; // sw build id
         rq.minInterval = 0;   // value used by IKEA gateway
-        rq.maxInterval = 1800;   // value used by IKEA gateway
+        rq.maxInterval = 0xffff; // disable reporting to prevent group casts
 
         return sendConfigureReportingRequest(bt, {rq});
     }
@@ -4436,4 +4437,30 @@ void DeRestPluginPrivate::bindingTableReaderTimerFired()
     {
         bindingTableReaderTimer->start();
     }
+}
+
+/*! Add a binding task to the queue and prevent double entries.
+    \param bindingTask - the binding task
+    \return true - when enqueued
+ */
+bool DeRestPluginPrivate::queueBindingTask(const BindingTask &bindingTask)
+{
+    if (!apsCtrl || apsCtrl->networkState() != deCONZ::InNetwork)
+    {
+        return false;
+    }
+
+    const std::list<BindingTask>::const_iterator i = std::find(bindingQueue.begin(), bindingQueue.end(), bindingTask);
+
+    if (i == bindingQueue.end())
+    {
+        DBG_Printf(DBG_INFO_L2, "queue binding task for 0x%016llX, cluster 0x%04X\n", bindingTask.binding.srcAddress, bindingTask.binding.clusterId);
+        bindingQueue.push_back(bindingTask);
+    }
+    else
+    {
+        DBG_Printf(DBG_INFO, "discard double entry in binding queue (size: %u) for for 0x%016llX, cluster 0x%04X\n", bindingQueue.size(), bindingTask.binding.srcAddress, bindingTask.binding.clusterId);
+    }
+
+    return true;
 }

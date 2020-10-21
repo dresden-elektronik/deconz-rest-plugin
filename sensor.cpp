@@ -563,4 +563,3 @@ const std::vector<Sensor::ButtonMap> Sensor::buttonMap(const QMap<QString, std::
 
     return m_buttonMap;
 }
-
