@@ -1490,10 +1490,10 @@ by the Poll Control Cluster Client.</description>
           </attribute>
         </attribute-set>
         <attribute-set id="0x0050" description="Xiaomi Special" mfcode="0x1037">
-          <attribute id="0x0055" name="Event Type" type="u16" access="r" required="o" mfcode="0x1037"></attribute>
-          <attribute id="0x0503" name="Tilt Angle" type="u16" access="r" required="o" mfcode="0x1037"></attribute>
-          <attribute id="0x0505" name="Vibration Strength" type="u32" showas="hex" access="r" required="o" mfcode="0x1037"></attribute>
-          <attribute id="0x0508" name="Orientation" type="u48" showas="hex" access="r" required="o" mfcode="0x1037"></attribute>
+          <attribute id="0x0055" name="Event Type" type="u16" access="r" required="o"></attribute>
+          <attribute id="0x0503" name="Tilt Angle" type="u16" access="r" required="o"></attribute>
+          <attribute id="0x0505" name="Vibration Strength" type="u32" showas="hex" access="r" required="o"></attribute>
+          <attribute id="0x0508" name="Orientation" type="u48" showas="hex" access="r" required="o"></attribute>
         </attribute-set>
         <command id="0x00" dir="recv" name="Lock Door" required="m">
           <description>This command causes the lock device to lock the door.</description>
