@@ -386,7 +386,7 @@ static Resource *DEV_InitSensorNodeFromDescription(Device *device, const DeviceD
     sensor.setType(DeviceDescriptions::instance()->constantToString(sub.type));
     sensor.setUniqueId(uniqueId);
     sensor.setNode(const_cast<deCONZ::Node*>(device->node()));
-    sensor.item(RConfigOn)->setValue(true);
+    R_SetValue(&sensor, RConfigOn, true, ResourceItem::SourceApi);
 
     QString friendlyName = sensor.type();
     if (friendlyName.startsWith("ZHA") || friendlyName.startsWith("ZLL"))
@@ -473,6 +473,7 @@ static bool DEV_InitDeviceFromDescription(Device *device, const DeviceDescriptio
                 {
                     DBG_Printf(DBG_INFO, "sub-device: %s, create item: %s\n", qPrintable(uniqueId), i.descriptor.suffix);
                     item = rsub->addItem(i.descriptor.type, i.descriptor.suffix);
+                    Q_ASSERT(item);
 
                     if (i.defaultValue.isValid())
                     {
