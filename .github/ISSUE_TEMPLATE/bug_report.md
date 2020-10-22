@@ -63,7 +63,7 @@ assignees: ''
 <!--
   Debug logs can help to investigate certain problems like device pairing and communication issues.
   Logging can be enabled on the command line as described in:
-  https://github.com/dresden-elektronik/deconz-rest-plugin/wiki/deCONZ-debug-switches
+  https://github.com/dresden-elektronik/deconz-rest-plugin/wiki/deCONZ-debug-flags
 -->
 
 ## Additional context
