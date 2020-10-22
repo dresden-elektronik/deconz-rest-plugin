@@ -523,4 +523,79 @@ void initResourceDescriptors();
 const char *getResourcePrefix(const QString &str);
 bool getResourceItemDescriptor(const QString &str, ResourceItemDescriptor &descr);
 
+template <typename V>
+bool R_SetValue(Resource *r, const char *suffix, const V &val, ResourceItem::ValueSource source)
+{
+    Q_ASSERT(r);
+    Q_ASSERT(suffix);
+
+    auto *item = r->item(suffix);
+    if (!item)
+    {
+        return false;
+    }
+
+    return item->setValue(val, source);
+}
+
+template <typename V, typename EventEmitter>
+bool R_SetValueEventOnChange(Resource *r, const char *suffix, const V &val, ResourceItem::ValueSource source, EventEmitter *eventEmitter = nullptr)
+{
+    Q_ASSERT(r);
+    Q_ASSERT(suffix);
+    Q_ASSERT(eventEmitter);
+
+    auto *item = r->item(suffix);
+    if (!item)
+    {
+        return false;
+    }
+
+    const auto result = item->setValue(val, source);
+
+    if (result && item->lastChanged() != item->lastSet())
+    {
+        const auto *idItem = r->item(RAttrId);
+        if (!idItem)
+        {
+            idItem = r->item(RAttrUniqueId);
+        }
+        Q_ASSERT(idItem);
+
+        eventEmitter->enqueueEvent({r->prefix(), item->descriptor().suffix, idItem->toString(), item});
+    }
+
+    return result;
+}
+
+template <typename V, typename EventEmitter>
+bool R_SetValueEventOnSet(Resource *r, const char *suffix, const V &val, ResourceItem::ValueSource source, EventEmitter *eventEmitter = nullptr)
+{
+    Q_ASSERT(r);
+    Q_ASSERT(suffix);
+    Q_ASSERT(eventEmitter);
+
+    auto *item = r->item(suffix);
+    if (!item)
+    {
+        return false;
+    }
+
+    const auto result = item->setValue(val, source);
+
+    if (result)
+    {
+        const auto *idItem = r->item(RAttrId);
+        if (!idItem)
+        {
+            idItem = r->item(RAttrUniqueId);
+        }
+        Q_ASSERT(idItem);
+
+        eventEmitter->enqueueEvent({r->prefix(), item->descriptor().suffix, idItem->toString(), item});
+    }
+
+    return result;
+}
+
 #endif // RESOURCE_H
