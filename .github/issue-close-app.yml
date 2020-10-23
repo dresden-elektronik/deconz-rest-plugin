@@ -1,0 +1,32 @@
+# Comment that will be sent if an issue is judged to be closed
+comment: "This issue is closed because it does not meet our issue template. Please read it."
+issueConfigs:
+# There can be several configs for different kind of issues.
+- content:
+# Example 1: bug report
+  - "Describe the bug"
+  - "Steps to reproduce the behavior"
+  - "Expected behavior"
+  - "Screenshots"
+  - "Environment"
+  - "deCONZ Logs"
+  - "Additional context"
+- content:
+# Example 2: Device Request
+  - "Device"
+  - "Screenshots"
+- content:
+# Example 3: Feature Request
+  - "Feature request type"
+  - "Description"
+  - "Considered alternatives"
+  - "Additional context"
+- content:
+# Example 4: User Question
+  - "Describe the question or issue you are having"
+  - "Screenshots"
+  - "Environment"
+  - "deCONZ Logs"
+  - "Additional context"
+# The issue is judged to be legal if it includes all keywords from any of these configs.
+# Or it will be closed by the app.
