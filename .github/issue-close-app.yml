@@ -1,5 +1,5 @@
 # Comment that will be sent if an issue is judged to be closed
-comment: "Hi there, This issue is closed because it does not meet our issue template. Please follow the template and make sure everything is included, so we can help you out the best way we can!."
+comment: "Hi there.  Thank you for filing this issue.  Unfortunately, we cannot help you, because the required information is missing.  Please open a new issue, using the template to provide all information."
 issueConfigs:
 # There can be several configs for different kind of issues.
 - content:
