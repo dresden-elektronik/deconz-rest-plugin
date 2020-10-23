@@ -331,6 +331,9 @@
 #define VENDOR_JIUZHOU      0x119D
 #define VENDOR_PAULMANN     0x119D // branded
 #define VENDOR_HEIMAN       0x120B
+
+#define VENDOR_CHINA_FIRE_SEC       0x1214
+
 #define VENDOR_MUELLER      0x121B // Used by Mueller Licht
 #define VENDOR_AURORA       0x121C // Used by Aurora Aone
 #define VENDOR_SUNRICHER    0x1224 // white label used by iCasa, Illuminize, Namron ...
@@ -503,7 +506,8 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
         case VENDOR_BUSCH_JAEGER:
             return prefix == bjeMacPrefix;
         case VENDOR_CENTRALITE:
-            return prefix == emberMacPrefix;
+        case VENDOR_CHINA_FIRE_SEC:
+            return prefix == jennicMacPrefix;
         case VENDOR_DANFOSS:
             return prefix == silabs2MacPrefix;
         case VENDOR_EMBER:
