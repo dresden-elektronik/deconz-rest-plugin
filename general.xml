@@ -567,7 +567,7 @@
 							</attribute>
 						</attribute-set>
             <attribute-set id="0x8000" description="Xiaomi" mfcode="0x1037">
-              <attribute id="0x8000" name="Button Event" type="u8" access="r" required="o"/>
+              <attribute id="0x8000" name="Button Press" type="u8" access="r" required="o"/>
             </attribute-set>
 			<command id="00" dir="recv" name="Off" required="m">
 				<description>On receipt of this command, a device shall enter its 'Off' state. This state is device dependent, but it is recommended that it is used for power off or similar functions.</description>
