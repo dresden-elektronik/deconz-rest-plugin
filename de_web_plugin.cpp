@@ -13645,6 +13645,28 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                         onOff, bri, x, y, transitionTime);
             }
         }
+        else if (status == 0x8b && zclFrame.payload().size() >= 4) // scene not found
+        {
+            uint16_t groupId;
+            uint8_t sceneId;
+
+            stream >> groupId;
+            stream >> sceneId;
+
+            Group *group = getGroupForId(groupId);
+            Scene *scene = group->getScene(sceneId);
+
+            if (!group || !scene)
+            {
+                return;
+            }
+
+            auto *ls = scene->getLightState(lightNode->id());
+            if (ls)
+            {
+                ls->setNeedRead(false); // move to add scene
+            }
+        }
     }
     else if (zclFrame.commandId() == 0x05 && !(zclFrame.frameControl() & deCONZ::ZclFCDirectionServerToClient)) // Recall scene command
     {
