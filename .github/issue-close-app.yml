@@ -1,5 +1,14 @@
 # Comment that will be sent if an issue is judged to be closed
-comment: "Hi there.  Thank you for filing this issue.  Unfortunately, we cannot help you, because the required information is missing.  Please open a new issue, using the template to provide all information."
+comment: "Hi there. Thank you for filing this issue. Unfortunately, we cannot help you, as you haven't sticked to the provided template and/or have not provided all information requested. Consequently, this issue has been closed.
+
+We're more than happy to help out where we can once you raise a new issue containing all requested information in the requested format. In this regard, please take note that:
+- read the template thoroughly
+- all given header lines (starting with ###) **must not be deleted**
+- everything enclosed by <!-- --> is intended to give you guidance and should be replaced by your input specific to the issue
+- Listings regarding your environment must be filled out completely where applicable (bug reports and user questions).
+- Not following the template or providing insufficient information can still implicate manual closure.
+
+So please, first help us a bit to help you!"
 issueConfigs:
 # There can be several configs for different kind of issues.
 - content:
