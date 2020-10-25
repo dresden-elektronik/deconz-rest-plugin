@@ -2481,6 +2481,7 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
              lightNode->modelId() == QLatin1String("Classic A60 TW") ||
              lightNode->modelId() == QLatin1String("Classic A60 TW") ||
              lightNode->modelId() == QLatin1String("Zigbee CCT Downlight") ||
+             lightNode->modelId() == QLatin1String("Halo_RL5601") ||
              (lightNode->manufacturerCode() == VENDOR_LEDVANCE && lightNode->modelId() == QLatin1String("Down Light TW")) ||
              (lightNode->manufacturerCode() == VENDOR_LEDVANCE && lightNode->modelId() == QLatin1String("BR30 TW")) ||
              (lightNode->manufacturerCode() == VENDOR_LEDVANCE && lightNode->modelId() == QLatin1String("MR16 TW")) ||
