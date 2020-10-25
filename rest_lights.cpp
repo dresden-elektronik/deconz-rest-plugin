@@ -287,15 +287,12 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
     if (icc)
     {
         const int cc = icc->toNumber();
-        const bool hs = cc & 0x01 || cc & 0x02;
-        const bool effect = cc & 0x04;
-        const bool xy = cc & 0x08;
-        const bool ct = cc & 0x10;
-        QVariantMap colorCapabilities;
-        colorCapabilities["hs"] = hs;
-        colorCapabilities["effect"] = effect;
-        colorCapabilities["xy"] = xy;
-        colorCapabilities["ct"] = ct;
+        QStringList colorCapabilities;
+        // Keep sorted by string value
+        if (cc & 0x10) colorCapabilities.push_back(QLatin1String("ct"));
+        if (cc & 0x04) colorCapabilities.push_back(QLatin1String("effect"));
+        if (cc & 0x01 || cc & 0x02) colorCapabilities.push_back(QLatin1String("hs"));
+        if (cc & 0x08) colorCapabilities.push_back(QLatin1String("xy"));
         map["colorcapabilities"] = colorCapabilities;
     }
 
