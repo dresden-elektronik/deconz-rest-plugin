@@ -149,6 +149,7 @@ const char *RConfigSensitivity = "config/sensitivity";
 const char *RConfigSensitivityMax = "config/sensitivitymax";
 const char *RConfigSunriseOffset = "config/sunriseoffset";
 const char *RConfigSunsetOffset = "config/sunsetoffset";
+const char *RConfigSwingMode = "config/swingmode";
 const char *RConfigTemperature = "config/temperature";
 const char *RConfigTemperatureMeasurement = "config/temperaturemeasurement";
 const char *RConfigTholdDark = "config/tholddark";
@@ -306,6 +307,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigSensitivityMax));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt8, RConfigSunriseOffset, -120, 120));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt8, RConfigSunsetOffset, -120, 120));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigSwingMode));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeInt16, RConfigTemperature, -27315, 32767));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigTemperatureMeasurement));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RConfigTholdDark, 0, 0xfffe));

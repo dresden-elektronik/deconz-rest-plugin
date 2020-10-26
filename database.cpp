@@ -3570,6 +3570,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeInt16, RConfigCoolSetpoint);
                     sensor.addItem(DataTypeString, RConfigMode);
                     sensor.addItem(DataTypeString, RConfigFanMode);
+                    sensor.addItem(DataTypeString, RConfigSwingMode);
                 }
                 else
                 {

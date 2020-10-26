@@ -612,6 +612,30 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
             }
                 break;
 
+            case 0x0045: // AC Louvers Position
+            {
+                qint8 mode = attr.numericValue().s8;
+                QString mode_set;
+
+                mode_set = QString("fully closed");
+                if ( mode == 0x01 ) { mode_set = QString("fully closed"); }
+                if ( mode == 0x02 ) { mode_set = QString("fully open"); }
+                if ( mode == 0x03 ) { mode_set = QString("quarter open"); }
+                if ( mode == 0x04 ) { mode_set = QString("half open"); }
+                if ( mode == 0x05 ) { mode_set = QString("three quarters open"); }
+
+                item = sensor->item(RConfigSwingMode);
+                if (item && !item->toString().isEmpty() && item->toString() != mode_set)
+                {
+                    item->setValue(mode_set);
+                    enqueueEvent(Event(RSensors, RConfigSwingMode, sensor->id(), item));
+                    configUpdated = true;
+                }
+
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
+                break;
+
             case 0x0403: // Temperature measurement
             {
                 if (zclFrame.manufacturerCode() == VENDOR_EMBER && sensor->modelId().startsWith(QLatin1String("Super TR"))) // ELKO
