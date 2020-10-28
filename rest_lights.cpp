@@ -1590,7 +1590,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         {
             paramOk = true;
             hasCmd = true;
-            if (map[param].type() == QVariant::String && map[param].toString() == "stop" && cluster != ANALOG_OUTPUT_CLUSTER_ID)
+            if (map[param].type() == QVariant::String && map[param].toString() == "stop")
             {
                 valueOk = true;
                 hasStop = true;
@@ -1610,7 +1610,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         {
             paramOk = true;
             hasCmd = true;
-            if (map[param].type() == QVariant::String && map[param].toString() == "stop" && cluster != ANALOG_OUTPUT_CLUSTER_ID)
+            if (map[param].type() == QVariant::String && map[param].toString() == "stop")
             {
                 valueOk = true;
                 hasStop = true;
@@ -1626,7 +1626,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
                 }
             }
         }
-        else if (param == "bri_inc" && taskRef.lightNode->item(RStateBri) && cluster != ANALOG_OUTPUT_CLUSTER_ID)
+        else if (param == "bri_inc" && taskRef.lightNode->item(RStateBri))
         {
             paramOk = true;
             hasCmd = true;
