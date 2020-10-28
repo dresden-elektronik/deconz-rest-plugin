@@ -15650,7 +15650,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
             {
                 skip = true; // Xiaomi Mija devices won't respond to ZCL read
             }
-            else if (checkMacVendor(sc->address, VENDOR_JENNIC))
+            else if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC)
             {
                 skip = true; // e.g. Trust remote (ZYCT-202)
             }
