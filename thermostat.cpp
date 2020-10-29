@@ -599,7 +599,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 
             case 0x0403: // Temperature measurement
             {
-                if (zclFrame.manufacturerCode() == VENDOR_EMBER && sensor->modelId().startsWith(QLatin1String("Super TR"))) // ELKO
+                if (sensor->modelId().startsWith(QLatin1String("Super TR"))) // ELKO
                 {
                     quint8 mode = attr.numericValue().u8;
                     QString mode_set;
@@ -623,7 +623,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 
             case 0x0406: // Device on/off
             {
-                if (zclFrame.manufacturerCode() == VENDOR_EMBER && sensor->modelId() == QLatin1String("Super TR")) // ELKO
+                if (sensor->modelId() == QLatin1String("Super TR")) // ELKO
                 {
                     bool on = attr.numericValue().u8 > 0 ? true : false;
                     item = sensor->item(RStateOn);
@@ -645,7 +645,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 
             case 0x0409: // Floor temperature
             {
-                if (zclFrame.manufacturerCode() == VENDOR_EMBER && sensor->modelId().startsWith(QLatin1String("Super TR"))) // ELKO
+                if (sensor->modelId().startsWith(QLatin1String("Super TR"))) // ELKO
                 {
                     qint16 floortemp = attr.numericValue().s16;
                     item = sensor->item(RStateFloorTemperature);
@@ -667,7 +667,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 
             case 0x0412: // Child lock
             {
-                if (zclFrame.manufacturerCode() == VENDOR_EMBER && sensor->modelId() == QLatin1String("Super TR")) // ELKO
+                if (sensor->modelId() == QLatin1String("Super TR")) // ELKO
                 {
                     bool enabled = attr.numericValue().u8 > 0 ? true : false;
                     item = sensor->item(RConfigLocked);
@@ -684,7 +684,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
 
             case 0x0415: // Heating active/inactive
             {
-                if (zclFrame.manufacturerCode() == VENDOR_EMBER && sensor->modelId() == QLatin1String("Super TR")) // ELKO
+                if (sensor->modelId() == QLatin1String("Super TR")) // ELKO
                 {
                     bool on = attr.numericValue().u8 > 0 ? true : false;
                     item = sensor->item(RStateHeating);
