@@ -1694,7 +1694,8 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         {
             targetLiftZigBee = 100 - targetLift;
         }
-        else if (taskRef.lightNode->modelId() == QLatin1String("Shutter switch with neutral"))
+        else if ((taskRef.lightNode->modelId() == QLatin1String("Shutter switch with neutral")) ||
+                 (taskRef.lightNode->modelId() == QLatin1String("Shutter SW with level control")) )
         {
             // Legrand invert bri and don't support other value than 0
             targetLiftZigBee = targetLift == 0 ? 100 : 0;
