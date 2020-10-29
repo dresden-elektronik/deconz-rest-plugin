@@ -177,15 +177,13 @@ const QStringList RConfigLastChangeSourceValues({
 
 static std::vector<const char*> rPrefixes;
 static std::vector<ResourceItemDescriptor> rItemDescriptors;
-static std::vector<QString> rItemStrings; // string allocator: only grows, never shrinks
+static const QString rInvalidString; // is returned when string is asked but not available
+const ResourceItemDescriptor rInvalidItemDescriptor(DataTypeUnknown, RInvalidSuffix);
 
 void initResourceDescriptors()
 {
     rPrefixes.clear();
     rItemDescriptors.clear();
-    rItemStrings.clear();
-
-    rItemStrings.emplace_back(QString()); // invalid string on index 0
 
     // init resource lookup
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RAttrName));
@@ -342,19 +340,41 @@ bool getResourceItemDescriptor(const QString &str, ResourceItemDescriptor &descr
     {
         if (str.endsWith(QLatin1String(i->suffix)))
         {
-                descr = *i;
-                return true;
+            descr = *i;
+            return true;
         }
     }
 
     return false;
 }
 
+/*! Copy constructor. */
 ResourceItem::ResourceItem(const ResourceItem &other)
 {
     *this = other;
 }
 
+/*! Move constructor. */
+ResourceItem::ResourceItem(ResourceItem &&other) :
+    m_isPublic(other.m_isPublic),
+    m_num(other.m_num),
+    m_numPrev(other.m_numPrev),
+    m_str(nullptr),
+    m_rid(other.m_rid),
+    m_lastSet(std::move(other.m_lastSet)),
+    m_lastChanged(std::move(other.m_lastChanged)),
+    m_rulesInvolved(std::move(other.m_rulesInvolved))
+{
+    if (other.m_str) // release
+    {
+        m_str = other.m_str;
+        other.m_str = nullptr;
+    }
+
+    other.m_rid = &rInvalidItemDescriptor;
+}
+
+/*! Destructor. */
 ResourceItem::~ResourceItem()
 {
     if (m_str)
@@ -364,6 +384,7 @@ ResourceItem::~ResourceItem()
     }
 }
 
+/*! Copy assignment. */
 ResourceItem &ResourceItem::operator=(const ResourceItem &other)
 {
     // self assignment?
@@ -372,34 +393,77 @@ ResourceItem &ResourceItem::operator=(const ResourceItem &other)
         return *this;
     }
 
+    m_isPublic = other.m_isPublic;
     m_num = other.m_num;
     m_numPrev = other.m_numPrev;
     m_rid = other.m_rid;
-    m_isPublic = other.m_isPublic;
-    m_lastSet = other.lastSet();
-    m_lastChanged = other.lastChanged();
-    m_rulesInvolved = other.rulesInvolved();
-    m_str = nullptr;
+    m_lastSet = other.m_lastSet;
+    m_lastChanged = other.m_lastChanged;
+    m_rulesInvolved = other.m_rulesInvolved;
 
     if (other.m_str)
     {
-        m_str = new QString;
-        *m_str = other.toString();
+        if (m_str)
+        {
+            *m_str = *other.m_str;
+        }
+        else
+        {
+            m_str = new QString(*other.m_str);
+        }
+    }
+    else if (m_str)
+    {
+        delete m_str;
+        m_str = nullptr;
     }
 
     return *this;
 }
 
+/*! Move assignment. */
+ResourceItem &ResourceItem::operator=(ResourceItem &&other)
+{
+    // self assignment?
+    if (this == &other)
+    {
+        return *this;
+    }
 
+    m_isPublic = other.m_isPublic;
+    m_num = other.m_num;
+    m_numPrev = other.m_numPrev;
+    m_rid = other.m_rid;
+    m_lastSet = std::move(other.m_lastChanged);
+    m_lastChanged = std::move(other.m_lastChanged);
+    m_rulesInvolved = std::move(other.m_rulesInvolved);
+    other.m_rid = &rInvalidItemDescriptor;
+
+    if (m_str)
+    {
+        delete m_str;
+        m_str = nullptr;
+    }
+
+    if (other.m_str)
+    {
+        m_str = other.m_str;
+        other.m_str = nullptr;
+    }
+
+    return *this;
+}
+
+/*! Initial main constructor to create a valid ResourceItem. */
 ResourceItem::ResourceItem(const ResourceItemDescriptor &rid) :
     m_num(0),
     m_numPrev(0),
     m_str(nullptr),
-    m_rid(rid)
+    m_rid(&rid)
 {
-    if (m_rid.type == DataTypeString ||
-        m_rid.type == DataTypeTime ||
-        m_rid.type == DataTypeTimePattern)
+    if (m_rid->type == DataTypeString ||
+        m_rid->type == DataTypeTime ||
+        m_rid->type == DataTypeTimePattern)
     {
         m_str = new QString;
     }
@@ -407,15 +471,15 @@ ResourceItem::ResourceItem(const ResourceItemDescriptor &rid) :
 
 const QString &ResourceItem::toString() const
 {
-    if (m_rid.type == DataTypeString ||
-        m_rid.type == DataTypeTimePattern)
+    if (m_rid->type == DataTypeString ||
+        m_rid->type == DataTypeTimePattern)
     {
         if (m_str)
         {
             return *m_str;
         }
     }
-    else if (m_rid.type == DataTypeTime)
+    else if (m_rid->type == DataTypeTime)
     {
         if (m_num > 0)
         {
@@ -424,25 +488,25 @@ const QString &ResourceItem::toString() const
             // default: local time in sec resolution
             QString format = QLatin1String("yyyy-MM-ddTHH:mm:ss");
 
-            if (m_rid.suffix == RStateLastUpdated)
+            if (m_rid->suffix == RStateLastUpdated)
             {
                 // UTC in msec resolution
                 format = QLatin1String("yyyy-MM-ddTHH:mm:ss.zzz"); // TODO add Z
                 dt.setOffsetFromUtc(0);
             }
-            else if (m_rid.suffix == RAttrLastAnnounced || m_rid.suffix == RStateLastSet || m_rid.suffix == RStateUtc || m_rid.suffix == RConfigLastChangeTime)
+            else if (m_rid->suffix == RAttrLastAnnounced || m_rid->suffix == RStateLastSet || m_rid->suffix == RStateUtc || m_rid->suffix == RConfigLastChangeTime)
             {
                 // UTC in sec resolution
                 format = QLatin1String("yyyy-MM-ddTHH:mm:ssZ");
                 dt.setOffsetFromUtc(0);
             }
-            else if (m_rid.suffix == RAttrLastSeen)
+            else if (m_rid->suffix == RAttrLastSeen)
             {
                 // UTC in min resolution
                 format = QLatin1String("yyyy-MM-ddTHH:mmZ");
                 dt.setOffsetFromUtc(0);
             }
-            else if (m_rid.suffix == RStateSunrise || m_rid.suffix == RStateSunset)
+            else if (m_rid->suffix == RStateSunrise || m_rid->suffix == RStateSunset)
             {
                 // UTC in sec resulution
                 format = QLatin1String("yyyy-MM-ddTHH:mm:ss"); // TODO add Z
@@ -454,13 +518,12 @@ const QString &ResourceItem::toString() const
             return *m_str;
         }
     }
-    else if (m_rid.suffix == RStateEffect)
+    else if (m_rid->suffix == RStateEffect)
     {
         return RStateEffectValuesMueller[m_num];
     }
 
-    DBG_Assert(!rItemStrings.empty());
-    return rItemStrings[0]; // invalid string
+    return rInvalidString;
 }
 
 qint64 ResourceItem::toNumber() const
@@ -496,10 +559,10 @@ bool ResourceItem::setValue(const QString &val)
 
 bool ResourceItem::setValue(qint64 val)
 {
-    if (m_rid.validMin != 0 || m_rid.validMax != 0)
+    if (m_rid->validMin != 0 || m_rid->validMax != 0)
     {
         // range check
-        if (val < m_rid.validMin || val > m_rid.validMax)
+        if (val < m_rid->validMin || val > m_rid->validMax)
         {
             return false;
         }
@@ -526,10 +589,10 @@ bool ResourceItem::setValue(const QVariant &val)
         return true;
     }
 
-    QDateTime now = QDateTime::currentDateTime();
+    const auto now = QDateTime::currentDateTime();
 
-    if (m_rid.type == DataTypeString ||
-        m_rid.type == DataTypeTimePattern)
+    if (m_rid->type == DataTypeString ||
+        m_rid->type == DataTypeTimePattern)
     {
         // TODO validate time pattern
         if (m_str)
@@ -543,7 +606,7 @@ bool ResourceItem::setValue(const QVariant &val)
             return true;
         }
     }
-    else if (m_rid.type == DataTypeBool)
+    else if (m_rid->type == DataTypeBool)
     {
         m_lastSet = now;
         m_numPrev = m_num;
@@ -555,7 +618,7 @@ bool ResourceItem::setValue(const QVariant &val)
         }
         return true;
     }
-    else if (m_rid.type == DataTypeTime)
+    else if (m_rid->type == DataTypeTime)
     {
         if (val.type() == QVariant::String)
         {
@@ -589,13 +652,13 @@ bool ResourceItem::setValue(const QVariant &val)
     }
     else
     {
-        bool ok;
-        int n = val.toInt(&ok);
+        bool ok = false;
+        const int n = val.toInt(&ok);
         if (ok)
         {
-            if (m_rid.validMin == 0 && m_rid.validMax == 0)
+            if (m_rid->validMin == 0 && m_rid->validMax == 0)
             { /* no range check */ }
-            else if (n >= m_rid.validMin && n <= m_rid.validMax)
+            else if (n >= m_rid->validMin && n <= m_rid->validMax)
             {   /* range check: ok*/ }
             else {
                 return false;
@@ -618,7 +681,8 @@ bool ResourceItem::setValue(const QVariant &val)
 
 const ResourceItemDescriptor &ResourceItem::descriptor() const
 {
-    return m_rid;
+    Q_ASSERT(m_rid);
+    return *m_rid;
 }
 
 const QDateTime &ResourceItem::lastSet() const
@@ -644,8 +708,8 @@ QVariant ResourceItem::toVariant() const
         return QVariant();
     }
 
-    if (m_rid.type == DataTypeString ||
-        m_rid.type == DataTypeTimePattern)
+    if (m_rid->type == DataTypeString ||
+        m_rid->type == DataTypeTimePattern)
     {
         if (m_str)
         {
@@ -653,11 +717,11 @@ QVariant ResourceItem::toVariant() const
         }
         return QString();
     }
-    else if (m_rid.type == DataTypeBool)
+    else if (m_rid->type == DataTypeBool)
     {
         return (bool)m_num;
     }
-    else if (m_rid.type == DataTypeTime)
+    else if (m_rid->type == DataTypeTime)
     {
         return toString();
     }
@@ -701,31 +765,62 @@ void ResourceItem::setIsPublic(bool isPublic)
     m_isPublic = isPublic;
 }
 
+/*! Initial main constructor. */
 Resource::Resource(const char *prefix) :
     m_prefix(prefix)
 {
+    Q_ASSERT(prefix == RSensors || prefix == RLights || prefix == RGroups || prefix == RConfig);
 }
 
-Resource::~Resource()
-{
-    DBG_Printf(DBG_INFO_L2, "~Resource() %s %p\n", m_prefix, this);
-}
-
-Resource::Resource(const Resource &other)
+/*! Copy constructor. */
+Resource::Resource(const Resource &other) :
+    lastStatePush(other.lastStatePush),
+    lastAttrPush(other.lastAttrPush),
+    m_prefix(other.m_prefix),
+    m_rItems(other.m_rItems)
 {
     m_prefix = other.m_prefix;
-    m_rItems = other.m_rItems;
 }
 
+/*! Move constructor. */
+Resource::Resource(Resource &&other) :
+    lastStatePush(std::move(other.lastStatePush)),
+    lastAttrPush(std::move(other.lastAttrPush)),
+    m_prefix(other.m_prefix),
+    m_rItems(std::move(other.m_rItems))
+{
+    other.m_prefix = RInvalidSuffix;
+}
+
+/*! Copy assignment. */
 Resource &Resource::operator=(const Resource &other)
 {
-    m_prefix = other.m_prefix;
-    m_rItems = other.m_rItems;
+    if (this != &other)
+    {
+        lastStatePush = other.lastStatePush;
+        lastAttrPush = other.lastAttrPush;
+        m_prefix = other.m_prefix;
+        m_rItems = other.m_rItems;
+    }
+    return *this;
+}
+
+/*! Move assignment. */
+Resource &Resource::operator=(Resource &&other)
+{
+    if (this != &other)
+    {
+        lastStatePush = std::move(other.lastStatePush);
+        lastAttrPush = std::move(other.lastAttrPush);
+        m_prefix = other.m_prefix;
+        m_rItems = std::move(other.m_rItems);
+    }
     return *this;
 }
 
 const char *Resource::prefix() const
 {
+    Q_ASSERT(m_prefix);
     return m_prefix;
 }
 
@@ -755,8 +850,8 @@ ResourceItem *Resource::addItem(ApiDataType type, const char *suffix)
 
 void Resource::removeItem(const char *suffix)
 {
-    std::vector<ResourceItem>::iterator i = m_rItems.begin();
-    std::vector<ResourceItem>::iterator end = m_rItems.end();
+    auto i = m_rItems.begin();
+    const auto end = m_rItems.end();
 
     for (; i != end; ++i)
     {
@@ -765,9 +860,9 @@ void Resource::removeItem(const char *suffix)
             continue;
         }
 
-        *i = m_rItems.back();
+        *i = std::move(m_rItems.back());
         m_rItems.pop_back();
-        return;
+        break;
     }
 }
 
@@ -781,7 +876,7 @@ ResourceItem *Resource::item(const char *suffix)
         }
     }
 
-    return 0;
+    return nullptr;
 }
 
 const ResourceItem *Resource::item(const char *suffix) const
@@ -794,7 +889,7 @@ const ResourceItem *Resource::item(const char *suffix) const
         }
     }
 
-    return 0;
+    return nullptr;
 }
 
 bool Resource::toBool(const char *suffix) const
@@ -824,8 +919,7 @@ const QString &Resource::toString(const char *suffix) const
     {
         return i->toString();
     }
-    DBG_Assert(!rItemStrings.empty());
-    return rItemStrings[0]; // invalid string
+    return rInvalidString;
 }
 
 QVariant Resource::toVariant(const char *suffix) const
@@ -849,7 +943,7 @@ ResourceItem *Resource::itemForIndex(size_t idx)
     {
         return &m_rItems[idx];
     }
-    return 0;
+    return nullptr;
 }
 
 const ResourceItem *Resource::itemForIndex(size_t idx) const
@@ -858,5 +952,5 @@ const ResourceItem *Resource::itemForIndex(size_t idx) const
     {
         return &m_rItems[idx];
     }
-    return 0;
+    return nullptr;
 }
