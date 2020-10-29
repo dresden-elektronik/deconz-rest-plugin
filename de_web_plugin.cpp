@@ -7590,6 +7590,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     {
                                         button = (S_BUTTON_1 * event.endpoint()) + S_BUTTON_ACTION_SHORT_RELEASED;
                                     }
+                                    else if (i->modelId() == QLatin1String("lumi.sensor_switch"))
+                                    { // handeled by button map
+                                    }
                                     else if (i->modelId().startsWith(QLatin1String("lumi.ctrl_neutral")))
                                     {
                                         switch (event.endpoint())
