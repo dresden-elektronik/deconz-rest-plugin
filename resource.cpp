@@ -791,7 +791,15 @@ ResourceItem::ResourceItem(ResourceItem &&other) :
     m_rid(other.m_rid),
     m_lastSet(std::move(other.m_lastSet)),
     m_lastChanged(std::move(other.m_lastChanged)),
-    m_rulesInvolved(std::move(other.m_rulesInvolved))
+    m_rulesInvolved(std::move(other.m_rulesInvolved)),
+    m_clusterId(other.m_clusterId),
+    m_attributeId(other.m_attributeId),
+    m_endpoint(other.m_endpoint),
+    m_parseFunction(other.m_parseFunction),
+    m_parseParameters(std::move(other.m_parseParameters)),
+    m_readParameters(std::move(other.m_readParameters)),
+    m_writeParameters(std::move(other.m_writeParameters))
+
 {
     if (other.m_str) // release
     {
@@ -821,14 +829,15 @@ ResourceItem &ResourceItem::operator=(const ResourceItem &other)
         return *this;
     }
 
+    m_valueSource = other.m_valueSource;
     m_isPublic = other.m_isPublic;
     m_parseFunction = other.m_parseFunction;
-    m_parseParameters = other.parseParameters();
-    m_readParameters = other.readParameters();
-    m_writeParameters = other.writeParameters();
-    m_clusterId = other.clusterId();
-    m_attributeId = other.attributeId();
-    m_endpoint = other.endpoint();
+    m_parseParameters = other.m_parseParameters;
+    m_readParameters = other.m_readParameters;
+    m_writeParameters = other.m_writeParameters;
+    m_clusterId = other.m_clusterId;
+    m_attributeId = other.m_attributeId;
+    m_endpoint = other.m_endpoint;
     m_num = other.m_num;
     m_numPrev = other.m_numPrev;
     m_rid = other.m_rid;
@@ -865,6 +874,7 @@ ResourceItem &ResourceItem::operator=(ResourceItem &&other)
         return *this;
     }
 
+    m_valueSource = other.m_valueSource;
     m_isPublic = other.m_isPublic;
     m_num = other.m_num;
     m_numPrev = other.m_numPrev;
@@ -872,6 +882,13 @@ ResourceItem &ResourceItem::operator=(ResourceItem &&other)
     m_lastSet = std::move(other.m_lastChanged);
     m_lastChanged = std::move(other.m_lastChanged);
     m_rulesInvolved = std::move(other.m_rulesInvolved);
+    m_clusterId = other.m_clusterId;
+    m_attributeId = other.m_attributeId;
+    m_endpoint = other.m_endpoint;
+    m_parseFunction = other.m_parseFunction;
+    m_parseParameters = std::move(other.m_parseParameters);
+    m_readParameters = std::move(other.m_readParameters);
+    m_writeParameters = std::move(other.m_writeParameters);
     other.m_rid = &rInvalidItemDescriptor;
 
     if (m_str)
@@ -964,7 +981,7 @@ const QString &ResourceItem::toString() const
             return *m_str;
         }
     }
-    else if (m_rid.suffix == RStateEffect && m_num < RStateEffectValuesMueller.size())
+    else if (m_rid->suffix == RStateEffect && m_num < RStateEffectValuesMueller.size())
     {
         return RStateEffectValuesMueller[m_num];
     }
@@ -1103,7 +1120,7 @@ bool ResourceItem::setValue(const QVariant &val, ValueSource source)
     }
     else
     {
-        if (m_rid.type == DataTypeReal)
+        if (m_rid->type == DataTypeReal)
         {
             DBG_Printf(DBG_ERROR, "todo handle DataTypeReal in %s", __FUNCTION__);
         }
@@ -1250,7 +1267,7 @@ void ResourceItem::setWriteParameters(const std::vector<QVariant> &params)
 Resource::Resource(const char *prefix) :
     m_prefix(prefix)
 {
-    Q_ASSERT(prefix == RSensors || prefix == RLights || prefix == RGroups || prefix == RConfig);
+    Q_ASSERT(prefix == RSensors || prefix == RLights || prefix == RGroups || prefix == RConfig || prefix == RDevices);
 }
 
 /*! Copy constructor. */
@@ -1258,9 +1275,9 @@ Resource::Resource(const Resource &other) :
     lastStatePush(other.lastStatePush),
     lastAttrPush(other.lastAttrPush),
     m_prefix(other.m_prefix),
+    m_parent(other.m_parent),
     m_rItems(other.m_rItems)
 {
-    m_prefix = other.m_prefix;
 }
 
 /*! Move constructor. */
@@ -1268,6 +1285,7 @@ Resource::Resource(Resource &&other) :
     lastStatePush(std::move(other.lastStatePush)),
     lastAttrPush(std::move(other.lastAttrPush)),
     m_prefix(other.m_prefix),
+    m_parent(other.m_parent),
     m_rItems(std::move(other.m_rItems))
 {
     other.m_prefix = RInvalidSuffix;
@@ -1281,6 +1299,7 @@ Resource &Resource::operator=(const Resource &other)
         lastStatePush = other.lastStatePush;
         lastAttrPush = other.lastAttrPush;
         m_prefix = other.m_prefix;
+        m_parent = other.m_parent;
         m_rItems = other.m_rItems;
     }
     return *this;
@@ -1294,6 +1313,7 @@ Resource &Resource::operator=(Resource &&other)
         lastStatePush = std::move(other.lastStatePush);
         lastAttrPush = std::move(other.lastAttrPush);
         m_prefix = other.m_prefix;
+        m_parent = other.m_parent;
         m_rItems = std::move(other.m_rItems);
     }
     return *this;
