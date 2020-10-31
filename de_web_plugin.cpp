@@ -6040,6 +6040,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.addItem(DataTypeInt16, RStateFloorTemperature);
                 sensorNode.addItem(DataTypeBool, RStateHeating);
                 sensorNode.addItem(DataTypeBool, RConfigLocked);
+                sensorNode.addItem(DataTypeString, RConfigMode);
             }
 
             if (sensorNode.modelId() == QLatin1String("kud7u2l") || // Tuya
