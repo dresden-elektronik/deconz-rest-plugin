@@ -2965,7 +2965,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
     }
 
     if ((ind.srcAddress().hasExt() && ind.srcAddress().ext() == fastProbeAddr.ext()) ||
-        (ind.srcAddress().hasNwk() && ind.srcAddress().nwk() == fastProbeAddr.nwk()))
+        (fastProbeAddr.hasExt() && ind.srcAddress().hasNwk() && ind.srcAddress().nwk() == fastProbeAddr.nwk()))
     {
         DBG_Printf(DBG_INFO, "FP indication 0x%04X / 0x%04X (0x%016llX / 0x%04X)\n", ind.profileId(), ind.clusterId(), ind.srcAddress().ext(), ind.srcAddress().nwk());
         DBG_Printf(DBG_INFO, "                      ...     (0x%016llX / 0x%04X)\n", fastProbeAddr.ext(), fastProbeAddr.nwk());

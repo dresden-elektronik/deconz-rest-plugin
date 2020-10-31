@@ -229,6 +229,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_XIAOMI, "lumi.plug", xiaomiMacPrefix }, // Xiaomi smart plugs (router)
     { VENDOR_XIAOMI, "lumi.switch.b1naus01", xiaomiMacPrefix }, // Xiaomi Aqara ZB3.0 Smart Wall Switch Single Rocker WS-USC03
     // { VENDOR_XIAOMI, "lumi.curtain", jennicMacPrefix}, // Xiaomi curtain controller (router) - exposed only as light
+    { VENDOR_XIAOMI, "lumi.curtain.hagl04", xiaomiMacPrefix}, // Xiaomi B1 curtain controller
     { VENDOR_UBISYS, "C4", ubisysMacPrefix },
     { VENDOR_UBISYS, "D1", ubisysMacPrefix },
     { VENDOR_UBISYS, "J1", ubisysMacPrefix },
@@ -2631,6 +2632,9 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
              lightNode->modelId() == QLatin1String("A19 TW 10 year") ||
              lightNode->modelId() == QLatin1String("Classic B40 TW - LIGHTIFY") ||
              lightNode->modelId() == QLatin1String("Classic A60 TW") ||
+             lightNode->modelId() == QLatin1String("Classic A60 TW") ||
+             lightNode->modelId() == QLatin1String("Zigbee CCT Downlight") ||
+             lightNode->modelId() == QLatin1String("Halo_RL5601") ||
              (lightNode->manufacturerCode() == VENDOR_LEDVANCE && lightNode->modelId() == QLatin1String("Down Light TW")) ||
              (lightNode->manufacturerCode() == VENDOR_LEDVANCE && lightNode->modelId() == QLatin1String("BR30 TW")) ||
              (lightNode->manufacturerCode() == VENDOR_LEDVANCE && lightNode->modelId() == QLatin1String("MR16 TW")) ||
@@ -4826,6 +4830,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     fpAlarmSensor.inClusters.push_back(ci->id());
                     if (node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA &&
                         (modelId.startsWith(QLatin1String("FYRTUR")) || modelId.startsWith(QLatin1String("KADRILJ"))))
+                    {
+                        fpBatterySensor.inClusters.push_back(ci->id());
+                    }
+                    if (node->nodeDescriptor().manufacturerCode() == VENDOR_XIAOMI &&
+                        modelId.startsWith(QLatin1String("lumi.curtain.hagl04")))
                     {
                         fpBatterySensor.inClusters.push_back(ci->id());
                     }
@@ -7754,6 +7763,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     if (i->modelId().startsWith(QLatin1String("lumi.sensor_86sw")))
                                     {
                                         button = (S_BUTTON_1 * event.endpoint()) + S_BUTTON_ACTION_SHORT_RELEASED;
+                                    }
+                                    else if (i->modelId() == QLatin1String("lumi.sensor_switch"))
+                                    { // handeled by button map
                                     }
                                     else if (i->modelId().startsWith(QLatin1String("lumi.ctrl_neutral")))
                                     {
@@ -13831,6 +13843,28 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                 DBG_Printf(DBG_INFO_L2, "Validaded Scene (gid: %u, sid: %u) for Light %s\n", groupId, sceneId, qPrintable(lightNode->id()));
                 DBG_Printf(DBG_INFO_L2, "On: %u, Bri: %u, X: %u, Y: %u, Transitiontime: %u\n",
                         onOff, bri, x, y, transitionTime);
+            }
+        }
+        else if (status == 0x8b && zclFrame.payload().size() >= 4) // scene not found
+        {
+            uint16_t groupId;
+            uint8_t sceneId;
+
+            stream >> groupId;
+            stream >> sceneId;
+
+            Group *group = getGroupForId(groupId);
+            Scene *scene = group->getScene(sceneId);
+
+            if (!group || !scene)
+            {
+                return;
+            }
+
+            auto *ls = scene->getLightState(lightNode->id());
+            if (ls)
+            {
+                ls->setNeedRead(false); // move to add scene
             }
         }
     }

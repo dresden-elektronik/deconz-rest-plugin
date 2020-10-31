@@ -468,7 +468,11 @@ void PollManager::pollTimerFired()
             else
             {
                 if (item->toString().isEmpty() ||
+                    lightNode->manufacturerCode() == VENDOR_IKEA ||
+                    lightNode->manufacturerCode() == VENDOR_OSRAM ||
+                    lightNode->manufacturerCode() == VENDOR_OSRAM_STACK ||
                     lightNode->manufacturerCode() == VENDOR_XAL ||
+                    lightNode->manufacturerCode() == VENDOR_PHILIPS ||
                     lightNode->manufacturerCode() == VENDOR_DDEL)
                 {
                     attributes.push_back(0x4000); // sw build id
@@ -505,6 +509,11 @@ void PollManager::pollTimerFired()
                             if (attrId == attr.id() && attr.isAvailable())
                             {
                                 check.push_back(attr.id());     // Only use available attributes
+
+                                if (cl.id() == BASIC_CLUSTER_ID)
+                                {
+                                    continue; // don't rely on reporting
+                                }
 
                                 NodeValue &val = restNode->getZclValue(clusterId, attrId);
 
