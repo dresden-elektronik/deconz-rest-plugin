@@ -1430,15 +1430,15 @@ public:
     bool addTaskSyncTime(Sensor *sensor);
     bool addTaskThermostatUiConfigurationReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t attrId, uint8_t attrType, uint32_t attrValue, uint16_t mfrCode=0);
 
-    void handleGroupClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
-    void handleSceneClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
-    void handleOnOffClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleGroupClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleSceneClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleOnOffClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleClusterIndicationGateways(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleIasZoneClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendIasZoneEnrollResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleIndicationSearchSensors(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     bool SendTuyaRequest(TaskItem &task, TaskType taskType , qint8 Dp_type, qint8 Dp_identifier , QByteArray data );
-    void handleCommissioningClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleCommissioningClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZdpIndication(const deCONZ::ApsDataIndication &ind);
     bool handleMgmtBindRspConfirm(const deCONZ::ApsDataConfirm &conf);
     void handleDeviceAnnceIndication(const deCONZ::ApsDataIndication &ind);
