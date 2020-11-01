@@ -135,7 +135,7 @@ void DEV_IdleStateHandler(Device *device, const Event &event)
         }
         else if (event.num() == deCONZ::ZdpNotSupported)
         {
-            device->m_mgmtBindSupported = true;
+            device->m_mgmtBindSupported = false;
         }
 
         device->m_bindingIter = 0;
