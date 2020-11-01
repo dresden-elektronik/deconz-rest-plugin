@@ -80,7 +80,7 @@ void DeRestPluginPrivate::initDb()
 void DeRestPluginPrivate::checkDbUserVersion()
 {
     bool updated = false;
-    int userVersion = getDbPragmaInteger(pragmaUserVersion); // sqlite default is 0
+    const int userVersion = getDbPragmaInteger(pragmaUserVersion); // sqlite default is 0
 
     if (userVersion == 0) // initial and legacy databases
     {
@@ -100,6 +100,10 @@ void DeRestPluginPrivate::checkDbUserVersion()
     }
     else if (userVersion == 7)
     {
+        updated = upgradeDbToUserVersion8();
+    }
+    else if (userVersion == 8)
+    {
         // latest version
     }
     else
@@ -107,15 +111,14 @@ void DeRestPluginPrivate::checkDbUserVersion()
         DBG_Printf(DBG_INFO, "DB database file opened with a older deCONZ version\n");
     }
 
-    // if something was upgraded
-    if (updated)
-    {
-        checkDbUserVersion();
-    }
-    else
+    if (!updated)
     {
         cleanUpDb();
         createTempViews();
+    }
+    else // if something was upgraded
+    {
+        checkDbUserVersion(); // tail recursion
     }
 }
 
@@ -488,6 +491,59 @@ bool DeRestPluginPrivate::upgradeDbToUserVersion7()
     }
 
     return setDbUserVersion(7);
+}
+
+/*! Upgrades database to user_version 8. */
+bool DeRestPluginPrivate::upgradeDbToUserVersion8()
+{
+    DBG_Printf(DBG_INFO, "DB upgrade to user_version 8\n");
+
+    /*
+       The 'sub_devices' table references 'devices' so that entries are
+       automatically deleted if the destination node is removed.
+       Inserting an entry with an existing uuid will automatically be ignored.
+
+       The 'resource_items' table references 'sub_devices' so that
+       entries are deleted when the respective sub_devices entry is removed.
+       The rowid is used as foreign key for max performance.
+       Each entry is unique and automatically replaced if already existing.
+     */
+
+    // create tables
+    const char *sql[] = {
+        "CREATE TABLE IF NOT EXISTS sub_devices ("
+        " uuid TEXT PRIMARY KEY ON CONFLICT IGNORE,"
+        " device_id INTEGER REFERENCES devices(id) ON DELETE CASCADE,"
+        " timestamp INTEGER NOT NULL)",
+
+        "CREATE TABLE if NOT EXISTS resource_items ("
+        " sub_device_id INTEGER REFERENCES sub_devices(rowid) ON DELETE CASCADE,"
+        " item STRING NOT NULL,"
+        " value NOT NULL," // can be any type
+        " source STRING NOT NULL,"
+        " timestamp INTEGER NOT NULL," // is the last set timestamp
+        " PRIMARY KEY (sub_device_id, item) ON CONFLICT REPLACE"
+        ")",
+        nullptr
+    };
+
+    for (int i = 0; sql[i] != nullptr; i++)
+    {
+        char *errmsg = nullptr;
+        int rc = sqlite3_exec(db, sql[i], nullptr, nullptr, &errmsg);
+
+        if (rc != SQLITE_OK)
+        {
+            if (errmsg)
+            {
+                DBG_Printf(DBG_ERROR_L2, "SQL exec failed: %s, error: %s (%d), line: %d\n", sql[i], errmsg, rc, __LINE__);
+                sqlite3_free(errmsg);
+            }
+            return false;
+        }
+    }
+
+    return setDbUserVersion(8);
 }
 
 #if DECONZ_LIB_VERSION >= 0x010E00
