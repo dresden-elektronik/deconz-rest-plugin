@@ -5142,7 +5142,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("ICZB-RM")) || // icasa remote
                              modelId.startsWith(QLatin1String("ZGRC-KEY")) || // Sunricher remote
                              modelId.startsWith(QLatin1String("ED-1001")) || // EcoDim switches
-                             modelId.startsWith(QLatin1String("ED-1001")))   // Namron switches
+                             modelId.startsWith(QLatin1String("45127")))     // Namron switches
                     {
                         if (i->endpoint() == 0x01) // create sensor only for first endpoint
                         {
