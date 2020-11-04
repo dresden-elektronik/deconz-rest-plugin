@@ -1085,13 +1085,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq2.maxInterval = 600;
             rq2.reportableChange16bit = 50;
 
-            ConfigureReportingRequest rq3;
-            rq3.dataType = deCONZ::Zcl8BitEnum;
-            rq3.attributeId = 0x001C;        // Thermostat mode
-            rq3.minInterval = 1;
-            rq3.maxInterval = 600;
-            rq3.reportableChange8bit = 0xff;
-
             ConfigureReportingRequest rq4;
             rq4.dataType = deCONZ::ZclBoolean;
             rq4.attributeId = 0x0406;        // Device on
@@ -1117,7 +1110,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq7.minInterval = 1;
             rq7.maxInterval = 600;
 
-            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4, rq5, rq6, rq7});
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq4, rq5, rq6, rq7});
         }
         else if (sensor && sensor->modelId() == QLatin1String("Zen-01")) // Zen
         {
