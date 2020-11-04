@@ -132,6 +132,7 @@ const char *RConfigLocked = "config/locked";
 const char *RConfigLong = "config/long";
 const char *RConfigLevelMin = "config/levelmin";
 const char *RConfigMode = "config/mode";
+const char *RConfigSetValve = "config/setvalve";
 const char *RConfigMountingMode = "config/mountingmode";
 const char *RConfigOffset = "config/offset";
 const char *RConfigOn = "config/on";
@@ -284,6 +285,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigLedIndication));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RConfigLocalTime));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigLocked));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RConfigSetValve));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigLong));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RConfigLevelMin));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RConfigMode));
