@@ -641,8 +641,8 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                     
                     // Set config/mode to have an adequate representation based on this attribute
                     QString mode_set;
-                    if ( bool == false ) { mode_set = QString("off"); }
-                    if ( bool == true ) { mode_set = QString("heat"); }
+                    if ( on == false ) { mode_set = QString("off"); }
+                    if ( on == true ) { mode_set = QString("heat"); }
                     
                     item = sensor->item(RConfigMode);
                     if (item && !item->toString().isEmpty() && item->toString() != mode_set)
