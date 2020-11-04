@@ -475,8 +475,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 if (sensor->modelId().startsWith(QLatin1String("SLR2")) ||   // Hive
                     sensor->modelId().startsWith(QLatin1String("SLR1b")) ||  // Hive
                     sensor->modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
-                    sensor->modelId().startsWith(QLatin1String("Zen-01")) || // Zen
-                    sensor->modelId().startsWith(QLatin1String("Super TR"))) // ELKO
+                    sensor->modelId().startsWith(QLatin1String("Zen-01")))   // Zen
                 {
                     qint8 mode = attr.numericValue().s8;
                     QString mode_set;
