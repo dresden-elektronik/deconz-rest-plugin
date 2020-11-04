@@ -163,13 +163,22 @@ void DeRestPluginPrivate::handleWindowCoveringClusterIndication(const deCONZ::Ap
                 lightNode->setZclValue(updateType, ind.srcEndpoint(), WINDOW_COVERING_CLUSTER_ID, attrid, numericValue);
 
                 quint8 lift = attrValue;
-                // Reverse value for Xiaomi curtain and Legrand switch
+                // Reverse value for Xiaomi curtain 
                 if (lightNode->modelId().startsWith(QLatin1String("lumi.curtain")) || 
-                    (lightNode->modelId() == QLatin1String("Motor Controller")) ||
-                    (lightNode->modelId() == QLatin1String("Shutter SW with level control")) ||
-                    (lightNode->modelId() == QLatin1String("Shutter switch with neutral")))
+                   (lightNode->modelId() == QLatin1String("Motor Controller")) )
                 {
                     lift = 100 - lift;
+                }
+                // Reverse value for Legrand but only for old value
+                if ((lightNode->modelId() == QLatin1String("Shutter SW with level control")) ||
+                    (lightNode->modelId() == QLatin1String("Shutter switch with neutral")) )
+                {
+                    bool bStatus = false;
+                    uint nHex = lightNode->swVersion().toUInt(&bStatus,16);
+                    if (bStatus && (nHex < 26))
+                    {
+                        lift = 100 - lift;
+                    }
                 }
                 bool open = lift < 100;
 
