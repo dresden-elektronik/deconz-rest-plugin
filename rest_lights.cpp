@@ -1700,7 +1700,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             // Legrand invert bri and don't support other value than 0
             bool bStatus = false;
             uint nHex = taskRef.lightNode->swBuildId().toUInt(&bStatus,16);
-            if (bStatus && (nHex < 26))
+            if (bStatus && (nHex < 33))
             {
                 targetLiftZigBee = targetLift == 0 ? 100 : 0;
             }
