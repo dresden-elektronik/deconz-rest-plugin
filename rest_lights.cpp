@@ -1834,6 +1834,14 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             rspItemState[QString("/lights/%1/state/lift").arg(id)] = targetLift;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
+            
+            
+            if ((taskRef.lightNode->modelId() == QLatin1String("Shutter switch with neutral")) ||
+                 (taskRef.lightNode->modelId() == QLatin1String("Shutter SW with level control")) )
+            {
+                    taskRef.lightNode->setValue(RStateBri, targetLift);
+                    taskRef.lightNode->setValue(RStateLift, targetLift);
+            }
 
             // Rely on attribute reporting to update the light state.
         }
