@@ -1418,6 +1418,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                             sensor->modelId() == QLatin1String("motionv4") ||
                             sensor->modelId() == QLatin1String("multiv4") ||
                             sensor->modelId() == QLatin1String("RFDL-ZB-MS") ||
+                            sensor->modelId() == QLatin1String("SZ-DWS04") ||
                             sensor->modelId() == QLatin1String("Zen-01") ||
                             sensor->modelId() == QLatin1String("Bell") ||
                             sensor->modelId() == QLatin1String("ISW-ZPR1-WP13") ||
