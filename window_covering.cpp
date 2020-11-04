@@ -174,7 +174,7 @@ void DeRestPluginPrivate::handleWindowCoveringClusterIndication(const deCONZ::Ap
                     (lightNode->modelId() == QLatin1String("Shutter switch with neutral")) )
                 {
                     bool bStatus = false;
-                    uint nHex = lightNode->swVersion().toUInt(&bStatus,16);
+                    uint nHex = lightNode->swBuildId().toUInt(&bStatus,16);
                     if (bStatus && (nHex < 26))
                     {
                         lift = 100 - lift;
