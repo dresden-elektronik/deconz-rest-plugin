@@ -1836,11 +1836,19 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             rsp.list.append(rspItem);
             
             
+            // I m using this code only for Legrand ATM but can be used for other device.
+            // Because the attribute reporting take realy long time to be done, can be 2 minutes
+            // Or it can be changed only after this time, so using an read attribute don't give usable value
+            // And can cause issue on some third app
             if ((taskRef.lightNode->modelId() == QLatin1String("Shutter switch with neutral")) ||
                  (taskRef.lightNode->modelId() == QLatin1String("Shutter SW with level control")) )
             {
-                    taskRef.lightNode->setValue(RStateBri, targetLift);
-                    taskRef.lightNode->setValue(RStateLift, targetLift);
+                taskRef.lightNode->setValue(RStateLift, targetLift);
+                taskRef.lightNode->setValue(RStateBri, targetLift * 254 / 100);
+                bool on2 = targetLift > 0;
+                bool open2 = targetLift < 100;
+                taskRef.lightNode->setValue(RStateOpen, open2);
+                taskRef.lightNode->setValue(RStateOn, on2);
             }
 
             // Rely on attribute reporting to update the light state.
@@ -1880,6 +1888,19 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             rspItemState[QString("/lights/%1/state/open").arg(id)] = targetOpen;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
+            
+            // I m using this code only for Legrand ATM but can be used for other device.
+            // Because the attribute reporting take realy long time to be done, can be 2 minutes
+            // Or it can be changed only after this time, so using an read attribute don't give usable value
+            // And can cause issue on some third app
+            if ((taskRef.lightNode->modelId() == QLatin1String("Shutter switch with neutral")) ||
+                 (taskRef.lightNode->modelId() == QLatin1String("Shutter SW with level control")) )
+            {
+                    taskRef.lightNode->setValue(RStateOpen, targetOpen);
+                    taskRef.lightNode->setValue(RStateOn, !targetOpen);
+                    taskRef.lightNode->setValue(RStateBri, targetOpen ? 0 : 255);
+                    taskRef.lightNode->setValue(RStateLift, targetOpen ? 0 : 100);
+            }
 
             // Rely on attribute reporting to update the light state.
         }
