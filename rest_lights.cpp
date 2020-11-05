@@ -1843,12 +1843,14 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             if ((taskRef.lightNode->modelId() == QLatin1String("Shutter switch with neutral")) ||
                  (taskRef.lightNode->modelId() == QLatin1String("Shutter SW with level control")) )
             {
-                taskRef.lightNode->setValue(RStateLift, targetLift);
-                taskRef.lightNode->setValue(RStateBri, targetLift * 254 / 100);
-                bool on2 = targetLift > 0;
-                bool open2 = targetLift < 100;
-                taskRef.lightNode->setValue(RStateOpen, open2);
-                taskRef.lightNode->setValue(RStateOn, on2);
+                taskRef.lightNode->setValue(RStateLift, 50);
+                taskRef.lightNode->setValue(RStateBri, 127);
+                //taskRef.lightNode->setValue(RStateLift, targetLift);
+                //taskRef.lightNode->setValue(RStateBri, targetLift * 254 / 100);
+                //bool on2 = targetLift > 0;
+                //bool open2 = targetLift < 100;
+                //taskRef.lightNode->setValue(RStateOpen, open2);
+                //taskRef.lightNode->setValue(RStateOn, on2);
             }
 
             // Rely on attribute reporting to update the light state.
@@ -1896,10 +1898,12 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             if ((taskRef.lightNode->modelId() == QLatin1String("Shutter switch with neutral")) ||
                  (taskRef.lightNode->modelId() == QLatin1String("Shutter SW with level control")) )
             {
-                    taskRef.lightNode->setValue(RStateOpen, targetOpen);
-                    taskRef.lightNode->setValue(RStateOn, !targetOpen);
-                    taskRef.lightNode->setValue(RStateBri, targetOpen ? 0 : 255);
-                    taskRef.lightNode->setValue(RStateLift, targetOpen ? 0 : 100);
+                //taskRef.lightNode->setValue(RStateOpen, targetOpen);
+                //taskRef.lightNode->setValue(RStateOn, !targetOpen);
+                //taskRef.lightNode->setValue(RStateBri, targetOpen ? 0 : 255);
+                //taskRef.lightNode->setValue(RStateLift, targetOpen ? 0 : 100);
+                taskRef.lightNode->setValue(RStateLift, 50);
+                taskRef.lightNode->setValue(RStateBri, 127);
             }
 
             // Rely on attribute reporting to update the light state.
