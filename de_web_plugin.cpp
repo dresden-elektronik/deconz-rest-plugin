@@ -4497,7 +4497,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
     QList<deCONZ::SimpleDescriptor>::const_iterator end = node->simpleDescriptors().constEnd();
 
     // Trust and iHorn specific
-    if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC && modelId.isEmpty())
+    if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC && modelId.isEmpty() && i != end)
     {
         int inClusterCount = i->inClusters().size();
         int outClusterCount = i->outClusters().size();
