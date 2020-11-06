@@ -1706,7 +1706,7 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             }
             else
             {
-                targetLiftZigBee = targetLift == 0 ? 0 : 100;
+                targetLiftZigBee = targetLift == 100 ? 100 : 0;
             }
         }
         else
