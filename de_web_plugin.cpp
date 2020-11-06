@@ -1793,7 +1793,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
     }
 
     //Make 2 fakes device for tuya stuff
-    if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER)
+    if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER && !node->simpleDescriptors().isEmpty())
     {
         const deCONZ::SimpleDescriptor *sd = &node->simpleDescriptors()[0];
 
