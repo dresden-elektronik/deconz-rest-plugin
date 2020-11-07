@@ -612,7 +612,7 @@ inline bool existDevicesWithVendorCodeForMacPrefix(const deCONZ::Address &addr, 
 inline bool checkMacAndVendor(const deCONZ::Node *node, quint16 vendor)
 {
     return node->nodeDescriptor().manufacturerCode() == vendor && existDevicesWithVendorCodeForMacPrefix(node->address(), vendor);
-};
+}
 
 // HTTP status codes
 extern const char *HttpStatusOk;
