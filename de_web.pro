@@ -118,7 +118,8 @@ HEADERS  = bindings.h \
            tuya.h \
            websocket_server.h
 
-SOURCES  = authorisation.cpp \
+SOURCES  = air_quality.cpp \
+           authorisation.cpp \
            bindings.cpp \
            change_channel.cpp \
            connectivity.cpp \

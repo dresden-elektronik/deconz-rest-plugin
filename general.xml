@@ -3497,7 +3497,7 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 		</cluster>
 
 		<!-- Samjin -->
-    <cluster id="0xfc02" name="Samjin" mfcode="0x104e">
+    <cluster id="0xfc02" name="Samjin specific" mfcode="0x104e">
 			<description>Samjin manufacturer-specifc cluster for SmartThings multi sensor.</description>
 			<server>
         <attribute id="0x0000" name="Motion Threshold Multiplier" type="u8" mfcode="0x104e" default="0" access="rw" required="m"> </attribute>
@@ -3543,7 +3543,7 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 		</cluster>
 
 		<!-- OSRAM -->
-		<cluster id="0xfc0f" name="OSRAM" mfcode="0xbbaa">
+		<cluster id="0xfc0f" name="OSRAM specific" mfcode="0xbbaa">
 			<description>OSRAM manufacturer-specific cluster to set power-on defaults.</description>
 			<server>
 				<command id="0x01" dir="recv" name="Store Power-On Defaults" required="o">
@@ -3554,7 +3554,7 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 		</cluster>
 
 		<!-- LEDVANCE -->
-		<cluster id="0xfc01" name="LEDVANCE" mfcode="0x1189">
+		<cluster id="0xfc01" name="LEDVANCE specific" mfcode="0x1189">
 			<description>LEDVANCE manufacturer-specific cluster to set power-on defaults.</description>
 			<server>
 				<command id="0x01" dir="recv" name="Store Power-On Defaults" required="o">
@@ -3565,7 +3565,7 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 		</cluster>
 
 		<!-- IKEA -->
-		<cluster id="0xfc7c" name="IKEA" mfcode="0x117c">
+		<cluster id="0xfc7c" name="IKEA specific" mfcode="0x117c">
 			<description>IKEA control outlet cluster.</description>
 			<server>
 				<attribute id="0x0010" name="Unknown 1" type="u8" access="rw" required="m" showas="hex" mfcode="0x117c">
@@ -3580,7 +3580,7 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 		</cluster>
 
 		<!-- LUMI -->
-		<cluster id="0xfcc0" name="Lumi" mfcode="0x115f">
+		<cluster id="0xfcc0" name="Lumi specific" mfcode="0x115f">
 			<description>Lumi specific attributes.</description>
 			<server>
 				<attribute id="0x00f3" name="Unknown" type="u8" mfcode="0x115f" access="rw" required="m"> </attribute>
@@ -3608,7 +3608,7 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 		</cluster>
 
 		<!-- INNR -->
-		<cluster id="0xfc82" name="innr" mfcode="0x1166">
+		<cluster id="0xfc82" name="innr specific" mfcode="0x1166">
 			<description>innr specific attributes.</description>
 			<server>
 				<attribute id="0x0006" name="Unknown" type="cstring" mfcode="0x1166" access="rw" required="m"> </attribute>
@@ -3625,7 +3625,7 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 		</cluster>
 
 		<!-- IMMAX -->
-		<cluster id="0xfc82" name="Immax" mfcode="0x1037">
+		<cluster id="0xfc82" name="Immax specific" mfcode="0x1037">
 			<description>Immax specific attributes.</description>
 			<server>
 				<attribute id="0x0010" name="Turned on since" type="u32" mfcode="0x1037" access="r" required="m"> </attribute>
@@ -3638,7 +3638,20 @@ Contactor > On/off=0003 - HP/HC=0004</description>
 			</client>
 		</cluster>
 
-        <!-- NIKO -->
+		<!-- DEVELCO -->
+		<cluster id="0xfc03" name="VOC Measurement" mfcode="0x1015">
+			<description>Develco specific attributes.</description>
+			<server>
+				<attribute id="0x0000" name="Measured value" type="u16" mfcode="0x1015" access="r" required="m"> </attribute>
+				<attribute id="0x0001" name="Min. measured value" type="u16" mfcode="0x1015" access="r" required="m"> </attribute>
+				<attribute id="0x0002" name="Max. measured value" type="u16" mfcode="0x1015" access="r" required="m"> </attribute>
+				<attribute id="0x0003" name="Resolution" type="u16" mfcode="0x1015" access="r" required="m"> </attribute>
+			</server>
+			<client>
+			</client>
+		</cluster>
+
+		<!-- NIKO -->
 		<cluster id="0xfc00" name="Niko specific" mfcode="0x125f">
 			<description>Niko specific attributes.</description>
 			<server>

@@ -981,12 +981,13 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.dataType = deCONZ::Zcl16BitInt;
         rq.attributeId = 0x0000;       // measured value
 
-        if (sensor && (sensor->modelId().startsWith(QLatin1String("SMSZB-120")) ||   // Develco smoke sensor
-                        sensor->modelId().startsWith(QLatin1String("HESZB-120")) ||  // Develco heat sensor
-                        sensor->modelId().startsWith(QLatin1String("MOSZB-130")) ||  // Develco motion sensor
-                        sensor->modelId().startsWith(QLatin1String("WISZB-120")) ||  // Develco window sensor
-                        sensor->modelId().startsWith(QLatin1String("FLSZB-110")) ||  // Develco water leak sensor
-                        sensor->modelId().startsWith(QLatin1String("ZHMS101"))))     // Wattle (Develco) magnetic sensor
+        if (sensor && (sensor->modelId().startsWith(QLatin1String("AQSZB-110")) ||  // Develco air quality sensor
+                       sensor->modelId().startsWith(QLatin1String("SMSZB-120")) ||  // Develco smoke sensor
+                       sensor->modelId().startsWith(QLatin1String("HESZB-120")) ||  // Develco heat sensor
+                       sensor->modelId().startsWith(QLatin1String("MOSZB-130")) ||  // Develco motion sensor
+                       sensor->modelId().startsWith(QLatin1String("WISZB-120")) ||  // Develco window sensor
+                       sensor->modelId().startsWith(QLatin1String("FLSZB-110")) ||  // Develco water leak sensor
+                       sensor->modelId().startsWith(QLatin1String("ZHMS101"))))     // Wattle (Develco) magnetic sensor
         {
             rq.minInterval = 60;           // according to technical manual
             rq.maxInterval = 600;          // according to technical manual
@@ -1450,13 +1451,14 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 21600;
             rq.reportableChange8bit = 0;
         }
-        else if (sensor && (sensor->modelId().startsWith(QLatin1String("SMSZB-120")) || // Develco smoke sensor
-                           sensor->modelId().startsWith(QLatin1String("HESZB-120")) ||  // Develco heat sensor
-                           sensor->modelId().startsWith(QLatin1String("MOSZB-130")) ||  // Develco motion sensor
-                           sensor->modelId().startsWith(QLatin1String("WISZB-120")) ||  // Develco window sensor
-                           sensor->modelId().startsWith(QLatin1String("FLSZB-110")) ||  // Develco water leak sensor
-                           sensor->modelId().startsWith(QLatin1String("SIRZB-110")) ||  // Develco siren
-                           sensor->modelId().startsWith(QLatin1String("ZHMS101"))))     // Wattle (Develco) magnetic sensor
+        else if (sensor && (sensor->modelId().startsWith(QLatin1String("AQSZB-110")) ||  // Develco air quality sensor
+                            sensor->modelId().startsWith(QLatin1String("SMSZB-120")) ||  // Develco smoke sensor
+                            sensor->modelId().startsWith(QLatin1String("HESZB-120")) ||  // Develco heat sensor
+                            sensor->modelId().startsWith(QLatin1String("MOSZB-130")) ||  // Develco motion sensor
+                            sensor->modelId().startsWith(QLatin1String("WISZB-120")) ||  // Develco window sensor
+                            sensor->modelId().startsWith(QLatin1String("FLSZB-110")) ||  // Develco water leak sensor
+                            sensor->modelId().startsWith(QLatin1String("SIRZB-110")) ||  // Develco siren
+                            sensor->modelId().startsWith(QLatin1String("ZHMS101"))))     // Wattle (Develco) magnetic sensor
         {
             rq.attributeId = 0x0020;   // battery voltage
             rq.minInterval = 43200;    // according to technical manual
@@ -1948,6 +1950,21 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
         }
     }
+    else if (bt.binding.clusterId == 0xFC03)    // Develco specific -> VOC Management
+    {
+        Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
+
+        if (sensor && sensor->modelId() == QLatin1String("AQSZB-110")) // Develco air quality sensor
+        {
+            rq.dataType = deCONZ::Zcl16BitUint;
+            rq.attributeId = 0x0000;       // Measured value
+            rq.minInterval = 60;
+            rq.maxInterval = 600;
+            rq.reportableChange16bit = 10; // According to technical manual
+            
+            return sendConfigureReportingRequest(bt, {rq});
+        }
+    }
     return false;
 }
 
@@ -2357,6 +2374,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Bitron
         sensor->modelId().startsWith(QLatin1String("902010")) ||
         // Develco
+        sensor->modelId().startsWith(QLatin1String("AQSZB-110")) || // air quality sensor
         sensor->modelId().startsWith(QLatin1String("SMSZB-120")) || // smoke sensor
         sensor->modelId().startsWith(QLatin1String("HESZB-120")) || // heat sensor
         sensor->modelId().startsWith(QLatin1String("WISZB-120")) || // window sensor
@@ -2610,6 +2628,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                 val = sensor->getZclValue(*i, 0x0035); // battery alarm mask
             }
             else if (sensor->modelId() == QLatin1String("Motion Sensor-A") ||
+                     sensor->modelId() == QLatin1String("AQSZB-110") ||
                      sensor->modelId() == QLatin1String("SMSZB-120") ||
                      sensor->modelId() == QLatin1String("HESZB-120") ||
                      sensor->modelId() == QLatin1String("WISZB-120") ||
@@ -2749,6 +2768,17 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         {
             val = sensor->getZclValue(*i, 0x0012); // Acceleration X
         }
+        else if (*i == 0xFC03)  // Develco specific -> VOC Management
+        {
+            if (sensor->modelId() == QLatin1String("AQSZB-110"))     // Develco air quality sensor
+            {
+                val = sensor->getZclValue(*i, 0x0000); // Measured value
+            }
+            else
+            {
+                continue;
+            }
+        }
 
         quint16 maxInterval = (val.maxInterval > 0) ? (val.maxInterval * 3 / 2) : (60 * 45);
 
@@ -2803,6 +2833,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         case DIAGNOSTICS_CLUSTER_ID:
         case APPLIANCE_EVENTS_AND_ALERTS_CLUSTER_ID:
         case SAMJIN_CLUSTER_ID:
+        case 0xFC03:        // Develco specific -> VOC Management
         {
             DBG_Printf(DBG_INFO_L2, "0x%016llX (%s) create binding for attribute reporting of cluster 0x%04X on endpoint 0x%02X\n",
                        sensor->address().ext(), qPrintable(sensor->modelId()), (*i), srcEndpoint);
