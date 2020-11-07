@@ -2093,11 +2093,11 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                     {
                         if (hasServerOnOff)
                         {
-                            if (checkMacVendor(node->address(), VENDOR_JENNIC) &&
+                            if (checkMacAndVendor(node, VENDOR_JENNIC) &&
                                 // prevent false positives like Immax IM-Z3.0-DIM which has only two endpoints (0x01)
                                 // lumi.ctrl_neutral1 and lumi.ctrl_neutral2 have more 5 endpoints
                                 node->simpleDescriptors().size() > 5  &&
-                                node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC && i->endpoint() != 0x02 && i->endpoint() != 0x03)
+                                i->endpoint() != 0x02 && i->endpoint() != 0x03)
                             {
                                 // TODO better filter for lumi. devices (i->deviceId(), modelid?)
                                 // blacklist switch endpoints for lumi.ctrl_neutral1 and lumi.ctrl_neutral2
@@ -2244,7 +2244,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         QString uid = generateUniqueId(lightNode.address().ext(), lightNode.haEndpoint().endpoint(), 0);
         lightNode.setUniqueId(uid);
 
-        if (checkMacVendor(node->address(), VENDOR_DDEL) && i->deviceId() != DEV_ID_CONFIGURATION_TOOL)
+        if (existDevicesWithVendorCodeForMacPrefix(node->address(), VENDOR_DDEL) && i->deviceId() != DEV_ID_CONFIGURATION_TOOL)
         {
             ResourceItem *item = lightNode.addItem(DataTypeUInt32, RConfigPowerup);
             DBG_Assert(item != 0);
@@ -2299,8 +2299,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             lightNode.setNeedSaveDatabase(true);
         }
 
-        if (checkMacVendor(node->address(), VENDOR_OSRAM) &&
-            (node->nodeDescriptor().manufacturerCode() == VENDOR_OSRAM || node->nodeDescriptor().manufacturerCode() == VENDOR_OSRAM_STACK))
+        if (checkMacAndVendor(node, VENDOR_OSRAM) || checkMacAndVendor(node, VENDOR_OSRAM_STACK))
         {
             if (lightNode.manufacturer() != QLatin1String("OSRAM"))
             {
@@ -2309,7 +2308,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             }
         }
 
-        if (checkMacVendor(node->address(), VENDOR_PHILIPS))
+        if (existDevicesWithVendorCodeForMacPrefix(node->address(), VENDOR_PHILIPS))
         {
             if (lightNode.manufacturer() != QLatin1String("Philips"))
             { // correct vendor name, was atmel, de sometimes
@@ -2339,7 +2338,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         }
 
         //Add missing values for Profalux device
-        if (checkMacVendor(node->address(), VENDOR_PROFALUX))
+        if (existDevicesWithVendorCodeForMacPrefix(node->address(), VENDOR_PROFALUX))
         {
             //Shutter ?
             if (i->deviceId() == DEV_ID_ZLL_COLOR_LIGHT)
@@ -6887,12 +6886,12 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             case VENDOR_CLUSTER_ID:
             {
                 // ubisys device management (UBISYS_DEVICE_SETUP_CLUSTER_ID)
-                if (event.endpoint() == 0xE8 && checkMacVendor(event.node()->address(), VENDOR_UBISYS))
+                if (event.endpoint() == 0xE8 && existDevicesWithVendorCodeForMacPrefix(event.node()->address(), VENDOR_UBISYS))
                 {
                     break;
                 }
                 // dresden elektronik spectral sensor
-                else if (i->modelId() == QLatin1String("de_spect") && checkMacVendor(event.node()->address(), VENDOR_DDEL))
+                else if (i->modelId() == QLatin1String("de_spect") && existDevicesWithVendorCodeForMacPrefix(event.node()->address(), VENDOR_DDEL))
                 {
                     break;
                 }
@@ -6914,7 +6913,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             // filter endpoint
             if (event.endpoint() != i->fingerPrint().endpoint)
             {
-                if (checkMacVendor(event.node()->address(), VENDOR_JENNIC))
+                if (existDevicesWithVendorCodeForMacPrefix(event.node()->address(), VENDOR_JENNIC))
                 {
                     if (i->modelId().startsWith(QLatin1String("lumi.sensor_86sw")) ||
                         i->modelId().startsWith(QLatin1String("lumi.ctrl_neutral")) ||
@@ -8576,7 +8575,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                         }
                     }
                     else if (event.clusterId() == UBISYS_DEVICE_SETUP_CLUSTER_ID && event.endpoint() == 0xE8 &&
-                            checkMacVendor(event.node()->address(), VENDOR_UBISYS)) // ubisys device management
+                            existDevicesWithVendorCodeForMacPrefix(event.node()->address(), VENDOR_UBISYS)) // ubisys device management
                     {
 //                        bool updated = false;
                         for (;ia != enda; ++ia)
@@ -8794,7 +8793,7 @@ bool DeRestPluginPrivate::isDeviceSupported(const deCONZ::Node *node, const QStr
     while (s->modelId)
     {
         if ((!node->nodeDescriptor().isNull() && node->nodeDescriptor().manufacturerCode() == s->vendorId) ||
-            ((node->address().ext() & macPrefixMask) == s->mac) || checkMacVendor(node->address(), s->vendorId))
+            ((node->address().ext() & macPrefixMask) == s->mac) || existDevicesWithVendorCodeForMacPrefix(node->address(), s->vendorId))
         {
             if (modelId.startsWith(QLatin1String(s->modelId)))
             {
@@ -10895,7 +10894,7 @@ void DeRestPluginPrivate::handleXalClusterIndication(const deCONZ::ApsDataIndica
         return;
     }
 
-    if (!checkMacVendor(lightNode->address(), VENDOR_XAL))
+    if (!existDevicesWithVendorCodeForMacPrefix(lightNode->address(), VENDOR_XAL))
     {
         return;
     }
@@ -11076,14 +11075,14 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
         checkReporting = true;
         sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus);
     }
-    else if (checkMacVendor(ind.srcAddress(), VENDOR_PHILIPS) ||
+    else if (existDevicesWithVendorCodeForMacPrefix(ind.srcAddress(), VENDOR_PHILIPS) ||
             macPrefix == tiMacPrefix ||
-            checkMacVendor(ind.srcAddress(), VENDOR_DDEL) ||
-            checkMacVendor(ind.srcAddress(), VENDOR_IKEA) ||
-            checkMacVendor(ind.srcAddress(), VENDOR_OSRAM_STACK) ||
-            checkMacVendor(ind.srcAddress(), VENDOR_JENNIC) ||
-            checkMacVendor(ind.srcAddress(), VENDOR_SI_LABS) ||
-            checkMacVendor(ind.srcAddress(), VENDOR_CENTRALITE))
+            existDevicesWithVendorCodeForMacPrefix(ind.srcAddress(), VENDOR_DDEL) ||
+            existDevicesWithVendorCodeForMacPrefix(ind.srcAddress(), VENDOR_IKEA) ||
+            existDevicesWithVendorCodeForMacPrefix(ind.srcAddress(), VENDOR_OSRAM_STACK) ||
+            existDevicesWithVendorCodeForMacPrefix(ind.srcAddress(), VENDOR_JENNIC) ||
+            existDevicesWithVendorCodeForMacPrefix(ind.srcAddress(), VENDOR_SI_LABS) ||
+            existDevicesWithVendorCodeForMacPrefix(ind.srcAddress(), VENDOR_CENTRALITE))
     {
         // these sensors tend to mac data poll after report
         checkReporting = true;
@@ -11122,7 +11121,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
         }
     }
 
-    if (zclFrame.isProfileWideCommand() && checkMacVendor(ind.srcAddress().ext(), VENDOR_XIAOMI) && (ind.clusterId() == BASIC_CLUSTER_ID || ind.clusterId() == 0xfcc0))
+    if (zclFrame.isProfileWideCommand() && existDevicesWithVendorCodeForMacPrefix(ind.srcAddress().ext(), VENDOR_XIAOMI) && (ind.clusterId() == BASIC_CLUSTER_ID || ind.clusterId() == 0xfcc0))
     {
         handleZclAttributeReportIndicationXiaomiSpecial(ind, zclFrame);
     }
@@ -15642,21 +15641,20 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
 
             bool skip = false;
 
-            if (thermostatClusterEndpoint == 0) // e.g. Eurotronic SPZB0001 thermostat
+            if (thermostatClusterEndpoint > 0) // e.g. Eurotronic SPZB0001 thermostat
             {  }
             else if (iasZoneType > 0) // IAS motion and contact sensors
-            {  }
-            else if (node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA)
-            {  }
-            else if (node->nodeDescriptor().manufacturerCode() == VENDOR_DANFOSS)
             {  }
             else if (modelId.startsWith(QLatin1String("lumi.")))
             {
                 skip = true; // Xiaomi Mija devices won't respond to ZCL read
+                DBG_Printf(DBG_INFO, "[4] Skipping additional attribute read - Model starts with 'lumi.'\n");
             }
-            else if (checkMacVendor(sc->address, VENDOR_JENNIC))
+            else if (checkMacAndVendor(node, VENDOR_JENNIC) ||
+                     checkMacAndVendor(node, VENDOR_ADUROLIGHT))
             {
                 skip = true; // e.g. Trust remote (ZYCT-202)
+                DBG_Printf(DBG_INFO, "[4] Skipping additional attribute read -  Assumed Trust remote (ZYCT-202)\n");
             }
 
             if (skip)
@@ -15664,22 +15662,32 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 // don't read these (Xiaomi, Trust, ...)
                 // response is empty or no response at all
             }
-            else if (manufacturer.isEmpty()) { attributes.push_back(0x0004); }// manufacturer
-            else if (modelId.isEmpty()) { attributes.push_back(0x0005); } // model id
+            else if (manufacturer.isEmpty())
+            {
+                DBG_Printf(DBG_INFO, "[4.1] Get manufacturer code\n");
+                attributes.push_back(0x0004); // manufacturer
+            }
+            else if (modelId.isEmpty())
+            { 
+                DBG_Printf(DBG_INFO, "[4.1] Get model ID\n");
+                attributes.push_back(0x0005); // model id
+            } 
             else if (swBuildId.isEmpty() && dateCode.isEmpty())
             {
                 if ((sc->address.ext() & macPrefixMask) == tiMacPrefix ||
-                    checkMacVendor(sc->address, VENDOR_UBISYS) ||
+                    existDevicesWithVendorCodeForMacPrefix(sc->address, VENDOR_UBISYS) ||
                     modelId == QLatin1String("Motion Sensor-A") || // OSRAM motion sensor
                     manufacturer.startsWith(QLatin1String("Climax")) ||
                     modelId.startsWith(QLatin1String("lumi")) ||
                     node->nodeDescriptor().manufacturerCode() == VENDOR_CENTRALITE ||
                     !swBuildIdAvailable)
                 {
+                    DBG_Printf(DBG_INFO, "[4.1] Get date code\n");
                     attributes.push_back(0x0006); // date code
                 }
                 else
                 {
+                    DBG_Printf(DBG_INFO, "[4.1] Get sw build id\n");
                     attributes.push_back(0x4000); // sw build id
                 }
             }
@@ -15705,7 +15713,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 for (quint16 attrId : attributes)
                 {
                     stream << attrId;
-                    DBG_Printf(DBG_INFO, "[4] get basic cluster attr 0x%04X for 0x%016llx\n", attrId, sc->address.ext());
+                    DBG_Printf(DBG_INFO, "[4.2] get basic cluster attr 0x%04X for 0x%016llx\n", attrId, sc->address.ext());
                 }
 
                 { // ZCL frame
