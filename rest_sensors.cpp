@@ -1226,6 +1226,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     else if (sensor->modelId().startsWith(QLatin1String("SLR2")) ||   // Hive
                              sensor->modelId() == QLatin1String("SLR1b") ||           // Hive
                              sensor->modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
+                             sensor->modelId().startsWith(QLatin1String("902010/32")) ||  // Bitron
                              sensor->modelId().startsWith(QLatin1String("Zen-01")) || // Zen
                              sensor->modelId().startsWith(QLatin1String("Super TR"))) // ELKO
                     {
@@ -1278,7 +1279,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             {
                                 attributeList.insert(0x001C, (quint32)mode);
                             }
-                            
+
                             //Idk for other device
                             if ( (sensor->modelId().startsWith(QLatin1String("SLR2"))) ||
                                  (sensor->modelId() == QLatin1String("SLR1b")))
@@ -2991,7 +2992,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
     }
 
     if ((ind.srcAddress().hasExt() && ind.srcAddress().ext() == fastProbeAddr.ext()) ||
-        (ind.srcAddress().hasNwk() && ind.srcAddress().nwk() == fastProbeAddr.nwk()))
+        (fastProbeAddr.hasExt() && ind.srcAddress().hasNwk() && ind.srcAddress().nwk() == fastProbeAddr.nwk()))
     {
         DBG_Printf(DBG_INFO, "FP indication 0x%04X / 0x%04X (0x%016llX / 0x%04X)\n", ind.profileId(), ind.clusterId(), ind.srcAddress().ext(), ind.srcAddress().nwk());
         DBG_Printf(DBG_INFO, "                      ...     (0x%016llX / 0x%04X)\n", fastProbeAddr.ext(), fastProbeAddr.nwk());
