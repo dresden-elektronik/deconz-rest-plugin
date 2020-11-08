@@ -759,16 +759,14 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             zclFrame.readFromStream(stream);
         }
 
-        TaskItem task;
-
         switch (ind.clusterId())
         {
         case GROUP_CLUSTER_ID:
-            handleGroupClusterIndication(task, ind, zclFrame);
+            handleGroupClusterIndication(ind, zclFrame);
             break;
 
         case SCENE_CLUSTER_ID:
-            handleSceneClusterIndication(task, ind, zclFrame);
+            handleSceneClusterIndication(ind, zclFrame);
             handleClusterIndicationGateways(ind, zclFrame);
             break;
 
@@ -777,7 +775,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             break;
 
         case COMMISSIONING_CLUSTER_ID:
-            handleCommissioningClusterIndication(task, ind, zclFrame);
+            handleCommissioningClusterIndication(ind, zclFrame);
             break;
 
         case LEVEL_CLUSTER_ID:
@@ -785,7 +783,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             break;
 
         case ONOFF_CLUSTER_ID:
-             handleOnOffClusterIndication(task, ind, zclFrame);
+             handleOnOffClusterIndication(ind, zclFrame);
              handleClusterIndicationGateways(ind, zclFrame);
             break;
 
@@ -12800,14 +12798,11 @@ void DeRestPluginPrivate::processGroupTasks()
 }
 
 /*! Handle packets related to the ZCL group cluster.
-    \param task the task which belongs to this response
     \param ind the APS level data indication containing the ZCL packet
     \param zclFrame the actual ZCL frame which holds the groups cluster reponse
  */
-void DeRestPluginPrivate::handleGroupClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
+void DeRestPluginPrivate::handleGroupClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
-    Q_UNUSED(task);
-
     LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());
 
     if (!lightNode)
@@ -12994,14 +12989,11 @@ void DeRestPluginPrivate::handleGroupClusterIndication(TaskItem &task, const deC
 }
 
 /*! Handle packets related to the ZCL scene cluster.
-    \param task the task which belongs to this response
     \param ind the APS level data indication containing the ZCL packet
     \param zclFrame the actual ZCL frame which holds the scene cluster reponse
  */
-void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
+void DeRestPluginPrivate::handleSceneClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
-    Q_UNUSED(task);
-
     if (zclFrame.isDefaultResponse())
     {
     }
@@ -13896,14 +13888,11 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
 }
 
 /*! Handle packets related to the ZCL On/Off cluster.
-    \param task the task which belongs to this response
     \param ind the APS level data indication containing the ZCL packet
     \param zclFrame the actual ZCL frame which holds the scene cluster reponse
  */
-void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
+void DeRestPluginPrivate::handleOnOffClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
-    Q_UNUSED(task);
-
     if (zclFrame.isDefaultResponse())
     {
         return;
@@ -14169,14 +14158,11 @@ void DeRestPluginPrivate::handlePhilipsClusterIndication(const deCONZ::ApsDataIn
 }
 
 /*! Handle packets related to the ZCL Commissioning cluster.
-    \param task the task which belongs to this response
     \param ind the APS level data indication containing the ZCL packet
     \param zclFrame the actual ZCL frame which holds the Commissioning cluster reponse
  */
-void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
+void DeRestPluginPrivate::handleCommissioningClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
-    Q_UNUSED(task);
-
     uint8_t ep = ind.srcEndpoint();
     Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
     int epIter = 0;
