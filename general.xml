@@ -1792,6 +1792,7 @@ Note: It does not clear or delete previous weekly schedule programming configura
 		<!-- Danfoss manufacturer specific -->
 		<attribute-set id="0x4000" description="Danfoss specific" mfcode="0x1246">
 			<attribute id="0x4000" name="eTRV Open Window Detection" type="enum8" default="0x00" access="r" required="m" mfcode="0x1246">
+				<value name="Quarantine" value="0x00"></value>
 				<value name="Closed" value="0x01"></value>
 				<value name="Hold" value="0x02"></value>
 				<value name="Open" value="0x03"></value>

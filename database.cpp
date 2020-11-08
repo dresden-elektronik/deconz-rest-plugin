@@ -3562,7 +3562,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.modelId() == QLatin1String("GbxAXL2") ||         // Tuya
                     sensor.modelId() == QLatin1String("kud7u2l") ||         // Tuya
                     sensor.modelId() == QLatin1String("TS0601") ||          // Tuya
-                    sensor.modelId() == QLatin1String("eaxp72v") ||          // Tuya
+                    sensor.modelId() == QLatin1String("eaxp72v") ||         // Tuya
+                    sensor.modelId() == QLatin1String("902010/32") ||       // Bitron
                     sensor.modelId() == QLatin1String("Zen-01") )           // Zen
                 {
                     sensor.addItem(DataTypeString, RConfigMode);
@@ -3574,6 +3575,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeInt16, RStateFloorTemperature);
                     sensor.addItem(DataTypeBool, RStateHeating);
                     sensor.addItem(DataTypeBool, RConfigLocked);
+                    sensor.addItem(DataTypeString, RConfigMode);
                 }
 
                 if (sensor.modelId() == QLatin1String("kud7u2l") || // Tuya

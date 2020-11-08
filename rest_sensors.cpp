@@ -1226,7 +1226,9 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     else if (sensor->modelId().startsWith(QLatin1String("SLR2")) ||   // Hive
                              sensor->modelId() == QLatin1String("SLR1b") ||           // Hive
                              sensor->modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
-                             sensor->modelId().startsWith(QLatin1String("Zen-01")))   // Zen
+                             sensor->modelId().startsWith(QLatin1String("902010/32")) ||  // Bitron
+                             sensor->modelId().startsWith(QLatin1String("Zen-01")) || // Zen
+                             sensor->modelId().startsWith(QLatin1String("Super TR"))) // ELKO
                     {
 
                         QString modeSet = map[pi.key()].toString();
@@ -1247,7 +1249,37 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 
                         if (mode < 10)
                         {
-                            attributeList.insert(0x001C, (quint32)mode);
+                            if (sensor->modelId() == QLatin1String("Super TR")) // Set device on/off state through mode via device specific attribute
+                            {
+                                if (mode == 0x00)
+                                {
+                                    bool data = false;
+                                    if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0406, deCONZ::ZclBoolean, data))
+                                    {
+                                        updated = true;
+                                    }
+                                }
+                                else if (mode == 0x04)
+                                {
+                                    bool data = true;
+                                    if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0406, deCONZ::ZclBoolean, data))
+                                    {
+                                        updated = true;
+                                    }
+                                }
+                                else
+                                {
+                                    rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                           QString("Unsupported mode for device")));
+                                    rsp.httpStatus = HttpStatusBadRequest;
+                                    return REQ_READY_SEND;
+                                }
+                            }
+                            else
+                            {
+                                attributeList.insert(0x001C, (quint32)mode);
+                            }
+
                             //Idk for other device
                             if ( (sensor->modelId().startsWith(QLatin1String("SLR2"))) ||
                                  (sensor->modelId() == QLatin1String("SLR1b")))
@@ -1385,7 +1417,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         {
                             bool data = map[pi.key()].toBool();
 
-                            if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0412, deCONZ::ZclBoolean, data))
+                            if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0413, deCONZ::ZclBoolean, data))
                             {
                                 updated = true;
                             }
@@ -2869,7 +2901,7 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
                     if (item && item->toNumber() == (S_BUTTON_1 + S_BUTTON_ACTION_INITIAL_PRESS))
                     {
                         item->setValue(S_BUTTON_1 + S_BUTTON_ACTION_HOLD);
-                        DBG_Printf(DBG_INFO, "button %d Hold\n", item->toNumber());
+                        DBG_Printf(DBG_INFO, "[INFO] - Button %u Hold %s\n", item->toNumber(), qPrintable(sensor->modelId()));
                         sensor->updateStateTimestamp();
                         Event e(RSensors, RStateButtonEvent, sensor->id(), item);
                         enqueueEvent(e);
@@ -2887,7 +2919,7 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
                     {
                         btn &= ~0x03;
                         item->setValue(btn + S_BUTTON_ACTION_HOLD);
-                        DBG_Printf(DBG_INFO, "FoH switch button %d Hold\n", item->toNumber());
+                        DBG_Printf(DBG_INFO, "FoH switch button %d Hold %s\n", item->toNumber(), qPrintable(sensor->modelId()));
                         sensor->updateStateTimestamp();
                         Event e(RSensors, RStateButtonEvent, sensor->id(), item);
                         enqueueEvent(e);
