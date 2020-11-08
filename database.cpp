@@ -3519,6 +3519,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeInt16, RStateFloorTemperature);
                     sensor.addItem(DataTypeBool, RStateHeating);
                     sensor.addItem(DataTypeBool, RConfigLocked);
+                    sensor.addItem(DataTypeString, RConfigMode);
                 }
 
                 if (sensor.modelId() == QLatin1String("kud7u2l") || // Tuya
