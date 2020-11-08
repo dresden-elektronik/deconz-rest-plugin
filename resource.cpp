@@ -63,6 +63,7 @@ const char *RStateGesture = "state/gesture";
 const char *RStateHeating = "state/heating";
 const char *RStateHue = "state/hue";
 const char *RStateHumidity = "state/humidity";
+const char *RStateLastCheckin = "state/lastcheckin";
 const char *RStateLastSet = "state/lastset";
 const char *RStateLastUpdated = "state/lastupdated";
 const char *RStateLift = "state/lift";
@@ -222,6 +223,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateHeating));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateHue));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt16, RStateHumidity, 0, 10000));
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RStateLastCheckin));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RStateLastSet));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RStateLastUpdated));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeUInt8, RStateLift, 0, 100));
@@ -488,7 +490,7 @@ const QString &ResourceItem::toString() const
             // default: local time in sec resolution
             QString format = QLatin1String("yyyy-MM-ddTHH:mm:ss");
 
-            if (m_rid->suffix == RStateLastUpdated)
+            if (m_rid->suffix == RStateLastUpdated || m_rid->suffix == RStateLastCheckin)
             {
                 // UTC in msec resolution
                 format = QLatin1String("yyyy-MM-ddTHH:mm:ss.zzz"); // TODO add Z

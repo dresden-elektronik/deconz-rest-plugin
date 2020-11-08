@@ -39,6 +39,7 @@
 #include "de_web_widget.h"
 #include "gateway_scanner.h"
 #include "json.h"
+#include "poll_control.h"
 #include "poll_manager.h"
 #include "rest_devices.h"
 #include "read_files.h"
@@ -838,6 +839,10 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
         case DIAGNOSTICS_CLUSTER_ID:
             handleDiagnosticsClusterIndication(ind, zclFrame);
+            break;
+
+        case POLL_CONTROL_CLUSTER_ID:
+            handlePollControlIndication(ind, zclFrame);
             break;
 
         default:
