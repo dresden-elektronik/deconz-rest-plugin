@@ -307,6 +307,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_KONKE, "3AFE28010402000D", ikea2MacPrefix }, // Konke Kit Pro-BS Motion Sensor ver.2
     { VENDOR_EMBER, "3AFE140103020000", konkeMacPrefix }, // Konke Kit Pro-FT Temp Humidity Sensor
     { VENDOR_KONKE, "3AFE220103020000", ikea2MacPrefix }, // Konke Kit Pro-BS Temp Humidity Sensor ver.2
+    { VENDOR_KONKE, "3AFE220103020000", konkeMacPrefix }, // Konke Kit Pro-BS Temp Humidity Sensor ver ???
     { VENDOR_EMBER, "3AFE130104020015", konkeMacPrefix }, // Konke Kit Pro-Door Entry Sensor
     { VENDOR_NONE, "RICI01", tiMacPrefix}, // LifeControl smart plug
     { VENDOR_JENNIC, "VOC_Sensor", jennicMacPrefix}, // LifeControl Enviroment sensor
@@ -4496,7 +4497,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
     QList<deCONZ::SimpleDescriptor>::const_iterator end = node->simpleDescriptors().constEnd();
 
     // Trust and iHorn specific
-    if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC && modelId.isEmpty())
+    if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC && modelId.isEmpty() && i != end)
     {
         int inClusterCount = i->inClusters().size();
         int outClusterCount = i->outClusters().size();
@@ -6037,7 +6038,8 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.modelId() == QLatin1String("kud7u2l") ||         // Tuya
                 sensorNode.modelId() == QLatin1String("GbxAXL2") ||         // Tuya
                 sensorNode.modelId() == QLatin1String("TS0601") ||          // Tuya
-                sensorNode.modelId() == QLatin1String("eaxp72v") ||          // Tuya
+                sensorNode.modelId() == QLatin1String("eaxp72v") ||         // Tuya
+                sensorNode.modelId() == QLatin1String("902010/32") ||       // Bitron
                 sensorNode.modelId() == QLatin1String("Zen-01") )           // Zen
             {
                 sensorNode.addItem(DataTypeString, RConfigMode);

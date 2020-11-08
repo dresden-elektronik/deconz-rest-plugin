@@ -1247,8 +1247,15 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq2.minInterval = 1;
             rq2.maxInterval = 600;
             rq2.reportableChange8bit = 1;
+            
+            ConfigureReportingRequest rq3;
+            rq3.dataType = deCONZ::Zcl8BitEnum;
+            rq3.attributeId = 0x001C;        // Thermostat mode
+            rq3.minInterval = 1;
+            rq3.maxInterval = 600;
+            rq3.reportableChange8bit = 0xff;
 
-            return sendConfigureReportingRequest(bt, {rq, rq2});
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq3});
         }
         else if (sensor && sensor->modelId().startsWith(QLatin1String("TH112"))) // Sinope Thermostat TH1123ZB & TH1124ZB
         {
