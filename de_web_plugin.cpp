@@ -12782,8 +12782,12 @@ void DeRestPluginPrivate::processGroupTasks()
                     }
                 }
 
-
-                if (!needRead && addTaskAddScene(task, i->id, i->modifyScenes[0], task.lightNode->id()))
+                if (task.lightNode->manufacturerCode() == VENDOR_IKEA)
+                {
+                    // add scene command not supported for ikea (color temperature?) lights
+                    // rely soley on store scene
+                }
+                else if (!needRead && addTaskAddScene(task, i->id, i->modifyScenes[0], task.lightNode->id()))
                 {
                     processTasks();
                     return;
@@ -13504,6 +13508,18 @@ void DeRestPluginPrivate::handleSceneClusterIndication(const deCONZ::ApsDataIndi
                         if (stream.status() != QDataStream::ReadPastEnd)
                         {
                             hasHueSat = true;
+                        }
+                    }
+
+                    if (lightNode->manufacturerCode() == VENDOR_IKEA)
+                    {
+                        // IKEA color temperature scenes can't be derived from scene xy values.
+                        // The actual ct value is only valid when the scene was created by a ct command and and store scene.
+                        const ResourceItem *cap = lightNode->item(RConfigColorCapabilities);
+                        if (cap && (cap->toNumber() & 0x0008) == 0) // doesn't support xy
+                        {
+                            hasXY = false;
+                            hasHueSat = false;
                         }
                     }
                 }
