@@ -1083,7 +1083,15 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         hostFlags &= ~0x04; // clear `boost` flag
                         hostFlags |=  0x10; // set `disable off` flag
 
-                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_JENNIC, 0x4003, deCONZ::Zcl16BitInt, heatsetpoint))
+                        // Older models of the Eurotroninc Spirit updated the heat set point via the manufacturer custom attribute 0x4003. 
+                        // For newer models it is not possible to write to this attribute.
+                        // Newer models must use the standard Occupied Heating Setpoint value (0x0012) using a default (or none) manufacturer.
+                        // See GitHub issue #1098
+                        bool success = sensor->swVersion().toInt() < 22190930 ? 
+                            addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_JENNIC, 0x4003, deCONZ::Zcl16BitInt, heatsetpoint) :
+                            addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_NONE, 0x0012, deCONZ::Zcl16BitInt, heatsetpoint);
+                
+                        if (success)
                         {
                             updated = true;
                         }
