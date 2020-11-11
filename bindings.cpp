@@ -1741,23 +1741,24 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 1800;
             rq.reportableChange16bit = 1;
             rq2.minInterval = 5;
-            rq2.maxInterval = 1800;
+            rq2.maxInterval = 1795;
             rq2.reportableChange16bit = 10;
             rq3.minInterval = 5;
-            rq3.maxInterval = 1800;
+            rq3.maxInterval = 1795;
             rq3.reportableChange16bit = 10;
             rq4.minInterval = 1;
             rq4.maxInterval = 1800;
 
-            const ResourceItem *cap = lightNode ? lightNode->item(RConfigColorCapabilities) : nullptr;
+//          TODO re activate. Don't disable for now until more testing is done.
+//            const ResourceItem *cap = lightNode ? lightNode->item(RConfigColorCapabilities) : nullptr;
 
-            if (cap && (cap->toNumber() & 0x0008) == 0) // doesn't support xy --> color temperature light
-            {
-                rq2.minInterval = 0;
-                rq2.maxInterval = 0xffff; // disable reporting
-                rq3.minInterval = 0;
-                rq3.maxInterval = 0xffff; // disable reporting
-            }
+//            if (cap && (cap->toNumber() & 0x0008) == 0) // doesn't support xy --> color temperature light
+//            {
+//                rq2.minInterval = 0;
+//                rq2.maxInterval = 0xffff; // disable reporting
+//                rq3.minInterval = 0;
+//                rq3.maxInterval = 0xffff; // disable reporting
+//            }
         }
 
         return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
