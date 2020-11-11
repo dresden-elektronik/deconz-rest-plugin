@@ -126,13 +126,13 @@ bool DeRestPluginPrivate::readBindingTable(RestNodeBase *node, quint8 startIndex
     if (node->mgmtBindSupported())
     {
     }
-    else if (checkMacVendor(node->address(), VENDOR_DDEL))
+    else if (existDevicesWithVendorCodeForMacPrefix(node->address(), VENDOR_DDEL))
     {
     }
-    else if (checkMacVendor(node->address(), VENDOR_UBISYS))
+    else if (existDevicesWithVendorCodeForMacPrefix(node->address(), VENDOR_UBISYS))
     {
     }
-    else if (checkMacVendor(node->address(), VENDOR_DEVELCO))
+    else if (existDevicesWithVendorCodeForMacPrefix(node->address(), VENDOR_DEVELCO))
     {
     }
     else if (r && r->item(RAttrModelId)->toString().startsWith(QLatin1String("FLS-")))
@@ -1493,12 +1493,12 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.dataType = deCONZ::ZclBoolean;
         rq.attributeId = 0x0000; // on/off
 
-        if (checkMacVendor(bt.restNode->address(), VENDOR_DDEL))
+        if (existDevicesWithVendorCodeForMacPrefix(bt.restNode->address(), VENDOR_DDEL))
         {
             rq.minInterval = 5;
             rq.maxInterval = 180;
         }
-        else if (checkMacVendor(bt.restNode->address(), VENDOR_XAL) ||
+        else if (existDevicesWithVendorCodeForMacPrefix(bt.restNode->address(), VENDOR_XAL) ||
                  bt.restNode->node()->nodeDescriptor().manufacturerCode() == VENDOR_XAL)
         {
             rq.minInterval = 5;
@@ -1653,7 +1653,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.dataType = deCONZ::Zcl8BitUint;
         rq.attributeId = 0x0000; // current level
 
-        if (checkMacVendor(bt.restNode->address(), VENDOR_DDEL))
+        if (existDevicesWithVendorCodeForMacPrefix(bt.restNode->address(), VENDOR_DDEL))
         {
             rq.minInterval = 5;
             rq.maxInterval = 180;
@@ -1812,7 +1812,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             return sendConfigureReportingRequest(bt, {rq, rq1, rq2, rq3});
         }
     }
-    else if (bt.binding.clusterId == BASIC_CLUSTER_ID && checkMacVendor(bt.restNode->address(), VENDOR_PHILIPS))
+    else if (bt.binding.clusterId == BASIC_CLUSTER_ID && existDevicesWithVendorCodeForMacPrefix(bt.restNode->address(), VENDOR_PHILIPS))
     {
         Sensor *sensor = dynamic_cast<Sensor*>(bt.restNode);
         if (!sensor)
@@ -2169,7 +2169,7 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
             }
 
             BindingTask bt;
-            if (checkMacVendor(lightNode->address(), VENDOR_DDEL))
+            if (existDevicesWithVendorCodeForMacPrefix(lightNode->address(), VENDOR_DDEL))
             {
                 bt.state = BindingTask::StateCheck;
             }
@@ -2214,7 +2214,7 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         return;
     }
 
-    if (checkMacVendor(lightNode->address(), VENDOR_DDEL) || lightNode->manufacturerCode() == VENDOR_XAL)
+    if (existDevicesWithVendorCodeForMacPrefix(lightNode->address(), VENDOR_DDEL) || lightNode->manufacturerCode() == VENDOR_XAL)
     {
         lightNode->enableRead(READ_BINDING_TABLE);
         lightNode->setNextReadTime(READ_BINDING_TABLE, queryTime);
@@ -3983,7 +3983,7 @@ void DeRestPluginPrivate::bindingToRuleTimerFired()
 
             for (const deCONZ::ZclCluster &cl : sd.outClusters())
             {
-                if (cl.id() == ILLUMINANCE_MEASUREMENT_CLUSTER_ID && checkMacVendor(node->address(), VENDOR_DDEL))
+                if (cl.id() == ILLUMINANCE_MEASUREMENT_CLUSTER_ID && existDevicesWithVendorCodeForMacPrefix(node->address(), VENDOR_DDEL))
                 {
                     continue; // ignore, binding only allowed for server cluster
                 }
@@ -4063,7 +4063,7 @@ void DeRestPluginPrivate::bindingToRuleTimerFired()
             continue;
         }
 
-        if (checkMacVendor(bnd.srcAddress, VENDOR_UBISYS))
+        if (existDevicesWithVendorCodeForMacPrefix(bnd.srcAddress, VENDOR_UBISYS))
         {
             processUbisysBinding(&*i, bnd);
             return;

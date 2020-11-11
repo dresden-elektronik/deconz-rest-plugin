@@ -2970,7 +2970,7 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
  */
 void DeRestPluginPrivate::checkInstaModelId(Sensor *sensor)
 {
-    if (sensor && checkMacVendor(sensor->address(), VENDOR_INSTA))
+    if (sensor && existDevicesWithVendorCodeForMacPrefix(sensor->address(), VENDOR_INSTA))
     {
         if (!sensor->modelId().endsWith(QLatin1String("_1")))
         {   // extract model identifier from mac address 6th byte
@@ -3026,24 +3026,24 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
         // filter supported devices
 
         // Busch-Jaeger
-        if (checkMacVendor(ext, VENDOR_BUSCH_JAEGER))
+        if (existDevicesWithVendorCodeForMacPrefix(ext, VENDOR_BUSCH_JAEGER))
         {
         }
-        else if (checkMacVendor(ext, VENDOR_UBISYS))
+        else if (existDevicesWithVendorCodeForMacPrefix(ext, VENDOR_UBISYS))
         {
         }
-        else if (checkMacVendor(ext, VENDOR_BOSCH))
+        else if (existDevicesWithVendorCodeForMacPrefix(ext, VENDOR_BOSCH))
         { // macCapabilities == 0
         }
-        else if (checkMacVendor(ext, VENDOR_DEVELCO))
+        else if (existDevicesWithVendorCodeForMacPrefix(ext, VENDOR_DEVELCO))
         { // macCapabilities == 0
         }
         else if (macCapabilities & deCONZ::MacDeviceIsFFD)
         {
-            if (checkMacVendor(ext, VENDOR_LDS))
+            if (existDevicesWithVendorCodeForMacPrefix(ext, VENDOR_LDS))
             { //  Fix to allow Samsung SmartThings plug sensors to be created (7A-PL-Z-J3, modelId ZB-ONOFFPlug-D0005)
             }
-            else if (checkMacVendor(ext, VENDOR_JASCO))
+            else if (existDevicesWithVendorCodeForMacPrefix(ext, VENDOR_JASCO))
             { //  Fix to support GE mains powered switches
             }
             else
@@ -3301,7 +3301,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
     }
 
     // check for dresden elektronik devices
-    if (checkMacVendor(sc->address, VENDOR_DDEL))
+    if (existDevicesWithVendorCodeForMacPrefix(sc->address, VENDOR_DDEL))
     {
         if (sc->macCapabilities & deCONZ::MacDeviceIsFFD) // end-devices only
             return;
@@ -3601,7 +3601,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
             }
         }
     }
-    else if (checkMacVendor(sc->address, VENDOR_IKEA))
+    else if (existDevicesWithVendorCodeForMacPrefix(sc->address, VENDOR_IKEA))
     {
         if (sc->macCapabilities & deCONZ::MacDeviceIsFFD) // end-devices only
             return;
