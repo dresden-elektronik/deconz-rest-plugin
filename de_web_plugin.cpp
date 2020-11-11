@@ -3092,34 +3092,38 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                     }
                     else if (ia->id() == 0x0006) // Date code
                     {
-                        QString str = ia->toString();
+                        const QString str = ia->toString().trimmed();
                         ResourceItem *item = lightNode->item(RAttrSwVersion);
 
-                        if (item && !str.isEmpty() && str != item->toString())
+                        if (item && !str.isEmpty())
                         {
-                            item->setValue(str);
-                            lightNode->setSwBuildId(str);
-                            lightNode->setNeedSaveDatabase(true);
-                            queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
-                            updated = true;
+                            if (str != item->toString())
+                            {
+                                lightNode->setNeedSaveDatabase(true);
+                                queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
+                                updated = true;
+                            }
+                            item->setValue(str); // always needed to refresh set timestamp
                         }
                     }
                     else if (ia->id() == 0x4000) // Software build identifier
                     {
-                        QString str = ia->toString();
+                        const QString str = ia->toString().trimmed();
                         ResourceItem *item = lightNode->item(RAttrSwVersion);
 
                         deCONZ::NumericUnion dummy;
                         lightNode->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), dummy);
 
-                        if (item && !str.isEmpty() && str != item->toString())
+                        if (item && !str.isEmpty())
                         {
-                            item->setValue(str);
-                            lightNode->setSwBuildId(str);
-                            lightNode->setNeedSaveDatabase(true);
-                            queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
-                            updated = true;
-                        }
+                            if (str != item->toString())
+                            {
+                                lightNode->setNeedSaveDatabase(true);
+                                queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
+                                updated = true;
+                            }
+                            item->setValue(str); // always needed to refresh set timestamp
+                        }                        
                     }
                     else if (ia->id() == 0x4005 && lightNode->manufacturerCode() == VENDOR_MUELLER)
                     {
