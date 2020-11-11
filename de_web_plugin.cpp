@@ -1906,11 +1906,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_KEEN_HOME || // Keen Home Vent
         node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC || // Xiaomi lumi.ctrl_neutral1, lumi.ctrl_neutral2
         node->nodeDescriptor().manufacturerCode() == VENDOR_XIAOMI || // Xiaomi lumi.curtain.hagl04
-        ((node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER) && (
-            ((node->address().ext() & 0xffffff0000000000ULL ) == 0x8841570000000000ULL) ||  // atsmart Z6-03 switch
-            ((node->address().ext() & 0xffffff0000000000ULL ) == emberMacPrefix) ||         // Heiman plug
-            ((node->address().ext() & 0xffffff0000000000ULL ) == silabs7MacPrefix) ||       // Tuya Smart TRV HY369
-            ((node->address().ext() & 0xffffff0000000000ULL ) == silabs5MacPrefix) )) ||    // MOES Zigbee Radiator Actuator HY368
+        node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER || // atsmart Z6-03 switch + Heiman plug + Tuya stuff
         (!node->nodeDescriptor().isNull() && node->nodeDescriptor().manufacturerCode() == VENDOR_NONE) || // Climax Siren
         node->nodeDescriptor().manufacturerCode() == VENDOR_DEVELCO || // Develco Smoke sensor with siren
         node->nodeDescriptor().manufacturerCode() == VENDOR_LDS || // Samsung SmartPlug 2019
@@ -1935,13 +1931,6 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
     bool hasTuyaCluster = false;
     QString manufacturer;
-
-    //using VENDOR_EMBER is too much, lot of enddevice use this manufacture and are not router, so using this black list
-    if ((node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER) &&
-        ((node->address().ext() & 0xffffff0000000000ULL ) == silabs7MacPrefix) )
-    {
-        return;
-    }
 
     //Make 2 fakes device for tuya stuff
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER && !node->simpleDescriptors().isEmpty())
@@ -3269,36 +3258,38 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                     }
                     else if (ia->id() == 0x0006) // Date code
                     {
-                        QString str = ia->toString();
+                        const QString str = ia->toString().trimmed();
                         ResourceItem *item = lightNode->item(RAttrSwVersion);
 
-                        if (item && !str.isEmpty() && str != item->toString())
+                        if (item && !str.isEmpty())
                         {
-                            item->setValue(str);
-                            lightNode->setSwBuildId(str);
-                            lightNode->setNeedSaveDatabase(true);
-                            queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
-                            updated = true;
-                            enqueueEvent({lightNode->prefix(), item->descriptor().suffix, lightNode->id(), item, lightNode->address().ext()});
+                            if (str != item->toString())
+                            {
+                                lightNode->setNeedSaveDatabase(true);
+                                queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
+                                updated = true;
+                            }
+                            item->setValue(str); // always needed to refresh set timestamp
                         }
                     }
                     else if (ia->id() == 0x4000) // Software build identifier
                     {
-                        QString str = ia->toString();
+                        const QString str = ia->toString().trimmed();
                         ResourceItem *item = lightNode->item(RAttrSwVersion);
 
                         deCONZ::NumericUnion dummy;
                         lightNode->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), dummy);
 
-                        if (item && !str.isEmpty() && str != item->toString())
+                        if (item && !str.isEmpty())
                         {
-                            item->setValue(str);
-                            lightNode->setSwBuildId(str);
-                            lightNode->setNeedSaveDatabase(true);
-                            queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
-                            updated = true;
-                            enqueueEvent({lightNode->prefix(), item->descriptor().suffix, lightNode->id(), item, lightNode->address().ext()});
-                        }
+                            if (str != item->toString())
+                            {
+                                lightNode->setNeedSaveDatabase(true);
+                                queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
+                                updated = true;
+                            }
+                            item->setValue(str); // always needed to refresh set timestamp
+                        }                        
                     }
                     else if (ia->id() == 0x4005 && lightNode->manufacturerCode() == VENDOR_MUELLER)
                     {

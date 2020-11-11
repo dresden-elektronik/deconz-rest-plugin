@@ -742,13 +742,13 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt, const s
                 out.push_back(rq);
             }
         }
-        else if (lightNode)
+        else if (lightNode && rq.maxInterval != 0xffff /* disable reporting */)
         {
             // wait for value is created via polling
             DBG_Printf(DBG_INFO, "skip configure report for cluster: 0x%04X attr: 0x%04X of node 0x%016llX (wait reading or unsupported)\n",
                        bt.binding.clusterId, rq.attributeId, bt.restNode->address().ext());
         }
-        else // sensors
+        else // sensors and disabled reporting
         {
             // values doesn't exist, create
             deCONZ::NumericUnion dummy;
@@ -1523,8 +1523,10 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
         else if (manufacturerCode == VENDOR_IKEA)
         {
-            rq.minInterval = 0; // same as IKEA gateway
-            rq.maxInterval = 0; // same as IKEA gateway
+            // IKEA gateway uses min = 0, max = 0
+            // Instead here we use relaxed settings to not stress the network and device.
+            rq.minInterval = 1;
+            rq.maxInterval = 1800;
         }
         else // default configuration
         {
@@ -1676,10 +1678,11 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
         else if (manufacturerCode ==  VENDOR_IKEA)
         {
-            // same as IKEA gateway
-            rq.minInterval = 1;
-            rq.maxInterval = 0;
-            rq.reportableChange8bit = 0;
+            // IKEA gateway uses min = 1, max = 0, change = 0
+            // Instead here we use relaxed settings to not stress the network and device.
+            rq.minInterval = 5;
+            rq.maxInterval = 1800;
+            rq.reportableChange8bit = 1;
         }
         else // default configuration
         {
@@ -1749,18 +1752,30 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
         if (manufacturerCode == VENDOR_IKEA)
         {
-            // same as IKEA gateway
-            rq.minInterval = 0;
-            rq.maxInterval = 0;
-            rq.reportableChange16bit = 0;
-            rq2.minInterval = 0;
-            rq2.maxInterval = 0;
-            rq2.reportableChange16bit = 0;
-            rq3.minInterval = 0;
-            rq3.maxInterval = 0;
-            rq3.reportableChange16bit = 0;
-            rq4.minInterval = 0;
-            rq4.maxInterval = 0;
+            // IKEA gateway uses all zero values for min, max and change, which results in very rapid reports.
+            // Instead here we use relaxed settings to not stress the network and device.
+            rq.minInterval = 5;
+            rq.maxInterval = 1800;
+            rq.reportableChange16bit = 1;
+            rq2.minInterval = 5;
+            rq2.maxInterval = 1795;
+            rq2.reportableChange16bit = 10;
+            rq3.minInterval = 5;
+            rq3.maxInterval = 1795;
+            rq3.reportableChange16bit = 10;
+            rq4.minInterval = 1;
+            rq4.maxInterval = 1800;
+
+//          TODO re activate. Don't disable for now until more testing is done.
+//            const ResourceItem *cap = lightNode ? lightNode->item(RConfigColorCapabilities) : nullptr;
+
+//            if (cap && (cap->toNumber() & 0x0008) == 0) // doesn't support xy --> color temperature light
+//            {
+//                rq2.minInterval = 0;
+//                rq2.maxInterval = 0xffff; // disable reporting
+//                rq3.minInterval = 0;
+//                rq3.maxInterval = 0xffff; // disable reporting
+//            }
         }
 
         return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
