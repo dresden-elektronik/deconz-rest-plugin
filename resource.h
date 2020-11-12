@@ -138,6 +138,7 @@ extern const char *RConfigLat;
 extern const char *RConfigLedIndication;
 extern const char *RConfigLocalTime;
 extern const char *RConfigLocked;
+extern const char *RConfigSetValve;
 extern const char *RConfigLong;
 extern const char *RConfigLevelMin;
 extern const char *RConfigMode;

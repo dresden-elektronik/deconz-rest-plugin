@@ -547,28 +547,36 @@
 	<cluster id="0006" name="On/Off">
 		<description>Attributes and commands for switching devices between 'On' and 'Off' states.</description>
 		<server>
-						<attribute-set id="0x0000" description="OnOff state">
-							<attribute id="0000" name="OnOff" type="bool" access="r" default="0" required="m">
-									<value name="On" value="1"></value>
-									<value name="Off" value="0"></value>
-							</attribute>
-						</attribute-set>
-						<attribute-set id="0x4000" description="ZLL extensions">
-							<attribute id="0x4000" name="GlobalSceneControl" type="bool" access="r" default="0" required="o">
-							</attribute>
-							<attribute id="0x4001" name="OnTime" type="u16" access="r" default="0" required="o">
-							</attribute>
-							<attribute id="0x4002" name="OffWaitTime" type="u16" access="r" default="0" required="o">
-							</attribute>
-							<attribute id="0x4003" name="PowerOn OnOff" type="enum8" access="rw" default="0x01" required="o">
+        <attribute-set id="0x0000" description="OnOff state">
+            <attribute id="0000" name="OnOff" type="bool" access="r" default="0" required="m">
+                    <value name="On" value="1"></value>
+                    <value name="Off" value="0"></value>
+            </attribute>
+        </attribute-set>
+        <attribute-set id="0x4000" description="ZLL extensions">
+            <attribute id="0x4000" name="GlobalSceneControl" type="bool" access="r" default="0" required="o">
+            </attribute>
+            <attribute id="0x4001" name="OnTime" type="u16" access="r" default="0" required="o">
+            </attribute>
+            <attribute id="0x4002" name="OffWaitTime" type="u16" access="r" default="0" required="o">
+            </attribute>
+            <attribute id="0x4003" name="PowerOn OnOff" type="enum8" access="rw" default="0x01" required="o">
                 <value name="Off" value="0x00"></value>
                 <value name="On" value="0x01"></value>
                 <value name="Previous" value="0xff"></value>
-							</attribute>
-						</attribute-set>
-            <attribute-set id="0x8000" description="Xiaomi" mfcode="0x1037">
-              <attribute id="0x8000" name="Button Press" type="u8" access="r" required="o"/>
-            </attribute-set>
+				  	</attribute>
+				</attribute-set>
+        <attribute-set id="0x8000" description="Xiaomi" mfcode="0x1037">
+          <attribute id="0x8000" name="Button Press" type="u8" access="r" required="o"/>
+        </attribute-set>
+        <attribute-set id="0x8001" description="Tuya special">
+            <attribute id="0x8001" name="Light mode" type="enum8" default="0" required="m" access="r">
+                <value name="Mode 1" value="0"></value>
+                <value name="Mode 2" value="1"></value>
+                <value name="Mode 3" value="2"></value>
+            </attribute>
+        </attribute-set>
+
 			<command id="00" dir="recv" name="Off" required="m">
 				<description>On receipt of this command, a device shall enter its 'Off' state. This state is device dependent, but it is recommended that it is used for power off or similar functions.</description>
 			</command>
@@ -1590,6 +1598,16 @@ by the Poll Control Cluster Client.</description>
           </attribute>
           <attribute id="0x0018" name="Intermediate Setpoints – Lift" type="ostring" default="1,0x0000" access="rw" required="o"></attribute>
           <attribute id="0x0019" name="Intermediate Setpoints – Tilt" type="ostring" default="1,0x0000" access="rw" required="o"></attribute>
+        </attribute-set>
+        <attribute-set id="0xf001" description="Tuya Window Covering Setting">
+			<attribute id="0xf001" name="Calibration" type="enum8" default="0" required="m" access="r">
+				<value name="Start" value="0"></value>
+				<value name="End" value="1"></value>
+			</attribute>
+			<attribute id="0xf002" name="Motor Reversal" type="enum8" default="0" required="m" access="r">
+				<value name="Off" value="0"></value>
+				<value name="On" value="1"></value>
+			</attribute>
         </attribute-set>
         <command id="0x00" dir="recv" name="Up / Open" required="m"></command>
         <command id="0x01" dir="recv" name="Down / Close" required="m"></command>
