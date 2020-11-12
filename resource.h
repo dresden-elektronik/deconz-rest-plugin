@@ -78,6 +78,7 @@ extern const char *RStateGesture;
 extern const char *RStateHeating;
 extern const char *RStateHue;
 extern const char *RStateHumidity;
+extern const char *RStateLastCheckin; // Poll control check-in
 extern const char *RStateLastSet;
 extern const char *RStateLastUpdated;
 extern const char *RStateLift;
