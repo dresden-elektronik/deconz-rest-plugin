@@ -547,32 +547,35 @@
 	<cluster id="0006" name="On/Off">
 		<description>Attributes and commands for switching devices between 'On' and 'Off' states.</description>
 		<server>
-                <attribute-set id="0x0000" description="OnOff state">
-                    <attribute id="0000" name="OnOff" type="bool" access="r" default="0" required="m">
-                            <value name="On" value="1"></value>
-                            <value name="Off" value="0"></value>
-                    </attribute>
-                </attribute-set>
-                <attribute-set id="0x4000" description="ZLL extensions">
-                    <attribute id="0x4000" name="GlobalSceneControl" type="bool" access="r" default="0" required="o">
-                    </attribute>
-                    <attribute id="0x4001" name="OnTime" type="u16" access="r" default="0" required="o">
-                    </attribute>
-                    <attribute id="0x4002" name="OffWaitTime" type="u16" access="r" default="0" required="o">
-                    </attribute>
-                    <attribute id="0x4003" name="PowerOn OnOff" type="enum8" access="rw" default="0x01" required="o">
-                        <value name="Off" value="0x00"></value>
-                        <value name="On" value="0x01"></value>
-                        <value name="Previous" value="0xff"></value>
-					</attribute>
+        <attribute-set id="0x0000" description="OnOff state">
+            <attribute id="0000" name="OnOff" type="bool" access="r" default="0" required="m">
+                    <value name="On" value="1"></value>
+                    <value name="Off" value="0"></value>
+            </attribute>
+        </attribute-set>
+        <attribute-set id="0x4000" description="ZLL extensions">
+            <attribute id="0x4000" name="GlobalSceneControl" type="bool" access="r" default="0" required="o">
+            </attribute>
+            <attribute id="0x4001" name="OnTime" type="u16" access="r" default="0" required="o">
+            </attribute>
+            <attribute id="0x4002" name="OffWaitTime" type="u16" access="r" default="0" required="o">
+            </attribute>
+            <attribute id="0x4003" name="PowerOn OnOff" type="enum8" access="rw" default="0x01" required="o">
+                <value name="Off" value="0x00"></value>
+                <value name="On" value="0x01"></value>
+                <value name="Previous" value="0xff"></value>
+				  	</attribute>
 				</attribute-set>
-                <attribute-set id="0x8001" description="Tuya special">
-                    <attribute id="0x8001" name="Light mode" type="enum8" default="0" required="m" access="r">
-                        <value name="Mode 1" value="0"></value>
-                        <value name="Mode 2" value="1"></value>
-                        <value name="Mode 3" value="2"></value>
-                    </attribute>
-                </attribute-set>
+        <attribute-set id="0x8000" description="Xiaomi" mfcode="0x1037">
+          <attribute id="0x8000" name="Button Press" type="u8" access="r" required="o"/>
+        </attribute-set>
+        <attribute-set id="0x8001" description="Tuya special">
+            <attribute id="0x8001" name="Light mode" type="enum8" default="0" required="m" access="r">
+                <value name="Mode 1" value="0"></value>
+                <value name="Mode 2" value="1"></value>
+                <value name="Mode 3" value="2"></value>
+            </attribute>
+        </attribute-set>
 
 			<command id="00" dir="recv" name="Off" required="m">
 				<description>On receipt of this command, a device shall enter its 'Off' state. This state is device dependent, but it is recommended that it is used for power off or similar functions.</description>
@@ -1497,10 +1500,10 @@ by the Poll Control Cluster Client.</description>
           </attribute>
         </attribute-set>
         <attribute-set id="0x0050" description="Xiaomi Special" mfcode="0x1037">
-          <attribute id="0x0055" name="Event Type" type="u16" access="r" required="o" mfcode="0x1037"></attribute>
-          <attribute id="0x0503" name="Tilt Angle" type="u16" access="r" required="o" mfcode="0x1037"></attribute>
-          <attribute id="0x0505" name="Vibration Strength" type="u32" showas="hex" access="r" required="o" mfcode="0x1037"></attribute>
-          <attribute id="0x0508" name="Orientation" type="u48" showas="hex" access="r" required="o" mfcode="0x1037"></attribute>
+          <attribute id="0x0055" name="Event Type" type="u16" access="r" required="o"></attribute>
+          <attribute id="0x0503" name="Tilt Angle" type="u16" access="r" required="o"></attribute>
+          <attribute id="0x0505" name="Vibration Strength" type="u32" showas="hex" access="r" required="o"></attribute>
+          <attribute id="0x0508" name="Orientation" type="u48" showas="hex" access="r" required="o"></attribute>
         </attribute-set>
         <command id="0x00" dir="recv" name="Lock Door" required="m">
           <description>This command causes the lock device to lock the door.</description>
@@ -1748,13 +1751,13 @@ Note: It does not clear or delete previous weekly schedule programming configura
           <attribute id="0x0031" name="Setpoint Change Amount" type="s16" access="r" required="o" default="0x8000"/>
           <attribute id="0x0032" name="Setpoint Change Timestamp" type="utc" access="r" required="o" default="0"/>
         </attribute-set>
-        
+
         <attribute-set id="0x0080" description="eCozy" mfcode="0x1014">
           <attribute id="0x0080" name="Unknown" type="s16" access="r" required="o"/>
           <attribute id="0x0081" name="Unknown" type="s16" access="r" required="o"/>
           <attribute id="0x0082" name="Unknown (Heat Setpoint?)" type="s16" access="r" required="o"/>
         </attribute-set>
-        
+
 		<!-- ELKO specific -->
 		<attribute-set id="0x0400" description="ELKO specific" mfcode="0x1002">
 			<attribute id="0x0401" name="Unknown" type="u16" access="rw" required="m"></attribute>
@@ -1806,6 +1809,7 @@ Note: It does not clear or delete previous weekly schedule programming configura
 		<!-- Danfoss manufacturer specific -->
 		<attribute-set id="0x4000" description="Danfoss specific" mfcode="0x1246">
 			<attribute id="0x4000" name="eTRV Open Window Detection" type="enum8" default="0x00" access="r" required="m" mfcode="0x1246">
+				<value name="Quarantine" value="0x00"></value>
 				<value name="Closed" value="0x01"></value>
 				<value name="Hold" value="0x02"></value>
 				<value name="Open" value="0x03"></value>
