@@ -15569,8 +15569,9 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 skip = true; // Xiaomi Mija devices won't respond to ZCL read
                 DBG_Printf(DBG_INFO, "[4] Skipping additional attribute read - Model starts with 'lumi.'\n");
             }
-            else if (checkMacAndVendor(node, VENDOR_JENNIC) ||
-                     checkMacAndVendor(node, VENDOR_ADUROLIGHT))
+            else if ((checkMacAndVendor(node, VENDOR_JENNIC) ||  checkMacAndVendor(node, VENDOR_ADUROLIGHT))
+                     && node->simpleDescriptors().size() == 2
+                     && node->simpleDescriptors().front().deviceId() == DEV_ID_ZLL_NON_COLOR_CONTROLLER)
             {
                 skip = true; // e.g. Trust remote (ZYCT-202)
                 DBG_Printf(DBG_INFO, "[4] Skipping additional attribute read -  Assumed Trust remote (ZYCT-202)\n");
