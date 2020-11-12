@@ -183,6 +183,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             // If you want your schedule to run only on workdays, the value would be W124. (64+32+16+8+4 = 124)
             // The API specifies 3 numbers, so a schedule that runs on Monday would be W064.
             // Workday = W124
+            // Not working day = W003
             // Saturday = W002
             // Sunday = W001
             // All days = W127
@@ -204,13 +205,13 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             quint8 part = 1;
             QList<int> listday;
             
-            if (dp == 0x0112) //work days (6)
+            if (dp == 0x0070) //work days (6)
             {
                 listday << 124;
             }
-            else if (dp == 0x0113) // holiday (6)
+            else if (dp == 0x00071) // holiday = Not working day (6)
             {
-                listday << 127;
+                listday << 003;
             }
             else if (dp == 0x0065) // Moe thermostat W124 (4) + W002 (4) + W001 (4)
             {
@@ -330,7 +331,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                             }
                             
                             //Find model id if missing ( modelId().isEmpty ?) and complete it
-                            if (lightNode->modelId().isNull() || (lightNode->manufacturer() == QLatin1String("Unknown")))
+                            if (lightNode->modelId().isNull() || (lightNode->modelId() == QLatin1String("Unknown")) || (lightNode->manufacturer() == QLatin1String("Unknown")))
                             {
                                 DBG_Printf(DBG_INFO, "Tuya debug 10 : Updating model ID\n");
                                 if (!lightNode2->modelId().isNull())
@@ -793,12 +794,9 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
 
 }
 
-bool DeRestPluginPrivate::SendTuyaRequestThermostatSetWeeklySchedule(TaskItem &taskRef, quint8 weekdays , QString transitions )
+bool DeRestPluginPrivate::SendTuyaRequestThermostatSetWeeklySchedule(TaskItem &taskRef, quint8 weekdays , QString transitions , qint8 Dp_identifier )
 {
-    qint8 Dp_identifier;
     QByteArray data;
-    
-    Dp_identifier = 0x71;
     
     QStringList list = transitions.split("T", QString::SkipEmptyParts);
 
@@ -806,8 +804,22 @@ bool DeRestPluginPrivate::SendTuyaRequestThermostatSetWeeklySchedule(TaskItem &t
     quint8 mm;
     quint8 heatSetpoint;
     
-    //just to disable warnig;
-    weekdays = weekdays + 1;
+    if (Dp_identifier == 0x65)
+    {
+        //To finish
+        weekdays = weekdays;
+    }
+    else
+    {
+        if (weekdays == 3)
+        {
+            Dp_identifier = 0x71;
+        }
+        if (list.size() != 6)
+        {
+            DBG_Printf(DBG_INFO, "Tuya : Schedule command error, need to have 6 values\n");
+        }
+    }
     
     for (const QString &entry : list)
     {
