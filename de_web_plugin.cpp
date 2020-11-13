@@ -39,6 +39,7 @@
 #include "de_web_widget.h"
 #include "gateway_scanner.h"
 #include "json.h"
+#include "poll_control.h"
 #include "poll_manager.h"
 #include "rest_devices.h"
 #include "read_files.h"
@@ -228,6 +229,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_XIAOMI, "lumi.plug", xiaomiMacPrefix }, // Xiaomi smart plugs (router)
     { VENDOR_XIAOMI, "lumi.switch.b1naus01", xiaomiMacPrefix }, // Xiaomi Aqara ZB3.0 Smart Wall Switch Single Rocker WS-USC03
     // { VENDOR_XIAOMI, "lumi.curtain", jennicMacPrefix}, // Xiaomi curtain controller (router) - exposed only as light
+    { VENDOR_XIAOMI, "lumi.curtain.hagl04", xiaomiMacPrefix}, // Xiaomi B1 curtain controller
     { VENDOR_UBISYS, "C4", ubisysMacPrefix },
     { VENDOR_UBISYS, "D1", ubisysMacPrefix },
     { VENDOR_UBISYS, "J1", ubisysMacPrefix },
@@ -309,6 +311,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_KONKE, "3AFE28010402000D", ikea2MacPrefix }, // Konke Kit Pro-BS Motion Sensor ver.2
     { VENDOR_EMBER, "3AFE140103020000", konkeMacPrefix }, // Konke Kit Pro-FT Temp Humidity Sensor
     { VENDOR_KONKE, "3AFE220103020000", ikea2MacPrefix }, // Konke Kit Pro-BS Temp Humidity Sensor ver.2
+    { VENDOR_KONKE, "3AFE220103020000", konkeMacPrefix }, // Konke Kit Pro-BS Temp Humidity Sensor ver ???
     { VENDOR_EMBER, "3AFE130104020015", konkeMacPrefix }, // Konke Kit Pro-Door Entry Sensor
     { VENDOR_NONE, "RICI01", tiMacPrefix}, // LifeControl smart plug
     { VENDOR_JENNIC, "VOC_Sensor", jennicMacPrefix}, // LifeControl Enviroment sensor
@@ -353,6 +356,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBER, "TS0207", silabs3MacPrefix }, // Tuya water leak sensor
     { VENDOR_NONE, "TS0202", silabs4MacPrefix }, // Tuya presence sensor
     { VENDOR_NONE, "0yu2xgi", silabs5MacPrefix }, // Tuya siren
+    { VENDOR_NONE, "eaxp72v", ikea2MacPrefix }, // Tuya TRV Wesmartify Thermostat Essentials Premium
     { VENDOR_AURORA, "DoubleSocket50AU", jennicMacPrefix }, // Aurora AOne Double Socket UK
     { VENDOR_COMPUTIME, "SP600", computimeMacPrefix }, // Salus smart plug
     { VENDOR_HANGZHOU_IMAGIC, "1116-S", energyMiMacPrefix }, // iris contact sensor v3
@@ -393,6 +397,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "DS01", tiMacPrefix }, // Sonoff SNZB-04
     { VENDOR_DANFOSS, "eTRV0100", silabs2MacPrefix }, // Danfoss Ally thermostat
     { VENDOR_LDS, "ZBT-CCTSwitch-D0001", silabs2MacPrefix }, // Leedarson remote control
+    { VENDOR_NONE, "SMARTCODE_CONVERT_GEN1", zenMacPrefix }, // Kwikset 914 ZigBee smart lock
 
     { 0, nullptr, 0 }
 };
@@ -470,6 +475,7 @@ DeRestPluginPrivate::DeRestPluginPrivate(QObject *parent) :
     groupDeviceMembershipChecked = false;
     gwLinkButton = false;
     gwWebSocketNotifyAll = true;
+    gwdisablePermitJoinAutoOff = false;
 
     // preallocate memory to get consistent pointers
     nodes.reserve(300);
@@ -757,16 +763,14 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             zclFrame.readFromStream(stream);
         }
 
-        TaskItem task;
-
         switch (ind.clusterId())
         {
         case GROUP_CLUSTER_ID:
-            handleGroupClusterIndication(task, ind, zclFrame);
+            handleGroupClusterIndication(ind, zclFrame);
             break;
 
         case SCENE_CLUSTER_ID:
-            handleSceneClusterIndication(task, ind, zclFrame);
+            handleSceneClusterIndication(ind, zclFrame);
             handleClusterIndicationGateways(ind, zclFrame);
             break;
 
@@ -775,7 +779,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             break;
 
         case COMMISSIONING_CLUSTER_ID:
-            handleCommissioningClusterIndication(task, ind, zclFrame);
+            handleCommissioningClusterIndication(ind, zclFrame);
             break;
 
         case LEVEL_CLUSTER_ID:
@@ -783,7 +787,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             break;
 
         case ONOFF_CLUSTER_ID:
-             handleOnOffClusterIndication(task, ind, zclFrame);
+             handleOnOffClusterIndication(ind, zclFrame);
              handleClusterIndicationGateways(ind, zclFrame);
             break;
 
@@ -840,9 +844,12 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             handleDiagnosticsClusterIndication(ind, zclFrame);
             break;
 
+        case POLL_CONTROL_CLUSTER_ID:
+            handlePollControlIndication(ind, zclFrame);
+            break;
+
         case FAN_CONTROL_CLUSTER_ID:
             handleFanControlClusterIndication(ind, zclFrame);
-            break;
 
         default:
         {
@@ -1313,7 +1320,7 @@ void DeRestPluginPrivate::gpProcessButtonEvent(const deCONZ::GpDataIndication &i
     updateSensorEtag(sensor);
     sensor->updateStateTimestamp();
     item->setValue(btn);
-
+    DBG_Printf(DBG_INFO, "[INFO] - Button %u %s\n", item->toNumber(), qPrintable(sensor->modelId()));
     Event e(RSensors, RStateButtonEvent, sensor->id(), item);
     enqueueEvent(e);
     enqueueEvent(Event(RSensors, RStateLastUpdated, sensor->id()));
@@ -1445,7 +1452,7 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
         //       Maybe except for Hue Tap to keep compatibility? -- Maybe.
 
         quint8 gpdDeviceId;
-        quint8 gpdKey[16];
+        GpKey_t gpdKey = { 0 };
         quint32 gpdMIC = 0;
         quint32 gpdOutgoingCounter = 0;
         deCONZ::GPCommissioningOptions options;
@@ -1473,22 +1480,20 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             for (int i = 0; i < 16; i++)
             {
                 if (stream.atEnd()) { return; }
-                stream >> gpdKey[i];
-
+                stream >> gpdKey.at(i);
             }
 
             if (extOptions.bits.gpdKeyEncryption)
             {
-                // TODO decrypt key
                 // When GPDkeyPresent sub-field is set
                 // to 0b1 and the GPDkeyEncryption sub-field is set to 0b1, both fields GPDkey and GPDkeyMIC are
                 // present; the field GPDkey contains the gpdSecurityKey, of the type as indicated in the gpdSecurityKey-
                 // Type, encrypted with the default TC-LK (see A.3.3.3.3) as described inA.3.7.1.2.3; and the GPDk-
                 // eyMIC field contains the MIC for the encrypted GPD key, calculated as described in A.3.7.1.2.3.
-
-                // (TC-LK), ‘ZigBeeAlliance09’.
-
                 if (stream.atEnd()) { return; }
+
+                gpdKey = GP_DecryptSecurityKey(ind.gpdSrcId(), gpdKey);
+
                 stream >> gpdMIC;
             }
         }
@@ -1514,12 +1519,12 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
 
         Sensor *sensor = getSensorNodeForFingerPrint(ind.gpdSrcId(), fp, QLatin1String("ZGPSwitch"));
 
-        if (searchSensorsState == SearchSensorsActive)
+        if (searchSensorsState == SearchSensorsActive && extOptions.bits.gpdKeyEncryption)
         {
             const QDateTime now = QDateTime::currentDateTime();
             if (!sensor || !sensor->lastRx().isValid() || sensor->lastRx().secsTo(now) > 5)
             {
-                sendGPPairing(ind.gpdSrcId(), 0xdd09, gpdDeviceId, gpdOutgoingCounter, gpdKey);
+                GP_SendPairing(ind.gpdSrcId(), 0xdd09, gpdDeviceId, gpdOutgoingCounter, gpdKey, apsCtrl, zclSeq++);
             }
         }
 
@@ -1534,7 +1539,9 @@ void DeRestPluginPrivate::gpDataIndication(const deCONZ::GpDataIndication &ind)
             Sensor sensorNode;
             sensorNode.setType("ZGPSwitch");
 
-            if (gpdDeviceId == deCONZ::GpDeviceIdOnOffSwitch && options.byte == 0x81 && ind.payload().size() == 27 && (ind.gpdSrcId() & 0x01700000) == 0x01700000)
+            // https://github.com/dresden-elektronik/deconz-rest-plugin/pull/3285
+            // Illumra Dual Rocker Switch PTM215ZE
+            if (gpdDeviceId == deCONZ::GpDeviceIdOnOffSwitch && options.byte == 0x81 && ind.payload().size() == 27 && (ind.gpdSrcId() & 0x01500000) == 0x01500000)
             {
                 sensorNode.setModelId("FOHSWITCH");
                 sensorNode.setManufacturer("PhilipsFoH");
@@ -1762,8 +1769,8 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_KEEN_HOME || // Keen Home Vent
         node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC || // Xiaomi lumi.ctrl_neutral1, lumi.ctrl_neutral2
         node->nodeDescriptor().manufacturerCode() == VENDOR_XIAOMI || // Xiaomi lumi.curtain.hagl04
-        node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER || // atsmart Z6-03 switch
-        node->nodeDescriptor().manufacturerCode() == VENDOR_NONE || // Climax Siren
+        node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER || // atsmart Z6-03 switch + Heiman plug + Tuya stuff
+        (!node->nodeDescriptor().isNull() && node->nodeDescriptor().manufacturerCode() == VENDOR_NONE) || // Climax Siren
         node->nodeDescriptor().manufacturerCode() == VENDOR_DEVELCO || // Develco Smoke sensor with siren
         node->nodeDescriptor().manufacturerCode() == VENDOR_LDS || // Samsung SmartPlug 2019
         node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA || // IKEA FYRTUR and KADRILJ smart binds
@@ -1784,19 +1791,12 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
     bool hasTuyaCluster = false;
     QString manufacturer;
-    
-    //using VENDOR_EMBER is too much, lot of enddevice use this manufacture and are not router, so using this black list
-    if ((node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER) &&
-        ((node->address().ext() & 0xffffff0000000000ULL ) == silabs7MacPrefix) )
-    {
-        return;
-    }
 
     //Make 2 fakes device for tuya stuff
-    if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER)
+    if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER && !node->simpleDescriptors().isEmpty())
     {
         const deCONZ::SimpleDescriptor *sd = &node->simpleDescriptors()[0];
-        
+
         if (sd && (sd->deviceId() == DEV_ID_SMART_PLUG) && (node->simpleDescriptors().size() < 2) &&
         (((node->address().ext() & 0xffffff0000000000ULL ) == silabs3MacPrefix) ||
          ((node->address().ext() & 0xffffff0000000000ULL ) == silabs4MacPrefix))
@@ -1874,6 +1874,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             else if ((i->inClusters()[c].id() == TUYA_CLUSTER_ID) && (node->macCapabilities() & deCONZ::MacDeviceIsFFD) ) { hasServerOnOff = true; }
             // Danalock support. The cluster needs to be defined and whitelisted by setting hasServerOnOff
             else if (node->nodeDescriptor().manufacturerCode() == VENDOR_DANALOCK && i->inClusters()[c].id() == DOOR_LOCK_CLUSTER_ID) { hasServerOnOff = true; }
+            else if (!node->nodeDescriptor().isNull() && node->nodeDescriptor().manufacturerCode() == VENDOR_NONE && i->inClusters()[c].id() == DOOR_LOCK_CLUSTER_ID) { hasServerOnOff = true; } //Kwikset 914 ZigBee smart lock
             else if (i->inClusters()[c].id() == BASIC_CLUSTER_ID)
             {
                 std::vector<deCONZ::ZclAttribute>::const_iterator j = i->inClusters()[c].attributes().begin();
@@ -2031,7 +2032,9 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             }
             //Tuya black list
             //_TYST11_ckud7u2l is valve with 2 cluster
-            if (lightNode.manufacturer() == QLatin1String("_TYST11_ckud7u2l"))
+            //_TYST11_jeaxp72v same
+            if ((lightNode.manufacturer() == QLatin1String("_TYST11_ckud7u2l")) ||
+                (lightNode.manufacturer() == QLatin1String("_TYST11_jeaxp72v")) )
             {
                 hasServerOnOff = false;
             }
@@ -2090,11 +2093,11 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                     {
                         if (hasServerOnOff)
                         {
-                            if (checkMacVendor(node->address(), VENDOR_JENNIC) &&
+                            if (checkMacAndVendor(node, VENDOR_JENNIC) &&
                                 // prevent false positives like Immax IM-Z3.0-DIM which has only two endpoints (0x01)
                                 // lumi.ctrl_neutral1 and lumi.ctrl_neutral2 have more 5 endpoints
                                 node->simpleDescriptors().size() > 5  &&
-                                node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC && i->endpoint() != 0x02 && i->endpoint() != 0x03)
+                                i->endpoint() != 0x02 && i->endpoint() != 0x03)
                             {
                                 // TODO better filter for lumi. devices (i->deviceId(), modelid?)
                                 // blacklist switch endpoints for lumi.ctrl_neutral1 and lumi.ctrl_neutral2
@@ -2241,7 +2244,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         QString uid = generateUniqueId(lightNode.address().ext(), lightNode.haEndpoint().endpoint(), 0);
         lightNode.setUniqueId(uid);
 
-        if (checkMacVendor(node->address(), VENDOR_DDEL) && i->deviceId() != DEV_ID_CONFIGURATION_TOOL)
+        if (existDevicesWithVendorCodeForMacPrefix(node->address(), VENDOR_DDEL) && i->deviceId() != DEV_ID_CONFIGURATION_TOOL)
         {
             ResourceItem *item = lightNode.addItem(DataTypeUInt32, RConfigPowerup);
             DBG_Assert(item != 0);
@@ -2296,8 +2299,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             lightNode.setNeedSaveDatabase(true);
         }
 
-        if (checkMacVendor(node->address(), VENDOR_OSRAM) &&
-            (node->nodeDescriptor().manufacturerCode() == VENDOR_OSRAM || node->nodeDescriptor().manufacturerCode() == VENDOR_OSRAM_STACK))
+        if (checkMacAndVendor(node, VENDOR_OSRAM) || checkMacAndVendor(node, VENDOR_OSRAM_STACK))
         {
             if (lightNode.manufacturer() != QLatin1String("OSRAM"))
             {
@@ -2306,7 +2308,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             }
         }
 
-        if (checkMacVendor(node->address(), VENDOR_PHILIPS))
+        if (existDevicesWithVendorCodeForMacPrefix(node->address(), VENDOR_PHILIPS))
         {
             if (lightNode.manufacturer() != QLatin1String("Philips"))
             { // correct vendor name, was atmel, de sometimes
@@ -2336,7 +2338,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         }
 
         //Add missing values for Profalux device
-        if (checkMacVendor(node->address(), VENDOR_PROFALUX))
+        if (existDevicesWithVendorCodeForMacPrefix(node->address(), VENDOR_PROFALUX))
         {
             //Shutter ?
             if (i->deviceId() == DEV_ID_ZLL_COLOR_LIGHT)
@@ -2476,6 +2478,9 @@ void DeRestPluginPrivate::setLightNodeStaticCapabilities(LightNode *lightNode)
              lightNode->modelId() == QLatin1String("A19 TW 10 year") ||
              lightNode->modelId() == QLatin1String("Classic B40 TW - LIGHTIFY") ||
              lightNode->modelId() == QLatin1String("Classic A60 TW") ||
+             lightNode->modelId() == QLatin1String("Classic A60 TW") ||
+             lightNode->modelId() == QLatin1String("Zigbee CCT Downlight") ||
+             lightNode->modelId() == QLatin1String("Halo_RL5601") ||
              (lightNode->manufacturerCode() == VENDOR_LEDVANCE && lightNode->modelId() == QLatin1String("Down Light TW")) ||
              (lightNode->manufacturerCode() == VENDOR_LEDVANCE && lightNode->modelId() == QLatin1String("BR30 TW")) ||
              (lightNode->manufacturerCode() == VENDOR_LEDVANCE && lightNode->modelId() == QLatin1String("MR16 TW")) ||
@@ -3085,7 +3090,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                                 {
                                     str = QLatin1String("T10W1ZW switch");
                                 }
-                            }       
+                            }
 
                             lightNode->setModelId(str);
                             item->setValue(str);
@@ -3097,33 +3102,37 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                     }
                     else if (ia->id() == 0x0006) // Date code
                     {
-                        QString str = ia->toString();
+                        const QString str = ia->toString().trimmed();
                         ResourceItem *item = lightNode->item(RAttrSwVersion);
 
-                        if (item && !str.isEmpty() && str != item->toString())
+                        if (item && !str.isEmpty())
                         {
-                            item->setValue(str);
-                            lightNode->setSwBuildId(str);
-                            lightNode->setNeedSaveDatabase(true);
-                            queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
-                            updated = true;
+                            if (str != item->toString())
+                            {
+                                lightNode->setNeedSaveDatabase(true);
+                                queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
+                                updated = true;
+                            }
+                            item->setValue(str); // always needed to refresh set timestamp
                         }
                     }
                     else if (ia->id() == 0x4000) // Software build identifier
                     {
-                        QString str = ia->toString();
+                        const QString str = ia->toString().trimmed();
                         ResourceItem *item = lightNode->item(RAttrSwVersion);
 
                         deCONZ::NumericUnion dummy;
                         lightNode->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), dummy);
 
-                        if (item && !str.isEmpty() && str != item->toString())
+                        if (item && !str.isEmpty())
                         {
-                            item->setValue(str);
-                            lightNode->setSwBuildId(str);
-                            lightNode->setNeedSaveDatabase(true);
-                            queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
-                            updated = true;
+                            if (str != item->toString())
+                            {
+                                lightNode->setNeedSaveDatabase(true);
+                                queSaveDb(DB_LIGHTS, DB_LONG_SAVE_DELAY);
+                                updated = true;
+                            }
+                            item->setValue(str); // always needed to refresh set timestamp
                         }
                     }
                     else if (ia->id() == 0x4005 && lightNode->manufacturerCode() == VENDOR_MUELLER)
@@ -4338,7 +4347,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
                 if (ok && buttonMap.button != 0)
                 {
                     if (!buttonMap.name.isEmpty()) { cmd = buttonMap.name; }
-                    DBG_Printf(DBG_INFO, "[INFO] - Button %u %s\n", buttonMap.button, qPrintable(cmd));
+                    DBG_Printf(DBG_INFO, "[INFO] - Button %u %s %s\n", buttonMap.button, qPrintable(cmd), qPrintable(sensor->modelId()));
                     ResourceItem *item = sensor->item(RStateButtonEvent);
                     if (item)
                     {
@@ -4349,7 +4358,7 @@ void DeRestPluginPrivate::checkSensorButtonEvent(Sensor *sensor, const deCONZ::A
 
                             if (dt > 0 && dt < 500)
                             {
-                                DBG_Printf(DBG_INFO, "[INFO] - Button %u %s, discard too fast event (dt = %d)\n", buttonMap.button, qPrintable(cmd), dt);
+                                DBG_Printf(DBG_INFO, "[INFO] - Button %u %s, discard too fast event (dt = %d) %s\n", buttonMap.button, qPrintable(cmd), dt, qPrintable(sensor->modelId()));
                                 break;
                             }
                         }
@@ -4457,6 +4466,17 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     pushSensorInfoToCore(&*i);
                 }
 
+                auto *item = i->item(RStateBattery);
+                if (!item)
+                {
+                    item = i->item(RConfigBattery);
+                }
+
+                if (item && item->toNumber() > 0)
+                {
+                    q_ptr->nodeUpdated(i->address().ext(), QLatin1String(item->descriptor().suffix), QString::number(item->toNumber()));
+                }
+
                 checkSensorNodeReachable(&*i, event);
             }
         }
@@ -4479,7 +4499,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
     QList<deCONZ::SimpleDescriptor>::const_iterator end = node->simpleDescriptors().constEnd();
 
     // Trust and iHorn specific
-    if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC && modelId.isEmpty())
+    if (node->nodeDescriptor().manufacturerCode() == VENDOR_JENNIC && modelId.isEmpty() && i != end)
     {
         int inClusterCount = i->inClusters().size();
         int outClusterCount = i->outClusters().size();
@@ -4615,6 +4635,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         // For some device the Tuya cluster is sometime Invisible, so force device detection
                         if ((modelId == QLatin1String("kud7u2l")) ||
+                           (modelId == QLatin1String("eaxp72v")) ||
                            (modelId == QLatin1String("GbxAXL2")) )
                         {
                             fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
@@ -4641,6 +4662,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     fpAlarmSensor.inClusters.push_back(ci->id());
                     if (node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA &&
                         (modelId.startsWith(QLatin1String("FYRTUR")) || modelId.startsWith(QLatin1String("KADRILJ"))))
+                    {
+                        fpBatterySensor.inClusters.push_back(ci->id());
+                    }
+                    if (node->nodeDescriptor().manufacturerCode() == VENDOR_XIAOMI &&
+                        modelId.startsWith(QLatin1String("lumi.curtain.hagl04")))
                     {
                         fpBatterySensor.inClusters.push_back(ci->id());
                     }
@@ -4752,9 +4778,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("PIRS")) ||             // Heiman motion sensor (newer model)
                              modelId == QLatin1String("3AFE14010402000D") ||          // Konke motion sensor
                              modelId == QLatin1String("3AFE28010402000D") ||          // Konke motion sensor ver.2
+                             modelId == QLatin1String("motion") ||                    // Samjin motion sensor
                              modelId.startsWith(QLatin1String("902010/22")) ||        // Bitron motion sensor
                              modelId.startsWith(QLatin1String("SN10ZW")) ||           // ORVIBO motion sensor
                              modelId.startsWith(QLatin1String("MOSZB-130")) ||        // Develco motion sensor
+                             modelId.startsWith(QLatin1String("MOT003")) ||           // Hive motion sensor
                              modelId == QLatin1String("4in1-Sensor-ZB3.0") ||         // Immax NEO ZB3.0 4 in 1 sensor E13-A21
                              modelId == QLatin1String("E13-A21") ||                   // Sengled E13-A21 PAR38 bulp with motion sensor
                              modelId == QLatin1String("TS0202") ||                    // Tuya generic motion sensor                   // Sonoff SNZB-03
@@ -4774,8 +4802,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("lumi.sensor_smoke")) || // Xiaomi Mi smoke sensor
                              modelId.startsWith(QLatin1String("TS0204")) ||           // Tuya gas sensor
                              modelId.startsWith(QLatin1String("FNB56-COS")) ||        // Feibit FNB56-COS06FB1.7 Carb. Mon. detector
-                             modelId.startsWith(QLatin1String("FNB56-GAS")) ||        // Feibit gas sensor
-                             modelId.startsWith(QLatin1String("MOT003")))             // Hive motion sensor
+                             modelId.startsWith(QLatin1String("FNB56-GAS")))          // Feibit gas sensor
                     {
                         // Gas sensor detects combustable gas, so fire is more appropriate than CO.
                         fpFireSensor.inClusters.push_back(ci->id());
@@ -5019,6 +5046,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 {
                     if ((modelId == QLatin1String("kud7u2l")) ||
                         (modelId == QLatin1String("GbxAXL2")) ||
+                        (manufacturer == QLatin1String("_TZE200_aoclfnxz")) ||
                         (manufacturer == QLatin1String("_TZE200_ckud7u2l")) )
                     {
                         fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
@@ -5126,7 +5154,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("ICZB-RM")) || // icasa remote
                              modelId.startsWith(QLatin1String("ZGRC-KEY")) || // Sunricher remote
                              modelId.startsWith(QLatin1String("ED-1001")) || // EcoDim switches
-                             modelId.startsWith(QLatin1String("ED-1001")))   // Namron switches
+                             modelId.startsWith(QLatin1String("45127")))     // Namron switches
                     {
                         if (i->endpoint() == 0x01) // create sensor only for first endpoint
                         {
@@ -5871,7 +5899,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         }
         item = sensorNode.addItem(DataTypeBool, RStateAlarm);
         item->setValue(false);
-        
+
         if (modelId == QLatin1String("0yu2xgi"))
         {
             clusterId = TUYA_CLUSTER_ID;
@@ -6012,21 +6040,25 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.modelId() == QLatin1String("kud7u2l") ||         // Tuya
                 sensorNode.modelId() == QLatin1String("GbxAXL2") ||         // Tuya
                 sensorNode.modelId() == QLatin1String("TS0601") ||          // Tuya
+                sensorNode.modelId() == QLatin1String("eaxp72v") ||         // Tuya
+                sensorNode.modelId() == QLatin1String("902010/32") ||       // Bitron
                 sensorNode.modelId() == QLatin1String("Zen-01") )           // Zen
             {
                 sensorNode.addItem(DataTypeString, RConfigMode);
             }
-            
+
             if (sensorNode.modelId() == QLatin1String("Super TR"))   // ELKO
             {
                 sensorNode.addItem(DataTypeString, RConfigTemperatureMeasurement);
                 sensorNode.addItem(DataTypeInt16, RStateFloorTemperature);
                 sensorNode.addItem(DataTypeBool, RStateHeating);
                 sensorNode.addItem(DataTypeBool, RConfigLocked);
+                sensorNode.addItem(DataTypeString, RConfigMode);
             }
 
             if (sensorNode.modelId() == QLatin1String("kud7u2l") || // Tuya
                 sensorNode.modelId() == QLatin1String("GbxAXL2") || // Tuya
+                sensorNode.modelId() == QLatin1String("eaxp72v") || // Tuya
                 sensorNode.modelId() == QLatin1String("TS0601") )   // Tuya
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
@@ -6312,6 +6344,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             item->setValue(0x15); // low
             item = sensorNode.addItem(DataTypeUInt8, RConfigPending);
         }
+    }
+    else if (modelId.startsWith(QLatin1String("Super TR")) ||
+             modelId.startsWith(QLatin1String("ElkoDimmer")))
+    {
+        sensorNode.setManufacturer("ELKO");
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER ||
              node->nodeDescriptor().manufacturerCode() == VENDOR_HEIMAN)
@@ -6878,12 +6915,12 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             case VENDOR_CLUSTER_ID:
             {
                 // ubisys device management (UBISYS_DEVICE_SETUP_CLUSTER_ID)
-                if (event.endpoint() == 0xE8 && checkMacVendor(event.node()->address(), VENDOR_UBISYS))
+                if (event.endpoint() == 0xE8 && existDevicesWithVendorCodeForMacPrefix(event.node()->address(), VENDOR_UBISYS))
                 {
                     break;
                 }
                 // dresden elektronik spectral sensor
-                else if (i->modelId() == QLatin1String("de_spect") && checkMacVendor(event.node()->address(), VENDOR_DDEL))
+                else if (i->modelId() == QLatin1String("de_spect") && existDevicesWithVendorCodeForMacPrefix(event.node()->address(), VENDOR_DDEL))
                 {
                     break;
                 }
@@ -6905,7 +6942,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             // filter endpoint
             if (event.endpoint() != i->fingerPrint().endpoint)
             {
-                if (checkMacVendor(event.node()->address(), VENDOR_JENNIC))
+                if (existDevicesWithVendorCodeForMacPrefix(event.node()->address(), VENDOR_JENNIC))
                 {
                     if (i->modelId().startsWith(QLatin1String("lumi.sensor_86sw")) ||
                         i->modelId().startsWith(QLatin1String("lumi.ctrl_neutral")) ||
@@ -7024,6 +7061,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     enqueueEvent(e);
                                     enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
                                     updateSensorEtag(&*i);
+                                    q_ptr->nodeUpdated(i->address().ext(), QLatin1String(item->descriptor().suffix), QString::number(bat));
                                     continue;
                                 }
 
@@ -7039,6 +7077,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 // particularly suited for devices with rechargeable batteries.
                                 if (item)
                                 {
+
                                     int bat = ia->numericValue().u8 / 2;
 
                                     if (i->modelId().startsWith(QLatin1String("TRADFRI")) || // IKEA
@@ -7064,6 +7103,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     item->setValue(bat);
                                     Event e(RSensors, RConfigBattery, i->id(), item);
                                     enqueueEvent(e);
+                                    q_ptr->nodeUpdated(i->address().ext(), QLatin1String(item->descriptor().suffix), QString::number(bat));
                                 }
 
                                 updateSensorEtag(&*i);
@@ -7083,6 +7123,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId() == QLatin1String("Thermostat") ||       // eCozy thermostat
                                     i->modelId() == QLatin1String("Motion Sensor-A") ||  // Osram motion sensor
                                     i->modelId() == QLatin1String("Bell") ||             // Sage doorbell sensor
+                                    i->modelId() == QLatin1String("ISW-ZPR1-WP13") ||    // Bosch motion sensor
                                     i->modelId().endsWith(QLatin1String("86opcn01")) ||  // Aqara Opple
                                     i->modelId().startsWith(QLatin1String("SMSZB-120")) || // Develco smoke sensor
                                     i->modelId().startsWith(QLatin1String("HESZB-120")) || // Develco heat sensor
@@ -7156,6 +7197,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     item->setValue(static_cast<quint8>(bat));
                                     Event e(RSensors, RConfigBattery, i->id(), item);
                                     enqueueEvent(e);
+                                    q_ptr->nodeUpdated(i->address().ext(), QLatin1String(item->descriptor().suffix), QString::number(bat));
                                 }
                                 updateSensorEtag(&*i);
                             }
@@ -7558,7 +7600,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
 
                                 item = i->item(RStateButtonEvent);
 
-                                if (item && i->buttonMap(buttonMapData, buttonMapForModelId).empty() &&
+                                if (item && // i->buttonMap(buttonMapData, buttonMapForModelId).empty() &&
                                     event.event() == deCONZ::NodeEvent::UpdatedClusterDataZclReport)
                                 {
                                     quint32 button = 0;
@@ -7566,6 +7608,9 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     if (i->modelId().startsWith(QLatin1String("lumi.sensor_86sw")))
                                     {
                                         button = (S_BUTTON_1 * event.endpoint()) + S_BUTTON_ACTION_SHORT_RELEASED;
+                                    }
+                                    else if (i->modelId() == QLatin1String("lumi.sensor_switch"))
+                                    { // handeled by button map
                                     }
                                     else if (i->modelId().startsWith(QLatin1String("lumi.ctrl_neutral")))
                                     {
@@ -8094,6 +8139,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                 if (item && buttonevent != -1)
                                 {
                                     item->setValue(buttonevent);
+                                    DBG_Printf(DBG_INFO, "[INFO] - Button %u %s\n", item->toNumber(), qPrintable(i->modelId()));
                                     i->updateStateTimestamp();
                                     i->setNeedSaveDatabase(true);
                                     Event e(RSensors, RStateButtonEvent, i->id(), item);
@@ -8562,7 +8608,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                         }
                     }
                     else if (event.clusterId() == UBISYS_DEVICE_SETUP_CLUSTER_ID && event.endpoint() == 0xE8 &&
-                            checkMacVendor(event.node()->address(), VENDOR_UBISYS)) // ubisys device management
+                            existDevicesWithVendorCodeForMacPrefix(event.node()->address(), VENDOR_UBISYS)) // ubisys device management
                     {
 //                        bool updated = false;
                         for (;ia != enda; ++ia)
@@ -8780,7 +8826,7 @@ bool DeRestPluginPrivate::isDeviceSupported(const deCONZ::Node *node, const QStr
     while (s->modelId)
     {
         if ((!node->nodeDescriptor().isNull() && node->nodeDescriptor().manufacturerCode() == s->vendorId) ||
-            ((node->address().ext() & macPrefixMask) == s->mac) || checkMacVendor(node->address(), s->vendorId))
+            ((node->address().ext() & macPrefixMask) == s->mac) || existDevicesWithVendorCodeForMacPrefix(node->address(), s->vendorId))
         {
             if (modelId.startsWith(QLatin1String(s->modelId)))
             {
@@ -10881,7 +10927,7 @@ void DeRestPluginPrivate::handleXalClusterIndication(const deCONZ::ApsDataIndica
         return;
     }
 
-    if (!checkMacVendor(lightNode->address(), VENDOR_XAL))
+    if (!existDevicesWithVendorCodeForMacPrefix(lightNode->address(), VENDOR_XAL))
     {
         return;
     }
@@ -10957,87 +11003,6 @@ void DeRestPluginPrivate::handleXalClusterIndication(const deCONZ::ApsDataIndica
     }
 }
 
-/*! Checks open tasks for poll control cluster
-    \return true - when a binding request got queued.
- */
-bool DeRestPluginPrivate::checkPollControlClusterTask(Sensor *sensor)
-{
-    if (!sensor)
-    {
-        return false;
-    }
-
-    if (searchSensorsState == SearchSensorsActive)
-    {
-        // defer this until other items have been processed
-        return false;
-    }
-
-    ResourceItem *item = sensor->item(RConfigPending);
-    if (!item)
-    {
-        return false;
-    }
-
-    if (item && (item->toNumber() & R_PENDING_WRITE_POLL_CHECKIN_INTERVAL))
-    {
-        // write poll control checkin interval
-        deCONZ::ZclAttribute attr(0x0000, deCONZ::Zcl32BitUint, QLatin1String("Check-in interval"), deCONZ::ZclReadWrite, false);
-        attr.setValue(static_cast<quint64>(14400)); // 1 hour in 0.25 seconds
-
-        DBG_Printf(DBG_INFO, "Write poll cluster check-in interval for 0x%016llx\n", sensor->address().ext());
-
-        if (writeAttribute(sensor, sensor->fingerPrint().endpoint, POLL_CONTROL_CLUSTER_ID, attr, 0))
-        {
-            // mark done
-            item->setValue(item->toNumber() & ~R_PENDING_WRITE_POLL_CHECKIN_INTERVAL);
-            return true;
-        }
-    }
-
-    if (item->toNumber() & R_PENDING_SET_LONG_POLL_INTERVAL)
-    {
-        deCONZ::ApsDataRequest apsReq;
-        deCONZ::ZclFrame zclFrame;
-
-         // ZDP Header
-         apsReq.dstAddress() = sensor->address();
-         apsReq.setDstAddressMode(deCONZ::ApsExtAddress);
-         apsReq.setDstEndpoint(sensor->fingerPrint().endpoint);
-         apsReq.setSrcEndpoint(endpoint());
-         apsReq.setProfileId(HA_PROFILE_ID);
-         apsReq.setRadius(0);
-         apsReq.setClusterId(POLL_CONTROL_CLUSTER_ID);
-         apsReq.setTxOptions(deCONZ::ApsTxAcknowledgedTransmission);
-
-         deCONZ::ZclFrame outZclFrame;
-         outZclFrame.setSequenceNumber(zclFrame.sequenceNumber());
-         outZclFrame.setCommandId(0x02); // set long poll interval
-         outZclFrame.setFrameControl(deCONZ::ZclFCClusterCommand | deCONZ::ZclFCDirectionClientToServer);
-
-         { // ZCL payload
-             QDataStream stream(&outZclFrame.payload(), QIODevice::WriteOnly);
-             stream.setByteOrder(QDataStream::LittleEndian);
-             const quint32 longPollInterval = 4 * 60 * 15; // 15 minutes in quarter seconds
-             stream << longPollInterval;
-         }
-
-         { // ZCL frame
-             QDataStream stream(&apsReq.asdu(), QIODevice::WriteOnly);
-             stream.setByteOrder(QDataStream::LittleEndian);
-             outZclFrame.writeToStream(stream);
-         }
-
-         if (apsCtrl && apsCtrl->apsdeDataRequest(apsReq) == deCONZ::Success)
-         {
-             item->setValue(item->toNumber() & ~R_PENDING_SET_LONG_POLL_INTERVAL);
-             return true;
-         }
-    }
-
-    return false;
-}
-
 /*! Handle incoming ZCL attribute report commands.
  */
 void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
@@ -11062,14 +11027,14 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
         checkReporting = true;
         sendZclDefaultResponse(ind, zclFrame, deCONZ::ZclSuccessStatus);
     }
-    else if (checkMacVendor(ind.srcAddress(), VENDOR_PHILIPS) ||
+    else if (existDevicesWithVendorCodeForMacPrefix(ind.srcAddress(), VENDOR_PHILIPS) ||
             macPrefix == tiMacPrefix ||
-            checkMacVendor(ind.srcAddress(), VENDOR_DDEL) ||
-            checkMacVendor(ind.srcAddress(), VENDOR_IKEA) ||
-            checkMacVendor(ind.srcAddress(), VENDOR_OSRAM_STACK) ||
-            checkMacVendor(ind.srcAddress(), VENDOR_JENNIC) ||
-            checkMacVendor(ind.srcAddress(), VENDOR_SI_LABS) ||
-            checkMacVendor(ind.srcAddress(), VENDOR_CENTRALITE))
+            existDevicesWithVendorCodeForMacPrefix(ind.srcAddress(), VENDOR_DDEL) ||
+            existDevicesWithVendorCodeForMacPrefix(ind.srcAddress(), VENDOR_IKEA) ||
+            existDevicesWithVendorCodeForMacPrefix(ind.srcAddress(), VENDOR_OSRAM_STACK) ||
+            existDevicesWithVendorCodeForMacPrefix(ind.srcAddress(), VENDOR_JENNIC) ||
+            existDevicesWithVendorCodeForMacPrefix(ind.srcAddress(), VENDOR_SI_LABS) ||
+            existDevicesWithVendorCodeForMacPrefix(ind.srcAddress(), VENDOR_CENTRALITE))
     {
         // these sensors tend to mac data poll after report
         checkReporting = true;
@@ -11108,7 +11073,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndication(const deCONZ::ApsDa
         }
     }
 
-    if (zclFrame.isProfileWideCommand() && checkMacVendor(ind.srcAddress().ext(), VENDOR_XIAOMI) && (ind.clusterId() == BASIC_CLUSTER_ID || ind.clusterId() == 0xfcc0))
+    if (zclFrame.isProfileWideCommand() && existDevicesWithVendorCodeForMacPrefix(ind.srcAddress().ext(), VENDOR_XIAOMI) && (ind.clusterId() == BASIC_CLUSTER_ID || ind.clusterId() == 0xfcc0))
     {
         handleZclAttributeReportIndicationXiaomiSpecial(ind, zclFrame);
     }
@@ -11619,6 +11584,7 @@ void DeRestPluginPrivate::handleZclAttributeReportIndicationXiaomiSpecial(const 
 
                 item->setValue(quint8(bat));
                 enqueueEvent(Event(RSensors, RConfigBattery, sensor.id(), item));
+                q_ptr->nodeUpdated(sensor.address().ext(), QLatin1String(item->descriptor().suffix), QString::number(bat));
 
                 if (item->lastSet() == item->lastChanged())
                 {
@@ -12771,14 +12737,11 @@ void DeRestPluginPrivate::processGroupTasks()
 }
 
 /*! Handle packets related to the ZCL group cluster.
-    \param task the task which belongs to this response
     \param ind the APS level data indication containing the ZCL packet
     \param zclFrame the actual ZCL frame which holds the groups cluster reponse
  */
-void DeRestPluginPrivate::handleGroupClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
+void DeRestPluginPrivate::handleGroupClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
-    Q_UNUSED(task);
-
     LightNode *lightNode = getLightNodeForAddress(ind.srcAddress(), ind.srcEndpoint());
 
     if (!lightNode)
@@ -12965,14 +12928,11 @@ void DeRestPluginPrivate::handleGroupClusterIndication(TaskItem &task, const deC
 }
 
 /*! Handle packets related to the ZCL scene cluster.
-    \param task the task which belongs to this response
     \param ind the APS level data indication containing the ZCL packet
     \param zclFrame the actual ZCL frame which holds the scene cluster reponse
  */
-void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
+void DeRestPluginPrivate::handleSceneClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
-    Q_UNUSED(task);
-
     if (zclFrame.isDefaultResponse())
     {
     }
@@ -13630,6 +13590,28 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
                         onOff, bri, x, y, transitionTime);
             }
         }
+        else if (status == 0x8b && zclFrame.payload().size() >= 4) // scene not found
+        {
+            uint16_t groupId;
+            uint8_t sceneId;
+
+            stream >> groupId;
+            stream >> sceneId;
+
+            Group *group = getGroupForId(groupId);
+            Scene *scene = group->getScene(sceneId);
+
+            if (!group || !scene)
+            {
+                return;
+            }
+
+            auto *ls = scene->getLightState(lightNode->id());
+            if (ls)
+            {
+                ls->setNeedRead(false); // move to add scene
+            }
+        }
     }
     else if (zclFrame.commandId() == 0x05 && !(zclFrame.frameControl() & deCONZ::ZclFCDirectionServerToClient)) // Recall scene command
     {
@@ -13845,14 +13827,11 @@ void DeRestPluginPrivate::handleSceneClusterIndication(TaskItem &task, const deC
 }
 
 /*! Handle packets related to the ZCL On/Off cluster.
-    \param task the task which belongs to this response
     \param ind the APS level data indication containing the ZCL packet
     \param zclFrame the actual ZCL frame which holds the scene cluster reponse
  */
-void DeRestPluginPrivate::handleOnOffClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
+void DeRestPluginPrivate::handleOnOffClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
-    Q_UNUSED(task);
-
     if (zclFrame.isDefaultResponse())
     {
         return;
@@ -14118,14 +14097,11 @@ void DeRestPluginPrivate::handlePhilipsClusterIndication(const deCONZ::ApsDataIn
 }
 
 /*! Handle packets related to the ZCL Commissioning cluster.
-    \param task the task which belongs to this response
     \param ind the APS level data indication containing the ZCL packet
     \param zclFrame the actual ZCL frame which holds the Commissioning cluster reponse
  */
-void DeRestPluginPrivate::handleCommissioningClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
+void DeRestPluginPrivate::handleCommissioningClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame)
 {
-    Q_UNUSED(task);
-
     uint8_t ep = ind.srcEndpoint();
     Sensor *sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), ind.srcEndpoint());
     int epIter = 0;
@@ -15605,17 +15581,21 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
 
             bool skip = false;
 
-            if (thermostatClusterEndpoint == 0) // e.g. Eurotronic SPZB0001 thermostat
+            if (thermostatClusterEndpoint > 0) // e.g. Eurotronic SPZB0001 thermostat
             {  }
             else if (iasZoneType > 0) // IAS motion and contact sensors
             {  }
             else if (modelId.startsWith(QLatin1String("lumi.")))
             {
                 skip = true; // Xiaomi Mija devices won't respond to ZCL read
+                DBG_Printf(DBG_INFO, "[4] Skipping additional attribute read - Model starts with 'lumi.'\n");
             }
-            else if (checkMacVendor(sc->address, VENDOR_JENNIC))
+            else if ((checkMacAndVendor(node, VENDOR_JENNIC) ||  checkMacAndVendor(node, VENDOR_ADUROLIGHT))
+                     && node->simpleDescriptors().size() == 2
+                     && node->simpleDescriptors().front().deviceId() == DEV_ID_ZLL_NON_COLOR_CONTROLLER)
             {
                 skip = true; // e.g. Trust remote (ZYCT-202)
+                DBG_Printf(DBG_INFO, "[4] Skipping additional attribute read -  Assumed Trust remote (ZYCT-202)\n");
             }
 
             if (skip)
@@ -15623,22 +15603,32 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 // don't read these (Xiaomi, Trust, ...)
                 // response is empty or no response at all
             }
-            else if (manufacturer.isEmpty()) { attributes.push_back(0x0004); }// manufacturer
-            else if (modelId.isEmpty()) { attributes.push_back(0x0005); } // model id
+            else if (manufacturer.isEmpty())
+            {
+                DBG_Printf(DBG_INFO, "[4.1] Get manufacturer code\n");
+                attributes.push_back(0x0004); // manufacturer
+            }
+            else if (modelId.isEmpty())
+            {
+                DBG_Printf(DBG_INFO, "[4.1] Get model ID\n");
+                attributes.push_back(0x0005); // model id
+            }
             else if (swBuildId.isEmpty() && dateCode.isEmpty())
             {
                 if ((sc->address.ext() & macPrefixMask) == tiMacPrefix ||
-                    checkMacVendor(sc->address, VENDOR_UBISYS) ||
+                    existDevicesWithVendorCodeForMacPrefix(sc->address, VENDOR_UBISYS) ||
                     modelId == QLatin1String("Motion Sensor-A") || // OSRAM motion sensor
                     manufacturer.startsWith(QLatin1String("Climax")) ||
                     modelId.startsWith(QLatin1String("lumi")) ||
                     node->nodeDescriptor().manufacturerCode() == VENDOR_CENTRALITE ||
                     !swBuildIdAvailable)
                 {
+                    DBG_Printf(DBG_INFO, "[4.1] Get date code\n");
                     attributes.push_back(0x0006); // date code
                 }
                 else
                 {
+                    DBG_Printf(DBG_INFO, "[4.1] Get sw build id\n");
                     attributes.push_back(0x4000); // sw build id
                 }
             }
@@ -15664,7 +15654,7 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 for (quint16 attrId : attributes)
                 {
                     stream << attrId;
-                    DBG_Printf(DBG_INFO, "[4] get basic cluster attr 0x%04X for 0x%016llx\n", attrId, sc->address.ext());
+                    DBG_Printf(DBG_INFO, "[4.2] get basic cluster attr 0x%04X for 0x%016llx\n", attrId, sc->address.ext());
                 }
 
                 { // ZCL frame
@@ -16822,13 +16812,18 @@ void DeRestPlugin::idleTimerFired()
                                 val = sensorNode->getZclValue(*ci, 0x0029); // heating operation state
                             }
 
-                            if (sensorNode->modelId().startsWith(QLatin1String("SPZB")) ||   // Eurotronic Spirit
-                                sensorNode->modelId().startsWith(QLatin1String("SLT2")) ||   // Hive Active Heating Thermostat
-                                sensorNode->modelId().startsWith(QLatin1String("SLR2")) ||   // Hive Active Heating Receiver 2 channel
-                                sensorNode->modelId().startsWith(QLatin1String("SLR1b")) ||  // Hive Active Heating Receiver 1 channel
-                                sensorNode->modelId().startsWith(QLatin1String("TRV001")) || // Hive TRV
-                                sensorNode->modelId().startsWith(QLatin1String("TH112")) ||  // Sinope devices
-                                sensorNode->modelId().startsWith(QLatin1String("eTRV0100"))) // Danfoss Ally
+                            if (sensorNode->modelId().startsWith(QLatin1String("SPZB")) ||      // Eurotronic Spirit
+                                sensorNode->modelId().startsWith(QLatin1String("SLT2")) ||      // Hive Active Heating Thermostat
+                                sensorNode->modelId().startsWith(QLatin1String("SLR2")) ||      // Hive Active Heating Receiver 2 channel
+                                sensorNode->modelId().startsWith(QLatin1String("SLR1b")) ||     // Hive Active Heating Receiver 1 channel
+                                sensorNode->modelId().startsWith(QLatin1String("TRV001")) ||    // Hive TRV
+                                sensorNode->modelId().startsWith(QLatin1String("TH112")) ||     // Sinope devices
+                                sensorNode->modelId().startsWith(QLatin1String("eTRV0100")) ||  // Danfoss Ally
+                                sensorNode->modelId().startsWith(QLatin1String("Super TR")) ||  // Elko
+                                sensorNode->modelId().startsWith(QLatin1String("AC201")) ||     // Owon
+                                sensorNode->modelId().startsWith(QLatin1String("SORB")) ||      // Stelpro Orleans
+                                sensorNode->modelId().startsWith(QLatin1String("3157100")) ||   // Centralite pearl
+                                sensorNode->modelId().startsWith(QLatin1String("902010/32")))   // Bitron
                             {
                                 // supports reporting, no need to read attributes
                             }

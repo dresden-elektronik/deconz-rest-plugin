@@ -35,6 +35,11 @@ contains(QMAKE_SPEC_T,.*linux.*) {
         DEFINES += HAS_SQLITE3
         PKGCONFIG += sqlite3
     }
+
+    packagesExist(openssl) {
+        DEFINES += HAS_OPENSSL
+        PKGCONFIG += openssl
+    }
 }
 
 unix:LIBS +=  -L../.. -ldeCONZ
@@ -68,7 +73,7 @@ GIT_COMMIT_DATE = $$system("git show -s --format=%ct $$GIT_TAG")
 
 # Version Major.Minor.Build
 # Important: don't change the format of this line since it's parsed by scripts!
-DEFINES += GW_SW_VERSION=\\\"2.05.84\\\"
+DEFINES += GW_SW_VERSION=\\\"2.05.88\\\"
 DEFINES += GW_SW_DATE=$$GIT_COMMIT_DATE
 DEFINES += GW_API_VERSION=\\\"1.16.0\\\"
 DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\"
@@ -96,10 +101,12 @@ HEADERS  = bindings.h \
            event.h \
            gateway.h \
            gateway_scanner.h \
+           green_power.h \
            group.h \
            group_info.h \
            json.h \
            light_node.h \
+           poll_control.h \
            poll_manager.h \
            read_files.h \
            resource.h \
@@ -131,12 +138,14 @@ SOURCES  = authorisation.cpp \
            firmware_update.cpp \
            gateway.cpp \
            gateway_scanner.cpp \
+           green_power.cpp \
            group.cpp \
            group_info.cpp \
            gw_uuid.cpp \
            ias_zone.cpp \
            json.cpp \
            light_node.cpp \
+           poll_control.cpp \
            poll_manager.cpp \
            read_files.cpp \
            resource.cpp \

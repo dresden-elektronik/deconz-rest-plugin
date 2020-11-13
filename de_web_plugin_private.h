@@ -25,6 +25,7 @@
 #include "resource.h"
 #include "daylight.h"
 #include "event.h"
+#include "green_power.h"
 #include "resource.h"
 #include "rest_node_base.h"
 #include "light_node.h"
@@ -183,7 +184,6 @@
 #define MULTISTATE_INPUT_CLUSTER_ID           0x0012
 #define OTAU_CLUSTER_ID                       0x0019
 #define POLL_CONTROL_CLUSTER_ID               0x0020
-#define GREEN_POWER_CLUSTER_ID                0x0021
 #define DOOR_LOCK_CLUSTER_ID                  0x0101
 #define WINDOW_COVERING_CLUSTER_ID            0x0102
 #define THERMOSTAT_CLUSTER_ID                 0x0201
@@ -213,8 +213,6 @@
 #define XAL_CLUSTER_ID                        0xFCCE
 
 #define IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID  0x0002
-
-#define GREEN_POWER_ENDPOINT 0xf2
 
 #define ONOFF_COMMAND_OFF     0x00
 #define ONOFF_COMMAND_ON      0x01
@@ -279,76 +277,77 @@
 
 // manufacturer codes
 // https://github.com/wireshark/wireshark/blob/master/epan/dissectors/packet-zbee.h
-#define VENDOR_NONE         0x0000
-#define VENDOR_EMBER        0x1002
-#define VENDOR_PHILIPS      0x100B // Also used by iCasa routers
-#define VENDOR_VISONIC      0x1011
-#define VENDOR_ATMEL        0x1014
-#define VENDOR_DEVELCO      0x1015
-#define VENDOR_MAXSTREAM    0x101E // Used by Digi
-#define VENDOR_VANTAGE      0x1021
-#define VENDOR_LEGRAND      0x1021 // wrong name?
-#define VENDOR_LGE          0x102E
-#define VENDOR_JENNIC       0x1037 // Used by Xiaomi, Trust, Eurotronic
-#define VENDOR_ALERTME      0x1039
-#define VENDOR_CLS          0x104E
-#define VENDOR_CENTRALITE   0x104E // wrong name?
-#define VENDOR_SI_LABS      0x1049
-#define VENDOR_4_NOKS       0x1071
-#define VENDOR_BITRON       0x1071 // branded
-#define VENDOR_COMPUTIME    0x1078
-#define VENDOR_AXIS         0x1262 // Axis
-#define VENDOR_MMB          0x109a
-#define VENDOR_NETVOX       0x109F
-#define VENDOR_NYCE         0x10B9
-#define VENDOR_UNIVERSAL2   0x10EF
-#define VENDOR_UBISYS       0x10F2
-#define VENDOR_DANALOCK     0x115C
-#define VENDOR_SCHLAGE      0x1236 // Used by Schlage Locks
-#define VENDOR_BEGA         0x1105
-#define VENDOR_PHYSICAL     0x110A // Used by SmartThings
-#define VENDOR_OSRAM        0x110C
-#define VENDOR_PROFALUX     0x1110
-#define VENDOR_EMBERTEC     0x1112
-#define VENDOR_JASCO        0x1124 // Used by GE
-#define VENDOR_BUSCH_JAEGER 0x112E
-#define VENDOR_SERCOMM      0x1131
-#define VENDOR_BOSCH        0x1133
-#define VENDOR_DDEL         0x1135
-#define VENDOR_WAXMAN       0x113B
-#define VENDOR_OWON         0x113C
-#define VENDOR_LUTRON       0x1144
-#define VENDOR_ZEN          0x1158
-#define VENDOR_KEEN_HOME    0x115B
-#define VENDOR_XIAOMI       0x115F
-#define VENDOR_SENGLED_OPTOELEC 0x1160
-#define VENDOR_INNR         0x1166
-#define VENDOR_LDS          0x1168 // Used by Samsung SmartPlug 2019
-#define VENDOR_PLUGWISE_BV  0x1172
-#define VENDOR_INSTA        0x117A
-#define VENDOR_IKEA         0x117C
-#define VENDOR_3A_SMART_HOME  0x117E
-#define VENDOR_STELPRO      0x1185
-#define VENDOR_LEDVANCE     0x1189
-#define VENDOR_SINOPE       0x119C
-#define VENDOR_JIUZHOU      0x119D
-#define VENDOR_PAULMANN     0x119D // branded
-#define VENDOR_HEIMAN       0x120B
-#define VENDOR_MUELLER      0x121B // Used by Mueller Licht
-#define VENDOR_AURORA       0x121C // Used by Aurora Aone
-#define VENDOR_SUNRICHER    0x1224 // white label used by iCasa, Illuminize, Namron ...
-#define VENDOR_XAL          0x122A
-#define VENDOR_THIRD_REALITY 0x1233
-#define VENDOR_DSR          0x1234
-#define VENDOR_HANGZHOU_IMAGIC 0x123B
-#define VENDOR_SAMJIN       0x1241
-#define VENDOR_DANFOSS      0x1246
-#define VENDOR_NIKO_NV      0x125F
-#define VENDOR_KONKE        0x1268
-#define VENDOR_SHYUGJ_TECHNOLOGY 0x126A
-#define VENDOR_OSRAM_STACK  0xBBAA
-#define VENDOR_C2DF         0xC2DF
-#define VENDOR_PHILIO       0xFFA0
+#define VENDOR_NONE                 0x0000
+#define VENDOR_EMBER                0x1002
+#define VENDOR_PHILIPS              0x100B // Also used by iCasa routers
+#define VENDOR_VISONIC              0x1011
+#define VENDOR_ATMEL                0x1014
+#define VENDOR_DEVELCO              0x1015
+#define VENDOR_MAXSTREAM            0x101E // Used by Digi
+#define VENDOR_VANTAGE              0x1021
+#define VENDOR_LEGRAND              0x1021 // wrong name?
+#define VENDOR_LGE                  0x102E
+#define VENDOR_JENNIC               0x1037 // Used by Xiaomi, Trust, Eurotronic
+#define VENDOR_ALERTME              0x1039
+#define VENDOR_CLS                  0x104E
+#define VENDOR_CENTRALITE           0x104E // wrong name?
+#define VENDOR_SI_LABS              0x1049
+#define VENDOR_4_NOKS               0x1071
+#define VENDOR_BITRON               0x1071 // branded
+#define VENDOR_COMPUTIME            0x1078
+#define VENDOR_AXIS                 0x1262 // Axis
+#define VENDOR_MMB                  0x109a
+#define VENDOR_NETVOX               0x109F
+#define VENDOR_NYCE                 0x10B9
+#define VENDOR_UNIVERSAL2           0x10EF
+#define VENDOR_UBISYS               0x10F2
+#define VENDOR_DANALOCK             0x115C
+#define VENDOR_SCHLAGE              0x1236 // Used by Schlage Locks
+#define VENDOR_BEGA                 0x1105
+#define VENDOR_PHYSICAL             0x110A // Used by SmartThings
+#define VENDOR_OSRAM                0x110C
+#define VENDOR_PROFALUX             0x1110
+#define VENDOR_EMBERTEC             0x1112
+#define VENDOR_JASCO                0x1124 // Used by GE
+#define VENDOR_BUSCH_JAEGER         0x112E
+#define VENDOR_SERCOMM              0x1131
+#define VENDOR_BOSCH                0x1133
+#define VENDOR_DDEL                 0x1135
+#define VENDOR_WAXMAN               0x113B
+#define VENDOR_OWON                 0x113C
+#define VENDOR_LUTRON               0x1144
+#define VENDOR_ZEN                  0x1158
+#define VENDOR_KEEN_HOME            0x115B
+#define VENDOR_XIAOMI               0x115F
+#define VENDOR_SENGLED_OPTOELEC     0x1160
+#define VENDOR_INNR                 0x1166
+#define VENDOR_LDS                  0x1168 // Used by Samsung SmartPlug 2019
+#define VENDOR_PLUGWISE_BV          0x1172
+#define VENDOR_INSTA                0x117A
+#define VENDOR_IKEA                 0x117C
+#define VENDOR_3A_SMART_HOME        0x117E
+#define VENDOR_STELPRO              0x1185
+#define VENDOR_LEDVANCE             0x1189
+#define VENDOR_SINOPE               0x119C
+#define VENDOR_JIUZHOU              0x119D
+#define VENDOR_PAULMANN             0x119D // branded
+#define VENDOR_HEIMAN               0x120B
+#define VENDOR_MUELLER              0x121B // Used by Mueller Licht
+#define VENDOR_AURORA               0x121C // Used by Aurora Aone
+#define VENDOR_SUNRICHER            0x1224 // white label used by iCasa, Illuminize, Namron ...
+#define VENDOR_XAL                  0x122A
+#define VENDOR_THIRD_REALITY        0x1233
+#define VENDOR_DSR                  0x1234
+#define VENDOR_HANGZHOU_IMAGIC      0x123B
+#define VENDOR_SAMJIN               0x1241
+#define VENDOR_DANFOSS              0x1246
+#define VENDOR_NIKO_NV              0x125F
+#define VENDOR_KONKE                0x1268
+#define VENDOR_SHYUGJ_TECHNOLOGY    0x126A
+#define VENDOR_OSRAM_STACK          0xBBAA
+#define VENDOR_C2DF                 0xC2DF
+#define VENDOR_PHILIO               0xFFA0
+#define VENDOR_ADUROLIGHT           0x122D
 
 #define ANNOUNCE_INTERVAL 45 // minutes default announce interval
 
@@ -478,7 +477,7 @@ extern const quint64 schlageMacPrefix;
 
 extern const QDateTime epoch;
 
-inline bool checkMacVendor(quint64 addr, quint16 vendor)
+inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
 {
     const quint64 prefix = addr & macPrefixMask;
     switch (vendor) {
@@ -539,8 +538,7 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
         case VENDOR_INSTA:
             return prefix == instaMacPrefix;
         case VENDOR_JENNIC:
-            return prefix == jennicMacPrefix ||
-                   prefix == silabs2MacPrefix;
+            return prefix == jennicMacPrefix;
         case VENDOR_KEEN_HOME:
             return prefix == keenhomeMacPrefix;
         case VENDOR_LGE:
@@ -603,14 +601,21 @@ inline bool checkMacVendor(quint64 addr, quint16 vendor)
             return prefix == zenMacPrefix;
         case VENDOR_SCHLAGE:
             return prefix == schlageMacPrefix;
+        case VENDOR_ADUROLIGHT:
+	        return prefix == jennicMacPrefix;
         default:
             return false;
     }
 }
 
-inline bool checkMacVendor(const deCONZ::Address &addr, quint16 vendor)
+inline bool existDevicesWithVendorCodeForMacPrefix(const deCONZ::Address &addr, quint16 vendor)
 {
-    return checkMacVendor(addr.ext(), vendor);
+    return existDevicesWithVendorCodeForMacPrefix(addr.ext(), vendor);
+}
+
+inline bool checkMacAndVendor(const deCONZ::Node *node, quint16 vendor)
+{
+    return node->nodeDescriptor().manufacturerCode() == vendor && existDevicesWithVendorCodeForMacPrefix(node->address(), vendor);
 }
 
 // HTTP status codes
@@ -1137,8 +1142,6 @@ public:
     // Permit join
     void initPermitJoin();
     bool setPermitJoinDuration(uint8_t duration);
-    bool sendGPProxyCommissioningMode();
-    bool sendGPPairing(quint32 gpdSrcId, quint16 sinkGroupId, quint8 deviceId, quint32 frameCounter, const quint8 *key);
 
     // Otau
     void initOtau();
@@ -1439,15 +1442,15 @@ public:
     bool addTaskThermostatUiConfigurationReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t attrId, uint8_t attrType, uint32_t attrValue, uint16_t mfrCode=0);
     bool addTaskFanControlReadWriteAttribute(TaskItem &task, uint8_t readOrWriteCmd, uint16_t attrId, uint8_t attrType, uint32_t attrValue, uint16_t mfrCode=0);
 
-    void handleGroupClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
-    void handleSceneClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
-    void handleOnOffClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleGroupClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleSceneClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleOnOffClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleClusterIndicationGateways(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleIasZoneClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void sendIasZoneEnrollResponse(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleIndicationSearchSensors(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     bool SendTuyaRequest(TaskItem &task, TaskType taskType , qint8 Dp_type, qint8 Dp_identifier , QByteArray data );
-    void handleCommissioningClusterIndication(TaskItem &task, const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handleCommissioningClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleZdpIndication(const deCONZ::ApsDataIndication &ind);
     bool handleMgmtBindRspConfirm(const deCONZ::ApsDataConfirm &conf);
     void handleDeviceAnnceIndication(const deCONZ::ApsDataIndication &ind);
@@ -1461,6 +1464,7 @@ public:
     void handleDEClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleXalClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleWindowCoveringClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    void handlePollControlIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     // Danalock support
     void handleDoorLockClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     void handleThermostatClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
@@ -1584,6 +1588,7 @@ public:
     // configuration
     bool gwLinkButton;
     bool gwWebSocketNotifyAll;  // include all attributes in websocket notification
+    bool gwdisablePermitJoinAutoOff; // Stop the periodic verification for closed network
     bool gwRfConnectedExpected;  // the state which should be hold
     bool gwRfConnected;  // to detect changes
     int gwAnnounceInterval; // used by internet discovery [minutes]
