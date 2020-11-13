@@ -1262,7 +1262,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                              sensor->modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
                              sensor->modelId().startsWith(QLatin1String("902010/32")) ||  // Bitron
                              sensor->modelId().startsWith(QLatin1String("Zen-01")) || // Zen
-                             sensor->modelId().startsWith(QLatin1String("SORB"))) ||  // Stelpro Orleans Fan
+                             sensor->modelId().startsWith(QLatin1String("SORB")) ||   // Stelpro Orleans Fan
                              sensor->modelId().startsWith(QLatin1String("Super TR"))) // ELKO
                     {
 
