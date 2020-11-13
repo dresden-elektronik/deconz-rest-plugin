@@ -1002,6 +1002,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     qint32 offset = (qint32)(round(map[pi.key()].toInt(&ok) / 10.0));
                     if (ok && (sensor->modelId().startsWith(QLatin1String("kud7u2l")) ||
                                sensor->modelId().startsWith(QLatin1String("GbxAXL2")) ||
+                               sensor->modelId().startsWith(QLatin1String("eaxp72v")) ||
                                sensor->modelId().startsWith(QLatin1String("TS0601")) ) ) // Tuya Smart TRV HY369 Thermostatic Radiator Valve
                     {
                         QByteArray data;
@@ -1082,7 +1083,15 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         hostFlags &= ~0x04; // clear `boost` flag
                         hostFlags |=  0x10; // set `disable off` flag
 
-                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_JENNIC, 0x4003, deCONZ::Zcl16BitInt, heatsetpoint))
+                        // Older models of the Eurotroninc Spirit updated the heat set point via the manufacturer custom attribute 0x4003.
+                        // For newer models it is not possible to write to this attribute.
+                        // Newer models must use the standard Occupied Heating Setpoint value (0x0012) using a default (or none) manufacturer.
+                        // See GitHub issue #1098
+                        bool success = sensor->swVersion().toInt() < 22190930 ?
+                            addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_JENNIC, 0x4003, deCONZ::Zcl16BitInt, heatsetpoint) :
+                            addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_NONE, 0x0012, deCONZ::Zcl16BitInt, heatsetpoint);
+
+                        if (success)
                         {
                             updated = true;
                         }
@@ -1112,6 +1121,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else if (sensor->modelId().startsWith(QLatin1String("kud7u2l")) ||
                              sensor->modelId().startsWith(QLatin1String("GbxAXL2")) ||
+                             sensor->modelId().startsWith(QLatin1String("eaxp72v")) ||
                              sensor->modelId().startsWith(QLatin1String("TS0601")))  // Tuya Smart TRV HY369 Thermostatic Radiator Valve
                     {
                         heatsetpoint = heatsetpoint / 10;
@@ -1198,6 +1208,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         rspItem["success"] = rspItemState;
                     }
                     else if ((sensor->modelId().startsWith(QLatin1String("kud7u2l"))) ||
+                             (sensor->modelId().startsWith(QLatin1String("eaxp72v"))) ||
                              (sensor->modelId().startsWith(QLatin1String("TS0601")))) // Tuya Smart TRV HY369 Thermostatic Radiator Valve
                     {
                         QByteArray data;
@@ -1249,8 +1260,10 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     else if (sensor->modelId().startsWith(QLatin1String("SLR2")) ||   // Hive
                              sensor->modelId() == QLatin1String("SLR1b") ||           // Hive
                              sensor->modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
+                             sensor->modelId().startsWith(QLatin1String("902010/32")) ||  // Bitron
                              sensor->modelId().startsWith(QLatin1String("Zen-01")) || // Zen
-                             sensor->modelId().startsWith(QLatin1String("SORB")))     // Stelpro Orleans Fan
+                             sensor->modelId().startsWith(QLatin1String("SORB"))) ||  // Stelpro Orleans Fan
+                             sensor->modelId().startsWith(QLatin1String("Super TR"))) // ELKO
                     {
 
                         QString modeSet = map[pi.key()].toString();
@@ -1271,7 +1284,37 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 
                         if (mode < 10)
                         {
-                            attributeList.insert(0x001C, (quint32)mode);
+                            if (sensor->modelId() == QLatin1String("Super TR")) // Set device on/off state through mode via device specific attribute
+                            {
+                                if (mode == 0x00)
+                                {
+                                    bool data = false;
+                                    if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0406, deCONZ::ZclBoolean, data))
+                                    {
+                                        updated = true;
+                                    }
+                                }
+                                else if (mode == 0x04)
+                                {
+                                    bool data = true;
+                                    if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0406, deCONZ::ZclBoolean, data))
+                                    {
+                                        updated = true;
+                                    }
+                                }
+                                else
+                                {
+                                    rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                           QString("Unsupported mode for device")));
+                                    rsp.httpStatus = HttpStatusBadRequest;
+                                    return REQ_READY_SEND;
+                                }
+                            }
+                            else
+                            {
+                                attributeList.insert(0x001C, (quint32)mode);
+                            }
+
                             //Idk for other device
                             if ( (sensor->modelId().startsWith(QLatin1String("SLR2"))) ||
                                  (sensor->modelId() == QLatin1String("SLR1b")))
@@ -1410,7 +1453,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         {
                             bool data = map[pi.key()].toBool();
 
-                            if (addTaskThermostatUiConfigurationReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0412, deCONZ::ZclBoolean, data))
+                            if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0413, deCONZ::ZclBoolean, data))
                             {
                                 updated = true;
                             }
@@ -1508,7 +1551,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
 
                             if (mode < 4 && mode != 2)
                             {
-                                if (addTaskThermostatUiConfigurationReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0403, deCONZ::Zcl8BitEnum, mode))
+                                if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0, 0x0403, deCONZ::Zcl8BitEnum, mode))
                                 {
                                     updated = true;
                                 }
@@ -1524,7 +1567,10 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     }
                     else
                     {
-                        rspItemState[QString("Error : unknown Window open setting for %1").arg(sensor->modelId())] = map[pi.key()];
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
                     }
                 }
                 else if ((rid.suffix == RConfigWindowOpen) && (sensor->modelId().startsWith(QLatin1String("kud7u2l")) ||
@@ -2891,7 +2937,7 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
                     if (item && item->toNumber() == (S_BUTTON_1 + S_BUTTON_ACTION_INITIAL_PRESS))
                     {
                         item->setValue(S_BUTTON_1 + S_BUTTON_ACTION_HOLD);
-                        DBG_Printf(DBG_INFO, "button %d Hold\n", item->toNumber());
+                        DBG_Printf(DBG_INFO, "[INFO] - Button %u Hold %s\n", item->toNumber(), qPrintable(sensor->modelId()));
                         sensor->updateStateTimestamp();
                         Event e(RSensors, RStateButtonEvent, sensor->id(), item);
                         enqueueEvent(e);
@@ -2909,7 +2955,7 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
                     {
                         btn &= ~0x03;
                         item->setValue(btn + S_BUTTON_ACTION_HOLD);
-                        DBG_Printf(DBG_INFO, "FoH switch button %d Hold\n", item->toNumber());
+                        DBG_Printf(DBG_INFO, "FoH switch button %d Hold %s\n", item->toNumber(), qPrintable(sensor->modelId()));
                         sensor->updateStateTimestamp();
                         Event e(RSensors, RStateButtonEvent, sensor->id(), item);
                         enqueueEvent(e);
@@ -2952,7 +2998,7 @@ void DeRestPluginPrivate::checkSensorStateTimerFired()
  */
 void DeRestPluginPrivate::checkInstaModelId(Sensor *sensor)
 {
-    if (sensor && checkMacVendor(sensor->address(), VENDOR_INSTA))
+    if (sensor && existDevicesWithVendorCodeForMacPrefix(sensor->address(), VENDOR_INSTA))
     {
         if (!sensor->modelId().endsWith(QLatin1String("_1")))
         {   // extract model identifier from mac address 6th byte
@@ -2982,7 +3028,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
     }
 
     if ((ind.srcAddress().hasExt() && ind.srcAddress().ext() == fastProbeAddr.ext()) ||
-        (ind.srcAddress().hasNwk() && ind.srcAddress().nwk() == fastProbeAddr.nwk()))
+        (fastProbeAddr.hasExt() && ind.srcAddress().hasNwk() && ind.srcAddress().nwk() == fastProbeAddr.nwk()))
     {
         DBG_Printf(DBG_INFO, "FP indication 0x%04X / 0x%04X (0x%016llX / 0x%04X)\n", ind.profileId(), ind.clusterId(), ind.srcAddress().ext(), ind.srcAddress().nwk());
         DBG_Printf(DBG_INFO, "                      ...     (0x%016llX / 0x%04X)\n", fastProbeAddr.ext(), fastProbeAddr.nwk());
@@ -3008,24 +3054,24 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
         // filter supported devices
 
         // Busch-Jaeger
-        if (checkMacVendor(ext, VENDOR_BUSCH_JAEGER))
+        if (existDevicesWithVendorCodeForMacPrefix(ext, VENDOR_BUSCH_JAEGER))
         {
         }
-        else if (checkMacVendor(ext, VENDOR_UBISYS))
+        else if (existDevicesWithVendorCodeForMacPrefix(ext, VENDOR_UBISYS))
         {
         }
-        else if (checkMacVendor(ext, VENDOR_BOSCH))
+        else if (existDevicesWithVendorCodeForMacPrefix(ext, VENDOR_BOSCH))
         { // macCapabilities == 0
         }
-        else if (checkMacVendor(ext, VENDOR_DEVELCO))
+        else if (existDevicesWithVendorCodeForMacPrefix(ext, VENDOR_DEVELCO))
         { // macCapabilities == 0
         }
         else if (macCapabilities & deCONZ::MacDeviceIsFFD)
         {
-            if (checkMacVendor(ext, VENDOR_LDS))
+            if (existDevicesWithVendorCodeForMacPrefix(ext, VENDOR_LDS))
             { //  Fix to allow Samsung SmartThings plug sensors to be created (7A-PL-Z-J3, modelId ZB-ONOFFPlug-D0005)
             }
-            else if (checkMacVendor(ext, VENDOR_JASCO))
+            else if (existDevicesWithVendorCodeForMacPrefix(ext, VENDOR_JASCO))
             { //  Fix to support GE mains powered switches
             }
             else
@@ -3283,7 +3329,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
     }
 
     // check for dresden elektronik devices
-    if (checkMacVendor(sc->address, VENDOR_DDEL))
+    if (existDevicesWithVendorCodeForMacPrefix(sc->address, VENDOR_DDEL))
     {
         if (sc->macCapabilities & deCONZ::MacDeviceIsFFD) // end-devices only
             return;
@@ -3583,7 +3629,7 @@ void DeRestPluginPrivate::handleIndicationSearchSensors(const deCONZ::ApsDataInd
             }
         }
     }
-    else if (checkMacVendor(sc->address, VENDOR_IKEA))
+    else if (existDevicesWithVendorCodeForMacPrefix(sc->address, VENDOR_IKEA))
     {
         if (sc->macCapabilities & deCONZ::MacDeviceIsFFD) // end-devices only
             return;

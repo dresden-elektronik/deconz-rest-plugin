@@ -78,6 +78,7 @@ extern const char *RStateGesture;
 extern const char *RStateHeating;
 extern const char *RStateHue;
 extern const char *RStateHumidity;
+extern const char *RStateLastCheckin; // Poll control check-in
 extern const char *RStateLastSet;
 extern const char *RStateLastUpdated;
 extern const char *RStateLift;
@@ -234,12 +235,16 @@ public:
     qint64 validMax;
 };
 
+extern const ResourceItemDescriptor rInvalidItemDescriptor;
+
 class ResourceItem
 {
 public:
     ResourceItem(const ResourceItem &other);
+    ResourceItem(ResourceItem &&other);
     ResourceItem(const ResourceItemDescriptor &rid);
     ResourceItem &operator=(const ResourceItem &other);
+    ResourceItem &operator=(ResourceItem &&other);
     ~ResourceItem();
     const QString &toString() const;
     qint64 toNumber() const;
@@ -265,7 +270,7 @@ private:
     qint64 m_num = 0;
     qint64 m_numPrev = 0;
     QString *m_str = nullptr;
-    ResourceItemDescriptor m_rid;
+    const ResourceItemDescriptor *m_rid = &rInvalidItemDescriptor;
     QDateTime m_lastSet;
     QDateTime m_lastChanged;
     std::vector<int> m_rulesInvolved; // the rules a resource item is trigger
@@ -275,9 +280,11 @@ class Resource
 {
 public:
     Resource(const char *prefix);
-    ~Resource();
+    ~Resource() = default;
     Resource(const Resource &other);
+    Resource(Resource &&other);
     Resource &operator=(const Resource &other);
+    Resource &operator=(Resource &&other);
     const char *prefix() const;
     ResourceItem *addItem(ApiDataType type, const char *suffix);
     void removeItem(const char *suffix);
@@ -295,7 +302,7 @@ public:
 
 private:
     Resource() = delete;
-    const char *m_prefix;
+    const char *m_prefix = nullptr;
     std::vector<ResourceItem> m_rItems;
 };
 

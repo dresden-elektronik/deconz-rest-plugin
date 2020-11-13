@@ -50,131 +50,6 @@ bool DeRestPluginPrivate::setPermitJoinDuration(uint8_t duration)
     return true;
 }
 
-/*! Send Commissioning Mode command to GP proxy device.
- */
-bool DeRestPluginPrivate::sendGPProxyCommissioningMode()
-{
-    deCONZ::ApsDataRequest req;
-
-    req.setDstAddressMode(deCONZ::ApsNwkAddress);
-    req.dstAddress().setNwk(deCONZ::BroadcastRouters);
-    req.setProfileId(GP_PROFILE_ID);
-    req.setClusterId(GREEN_POWER_CLUSTER_ID);
-    req.setDstEndpoint(GREEN_POWER_ENDPOINT);
-    req.setSrcEndpoint(GREEN_POWER_ENDPOINT);
-    req.setTxOptions(nullptr);
-    req.setRadius(0);
-
-    QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
-    stream.setByteOrder(QDataStream::LittleEndian);
-
-    deCONZ::ZclFrame zclFrame;
-
-    zclFrame.setSequenceNumber(zclSeq++);
-    zclFrame.setCommandId(0x02); // commissioning mode
-    zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
-                             deCONZ::ZclFCDirectionServerToClient |
-                             deCONZ::ZclFCDisableDefaultResponse);
-
-    { // payload
-        QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
-        stream.setByteOrder(QDataStream::LittleEndian);
-
-        quint8 options = 0x0b; // enter commissioning mode, exit on window expire
-        quint16 window = 40;
-        stream << options;
-        stream << window;
-    }
-
-    { // ZCL frame
-
-        QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
-        stream.setByteOrder(QDataStream::LittleEndian);
-        zclFrame.writeToStream(stream);
-    }
-
-    // broadcast
-    if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
-    {
-        DBG_Printf(DBG_INFO, "send GP proxy commissioning mode\n");
-        return true;
-    }
-
-    DBG_Printf(DBG_INFO, "send GP proxy commissioning mode failed\n");
-    return false;
-}
-
-/*! Send Pair command to GP proxy device.
- */
-bool DeRestPluginPrivate::sendGPPairing(quint32 gpdSrcId, quint16 sinkGroupId, quint8 deviceId, quint32 frameCounter, const quint8 *key)
-{
-    deCONZ::ApsDataRequest req;
-
-    req.setDstAddressMode(deCONZ::ApsNwkAddress);
-    req.dstAddress().setNwk(deCONZ::BroadcastRouters);
-    req.setProfileId(GP_PROFILE_ID);
-    req.setClusterId(GREEN_POWER_CLUSTER_ID);
-    req.setDstEndpoint(GREEN_POWER_ENDPOINT);
-    req.setSrcEndpoint(GREEN_POWER_ENDPOINT);
-    req.setTxOptions(nullptr);
-    req.setRadius(0);
-
-    QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
-    stream.setByteOrder(QDataStream::LittleEndian);
-
-    deCONZ::ZclFrame zclFrame;
-
-    zclFrame.setSequenceNumber(zclSeq++);
-    zclFrame.setCommandId(0x01); // pairing
-    zclFrame.setFrameControl(deCONZ::ZclFCClusterCommand |
-                             deCONZ::ZclFCDirectionServerToClient |
-                             deCONZ::ZclFCDisableDefaultResponse);
-
-    { // payload
-        QDataStream stream(&zclFrame.payload(), QIODevice::WriteOnly);
-        stream.setByteOrder(QDataStream::LittleEndian);
-
-        frameCounter = 0;
-
-        quint8 options0 = 0x48; // enter commissioning mode, exit on window expire
-        //quint8 options1 = key ? 0xe5 : 0x65;
-        quint8 options1 = 0x40;
-        quint8 options2 = 0x00;
-        stream << options0;
-        stream << options1;
-        stream << options2;
-        stream << gpdSrcId;
-        stream << sinkGroupId;
-        stream << deviceId;
-        stream << frameCounter;
-
-        if (key)
-        {
-//          for (size_t  i = 0; i < 16; i++)
-//          {
-//              stream << (quint8)key[i];
-//          }
-        }
-    }
-
-    { // ZCL frame
-
-        QDataStream stream(&req.asdu(), QIODevice::WriteOnly);
-        stream.setByteOrder(QDataStream::LittleEndian);
-        zclFrame.writeToStream(stream);
-    }
-
-    // broadcast
-    if (apsCtrl->apsdeDataRequest(req) == deCONZ::Success)
-    {
-        DBG_Printf(DBG_INFO, "send GP pairing\n");
-        return true;
-    }
-
-    DBG_Printf(DBG_INFO, "send GP pairing\n");
-    return false;
-}
-
 /*! Handle broadcasting of permit join interval.
 
     This is done every PERMIT_JOIN_SEND_INTERVAL to ensure
@@ -250,7 +125,7 @@ void DeRestPluginPrivate::permitJoinTimerFired()
     QTime now = QTime::currentTime();
     int diff = permitJoinLastSendTime.msecsTo(now);
 
-    if (!permitJoinLastSendTime.isValid() || (diff > PERMIT_JOIN_SEND_INTERVAL))
+    if (!permitJoinLastSendTime.isValid() || ((diff > PERMIT_JOIN_SEND_INTERVAL) && !gwdisablePermitJoinAutoOff))
     {
         deCONZ::ApsDataRequest apsReq;
         quint8 tcSignificance = 0x01;
@@ -296,6 +171,8 @@ void DeRestPluginPrivate::permitJoinTimerFired()
         {
             DBG_Printf(DBG_INFO, "send permit join failed\n");
         }
+
+        GP_SendProxyCommissioningMode(apsCtrl, zclSeq++);
     }
 }
 
