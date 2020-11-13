@@ -1083,14 +1083,14 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                         hostFlags &= ~0x04; // clear `boost` flag
                         hostFlags |=  0x10; // set `disable off` flag
 
-                        // Older models of the Eurotroninc Spirit updated the heat set point via the manufacturer custom attribute 0x4003. 
+                        // Older models of the Eurotroninc Spirit updated the heat set point via the manufacturer custom attribute 0x4003.
                         // For newer models it is not possible to write to this attribute.
                         // Newer models must use the standard Occupied Heating Setpoint value (0x0012) using a default (or none) manufacturer.
                         // See GitHub issue #1098
-                        bool success = sensor->swVersion().toInt() < 22190930 ? 
+                        bool success = sensor->swVersion().toInt() < 22190930 ?
                             addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_JENNIC, 0x4003, deCONZ::Zcl16BitInt, heatsetpoint) :
                             addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, VENDOR_NONE, 0x0012, deCONZ::Zcl16BitInt, heatsetpoint);
-                
+
                         if (success)
                         {
                             updated = true;
@@ -1152,6 +1152,32 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     else
                     {
                         attributeList.insert(0x0012, (quint32)heatsetpoint);
+                    }
+                }
+                else if (rid.suffix == RConfigCoolSetpoint)
+                {
+                    if (map[pi.key()].type() == QVariant::Double)
+                    {
+                        qint16 coolsetpoint = map[pi.key()].toInt(&ok);
+
+                        if (addTaskThermostatReadWriteAttribute(task, deCONZ::ZclWriteAttributesId, 0x0000, 0x0011, deCONZ::Zcl16BitInt, coolsetpoint))
+                        {
+                            updated = true;
+                        }
+                        else
+                        {
+                            rsp.list.append(errorToMap(ERR_ACTION_ERROR, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                       QString("Could not set attribute")));
+                            rsp.httpStatus = HttpStatusBadRequest;
+                            return REQ_READY_SEND;
+                        }
+                    }
+                    else
+                    {
+                        rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/sensors/%1/config/%2").arg(id).arg(pi.key()).toHtmlEscaped(),
+                                                   QString("invalid value, %1, for parameter %2").arg(map[pi.key()].toString()).arg(pi.key()).toHtmlEscaped()));
+                        rsp.httpStatus = HttpStatusBadRequest;
+                        return REQ_READY_SEND;
                     }
                 }
                 else if ((rid.suffix == RConfigMode) && !sensor->modelId().startsWith(QLatin1String("SPZB")))
@@ -1236,6 +1262,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                              sensor->modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
                              sensor->modelId().startsWith(QLatin1String("902010/32")) ||  // Bitron
                              sensor->modelId().startsWith(QLatin1String("Zen-01")) || // Zen
+                             sensor->modelId().startsWith(QLatin1String("SORB"))) ||  // Stelpro Orleans Fan
                              sensor->modelId().startsWith(QLatin1String("Super TR"))) // ELKO
                     {
 
@@ -1405,7 +1432,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                                 updated = true;
                             }
                         }
-                        else if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001"))
+                        else if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001") ||
+                                 sensor->modelId() == QLatin1String("SORB"))
                         {
                             quint32 data = map[pi.key()].toUInt(&ok);
 

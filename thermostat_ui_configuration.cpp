@@ -72,17 +72,14 @@ void DeRestPluginPrivate::handleThermostatUiConfigurationClusterIndication(const
             {
             case 0x0001: // Keypad Lockout
             {
-                if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001"))
-                {
-                    bool locked = attr.numericValue().u8 > 0 ? true : false;
-                    item = sensor->item(RConfigLocked);
+                bool locked = attr.numericValue().u8 > 0 ? true : false;
+                item = sensor->item(RConfigLocked);
 
-                    if (item && item->toBool() != locked)
-                    {
-                        item->setValue(locked);
-                        enqueueEvent(Event(RSensors, RConfigLocked, sensor->id(), item));
-                        configUpdated = true;
-                    }
+                if (item && item->toBool() != locked)
+                {
+                    item->setValue(locked);
+                    enqueueEvent(Event(RSensors, RConfigLocked, sensor->id(), item));
+                    configUpdated = true;
                 }
                 sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_UI_CONFIGURATION_CLUSTER_ID, attrId, attr.numericValue());
             }
