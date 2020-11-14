@@ -76,21 +76,21 @@ void DeRestPluginPrivate::handleFanControlClusterIndication(const deCONZ::ApsDat
                 if (sensor->modelId() == QLatin1String("AC201"))    // Owon
                 {
                     qint8 mode = attr.numericValue().u8;
-                    QString mode_set;
+                    QString modeSet;
 
-                    mode_set = QString("off");
-                    if ( mode == 0x00 ) { mode_set = QString("off"); }
-                    if ( mode == 0x01 ) { mode_set = QString("low"); }
-                    if ( mode == 0x02 ) { mode_set = QString("medium"); }
-                    if ( mode == 0x03 ) { mode_set = QString("high"); }
-                    if ( mode == 0x04 ) { mode_set = QString("on"); }
-                    if ( mode == 0x05 ) { mode_set = QString("auto"); }
-                    if ( mode == 0x06 ) { mode_set = QString("smart"); }
+                    modeSet = QLatin1String("off");
+                    if ( mode == 0x00 ) { modeSet = QLatin1String("off"); }
+                    if ( mode == 0x01 ) { modeSet = QLatin1String("low"); }
+                    if ( mode == 0x02 ) { modeSet = QLatin1String("medium"); }
+                    if ( mode == 0x03 ) { modeSet = QLatin1String("high"); }
+                    if ( mode == 0x04 ) { modeSet = QLatin1String("on"); }
+                    if ( mode == 0x05 ) { modeSet = QLatin1String("auto"); }
+                    if ( mode == 0x06 ) { modeSet = QLatin1String("smart"); }
 
                     item = sensor->item(RConfigFanMode);
-                    if (item && !item->toString().isEmpty() && item->toString() != mode_set)
+                    if (item && !item->toString().isEmpty() && item->toString() != modeSet)
                     {
-                        item->setValue(mode_set);
+                        item->setValue(modeSet);
                         enqueueEvent(Event(RSensors, RConfigFanMode, sensor->id(), item));
                         configUpdated = true;
                     }
@@ -158,24 +158,24 @@ bool DeRestPluginPrivate::addTaskFanControlReadWriteAttribute(TaskItem &task, ui
     QDataStream stream(&task.zclFrame.payload(), QIODevice::WriteOnly);
     stream.setByteOrder(QDataStream::LittleEndian);
 
-    stream << (quint16) attrId;
+    stream << static_cast<quint16>(attrId);
 
     if (readOrWriteCmd == deCONZ::ZclWriteAttributesId)
     {
-        stream << (quint8) attrType;
+        stream << static_cast<quint8>(attrType);
         if (attrType == deCONZ::Zcl8BitEnum || attrType == deCONZ::Zcl8BitInt || attrType == deCONZ::Zcl8BitBitMap)
         {
-            stream << (quint8) attrValue;
+            stream << static_cast<quint8>(attrValue);
         }
         else if (attrType == deCONZ::Zcl16BitInt || attrType == deCONZ::Zcl16BitBitMap)
         {
-            stream << (quint16) attrValue;
+            stream << static_cast<quint16>(attrValue);
         }
         else if (attrType == deCONZ::Zcl24BitUint)
         {
-            stream << (qint8) (attrValue & 0xFF);
-            stream << (qint8) ((attrValue >> 8) & 0xFF);
-            stream << (qint8) ((attrValue >> 16) & 0xFF);
+            stream << static_cast<qint8>(attrValue & 0xFF);
+            stream << static_cast<qint8>((attrValue >> 8) & 0xFF);
+            stream << static_cast<qint8>((attrValue >> 16) & 0xFF);
         }
         else
         {
