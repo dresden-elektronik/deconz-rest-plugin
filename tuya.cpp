@@ -135,15 +135,15 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         QDataStream stream(zclFrame.payload());
         stream.setByteOrder(QDataStream::LittleEndian);
 
-        uint8_t status;
-        uint8_t transid;
-        int16_t dp;
-        uint8_t fn;
+        quint8 status;
+        quint8 transid;
+        quint16 dp;
+        quint8 fn;
         quint8 length = 0;
         qint32 data = 0;
         
-        uint8_t dp_type;
-        uint8_t dp_identifier;
+        quint8 dp_type;
+        quint8 dp_identifier;
         quint8 dummy;
         
         stream >> status;
@@ -170,8 +170,8 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         }
         
         //To be more precise
-        dp_identifier = (uint8_t) (dp & 0xFF);
-        dp_type = (uint8_t) ((dp >> 8) & 0xFF);
+        dp_identifier = (quint8) (dp & 0xFF);
+        dp_type = (quint8) ((dp >> 8) & 0xFF);
 
         DBG_Printf(DBG_INFO, "Tuya debug 4 : Address 0x%016llX Payload %s\n" , ind.srcAddress().ext(), qPrintable(zclFrame.payload().toHex()));
         DBG_Printf(DBG_INFO, "Tuya debug 5 : Status: %d Transid: %d Dp: %d (0x%02X,0x%02X) Fn: %d Data %ld\n", status , transid , dp , dp_type, dp_identifier, fn , data);
@@ -234,7 +234,10 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 }
             }
             
-            updateThermostatSchedule(sensorNode, listday.at(part - 1), transitions);
+            if (part > 0 && listday.size() >= static_cast<int>(part))
+            {
+                updateThermostatSchedule(sensorNode, listday.at(part - 1), transitions);
+            }
             
             return;
         }
@@ -371,9 +374,9 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             {
                 case 0x0068: // window open information
                 {
-                    uint8_t valve = (uint8_t) (dp & 0xFF);
-                    uint8_t temperature = (uint8_t) ((dp >> 8) & 0xFF);
-                    uint8_t minute = (uint8_t) ((dp >> 16) & 0xFF);
+                    quint8 valve = (quint8) (dp & 0xFF);
+                    quint8 temperature = (quint8) ((dp >> 8) & 0xFF);
+                    quint8 minute = (quint8) ((dp >> 16) & 0xFF);
                     
                     DBG_Printf(DBG_INFO, "Tuya debug 9 : windows open info: %d %d %d" ,valve , temperature, minute );
                     
@@ -382,8 +385,13 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 case 0x0101: // off / running for Moe
                 {
                     QString mode;
-                    if (data == 0) { mode = "off"; }
-                    if (data == 1) { mode = "heat"; }
+                    if      (data == 0) { mode = QLatin1String("off"); }
+                    else if (data == 1) { mode = QLatin1String("heat"); }
+                    else
+                    {
+                        DBG_Assert(data <= 0); // unsupported
+                        return;
+                    }
                     
                     ResourceItem *item = sensorNode->item(RConfigMode);
 
@@ -451,8 +459,13 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 case 0x0165: // off / on > [off = off, on = heat]
                 {
                     QString mode;
-                    if (data == 0) { mode = "off"; }
-                    if (data == 1) { mode = "manu"; }
+                    if      (data == 0) { mode = QLatin1String("off"); }
+                    else if (data == 1) { mode = QLatin1String("manu"); }
+                    else
+                    {
+                        DBG_Assert(data <= 0); // unsupported
+                        return;
+                    }
                     
                     ResourceItem *item = sensorNode->item(RConfigMode);
 
@@ -487,8 +500,13 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 case 0x016c: // manual / auto
                 {
                     QString mode;
-                    if (data == 0) { mode = "heat"; } // was "manu"
-                    if (data == 1) { mode = "auto"; } // back to "auto"
+                    if      (data == 0) { mode = QLatin1String("heat"); } // was "manu"
+                    else if (data == 1) { mode = QLatin1String("auto"); } // back to "auto"
+                    else
+                    {
+                        DBG_Assert(data <= 0); // unsupported
+                        return;
+                    }
                     
                     ResourceItem *item = sensorNode->item(RConfigMode);
 
@@ -516,7 +534,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 break;
                 case 0x0202: // Thermostat heatsetpoint
                 {
-                    qint16 temp = ((qint16)(data & 0xFFFF)) * 10;
+                    qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 10;
                     ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
 
                     if (item && item->toNumber() != temp)
@@ -530,7 +548,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 break;
                 case 0x0203: // Thermostat current temperature
                 {
-                    qint16 temp = ((qint16)(data & 0xFFFF)) * 10;
+                    qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 10;
                     ResourceItem *item = sensorNode->item(RStateTemperature);
 
                     if (item && item->toNumber() != temp)
@@ -544,7 +562,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 break;
                 case 0x0210: // Thermostat heatsetpoint for moe
                 {
-                    qint16 temp = ((qint16)(data & 0xFFFF)) * 100;
+                    qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 100;
                     ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
 
                     if (item && item->toNumber() != temp)
@@ -557,7 +575,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 break;
                 case 0x0215: // battery
                 {
-                    quint8 bat = (qint8)(data & 0xFF);
+                    quint8 bat = (static_cast<qint8>(data & 0xFF));
                     if (bat > 100) { bat = 100; }
                     ResourceItem *item = sensorNode->item(RConfigBattery);
                     
@@ -576,7 +594,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 break;
                 case 0x0218: // Thermostat current temperature for moe
                 {
-                    qint16 temp = ((qint16)(data & 0xFFFF)) * 10;
+                    qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 10;
                     ResourceItem *item = sensorNode->item(RStateTemperature);
 
                     if (item && item->toNumber() != temp)
@@ -589,7 +607,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 break;
                 case 0x022c : // temperature calibration (offset)
                 {
-                    qint16 temp = ((qint16)(data & 0xFFFF)) * 10;
+                    qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 10;
                     ResourceItem *item = sensorNode->item(RConfigOffset);
 
                     if (item && item->toNumber() != temp)
@@ -605,7 +623,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     //Can be Temperature for some device
                     if (sensorNode->modelId() == QLatin1String("GbxAXL2"))
                     {
-                        qint16 temp = ((qint16)(data & 0xFFFF)) * 10;
+                        qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 10;
                         ResourceItem *item = sensorNode->item(RStateTemperature);
 
                         if (item && item->toNumber() != temp)
@@ -623,7 +641,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     //can be setpoint for some device
                     if (sensorNode->modelId() == QLatin1String("GbxAXL2"))
                     {
-                        qint16 temp = ((qint16)(data & 0xFFFF)) * 10;
+                        qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 10;
                         ResourceItem *item = sensorNode->item(RConfigHeatSetpoint);
 
                         if (item && item->toNumber() != temp)
@@ -640,7 +658,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 {
                     if (sensorNode->modelId() == QLatin1String("0yu2xgi")) //siren
                     {
-                        qint16 temp = ((qint16)(data & 0xFFFF)) * 10;
+                        qint16 temp = (static_cast<qint16>(data & 0xFFFF)) * 10;
                         ResourceItem *item = sensorNode->item(RStateTemperature);
 
                         if (item && item->toNumber() != temp)
@@ -656,7 +674,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 }
                 case 0x026A : // Siren Humidity
                 {
-                    qint16 Hum = ((qint16)(data & 0xFFFF)) * 10;
+                    qint16 Hum = (static_cast<qint16>(data & 0xFFFF)) * 10;
                     ResourceItem *item = sensorNode->item(RStateHumidity);
 
                     if (item && item->toNumber() != Hum)
@@ -669,7 +687,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 break;
                 case 0x026D : // Valve position
                 {
-                    quint8 valve = (qint8)(data & 0xFF);
+                    quint8 valve = (static_cast<qint8>(data & 0xFF));
                     bool on = valve > 3;
                     
                     ResourceItem *item = sensorNode->item(RStateOn);
@@ -693,8 +711,13 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 case 0x0403 : // preset for moe
                 {
                     QString preset;
-                    if (dp == 0x0402) { preset = "auto"; }
-                    else if (dp == 0x0403) { preset = "program"; }
+                    if (dp == 0x0402) { preset = QLatin1String("auto"); }
+                    else if (dp == 0x0403) { preset = QLatin1String("program"); }
+                    else
+                    {
+                        DBG_Assert(data <= 0); // unsupported
+                        return;
+                    }
                     
                     ResourceItem *item = sensorNode->item(RConfigPreset);
 
@@ -708,13 +731,18 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 case 0x0404 : // preset
                 {
                     QString preset;
-                    if (data == 0) { preset = "holiday"; }
-                    if (data == 1) { preset = "auto"; }
-                    if (data == 2) { preset = "manual"; }
-                    if (data == 3) { preset = "confort"; }
-                    if (data == 4) { preset = "eco"; }
-                    if (data == 5) { preset = "boost"; }
-                    if (data == 6) { preset = "complex"; }
+                    if (data == 0) { preset = QLatin1String("holiday"); }
+                    else if (data == 1) { preset = QLatin1String("auto"); }
+                    else if (data == 2) { preset = QLatin1String("manual"); }
+                    else if (data == 3) { preset = QLatin1String("confort"); }
+                    else if (data == 4) { preset = QLatin1String("eco"); }
+                    else if (data == 5) { preset = QLatin1String("boost"); }
+                    else if (data == 6) { preset = QLatin1String("complex"); }
+                    else
+                    {
+                        DBG_Assert(data <= 0); // unsupported
+                        return;
+                    }
                     
                     ResourceItem *item = sensorNode->item(RConfigPreset);
 
@@ -728,9 +756,14 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                 case 0x046a : // mode
                 {
                     QString mode;
-                    if (data == 0) { mode = "auto"; }
-                    if (data == 1) { mode = "heat"; }
-                    if (data == 2) { mode = "off"; }
+                    if (data == 0) { mode = QLatin1String("auto"); }
+                    else if (data == 1) { mode = QLatin1String("heat"); }
+                    else if (data == 2) { mode = QLatin1String("off"); }
+                    else
+                    {
+                        DBG_Assert(data <= 0); // unsupported
+                        return;
+                    }
                     
                     ResourceItem *item = sensorNode->item(RConfigMode);
 

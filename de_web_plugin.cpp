@@ -917,6 +917,16 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                     {
                         sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
                     }
+                    else if ((sensorNode->manufacturer() == QLatin1String("_TZ3000_bi6lpsew")) ||
+                        (sensorNode->manufacturer() == QLatin1String("_TZ3400_keyjhapk")) ||
+                        (sensorNode->manufacturer() == QLatin1String("_TYZB02_key8kk7r")) ||
+                        (sensorNode->manufacturer() == QLatin1String("_TZ3400_keyjqthh")) ||
+                        (sensorNode->manufacturer() == QLatin1String("_TZ3400_key8kk7r")) ||
+                        (sensorNode->manufacturer() == QLatin1String("_TZ3000_vp6clf9d")) ||
+                        (sensorNode->manufacturer() == QLatin1String("_TYZB02_keyjqthh")))
+                    {
+                        sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
+                    }
                     else
                     {
                         sensorNode = 0; // not supported

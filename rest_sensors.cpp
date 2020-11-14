@@ -1144,8 +1144,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             heatsetpoint = (int16_t)(heatsetpoint / 10);
                         }
                         
-                        data.append((qint8)((heatsetpoint >> 8) & 0xff));
-                        data.append((qint8)(heatsetpoint & 0xff));
+                        data.append(static_cast<qint8>((heatsetpoint >> 8) & 0xff));
+                        data.append(static_cast<qint8>(heatsetpoint & 0xff));
                         
                         if (SendTuyaRequest(task, TaskThermostat , DP_TYPE_VALUE , dp, data))
                         {
@@ -1666,8 +1666,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             {
                                 data = QByteArray("\x01", 1);
                             }
-                            data.append((qint8)(setting[1].toUInt()));
-                            data.append((qint8)(setting[2].toUInt()));
+                            data.append(static_cast<qint8>(setting[1].toUInt()));
+                            data.append(static_cast<qint8>(setting[2].toUInt()));
 
                             if (SendTuyaRequest(task, TaskThermostat , DP_TYPE_RAW, 0x68, data))
                             {
