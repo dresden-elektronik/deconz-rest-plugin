@@ -349,6 +349,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "RH3052", konkeMacPrefix }, // Tuyatec/Lupus temperature sensor
     { VENDOR_EMBER, "TS0201", silabs3MacPrefix }, // Tuya/Blitzwolf temperature and humidity sensor
     { VENDOR_NONE, "TS0204", silabs3MacPrefix }, // Tuya gas sensor
+    { VENDOR_NONE, "TS0205", silabs3MacPrefix }, // Tuya smoke sensor
     { VENDOR_NONE, "TS0121", silabs3MacPrefix }, // Tuya/Blitzwolf smart plug
     { VENDOR_EMBER, "TS0121", silabs3MacPrefix }, // Tuya/Blitzwolf smart plug
     { VENDOR_EMBER, "TS0302", silabs3MacPrefix }, // Tuya curtain switch
@@ -4810,6 +4811,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("SF2")) ||              // ORVIBO (Heiman) smoke sensor
                              modelId.startsWith(QLatin1String("lumi.sensor_smoke")) || // Xiaomi Mi smoke sensor
                              modelId.startsWith(QLatin1String("TS0204")) ||           // Tuya gas sensor
+                             modelId.startsWith(QLatin1String("TS0205")) ||           // Tuya smoke sensor
                              modelId.startsWith(QLatin1String("FNB56-COS")) ||        // Feibit FNB56-COS06FB1.7 Carb. Mon. detector
                              modelId.startsWith(QLatin1String("FNB56-GAS")))          // Feibit gas sensor
                     {
