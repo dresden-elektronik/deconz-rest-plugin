@@ -252,7 +252,8 @@ bool DeRestPluginPrivate::lightToMap(const ApiRequest &req, const LightNode *lig
         else if (item->descriptor().suffix == RStateReachable) { state["reachable"] = item->toBool(); }
         else if (item->descriptor().suffix == RConfigCtMin) { map["ctmin"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigCtMax) { map["ctmax"] = item->toNumber(); }
-        else if (item->descriptor().suffix == RConfigColorCapabilities) { icc = item; }
+        else if (item->descriptor().suffix == RConfigColorCapabilities) { map["colorcapabilities"] = item->toNumber(); }
+//        else if (item->descriptor().suffix == RConfigColorCapabilities) { icc = item; } // TODO enable again in beta v2.6.x
         else if (item->descriptor().suffix == RConfigPowerup) { map["powerup"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigPowerOnLevel) { map["poweronlevel"] = item->toNumber(); }
         else if (item->descriptor().suffix == RConfigPowerOnCt) { map["poweronct"] = item->toNumber(); }
@@ -2124,7 +2125,7 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
         else if (alert == "select")
         {
             task.options = 0x17; // Warning mode 1 (burglar), Strobe, Very high sound
-            if (taskRef.lightNode->modelId() == QLatin1String("902010/24") ||
+            if (taskRef.lightNode->modelId().startsWith(QLatin1String("902010/24")) ||
                 taskRef.lightNode->modelId() == QLatin1String("902010/29"))
             {
                 task.options = 0x12;
@@ -2134,7 +2135,7 @@ int DeRestPluginPrivate::setWarningDeviceState(const ApiRequest &req, ApiRespons
         else if (alert == "lselect")
         {
             task.options = 0x17; // Warning mode 1 (burglar), Strobe, Very high sound
-            if (taskRef.lightNode->modelId() == QLatin1String("902010/24") ||
+            if (taskRef.lightNode->modelId().startsWith(QLatin1String("902010/24")) ||
                 taskRef.lightNode->modelId() == QLatin1String("902010/29"))
             {
                 task.options = 0x12;
