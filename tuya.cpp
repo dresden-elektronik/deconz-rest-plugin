@@ -135,6 +135,11 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
         QDataStream stream(zclFrame.payload());
         stream.setByteOrder(QDataStream::LittleEndian);
 
+        // "dp" field describes the action/message of a command frame and was composed by a type and an identifier
+        // "transid" is just a "counter", a response will have the same transif than the command.
+        // "Status" and "fn" are always 0
+        // More explanations at top of file
+        
         quint8 status;
         quint8 transid;
         quint16 dp;
@@ -188,7 +193,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
             // Sunday = W001
             // All days = W127
             
-            QString transitions = QString("");
+            QString transitions;
             
             length = length / 3;
             
