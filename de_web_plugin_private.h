@@ -503,6 +503,8 @@ inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
                    prefix == emberMacPrefix;
         case VENDOR_BUSCH_JAEGER:
             return prefix == bjeMacPrefix;
+        case VENDOR_C2DF:
+            return prefix == emberMacPrefix;
         case VENDOR_CENTRALITE:
             return prefix == emberMacPrefix;
         case VENDOR_DANFOSS:
