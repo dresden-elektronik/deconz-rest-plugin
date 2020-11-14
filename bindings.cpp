@@ -960,7 +960,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.dataType = deCONZ::Zcl16BitUint;
         rq.attributeId = 0x0000;         // measured value
 
-        if (sensor && sensor->modelId().startsWith(QLatin1String("MOSZB-130"))) // Develco motion sensor
+        if (sensor && (sensor->modelId().startsWith(QLatin1String("MOSZB-130")) ||          // Develco motion sensor
+                       sensor->modelId().startsWith(QLatin1String("MotionSensor51AU"))))    // Aurora (Develco) motion sensor
         {
             rq.minInterval = 0;
             rq.maxInterval = 600;
@@ -986,7 +987,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                         sensor->modelId().startsWith(QLatin1String("MOSZB-130")) ||  // Develco motion sensor
                         sensor->modelId().startsWith(QLatin1String("WISZB-120")) ||  // Develco window sensor
                         sensor->modelId().startsWith(QLatin1String("FLSZB-110")) ||  // Develco water leak sensor
-                        sensor->modelId().startsWith(QLatin1String("ZHMS101"))))     // Wattle (Develco) magnetic sensor
+                        sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||    // Wattle (Develco) magnetic sensor
+                        sensor->modelId().startsWith(QLatin1String("MotionSensor51AU")))) // Aurora (Develco) motion sensor
         {
             rq.minInterval = 60;           // according to technical manual
             rq.maxInterval = 600;          // according to technical manual
@@ -1499,7 +1501,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                            sensor->modelId().startsWith(QLatin1String("WISZB-120")) ||  // Develco window sensor
                            sensor->modelId().startsWith(QLatin1String("FLSZB-110")) ||  // Develco water leak sensor
                            sensor->modelId().startsWith(QLatin1String("SIRZB-110")) ||  // Develco siren
-                           sensor->modelId().startsWith(QLatin1String("ZHMS101"))))     // Wattle (Develco) magnetic sensor
+                           sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||    // Wattle (Develco) magnetic sensor
+                           sensor->modelId().startsWith(QLatin1String("MotionSensor51AU")))) // Aurora (Develco) motion sensor
         {
             rq.attributeId = 0x0020;   // battery voltage
             rq.minInterval = 43200;    // according to technical manual
@@ -2426,9 +2429,10 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("MOSZB-130")) || // motion sensor
         sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||   // Wattle (Develco) magnetic sensor
         sensor->modelId().startsWith(QLatin1String("EMIZB-132")) || // EMI Norwegian HAN
-        sensor->modelId().startsWith(QLatin1String("SMRZB-33")) || // Smart Relay DIN
+        sensor->modelId().startsWith(QLatin1String("SMRZB-33")) ||  // Smart Relay DIN
         sensor->modelId().startsWith(QLatin1String("SIRZB-110")) || // siren
-        sensor->modelId() == QLatin1String("SPLZB-131") ||
+        sensor->modelId() == QLatin1String("SPLZB-131") ||          // smart plug
+        sensor->modelId() == QLatin1String("MotionSensor51AU") ||   // Aurora (Develco) motion sensor
         // LG
         sensor->modelId() == QLatin1String("LG IP65 HMS") ||
         // Sinope
@@ -2680,6 +2684,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                      sensor->modelId() == QLatin1String("WISZB-120") ||
                      sensor->modelId() == QLatin1String("MOSZB-130") ||
                      sensor->modelId() == QLatin1String("FLSZB-110") ||
+                     sensor->modelId() == QLatin1String("MotionSensor51AU") ||
                      sensor->modelId() == QLatin1String("Zen-01") ||
                      sensor->modelId() == QLatin1String("ISW-ZPR1-WP13") ||
                      sensor->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote

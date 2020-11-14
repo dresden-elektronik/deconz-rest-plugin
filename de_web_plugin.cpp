@@ -306,6 +306,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_DEVELCO, "SMRZB-33", develcoMacPrefix }, // Develco Smart Relay DIN
     { VENDOR_DEVELCO, "SIRZB-110", develcoMacPrefix }, // Develco siren
     { VENDOR_DEVELCO, "ZHMS101", develcoMacPrefix }, // Wattle (Develco) magnetic sensor
+    { VENDOR_DEVELCO, "MotionSensor51AU", develcoMacPrefix }, // Aurora (Develco) motion sensor
     { VENDOR_EMBER, "3AFE14010402000D", konkeMacPrefix }, // Konke Kit Pro-BS Motion Sensor
     { VENDOR_KONKE, "3AFE28010402000D", ikea2MacPrefix }, // Konke Kit Pro-BS Motion Sensor ver.2
     { VENDOR_EMBER, "3AFE140103020000", konkeMacPrefix }, // Konke Kit Pro-FT Temp Humidity Sensor
@@ -4780,6 +4781,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("902010/22")) ||        // Bitron motion sensor
                              modelId.startsWith(QLatin1String("SN10ZW")) ||           // ORVIBO motion sensor
                              modelId.startsWith(QLatin1String("MOSZB-130")) ||        // Develco motion sensor
+                             modelId.startsWith(QLatin1String("MotionSensor51AU")) || // Aurora (Develco) motion sensor
                              modelId.startsWith(QLatin1String("MOT003")) ||           // Hive motion sensor
                              modelId == QLatin1String("4in1-Sensor-ZB3.0") ||         // Immax NEO ZB3.0 4 in 1 sensor E13-A21
                              modelId == QLatin1String("E13-A21") ||                   // Sengled E13-A21 PAR38 bulp with motion sensor
@@ -7123,6 +7125,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId().startsWith(QLatin1String("FLSZB-110")) || // Develco water leak sensor
                                     i->modelId().startsWith(QLatin1String("SIRZB-110")) || // Develco siren
                                     i->modelId().startsWith(QLatin1String("ZHMS101")) ||   // Wattle (Develco) magnetic sensor
+                                    i->modelId().startsWith(QLatin1String("MotionSensor51AU")) || // Aurora (Develco) motion sensor
                                     i->modelId().startsWith(QLatin1String("RFDL-ZB-MS")) ||// Bosch motion sensor
                                     i->modelId().startsWith(QLatin1String("1116-S")) ||    // iris contact sensor v3
                                     i->modelId().startsWith(QLatin1String("1117-S")) ||    // iris motion sensor v3
