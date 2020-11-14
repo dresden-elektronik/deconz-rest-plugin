@@ -532,6 +532,7 @@ inline bool existDevicesWithVendorCodeForMacPrefix(quint64 addr, quint16 vendor)
                    prefix == silabs4MacPrefix;
         case VENDOR_LDS:
             return prefix == jennicMacPrefix ||
+                   prefix == silabsMacPrefix ||
                    prefix == silabs2MacPrefix;
         case VENDOR_INSTA:
             return prefix == instaMacPrefix;
