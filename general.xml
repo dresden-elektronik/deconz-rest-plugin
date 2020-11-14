@@ -566,7 +566,9 @@
                 <value name="Previous" value="0xff"></value>
 							</attribute>
 						</attribute-set>
-
+            <attribute-set id="0x8000" description="Xiaomi" mfcode="0x1037">
+              <attribute id="0x8000" name="Button Press" type="u8" access="r" required="o"/>
+            </attribute-set>
 			<command id="00" dir="recv" name="Off" required="m">
 				<description>On receipt of this command, a device shall enter its 'Off' state. This state is device dependent, but it is recommended that it is used for power off or similar functions.</description>
 			</command>
@@ -1490,10 +1492,10 @@ by the Poll Control Cluster Client.</description>
           </attribute>
         </attribute-set>
         <attribute-set id="0x0050" description="Xiaomi Special" mfcode="0x1037">
-          <attribute id="0x0055" name="Event Type" type="u16" access="r" required="o" mfcode="0x1037"></attribute>
-          <attribute id="0x0503" name="Tilt Angle" type="u16" access="r" required="o" mfcode="0x1037"></attribute>
-          <attribute id="0x0505" name="Vibration Strength" type="u32" showas="hex" access="r" required="o" mfcode="0x1037"></attribute>
-          <attribute id="0x0508" name="Orientation" type="u48" showas="hex" access="r" required="o" mfcode="0x1037"></attribute>
+          <attribute id="0x0055" name="Event Type" type="u16" access="r" required="o"></attribute>
+          <attribute id="0x0503" name="Tilt Angle" type="u16" access="r" required="o"></attribute>
+          <attribute id="0x0505" name="Vibration Strength" type="u32" showas="hex" access="r" required="o"></attribute>
+          <attribute id="0x0508" name="Orientation" type="u48" showas="hex" access="r" required="o"></attribute>
         </attribute-set>
         <command id="0x00" dir="recv" name="Lock Door" required="m">
           <description>This command causes the lock device to lock the door.</description>
@@ -1722,22 +1724,60 @@ Note: It does not clear or delete previous weekly schedule programming configura
 						<value name="Fan 3rd Stage State On" value="6"></value>
 					</attribute>
 				</attribute-set>
-        <attribute-set id="0x0030" description="Thermostat Setpoint Change Tracking">
-          <attribute id="0x0030" name="Setpoint Change Source" type="enum8" access="r" required="o">
-            <value name="Manual" value="0"></value>
-            <value name="Schedule" value="1"></value>
-            <value name="Zigbee" value="2"></value>
-          </attribute>
-          <attribute id="0x0031" name="Setpoint Change Amount" type="s16" access="r" required="o" default="0x8000"/>
-          <attribute id="0x0032" name="Setpoint Change Timestamp" type="utc" access="r" required="o" default="0"/>
-        </attribute-set>
-        
-        <attribute-set id="0x0080" description="eCozy" mfcode="0x1014">
-          <attribute id="0x0080" name="Unknown" type="s16" access="r" required="o"/>
-          <attribute id="0x0081" name="Unknown" type="s16" access="r" required="o"/>
-          <attribute id="0x0082" name="Unknown (Heat Setpoint?)" type="s16" access="r" required="o"/>
-        </attribute-set>
-        
+				<attribute-set id="0x0030" description="Thermostat Setpoint Change Tracking">
+					<attribute id="0x0030" name="Setpoint Change Source" type="enum8" access="r" required="o">
+						<value name="Manual" value="0"></value>
+						<value name="Schedule" value="1"></value>
+						<value name="Zigbee" value="2"></value>
+					</attribute>
+					<attribute id="0x0031" name="Setpoint Change Amount" type="s16" access="r" required="o" default="0x8000"/>
+					<attribute id="0x0032" name="Setpoint Change Timestamp" type="utc" access="r" required="o" default="0"/>
+				</attribute-set>
+
+				<attribute-set id="0x0040" description="AC Information">
+					<attribute id="0x0040" name="AC Type" type="enum8" access="rw" required="o">
+						<value name="Cooling and Fixed Speed" value="1"></value>
+						<value name="Heat Pump and Fixed Speed" value="2"></value>
+						<value name="Cooling and Inverter" value="3"></value>
+						<value name="Heat Pump and Inverter" value="4"></value>
+					</attribute>
+					<attribute id="0x0041" name="AC Capacity" type="u16" access="rw" required="o" default="0x00"/>
+					<attribute id="0x0042" name="AC Refrigerant Type" type="enum8" access="rw" required="o" default="0x00">
+						<value name="R22" value="1"></value>
+						<value name="R410a" value="2"></value>
+						<value name="R407c" value="3"></value>
+					</attribute>
+					<attribute id="0x0043" name="AC Compressor Type" type="enum8" access="rw" required="o" default="0x00">
+						<value name="T1, Max working ambient 43 oC" value="1"></value>
+						<value name="T2, Max working ambient 35 oC" value="2"></value>
+						<value name="T3, Max working ambient 52 oC" value="3"></value>
+					</attribute>
+					<attribute id="0x0044" name="AC Error Code" type="bmp32" access="rw" required="o" default="0x00000000">
+						<value name="Compressor Failure or Refrigerant Leakage" value="0"></value>
+						<value name="Room Temperature Sensor Failure" value="1"></value>
+						<value name="Outdoor Temperature Sensor Failure" value="2"></value>
+						<value name="Indoor Coil Temperature Sensor Failure" value="3"></value>
+						<value name="Fan Failure" value="4"></value>
+					</attribute>
+					<attribute id="0x0045" name="AC Louver Position" type="enum8" access="rw" required="o" default="0x00">
+						<value name="Fully Closed" value="1"></value>
+						<value name="Fully Open" value="2"></value>
+						<value name="Quarter Open" value="3"></value>
+						<value name="Half Open" value="4"></value>
+						<value name="Three Quarters Open" value="5"></value>
+					</attribute>
+					<attribute id="0x0046" name="AC Coil Temperature" type="s16" access="r" required="o"/>
+					<attribute id="0x0047" name="AC Capacity Format" type="enum8" access="rw" required="o" default="0x00">
+						<value name="BTUh" value="0"></value>
+					</attribute>
+				</attribute-set>
+
+				<attribute-set id="0x0080" description="eCozy" mfcode="0x1014">
+					<attribute id="0x0080" name="Unknown" type="s16" access="r" required="o"/>
+					<attribute id="0x0081" name="Unknown" type="s16" access="r" required="o"/>
+					<attribute id="0x0082" name="Unknown (Heat Setpoint?)" type="s16" access="r" required="o"/>
+				</attribute-set>
+
 		<!-- ELKO specific -->
 		<attribute-set id="0x0400" description="ELKO specific" mfcode="0x1002">
 			<attribute id="0x0401" name="Unknown" type="u16" access="rw" required="m"></attribute>
@@ -1789,6 +1829,7 @@ Note: It does not clear or delete previous weekly schedule programming configura
 		<!-- Danfoss manufacturer specific -->
 		<attribute-set id="0x4000" description="Danfoss specific" mfcode="0x1246">
 			<attribute id="0x4000" name="eTRV Open Window Detection" type="enum8" default="0x00" access="r" required="m" mfcode="0x1246">
+				<value name="Quarantine" value="0x00"></value>
 				<value name="Closed" value="0x01"></value>
 				<value name="Hold" value="0x02"></value>
 				<value name="Open" value="0x03"></value>
@@ -1825,6 +1866,12 @@ Note: It does not clear or delete previous weekly schedule programming configura
 			</attribute>
 			<attribute id="0x404D" name="Unknown" type="bmp8" access="rw" required="m" mfcode="0x1246"></attribute>
 			<attribute id="0x404E" name="Unknown" type="bmp8" access="rw" required="m" mfcode="0x1246"></attribute>
+		</attribute-set>
+
+		<!-- Stelpro manufacturer specific -->
+		<attribute-set id="0x4000" description="Stelpro specific" mfcode="0x1185">
+			<attribute id="0x4001" name="Outdoor temp" type="s16" access="rw" required="m" mfcode="0x1185"></attribute>
+			<attribute id="0x401C" name="System mode" type="enum8" access="rw" required="m"></attribute>
 		</attribute-set>
 
 		<command id="0x00" dir="recv" name="Setpoint Raise/Lower" required="m">
@@ -2115,6 +2162,8 @@ controller device, that supports a keypad and LCD screen.</description>
         <attribute id="0x0003" mfcode="0x100b" name="PowerOn X" type="u16" access="rw" range="0x0000,0xffff" default="0xffff" required="o"></attribute>
         <attribute id="0x0004" mfcode="0x100b" name="PowerOn Y" type="u16" access="rw" range="0x0000,0xffff" default="0xffff" required="o"></attribute>
         -->
+			</attribute-set>
+			<attribute-set id="0xde00" description="FLS extensions" mfcode="0x1135">
 				<attribute id="0xde01" name="Active channels" type="u8" access="r" range="0x00,0xff" default="0x00" required="m"></attribute>
 			</attribute-set>
 			<command id="0x00" dir="recv" name="Move to hue" required="o">

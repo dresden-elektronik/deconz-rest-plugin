@@ -126,13 +126,13 @@ bool DeRestPluginPrivate::readBindingTable(RestNodeBase *node, quint8 startIndex
     if (node->mgmtBindSupported())
     {
     }
-    else if (checkMacVendor(node->address(), VENDOR_DDEL))
+    else if (existDevicesWithVendorCodeForMacPrefix(node->address(), VENDOR_DDEL))
     {
     }
-    else if (checkMacVendor(node->address(), VENDOR_UBISYS))
+    else if (existDevicesWithVendorCodeForMacPrefix(node->address(), VENDOR_UBISYS))
     {
     }
-    else if (checkMacVendor(node->address(), VENDOR_DEVELCO))
+    else if (existDevicesWithVendorCodeForMacPrefix(node->address(), VENDOR_DEVELCO))
     {
     }
     else if (r && r->item(RAttrModelId)->toString().startsWith(QLatin1String("FLS-")))
@@ -704,7 +704,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt, const s
         if (val.clusterId == bt.binding.clusterId)
         {
             // value exists
-            if (val.timestampLastReport.isValid() &&
+            if (rq.maxInterval != 0xffff && // disable reporting
+                val.timestampLastReport.isValid() &&
                 val.timestampLastReport.secsTo(now) < qMin((rq.maxInterval * 3), 1800))
             {
                 DBG_Printf(DBG_INFO, "skip configure report for cluster: 0x%04X attr: 0x%04X of node 0x%016llX (seems to be active)\n",
@@ -724,13 +725,13 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt, const s
                 out.push_back(rq);
             }
         }
-        else if (lightNode)
+        else if (lightNode && rq.maxInterval != 0xffff /* disable reporting */)
         {
             // wait for value is created via polling
             DBG_Printf(DBG_INFO, "skip configure report for cluster: 0x%04X attr: 0x%04X of node 0x%016llX (wait reading or unsupported)\n",
                        bt.binding.clusterId, rq.attributeId, bt.restNode->address().ext());
         }
-        else // sensors
+        else // sensors and disabled reporting
         {
             // values doesn't exist, create
             deCONZ::NumericUnion dummy;
@@ -959,7 +960,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.dataType = deCONZ::Zcl16BitUint;
         rq.attributeId = 0x0000;         // measured value
 
-        if (sensor && sensor->modelId().startsWith(QLatin1String("MOSZB-130"))) // Develco motion sensor
+        if (sensor && (sensor->modelId().startsWith(QLatin1String("MOSZB-130")) ||          // Develco motion sensor
+                       sensor->modelId().startsWith(QLatin1String("MotionSensor51AU"))))    // Aurora (Develco) motion sensor
         {
             rq.minInterval = 0;
             rq.maxInterval = 600;
@@ -985,7 +987,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                         sensor->modelId().startsWith(QLatin1String("MOSZB-130")) ||  // Develco motion sensor
                         sensor->modelId().startsWith(QLatin1String("WISZB-120")) ||  // Develco window sensor
                         sensor->modelId().startsWith(QLatin1String("FLSZB-110")) ||  // Develco water leak sensor
-                        sensor->modelId().startsWith(QLatin1String("ZHMS101"))))     // Wattle (Develco) magnetic sensor
+                        sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||    // Wattle (Develco) magnetic sensor
+                        sensor->modelId().startsWith(QLatin1String("MotionSensor51AU")))) // Aurora (Develco) motion sensor
         {
             rq.minInterval = 60;           // according to technical manual
             rq.maxInterval = 600;          // according to technical manual
@@ -1084,13 +1087,6 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq2.maxInterval = 600;
             rq2.reportableChange16bit = 50;
 
-            ConfigureReportingRequest rq3;
-            rq3.dataType = deCONZ::Zcl8BitEnum;
-            rq3.attributeId = 0x001C;        // Thermostat mode
-            rq3.minInterval = 1;
-            rq3.maxInterval = 600;
-            rq3.reportableChange8bit = 0xff;
-
             ConfigureReportingRequest rq4;
             rq4.dataType = deCONZ::ZclBoolean;
             rq4.attributeId = 0x0406;        // Device on
@@ -1116,7 +1112,38 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq7.minInterval = 1;
             rq7.maxInterval = 600;
 
-            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4, rq5, rq6, rq7});
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq4, rq5, rq6, rq7});
+        }
+        else if (sensor && sensor->modelId() == QLatin1String("SORB")) // Stelpro Orleans Fan
+        {
+            rq.dataType = deCONZ::Zcl16BitInt;
+            rq.attributeId = 0x0000;         // Local Temperature
+            rq.minInterval = 1;
+            rq.maxInterval = 600;
+            rq.reportableChange16bit = 20;
+
+            ConfigureReportingRequest rq2;
+            rq2.dataType = deCONZ::Zcl16BitInt;
+            rq2.attributeId = 0x0011;        // Occupied cooling setpoint
+            rq2.minInterval = 1;
+            rq2.maxInterval = 600;
+            rq2.reportableChange16bit = 50;
+
+            ConfigureReportingRequest rq3;
+            rq3.dataType = deCONZ::Zcl16BitInt;
+            rq3.attributeId = 0x0012;        // Occupied heating setpoint
+            rq3.minInterval = 1;
+            rq3.maxInterval = 600;
+            rq3.reportableChange16bit = 50;
+
+            ConfigureReportingRequest rq4;
+            rq4.dataType = deCONZ::Zcl8BitEnum;
+            rq4.attributeId = 0x001C;        // Thermostat mode
+            rq4.minInterval = 1;
+            rq4.maxInterval = 600;
+            rq4.reportableChange8bit = 0xff;
+
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
         }
         else if (sensor && sensor->modelId() == QLatin1String("Zen-01")) // Zen
         {
@@ -1157,8 +1184,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4, rq5});
         }
         else if ((sensor && sensor->modelId().startsWith(QLatin1String("SLR2"))) || // Hive
-                 (sensor && sensor->modelId() == QLatin1String("SLR1b")) || // Hive
-                 (sensor && sensor->modelId().startsWith(QLatin1String("TH112")))) // Sinope
+                 (sensor && sensor->modelId() == QLatin1String("SLR1b")) ||         // Hive
+                 (sensor && sensor->modelId().startsWith(QLatin1String("TH112"))))  // Sinope
         {
             rq.dataType = deCONZ::Zcl16BitInt;
             rq.attributeId = 0x0000;       // local temperature
@@ -1189,7 +1216,44 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
             return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
         }
+        else if (sensor && sensor->modelId() == QLatin1String("AC201")) // OWON AC201 Thermostat
+        {
+            rq.dataType = deCONZ::Zcl16BitInt;
+            rq.attributeId = 0x0000;         // Local Temperature
+            rq.minInterval = 1;
+            rq.maxInterval = 600;
+            rq.reportableChange16bit = 50;
 
+            ConfigureReportingRequest rq2;
+            rq2.dataType = deCONZ::Zcl16BitInt;
+            rq2.attributeId = 0x0011;        // Occupied cooling setpoint
+            rq2.minInterval = 1;
+            rq2.maxInterval = 600;
+            rq2.reportableChange16bit = 50;
+
+            ConfigureReportingRequest rq3;
+            rq3.dataType = deCONZ::Zcl16BitInt;
+            rq3.attributeId = 0x0012;        // Occupied heating setpoint
+            rq3.minInterval = 1;
+            rq3.maxInterval = 600;
+            rq3.reportableChange16bit = 50;
+
+            ConfigureReportingRequest rq4;
+            rq4.dataType = deCONZ::Zcl8BitEnum;
+            rq4.attributeId = 0x001C;        // Thermostat mode
+            rq4.minInterval = 1;
+            rq4.maxInterval = 600;
+            rq4.reportableChange8bit = 0xff;
+
+            ConfigureReportingRequest rq5;
+            rq5.dataType = deCONZ::Zcl8BitEnum;
+            rq5.attributeId = 0x0045;        // AC Louvers Position
+            rq5.minInterval = 1;
+            rq5.maxInterval = 600;
+            rq5.reportableChange8bit = 0xff;
+
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4, rq5});
+        }
         else if ( (sensor && sensor->modelId() == QLatin1String("eTRV0100")) || // Danfoss Ally
                   (sensor && sensor->modelId() == QLatin1String("TRV001")) )    // Hive TRV
         {
@@ -1247,7 +1311,14 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq2.maxInterval = 600;
             rq2.reportableChange8bit = 1;
 
-            return sendConfigureReportingRequest(bt, {rq, rq2});
+            ConfigureReportingRequest rq3;
+            rq3.dataType = deCONZ::Zcl8BitEnum;
+            rq3.attributeId = 0x001C;        // Thermostat mode
+            rq3.minInterval = 1;
+            rq3.maxInterval = 600;
+            rq3.reportableChange8bit = 0xff;
+
+            return sendConfigureReportingRequest(bt, {rq, rq2, rq3});
         }
         else if (sensor && sensor->modelId().startsWith(QLatin1String("TH112"))) // Sinope Thermostat TH1123ZB & TH1124ZB
         {
@@ -1315,6 +1386,16 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             return sendConfigureReportingRequest(bt, {rq}) || // Use OR because of manuf. specific attributes
                    sendConfigureReportingRequest(bt, {rq2});
         }
+        else if (sensor && sensor->modelId() == QLatin1String("SORB"))    // Stelpro Orleans Fan
+        {
+            rq.dataType = deCONZ::Zcl8BitEnum;
+            rq.attributeId = 0x0001;       // Keypad Lockout
+            rq.minInterval = 1;
+            rq.maxInterval = 43200;
+            rq.reportableChange8bit = 0xff;
+
+            return sendConfigureReportingRequest(bt, {rq});
+        }
     }
     else if (bt.binding.clusterId == DIAGNOSTICS_CLUSTER_ID)
     {
@@ -1329,6 +1410,20 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq.maxInterval = 43200;
             rq.reportableChange16bit = 0xffff;
             rq.manufacturerCode = VENDOR_DANFOSS;
+            return sendConfigureReportingRequest(bt, {rq});
+        }
+    }
+    else if (bt.binding.clusterId == FAN_CONTROL_CLUSTER_ID)
+    {
+        Sensor *sensor = dynamic_cast<Sensor *>(bt.restNode);
+
+        if (sensor && sensor->modelId() == QLatin1String("AC201"))    // OWON AC201 Thermostat
+        {
+            rq.dataType = deCONZ::Zcl8BitEnum;
+            rq.attributeId = 0x0000;        // Fan mode
+            rq.minInterval = 1;
+            rq.maxInterval = 600;
+            rq.reportableChange8bit = 0xff;
             return sendConfigureReportingRequest(bt, {rq});
         }
     }
@@ -1424,6 +1519,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                             sensor->modelId() == QLatin1String("motionv4") ||
                             sensor->modelId() == QLatin1String("multiv4") ||
                             sensor->modelId() == QLatin1String("RFDL-ZB-MS") ||
+                            sensor->modelId() == QLatin1String("SZ-DWS04") ||
                             sensor->modelId() == QLatin1String("Zen-01") ||
                             sensor->modelId() == QLatin1String("Bell") ||
                             sensor->modelId() == QLatin1String("ISW-ZPR1-WP13") ||
@@ -1431,6 +1527,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                             sensor->modelId() == QLatin1String("TS0202") || // Tuya sensor
                             sensor->modelId() == QLatin1String("3AFE14010402000D") || // Konke presence sensor
                             sensor->modelId() == QLatin1String("3AFE28010402000D") || // Konke presence sensor
+                            sensor->modelId().startsWith(QLatin1String("3300")) ||          // Centralite contatc sensor
                             sensor->modelId().startsWith(QLatin1String("3315")) ||
                             sensor->modelId().startsWith(QLatin1String("4655BC0"))))
         {
@@ -1455,7 +1552,8 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
                            sensor->modelId().startsWith(QLatin1String("WISZB-120")) ||  // Develco window sensor
                            sensor->modelId().startsWith(QLatin1String("FLSZB-110")) ||  // Develco water leak sensor
                            sensor->modelId().startsWith(QLatin1String("SIRZB-110")) ||  // Develco siren
-                           sensor->modelId().startsWith(QLatin1String("ZHMS101"))))     // Wattle (Develco) magnetic sensor
+                           sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||    // Wattle (Develco) magnetic sensor
+                           sensor->modelId().startsWith(QLatin1String("MotionSensor51AU")))) // Aurora (Develco) motion sensor
         {
             rq.attributeId = 0x0020;   // battery voltage
             rq.minInterval = 43200;    // according to technical manual
@@ -1491,12 +1589,12 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.dataType = deCONZ::ZclBoolean;
         rq.attributeId = 0x0000; // on/off
 
-        if (checkMacVendor(bt.restNode->address(), VENDOR_DDEL))
+        if (existDevicesWithVendorCodeForMacPrefix(bt.restNode->address(), VENDOR_DDEL))
         {
             rq.minInterval = 5;
             rq.maxInterval = 180;
         }
-        else if (checkMacVendor(bt.restNode->address(), VENDOR_XAL) ||
+        else if (existDevicesWithVendorCodeForMacPrefix(bt.restNode->address(), VENDOR_XAL) ||
                  bt.restNode->node()->nodeDescriptor().manufacturerCode() == VENDOR_XAL)
         {
             rq.minInterval = 5;
@@ -1504,8 +1602,10 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
         else if (manufacturerCode == VENDOR_IKEA)
         {
-            rq.minInterval = 0; // same as IKEA gateway
-            rq.maxInterval = 0; // same as IKEA gateway
+            // IKEA gateway uses min = 0, max = 0
+            // Instead here we use relaxed settings to not stress the network and device.
+            rq.minInterval = 1;
+            rq.maxInterval = 1800;
         }
         else // default configuration
         {
@@ -1649,7 +1749,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.dataType = deCONZ::Zcl8BitUint;
         rq.attributeId = 0x0000; // current level
 
-        if (checkMacVendor(bt.restNode->address(), VENDOR_DDEL))
+        if (existDevicesWithVendorCodeForMacPrefix(bt.restNode->address(), VENDOR_DDEL))
         {
             rq.minInterval = 5;
             rq.maxInterval = 180;
@@ -1657,10 +1757,11 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         }
         else if (manufacturerCode ==  VENDOR_IKEA)
         {
-            // same as IKEA gateway
-            rq.minInterval = 1;
-            rq.maxInterval = 0;
-            rq.reportableChange8bit = 0;
+            // IKEA gateway uses min = 1, max = 0, change = 0
+            // Instead here we use relaxed settings to not stress the network and device.
+            rq.minInterval = 5;
+            rq.maxInterval = 1800;
+            rq.reportableChange8bit = 1;
         }
         else // default configuration
         {
@@ -1730,18 +1831,30 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
         if (manufacturerCode == VENDOR_IKEA)
         {
-            // same as IKEA gateway
-            rq.minInterval = 0;
-            rq.maxInterval = 0;
-            rq.reportableChange16bit = 0;
-            rq2.minInterval = 0;
-            rq2.maxInterval = 0;
-            rq2.reportableChange16bit = 0;
-            rq3.minInterval = 0;
-            rq3.maxInterval = 0;
-            rq3.reportableChange16bit = 0;
-            rq4.minInterval = 0;
-            rq4.maxInterval = 0;
+            // IKEA gateway uses all zero values for min, max and change, which results in very rapid reports.
+            // Instead here we use relaxed settings to not stress the network and device.
+            rq.minInterval = 5;
+            rq.maxInterval = 1800;
+            rq.reportableChange16bit = 1;
+            rq2.minInterval = 5;
+            rq2.maxInterval = 1795;
+            rq2.reportableChange16bit = 10;
+            rq3.minInterval = 5;
+            rq3.maxInterval = 1795;
+            rq3.reportableChange16bit = 10;
+            rq4.minInterval = 1;
+            rq4.maxInterval = 1800;
+
+//          TODO re activate. Don't disable for now until more testing is done.
+//            const ResourceItem *cap = lightNode ? lightNode->item(RConfigColorCapabilities) : nullptr;
+
+//            if (cap && (cap->toNumber() & 0x0008) == 0) // doesn't support xy --> color temperature light
+//            {
+//                rq2.minInterval = 0;
+//                rq2.maxInterval = 0xffff; // disable reporting
+//                rq3.minInterval = 0;
+//                rq3.maxInterval = 0xffff; // disable reporting
+//            }
         }
 
         return sendConfigureReportingRequest(bt, {rq, rq2, rq3, rq4});
@@ -1795,7 +1908,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             return sendConfigureReportingRequest(bt, {rq, rq1, rq2, rq3});
         }
     }
-    else if (bt.binding.clusterId == BASIC_CLUSTER_ID && checkMacVendor(bt.restNode->address(), VENDOR_PHILIPS))
+    else if (bt.binding.clusterId == BASIC_CLUSTER_ID && existDevicesWithVendorCodeForMacPrefix(bt.restNode->address(), VENDOR_PHILIPS))
     {
         Sensor *sensor = dynamic_cast<Sensor*>(bt.restNode);
         if (!sensor)
@@ -1864,9 +1977,9 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
 
         NodeValue &val = bt.restNode->getZclValue(BASIC_CLUSTER_ID, 0x4000, bt.binding.srcEndpoint);
 
-        if (val.timestampLastReport.isValid() && (val.timestampLastReport.secsTo(now) < val.maxInterval * 1.5))
+        if (val.timestampLastReport.isValid() && (val.timestampLastReport.secsTo(now) > val.maxInterval * 1.5))
         {
-            return false;
+            return false; // reporting this attribute might be already disabled
         }
 
         // already configured? wait for report ...
@@ -1878,7 +1991,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
         rq.dataType = deCONZ::ZclCharacterString;
         rq.attributeId = 0x4000; // sw build id
         rq.minInterval = 0;   // value used by IKEA gateway
-        rq.maxInterval = 1800;   // value used by IKEA gateway
+        rq.maxInterval = 0xffff; // disable reporting to prevent group casts
 
         return sendConfigureReportingRequest(bt, {rq});
     }
@@ -2014,13 +2127,22 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturerCode() == VENDOR_KEEN_HOME)
         {
         }
+        else if (lightNode->manufacturerCode() == VENDOR_SUNRICHER)
+        {
+        }
         else if (lightNode->manufacturerCode() == VENDOR_XAL)
         {
         }
         else if (lightNode->manufacturerCode() == VENDOR_SINOPE)
         {
         }
+        else if (lightNode->manufacturerCode() == VENDOR_OWON)
+        {
+        }
         else if (lightNode->manufacturerCode() == VENDOR_XIAOMI)
+        {
+        }
+        else if (lightNode->manufacturerCode() == VENDOR_STELPRO)
         {
         }
         else if (lightNode->modelId().startsWith(QLatin1String("SP ")))
@@ -2152,7 +2274,7 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
             }
 
             BindingTask bt;
-            if (checkMacVendor(lightNode->address(), VENDOR_DDEL))
+            if (existDevicesWithVendorCodeForMacPrefix(lightNode->address(), VENDOR_DDEL))
             {
                 bt.state = BindingTask::StateCheck;
             }
@@ -2197,7 +2319,7 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         return;
     }
 
-    if (checkMacVendor(lightNode->address(), VENDOR_DDEL) || lightNode->manufacturerCode() == VENDOR_XAL)
+    if (existDevicesWithVendorCodeForMacPrefix(lightNode->address(), VENDOR_DDEL) || lightNode->manufacturerCode() == VENDOR_XAL)
     {
         lightNode->enableRead(READ_BINDING_TABLE);
         lightNode->setNextReadTime(READ_BINDING_TABLE, queryTime);
@@ -2262,6 +2384,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("PCM_")) ||
         // CentraLite
         sensor->modelId().startsWith(QLatin1String("Motion Sensor-A")) ||
+        sensor->modelId().startsWith(QLatin1String("3300")) ||
         sensor->modelId().startsWith(QLatin1String("332")) ||
         sensor->modelId().startsWith(QLatin1String("3200-S")) ||
         sensor->modelId().startsWith(QLatin1String("3305-S")) ||
@@ -2363,9 +2486,10 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("MOSZB-130")) || // motion sensor
         sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||   // Wattle (Develco) magnetic sensor
         sensor->modelId().startsWith(QLatin1String("EMIZB-132")) || // EMI Norwegian HAN
-        sensor->modelId().startsWith(QLatin1String("SMRZB-33")) || // Smart Relay DIN
+        sensor->modelId().startsWith(QLatin1String("SMRZB-33")) ||  // Smart Relay DIN
         sensor->modelId().startsWith(QLatin1String("SIRZB-110")) || // siren
-        sensor->modelId() == QLatin1String("SPLZB-131") ||
+        sensor->modelId() == QLatin1String("SPLZB-131") ||          // smart plug
+        sensor->modelId() == QLatin1String("MotionSensor51AU") ||   // Aurora (Develco) motion sensor
         // LG
         sensor->modelId() == QLatin1String("LG IP65 HMS") ||
         // Sinope
@@ -2414,6 +2538,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Stelpro
         sensor->modelId().contains(QLatin1String("ST218")) ||
         sensor->modelId().contains(QLatin1String("STZB402")) ||
+        sensor->modelId() == QLatin1String("SORB") ||
         // Tuya
         sensor->modelId().startsWith(QLatin1String("TS01")) ||
         sensor->modelId().startsWith(QLatin1String("TS02")) ||
@@ -2449,6 +2574,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("E13-")) ||
         sensor->modelId().startsWith(QLatin1String("E1D-")) ||
         sensor->modelId().startsWith(QLatin1String("E1E-")) ||
+        // Linkind
+        sensor->modelId() == QLatin1String("ZB-MotionSensor-D0003") ||
         // Immax
         sensor->modelId() == QLatin1String("Plug-230V-ZB3.0") ||
         sensor->modelId() == QLatin1String("4in1-Sensor-ZB3.0") ||
@@ -2482,6 +2609,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId() == QLatin1String("Connected socket outlet") ||
         // Sage
         sensor->modelId() == QLatin1String("Bell") ||
+        // Owon
+        sensor->modelId() == QLatin1String("AC201") ||
         // Sonoff
         sensor->modelId() == QLatin1String("WB01") ||
         sensor->modelId() == QLatin1String("MS01") ||
@@ -2615,6 +2744,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
                      sensor->modelId() == QLatin1String("WISZB-120") ||
                      sensor->modelId() == QLatin1String("MOSZB-130") ||
                      sensor->modelId() == QLatin1String("FLSZB-110") ||
+                     sensor->modelId() == QLatin1String("MotionSensor51AU") ||
                      sensor->modelId() == QLatin1String("Zen-01") ||
                      sensor->modelId() == QLatin1String("ISW-ZPR1-WP13") ||
                      sensor->modelId().startsWith(QLatin1String("Lightify Switch Mini")) ||  // Osram 3 button remote
@@ -2729,6 +2859,10 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         {
             val = sensor->getZclValue(*i, 0x0000); // Local temperature
         }
+        else if (*i == FAN_CONTROL_CLUSTER_ID)
+        {
+            val = sensor->getZclValue(*i, 0x0000); // Fan mode
+        }
         else if (*i == THERMOSTAT_UI_CONFIGURATION_CLUSTER_ID)
         {
             val = sensor->getZclValue(*i, 0x0001); // Keypad lockout
@@ -2799,6 +2933,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         case BASIC_CLUSTER_ID:
         case BINARY_INPUT_CLUSTER_ID:
         case THERMOSTAT_CLUSTER_ID:
+        case FAN_CONTROL_CLUSTER_ID:
         case THERMOSTAT_UI_CONFIGURATION_CLUSTER_ID:
         case DIAGNOSTICS_CLUSTER_ID:
         case APPLIANCE_EVENTS_AND_ALERTS_CLUSTER_ID:
@@ -3064,6 +3199,14 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(0x07);
         srcEndpoints.push_back(0x08);
     }
+    else if (sensor->modelId().startsWith(QLatin1String("ZGRC-TEUR-")))
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+        clusters.push_back(SCENE_CLUSTER_ID);
+        clusters.push_back(COLOR_CLUSTER_ID);
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
+    }
     else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM")) ||
              sensor->modelId().startsWith(QLatin1String("ZGRC-KEY-013")) ||
              sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5001")))
@@ -3296,6 +3439,7 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
         sensor->modelId().startsWith(QLatin1String("TRADFRI wireless dimmer")) ||
         // sensor->modelId().startsWith(QLatin1String("SYMFONISK")) ||
         sensor->modelId().startsWith(QLatin1String("902010/23")) || // bitron remote
+        sensor->modelId().startsWith(QLatin1String("WB01")) || // Sonoff SNZB-01
         sensor->modelId().startsWith(QLatin1String("Bell")) || // Sage doorbell sensor
         sensor->modelId().startsWith(QLatin1String("ZBT-CCTSwitch-D0001")) || //LDS Remote
         sensor->modelId().startsWith(QLatin1String("ZBT-DIMSwitch")) || // Linkind 1 key Remote Control / ZS23000178
@@ -3968,7 +4112,7 @@ void DeRestPluginPrivate::bindingToRuleTimerFired()
 
             for (const deCONZ::ZclCluster &cl : sd.outClusters())
             {
-                if (cl.id() == ILLUMINANCE_MEASUREMENT_CLUSTER_ID && checkMacVendor(node->address(), VENDOR_DDEL))
+                if (cl.id() == ILLUMINANCE_MEASUREMENT_CLUSTER_ID && existDevicesWithVendorCodeForMacPrefix(node->address(), VENDOR_DDEL))
                 {
                     continue; // ignore, binding only allowed for server cluster
                 }
@@ -4048,7 +4192,7 @@ void DeRestPluginPrivate::bindingToRuleTimerFired()
             continue;
         }
 
-        if (checkMacVendor(bnd.srcAddress, VENDOR_UBISYS))
+        if (existDevicesWithVendorCodeForMacPrefix(bnd.srcAddress, VENDOR_UBISYS))
         {
             processUbisysBinding(&*i, bnd);
             return;
@@ -4422,4 +4566,30 @@ void DeRestPluginPrivate::bindingTableReaderTimerFired()
     {
         bindingTableReaderTimer->start();
     }
+}
+
+/*! Add a binding task to the queue and prevent double entries.
+    \param bindingTask - the binding task
+    \return true - when enqueued
+ */
+bool DeRestPluginPrivate::queueBindingTask(const BindingTask &bindingTask)
+{
+    if (!apsCtrl || apsCtrl->networkState() != deCONZ::InNetwork)
+    {
+        return false;
+    }
+
+    const std::list<BindingTask>::const_iterator i = std::find(bindingQueue.begin(), bindingQueue.end(), bindingTask);
+
+    if (i == bindingQueue.end())
+    {
+        DBG_Printf(DBG_INFO_L2, "queue binding task for 0x%016llX, cluster 0x%04X\n", bindingTask.binding.srcAddress, bindingTask.binding.clusterId);
+        bindingQueue.push_back(bindingTask);
+    }
+    else
+    {
+        DBG_Printf(DBG_INFO, "discard double entry in binding queue (size: %u) for for 0x%016llX, cluster 0x%04X\n", bindingQueue.size(), bindingTask.binding.srcAddress, bindingTask.binding.clusterId);
+    }
+
+    return true;
 }
