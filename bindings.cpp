@@ -2076,6 +2076,9 @@ void DeRestPluginPrivate::checkLightBindingsForAttributeReporting(LightNode *lig
         else if (lightNode->manufacturerCode() == VENDOR_KEEN_HOME)
         {
         }
+        else if (lightNode->manufacturerCode() == VENDOR_SUNRICHER)
+        {
+        }
         else if (lightNode->manufacturerCode() == VENDOR_XAL)
         {
         }
@@ -3132,6 +3135,14 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
         srcEndpoints.push_back(0x06);
         srcEndpoints.push_back(0x07);
         srcEndpoints.push_back(0x08);
+    }
+    else if (sensor->modelId().startsWith(QLatin1String("ZGRC-TEUR-")))
+    {
+        clusters.push_back(ONOFF_CLUSTER_ID);
+        clusters.push_back(LEVEL_CLUSTER_ID);
+        clusters.push_back(SCENE_CLUSTER_ID);
+        clusters.push_back(COLOR_CLUSTER_ID);
+        srcEndpoints.push_back(sensor->fingerPrint().endpoint);
     }
     else if (sensor->modelId().startsWith(QLatin1String("ICZB-RM")) ||
              sensor->modelId().startsWith(QLatin1String("ZGRC-KEY-013")) ||
