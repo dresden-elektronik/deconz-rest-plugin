@@ -3506,7 +3506,8 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.modelId() == QLatin1String("GbxAXL2") ||         // Tuya
                     sensor.modelId() == QLatin1String("kud7u2l") ||         // Tuya
                     sensor.modelId() == QLatin1String("TS0601") ||          // Tuya
-                    sensor.modelId() == QLatin1String("eaxp72v") ||          // Tuya
+                    sensor.modelId() == QLatin1String("eaxp72v") ||         // Tuya
+                    sensor.modelId() == QLatin1String("902010/32") ||       // Bitron
                     sensor.modelId() == QLatin1String("Zen-01") )           // Zen
                 {
                     sensor.addItem(DataTypeString, RConfigMode);
@@ -3518,6 +3519,7 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeInt16, RStateFloorTemperature);
                     sensor.addItem(DataTypeBool, RStateHeating);
                     sensor.addItem(DataTypeBool, RConfigLocked);
+                    sensor.addItem(DataTypeString, RConfigMode);
                 }
 
                 if (sensor.modelId() == QLatin1String("kud7u2l") || // Tuya
@@ -3555,6 +3557,13 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeUInt8, RConfigLastChangeSource);
                     sensor.addItem(DataTypeTime, RConfigLastChangeTime);
                 }
+                else if (sensor.modelId() == QLatin1String("SORB")) // Stelpro Orleans Fan
+                {
+                    sensor.addItem(DataTypeInt16, RConfigCoolSetpoint);
+                    sensor.addItem(DataTypeUInt8, RStateValve);
+                    sensor.addItem(DataTypeBool, RConfigLocked);
+                    sensor.addItem(DataTypeString, RConfigMode);
+                }
                 else if (sensor.modelId() == QLatin1String("Zen-01"))
                 {
                 }
@@ -3568,6 +3577,13 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                     sensor.addItem(DataTypeBool, RConfigDisplayFlipped);
                     sensor.addItem(DataTypeBool, RConfigLocked);
                     sensor.addItem(DataTypeBool, RConfigMountingMode);
+                }
+                else if (sensor.modelId() == QLatin1String("AC201")) // OWON AC201 Thermostat
+                {
+                    sensor.addItem(DataTypeInt16, RConfigCoolSetpoint);
+                    sensor.addItem(DataTypeString, RConfigMode);
+                    sensor.addItem(DataTypeString, RConfigFanMode);
+                    sensor.addItem(DataTypeString, RConfigSwingMode);
                 }
                 else
                 {

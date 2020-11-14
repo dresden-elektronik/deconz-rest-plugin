@@ -42,7 +42,7 @@ assignees: ''
  - Do you use an USB extension cable: (yes / no) -- only relevant for ConBee I/II
  - Is there any other USB or serial devices connected to the host system? If so: Which?
 
-### deCONZ Logs
+## deCONZ Logs
 <!--
   If applicable provide some logs. 
   Debug logs can help to investigate certain problems like device pairing and communication issues.

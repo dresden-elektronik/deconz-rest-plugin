@@ -73,7 +73,7 @@ GIT_COMMIT_DATE = $$system("git show -s --format=%ct $$GIT_TAG")
 
 # Version Major.Minor.Build
 # Important: don't change the format of this line since it's parsed by scripts!
-DEFINES += GW_SW_VERSION=\\\"2.05.86\\\"
+DEFINES += GW_SW_VERSION=\\\"2.05.88\\\"
 DEFINES += GW_SW_DATE=$$GIT_COMMIT_DATE
 DEFINES += GW_API_VERSION=\\\"1.16.0\\\"
 DEFINES += GIT_COMMMIT=\\\"$$GIT_COMMIT\\\"
@@ -106,6 +106,7 @@ HEADERS  = bindings.h \
            group_info.h \
            json.h \
            light_node.h \
+           poll_control.h \
            poll_manager.h \
            read_files.h \
            resource.h \
@@ -133,6 +134,7 @@ SOURCES  = authorisation.cpp \
            de_otau.cpp \
            event.cpp \
            event_queue.cpp \
+           fan_control.cpp \
            firmware_update.cpp \
            gateway.cpp \
            gateway_scanner.cpp \
@@ -143,6 +145,7 @@ SOURCES  = authorisation.cpp \
            ias_zone.cpp \
            json.cpp \
            light_node.cpp \
+           poll_control.cpp \
            poll_manager.cpp \
            read_files.cpp \
            resource.cpp \
