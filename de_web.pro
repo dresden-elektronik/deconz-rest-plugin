@@ -134,6 +134,7 @@ SOURCES  = authorisation.cpp \
            de_otau.cpp \
            event.cpp \
            event_queue.cpp \
+           fan_control.cpp \
            firmware_update.cpp \
            gateway.cpp \
            gateway_scanner.cpp \

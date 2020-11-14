@@ -92,6 +92,7 @@ const quint64 deMacPrefix         = 0x00212e0000000000ULL;
 const quint64 keenhomeMacPrefix   = 0x0022a30000000000ULL;
 const quint64 zenMacPrefix        = 0x0024460000000000ULL;
 const quint64 heimanMacPrefix     = 0x0050430000000000ULL;
+const quint64 davicomMacPrefix    = 0x00606e0000000000ULL;
 const quint64 xiaomiMacPrefix     = 0x04cf8c0000000000ULL;
 const quint64 konkeMacPrefix      = 0x086bd70000000000ULL;
 const quint64 ikea2MacPrefix      = 0x14b4570000000000ULL;
@@ -294,6 +295,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBER, "Super TR", emberMacPrefix }, // Elko Thermostat
     { VENDOR_EMBER, "ElkoDimmer", emberMacPrefix }, // Elko dimmer
     { VENDOR_ATMEL, "Thermostat", ecozyMacPrefix }, // eCozy Thermostat
+    { VENDOR_OWON, "AC201", davicomMacPrefix }, // OWON AC201 Thermostat
     { VENDOR_STELPRO, "ST218", xalMacPrefix }, // Stelpro Thermostat
     { VENDOR_STELPRO, "STZB402", xalMacPrefix }, // Stelpro baseboard thermostat
     { VENDOR_STELPRO, "SORB", xalMacPrefix }, // Stelpro Orleans Fan
@@ -849,6 +851,9 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
         case POLL_CONTROL_CLUSTER_ID:
             handlePollControlIndication(ind, zclFrame);
             break;
+
+        case FAN_CONTROL_CLUSTER_ID:
+            handleFanControlClusterIndication(ind, zclFrame);
 
         default:
         {
@@ -3132,7 +3137,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                                 updated = true;
                             }
                             item->setValue(str); // always needed to refresh set timestamp
-                        }                        
+                        }
                     }
                     else if (ia->id() == 0x4005 && lightNode->manufacturerCode() == VENDOR_MUELLER)
                     {
@@ -3180,6 +3185,7 @@ LightNode *DeRestPluginPrivate::updateLightNode(const deCONZ::NodeEvent &event)
                     }
                 }
             }
+            // This code can potentially be removed here and covered by fan_control.cpp
             else if (ic->id() == FAN_CONTROL_CLUSTER_ID && (event.clusterId() == FAN_CONTROL_CLUSTER_ID))
             {
                 std::vector<deCONZ::ZclAttribute>::const_iterator ia = ic->attributes().begin();
@@ -6114,6 +6120,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.addItem(DataTypeBool, RConfigDisplayFlipped);
                 sensorNode.addItem(DataTypeBool, RConfigLocked);
                 sensorNode.addItem(DataTypeBool, RConfigMountingMode);
+            }
+            else if (modelId == QLatin1String("AC201")) // OWON AC201 Thermostat
+            {
+                sensorNode.addItem(DataTypeInt16, RConfigCoolSetpoint);
+                sensorNode.addItem(DataTypeString, RConfigMode);
+                sensorNode.addItem(DataTypeString, RConfigFanMode);
+                sensorNode.addItem(DataTypeString, RConfigSwingMode);
             }
             else
             {
@@ -15607,10 +15620,10 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                 attributes.push_back(0x0004); // manufacturer
             }
             else if (modelId.isEmpty())
-            { 
+            {
                 DBG_Printf(DBG_INFO, "[4.1] Get model ID\n");
                 attributes.push_back(0x0005); // model id
-            } 
+            }
             else if (swBuildId.isEmpty() && dateCode.isEmpty())
             {
                 if ((sc->address.ext() & macPrefixMask) == tiMacPrefix ||

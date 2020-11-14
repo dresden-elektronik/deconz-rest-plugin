@@ -489,7 +489,8 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 if (sensor->modelId().startsWith(QLatin1String("SLR2")) ||   // Hive
                     sensor->modelId().startsWith(QLatin1String("SLR1b")) ||  // Hive
                     sensor->modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
-                    sensor->modelId().startsWith(QLatin1String("Zen-01")))   // Zen
+                    sensor->modelId().startsWith(QLatin1String("Zen-01")) || // Zen
+                    sensor->modelId().startsWith(QLatin1String("AC201")))    // OWON
                 {
                     qint8 mode = attr.numericValue().s8;
                     QString mode_set;
@@ -610,6 +611,30 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
             }
                 break;
 
+            case 0x0045: // AC Louvers Position
+            {
+                qint8 mode = attr.numericValue().s8;
+                QString modeSet;
+
+                modeSet = QLatin1String("fully closed");
+                if ( mode == 0x01 ) { modeSet = QLatin1String("fully closed"); }
+                else if ( mode == 0x02 ) { modeSet = QLatin1String("fully open"); }
+                else if ( mode == 0x03 ) { modeSet = QLatin1String("quarter open"); }
+                else if ( mode == 0x04 ) { modeSet = QLatin1String("half open"); }
+                else if ( mode == 0x05 ) { modeSet = QLatin1String("three quarters open"); }
+
+                item = sensor->item(RConfigSwingMode);
+                if (item && !item->toString().isEmpty() && item->toString() != modeSet)
+                {
+                    item->setValue(modeSet);
+                    enqueueEvent(Event(RSensors, RConfigSwingMode, sensor->id(), item));
+                    configUpdated = true;
+                }
+
+                sensor->setZclValue(updateType, ind.srcEndpoint(), THERMOSTAT_CLUSTER_ID, attrId, attr.numericValue());
+            }
+                break;
+
             case 0x0403: // Temperature measurement
             {
                 if (sensor->modelId().startsWith(QLatin1String("Super TR"))) // ELKO
@@ -620,7 +645,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                     if ( mode == 0x00 ) { mode_set = QString("air sensor"); }
                     if ( mode == 0x01 ) { mode_set = QString("floor sensor"); }
                     if ( mode == 0x03 ) { mode_set = QString("floor protection"); }
-                    
+
                     item = sensor->item(RConfigTemperatureMeasurement);
 
                     if (item && item->toString() != mode_set)
@@ -640,7 +665,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 {
                     bool on = attr.numericValue().u8 > 0 ? true : false;
                     item = sensor->item(RStateOn);
-                    
+
                     if (item && updateType == NodeValue::UpdateByZclReport)
                     {
                         stateUpdated = true;
@@ -651,12 +676,12 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                         enqueueEvent(Event(RSensors, RStateOn, sensor->id(), item));
                         stateUpdated  = true;
                     }
-                    
+
                     // Set config/mode to have an adequate representation based on this attribute
                     QString mode_set;
                     if ( on == false ) { mode_set = QString("off"); }
                     if ( on == true ) { mode_set = QString("heat"); }
-                    
+
                     item = sensor->item(RConfigMode);
                     if (item && !item->toString().isEmpty() && item->toString() != mode_set)
                     {
@@ -675,7 +700,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 {
                     qint16 floortemp = attr.numericValue().s16;
                     item = sensor->item(RStateFloorTemperature);
-                    
+
                     if (item && updateType == NodeValue::UpdateByZclReport)
                     {
                         stateUpdated = true;
@@ -714,7 +739,7 @@ void DeRestPluginPrivate::handleThermostatClusterIndication(const deCONZ::ApsDat
                 {
                     bool on = attr.numericValue().u8 > 0 ? true : false;
                     item = sensor->item(RStateHeating);
-                    
+
                     if (item && updateType == NodeValue::UpdateByZclReport)
                     {
                         stateUpdated = true;
