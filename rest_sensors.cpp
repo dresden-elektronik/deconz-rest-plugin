@@ -1262,6 +1262,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                              sensor->modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
                              sensor->modelId().startsWith(QLatin1String("902010/32")) ||  // Bitron
                              sensor->modelId().startsWith(QLatin1String("Zen-01")) || // Zen
+                             sensor->modelId().startsWith(QLatin1String("3157100")) ||// Centralite Pearl
                              sensor->modelId().startsWith(QLatin1String("SORB")) ||   // Stelpro Orleans Fan
                              sensor->modelId().startsWith(QLatin1String("AC201")) ||  // OWON
                              sensor->modelId().startsWith(QLatin1String("Super TR"))) // ELKO
@@ -1434,7 +1435,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                             }
                         }
                         else if (sensor->modelId() == QLatin1String("eTRV0100") || sensor->modelId() == QLatin1String("TRV001") ||
-                                 sensor->modelId() == QLatin1String("SORB"))
+                                 sensor->modelId() == QLatin1String("SORB") || sensor->modelId() == QLatin1String("3157100"))
                         {
                             quint32 data = map[pi.key()].toUInt(&ok);
 
@@ -1622,7 +1623,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 {
                     if (map[pi.key()].type() == QVariant::String && map[pi.key()].toString().size() <= 6)
                     {
-                        if (sensor->modelId() == QLatin1String("AC201"))
+                        if (sensor->modelId() == QLatin1String("AC201") || sensor->modelId() == QLatin1String("3157100"))
                         {
                             QString modeSet = map[pi.key()].toString();
                             quint8 mode = 0;
