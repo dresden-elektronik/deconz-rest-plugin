@@ -1711,10 +1711,20 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
         {
             targetLiftZigBee = 100 - targetLift;
         }
-        else if (taskRef.lightNode->modelId() == QLatin1String("Shutter switch with neutral"))
+        else if ((taskRef.lightNode->modelId() == QLatin1String("Shutter switch with neutral")) ||
+                 (taskRef.lightNode->modelId() == QLatin1String("Shutter SW with level control")) )
         {
             // Legrand invert bri and don't support other value than 0
-            targetLiftZigBee = targetLift == 0 ? 100 : 0;
+            bool bStatus = false;
+            uint nHex = taskRef.lightNode->swBuildId().toUInt(&bStatus,16);
+            if (bStatus && (nHex < 33))
+            {
+                targetLiftZigBee = targetLift == 0 ? 100 : 0;
+            }
+            else
+            {
+                targetLiftZigBee = targetLift == 100 ? 100 : 0;
+            }
         }
         else
         {
@@ -1842,6 +1852,18 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             rspItemState[QString("/lights/%1/state/lift").arg(id)] = targetLift;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
+            
+            
+            // I m using this code only for Legrand ATM but can be used for other device.
+            // Because the attribute reporting take realy long time to be done, can be 2 minutes
+            // Or it can be changed only after this time, so using an read attribute don't give usable value
+            // And can cause issue on some third app
+            if ((taskRef.lightNode->modelId() == QLatin1String("Shutter switch with neutral")) ||
+                 (taskRef.lightNode->modelId() == QLatin1String("Shutter SW with level control")) )
+            {
+                taskRef.lightNode->setValue(RStateLift, 50);
+                taskRef.lightNode->setValue(RStateBri, 127);
+            }
 
             // Rely on attribute reporting to update the light state.
         }
@@ -1880,6 +1902,17 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
             rspItemState[QString("/lights/%1/state/open").arg(id)] = targetOpen;
             rspItem["success"] = rspItemState;
             rsp.list.append(rspItem);
+            
+            // I m using this code only for Legrand ATM but can be used for other device.
+            // Because the attribute reporting take realy long time to be done, can be 2 minutes
+            // Or it can be changed only after this time, so using an read attribute don't give usable value
+            // And can cause issue on some third app
+            if ((taskRef.lightNode->modelId() == QLatin1String("Shutter switch with neutral")) ||
+                 (taskRef.lightNode->modelId() == QLatin1String("Shutter SW with level control")) )
+            {
+                taskRef.lightNode->setValue(RStateLift, 50);
+                taskRef.lightNode->setValue(RStateBri, 127);
+            }
 
             // Rely on attribute reporting to update the light state.
         }

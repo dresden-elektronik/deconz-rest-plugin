@@ -2502,6 +2502,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         //Legrand
         sensor->modelId() == QLatin1String("Connected outlet") || //Legrand Plug
         sensor->modelId() == QLatin1String("Shutter switch with neutral") || //Legrand shutter switch
+        sensor->modelId() == QLatin1String("Shutter SW with level control") || //Bticino shutter small size
         sensor->modelId() == QLatin1String("Dimmer switch w/o neutral") || //Legrand dimmer wired
         sensor->modelId() == QLatin1String("Cable outlet") || //Legrand Cable outlet
         sensor->modelId() == QLatin1String("Remote switch") || //Legrand wireless switch
