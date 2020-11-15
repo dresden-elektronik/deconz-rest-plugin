@@ -3195,6 +3195,19 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
             item = sensor.addItem(DataTypeInt16, RConfigOffset);
             item->setValue(0);
         }
+        else if (sensor.type().endsWith(QLatin1String("AirQuality")))
+        {
+            if (sensor.fingerPrint().hasInCluster(BOSCH_AIR_QUALITY_CLUSTER_ID))
+            {
+                clusterId = clusterId ? clusterId : BOSCH_AIR_QUALITY_CLUSTER_ID;
+            }
+            else if (sensor.fingerPrint().hasInCluster(0xFC03))  // Develco air quality sensor
+            {
+                clusterId = clusterId ? clusterId : 0xFC03;
+            }
+            item = sensor.addItem(DataTypeString, RStateAirQuality);
+            item = sensor.addItem(DataTypeUInt16, RStateAirQualityPpb);
+        }
         else if (sensor.type().endsWith(QLatin1String("Spectral")))
         {
             if (sensor.fingerPrint().hasInCluster(VENDOR_CLUSTER_ID))

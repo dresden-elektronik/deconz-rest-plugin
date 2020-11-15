@@ -211,6 +211,7 @@
 #define SAMJIN_CLUSTER_ID                     0xFC02
 #define LEGRAND_CONTROL_CLUSTER_ID            0xFC40
 #define XAL_CLUSTER_ID                        0xFCCE
+#define BOSCH_AIR_QUALITY_CLUSTER_ID          quint16(0xFDEF)
 
 #define IAS_ZONE_CLUSTER_ATTR_ZONE_STATUS_ID  0x0002
 
@@ -317,6 +318,7 @@
 #define VENDOR_WAXMAN               0x113B
 #define VENDOR_OWON                 0x113C
 #define VENDOR_LUTRON               0x1144
+#define VENDOR_BOSCH2               0x1155
 #define VENDOR_ZEN                  0x1158
 #define VENDOR_KEEN_HOME            0x115B
 #define VENDOR_XIAOMI               0x115F

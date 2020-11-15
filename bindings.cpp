@@ -864,6 +864,11 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
     LightNode *lightNode = dynamic_cast<LightNode *>(bt.restNode);
     const quint16 manufacturerCode = lightNode ? lightNode->manufacturerCode() : 0;
 
+    if (bt.binding.clusterId == BOSCH_AIR_QUALITY_CLUSTER_ID && bt.restNode->node()->nodeDescriptor().manufacturerCode() == VENDOR_BOSCH2)
+    {
+        return false; // nothing todo
+    }
+
     if (bt.binding.clusterId == OCCUPANCY_SENSING_CLUSTER_ID)
     {
         // add values if not already present
@@ -2590,6 +2595,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("ISW-ZDL1-WP11G")) ||
         sensor->modelId().startsWith(QLatin1String("ISW-ZPR1-WP13")) ||
         sensor->modelId().startsWith(QLatin1String("RFDL-ZB-MS")) ||
+        (sensor->node()->nodeDescriptor().manufacturerCode() == VENDOR_BOSCH2 && sensor->modelId() == QLatin1String("AIR")) ||
         // Salus
         sensor->modelId().contains(QLatin1String("SP600")) ||
         // Zen
@@ -2760,6 +2766,10 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
 
         if (*i == ILLUMINANCE_MEASUREMENT_CLUSTER_ID)
         {
+            if (sensor->node()->nodeDescriptor().manufacturerCode() == VENDOR_BOSCH2 && sensor->modelId() == QLatin1String("AIR"))
+            {
+                continue; // use BOSCH_AIR_QUALITY_CLUSTER_ID instead
+            }
             val = sensor->getZclValue(*i, 0x0000); // measured value
         }
         else if (*i == TEMPERATURE_MEASUREMENT_CLUSTER_ID)
@@ -2768,10 +2778,18 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         }
         else if (*i == RELATIVE_HUMIDITY_CLUSTER_ID)
         {
+            if (sensor->node()->nodeDescriptor().manufacturerCode() == VENDOR_BOSCH2 && sensor->modelId() == QLatin1String("AIR"))
+            {
+                continue; // use BOSCH_AIR_QUALITY_CLUSTER_ID instead
+            }
             val = sensor->getZclValue(*i, 0x0000); // measured value
         }
         else if (*i == PRESSURE_MEASUREMENT_CLUSTER_ID)
         {
+            if (sensor->node()->nodeDescriptor().manufacturerCode() == VENDOR_BOSCH2 && sensor->modelId() == QLatin1String("AIR"))
+            {
+                continue; // use BOSCH_AIR_QUALITY_CLUSTER_ID instead
+            }
             val = sensor->getZclValue(*i, 0x0000); // measured value
         }
         else if (*i == OCCUPANCY_SENSING_CLUSTER_ID)
@@ -2882,6 +2900,14 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
             {
                 val = sensor->getZclValue(*i, 0x0000, sensor->fingerPrint().endpoint); // sensor enabled per endpoint
             }
+        }
+        else if (*i == BOSCH_AIR_QUALITY_CLUSTER_ID && sensor->modelId() == QLatin1String("AIR"))
+        {
+            if (sensor->type() != QLatin1String("ZHAAirQuality"))
+            {
+                continue; // only bind once
+            }
+            val = sensor->getZclValue(*i, 0x4004, 0x02); // air quality
         }
         else if (*i == BASIC_CLUSTER_ID)
         {
@@ -3014,6 +3040,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         case DIAGNOSTICS_CLUSTER_ID:
         case APPLIANCE_EVENTS_AND_ALERTS_CLUSTER_ID:
         case SAMJIN_CLUSTER_ID:
+        case BOSCH_AIR_QUALITY_CLUSTER_ID:
         case 0xFC03:        // Develco specific -> VOC Management
         {
             DBG_Printf(DBG_INFO_L2, "0x%016llX (%s) create binding for attribute reporting of cluster 0x%04X on endpoint 0x%02X\n",
