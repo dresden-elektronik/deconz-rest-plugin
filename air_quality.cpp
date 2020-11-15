@@ -60,45 +60,75 @@ void DeRestPluginPrivate::handleAirQualityClusterIndication(const deCONZ::ApsDat
                 continue;
             }
 
-            ResourceItem *item = nullptr;
+            quint32 levelPpb = UINT32_MAX; // invalid value
 
             switch (attrId)
             {
             case 0x0000: // Measured value
             {
-                if (sensor->modelId() == QLatin1String("AQSZB-110"))    // Develco air quality sensor
+                if (ind.clusterId() == 0xFC03 && sensor->modelId() == QLatin1String("AQSZB-110"))    // Develco air quality sensor
                 {
-                    quint16 level = attr.numericValue().u16;
-                    QString airquality = QString("none");
+                    levelPpb = attr.numericValue().u16;
+                }
+            }
+                break;
 
-                    if ( level > 0 && level <= 65  ) { airquality = QString("excellent"); }
-                    if ( level > 65 && level <= 220 ) { airquality = QString("good"); }
-                    if ( level > 220 && level <= 660 ) { airquality = QString("moderate"); }
-                    if ( level > 660 && level <= 2200 ) { airquality = QString("poor"); }
-                    if ( level > 2200 && level <= 5500 ) { airquality = QString("unhealthy"); }
-                    if ( level > 5500 ) { airquality = QString("out of scale"); }
-
-                    item = sensor->item(RStateAirQuality);
-                    if (item)
-                    {
-                        if (updateType == NodeValue::UpdateByZclReport)
-                        {
-                            stateUpdated = true;
-                        }
-                        if (item->toString() != airquality)
-                        {
-                            item->setValue(airquality);
-                            enqueueEvent(Event(RSensors, RStateAirQuality, sensor->id(), item));
-                            stateUpdated = true;
-                        }
-                    }
-                    sensor->setZclValue(updateType, ind.srcEndpoint(), 0xFC03, attrId, attr.numericValue());
+            case 0x4004:
+            {
+                // Bosch air quality sensor
+                if (ind.clusterId() == BOSCH_AIR_QUALITY_CLUSTER_ID && sensor->manufacturer() == QLatin1String("BOSCH") && sensor->modelId() == QLatin1String("AIR"))
+                {
+                    levelPpb = attr.numericValue().u16;
                 }
             }
                 break;
 
             default:
                 break;
+            }
+
+            if (levelPpb != UINT32_MAX)
+            {
+                QString airquality = QLatin1String("none");
+
+                if (levelPpb > 0 && levelPpb <= 65)      { airquality = QLatin1String("excellent"); }
+                if (levelPpb > 65 && levelPpb <= 220)    { airquality = QLatin1String("good"); }
+                if (levelPpb > 220 && levelPpb <= 660)   { airquality = QLatin1String("moderate"); }
+                if (levelPpb > 660 && levelPpb <= 2200)  { airquality = QLatin1String("poor"); }
+                if (levelPpb > 2200 && levelPpb <= 5500) { airquality = QLatin1String("unhealthy"); }
+                if (levelPpb > 5500 )                    { airquality = QLatin1String("out of scale"); }
+
+                ResourceItem *item = sensor->item(RStateAirQuality);
+                if (item)
+                {
+                    if (updateType == NodeValue::UpdateByZclReport)
+                    {
+                        stateUpdated = true;
+                    }
+                    if (item->toString() != airquality)
+                    {
+                        item->setValue(airquality);
+                        enqueueEvent(Event(RSensors, RStateAirQuality, sensor->id(), item));
+                        stateUpdated = true;
+                    }
+                }
+
+                item = sensor->item(RStateAirQualityPpb);
+                if (item)
+                {
+                    if (updateType == NodeValue::UpdateByZclReport)
+                    {
+                        stateUpdated = true;
+                    }
+                    if (item->toNumber() != levelPpb)
+                    {
+                        item->setValue(levelPpb);
+                        enqueueEvent(Event(RSensors, RStateAirQualityPpb, sensor->id(), item));
+                        stateUpdated = true;
+                    }
+                }
+
+                sensor->setZclValue(updateType, ind.srcEndpoint(), ind.clusterId(), attrId, attr.numericValue());
             }
         }
 

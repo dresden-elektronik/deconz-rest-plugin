@@ -135,6 +135,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_BOSCH, "ISW-ZDL1-WP11G", boschMacPrefix },
     { VENDOR_BOSCH, "ISW-ZPR1-WP13", boschMacPrefix },
     { VENDOR_BOSCH, "RFDL-ZB-MS", emberMacPrefix }, // Bosch motion sensor
+    { VENDOR_BOSCH2, "AIR", tiMacPrefix }, // Bosch Air quality sensor
     { VENDOR_CENTRALITE, "Motion Sensor-A", emberMacPrefix },
     { VENDOR_CENTRALITE, "3321-S", emberMacPrefix }, // Centralite multipurpose sensor
     { VENDOR_CENTRALITE, "3325-S", emberMacPrefix }, // Centralite motion sensor
@@ -862,6 +863,7 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
             break;
 
         case 0xFC03:    // Develco specific -> VOC Management
+        case BOSCH_AIR_QUALITY_CLUSTER_ID: // Bosch Air quality sensor
             handleAirQualityClusterIndication(ind, zclFrame);
             break;
 
@@ -5034,7 +5036,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
                 case RELATIVE_HUMIDITY_CLUSTER_ID:
                 {
-                    if (modelId != QLatin1String("VOC_Sensor"))
+                    if (modelId == QLatin1String("AIR") && node->nodeDescriptor().manufacturerCode() == VENDOR_BOSCH2)
+                    {
+                       // use manufacturer specific cluster instead
+                    }
+                    else if (modelId != QLatin1String("VOC_Sensor"))
                     {
                         fpHumiditySensor.inClusters.push_back(ci->id());
                     }
@@ -5239,6 +5245,22 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     if (modelId == QLatin1String("AQSZB-110"))  // Develco air quality sensor
                     {
                         fpAirQualitySensor.inClusters.push_back(ci->id());
+                    }
+                }
+                    break;
+
+                case BOSCH_AIR_QUALITY_CLUSTER_ID:
+                {
+                    if (node->nodeDescriptor().manufacturerCode() == VENDOR_BOSCH2 && modelId == QLatin1String("AIR"))
+                    {
+                        fpAirQualitySensor.inClusters.push_back(ci->id());
+                        // fake proper clusterIds
+                        fpLightSensor.inClusters.push_back(ILLUMINANCE_MEASUREMENT_CLUSTER_ID);
+                        fpLightSensor.inClusters.push_back(ci->id());
+                        fpPressureSensor.inClusters.push_back(PRESSURE_MEASUREMENT_CLUSTER_ID);
+                        fpPressureSensor.inClusters.push_back(ci->id());
+                        fpHumiditySensor.inClusters.push_back(RELATIVE_HUMIDITY_CLUSTER_ID);
+                        fpHumiditySensor.inClusters.push_back(ci->id());
                     }
                 }
                     break;
@@ -5753,16 +5775,17 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
         }
 
         // ZHAAirQuality
-        if (fpAirQualitySensor.hasInCluster(0xFC03))    // Develco specific -> VOC Management
+        if (fpAirQualitySensor.hasInCluster(0xFC03)      // Develco specific -> VOC Management
+            || fpAirQualitySensor.hasInCluster(BOSCH_AIR_QUALITY_CLUSTER_ID)) // Bosch Air quality sensor
         {
             fpAirQualitySensor.endpoint = i->endpoint();
             fpAirQualitySensor.deviceId = i->deviceId();
             fpAirQualitySensor.profileId = i->profileId();
 
-            sensor = getSensorNodeForFingerPrint(node->address().ext(), fpAirQualitySensor, "ZHAAirQuality");
+            sensor = getSensorNodeForFingerPrint(node->address().ext(), fpAirQualitySensor, QLatin1String("ZHAAirQuality"));
             if (!sensor || sensor->deletedState() != Sensor::StateNormal)
             {
-                addSensorNode(node, fpAirQualitySensor, "ZHAAirQuality", modelId, manufacturer);
+                addSensorNode(node, fpAirQualitySensor, QLatin1String("ZHAAirQuality"), modelId, manufacturer);
             }
             else
             {
@@ -6320,9 +6343,20 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         {
             clusterId = 0xFC03;
         }
-        if (modelId == QLatin1String("AQSZB-110"))  // Develco air quality sensor
+        else if (sensorNode.fingerPrint().hasInCluster(BOSCH_AIR_QUALITY_CLUSTER_ID))
+        {
+            clusterId = BOSCH_AIR_QUALITY_CLUSTER_ID;
+
+            // Init Poll control
+            item = sensorNode.addItem(DataTypeUInt8, RConfigPending);
+            item->setValue(item->toNumber() | R_PENDING_WRITE_POLL_CHECKIN_INTERVAL | R_PENDING_SET_LONG_POLL_INTERVAL);
+        }
+
+        if (modelId == QLatin1String("AQSZB-110")  // Develco air quality sensor
+            || (node->nodeDescriptor().manufacturerCode() == VENDOR_BOSCH2 && modelId == QLatin1String("AIR")))  // Bosch air quality sensor
         {
             item = sensorNode.addItem(DataTypeString, RStateAirQuality);
+            item = sensorNode.addItem(DataTypeUInt16, RStateAirQualityPpb);
         }
     }
 
@@ -6455,9 +6489,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     {
         sensorNode.setManufacturer("BEGA Gantenbrink-Leuchten KG");
     }
-    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_BOSCH)
+    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_BOSCH || node->nodeDescriptor().manufacturerCode() == VENDOR_BOSCH2)
     {
-        sensorNode.setManufacturer("BOSCH");
+        sensorNode.setManufacturer(QLatin1String("BOSCH"));
     }
     else if (node->nodeDescriptor().manufacturerCode() == VENDOR_IKEA || modelId.startsWith(QLatin1String("TRADFRI")))
     {
@@ -7104,6 +7138,13 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
             }
                 continue; // ignore
 
+            case BOSCH_AIR_QUALITY_CLUSTER_ID:
+                if (i->modelId() == QLatin1String("AIR") && event.node()->nodeDescriptor().manufacturerCode() == VENDOR_BOSCH2)
+                {
+                    break; // Bosch Air quality sensor
+                }
+                continue;
+
             default:
                 continue; // don't process further
             }
@@ -7412,6 +7453,73 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                             }
                         }
                     }
+                    else if (event.clusterId() == BOSCH_AIR_QUALITY_CLUSTER_ID)
+                    {
+                        for (;ia != enda; ++ia)
+                        {
+                            if (std::find(event.attributeIds().begin(),
+                                          event.attributeIds().end(),
+                                          ia->id()) == event.attributeIds().end())
+                            {
+                                continue;
+                            }
+
+                            if (ia->id() == 0x4001) // air pressure (mBar)
+                            {
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
+                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u16);
+                                }
+
+                                const auto pressure = ia->numericValue().u16;
+                                ResourceItem *item = i->item(RStatePressure);
+
+                                if (item)
+                                {
+                                    item->setValue(pressure);
+                                    i->updateStateTimestamp();
+                                    i->setNeedSaveDatabase(true);
+                                    enqueueEvent(Event(RSensors, item->descriptor().suffix, i->id(), item));
+                                    enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
+                                }
+
+                                updateSensorEtag(&*i);
+                            }
+                            else if (ia->id() == 0x4003) // humidity (%)
+                            {
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
+                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u16);
+                                }
+
+                                ResourceItem *item = i->item(RStateHumidity);
+
+                                if (item)
+                                {
+                                    item->setValue(static_cast<quint16>(ia->numericValue().u8) * 100);
+                                    i->updateStateTimestamp();
+                                    i->setNeedSaveDatabase(true);
+                                    enqueueEvent(Event(RSensors, item->descriptor().suffix, i->id(), item));
+                                    enqueueEvent(Event(RSensors, RStateLastUpdated, i->id()));
+                                }
+
+                                updateSensorEtag(&*i);
+                            }
+                            else if (ia->id() == 0x4005) // measured illuminance (lux)
+                            {
+                                if (updateType != NodeValue::UpdateInvalid)
+                                {
+                                    i->setZclValue(updateType, event.endpoint(), event.clusterId(), ia->id(), ia->numericValue());
+                                    pushZclValueDb(event.node()->address().ext(), event.endpoint(), event.clusterId(), ia->id(), ia->numericValue().u16);
+                                }
+
+                                updateSensorLightLevel(*i, ia->numericValue().u16); // ZigBee uses a 16-bit measured value
+                                updateSensorEtag(&*i);
+                            }
+                        }
+                    }
                     else if (event.clusterId() == ILLUMINANCE_MEASUREMENT_CLUSTER_ID)
                     {
                         for (;ia != enda; ++ia)
@@ -7508,6 +7616,11 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                     }
                     else if (event.clusterId() == RELATIVE_HUMIDITY_CLUSTER_ID)
                     {
+                        if (i->modelId() == QLatin1String("AIR") && event.node()->nodeDescriptor().manufacturerCode() == VENDOR_BOSCH2)
+                        {
+                            continue; // Bosch Air quality sensor has invalid value here, it will be taken from BOSCH_AIR_QUALITY_CLUSTER_ID
+                        }
+
                         for (;ia != enda; ++ia)
                         {
                             if (ia->id() == 0x0000) // relative humidity
@@ -12716,6 +12829,7 @@ void DeRestPluginPrivate::nodeEvent(const deCONZ::NodeEvent &event)
         case DOOR_LOCK_CLUSTER_ID:
         case SAMJIN_CLUSTER_ID:
         case TIME_CLUSTER_ID:
+        case BOSCH_AIR_QUALITY_CLUSTER_ID:
             {
                 addSensorNode(event.node(), &event);
                 updateSensorNode(event);
@@ -16174,6 +16288,27 @@ void DeRestPluginPrivate::delayedFastEnddeviceProbe(const deCONZ::NodeEvent *eve
                     queueBindingTask(bindingTask);
                     queueBindingTask(bindingTask2);
                 }
+            }
+        }
+        else if (sensor->modelId() == QLatin1String("AIR") && node->nodeDescriptor().manufacturerCode() == VENDOR_BOSCH2) // Bosch Air quality sensor
+        {
+            // binding for manufacturer specific BOSCH_AIR_QUALITY_CLUSTER_ID
+            BindingTask bindingTask;
+
+            bindingTask.state = BindingTask::StateIdle;
+            bindingTask.action = BindingTask::ActionBind;
+            bindingTask.restNode = sensor;
+            Binding &bnd = bindingTask.binding;
+            bnd.srcAddress = sensor->address().ext();
+            bnd.dstAddrMode = deCONZ::ApsExtAddress;
+            bnd.srcEndpoint = 0x02;
+            bnd.clusterId = BOSCH_AIR_QUALITY_CLUSTER_ID;
+            bnd.dstAddress.ext = apsCtrl->getParameter(deCONZ::ParamMacAddress);
+            bnd.dstEndpoint = endpoint();
+
+            if (bnd.dstEndpoint > 0) // valid gateway endpoint?
+            {
+                queueBindingTask(bindingTask);
             }
         }
         else if (sensor->modelId().endsWith(QLatin1String("86opcn01")))  // Aqara Opple
