@@ -6174,8 +6174,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.modelId() == QLatin1String("GbxAXL2") ||         // Tuya
                 sensorNode.modelId() == QLatin1String("902010/32") ||       // Bitron
                (sensorNode.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) ||          // Tuya
-               (sensorNode.manufacturer() == QLatin1String("_TZE200_aoclfnxz")) ||          // Tuya
-                sensorNode.modelId() == QLatin1String("Zen-01") )           // Zen
+               (sensorNode.manufacturer() == QLatin1String("_TZE200_aoclfnxz")))            // Tuya
             {
                 sensorNode.addItem(DataTypeString, RConfigMode);
             }
@@ -6254,6 +6253,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             }
             else if (modelId == QLatin1String("Zen-01"))
             {
+                sensorNode.addItem(DataTypeInt16, RConfigCoolSetpoint);
+                sensorNode.addItem(DataTypeString, RConfigMode);
+                sensorNode.addItem(DataTypeString, RConfigFanMode);
             }
             else if (modelId == QLatin1String("3157100"))
             {
@@ -16998,6 +17000,7 @@ void DeRestPlugin::idleTimerFired()
                                 sensorNode->modelId().startsWith(QLatin1String("TRV001")) ||    // Hive TRV
                                 sensorNode->modelId().startsWith(QLatin1String("TH112")) ||     // Sinope devices
                                 sensorNode->modelId().startsWith(QLatin1String("eTRV0100")) ||  // Danfoss Ally
+                                sensorNode->modelId().startsWith(QLatin1String("Zen-01")) ||    // Zen
                                 sensorNode->modelId().startsWith(QLatin1String("Super TR")) ||  // Elko
                                 sensorNode->modelId().startsWith(QLatin1String("AC201")) ||     // Owon
                                 sensorNode->modelId().startsWith(QLatin1String("SORB")) ||      // Stelpro Orleans

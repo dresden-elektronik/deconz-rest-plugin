@@ -1715,7 +1715,8 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                 {
                     if (map[pi.key()].type() == QVariant::String && map[pi.key()].toString().size() <= 6)
                     {
-                        if (sensor->modelId() == QLatin1String("AC201") || sensor->modelId() == QLatin1String("3157100"))
+                        if (sensor->modelId() == QLatin1String("AC201") || sensor->modelId() == QLatin1String("3157100") ||
+                            sensor->modelId() == QLatin1String("Zen-01"))
                         {
                             QString modeSet = map[pi.key()].toString();
                             quint8 mode = 0;
