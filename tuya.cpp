@@ -236,12 +236,13 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         .arg(hour, 2, 10, QChar('0'))
                         .arg(minut, 2, 10, QChar('0'))
                         .arg(heatSetpoint);
+                        
+                    if (part > 0 && listday.size() >= static_cast<int>(part))
+                    {
+                        updateThermostatSchedule(sensorNode, listday.at(part - 1), transitions);
+                    }
+                        
                 }
-            }
-            
-            if (part > 0 && listday.size() >= static_cast<int>(part))
-            {
-                updateThermostatSchedule(sensorNode, listday.at(part - 1), transitions);
             }
             
             return;
@@ -394,7 +395,6 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     else if (data == 1) { mode = QLatin1String("heat"); }
                     else
                     {
-                        DBG_Assert(data <= 0); // unsupported
                         return;
                     }
                     
@@ -468,7 +468,6 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     else if (data == 1) { mode = QLatin1String("manu"); }
                     else
                     {
-                        DBG_Assert(data <= 0); // unsupported
                         return;
                     }
                     
@@ -509,7 +508,6 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     else if (data == 1) { mode = QLatin1String("auto"); } // back to "auto"
                     else
                     {
-                        DBG_Assert(data <= 0); // unsupported
                         return;
                     }
                     
@@ -673,9 +671,6 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                             enqueueEvent(e);
                         }
                     }
-                    else
-                    {
-                    }
                 }
                 case 0x026A : // Siren Humidity
                 {
@@ -720,7 +715,6 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     else if (dp == 0x0403) { preset = QLatin1String("program"); }
                     else
                     {
-                        DBG_Assert(data <= 0); // unsupported
                         return;
                     }
                     
@@ -745,7 +739,6 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     else if (data == 6) { preset = QLatin1String("complex"); }
                     else
                     {
-                        DBG_Assert(data <= 0); // unsupported
                         return;
                     }
                     
@@ -766,7 +759,6 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                     else if (data == 2) { mode = QLatin1String("off"); }
                     else
                     {
-                        DBG_Assert(data <= 0); // unsupported
                         return;
                     }
                     
