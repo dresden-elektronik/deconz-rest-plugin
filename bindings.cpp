@@ -1310,7 +1310,7 @@ bool DeRestPluginPrivate::sendConfigureReportingRequest(BindingTask &bt)
             rq2.minInterval = 1;
             rq2.maxInterval = 600;
             rq2.reportableChange8bit = 1;
-            
+
             ConfigureReportingRequest rq3;
             rq3.dataType = deCONZ::Zcl8BitEnum;
             rq3.attributeId = 0x001C;        // Thermostat mode
@@ -2575,6 +2575,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         // Sengled
         sensor->modelId().startsWith(QLatin1String("E13-")) ||
         sensor->modelId().startsWith(QLatin1String("E1D-")) ||
+        sensor->modelId().startsWith(QLatin1String("E1E-")) ||
         // Linkind
         sensor->modelId() == QLatin1String("ZB-MotionSensor-D0003") ||
         // Immax
@@ -3038,7 +3039,8 @@ bool DeRestPluginPrivate::checkSensorBindingsForClientClusters(Sensor *sensor)
 
     if (sensor->modelId().startsWith(QLatin1String("RWL02")) || // Hue dimmer switch
         sensor->modelId().startsWith(QLatin1String("ROM00")) || // Hue smart button
-        sensor->modelId().startsWith(QLatin1String("ElkoDimmer"))) // Elko dimmer
+        sensor->modelId().startsWith(QLatin1String("ElkoDimmer")) || // Elko dimmer
+        sensor->modelId().startsWith(QLatin1String("E1E-"))) // Sengled smart light switch
 
     {
         srcEndpoints.push_back(0x01);
@@ -3445,6 +3447,7 @@ void DeRestPluginPrivate::checkSensorGroup(Sensor *sensor)
         sensor->modelId().startsWith(QLatin1String("ZBT-DIMSwitch")) || // Linkind 1 key Remote Control / ZS23000178
         sensor->modelId().startsWith(QLatin1String("ElkoDimmer")) || // Elko dimmer
         sensor->modelId().startsWith(QLatin1String("WB01")) || // Sonoff SNZB-01
+        sensor->modelId().startsWith(QLatin1String("E1E-")) || // Sengled smart light switch
         sensor->modelId().startsWith(QLatin1String("ZG2835")) || // SR-ZG2835 Zigbee Rotary Switch
         sensor->modelId().startsWith(QLatin1String("RGBgenie ZB-5121"))) // RGBgenie ZB-5121 remote
     {
