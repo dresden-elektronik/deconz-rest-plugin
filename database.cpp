@@ -3587,6 +3587,9 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 }
                 else if (sensor.modelId() == QLatin1String("Zen-01"))
                 {
+                    sensor.addItem(DataTypeInt16, RConfigCoolSetpoint);
+                    sensor.addItem(DataTypeString, RConfigMode);
+                    sensor.addItem(DataTypeString, RConfigFanMode);
                 }
                 else if (sensor.modelId() == QLatin1String("3157100"))
                 {
