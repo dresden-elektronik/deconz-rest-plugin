@@ -3588,6 +3588,13 @@ static int sqliteLoadAllSensorsCallback(void *user, int ncols, char **colval , c
                 else if (sensor.modelId() == QLatin1String("Zen-01"))
                 {
                 }
+                else if (sensor.modelId() == QLatin1String("3157100"))
+                {
+                    sensor.addItem(DataTypeInt16, RConfigCoolSetpoint);
+                    sensor.addItem(DataTypeBool, RConfigLocked);
+                    sensor.addItem(DataTypeString, RConfigMode);
+                    sensor.addItem(DataTypeString, RConfigFanMode);
+                }
                 else if ((sensor.modelId() == QLatin1String("eTRV0100")) || // Danfoss Ally
                          (sensor.modelId() == QLatin1String("TRV001")) )    // Hive TRV
                 {

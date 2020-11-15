@@ -6255,6 +6255,13 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             else if (modelId == QLatin1String("Zen-01"))
             {
             }
+            else if (modelId == QLatin1String("3157100"))
+            {
+                sensorNode.addItem(DataTypeInt16, RConfigCoolSetpoint);
+                sensorNode.addItem(DataTypeBool, RConfigLocked);
+                sensorNode.addItem(DataTypeString, RConfigMode);
+                sensorNode.addItem(DataTypeString, RConfigFanMode);
+            }
             else if ((modelId == QLatin1String("eTRV0100")) || // Danfoss Ally
                      (modelId == QLatin1String("TRV001")) )    // Hive TRV
             {
@@ -7310,6 +7317,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId().startsWith(QLatin1String("3320-L")) ||    // Centralite contact sensor
                                     i->modelId().startsWith(QLatin1String("3323")) ||      // Centralite contact sensor
                                     i->modelId().startsWith(QLatin1String("3315")) ||      // Centralite water sensor
+                                    i->modelId().startsWith(QLatin1String("3157100")) ||      // Centralite pearl thermostat
                                     i->modelId().startsWith(QLatin1String("4655BC0")) ||      // Ecolink contact sensor
                                     i->modelId().startsWith(QLatin1String("lumi.sen_ill")) || // Xiaomi ZB3.0 light sensor
                                     i->modelId().startsWith(QLatin1String("SZ-DWS04"))   || // Sercomm open/close sensor
