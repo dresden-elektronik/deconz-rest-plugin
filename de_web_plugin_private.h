@@ -296,6 +296,7 @@
 #define VENDOR_BITRON               0x1071 // branded
 #define VENDOR_COMPUTIME            0x1078
 #define VENDOR_AXIS                 0x1262 // Axis
+#define VENDOR_KWIKSET              0x1092
 #define VENDOR_MMB                  0x109a
 #define VENDOR_NETVOX               0x109F
 #define VENDOR_NYCE                 0x10B9
@@ -449,6 +450,8 @@ extern const quint64 silabs4MacPrefix;
 extern const quint64 silabs5MacPrefix;
 extern const quint64 silabs6MacPrefix;
 extern const quint64 silabs7MacPrefix;
+extern const quint64 silabs8MacPrefix;
+extern const quint64 silabs9MacPrefix;
 extern const quint64 instaMacPrefix;
 extern const quint64 boschMacPrefix;
 extern const quint64 jennicMacPrefix;
@@ -1454,6 +1457,7 @@ public:
     void handleIndicationSearchSensors(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
     bool SendTuyaRequest(TaskItem &task, TaskType taskType , qint8 Dp_type, qint8 Dp_identifier , QByteArray data );
     void handleCommissioningClusterIndication(const deCONZ::ApsDataIndication &ind, deCONZ::ZclFrame &zclFrame);
+    bool SendTuyaRequestThermostatSetWeeklySchedule(TaskItem &taskRef, quint8 weekdays , QString transitions , qint8 Dp_identifier);
     void handleZdpIndication(const deCONZ::ApsDataIndication &ind);
     bool handleMgmtBindRspConfirm(const deCONZ::ApsDataConfirm &conf);
     void handleDeviceAnnceIndication(const deCONZ::ApsDataIndication &ind);

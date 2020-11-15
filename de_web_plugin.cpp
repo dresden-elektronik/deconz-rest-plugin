@@ -100,8 +100,10 @@ const quint64 profaluxMacPrefix   = 0x20918a0000000000ULL;
 const quint64 stMacPrefix         = 0x24fd5b0000000000ULL;
 const quint64 samjinMacPrefix     = 0x286d970000000000ULL;
 const quint64 sinopeMacPrefix     = 0x500b910000000000ULL;
+const quint64 silabs9MacPrefix    = 0x5c02720000000000ULL;
 const quint64 silabs6MacPrefix    = 0x588e810000000000ULL;
 const quint64 silabs4MacPrefix    = 0x680ae20000000000ULL;
+const quint64 silabs8MacPrefix    = 0x60a4230000000000ULL;
 const quint64 ecozyMacPrefix      = 0x70b3d50000000000ULL;
 const quint64 osramMacPrefix      = 0x8418260000000000ULL;
 const quint64 silabs5MacPrefix    = 0x842e140000000000ULL;
@@ -354,14 +356,21 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_EMBER, "TS0121", silabs3MacPrefix }, // Tuya/Blitzwolf smart plug
     { VENDOR_EMBER, "TS0302", silabs3MacPrefix }, // Tuya curtain switch
     { VENDOR_EMBER, "TS0041", silabs3MacPrefix }, // Tuya wireless switch
+    { VENDOR_EMBER, "TS0041", silabs5MacPrefix }, // Tuya wireless switch
+    { VENDOR_EMBER, "TS0042", silabs3MacPrefix }, // Tuya wireless switch
+    { VENDOR_EMBER, "TS0043", silabs3MacPrefix }, // Tuya wireless switch
+    { VENDOR_EMBER, "TS0043", silabs8MacPrefix }, // Tuya wireless switch
+    { VENDOR_EMBER, "TS0044", silabs9MacPrefix }, // Tuya wireless switch
     { VENDOR_NONE, "kud7u2l", silabs3MacPrefix }, // Tuya Smart TRV HY369 Thermostatic Radiator Valve
     { VENDOR_NONE, "GbxAXL2", silabs3MacPrefix }, // Another Tuya Smart TRV Thermostatic Radiator Valve
     { VENDOR_EMBER, "TS0601", silabs7MacPrefix }, // Tuya Smart TRV HY369 Thermostatic Radiator Valve
-    { VENDOR_EMBER, "TS0601", silabs5MacPrefix }, // MOES Zigbee Radiator Actuator HY368
+    { VENDOR_EMBER, "TS0601", silabs5MacPrefix }, // MOES Zigbee Radiator Actuator HY368 / Moes Tuya Thermostat BTH-002
     { VENDOR_EMBER, "TS0207", silabs3MacPrefix }, // Tuya water leak sensor
     { VENDOR_NONE, "TS0202", silabs4MacPrefix }, // Tuya presence sensor
     { VENDOR_NONE, "0yu2xgi", silabs5MacPrefix }, // Tuya siren
     { VENDOR_NONE, "eaxp72v", ikea2MacPrefix }, // Tuya TRV Wesmartify Thermostat Essentials Premium
+    { VENDOR_NONE, "88teujp", silabs8MacPrefix }, // SEA802-Zigbee
+    { VENDOR_NONE, "fvq6avy", silabs7MacPrefix }, // Revolt NX-4911-675 Thermostat
     { VENDOR_AURORA, "DoubleSocket50AU", jennicMacPrefix }, // Aurora AOne Double Socket UK
     { VENDOR_COMPUTIME, "SP600", computimeMacPrefix }, // Salus smart plug
     { VENDOR_HANGZHOU_IMAGIC, "1116-S", energyMiMacPrefix }, // iris contact sensor v3
@@ -402,7 +411,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_NONE, "DS01", tiMacPrefix }, // Sonoff SNZB-04
     { VENDOR_DANFOSS, "eTRV0100", silabs2MacPrefix }, // Danfoss Ally thermostat
     { VENDOR_LDS, "ZBT-CCTSwitch-D0001", silabs2MacPrefix }, // Leedarson remote control
-    { VENDOR_NONE, "SMARTCODE_CONVERT_GEN1", zenMacPrefix }, // Kwikset 914 ZigBee smart lock
+    { VENDOR_KWIKSET, "SMARTCODE_CONVERT_GEN1", zenMacPrefix }, // Kwikset 914 ZigBee smart lock
 
     { 0, nullptr, 0 }
 };
@@ -916,6 +925,16 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
                         sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x03);
                     }
                     else if (sensorNode->modelId().endsWith(QLatin1String("86opcn01"))) //Aqara Opple enable events from all multistate clusters
+                    {
+                        sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
+                    }
+                    else if ((sensorNode->manufacturer() == QLatin1String("_TZ3000_bi6lpsew")) ||
+                        (sensorNode->manufacturer() == QLatin1String("_TZ3400_keyjhapk")) ||
+                        (sensorNode->manufacturer() == QLatin1String("_TYZB02_key8kk7r")) ||
+                        (sensorNode->manufacturer() == QLatin1String("_TZ3400_keyjqthh")) ||
+                        (sensorNode->manufacturer() == QLatin1String("_TZ3400_key8kk7r")) ||
+                        (sensorNode->manufacturer() == QLatin1String("_TZ3000_vp6clf9d")) ||
+                        (sensorNode->manufacturer() == QLatin1String("_TYZB02_keyjqthh")))
                     {
                         sensorNode = getSensorNodeForAddressAndEndpoint(ind.srcAddress(), 0x01);
                     }
@@ -1784,6 +1803,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         node->nodeDescriptor().manufacturerCode() == VENDOR_MMB || // Axis shade
         // Danalock support. The vendor ID (0x115c) needs to defined and whitelisted, as it's battery operated
         node->nodeDescriptor().manufacturerCode() == VENDOR_DANALOCK || // Danalock Door Lock
+        node->nodeDescriptor().manufacturerCode() == VENDOR_KWIKSET || // Kwikset 914 ZigBee smart lock
         // Schlage support. The vendor ID (0x1236) needs to defined and whitelisted, as it's battery operated
         node->nodeDescriptor().manufacturerCode() == VENDOR_SCHLAGE)
     {
@@ -1797,7 +1817,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
     bool hasTuyaCluster = false;
     QString manufacturer;
 
-    //Make 2 fakes device for tuya stuff
+    //Make 2 fakes device for tuya switches
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER && !node->simpleDescriptors().isEmpty())
     {
         const deCONZ::SimpleDescriptor *sd = &node->simpleDescriptors()[0];
@@ -1879,7 +1899,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
             else if ((i->inClusters()[c].id() == TUYA_CLUSTER_ID) && (node->macCapabilities() & deCONZ::MacDeviceIsFFD) ) { hasServerOnOff = true; }
             // Danalock support. The cluster needs to be defined and whitelisted by setting hasServerOnOff
             else if (node->nodeDescriptor().manufacturerCode() == VENDOR_DANALOCK && i->inClusters()[c].id() == DOOR_LOCK_CLUSTER_ID) { hasServerOnOff = true; }
-            else if (!node->nodeDescriptor().isNull() && node->nodeDescriptor().manufacturerCode() == VENDOR_NONE && i->inClusters()[c].id() == DOOR_LOCK_CLUSTER_ID) { hasServerOnOff = true; } //Kwikset 914 ZigBee smart lock
+            else if (node->nodeDescriptor().manufacturerCode() == VENDOR_KWIKSET && i->inClusters()[c].id() == DOOR_LOCK_CLUSTER_ID) { hasServerOnOff = true; } //Kwikset 914 ZigBee smart lock
             else if (i->inClusters()[c].id() == BASIC_CLUSTER_ID)
             {
                 std::vector<deCONZ::ZclAttribute>::const_iterator j = i->inClusters()[c].attributes().begin();
@@ -1996,7 +2016,7 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
 
 
         // For Tuya, we realy need manufacture Name, but can't use it to compare because of fonction setManufacturerCode() that put "Heiman",
-        if (!node->nodeDescriptor().isNull() && node->nodeDescriptor().manufacturerCode() == VENDOR_NONE && node->simpleDescriptors().size() == 1)
+        if (((!node->nodeDescriptor().isNull() && node->nodeDescriptor().manufacturerCode() == VENDOR_NONE) || (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER)) /*&& (node->simpleDescriptors().size() == 1)*/)
         {
             if (manufacturer.isEmpty())
             {
@@ -2006,6 +2026,16 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 openDb();
                 manufacturer = loadDataForLightNodeFromDb(generateUniqueId(node->address().ext(),0,0));
                 closeDb();
+                
+                if (manufacturer.isEmpty())
+                {
+                    // extract from sensor if possible
+                    Sensor *sensor = getSensorNodeForAddress(node->address());
+                    if (sensor && !sensor->manufacturer().isEmpty())
+                    {
+                        manufacturer = sensor->manufacturer();
+                    }
+                }
 
 				if (manufacturer.isEmpty())
 				{
@@ -2036,10 +2066,39 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
                 hasServerOnOff = true;
             }
             //Tuya black list
-            //_TYST11_ckud7u2l is valve with 2 cluster
-            //_TYST11_jeaxp72v same
+            // _TYST11_ckud7u2l is valve with 2 cluster
+            // _TYST11_jeaxp72v same
+            // _TYST11_kfvq6avy same
+            // _TYST11_c88teujp same
             if ((lightNode.manufacturer() == QLatin1String("_TYST11_ckud7u2l")) ||
+                (lightNode.manufacturer() == QLatin1String("_TYST11_kfvq6avy")) ||
+                (lightNode.manufacturer() == QLatin1String("_TYST11_c88teujp")) ||
                 (lightNode.manufacturer() == QLatin1String("_TYST11_jeaxp72v")) )
+            {
+                hasServerOnOff = false;
+            }
+        }
+        if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER)
+        {
+            //Tuya black list
+            //_TZE200_aoclfnxz is a thermostat
+            if (lightNode.manufacturer() == QLatin1String("_TZE200_aoclfnxz"))
+            {
+                hasServerOnOff = false;
+            }
+            //to test
+            if (lightNode.manufacturer() == QLatin1String("_TZE200_wmcdj3aq"))
+            {
+                hasServerOnOff = true;
+            }
+            //wireless switch
+            if ((lightNode.manufacturer() == QLatin1String("_TZ3000_bi6lpsew")) ||
+                (lightNode.manufacturer() == QLatin1String("_TZ3400_keyjhapk")) ||
+                (lightNode.manufacturer() == QLatin1String("_TYZB02_key8kk7r")) ||
+                (lightNode.manufacturer() == QLatin1String("_TZ3400_keyjqthh")) ||
+                (lightNode.manufacturer() == QLatin1String("_TZ3400_key8kk7r")) ||
+                (lightNode.manufacturer() == QLatin1String("_TZ3000_vp6clf9d")) ||
+                (lightNode.manufacturer() == QLatin1String("_TYZB02_keyjqthh")))
             {
                 hasServerOnOff = false;
             }
@@ -2357,6 +2416,8 @@ void DeRestPluginPrivate::addLightNode(const deCONZ::Node *node)
         //Add missing field for Tuya Device with tuya cluster
         // Window covering
         if ((lightNode.manufacturer() == QString("_TYST11_xu1rkty3")) ||
+            (lightNode.manufacturer() == QString("_TZE200_xuzcvlku")) ||
+            (lightNode.manufacturer() == QString("_TZE200_wmcdj3aq")) ||
             (lightNode.manufacturer() == QString("_TYST11_wmcdj3aq")) )
         {
             lightNode.addItem(DataTypeBool, RStateOpen);
@@ -4642,8 +4703,10 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         // For some device the Tuya cluster is sometime Invisible, so force device detection
                         if ((modelId == QLatin1String("kud7u2l")) ||
-                           (modelId == QLatin1String("eaxp72v")) ||
-                           (modelId == QLatin1String("GbxAXL2")) )
+                            (modelId == QLatin1String("eaxp72v")) ||
+                            (modelId == QLatin1String("88teujp")) ||
+                            (modelId == QLatin1String("fvq6avy")) ||
+                            (modelId == QLatin1String("GbxAXL2")) )
                         {
                             fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
                         }
@@ -4651,6 +4714,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                         {
                             fpTuyaSensor.inClusters.push_back(TUYA_CLUSTER_ID);
                         }
+                    }
+                    else if ((node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER) &&
+                             (manufacturer == QLatin1String("_TZE200_aoclfnxz")) )
+                    {
+                        fpThermostatSensor.inClusters.push_back(TUYA_CLUSTER_ID);
                     }
                 }
                     break;
@@ -4747,9 +4815,19 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     {
                         fpSwitch.inClusters.push_back(ci->id());
                     }
-                    else if (manufacturer == QLatin1String("_TZ3000_bi6lpsew"))
+                    else if ((manufacturer == QLatin1String("_TZ3000_bi6lpsew")) ||
+                             (manufacturer == QLatin1String("_TZ3400_keyjhapk")) ||
+                             (manufacturer == QLatin1String("_TYZB02_key8kk7r")) ||
+                             (manufacturer == QLatin1String("_TZ3400_keyjqthh")) ||
+                             (manufacturer == QLatin1String("_TZ3000_vp6clf9d")) ||
+                             (manufacturer == QLatin1String("_TZ3400_key8kk7r")) ||
+                             (manufacturer == QLatin1String("_TYZB02_keyjqthh")) )
                     {
-                        fpSwitch.inClusters.push_back(ci->id());
+                        //Making the device only for endpoint 0x01
+                        if (i->endpoint() == 0x01)
+                        {
+                            fpSwitch.inClusters.push_back(ci->id());
+                        }
                     }
                 }
                     break;
@@ -4933,6 +5011,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                     else if (((modelId.startsWith(QLatin1String("SLR2"))) || (modelId == QLatin1String("SLR1b")) ) && (i->endpoint() > 0x06 ))
                     {
                     }
+                    // Don't create entry for the door lock
+                    //else if (modelId == QLatin1String("SMARTCODE_CONVERT_GEN1"))
+                    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_KWIKSET)
+                    {
+                    }
                     else
                     {
                         fpTemperatureSensor.inClusters.push_back(ci->id());
@@ -5057,6 +5140,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 {
                     if ((modelId == QLatin1String("kud7u2l")) ||
                         (modelId == QLatin1String("GbxAXL2")) ||
+                        (manufacturer == QLatin1String("_TYST11_jeaxp72v")) ||
+                        (manufacturer == QLatin1String("_TYST11_kfvq6avy")) ||
+                        (manufacturer == QLatin1String("_TYST11_c88teujp")) ||
                         (manufacturer == QLatin1String("_TZE200_aoclfnxz")) ||
                         (manufacturer == QLatin1String("_TZE200_ckud7u2l")) )
                     {
@@ -6050,9 +6136,9 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
                 sensorNode.modelId().startsWith(QLatin1String("TH112")) ||  // Sinope
                 sensorNode.modelId() == QLatin1String("kud7u2l") ||         // Tuya
                 sensorNode.modelId() == QLatin1String("GbxAXL2") ||         // Tuya
-                sensorNode.modelId() == QLatin1String("TS0601") ||          // Tuya
-                sensorNode.modelId() == QLatin1String("eaxp72v") ||         // Tuya
                 sensorNode.modelId() == QLatin1String("902010/32") ||       // Bitron
+               (sensorNode.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) ||          // Tuya
+               (sensorNode.manufacturer() == QLatin1String("_TZE200_aoclfnxz")) ||          // Tuya
                 sensorNode.modelId() == QLatin1String("Zen-01") )           // Zen
             {
                 sensorNode.addItem(DataTypeString, RConfigMode);
@@ -6069,8 +6155,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
 
             if (sensorNode.modelId() == QLatin1String("kud7u2l") || // Tuya
                 sensorNode.modelId() == QLatin1String("GbxAXL2") || // Tuya
-                sensorNode.modelId() == QLatin1String("eaxp72v") || // Tuya
-                sensorNode.modelId() == QLatin1String("TS0601") )   // Tuya
+                (sensorNode.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
             {
                 sensorNode.addItem(DataTypeUInt8, RStateValve);
                 item = sensorNode.addItem(DataTypeBool, RStateLowBattery);
@@ -6078,10 +6163,32 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             }
 
             if (sensorNode.modelId() == QLatin1String("kud7u2l") || // Tuya
-                sensorNode.modelId() == QLatin1String("TS0601") )   // Tuya
+                sensorNode.modelId() == QLatin1String("eaxp72v") || // Tuya
+                sensorNode.modelId() == QLatin1String("88teujp") || // Tuya
+                sensorNode.modelId() == QLatin1String("fvq6avy") || // Tuya
+               (sensorNode.manufacturer() == QLatin1String("_TZE200_aoclfnxz")) || 
+               (sensorNode.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
             {
                 sensorNode.addItem(DataTypeString, RConfigPreset);
                 sensorNode.addItem(DataTypeBool, RConfigLocked);
+                sensorNode.addItem(DataTypeBool, RConfigSetValve);
+            }
+            
+            if (sensorNode.modelId() == QLatin1String("kud7u2l") || // Tuya
+                sensorNode.modelId() == QLatin1String("88teujp") || // Tuya
+                sensorNode.modelId() == QLatin1String("fvq6avy") || // Tuya
+               (sensorNode.manufacturer() == QLatin1String("_TZE200_aoclfnxz")) || 
+               (sensorNode.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
+            {
+                sensorNode.addItem(DataTypeString, RConfigSchedule);
+            }
+
+            if (sensorNode.modelId() == QLatin1String("kud7u2l") || // Tuya
+                sensorNode.modelId() == QLatin1String("eaxp72v") || // Tuya
+                sensorNode.modelId() == QLatin1String("88teujp") || // Tuya
+                sensorNode.modelId() == QLatin1String("fvq6avy") || // Tuya
+               (sensorNode.manufacturer() == QLatin1String("_TZE200_ckud7u2l")) )   // Tuya
+            {
                 sensorNode.addItem(DataTypeBool, RConfigWindowOpen);
             }
 
@@ -6132,8 +6239,11 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
             }
             else
             {
-                sensorNode.addItem(DataTypeBool, RConfigScheduleOn);
-                sensorNode.addItem(DataTypeString, RConfigSchedule);
+                if (!modelId.isEmpty())
+                {
+                    sensorNode.addItem(DataTypeBool, RConfigScheduleOn);
+                    sensorNode.addItem(DataTypeString, RConfigSchedule);
+                }
             }
         }
     }
@@ -6361,7 +6471,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
     {
         sensorNode.setManufacturer("ELKO");
     }
-    else if (node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER ||
+    else if ( //node->nodeDescriptor().manufacturerCode() == VENDOR_EMBER ||
              node->nodeDescriptor().manufacturerCode() == VENDOR_HEIMAN)
     {
         sensorNode.setManufacturer("Heiman");

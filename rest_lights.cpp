@@ -560,6 +560,8 @@ int DeRestPluginPrivate::setLightState(const ApiRequest &req, ApiResponse &rsp)
     {
         //window covering
         if ((taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_wmcdj3aq")) ||
+            (taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_xuzcvlku")) ||
+            (taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_wmcdj3aq")) ||
             (taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_xu1rkty3")) )
         {
             return setWindowCoveringState(req, rsp, taskRef, map);
@@ -1533,6 +1535,8 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     }
 
     if ((taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_wmcdj3aq")) ||
+        (taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_xuzcvlku")) ||
+        (taskRef.lightNode->manufacturer() == QLatin1String("_TZE200_wmcdj3aq")) ||
         (taskRef.lightNode->manufacturer() == QLatin1String("_TYST11_xu1rkty3")) )
     {
         cluster = TUYA_CLUSTER_ID;
@@ -1721,7 +1725,8 @@ int DeRestPluginPrivate::setWindowCoveringState(const ApiRequest &req, ApiRespon
     //Some device don't support lift, but third app can use it
     if (hasLift)
     {
-        if (taskRef.lightNode->manufacturer() == QLatin1String("_TYZB01_dazsid15"))
+        if ((taskRef.lightNode->manufacturer() == QLatin1String("_TYZB01_dazsid15")) ||
+            (taskRef.lightNode->modelId() == QLatin1String("FB56+CUR17SB2.2")) )
         {
             hasLift = false;
             hasOpen = true;
@@ -2357,6 +2362,55 @@ int DeRestPluginPrivate::setLightAttributes(const ApiRequest &req, ApiResponse &
         else
         {
             rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/reverse").arg(id), QString("invalid value, %1, for parameter reverse").arg(map["reverse"].toString())));
+            rsp.httpStatus = HttpStatusBadRequest;
+            return REQ_READY_SEND;
+        }
+    }
+
+    // Calibration command used for covering
+    if (map.contains("calibration"))
+    {
+
+        TaskItem taskRef;
+        taskRef.lightNode = getLightNodeForId(id);
+
+        if (!taskRef.lightNode || taskRef.lightNode->state() == LightNode::StateDeleted)
+        {
+            rsp.httpStatus = HttpStatusNotFound;
+            rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("resource, /lights/%1, not available").arg(id)));
+            return REQ_READY_SEND;
+        }
+
+        if (!taskRef.lightNode->isAvailable())
+        {
+            rsp.httpStatus = HttpStatusOk;
+            rsp.list.append(errorToMap(ERR_RESOURCE_NOT_AVAILABLE, QString("/lights/%1").arg(id), QString("resource, /lights/%1, not available").arg(id)));
+            return REQ_READY_SEND;
+        }
+
+        qint64 value = 0x00;
+        if (map["calibration"].toBool())
+        {
+            value = 0x01;
+        }
+        
+        deCONZ::ZclAttribute attr(0xf001, deCONZ::Zcl8BitEnum, "calibration", deCONZ::ZclReadWrite, true);
+        attr.setValue(value);
+
+        if (writeAttribute(taskRef.lightNode, taskRef.lightNode->haEndpoint().endpoint(), WINDOW_COVERING_CLUSTER_ID, attr))
+        {
+            QVariantMap rspItem;
+            QVariantMap rspItemState;
+            rspItemState[QString("/lights/%1/calibration").arg(id)] = map["calibration"];
+            rspItem["success"] = rspItemState;
+            rsp.list.append(rspItem);
+            rsp.etag = lightNode->etag;
+
+            return REQ_READY_SEND;
+        }
+        else
+        {
+            rsp.list.append(errorToMap(ERR_INVALID_VALUE, QString("/lights/%1/calibration").arg(id), QString("invalid value, %1, for parameter calibration").arg(map["calibration"].toString())));
             rsp.httpStatus = HttpStatusBadRequest;
             return REQ_READY_SEND;
         }
