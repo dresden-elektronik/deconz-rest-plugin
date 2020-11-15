@@ -672,6 +672,7 @@ void DeRestPluginPrivate::handleTuyaClusterIndication(const deCONZ::ApsDataIndic
                         }
                     }
                 }
+                break;
                 case 0x026A : // Siren Humidity
                 {
                     qint16 Hum = (static_cast<qint16>(data & 0xFFFF)) * 10;
@@ -837,7 +838,6 @@ bool DeRestPluginPrivate::SendTuyaRequestThermostatSetWeeklySchedule(TaskItem &t
     if (Dp_identifier == 0x65)
     {
         //To finish
-        weekdays = weekdays;
     }
     else
     {
