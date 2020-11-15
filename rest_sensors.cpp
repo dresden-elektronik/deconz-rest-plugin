@@ -1659,7 +1659,7 @@ int DeRestPluginPrivate::changeSensorConfig(const ApiRequest &req, ApiResponse &
                     else if (map[pi.key()].type() == QVariant::List)
                     {
                         QVariantList setting = map[pi.key()].toList();
-                        if ((settings.size() == 3) && (setting[0].type() == QVariant::Bool) && (setting[1].type() == QVariant::Double) && (setting[2].type() == QVariant::Double))
+                        if ((setting.size() == 3) && (setting[0].type() == QVariant::Bool) && (setting[1].type() == QVariant::Double) && (setting[2].type() == QVariant::Double))
                         {
                             QByteArray data = QByteArray("\x00",1);
                             if (setting[0].toBool())
