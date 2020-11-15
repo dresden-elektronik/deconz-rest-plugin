@@ -38,6 +38,7 @@ const char *RAttrLastSeen = "attr/lastseen";
 
 const char *RActionScene = "action/scene";
 
+const char *RStateAirQuality = "state/airquality";
 const char *RStateAlarm = "state/alarm";
 const char *RStateAlert = "state/alert";
 const char *RStateAllOn = "state/all_on";
@@ -202,6 +203,7 @@ void initResourceDescriptors()
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RAttrLastAnnounced));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeTime, RAttrLastSeen));
 
+    rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateAirQuality));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateAlarm));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeString, RStateAlert));
     rItemDescriptors.emplace_back(ResourceItemDescriptor(DataTypeBool, RStateAllOn));

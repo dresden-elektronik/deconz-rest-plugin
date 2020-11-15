@@ -301,6 +301,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_STELPRO, "ST218", xalMacPrefix }, // Stelpro Thermostat
     { VENDOR_STELPRO, "STZB402", xalMacPrefix }, // Stelpro baseboard thermostat
     { VENDOR_STELPRO, "SORB", xalMacPrefix }, // Stelpro Orleans Fan
+    { VENDOR_DEVELCO, "AQSZB-110", develcoMacPrefix }, // Develco air quality sensor
     { VENDOR_DEVELCO, "SMSZB-120", develcoMacPrefix }, // Develco smoke sensor
     { VENDOR_DEVELCO, "HESZB-120", develcoMacPrefix }, // Develco heat sensor
     { VENDOR_DEVELCO, "SPLZB-131", develcoMacPrefix }, // Develco smart plug
@@ -858,6 +859,10 @@ void DeRestPluginPrivate::apsdeDataIndication(const deCONZ::ApsDataIndication &i
 
         case DIAGNOSTICS_CLUSTER_ID:
             handleDiagnosticsClusterIndication(ind, zclFrame);
+            break;
+
+        case 0xFC03:    // Develco specific -> VOC Management
+            handleAirQualityClusterIndication(ind, zclFrame);
             break;
 
         case POLL_CONTROL_CLUSTER_ID:
@@ -4604,6 +4609,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
 
     for (;i != end; ++i)
     {
+        SensorFingerprint fpAirQualitySensor;
         SensorFingerprint fpAlarmSensor;
         SensorFingerprint fpBatterySensor;
         SensorFingerprint fpCarbonMonoxideSensor;
@@ -5228,6 +5234,15 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                 }
                     break;
 
+                case 0xFC03:    // Develco specific -> VOC Management
+                {
+                    if (modelId == QLatin1String("AQSZB-110"))  // Develco air quality sensor
+                    {
+                        fpAirQualitySensor.inClusters.push_back(ci->id());
+                    }
+                }
+                    break;
+
                 default:
                     break;
                 }
@@ -5734,6 +5749,24 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
             {
                 checkSensorNodeReachable(sensor);
                 checkIasEnrollmentStatus(sensor);
+            }
+        }
+
+        // ZHAAirQuality
+        if (fpAirQualitySensor.hasInCluster(0xFC03))    // Develco specific -> VOC Management
+        {
+            fpAirQualitySensor.endpoint = i->endpoint();
+            fpAirQualitySensor.deviceId = i->deviceId();
+            fpAirQualitySensor.profileId = i->profileId();
+
+            sensor = getSensorNodeForFingerPrint(node->address().ext(), fpAirQualitySensor, "ZHAAirQuality");
+            if (!sensor || sensor->deletedState() != Sensor::StateNormal)
+            {
+                addSensorNode(node, fpAirQualitySensor, "ZHAAirQuality", modelId, manufacturer);
+            }
+            else
+            {
+                checkSensorNodeReachable(sensor);
             }
         }
 
@@ -6271,6 +6304,17 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const SensorFi
         item = sensorNode.addItem(DataTypeTime, RStateUtc);
         item = sensorNode.addItem(DataTypeTime, RStateLocaltime);
         item = sensorNode.addItem(DataTypeTime, RStateLastSet);
+    }
+    else if (sensorNode.type().endsWith(QLatin1String("AirQuality")))
+    {
+        if (sensorNode.fingerPrint().hasInCluster(0xFC03))  // Develco specific -> VOC Management
+        {
+            clusterId = 0xFC03;
+        }
+        if (modelId == QLatin1String("AQSZB-110"))  // Develco air quality sensor
+        {
+            item = sensorNode.addItem(DataTypeString, RStateAirQuality);
+        }
     }
 
     if (node->nodeDescriptor().manufacturerCode() == VENDOR_DDEL)
@@ -7249,6 +7293,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     i->modelId() == QLatin1String("Bell") ||             // Sage doorbell sensor
                                     i->modelId() == QLatin1String("ISW-ZPR1-WP13") ||    // Bosch motion sensor
                                     i->modelId().endsWith(QLatin1String("86opcn01")) ||  // Aqara Opple
+                                    i->modelId().startsWith(QLatin1String("AQSZB-110")) || // Develco air quality sensor
                                     i->modelId().startsWith(QLatin1String("SMSZB-120")) || // Develco smoke sensor
                                     i->modelId().startsWith(QLatin1String("HESZB-120")) || // Develco heat sensor
                                     i->modelId().startsWith(QLatin1String("MOSZB-130")) || // Develco motion sensor
