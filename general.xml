@@ -345,6 +345,9 @@
 			<attribute id="0000" name="Name Support" type="bmp8" range="x0000000" access="r" required="m">
 				<value name="Name Support" value="7"></value>
 			</attribute>
+			<attribute id="0x0001" name="IKEA Scene" type="u32" access="rw" required="m" showas="hex" mfcode="0x117c">
+				
+			</attribute>
 			<command id="00" dir="recv" name="Add group" required="m" response="0x00">
 				<description>Add a group to the device.</description>
 				<payload>
@@ -682,29 +685,32 @@
 	<cluster id="0x0008" name="Level Control">
 	<description>This cluster provides an interface for controlling a characteristic of a device that can be set to a level, for example the brightness of a light, the degree of closure of a door, or the power output of a heater.</description>
 		<server>
-			<attribute id = "0000" name="Current Level" type="u8" range="0x00,0xff" access="r" required="m" default="0x00">
+			<attribute id = "0x0000" name="Current Level" type="u8" range="0x00,0xff" access="r" required="m" default="0x00">
 				<description>The CurrentLevel attribute represents the current level of this device. meaning of 'level' is device dependent.</description>
 			</attribute>
-			<attribute id = "0001" name="Remaining Time" type="u16" range="0x0000,0xffff" access="r" required="o" default="0x0000">
+			<attribute id = "0x0001" name="Remaining Time" type="u16" range="0x0000,0xffff" access="r" required="o" default="0x0000">
 				<description>The RemainingTime attribute represents the time remaining until the current command is complete - it is specified in 1/10ths of a second.</description>
+			</attribute>
+			<attribute id = "0x0010" name="OnOff Transistion Time" type="u16" range="0x0000,0xffff" access="rw" required="o" default="0x0000">
+				<description>The OnOffTransitionTime attribute represents the time taken to move to or from the target level when On of Off commands are received by an On/Off cluster on the same endpoint. It is specified in 1/10ths of a second. The actual time taken should be as close to OnOffTransitionTime as the device is able.</description>
+			</attribute>
+			<attribute id = "0x0011" name="On Level" type="u8" range="0x01,0xff" access="rw" required="o" default="0xff">
+				<description>The OnLevel attribute determines the value that the CurrentLevel attribute is set to when the OnOff attribute of an On/Off cluster on the same endpoint is set to On. If the OnLevel attribute is not implemented, or is set to 0xff, it has no effect.</description>
+			</attribute>
+			<attribute id = "0x0012" name="On Transition Time" type="u16" range="0x0000,0xfffe" access="rw" required="o" default="0">
+				<description>The OnTransitionTime attribute represents the time taken to move the current level from the minimum level to the maximum level when an On command is received by an On/Off cluster on the same endpoint. It is specified in 10ths of a second. If this command is not implemented, or contains a value of 0xffff, the On/OffTransitionTime will be used instead.</description>
+			</attribute>
+			<attribute id = "0x0013" name="Off Transition Time" type="u16" range="0x0000,0xfffe" access="rw" required="o" default="0">
+				<description>The OffTransitionTime attribute represents the time taken to move the current level from the maximum level to the minimum level when an Off command is received by an On/Off cluster on the same endpoint. It is specified in 10ths of a second. If this command is not implemented, or contains a value of 0xffff, the On/OffTransitionTime will be used instead.</description>
+			</attribute>
+			<attribute id = "0x0014" name="Default Move Rate" type="u8" range="0x00,0xfe" access="rw" required="o">
+				<description>The DefaultMoveRate attribute determines the movement rate, in units per second, when a Move command is received with a Rate parameter of 0xFF.</description>
 			</attribute>
 			<attribute id = "0x000f" name="Unknown" type="bmp8" access="rw" required="o">
 				<description>IKEA specific.</description>
-			</attribute>
-			<attribute id = "0010" name="OnOff Transistion Time" type="u16" range="0x0000,0xffff" access="rw" required="o" default="0x0000">
-				<description>The OnOffTransitionTime attribute represents the time taken to move to or from the target level when On of Off commands are received by an On/Off cluster on the same endpoint. It is specified in 1/10ths of a second. The actual time taken should be as close to OnOffTransitionTime as the device is able.</description>
-			</attribute>
-			<attribute id = "0011" name="On Level" type="u8" range="0x00,0xfe" access="rw" required="o" default="0xfe">
-				<description>The OnLevel attribute determines the value that the CurrentLevel attribute is set to when the OnOff attribute of an On/Off cluster on the same endpoint is set to On. If the OnLevel attribute is not implemented, or is set to 0xff, it has no effect.</description>
-			</attribute>
-      <attribute id = "0012" name="On Transition Time" type="u16" range="0x0000,0xfffe" access="rw" required="o">
-			</attribute>
-      <attribute id = "0013" name="Off Transition Time" type="u16" range="0x0000,0xfffe" access="rw" required="o">
-			</attribute>
-      <attribute id = "0014" name="Default Move Rate" type="u8" range="0x00,0xfe" access="rw" required="o">
-      </attribute>
+			</attribute>			
 			<attribute id="0x4000" name="PowerOn Level" type="u8" access="rw" required="o">
-      </attribute>
+			</attribute>
 			<command id="0x00" dir="recv" name="Move to Level" required="m">
 				<description></description>
 				<payload>
