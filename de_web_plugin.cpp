@@ -376,6 +376,7 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_HANGZHOU_IMAGIC, "1116-S", energyMiMacPrefix }, // iris contact sensor v3
     { VENDOR_HANGZHOU_IMAGIC, "1117-S", energyMiMacPrefix }, // iris motion sensor v3
     { VENDOR_JENNIC, "113D", jennicMacPrefix }, // iHorn (Huawei) temperature and humidity sensor
+    { VENDOR_CHINA_FIRE_SEC, "LH05121", jennicMacPrefix }, // iHorn (Huawei) smoke detector
     { VENDOR_SERCOMM, "SZ-ESW01", emberMacPrefix }, // Sercomm / Telstra smart plug
     { VENDOR_SERCOMM, "SZ-SRN12N", emberMacPrefix }, // Sercomm siren
     { VENDOR_SERCOMM, "SZ-SRN12N", energyMiMacPrefix }, // Sercomm siren
@@ -4874,7 +4875,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("MOT003")) ||           // Hive motion sensor
                              modelId == QLatin1String("4in1-Sensor-ZB3.0") ||         // Immax NEO ZB3.0 4 in 1 sensor E13-A21
                              modelId == QLatin1String("E13-A21") ||                   // Sengled E13-A21 PAR38 bulp with motion sensor
-                             modelId == QLatin1String("TS0202") ||                    // Tuya generic motion sensor                   // Sonoff SNZB-03
+                             modelId == QLatin1String("TS0202") ||                    // Tuya generic motion sensor
                              modelId == QLatin1String("MS01") ||                      // Sonoff SNZB-03
                              modelId == QLatin1String("MSO1") ||                      // Sonoff SNZB-03
                              modelId == QLatin1String("ms01"))                        // Sonoff SNZB-03
@@ -4888,6 +4889,7 @@ void DeRestPluginPrivate::addSensorNode(const deCONZ::Node *node, const deCONZ::
                              modelId.startsWith(QLatin1String("SMSZB-120")) ||        // Develco smoke detector
                              modelId.startsWith(QLatin1String("HESZB-120")) ||        // Develco heat detector
                              modelId.startsWith(QLatin1String("SF2")) ||              // ORVIBO (Heiman) smoke sensor
+                             modelId.startsWith(QLatin1String("LH05121")) ||          // iHorn smoke detector
                              modelId.startsWith(QLatin1String("lumi.sensor_smoke")) || // Xiaomi Mi smoke sensor
                              modelId.startsWith(QLatin1String("TS0204")) ||           // Tuya gas sensor
                              modelId.startsWith(QLatin1String("TS0205")) ||           // Tuya smoke sensor
