@@ -310,7 +310,8 @@ static const SupportedDevice supportedDevices[] = {
     { VENDOR_DEVELCO, "MOSZB-130", develcoMacPrefix }, // Develco motion sensor
     { VENDOR_DEVELCO, "FLSZB-110", develcoMacPrefix }, // Develco water leak sensor
     { VENDOR_DEVELCO, "EMIZB-132", develcoMacPrefix }, // Develco EMI Norwegian HAN
-    { VENDOR_DEVELCO, "SMRZB-33", develcoMacPrefix }, // Develco Smart Relay DIN
+    { VENDOR_DEVELCO, "SMRZB-33", develcoMacPrefix },  // Develco Smart Relay DIN
+    { VENDOR_DEVELCO, "SMRZB-143", develcoMacPrefix }, // Develco Smart Cable
     { VENDOR_DEVELCO, "SIRZB-110", develcoMacPrefix }, // Develco siren
     { VENDOR_DEVELCO, "ZHMS101", develcoMacPrefix }, // Wattle (Develco) magnetic sensor
     { VENDOR_DEVELCO, "MotionSensor51AU", develcoMacPrefix }, // Aurora (Develco) motion sensor
@@ -8684,6 +8685,7 @@ void DeRestPluginPrivate::updateSensorNode(const deCONZ::NodeEvent &event)
                                     if (i->modelId() == QLatin1String("SmartPlug") ||         // Heiman
                                         i->modelId() == QLatin1String("SPLZB-131") ||         // Develco smart plug
                                         i->modelId().startsWith(QLatin1String("SMRZB-33")) || // Develco smart relay
+                                        i->modelId().startsWith(QLatin1String("SMRZB-143")) || // Develco smart cable
                                         i->modelId().startsWith(QLatin1String("SKHMP30")))    // GS smart plug
                                     {
                                         //voltage += 50; voltage /= 100; // 0.01V -> V

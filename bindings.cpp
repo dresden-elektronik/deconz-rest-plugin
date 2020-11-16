@@ -2552,6 +2552,7 @@ bool DeRestPluginPrivate::checkSensorBindingsForAttributeReporting(Sensor *senso
         sensor->modelId().startsWith(QLatin1String("ZHMS101")) ||   // Wattle (Develco) magnetic sensor
         sensor->modelId().startsWith(QLatin1String("EMIZB-132")) || // EMI Norwegian HAN
         sensor->modelId().startsWith(QLatin1String("SMRZB-33")) ||  // Smart Relay DIN
+        sensor->modelId().startsWith(QLatin1String("SMRZB-143")) || // Smart Cable
         sensor->modelId().startsWith(QLatin1String("SIRZB-110")) || // siren
         sensor->modelId() == QLatin1String("SPLZB-131") ||          // smart plug
         sensor->modelId() == QLatin1String("MotionSensor51AU") ||   // Aurora (Develco) motion sensor
